@@ -1,0 +1,30 @@
+{% from "coprs/_coprs_forms.html" import copr_build_cancel_form %}
+
+{% macro builds_table(builds) %}
+  {% if builds %}
+    <table class=builds-table>
+      <tr>
+        <th>Submitted on</th>
+        <th>Submitted by</th>
+        <th>Started on</th>
+        <th>Ended on</th>
+        <th>State</th>
+        <th>Results</th>
+        <th>Action</th>
+      </tr>
+    {% for build in builds %}
+      <tr class=build-{{ build.state }}>
+        <td>{{ build.submitted_on|date_from_secs }}</td>
+        <td>{{ build.user.name }}</td>
+        <td>{{ build.started_on|date_from_secs or 'Not yet' }}</td>
+        <td>{{ build.ended_on|date_from_secs or 'Not yet' }}</td>
+        <td>{{ build.state }}</td>
+        <td>{{ build.results }}</td>
+        <td>{{ copr_build_cancel_form(build) }}</td>
+      </tr>
+    {% endfor %}
+    </table>
+  {% else %}
+    <h3>No builds so far</h3>
+  {% endif %}
+{% endmacro %}

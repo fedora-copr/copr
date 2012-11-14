@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block title %}Coprs List{% endblock %}
+{% block header %}Coprs List{% endblock %}
+{% from "_helpers.html" import render_pagination %}
+{% block body %}
+  <a href={{ url_for('coprs_ns.copr_add') }}>Add a new Copr</a>
+    {% for copr in coprs %}
+      <div class=copr>
+        <h2><a href="{{ url_for('coprs_ns.copr_detail', name = copr.name) }}">{{ copr.name }}</a></h2>
+        chroots: {{ copr.chroots_list|join(', ') }}<br>
+        builds: {{ build_counts[loop.index0] }}<br>
+        {% if copr.repos %}
+          repos: {{ copr.repos_list|length }}
+        {% endif %}
+      </div>
+    {% else %}
+      <p><em>Unbelievable.  No entries here so far</em></p>
+    {% endfor %}
+  <div class=pagination>
+    {{ render_pagination(request, paginator) }}
+  </div>
+  <a href={{ url_for('coprs_ns.copr_add') }}>Add a new Copr</a>
+{% endblock %}

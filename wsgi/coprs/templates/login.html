@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Sign in Coprs{% endblock %}
+{% block header %}Sign in Coprs Build System{% endblock %}
+{% block body %}
+  {% if error %}<p class="error"><strong>Error:</strong> {{ error }}</p>{% endif %}
+
+  <div>
+    <h2>Fedora Accounts System login</h2>
+    <form action="" method="post">
+      Username:
+      <input type="text" name="fasuname" size="16" class="fas">
+      <input type="submit" value="Sign in">
+      <input type="hidden" name="next" value="{{ next }}">
+    </form>
+  </div>
+{% endblock %}

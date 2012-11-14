@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %}{{ copr.name }} Copr{% endblock %}
+{% block header %}Information for Copr {{ copr.name }}{% endblock %}
+{% from "coprs/_builds_table.html" import builds_table %}
+{% from "coprs/_permissions_table.html" import permissions_table %}
+{% from "coprs/_coprs_forms.html" import copr_build_form,
+                                         copr_build_cancel_form,
+					 copr_apply_for_building,
+					 copr_give_up_building with context %}
+
+{% block body %}
+  <h3>owner</h3>
+  {{ copr.owner.name }}
+  <h3>chroots</h3>
+  <ul class=chroots-list>
+    {% for chroot in copr.chroots_list %}
+      <li>{{ chroot }}</li>
+    {% endfor %}
+  </ul>
+  {% if copr.repos %}
+  <h3>repos</h3>
+  <ul class=repos-list>
+    {% for repo in copr.repos_list %}
+      <li>{{ repo }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <h3>Permissions</h3>
+  {{ permissions_table(permissions) }}
+  {% if g.user %}
+    {% if g.user != copr.owner %}
+      {% if g.user.permissions_for_copr(copr) %}
+        {{ copr_give_up_building(copr) }}
+      {% else %}
+        {{ copr_apply_for_building(copr) }}
+      {% endif %}
+    {% endif %}
+    {% if g.user.can_build_in(copr) %}
+      <h3>Build packages in this repo:</h3>
+      {{ copr_build_form(form, 'coprs_ns.copr_add_build', copr) }}
+    {% endif %}
+  {% endif %}
+  {% if g.user and g.user.id == copr.owner_id %}
+    <a href="{{ url_for('coprs_ns.copr_edit', name = copr.name) }}">Edit this Copr</a>
+  {% endif %}
+  {% if copr.builds %}
+    <h3>Latest 10 in this repo</h3>
+    {{ builds_table(copr.builds) }}
+    <a href="{{ url_for('coprs_ns.copr_show_builds', name = copr.name) }}">Show all builds</a>
+  {% else %}
+    <h3>No builds so far</h3>
+  {% endif %}
+{% endblock %}

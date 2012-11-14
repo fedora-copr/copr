@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}Add a Copr{% endblock %}
+{% block header %}Add a new Copr{% endblock %}
+{% from "coprs/_coprs_forms.html" import copr_form %}
+
+{% block body %}
+
+  {{ copr_form(form, view = 'coprs_ns.copr_new') }}
+
+{% endblock %}

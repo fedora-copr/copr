@@ -1,0 +1,68 @@
+{% from "_helpers.html" import render_field %}
+
+{% macro copr_form(form, view, name = None) %}
+  {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
+  <form action="{% if name %}{{ url_for(view, name = name) }}{% else %}{{ url_for(view) }}{% endif %}" method=post class=add-entry>
+    <dl>
+      {{ form.csrf_token }}
+      {{ render_field(form.name) }}
+      {# TODO: validate/change arches dynamically by JS #}
+      {{ render_field(form.release) }}
+      {{ render_field(form.arches, size = 2) }}
+      {{ render_field(form.repos, rows = 10, cols = 50) }}
+      <dd><input type=submit value=Submit></dd>
+    </dl>
+  </form>
+{% endmacro %}
+
+{% macro copr_permissions_form(form, copr, permissions) %}
+  {% if permissions %}
+    <form action="{{ url_for('coprs_ns.copr_update_permissions', name = copr.name) }}" method=post>
+      {{ form.csrf_token }}
+      <table class=permissions-table>
+        <tr><th>Username</th><th>Allowed to build</th></tr>
+        {% for perm in permissions %}
+          <tr><td>{{ perm.user.name }}</td><td>{{ form['user_{0}'.format(perm.user.id)] }}</td></tr>
+        {% endfor %}
+      </table>
+      <dd><input type=submit value=Save></dd>
+    </form>
+  {% endif %}
+{% endmacro %}
+
+{% macro copr_build_form(form, view, copr) %}
+    <form action="{{ url_for(view, name = copr.name) }}" method=post class=add-entry>
+      <dl>
+        {{ form.csrf_token }}
+        {{ render_field(form.pkgs, rows = 10, cols = 50) }}
+        {% if g.user.proven %}
+          {{ render_field(form.memory_reqs) }}
+          {{ render_field(form.timeout) }}
+          {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #}
+          {{ render_field(form.memory_reqs, hidden = True) }}
+          {{ render_field(form.timeout, hidden = True) }}
+        {% endif %}
+        <dd><input type=submit value=Submit></dd>
+      </dl>
+    </form>
+{% endmacro %}
+
+{% macro copr_build_cancel_form(build) %}
+  {% if build.cancelable %}
+    <form action="{{ url_for('coprs_ns.copr_cancel_build', name = build.copr.name, build_id = build.id)}}">
+      <input type=submit value=Cancel>
+    </form>
+  {% endif %}
+{% endmacro %}
+
+{% macro copr_apply_for_building(copr) %}
+  <form action="{{ url_for('coprs_ns.copr_apply_for_building', name = copr.name) }}" method=post>
+    <input type=submit value="Apply for building">
+  </form>
+{% endmacro %}
+
+{% macro copr_give_up_building(copr) %}
+  <form action="{{ url_for('coprs_ns.copr_give_up_building', name = copr.name) }}" method=post>
+    <input type=submit value="Give up building">
+  </form>
+{% endmacro %}
