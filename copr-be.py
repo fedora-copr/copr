@@ -29,6 +29,13 @@ class CoprBackend(object):
         self.config_file = config_file
         self.opts = self.read_config()
 
+        logdir = os.path.dirname(self.opts.logfile)
+        if not os.path.exists(logdir):
+            os.makedirs(logdir, mode=0750)
+        
+        if not os.path.exists(self.opts.worker_logdir):
+            os.makedirs(self.opts.worker_logdir, module=0750)
+            
         self.jobs = multiprocessing.Queue()
         self.workers = []
         self.added_jobs = []
