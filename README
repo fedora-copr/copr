@@ -1,0 +1,7 @@
+This is the master copr branch.
+Right now all the work is going on in 2 branches:
+ - skvidal-backend   - this is the backend/builder code
+ - bkabrda-workspace - this is the frontend/webinterface code
+
+
+
