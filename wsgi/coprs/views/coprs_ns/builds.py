@@ -11,31 +11,38 @@ from coprs.views.misc import login_required
 
 from coprs.views.coprs_ns.general import coprs_ns
 
-@coprs_ns.route('/detail/<name>/builds/', defaults = {'page': 1})
-@coprs_ns.route('/detail/<name>/builds/<int:page>/')
-def copr_show_builds(name, page = 1):
+@coprs_ns.route('/detail/<username>/<coprname>/builds/', defaults = {'page': 1})
+@coprs_ns.route('/detail/<username>/<coprname>/builds/<int:page>/')
+def copr_show_builds(username, coprname, page = 1):
     query = models.Build.query.join(models.Copr.builds).\
+                               join(models.Copr.owner).\
                                options(db.contains_eager(models.Build.copr)).\
-                               filter(models.Copr.name == name).\
+                               filter(models.Copr.name == coprname).\
+                               filter(models.User.openid_name == models.User.openidize_name(username)).\
                                order_by(models.Build.submitted_on.desc())
 
     build_count = query.count()
     if build_count == 0: # no builds => we still need Copr
         copr = models.Copr.query.filter(models.Copr.name == name).first()
         if not copr: # hey, this Copr doesn't exist
-            return page_not_found('Copr with name {0} does not exist.'.format(name))
+            return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     paginator = helpers.Paginator(query, build_count, page, per_page_override = 20)
     return flask.render_template('coprs/show_builds.html', builds = paginator.sliced_query, paginator = paginator)
 
 
-@coprs_ns.route('/detail/<name>/add_build/', methods = ["POST"])
+@coprs_ns.route('/detail/<username>/<coprname>/add_build/', methods = ["POST"])
 @login_required
-def copr_add_build(name = None):
+def copr_add_build(username, coprname):
     form = forms.BuildForm()
-    copr = models.Copr.query.filter(models.Copr.name == name).first()
+    copr = models.Copr.query.\
+                       join(models.Copr.owner).\
+                       options(db.contains_eager(models.Copr.owner)).\
+                       filter(models.Copr.name == coprname).\
+                       filter(models.User.openid_name == models.User.openidize_name(username)).\
+                       first()
     if not copr: # hey, this Copr doesn't exist
-        return page_not_found('Copr with name {0} does not exist.'.format(name))
+        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     if form.validate_on_submit() and flask.g.user.can_build_in(copr):
         build = models.Build(pkgs = form.pkgs.data.replace('\n', ' '),
@@ -52,14 +59,14 @@ def copr_add_build(name = None):
         db.session.commit()
 
         flask.flash("Build was added")
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', name = copr.name))
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = copr.name))
     else:
         return flask.render_template('coprs/detail.html', copr = copr, form = form)
 
 
-@coprs_ns.route('/detail/<name>/cancel_build/<int:build_id>/')
+@coprs_ns.route('/detail/<username>/<coprname>/cancel_build/<int:build_id>/')
 @login_required
-def copr_cancel_build(name, build_id):
+def copr_cancel_build(username, coprname, build_id):
     # only the user who ran the build can cancel it
     build = models.Build.query.filter(models.Build.id == build_id).first()
     if not build: # hey, this Copr doesn't exist
@@ -71,4 +78,4 @@ def copr_cancel_build(name, build_id):
         db.session.commit()
         flask.flash('Build was canceled')
 
-    return flask.redirect(flask.url_for('coprs_ns.copr_detail', name = name))
+    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = coprname))

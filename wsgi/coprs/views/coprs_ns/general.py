@@ -15,7 +15,9 @@ coprs_ns = flask.Blueprint('coprs_ns',
 @coprs_ns.route('/<int:page>/')
 def coprs_show(page = 1):
     query = db.session.query(models.Copr, db.func.count(models.Build.id)).\
+                       join(models.Copr.owner).\
                        outerjoin(models.Copr.builds).\
+                       options(db.contains_eager(models.Copr.owner)).\
                        group_by(models.Copr.id)
     paginator = helpers.Paginator(query, query.count(), page)
 
@@ -26,13 +28,14 @@ def coprs_show(page = 1):
     return flask.render_template('coprs/show.html', coprs = coprs, build_counts = build_counts, paginator = paginator)
 
 
-@coprs_ns.route('/owned/<name>/', defaults = {'page': 1})
-@coprs_ns.route('/owned/<name>/<int:page>/')
-def coprs_by_owner(name = None, page = 1):
+@coprs_ns.route('/owned/<username>/', defaults = {'page': 1})
+@coprs_ns.route('/owned/<username>/<int:page>/')
+def coprs_by_owner(username = None, page = 1):
     query = db.session.query(models.Copr, db.func.count(models.Build.id)).\
                        join(models.Copr.owner).\
                        outerjoin(models.Copr.builds).\
-                       filter(models.User.openid_name == models.User.openidize_name(name)).\
+                       options(db.contains_eager(models.Copr.owner)).\
+                       filter(models.User.openid_name == models.User.openidize_name(username)).\
                        group_by(models.Copr.id)
     paginator = helpers.Paginator(query, query.count(), page)
 
@@ -43,14 +46,14 @@ def coprs_by_owner(name = None, page = 1):
     return flask.render_template('coprs/show.html', coprs = coprs, build_counts = build_counts, paginator = paginator)
 
 
-@coprs_ns.route('/allowed/<name>/', defaults = {'page': 1})
-@coprs_ns.route('/allowed/<name>/<int:page>/')
-def coprs_by_allowed(name = None, page = 1):
+@coprs_ns.route('/allowed/<username>/', defaults = {'page': 1})
+@coprs_ns.route('/allowed/<username>/<int:page>/')
+def coprs_by_allowed(username = None, page = 1):
     query = db.session.query(models.Copr, models.CoprPermission, models.User, db.func.count(models.Build.id)).\
                        outerjoin(models.Copr.builds).\
                        join(models.Copr.copr_permissions).\
                        join(models.CoprPermission.user).\
-                       filter(models.User.openid_name == models.User.openidize_name(name)).\
+                       filter(models.User.openid_name == models.User.openidize_name(username)).\
                        filter(models.CoprPermission.approved == True).\
                        group_by(models.Copr.id)
     paginator = helpers.Paginator(query, query.count(), page)
@@ -80,7 +83,7 @@ def copr_new():
                            chroots = ' '.join(form.chroots),
                            repos = form.repos.data.replace('\n', ' '),
                            owner = flask.g.user)
-
+        # TODO: verify that user doesn't already have a copr with this name
         db.session.add(copr)
         db.session.commit()
 
@@ -90,17 +93,18 @@ def copr_new():
         return flask.render_template('coprs/add.html', form = form)
 
 
-@coprs_ns.route('/detail/<name>/')
-def copr_detail(name = None):
+@coprs_ns.route('/detail/<username>/<coprname>/')
+def copr_detail(username, coprname):
     form = forms.BuildForm()
     try: # query will raise an index error, if Copr doesn't exist
         copr = models.Copr.query.outerjoin(models.Copr.builds).\
                                  join(models.Copr.owner).\
                                  options(db.contains_eager(models.Copr.builds), db.contains_eager(models.Copr.owner)).\
-                                 filter(models.Copr.name == name).\
+                                 filter(models.Copr.name == coprname).\
+                                 filter(models.User.openid_name == models.User.openidize_name(username)).\
                                  order_by(models.Build.submitted_on.desc())[0:10][0] # we retrieved all builds, but we got one copr in a list...
     except IndexError:
-        return page_not_found('Copr with name {0} does not exist.'.format(name))
+        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
     permissions = models.CoprPermission.query.join(models.CoprPermission.user).\
                                               options(db.contains_eager(models.CoprPermission.user)).\
                                               filter(models.CoprPermission.copr_id == copr.id).\
@@ -109,16 +113,19 @@ def copr_detail(name = None):
     return flask.render_template('coprs/detail.html', copr = copr, form = form, permissions = permissions)
 
 
-@coprs_ns.route('/edit/<name>/')
+@coprs_ns.route('/detail/<username>/<coprname>/edit/')
 @login_required
-def copr_edit(name = None):
+def copr_edit(username, coprname):
     query = db.session.query(models.Copr, models.CoprPermission).\
                        outerjoin(models.CoprPermission).\
-                       filter(models.Copr.name == name).\
+                       outerjoin(models.Copr.owner).\
+                       options(db.contains_eager(models.Copr.owner)).\
+                       filter(models.Copr.name == coprname).\
+                       filter(models.User.openid_name == models.User.openidize_name(username)).\
                        all()
     copr = query[0][0]
     if not copr:
-        return page_not_found('Copr with name {0} does not exist.'.format(name))
+        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
     form = forms.CoprForm(obj = copr)
 
     permissions = map(lambda x: x[1], query)
@@ -132,35 +139,49 @@ def copr_edit(name = None):
                                  permissions_form = permissions_form)
 
 
-@coprs_ns.route('/update/<name>/', methods = ['POST'])
+@coprs_ns.route('/detail/<username>/<coprname>/update/', methods = ['POST'])
 @login_required
-def copr_update(name = None):
+def copr_update(username, coprname):
     form = forms.CoprForm()
-    copr = models.Copr.query.filter(models.Copr.name == name).first()
+    copr = models.Copr.query.\
+                       join(models.Copr.owner).\
+                       options(db.contains_eager(models.Copr.owner)).\
+                       filter(models.Copr.name == coprname).\
+                       filter(models.User.openid_name == models.User.openidize_name(username)).\
+                       first()
     # only owner can update a copr
     if flask.g.user != copr.owner:
         flask.flash('Only owners may update their Coprs.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', name = form.name.data))
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = form.name.data))
 
     if form.validate_on_submit():
         # we don't change owner (yet)
-        updated = models.Copr.query.filter(models.Copr.name == name).\
-                                    update({'name': form.name.data,
-                                            'chroots': ' '.join(form.chroots),
-                                            'repos': form.repos.data.replace('\n', ' ')})
+        # TODO: verify that this user doesn't already have copr named like this
+        copr = models.Copr.query.join(models.Copr.owner).\
+                                 filter(models.Copr.name == coprname).\
+                                 filter(models.User.openid_name == models.User.openidize_name(username)).\
+                                 first()
+        copr.name = form.name.data
+        copr.chroots = ' '.join(form.chroots)
+        copr.repos = form.repos.data.replace('\n', ' ')
+
+        db.session.add(copr)
         db.session.commit()
         flask.flash('Copr was updated successfully.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', name = form.name.data))
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = form.name.data))
     else:
         return flask.render_template('coprs/edit.html', copr = copr, form = form)
 
 
-@coprs_ns.route('/apply_for_building/<name>/', methods = ['POST'])
+@coprs_ns.route('/detail/<username>/<coprname>/apply_for_building', methods = ['POST'])
 @login_required
-def copr_apply_for_building(name = None):
+def copr_apply_for_building(username, coprname):
     query = db.session.query(models.Copr, models.CoprPermission).\
+                       join(models.Copr.owner).\
                        outerjoin(models.CoprPermission).\
-                       filter(models.Copr.name == name).\
+                       options(db.contains_eager(models.Copr.owner)).\
+                       filter(models.Copr.name == coprname).\
+                       filter(models.User.openid_name == models.User.openidize_name(coprname)).\
                        filter(db.or_(models.CoprPermission.user == flask.g.user, models.CoprPermission.user == None)).\
                        first()
     copr = query[0]
@@ -176,15 +197,18 @@ def copr_apply_for_building(name = None):
         db.session.commit()
         flask.flash('You have successfuly applied for building in Copr "{0}".'.format(copr.name))
 
-    return flask.redirect(flask.url_for('coprs_ns.copr_detail', name = copr.name))
+    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
 
-@coprs_ns.route('/give_up_building/<name>/', methods = ['POST'])
+@coprs_ns.route('/detail/<username>/<coprname>/give_up_building/', methods = ['POST'])
 @login_required
-def copr_give_up_building(name = None):
+def copr_give_up_building(username, coprname):
     query = db.session.query(models.Copr, models.CoprPermission).\
+                       join(models.Copr.owner).\
                        outerjoin(models.CoprPermission).\
-                       filter(models.Copr.name == name).\
+                       options(db.contains_eager(models.Copr.owner)).\
+                       filter(models.Copr.name == coprname).\
+                       filter(models.User.openid_name == models.User.openidize_name(username)).\
                        filter(models.CoprPermission.user == flask.g.user).\
                        first()
     copr = query[0]
@@ -198,20 +222,25 @@ def copr_give_up_building(name = None):
         db.session.commit()
         flask.flash('You have successfuly given up building in Copr "{0}".'.format(copr.name))
 
-    return flask.redirect(flask.url_for('coprs_ns.copr_detail', name = copr.name))
+    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
 
-@coprs_ns.route('/update_permissions/<name>/', methods = ['POST'])
+@coprs_ns.route('/detail/<username>/<coprname>/update_permissions/', methods = ['POST'])
 @login_required
-def copr_update_permissions(name = None): #TODO: optimize!
-    copr = models.Copr.query.filter(models.Copr.name == name).first()
+def copr_update_permissions(username, coprname): #TODO: optimize!
+    copr = models.Copr.query.\
+                       join(models.Copr.owner).\
+                       options(db.contains_eager(models.Copr.owner)).\
+                       filter(models.User.name == username).\
+                       filter(models.Copr.name == coprname).\
+                       first()
     permissions = models.CoprPermission.query.filter(models.CoprPermission.copr_id == copr.id).all()
     permissions_form = forms.DynamicPermissionsFormFactory.create_form_cls(permissions)()
 
     # only owner can update copr permissions
     if flask.g.user != copr.owner:
         flask.flash('Only owners may update their Coprs permissions.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', name = copr.name))
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
     if permissions_form.validate_on_submit():
         # we don't change owner (yet)
@@ -221,6 +250,6 @@ def copr_update_permissions(name = None): #TODO: optimize!
                                         update({'approved': permissions_form['user_{0}'.format(perm.user_id)].data})
         db.session.commit()
         flask.flash('Copr permissions were updated successfully.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', name = copr.name))
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
     else:
         return flask.render_template('coprs/edit.html', copr = copr, form = form)

@@ -10,8 +10,8 @@
   {% block menu %}
     <a href="{{ url_for('coprs_ns.coprs_show') }}">All Coprs</a>
     {% if g.user %}
-      <a href="{{ url_for('coprs_ns.coprs_by_owner', name = g.user.name) }}">Owned Coprs</a>
-      <a href="{{ url_for('coprs_ns.coprs_by_allowed', name = g.user.name) }}">Coprs I Can Build In</a>
+      <a href="{{ url_for('coprs_ns.coprs_by_owner', username = g.user.name) }}">Owned Coprs</a>
+      <a href="{{ url_for('coprs_ns.coprs_by_allowed', username = g.user.name) }}">Coprs I Can Build In</a>
       <a class=log-url href="{{ url_for('misc.logout') }}">Log out</a>
     {% else %}
       <a class=log-url href="{{ url_for('misc.login') }}">Log in</a>

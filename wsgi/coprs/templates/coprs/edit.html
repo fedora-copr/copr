@@ -9,6 +9,6 @@
   <h3>Permissions</h3>
   {{ copr_permissions_form(permissions_form, copr, permissions) }}
   <h3>Other attributes</h3>
-  {{ copr_form(form, view = 'coprs_ns.copr_update', name = copr.name) }}
+  {{ copr_form(form, view = 'coprs_ns.copr_update', copr = copr) }}
 
 {% endblock %}

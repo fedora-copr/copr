@@ -9,5 +9,5 @@
   <div class=pagination>
     {{ render_pagination(request, paginator) }}
   </div>
-  <a href="{{ url_for('coprs_ns.copr_detail', name = request.view_args['name']) }}">Back to Copr</a>
+  <a href="{{ url_for('coprs_ns.copr_detail', username = request.view_args['username'], coprname = request.view_args['coprname']) }}">Back to Copr</a>
 {% endblock %}

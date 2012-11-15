@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
-{% block title %}{{ copr.name }} Copr{% endblock %}
-{% block header %}Information for Copr {{ copr.name }}{% endblock %}
+{% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
+{% block header %}Information for Copr {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 {% from "coprs/_builds_table.html" import builds_table %}
 {% from "coprs/_permissions_table.html" import permissions_table %}
 {% from "coprs/_coprs_forms.html" import copr_build_form,
@@ -9,8 +9,6 @@
 					 copr_give_up_building with context %}
 
 {% block body %}
-  <h3>owner</h3>
-  {{ copr.owner.name }}
   <h3>chroots</h3>
   <ul class=chroots-list>
     {% for chroot in copr.chroots_list %}
@@ -41,12 +39,12 @@
     {% endif %}
   {% endif %}
   {% if g.user and g.user.id == copr.owner_id %}
-    <a href="{{ url_for('coprs_ns.copr_edit', name = copr.name) }}">Edit this Copr</a>
+    <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Edit this Copr</a>
   {% endif %}
   {% if copr.builds %}
     <h3>Latest 10 in this repo</h3>
     {{ builds_table(copr.builds) }}
-    <a href="{{ url_for('coprs_ns.copr_show_builds', name = copr.name) }}">Show all builds</a>
+    <a href="{{ url_for('coprs_ns.copr_show_builds', username = copr.owner.name, coprname = copr.name) }}">Show all builds</a>
   {% else %}
     <h3>No builds so far</h3>
   {% endif %}
