@@ -1,14 +1,20 @@
 #!/usr/bin/env python
 
 import argparse
+import os
 
-from coprs import db
+from coprs import app, db
 
 class DBManager(object):
     def __init__(self, db):
         self.db = db
 
     def create_db(self):
+        if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+            # strip sqlite:///
+            datadir_name = os.path.dirname(app.config['SQLALCHEMY_DATABASE_URI'][10:])
+            if not os.path.exists(datadir_name):
+                os.makedirs(datadir_name)
         self.db.create_all()
 
     def delete_db(self):
