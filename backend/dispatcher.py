@@ -1,18 +1,18 @@
 #!/usr/bin/python -tt
 
 
-import sys
 import os
-import glob
-import subprocess
+import sys
 import multiprocessing
 import time
 import Queue
 import json
 import mockremote
 from bunch import Bunch
+import errors
 import ansible
 import ansible.playbook
+import ansible.errors
 from ansible import callbacks
 
 
@@ -62,43 +62,85 @@ class SilentPlaybookCallbacks(callbacks.object):
     def on_stats(self, stats):
         callbacks.call_callback_module('playbook_on_stats', stats)
 
-def spawn_instance(opts, ip):
+
+class WorkerCallback(object):
+    def __init__(self, logfile=None):
+        self.logfile = logfile
     
-    # FIXME - setup silent callbacks
-    #       - check errors in setup
-    #       - playbook variablized
-    stats = callbacks.AggregateStats()
-    playbook_cb = SilentPlaybookCallbacks(verbose=False)
-    runner_cb = callbacks.DefaultRunnerCallbacks()
-    play = ansible.playbook.PlayBook(stats=stats, playbook='/srv/copr-work/provision/builderpb.yml', 
-                             callbacks=playbook_cb, runner_callbacks=runner_cb, remote_user='root')
-
-    play.run()
-    if ip:
-        return ip
+    def log(self, msg):
+        if not self.logfile:
+            return
+            
+        now = time.time()
+        try:
+            open(self.logfile, 'a').write(str(now) + ':' + msg + '\n')
+        except (IOError, OSError), e:
+            print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
+            
         
-    for i in play.SETUP_CACHE:
-        if i =='localhost':
-            continue
-        return i
-
 class Worker(multiprocessing.Process):
     def __init__(self, opts, jobs, ip=None, create=True, callback=None):
  
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
- 
+        
+            
         # job management stuff
         self.jobs = jobs
         self.ip = ip
         self.opts = opts
         self.kill_received = False
-        print 'creating worker: %s' % ip
+        self.callback = callback
+        if not self.callback:
+            lf = self.opts.worker_logdir + '/worker-%s.log'  % self.pid
+            self.callback = WorkerCallback(logfile = lf)
+        
+        self.callback.log('creating worker: %s' % ip)
 
+    def spawn_instance(self):
+        
+        stats = callbacks.AggregateStats()
+        playbook_cb = SilentPlaybookCallbacks(verbose=False)
+        runner_cb = callbacks.DefaultRunnerCallbacks()
+        # fixme - extra_vars to include ip as a var if we need to specify ips
+        # also to include info for instance type to handle the memory requirements of builds
+        play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.playbook, 
+                             callbacks=playbook_cb, runner_callbacks=runner_cb, 
+                             remote_user='root')
+
+        play.run()
+        if self.ip:
+            return self.ip
+            
+        for i in play.SETUP_CACHE:
+            if i =='localhost':
+                continue
+            return i
+        return None
     
-    def parse_job(job):
+    def parse_job(self, jobfile):
         # read the json of the job in
-        # break out what we need return a structured 
+        # break out what we need return a bunch of the info we need
+        d = json.load(open(jobfile))
+        build = d['builds'][0]
+        jobdata = Bunch()
+        jobdata.pkgs = build['pkgs'].split(' ')
+        jobdata.repos = build['repos'].split(' ')
+        jobdata.chroots = build['chroots'].split(' ')
+        jobdata.memory_reqs = build['memory_reqs']
+        jobdata.timeout = build['timeout']
+        jobdata.destdir = self.opts.destdir + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'] + '/'
+        jobdata.build_id = build['id']
+        jobdata.copr_id = build['copr']['id']
+        jobdata.user_id = build['user_id']
+        return jobdata
+
+    def return_results(self, job):
+        self.log('%s status %s. Took %s seconds' % (job.id, job.status, build.ended_on - build.startedon)
+        os.unlink(job.jobfile)
+        #FIXME - this should either return job status/results 
+        # into a queue or it should submit results directly to the frontend
+        
     def run(self):
         # worker should startup and check if it can function
         # for each job it takes from the jobs queue
@@ -108,41 +150,43 @@ class Worker(multiprocessing.Process):
 
         while not self.kill_received:
             try:
-                job = self.jobs.get()
+                jobfile = self.jobs.get()
             except Queue.Empty:
                 break
             
-            self.cur_job = job
-            f = open(self.opts.get('destdir', '/') + '/' +  job, 'w')
-            f.write('')
-            f.close()
-            
             # parse the job json into our info
-            # pkgs
-            # repos
-            # chroot(s)
-            # memory needed
-            # timeout
-            # make up a destdir
+            job = self.parse_job(jobfile)
             
-            #print 'start up instance %s using %s' % (self.ip, self.opts.get('playbook', None))
-            ip = spawn_instance(self.opts, ip=ip)
+            job.jobfile = jobfile
             
-            destdir = construct_something_here
-            
+            # spin up our build instance
             try:
-                mr = mockremote.MockRemote(builder=ip, timeout=timeout, 
-                     destdir=destdir, chroot=chroot, cont=True, recurse=True,
-                     repos=repos, callback=None)
-                mr.build_pkgs(pkgs)
-            except mockremote.MockRemoteError, e:
-                # record and break
-                print '%s - %s' % (ip, e)
-                break
+                ip = self.spawn_instance()
+                if not ip:
+                    raise errors.CoprWorkerError, "No IP found from creating instance"
+
+            except ansible.errors.AnsibleError, e:
+                self.callback.log('failure to setup instance: %s' % e)
+                raise
+
+            status = 1
+            job.started_on = time.time()
+            for chroot in job.chroots:
+                self.callback.log('mockremote on %s - %s' % (ip, jobfile))
+                try:
+                    mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
+                         destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
+                         repos=job.repos, callback=None)
+                    mr.build_pkgs(job.pkgs)
+                except mockremote.MockRemoteError, e:
+                    # record and break
+                    self.callback.log('%s - %s' % (ip, e))
+                    status = 0 # failure
             
-            # run mockremote to that ip with the args from above
-            print 'mockremote on %s - %s' % (ip, job)
-            time.sleep(30)
-            #print 'terminate-instance %s' % (self. ip)
+            job.ended_on = time.time()
+            job.status = status
+            self.return_results(job)
+            
+            
             
 
