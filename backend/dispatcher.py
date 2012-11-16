@@ -81,7 +81,7 @@ class WorkerCallback(object):
             
         
 class Worker(multiprocessing.Process):
-    def __init__(self, opts, jobs, ip=None, create=True, callback=None):
+    def __init__(self, opts, jobs, worker_num, ip=None, create=True, callback=None):
  
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
@@ -89,12 +89,13 @@ class Worker(multiprocessing.Process):
             
         # job management stuff
         self.jobs = jobs
+        self.worker_num = worker_num
         self.ip = ip
         self.opts = opts
         self.kill_received = False
         self.callback = callback
         if not self.callback:
-            lf = self.opts.worker_logdir + '/worker-%s.log'  % self.pid
+            lf = self.opts.worker_logdir + '/worker-%s.log' % self.worker_num
             self.callback = WorkerCallback(logfile = lf)
         
         self.callback.log('creating worker: %s' % ip)
@@ -188,6 +189,8 @@ class Worker(multiprocessing.Process):
             job.ended_on = time.time()
             job.status = status
             self.return_results(job)
+            self.callback.log('worker finished build: %s' % ip)
+            # call terminate on the instance
             
             
             

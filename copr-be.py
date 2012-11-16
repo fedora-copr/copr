@@ -99,7 +99,8 @@ class CoprBackend(object):
                 # this handles starting/growing the number of workers
                 if len(self.workers) < self.opts.num_workers:
                     for i in range(self.opts.num_workers - len(self.workers)):
-                        w = Worker(self.opts, self.jobs)
+                        worker_num = len(self.workers) + 1
+                        w = Worker(self.opts, self.jobs, worker_num)
                         self.workers.append(w)
                         w.start()
                 # FIXME - prune out workers
