@@ -95,8 +95,8 @@ class Worker(multiprocessing.Process):
         self.kill_received = False
         self.callback = callback
         if not self.callback:
-            lf = self.opts.worker_logdir + '/worker-%s.log' % self.worker_num
-            self.callback = WorkerCallback(logfile = lf)
+            self.logfile = self.opts.worker_logdir + '/worker-%s.log' % self.worker_num
+            self.callback = WorkerCallback(logfile = logfile)
         
         self.callback.log('creating worker: %s' % ip)
 
@@ -177,11 +177,23 @@ class Worker(multiprocessing.Process):
             status = 1
             job.started_on = time.time()
             for chroot in job.chroots:
+                
+                # setup our target dir locally
+                if not os.path.exists(job.destdir):
+                    try:
+                        os.makedirs(job.destdir, mode=0755)
+                    except (OSError, IOError), e:
+                        msg = "Could not make results dir for job: %s - %s" % (job.destdir, str(e))
+                        self.callback.log(msg)
+                        status = 0
+                        continue
+                        
                 self.callback.log('mockremote %s %s %s %s %s' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
                 try:
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
                          destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
-                         repos=job.repos, callback=None)
+                         repos=job.repos, 
+                         callback=mockremote.DefaultCallBack(quiet=True,logfn=self.logfile))
                     mr.build_pkgs(job.pkgs)
                 except mockremote.MockRemoteError, e:
                     # record and break
@@ -192,7 +204,7 @@ class Worker(multiprocessing.Process):
             job.status = status
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
-            # call terminate on the instance
+            # FIXME call terminate on the instance
             
             
             
