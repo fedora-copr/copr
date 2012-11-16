@@ -19,7 +19,7 @@ from ansible import callbacks
 
 
 
-class SilentPlaybookCallbacks(callbacks.object):
+class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
     ''' playbook callbacks - quietly! '''
 
     def __init__(self, verbose=False):
