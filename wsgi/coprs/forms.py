@@ -1,10 +1,13 @@
 import re
 import urlparse
 
+import flask
+
 from flask.ext import wtf
 
 from coprs import constants
 from coprs import helpers
+from coprs import models
 
 class UrlListValidator(object):
     def __init__(self, message = None):
@@ -41,6 +44,21 @@ class AllowedArchesValidator(object):
             if a not in constants.CHROOTS[form.release.data]:
                 raise wtf.ValidationError(self.message.format(a))
 
+class CoprUniqueNameValidator(object):
+    def __init__(self, message = None):
+        if not message:
+            message = 'You already have copr named "{0}".'
+        self.message = message
+
+    def __call__(self, form, field):
+        existing = models.Copr.query.filter(models.Copr.name == field.data).\
+                                     filter(models.Copr.owner_id == flask.g.user.id)
+        if form.id.data:
+            existing = existing.filter(models.Copr.id != form.id.data)
+
+        if existing.first():
+            raise wtf.ValidationError(self.message.format(field.data))
+
 
 class StringListFilter(object):
     def __call__(self, value):
@@ -55,9 +73,13 @@ class StringListFilter(object):
 
 class CoprForm(wtf.Form):
     # TODO: validations
+    # also use id here, to be able to find out whether user is updating a copr
+    # if so, we don't want to shout that name already exists
+    id = wtf.HiddenField()
     name = wtf.TextField('Name',
                          validators = [wtf.Required(),
-                         wtf.Regexp(re.compile(r'^[\w-]+$'), message = 'Name must contain only letters, digits, underscores and dashes.')])
+                         wtf.Regexp(re.compile(r'^[\w-]+$'), message = 'Name must contain only letters, digits, underscores and dashes.'),
+                         CoprUniqueNameValidator()])
     # choices must be list of tuples
     # => make list like [(fedora-18, fedora-18), ...]
     release = wtf.SelectField('Release', choices = [(x, x) for x in constants.CHROOTS])
@@ -71,7 +93,6 @@ class CoprForm(wtf.Form):
     @property
     def chroots(self):
         return ['{0}-{1}'.format(self.release.data, arch) for arch in self.arches.data ]
-
 
 class BuildForm(wtf.Form):
     pkgs = wtf.TextAreaField('Pkgs',
