@@ -50,7 +50,7 @@ class CoprBackend(object):
         try:
             cp.read(self.config_file)
             opts.results_baseurl = _get_conf(cp,'backend', 'results_baseurl', 'http://copr')
-            opts.frontend_url = _get_config(cp, 'backend', 'frontend_url', 'http://coprs/rest/api')
+            opts.frontend_url = _get_conf(cp, 'backend', 'frontend_url', 'http://coprs/rest/api')
             opts.frontend_auth = _get_conf(cp,'backend', 'frontend_auth', 'PASSWORDHERE')
             opts.playbook = _get_conf(cp,'backend','playbook', '/etc/copr/builder_playbook.yml')
             opts.jobsdir = _get_conf(cp, 'backend', 'jobsdir', None)
@@ -97,7 +97,7 @@ class CoprBackend(object):
             # this handles starting/growing the number of workers
             if len(self.workers) < self.opts.num_workers:
                 for i in range(self.opts.num_workers - len(self.workers)):
-                    w = dispatcher.Worker(self.opts, self.jobs)
+                    w = Worker(self.opts, self.jobs)
                     self.workers.append(w)
                     w.start()
             # FIXME - prune out workers
@@ -108,7 +108,7 @@ class CoprBackend(object):
             # FIXME - if a worker bombs out - we need to check them
             # and startup a new one if it happens
         
-            self.log("# jobs in queue: %s" % jobs.qsize())
+            self.log("# jobs in queue: %s" % self.jobs.qsize())
 
         time.sleep(self.opts.sleeptime)
 
