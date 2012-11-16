@@ -124,7 +124,7 @@ def main(args):
         cbe.run()
     except Exception, e:
         print 'Killing/Dying'
-        if cbe in locals()
+        if 'cbe' in locals():
             for w in cbe.workers:
                 w.terminate()
         raise
