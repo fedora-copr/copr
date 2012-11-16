@@ -96,7 +96,7 @@ class Worker(multiprocessing.Process):
         self.callback = callback
         if not self.callback:
             self.logfile = self.opts.worker_logdir + '/worker-%s.log' % self.worker_num
-            self.callback = WorkerCallback(logfile = logfile)
+            self.callback = WorkerCallback(logfile = self.logfile)
         
         self.callback.log('creating worker: %s' % ip)
 
