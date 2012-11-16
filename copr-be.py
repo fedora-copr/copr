@@ -97,7 +97,7 @@ class CoprBackend(object):
                     self.log('adding %s' % n)
             
             if self.jobs.qsize():
-
+                self.log("# jobs in queue: %s" % self.jobs.qsize())
                 # re-read config into opts
                 self.opts = self.read_conf()
                 # this handles starting/growing the number of workers
@@ -115,8 +115,6 @@ class CoprBackend(object):
                 #       #insert a poison pill? Kill after something? I dunno.
                 # FIXME - if a worker bombs out - we need to check them
                 # and startup a new one if it happens
-        
-            self.log("# jobs in queue: %s" % self.jobs.qsize())
 
             time.sleep(self.opts.sleeptime)
 

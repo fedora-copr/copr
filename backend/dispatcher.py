@@ -175,7 +175,7 @@ class Worker(multiprocessing.Process):
             status = 1
             job.started_on = time.time()
             for chroot in job.chroots:
-                self.callback.log('mockremote on %s - %s' % (ip, jobfile))
+                self.callback.log('mockremote %s %s %s %s %s' % (ip, job.timeout, job.destdir, chroot, str(repos)))
                 try:
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
                          destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
