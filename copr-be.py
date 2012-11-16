@@ -86,33 +86,33 @@ class CoprBackend(object):
 
         abort = False
         while not abort:
-            print 'adding jobs'
             for f in sorted(glob.glob(self.opts.jobsdir + '/*.json')):
                 n = os.path.basename(f).replace('.json', '')
                 if n not in self.added_jobs:
                     self.jobs.put(f)
                     self.added_jobs.append(n)
                     self.log('adding %s' % n)
-
-            # re-read config into opts
-            self.opts= self.read_conf()
-            # this handles starting/growing the number of workers
-            if len(self.workers) < self.opts.num_workers:
-                for i in range(self.opts.num_workers - len(self.workers)):
-                    w = Worker(self.opts, self.jobs)
-                    self.workers.append(w)
-                    w.start()
-            # FIXME - prune out workers
-            #if len(self.workers) > self.opts.num_workers:
-            #    killnum = len(self.workers) - self.opts.num_workers
-            #    for w in self.workers[:killnum]:
-            #       #insert a poison pill? Kill after something? I dunno.
-            # FIXME - if a worker bombs out - we need to check them
-            # and startup a new one if it happens
+            
+            if self.jobs.qsize():
+                # re-read config into opts
+                self.opts = self.read_conf()
+                # this handles starting/growing the number of workers
+                if len(self.workers) < self.opts.num_workers:
+                    for i in range(self.opts.num_workers - len(self.workers)):
+                        w = Worker(self.opts, self.jobs)
+                        self.workers.append(w)
+                        w.start()
+                # FIXME - prune out workers
+                #if len(self.workers) > self.opts.num_workers:
+                #    killnum = len(self.workers) - self.opts.num_workers
+                #    for w in self.workers[:killnum]:
+                #       #insert a poison pill? Kill after something? I dunno.
+                # FIXME - if a worker bombs out - we need to check them
+                # and startup a new one if it happens
         
             self.log("# jobs in queue: %s" % self.jobs.qsize())
 
-        time.sleep(self.opts.sleeptime)
+            time.sleep(self.opts.sleeptime)
 
     
 def main(args):
