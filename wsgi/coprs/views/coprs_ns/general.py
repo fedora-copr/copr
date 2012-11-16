@@ -181,7 +181,7 @@ def copr_apply_for_building(username, coprname):
                        outerjoin(models.CoprPermission).\
                        options(db.contains_eager(models.Copr.owner)).\
                        filter(models.Copr.name == coprname).\
-                       filter(models.User.openid_name == models.User.openidize_name(coprname)).\
+                       filter(models.User.openid_name == models.User.openidize_name(username)).\
                        filter(db.or_(models.CoprPermission.user == flask.g.user, models.CoprPermission.user == None)).\
                        first()
     copr = query[0]
