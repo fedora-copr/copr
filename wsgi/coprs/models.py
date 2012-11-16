@@ -18,8 +18,6 @@ class Serializer(object):
 
         Options can also specify whether to include foo_id when displaying related foo object
         (__included_ids__, defaults to True). This doesn't apply when __columns_only__ is specified.
-
-        TODO: write some unit tests for this :)
         """
         result = {}
         columns = self.serializable_attributes

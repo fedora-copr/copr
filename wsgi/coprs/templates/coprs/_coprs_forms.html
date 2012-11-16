@@ -7,7 +7,6 @@
       {{ form.csrf_token }}
       {{ render_field(form.id, hidden = True) }}
       {{ render_field(form.name) }}
-      {# TODO: validate/change arches dynamically by JS #}
       {{ render_field(form.release) }}
       {{ render_field(form.arches, size = 2) }}
       {{ render_field(form.repos, rows = 10, cols = 50) }}

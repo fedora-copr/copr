@@ -17,7 +17,7 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
 
 class ProductionConfig(Config):
-    pass # TODO: some sane production settings
+    pass
 
 class DevelopmentConfig(Config):
     DEBUG = True

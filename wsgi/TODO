@@ -1,0 +1,8 @@
+- Unit tests
+- Query optimization
+- Build details
+- Figure out some sane production settings
+- More form validations?
+- It would be nice to be able to change allowed release arches dynamically by JS while creating/editing coprs
+- Convert all remaining forms into wtforms (login, etc)
+- Backend API :)

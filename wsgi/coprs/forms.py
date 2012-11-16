@@ -72,7 +72,6 @@ class StringListFilter(object):
         return regex.sub(lambda x: '\n', result)
 
 class CoprForm(wtf.Form):
-    # TODO: validations
     # also use id here, to be able to find out whether user is updating a copr
     # if so, we don't want to shout that name already exists
     id = wtf.HiddenField()

@@ -83,7 +83,6 @@ def copr_new():
                            chroots = ' '.join(form.chroots),
                            repos = form.repos.data.replace('\n', ' '),
                            owner = flask.g.user)
-        # TODO: verify that user doesn't already have a copr with this name
         db.session.add(copr)
         db.session.commit()
 
@@ -156,7 +155,6 @@ def copr_update(username, coprname):
 
     if form.validate_on_submit():
         # we don't change owner (yet)
-        # TODO: verify that this user doesn't already have copr named like this
         copr = models.Copr.query.join(models.Copr.owner).\
                                  filter(models.Copr.name == coprname).\
                                  filter(models.User.openid_name == models.User.openidize_name(username)).\
@@ -227,7 +225,7 @@ def copr_give_up_building(username, coprname):
 
 @coprs_ns.route('/detail/<username>/<coprname>/update_permissions/', methods = ['POST'])
 @login_required
-def copr_update_permissions(username, coprname): #TODO: optimize!
+def copr_update_permissions(username, coprname):
     copr = models.Copr.query.\
                        join(models.Copr.owner).\
                        options(db.contains_eager(models.Copr.owner)).\
