@@ -20,7 +20,6 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('openid_name', sa.String(length=100), nullable=False),
     sa.Column('proven', sa.Boolean(), nullable=True),
-    sa.CheckConstraint('TODO'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('copr',
@@ -46,7 +45,6 @@ def upgrade():
     sa.Column('timeout', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('copr_id', sa.Integer(), nullable=True),
-    sa.CheckConstraint('TODO'),
     sa.ForeignKeyConstraint(['copr_id'], ['copr.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -55,7 +53,6 @@ def upgrade():
     sa.Column('approved', sa.Boolean(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('copr_id', sa.Integer(), nullable=False),
-    sa.CheckConstraint('TODO'),
     sa.ForeignKeyConstraint(['copr_id'], ['copr.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('user_id', 'copr_id')
