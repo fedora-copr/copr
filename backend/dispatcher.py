@@ -101,6 +101,7 @@ class Worker(multiprocessing.Process):
         self.callback.log('creating worker: %s' % ip)
 
     def spawn_instance(self):
+        self.callback.log('spawning instance begin')
         
         stats = callbacks.AggregateStats()
         playbook_cb = SilentPlaybookCallbacks(verbose=False)
@@ -112,6 +113,7 @@ class Worker(multiprocessing.Process):
                              remote_user='root')
 
         play.run()
+        self.callback.log('spawning instance end')
         if self.ip:
             return self.ip
             
