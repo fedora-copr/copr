@@ -9,7 +9,7 @@ import multiprocessing
 from backend.dispatcher import Worker
 from backend import errors
 from bunch import Bunch
-from ConfigParser import ConfigParser
+import ConfigParser
 
 def _get_conf(cp, section, option, default):
     """to make returning items from config parser less irritating"""
@@ -27,14 +27,14 @@ class CoprBackend(object):
             raise errors.CoprBackendError, "Must specify config_file"
         
         self.config_file = config_file
-        self.opts = self.read_config()
+        self.opts = self.read_conf()
 
         logdir = os.path.dirname(self.opts.logfile)
         if not os.path.exists(logdir):
             os.makedirs(logdir, mode=0750)
         
         if not os.path.exists(self.opts.worker_logdir):
-            os.makedirs(self.opts.worker_logdir, module=0750)
+            os.makedirs(self.opts.worker_logdir, mode=0750)
             
         self.jobs = multiprocessing.Queue()
         self.workers = []
@@ -94,6 +94,8 @@ class CoprBackend(object):
                     self.added_jobs.append(n)
                     self.log('adding %s' % n)
 
+            # re-read config into opts
+            self.opts= self.read_conf()
             # this handles starting/growing the number of workers
             if len(self.workers) < self.opts.num_workers:
                 for i in range(self.opts.num_workers - len(self.workers)):
