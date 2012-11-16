@@ -19,9 +19,11 @@ from ansible import callbacks
 
 
 
+#FIXME - this should be emitting to the per-worker log file
+# so we can know what is going on and where
 class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
     ''' playbook callbacks - quietly! '''
-
+    
     def __init__(self, verbose=False):
 
         self.verbose = verbose
@@ -136,7 +138,7 @@ class Worker(multiprocessing.Process):
         return jobdata
 
     def return_results(self, job):
-        self.log('%s status %s. Took %s seconds' % (job.id, job.status, job.ended_on - job.startedon))
+        self.callback.log('%s status %s. Took %s seconds' % (job.id, job.status, job.ended_on - job.startedon))
         os.unlink(job.jobfile)
         #FIXME - this should either return job status/results 
         # into a queue or it should submit results directly to the frontend
