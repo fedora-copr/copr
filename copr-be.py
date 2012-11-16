@@ -32,6 +32,11 @@ class CoprBackend(object):
         logdir = os.path.dirname(self.opts.logfile)
         if not os.path.exists(logdir):
             os.makedirs(logdir, mode=0750)
+
+        # setup a log file to write to
+        self.logfile = self.opts.logfile
+        self.log("Starting up new copr-be instance")
+
         
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0750)
@@ -40,9 +45,7 @@ class CoprBackend(object):
         self.workers = []
         self.added_jobs = []
 
-        # setup a log file to write to
-        self.logfile = self.opts.logfile
-
+        
     def read_conf(self):
         "read in config file - return Bunch of config data"
         opts = Bunch()
@@ -94,10 +97,12 @@ class CoprBackend(object):
                     self.log('adding %s' % n)
             
             if self.jobs.qsize():
+
                 # re-read config into opts
                 self.opts = self.read_conf()
                 # this handles starting/growing the number of workers
                 if len(self.workers) < self.opts.num_workers:
+                    self.log("Spinning up more workers for jobs")
                     for i in range(self.opts.num_workers - len(self.workers)):
                         worker_num = len(self.workers) + 1
                         w = Worker(self.opts, self.jobs, worker_num)
