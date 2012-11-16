@@ -141,7 +141,7 @@ class Worker(multiprocessing.Process):
         return jobdata
 
     def return_results(self, job):
-        self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.startedon))
+        self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
         os.unlink(job.jobfile)
         #FIXME - this should either return job status/results 
         # into a queue or it should submit results directly to the frontend
