@@ -3,10 +3,12 @@ import time
 import flask
 
 from coprs import db, page_not_found
+from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
 
+from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 
 from coprs.views.misc import login_required
@@ -15,20 +17,14 @@ from coprs.views.coprs_ns.general import coprs_ns
 @coprs_ns.route('/detail/<username>/<coprname>/builds/', defaults = {'page': 1})
 @coprs_ns.route('/detail/<username>/<coprname>/builds/<int:page>/')
 def copr_show_builds(username, coprname, page = 1):
-    query = models.Build.query.join(models.Copr.builds).\
-                               join(models.Copr.owner).\
-                               options(db.contains_eager(models.Build.copr)).\
-                               filter(models.Copr.name == coprname).\
-                               filter(models.User.openid_name == models.User.openidize_name(username)).\
-                               order_by(models.Build.submitted_on.desc())
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
-    build_count = query.count()
-    if build_count == 0: # no builds => we still need Copr
-        copr = models.Copr.query.filter(models.Copr.name == name).first()
-        if not copr: # hey, this Copr doesn't exist
-            return page_not_found('Copr with name {0} does not exist.'.format(coprname))
+    if not copr: # hey, this Copr doesn't exist
+        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
-    paginator = helpers.Paginator(query, build_count, page, per_page_override = 20)
+    builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr = copr)
+
+    paginator = helpers.Paginator(builds_query, copr.build_count, page, per_page_override = 20)
     return flask.render_template('coprs/show_builds.html', builds = paginator.sliced_query, paginator = paginator)
 
 
@@ -36,12 +32,7 @@ def copr_show_builds(username, coprname, page = 1):
 @login_required
 def copr_add_build(username, coprname):
     form = forms.BuildForm()
-    copr = models.Copr.query.\
-                       join(models.Copr.owner).\
-                       options(db.contains_eager(models.Copr.owner)).\
-                       filter(models.Copr.name == coprname).\
-                       filter(models.User.openid_name == models.User.openidize_name(username)).\
-                       first()
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     if not copr: # hey, this Copr doesn't exist
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
@@ -56,9 +47,7 @@ def copr_add_build(username, coprname):
             build.memory_reqs = form.memory_reqs.data
             build.timeout = form.timeout.data
 
-        # increment copr build count (will be part of method logic/build_logic, so that it doesn't have to be done manually)
-        coprs_logic.CoprsLogic.increment_build_count(flask.g.user, copr.owner, coprname)
-        db.session.add(build)
+        builds_logic.BuildsLogic.new(flask.g.user, build, copr, check_authorized = False) # we're checking authorization above for now
         db.session.commit()
 
         flask.flash("Build was added")
@@ -71,13 +60,14 @@ def copr_add_build(username, coprname):
 @login_required
 def copr_cancel_build(username, coprname, build_id):
     # only the user who ran the build can cancel it
-    build = models.Build.query.filter(models.Build.id == build_id).first()
-    if not build: # hey, this Copr doesn't exist
+    build = builds_logic.BuildsLogic.get(flask.g.user, build_id).first()
+    if not build: # hey, this Build doesn't exist
         return page_not_found('Build with id {0} does not exist.'.format(build_id))
-    if build.user_id != flask.g.user.id:
-        flask.flash('You can only cancel your own builds.')
+    try:
+        builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
+    except exceptions.InsufficientRightsException as ex:
+        flask.flask(ex.message)
     else:
-        build.canceled = True
         db.session.commit()
         flask.flash('Build was canceled')
 

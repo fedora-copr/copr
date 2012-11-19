@@ -66,8 +66,6 @@ class CoprsLogic(object):
         return existing
 
     @classmethod
-    def increment_build_count(cls, user, owner, coprname): #TODO API of this method is different, maybe change?
-        models.Copr.query.filter(models.Copr.name == coprname).\
-                          filter(models.Copr.owner_id == owner.id).\
+    def increment_build_count(cls, user, copr): # TODO API of this method is different, maybe change?
+        models.Copr.query.filter(models.Copr.id == copr.id).\
                           update({models.Copr.build_count: models.Copr.build_count + 1})
-        db.session.commit()
