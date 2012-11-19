@@ -34,6 +34,19 @@ class BuildsLogic(object):
         return query
 
     @classmethod
+    def get_waiting_builds(cls, user):
+        # this has very different goal then get_multiple, so implement it alone
+        query = models.Build.query.join(models.Build.copr).\
+                                   join(models.User).\
+                                   options(db.contains_eager(models.Build.copr)).\
+                                   options(db.contains_eager('copr.owner')).\
+                                   filter(models.Build.started_on == None).\
+                                   filter(models.Build.canceled != True).\
+                                   order_by(models.Build.submitted_on.asc())
+        return query
+
+
+    @classmethod
     def new(cls, user, build, copr, check_authorized = True):
         if check_authorized:
             if not user.can_build_in(copr):
