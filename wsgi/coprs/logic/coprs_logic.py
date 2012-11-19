@@ -1,5 +1,3 @@
-import flask
-
 from coprs import db
 from coprs import exceptions
 from coprs import models
