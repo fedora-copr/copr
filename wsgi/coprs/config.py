@@ -12,6 +12,7 @@ class Config(object):
     DATABASE = os.path.join(REPO_DIR, '../data/copr.db')
     OPENID_STORE = os.path.join(DATA_DIR, '../openid_store')
     SECRET_KEY = 'THISISNOTASECRETATALL'
+    BACKEND_PASSWORD = 'thisisbackend'
 
     # SQLAlchemy
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
@@ -26,7 +27,6 @@ class DevelopmentConfig(Config):
 class UnitTestConfig(Config):
     DATABASE = os.path.abspath('tests/data/copr.db')
     OPENID_STORE = os.path.abspath('tests/data/openid_store')
-    SECRET_KEY = 'THISISNOTASECRETATALL'
 
     # SQLAlchemy
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)

@@ -4,6 +4,7 @@ import flask
 
 from flask.ext.openid import OpenID
 
+from coprs import app
 from coprs import db
 from coprs import models
 from coprs import oid
@@ -52,5 +53,16 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if flask.g.user is None:
             return flask.redirect(flask.url_for('misc.login', next = flask.request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# backend authentication
+def backend_authenticated(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth = flask.request.authorization
+        if not auth or auth.password != app.config['BACKEND_PASSWORD']:
+            return 'You have to provide the correct password', 401
         return f(*args, **kwargs)
     return decorated_function

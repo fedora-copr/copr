@@ -5,6 +5,7 @@ from coprs import models
 
 from coprs.logic import builds_logic
 
+from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 
 @backend_ns.route('/waiting_builds/')
@@ -18,6 +19,7 @@ def waiting_builds():
                                                               '__included_ids__': False}) for build in builds]})
 
 @backend_ns.route('/update_builds/', methods = ['POST', 'PUT'])
+@misc.backend_authenticated
 def update_builds():
     build_ids = []
     for build in flask.request.json['builds']: # first get ids of sent builds
