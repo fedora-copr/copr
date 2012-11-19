@@ -62,6 +62,7 @@ def copr_new():
                            repos = form.repos.data.replace('\n', ' '),
                            owner = flask.g.user)
         coprs_logic.CoprsLogic.new(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
+        db.session.commit()
 
         flask.flash('New entry was successfully posted')
         return flask.redirect(flask.url_for('coprs_ns.coprs_show'))
@@ -117,6 +118,7 @@ def copr_update(username, coprname):
         copr.repos = form.repos.data.replace('\n', ' ')
 
         coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
+        db.session.commit()
         flask.flash('Copr was updated successfully.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = form.name.data))
     else:

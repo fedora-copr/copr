@@ -49,14 +49,12 @@ class CoprsLogic(object):
         if check_for_duplicates and cls.exists_for_current_user(user, copr.name):
             raise exceptions.DuplicateCoprNameException
         db.session.add(copr)
-        db.session.commit()
 
     @classmethod
     def update(cls, user, copr, check_for_duplicates = True):
         if check_for_duplicates and cls.exists_for_current_user(user, copr.name):
             raise exceptions.DuplicateCoprNameException
         db.session.add(copr)
-        db.session.commit()
 
     @classmethod
     def exists_for_current_user(cls, user, coprname):
