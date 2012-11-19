@@ -108,6 +108,7 @@ class CoprBackend(object):
                         w = Worker(self.opts, self.jobs, worker_num)
                         self.workers.append(w)
                         w.start()
+                    self.log("Finished starting worker processes")
                 # FIXME - prune out workers
                 #if len(self.workers) > self.opts.num_workers:
                 #    killnum = len(self.workers) - self.opts.num_workers
