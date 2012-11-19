@@ -8,6 +8,7 @@ from flask.ext import wtf
 from coprs import constants
 from coprs import helpers
 from coprs import models
+from coprs.logic import coprs_logic
 
 class UrlListValidator(object):
     def __init__(self, message = None):
@@ -51,12 +52,9 @@ class CoprUniqueNameValidator(object):
         self.message = message
 
     def __call__(self, form, field):
-        existing = models.Copr.query.filter(models.Copr.name == field.data).\
-                                     filter(models.Copr.owner_id == flask.g.user.id)
-        if form.id.data:
-            existing = existing.filter(models.Copr.id != form.id.data)
+        existing = coprs_logic.CoprsLogic.exists_for_current_user(flask.g.user, field.data).first()
 
-        if existing.first():
+        if existing and str(existing.id) != form.id.data:
             raise wtf.ValidationError(self.message.format(field.data))
 
 

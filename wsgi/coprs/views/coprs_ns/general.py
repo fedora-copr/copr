@@ -7,6 +7,8 @@ from coprs import models
 
 from coprs.views.misc import login_required
 
+from coprs.logic import coprs_logic
+
 coprs_ns = flask.Blueprint('coprs_ns',
                            __name__,
                            url_prefix = '/coprs')
@@ -14,55 +16,31 @@ coprs_ns = flask.Blueprint('coprs_ns',
 @coprs_ns.route('/', defaults = {'page': 1})
 @coprs_ns.route('/<int:page>/')
 def coprs_show(page = 1):
-    query = db.session.query(models.Copr, db.func.count(models.Build.id)).\
-                       join(models.Copr.owner).\
-                       outerjoin(models.Copr.builds).\
-                       options(db.contains_eager(models.Copr.owner)).\
-                       group_by(models.Copr.id)
+    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user)
     paginator = helpers.Paginator(query, query.count(), page)
 
-    if paginator.sliced_query:
-        coprs, build_counts = zip(*paginator.sliced_query)
-    else:
-        coprs, build_counts = [], []
-    return flask.render_template('coprs/show.html', coprs = coprs, build_counts = build_counts, paginator = paginator)
+    coprs = paginator.sliced_query
+    return flask.render_template('coprs/show.html', coprs = coprs, paginator = paginator)
 
 
 @coprs_ns.route('/owned/<username>/', defaults = {'page': 1})
 @coprs_ns.route('/owned/<username>/<int:page>/')
 def coprs_by_owner(username = None, page = 1):
-    query = db.session.query(models.Copr, db.func.count(models.Build.id)).\
-                       join(models.Copr.owner).\
-                       outerjoin(models.Copr.builds).\
-                       options(db.contains_eager(models.Copr.owner)).\
-                       filter(models.User.openid_name == models.User.openidize_name(username)).\
-                       group_by(models.Copr.id)
+    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, user_relation = 'owned', username = username)
     paginator = helpers.Paginator(query, query.count(), page)
 
-    if paginator.sliced_query:
-        coprs, build_counts = zip(*paginator.sliced_query)
-    else:
-        coprs, build_counts = [], []
-    return flask.render_template('coprs/show.html', coprs = coprs, build_counts = build_counts, paginator = paginator)
+    coprs = paginator.sliced_query
+    return flask.render_template('coprs/show.html', coprs = coprs, paginator = paginator)
 
 
 @coprs_ns.route('/allowed/<username>/', defaults = {'page': 1})
 @coprs_ns.route('/allowed/<username>/<int:page>/')
 def coprs_by_allowed(username = None, page = 1):
-    query = db.session.query(models.Copr, models.CoprPermission, models.User, db.func.count(models.Build.id)).\
-                       outerjoin(models.Copr.builds).\
-                       join(models.Copr.copr_permissions).\
-                       join(models.CoprPermission.user).\
-                       filter(models.User.openid_name == models.User.openidize_name(username)).\
-                       filter(models.CoprPermission.approved == True).\
-                       group_by(models.Copr.id)
+    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, user_relation = 'allowed', username = username)
     paginator = helpers.Paginator(query, query.count(), page)
 
-    if paginator.sliced_query:
-        coprs, build_counts = zip(*map(lambda x: (x[0], x[3]), paginator.sliced_query))
-    else:
-        coprs, build_counts = [], []
-    return flask.render_template('coprs/show.html', coprs = coprs, build_counts = build_counts, paginator = paginator)
+    coprs = paginator.sliced_query
+    return flask.render_template('coprs/show.html', coprs = coprs, paginator = paginator)
 
 
 @coprs_ns.route('/add/')
@@ -83,8 +61,7 @@ def copr_new():
                            chroots = ' '.join(form.chroots),
                            repos = form.repos.data.replace('\n', ' '),
                            owner = flask.g.user)
-        db.session.add(copr)
-        db.session.commit()
+        coprs_logic.CoprsLogic.new(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
 
         flask.flash('New entry was successfully posted')
         return flask.redirect(flask.url_for('coprs_ns.coprs_show'))
@@ -95,40 +72,25 @@ def copr_new():
 @coprs_ns.route('/detail/<username>/<coprname>/')
 def copr_detail(username, coprname):
     form = forms.BuildForm()
-    try: # query will raise an index error, if Copr doesn't exist
-        copr = models.Copr.query.outerjoin(models.Copr.builds).\
-                                 join(models.Copr.owner).\
-                                 options(db.contains_eager(models.Copr.builds), db.contains_eager(models.Copr.owner)).\
-                                 filter(models.Copr.name == coprname).\
-                                 filter(models.User.openid_name == models.User.openidize_name(username)).\
-                                 order_by(models.Build.submitted_on.desc())[0:10][0] # we retrieved all builds, but we got one copr in a list...
+    try: # query[0:10][0] will raise an index error, if Copr doesn't exist
+        query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds = True, with_permissions = True)
+        copr = query[0:10][0]# we retrieved all builds, but we got one copr in a list...
     except IndexError:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
-    permissions = models.CoprPermission.query.join(models.CoprPermission.user).\
-                                              options(db.contains_eager(models.CoprPermission.user)).\
-                                              filter(models.CoprPermission.copr_id == copr.id).\
-                                              all()
 
-    return flask.render_template('coprs/detail.html', copr = copr, form = form, permissions = permissions)
+    return flask.render_template('coprs/detail.html', copr = copr, form = form, permissions = copr.copr_permissions)
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/edit/')
 @login_required
 def copr_edit(username, coprname):
-    query = db.session.query(models.Copr, models.CoprPermission).\
-                       outerjoin(models.CoprPermission).\
-                       outerjoin(models.Copr.owner).\
-                       options(db.contains_eager(models.Copr.owner)).\
-                       filter(models.Copr.name == coprname).\
-                       filter(models.User.openid_name == models.User.openidize_name(username)).\
-                       all()
-    copr = query[0][0]
+    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_permissions = True)
+    copr = query.first()
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
     form = forms.CoprForm(obj = copr)
 
-    permissions = map(lambda x: x[1], query)
-    permissions = filter(lambda x: x, permissions) # throw away None away
+    permissions = copr.copr_permissions
     permissions_form = forms.DynamicPermissionsFormFactory.create_form_cls(permissions)()
 
     return flask.render_template('coprs/edit.html',
@@ -142,12 +104,7 @@ def copr_edit(username, coprname):
 @login_required
 def copr_update(username, coprname):
     form = forms.CoprForm()
-    copr = models.Copr.query.\
-                       join(models.Copr.owner).\
-                       options(db.contains_eager(models.Copr.owner)).\
-                       filter(models.Copr.name == coprname).\
-                       filter(models.User.openid_name == models.User.openidize_name(username)).\
-                       first()
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     # only owner can update a copr
     if flask.g.user != copr.owner:
         flask.flash('Only owners may update their Coprs.')
@@ -155,16 +112,11 @@ def copr_update(username, coprname):
 
     if form.validate_on_submit():
         # we don't change owner (yet)
-        copr = models.Copr.query.join(models.Copr.owner).\
-                                 filter(models.Copr.name == coprname).\
-                                 filter(models.User.openid_name == models.User.openidize_name(username)).\
-                                 first()
         copr.name = form.name.data
         copr.chroots = ' '.join(form.chroots)
         copr.repos = form.repos.data.replace('\n', ' ')
 
-        db.session.add(copr)
-        db.session.commit()
+        coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
         flask.flash('Copr was updated successfully.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = form.name.data))
     else:
@@ -201,15 +153,8 @@ def copr_apply_for_building(username, coprname):
 @coprs_ns.route('/detail/<username>/<coprname>/give_up_building/', methods = ['POST'])
 @login_required
 def copr_give_up_building(username, coprname):
-    query = db.session.query(models.Copr, models.CoprPermission).\
-                       join(models.Copr.owner).\
-                       outerjoin(models.CoprPermission).\
-                       options(db.contains_eager(models.Copr.owner)).\
-                       filter(models.Copr.name == coprname).\
-                       filter(models.User.openid_name == models.User.openidize_name(username)).\
-                       filter(models.CoprPermission.user == flask.g.user).\
-                       first()
-    copr = query[0]
+    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_permissions = True)
+    copr = query.first()
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(name))
 
@@ -226,13 +171,9 @@ def copr_give_up_building(username, coprname):
 @coprs_ns.route('/detail/<username>/<coprname>/update_permissions/', methods = ['POST'])
 @login_required
 def copr_update_permissions(username, coprname):
-    copr = models.Copr.query.\
-                       join(models.Copr.owner).\
-                       options(db.contains_eager(models.Copr.owner)).\
-                       filter(models.User.name == username).\
-                       filter(models.Copr.name == coprname).\
-                       first()
-    permissions = models.CoprPermission.query.filter(models.CoprPermission.copr_id == copr.id).all()
+    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
+    copr = query.first()
+    permissions = copr.copr_permissions
     permissions_form = forms.DynamicPermissionsFormFactory.create_form_cls(permissions)()
 
     # only owner can update copr permissions

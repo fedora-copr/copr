@@ -7,8 +7,9 @@ from coprs import forms
 from coprs import helpers
 from coprs import models
 
-from coprs.views.misc import login_required
+from coprs.logic import coprs_logic
 
+from coprs.views.misc import login_required
 from coprs.views.coprs_ns.general import coprs_ns
 
 @coprs_ns.route('/detail/<username>/<coprname>/builds/', defaults = {'page': 1})
@@ -55,6 +56,8 @@ def copr_add_build(username, coprname):
             build.memory_reqs = form.memory_reqs.data
             build.timeout = form.timeout.data
 
+        # increment copr build count (will be part of method logic/build_logic, so that it doesn't have to be done manually)
+        coprs_logic.CoprsLogic.increment_build_count(flask.g.user, copr.owner, coprname)
         db.session.add(build)
         db.session.commit()
 

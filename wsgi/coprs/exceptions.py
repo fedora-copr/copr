@@ -1,0 +1,2 @@
+class DuplicateCoprNameException(BaseException):
+    pass
