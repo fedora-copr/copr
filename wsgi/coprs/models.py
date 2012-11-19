@@ -86,6 +86,8 @@ class Copr(db.Model, Serializer):
     name = db.Column(db.String(100), nullable = False)
     chroots = db.Column(db.Text, nullable = False)
     repos = db.Column(db.Text)
+    # duplicate information, but speeds up a lot and makes queries simpler
+    build_count = db.Column(db.Integer, default = 0)
 
     # relations
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))

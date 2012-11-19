@@ -8,7 +8,7 @@
       <div class=copr>
         <h2><a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">{{ copr.owner.name }}/{{ copr.name }}</a></h2>
         chroots: {{ copr.chroots_list|join(', ') }}<br>
-        builds: {{ build_counts[loop.index0] }}<br>
+        builds: {{ copr.build_count }}<br>
         {% if copr.repos %}
           repos: {{ copr.repos_list|length }}
         {% endif %}
