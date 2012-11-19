@@ -3,9 +3,9 @@ import flask
 from coprs import db
 from coprs import models
 
-waiting_builds_ns = flask.Blueprint('waiting_builds', __name__, url_prefix = '/waiting_builds')
+from coprs.views.backend_ns import backend_ns
 
-@waiting_builds_ns.route('/')
+@backend_ns.route('/waiting_builds/')
 def waiting_builds():
     query = db.session.query(models.Build, models.Copr, models.User).\
                         join(models.Build.copr).\

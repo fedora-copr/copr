@@ -7,11 +7,9 @@ from coprs import models
 
 from coprs.views.misc import login_required
 
-from coprs.logic import coprs_logic
+from coprs.views.coprs_ns import coprs_ns
 
-coprs_ns = flask.Blueprint('coprs_ns',
-                           __name__,
-                           url_prefix = '/coprs')
+from coprs.logic import coprs_logic
 
 @coprs_ns.route('/', defaults = {'page': 1})
 @coprs_ns.route('/<int:page>/')

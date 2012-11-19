@@ -12,7 +12,7 @@ from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 
 from coprs.views.misc import login_required
-from coprs.views.coprs_ns.general import coprs_ns
+from coprs.views.coprs_ns import coprs_ns
 
 @coprs_ns.route('/detail/<username>/<coprname>/builds/', defaults = {'page': 1})
 @coprs_ns.route('/detail/<username>/<coprname>/builds/<int:page>/')

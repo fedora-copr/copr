@@ -32,15 +32,17 @@ def page_not_found(message):
 import coprs.models
 import coprs.filters
 
-from coprs.views.coprs_ns import builds # this uses coprs_ns blueprint
-from coprs.views.coprs_ns import general
+from coprs.views import coprs_ns
+from coprs.views.coprs_ns import coprs_builds
+from coprs.views.coprs_ns import coprs_general
+from coprs.views import backend_ns
+from coprs.views.backend_ns import backend_general
 from coprs.views import misc
-from coprs.views import waiting_builds
 
-app.register_blueprint(general.coprs_ns)
+app.register_blueprint(coprs_ns.coprs_ns)
 app.register_blueprint(misc.misc)
-app.register_blueprint(waiting_builds.waiting_builds_ns)
+app.register_blueprint(backend_ns.backend_ns)
 
 @app.route("/")
 def start():
-    return general.coprs_show()
+    return coprs_general.coprs_show()
