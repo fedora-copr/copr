@@ -134,6 +134,7 @@ class Build(db.Model, Serializer):
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer)
     results = db.Column(db.Text)
+    status = db.Column(db.Integer)
     memory_reqs = db.Column(db.Integer, default = constants.DEFAULT_BUILD_MEMORY)
     timeout = db.Column(db.Integer, default = constants.DEFAULT_BUILD_TIMEOUT)
 
@@ -151,7 +152,10 @@ class Build(db.Model, Serializer):
             return 'pending'
         if not self.ended_on:
             return 'running'
-        return 'finished'
+        if self.status == 1:
+            return 'succeeded'
+
+        return 'failed'
 
     @property
     def cancelable(self):

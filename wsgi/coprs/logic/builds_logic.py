@@ -45,6 +45,7 @@ class BuildsLogic(object):
                                    order_by(models.Build.submitted_on.asc())
         return query
 
+    @classmethod
     def get_by_ids(cls, user, ids):
         return models.Build.query.filter(models.Build.id.in_(ids))
 
@@ -58,10 +59,10 @@ class BuildsLogic(object):
         db.session.add(build)
 
     @classmethod
-    def update_from_dict(cls, user, build, upd_dict):
+    def update_state_from_dict(cls, user, build, upd_dict):
         for attr in ['results', 'started_on', 'ended_on', 'status']:
             value = upd_dict.get(attr, None)
-            if value:
+            if value != None:
                 setattr(build, attr, value)
 
         db.session.add(build)

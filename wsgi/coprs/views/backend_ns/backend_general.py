@@ -31,8 +31,8 @@ def update_builds():
         existing[build.id] = build
 
     for build in flask.request.json['builds']: # actually update existing builds
-        builds_logic.BuildsLogic.update_from_dict(None, existing[build['id']], build)
+        builds_logic.BuildsLogic.update_state_from_dict(None, existing[build['id']], build)
 
     db.session.commit()
 
-    return json.dumps({'updated_builds': len(existing)})
+    return flask.json.dumps({'updated_builds': len(existing)})

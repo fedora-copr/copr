@@ -1,13 +1,13 @@
-"""Initial db setup
+"""Initial DB setup
 
-Revision ID: 17aef4202992
+Revision ID: 2999fd4de2a7
 Revises: None
-Create Date: 2012-11-18 16:05:02.407902
+Create Date: 2012-11-19 13:09:17.167104
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '17aef4202992'
+revision = '2999fd4de2a7'
 down_revision = None
 
 from alembic import op
@@ -50,6 +50,7 @@ def upgrade():
     sa.Column('started_on', sa.Integer(), nullable=True),
     sa.Column('ended_on', sa.Integer(), nullable=True),
     sa.Column('results', sa.Text(), nullable=True),
+    sa.Column('status', sa.Integer(), nullable=True),
     sa.Column('memory_reqs', sa.Integer(), nullable=True),
     sa.Column('timeout', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
