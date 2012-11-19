@@ -16,3 +16,23 @@ def waiting_builds():
                                                                        '__columns_except__': ['chroots', 'repos'],
                                                                        '__included_ids__': False},
                                                               '__included_ids__': False}) for build in builds]})
+
+@backend_ns.route('/update_builds/', methods = ['POST', 'PUT'])
+def update_builds():
+    build_ids = []
+    for build in flask.request.json['builds']: # first get ids of sent builds
+        build_ids.append(build['id'])
+
+    if not build_ids:
+        return json.dumps({'warning': 'No parsed builds'})
+
+    existing = {} # create a dict of existing builds {build.id: build, ...}
+    for build in builds_logic.BuildsLogic.get_by_ids(None, build_ids).all():
+        existing[build.id] = build
+
+    for build in flask.request.json['builds']: # actually update existing builds
+        builds_logic.BuildsLogic.update_from_dict(None, existing[build['id']], build)
+
+    db.session.commit()
+
+    return json.dumps({'updated_builds': len(existing)})

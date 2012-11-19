@@ -45,6 +45,8 @@ class BuildsLogic(object):
                                    order_by(models.Build.submitted_on.asc())
         return query
 
+    def get_by_ids(cls, user, ids):
+        return models.Build.query.filter(models.Build.id.in_(ids))
 
     @classmethod
     def new(cls, user, build, copr, check_authorized = True):
@@ -53,6 +55,15 @@ class BuildsLogic(object):
                 raise exceptions.InsufficientRightsException('User {0} cannot build in copr {1}/{2}'.format(user.name, copr.owner.name, copr.name))
 
         coprs_logic.CoprsLogic.increment_build_count(user, copr)
+        db.session.add(build)
+
+    @classmethod
+    def update_from_dict(cls, user, build, upd_dict):
+        for attr in ['results', 'started_on', 'ended_on', 'status']:
+            value = upd_dict.get(attr, None)
+            if value:
+                setattr(build, attr, value)
+
         db.session.add(build)
 
     @classmethod
