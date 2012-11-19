@@ -67,3 +67,19 @@ class CoprsLogic(object):
     def increment_build_count(cls, user, copr): # TODO API of this method is different, maybe change?
         models.Copr.query.filter(models.Copr.id == copr.id).\
                           update({models.Copr.build_count: models.Copr.build_count + 1})
+
+class CoprsPermissionLogic(object):
+    @classmethod
+    def get(cls, user, copr, searched_user):
+        query = models.CoprPermission.query.filter(models.CoprPermission.copr == copr).\
+                                            filter(models.CoprPermission.user == searched_user)
+
+        return query
+
+    @classmethod
+    def new(cls, user, copr_permission):
+        db.session.add(copr_permission)
+
+    @classmethod
+    def delete(cls, user, copr_permission):
+        db.session.delete(copr_permission)

@@ -126,24 +126,18 @@ def copr_update(username, coprname):
 @coprs_ns.route('/detail/<username>/<coprname>/apply_for_building', methods = ['POST'])
 @login_required
 def copr_apply_for_building(username, coprname):
-    query = db.session.query(models.Copr, models.CoprPermission).\
-                       join(models.Copr.owner).\
-                       outerjoin(models.CoprPermission).\
-                       options(db.contains_eager(models.Copr.owner)).\
-                       filter(models.Copr.name == coprname).\
-                       filter(models.User.openid_name == models.User.openidize_name(username)).\
-                       filter(db.or_(models.CoprPermission.user == flask.g.user, models.CoprPermission.user == None)).\
-                       first()
-    copr = query[0]
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    permission = coprs_logic.CoprsPermissionLogic.get(flask.g.user, copr, flask.g.user).first()
+
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(name))
     if copr.owner == flask.g.user:
         flask.flash('Owner cannot request permissions for his own copr.')
-    elif query[1]:
+    elif permission:
         flask.flash('You are already listed in permissions for Copr "{0}".'.format(copr.name))
     else:
         perm = models.CoprPermission(user = flask.g.user, copr = copr, approved = False)
-        db.session.add(perm)
+        coprs_logic.CoprsPermissionLogic.new(flask.g.user, perm)
         db.session.commit()
         flask.flash('You have successfuly applied for building in Copr "{0}".'.format(copr.name))
 
@@ -153,15 +147,16 @@ def copr_apply_for_building(username, coprname):
 @coprs_ns.route('/detail/<username>/<coprname>/give_up_building/', methods = ['POST'])
 @login_required
 def copr_give_up_building(username, coprname):
-    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_permissions = True)
-    copr = query.first()
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    permission = coprs_logic.CoprsPermissionLogic.get(flask.g.user, copr, flask.g.user).first()
+
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(name))
 
-    if not query[1]:
+    if not permission:
         flask.flash('You are already not in permissions for Copr "{0}".'.format(copr.name))
     else:
-        db.session.delete(query[1]) # TODO: do we really want to delete this, or just inactivate?
+        coprs_logic.CoprsPermissionLogic.delete(flask.g.user, permission) # TODO: do we really want to delete this, or just inactivate?
         db.session.commit()
         flask.flash('You have successfuly given up building in Copr "{0}".'.format(copr.name))
 
