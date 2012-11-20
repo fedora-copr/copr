@@ -21,7 +21,9 @@ class CoprsTestCase(object):
         coprs.db.create_all()
 
     def teardown_method(self, method):
-        coprs.db.drop_all()
+        # delete just data, not the tables
+        for tbl in reversed(self.db.metadata.sorted_tables):
+            self.db.engine.execute(tbl.delete())
 
     @pytest.fixture
     def f_data1(self):
