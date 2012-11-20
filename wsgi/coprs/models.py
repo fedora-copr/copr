@@ -146,16 +146,15 @@ class Build(db.Model, Serializer):
 
     @property
     def state(self):
-        if self.canceled:
-            return 'canceled'
-        if not self.started_on:
-            return 'pending'
-        if not self.ended_on:
-            return 'running'
         if self.status == 1:
             return 'succeeded'
-
-        return 'failed'
+        elif self.status == 0:
+            return 'failed'
+        if self.canceled:
+            return 'canceled'
+        if not self.ended_on and self.started_on:
+            return 'running'
+        return 'pending'
 
     @property
     def cancelable(self):
