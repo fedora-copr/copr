@@ -16,6 +16,7 @@ class TestCoprsOwned(CoprsTestCase):
             with c.session_transaction() as s:
                 s['openid'] = self.u3.openid_name
 
+            self.db.session.add(self.u3)
             r = c.get('/coprs/owned/{0}/'.format(self.u3.name))
             assert 'No entries' in r.data
 
@@ -24,6 +25,7 @@ class TestCoprsOwned(CoprsTestCase):
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
+            self.db.session.add(self.u1)
             r = c.get('/coprs/owned/{0}/'.format(self.u1.name))
             assert r.data.count('<div class=copr>') == 1
 
@@ -33,25 +35,26 @@ class TestCoprsAllowed(CoprsTestCase):
             with c.session_transaction() as s:
                 s['openid'] = self.u3.openid_name
 
+            self.db.session.add(self.u3)
             r = c.get('/coprs/allowed/{0}/'.format(self.u3.name))
             assert 'No entries' in r.data
 
     def test_allowed_one(self, f_users, f_coprs, f_copr_permissions):
-        uname = self.u1.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u2.openid_name
 
-            r = c.get('/coprs/allowed/{0}/'.format(uname))
+            self.db.session.add(self.u1)
+            r = c.get('/coprs/allowed/{0}/'.format(self.u1.name))
             assert r.data.count('<div class=copr>') == 1
 
     def test_allowed_one_but_asked_for_one_more(self, f_users, f_coprs, f_copr_permissions):
-        uname = self.u1.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
-            r = c.get('/coprs/allowed/{0}/'.format(uname))
+            self.db.session.add(self.u1)
+            r = c.get('/coprs/allowed/{0}/'.format(self.u1.name))
             assert r.data.count('<div class=copr>') == 1
 
 class TestCoprNew(CoprsTestCase):
@@ -65,29 +68,31 @@ class TestCoprNew(CoprsTestCase):
             assert "New entry was successfully posted" in r.data
 
     def test_copr_new_exists_for_another_user(self, f_users, f_coprs):
-        name = self.c1.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u3.openid_name
 
-            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == name).all())
+            self.db.session.add(self.c1)
+            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all())
             assert foocoprs > 0
 
-            r = c.post('/coprs/new/', data = {'name': name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
-            assert len(self.models.Copr.query.filter(self.models.Copr.name == name).all()) == foocoprs + 1
+            r = c.post('/coprs/new/', data = {'name': self.c1.name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            self.db.session.add(self.c1)
+            assert len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all()) == foocoprs + 1
             assert "New entry was successfully posted" in r.data
 
     def test_copr_new_exists_for_this_user(self, f_users, f_coprs):
-        name = self.c1.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
-            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == name).all())
+            self.db.session.add(self.c1)
+            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all())
             assert foocoprs > 0
 
-            r = c.post('/coprs/new/', data = {'name': name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
-            assert len(self.models.Copr.query.filter(self.models.Copr.name == name).all()) == foocoprs
+            r = c.post('/coprs/new/', data = {'name': self.c1.name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            self.db.session.add(self.c1)
+            assert len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all()) == foocoprs
             assert "You already have copr named" in r.data
 
 class TestCoprDetail(CoprsTestCase):
@@ -115,21 +120,43 @@ class TestCoprDetail(CoprsTestCase):
         assert '<form' not in r.data
 
     def test_copr_detail_allows_asking_for_building(self, f_users, f_coprs):
-        uname = self.u2.name
-        cname = self.c2.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
-            r = c.get('/coprs/detail/{0}/{1}/'.format(uname, cname))
+            self.db.session.add_all([self.u2, self.c2])
+            r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
             assert '<input type=submit value="Apply for building">' in r.data
 
     def test_copr_detail_allows_giving_up_building(self, f_users, f_coprs, f_copr_permissions):
-        uname = self.u2.name
-        cname = self.c2.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
-            r = c.get('/coprs/detail/{0}/{1}/'.format(uname, cname))
+            self.db.session.add_all([self.u2, self.c2])
+            r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
             assert '<input type=submit value="Give up building">' in r.data
+
+class TestCoprEdit(CoprsTestCase):
+    def test_edit_prefills_id(self, f_users, f_coprs):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u1, self.c1])
+            r = c.get('/coprs/detail/{0}/{1}/edit/'.format(self.u1.name, self.c1.name))
+            # TODO: use some kind of html parsing library to look for the hidden input, this ties us
+            # to the precise format of the tag
+            assert '<input hidden id="id" name="id" type="hidden" value="{0}">'.format(self.c1.id) in r.data
+
+class TestCoprUpdate(CoprsTestCase):
+    def test_update_no_changes(self, f_users, f_coprs):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u1, self.c1])
+            r = c.post('/coprs/detail/{0}/{1}/update/'.format(self.u1.name, self.c1.name),
+                       data = {'name': self.c1.name, 'release': self.c1.release, 'arches': self.c1.arches, 'id': self.c1.id},
+                       follow_redirects = True)
+            assert 'Copr was updated successfully' in r.data
