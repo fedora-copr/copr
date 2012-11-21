@@ -63,27 +63,29 @@ class TestCoprNew(CoprsTestCase):
             assert "New entry was successfully posted" in r.data
 
     def test_copr_new_exists_for_another_user(self, f_users, f_coprs):
+        name = self.c1.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u3.openid_name
 
-            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all())
+            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == name).all())
             assert foocoprs > 0
 
-            r = c.post('/coprs/new/', data = {'name': 'foocopr', 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
-            assert len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all()) == foocoprs + 1
+            r = c.post('/coprs/new/', data = {'name': name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            assert len(self.models.Copr.query.filter(self.models.Copr.name == name).all()) == foocoprs + 1
             assert "New entry was successfully posted" in r.data
 
     def test_copr_new_exists_for_this_user(self, f_users, f_coprs):
+        name = self.c1.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
-            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all())
+            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == name).all())
             assert foocoprs > 0
 
-            r = c.post('/coprs/new/', data = {'name': 'foocopr', 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
-            assert len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all()) == foocoprs
+            r = c.post('/coprs/new/', data = {'name': name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            assert len(self.models.Copr.query.filter(self.models.Copr.name == name).all()) == foocoprs
             assert "You already have copr named" in r.data
 
 class TestCoprDetail(CoprsTestCase):
