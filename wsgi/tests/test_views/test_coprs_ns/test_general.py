@@ -17,7 +17,7 @@ class TestCoprsOwned(CoprsTestCase):
                 s['openid'] = self.u3.openid_name
 
             r = c.get('/coprs/owned/{0}/'.format(self.u3.name))
-            assert r.data.find('No entries') != -1
+            assert 'No entries' in r.data
 
     def test_owned_one(self, f_users, f_coprs):
         with self.tc as c:
@@ -34,7 +34,7 @@ class TestCoprsAllowed(CoprsTestCase):
                 s['openid'] = self.u3.openid_name
 
             r = c.get('/coprs/allowed/{0}/'.format(self.u3.name))
-            assert r.data.find('No entries') != -1
+            assert 'No entries' in r.data
 
     def test_allowed_one(self, f_users, f_coprs, f_copr_permissions):
         with self.tc as c:
@@ -96,7 +96,7 @@ class TestCoprDetail(CoprsTestCase):
     def test_copr_detail_normal(self, f_users, f_coprs):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u1.name, self.c1.name))
         assert r.status_code == 200
-        assert r.data.find(self.c1.name) != -1
+        assert self.c1.name in r.data
 
     def test_copr_detail_contains_builds(self, f_users, f_coprs, f_builds):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u1.name, self.c1.name))
