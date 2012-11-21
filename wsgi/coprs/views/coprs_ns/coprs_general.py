@@ -123,7 +123,7 @@ def copr_update(username, coprname):
         return flask.render_template('coprs/edit.html', copr = copr, form = form)
 
 
-@coprs_ns.route('/detail/<username>/<coprname>/apply_for_building', methods = ['POST'])
+@coprs_ns.route('/detail/<username>/<coprname>/apply_for_building/', methods = ['POST'])
 @login_required
 def copr_apply_for_building(username, coprname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()

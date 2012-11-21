@@ -128,6 +128,15 @@ class TestCoprDetail(CoprsTestCase):
             r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
             assert '<input type=submit value="Apply for building">' in r.data
 
+    def test_copr_detail_doesnt_allow_owner_to_ask_for_building(self, f_users, f_coprs):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u2, self.c2])
+            r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
+            assert '<input type=submit value="Apply for building">' not in r.data
+
     def test_copr_detail_allows_giving_up_building(self, f_users, f_coprs, f_copr_permissions):
         with self.tc as c:
             with c.session_transaction() as s:
@@ -160,3 +169,21 @@ class TestCoprUpdate(CoprsTestCase):
                        data = {'name': self.c1.name, 'release': self.c1.release, 'arches': self.c1.arches, 'id': self.c1.id},
                        follow_redirects = True)
             assert 'Copr was updated successfully' in r.data
+
+class TestCoprApplyForBuilding(CoprsTestCase):
+    def test_apply(self, f_users, f_coprs):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u1, self.u2, self.c1])
+            r = c.post('/coprs/detail/{0}/{1}/apply_for_building/'.format(self.u1.name, self.c1.name),
+                       follow_redirects = True)
+            print r.data
+            assert 'You have successfuly applied' in r.data
+
+            self.db.session.add_all([self.u1, self.u2, self.c1])
+            new_perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u2.id).\
+                                                        filter(self.models.CoprPermission.copr_id == self.c1.id).\
+                                                        first()
+            assert not new_perm.approved
