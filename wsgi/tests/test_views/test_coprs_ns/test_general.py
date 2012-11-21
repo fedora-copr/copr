@@ -85,3 +85,17 @@ class TestCoprNew(CoprsTestCase):
             r = c.post('/coprs/new/', data = {'name': 'foocopr', 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
             assert len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all()) == foocoprs
             assert "You already have copr named" in r.data
+
+class TestCoprDetail(CoprsTestCase):
+    def test_copr_detail_not_found(self):
+        r = self.tc.get('/coprs/detail/foo/bar/')
+        assert r.status_code == 404
+
+    def test_copr_detail_normal(self, f_users, f_coprs):
+        r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u1.name, self.c1.name))
+        assert r.status_code == 200
+        assert r.data.find(self.c1.name) != -1
+
+    def test_copr_detail_contains_builds(self, f_users, f_coprs, f_builds):
+        r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u1.name, self.c1.name))
+        assert r.data.count('<tr class=build') == 2
