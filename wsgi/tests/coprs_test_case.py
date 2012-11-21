@@ -11,8 +11,9 @@ class CoprsTestCase(object):
     def setup_method(self, method):
         self.tc = coprs.app.test_client()
         self.app = coprs.app
+        self.app.testing = True
         self.db = coprs.db
-
+        self.models = models
         # create datadir if it doesn't exist
         datadir = os.path.commonprefix([self.app.config['DATABASE'], self.app.config['OPENID_STORE']])
         if not os.path.exists(datadir):

@@ -25,6 +25,7 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_ECHO = True
 
 class UnitTestConfig(Config):
+    CSRF_ENABLED = False
     DATABASE = os.path.abspath('tests/data/copr.db')
     OPENID_STORE = os.path.abspath('tests/data/openid_store')
 
