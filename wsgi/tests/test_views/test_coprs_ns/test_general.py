@@ -37,19 +37,21 @@ class TestCoprsAllowed(CoprsTestCase):
             assert 'No entries' in r.data
 
     def test_allowed_one(self, f_users, f_coprs, f_copr_permissions):
-        with self.tc as c:
-            with c.session_transaction() as s:
-                s['openid'] = self.u1.openid_name
-
-            r = c.get('/coprs/allowed/{0}/'.format(self.u1.name))
-            assert r.data.count('<div class=copr>') == 1
-
-    def test_allowed_one_but_asked_for_one_more(self, f_users, f_coprs, f_copr_permissions):
+        uname = self.u1.name
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u2.openid_name
 
-            r = c.get('/coprs/allowed/{0}/'.format(self.u2.name))
+            r = c.get('/coprs/allowed/{0}/'.format(uname))
+            assert r.data.count('<div class=copr>') == 1
+
+    def test_allowed_one_but_asked_for_one_more(self, f_users, f_coprs, f_copr_permissions):
+        uname = self.u1.name
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            r = c.get('/coprs/allowed/{0}/'.format(uname))
             assert r.data.count('<div class=copr>') == 1
 
 class TestCoprNew(CoprsTestCase):
@@ -101,3 +103,33 @@ class TestCoprDetail(CoprsTestCase):
     def test_copr_detail_contains_builds(self, f_users, f_coprs, f_builds):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u1.name, self.c1.name))
         assert r.data.count('<tr class=build') == 2
+
+    def test_copr_detail_contains_permissions(self, f_users, f_coprs, f_copr_permissions):
+        r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
+        assert '<table class=permissions' in r.data
+        assert '<tr><td>{0}'.format(self.u2.name) in r.data
+        assert '<tr><td>{0}'.format(self.u1.name) in r.data
+
+    def test_copr_detail_doesnt_contain_forms_for_anonymous_user(self, f_users, f_coprs):
+        r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
+        assert '<form' not in r.data
+
+    def test_copr_detail_allows_asking_for_building(self, f_users, f_coprs):
+        uname = self.u2.name
+        cname = self.c2.name
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            r = c.get('/coprs/detail/{0}/{1}/'.format(uname, cname))
+            assert '<input type=submit value="Apply for building">' in r.data
+
+    def test_copr_detail_allows_giving_up_building(self, f_users, f_coprs, f_copr_permissions):
+        uname = self.u2.name
+        cname = self.c2.name
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            r = c.get('/coprs/detail/{0}/{1}/'.format(uname, cname))
+            assert '<input type=submit value="Give up building">' in r.data
