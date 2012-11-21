@@ -51,3 +51,37 @@ class TestCoprsAllowed(CoprsTestCase):
 
             r = c.get('/coprs/allowed/{0}/'.format(self.u2.name))
             assert r.data.count('<div class=copr>') == 1
+
+class TestCoprNew(CoprsTestCase):
+    def test_copr_new_normal(self, f_users):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            r = c.post('/coprs/new/', data = {'name': 'foo', 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            assert self.models.Copr.query.filter(self.models.Copr.name == 'foo').first()
+            assert "New entry was successfully posted" in r.data
+
+    def test_copr_new_exists_for_another_user(self, f_users, f_coprs):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u3.openid_name
+
+            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all())
+            assert foocoprs > 0
+
+            r = c.post('/coprs/new/', data = {'name': 'foocopr', 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            assert len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all()) == foocoprs + 1
+            assert "New entry was successfully posted" in r.data
+
+    def test_copr_new_exists_for_this_user(self, f_users, f_coprs):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all())
+            assert foocoprs > 0
+
+            r = c.post('/coprs/new/', data = {'name': 'foocopr', 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            assert len(self.models.Copr.query.filter(self.models.Copr.name == 'foocopr').all()) == foocoprs
+            assert "You already have copr named" in r.data
