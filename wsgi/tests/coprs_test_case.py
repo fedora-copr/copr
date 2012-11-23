@@ -51,9 +51,6 @@ class CoprsTestCase(object):
         self.b3 = models.Build(copr = self.c2, user = self.u2, chroots = self.c2.chroots, submitted_on = 10)
         self.b4 = models.Build(copr = self.c2, user = self.u2, chroots = self.c2.chroots, submitted_on = 100)
 
-        self.cp1 = models.CoprPermission(copr = self.c2, user = self.u2, approved = True)
-        self.cp2 = models.CoprPermission(copr = self.c3, user = self.u2, approved = False)
-
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
         self.db.session.commit()
 
