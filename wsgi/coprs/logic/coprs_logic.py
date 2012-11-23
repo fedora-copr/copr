@@ -7,7 +7,6 @@ class CoprsLogic(object):
     @classmethod
     def get(cls, user, username, coprname, **kwargs):
         with_builds = kwargs.get('with_builds', False)
-        with_permissions = kwargs.get('with_permissions', False)
 
         query = db.session.query(models.Copr).\
                            join(models.Copr.owner).\
@@ -19,10 +18,6 @@ class CoprsLogic(object):
             query = query.outerjoin(models.Copr.builds).\
                           options(db.contains_eager(models.Copr.builds)).\
                           order_by(models.Build.submitted_on.desc())
-
-        if with_permissions:
-            query = query.outerjoin(models.Copr.copr_permissions).\
-                          options(db.contains_eager(models.Copr.copr_permissions))
 
         return query
 
@@ -73,6 +68,12 @@ class CoprsPermissionLogic(object):
     def get(cls, user, copr, searched_user):
         query = models.CoprPermission.query.filter(models.CoprPermission.copr == copr).\
                                             filter(models.CoprPermission.user == searched_user)
+
+        return query
+
+    @classmethod
+    def get_for_copr(cls, user, copr):
+        query = models.CoprPermission.query.filter(models.CoprPermission.copr == copr)
 
         return query
 

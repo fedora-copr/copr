@@ -72,24 +72,26 @@ def copr_new():
 def copr_detail(username, coprname):
     form = forms.BuildForm()
     try: # query[0:10][0] will raise an index error, if Copr doesn't exist
-        query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds = True, with_permissions = True)
+        query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds = True)
         copr = query[0:10][0]# we retrieved all builds, but we got one copr in a list...
     except IndexError:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
-    return flask.render_template('coprs/detail.html', copr = copr, form = form, permissions = copr.copr_permissions)
+    permissions = coprs_logic.CoprsPermissionLogic.get_for_copr(flask.g.user, copr).all()
+    return flask.render_template('coprs/detail.html', copr = copr, form = form, permissions = permissions)
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/edit/')
 @login_required
 def copr_edit(username, coprname):
-    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_permissions = True)
+    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
     copr = query.first()
+
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
     form = forms.CoprForm(obj = copr)
 
-    permissions = copr.copr_permissions
+    permissions = coprs_logic.CoprsPermissionLogic.get_for_copr(flask.g.user, copr).all()
     permissions_form = forms.DynamicPermissionsFormFactory.create_form_cls(permissions)()
 
     return flask.render_template('coprs/edit.html',
