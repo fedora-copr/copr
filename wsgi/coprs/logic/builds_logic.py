@@ -20,7 +20,7 @@ class BuildsLogic(object):
 
         # if we get copr, query by its id
         if copr:
-            query.filter(models.Build.copr == copr)
+            query = query.filter(models.Build.copr == copr)
         elif username and coprname:
             query = query.join(models.Build.copr).\
                           options(db.contains_eager(models.Build.copr)).\
