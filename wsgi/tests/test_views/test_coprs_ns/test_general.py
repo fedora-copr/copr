@@ -112,7 +112,7 @@ class TestCoprDetail(CoprsTestCase):
     def test_copr_detail_contains_permissions(self, f_users, f_coprs, f_copr_permissions):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
         assert '<table class=permissions' in r.data
-        assert '<tr><td>{0}'.format(self.u2.name) in r.data
+        assert '<tr><td>{0}'.format(self.u3.name) in r.data
         assert '<tr><td>{0}'.format(self.u1.name) in r.data
 
     def test_copr_detail_doesnt_contain_forms_for_anonymous_user(self, f_users, f_coprs):
@@ -158,6 +158,17 @@ class TestCoprEdit(CoprsTestCase):
             # to the precise format of the tag
             assert '<input hidden id="id" name="id" type="hidden" value="{0}">'.format(self.c1.id) in r.data
 
+    def test_edit_has_correct_permissions_form(self, f_users, f_coprs, f_copr_permissions):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u2, self.c3])
+            r = c.get('/coprs/detail/{0}/{1}/edit/'.format(self.u2.name, self.c3.name))
+            assert '<input id="user_3" name="user_3" type="checkbox" value="y">' in r.data
+            assert '<input id="user_1" name="user_1" type="checkbox" value="y">' in r.data
+
+
 class TestCoprUpdate(CoprsTestCase):
     def test_update_no_changes(self, f_users, f_coprs):
         with self.tc as c:
@@ -179,7 +190,6 @@ class TestCoprApplyForBuilding(CoprsTestCase):
             self.db.session.add_all([self.u1, self.u2, self.c1])
             r = c.post('/coprs/detail/{0}/{1}/apply_for_building/'.format(self.u1.name, self.c1.name),
                        follow_redirects = True)
-            print r.data
             assert 'You have successfuly applied' in r.data
 
             self.db.session.add_all([self.u1, self.u2, self.c1])
@@ -187,3 +197,47 @@ class TestCoprApplyForBuilding(CoprsTestCase):
                                                         filter(self.models.CoprPermission.copr_id == self.c1.id).\
                                                         first()
             assert not new_perm.approved
+
+class TestCoprGiveUpBuilding(CoprsTestCase):
+    def test_give_up(self, f_users, f_coprs, f_copr_permissions):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u1, self.u2, self.c2])
+            r = c.post('/coprs/detail/{0}/{1}/give_up_building/'.format(self.u2.name, self.c2.name),
+                       follow_redirects = True)
+            assert 'You have successfuly given up' in r.data
+
+            self.db.session.add_all([self.u1, self.u2, self.c2])
+            exists = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u1.id).\
+                                                      filter(self.models.CoprPermission.copr_id == self.c2.id).\
+                                                      first()
+            assert not exists
+
+class TestCoprUpdatePermissions(CoprsTestCase):
+    def test_cancel_permission(self, f_users, f_coprs, f_copr_permissions):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u2, self.c2])
+            # Although it shouldn't be needed, preset some data: https://github.com/ajford/flask-wtf/issues/55
+            r = c.post('/coprs/detail/{0}/{1}/update_permissions/'.format(self.u2.name, self.c2.name),
+                       data = {'csrf_token': u'20121123111948##1653cb2ef73cb9f7b4670472df7354416e61cf2d'},
+                       follow_redirects = True)
+            self.db.session.add_all([self.u1])
+            assert '<tr><td>{0}</td><td>{1}</td></tr>'.format(self.u1.name, 'True') not in r.data
+
+    def test_update_more_permissions(self, f_users, f_coprs, f_copr_permissions):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u2, self.c3])
+            r = c.post('/coprs/detail/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
+                       data = {'user_1': 'y', 'user_3': 'y'},
+                       follow_redirects = True)
+            self.db.session.add_all([self.u1, self.u3])
+            assert '<tr><td>{0}</td><td>{1}</td></tr>'.format(self.u1.name, 'True') in r.data
+            assert '<tr><td>{0}</td><td>{1}</td></tr>'.format(self.u3.name, 'True') in r.data
