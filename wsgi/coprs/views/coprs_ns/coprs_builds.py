@@ -56,7 +56,7 @@ def copr_add_build(username, coprname):
         return flask.render_template('coprs/detail.html', copr = copr, form = form)
 
 
-@coprs_ns.route('/detail/<username>/<coprname>/cancel_build/<int:build_id>/')
+@coprs_ns.route('/detail/<username>/<coprname>/cancel_build/<int:build_id>/', methods = ['POST'])
 @login_required
 def copr_cancel_build(username, coprname, build_id):
     # only the user who ran the build can cancel it
@@ -66,7 +66,7 @@ def copr_cancel_build(username, coprname, build_id):
     try:
         builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
     except exceptions.InsufficientRightsException as ex:
-        flask.flask(ex.message)
+        flask.flash(ex.message)
     else:
         db.session.commit()
         flask.flash('Build was canceled')
