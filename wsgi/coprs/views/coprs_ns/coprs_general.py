@@ -189,8 +189,8 @@ def copr_update_permissions(username, coprname):
     if permissions_form.validate_on_submit():
         # we don't change owner (yet)
         for perm in permissions:
-            copr_builder = helpers.PermissionEnum.num('Asked')
-            copr_admin = helpers.PermissionEnum.num('Asked')
+            copr_builder = helpers.PermissionEnum.num('Request')
+            copr_admin = helpers.PermissionEnum.num('Request')
             if permissions_form['copr_builder_{0}'.format(perm.user_id)].data:
                 copr_builder = helpers.PermissionEnum.num('Approved')
             if permissions_form['copr_admin_{0}'.format(perm.user_id)].data:

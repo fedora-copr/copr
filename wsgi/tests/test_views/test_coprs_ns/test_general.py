@@ -157,7 +157,6 @@ class TestCoprEdit(CoprsTestCase):
 
             self.db.session.add_all([self.u2, self.c3])
             r = c.get('/coprs/detail/{0}/{1}/edit/'.format(self.u2.name, self.c3.name))
-            print r.data
             assert r.data.count('No Action') == 2
             assert '<input id="copr_builder_1" name="copr_builder_1" type="checkbox" value="y">' in r.data
             assert '<input checked id="copr_admin_1" name="copr_admin_1" type="checkbox" value="y">' in r.data

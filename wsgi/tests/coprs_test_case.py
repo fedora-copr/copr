@@ -59,7 +59,7 @@ class CoprsTestCase(object):
     def f_copr_permissions(self):
         self.cp1 = models.CoprPermission(copr = self.c2, user = self.u1, copr_builder = helpers.PermissionEnum.num('Approved'), copr_admin = helpers.PermissionEnum.num('No Action'))
         self.cp2 = models.CoprPermission(copr = self.c3, user = self.u3, copr_builder = helpers.PermissionEnum.num('No Action'), copr_admin = helpers.PermissionEnum.num('No Action'))
-        self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = helpers.PermissionEnum.num('Requested'), copr_admin = helpers.PermissionEnum.num('Approved'))
+        self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = helpers.PermissionEnum.num('Request'), copr_admin = helpers.PermissionEnum.num('Approved'))
 
         self.db.session.add_all([self.cp1, self.cp2, self.cp3])
         self.db.session.commit()
