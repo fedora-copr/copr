@@ -13,14 +13,14 @@ class PermissionEnum(object):
 
     @classmethod
     def num(cls, key):
-        return cls.vals.get(key, None)
+        return cls.vals[key]
 
     @classmethod
     def key(cls, num):
         for k, n in cls.vals.items():
             if n == num:
                 return k
-        return None
+        raise KeyError('num {0} is not mapped'.format(num))
 
     @classmethod
     def choices_list(cls, without = 2):
