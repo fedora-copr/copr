@@ -70,7 +70,7 @@ class User(db.Model, Serializer):
         can_build = False
         if copr.owner == self:
             can_build = True
-        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).approved == True:
+        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_builder == True:
             can_build = True
 
         return can_build

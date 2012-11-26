@@ -3,7 +3,7 @@
     <table class=permissions-table>
       <tr><th>Username</th><th>Allowed to build</th></tr>
       {% for perm in permissions %}
-        <tr><td>{{ perm.user.name }}</td><td>{{ perm.approved }}</td></tr>
+        <tr><td>{{ perm.user.name }}</td><td>{{ perm.copr_builder }}</td></tr>
       {% endfor %}
     </table>
   {% endif %}

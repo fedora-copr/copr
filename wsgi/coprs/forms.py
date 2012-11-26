@@ -110,6 +110,6 @@ class DynamicPermissionsFormFactory(object):
             pass
 
         for perm in permissions:
-            setattr(F, 'user_{0}'.format(perm.user.id), wtf.BooleanField(default = perm.approved))
+            setattr(F, 'user_{0}'.format(perm.user.id), wtf.BooleanField(default = perm.copr_builder))
 
         return F

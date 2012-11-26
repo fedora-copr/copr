@@ -138,7 +138,7 @@ def copr_apply_for_building(username, coprname):
     elif permission:
         flask.flash('You are already listed in permissions for Copr "{0}".'.format(copr.name))
     else:
-        perm = models.CoprPermission(user = flask.g.user, copr = copr, approved = False)
+        perm = models.CoprPermission(user = flask.g.user, copr = copr, copr_builder = False)
         coprs_logic.CoprsPermissionLogic.new(flask.g.user, perm)
         db.session.commit()
         flask.flash('You have successfuly applied for building in Copr "{0}".'.format(copr.name))
@@ -183,7 +183,7 @@ def copr_update_permissions(username, coprname):
         for perm in permissions:
             models.CoprPermission.query.filter(models.CoprPermission.copr_id == copr.id).\
                                         filter(models.CoprPermission.user_id == perm.user_id).\
-                                        update({'approved': permissions_form['user_{0}'.format(perm.user_id)].data})
+                                        update({'copr_builder': permissions_form['user_{0}'.format(perm.user_id)].data})
         db.session.commit()
         flask.flash('Copr permissions were updated successfully.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
