@@ -117,7 +117,7 @@ def copr_update(username, coprname):
     form = forms.CoprForm()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     # only owner can update a copr
-    if flask.g.user != copr.owner:
+    if not flask.g.user.can_edit(copr):
         flask.flash('Only owners may update their Coprs.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = form.name.data))
 

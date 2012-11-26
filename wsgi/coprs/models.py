@@ -80,7 +80,7 @@ class User(db.Model, Serializer):
         can_edit = False
         if copr.owner == self:
             can_edit = True
-        if self.permissions_for_copr(copr) and self.permissions_for_copr.copr_admin == helpers.PermissionEnum.num('Approved'):
+        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_admin == helpers.PermissionEnum.num('Approved'):
             can_edit = True
 
         return can_edit
