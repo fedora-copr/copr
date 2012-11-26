@@ -1,3 +1,5 @@
+import time
+
 import flask
 
 from coprs import db, page_not_found
@@ -58,7 +60,8 @@ def copr_new():
         copr = models.Copr(name = form.name.data,
                            chroots = ' '.join(form.chroots),
                            repos = form.repos.data.replace('\n', ' '),
-                           owner = flask.g.user)
+                           owner = flask.g.user,
+                           created_on = int(time.time()))
         coprs_logic.CoprsLogic.new(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
         db.session.commit()
 
