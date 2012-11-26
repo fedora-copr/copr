@@ -2,11 +2,9 @@
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
 {% block header %}Information for Copr {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 {% from "coprs/_builds_table.html" import builds_table %}
-{% from "coprs/_permissions_table.html" import permissions_table %}
+{% from "coprs/_permissions_table.html" import permissions_table with context%}
 {% from "coprs/_coprs_forms.html" import copr_build_form,
-                                         copr_build_cancel_form,
-					 copr_apply_for_building,
-					 copr_give_up_building with context %}
+                                         copr_build_cancel_form with context %}
 
 {% block body %}
   <h3>chroots</h3>
@@ -24,19 +22,14 @@
   </ul>
   {% endif %}
   <h3>Permissions</h3>
-  {{ permissions_table(permissions) }}
-  {% if g.user %}
-    {% if g.user != copr.owner %}
-      {% if g.user.permissions_for_copr(copr) %}
-        {{ copr_give_up_building(copr) }}
-      {% else %}
-        {{ copr_apply_for_building(copr) }}
-      {% endif %}
-    {% endif %}
-    {% if g.user.can_build_in(copr) %}
-      <h3>Build packages in this repo:</h3>
-      {{ copr_build_form(form, 'coprs_ns.copr_add_build', copr) }}
-    {% endif %}
+  {% if g.user.id == copr.owner_id %}
+    {{ permissions_table(permissions, copr, None) }}
+  {% else %}
+    {{ permissions_table(permissions, copr, permission_applier_form) }}
+  {% endif %}
+  {% if g.user and g.user.can_build_in(copr) %}
+    <h3>Build packages in this repo:</h3>
+    {{ copr_build_form(build_form, 'coprs_ns.copr_add_build', copr) }}
   {% endif %}
   {% if g.user and g.user.id == copr.owner_id %}
     <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Edit this Copr</a>

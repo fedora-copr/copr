@@ -1,5 +1,6 @@
 from coprs import constants
 from coprs import db
+from coprs import helpers
 
 class Serializer(object):
     def to_dict(self, options = {}):
@@ -70,7 +71,7 @@ class User(db.Model, Serializer):
         can_build = False
         if copr.owner == self:
             can_build = True
-        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_builder == True:
+        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_builder == helpers.PermissionEnum.num('Approved'):
             can_build = True
 
         return can_build
@@ -79,7 +80,7 @@ class User(db.Model, Serializer):
         can_edit = False
         if copr.owner == self:
             can_edit = True
-        if self.permissions_for_copr(copr) and self.permissions_for_copr.copr_admin == True:
+        if self.permissions_for_copr(copr) and self.permissions_for_copr.copr_admin == helpers.PermissionEnum.num('Approved'):
             can_edit = True
 
         return can_edit

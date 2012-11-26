@@ -1,10 +1,27 @@
-{% macro permissions_table(permissions) %}
-  {% if permissions %}
+{% macro permissions_table(permissions, copr, permissions_applier_form) %}
+  {% if permissions or permissions_applier_form %}
+    {% if permissions_applier_form %}
+      <form action="{{ url_for('coprs_ns.copr_permissions_applier_change', username = copr.owner.name, coprname = copr.name)}}" method=post>
+      {{ permissions_applier_form.csrf_token }}
+    {% endif %}
     <table class=permissions-table>
-      <tr><th>Username</th><th>Allowed to build</th></tr>
+      <tr><th>Username</th><th>Is Builder</th><th>Is Admin</th></tr>
       {% for perm in permissions %}
-        <tr><td>{{ perm.user.name }}</td><td>{{ perm.copr_builder }}</td></tr>
+        {% if perm.user_id != g.user.id %} {# if user is logged in, only display his form, not a row #}
+          <tr><td>{{ perm.user.name }}</td><td>{{ perm.copr_builder|perm_type_from_num }}</td><td>{{ perm.copr_admin|perm_type_from_num }}</tr>
+        {% endif %}
       {% endfor %}
+      {% if permissions_applier_form %}
+          <tr>
+            <td>{{ g.user.name }}</td>
+            <td>{{ permissions_applier_form.copr_builder|safe }}</td>
+            <td>{{ permissions_applier_form.copr_admin|safe }}</td>
+          </tr>
+      {% endif %}
     </table>
+    {% if permissions_applier_form %}
+      <input type=submit value=Submit>
+      </form>
+    {% endif %}
   {% endif %}
 {% endmacro %}

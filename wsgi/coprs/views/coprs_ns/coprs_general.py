@@ -70,7 +70,7 @@ def copr_new():
 
 @coprs_ns.route('/detail/<username>/<coprname>/')
 def copr_detail(username, coprname):
-    form = forms.BuildForm()
+    build_form = forms.BuildForm()
     try: # query[0:10][0] will raise an index error, if Copr doesn't exist
         query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds = True)
         copr = query[0:10][0]# we retrieved all builds, but we got one copr in a list...
@@ -78,7 +78,12 @@ def copr_detail(username, coprname):
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     permissions = coprs_logic.CoprsPermissionLogic.get_for_copr(flask.g.user, copr).all()
-    return flask.render_template('coprs/detail.html', copr = copr, form = form, permissions = permissions)
+    permission_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(flask.g.user.permissions_for_copr(copr))()
+    return flask.render_template('coprs/detail.html',
+                                 copr = copr,
+                                 build_form = build_form,
+                                 permission_applier_form = permission_applier_form,
+                                 permissions = permissions)
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/edit/')
@@ -125,45 +130,43 @@ def copr_update(username, coprname):
         return flask.render_template('coprs/edit.html', copr = copr, form = form)
 
 
-@coprs_ns.route('/detail/<username>/<coprname>/apply_for_building/', methods = ['POST'])
+@coprs_ns.route('/detail/<username>/<coprname>/permissions_applier_change/', methods = ['POST'])
 @login_required
-def copr_apply_for_building(username, coprname):
+def copr_permissions_applier_change(username, coprname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     permission = coprs_logic.CoprsPermissionLogic.get(flask.g.user, copr, flask.g.user).first()
+    applier_permissions_form = forms.PermissionsApplierFormFactory.create_form_cls()()
 
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(name))
     if copr.owner == flask.g.user:
         flask.flash('Owner cannot request permissions for his own copr.')
-    elif permission:
-        flask.flash('You are already listed in permissions for Copr "{0}".'.format(copr.name))
-    else:
-        perm = models.CoprPermission(user = flask.g.user, copr = copr, copr_builder = False)
-        coprs_logic.CoprsPermissionLogic.new(flask.g.user, perm)
-        db.session.commit()
-        flask.flash('You have successfuly applied for building in Copr "{0}".'.format(copr.name))
+    else: # TODO: pull this into logic
+        new_builder = int(applier_permissions_form.copr_builder.data)
+        new_admin = int(applier_permissions_form.copr_admin.data)
+        if permission:
+            approved_num = helpers.PermissionEnum.num('Approved')
+            prev_builder = permission.copr_builder
+            prev_admin = permission.copr_admin
+            # if we had Approved before, we can have it now, otherwise not
+            if new_builder == approved_num and prev_builder != new_builder or \
+               new_admin == approved_num and prev_admin != new_admin:
+                flask.flash('User can\'t approve himself.')
+            else:
+                permission.copr_builder = new_builder
+                permission.copr_admin = new_admin
+                db.session.commit()
+                flask.flash('Successfuly updated your permissions in Copr "{0}".'.format(copr.name))
+        else:
+            if new_builder == approved_num or new_admin == aproved_num:
+                flask.flash('User can\'t approve himself.')
+            else:
+                perm = models.CoprPermission(user = flask.g.user, copr = copr, copr_builder = new_builder, copr_admin = new_admin)
+                coprs_logic.CoprsPermissionLogic.new(flask.g.user, perm)
+                db.session.commit()
+                flask.flash('Successfuly applied for permissions in Copr "{0}".'.format(copr.name))
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
-
-
-@coprs_ns.route('/detail/<username>/<coprname>/give_up_building/', methods = ['POST'])
-@login_required
-def copr_give_up_building(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    permission = coprs_logic.CoprsPermissionLogic.get(flask.g.user, copr, flask.g.user).first()
-
-    if not copr:
-        return page_not_found('Copr with name {0} does not exist.'.format(name))
-
-    if not permission:
-        flask.flash('You are already not in permissions for Copr "{0}".'.format(copr.name))
-    else:
-        coprs_logic.CoprsPermissionLogic.delete(flask.g.user, permission) # TODO: do we really want to delete this, or just inactivate?
-        db.session.commit()
-        flask.flash('You have successfuly given up building in Copr "{0}".'.format(copr.name))
-
-    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
-
 
 @coprs_ns.route('/detail/<username>/<coprname>/update_permissions/', methods = ['POST'])
 @login_required
@@ -181,9 +184,18 @@ def copr_update_permissions(username, coprname):
     if permissions_form.validate_on_submit():
         # we don't change owner (yet)
         for perm in permissions:
+            copr_builder = helpers.PermissionEnum.num('Asked')
+            copr_admin = helpers.PermissionEnum.num('Asked')
+            if permissions_form['copr_builder_{0}'.format(perm.user_id)].data:
+                copr_builder = helpers.PermissionEnum.num('Approved')
+            if permissions_form['copr_admin_{0}'.format(perm.user_id)].data:
+                copr_admin = helpers.PermissionEnum.num('Approved')
+
+
             models.CoprPermission.query.filter(models.CoprPermission.copr_id == copr.id).\
                                         filter(models.CoprPermission.user_id == perm.user_id).\
-                                        update({'copr_builder': permissions_form['user_{0}'.format(perm.user_id)].data})
+                                        update({'copr_builder': copr_builder,
+                                                'copr_admin': copr_admin})
         db.session.commit()
         flask.flash('Copr permissions were updated successfully.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))

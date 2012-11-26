@@ -9,18 +9,22 @@ def chroots():
                                             for arch in arches]
 
 class PermissionEnum(object):
-    vals = {'No Permission': 0, 'Asked': 1, 'Approved': 2}
+    vals = {'No Action': 0, 'Request': 1, 'Approved': 2}
 
     @classmethod
     def num(cls, key):
-        return vals.get(key, None)
+        return cls.vals.get(key, None)
 
     @classmethod
     def key(cls, num):
-        for k, n in cls.vals:
+        for k, n in cls.vals.items():
             if n == num:
                 return k
         return None
+
+    @classmethod
+    def choices_list(cls, without = 2):
+        return [(n, k) for k, n in cls.vals.items() if n != without]
 
 class Paginator(object):
     def __init__(self, query, total_count, page = 1, per_page_override = None, urls_count_override = None):

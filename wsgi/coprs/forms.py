@@ -102,6 +102,34 @@ class BuildForm(wtf.Form):
                                validators = [wtf.NumberRange(min = constants.MIN_BUILD_TIMEOUT, max = constants.MAX_BUILD_TIMEOUT)],
                                default = constants.DEFAULT_BUILD_TIMEOUT)
 
+class PermissionsApplierFormFactory(object):
+    @staticmethod
+    def create_form_cls(permission = None):
+        class F(wtf.Form):
+            pass
+
+        approved_num = helpers.PermissionEnum.num('Approved')
+        build_without = approved_num
+        admin_without = approved_num
+
+        if permission:
+            if permission.copr_builder == approved_num:
+                build_without = None
+
+            if permission.copr_admin == approved_num:
+                admin_without = None
+
+        builder_choices = helpers.PermissionEnum.choices_list(build_without)
+        admin_choices = helpers.PermissionEnum.choices_list(admin_without)
+
+        builder_default = permission.copr_builder if permission else helpers.PermissionEnum.num('No Action')
+        admin_default = permission.copr_admin if permission else helpers.PermissionEnum.num('No Action')
+
+        setattr(F, 'copr_builder', wtf.SelectField('Copr Builder', choices = builder_choices, default = builder_default))
+        setattr(F, 'copr_admin', wtf.SelectField('Copr Admin', choices = admin_choices, default = admin_default))
+
+        return F
+
 class DynamicPermissionsFormFactory(object):
     """Creates a dynamic form for given set of copr permissions"""
     @staticmethod
@@ -110,6 +138,15 @@ class DynamicPermissionsFormFactory(object):
             pass
 
         for perm in permissions:
-            setattr(F, 'user_{0}'.format(perm.user.id), wtf.BooleanField(default = perm.copr_builder))
+            copr_builder_default = False
+            if perm.copr_builder == helpers.PermissionEnum.num('Approved'):
+                copr_builder_default = True
+
+            copr_admin_default = False
+            if perm.copr_admin == helpers.PermissionEnum.num('Approved'):
+                copr_admin_default = True
+
+            setattr(F, 'copr_builder_{0}'.format(perm.user.id), wtf.BooleanField(default = copr_builder_default))
+            setattr(F, 'copr_admin_{0}'.format(perm.user.id), wtf.BooleanField(default = copr_admin_default))
 
         return F
