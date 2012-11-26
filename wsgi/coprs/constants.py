@@ -6,6 +6,8 @@ CHROOTS = {'fedora-16':      DEFAULT_ARCHES,
            'fedora-17':      DEFAULT_ARCHES,
            'fedora-18':      DEFAULT_ARCHES,
            'fedora-rawhide': DEFAULT_ARCHES,
+           'epel-5': DEFAULT_ARCHES,
+           'epel-6': DEFAULT_ARCHES,
           }
 
 # PAGINATION

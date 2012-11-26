@@ -79,7 +79,7 @@ class CoprForm(wtf.Form):
                          CoprUniqueNameValidator()])
     # choices must be list of tuples
     # => make list like [(fedora-18, fedora-18), ...]
-    release = wtf.SelectField('Release', choices = [(x, x) for x in constants.CHROOTS])
+    release = wtf.SelectField('Release', choices = [(x, x) for x in sorted(constants.CHROOTS)])
     arches = wtf.SelectMultipleField('Architectures',
                                      choices = [(x, x) for x in constants.DEFAULT_ARCHES],
                                      validators = [wtf.Required(), AllowedArchesValidator()])
