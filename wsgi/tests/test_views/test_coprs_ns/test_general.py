@@ -174,22 +174,24 @@ class TestCoprUpdate(CoprsTestCase):
                        follow_redirects = True)
             assert 'Copr was updated successfully' in r.data
 
-class TestCoprApplyForBuilding(CoprsTestCase):
+class TestCoprApplyForPermissions(CoprsTestCase):
     def test_apply(self, f_users, f_coprs):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u2.openid_name
 
             self.db.session.add_all([self.u1, self.u2, self.c1])
-            r = c.post('/coprs/detail/{0}/{1}/apply_for_building/'.format(self.u1.name, self.c1.name),
+            r = c.post('/coprs/detail/{0}/{1}/permissions_applier_change/'.format(self.u1.name, self.c1.name),
+                       data = {'copr_builder': 1, 'copr_admin': 0},
                        follow_redirects = True)
-            assert 'You have successfuly applied' in r.data
+            assert 'Successfuly applied' in r.data
 
             self.db.session.add_all([self.u1, self.u2, self.c1])
             new_perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u2.id).\
                                                         filter(self.models.CoprPermission.copr_id == self.c1.id).\
                                                         first()
-            assert not new_perm.copr_builder
+            assert new_perm.copr_builder == 1
+            assert new_perm.copr_admin == 0
 
 class TestCoprGiveUpBuilding(CoprsTestCase):
     def test_give_up(self, f_users, f_coprs, f_copr_permissions):

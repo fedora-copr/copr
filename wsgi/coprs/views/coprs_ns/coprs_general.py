@@ -161,7 +161,7 @@ def copr_permissions_applier_change(username, coprname):
                 permission.copr_builder = new_builder
                 permission.copr_admin = new_admin
                 db.session.commit()
-                flask.flash('Successfuly updated your permissions in Copr "{0}".'.format(copr.name))
+                flask.flash('Successfuly updated permissions in Copr "{0}".'.format(copr.name))
         else:
             if new_builder == approved_num or new_admin == approved_num:
                 flask.flash('User can\'t approve himself.')
