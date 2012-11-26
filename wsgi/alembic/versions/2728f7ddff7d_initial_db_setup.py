@@ -1,13 +1,13 @@
 """Initial DB setup
 
-Revision ID: 2d24d28534b6
+Revision ID: 2728f7ddff7d
 Revises: None
-Create Date: 2012-11-26 08:02:34.063991
+Create Date: 2012-11-26 08:14:58.017240
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '2d24d28534b6'
+revision = '2728f7ddff7d'
 down_revision = None
 
 from alembic import op
@@ -36,7 +36,8 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('copr_permission',
-    sa.Column('approved', sa.Boolean(), nullable=True),
+    sa.Column('copr_builder', sa.Boolean(), nullable=True),
+    sa.Column('copr_admin', sa.Boolean(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('copr_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['copr_id'], ['copr.id'], ),

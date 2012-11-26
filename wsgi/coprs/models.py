@@ -117,7 +117,8 @@ class Copr(db.Model, Serializer):
     __mapper_args__ = {'order_by': id.desc()}
 
 class CoprPermission(db.Model, Serializer):
-    approved = db.Column(db.Boolean, default = True)
+    copr_builder = db.Column(db.Boolean, default = False)
+    copr_admin = db.Column(db.Boolean, default = False)
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key = True)
