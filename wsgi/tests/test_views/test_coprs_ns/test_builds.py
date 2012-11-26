@@ -66,7 +66,7 @@ class TestCoprCancelBuild(CoprsTestCase):
             self.db.session.add(self.b1)
             assert self.b1.canceled == True
 
-    def test_copr_build_non_submitter_can_cancel_build(self, f_users, f_coprs, f_builds):
+    def test_copr_build_non_submitter_cannot_cancel_build(self, f_users, f_coprs, f_builds):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u2.openid_name
