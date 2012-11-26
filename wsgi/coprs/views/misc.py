@@ -19,10 +19,7 @@ def login():
     if flask.request.method == 'POST':
         fasusername = flask.request.form.get('fasuname')
         if fasusername:
-            return oid.try_login('http://{0}.id.fedoraproject.org/'.format(fasusername))
-        openid = flask.request.form.get('openid')
-        if openid:
-            return oid.try_login(openid)
+            return oid.try_login('http://{0}.id.fedoraproject.org/'.format(fasusername), ask_for = ["email"])
     return flask.render_template('login.html',
                                  next=oid.get_next_url(),
                                  error=oid.fetch_error())
@@ -33,7 +30,7 @@ def create_or_login(resp):
     flask.session['openid'] = resp.identity_url
     user = models.User.query.filter(models.User.openid_name == resp.identity_url).first()
     if not user: # create if not created already
-        user = models.User(openid_name = resp.identity_url)
+        user = models.User(openid_name = resp.identity_url, mail = resp.email)
         db.session.add(user)
         db.session.commit()
     flask.flash(u'Welcome, {0}'.format(user.name))
