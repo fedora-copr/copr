@@ -1,5 +1,6 @@
 from coprs import db
 from coprs import exceptions
+from coprs import helpers
 from coprs import models
 
 class CoprsLogic(object):
@@ -34,7 +35,7 @@ class CoprsLogic(object):
         elif user_relation == 'allowed':
             aliased_user = db.aliased(models.User)
             query = query.join(models.CoprPermission, models.Copr.copr_permissions).\
-                          filter(models.CoprPermission.copr_builder == True).\
+                          filter(models.CoprPermission.copr_builder == helpers.PermissionEnum.num('Approved')).\
                           join(aliased_user, models.CoprPermission.user).\
                           filter(aliased_user.openid_name == models.User.openidize_name(username))
         return query

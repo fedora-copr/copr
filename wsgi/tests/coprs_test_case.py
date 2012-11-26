@@ -5,6 +5,7 @@ import pytest
 
 import coprs
 
+from coprs import helpers
 from coprs import models
 
 class CoprsTestCase(object):
@@ -56,9 +57,9 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_copr_permissions(self):
-        self.cp1 = models.CoprPermission(copr = self.c2, user = self.u1, copr_builder = True, copr_admin = False)
-        self.cp2 = models.CoprPermission(copr = self.c3, user = self.u3, copr_builder = False, copr_admin = False)
-        self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = False, copr_admin = True)
+        self.cp1 = models.CoprPermission(copr = self.c2, user = self.u1, copr_builder = helpers.PermissionEnum.num('Approved'), copr_admin = helpers.PermissionEnum.num('No Action'))
+        self.cp2 = models.CoprPermission(copr = self.c3, user = self.u3, copr_builder = helpers.PermissionEnum.num('No Action'), copr_admin = helpers.PermissionEnum.num('No Action'))
+        self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = helpers.PermissionEnum.num('Requested'), copr_admin = helpers.PermissionEnum.num('Approved'))
 
         self.db.session.add_all([self.cp1, self.cp2, self.cp3])
         self.db.session.commit()
