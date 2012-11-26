@@ -50,7 +50,9 @@ class Serializer(object):
 class User(db.Model, Serializer):
     id = db.Column(db.Integer, primary_key = True)
     openid_name = db.Column(db.String(100), nullable = False)
+    mail = db.Column(db.String(150), nullable = False)
     proven = db.Column(db.Boolean, default = False)
+    admin = db.Column(db.Boolean, default = False)
 
     @property
     def name(self):
@@ -86,6 +88,7 @@ class Copr(db.Model, Serializer):
     name = db.Column(db.String(100), nullable = False)
     chroots = db.Column(db.Text, nullable = False)
     repos = db.Column(db.Text)
+    created_on = db.Column(db.Integer)
     # duplicate information, but speeds up a lot and makes queries simpler
     build_count = db.Column(db.Integer, default = 0)
 
