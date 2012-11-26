@@ -119,32 +119,24 @@ class TestCoprDetail(CoprsTestCase):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
         assert '<form' not in r.data
 
-    def test_copr_detail_allows_asking_for_building(self, f_users, f_coprs):
+    def test_copr_detail_allows_asking_for_permissions(self, f_users, f_coprs, f_copr_permissions):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
             self.db.session.add_all([self.u2, self.c2])
             r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
-            assert '<input type=submit value="Apply for building">' in r.data
+            # u1 is approved builder, check for that
+            assert '<option selected value="2">Approved</option>' in r.data
 
-    def test_copr_detail_doesnt_allow_owner_to_ask_for_building(self, f_users, f_coprs):
+    def test_copr_detail_doesnt_allow_owner_to_ask_for_permissions(self, f_users, f_coprs):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u2.openid_name
 
             self.db.session.add_all([self.u2, self.c2])
             r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
-            assert '<input type=submit value="Apply for building">' not in r.data
-
-    def test_copr_detail_allows_giving_up_building(self, f_users, f_coprs, f_copr_permissions):
-        with self.tc as c:
-            with c.session_transaction() as s:
-                s['openid'] = self.u1.openid_name
-
-            self.db.session.add_all([self.u2, self.c2])
-            r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
-            assert '<input type=submit value="Give up building">' in r.data
+            assert '/permissions_applier_change/' not in r.data
 
 class TestCoprEdit(CoprsTestCase):
     def test_edit_prefills_id(self, f_users, f_coprs):
@@ -165,8 +157,10 @@ class TestCoprEdit(CoprsTestCase):
 
             self.db.session.add_all([self.u2, self.c3])
             r = c.get('/coprs/detail/{0}/{1}/edit/'.format(self.u2.name, self.c3.name))
-            assert '<input id="user_3" name="user_3" type="checkbox" value="y">' in r.data
-            assert '<input id="user_1" name="user_1" type="checkbox" value="y">' in r.data
+            print r.data
+            assert r.data.count('No Action') == 2
+            assert '<input id="copr_builder_1" name="copr_builder_1" type="checkbox" value="y">' in r.data
+            assert '<input checked id="copr_admin_1" name="copr_admin_1" type="checkbox" value="y">' in r.data
 
 
 class TestCoprUpdate(CoprsTestCase):

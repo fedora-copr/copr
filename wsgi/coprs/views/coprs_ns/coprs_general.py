@@ -78,7 +78,12 @@ def copr_detail(username, coprname):
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     permissions = coprs_logic.CoprsPermissionLogic.get_for_copr(flask.g.user, copr).all()
-    permission_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(flask.g.user.permissions_for_copr(copr))()
+    if flask.g.user:
+        user_perm = flask.g.user.permissions_for_copr(copr)
+    else:
+        user_perm = None
+
+    permission_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(user_perm)()
     return flask.render_template('coprs/detail.html',
                                  copr = copr,
                                  build_form = build_form,
@@ -144,8 +149,8 @@ def copr_permissions_applier_change(username, coprname):
     else: # TODO: pull this into logic
         new_builder = int(applier_permissions_form.copr_builder.data)
         new_admin = int(applier_permissions_form.copr_admin.data)
+        approved_num = helpers.PermissionEnum.num('Approved')
         if permission:
-            approved_num = helpers.PermissionEnum.num('Approved')
             prev_builder = permission.copr_builder
             prev_admin = permission.copr_admin
             # if we had Approved before, we can have it now, otherwise not
@@ -158,7 +163,7 @@ def copr_permissions_applier_change(username, coprname):
                 db.session.commit()
                 flask.flash('Successfuly updated your permissions in Copr "{0}".'.format(copr.name))
         else:
-            if new_builder == approved_num or new_admin == aproved_num:
+            if new_builder == approved_num or new_admin == approved_num:
                 flask.flash('User can\'t approve himself.')
             else:
                 perm = models.CoprPermission(user = flask.g.user, copr = copr, copr_builder = new_builder, copr_admin = new_admin)
