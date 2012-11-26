@@ -189,13 +189,19 @@ def copr_update_permissions(username, coprname):
     if permissions_form.validate_on_submit():
         # we don't change owner (yet)
         for perm in permissions:
-            copr_builder = helpers.PermissionEnum.num('Request')
-            copr_admin = helpers.PermissionEnum.num('Request')
+            copr_builder = perm.copr_builder
+            copr_admin = perm.copr_admin
+            # if the permission is granted, use Approved
+            # otherwise if it was Approved and it is ungranted, use Request,
+            # else use original value
             if permissions_form['copr_builder_{0}'.format(perm.user_id)].data:
                 copr_builder = helpers.PermissionEnum.num('Approved')
+            elif copr_builder == helpers.PermissionEnum.num('Approved'):
+                copr_builder = helpers.PermissionEnum.num('Request')
             if permissions_form['copr_admin_{0}'.format(perm.user_id)].data:
                 copr_admin = helpers.PermissionEnum.num('Approved')
-
+            elif copr_admin == helpers.PermissionEnum.num('Approved'):
+                copr_admin = helpers.PermissionEnum.num('Request')
 
             models.CoprPermission.query.filter(models.CoprPermission.copr_id == copr.id).\
                                         filter(models.CoprPermission.user_id == perm.user_id).\

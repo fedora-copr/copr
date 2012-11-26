@@ -193,23 +193,6 @@ class TestCoprApplyForPermissions(CoprsTestCase):
             assert new_perm.copr_builder == 1
             assert new_perm.copr_admin == 0
 
-class TestCoprGiveUpBuilding(CoprsTestCase):
-    def test_give_up(self, f_users, f_coprs, f_copr_permissions):
-        with self.tc as c:
-            with c.session_transaction() as s:
-                s['openid'] = self.u1.openid_name
-
-            self.db.session.add_all([self.u1, self.u2, self.c2])
-            r = c.post('/coprs/detail/{0}/{1}/give_up_building/'.format(self.u2.name, self.c2.name),
-                       follow_redirects = True)
-            assert 'You have successfuly given up' in r.data
-
-            self.db.session.add_all([self.u1, self.u2, self.c2])
-            exists = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u1.id).\
-                                                      filter(self.models.CoprPermission.copr_id == self.c2.id).\
-                                                      first()
-            assert not exists
-
 class TestCoprUpdatePermissions(CoprsTestCase):
     def test_cancel_permission(self, f_users, f_coprs, f_copr_permissions):
         with self.tc as c:
@@ -231,8 +214,17 @@ class TestCoprUpdatePermissions(CoprsTestCase):
 
             self.db.session.add_all([self.u2, self.c3])
             r = c.post('/coprs/detail/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
-                       data = {'user_1': 'y', 'user_3': 'y'},
+                       data = {'copr_builder_1': 'y', 'copr_admin_3': 'y'},
                        follow_redirects = True)
-            self.db.session.add_all([self.u1, self.u3])
-            assert '<tr><td>{0}</td><td>{1}</td></tr>'.format(self.u1.name, 'True') in r.data
-            assert '<tr><td>{0}</td><td>{1}</td></tr>'.format(self.u3.name, 'True') in r.data
+            self.db.session.add_all([self.c3, self.u1, self.u3])
+            u1_c3_perms = self.models.CoprPermission.query.filter(self.models.CoprPermission.copr_id == self.c3.id).\
+                                                           filter(self.models.CoprPermission.user_id == self.u1.id).\
+                                                           first()
+            assert u1_c3_perms.copr_builder == self.helpers.PermissionEnum.num('Approved')
+            assert u1_c3_perms.copr_admin == self.helpers.PermissionEnum.num('Request')
+
+            u3_c3_perms = self.models.CoprPermission.query.filter(self.models.CoprPermission.copr_id == self.c3.id).\
+                                                           filter(self.models.CoprPermission.user_id == self.u3.id).\
+                                                           first()
+            assert u3_c3_perms.copr_builder == self.helpers.PermissionEnum.num('No Action')
+            assert u3_c3_perms.copr_admin == self.helpers.PermissionEnum.num('Approved')

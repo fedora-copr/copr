@@ -15,6 +15,7 @@ class CoprsTestCase(object):
         self.app.testing = True
         self.db = coprs.db
         self.models = models
+        self.helpers = helpers
         # create datadir if it doesn't exist
         datadir = os.path.commonprefix([self.app.config['DATABASE'], self.app.config['OPENID_STORE']])
         if not os.path.exists(datadir):
