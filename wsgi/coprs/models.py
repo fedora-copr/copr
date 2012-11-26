@@ -75,6 +75,15 @@ class User(db.Model, Serializer):
 
         return can_build
 
+    def can_edit(self, copr):
+        can_edit = False
+        if copr.owner == self:
+            can_edit = True
+        if self.permissions_for_copr(copr) and self.permissions_for_copr.copr_admin == True:
+            can_edit = True
+
+        return can_edit
+
     @classmethod
     def openidize_name(cls, name):
         return 'http://{0}.id.fedoraproject.org/'.format(name)
@@ -117,8 +126,10 @@ class Copr(db.Model, Serializer):
     __mapper_args__ = {'order_by': id.desc()}
 
 class CoprPermission(db.Model, Serializer):
-    copr_builder = db.Column(db.Boolean, default = False)
-    copr_admin = db.Column(db.Boolean, default = False)
+    # 0 = nothing, 1 = asked for, 2 = approved
+    # not using enum, as that translates to varchar on some DBs
+    copr_builder = db.Column(db.SmallInteger, default = 0)
+    copr_admin = db.Column(db.SmallInteger, default = 0)
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key = True)
