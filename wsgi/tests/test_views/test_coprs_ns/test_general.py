@@ -196,7 +196,7 @@ class TestCoprApplyForBuilding(CoprsTestCase):
             new_perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u2.id).\
                                                         filter(self.models.CoprPermission.copr_id == self.c1.id).\
                                                         first()
-            assert not new_perm.approved
+            assert not new_perm.copr_builder
 
 class TestCoprGiveUpBuilding(CoprsTestCase):
     def test_give_up(self, f_users, f_coprs, f_copr_permissions):

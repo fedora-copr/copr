@@ -28,9 +28,9 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_users(self):
-        self.u1 = models.User(openid_name = 'http://user1.id.fedoraproject.org/', proven = False)
-        self.u2 = models.User(openid_name = 'http://user2.id.fedoraproject.org/', proven = False)
-        self.u3 = models.User(openid_name = 'http://user3.id.fedoraproject.org/', proven = False)
+        self.u1 = models.User(openid_name = 'http://user1.id.fedoraproject.org/', proven = False, mail = 'user1@foo.bar')
+        self.u2 = models.User(openid_name = 'http://user2.id.fedoraproject.org/', proven = False, mail = 'user2@spam.foo')
+        self.u3 = models.User(openid_name = 'http://user3.id.fedoraproject.org/', proven = False, mail = 'baz@bar.bar')
 
         self.db.session.add_all([self.u1, self.u2, self.u3])
         self.db.session.commit()
@@ -56,9 +56,9 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_copr_permissions(self):
-        self.cp1 = models.CoprPermission(copr = self.c2, user = self.u1, approved = True)
-        self.cp2 = models.CoprPermission(copr = self.c3, user = self.u3, approved = False)
-        self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, approved = False)
+        self.cp1 = models.CoprPermission(copr = self.c2, user = self.u1, copr_builder = True, copr_admin = False)
+        self.cp2 = models.CoprPermission(copr = self.c3, user = self.u3, copr_builder = False, copr_admin = False)
+        self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = False, copr_admin = True)
 
         self.db.session.add_all([self.cp1, self.cp2, self.cp3])
         self.db.session.commit()
