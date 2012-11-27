@@ -150,7 +150,7 @@ def copr_permissions_applier_change(username, coprname):
         return page_not_found('Copr with name {0} does not exist.'.format(name))
     if copr.owner == flask.g.user:
         flask.flash('Owner cannot request permissions for his own copr.')
-    else: # TODO: pull this into logic
+    else:
         new_builder = int(applier_permissions_form.copr_builder.data)
         new_admin = int(applier_permissions_form.copr_admin.data)
         try:
