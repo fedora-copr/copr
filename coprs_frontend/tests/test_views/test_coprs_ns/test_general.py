@@ -174,6 +174,18 @@ class TestCoprUpdate(CoprsTestCase):
                        follow_redirects = True)
             assert 'Copr was updated successfully' in r.data
 
+    def test_copr_admin_can_update(self, f_users, f_coprs, f_copr_permissions):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u2, self.c3])
+            r = c.post('/coprs/detail/{0}/{1}/update/'.format(self.u2.name, self.c3.name),
+                       data = {'name': self.c3.name, 'release': self.c3.release, 'arches': self.c3.arches, 'id': self.c3.id},
+                       follow_redirects = True)
+            assert 'Copr was updated successfully' in r.data
+
+
 class TestCoprApplyForPermissions(CoprsTestCase):
     def test_apply(self, f_users, f_coprs):
         with self.tc as c:
