@@ -122,7 +122,7 @@ def copr_update(username, coprname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     # only owner can update a copr
     if not flask.g.user.can_edit(copr):
-        flask.flash('Only owners may update their Coprs.')
+        flask.flash('Only owners and admins may update their Coprs.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = form.name.data))
 
     if form.validate_on_submit():
@@ -173,7 +173,7 @@ def copr_update_permissions(username, coprname):
 
     # only owner can update copr permissions
     if not flask.g.user.can_edit(copr):
-        flask.flash('Only owners may update their Coprs permissions.')
+        flask.flash('Only owners and admins may update their Coprs permissions.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
     if permissions_form.validate_on_submit():
