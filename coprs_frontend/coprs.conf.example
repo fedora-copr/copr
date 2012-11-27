@@ -2,13 +2,13 @@
     ServerName 127.0.0.1
 
     WSGIDaemonProcess 127.0.0.1 user=coprs group=coprs threads=5
-    WSGIScriptAlias / /var/www/wsgi/application
+    WSGIScriptAlias / /var/www/coprs_frontend/application
     WSGIProcessGroup 127.0.0.1
 
     ErrorLog logs/error_coprs
     CustomLog logs/access_coprs common
 
-    <Directory /var/www/wsgi>
+    <Directory /var/www/coprs_frontend>
         WSGIApplicationGroup %{GLOBAL}
         Order deny,allow
         Allow from all
