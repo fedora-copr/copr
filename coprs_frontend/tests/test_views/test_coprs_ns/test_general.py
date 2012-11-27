@@ -233,7 +233,7 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                                                            filter(self.models.CoprPermission.user_id == self.u1.id).\
                                                            first()
             assert u1_c3_perms.copr_builder == self.helpers.PermissionEnum.num('Approved')
-            assert u1_c3_perms.copr_admin == self.helpers.PermissionEnum.num('Request')
+            assert u1_c3_perms.copr_admin == self.helpers.PermissionEnum.num('No Action')
 
             u3_c3_perms = self.models.CoprPermission.query.filter(self.models.CoprPermission.copr_id == self.c3.id).\
                                                            filter(self.models.CoprPermission.user_id == self.u3.id).\
