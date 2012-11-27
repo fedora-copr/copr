@@ -184,7 +184,7 @@ class TestCoprApplyForPermissions(CoprsTestCase):
             r = c.post('/coprs/detail/{0}/{1}/permissions_applier_change/'.format(self.u1.name, self.c1.name),
                        data = {'copr_builder': 1, 'copr_admin': 0},
                        follow_redirects = True)
-            assert 'Successfuly applied' in r.data
+            assert 'Successfuly updated' in r.data
 
             self.db.session.add_all([self.u1, self.u2, self.c1])
             new_perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u2.id).\

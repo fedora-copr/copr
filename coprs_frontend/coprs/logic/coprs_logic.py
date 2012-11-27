@@ -83,5 +83,26 @@ class CoprsPermissionLogic(object):
         db.session.add(copr_permission)
 
     @classmethod
+    def update_permissions_by_applier(cls, user, copr, copr_permission, new_builder, new_admin):
+        approved_num = helpers.PermissionEnum.num('Approved')
+        if copr_permission:
+            prev_builder = permission.copr_builder
+            prev_admin = permission.copr_admin
+            # if we had Approved before, we can have it now, otherwise not
+            if new_builder == approved_num and prev_builder != new_builder or \
+               new_admin == approved_num and prev_admin != new_admin:
+                raise exceptions.InsufficientRightsException('User can\'t approve himself.')
+            else:
+                copr_permission.copr_builder = new_builder
+                copr_permission.copr_admin = new_admin
+        else:
+            if new_builder == approved_num or new_admin == approved_num:
+                raise exceptions.InsufficientRightsException('User can\'t approve himself.')
+            else:
+                perm = models.CoprPermission(user = user, copr = copr, copr_builder = new_builder, copr_admin = new_admin)
+                cls.new(user, perm)
+
+
+    @classmethod
     def delete(cls, user, copr_permission):
         db.session.delete(copr_permission)

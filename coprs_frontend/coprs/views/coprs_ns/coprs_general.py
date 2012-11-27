@@ -3,6 +3,7 @@ import time
 import flask
 
 from coprs import db, page_not_found
+from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
@@ -152,27 +153,13 @@ def copr_permissions_applier_change(username, coprname):
     else: # TODO: pull this into logic
         new_builder = int(applier_permissions_form.copr_builder.data)
         new_admin = int(applier_permissions_form.copr_admin.data)
-        approved_num = helpers.PermissionEnum.num('Approved')
-        if permission:
-            prev_builder = permission.copr_builder
-            prev_admin = permission.copr_admin
-            # if we had Approved before, we can have it now, otherwise not
-            if new_builder == approved_num and prev_builder != new_builder or \
-               new_admin == approved_num and prev_admin != new_admin:
-                flask.flash('User can\'t approve himself.')
-            else:
-                permission.copr_builder = new_builder
-                permission.copr_admin = new_admin
-                db.session.commit()
-                flask.flash('Successfuly updated permissions in Copr "{0}".'.format(copr.name))
+        try:
+            coprs_logic.CoprsPermissionLogic.update_permissions_by_applier(flask.g.user, copr, permission, new_builder, new_admin)
+        except exceptions.InsufficientRightsException as ex:
+            flask.flash(ex.message)
         else:
-            if new_builder == approved_num or new_admin == approved_num:
-                flask.flash('User can\'t approve himself.')
-            else:
-                perm = models.CoprPermission(user = flask.g.user, copr = copr, copr_builder = new_builder, copr_admin = new_admin)
-                coprs_logic.CoprsPermissionLogic.new(flask.g.user, perm)
-                db.session.commit()
-                flask.flash('Successfuly applied for permissions in Copr "{0}".'.format(copr.name))
+            flask.flash('Successfuly updated permissions do Copr "{0}".'.format(copr.name))
+        db.session.commit()
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
