@@ -228,3 +228,15 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                                                            first()
             assert u3_c3_perms.copr_builder == self.helpers.PermissionEnum.num('No Action')
             assert u3_c3_perms.copr_admin == self.helpers.PermissionEnum.num('Approved')
+
+    def test_copr_admin_can_update_permissions(self, f_users, f_coprs, f_copr_permissions):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u2, self.c3])
+            r = c.post('/coprs/detail/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
+                       data = {'copr_builder_1': 'y', 'copr_admin_3': 'y'},
+                       follow_redirects = True)
+
+            assert 'Copr permissions were updated' in r.data

@@ -172,7 +172,7 @@ def copr_update_permissions(username, coprname):
     permissions_form = forms.DynamicPermissionsFormFactory.create_form_cls(permissions)()
 
     # only owner can update copr permissions
-    if flask.g.user != copr.owner:
+    if not flask.g.user.can_edit(copr):
         flask.flash('Only owners may update their Coprs permissions.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
