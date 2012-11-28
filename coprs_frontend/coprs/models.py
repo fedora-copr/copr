@@ -174,4 +174,4 @@ class Build(db.Model, Serializer):
 
     @property
     def cancelable(self):
-        return True if self.state == 'pending' else False
+        return self.state == 'pending'
