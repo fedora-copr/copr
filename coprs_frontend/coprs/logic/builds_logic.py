@@ -35,12 +35,15 @@ class BuildsLogic(object):
 
     @classmethod
     def get_waiting_builds(cls, user):
+        # return builds that aren't both started and finished (if build start submission
+        # fails, we still want to mark the build as non-waiting, if it ended)
         # this has very different goal then get_multiple, so implement it alone
         query = models.Build.query.join(models.Build.copr).\
                                    join(models.User).\
                                    options(db.contains_eager(models.Build.copr)).\
                                    options(db.contains_eager('copr.owner')).\
                                    filter(models.Build.started_on == None).\
+                                   filter(models.Build.ended_on == None).\
                                    filter(models.Build.canceled != True).\
                                    order_by(models.Build.submitted_on.asc())
         return query
