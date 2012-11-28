@@ -1,3 +1,4 @@
+import base64
 import os
 os.environ['COPRS_ENVIRON_UNITTEST'] = '1'
 
@@ -16,6 +17,7 @@ class CoprsTestCase(object):
         self.db = coprs.db
         self.models = models
         self.helpers = helpers
+        self.backend_passwd = coprs.app.config['BACKEND_PASSWORD']
         # create datadir if it doesn't exist
         datadir = os.path.commonprefix([self.app.config['DATABASE'], self.app.config['OPENID_STORE']])
         if not os.path.exists(datadir):
@@ -27,6 +29,10 @@ class CoprsTestCase(object):
         # delete just data, not the tables
         for tbl in reversed(self.db.metadata.sorted_tables):
             self.db.engine.execute(tbl.delete())
+
+    @property
+    def auth_header(self):
+        return {'Authorization': 'Basic ' + base64.b64encode('doesntmatter:{0}'.format(self.backend_passwd))}
 
     @pytest.fixture
     def f_users(self):
@@ -48,8 +54,8 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_builds(self):
-        self.b1 = models.Build(copr = self.c1, user = self.u1, chroots = self.c1.chroots, submitted_on = 50)
-        self.b2 = models.Build(copr = self.c1, user = self.u2, chroots = 'fedora-17-x86_64', submitted_on = 10)
+        self.b1 = models.Build(copr = self.c1, user = self.u1, chroots = self.c1.chroots, submitted_on = 50, started_on = 100)
+        self.b2 = models.Build(copr = self.c1, user = self.u2, chroots = 'fedora-17-x86_64', submitted_on = 10, ended_on = 150)
         self.b3 = models.Build(copr = self.c2, user = self.u2, chroots = self.c2.chroots, submitted_on = 10)
         self.b4 = models.Build(copr = self.c2, user = self.u2, chroots = self.c2.chroots, submitted_on = 100)
 
