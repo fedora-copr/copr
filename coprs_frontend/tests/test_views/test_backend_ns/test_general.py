@@ -36,4 +36,5 @@ class TestUpdateBuilds(CoprsTestCase):
                          content_type='application/json',
                          headers = self.auth_header,
                          data = data)
-        assert r.data == '{"updated_builds": 1}'
+        assert json.loads(r.data)["updated_builds_ids"] == [1]
+        assert json.loads(r.data)["non_existing_builds_ids"] == []
