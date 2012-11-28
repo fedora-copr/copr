@@ -21,21 +21,21 @@ def waiting_builds():
 @backend_ns.route('/update_builds/', methods = ['POST', 'PUT'])
 @misc.backend_authenticated
 def update_builds():
-    build_ids = []
+    to_update = {}
     for build in flask.request.json['builds']: # first get ids of sent builds
-        build_ids.append(build['id'])
+        to_update[build['id']] = build
 
-    if not build_ids:
+    if not to_update:
         return json.dumps({'warning': 'No parsed builds'})
 
     existing = {} # create a dict of existing builds {build.id: build, ...}
-    for build in builds_logic.BuildsLogic.get_by_ids(None, build_ids).all():
+    for build in builds_logic.BuildsLogic.get_by_ids(None, to_update.keys()).all():
         existing[build.id] = build
 
-    non_existing_ids = list(set(build_ids) - set(existing.keys()))
+    non_existing_ids = list(set(to_update.keys()) - set(existing.keys()))
 
-    for build in flask.request.json['builds']: # actually update existing builds
-        builds_logic.BuildsLogic.update_state_from_dict(None, existing[build['id']], build)
+    for i, build in existing.items(): # actually update existing builds
+        builds_logic.BuildsLogic.update_state_from_dict(None, build, to_update[i])
 
     db.session.commit()
 
