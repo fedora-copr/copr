@@ -8,6 +8,11 @@ h1, h2, h3, h4, h5 {
   color: #3B6EB4;
 }
 
+h4 {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
 a {
   color: #3B6EB4;
 }
