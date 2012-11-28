@@ -13,7 +13,7 @@ def waiting_builds():
     query = builds_logic.BuildsLogic.get_waiting_builds(None)
 
     builds = query[0:10]
-    return flask.jsonify({'builds': [build.to_dict(options = {'copr': {'owner': {'__columns_except__': ['openid_name', 'proven'] },
+    return flask.jsonify({'builds': [build.to_dict(options = {'copr': {'owner': {'__columns_except__': ['openid_name', 'proven', 'admin', 'mail'] },
                                                                        '__columns_except__': ['chroots', 'repos'],
                                                                        '__included_ids__': False},
                                                               '__included_ids__': False}) for build in builds]})
