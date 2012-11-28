@@ -2,7 +2,7 @@
 {% block title %}Builds in {{ request.view_args['name'] }}{% endblock %}
 {% block header %}Builds in {{ request.view_args['name'] }} Copr{% endblock %}
 {% from "_helpers.html" import render_pagination %}
-{% from "coprs/_builds_table.html" import builds_table %}
+{% from "coprs/_builds_table.html" import builds_table with context %}
 {% from "coprs/_coprs_forms.html" import copr_build_cancel_form %}
 {% block body %}
   {{ builds_table(builds) }}

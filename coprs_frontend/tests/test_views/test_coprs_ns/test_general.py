@@ -138,6 +138,29 @@ class TestCoprDetail(CoprsTestCase):
             r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
             assert '/permissions_applier_change/' not in r.data
 
+    def test_copr_detail_doesnt_show_cancel_build_for_anonymous(self, f_users, f_coprs, f_builds):
+        r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
+        assert '/cancel_build/' not in r.data
+
+    def test_copr_detail_doesnt_allow_non_submitter_to_cancel_build(self, f_users, f_coprs, f_builds):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u2, self.c2])
+            r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
+            assert '/cancel_build/' not in r.data
+
+    def test_copr_detail_allows_submitter_to_cancel_build(self, f_users, f_coprs, f_builds):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u2, self.c2])
+            r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
+            assert '/cancel_build/' in r.data
+
+
 class TestCoprEdit(CoprsTestCase):
     def test_edit_prefills_id(self, f_users, f_coprs):
         with self.tc as c:
@@ -160,7 +183,6 @@ class TestCoprEdit(CoprsTestCase):
             assert r.data.count('No Action') == 2
             assert '<input id="copr_builder_1" name="copr_builder_1" type="checkbox" value="y">' in r.data
             assert '<input checked id="copr_admin_1" name="copr_admin_1" type="checkbox" value="y">' in r.data
-
 
 class TestCoprUpdate(CoprsTestCase):
     def test_update_no_changes(self, f_users, f_coprs):

@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
 {% block header %}Information for Copr {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-{% from "coprs/_builds_table.html" import builds_table %}
+{% from "coprs/_builds_table.html" import builds_table with context %}
 {% from "coprs/_permissions_table.html" import permissions_table with context%}
 {% from "coprs/_coprs_forms.html" import copr_build_form,
                                          copr_build_cancel_form with context %}
