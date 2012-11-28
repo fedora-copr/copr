@@ -22,7 +22,7 @@
   </ul>
   {% endif %}
   <h3>Permissions</h3>
-  {% if g.user.id == copr.owner_id %}
+  {% if g.user.id == copr.owner_id or not g.user %}
     {{ permissions_table(permissions, copr, None) }}
   {% else %}
     {{ permissions_table(permissions, copr, permission_applier_form) }}

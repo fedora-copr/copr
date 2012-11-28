@@ -109,7 +109,11 @@ class TestCoprDetail(CoprsTestCase):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u1.name, self.c1.name))
         assert r.data.count('<tr class=build') == 2
 
-    def test_copr_detail_contains_permissions(self, f_users, f_coprs, f_copr_permissions):
+    def test_copr_detail_anonymous_doesnt_contain_permissions_table_when_no_permissions(self, f_users, f_coprs, f_copr_permissions):
+        r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u1.name, self.c1.name))
+        assert '<table class=permissions' not in r.data
+
+    def test_copr_detail_contains_permissions_table(self, f_users, f_coprs, f_copr_permissions):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
         assert '<table class=permissions' in r.data
         assert '<tr><td>{0}'.format(self.u3.name) in r.data
