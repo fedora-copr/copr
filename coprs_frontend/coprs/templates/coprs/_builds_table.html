@@ -26,9 +26,11 @@
         <td colspan=7>
           <h4>Package URLs:</h4>
           <ul class=packages-list>
-            {% for pkg in build.pkgs.split() %}
-              <li>{{ pkg }}</li>
-            {% endfor %}
+            {% if build.pkgs is not none %}
+              {% for pkg in build.pkgs.split() %}
+                <li>{{ pkg }}</li>
+              {% endfor %}
+            {% endif %}
           </ul>
         </td>
       </tr>
