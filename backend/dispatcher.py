@@ -3,6 +3,7 @@
 
 import os
 import sys
+import shutil
 import multiprocessing
 import time
 import Queue
@@ -101,6 +102,7 @@ class Worker(multiprocessing.Process):
         self.callback.log('creating worker: %s' % ip)
 
     def spawn_instance(self):
+        """call the spawn playbook to startup/provision a building instance"""
         self.callback.log('spawning instance begin')
         
         stats = callbacks.AggregateStats()
@@ -124,6 +126,7 @@ class Worker(multiprocessing.Process):
         return None
 
     def terminate_instance(self):
+        """call the terminate playbook to destroy the building instance"""
         self.callback.log('terminate instance begin')
         
         stats = callbacks.AggregateStats()
@@ -154,9 +157,10 @@ class Worker(multiprocessing.Process):
         return jobdata
 
     def return_results(self, job):
+        """write out a completed json file to the results dir and submit the results to the frontend"""
         self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
         jobfilename = os.path.basename(job.jobfile)
-        os.rename(job.jobfile, job.destdir + '/' + jobfilename)
+        shutil.move(job.jobfile, job.destdir + '/' + jobfilename)
         #FIXME - this should either return job status/results 
         # into a queue or it should submit results directly to the frontend
         
