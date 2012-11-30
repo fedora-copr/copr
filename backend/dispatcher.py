@@ -125,14 +125,14 @@ class Worker(multiprocessing.Process):
             return i
         return None
 
-    def terminate_instance(self):
+    def terminate_instance(self,ip):
         """call the terminate playbook to destroy the building instance"""
         self.callback.log('terminate instance begin')
         
         stats = callbacks.AggregateStats()
         playbook_cb = SilentPlaybookCallbacks(verbose=False)
         runner_cb = callbacks.DefaultRunnerCallbacks()
-        play = ansible.playbook.PlayBook(host_list=[self.ip], stats=stats, playbook=self.opts.terminate_playbook, 
+        play = ansible.playbook.PlayBook(host_list=[ip], stats=stats, playbook=self.opts.terminate_playbook, 
                              callbacks=playbook_cb, runner_callbacks=runner_cb, 
                              remote_user='root')
 
@@ -187,7 +187,6 @@ class Worker(multiprocessing.Process):
                 ip = self.spawn_instance()
                 if not ip:
                     raise errors.CoprWorkerError, "No IP found from creating instance"
-                self.ip = ip
 
             except ansible.errors.AnsibleError, e:
                 self.callback.log('failure to setup instance: %s' % e)
@@ -224,5 +223,5 @@ class Worker(multiprocessing.Process):
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
             # clean up the instance
-            self.terminate_instance()
+            self.terminate_instance(ip)
 
