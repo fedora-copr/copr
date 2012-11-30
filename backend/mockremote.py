@@ -482,6 +482,11 @@ class MockRemote(object):
                         
                 self.callback.end_download(pkg)
 
+                # FIXME
+                # need a plugin hook or some mechanism to check random
+                # info about the pkgs
+                
+                
                 # checking where to stick stuff
                 if not b_status:
                     if self.recurse:

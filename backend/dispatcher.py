@@ -108,7 +108,7 @@ class Worker(multiprocessing.Process):
         runner_cb = callbacks.DefaultRunnerCallbacks()
         # fixme - extra_vars to include ip as a var if we need to specify ips
         # also to include info for instance type to handle the memory requirements of builds
-        play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.playbook, 
+        play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.spawn_playbook, 
                              callbacks=playbook_cb, runner_callbacks=runner_cb, 
                              remote_user='root')
 
@@ -122,6 +122,19 @@ class Worker(multiprocessing.Process):
                 continue
             return i
         return None
+
+    def terminate_instance(self):
+        self.callback.log('terminate instance begin')
+        
+        stats = callbacks.AggregateStats()
+        playbook_cb = SilentPlaybookCallbacks(verbose=False)
+        runner_cb = callbacks.DefaultRunnerCallbacks()
+        play = ansible.playbook.PlayBook(host_list=[self.ip], stats=stats, playbook=self.opts.terminate_playbook, 
+                             callbacks=playbook_cb, runner_callbacks=runner_cb, 
+                             remote_user='root')
+
+        play.run()
+        self.callback.log('terminate instance end')
     
     def parse_job(self, jobfile):
         # read the json of the job in
@@ -205,8 +218,6 @@ class Worker(multiprocessing.Process):
             job.status = status
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
-            # FIXME call terminate on the instance
-            
-            
-            
+            # clean up the instance
+            self.terminate_instance()
 
