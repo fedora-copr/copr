@@ -187,6 +187,7 @@ class Worker(multiprocessing.Process):
                 ip = self.spawn_instance()
                 if not ip:
                     raise errors.CoprWorkerError, "No IP found from creating instance"
+                self.ip = ip
 
             except ansible.errors.AnsibleError, e:
                 self.callback.log('failure to setup instance: %s' % e)
