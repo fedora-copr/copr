@@ -482,6 +482,8 @@ class MockRemote(object):
                         
                 self.callback.end_download(pkg)
                 # write out whatever came from the builder call into the destdir/chroot
+                if not os.path.exists(self.destdir + '/' + self.chroot):
+                    os.makedirs(self.destdir + '/' + self.chroot)
                 r_log = open(self.destdir + '/' + self.chroot + '/mockchain.log', 'a')
                 r_log.write('%s\n' % pkg)
                 r_log.write('stdout\n')
