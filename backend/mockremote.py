@@ -488,9 +488,9 @@ class MockRemote(object):
                 r_log.write('%s\n' % pkg)
                 r_log.write('stdout\n')
                 r_log.write(b_out)
-                r.log.write('stderr\n')
-                r.log.write(b_err)
-                r.log.close()
+                r_log.write('stderr\n')
+                r_log.write(b_err)
+                r_log.close()
                 
                 # FIXME
                 # need a plugin hook or some mechanism to check random
