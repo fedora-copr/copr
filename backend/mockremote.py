@@ -481,7 +481,15 @@ class MockRemote(object):
                     self.callback.error(msg)
                         
                 self.callback.end_download(pkg)
-
+                # write out whatever came from the builder call into the destdir/chroot
+                r_log = open(self.destdir + '/' + self.chroot + '/mockchain.log', 'a')
+                r_log.write('%s\n' % pkg)
+                r_log.write('stdout\n')
+                r_log.write(b_out)
+                r.log.write('stderr\n')
+                r.log.write(b_err)
+                r.log.close()
+                
                 # FIXME
                 # need a plugin hook or some mechanism to check random
                 # info about the pkgs
