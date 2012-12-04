@@ -228,7 +228,7 @@ class Worker(multiprocessing.Process):
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
                          destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
                          repos=job.repos, 
-                         callback=mockremote.CLiLogCallBack(quiet=True,logfn=chrootlogfile))
+                         callback=mockremote.CliLogCallBack(quiet=True,logfn=chrootlogfile))
                     mr.build_pkgs(job.pkgs)
                 except mockremote.MockRemoteError, e:
                     # record and break
