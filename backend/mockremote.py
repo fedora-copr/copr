@@ -492,10 +492,6 @@ class MockRemote(object):
                     r_log.write(b_err)
                 r_log.close()
                 
-                # FIXME
-                # need a plugin hook or some mechanism to check random
-                # info about the pkgs
-                
                 
                 # checking where to stick stuff
                 if not b_status:

@@ -196,22 +196,32 @@ class Worker(multiprocessing.Process):
             job.started_on = time.time()
             for chroot in job.chroots:
                 
+                chroot_destdir = job.destdir + '/' + chroot
                 # setup our target dir locally
-                if not os.path.exists(job.destdir):
+                if not os.path.exists(chroot_destdir):
                     try:
-                        os.makedirs(job.destdir, mode=0755)
+                        os.makedirs(chroot_destdir, mode=0755)
                     except (OSError, IOError), e:
-                        msg = "Could not make results dir for job: %s - %s" % (job.destdir, str(e))
+                        msg = "Could not make results dir for job: %s - %s" % (chroot_destdir, str(e))
                         self.callback.log(msg)
                         status = 0
                         continue
+
+                # FIXME
+                # need a plugin hook or some mechanism to check random
+                # info about the pkgs
+                # this should use ansible to download the pkg on the remote system
+                # and run a series of checks on the package before we
+                # start the build - most importantly license checks.
+                
                         
                 self.callback.log('mockremote %s %s %s %s %s' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
                 try:
+                    chrootlogfile = chroot_destdir + '/' + mockremote.log
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
                          destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
                          repos=job.repos, 
-                         callback=mockremote.DefaultCallBack(quiet=True,logfn=self.logfile))
+                         callback=mockremote.CLiLogCallBack(quiet=True,logfn=chrootlogfile))
                     mr.build_pkgs(job.pkgs)
                 except mockremote.MockRemoteError, e:
                     # record and break
