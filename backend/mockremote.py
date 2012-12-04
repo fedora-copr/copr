@@ -486,10 +486,10 @@ class MockRemote(object):
                     os.makedirs(self.destdir + '/' + self.chroot)
                 r_log = open(self.destdir + '/' + self.chroot + '/mockchain.log', 'a')
                 r_log.write('%s\n' % pkg)
-                r_log.write('stdout\n')
                 r_log.write(b_out)
-                r_log.write('stderr\n')
-                r_log.write(b_err)
+                if b_err:
+                    r_log.write('\nstderr\n')
+                    r_log.write(b_err)
                 r_log.close()
                 
                 # FIXME
