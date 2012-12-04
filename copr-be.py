@@ -117,6 +117,7 @@ class CoprBackend(object):
                 #       #insert a poison pill? Kill after something? I dunno.
                 # FIXME - if a worker bombs out - we need to check them
                 # and startup a new one if it happens
+            # check for dead workers and abort
             for w in self.workers:
                 if not w.is_alive():
                     raise errors.CoprBackendError, "Worker died unexpectedly"
