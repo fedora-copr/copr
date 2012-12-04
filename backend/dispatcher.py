@@ -130,6 +130,7 @@ class Worker(multiprocessing.Process):
         # if we get here we're in trouble
         self.callback.log('No IP back from spawn_instance - dumping cache output')
         self.callback.log(str(play.SETUP_CACHE))
+        self.callback.log(play.stats.summarize(localhost))
         return None
 
     def terminate_instance(self,ip):
