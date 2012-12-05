@@ -329,6 +329,7 @@ class Builder(object):
         
         success = False
         rpd = self._get_remote_pkg_dir(pkg)
+        destdir = "'" + destdir.replace("'", "'\\''") + "'" # make spaces work w/our rsync command below :(
         # build rsync command line from the above
         remote_src = '%s@%s:%s' % (self.username, self.hostname, rpd)
         ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
