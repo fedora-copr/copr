@@ -204,9 +204,9 @@ def main(args):
     opts = parse_args(args)
     
     try:
-        cbe = CoprBackend(opts.config_file, ext_opts=opts)
         if opts.daemonize:
             daemonize(opts.pidfile)
+        cbe = CoprBackend(opts.config_file, ext_opts=opts)
         cbe.run()
     except Exception, e:
         print 'Killing/Dying'
