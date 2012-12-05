@@ -20,7 +20,7 @@ def _get_conf(cp, section, option, default):
         
 
 class CoprBackend(object):
-    def __init__(self, config_file=None):
+    def __init__(self, config_file=None, ext_opts=None):
         # read in config file
         # put all the config items into a single self.opts bunch
         
@@ -28,6 +28,7 @@ class CoprBackend(object):
             raise errors.CoprBackendError, "Must specify config_file"
         
         self.config_file = config_file
+        self._ext_opts = ext_opts # to stow our cli options for read_conf()
         self.opts = self.read_conf()
 
         logdir = os.path.dirname(self.opts.logfile)
@@ -78,6 +79,9 @@ class CoprBackend(object):
         if not opts.jobsdir or not opts.destdir:
             raise errors.CoprBackendError, "Incomplete Config - must specify jobsdir and destdir in configuration"
             
+        if self._ext_opts:
+            for v in self._ext_opts:
+                setattr(opts, v, self.ext_opts.get(v))
         return opts
         
         
@@ -187,18 +191,20 @@ def parse_args(args):
     if not os.path.exists(opts.config_file):
         print "No config file found at: %s" % opts.config_file
         sys.exit(1)
-    
-    return opts,args
+
+    ret_opts = Bunch()
+    for o in ('daemonize', 'exit_on_worker', 'pidfile', 'config_file'):
+        setattr(ret_opts, o, getattr(opts, o))
+
+    return ret_opts
     
     
     
 def main(args):
-    opts,args = parse_args(args)
+    opts = parse_args(args)
     
     try:
-        cbe = CoprBackend(opts.config_file)
-        cbe.opts.daemonize = opts.daemonize # just so we have it on hand
-        cbe.opts.exit_on_worker = opts.exit_on_worker
+        cbe = CoprBackend(opts.config_file, ext_opts=opts)
         if opts.daemonize:
             daemonize(opts.pidfile)
         cbe.run()
@@ -207,7 +213,7 @@ def main(args):
         if 'cbe' in locals():
             for w in cbe.workers:
                 w.terminate()
-        raise
+        
 
     
 if __name__ == '__main__':

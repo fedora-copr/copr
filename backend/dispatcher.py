@@ -95,6 +95,7 @@ class Worker(multiprocessing.Process):
         self.opts = opts
         self.kill_received = False
         self.callback = callback
+        self.create = create
         if not self.callback:
             self.logfile = self.opts.worker_logdir + '/worker-%s.log' % self.worker_num
             self.callback = WorkerCallback(logfile = self.logfile)
@@ -193,14 +194,15 @@ class Worker(multiprocessing.Process):
             job.jobfile = jobfile
             
             # spin up our build instance
-            try:
-                ip = self.spawn_instance()
-                if not ip:
-                    raise errors.CoprWorkerError, "No IP found from creating instance"
+            if self.create:
+                try:
+                    ip = self.spawn_instance()
+                    if not ip:
+                        raise errors.CoprWorkerError, "No IP found from creating instance"
 
-            except ansible.errors.AnsibleError, e:
-                self.callback.log('failure to setup instance: %s' % e)
-                raise
+                except ansible.errors.AnsibleError, e:
+                    self.callback.log('failure to setup instance: %s' % e)
+                    raise
 
             status = 1
             job.started_on = time.time()
@@ -243,5 +245,6 @@ class Worker(multiprocessing.Process):
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
             # clean up the instance
-            self.terminate_instance(ip)
+            if self.create:
+                self.terminate_instance(ip)
 
