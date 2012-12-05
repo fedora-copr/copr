@@ -28,7 +28,7 @@ class CoprBackend(object):
             raise errors.CoprBackendError, "Must specify config_file"
         
         self.config_file = config_file
-        self._ext_opts = ext_opts # to stow our cli options for read_conf()
+        self.ext_opts = ext_opts # to stow our cli options for read_conf()
         self.opts = self.read_conf()
 
         logdir = os.path.dirname(self.opts.logfile)
@@ -79,8 +79,8 @@ class CoprBackend(object):
         if not opts.jobsdir or not opts.destdir:
             raise errors.CoprBackendError, "Incomplete Config - must specify jobsdir and destdir in configuration"
             
-        if self._ext_opts:
-            for v in self._ext_opts:
+        if self.ext_opts:
+            for v in self.ext_opts:
                 setattr(opts, v, self.ext_opts.get(v))
         return opts
         
@@ -213,8 +213,9 @@ def main(args):
         if 'cbe' in locals():
             for w in cbe.workers:
                 w.terminate()
-        
-
+        raise
+    except KeyboardInterrupt, e:
+        pass
     
 if __name__ == '__main__':
     try:
