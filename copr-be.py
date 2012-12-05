@@ -191,7 +191,8 @@ def parse_args(args):
     if not os.path.exists(opts.config_file):
         print "No config file found at: %s" % opts.config_file
         sys.exit(1)
-
+    opts.config_file = os.path.abspath(opts.config_file)
+    
     ret_opts = Bunch()
     for o in ('daemonize', 'exit_on_worker', 'pidfile', 'config_file'):
         setattr(ret_opts, o, getattr(opts, o))
@@ -204,9 +205,9 @@ def main(args):
     opts = parse_args(args)
     
     try:
+        cbe = CoprBackend(opts.config_file, ext_opts=opts)
         if opts.daemonize:
             daemonize(opts.pidfile)
-        cbe = CoprBackend(opts.config_file, ext_opts=opts)
         cbe.run()
     except Exception, e:
         print 'Killing/Dying'
