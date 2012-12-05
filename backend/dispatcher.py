@@ -154,7 +154,7 @@ class Worker(multiprocessing.Process):
         build = d['builds'][0]
         jobdata = Bunch()
         jobdata.pkgs = build['pkgs'].split(' ')
-        jobdata.repos = build['repos'].split(' ')
+        jobdata.repos = [r for r in build['repos'].split(' ') if r.strip() ]
         jobdata.chroots = build['chroots'].split(' ')
         jobdata.memory_reqs = build['memory_reqs']
         jobdata.timeout = build['timeout']
@@ -223,7 +223,7 @@ class Worker(multiprocessing.Process):
                 # start the build - most importantly license checks.
                 
                         
-                self.callback.log('mockremote %s %s %s %s %s' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                self.callback.log('Calling mockremote with builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
                 try:
                     chrootlogfile = chroot_destdir + '/mockremote.log'
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
