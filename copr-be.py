@@ -82,7 +82,7 @@ class CoprBackend(object):
         
         
     def log(self, msg):
-        now = time.time()
+        now =  time.strftime('%F %T')
         output = str(now) + ':' + msg
         if not self.opts.daemonize:
             print output
@@ -199,7 +199,8 @@ def main(args):
         cbe = CoprBackend(opts.config_file)
         cbe.opts.daemonize = opts.daemonize # just so we have it on hand
         cbe.opts.exit_on_worker = opts.exit_on_worker
-        daemonize(opts.pidfile)
+        if opts.daemonize:
+            daemonize(opts.pidfile)
         cbe.run()
     except Exception, e:
         print 'Killing/Dying'
