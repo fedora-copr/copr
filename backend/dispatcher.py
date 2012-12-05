@@ -102,7 +102,7 @@ class Worker(multiprocessing.Process):
         if ip:
             self.callback.log('creating worker: %s' % ip)
         else:
-            self.callback.log('creating worker: with dynamic ip')
+            self.callback.log('creating worker: dynamic ip')
 
     def spawn_instance(self):
         """call the spawn playbook to startup/provision a building instance"""
@@ -130,7 +130,9 @@ class Worker(multiprocessing.Process):
         # if we get here we're in trouble
         self.callback.log('No IP back from spawn_instance - dumping cache output')
         self.callback.log(str(play.SETUP_CACHE))
-        self.callback.log(play.stats.summarize('localhost'))
+        self.callback.log(str(play.stats.summarize('localhost')))
+        self.callback.log('Test spawn_instance playbook manually')
+        
         return None
 
     def terminate_instance(self,ip):
