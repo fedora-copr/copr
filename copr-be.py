@@ -182,7 +182,7 @@ def parse_args(args):
             help="config file to use for copr-be run")
     parser.add_option('-d','--daemonize', default=False, dest='daemonize',
             action='store_true', help="daemonize or not")
-    parser.add_option('-p', '--pidfile', default='/var/run/copr-be.pid', dest='pidfile',
+    parser.add_option('-p', '--pidfile', default='copr-be.pid', dest='pidfile',
             help="pid file to use for copr-be if daemonized")
     parser.add_option('-x', '--exit', default=False, dest='exit_on_worker',
             action='store_true', help="exit on worker failure")

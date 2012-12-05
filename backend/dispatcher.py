@@ -191,6 +191,10 @@ class Worker(multiprocessing.Process):
             # parse the job json into our info
             job = self.parse_job(jobfile)
             
+            # FIXME
+            # this is our best place to sanity check the job before starting
+            # up any longer process
+            
             job.jobfile = jobfile
             
             # spin up our build instance
@@ -227,7 +231,7 @@ class Worker(multiprocessing.Process):
                 # start the build - most importantly license checks.
                 
                         
-                self.callback.log('Calling mockremote with builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                self.callback.log('Starting build: builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
                 try:
                     chrootlogfile = chroot_destdir + '/mockremote.log'
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
@@ -239,7 +243,8 @@ class Worker(multiprocessing.Process):
                     # record and break
                     self.callback.log('%s - %s' % (ip, e))
                     status = 0 # failure
-            
+                self.callback.log('Finished build: builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                
             job.ended_on = time.time()
             job.status = status
             self.return_results(job)
