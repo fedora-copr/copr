@@ -145,12 +145,15 @@ def daemonize(pidfile=None):
     Writes the new PID to the provided file name if not None.
     """
 
+    cur_umask = os.umask(077)
+    os.umask(cur_umask)
+    
     pid = os.fork()
     if pid > 0:
         sys.exit(0)
     os.chdir("/")
     os.setsid()
-    os.umask(077)
+    os.umask(cur_umask)
     pid = os.fork()
 
     os.close(0)
@@ -223,6 +226,7 @@ if __name__ == '__main__':
         main(sys.argv[1:])
     except Exception, e:
         print "ERROR:  %s - %s" % (str(type(e)), str(e))
+        # FIXME - maybe check on daemonize and do this as a syslog.syslog() call?
         sys.exit(1)
     except KeyboardInterrupt, e:
         print "\nUser cancelled, may need cleanup\n"

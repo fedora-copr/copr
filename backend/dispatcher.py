@@ -216,7 +216,7 @@ class Worker(multiprocessing.Process):
                 # setup our target dir locally
                 if not os.path.exists(chroot_destdir):
                     try:
-                        os.makedirs(chroot_destdir, mode=0755)
+                        os.makedirs(chroot_destdir)
                     except (OSError, IOError), e:
                         msg = "Could not make results dir for job: %s - %s" % (chroot_destdir, str(e))
                         self.callback.log(msg)
