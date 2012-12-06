@@ -3,7 +3,6 @@
 
 import os
 import sys
-import shutil
 import multiprocessing
 import time
 import Queue
@@ -15,13 +14,11 @@ import ansible
 import ansible.playbook
 import ansible.errors
 from ansible import callbacks
+import requests
 
 
 
 
-
-#FIXME - this should be emitting to the per-worker log file
-# so we can know what is going on and where
 class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
     ''' playbook callbacks - quietly! '''
     
@@ -162,23 +159,61 @@ class Worker(multiprocessing.Process):
         jobdata.timeout = build['timeout']
         jobdata.destdir = self.opts.destdir + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'] + '/'
         jobdata.build_id = build['id']
+        jobdata.results = self.opts.results_baseurl + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'] + '/'
         jobdata.copr_id = build['copr']['id']
         jobdata.user_id = build['user_id']
         return jobdata
 
+    # maybe we move this to the callback?
+    def post_to_frontend(self, data):
+        """send data to frontend"""
+        
+        headers = {'content-type': 'application/json'}
+        url='%s/update_builds/' % self.opts.frontend_url
+        auth=('user', self.opts.frontend_auth)
+        
+        msg = None
+        try:
+            r = requests.post(url, data=json.dumps(data), auth=auth, 
+                              headers=headers)
+            if r.status_code != 200:
+                msg = 'Failed to submit to frontend: %s: %s' % (r.status_code, r.text)
+        except requests.RequestException, e:
+            msg = 'Post request failed: %s' % e
+            
+        if msg:
+            self.callback.log(msg)
+            return False
+
+        return True
+    
+    # maybe we move this to the callback?
+    def mark_started(self, job):
+        
+        build = {'id':job.build_id,
+                 'started_on': job.started_on,
+                 'results': job.results,
+                 }
+        data = {'builds':[build]}
+        
+        if not self.post_to_frontend(data):
+            raise errors.CoprWorkerError, "Could not communicate to front end to submit status info"
+    
+    # maybe we move this to the callback?    
     def return_results(self, job):
-        """write out a completed json file to the results dir and submit the results to the frontend"""
         self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
-        jobfilename = os.path.basename(job.jobfile)
-        shutil.move(job.jobfile, job.destdir + '/' + jobfilename)
+
+        build = {'id':job.build_id,
+                 'ended_on': job.ended_on,
+                 'status': job.status,
+                 }
+        data = {'builds':[build]}
         
-        # reform json file with completed info (completed time, url, status, etc)
-        # post it via requests to url with passcode
-        # profit
-        
-        #FIXME - this should either return job status/results 
-        # into a queue or it should submit results directly to the frontend
-        
+        if not self.post_to_frontend(data):
+            raise errors.CoprWorkerError, "Could not communicate to front end to submit results"
+
+        os.unlink(job.jobfile)
+
     def run(self):
         # worker should startup and check if it can function
         # for each job it takes from the jobs queue
@@ -214,6 +249,8 @@ class Worker(multiprocessing.Process):
 
             status = 1
             job.started_on = time.time()
+            self.mark_started(job)
+            
             for chroot in job.chroots:
                 
                 chroot_destdir = job.destdir + '/' + chroot
