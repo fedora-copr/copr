@@ -1,0 +1,16 @@
+[backend]
+results_baseurl=http://copr-be.cloud.fedoraproject.org/results
+frontend_url=http://copr-fe.cloud.fedoraproject.org/backend
+frontend_auth=backend_password_from_fe_config
+spawn_playbook=/srv/copr-work/provision/builderpb.yml
+terminate_playbook=/srv/copr-work/provision/terminatepb.yml
+jobsdir=/srv/copr-work/jobs
+destdir=/srv/copr-repo/results
+sleeptime=30
+num_workers=5
+logfile=/srv/copr-work/logs/copr.log
+worker_logdir=/srv/copr-work/logs/workers/
+
+
+[builder]
+timeout=3600
