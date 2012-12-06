@@ -37,6 +37,9 @@ class CoprBackend(object):
         if not os.path.exists(logdir):
             os.makedirs(logdir, mode=0750)
 
+        if not os.path.exists(self.opts.destdir):
+            os.makedirs(self.opts.destdir, mode=0755)
+
         # setup a log file to write to
         self.logfile = self.opts.logfile
         self.log("Starting up new copr-be instance")
@@ -106,8 +109,6 @@ class CoprBackend(object):
         except requests.RequestException, e:
             self.log('Error retrieving jobs from %s: %s' % (self.opts.frontend_url, e))
         else:
-            
-            
             r_json = json.loads(r.content) # using old requests on el6 :(
             if 'builds' in r_json:
                 self.log('%s jobs returned' % len(r_json['builds']))
@@ -131,7 +132,7 @@ class CoprBackend(object):
                 if n not in self.added_jobs:
                     self.jobs.put(f)
                     self.added_jobs.append(n)
-                    self.log('adding %s' % n)
+                    self.log('adding to work queue id %s' % n)
             
             if self.jobs.qsize():
                 self.log("# jobs in queue: %s" % self.jobs.qsize())
@@ -159,7 +160,9 @@ class CoprBackend(object):
                     self.log('Worker %d died unexpectedly' % w.worker_num)
                     if self.opts.exit_on_worker:
                         raise errors.CoprBackendError, "Worker died unexpectedly, exiting"
-                    
+                    else:
+                        self.workers.remove(w) # it is not working anymore
+                        w.terminate() # kill it with a fire
 
             time.sleep(self.opts.sleeptime)
 
