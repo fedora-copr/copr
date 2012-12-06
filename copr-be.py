@@ -92,7 +92,7 @@ class CoprBackend(object):
         
     def log(self, msg):
         now =  time.strftime('%F %T')
-        output = str(now) + ':' + msg
+        output = str(now) + ': ' + msg
         if not self.opts.daemonize:
             print output
             

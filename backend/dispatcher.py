@@ -76,7 +76,7 @@ class WorkerCallback(object):
             
         now = time.strftime('%F %T')
         try:
-            open(self.logfile, 'a').write(str(now) + ':' + msg + '\n')
+            open(self.logfile, 'a').write(str(now) + ': ' + msg + '\n')
         except (IOError, OSError), e:
             print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
             
