@@ -171,6 +171,11 @@ class Worker(multiprocessing.Process):
         self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
         jobfilename = os.path.basename(job.jobfile)
         shutil.move(job.jobfile, job.destdir + '/' + jobfilename)
+        
+        # reform json file with completed info (completed time, url, status, etc)
+        # post it via requests to url with passcode
+        # profit
+        
         #FIXME - this should either return job status/results 
         # into a queue or it should submit results directly to the frontend
         

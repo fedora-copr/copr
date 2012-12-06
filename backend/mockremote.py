@@ -187,11 +187,11 @@ class CliLogCallBack(DefaultCallBack):
         self.log(msg)
         
     def start_download(self, pkg):
-        msg = "Start Download: %s" % pkg
+        msg = "Start retrieve results for: %s" % pkg
         self.log(msg)
     
     def end_download(self, pkg):
-        msg = "End Download: %s" % pkg
+        msg = "End retrieve results for: %s" % pkg
         self.log(msg)
         
     def error(self, msg):
