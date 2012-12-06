@@ -133,11 +133,12 @@ class CoprBackend(object):
                     self.jobs.put(f)
                     self.added_jobs.append(n)
                     self.log('adding to work queue id %s' % n)
+
+            # re-read config into opts
+            self.opts = self.read_conf()
             
             if self.jobs.qsize():
                 self.log("# jobs in queue: %s" % self.jobs.qsize())
-                # re-read config into opts
-                self.opts = self.read_conf()
                 # this handles starting/growing the number of workers
                 if len(self.workers) < self.opts.num_workers:
                     self.log("Spinning up more workers for jobs")
