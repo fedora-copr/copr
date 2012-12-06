@@ -272,7 +272,8 @@ class Worker(multiprocessing.Process):
                 # start the build - most importantly license checks.
                 
                         
-                self.callback.log('Starting build: builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                self.callback.log('Starting build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id,ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                self.callback.log('building pkgs: %s' % ' '.join(job.pkgs))
                 try:
                     chrootlogfile = chroot_destdir + '/mockremote.log'
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
