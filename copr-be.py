@@ -106,10 +106,13 @@ class CoprBackend(object):
         except requests.RequestException, e:
             self.log('Error retrieving jobs from %s: %s' % (self.opts.frontend_url, e))
         else:
-            if 'builds' in r.json:
-                self.log('%s jobs returned' % len(r.json['builds']))
+            
+            
+            r_json = json.loads(r.content) # using old requests on el6 :(
+            if 'builds' in r_json:
+                self.log('%s jobs returned' % len(r_json['builds']))
                 count = 0
-                for b in r.json['builds']:
+                for b in r_json['builds']:
                     if 'id' in b:
                         jobfile = self.opts.jobsdir + '/%s.json' % b['id']
                         if not os.path.exists(jobfile) and b['id'] not in self.added_jobs:
