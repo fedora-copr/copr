@@ -11,6 +11,8 @@ from backend import errors
 from bunch import Bunch
 import ConfigParser
 import optparse
+import json
+import requests
 
 def _get_conf(cp, section, option, default):
     """to make returning items from config parser less irritating"""
@@ -97,10 +99,30 @@ class CoprBackend(object):
             print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
 
 
+    def fetch_jobs(self):
+        self.log('fetching jobs')
+        try:
+            r = requests.get('%s/waiting_builds/' % self.opts.frontend_url) # auth stuff here? maybe/maybenot
+        except requests.RequestException, e:
+            self.log('Error retrieving jobs from %s: %s' % (self.opts.frontend_url, e))
+        else:
+            if 'builds' in r.json:
+                self.log('%s jobs returned' % len(r.json['builds']))
+                count = 0
+                for b in r.json['builds']:
+                    if 'id' in b:
+                        jobfile = self.opts.jobsdir + '/%s.json' % b['id']
+                        if not os.path.exists(jobfile) and b['id'] not in self.added_jobs:
+                            count += 1
+                            open(jobfile, 'w').write(json.dumps(b))
+                            self.log('Wrote job: %s' % b['id'])
+                self.log('New jobs: %s' % count)
+    
     def run(self):
 
         abort = False
         while not abort:
+            self.fetch_jobs()
             for f in sorted(glob.glob(self.opts.jobsdir + '/*.json')):
                 n = os.path.basename(f).replace('.json', '')
                 if n not in self.added_jobs:

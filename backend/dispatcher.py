@@ -153,8 +153,7 @@ class Worker(multiprocessing.Process):
     def parse_job(self, jobfile):
         # read the json of the job in
         # break out what we need return a bunch of the info we need
-        d = json.load(open(jobfile))
-        build = d['builds'][0]
+        build = json.load(open(jobfile))
         jobdata = Bunch()
         jobdata.pkgs = build['pkgs'].split(' ')
         jobdata.repos = [r for r in build['repos'].split(' ') if r.strip() ]
