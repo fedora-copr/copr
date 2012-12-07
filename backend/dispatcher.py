@@ -105,6 +105,7 @@ class Worker(multiprocessing.Process):
     def spawn_instance(self):
         """call the spawn playbook to startup/provision a building instance"""
         self.callback.log('spawning instance begin')
+        start = time.time()
         
         stats = callbacks.AggregateStats()
         playbook_cb = SilentPlaybookCallbacks(verbose=False)
@@ -117,6 +118,8 @@ class Worker(multiprocessing.Process):
 
         play.run()
         self.callback.log('spawning instance end')
+        self.callback.log('Instance spawn/provision took %s sec' % (time.time() - start))
+        
         if self.ip:
             return self.ip
             
