@@ -7,9 +7,10 @@
 - LOADS of fixme and catching weird conditions
 - make logging from mockremote more sane and coinsistent
 - mock configs should be pushed to instances at creation time
-  - should include enabled package_state pluging
   - single url to repos, not mirrorlists
 - consider making each worker return job to a completed queue so the primary 
   process can do other kinds of notification
 - email notifications from backend?
 - refactor mockremote/dispatcher.worker together?
+- work on a way to find and cancel a specific build that's happening other than just killing the instance
+- determine if it is properly checking the timeout from a dead instance
