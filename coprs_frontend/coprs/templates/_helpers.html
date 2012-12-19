@@ -1,0 +1,31 @@
+{% macro render_field(field) %}
+  {% if not kwargs['hidden'] %}
+    <dt>{{ field.label }}</dt>
+    <dd>
+      {% if field.errors %}
+        <ul class=form-errors>
+          {% for error in field.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {{ field(**kwargs)|safe }}
+    </dd>
+  {% else %}
+    {{ field(**kwargs)|safe }}
+  {% endif %}
+{% endmacro %}
+
+{% macro render_pagination(request, paginator) %}
+  {% if paginator.pages > 1 %}
+    {% if paginator.border_url(request, True) %}
+      <a href="{{ paginator.border_url(request, True)[0] }}">{{ paginator.border_url(request, True)[1] }}</a> ...
+    {% endif %}
+    {% for page in paginator.get_urls(request) %}
+      <a href="{{ page[0] }}">{{ page[1] }}</a>
+    {% endfor %}
+    {% if paginator.border_url(request, False) %}
+      ... <a href="{{ paginator.border_url(request, False)[0] }}">{{ paginator.border_url(request, False)[1] }}</a>
+    {% endif %}
+  {% endif %}
+{% endmacro %}

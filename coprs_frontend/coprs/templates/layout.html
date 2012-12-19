@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+	<title>{% block title %}Coprs Build System{% endblock %}</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class=menu>
+  <div class=menu-inner>
+  {% block menu %}
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">All Coprs</a>
+    {% if g.user %}
+      <a href="{{ url_for('coprs_ns.coprs_by_owner', username = g.user.name) }}">Owned Coprs</a>
+      <a href="{{ url_for('coprs_ns.coprs_by_allowed', username = g.user.name) }}">Coprs I Can Build In</a>
+      <a class=log-url href="{{ url_for('misc.logout') }}">Log out</a>
+    {% else %}
+      <a class=log-url href="{{ url_for('misc.login') }}">Log in</a>
+    {% endif %}
+  {% endblock %}
+  </div>
+</div>
+<div class=page>
+  <h1>{% block header %}Coprs Build System{% endblock %}</h1>
+  {% for message in get_flashed_messages() %}
+    <div class=flash>{{ message }}</div>
+  {% endfor %}  
+  <div class=page-inner>
+    {% block body %}{% endblock %}
+  </div>
+</div>
+</body>
+</html>

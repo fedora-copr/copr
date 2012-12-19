@@ -1,0 +1,48 @@
+{% from "coprs/_coprs_forms.html" import copr_build_cancel_form %}
+
+{% macro builds_table(builds) %}
+  {% if builds %}
+    <table class=builds-table>
+      <tr>
+        <th>Submitted on</th>
+        <th>Submitted by</th>
+        <th>Started on</th>
+        <th>Ended on</th>
+        <th>State</th>
+        <th>Results</th>
+        <th>Action</th>
+      </tr>
+    {% for build in builds %}
+      <tr class=build-{{ build.state }}>
+        <td>{{ build.submitted_on|date_from_secs }}</td>
+        <td>{{ build.user.name }}</td>
+        <td>{{ build.started_on|date_from_secs or 'Not yet' }}</td>
+        <td>{{ build.ended_on|date_from_secs or 'Not yet' }}</td>
+        <td>{{ build.state }}</td>
+        <td>{{ build.results }}</td>
+        <td>
+          {% if g.user and g.user == build.user %}
+            {{ copr_build_cancel_form(build) }}
+          {% else %}
+            ---
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td colspan=7>
+          <h4>Package URLs:</h4>
+          <ul class=packages-list>
+            {% if build.pkgs is not none %}
+              {% for pkg in build.pkgs.split() %}
+                <li>{{ pkg }}</li>
+              {% endfor %}
+            {% endif %}
+          </ul>
+        </td>
+      </tr>
+    {% endfor %}
+    </table>
+  {% else %}
+    <h3>No builds so far</h3>
+  {% endif %}
+{% endmacro %}

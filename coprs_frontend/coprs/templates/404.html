@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}Not Found{% endblock %}
+{% block header %}Not Found!{% endblock %}
+{% block body %}
+  {% if message %}
+    {{ message }}
+  {% else %}
+    The thing you're looking for does not exist.
+  {% endif %}
+{% endblock %}

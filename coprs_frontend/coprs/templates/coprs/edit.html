@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}Editing {{ copr.name }}{% endblock %}
+{% block header %}Editing {{ copr.name }} Copr{% endblock %}
+{% from "coprs/_coprs_forms.html" import copr_form, copr_permissions_form with context %}
+
+{% block body %}
+
+  <h2>{{ copr.name }}</h2>
+  <h3>Permissions</h3>
+  {{ copr_permissions_form(permissions_form, copr, permissions) }}
+  <h3>Other attributes</h3>
+  {{ copr_form(form, view = 'coprs_ns.copr_update', copr = copr) }}
+
+{% endblock %}

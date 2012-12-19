@@ -1,0 +1,133 @@
+body {
+  background-color: #FFFFFF;
+
+  font: 0.9em 'Helvetica Neue', Arial, 'Liberation Sans', FreeSans, sans-serif;
+}
+
+h1, h2, h3, h4, h5 {
+  color: #3B6EB4;
+}
+
+h4 {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+a {
+  color: #3B6EB4;
+}
+
+a:hover {
+  color: #5B8ED4;
+}
+
+div.menu {
+  background-color: #2A5694;
+  padding: 0.5em;
+}
+
+div.page, div.menu-inner {
+  width: 750px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div.page-inner {
+}
+
+div.menu a {
+  font-size: 1.1em;
+  font-weight: bold;
+  padding-right: 0.5em;
+}
+
+div.menu a:link {
+  color: #EEEEEE;
+}
+
+div.menu a:visited {
+  color: #EEEEEE;
+}
+
+div.menu a:hover {
+  color: #FFFFFF;
+}
+
+div.flash {
+  background-color: #2A5694;
+  border-radius: 5px;
+  padding: 0.5em;
+  margin: 0.5em;
+  font-size: 1.1em;
+  color: #FFFFFF;
+}
+
+div.pagination {
+  text-align: center;
+  margin: 0.5em;
+}
+
+div.copr {
+}
+
+table.builds-table {
+  border-collapse: collapse;
+  border: 1px solid #222222;
+  width: 95%;
+}
+
+table.permissions-table {
+  border-collapse: collapse;
+  border: 1px solid #222222;
+  text-align: center;
+  width: 50%;
+}
+
+table.builds-table th, table.builds-table td, table.permissions-table th, table.permissions-table td {
+  padding: 0.2em;
+  border: 1px solid #222222;
+}
+
+tr.build-pending {
+  color: #3B6EB4;
+}
+
+tr.build-running {
+  color: #FF6600;
+}
+
+tr.build-succeeded {
+  color: #22DD22;
+}
+
+tr.build-failed {
+  color: #DD2222;
+}
+
+tr.build-canceled {
+  color: #CDC90C;
+}
+
+a.log-url {
+  float: right;
+}
+
+ul.chroots-list {
+  list-style: none;
+}
+
+ul.repos-list {
+  list-style: none;
+}
+
+ul.packages-list {
+  list-style: none;
+}
+
+form.add-entry {
+}
+
+ul.form-errors {
+  list-style: none;
+  color: #FF0000;
+}
