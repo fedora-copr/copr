@@ -12,6 +12,7 @@ from coprs.views.misc import login_required
 
 from coprs.views.coprs_ns import coprs_ns
 
+from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 
 @coprs_ns.route('/', defaults = {'page': 1})
@@ -65,8 +66,20 @@ def copr_new():
                            created_on = int(time.time()))
         coprs_logic.CoprsLogic.new(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
         db.session.commit()
+        flask.flash('New copr was successfully created.')
 
-        flask.flash('New entry was successfully posted')
+        if form.initial_pkgs.data:
+            build = models.Build(pkgs = form.initial_pkgs.data.replace('\n', ' '),
+                                 copr = copr,
+                                 chroots = copr.chroots,
+                                 repos = copr.repos,
+                                 user = flask.g.user,
+                                 submitted_on = int(time.time()))
+            # no need to check for authorization here
+            builds_logic.BuildsLogic.new(flask.g.user, build, copr, check_authorized = False)
+            db.session.commit()
+            flask.flash('Initial packages were successfully submitted for building.')
+
         return flask.redirect(flask.url_for('coprs_ns.coprs_show'))
     else:
         return flask.render_template('coprs/add.html', form = form)

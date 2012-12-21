@@ -86,6 +86,9 @@ class CoprForm(wtf.Form):
     repos = wtf.TextAreaField('Repos',
                               validators = [UrlListValidator()],
                               filters = [StringListFilter()])
+    initial_pkgs = wtf.TextAreaField('Initial packages to build',
+                                     validators = [UrlListValidator()],
+                                     filters = [StringListFilter()])
 
     @property
     def chroots(self):

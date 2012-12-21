@@ -58,6 +58,8 @@ class TestCoprsAllowed(CoprsTestCase):
             assert r.data.count('<div class=copr>') == 1
 
 class TestCoprNew(CoprsTestCase):
+    success_string = 'New copr was successfully created'
+
     def test_copr_new_normal(self, f_users):
         with self.tc as c:
             with c.session_transaction() as s:
@@ -65,7 +67,10 @@ class TestCoprNew(CoprsTestCase):
 
             r = c.post('/coprs/new/', data = {'name': 'foo', 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
             assert self.models.Copr.query.filter(self.models.Copr.name == 'foo').first()
-            assert "New entry was successfully posted" in r.data
+            assert self.success_string in r.data
+
+            # make sure no initial build was submitted
+            assert self.models.Build.query.first() == None
 
     def test_copr_new_exists_for_another_user(self, f_users, f_coprs):
         with self.tc as c:
@@ -79,7 +84,7 @@ class TestCoprNew(CoprsTestCase):
             r = c.post('/coprs/new/', data = {'name': self.c1.name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
             self.db.session.add(self.c1)
             assert len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all()) == foocoprs + 1
-            assert "New entry was successfully posted" in r.data
+            assert self.success_string in r.data
 
     def test_copr_new_exists_for_this_user(self, f_users, f_coprs):
         with self.tc as c:
@@ -94,6 +99,20 @@ class TestCoprNew(CoprsTestCase):
             self.db.session.add(self.c1)
             assert len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all()) == foocoprs
             assert "You already have copr named" in r.data
+
+    def test_copr_new_with_initial_pkgs(self, f_users):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            r = c.post('/coprs/new/', data = {'name': 'foo', 'release': 'fedora-rawhide', 'arches': ['i386'], 'initial_pkgs': ['http://f', 'http://b']}, follow_redirects = True)
+            copr = self.models.Copr.query.filter(self.models.Copr.name == 'foo').first()
+            assert copr
+            assert self.success_string in r.data
+
+            assert self.models.Build.query.first().copr == copr
+            assert copr.build_count == 1
+            assert 'Initial packages were successfully submitted' in r.data
 
 class TestCoprDetail(CoprsTestCase):
     def test_copr_detail_not_found(self):
