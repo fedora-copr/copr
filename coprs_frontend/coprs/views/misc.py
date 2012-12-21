@@ -5,6 +5,7 @@ import flask
 from flask.ext.openid import OpenID
 
 from coprs import app
+from coprs import config
 from coprs import db
 from coprs import models
 from coprs import oid
@@ -18,7 +19,7 @@ def login():
         return flask.redirect(oid.get_next_url())
     if flask.request.method == 'POST':
         fasusername = flask.request.form.get('fasuname')
-        if fasusername:
+        if fasusername and ((app.config['USE_ALLOWED_USERS'] and fasusername in app.config['ALLOWED_USERS']) or not app.config['USE_ALLOWED_USERS']):
             return oid.try_login('http://{0}.id.fedoraproject.org/'.format(fasusername), ask_for = ["email"])
     return flask.render_template('login.html',
                                  next=oid.get_next_url(),

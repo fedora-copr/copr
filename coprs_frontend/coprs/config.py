@@ -7,6 +7,10 @@ class Config(object):
     SECRET_KEY = 'THISISNOTASECRETATALL'
     BACKEND_PASSWORD = 'thisisbackend'
 
+    # restrict access to a set of users
+    USE_ALLOWED_USERS = False
+    ALLOWED_USERS = []
+
     # SQLAlchemy
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
 
