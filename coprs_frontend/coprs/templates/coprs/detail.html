@@ -17,7 +17,7 @@
   <h3>repos</h3>
   <ul class=repos-list>
     {% for repo in copr.repos_list %}
-      <li>{{ repo }}</li>
+      <li><a href="{{ repo }}">{{ repo }}</a></li>
     {% endfor %}
   </ul>
   {% endif %}

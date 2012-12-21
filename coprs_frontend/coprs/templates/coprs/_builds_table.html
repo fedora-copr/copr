@@ -19,7 +19,7 @@
         <td>{{ build.started_on|date_from_secs or 'Not yet' }}</td>
         <td>{{ build.ended_on|date_from_secs or 'Not yet' }}</td>
         <td>{{ build.state }}</td>
-        <td>{{ build.results }}</td>
+        <td>{% if build.results %}<a href={{ build.results }}>{% endif %}{{ build.results }}{% if build.results %}</a>{% endif %}</td>
         <td>
           {% if g.user and g.user == build.user %}
             {{ copr_build_cancel_form(build) }}
@@ -34,7 +34,7 @@
           <ul class=packages-list>
             {% if build.pkgs is not none %}
               {% for pkg in build.pkgs.split() %}
-                <li>{{ pkg }}</li>
+                <li><a href={{ pkg }}>{{ pkg }}</a></li>
               {% endfor %}
             {% endif %}
           </ul>
