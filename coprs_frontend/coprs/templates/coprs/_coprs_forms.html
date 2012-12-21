@@ -10,7 +10,9 @@
       {{ render_field(form.release) }}
       {{ render_field(form.arches, size = 2) }}
       {{ render_field(form.repos, rows = 10, cols = 50) }}
-      {{ render_field(form.initial_pkgs, rows = 10, cols = 50) }}
+      {% if copr is none %}{# we're creating the copr, so display initial builds area #}
+        {{ render_field(form.initial_pkgs, rows = 10, cols = 50) }}
+      {% endif %}
       <dd><input type=submit value=Submit></dd>
     </dl>
   </form>
