@@ -33,6 +33,7 @@ class UrlListValidator(object):
 
         return is_url
 
+
 class AllowedArchesValidator(object):
     def __init__(self, message = None):
         if not message:
@@ -44,6 +45,7 @@ class AllowedArchesValidator(object):
         for a in arches:
             if a not in constants.CHROOTS[form.release.data]:
                 raise wtf.ValidationError(self.message.format(a))
+
 
 class CoprUniqueNameValidator(object):
     def __init__(self, message = None):
@@ -68,6 +70,7 @@ class StringListFilter(object):
         result = value.strip()
         regex = re.compile(r'\s+')
         return regex.sub(lambda x: '\n', result)
+
 
 class CoprForm(wtf.Form):
     # also use id here, to be able to find out whether user is updating a copr
@@ -94,6 +97,7 @@ class CoprForm(wtf.Form):
     def chroots(self):
         return ['{0}-{1}'.format(self.release.data, arch) for arch in self.arches.data ]
 
+
 class BuildForm(wtf.Form):
     pkgs = wtf.TextAreaField('Pkgs',
                              validators = [wtf.Required(), UrlListValidator()],
@@ -104,6 +108,7 @@ class BuildForm(wtf.Form):
     timeout = wtf.IntegerField('Timeout',
                                validators = [wtf.NumberRange(min = constants.MIN_BUILD_TIMEOUT, max = constants.MAX_BUILD_TIMEOUT)],
                                default = constants.DEFAULT_BUILD_TIMEOUT)
+
 
 class PermissionsApplierFormFactory(object):
     @staticmethod
@@ -132,6 +137,7 @@ class PermissionsApplierFormFactory(object):
         setattr(F, 'copr_admin', wtf.SelectField('Copr Admin', choices = admin_choices, default = admin_default))
 
         return F
+
 
 class DynamicPermissionsFormFactory(object):
     """Creates a dynamic form for given set of copr permissions"""
