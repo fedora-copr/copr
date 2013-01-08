@@ -107,8 +107,8 @@ class CoprsPermissionLogic(object):
     def update_permissions_by_applier(cls, user, copr, copr_permission, new_builder, new_admin):
         approved_num = helpers.PermissionEnum.num('Approved')
         if copr_permission:
-            prev_builder = permission.copr_builder
-            prev_admin = permission.copr_admin
+            prev_builder = copr_permission.copr_builder
+            prev_admin = copr_permission.copr_admin
             # if we had Approved before, we can have it now, otherwise not
             if new_builder == approved_num and prev_builder != new_builder or \
                new_admin == approved_num and prev_admin != new_admin:
