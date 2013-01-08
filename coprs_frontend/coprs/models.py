@@ -95,7 +95,8 @@ class User(db.Model, Serializer):
 
     @property
     def serializable_attributes(self):
-        return super(User, self).serializable_attributes + ['name']
+        # enumerate here to prevent exposing credentials
+        return ['id', 'name']
 
 
 class Copr(db.Model, Serializer):
