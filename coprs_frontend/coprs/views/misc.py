@@ -113,3 +113,4 @@ def backend_authenticated(f):
             return 'You have to provide the correct password', 401
         return f(*args, **kwargs)
     return decorated_function
+
