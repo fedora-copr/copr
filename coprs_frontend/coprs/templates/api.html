@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}API for Coprs{% endblock %}
+{% block header %}API for the Coprs Build System{% endblock %}
+{% block body %}
+  {% if error %}<p class="error"><strong>Error:</strong> {{ error }}</p>{% endif %}
+
+  <div>
+    <h2>Coprs API</h2>
+
+    <h3> API Token </h3>
+    <p>In order to access the API, you will need to provide an API token.
+    This token is unique, specific to you and <span style="font-weight:bold;">
+    should not be shared!</span>.
+    </p>
+
+    <p>The API token is valid for 30 days after you generated it, this
+    in order to ensure you are you every 30 days.
+    </p>
+
+    {% if user %}
+    <p>Your information:</p>
+    <pre style="font-size:120%">
+    API token       :   {{ user.api_token }}
+    Expiration date :   {{ user.api_token_expiration }}
+    </pre>
+
+    <a href="{{ url_for('misc.api_new_token') }}">
+        <input type="button" value="Generate a new token" />
+    </a>
+    {% else %}
+    <p style="font-style:italic">You need to be logged in to see you API token.</p>
+    {% endif %}
+
+    <h3>The API</h3>
+
+    <p>To come here, more information about the API itself.</p>
+
+  </div>
+{% endblock %}

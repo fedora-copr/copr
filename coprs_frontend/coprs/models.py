@@ -54,6 +54,8 @@ class User(db.Model, Serializer):
     mail = db.Column(db.String(150), nullable = False)
     proven = db.Column(db.Boolean, default = False)
     admin = db.Column(db.Boolean, default = False)
+    api_token = db.Column(db.String(40), nullable = False)
+    api_token_expiration = db.Column(db.Date, nullable = False)
 
     @property
     def name(self):
@@ -92,6 +94,7 @@ class User(db.Model, Serializer):
     @property
     def serializable_attributes(self):
         return super(User, self).serializable_attributes + ['name']
+
 
 class Copr(db.Model, Serializer):
     id = db.Column(db.Integer, primary_key = True)
