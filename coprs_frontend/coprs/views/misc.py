@@ -19,8 +19,14 @@ def login():
         return flask.redirect(oid.get_next_url())
     if flask.request.method == 'POST':
         fasusername = flask.request.form.get('fasuname')
-        if fasusername and ((app.config['USE_ALLOWED_USERS'] and fasusername in app.config['ALLOWED_USERS']) or not app.config['USE_ALLOWED_USERS']):
+        if fasusername and ((app.config['USE_ALLOWED_USERS'] \
+            and fasusername in app.config['ALLOWED_USERS']) \
+            or not app.config['USE_ALLOWED_USERS']):
             return oid.try_login('http://{0}.id.fedoraproject.org/'.format(fasusername), ask_for = ["email"])
+        else:
+            return flask.render_template('login.html',
+                            error='User "{0}" is not allowed'.format(
+                            fasusername))
     return flask.render_template('login.html',
                                  next=oid.get_next_url(),
                                  error=oid.fetch_error())
