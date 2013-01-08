@@ -56,7 +56,7 @@ def create_or_login(resp):
             + datetime.timedelta(days=30)
         user = models.User(openid_name = resp.identity_url, mail = resp.email,
             api_token = generate_api_token(),
-                api_token_expiration = expiration_date_token)
+            api_token_expiration = expiration_date_token)
         db.session.add(user)
         db.session.commit()
     flask.flash(u'Welcome, {0}'.format(user.name))
@@ -74,8 +74,21 @@ def logout():
 def login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        if flask.g.user is None:
-            return flask.redirect(flask.url_for('misc.login', next = flask.request.url))
+        token = flask.request.form.get('token')
+        username = flask.request.form.get('username')
+        token_auth = False
+        if token and username:
+            user = models.User.query.filter(
+                models.User.openid_name == models.User.openidize_name(username)
+                ).first()
+            if user \
+                and user.api_token == token \
+                and user.api_token_expiration >= datetime.date.today():
+                token_auth = True
+                flask.g.user = user
+        if not token_auth and flask.g.user is None:
+            return flask.redirect(flask.url_for('misc.login',
+                next = flask.request.url))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -97,7 +110,7 @@ def api():
                                  user=flask.g.user)
 
 
-@misc.route('/api/new')
+@misc.route('/api/new/', methods = ["POST"])
 @login_required
 def api_new_token():
     user = flask.g.user
