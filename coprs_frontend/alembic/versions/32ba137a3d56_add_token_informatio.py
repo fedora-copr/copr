@@ -20,9 +20,10 @@ def upgrade():
     """ Add the coluns api_token and api_token_expiration to the user table.
     """
     op.add_column('user', sa.Column('api_token', sa.String(40),
-        nullable=False), default='default_token')
+        nullable=False, server_default='default_token'))
     op.add_column('user', sa.Column('api_token_expiration', sa.Date,
-        nullable=False, default=datetime.date(2000, 1, 1)))
+        nullable=False, server_default='2000-1-1'))
+
 
 
 def downgrade():

@@ -1,3 +1,5 @@
+import datetime
+
 from coprs import constants
 from coprs import db
 from coprs import helpers
@@ -54,8 +56,8 @@ class User(db.Model, Serializer):
     mail = db.Column(db.String(150), nullable = False)
     proven = db.Column(db.Boolean, default = False)
     admin = db.Column(db.Boolean, default = False)
-    api_token = db.Column(db.String(40), nullable = False)
-    api_token_expiration = db.Column(db.Date, nullable = False)
+    api_token = db.Column(db.String(40), nullable = False, default = 'abc')
+    api_token_expiration = db.Column(db.Date, nullable = False, default = datetime.date(2000, 1, 1))
 
     @property
     def name(self):
