@@ -46,10 +46,9 @@ def coprs_by_allowed(username = None, page = 1):
 
 
 @coprs_ns.route('/add/')
+@login_required
 def copr_add():
     form = forms.CoprForm()
-    if flask.g.user is None:
-        return flask.redirect(flask.url_for('misc.login'))
 
     return flask.render_template('coprs/add.html', form = form)
 
