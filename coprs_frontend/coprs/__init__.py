@@ -43,6 +43,4 @@ app.register_blueprint(coprs_ns.coprs_ns)
 app.register_blueprint(misc.misc)
 app.register_blueprint(backend_ns.backend_ns)
 
-@app.route("/")
-def start():
-    return coprs_general.coprs_show()
+app.add_url_rule('/', 'coprs_ns.coprs_show', coprs_general.coprs_show)
