@@ -16,9 +16,16 @@ class DBManager(object):
             if not os.path.exists(datadir_name):
                 os.makedirs(datadir_name)
 
-    def create_db(self):
+    def create_db(self, alembic_ini=None):
         self.create_sqlite_file()
         self.db.create_all()
+        if alembic_ini is not None:
+            # then, load the Alembic configuration and generate the
+            # version table, "stamping" it with the most recent rev:
+            from alembic.config import Config
+            from alembic import command
+            alembic_cfg = Config(alembic_ini)
+            command.stamp(alembic_cfg, "head")
 
     def delete_db(self):
         self.db.drop_all()
@@ -39,12 +46,19 @@ parser.add_argument('-d', '--delete-db',
                     help = 'Delete DB',
                     action = 'store_true')
 
+parser.add_argument('-f', '--alembic',
+                    required = False,
+                    help = 'Path to the alembic configuration file (alembic.ini)')
+
 args = parser.parse_args()
 
 manager = DBManager(db)
 if args.create_sqlite_file:
     manager.create_sqlite_file()
 elif args.create_db:
-    manager.create_db()
+    if not args.alembic:
+        print "Please provide the path to the alembic configuration file."
+    else:
+        manager.create_db(args.alembic)
 elif args.delete_db:
     manager.delete_db()
