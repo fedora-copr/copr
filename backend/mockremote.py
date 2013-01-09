@@ -59,7 +59,7 @@ def createrepo(path):
     if os.path.exists(path + '/repodata/repomd.xml'):
         comm = ['/usr/bin/createrepo', '--database', '--update', path]
     else:
-        comm = ['/usr/bin/createrepo' '--database', path]
+        comm = ['/usr/bin/createrepo', '--database', path]
     cmd = subprocess.Popen(comm,
              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = cmd.communicate()
