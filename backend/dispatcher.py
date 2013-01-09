@@ -288,9 +288,15 @@ class Worker(multiprocessing.Process):
                     # record and break
                     self.callback.log('%s - %s' % (ip, e))
                     status = 0 # failure
+                else:
+                    # we can't really trace back if we just fail normally
+                    # check if any pkgs didn't build
+                    if mr.failed: 
+                        status = 0
                 self.callback.log('Finished build: builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (ip, job.timeout, job.destdir, chroot, str(job.repos)))
-                
+            
             job.ended_on = time.time()
+            
             job.status = status
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
