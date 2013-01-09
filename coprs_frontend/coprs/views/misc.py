@@ -110,7 +110,7 @@ def api():
                                  user=flask.g.user)
 
 
-@misc.route('/api/new/', methods = ["POST"])
+@misc.route('/api/new/', methods = ["GET", "POST"])
 @login_required
 def api_new_token():
     user = flask.g.user
