@@ -14,6 +14,9 @@ class Config(object):
     # SQLAlchemy
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
 
+    # Token length, defaults to 30, DB set to varchar 255
+    API_TOKEN_LENGTH = 30
+
 class ProductionConfig(Config):
     DEBUG = False
 

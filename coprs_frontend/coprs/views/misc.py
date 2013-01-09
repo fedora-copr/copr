@@ -55,7 +55,7 @@ def create_or_login(resp):
         expiration_date_token = datetime.date.today() \
             + datetime.timedelta(days=30)
         user = models.User(openid_name = resp.identity_url, mail = resp.email,
-            api_token = generate_api_token(),
+            api_token = generate_api_token(app.config['API_TOKEN_LENGTH']),
             api_token_expiration = expiration_date_token)
         db.session.add(user)
         db.session.commit()
@@ -114,7 +114,7 @@ def api():
 @login_required
 def api_new_token():
     user = flask.g.user
-    user.api_token = generate_api_token()
+    user.api_token = generate_api_token(app.config['API_TOKEN_LENGTH'])
     user.api_token_expiration = datetime.date.today() \
         + datetime.timedelta(days=30)
     db.session.add(user)
