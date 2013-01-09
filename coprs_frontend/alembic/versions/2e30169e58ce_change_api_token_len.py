@@ -18,11 +18,13 @@ def upgrade():
     """ Change the api_token field from the user table from varchar(40) to
     varchar(255).
     """
-    op.alter_column("user", "api_token", type_=sa.String(255))
+    if op.get_bind().dialect.name != 'sqlite':
+        op.alter_column("user", "api_token", type_=sa.String(255))
 
 
 def downgrade():
     """ Change the api_token field from the user table from varchar(255) to
     varchar(40).
     """
-    op.alter_column("user", "api_token", type_=sa.String(40))
+    if op.get_bind().dialect.name != 'sqlite':
+        op.alter_column("user", "api_token", type_=sa.String(40))
