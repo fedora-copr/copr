@@ -99,12 +99,23 @@ def copr_detail(username, coprname):
     else:
         user_perm = None
 
-    permission_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(user_perm)()
+    permissions_applier_form = None
+    permissions_form = None
+
+    # generate a proper form for displaying
+    if flask.g.user:
+        if flask.g.user.can_edit(copr):
+            permissions_form = forms.PermissionsFormFactory.create_form_cls(permissions)()
+        else:
+            permissions_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(user_perm)()
+
     return flask.render_template('coprs/detail.html',
                                  copr = copr,
                                  build_form = build_form,
-                                 permission_applier_form = permission_applier_form,
-                                 permissions = permissions)
+                                 permissions_form = permissions_form,
+                                 permissions_applier_form = permissions_applier_form,
+                                 permissions = permissions,
+                                 current_user_permissions = user_perm)
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/edit/')
@@ -151,15 +162,16 @@ def copr_update(username, coprname):
 def copr_permissions_applier_change(username, coprname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     permission = coprs_logic.CoprsPermissionLogic.get(flask.g.user, copr, flask.g.user).first()
-    applier_permissions_form = forms.PermissionsApplierFormFactory.create_form_cls()()
+    applier_permissions_form = forms.PermissionsApplierFormFactory.create_form_cls(permission)()
 
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(name))
     if copr.owner == flask.g.user:
         flask.flash('Owner cannot request permissions for his own copr.')
-    else:
-        new_builder = int(applier_permissions_form.copr_builder.data)
-        new_admin = int(applier_permissions_form.copr_admin.data)
+    elif applier_permissions_form.validate_on_submit():
+        # we rely on these to be 0 or 1 from form. TODO: abstract from that
+        new_builder = applier_permissions_form.copr_builder.data
+        new_admin = applier_permissions_form.copr_admin.data
         try:
             coprs_logic.CoprsPermissionLogic.update_permissions_by_applier(flask.g.user, copr, permission, new_builder, new_admin)
         except exceptions.InsufficientRightsException as ex:
@@ -176,7 +188,7 @@ def copr_update_permissions(username, coprname):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
     copr = query.first()
     permissions = copr.copr_permissions
-    permissions_form = forms.DynamicPermissionsFormFactory.create_form_cls(permissions)()
+    permissions_form = forms.PermissionsFormFactory.create_form_cls(permissions)()
 
     # only owner can update copr permissions
     if not flask.g.user.can_edit(copr):
@@ -192,6 +204,5 @@ def copr_update_permissions(username, coprname):
 
         db.session.commit()
         flask.flash('Copr permissions were updated successfully.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
-    else:
-        return flask.render_template('coprs/edit.html', copr = copr, form = form)
+
+    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))

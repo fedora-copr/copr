@@ -84,44 +84,19 @@ class CoprsPermissionLogic(object):
 
     @classmethod
     def update_permissions(cls, user, copr, copr_permission, new_builder, new_admin):
-        copr_builder = copr_permission.copr_builder
-        copr_admin = copr_permission.copr_admin
-        # if the permission is granted, use Approved
-        # otherwise if it was Approved and it is ungranted, use No Action,
-        # else use original value
-        if new_builder:
-            copr_builder = helpers.PermissionEnum.num('Approved')
-        elif copr_builder == helpers.PermissionEnum.num('Approved'):
-            copr_builder = helpers.PermissionEnum.num('No Action')
-        if new_admin:
-            copr_admin = helpers.PermissionEnum.num('Approved')
-        elif copr_admin == helpers.PermissionEnum.num('Approved'):
-            copr_admin = helpers.PermissionEnum.num('No Action')
-
         models.CoprPermission.query.filter(models.CoprPermission.copr_id == copr.id).\
                                     filter(models.CoprPermission.user_id == copr_permission.user_id).\
-                                    update({'copr_builder': copr_builder,
-                                            'copr_admin': copr_admin})
+                                    update({'copr_builder': new_builder,
+                                            'copr_admin': new_admin})
 
     @classmethod
     def update_permissions_by_applier(cls, user, copr, copr_permission, new_builder, new_admin):
-        approved_num = helpers.PermissionEnum.num('Approved')
         if copr_permission:
-            prev_builder = copr_permission.copr_builder
-            prev_admin = copr_permission.copr_admin
-            # if we had Approved before, we can have it now, otherwise not
-            if new_builder == approved_num and prev_builder != new_builder or \
-               new_admin == approved_num and prev_admin != new_admin:
-                raise exceptions.InsufficientRightsException('User can\'t approve himself.')
-            else:
-                copr_permission.copr_builder = new_builder
-                copr_permission.copr_admin = new_admin
+            copr_permission.copr_builder = new_builder
+            copr_permission.copr_admin = new_admin
         else:
-            if new_builder == approved_num or new_admin == approved_num:
-                raise exceptions.InsufficientRightsException('User can\'t approve himself.')
-            else:
-                perm = models.CoprPermission(user = user, copr = copr, copr_builder = new_builder, copr_admin = new_admin)
-                cls.new(user, perm)
+            perm = models.CoprPermission(user = user, copr = copr, copr_builder = new_builder, copr_admin = new_admin)
+            cls.new(user, perm)
 
     @classmethod
     def delete(cls, user, copr_permission):
