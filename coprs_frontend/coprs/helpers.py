@@ -9,7 +9,7 @@ def chroots():
                                             for arch in arches]
 
 class PermissionEnum(object):
-    vals = {'No Action': 0, 'Request': 1, 'Approved': 2}
+    vals = {'nothing': 0, 'request': 1, 'approved': 2}
 
     @classmethod
     def num(cls, key):
