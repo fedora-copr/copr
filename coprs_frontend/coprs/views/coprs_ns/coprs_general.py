@@ -117,14 +117,9 @@ def copr_edit(username, coprname):
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
     form = forms.CoprForm(obj = copr)
 
-    permissions = coprs_logic.CoprsPermissionLogic.get_for_copr(flask.g.user, copr).all()
-    permissions_form = forms.DynamicPermissionsFormFactory.create_form_cls(permissions)()
-
     return flask.render_template('coprs/edit.html',
                                  copr = copr,
-                                 form = form,
-                                 permissions = permissions,
-                                 permissions_form = permissions_form)
+                                 form = form)
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/update/', methods = ['POST'])
