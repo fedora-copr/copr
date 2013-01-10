@@ -1,29 +1,90 @@
-{% macro permissions_table(permissions, copr, permissions_applier_form) %}
-  {% if permissions or permissions_applier_form %}
+{% macro permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, permissions_form) %}
+  {% if permissions or g.user != copr.owner %} {# display the whole table if there are permissions or user can ask for them #}
     {% if permissions_applier_form and g.user %}
       <form action="{{ url_for('coprs_ns.copr_permissions_applier_change', username = copr.owner.name, coprname = copr.name)}}" method=post>
       {{ permissions_applier_form.csrf_token }}
     {% endif %}
+    {% if permissions_form and g.user %}
+      <form action="{{ url_for('coprs_ns.copr_update_permissions', username = copr.owner.name, coprname = copr.name)}}" method=post>
+      {{ permissions_form.csrf_token }}
+    {% endif %}
     <table class=permissions-table>
       <tr><th>Username</th><th>Is Builder</th><th>Is Admin</th></tr>
       {% for perm in permissions %}
-        {% if perm.user_id != g.user.id %} {# if user is logged in, only display his form, not a row #}
-          <tr><td>{{ perm.user.name }}</td><td>{{ perm.copr_builder|perm_type_from_num }}</td><td>{{ perm.copr_admin|perm_type_from_num }}</tr>
+        {% if perm.user_id != g.user.id %} {# if user is logged in, only display his form below, not a row #}
+          {{ permissions_table_row_other_user(perm, permissions_applier_form, permissions_form) }}
         {% endif %}
       {% endfor %}
-      {% if permissions_applier_form and g.user %}
-          <tr>
-            <td>{{ g.user.name }}</td>
-            <td>{{ permissions_applier_form.copr_builder|safe }}</td>
-            <td>{{ permissions_applier_form.copr_admin|safe }}</td>
-          </tr>
-      {% endif %}
+      {{ permissions_table_row_current_user(current_user_permissions, permissions_applier_form, permissions_form) }}
     </table>
-    {% if permissions_applier_form and g.user %}
+    {% if g.user and (permissions_applier_form or permissions_form) %} {# TODO: when to display? #}
       <input type=submit value=Submit>
       </form>
     {% endif %}
   {% else %}
     No permissions for other users for this Copr.
+  {% endif %}
+{% endmacro %}
+
+{% macro permissions_table_row_other_user(perm, permissions_applier_form, permissions_form) %}
+  <tr>
+    <td>{{ perm.user.name }}</td>
+    <td>
+      {% if permissions_form %}
+        {% if perm.copr_builder != 0 %}
+          {{ permissions_form['copr_builder_{0}'.format(perm.user.id)] }}
+        {% endif %}
+      {% else %}
+        {{ perm.copr_builder|perm_type_from_num }}
+      {% endif %}
+    </td>
+    <td>
+      {% if permissions_form %}
+        {% if perm.copr_admin != 0 %}
+          {{ permissions_form['copr_admin_{0}'.format(perm.user.id)] }}
+        {% endif %}
+      {% else %}
+        {{ perm.copr_admin|perm_type_from_num }}
+      {% endif %}
+    </td>
+  </tr>
+{% endmacro %}
+
+{% macro permissions_table_row_current_user(current_user_permissions, permissions_applier_form, permissions_form) %}
+  {# if user is logged in and permissions_applier_form is defined, display it #}
+  {% if g.user and permissions_applier_form %}
+    <tr>
+      <td>{{ g.user.name }}</td>
+      <td>
+        {% if current_user_permissions %}
+          {{ current_user_permissions.copr_builder|perm_type_from_num }}
+        {% else %}
+          Not requested
+        {% endif %}
+        <br>
+        {{ permissions_applier_form.copr_builder|safe }}
+      </td>
+      <td>
+        {% if current_user_permissions %}
+          {{ current_user_permissions.copr_admin|perm_type_from_num }}
+        {% else %}
+          Not requested
+        {% endif %}
+        <br>
+        {{ permissions_applier_form.copr_admin|safe }}
+    </tr>
+  {% endif %}
+
+  {# if user is admin (means current_user_permissions is set), display his own permissions for changing #}
+  {% if g.user and permissions_form and current_user_permissions %}
+    <tr>
+      <td>{{ g.user.name }}</td>
+      <td>
+        {{ permissions_form['copr_builder_{0}'.format(g.user.id)] }}
+      </td>
+      <td>
+        {{ permissions_form['copr_admin_{0}'.format(g.user.id)] }}
+      </td>
+    </tr>
   {% endif %}
 {% endmacro %}
