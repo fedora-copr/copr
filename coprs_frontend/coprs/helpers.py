@@ -23,7 +23,7 @@ class PermissionEnum(object):
         raise KeyError('num {0} is not mapped'.format(num))
 
     @classmethod
-    def choices_list(cls, without = 2):
+    def choices_list(cls, without = -1):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 class Paginator(object):
