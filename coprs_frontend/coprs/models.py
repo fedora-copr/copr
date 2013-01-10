@@ -75,7 +75,7 @@ class User(db.Model, Serializer):
         can_build = False
         if copr.owner == self:
             can_build = True
-        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_builder == helpers.PermissionEnum.num('Approved'):
+        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_builder == helpers.PermissionEnum.num('approved'):
             can_build = True
 
         return can_build
@@ -84,7 +84,7 @@ class User(db.Model, Serializer):
         can_edit = False
         if copr.owner == self:
             can_edit = True
-        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_admin == helpers.PermissionEnum.num('Approved'):
+        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_admin == helpers.PermissionEnum.num('approved'):
             can_edit = True
 
         return can_edit

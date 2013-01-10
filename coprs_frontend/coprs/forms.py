@@ -116,30 +116,22 @@ class PermissionsApplierFormFactory(object):
         class F(wtf.Form):
             pass
 
-        approved_num = helpers.PermissionEnum.num('Approved')
-        build_without = approved_num
-        admin_without = approved_num
+        builder_default = False
+        admin_default = False
 
         if permission:
-            if permission.copr_builder == approved_num:
-                build_without = None
+            if permission.copr_builder != helpers.PermissionEnum.num('nothing'):
+                builder_default = True
+            if permission.copr_admin != helpers.PermissionEnum.num('nothing'):
+                admin_default = True
 
-            if permission.copr_admin == approved_num:
-                admin_without = None
-
-        builder_choices = helpers.PermissionEnum.choices_list(build_without)
-        admin_choices = helpers.PermissionEnum.choices_list(admin_without)
-
-        builder_default = permission.copr_builder if permission else helpers.PermissionEnum.num('No Action')
-        admin_default = permission.copr_admin if permission else helpers.PermissionEnum.num('No Action')
-
-        setattr(F, 'copr_builder', wtf.SelectField('Copr Builder', choices = builder_choices, default = builder_default))
-        setattr(F, 'copr_admin', wtf.SelectField('Copr Admin', choices = admin_choices, default = admin_default))
+        setattr(F, 'copr_builder', wtf.BooleanField(default = builder_default))
+        setattr(F, 'copr_admin', wtf.BooleanField(default = admin_default))
 
         return F
 
 
-class DynamicPermissionsFormFactory(object):
+class PermissionsFormFactory(object):
     """Creates a dynamic form for given set of copr permissions"""
     @staticmethod
     def create_form_cls(permissions):
@@ -147,15 +139,13 @@ class DynamicPermissionsFormFactory(object):
             pass
 
         for perm in permissions:
-            copr_builder_default = False
-            if perm.copr_builder == helpers.PermissionEnum.num('Approved'):
-                copr_builder_default = True
+            builder_choices = helpers.PermissionEnum.choices_list()
+            admin_choices = helpers.PermissionEnum.choices_list()
 
-            copr_admin_default = False
-            if perm.copr_admin == helpers.PermissionEnum.num('Approved'):
-                copr_admin_default = True
+            builder_default = perm.copr_builder
+            admin_default = perm.copr_admin
 
-            setattr(F, 'copr_builder_{0}'.format(perm.user.id), wtf.BooleanField(default = copr_builder_default))
-            setattr(F, 'copr_admin_{0}'.format(perm.user.id), wtf.BooleanField(default = copr_admin_default))
+            setattr(F, 'copr_builder_{0}'.format(perm.user.id), wtf.SelectField(choices = builder_choices, default = builder_default, coerce = int))
+            setattr(F, 'copr_admin_{0}'.format(perm.user.id), wtf.SelectField(choices = admin_choices, default = admin_default, coerce = int))
 
         return F
