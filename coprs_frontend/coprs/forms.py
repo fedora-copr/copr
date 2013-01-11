@@ -83,7 +83,7 @@ class CoprForm(wtf.Form):
     id = wtf.HiddenField()
     name = wtf.TextField('Name',
                          validators = [wtf.Required(),
-                         wtf.Regexp(re.compile(r'^[\w-]+$'), message = 'Name must contain only letters, digits, underscores and dashes.'),
+                         wtf.Regexp(re.compile(r'^[\w.-]+$'), message = 'Name must contain only letters, digits, underscores, dashes and dots.'),
                          CoprUniqueNameValidator()])
     # choices must be list of tuples
     # => make list like [(fedora-18, fedora-18), ...]
