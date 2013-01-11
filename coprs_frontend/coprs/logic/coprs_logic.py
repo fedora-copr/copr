@@ -92,8 +92,11 @@ class CoprsPermissionLogic(object):
     @classmethod
     def update_permissions_by_applier(cls, user, copr, copr_permission, new_builder, new_admin):
         if copr_permission:
-            copr_permission.copr_builder = new_builder
-            copr_permission.copr_admin = new_admin
+            # preserve approved permissions if set
+            if not new_builder or copr_permission.copr_builder != helpers.PermissionEnum.num('approved'):
+                copr_permission.copr_builder = new_builder
+            if not new_admin or copr_permission.copr_admin != helpers.PermissionEnum.num('approved'):
+                copr_permission.copr_admin = new_admin
         else:
             perm = models.CoprPermission(user = user, copr = copr, copr_builder = new_builder, copr_admin = new_admin)
             cls.new(user, perm)

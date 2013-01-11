@@ -252,6 +252,24 @@ class TestCoprApplyForPermissions(CoprsTestCase):
             assert new_perm.copr_builder == 1
             assert new_perm.copr_admin == 0
 
+    def test_apply_doesnt_lower_other_values_from_admin_to_request(self, f_users, f_coprs, f_copr_permissions):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u1, self.u2, self.cp1, self.c2])
+            r = c.post('/coprs/detail/{0}/{1}/permissions_applier_change/'.format(self.u2.name, self.c2.name),
+                       data = {'copr_builder': 1, 'copr_admin': '1'},
+                       follow_redirects = True)
+            assert 'Successfuly updated' in r.data
+
+            self.db.session.add_all([self.u1, self.c2])
+            new_perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u1.id).\
+                                                        filter(self.models.CoprPermission.copr_id == self.c2.id).\
+                                                        first()
+            assert new_perm.copr_builder == 2
+            assert new_perm.copr_admin == 1
+
 class TestCoprUpdatePermissions(CoprsTestCase):
     def test_cancel_permission(self, f_users, f_coprs, f_copr_permissions):
         with self.tc as c:
