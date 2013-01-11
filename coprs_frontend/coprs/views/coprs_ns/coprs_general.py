@@ -172,13 +172,9 @@ def copr_permissions_applier_change(username, coprname):
         # we rely on these to be 0 or 1 from form. TODO: abstract from that
         new_builder = applier_permissions_form.copr_builder.data
         new_admin = applier_permissions_form.copr_admin.data
-        try:
-            coprs_logic.CoprsPermissionLogic.update_permissions_by_applier(flask.g.user, copr, permission, new_builder, new_admin)
-        except exceptions.InsufficientRightsException as ex:
-            flask.flash(ex.message)
-        else:
-            flask.flash('Successfuly updated permissions do Copr "{0}".'.format(copr.name))
+        coprs_logic.CoprsPermissionLogic.update_permissions_by_applier(flask.g.user, copr, permission, new_builder, new_admin)
         db.session.commit()
+        flask.flash('Successfuly updated permissions do Copr "{0}".'.format(copr.name))
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
