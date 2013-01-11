@@ -71,6 +71,11 @@ class StringListFilter(object):
         regex = re.compile(r'\s+')
         return regex.sub(lambda x: '\n', result)
 
+class ValueToPermissionNumberFilter(object):
+    def __call__(self, value):
+        if value:
+            return helpers.PermissionEnum.num('request')
+        return helpers.PermissionEnum.num('nothing')
 
 class CoprForm(wtf.Form):
     # also use id here, to be able to find out whether user is updating a copr
@@ -125,8 +130,8 @@ class PermissionsApplierFormFactory(object):
             if permission.copr_admin != helpers.PermissionEnum.num('nothing'):
                 admin_default = True
 
-        setattr(F, 'copr_builder', wtf.BooleanField(default = builder_default))
-        setattr(F, 'copr_admin', wtf.BooleanField(default = admin_default))
+        setattr(F, 'copr_builder', wtf.BooleanField(default = builder_default, filters = [ValueToPermissionNumberFilter()]))
+        setattr(F, 'copr_admin', wtf.BooleanField(default = admin_default, filters = [ValueToPermissionNumberFilter()]))
 
         return F
 
