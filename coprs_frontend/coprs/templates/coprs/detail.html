@@ -22,7 +22,10 @@
   </ul>
   {% endif %}
   <h3>Permissions</h3>
-  {{ permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, permissions_form) }}
+  {% if (g.user and g.user != copr.owner) or permissions %}
+    {# the table is displayed only if there are some permissions or a non-owner is viewing the page (then display at least his applier form #}
+    {{ permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, permissions_form) }}
+  {% endif %}
   {% if g.user and g.user.can_build_in(copr) %}
     <h3>Build packages in this repo:</h3>
     {{ copr_build_form(build_form, 'coprs_ns.copr_add_build', copr) }}
