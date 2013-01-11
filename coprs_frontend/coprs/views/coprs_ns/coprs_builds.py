@@ -54,8 +54,7 @@ def copr_add_build(username, coprname):
         flask.flash("Build was added")
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = copr.name))
     else:
-        # TODO: figure out a more elegant way to get the function
-        return coprs_general.copr_detail(username = username, coprname = coprname, build_form = form)
+        return flask.current_app.view_functions['coprs_ns.copr_detail'](username = username, coprname = coprname, build_form = form)
 
 @coprs_ns.route('/detail/<username>/<coprname>/cancel_build/<int:build_id>/', methods = ['POST'])
 @login_required
