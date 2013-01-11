@@ -13,6 +13,7 @@ from coprs.logic import coprs_logic
 
 from coprs.views.misc import login_required
 from coprs.views.coprs_ns import coprs_ns
+from coprs.views.coprs_ns import coprs_general
 
 @coprs_ns.route('/detail/<username>/<coprname>/builds/', defaults = {'page': 1})
 @coprs_ns.route('/detail/<username>/<coprname>/builds/<int:page>/')
@@ -53,8 +54,8 @@ def copr_add_build(username, coprname):
         flask.flash("Build was added")
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = copr.name))
     else:
-        return flask.render_template('coprs/detail.html', copr = copr, form = form)
-
+        # TODO: figure out a more elegant way to get the function
+        return coprs_general.copr_detail(username = username, coprname = coprname, build_form = form)
 
 @coprs_ns.route('/detail/<username>/<coprname>/cancel_build/<int:build_id>/', methods = ['POST'])
 @login_required
