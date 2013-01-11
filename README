@@ -5,3 +5,18 @@ Right now all the work is going on in 2 branches:
 
 
 
+Overview of use:
+- frontend allows users to create a copr for themselves.
+  - then they are able to submit urls to pkgs they wish to build
+
+- the frontend makes the build requests available as JSON
+
+- the backend polls the frontend for new builds
+- when it finds a new build it spins off a builder using
+  the ansible playbook to create a new builder instance 
+  (normally in a private or public cloud)
+- it notifies the frontend that the build is starting
+- it submits the pkg/repo/etc to be built on the instance with mockchain
+- it retrieves the results and saves them into the results dir
+- it returns the build status and where to find the results to the front end
+

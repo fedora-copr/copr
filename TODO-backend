@@ -15,5 +15,3 @@
 - work on a way to find and cancel a specific build that's happening other than just killing the instance
 - determine if it is properly checking the timeout from a dead instance
 - maybe dump out the PID of the worker that is running so we know which one to kill?
-- failure/success not being returned correctly. Should check for 'fail' in the directories and return based on
-  that. also anything lacking success is a failure.
