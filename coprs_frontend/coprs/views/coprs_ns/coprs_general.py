@@ -108,7 +108,8 @@ def copr_detail(username, coprname, build_form = None):
         if flask.g.user.can_edit(copr):
             permissions_form = forms.PermissionsFormFactory.create_form_cls(permissions)()
         else:
-            permissions_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(user_perm)()
+            # https://github.com/ajford/flask-wtf/issues/58
+            permissions_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(user_perm)(formdata=None)
 
     return flask.render_template('coprs/detail.html',
                                  copr = copr,
