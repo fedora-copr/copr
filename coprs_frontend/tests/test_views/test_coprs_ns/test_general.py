@@ -135,8 +135,8 @@ class TestCoprDetail(CoprsTestCase):
     def test_copr_detail_contains_permissions_table(self, f_users, f_coprs, f_copr_permissions):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
         assert '<table class=permissions' in r.data
-        assert '<tr><td>{0}'.format(self.u3.name) in r.data
-        assert '<tr><td>{0}'.format(self.u1.name) in r.data
+        assert '<td>{0}'.format(self.u3.name) in r.data
+        assert '<td>{0}'.format(self.u1.name) in r.data
 
     def test_copr_detail_doesnt_contain_forms_for_anonymous_user(self, f_users, f_coprs):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
@@ -150,7 +150,7 @@ class TestCoprDetail(CoprsTestCase):
             self.db.session.add_all([self.u2, self.c2])
             r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
             # u1 is approved builder, check for that
-            assert '<option selected value="2">Approved</option>' in r.data
+            assert '/permissions_applier_change/' in r.data
 
     def test_copr_detail_doesnt_allow_owner_to_ask_for_permissions(self, f_users, f_coprs):
         with self.tc as c:
@@ -160,6 +160,18 @@ class TestCoprDetail(CoprsTestCase):
             self.db.session.add_all([self.u2, self.c2])
             r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
             assert '/permissions_applier_change/' not in r.data
+
+    def test_detail_has_correct_permissions_form(self, f_users, f_coprs, f_copr_permissions):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u2, self.c3])
+            r = c.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
+
+            assert r.data.count('nothing') == 2
+            assert '<select id="copr_builder_1" name="copr_builder_1">' in r.data
+            assert '<select id="copr_admin_1" name="copr_admin_1">' in r.data
 
     def test_copr_detail_doesnt_show_cancel_build_for_anonymous(self, f_users, f_coprs, f_builds):
         r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c2.name))
@@ -196,16 +208,6 @@ class TestCoprEdit(CoprsTestCase):
             # to the precise format of the tag
             assert '<input hidden id="id" name="id" type="hidden" value="{0}">'.format(self.c1.id) in r.data
 
-    def test_edit_has_correct_permissions_form(self, f_users, f_coprs, f_copr_permissions):
-        with self.tc as c:
-            with c.session_transaction() as s:
-                s['openid'] = self.u2.openid_name
-
-            self.db.session.add_all([self.u2, self.c3])
-            r = c.get('/coprs/detail/{0}/{1}/edit/'.format(self.u2.name, self.c3.name))
-            assert r.data.count('No Action') == 2
-            assert '<input id="copr_builder_1" name="copr_builder_1" type="checkbox" value="y">' in r.data
-            assert '<input checked id="copr_admin_1" name="copr_admin_1" type="checkbox" value="y">' in r.data
 
 class TestCoprUpdate(CoprsTestCase):
     def test_update_no_changes(self, f_users, f_coprs):
@@ -239,7 +241,7 @@ class TestCoprApplyForPermissions(CoprsTestCase):
 
             self.db.session.add_all([self.u1, self.u2, self.c1])
             r = c.post('/coprs/detail/{0}/{1}/permissions_applier_change/'.format(self.u1.name, self.c1.name),
-                       data = {'copr_builder': 1, 'copr_admin': 0},
+                       data = {'copr_builder': '1'},
                        follow_redirects = True)
             assert 'Successfuly updated' in r.data
 
@@ -257,12 +259,14 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                 s['openid'] = self.u2.openid_name
 
             self.db.session.add_all([self.u2, self.c2])
-            # Although it shouldn't be needed, preset some data: https://github.com/ajford/flask-wtf/issues/55
             r = c.post('/coprs/detail/{0}/{1}/update_permissions/'.format(self.u2.name, self.c2.name),
-                       data = {'csrf_token': u'20121123111948##1653cb2ef73cb9f7b4670472df7354416e61cf2d'},
+                       data = {'copr_builder_1': '0'},
                        follow_redirects = True)
-            self.db.session.add_all([self.u1])
-            assert '<tr><td>{0}</td><td>{1}</td></tr>'.format(self.u1.name, 'True') not in r.data
+
+            # very volatile, but will fail fast if something changes
+            check_string = '<select id="copr_builder_1" name="copr_builder_1"><option value="0">nothing</option><option value="1">'
+            check_string += 'request</option><option selected value="2">approved</option></select>'
+            assert check_string not in r.data
 
     def test_update_more_permissions(self, f_users, f_coprs, f_copr_permissions):
         with self.tc as c:
@@ -271,20 +275,20 @@ class TestCoprUpdatePermissions(CoprsTestCase):
 
             self.db.session.add_all([self.u2, self.c3])
             r = c.post('/coprs/detail/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
-                       data = {'copr_builder_1': 'y', 'copr_admin_3': 'y'},
+                       data = {'copr_builder_1': '2', 'copr_admin_1': '1', 'copr_admin_3': '2'},
                        follow_redirects = True)
             self.db.session.add_all([self.c3, self.u1, self.u3])
             u1_c3_perms = self.models.CoprPermission.query.filter(self.models.CoprPermission.copr_id == self.c3.id).\
                                                            filter(self.models.CoprPermission.user_id == self.u1.id).\
                                                            first()
-            assert u1_c3_perms.copr_builder == self.helpers.PermissionEnum.num('Approved')
-            assert u1_c3_perms.copr_admin == self.helpers.PermissionEnum.num('No Action')
+            assert u1_c3_perms.copr_builder == self.helpers.PermissionEnum.num('approved')
+            assert u1_c3_perms.copr_admin == self.helpers.PermissionEnum.num('request')
 
             u3_c3_perms = self.models.CoprPermission.query.filter(self.models.CoprPermission.copr_id == self.c3.id).\
                                                            filter(self.models.CoprPermission.user_id == self.u3.id).\
                                                            first()
-            assert u3_c3_perms.copr_builder == self.helpers.PermissionEnum.num('No Action')
-            assert u3_c3_perms.copr_admin == self.helpers.PermissionEnum.num('Approved')
+            assert u3_c3_perms.copr_builder == self.helpers.PermissionEnum.num('nothing')
+            assert u3_c3_perms.copr_admin == self.helpers.PermissionEnum.num('approved')
 
     def test_copr_admin_can_update_permissions(self, f_users, f_coprs, f_copr_permissions):
         with self.tc as c:
@@ -293,7 +297,7 @@ class TestCoprUpdatePermissions(CoprsTestCase):
 
             self.db.session.add_all([self.u2, self.c3])
             r = c.post('/coprs/detail/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
-                       data = {'copr_builder_1': 'y', 'copr_admin_3': 'y'},
+                       data = {'copr_builder_1': '2', 'copr_admin_3': '2'},
                        follow_redirects = True)
-
+            print r.data
             assert 'Copr permissions were updated' in r.data
