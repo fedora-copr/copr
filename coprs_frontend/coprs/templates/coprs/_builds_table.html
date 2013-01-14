@@ -4,6 +4,7 @@
   {% if builds %}
     <table class=builds-table>
       <tr>
+        <th>Id</th>
         <th>Submitted on</th>
         <th>Submitted by</th>
         <th>Started on</th>
@@ -14,6 +15,7 @@
       </tr>
     {% for build in builds %}
       <tr class=build-{{ build.state }}>
+        <td>{{ build.id }}</td>
         <td>{{ build.submitted_on|date_from_secs }}</td>
         <td>{{ build.user.name }}</td>
         <td>{{ build.started_on|date_from_secs or 'Not yet' }}</td>
@@ -29,7 +31,7 @@
         </td>
       </tr>
       <tr>
-        <td colspan=7>
+        <td colspan=8>
           <h4>Package URLs:</h4>
           <ul class=packages-list>
             {% if build.pkgs is not none %}
