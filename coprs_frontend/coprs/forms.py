@@ -34,19 +34,6 @@ class UrlListValidator(object):
         return is_url
 
 
-class AllowedArchesValidator(object):
-    def __init__(self, message = None):
-        if not message:
-            message = '"{0}" is not an allowed architecture for "{1}".'
-        self.message = message
-
-    def __call__(self, form, field):
-        arches = field.data
-        for a in arches:
-            if a not in constants.CHROOTS[form.release.data]:
-                raise wtf.ValidationError(self.message.format(a))
-
-
 class CoprUniqueNameValidator(object):
     def __init__(self, message = None):
         if not message:
@@ -77,30 +64,46 @@ class ValueToPermissionNumberFilter(object):
             return helpers.PermissionEnum.num('request')
         return helpers.PermissionEnum.num('nothing')
 
-class CoprForm(wtf.Form):
-    # also use id here, to be able to find out whether user is updating a copr
-    # if so, we don't want to shout that name already exists
-    id = wtf.HiddenField()
-    name = wtf.TextField('Name',
-                         validators = [wtf.Required(),
-                         wtf.Regexp(re.compile(r'^[\w.-]+$'), message = 'Name must contain only letters, digits, underscores, dashes and dots.'),
-                         CoprUniqueNameValidator()])
-    # choices must be list of tuples
-    # => make list like [(fedora-18, fedora-18), ...]
-    release = wtf.SelectField('Release', choices = [(x, x) for x in sorted(constants.CHROOTS)])
-    arches = wtf.SelectMultipleField('Architectures',
-                                     choices = [(x, x) for x in constants.DEFAULT_ARCHES],
-                                     validators = [wtf.Required(), AllowedArchesValidator()])
-    repos = wtf.TextAreaField('Repos',
-                              validators = [UrlListValidator()],
-                              filters = [StringListFilter()])
-    initial_pkgs = wtf.TextAreaField('Initial packages to build',
-                                     validators = [UrlListValidator()],
-                                     filters = [StringListFilter()])
+class CoprFormFactory(object):
+    @staticmethod
+    def create_form_cls(mock_chroots=None):
+        class F(wtf.Form):
+            # also use id here, to be able to find out whether user is updating a copr
+            # if so, we don't want to shout that name already exists
+            id = wtf.HiddenField()
+            name = wtf.TextField('Name',
+                                 validators = [wtf.Required(),
+                                 wtf.Regexp(re.compile(r'^[\w.-]+$'), message='Name must contain only letters, digits, underscores, dashes and dots.'),
+                                 CoprUniqueNameValidator()])
+            repos = wtf.TextAreaField('Repos',
+                                      validators = [UrlListValidator()],
+                                      filters = [StringListFilter()])
+            initial_pkgs = wtf.TextAreaField('Initial packages to build',
+                                             validators = [UrlListValidator()],
+                                             filters = [StringListFilter()])
 
-    @property
-    def chroots(self):
-        return ['{0}-{1}'.format(self.release.data, arch) for arch in self.arches.data ]
+            @property
+            def selected_chroots(self):
+                selected = []
+                for ch in self.chroots_list:
+                    if getattr(self, ch).data:
+                        selected.append(ch)
+                return selected
+
+        F.chroots_list = map(lambda x: x.chroot_name, models.MockChroot.query.filter(models.MockChroot.is_active==True).all())
+        F.chroots_list.sort()
+        F.chroots_sets = {} # sets of chroots according to how we should print them in columns
+        for ch in F.chroots_list:
+            checkbox_default = False
+            if mock_chroots and ch in map(lambda x:x.chroot_name, mock_chroots):
+                checkbox_default = True
+            setattr(F, ch, wtf.BooleanField(ch, default=checkbox_default))
+            if ch[0] in F.chroots_sets:
+                F.chroots_sets[ch[0]].append(ch)
+            else:
+                F.chroots_sets[ch[0]] = [ch]
+
+        return F
 
 
 class BuildForm(wtf.Form):
