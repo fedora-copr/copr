@@ -104,3 +104,38 @@ class CoprsPermissionLogic(object):
     @classmethod
     def delete(cls, user, copr_permission):
         db.session.delete(copr_permission)
+
+class CoprChrootLogic(object):
+    @classmethod
+    def mock_chroots_from_names(cls, user, names):
+        db_chroots = models.MockChroot.query.all()
+        mock_chroots = []
+        for ch in db_chroots:
+            if ch.chroot_name in names:
+                mock_chroots.append(ch)
+
+        return mock_chroots
+
+    @classmethod
+    def new(cls, user, mock_chroot):
+        db.session.add(mock_chroot)
+
+    @classmethod
+    def new_from_names(cls, user, copr, names):
+        for mock_chroot in cls.mock_chroots_from_names(user, names):
+            db.session.add(models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
+
+    @classmethod
+    def update_from_names(cls, user, copr, names):
+        current_chroots = copr.mock_chroots
+        new_chroots = cls.mock_chroots_from_names(user, names)
+        # add non-existing
+        for mock_chroot in new_chroots:
+            if mock_chroot not in current_chroots:
+                db.session.add(models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
+        # delete no more present
+        for mock_chroot in current_chroots:
+            if mock_chroot not in new_chroots:
+                models.CoprChroot.query.filter(models.CoprChroot.copr_id==copr.id).\
+                                        filter(models.CoprChroot.mock_chroot_id==mock_chroot.id).\
+                                        delete()
