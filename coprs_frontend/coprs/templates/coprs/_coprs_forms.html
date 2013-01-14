@@ -7,8 +7,18 @@
       {{ form.csrf_token }}
       {{ render_field(form.id, hidden = True) }}
       {{ render_field(form.name) }}
-      {{ render_field(form.release) }}
-      {{ render_field(form.arches, size = 2) }}
+      {% for group_set, chs in form.chroots_sets.items() %}
+        <table style="display:inline;">
+          <tr>
+            <th colspan=2>Chroots to use</th>
+          </tr>
+          {% for ch in chs %}
+            <tr>
+              <td>{{ form|attr(ch)|attr('label') }}</td><td>{{ form|attr(ch) }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% endfor %}
       {{ render_field(form.repos, rows = 10, cols = 50) }}
       {% if copr is none %}{# we're creating the copr, so display initial builds area #}
         {{ render_field(form.initial_pkgs, rows = 10, cols = 50) }}
