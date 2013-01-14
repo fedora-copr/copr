@@ -102,7 +102,6 @@ class User(db.Model, Serializer):
 class Copr(db.Model, Serializer):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(100), nullable = False)
-    chroots = db.Column(db.Text, nullable = False)
     repos = db.Column(db.Text)
     created_on = db.Column(db.Integer)
     # duplicate information, but speeds up a lot and makes queries simpler
@@ -118,17 +117,7 @@ class Copr(db.Model, Serializer):
 
     @property
     def chroots_list(self):
-        return self.chroots.split(' ')
-
-    # These two properties help the wtform while getting data from a copr object
-    @property
-    def release(self):
-        return '-'.join(self.chroots_list[0].split('-')[0:-1])
-
-    @property
-    def arches(self):
-        x = [chroot.split('-')[-1] for chroot in self.chroots_list]
-        return x
+        return None #TODO
 
     __mapper_args__ = {'order_by': id.desc()}
 
