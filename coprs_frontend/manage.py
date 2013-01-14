@@ -1,64 +1,51 @@
 #!/usr/bin/env python
 
-import argparse
 import os
+
+import flask
+from flask.ext.script import Manager, Command, Option
 
 from coprs import app, db
 
-class DBManager(object):
-    def __init__(self, db):
-        self.db = db
-
-    def create_sqlite_file(self):
-        if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+class CreateSqliteFileCommand(Command):
+    'Create the sqlite DB file (not the tables). Used for alembic, "create_db" does this automatically.'
+    def run(self):
+        if flask.current_app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
             # strip sqlite:///
-            datadir_name = os.path.dirname(app.config['SQLALCHEMY_DATABASE_URI'][10:])
+            datadir_name = os.path.dirname(flask.current_app.config['SQLALCHEMY_DATABASE_URI'][10:])
             if not os.path.exists(datadir_name):
                 os.makedirs(datadir_name)
 
-    def create_db(self, alembic_ini=None):
-        self.create_sqlite_file()
-        self.db.create_all()
-        if alembic_ini is not None:
-            # then, load the Alembic configuration and generate the
-            # version table, "stamping" it with the most recent rev:
-            from alembic.config import Config
-            from alembic import command
-            alembic_cfg = Config(alembic_ini)
-            command.stamp(alembic_cfg, "head")
+class CreateDBCommand(Command):
+    'Create the DB scheme'
+    def run(self, alembic_ini=None):
+        CreateSqliteFileCommand().run()
+        db.create_all()
+            
+        # load the Alembic configuration and generate the
+        # version table, "stamping" it with the most recent rev:
+        from alembic.config import Config
+        from alembic import command
+        alembic_cfg = Config(alembic_ini)
+        command.stamp(alembic_cfg, "head")
 
-    def delete_db(self):
-        self.db.drop_all()
+    option_list = (
+        Option('--alembic',
+               '-f',
+               dest='alembic_ini',
+               help='Path to the alembic configuration file (alembic.ini)',
+               required=True),
+    )
 
-parser = argparse.ArgumentParser(description = 'Manage the app')
-parser.add_argument('-s', '--create-sqlite-file',
-                    required = False,
-                    help = 'Create the sqlite DB file (not the tables). User for alembic, the -c does this automatically.',
-                    action = 'store_true')
+class DropDBCommand(Command):
+    'Delete DB'
+    def run(self):
+        db.drop_all()
 
-parser.add_argument('-c', '--create-db',
-                    required = False,
-                    help = 'Create the DB scheme',
-                    action = 'store_true')
+manager = Manager(app)
+manager.add_command('create_sqlite_file', CreateSqliteFileCommand())
+manager.add_command('create_db', CreateDBCommand())
+manager.add_command('drop_db', DropDBCommand())
 
-parser.add_argument('-d', '--delete-db',
-                    required = False,
-                    help = 'Delete DB',
-                    action = 'store_true')
-
-parser.add_argument('-f', '--alembic',
-                    required = False,
-                    help = 'Path to the alembic configuration file (alembic.ini)')
-
-args = parser.parse_args()
-
-manager = DBManager(db)
-if args.create_sqlite_file:
-    manager.create_sqlite_file()
-elif args.create_db:
-    if not args.alembic:
-        print "Please provide the path to the alembic configuration file."
-    else:
-        manager.create_db(args.alembic)
-elif args.delete_db:
-    manager.delete_db()
+if __name__ == '__main__':
+    manager.run()
