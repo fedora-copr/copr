@@ -48,7 +48,7 @@ def coprs_by_allowed(username = None, page = 1):
 @coprs_ns.route('/add/')
 @login_required
 def copr_add():
-    form = forms.CoprForm()
+    form = forms.CoprFormFactory.create_form_cls()()
 
     return flask.render_template('coprs/add.html', form = form)
 
@@ -56,21 +56,20 @@ def copr_add():
 @coprs_ns.route('/new/', methods=['POST'])
 @login_required
 def copr_new():
-    form = forms.CoprForm()
+    form = forms.CoprFormFactory.create_form_cls()()
     if form.validate_on_submit():
         copr = models.Copr(name = form.name.data,
-                           chroots = ' '.join(form.chroots),
                            repos = form.repos.data.replace('\n', ' '),
                            owner = flask.g.user,
                            created_on = int(time.time()))
         coprs_logic.CoprsLogic.new(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
+        coprs_logic.CoprChrootLogic.new_from_names(flask.g.user, copr, form.selected_chroots)
         db.session.commit()
         flask.flash('New copr was successfully created.')
 
         if form.initial_pkgs.data:
             build = models.Build(pkgs = form.initial_pkgs.data.replace('\n', ' '),
                                  copr = copr,
-                                 chroots = copr.chroots,
                                  repos = copr.repos,
                                  user = flask.g.user,
                                  submitted_on = int(time.time()))
@@ -128,17 +127,17 @@ def copr_edit(username, coprname):
 
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
-    form = forms.CoprForm(obj = copr)
+    form = forms.CoprFormFactory.create_form_cls(copr.mock_chroots)(obj=copr)
 
     return flask.render_template('coprs/edit.html',
-                                 copr = copr,
-                                 form = form)
+                                 copr=copr,
+                                 form=form)
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/update/', methods = ['POST'])
 @login_required
 def copr_update(username, coprname):
-    form = forms.CoprForm()
+    form = forms.CoprFormFactory.create_form_cls()()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     # only owner can update a copr
     if not flask.g.user.can_edit(copr):
@@ -148,8 +147,8 @@ def copr_update(username, coprname):
     if form.validate_on_submit():
         # we don't change owner (yet)
         copr.name = form.name.data
-        copr.chroots = ' '.join(form.chroots)
         copr.repos = form.repos.data.replace('\n', ' ')
+        coprs_logic.CoprChrootLogic.update_from_names(flask.g.user, copr, form.selected_chroots)
 
         coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
         db.session.commit()
