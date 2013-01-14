@@ -196,6 +196,6 @@ class MockChroot(db.Model, Serializer):
 
 class CoprChroot(db.Model, Serializer):
     mock_chroot_id = db.Column(db.Integer, db.ForeignKey('mock_chroot.id'), primary_key = True)
-    mock_chroot = db.relationship('MockChroot', backref = db.backref('coprs'))
+    mock_chroot = db.relationship('MockChroot', backref = db.backref('copr_chroots'))
     copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'), primary_key = True)
     copr = db.relationship('Copr', backref = db.backref('copr_chroots'))
