@@ -54,6 +54,10 @@ class CreateChrootCommand(ChrootCommand):
         split_chroot = chroot_name.split('-')
         if len(split_chroot) < 3:
             print 'Invalid chroot format, must be "{release}-{version}-{arch}".'
+            return
+        if models.MockChroot.get(*split_chroot):
+            print 'Already exists.'
+            return
         new_chroot = models.MockChroot(os_release=split_chroot[0],
                                        os_version=split_chroot[1],
                                        arch=split_chroot[2],
@@ -67,9 +71,7 @@ class AlterChrootCommand(ChrootCommand):
         split_chroot = chroot_name.split('-')
         if len(split_chroot) < 3:
             print 'Invalid chroot format, must be "{release}-{version}-{arch}".'
-        chroot = models.MockChroot.query.filter(models.MockChroot.os_release==split_chroot[0],
-                                                models.MockChroot.os_version==split_chroot[1],
-                                                models.MockChroot.arch==split_chroot[2]).first()
+        chroot = models.MockChroot.get(*split_chroot)
         if action == 'activate':
             chroot.is_active = True
         else:
@@ -93,9 +95,7 @@ class DropChrootCommand(ChrootCommand):
         split_chroot = chroot_name.split('-')
         if len(split_chroot) < 3:
             print 'Invalid chroot format, must be "{release}-{version}-{arch}".'
-        chroot = models.MockChroot.query.filter(models.MockChroot.os_release==split_chroot[0],
-                                                models.MockChroot.os_version==split_chroot[1],
-                                                models.MockChroot.arch==split_chroot[2]).first()
+        chroot = models.MockChroot.get(*split_chroot)
         if chroot:
             db.session.delete(chroot)
             db.session.commit()

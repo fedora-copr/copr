@@ -193,6 +193,12 @@ class MockChroot(db.Model, Serializer):
     def chroot_name(self):
         return '{0}-{1}-{2}'.format(self.os_release, self.os_version, self.arch)
 
+    @classmethod
+    def get(cls, os_release, os_version, arch, active_only = False):
+        return cls.query.filter(cls.os_release==os_release,
+                                cls.os_version==os_version,
+                                cls.arch==arch).first()
+
 class CoprChroot(db.Model, Serializer):
     mock_chroot_id = db.Column(db.Integer, db.ForeignKey('mock_chroot.id'), primary_key = True)
     mock_chroot = db.relationship('MockChroot', backref = db.backref('coprs'))
