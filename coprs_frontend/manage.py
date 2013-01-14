@@ -107,7 +107,7 @@ class DisplayChrootsCommand(Command):
         if active_only:
             chroots = chroots.filter(models.MockChroot.is_active==True)
         for ch in chroots:
-            print '{0}-{1}-{2}'.format(ch.os_release, ch.os_version, ch.arch)
+            print ch.chroot_name
 
     option_list = (
             Option('--active-only',
