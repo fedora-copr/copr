@@ -40,7 +40,7 @@ def copr_add_build(username, coprname):
     if form.validate_on_submit() and flask.g.user.can_build_in(copr):
         build = models.Build(pkgs = form.pkgs.data.replace('\n', ' '),
                              copr = copr,
-                             chroots = copr.chroots,
+                             chroots = ' '.join(map(lambda x: x.chroot_name, copr.mock_chroots)),
                              repos = copr.repos,
                              user = flask.g.user,
                              submitted_on = int(time.time()))
