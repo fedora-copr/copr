@@ -21,6 +21,7 @@ def upgrade():
     sa.Column('os_release', sa.String(length=50), nullable=False),
     sa.Column('os_version', sa.String(length=50), nullable=False),
     sa.Column('arch', sa.String(length=50), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('copr_chroot',
