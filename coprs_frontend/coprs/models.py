@@ -181,3 +181,19 @@ class Build(db.Model, Serializer):
     @property
     def cancelable(self):
         return self.state == 'pending'
+
+class MockChroot(db.Model, Serializer):
+    id = db.Column(db.Integer, primary_key = True)
+    os_release = db.Column(db.String(50), nullable = False) # fedora/epel/...
+    os_version = db.Column(db.String(50), nullable = False) # 18/rawhide/...
+    arch = db.Column(db.String(50), nullable = False) # x86_64/i686/...
+
+    @property
+    def chroot_name(self):
+        return '{0}-{1}-{2}'.format(self.os_release, self.os_version, self.arch)
+
+class CoprChroot(db.Model, Serializer):
+    mock_chroot_id = db.Column(db.Integer, db.ForeignKey('mock_chroot.id'), primary_key = True)
+    mock_chroot = db.relationship('MockChroot', backref = db.backref('coprs'))
+    copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'), primary_key = True)
+    copr = db.relationship('Copr', backref = db.backref('mock_chroots'))
