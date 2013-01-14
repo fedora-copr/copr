@@ -115,6 +115,16 @@ class Copr(db.Model, Serializer):
     def repos_list(self):
         return self.repos.split(' ')
 
+    @property
+    def mock_chroots(self):
+        if not hasattr(self, '_mock_chroots'):
+            self._mock_chroots = MockChroot.query.join(CoprChroot).\
+                                                  filter(CoprChroot.copr_id==self.id).\
+                                                  filter(MockChroot.is_active==True).all()
+            self._mock_chroots.sort(cmp=lambda x,y: cmp(x.chroot_name, y.chroot_name))
+
+        return self._mock_chroots
+
     __mapper_args__ = {'order_by': id.desc()}
 
 class CoprPermission(db.Model, Serializer):
