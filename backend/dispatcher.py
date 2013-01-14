@@ -278,7 +278,7 @@ class Worker(multiprocessing.Process):
                 self.callback.log('Starting build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id,ip, job.timeout, job.destdir, chroot, str(job.repos)))
                 self.callback.log('building pkgs: %s' % ' '.join(job.pkgs))
                 try:
-                    chrootlogfile = chroot_destdir + '/mockremote-%s.log' % job.build_id
+                    chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
                          destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
                          repos=job.repos, 
