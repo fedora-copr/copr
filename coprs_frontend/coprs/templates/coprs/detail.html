@@ -9,8 +9,8 @@
 {% block body %}
   <h3>chroots</h3>
   <ul class=chroots-list>
-    {% for chroot in copr.chroots_list %}
-      <li>{{ chroot }}</li>
+    {% for mock_chroot in copr.mock_chroots %}
+      <li>{{ mock_chroot.chroot_name }}</li>
     {% endfor %}
   </ul>
   {% if copr.repos %}
