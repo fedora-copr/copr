@@ -115,10 +115,6 @@ class Copr(db.Model, Serializer):
     def repos_list(self):
         return self.repos.split(' ')
 
-    @property
-    def chroots_list(self):
-        return None #TODO
-
     __mapper_args__ = {'order_by': id.desc()}
 
 class CoprPermission(db.Model, Serializer):
@@ -192,4 +188,4 @@ class CoprChroot(db.Model, Serializer):
     mock_chroot_id = db.Column(db.Integer, db.ForeignKey('mock_chroot.id'), primary_key = True)
     mock_chroot = db.relationship('MockChroot', backref = db.backref('coprs'))
     copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'), primary_key = True)
-    copr = db.relationship('Copr', backref = db.backref('mock_chroots'))
+    copr = db.relationship('Copr', backref = db.backref('copr_chroots'))
