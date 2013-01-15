@@ -270,10 +270,10 @@ class Worker(multiprocessing.Process):
             job.started_on = time.time()
             self.mark_started(job)
 
-            self.event('job start: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))            
+            self.event('build start: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))            
 
             for chroot in job.chroots:
-                self.event('job chroot start: chroot:%s user:%s copr:%s build:%s ip:%s  pid:%s' % (chroot, job.user_name, job.copr_name, job.build_id, ip, self.pid))            
+                self.event('chroot start: chroot:%s user:%s copr:%s build:%s ip:%s  pid:%s' % (chroot, job.user_name, job.copr_name, job.build_id, ip, self.pid))            
                 chroot_destdir = job.destdir + '/' + chroot
                 # setup our target dir locally
                 if not os.path.exists(chroot_destdir):
@@ -317,7 +317,7 @@ class Worker(multiprocessing.Process):
             job.status = status
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
-            self.event('job end: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))
+            self.event('build end: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))
             # clean up the instance
             if self.create:
                 self.terminate_instance(ip)
