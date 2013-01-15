@@ -44,41 +44,46 @@ class DropDBCommand(Command):
 
 class ChrootCommand(Command):
     option_list = (
-        Option('chroot_name',
-               help='Chroot name, e.g. fedora-18-x86_64.'),
+        Option('chroot_names',
+               help='Chroot name, e.g. fedora-18-x86_64.',
+               nargs='+'),
     )
 
 class CreateChrootCommand(ChrootCommand):
     'Creates a mock chroot in DB'
-    def run(self, chroot_name):
-        split_chroot = chroot_name.split('-')
-        if len(split_chroot) < 3:
-            print 'Invalid chroot format, must be "{release}-{version}-{arch}".'
-            return
-        if models.MockChroot.get(*split_chroot):
-            print 'Already exists.'
-            return
-        new_chroot = models.MockChroot(os_release=split_chroot[0],
-                                       os_version=split_chroot[1],
-                                       arch=split_chroot[2],
-                                       is_active=True)
-        db.session.add(new_chroot)
-        db.session.commit()
+    def run(self, chroot_names):
+        for chroot_name in chroot_names:
+            split_chroot = chroot_name.split('-')
+            if len(split_chroot) < 3:
+                print '{0} - Invalid chroot format, must be "{release}-{version}-{arch}".'.format(chroot_name)
+            elif models.MockChroot.get(*split_chroot):
+                print '{0} - already exists.'.format(chroot_name)
+            else:
+                new_chroot = models.MockChroot(os_release=split_chroot[0],
+                                               os_version=split_chroot[1],
+                                               arch=split_chroot[2],
+                                               is_active=True)
+                db.session.add(new_chroot)
+                db.session.commit()
 
 class AlterChrootCommand(ChrootCommand):
     'Activates or deactivates a chroot'
-    def run(self, chroot_name, action):
-        split_chroot = chroot_name.split('-')
-        if len(split_chroot) < 3:
-            print 'Invalid chroot format, must be "{release}-{version}-{arch}".'
-        chroot = models.MockChroot.get(*split_chroot)
-        if action == 'activate':
-            chroot.is_active = True
-        else:
-            chroot.is_active = False
+    def run(self, chroot_names, action):
+        for chroot_name in chroot_names:
+            split_chroot = chroot_name.split('-')
+            if len(split_chroot) < 3:
+                print '{0} - invalid chroot format, must be "{release}-{version}-{arch}".'.format(chroot_name)
+            chroot = models.MockChroot.get(*split_chroot)
+            if not chroot:
+                print '{0} - chroot doesn\'t exist.'.format(chroot_name)
+            else:
+                if action == 'activate':
+                    chroot.is_active = True
+                else:
+                    chroot.is_active = False
 
-        db.session.add(chroot)
-        db.session.commit()
+                db.session.add(chroot)
+                db.session.commit()
 
     option_list = ChrootCommand.option_list + (
             Option('--action',
@@ -91,14 +96,17 @@ class AlterChrootCommand(ChrootCommand):
 
 class DropChrootCommand(ChrootCommand):
     'Activates or deactivates a chroot'
-    def run(self, chroot_name):
-        split_chroot = chroot_name.split('-')
-        if len(split_chroot) < 3:
-            print 'Invalid chroot format, must be "{release}-{version}-{arch}".'
-        chroot = models.MockChroot.get(*split_chroot)
-        if chroot:
-            db.session.delete(chroot)
-            db.session.commit()
+    def run(self, chroot_names):
+        for chroot_name in chroot_names:
+            split_chroot = chroot_name.split('-')
+            if len(split_chroot) < 3:
+                print '{0} - invalid chroot format, must be "{release}-{version}-{arch}".'.format(chroot_name)
+            chroot = models.MockChroot.get(*split_chroot)
+            if not chroot:
+                print '{0} - chroot doesn\'t exist.'.format(chroot_name)
+            else:
+                db.session.delete(chroot)
+                db.session.commit()
 
 class DisplayChrootsCommand(Command):
     'Displays current mock chroots'
