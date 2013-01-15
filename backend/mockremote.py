@@ -487,7 +487,7 @@ class MockRemote(object):
                 if not os.path.exists(self.destdir + '/' + self.chroot):
                     os.makedirs(self.destdir + '/' + self.chroot)
                 r_log = open(self.destdir + '/' + self.chroot + '/mockchain.log', 'a')
-                r_log.write('%s\n' % pkg)
+                r_log.write('\n\n%s\n\n' % pkg)
                 r_log.write(b_out)
                 if b_err:
                     r_log.write('\nstderr\n')
