@@ -73,6 +73,8 @@ class CoprJobGrab(multiprocessing.Process):
                     self.jobs.put(f)
                     self.added_jobs.append(n)
                     self.event('adding to work queue id %s' % n)
+            time.sleep(self.opts.sleeptime)
+
 
 class CoprLog(multiprocessing.Process):
     """log mechanism where items from the events queue get recorded"""
@@ -109,9 +111,9 @@ class CoprLog(multiprocessing.Process):
     def run(self):
         abort = False
         while not abort:
-            for e in self.events.get():
-                if 'when' in e and 'who' in e and 'what' in e:
-                    self.log(e)
+            e = self.events.get()
+            if 'when' in e and 'who' in e and 'what' in e:
+                self.log(e)
 
 class CoprBackend(object):
     """core process - starts/stops/initializes workers"""
