@@ -43,6 +43,16 @@ class DropDBCommand(Command):
         db.drop_all()
 
 class ChrootCommand(Command):
+    def print_invalid_format(self, chroot_name):
+        print '{0} - invalid chroot format, must be "{release}-{version}-{arch}".'.format(chroot_name)
+
+    def print_already_exists(self, chroot_name):
+        print '{0} - already exists.'.format(chroot_name)
+
+    def print_doesnt_exist(self, chroot_name):
+        print '{0} - chroot doesn\'t exist.'.format(chroot_name)
+
+
     option_list = (
         Option('chroot_names',
                help='Chroot name, e.g. fedora-18-x86_64.',
@@ -55,9 +65,9 @@ class CreateChrootCommand(ChrootCommand):
         for chroot_name in chroot_names:
             split_chroot = chroot_name.split('-')
             if len(split_chroot) < 3:
-                print '{0} - Invalid chroot format, must be "{release}-{version}-{arch}".'.format(chroot_name)
+                self.print_invalid_format(chroot_name)
             elif models.MockChroot.get(*split_chroot):
-                print '{0} - already exists.'.format(chroot_name)
+                self.print_already_exists(chroot_name)
             else:
                 new_chroot = models.MockChroot(os_release=split_chroot[0],
                                                os_version=split_chroot[1],
@@ -72,10 +82,10 @@ class AlterChrootCommand(ChrootCommand):
         for chroot_name in chroot_names:
             split_chroot = chroot_name.split('-')
             if len(split_chroot) < 3:
-                print '{0} - invalid chroot format, must be "{release}-{version}-{arch}".'.format(chroot_name)
+                self.print_invalid_format(chroot_name)
             chroot = models.MockChroot.get(*split_chroot)
             if not chroot:
-                print '{0} - chroot doesn\'t exist.'.format(chroot_name)
+                self.print_doesnt_exist(chroot_name)
             else:
                 if action == 'activate':
                     chroot.is_active = True
@@ -100,10 +110,10 @@ class DropChrootCommand(ChrootCommand):
         for chroot_name in chroot_names:
             split_chroot = chroot_name.split('-')
             if len(split_chroot) < 3:
-                print '{0} - invalid chroot format, must be "{release}-{version}-{arch}".'.format(chroot_name)
+                self.print_invalid_format(chroot_name)
             chroot = models.MockChroot.get(*split_chroot)
             if not chroot:
-                print '{0} - chroot doesn\'t exist.'.format(chroot_name)
+                self.print_doesnt_exist(chroot_name)
             else:
                 db.session.delete(chroot)
                 db.session.commit()
