@@ -45,19 +45,41 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_coprs(self):
-        self.c1 = models.Copr(name = 'foocopr', chroots = 'fedora-18-x86_64', owner = self.u1)
-        self.c2 = models.Copr(name = 'foocopr', chroots = 'fedora-17-x86_64 fedora-17-i386', owner = self.u2)
-        self.c3 = models.Copr(name = 'barcopr', chroots = 'fedora-rawhide-i386', owner = self.u2)
+        self.c1 = models.Copr(name = 'foocopr', owner = self.u1)
+        self.c2 = models.Copr(name = 'foocopr', owner = self.u2)
+        self.c3 = models.Copr(name = 'barcopr', owner = self.u2)
 
         self.db.session.add_all([self.c1, self.c2, self.c3])
         self.db.session.commit()
 
     @pytest.fixture
+    def f_mock_chroots(self):
+        self.mc1 = models.MockChroot(os_release='fedora', os_version='18', arch='x86_64')
+        self.mc2 = models.MockChroot(os_release='fedora', os_version='17', arch='x86_64')
+        self.mc3 = models.MockChroot(os_release='fedora', os_version='17', arch='i386')
+        self.mc4 = models.MockChroot(os_release='fedora', os_version='rawhide', arch='i386')
+
+        cc1 = models.CoprChroot()
+        cc1.mock_chroot = self.mc1
+        self.c1.copr_chroots.append(cc1)
+
+        cc2 = models.CoprChroot()
+        cc2.mock_chroot = self.mc2
+        cc3 = models.CoprChroot()
+        cc3.mock_chroot = self.m3
+        self.c2.copr_chroots.append(cc2)
+        self.c2.copr_chroots.append(cc3)
+
+        cc4 = models.CoprChroots()
+        cc4.mock_chroot = self.mc4
+        self.c4.copr_chroots.append(cc4)
+
+    @pytest.fixture
     def f_builds(self):
-        self.b1 = models.Build(copr = self.c1, user = self.u1, chroots = self.c1.chroots, submitted_on = 50, started_on = 100)
+        self.b1 = models.Build(copr = self.c1, user = self.u1, chroots = 'fedora-18-x86_64', submitted_on = 50, started_on = 100)
         self.b2 = models.Build(copr = self.c1, user = self.u2, chroots = 'fedora-17-x86_64', submitted_on = 10, ended_on = 150)
-        self.b3 = models.Build(copr = self.c2, user = self.u2, chroots = self.c2.chroots, submitted_on = 10)
-        self.b4 = models.Build(copr = self.c2, user = self.u2, chroots = self.c2.chroots, submitted_on = 100)
+        self.b3 = models.Build(copr = self.c2, user = self.u2, chroots = 'fedora-17-x86_64 fedora-17-i386', submitted_on = 10)
+        self.b4 = models.Build(copr = self.c2, user = self.u2, chroots = 'fedora-17-x86_64 fedora-17-i386', submitted_on = 100)
 
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
         self.db.session.commit()

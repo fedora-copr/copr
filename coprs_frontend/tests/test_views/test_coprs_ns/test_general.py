@@ -217,7 +217,7 @@ class TestCoprUpdate(CoprsTestCase):
 
             self.db.session.add_all([self.u1, self.c1])
             r = c.post('/coprs/detail/{0}/{1}/update/'.format(self.u1.name, self.c1.name),
-                       data = {'name': self.c1.name, 'release': self.c1.release, 'arches': self.c1.arches, 'id': self.c1.id},
+                       data = {'name': self.c1.name, 'fedora-18-x86_64': 'y', 'id': self.c1.id},
                        follow_redirects = True)
             assert 'Copr was updated successfully' in r.data
 
@@ -228,7 +228,7 @@ class TestCoprUpdate(CoprsTestCase):
 
             self.db.session.add_all([self.u2, self.c3])
             r = c.post('/coprs/detail/{0}/{1}/update/'.format(self.u2.name, self.c3.name),
-                       data = {'name': self.c3.name, 'release': self.c3.release, 'arches': self.c3.arches, 'id': self.c3.id},
+                       data = {'name': self.c3.name, 'fedora-rawhide-i386': 'y', 'id': self.c3.id},
                        follow_redirects = True)
             assert 'Copr was updated successfully' in r.data
 
