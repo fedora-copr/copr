@@ -38,7 +38,6 @@ class CoprJobGrab(multiprocessing.Process):
         self.events.put({'when':time.time(), 'who':'jobgrab', 'what':what})
         
     def fetch_jobs(self):
-        self.event('fetching jobs')
         try:
             r = requests.get('%s/waiting_builds/' % self.opts.frontend_url) # auth stuff here? maybe/maybenot
         except requests.RequestException, e:
