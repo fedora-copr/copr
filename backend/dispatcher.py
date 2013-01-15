@@ -68,18 +68,16 @@ class WorkerCallback(object):
         self.logfile = logfile
     
     def log(self, msg):
-        if not self.logfile:
-            return
-            
-        now = time.strftime('%F %T')
-        try:
-            open(self.logfile, 'a').write(str(now) + ': ' + msg + '\n')
-        except (IOError, OSError), e:
-            print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
-            
+        if self.logfile:
+            now = time.strftime('%F %T')
+            try:
+                open(self.logfile, 'a').write(str(now) + ': ' + msg + '\n')
+            except (IOError, OSError), e:
+                print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
         
+
 class Worker(multiprocessing.Process):
-    def __init__(self, opts, jobs, worker_num, ip=None, create=True, callback=None):
+    def __init__(self, opts, jobs, events, worker_num, ip=None, create=True, callback=None):
  
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
@@ -87,6 +85,7 @@ class Worker(multiprocessing.Process):
             
         # job management stuff
         self.jobs = jobs
+        self.events = events # event queue for communicating back to dispatcher
         self.worker_num = worker_num
         self.ip = ip
         self.opts = opts
@@ -99,11 +98,23 @@ class Worker(multiprocessing.Process):
         
         if ip:
             self.callback.log('creating worker: %s' % ip)
+            self.event('creating worker: %s' % ip)
         else:
             self.callback.log('creating worker: dynamic ip')
+            self.event('creating worker: dynamic ip')
+
+    def event(self, what):
+        if self.ip:
+            who = 'worker-%s-%s' % (self.worker_num, self.ip)
+        else:
+            who = 'worker-%s' % (self.worker_num)
+        
+        self.events.put({'when':time.time(), 'who':who, 'what':what})
 
     def spawn_instance(self):
         """call the spawn playbook to startup/provision a building instance"""
+        
+        
         self.callback.log('spawning instance begin')
         start = time.time()
         
@@ -195,6 +206,7 @@ class Worker(multiprocessing.Process):
     # maybe we move this to the callback?
     def mark_started(self, job):
         
+        self.event('job start: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_id, job.copr_id, job.build_id, self.ip, self.pid))
         build = {'id':job.build_id,
                  'started_on': job.started_on,
                  'results': job.results,
@@ -206,8 +218,9 @@ class Worker(multiprocessing.Process):
     
     # maybe we move this to the callback?    
     def return_results(self, job):
-        self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
+        self.event('job end: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_id, job.copr_id, job.build_id, self.ip, self.pid))
 
+        self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
         build = {'id':job.build_id,
                  'ended_on': job.ended_on,
                  'status': job.status,

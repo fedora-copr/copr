@@ -19,19 +19,67 @@ def _get_conf(cp, section, option, default):
     if cp.has_section(section) and cp.has_option(section,option):
         return cp.get(section, option)
     return default
-        
 
-class CoprBackend(object):
-    def __init__(self, config_file=None, ext_opts=None):
-        # read in config file
-        # put all the config items into a single self.opts bunch
+
+
+class CoprJobGrab(multiprocessing.Process):
+    """Fetch jobs from the Frontend - submit them to the jobs queue for workers"""
+
+    def __init__(self, opts, events, jobs):
+        self.opts = opts
+        self.events = events
+        self.jobs = jobs
+        self.added_jobs = []
+
+    def event(self, what):
+        self.events.put({'when':time.time(), 'who':'job', 'what':what})
         
-        if not config_file:
-            raise errors.CoprBackendError, "Must specify config_file"
-        
-        self.config_file = config_file
-        self.ext_opts = ext_opts # to stow our cli options for read_conf()
-        self.opts = self.read_conf()
+    def fetch_jobs(self):
+        self.event('fetching jobs')
+        try:
+            r = requests.get('%s/waiting_builds/' % self.opts.frontend_url) # auth stuff here? maybe/maybenot
+        except requests.RequestException, e:
+            self.event('Error retrieving jobs from %s: %s' % (self.opts.frontend_url, e))
+        else:
+            try:
+                r_json = json.loads(r.content) # using old requests on el6 :(
+            except ValueError, e:
+                self.event('Error getting JSON build list from FE %s' % e)
+                return
+            
+            if 'builds' in r_json and r_json['builds']:
+                self.event('%s jobs returned' % len(r_json['builds']))
+                count = 0
+                for b in r_json['builds']:
+                    if 'id' in b:
+                        jobfile = self.opts.jobsdir + '/%s.json' % b['id']
+                        if not os.path.exists(jobfile) and b['id'] not in self.added_jobs:
+                            count += 1
+                            open(jobfile, 'w').write(json.dumps(b))
+                            self.event('Wrote job: %s' % b['id'])
+                if count:
+                    self.event('New jobs: %s' % count)
+
+    def run(self):
+        abort = False
+        while not abort:
+            self.fetch_jobs()
+            for f in sorted(glob.glob(self.opts.jobsdir + '/*.json')):
+                n = os.path.basename(f).replace('.json', '')
+                if n not in self.added_jobs:
+                    self.jobs.put(f)
+                    self.added_jobs.append(n)
+                    self.event('adding to work queue id %s' % n)
+
+class CoprLog(multiprocessing.Process):
+    """log mechanism where items from the events queue get recorded"""
+    def __init__(self, opts, events):
+
+        # base class initialization
+        multiprocessing.Process.__init__(self, name="logger")
+
+        self.opts = opts
+        self.events = events
 
         logdir = os.path.dirname(self.opts.logfile)
         if not os.path.exists(logdir):
@@ -42,16 +90,62 @@ class CoprBackend(object):
 
         # setup a log file to write to
         self.logfile = self.opts.logfile
-        self.log("Starting up new copr-be instance")
-
+    
+    def log(self, event):
         
+        when =  time.strftime('%F %T', time.gmtime(event['when']))
+        msg = '%s : %s %s' % (when, event['who'], event['what'].strip())
+            
+        try:
+            open(self.logfile, 'a').write(msg + '\n')
+        except (IOError, OSError), e:
+            print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
+
+
+    # event format is a dict {when:time, who:[worker|logger|job|main], what:str}
+    def run(self):
+        abort = False
+        while not abort:
+            for e in self.events.get():
+                if 'when' in e and 'who' in e and 'what' in e:
+                    self.log(e)
+
+class CoprBackend(object):
+    """core process - starts/stops/initializes workers"""
+    
+    def __init__(self, config_file=None, ext_opts=None):
+        # read in config file
+        # put all the config items into a single self.opts bunch
+        
+        if not config_file:
+            raise errors.CoprBackendError, "Must specify config_file"
+        
+        self.config_file = config_file
+        self.ext_opts = ext_opts # to stow our cli options for read_conf()
+        self.opts = self.read_conf()
+        
+        self.jobs = multiprocessing.Queue() # job is a path to a jobfile on the localfs
+        self.events = multiprocessing.Queue()
+        # event format is a dict {when:time, who:[worker|logger|job|main], what:str}
+
+
+        # create logger
+        self._logger = CoprLog(self.opts, self.events)
+        self._logger.start()
+        
+        self.event('Starting up Job Grabber')
+        # create job grabber
+        self._jobgrab = CoprJobGrab(self.opts, self.events, self.jobs)
+        self._jobgrab.start()
+
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0750)
-            
-        self.jobs = multiprocessing.Queue()
+        
         self.workers = []
         self.added_jobs = []
 
+    def event(self, what):
+        self.events.put({'when':time.time(), 'who':'main', 'what':what})
         
     def read_conf(self):
         "read in config file - return Bunch of config data"
@@ -90,64 +184,25 @@ class CoprBackend(object):
         return opts
         
         
-    def log(self, msg):
-        now =  time.strftime('%F %T')
-        output = str(now) + ': ' + msg
-        if not self.opts.daemonize:
-            print output
-            
-        try:
-            open(self.logfile, 'a').write(output + '\n')
-        except (IOError, OSError), e:
-            print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
-
-
-    def fetch_jobs(self):
-        self.log('fetching jobs')
-        try:
-            r = requests.get('%s/waiting_builds/' % self.opts.frontend_url) # auth stuff here? maybe/maybenot
-        except requests.RequestException, e:
-            self.log('Error retrieving jobs from %s: %s' % (self.opts.frontend_url, e))
-        else:
-            r_json = json.loads(r.content) # using old requests on el6 :(
-            if 'builds' in r_json:
-                self.log('%s jobs returned' % len(r_json['builds']))
-                count = 0
-                for b in r_json['builds']:
-                    if 'id' in b:
-                        jobfile = self.opts.jobsdir + '/%s.json' % b['id']
-                        if not os.path.exists(jobfile) and b['id'] not in self.added_jobs:
-                            count += 1
-                            open(jobfile, 'w').write(json.dumps(b))
-                            self.log('Wrote job: %s' % b['id'])
-                self.log('New jobs: %s' % count)
     
     def run(self):
 
         abort = False
         while not abort:
-            self.fetch_jobs()
-            for f in sorted(glob.glob(self.opts.jobsdir + '/*.json')):
-                n = os.path.basename(f).replace('.json', '')
-                if n not in self.added_jobs:
-                    self.jobs.put(f)
-                    self.added_jobs.append(n)
-                    self.log('adding to work queue id %s' % n)
-
             # re-read config into opts
             self.opts = self.read_conf()
             
             if self.jobs.qsize():
-                self.log("# jobs in queue: %s" % self.jobs.qsize())
+                self.event("# jobs in queue: %s" % self.jobs.qsize())
                 # this handles starting/growing the number of workers
                 if len(self.workers) < self.opts.num_workers:
-                    self.log("Spinning up more workers for jobs")
+                    self.event("Spinning up more workers for jobs")
                     for i in range(self.opts.num_workers - len(self.workers)):
                         worker_num = len(self.workers) + 1
-                        w = Worker(self.opts, self.jobs, worker_num)
+                        w = Worker(self.opts, self.jobs, self.events, worker_num)
                         self.workers.append(w)
                         w.start()
-                    self.log("Finished starting worker processes")
+                    self.event("Finished starting worker processes")
                 # FIXME - prune out workers
                 #if len(self.workers) > self.opts.num_workers:
                 #    killnum = len(self.workers) - self.opts.num_workers
@@ -158,7 +213,7 @@ class CoprBackend(object):
             # check for dead workers and abort
             for w in self.workers:
                 if not w.is_alive():
-                    self.log('Worker %d died unexpectedly' % w.worker_num)
+                    self.event('Worker %d died unexpectedly' % w.worker_num)
                     if self.opts.exit_on_worker:
                         raise errors.CoprBackendError, "Worker died unexpectedly, exiting"
                     else:
