@@ -59,20 +59,22 @@ class CoprsTestCase(object):
         self.mc3 = models.MockChroot(os_release='fedora', os_version='17', arch='i386', is_active=True)
         self.mc4 = models.MockChroot(os_release='fedora', os_version='rawhide', arch='i386', is_active=True)
 
-        cc1 = models.CoprChroot()
-        cc1.mock_chroot = self.mc1
-        self.c1.copr_chroots.append(cc1)
+        # only bind to coprs if the test has used the f_coprs fixture
+        if hasattr(self, 'c1'):
+            cc1 = models.CoprChroot()
+            cc1.mock_chroot = self.mc1
+            self.c1.copr_chroots.append(cc1)
 
-        cc2 = models.CoprChroot()
-        cc2.mock_chroot = self.mc2
-        cc3 = models.CoprChroot()
-        cc3.mock_chroot = self.mc3
-        self.c2.copr_chroots.append(cc2)
-        self.c2.copr_chroots.append(cc3)
+            cc2 = models.CoprChroot()
+            cc2.mock_chroot = self.mc2
+            cc3 = models.CoprChroot()
+            cc3.mock_chroot = self.mc3
+            self.c2.copr_chroots.append(cc2)
+            self.c2.copr_chroots.append(cc3)
 
-        cc4 = models.CoprChroot()
-        cc4.mock_chroot = self.mc4
-        self.c3.copr_chroots.append(cc4)
+            cc4 = models.CoprChroot()
+            cc4.mock_chroot = self.mc4
+            self.c3.copr_chroots.append(cc4)
 
         self.db.session.add_all([self.mc1, self.mc2, self.mc3, self.mc4])
         self.db.session.commit()
