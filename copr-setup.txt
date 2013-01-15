@@ -1,0 +1,92 @@
+WORK IN PROGRESS
+
+- How coprs works
+  - SEE README FOR OVERVIEW
+
+
+
+- need at least 1 server
+- some instances/systems for builders
+
+Backend:
+ansible playbook: 
+  http://infrastructure.fedoraproject.org/infra/ansible/playbooks/hosts/copr-be.cloud.fedoraproject.org.yml
+
+Required pkgs:
+ - ansible - 0.9 or higher
+ - [lig]httpd
+ - euca2ools (or other cloud tools)
+ - rsync
+ - openssh-clients
+ - mock - recent - from epel - including mockchain
+ - yum-utils
+ - createrepo
+ - python-bunch
+ - python-requests
+
+
+- add copr user
+- give write access to a dir somewhere not in your homedir
+- git clone git://git.fedorahosted.org/copr.git into that dir
+- setup copr-be.conf
+- dirs needed to be setup?
+- setup webserver - point to results path from copr-be.conf
+- dirindexes enabled
+
+- builder provisioning 
+3. spawn instance playbook - 
+   http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/builderpb.yml
+   - just an ansible playbook which sets up and provisions an instance
+     in our case it is using eucalyptus but it doesn't have to be
+     any cloud provider - it just needs to be able to get an ip an
+     ssh into it - cloud providers or private clouds just make more 
+     sense
+4. provisioning dir
+   http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/files/
+   - what gets pushed to the other side - ssh keys, users, mock
+     configs, etc
+5. terminate instance playbook -
+   http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/terminatepb.yml
+
+
+
+Frontend:
+rhel6ish - add epel
+
+Required pkgs:
+  - httpd
+  - mod_wsgi
+  - postgresql-server
+  - postgresql-devel
+  - python-virtualenv
+  - gcc
+
+- apache setup
+   coprs.conf:
+
+<VirtualHost *:80>
+    ServerName yourservername.here
+
+    WSGIDaemonProcess yourservername.hereuser=copr-fe group=copr-fe threads=5
+    WSGIScriptAlias / /path/to/coprs_git_tree/coprs_frontend/application
+    WSGIProcessGroup yourservername.here
+    WSGIPassAuthorization On
+
+    ErrorLog logs/error_coprs
+    CustomLog logs/access_coprs common
+
+    <Directory /var/www/coprs_frontend>
+        WSGIApplicationGroup %{GLOBAL}
+        Order deny,allow
+        Allow from all
+    </Directory>
+</VirtualHost>
+
+- virtenv of flask and friends
+  - virtualenv --distribute virtenv  
+  - source virtenv/bin/activate
+  - pip install flask flask-sqlalchemy flask-openid flask-wtf alembic
+  - pip install -I  SQLAlchemy MarkupSafe 
+  - pip install pytest
+
+
