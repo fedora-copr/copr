@@ -90,6 +90,22 @@ class CoprFormFactory(object):
                         selected.append(ch)
                 return selected
 
+            def validate(self):
+                if not super(F, self).validate():
+                    return False
+
+                if not self.validate_mock_chroots_not_empty():
+                    self._mock_chroots_error = 'At least one chroot must be selected'
+                    return False
+                return True
+
+            def validate_mock_chroots_not_empty(self):
+                have_any = False
+                for c in self.chroots_list:
+                    if getattr(self, c).data:
+                        have_any = True
+                return have_any
+
         F.chroots_list = map(lambda x: x.chroot_name, models.MockChroot.query.filter(models.MockChroot.is_active==True).all())
         F.chroots_list.sort()
         F.chroots_sets = {} # sets of chroots according to how we should print them in columns
