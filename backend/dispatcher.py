@@ -317,7 +317,7 @@ class Worker(multiprocessing.Process):
             job.status = status
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
-            self.event('build end: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))
+            self.event('build end: user:%s copr:%s build:%s ip:%s  pid:%s status:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid, job.status))
             # clean up the instance
             if self.create:
                 self.terminate_instance(ip)

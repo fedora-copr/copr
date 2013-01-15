@@ -299,6 +299,7 @@ class Builder(object):
         #print '  Running %s on %s' % (buildcmd, hostname)
         # run the mockchain command async
         # this runs it sync - FIXME
+        self.callback.log('executing: %r' % buildcmd)
         self.conn.module_name="shell"
         self.conn.module_args = str(buildcmd)
         results = self.conn.run()
