@@ -178,6 +178,8 @@ class Worker(multiprocessing.Process):
         jobdata.repos.append(jobdata.results)
         jobdata.copr_id = build['copr']['id']
         jobdata.user_id = build['user_id']
+        jobdata.user_name = build['copr']['owner']['name']
+        jobdata.copr_name = build['copr']['name']
         return jobdata
 
     # maybe we move this to the callback?
@@ -206,7 +208,7 @@ class Worker(multiprocessing.Process):
     # maybe we move this to the callback?
     def mark_started(self, job):
         
-        self.event('job start: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_id, job.copr_id, job.build_id, self.ip, self.pid))
+
         build = {'id':job.build_id,
                  'started_on': job.started_on,
                  'results': job.results,
@@ -218,7 +220,6 @@ class Worker(multiprocessing.Process):
     
     # maybe we move this to the callback?    
     def return_results(self, job):
-        self.event('job end: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_id, job.copr_id, job.build_id, self.ip, self.pid))
 
         self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
         build = {'id':job.build_id,
@@ -268,9 +269,11 @@ class Worker(multiprocessing.Process):
             status = 1
             job.started_on = time.time()
             self.mark_started(job)
-            
+
+            self.event('job start: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))            
+
             for chroot in job.chroots:
-                
+                self.event('job chroot start: chroot:%s user:%s copr:%s build:%s ip:%s  pid:%s' % (chroot, job.user_name, job.copr_name, job.build_id, ip, self.pid))            
                 chroot_destdir = job.destdir + '/' + chroot
                 # setup our target dir locally
                 if not os.path.exists(chroot_destdir):
@@ -309,12 +312,12 @@ class Worker(multiprocessing.Process):
                     if mr.failed: 
                         status = 0
                 self.callback.log('Finished build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id, ip, job.timeout, job.destdir, chroot, str(job.repos)))
-            
             job.ended_on = time.time()
             
             job.status = status
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
+            self.event('job end: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))
             # clean up the instance
             if self.create:
                 self.terminate_instance(ip)

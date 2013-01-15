@@ -35,7 +35,7 @@ class CoprJobGrab(multiprocessing.Process):
         self.added_jobs = []
 
     def event(self, what):
-        self.events.put({'when':time.time(), 'who':'job', 'what':what})
+        self.events.put({'when':time.time(), 'who':'jobgrab', 'what':what})
         
     def fetch_jobs(self):
         self.event('fetching jobs')
@@ -99,7 +99,7 @@ class CoprLog(multiprocessing.Process):
     def log(self, event):
         
         when =  time.strftime('%F %T', time.gmtime(event['when']))
-        msg = '%s : %s %s' % (when, event['who'], event['what'].strip())
+        msg = '%s : %s: %s' % (when, event['who'], event['what'].strip())
             
         try:
             open(self.logfile, 'a').write(msg + '\n')
