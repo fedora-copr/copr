@@ -232,6 +232,21 @@ class TestCoprUpdate(CoprsTestCase):
                        follow_redirects = True)
             assert 'Copr was updated successfully' in r.data
 
+    def test_update_multiple_chroots(self, f_users, f_coprs, f_copr_permissions, f_mock_chroots):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u1, self.c1, self.mc2, self.mc3])
+            r = c.post('/coprs/detail/{0}/{1}/update/'.format(self.u1.name, self.c1.name),
+                       data = {'name': self.c1.name, self.mc2.chroot_name: 'y', self.mc3.chroot_name: 'y', 'id': self.c1.id},
+                       follow_redirects = True)
+            self.db.session.add_all([self.mc1, self.mc2, self.mc3])
+            assert 'Copr was updated successfully' in r.data
+            assert self.mc2.chroot_name in r.data
+            assert self.mc3.chroot_name in r.data
+            assert self.mc1.chroot_name not in r.data
+
 
 class TestCoprApplyForPermissions(CoprsTestCase):
     def test_apply(self, f_users, f_coprs):

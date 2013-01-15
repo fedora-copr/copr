@@ -54,10 +54,10 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_mock_chroots(self):
-        self.mc1 = models.MockChroot(os_release='fedora', os_version='18', arch='x86_64')
-        self.mc2 = models.MockChroot(os_release='fedora', os_version='17', arch='x86_64')
-        self.mc3 = models.MockChroot(os_release='fedora', os_version='17', arch='i386')
-        self.mc4 = models.MockChroot(os_release='fedora', os_version='rawhide', arch='i386')
+        self.mc1 = models.MockChroot(os_release='fedora', os_version='18', arch='x86_64', is_active=True)
+        self.mc2 = models.MockChroot(os_release='fedora', os_version='17', arch='x86_64', is_active=True)
+        self.mc3 = models.MockChroot(os_release='fedora', os_version='17', arch='i386', is_active=True)
+        self.mc4 = models.MockChroot(os_release='fedora', os_version='rawhide', arch='i386', is_active=True)
 
         cc1 = models.CoprChroot()
         cc1.mock_chroot = self.mc1
@@ -66,13 +66,16 @@ class CoprsTestCase(object):
         cc2 = models.CoprChroot()
         cc2.mock_chroot = self.mc2
         cc3 = models.CoprChroot()
-        cc3.mock_chroot = self.m3
+        cc3.mock_chroot = self.mc3
         self.c2.copr_chroots.append(cc2)
         self.c2.copr_chroots.append(cc3)
 
-        cc4 = models.CoprChroots()
+        cc4 = models.CoprChroot()
         cc4.mock_chroot = self.mc4
-        self.c4.copr_chroots.append(cc4)
+        self.c3.copr_chroots.append(cc4)
+
+        self.db.session.add_all([self.mc1, self.mc2, self.mc3, self.mc4])
+        self.db.session.commit()
 
     @pytest.fixture
     def f_builds(self):
