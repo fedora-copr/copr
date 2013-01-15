@@ -60,19 +60,19 @@ class TestCoprsAllowed(CoprsTestCase):
 class TestCoprNew(CoprsTestCase):
     success_string = 'New copr was successfully created'
 
-    def test_copr_new_normal(self, f_users):
+    def test_copr_new_normal(self, f_users, f_mock_chroots):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
-            r = c.post('/coprs/new/', data = {'name': 'foo', 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            r = c.post('/coprs/new/', data = {'name': 'foo', 'fedora-rawhide-i386': 'y', 'arches': ['i386']}, follow_redirects = True)
             assert self.models.Copr.query.filter(self.models.Copr.name == 'foo').first()
             assert self.success_string in r.data
 
             # make sure no initial build was submitted
             assert self.models.Build.query.first() == None
 
-    def test_copr_new_exists_for_another_user(self, f_users, f_coprs):
+    def test_copr_new_exists_for_another_user(self, f_users, f_coprs, f_mock_chroots):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u3.openid_name
@@ -81,12 +81,13 @@ class TestCoprNew(CoprsTestCase):
             foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all())
             assert foocoprs > 0
 
-            r = c.post('/coprs/new/', data = {'name': self.c1.name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            r = c.post('/coprs/new/', data = {'name': self.c1.name, 'fedora-rawhide-i386': 'y'}, follow_redirects = True)
+            print r.data
             self.db.session.add(self.c1)
             assert len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all()) == foocoprs + 1
             assert self.success_string in r.data
 
-    def test_copr_new_exists_for_this_user(self, f_users, f_coprs):
+    def test_copr_new_exists_for_this_user(self, f_users, f_coprs, f_mock_chroots):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
@@ -95,17 +96,17 @@ class TestCoprNew(CoprsTestCase):
             foocoprs = len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all())
             assert foocoprs > 0
 
-            r = c.post('/coprs/new/', data = {'name': self.c1.name, 'release': 'fedora-rawhide', 'arches': ['i386']}, follow_redirects = True)
+            r = c.post('/coprs/new/', data = {'name': self.c1.name, 'fedora-rawhide-i386': 'y'}, follow_redirects = True)
             self.db.session.add(self.c1)
             assert len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all()) == foocoprs
             assert "You already have copr named" in r.data
 
-    def test_copr_new_with_initial_pkgs(self, f_users):
+    def test_copr_new_with_initial_pkgs(self, f_users, f_mock_chroots):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
-            r = c.post('/coprs/new/', data = {'name': 'foo', 'release': 'fedora-rawhide', 'arches': ['i386'], 'initial_pkgs': ['http://f', 'http://b']}, follow_redirects = True)
+            r = c.post('/coprs/new/', data = {'name': 'foo', 'fedora-rawhide-i386': 'y', 'initial_pkgs': ['http://f', 'http://b']}, follow_redirects = True)
             copr = self.models.Copr.query.filter(self.models.Copr.name == 'foo').first()
             assert copr
             assert self.success_string in r.data
@@ -210,7 +211,7 @@ class TestCoprEdit(CoprsTestCase):
 
 
 class TestCoprUpdate(CoprsTestCase):
-    def test_update_no_changes(self, f_users, f_coprs):
+    def test_update_no_changes(self, f_users, f_coprs, f_mock_chroots):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
@@ -221,7 +222,7 @@ class TestCoprUpdate(CoprsTestCase):
                        follow_redirects = True)
             assert 'Copr was updated successfully' in r.data
 
-    def test_copr_admin_can_update(self, f_users, f_coprs, f_copr_permissions):
+    def test_copr_admin_can_update(self, f_users, f_coprs, f_copr_permissions, f_mock_chroots):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
@@ -230,6 +231,7 @@ class TestCoprUpdate(CoprsTestCase):
             r = c.post('/coprs/detail/{0}/{1}/update/'.format(self.u2.name, self.c3.name),
                        data = {'name': self.c3.name, 'fedora-rawhide-i386': 'y', 'id': self.c3.id},
                        follow_redirects = True)
+            print r.data
             assert 'Copr was updated successfully' in r.data
 
     def test_update_multiple_chroots(self, f_users, f_coprs, f_copr_permissions, f_mock_chroots):
