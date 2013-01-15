@@ -203,7 +203,7 @@ class CliLogCallBack(DefaultCallBack):
             try:
                 open(self.logfn, 'a').write(str(now) + ':' + msg + '\n')
             except (IOError, OSError), e:
-                print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.lf, str(e))
+                print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfn, str(e))
         if not self.quiet:
             print msg
 
@@ -299,7 +299,7 @@ class Builder(object):
         #print '  Running %s on %s' % (buildcmd, hostname)
         # run the mockchain command async
         # this runs it sync - FIXME
-        self.callback.log('executing: %r' % buildcmd)
+        self.mockremote.callback.log('executing: %r' % buildcmd)
         self.conn.module_name="shell"
         self.conn.module_args = str(buildcmd)
         results = self.conn.run()
