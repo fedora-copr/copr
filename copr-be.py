@@ -26,6 +26,9 @@ class CoprJobGrab(multiprocessing.Process):
     """Fetch jobs from the Frontend - submit them to the jobs queue for workers"""
 
     def __init__(self, opts, events, jobs):
+        # base class initialization
+        multiprocessing.Process.__init__(self, name="jobgrab")
+
         self.opts = opts
         self.events = events
         self.jobs = jobs
