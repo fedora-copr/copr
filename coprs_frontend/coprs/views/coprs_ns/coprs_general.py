@@ -71,6 +71,7 @@ def copr_new():
             build = models.Build(pkgs = form.initial_pkgs.data.replace('\n', ' '),
                                  copr = copr,
                                  repos = copr.repos,
+                                 chroots = ' '.join(map(lambda x: x.chroot_name, copr.mock_chroots)),
                                  user = flask.g.user,
                                  submitted_on = int(time.time()))
             # no need to check for authorization here
