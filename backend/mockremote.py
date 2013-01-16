@@ -96,7 +96,7 @@ def get_ans_results(results, hostname):
 
 def _create_ans_conn(hostname, username, timeout):
     ans_conn = ansible.runner.Runner(remote_user=username,
-          host_list=[hostname], pattern=hostname, forks=1,
+          host_list=hostname + ',', pattern=hostname, forks=1,
           timeout=timeout)
     return ans_conn
     
@@ -363,7 +363,8 @@ class Builder(object):
             raise BuilderError('%s could not be resolved' % self.hostname)
             
         # connect as user 
-        ans = ansible.runner.Runner(host_list=[self.hostname], pattern='*', 
+        
+        ans = ansible.runner.Runner(host_list=self.hostname + ',', pattern='*', 
               remote_user=self.username, forks=1, timeout=20)
         ans.module_name = "shell"
         ans.module_args = str("/bin/rpm -q mock rsync")
