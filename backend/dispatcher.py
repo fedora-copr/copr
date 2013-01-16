@@ -154,7 +154,7 @@ class Worker(multiprocessing.Process):
         stats = callbacks.AggregateStats()
         playbook_cb = SilentPlaybookCallbacks(verbose=False)
         runner_cb = callbacks.DefaultRunnerCallbacks()
-        play = ansible.playbook.PlayBook(host_list=[ip], stats=stats, playbook=self.opts.terminate_playbook, 
+        play = ansible.playbook.PlayBook(host_list=ip +',', stats=stats, playbook=self.opts.terminate_playbook, 
                              callbacks=playbook_cb, runner_callbacks=runner_cb, 
                              remote_user='root')
 
