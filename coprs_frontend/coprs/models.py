@@ -117,7 +117,7 @@ class Copr(db.Model, Serializer):
 
     @property
     def repos_list(self):
-        return self.repos.split(' ')
+        return self.repos.split()
 
     @property
     def mock_chroots(self):
