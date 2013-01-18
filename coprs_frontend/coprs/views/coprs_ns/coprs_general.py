@@ -19,13 +19,13 @@ from coprs.logic import coprs_logic
 @coprs_ns.route('/<int:page>/')
 def coprs_show(page = 1):
     if flask.g.user:
-        query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, user_relation = 'owned', username = flask.g.user.name)
+        query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, user_relation='owned', username=flask.g.user.name)
     else:
         query = coprs_logic.CoprsLogic.get_multiple(flask.g.user)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return flask.render_template('coprs/show.html', coprs = coprs, paginator = paginator)
+    return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
 
 
 @coprs_ns.route('/owned/<username>/', defaults = {'page': 1})
@@ -86,15 +86,21 @@ def copr_new():
     else:
         return flask.render_template('coprs/add.html', form = form)
 
-
 @coprs_ns.route('/detail/<username>/<coprname>/')
-def copr_detail(username, coprname, build_form = None):
-    if not build_form:
-        build_form = forms.BuildForm()
-    try: # query[0:10][0] will raise an index error, if Copr doesn't exist
-        query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds = True)
-        copr = query[0:10][0]# we retrieved all builds, but we got one copr in a list...
-    except IndexError:
+def copr_detail(username, coprname):
+    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
+    copr = query.first()
+    if not copr:
+        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
+
+    return flask.render_template('coprs/detail/overview.html',
+                                 copr=copr)
+
+@coprs_ns.route('/detail/<username>/<coprname>/permissions/')
+def copr_permissions(username, coprname):
+    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
+    copr = query.first()
+    if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     permissions = coprs_logic.CoprsPermissionLogic.get_for_copr(flask.g.user, copr).all()
@@ -114,14 +120,23 @@ def copr_detail(username, coprname, build_form = None):
             # https://github.com/ajford/flask-wtf/issues/58
             permissions_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(user_perm)(formdata=None)
 
-    return flask.render_template('coprs/detail.html',
+    return flask.render_template('coprs/detail/permissions.html',
                                  copr = copr,
-                                 build_form = build_form,
                                  permissions_form = permissions_form,
                                  permissions_applier_form = permissions_applier_form,
                                  permissions = permissions,
                                  current_user_permissions = user_perm)
 
+@coprs_ns.route('/detail/<username>/<coprname>/builds/')
+def copr_builds(username, coprname, build_form = None):
+    try: # query[0:10][0] will raise an index error, if Copr doesn't exist
+        query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds = True)
+        copr = query[0:10][0]# we retrieved all builds, but we got one copr in a list...
+    except IndexError:
+        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
+
+    return flask.render_template('coprs/detail/builds.html',
+                                 copr = copr)
 
 @coprs_ns.route('/detail/<username>/<coprname>/edit/')
 @login_required
