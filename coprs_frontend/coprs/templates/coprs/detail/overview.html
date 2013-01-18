@@ -1,0 +1,45 @@
+{% extends "coprs/detail.html" %}
+{% block detail_body %}
+  <h2>Description</h2>
+  <div class="shift-right">This is a description...</div>
+  <h2>Installation Instructions</h2>
+  <div class="shift-right">These are installation instructions...</div>
+  <h2>Active Releases</h2>
+  <table class="releases">
+    <tr>
+      <th class="leftmost">Release</th>
+      <th class="rightmost">Architecture</th>
+    </tr>
+    {% for mock_chroot in copr.mock_chroots %}
+      {% if loop.index < copr.mock_chroots|length %}
+        {% if mock_chroot.os_release != copr.mock_chroots[loop.index].os_release or
+              mock_chroot.os_version != copr.mock_chroots[loop.index].os_version %}
+          {# next release is different => release-end #}
+          <tr class="release-end">
+        {% else %}
+          <tr>
+        {% endif %}
+      {% else %}{# last line => release-end for sure #}
+        <tr class="release-end">
+      {% endif %}
+        {% if mock_chroot.os_release != copr.mock_chroots[loop.index0 - 1].os_release or
+            mock_chroot.os_version != copr.mock_chroots[loop.index0 - 1].os_version %}
+          <td>{{ mock_chroot.os_release|capitalize }} {{ mock_chroot.os_version }}</td>
+        {% else %}
+          <td></td>
+        {% endif %}
+      <td>{{ mock_chroot.arch }}</td>
+      </tr>
+    {% else %}
+      <tr colspan="2"><td>No active releases</td></tr>
+    {% endfor %}
+  </table>
+  {% if copr.repos_list %}
+    <h2>Repository List</h2>
+    <ul class=repos-list>
+      {% for repo in copr.repos_list %}
+        <li><a href="{{ repo }}">{{ repo }}</a></li>
+      {% endfor %}
+    </ul>  
+  {% endif %}
+{% endblock %}

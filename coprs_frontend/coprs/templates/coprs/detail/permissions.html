@@ -1,0 +1,9 @@
+{% extends "coprs/detail.html" %}
+{% from "coprs/detail/_permissions_table.html" import permissions_table with context%}
+
+{% block detail_body %}
+  {% if (g.user and g.user != copr.owner) or permissions %}
+    {# the table is displayed only if there are some permissions or a non-owner is viewing the page (then display at least his applier form #}
+    {{ permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, permissions_form) }}
+  {% endif %}
+{% endblock %}

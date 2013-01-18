@@ -1,0 +1,24 @@
+{% macro copr_build_form(form, view, copr) %} 
+    <form action="{{ url_for(view, username = copr.owner.name, coprname = copr.name) }}" method=post class=add-entry> 
+      <dl> 
+        {{ form.csrf_token }} 
+        {{ render_field(form.pkgs, rows = 10, cols = 50) }} 
+        {% if g.user.proven %} 
+          {{ render_field(form.memory_reqs) }} 
+          {{ render_field(form.timeout) }} 
+          {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #} 
+          {{ render_field(form.memory_reqs, hidden = True) }} 
+          {{ render_field(form.timeout, hidden = True) }} 
+        {% endif %} 
+        <dd><input type=submit value=Submit></dd> 
+      </dl> 
+    </form> 
+{% endmacro %} 
+ 
+{% macro copr_build_cancel_form(build) %} 
+  {% if build.cancelable %} 
+    <form action="{{ url_for('coprs_ns.copr_cancel_build', username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}" method=post> 
+      <input type=submit value=Cancel> 
+    </form> 
+  {% endif %} 
+{% endmacro %}
