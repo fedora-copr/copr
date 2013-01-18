@@ -98,6 +98,10 @@ class User(db.Model, Serializer):
         # enumerate here to prevent exposing credentials
         return ['id', 'name']
 
+    @property
+    def coprs_count(self):
+        return Copr.query.filter_by(owner=self).count()
+
 
 class Copr(db.Model, Serializer):
     id = db.Column(db.Integer, primary_key = True)

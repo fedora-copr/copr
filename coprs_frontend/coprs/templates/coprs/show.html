@@ -7,7 +7,7 @@
   <div class="user-info">
     <img src="{{ url_for('static', filename='default_user.png') }}" alt="User Image">
     <p>{{ g.user.name }}</p>
-    <p class="coprs-count">11{# TODO #}</p>
+    <p class="coprs-count">{{ g.user.coprs_count }}</p>
     <p class="other-text">coprs</p>
   </div>
   {% endif %}
