@@ -1,30 +1,29 @@
 <!doctype html>
 <html>
 <head>
-	<title>{% block title %}Coprs Build System{% endblock %}</title>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+  <title>{% block title %}Coprs Build System{% endblock %}</title>
+  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style-new.css') }}">
 </head>
 <body>
-<div class=menu>
-  <div class=menu-inner>
-  {% block menu %}
-    <a href="{{ url_for('coprs_ns.coprs_show') }}">All Coprs</a>
-    {% if g.user %}
-      <a href="{{ url_for('coprs_ns.coprs_by_owner', username = g.user.name) }}">Owned Coprs</a>
-      <a href="{{ url_for('coprs_ns.coprs_by_allowed', username = g.user.name) }}">Coprs I Can Build In</a>
-      <a class=log-url href="{{ url_for('misc.logout') }}">Log out</a>
-    {% else %}
-      <a class=log-url href="{{ url_for('misc.login') }}">Log in</a>
-    {% endif %}
-  {% endblock %}
+<div class="menu">
+  <div class="menu-inner">
+    <a href="/"><img id="logo" src="{{ url_for('static', filename='copr_logo.png') }}" alt="Copr Build System"></a>
+    <div class="login">
+      {% if g.user %}
+        logged in as {{ g.user.name }}
+      {% else %}
+        <div><a href="{{ url_for('misc.login') }}">log in</a></div>
+        <input class="rounded" type="text" name="search_text">
+      {% endif %}
+    </div>
   </div>
 </div>
-<div class=page>
+<div class="page">
   <h1>{% block header %}Coprs Build System{% endblock %}</h1>
   {% for message in get_flashed_messages() %}
-    <div class=flash>{{ message }}</div>
+    <div class="flash">{{ message }}</div>
   {% endfor %}  
-  <div class=page-inner>
+  <div class="page-inner">
     {% block body %}{% endblock %}
   </div>
 </div>

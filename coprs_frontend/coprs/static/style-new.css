@@ -1,0 +1,46 @@
+html, body {
+  font-family: Cantarell, "Droid Sans", Verdana, sans-serif;
+  font-size: 0.9em;
+
+  margin: 0px;
+  padding: 0px;
+}
+
+#logo {
+  position: relative;
+  top: 8px;
+}
+
+div.menu {
+  background-image: url("header_background.png");
+  background-repeat: repeat-x;
+  height: 81px;
+}
+
+div.login, div.login a {
+  color: white;
+  font-weight: bold;
+  text-align: right;
+  text-decoration: none;
+  line-height: 250%;
+
+  position: relative;
+  float: right;
+}
+
+div.page, div.menu-inner {
+  width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div.grey-box {
+  background-color: #ececec;
+}
+
+input.rounded {
+  padding-left: 4px;
+  border-radius:10px;
+  -moz-border-radius:10px;
+  -webkit-border-radius:10px;
+}
