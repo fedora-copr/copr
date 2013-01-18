@@ -68,18 +68,16 @@ class WorkerCallback(object):
         self.logfile = logfile
     
     def log(self, msg):
-        if not self.logfile:
-            return
-            
-        now = time.strftime('%F %T')
-        try:
-            open(self.logfile, 'a').write(str(now) + ': ' + msg + '\n')
-        except (IOError, OSError), e:
-            print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
-            
+        if self.logfile:
+            now = time.strftime('%F %T')
+            try:
+                open(self.logfile, 'a').write(str(now) + ': ' + msg + '\n')
+            except (IOError, OSError), e:
+                print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
         
+
 class Worker(multiprocessing.Process):
-    def __init__(self, opts, jobs, worker_num, ip=None, create=True, callback=None):
+    def __init__(self, opts, jobs, events, worker_num, ip=None, create=True, callback=None):
  
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
@@ -87,6 +85,7 @@ class Worker(multiprocessing.Process):
             
         # job management stuff
         self.jobs = jobs
+        self.events = events # event queue for communicating back to dispatcher
         self.worker_num = worker_num
         self.ip = ip
         self.opts = opts
@@ -99,11 +98,23 @@ class Worker(multiprocessing.Process):
         
         if ip:
             self.callback.log('creating worker: %s' % ip)
+            self.event('creating worker: %s' % ip)
         else:
             self.callback.log('creating worker: dynamic ip')
+            self.event('creating worker: dynamic ip')
+
+    def event(self, what):
+        if self.ip:
+            who = 'worker-%s-%s' % (self.worker_num, self.ip)
+        else:
+            who = 'worker-%s' % (self.worker_num)
+        
+        self.events.put({'when':time.time(), 'who':who, 'what':what})
 
     def spawn_instance(self):
         """call the spawn playbook to startup/provision a building instance"""
+        
+        
         self.callback.log('spawning instance begin')
         start = time.time()
         
@@ -143,7 +154,7 @@ class Worker(multiprocessing.Process):
         stats = callbacks.AggregateStats()
         playbook_cb = SilentPlaybookCallbacks(verbose=False)
         runner_cb = callbacks.DefaultRunnerCallbacks()
-        play = ansible.playbook.PlayBook(host_list=[ip], stats=stats, playbook=self.opts.terminate_playbook, 
+        play = ansible.playbook.PlayBook(host_list=ip +',', stats=stats, playbook=self.opts.terminate_playbook, 
                              callbacks=playbook_cb, runner_callbacks=runner_cb, 
                              remote_user='root')
 
@@ -167,6 +178,8 @@ class Worker(multiprocessing.Process):
         jobdata.repos.append(jobdata.results)
         jobdata.copr_id = build['copr']['id']
         jobdata.user_id = build['user_id']
+        jobdata.user_name = build['copr']['owner']['name']
+        jobdata.copr_name = build['copr']['name']
         return jobdata
 
     # maybe we move this to the callback?
@@ -195,6 +208,7 @@ class Worker(multiprocessing.Process):
     # maybe we move this to the callback?
     def mark_started(self, job):
         
+
         build = {'id':job.build_id,
                  'started_on': job.started_on,
                  'results': job.results,
@@ -206,8 +220,8 @@ class Worker(multiprocessing.Process):
     
     # maybe we move this to the callback?    
     def return_results(self, job):
-        self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
 
+        self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
         build = {'id':job.build_id,
                  'ended_on': job.ended_on,
                  'status': job.status,
@@ -255,9 +269,11 @@ class Worker(multiprocessing.Process):
             status = 1
             job.started_on = time.time()
             self.mark_started(job)
-            
+
+            self.event('build start: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))            
+
             for chroot in job.chroots:
-                
+                self.event('chroot start: chroot:%s user:%s copr:%s build:%s ip:%s  pid:%s' % (chroot, job.user_name, job.copr_name, job.build_id, ip, self.pid))            
                 chroot_destdir = job.destdir + '/' + chroot
                 # setup our target dir locally
                 if not os.path.exists(chroot_destdir):
@@ -296,12 +312,12 @@ class Worker(multiprocessing.Process):
                     if mr.failed: 
                         status = 0
                 self.callback.log('Finished build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id, ip, job.timeout, job.destdir, chroot, str(job.repos)))
-            
             job.ended_on = time.time()
             
             job.status = status
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
+            self.event('build end: user:%s copr:%s build:%s ip:%s  pid:%s status:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid, job.status))
             # clean up the instance
             if self.create:
                 self.terminate_instance(ip)

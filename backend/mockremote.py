@@ -96,7 +96,7 @@ def get_ans_results(results, hostname):
 
 def _create_ans_conn(hostname, username, timeout):
     ans_conn = ansible.runner.Runner(remote_user=username,
-          host_list=[hostname], pattern=hostname, forks=1,
+          host_list=hostname + ',', pattern=hostname, forks=1,
           timeout=timeout)
     return ans_conn
     
@@ -203,7 +203,7 @@ class CliLogCallBack(DefaultCallBack):
             try:
                 open(self.logfn, 'a').write(str(now) + ':' + msg + '\n')
             except (IOError, OSError), e:
-                print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.lf, str(e))
+                print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfn, str(e))
         if not self.quiet:
             print msg
 
@@ -299,6 +299,7 @@ class Builder(object):
         #print '  Running %s on %s' % (buildcmd, hostname)
         # run the mockchain command async
         # this runs it sync - FIXME
+        self.mockremote.callback.log('executing: %r' % buildcmd)
         self.conn.module_name="shell"
         self.conn.module_args = str(buildcmd)
         results = self.conn.run()
@@ -362,7 +363,8 @@ class Builder(object):
             raise BuilderError('%s could not be resolved' % self.hostname)
             
         # connect as user 
-        ans = ansible.runner.Runner(host_list=[self.hostname], pattern='*', 
+        
+        ans = ansible.runner.Runner(host_list=self.hostname + ',', pattern='*', 
               remote_user=self.username, forks=1, timeout=20)
         ans.module_name = "shell"
         ans.module_args = str("/bin/rpm -q mock rsync")
@@ -486,7 +488,7 @@ class MockRemote(object):
                 if not os.path.exists(self.destdir + '/' + self.chroot):
                     os.makedirs(self.destdir + '/' + self.chroot)
                 r_log = open(self.destdir + '/' + self.chroot + '/mockchain.log', 'a')
-                r_log.write('%s\n' % pkg)
+                r_log.write('\n\n%s\n\n' % pkg)
                 r_log.write(b_out)
                 if b_err:
                     r_log.write('\nstderr\n')
