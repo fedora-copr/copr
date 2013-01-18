@@ -3,20 +3,27 @@
 {% block header %}Coprs List{% endblock %}
 {% from "_helpers.html" import render_pagination %}
 {% block body %}
-  <a href={{ url_for('coprs_ns.copr_add') }}>Add a new Copr</a>
-    {% for copr in coprs %}
-      <div class=copr>
-        <h2><a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">{{ copr.owner.name }}/{{ copr.name }}</a></h2>
-        builds: {{ copr.build_count }}<br>
-        {% if copr.repos %}
-          repos: {{ copr.repos_list|length }}
-        {% endif %}
-      </div>
-    {% else %}
-      <p><em>Unbelievable.  No entries here so far</em></p>
-    {% endfor %}
-  <div class=pagination>
-    {{ render_pagination(request, paginator) }}
+  {% if g.user %}
+  <div class="user-info">
+    <img src="{{ url_for('static', filename='default_user.png') }}" alt="User Image">
+    <p>{{ g.user.name }}</p>
+    <p class="coprs-count">11{# TODO #}</p>
+    <p class="other-text">coprs</p>
   </div>
-  <a href={{ url_for('coprs_ns.copr_add') }}>Add a new Copr</a>
+  {% endif %}
+  <div class="coprs-list-{% if g.user %}thin{% else %}thick{% endif %}">
+    <div class="add-copr">+ <a href={{ url_for('coprs_ns.copr_add') }}>add a new Copr</a></div>
+      {% for copr in coprs %}
+        <div class="copr">
+          <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">{{ copr.owner.name }}/{{ copr.name }}</a>
+	  <p>description blah blah blah</p>
+          <p class="repos">F18 blah blah</p>
+        </div>
+      {% else %}
+        <p>No coprs...</p>
+      {% endfor %}
+    <div class="pagination">
+      {{ render_pagination(request, paginator) }}
+    </div>
+  </div>
 {% endblock %}
