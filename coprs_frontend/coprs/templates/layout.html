@@ -10,7 +10,7 @@
     <a href="/"><img id="logo" src="{{ url_for('static', filename='copr_logo.png') }}" alt="Copr Build System"></a>
     <div class="login">
       {% if g.user %}
-        logged in as {{ g.user.name }}
+        <span class="text">logged in as </span>{{ g.user.name }}
       {% else %}
         <div><a href="{{ url_for('misc.login') }}">log in</a></div>
         <input class="rounded" type="text" name="search_text">

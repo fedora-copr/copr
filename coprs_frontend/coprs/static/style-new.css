@@ -35,6 +35,10 @@ div.login, div.login a {
   float: right;
 }
 
+div.login .text {
+  font-weight: normal;
+}
+
 div.page, div.menu-inner {
   width: 780px;
   margin-left: auto;
