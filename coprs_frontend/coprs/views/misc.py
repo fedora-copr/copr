@@ -74,8 +74,8 @@ def logout():
 def login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        token = flask.request.form.get('token')
-        username = flask.request.form.get('username')
+        token = flask.request.args.get('token')
+        username = flask.request.args.get('username')
         token_auth = False
         if token and username:
             user = models.User.query.filter(
