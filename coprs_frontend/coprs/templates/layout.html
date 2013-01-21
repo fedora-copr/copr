@@ -10,7 +10,7 @@
     <a href="/"><img id="logo" src="{{ url_for('static', filename='copr_logo.png') }}" alt="Copr Build System"></a>
     <div class="login">
       {% if g.user %}
-        <div><span class="text">logged in as </span>{{ g.user.name }}</div>
+        <div><span class="text">logged in as </span>{{ g.user.name }} | <a href="{{ url_for('misc.logout') }}">log out</a></div>
       {% else %}
         <div><a href="{{ url_for('misc.login') }}">log in</a></div>
       {% endif %}
