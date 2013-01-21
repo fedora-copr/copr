@@ -82,7 +82,7 @@ def copr_new():
             db.session.commit()
             flask.flash('Initial packages were successfully submitted for building.')
 
-        return flask.redirect(flask.url_for('coprs_ns.coprs_show'))
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=flask.g.user.name, coprname=copr.name))
     else:
         return flask.render_template('coprs/add.html', form = form)
 
