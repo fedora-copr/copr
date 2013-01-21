@@ -160,8 +160,7 @@ div.add-copr a {
 
 div.horizontal-menu {
   background-color: #ededed;
-  padding: 0.5em;
-  height: 2em;
+  height: 3em;
 
   border-radius: 10px;
   -moz-border-radius: 10px;
@@ -169,22 +168,20 @@ div.horizontal-menu {
 }
 
 div.horizontal-menu a {
+  display: block;
+  padding: 0.6em;
   font-size: 1.1em;
   font-weight: bold;
   color: #4d4d4d;
-}
-
-div.horizontal-menu img {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 div.horizontal-menu div.selected a {
   color: #db3279;
   margin-left: auto;
   margin-right: auto;
-  padding-bottom: 11px;
+}
+
+div.horizontal-menu div.selected, div.horizontal-menu a.pink-arrow {
   background: url("pink_arrow.png") no-repeat;
   background-position: center bottom;
 }
