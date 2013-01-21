@@ -30,6 +30,7 @@ def copr_builds(username, coprname, page=1):
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/add_build/')
+@login_required
 def copr_add_build(username, coprname, form=None):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
