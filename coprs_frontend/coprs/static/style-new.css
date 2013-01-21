@@ -236,6 +236,18 @@ table.builds-table {
   width: 100%;
 }
 
+table.builds-table td.build-end {
+  border-bottom: 2px solid #4d4d4d;
+}
+
+table.builds-table form {
+  display: inline;
+}
+
+table.builds-table tr.build-details {
+  display: none;
+}
+
 tr.build-pending {
   color: #3B6EB4;
 }
