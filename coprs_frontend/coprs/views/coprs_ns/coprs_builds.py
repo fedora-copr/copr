@@ -84,7 +84,7 @@ def copr_cancel_build(username, coprname, build_id):
         db.session.commit()
         flask.flash('Build was canceled')
 
-    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = coprname))
+    return flask.redirect(flask.url_for('coprs_ns.copr_builds', username = username, coprname = coprname))
 
 @coprs_ns.route('/detail/<username>/<coprname>/repeat_build/<int:build_id>/', methods = ['POST'])
 @login_required
