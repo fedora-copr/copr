@@ -1,3 +1,5 @@
+import time
+
 from coprs import db
 from coprs import exceptions
 from coprs import models
@@ -57,6 +59,10 @@ class BuildsLogic(object):
         if check_authorized:
             if not user.can_build_in(copr):
                 raise exceptions.InsufficientRightsException('User {0} cannot build in copr {1}/{2}'.format(user.name, copr.owner.name, copr.name))
+        if not build.submitted_on:
+            build.submitted_on = int(time.time())
+        if not build.user:
+            build.user = user
 
         coprs_logic.CoprsLogic.increment_build_count(user, copr)
         db.session.add(build)

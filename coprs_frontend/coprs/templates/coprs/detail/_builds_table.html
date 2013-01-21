@@ -1,4 +1,4 @@
-{% from "coprs/detail/_build_forms.html" import copr_build_cancel_form %}                
+{% from "coprs/detail/_build_forms.html" import copr_build_cancel_form, copr_build_repeat_form %}
 
 {% macro builds_table(builds) %}
   {% if builds %}
@@ -25,8 +25,9 @@
         <td>
           {% if g.user and g.user == build.user %}
             {{ copr_build_cancel_form(build) }}
-          {% else %}
-            ---
+          {% endif %}
+          {% if g.user and g.user.can_build_in(copr) %}
+            {{ copr_build_repeat_form(build) }}
           {% endif %}
         </td>
       </tr>
