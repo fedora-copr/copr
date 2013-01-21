@@ -236,15 +236,12 @@ table.builds-table {
   width: 100%;
 }
 
-table.builds-table td.build-end {
-  border-bottom: 2px solid #4d4d4d;
-}
-
 table.builds-table form {
   display: inline;
 }
 
-table.builds-table tr.build-details {
+table.builds-table tr.details {
+  width: 100%;
   display: none;
 }
 

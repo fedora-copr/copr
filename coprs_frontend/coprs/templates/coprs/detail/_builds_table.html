@@ -20,8 +20,8 @@
         <td>{{ build.ended_on|date_from_secs or 'Not yet' }}</td>
         <td>{{ build.state }}</td>
       </tr>
-      <tr class="build-details">
-        <td colspan=6 class="build-end">
+      <tr class="details">
+        <td colspan=6 class="end">
           <div>
           {% if g.user and g.user == build.user %}
             {{ copr_build_cancel_form(build) }}
