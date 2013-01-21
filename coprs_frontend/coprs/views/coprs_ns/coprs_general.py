@@ -140,15 +140,16 @@ def copr_builds(username, coprname, build_form = None):
 
 @coprs_ns.route('/detail/<username>/<coprname>/edit/')
 @login_required
-def copr_edit(username, coprname):
+def copr_edit(username, coprname, form=None):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
     copr = query.first()
 
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
-    form = forms.CoprFormFactory.create_form_cls(copr.mock_chroots)(obj=copr)
+    if not form:
+        form = forms.CoprFormFactory.create_form_cls(copr.mock_chroots)(obj=copr)
 
-    return flask.render_template('coprs/edit.html',
+    return flask.render_template('coprs/detail/edit.html',
                                  copr=copr,
                                  form=form)
 
@@ -174,7 +175,7 @@ def copr_update(username, coprname):
         flask.flash('Copr was updated successfully.')
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = form.name.data))
     else:
-        return flask.render_template('coprs/edit.html', copr = copr, form = form)
+        return copr_edit(username, coprname, form)
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/permissions_applier_change/', methods = ['POST'])
