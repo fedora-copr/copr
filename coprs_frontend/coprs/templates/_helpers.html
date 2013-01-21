@@ -20,7 +20,11 @@
       <a href="{{ paginator.border_url(request, True)[0] }}">{{ paginator.border_url(request, True)[1] }}</a> ...
     {% endif %}
     {% for page in paginator.get_urls(request) %}
-      <a href="{{ page[0] }}">{{ page[1] }}</a>
+      {% if page[1] != paginator.page %} {# no url for current page #}
+        <a href="{{ page[0] }}">{{ page[1] }}</a>
+      {% else %}
+        {{ page[1] }}
+      {% endif %}
     {% endfor %}
     {% if paginator.border_url(request, False) %}
       ... <a href="{{ paginator.border_url(request, False)[0] }}">{{ paginator.border_url(request, False)[1] }}</a>

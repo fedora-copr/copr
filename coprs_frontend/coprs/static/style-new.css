@@ -45,6 +45,13 @@ div.flash {
   -webkit-border-radius: 5px;
 }
 
+div.pagination {
+  width: 100%;
+  text-align: center;
+  font-size: 1.3em;
+  margin: 1em;
+}
+
 div.login, div.login a {
   color: white;
   font-weight: bold;
