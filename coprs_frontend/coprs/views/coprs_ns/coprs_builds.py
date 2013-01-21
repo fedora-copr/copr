@@ -64,7 +64,7 @@ def copr_new_build(username, coprname):
         db.session.commit()
 
         flask.flash("Build was added")
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=copr.name))
+        return flask.redirect(flask.url_for('coprs_ns.copr_builds', username=username, coprname=copr.name))
     else:
         return copr_add_build(username=username, coprname=coprname, form=form)
 
