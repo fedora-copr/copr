@@ -25,7 +25,7 @@ def copr_builds(username, coprname, page=1):
 
     builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
 
-    paginator = helpers.Paginator(builds_query, copr.build_count, page, per_page_override = 20)
+    paginator = helpers.Paginator(builds_query, copr.build_count, page, per_page_override = 10)
     return flask.render_template('coprs/detail/builds.html', copr=copr, builds=paginator.sliced_query, paginator=paginator)
 
 
