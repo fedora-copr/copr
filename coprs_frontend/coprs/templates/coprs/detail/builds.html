@@ -1,12 +1,14 @@
 {% extends "coprs/detail.html" %}
+{% from "_helpers.html" import render_pagination %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 
 {% block detail_body %}
   {% if copr.builds %}
-    <h3>Latest 10 in this repo</h3>
-      {{ builds_table(copr.builds) }}
-    <a href="{{ url_for('coprs_ns.copr_show_builds', username = copr.owner.name, coprname = copr.name) }}">Show all builds</a>
-      {% else %}
-    <h3>No builds so far</h3>
+    {{ builds_table(copr.builds) }}
+    <div class="pagination">
+      {{ render_pagination(request, paginator) }}
+    </div>
+  {% else %}
+    <h2>No builds so far.</h2>
   {% endif %}
 {% endblock %}

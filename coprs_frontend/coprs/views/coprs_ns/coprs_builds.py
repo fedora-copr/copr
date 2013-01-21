@@ -15,18 +15,18 @@ from coprs.views.misc import login_required
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.coprs_ns import coprs_general
 
-@coprs_ns.route('/detail/<username>/<coprname>/builds/', defaults = {'page': 1})
+@coprs_ns.route('/detail/<username>/<coprname>/builds/', defaults={'page': 1})
 @coprs_ns.route('/detail/<username>/<coprname>/builds/<int:page>/')
-def copr_show_builds(username, coprname, page = 1):
+def copr_builds(username, coprname, page=1):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
     if not copr: # hey, this Copr doesn't exist
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
-    builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr = copr)
+    builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
 
     paginator = helpers.Paginator(builds_query, copr.build_count, page, per_page_override = 20)
-    return flask.render_template('coprs/show_builds.html', builds = paginator.sliced_query, paginator = paginator)
+    return flask.render_template('coprs/detail/builds.html', copr=copr, builds=paginator.sliced_query, paginator=paginator)
 
 
 @coprs_ns.route('/detail/<username>/<coprname>/add_build/')

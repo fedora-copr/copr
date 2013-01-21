@@ -127,17 +127,6 @@ def copr_permissions(username, coprname):
                                  permissions = permissions,
                                  current_user_permissions = user_perm)
 
-@coprs_ns.route('/detail/<username>/<coprname>/builds/')
-def copr_builds(username, coprname):
-    try: # query[0:10][0] will raise an index error, if Copr doesn't exist
-        query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds = True)
-        copr = query[0:10][0]# we retrieved all builds, but we got one copr in a list...
-    except IndexError:
-        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
-
-    return flask.render_template('coprs/detail/builds.html',
-                                 copr = copr)
-
 @coprs_ns.route('/detail/<username>/<coprname>/edit/')
 @login_required
 def copr_edit(username, coprname, form=None):
