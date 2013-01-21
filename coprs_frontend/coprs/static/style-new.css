@@ -34,6 +34,17 @@ div.menu {
   margin-bottom: 3em;
 }
 
+div.flash {
+  background-color: #f9f9f9;
+  font-size: 1.2em;
+  text-align: center;
+  padding: 0.5em;
+
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+}
+
 div.login, div.login a {
   color: white;
   font-weight: bold;
