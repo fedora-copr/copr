@@ -178,6 +178,10 @@ div.shift-right {
   margin-left: 1em;
 }
 
+dt.field-label {
+  font-weight: bold;
+}
+
 input.rounded {
   padding-left: 4px;
   border-radius: 10px;
