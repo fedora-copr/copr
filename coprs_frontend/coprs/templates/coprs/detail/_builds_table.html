@@ -2,7 +2,7 @@
 
 {% macro builds_table(builds) %}
   {% if builds %}
-    <table class=builds-table>
+    <table class="builds-table">
       <tr>
         <th>Id</th>
         <th>Submitted on</th>
@@ -14,14 +14,14 @@
         <th>Action</th>
       </tr>
     {% for build in builds %}
-      <tr class=build-{{ build.state }}>
+      <tr class="build-{{ build.state }}">
         <td>{{ build.id }}</td>
         <td>{{ build.submitted_on|date_from_secs }}</td>
         <td>{{ build.user.name }}</td>
         <td>{{ build.started_on|date_from_secs or 'Not yet' }}</td>
         <td>{{ build.ended_on|date_from_secs or 'Not yet' }}</td>
         <td>{{ build.state }}</td>
-        <td>{% if build.results %}<a href={{ build.results }}>{% endif %}{{ build.results }}{% if build.results %}</a>{% endif %}</td>
+        <td>{% if build.results %}<a href="{{ build.results }}">{% endif %}{{ build.results }}{% if build.results %}</a>{% endif %}</td>
         <td>
           {% if g.user and g.user == build.user %}
             {{ copr_build_cancel_form(build) }}
@@ -32,14 +32,9 @@
       </tr>
       <tr>
         <td colspan=8>
-          <h4>Package URLs:</h4>
-          <ul class=packages-list>
-            {% if build.pkgs is not none %}
-              {% for pkg in build.pkgs.split() %}
-                <li><a href={{ pkg }}>{{ pkg }}</a></li>
-              {% endfor %}
-            {% endif %}
-          </ul>
+          <h2>Package URLs:</h2>
+          <div class="pkg-url-list">{% if build.pkgs is not none %}{% for pkg in build.pkgs.split() %}<a href="{{ pkg }}">{{ pkg }}</a>
+{% endfor %}{% endif %}</div>
         </td>
       </tr>
     {% endfor %}

@@ -174,6 +174,15 @@ div.horizontal-menu div.selected, div.horizontal-menu div.unselected {
   float: left;
 }
 
+div.pkg-url-list {
+  white-space: pre;
+  background-color: #f9f9f9;
+  font-family: monospace;
+  padding: 1em;
+  line-height: 120%;
+  font-size: 1.1em;
+}
+
 div.shift-right {
   margin-left: 1em;
 }
@@ -196,6 +205,30 @@ p.form-error {
 table.releases {
   width: 100%;
   border-collapse:collapse;
+}
+
+table.builds-table {
+  width: 100%;
+}
+
+tr.build-pending {
+  color: #3B6EB4;
+}
+
+tr.build-running {
+  color: #FF6600;
+}
+
+tr.build-succeeded {
+  color: #22DD22;
+}
+
+tr.build-failed {
+  color: #DD2222;
+}
+
+tr.build-canceled {
+  color: #CDC90C;
 }
 
 table.releases th {
