@@ -19,8 +19,8 @@
  
 {% macro copr_build_cancel_form(build) %} 
   {% if build.cancelable %} 
-    <form action="{{ url_for('coprs_ns.copr_cancel_build', username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}" method=post> 
-      <input type=submit value=Cancel> 
+    <form action="{{ url_for('coprs_ns.copr_cancel_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post"> 
+      <input type="submit" value="Cancel">
     </form> 
   {% endif %} 
 {% endmacro %}
