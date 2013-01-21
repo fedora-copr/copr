@@ -1,4 +1,6 @@
 {% extends "coprs/detail.html" %}
+{% block title %}Permissions for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+{% block permissions_selected %}selected{% endblock %}
 {% from "coprs/detail/_permissions_table.html" import permissions_table with context%}
 
 {% block detail_body %}

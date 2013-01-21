@@ -1,29 +1,27 @@
 {% extends "layout.html" %}
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
-{% block header %}Information for Copr {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 {% from "coprs/detail/_build_forms.html" import copr_build_form,
                                          copr_build_cancel_form with context %}
 
 {% block body %}
   <h1>{{ copr.owner.name }} / <strong>{{ copr.name }}</strong></h1>
   <div class="horizontal-menu">
-    <div class="selected">
+    <div class="{% block overview_selected %}unselected{% endblock %}">
       <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">Overview</a>
-      <img src="{{ url_for('static', filename='pink_arrow.png') }}">
     </div>
-    <div class="unselected">
+    <div class="{% block permissions_selected %}unselected{% endblock %}">
       <a href="{{ url_for('coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name) }}">Permissions</a>
     </div>
-    <div class="unselected">
+    <div class="{% block builds_selected %}unselected{% endblock %}">
       <a href="{{ url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name) }}">Builds</a>
     </div>
     {% if g.user and g.user.can_build_in(copr) %}
-      <div class="unselected">
+      <div class="{% block new_build_selected %}unselected{% endblock %}">
         <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">New Build</a>
       </div>
     {% endif %}
     {% if g.user and g.user.can_edit(copr) %}
-      <div class="unselected">
+      <div class="{% block edit_selected %}unselected{% endblock %}">
         <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Edit</a>
       </div>
     {% endif %}

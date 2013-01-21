@@ -166,6 +166,9 @@ div.horizontal-menu div.selected a {
   color: #db3279;
   margin-left: auto;
   margin-right: auto;
+  padding-bottom: 11px;
+  background: url("pink_arrow.png") no-repeat;
+  background-position: center bottom;
 }
 
 div.horizontal-menu div.selected, div.horizontal-menu div.unselected {

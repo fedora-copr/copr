@@ -1,6 +1,6 @@
 {% extends "coprs/detail.html" %}
-{% block title %}Editing {{ copr.name }}{% endblock %}
-{% block header %}Editing {{ copr.name }} Copr{% endblock %}
+{% block title %}Editing {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+{% block edit_selected %}selected{% endblock %}
 {% from "coprs/_coprs_forms.html" import copr_form, copr_permissions_form with context %}
 
 {% block detail_body %}
