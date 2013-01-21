@@ -31,9 +31,9 @@
 
 {% macro copr_permissions_form(form, copr, permissions) %}
   {% if permissions %}
-    <form action="{{ url_for('coprs_ns.copr_update_permissions', username = copr.owner.name, coprname = copr.name) }}" method=post>
+    <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.owner.name, coprname=copr.name) }}" method=post>
       {{ form.csrf_token }}
-      <table class=permissions-table>
+      <table class="permissions-table">
         <tr><th>Username</th><th>Is Builder</th><th>Is Admin</th></tr>
         {% for perm in permissions %}
           <tr>
@@ -53,7 +53,7 @@
           </tr>
         {% endfor %}
       </table>
-      <dd><input type=submit value=Save></dd>
+      <dd><input type="submit" value="Save"></dd>
     </form>
   {% endif %}
 {% endmacro %}
