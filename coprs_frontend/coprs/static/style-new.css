@@ -189,6 +189,10 @@ input.rounded {
   -webkit-border-radius: 10px;
 }
 
+p.form-error {
+  color: red;
+}
+
 table.releases {
   width: 100%;
   border-collapse:collapse;
