@@ -12,7 +12,7 @@
         <p class="form-error">{{ form._mock_chroots_error }}</p>
       {% endif %}
       {% for group_set, chs in form.chroots_sets.items() %}
-        <table>
+        <table class="chroots-set">
           {% for ch in chs %}
             <tr>
               <td>{{ form|attr(ch)|attr('label') }}</td><td>{{ form|attr(ch) }}</td>

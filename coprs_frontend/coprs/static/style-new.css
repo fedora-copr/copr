@@ -227,6 +227,10 @@ table.releases {
   border-collapse:collapse;
 }
 
+table.chroots-set {
+  display: inline;
+}
+
 table.builds-table {
   width: 100%;
 }
