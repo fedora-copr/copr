@@ -29,9 +29,21 @@ def copr_show_builds(username, coprname, page = 1):
     return flask.render_template('coprs/show_builds.html', builds = paginator.sliced_query, paginator = paginator)
 
 
-@coprs_ns.route('/detail/<username>/<coprname>/add_build/', methods = ["POST"])
+@coprs_ns.route('/detail/<username>/<coprname>/add_build/')
+def copr_add_build(username, coprname, form=None):
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+
+    if not copr: # hey, this Copr doesn't exist
+        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
+
+    if not form:
+        form = forms.BuildForm()
+
+    return flask.render_template('coprs/detail/add_build.html', copr=copr, form=form)
+
+@coprs_ns.route('/detail/<username>/<coprname>/new_build/', methods = ["POST"])
 @login_required
-def copr_add_build(username, coprname):
+def copr_new_build(username, coprname):
     form = forms.BuildForm()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     if not copr: # hey, this Copr doesn't exist
@@ -52,9 +64,9 @@ def copr_add_build(username, coprname):
         db.session.commit()
 
         flask.flash("Build was added")
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = copr.name))
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=copr.name))
     else:
-        return flask.current_app.view_functions['coprs_ns.copr_detail'](username = username, coprname = coprname, build_form = form)
+        return copr_add_build(username=username, coprname=coprname, form=form)
 
 @coprs_ns.route('/detail/<username>/<coprname>/cancel_build/<int:build_id>/', methods = ['POST'])
 @login_required

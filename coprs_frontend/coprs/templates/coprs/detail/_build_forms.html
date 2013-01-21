@@ -1,8 +1,10 @@
+{% from "_helpers.html" import render_field %}
+
 {% macro copr_build_form(form, view, copr) %} 
-    <form action="{{ url_for(view, username = copr.owner.name, coprname = copr.name) }}" method=post class=add-entry> 
+    <form action="{{ url_for(view, username=copr.owner.name, coprname=copr.name) }}" method="post"> 
       <dl> 
         {{ form.csrf_token }} 
-        {{ render_field(form.pkgs, rows = 10, cols = 50) }} 
+        {{ render_field(form.pkgs, label='URLs of packages to build', rows = 10, cols = 50) }} 
         {% if g.user.proven %} 
           {{ render_field(form.memory_reqs) }} 
           {{ render_field(form.timeout) }} 
@@ -10,7 +12,7 @@
           {{ render_field(form.memory_reqs, hidden = True) }} 
           {{ render_field(form.timeout, hidden = True) }} 
         {% endif %} 
-        <dd><input type=submit value=Submit></dd> 
+        <dd><input type="submit" value="Build"></dd> 
       </dl> 
     </form> 
 {% endmacro %} 

@@ -17,6 +17,11 @@
     <div class="unselected">
       <a href="{{ url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name) }}">Builds</a>
     </div>
+    {% if g.user and g.user.can_build_in(copr) %}
+      <div class="unselected">
+        <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">New Build</a>
+      </div>
+    {% endif %}
     {% if g.user and g.user.can_edit(copr) %}
       <div class="unselected">
         <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Edit</a>

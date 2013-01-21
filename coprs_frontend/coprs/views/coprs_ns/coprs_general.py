@@ -128,7 +128,7 @@ def copr_permissions(username, coprname):
                                  current_user_permissions = user_perm)
 
 @coprs_ns.route('/detail/<username>/<coprname>/builds/')
-def copr_builds(username, coprname, build_form = None):
+def copr_builds(username, coprname):
     try: # query[0:10][0] will raise an index error, if Copr doesn't exist
         query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds = True)
         copr = query[0:10][0]# we retrieved all builds, but we got one copr in a list...
