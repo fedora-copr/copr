@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "coprs/_builds_table.html" import builds_table with context %}
+{% from "coprs/detail/_builds_table.html" import builds_table with context %}
 
 {% block detail_body %}
   {% if copr.builds %}
