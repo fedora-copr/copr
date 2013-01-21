@@ -4,17 +4,15 @@
   {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
   <form action="{% if copr %}{{ url_for(view, username = copr.owner.name, coprname = copr.name) }}{% else %}{{ url_for(view) }}{% endif %}" method=post class=add-entry>
     <dl>
-      {% if form._mock_chroots_error %}
-        <p style="color:red;">{{ form._mock_chroots_error }}</p>
-      {% endif %}
       {{ form.csrf_token }}
       {{ render_field(form.id, hidden = True) }}
-      {{ render_field(form.name) }}
+      {{ render_field(form.name, label='Copr Name') }}
+      <dt class="field-label">Chroots</dt>
+      {% if form._mock_chroots_error %}
+        <p class="form-error">{{ form._mock_chroots_error }}</p>
+      {% endif %}
       {% for group_set, chs in form.chroots_sets.items() %}
-        <table style="display:inline;">
-          <tr>
-            <th colspan=2>Chroots to use</th>
-          </tr>
+        <table>
           {% for ch in chs %}
             <tr>
               <td>{{ form|attr(ch)|attr('label') }}</td><td>{{ form|attr(ch) }}</td>
@@ -26,7 +24,7 @@
       {% if copr is none %}{# we're creating the copr, so display initial builds area #}
         {{ render_field(form.initial_pkgs, rows = 10, cols = 50) }}
       {% endif %}
-      <dd><input type=submit value=Submit></dd>
+      <dt><input type="submit" value="{% if copr %}Update{% else %}Create{% endif %}"></dt>
     </dl>
   </form>
 {% endmacro %}
