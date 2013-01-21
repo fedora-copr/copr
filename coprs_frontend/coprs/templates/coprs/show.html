@@ -12,7 +12,9 @@
   </div>
   {% endif %}
   <div class="coprs-list-{% if g.user %}thin{% else %}thick{% endif %}">
-    <div class="add-copr">+ <a href={{ url_for('coprs_ns.copr_add') }}>add a new Copr</a></div>
+    {% if g.user %}
+      <div class="add-copr">+ <a href={{ url_for('coprs_ns.copr_add') }}>add a new Copr</a></div>
+    {% endif %}
       {% for copr in coprs %}
         <div class="copr">
           <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">{{ copr.owner.name }}/{{ copr.name }}</a>
