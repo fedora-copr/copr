@@ -19,5 +19,5 @@ def os_name_short(os_name, os_version):
     if os_name == 'fedora':
         return 'fc.{0}'.format(os_version)
     elif os_name == 'epel':
-        return 'el'.format(os_version)
+        return 'el{0}'.format(os_version)
     return os_name
