@@ -1,5 +1,7 @@
 import datetime
 
+from sqlalchemy.ext.associationproxy import association_proxy
+
 from coprs import constants
 from coprs import db
 from coprs import helpers
@@ -116,6 +118,7 @@ class Copr(db.Model, Serializer):
     # relations
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     owner = db.relationship('User', backref = db.backref('coprs'))
+    mock_chroots = association_proxy('copr_chroots', 'mock_chroot')
 
     @property
     def repos_list(self):
@@ -128,18 +131,6 @@ class Copr(db.Model, Serializer):
     @property
     def instructions_or_not_filled(self):
         return self.instructions or 'Instructions not filled in by author.'
-
-    @property
-    def mock_chroots(self):
-        if not hasattr(self, '_mock_chroots'):
-            self._mock_chroots = MockChroot.query.join(CoprChroot).\
-                                                  filter(CoprChroot.copr_id==self.id).\
-                                                  filter(MockChroot.is_active==True).all()
-            self._mock_chroots.sort(cmp=lambda x,y: cmp(x.chroot_name, y.chroot_name))
-
-        return self._mock_chroots
-
-    __mapper_args__ = {'order_by': id.desc()}
 
 class CoprPermission(db.Model, Serializer):
     # 0 = nothing, 1 = asked for, 2 = approved
