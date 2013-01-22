@@ -26,6 +26,7 @@ class CoprsLogic(object):
     def get_multiple(cls, user, **kwargs):
         user_relation = kwargs.get('user_relation', None)
         username = kwargs.get('username', None)
+        with_mock_chroots = kwargs.get('with_mock_chroots')
 
         query = db.session.query(models.Copr).\
                            join(models.Copr.owner).\
@@ -38,6 +39,9 @@ class CoprsLogic(object):
                           filter(models.CoprPermission.copr_builder == helpers.PermissionEnum.num('approved')).\
                           join(aliased_user, models.CoprPermission.user).\
                           filter(aliased_user.openid_name == models.User.openidize_name(username))
+        if with_mock_chroots:
+            query = query.join(*models.Copr.mock_chroots.attr).\
+                          options(db.contains_eager(*models.Copr.mock_chroots.attr))
         return query
 
     @classmethod
