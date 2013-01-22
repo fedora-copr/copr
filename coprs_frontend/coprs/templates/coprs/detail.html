@@ -1,7 +1,5 @@
 {% extends "layout.html" %}
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
-{% from "coprs/detail/_build_forms.html" import copr_build_form,
-                                         copr_build_cancel_form with context %}
 
 {% block body %}
   <h1>{{ copr.owner.name }} / <strong>{{ copr.name }}</strong></h1>
