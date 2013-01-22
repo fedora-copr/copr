@@ -59,6 +59,8 @@ def copr_new():
     form = forms.CoprFormFactory.create_form_cls()()
     if form.validate_on_submit():
         copr = models.Copr(name = form.name.data,
+                           description = form.description.data,
+                           instructions = form.instructions.data,
                            repos = form.repos.data.replace('\n', ' '),
                            owner = flask.g.user,
                            created_on = int(time.time()))
@@ -154,6 +156,8 @@ def copr_update(username, coprname):
         # we don't change owner (yet)
         copr.name = form.name.data
         copr.repos = form.repos.data.replace('\n', ' ')
+        copr.description = form.description.data
+        copr.instructions = form.instructions.data
         coprs_logic.CoprsChrootLogic.update_from_names(flask.g.user, copr, form.selected_chroots)
 
         coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates

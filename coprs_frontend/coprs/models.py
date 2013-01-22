@@ -108,6 +108,8 @@ class Copr(db.Model, Serializer):
     name = db.Column(db.String(100), nullable = False)
     repos = db.Column(db.Text)
     created_on = db.Column(db.Integer)
+    description = db.Column(db.Text)
+    instructions = db.Column(db.Text)
     # duplicate information, but speeds up a lot and makes queries simpler
     build_count = db.Column(db.Integer, default = 0)
 
@@ -118,6 +120,14 @@ class Copr(db.Model, Serializer):
     @property
     def repos_list(self):
         return self.repos.split()
+
+    @property
+    def description_or_not_filled(self):
+        return self.description or 'Description not filled in by author.'
+
+    @property
+    def instructions_or_not_filled(self):
+        return self.instructions or 'Instructions not filled in by author.'
 
     @property
     def mock_chroots(self):

@@ -20,7 +20,7 @@
       {% for copr in coprs %}
         <div class="copr">
           <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">{{ copr.owner.name }}/{{ copr.name }}</a>
-	  <p>description blah blah blah</p>
+	  <p>{{ copr.description_or_not_filled }}</p>
           <p class="repos">F18 blah blah</p>
         </div>
       {% else %}

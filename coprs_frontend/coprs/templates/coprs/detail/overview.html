@@ -3,9 +3,9 @@
 
 {% block detail_body %}
   <h2>Description</h2>
-  <div class="shift-right">This is a description...</div>
+  <div class="shift-right">{{ copr.description_or_not_filled }}</div>
   <h2>Installation Instructions</h2>
-  <div class="shift-right">These are installation instructions...</div>
+  <div class="shift-right">{{ copr.instructions_or_not_filled}}</div>
   <h2>Active Releases</h2>
   <table class="releases">
     <tr>

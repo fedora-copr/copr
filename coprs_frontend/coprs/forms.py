@@ -75,6 +75,8 @@ class CoprFormFactory(object):
                                  validators = [wtf.Required(),
                                  wtf.Regexp(re.compile(r'^[\w.-]+$'), message='Name must contain only letters, digits, underscores, dashes and dots.'),
                                  CoprUniqueNameValidator()])
+            description = wtf.TextAreaField('Description')
+            instructions = wtf.TextAreaField('Instructions')
             repos = wtf.TextAreaField('Repos',
                                       validators = [UrlListValidator()],
                                       filters = [StringListFilter()])

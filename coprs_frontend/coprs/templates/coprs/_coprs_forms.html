@@ -7,6 +7,8 @@
       {{ form.csrf_token }}
       {{ render_field(form.id, hidden = True) }}
       {{ render_field(form.name, label='Copr Name') }}
+      {{ render_field(form.description, rows=5, cols=50) }}
+      {{ render_field(form.instructions, rows=5, cols=50) }}
       <dt class="field-label">Chroots</dt>
       {% if form._mock_chroots_error %}
         <p class="form-error">{{ form._mock_chroots_error }}</p>
@@ -20,9 +22,9 @@
           {% endfor %}
         </table>
       {% endfor %}
-      {{ render_field(form.repos, rows = 10, cols = 50) }}
+      {{ render_field(form.repos, rows=5, cols=50) }}
       {% if copr is none %}{# we're creating the copr, so display initial builds area #}
-        {{ render_field(form.initial_pkgs, rows = 10, cols = 50) }}
+        {{ render_field(form.initial_pkgs, rows=5, cols=50) }}
       {% endif %}
       <dt><input type="submit" value="{% if copr %}Update{% else %}Create{% endif %}"></dt>
     </dl>
