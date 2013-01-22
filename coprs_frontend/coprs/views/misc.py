@@ -61,6 +61,9 @@ def create_or_login(resp):
         db.session.commit()
     flask.flash(u'Welcome, {0}'.format(user.name))
     flask.g.user = user
+    redirect_to = oid.get_next_url()
+    if flask.request.url_root == oid.get_next_url():
+        return flask.redirect(flask.url_for('coprs_ns.coprs_by_owner', username=user.name))
     return flask.redirect(oid.get_next_url())
 
 
