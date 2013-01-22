@@ -66,7 +66,7 @@ def copr_new():
                            owner = flask.g.user,
                            created_on = int(time.time()))
         coprs_logic.CoprsLogic.new(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
-        coprs_logic.CoprChrootLogic.new_from_names(flask.g.user, copr, form.selected_chroots)
+        coprs_logic.CoprsChrootLogic.new_from_names(flask.g.user, copr, form.selected_chroots)
         db.session.commit()
         flask.flash('New copr was successfully created.')
 
@@ -157,7 +157,7 @@ def copr_update(username, coprname):
         # we don't change owner (yet)
         copr.name = form.name.data
         copr.repos = form.repos.data.replace('\n', ' ')
-        coprs_logic.CoprChrootLogic.update_from_names(flask.g.user, copr, form.selected_chroots)
+        coprs_logic.CoprsChrootLogic.update_from_names(flask.g.user, copr, form.selected_chroots)
 
         coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
         db.session.commit()

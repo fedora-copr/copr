@@ -105,7 +105,7 @@ class CoprsPermissionLogic(object):
     def delete(cls, user, copr_permission):
         db.session.delete(copr_permission)
 
-class CoprChrootLogic(object):
+class CoprsChrootLogic(object):
     @classmethod
     def mock_chroots_from_names(cls, user, names):
         db_chroots = models.MockChroot.query.all()
