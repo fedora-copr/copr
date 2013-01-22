@@ -18,10 +18,7 @@ from coprs.logic import coprs_logic
 @coprs_ns.route('/', defaults = {'page': 1})
 @coprs_ns.route('/<int:page>/')
 def coprs_show(page = 1):
-    if flask.g.user:
-        query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, user_relation='owned', username=flask.g.user.name)
-    else:
-        query = coprs_logic.CoprsLogic.get_multiple(flask.g.user)
+    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
