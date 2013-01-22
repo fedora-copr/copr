@@ -6,25 +6,27 @@
 {% block body %}
   <h1>{{ copr.owner.name }} / <strong>{{ copr.name }}</strong></h1>
   <div class="horizontal-menu">
-    <div class="{% block overview_selected %}unselected{% endblock %}">
-      <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">Overview</a>
-    </div>
-    <div class="{% block permissions_selected %}unselected{% endblock %}">
-      <a href="{{ url_for('coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name) }}">Permissions</a>
-    </div>
-    <div class="{% block builds_selected %}unselected{% endblock %}">
-      <a href="{{ url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name) }}">Builds</a>
-    </div>
-    {% if g.user and g.user.can_build_in(copr) %}
-      <div class="{% block new_build_selected %}unselected{% endblock %}">
-        <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">New Build</a>
-      </div>
-    {% endif %}
-    {% if g.user and g.user.can_edit(copr) %}
-      <div class="{% block edit_selected %}unselected{% endblock %}">
-        <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Edit</a>
-      </div>
-    {% endif %}
+    <ul>
+      <li class="{% block overview_selected %}unselected{% endblock %}">
+        <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">Overview</a>
+      </li>
+      <li class="{% block permissions_selected %}unselected{% endblock %}">
+        <a href="{{ url_for('coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name) }}">Permissions</a>
+      </li>
+      <li class="{% block builds_selected %}unselected{% endblock %}">
+        <a href="{{ url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name) }}">Builds</a>
+      </li>
+      {% if g.user and g.user.can_build_in(copr) %}
+        <li class="{% block new_build_selected %}unselected{% endblock %}">
+          <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">New Build</a>
+        </li>
+      {% endif %}
+      {% if g.user and g.user.can_edit(copr) %}
+        <li class="{% block edit_selected %}unselected{% endblock %}">
+          <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Edit</a>
+        </li>
+      {% endif %}
+    </ul>
   </div>
   {% block detail_body %}{% endblock %}
 {% endblock %}

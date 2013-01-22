@@ -7,5 +7,14 @@ $(document).ready(function () {
 
 // build detail menu arrow slider
 $(document).ready(function() {
-  $("div.horizontal-menu div a").hover(function() { $(this).toggleClass('pink-arrow'); });
+  $("div.horizontal-menu li").hover(
+    function() {
+      $("div.horizontal-menu li.selected").removeClass('selected').addClass('left-for-now');
+      $(this).toggleClass('hovered');
+    },
+    function() {
+      $("div.horizontal-menu li.left-for-now").removeClass('left-for-now').addClass('selected');
+      $(this).toggleClass('hovered');
+    }
+  );
 });
