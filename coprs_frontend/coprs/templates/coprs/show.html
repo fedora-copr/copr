@@ -23,7 +23,7 @@
 	  <p>{{ copr.description_or_not_filled }}</p>
 	  <p class="repos">
 	    {% for mock_chroot in copr.mock_chroots %}
-              {{ mock_chroot.os_release|os_name_short }}{{ mock_chroot.os_version }}.{{ mock_chroot.arch }}{% if not loop.last %}, {% endif %}
+              {{ mock_chroot.os_release|os_name_short(mock_chroot.os_version) }}.{{ mock_chroot.arch }}{% if not loop.last %}, {% endif %}
 	    {% endfor %}
 	  </p>
         </div>
