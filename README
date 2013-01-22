@@ -1,7 +1,7 @@
 This is the master copr branch.
-Right now all the work is going on in 2 branches:
- - skvidal-backend   - this is the backend/builder code
- - bkabrda-workspace - this is the frontend/webinterface code
+The project is currently divided in 2 parts:
+ - backend - this is the backend/builder code
+ - coprs_frontend - this is the frontend/webinterface code
 
 
 
@@ -20,3 +20,4 @@ Overview of use:
 - it retrieves the results and saves them into the results dir
 - it returns the build status and where to find the results to the front end
 
+copr project is licensed under GPLv2+ (see LICENSE file for details).
