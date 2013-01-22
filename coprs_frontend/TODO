@@ -1,9 +1,5 @@
 - Query optimization
-- More form validations?
-- It would be nice to be able to change allowed release arches dynamically by JS while creating/editing coprs
-- Convert all remaining forms into wtforms (login, etc)
 - Admin area (making users proven and admins)
 - Personal area (changing email)
-- Submitting first packages on copr creation
 - Sending emails with important info?
 - Logging
