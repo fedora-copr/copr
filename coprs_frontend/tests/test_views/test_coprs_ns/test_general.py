@@ -241,7 +241,7 @@ class TestCoprUpdate(CoprsTestCase):
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
 
-            self.db.session.add_all([self.u1, self.c1, self.mc2, self.mc3])
+            self.db.session.add_all([self.u1, self.c1, self.mc1, self.mc2, self.mc3])
             r = c.post('/coprs/detail/{0}/{1}/update/'.format(self.u1.name, self.c1.name),
                        data = {'name': self.c1.name, self.mc2.chroot_name: 'y', self.mc3.chroot_name: 'y', 'id': self.c1.id},
                        follow_redirects = True)

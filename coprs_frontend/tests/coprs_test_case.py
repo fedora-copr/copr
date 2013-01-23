@@ -75,6 +75,7 @@ class CoprsTestCase(object):
             cc4 = models.CoprChroot()
             cc4.mock_chroot = self.mc4
             self.c3.copr_chroots.append(cc4)
+            self.db.session.add_all([cc1, cc2, cc3, cc4])
 
         self.db.session.add_all([self.mc1, self.mc2, self.mc3, self.mc4])
         self.db.session.commit()
