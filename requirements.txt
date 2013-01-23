@@ -5,3 +5,5 @@ flask-sqlalchemy
 flask-openid
 flask-wtf
 alembic
+pytest
+flask-script
