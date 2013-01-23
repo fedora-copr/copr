@@ -1,0 +1,18 @@
+This file contains some "should" rules, that are good to follow.
+
+- coprs.logic
+-- The methods of *Logic objects should generally be @classmethod.
+-- The methods of *Logic objects should accept "user" as a second argument
+   (after the "cls" argument). This argument should contain object of user
+   who is performing the action.
+-- The methods of *Logic objects shouldn't call db.session.commit(). This
+   should be called in views that use the methods.
+-- The usual names of methods are (each of the methods can perform certain
+   checks, e.g. authorization, correct parameters, ...):
+--- "add" for creating objects and adding them to session
+--- "new" for just adding objects to session
+--- "get" for getting a query object for a single model object
+--- "get_multiple" for getting a query object for multiple model objects
+--- "edit" for editing objects and adding them to session
+--- "update" for just adding altered objects to session
+--- "delete" for deleting an object
