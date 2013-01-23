@@ -159,3 +159,8 @@ class CoprsChrootLogic(object):
                 models.CoprChroot.query.filter(models.CoprChroot.copr_id==copr.id).\
                                         filter(models.CoprChroot.mock_chroot_id==mock_chroot.id).\
                                         delete()
+            # TODO: fails because of
+            # http://docs.sqlalchemy.org/en/rel_0_7/orm/session.html#deleting-from-collections
+            # figure out how to overcome it nicely without having to commit the session
+            # (deleting the copr_chroot object from copr.copr_chroots doesn't seem to help)
+            db.session.commit()
