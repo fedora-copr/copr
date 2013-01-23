@@ -55,6 +55,21 @@ class BuildsLogic(object):
         return models.Build.query.filter(models.Build.id.in_(ids))
 
     @classmethod
+    def add_build(cls, user, pkgs, copr):
+        build = models.Build(
+            pkgs=pkgs,
+            copr=copr,
+            repos=copr.repos,
+            chroots=' '.join(map(
+                lambda x: x.chroot_name, copr.mock_chroots)
+                ),
+            user=user,
+            submitted_on=int(time.time()))
+        # no need to check for authorization here
+        cls.new(user, build, copr, check_authorized=False)
+        return build
+
+    @classmethod
     def new(cls, user, build, copr, check_authorized = True):
         if check_authorized:
             if not user.can_build_in(copr):

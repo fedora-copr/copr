@@ -1,3 +1,5 @@
+import time
+
 from coprs import db
 from coprs import exceptions
 from coprs import helpers
@@ -21,6 +23,20 @@ class CoprsLogic(object):
                           order_by(models.Build.submitted_on.desc())
 
         return query
+
+    @classmethod
+    def add_copr(cls, user, name, repos, selected_chroots, description, instructions):
+        copr = models.Copr(name=name,
+                           repos=repos,
+                           owner=user,
+                           description=description,
+                           instructions=instructions,
+                           created_on=int(time.time()))
+        CoprsLogic.new(user, copr,
+            check_for_duplicates=False) # form validation checks for duplicates
+        CoprsChrootLogic.new_from_names(user, copr,
+            selected_chroots)
+        return copr
 
     @classmethod
     def get_multiple(cls, user, **kwargs):

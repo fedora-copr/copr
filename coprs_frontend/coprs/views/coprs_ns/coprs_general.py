@@ -59,30 +59,27 @@ def copr_add():
 @coprs_ns.route('/new/', methods=['POST'])
 @login_required
 def copr_new():
+    """ Receive information from the user on how to create its new copr
+    and create it accordingly.
+    """
     form = forms.CoprFormFactory.create_form_cls()()
     if form.validate_on_submit():
-        copr = models.Copr(name = form.name.data,
-                           description = form.description.data,
-                           instructions = form.instructions.data,
-                           repos = form.repos.data.replace('\n', ' '),
-                           owner = flask.g.user,
-                           created_on = int(time.time()))
-        coprs_logic.CoprsLogic.new(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
-        coprs_logic.CoprsChrootLogic.new_from_names(flask.g.user, copr, form.selected_chroots)
+        copr = coprs_logic.CoprsLogic.add_copr(flask.g.user,
+                                               name=form.name.data,
+                                               repos=form.repos.data.replace('\n', ' '),
+                                               selected_chroots=form.selected_chroots,
+                                               description=form.description.data,
+                                               instructions=form.instructions.data)
         db.session.commit()
         flask.flash('New copr was successfully created.')
 
         if form.initial_pkgs.data:
-            build = models.Build(pkgs = form.initial_pkgs.data.replace('\n', ' '),
-                                 copr = copr,
-                                 repos = copr.repos,
-                                 chroots = ' '.join(map(lambda x: x.chroot_name, copr.mock_chroots)),
-                                 user = flask.g.user,
-                                 submitted_on = int(time.time()))
-            # no need to check for authorization here
-            builds_logic.BuildsLogic.new(flask.g.user, build, copr, check_authorized = False)
+            builds_logic.BuildsLogic.add_build(flask.g.user,
+                                               pkgs=form.initial_pkgs.data.replace('\n', ' '),
+                                               copr=copr)
             db.session.commit()
-            flask.flash('Initial packages were successfully submitted for building.')
+            flask.flash('Initial packages were successfully submitted '
+                        'for building.')
 
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=flask.g.user.name, coprname=copr.name))
     else:
