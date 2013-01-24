@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 
 from coprs import app
 
