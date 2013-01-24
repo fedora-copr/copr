@@ -25,20 +25,6 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def add_copr(cls, user, name, repos, selected_chroots, description, instructions):
-        copr = models.Copr(name=name,
-                           repos=repos,
-                           owner=user,
-                           description=description,
-                           instructions=instructions,
-                           created_on=int(time.time()))
-        CoprsLogic.new(user, copr,
-            check_for_duplicates=False) # form validation checks for duplicates
-        CoprsChrootLogic.new_from_names(user, copr,
-            selected_chroots)
-        return copr
-
-    @classmethod
     def get_multiple(cls, user, **kwargs):
         user_relation = kwargs.get('user_relation', None)
         username = kwargs.get('username', None)
@@ -59,6 +45,20 @@ class CoprsLogic(object):
             query = query.outerjoin(*models.Copr.mock_chroots.attr).\
                           options(db.contains_eager(*models.Copr.mock_chroots.attr))
         return query
+
+    @classmethod
+    def add(cls, user, name, repos, selected_chroots, description, instructions):
+        copr = models.Copr(name=name,
+                           repos=repos,
+                           owner=user,
+                           description=description,
+                           instructions=instructions,
+                           created_on=int(time.time()))
+        CoprsLogic.new(user, copr,
+            check_for_duplicates=False) # form validation checks for duplicates
+        CoprsChrootLogic.new_from_names(user, copr,
+            selected_chroots)
+        return copr
 
     @classmethod
     def new(cls, user, copr, check_for_duplicates = True):

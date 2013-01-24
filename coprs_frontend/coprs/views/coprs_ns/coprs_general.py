@@ -64,12 +64,12 @@ def copr_new():
     """
     form = forms.CoprFormFactory.create_form_cls()()
     if form.validate_on_submit():
-        copr = coprs_logic.CoprsLogic.add_copr(flask.g.user,
-                                               name=form.name.data,
-                                               repos=form.repos.data.replace('\n', ' '),
-                                               selected_chroots=form.selected_chroots,
-                                               description=form.description.data,
-                                               instructions=form.instructions.data)
+        copr = coprs_logic.CoprsLogic.add(flask.g.user,
+                                          name=form.name.data,
+                                          repos=form.repos.data.replace('\n', ' '),
+                                          selected_chroots=form.selected_chroots,
+                                          description=form.description.data,
+                                          instructions=form.instructions.data)
         db.session.commit()
         flask.flash('New copr was successfully created.')
 
