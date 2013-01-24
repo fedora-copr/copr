@@ -55,7 +55,7 @@ class BuildsLogic(object):
         return models.Build.query.filter(models.Build.id.in_(ids))
 
     @classmethod
-    def add_build(cls, user, pkgs, copr):
+    def add(cls, user, pkgs, copr):
         build = models.Build(
             pkgs=pkgs,
             copr=copr,

@@ -74,8 +74,8 @@ def copr_new():
         flask.flash('New copr was successfully created.')
 
         if form.initial_pkgs.data:
-            builds_logic.BuildsLogic.add_build(flask.g.user,
-                                               pkgs=form.initial_pkgs.data.replace('\n', ' '),
+            builds_logic.BuildsLogic.add(flask.g.user,
+                                         pkgs=form.initial_pkgs.data.replace('\n', ' '),
                                                copr=copr)
             db.session.commit()
             flask.flash('Initial packages were successfully submitted '
