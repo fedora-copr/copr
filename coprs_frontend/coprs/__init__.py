@@ -29,8 +29,9 @@ def lookup_current_user():
 def page_not_found(message):
     return flask.render_template('404.html', message = message), 404
 
-import coprs.models
 import coprs.filters
+import coprs.log
+import coprs.models
 
 from coprs.views import coprs_ns
 from coprs.views.coprs_ns import coprs_builds

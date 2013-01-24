@@ -1,3 +1,4 @@
+import logging
 import os
 
 class Config(object):
@@ -16,6 +17,10 @@ class Config(object):
 
     # Token length, defaults to 30, DB set to varchar 255
     API_TOKEN_LENGTH = 30
+
+    # logging options
+    SEND_LOGS_TO = []
+    LOGGING_LEVEL = logging.ERROR
 
 class ProductionConfig(Config):
     DEBUG = False
