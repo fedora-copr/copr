@@ -51,17 +51,13 @@ def copr_new_build(username, coprname):
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     if form.validate_on_submit() and flask.g.user.can_build_in(copr):
-        build = models.Build(pkgs = form.pkgs.data.replace('\n', ' '),
-                             copr = copr,
-                             chroots = ' '.join(map(lambda x: x.chroot_name, copr.mock_chroots)),
-                             repos = copr.repos,
-                             user = flask.g.user,
-                             submitted_on = int(time.time()))
+        build = builds_logic.BuildsLogic.add(user=flask.g.user,
+                                             pkgs=form.pkgs.data.replace('\n', ' '),
+                                             copr=copr) # we're checking authorization above for now
         if flask.g.user.proven:
             build.memory_reqs = form.memory_reqs.data
             build.timeout = form.timeout.data
 
-        builds_logic.BuildsLogic.new(flask.g.user, build, copr, check_authorized = False) # we're checking authorization above for now
         db.session.commit()
 
         flask.flash("Build was added")
