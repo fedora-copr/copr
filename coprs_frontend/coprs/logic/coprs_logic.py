@@ -56,7 +56,7 @@ class CoprsLogic(object):
                            created_on=int(time.time()))
         CoprsLogic.new(user, copr,
             check_for_duplicates=False) # form validation checks for duplicates
-        CoprsChrootLogic.new_from_names(user, copr,
+        CoprChrootsLogic.new_from_names(user, copr,
             selected_chroots)
         return copr
 
@@ -84,7 +84,7 @@ class CoprsLogic(object):
         models.Copr.query.filter(models.Copr.id == copr.id).\
                           update({models.Copr.build_count: models.Copr.build_count + 1})
 
-class CoprsPermissionLogic(object):
+class CoprPermissionsLogic(object):
     @classmethod
     def get(cls, user, copr, searched_user):
         query = models.CoprPermission.query.filter(models.CoprPermission.copr == copr).\
@@ -125,7 +125,7 @@ class CoprsPermissionLogic(object):
     def delete(cls, user, copr_permission):
         db.session.delete(copr_permission)
 
-class CoprsChrootLogic(object):
+class CoprChrootsLogic(object):
     @classmethod
     def mock_chroots_from_names(cls, user, names):
         db_chroots = models.MockChroot.query.all()

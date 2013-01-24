@@ -1,6 +1,8 @@
 This file contains some "should" rules, that are good to follow.
 
 - coprs.logic
+-- The *Logic objects should be named after the primary object that they
+   work with, but pluralized. E.g. CoprChroot->CoprChrootsLogic
 -- The methods of *Logic objects should generally be @classmethod.
 -- The methods of *Logic objects should accept "user" as a second argument
    (after the "cls" argument). This argument should contain object of user

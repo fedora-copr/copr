@@ -102,7 +102,7 @@ def copr_permissions(username, coprname):
     if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
-    permissions = coprs_logic.CoprsPermissionLogic.get_for_copr(flask.g.user, copr).all()
+    permissions = coprs_logic.CoprPermissionsLogic.get_for_copr(flask.g.user, copr).all()
     if flask.g.user:
         user_perm = flask.g.user.permissions_for_copr(copr)
     else:
@@ -158,7 +158,7 @@ def copr_update(username, coprname):
         copr.repos = form.repos.data.replace('\n', ' ')
         copr.description = form.description.data
         copr.instructions = form.instructions.data
-        coprs_logic.CoprsChrootLogic.update_from_names(flask.g.user, copr, form.selected_chroots)
+        coprs_logic.CoprChrootsLogic.update_from_names(flask.g.user, copr, form.selected_chroots)
 
         coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
         db.session.commit()
@@ -172,7 +172,7 @@ def copr_update(username, coprname):
 @login_required
 def copr_permissions_applier_change(username, coprname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    permission = coprs_logic.CoprsPermissionLogic.get(flask.g.user, copr, flask.g.user).first()
+    permission = coprs_logic.CoprPermissionsLogic.get(flask.g.user, copr, flask.g.user).first()
     applier_permissions_form = forms.PermissionsApplierFormFactory.create_form_cls(permission)()
 
     if not copr:
@@ -183,7 +183,7 @@ def copr_permissions_applier_change(username, coprname):
         # we rely on these to be 0 or 1 from form. TODO: abstract from that
         new_builder = applier_permissions_form.copr_builder.data
         new_admin = applier_permissions_form.copr_admin.data
-        coprs_logic.CoprsPermissionLogic.update_permissions_by_applier(flask.g.user, copr, permission, new_builder, new_admin)
+        coprs_logic.CoprPermissionsLogic.update_permissions_by_applier(flask.g.user, copr, permission, new_builder, new_admin)
         db.session.commit()
         flask.flash('Successfuly updated permissions do Copr "{0}".'.format(copr.name))
 
@@ -207,7 +207,7 @@ def copr_update_permissions(username, coprname):
         for perm in permissions:
             new_builder = permissions_form['copr_builder_{0}'.format(perm.user_id)].data
             new_admin = permissions_form['copr_admin_{0}'.format(perm.user_id)].data
-            coprs_logic.CoprsPermissionLogic.update_permissions(flask.g.user, copr, perm, new_builder, new_admin)
+            coprs_logic.CoprPermissionsLogic.update_permissions(flask.g.user, copr, perm, new_builder, new_admin)
 
         db.session.commit()
         flask.flash('Copr permissions were updated successfully.')
