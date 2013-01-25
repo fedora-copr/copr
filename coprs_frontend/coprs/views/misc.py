@@ -48,7 +48,10 @@ def login():
         if fasusername and ((app.config['USE_ALLOWED_USERS'] \
             and fasusername in app.config['ALLOWED_USERS']) \
             or not app.config['USE_ALLOWED_USERS']):
-            return oid.try_login('http://{0}.id.fedoraproject.org/'.format(fasusername), ask_for = ["email"])
+            ask_for = []
+            if not models.User.query.filter(models.User.openid_name==models.User.openidize_name(fasusername)).first():
+                ask_for.append('email')
+            return oid.try_login('http://{0}.id.fedoraproject.org/'.format(fasusername), ask_for=ask_for)
         else:
             return flask.render_template('login.html',
                             error='User "{0}" is not allowed'.format(
