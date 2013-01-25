@@ -18,17 +18,6 @@ else:
 oid = OpenID(app, app.config['OPENID_STORE'])
 db = SQLAlchemy(app)
 
-@app.before_request
-def lookup_current_user():
-    flask.g.user = None
-    if 'openid' in flask.session:
-        flask.g.user = models.User.query.filter(models.User.openid_name == flask.session['openid']).first()
-
-
-@app.errorhandler(404)
-def page_not_found(message):
-    return flask.render_template('404.html', message = message), 404
-
 import coprs.filters
 import coprs.log
 import coprs.models

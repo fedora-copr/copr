@@ -2,7 +2,7 @@ import time
 
 import flask
 
-from coprs import db, page_not_found
+from coprs import db
 from coprs import exceptions
 from coprs import forms
 from coprs import helpers
@@ -11,7 +11,7 @@ from coprs import models
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 
-from coprs.views.misc import login_required
+from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.coprs_ns import coprs_general
 
