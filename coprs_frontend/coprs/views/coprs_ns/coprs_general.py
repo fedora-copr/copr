@@ -17,8 +17,8 @@ from coprs.logic import coprs_logic
 
 @coprs_ns.route('/', defaults = {'page': 1})
 @coprs_ns.route('/<int:page>/')
-def coprs_show(page = 1):
-    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user)
+def coprs_show(page=1):
+    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, with_mock_chroots=True)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
@@ -27,7 +27,7 @@ def coprs_show(page = 1):
 
 @coprs_ns.route('/owned/<username>/', defaults = {'page': 1})
 @coprs_ns.route('/owned/<username>/<int:page>/')
-def coprs_by_owner(username = None, page = 1):
+def coprs_by_owner(username=None, page=1):
     query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
                                                 user_relation='owned',
                                                 username=username,
@@ -35,17 +35,20 @@ def coprs_by_owner(username = None, page = 1):
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return flask.render_template('coprs/show.html', coprs = coprs, paginator = paginator)
+    return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
 
 
 @coprs_ns.route('/allowed/<username>/', defaults = {'page': 1})
 @coprs_ns.route('/allowed/<username>/<int:page>/')
-def coprs_by_allowed(username = None, page = 1):
-    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, user_relation = 'allowed', username = username)
+def coprs_by_allowed(username=None, page=1):
+    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
+                                                user_relation='allowed',
+                                                username=username,
+                                                with_mock_chroots=True)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return flask.render_template('coprs/show.html', coprs = coprs, paginator = paginator)
+    return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
 
 
 @coprs_ns.route('/add/')
