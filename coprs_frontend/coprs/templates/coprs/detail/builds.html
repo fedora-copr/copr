@@ -5,7 +5,7 @@
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 
 {% block detail_body %}
-  {% if copr.builds %}
+  {% if builds %}
     {{ builds_table(builds) }}
     <div class="pagination">
       {{ render_pagination(request, paginator) }}
