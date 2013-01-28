@@ -160,3 +160,74 @@ class CoprChrootsLogic(object):
         for mock_chroot in current_chroots:
             if mock_chroot not in new_chroots:
                 copr.mock_chroots.remove(mock_chroot)
+
+class MockChrootsLogic(object):
+    @classmethod
+    def get(cls, user, os_release, os_version, arch, active_only = False):
+        return models.MockChroot.query.filter(models.MockChroot.os_release==os_release,
+                                              models.MockChroot.os_version==os_version,
+                                              models.MockChroot.arch==arch)
+
+    @classmethod
+    def get_multiple(cls, user, active_only=False):
+        query = models.MockChroot.query
+        if active_only:
+            query = query.filter(models.MockChroot.is_active==True)
+
+    @classmethod
+    def add(cls, user, name):
+        name_tuple = cls.tuple_from_name(user, name)
+        if cls.get(user, *name_tuple).first():
+            raise exceptions.DuplicateException('Mock chroot with this name already exists.')
+        new_chroot = models.MockChroot(os_release=name_tuple[0],
+                                       os_version=name_tuple[1],
+                                       arch=name_tuple[2])
+        cls.new(user, new_chroot)
+        return new_chroot
+
+    @classmethod
+    def new(cls, user, mock_chroot):
+        db.session.add(mock_chroot)
+
+    @classmethod
+    def edit_by_name(cls, user, name, is_active):
+        name_tuple = cls.tuple_from_name(user, name)
+        mock_chroot = cls.get(user, *name_tuple).first()
+        if not mock_chroot:
+            raise exceptions.NotFoundException('Mock chroot with this name doesn\'t exist.')
+
+        mock_chroot.is_active = is_active
+        cls.update(user, mock_chroot)
+        return mock_chroot
+
+    @classmethod
+    def update(cls, user, mock_chroot):
+        db.session.add(mock_chroot)
+
+
+    @classmethod
+    def delete_by_name(cls, user, name):
+        name_tuple = cls.tuple_from_name(user, name)
+        mock_chroot = cls.get(user, *name_tuple).first()
+        if not mock_chroot:
+            raise exceptions.NotFoundException('Mock chroot with this name doesn\'t exist.')
+
+        cls.delete(user, mock_chroot)
+
+    @classmethod
+    def delete(cls, user, mock_chroot):
+        db.session.delete(mock_chroot)
+
+    @classmethod
+    def tuple_from_name(cls, user, name):
+        split_name = name.rsplit('-')
+        if len(split_name) < 2:
+            raise exceptions.MalformedArgumentException(
+                    'Chroot Name doesn\'t contain dash, can\'t determine chroot architecure.')
+        if '-' in split_name[0]:
+            os_release, os_version = split_name[0].rsplit('-')
+        else:
+            os_release, os_version = split_name[0], ''
+
+        arch = split_name[1]
+        return (os_release, os_version, arch)

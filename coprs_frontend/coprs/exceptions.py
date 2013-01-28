@@ -4,6 +4,9 @@ class ArgumentMissingException(BaseException):
 class MalformedArgumentException(ValueError):
     pass
 
+class NotFoundException(BaseException):
+    pass
+
 class DuplicateException(BaseException):
     pass
 

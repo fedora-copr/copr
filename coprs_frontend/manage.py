@@ -5,7 +5,11 @@ import os
 import flask
 from flask.ext.script import Manager, Command, Option
 
-from coprs import app, db, models
+from coprs import app
+from coprs import db
+from coprs import exceptions
+from coprs import models
+from coprs.logic import coprs_logic
 
 class CreateSqliteFileCommand(Command):
     'Create the sqlite DB file (not the tables). Used for alembic, "create_db" does this automatically.'
@@ -63,37 +67,26 @@ class CreateChrootCommand(ChrootCommand):
     'Creates a mock chroot in DB'
     def run(self, chroot_names):
         for chroot_name in chroot_names:
-            split_chroot = chroot_name.split('-')
-            if len(split_chroot) < 3:
-                self.print_invalid_format(chroot_name)
-            elif models.MockChroot.get(*split_chroot):
-                self.print_already_exists(chroot_name)
-            else:
-                new_chroot = models.MockChroot(os_release=split_chroot[0],
-                                               os_version=split_chroot[1],
-                                               arch=split_chroot[2],
-                                               is_active=True)
-                db.session.add(new_chroot)
+            try:
+                coprs_logic.MockChrootsLogic.add(None, chroot_name)
                 db.session.commit()
+            except exceptions.MalformedArgumentException:
+                self.print_invalid_format(chroot_name)
+            except exceptions.DuplicateException:
+                self.print_already_exists(chroot_name)
 
 class AlterChrootCommand(ChrootCommand):
     'Activates or deactivates a chroot'
     def run(self, chroot_names, action):
+        activate = (action == 'activate')
         for chroot_name in chroot_names:
-            split_chroot = chroot_name.split('-')
-            if len(split_chroot) < 3:
-                self.print_invalid_format(chroot_name)
-            chroot = models.MockChroot.get(*split_chroot)
-            if not chroot:
-                self.print_doesnt_exist(chroot_name)
-            else:
-                if action == 'activate':
-                    chroot.is_active = True
-                else:
-                    chroot.is_active = False
-
-                db.session.add(chroot)
+            try:
+                coprs_logic.MockChrootsLogic.edit_by_name(None, chroot_name, activate)
                 db.session.commit()
+            except exceptions.MalformedArgumentException:
+                self.print_invalid_format(chroot_name)
+            except exceptions.NotFoundException:
+                self.print_doesnt_exist(chroot_name)
 
     option_list = ChrootCommand.option_list + (
             Option('--action',
@@ -108,23 +101,18 @@ class DropChrootCommand(ChrootCommand):
     'Activates or deactivates a chroot'
     def run(self, chroot_names):
         for chroot_name in chroot_names:
-            split_chroot = chroot_name.split('-')
-            if len(split_chroot) < 3:
-                self.print_invalid_format(chroot_name)
-            chroot = models.MockChroot.get(*split_chroot)
-            if not chroot:
-                self.print_doesnt_exist(chroot_name)
-            else:
-                db.session.delete(chroot)
+            try:
+                coprs_logic.MockChrootsLogic.delete_by_name(None, chroot_name)
                 db.session.commit()
+            except exceptions.MalformedArgumentException:
+                self.print_invalid_format(chroot_name)
+            except exceptions.NotFoundException:
+                self.print_doesnt_exist(chroot_name)
 
 class DisplayChrootsCommand(Command):
     'Displays current mock chroots'
     def run(self, active_only):
-        chroots = models.MockChroot.query
-        if active_only:
-            chroots = chroots.filter(models.MockChroot.is_active==True)
-        for ch in chroots:
+        for ch in coprs_logic.MockChrootsLogic.get_multiple(active_only=active_only):
             print ch.chroot_name
 
     option_list = (
