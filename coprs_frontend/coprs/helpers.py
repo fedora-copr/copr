@@ -1,8 +1,21 @@
 import math
+import random
+import string
 
 import flask
 
 from coprs import constants
+
+def generate_api_token(size=30):
+    """ Generate a random string used as token to access the API
+    remotely.
+
+    :kwarg: size, the size of the token to generate, defaults to 30
+        chars.
+    :return: a string, the API token for the user.
+    """
+    return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
+
 
 class PermissionEnum(object):
     vals = {'nothing': 0, 'request': 1, 'approved': 2}

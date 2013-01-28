@@ -1,6 +1,4 @@
 import datetime
-import random
-import string
 import time
 
 import flask
@@ -8,6 +6,7 @@ import flask
 from coprs import db
 from coprs import exceptions
 from coprs import forms
+from coprs import helpers
 
 from coprs.views.misc import login_required
 
@@ -15,18 +14,6 @@ from coprs.views.api_ns import api_ns
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
-
-
-def generate_api_token(size=30):
-    """ Generate a random string used as token to access the API
-    remotely.
-
-    :kwarg: size, the size of the token to generate, defaults to 30
-        chars.
-    :return: a string, the API token for the user.
-
-    """
-    return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
 
 
 @api_ns.route('/')
@@ -43,7 +30,7 @@ def api_new_token():
     """ Method use to generate a new API token for the current user.
     """
     user = flask.g.user
-    user.api_token = generate_api_token(flask.current_app.config['API_TOKEN_LENGTH'])
+    user.api_token = helpers.generate_api_token(flask.current_app.config['API_TOKEN_LENGTH'])
     user.api_token_expiration = datetime.date.today() \
         + datetime.timedelta(days=30)
     db.session.add(user)

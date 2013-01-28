@@ -8,6 +8,7 @@ from flask.ext.openid import OpenID
 from coprs import app
 from coprs import config
 from coprs import db
+from coprs import helpers
 from coprs import models
 from coprs import oid
 
@@ -56,7 +57,7 @@ def create_or_login(resp):
         expiration_date_token = datetime.date.today() \
             + datetime.timedelta(days=30)
         user = models.User(openid_name = resp.identity_url, mail = resp.email,
-            api_token = generate_api_token(app.config['API_TOKEN_LENGTH']),
+            api_token = helpers.generate_api_token(app.config['API_TOKEN_LENGTH']),
             api_token_expiration = expiration_date_token)
         db.session.add(user)
         db.session.commit()
