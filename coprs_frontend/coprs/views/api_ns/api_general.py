@@ -5,7 +5,6 @@ import time
 
 import flask
 
-from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import forms
@@ -44,7 +43,7 @@ def api_new_token():
     """ Method use to generate a new API token for the current user.
     """
     user = flask.g.user
-    user.api_token = generate_api_token(app.config['API_TOKEN_LENGTH'])
+    user.api_token = generate_api_token(flask.current_app.config['API_TOKEN_LENGTH'])
     user.api_token_expiration = datetime.date.today() \
         + datetime.timedelta(days=30)
     db.session.add(user)
