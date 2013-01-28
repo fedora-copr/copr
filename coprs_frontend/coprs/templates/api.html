@@ -17,14 +17,14 @@
     in order to ensure you are you every 30 days.
     </p>
 
-    {% if user %}
+    {% if g.user %}
     <p>Your information:</p>
     <pre style="font-size:120%">
-    API token       :   {{ user.api_token }}
-    Expiration date :   {{ user.api_token_expiration }}
+    API token       :   {{ g.user.api_token }}
+    Expiration date :   {{ g.user.api_token_expiration }}
     </pre>
 
-    <a href="{{ url_for('misc.api_new_token') }}">
+    <a href="{{ url_for('api_ns.api_new_token') }}">
         <input type="button" value="Generate a new token" />
     </a>
     {% else %}
