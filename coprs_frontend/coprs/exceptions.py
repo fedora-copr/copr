@@ -1,7 +1,10 @@
 class ArgumentMissingException(BaseException):
     pass
 
-class DuplicateCoprNameException(BaseException):
+class MalformedArgumentException(ValueError):
+    pass
+
+class DuplicateException(BaseException):
     pass
 
 class InsufficientRightsException(BaseException):

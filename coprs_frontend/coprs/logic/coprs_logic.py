@@ -64,14 +64,14 @@ class CoprsLogic(object):
     @classmethod
     def new(cls, user, copr, check_for_duplicates = True):
         if check_for_duplicates and cls.exists_for_current_user(user, copr.name).all():
-            raise exceptions.DuplicateCoprNameException(
+            raise exceptions.DuplicateException(
                 'Copr: "{0}" already exists'.format(copr.name))
         db.session.add(copr)
 
     @classmethod
     def update(cls, user, copr, check_for_duplicates = True):
         if check_for_duplicates and cls.exists_for_current_user(user, copr.name).all():
-            raise exceptions.DuplicateCoprNameException(
+            raise exceptions.DuplicateException(
                 'Copr: "{0}" already exists'.format(copr.name))
         db.session.add(copr)
 

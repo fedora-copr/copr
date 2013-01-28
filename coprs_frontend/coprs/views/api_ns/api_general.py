@@ -77,7 +77,7 @@ def api_new_copr():
 
             output = {'output': 'ok', 'message' : '\n'.join(infos)}
             db.session.commit()
-        except exceptions.DuplicateCoprNameException, err:
+        except exceptions.DuplicateException, err:
             output = {'output': 'notok', 'error': err}
             db.session.rollback()
 
