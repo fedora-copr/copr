@@ -1,7 +1,5 @@
 import datetime
 import functools
-import random
-import string
 
 import flask
 
@@ -25,17 +23,6 @@ def page_not_found(message):
 
 
 misc = flask.Blueprint('misc', __name__)
-
-def generate_api_token(size=30):
-    """ Generate a random string used as token to access the API
-    remotely.
-
-    :kwarg: size, the size of the token to generate, defaults to 30
-        chars.
-    :return: a string, the API token for the user.
-
-    """
-    return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
 
 
 @misc.route('/login/', methods=['GET', 'POST'])
