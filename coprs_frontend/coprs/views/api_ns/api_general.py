@@ -49,7 +49,6 @@ def api_new_token():
         + datetime.timedelta(days=30)
     db.session.add(user)
     db.session.commit()
-    flask.g.user = user
     return flask.redirect(flask.url_for('api_ns.api_home'))
 
 
