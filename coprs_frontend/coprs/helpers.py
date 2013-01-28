@@ -4,10 +4,6 @@ import flask
 
 from coprs import constants
 
-def chroots():
-    return ['{0}-{1}'.format(rel, arch) for rel, arches in constants.CHROOTS.items()
-                                            for arch in arches]
-
 class PermissionEnum(object):
     vals = {'nothing': 0, 'request': 1, 'approved': 2}
 
