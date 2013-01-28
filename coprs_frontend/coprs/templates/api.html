@@ -33,6 +33,48 @@
 
     <h3>The API</h3>
 
+    <h4>List someone's copr</h4>
+
+    <p>To list the coprs owned by someone one argument is required:</p>
+    <table>
+        <tr>
+            <th>name</th> <td>The name of the user you would to list the
+                copr of.</td>
+        </tr>
+    </table>
+    <p>URL will therefore look like:</p>
+    <pre style="font-size:120%">
+    /list/&lt;username&gt;/
+    </pre>
+
+    <h4>Add a new copr</h4>
+
+    <p><span style="font-style:italic">Login required</span></p>
+
+    <p>To add a new copr some informations are required:</p>
+    <table>
+        <tr>
+            <th>name</th> <td>The name of the copr to create.</td>
+        </tr><tr>
+            <th>chroots</th> <td>A comma separated list of chroots to
+                use in the copr.</td>
+        </tr><tr>
+            <th>repos</th> <td>A comma separated list of repositories
+                that this new copr should have access to.</td>
+        </tr><tr>
+            <th>initial_pkgs</th> <td>A comma separated list of initial
+                packages to build in this new copr.</td>
+        </tr>
+    </table>
+
+    <p>URL will therefore look like:</p>
+    <pre style="font-size:120%">
+    /add/&lt;name&gt;/&lt;chroots&gt;/
+    /add/&lt;name&gt;/&lt;chroots&gt;/&lt;repos&gt;/
+    /add/&lt;name&gt;/&lt;chroots&gt;/&lt;repos&gt;/&lt;initial_pkgs&gt;/
+    </pre>
+
+
     <p>To come here, more information about the API itself.</p>
 
   </div>

@@ -119,22 +119,3 @@ def backend_authenticated(f):
             return 'You have to provide the correct password', 401
         return f(*args, **kwargs)
     return decorated_function
-
-
-@misc.route('/api/')
-def api():
-    return flask.render_template('api.html',
-                                 user=flask.g.user)
-
-
-@misc.route('/api/new/', methods = ["GET", "POST"])
-@login_required
-def api_new_token():
-    user = flask.g.user
-    user.api_token = generate_api_token(app.config['API_TOKEN_LENGTH'])
-    user.api_token_expiration = datetime.date.today() \
-        + datetime.timedelta(days=30)
-    db.session.add(user)
-    db.session.commit()
-    flask.g.user = user
-    return flask.redirect(flask.url_for('misc.api'))
