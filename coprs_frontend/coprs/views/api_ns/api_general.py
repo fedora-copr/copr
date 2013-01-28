@@ -89,18 +89,18 @@ def api_new_copr():
                 infos.append('Initial packages were successfully submitted '
                         'for building.')
 
-            output = '{"output" : "ok", "message" : "%s"}' % ("\n".join(infos))
+            output = {'output': 'ok', 'message' : '\n'.join(infos)}
             db.session.commit()
         except exceptions.DuplicateCoprNameException, err:
-            output = '{"output": "notok", "error": "%s"}' % err
+            output = {'output': 'notok', 'error': err}
             db.session.rollback()
 
     else:
         errormsg = "\n".join(form.errors['name'])
         errormsg = errormsg.replace('"', "'")
-        output = '{"output": "notok", "error": "%s"}' % errormsg
+        output = {'output': 'notok', 'error': errormsg}
 
-    return flask.Response(output, mimetype='application/json')
+    return flask.jsonify(output)
 
 
 @api_ns.route('/owned/')
