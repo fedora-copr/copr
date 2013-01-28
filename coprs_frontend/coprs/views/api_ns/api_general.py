@@ -90,31 +90,28 @@ def api_new_copr():
 
 
 @api_ns.route('/owned/')
-def api_list_copr():
+@api_ns.route('/owned/<username>/')
+def api_coprs_by_owner(username=None):
     """ Return the list of coprs owned by the given user.
+    username is taken either from GET params or from the URL itself
+    (in this order).
 
     :arg username: the username of the person one would like to the
         coprs of.
 
     """
-    if 'username' in flask.request.args:
-        username = flask.request.args['username']
+    username = flask.request.args.get('username', None) or username
+    if 'username':
         query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
-            user_relation = 'owned', username = username)
+            user_relation='owned', username=username)
         repos = query.all()
-        output = '{"output": "ok",\n"repos":[\n'
-        for cnt, repo in enumerate(repos):
-            output += '{'\
-            '"name" : "%s", '\
-            '"repos" : "%s", '\
-            '"description": "%s", '\
-            '"instructions": "%s" '\
-            '}\n' % (repo.name, repo.repos, repo.description,
-                repo.instructions)
-            if cnt < len(repos):
-                output += ','
-        output += "]}\n"
+        output = {'output': 'ok', 'repos': []}
+        for repo in repos:
+            output['repos'].append({'name': repo.name,
+                                    'repos': repo.repos,
+                                    'description': repo.description,
+                                    'instructions': repo.instructions})
     else:
-        output = '{"output": "notok", "error": "Invalid request"}'
+        output = {'output': 'notok', 'error': 'Invalid request'}
 
-    return flask.Response(output, mimetype='application/json')
+    return flask.jsonify(output)
