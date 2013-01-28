@@ -47,7 +47,8 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def add(cls, user, name, repos, selected_chroots, description, instructions):
+    def add(cls, user, name, repos, selected_chroots, description,
+        instructions, check_for_duplicates=False):
         copr = models.Copr(name=name,
                            repos=repos,
                            owner=user,
@@ -55,21 +56,23 @@ class CoprsLogic(object):
                            instructions=instructions,
                            created_on=int(time.time()))
         CoprsLogic.new(user, copr,
-            check_for_duplicates=False) # form validation checks for duplicates
+            check_for_duplicates=check_for_duplicates) # form validation checks for duplicates
         CoprChrootsLogic.new_from_names(user, copr,
             selected_chroots)
         return copr
 
     @classmethod
     def new(cls, user, copr, check_for_duplicates = True):
-        if check_for_duplicates and cls.exists_for_current_user(user, copr.name):
-            raise exceptions.DuplicateCoprNameException
+        if check_for_duplicates and cls.exists_for_current_user(user, copr.name).all():
+            raise exceptions.DuplicateCoprNameException(
+                'Copr: "{0}" already exists'.format(copr.name))
         db.session.add(copr)
 
     @classmethod
     def update(cls, user, copr, check_for_duplicates = True):
-        if check_for_duplicates and cls.exists_for_current_user(user, copr.name):
-            raise exceptions.DuplicateCoprNameException
+        if check_for_duplicates and cls.exists_for_current_user(user, copr.name).all():
+            raise exceptions.DuplicateCoprNameException(
+                'Copr: "{0}" already exists'.format(copr.name))
         db.session.add(copr)
 
     @classmethod
