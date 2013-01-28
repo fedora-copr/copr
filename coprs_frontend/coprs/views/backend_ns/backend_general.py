@@ -39,4 +39,4 @@ def update_builds():
 
     db.session.commit()
 
-    return flask.json.dumps({'updated_builds_ids': list(existing.keys()), 'non_existing_builds_ids': non_existing_ids})
+    return flask.jsonify({'updated_builds_ids': list(existing.keys()), 'non_existing_builds_ids': non_existing_ids})
