@@ -72,8 +72,7 @@ def api_new_copr():
         try:
             copr = coprs_logic.CoprsLogic.add(
                 name=form.name.data.strip(),
-                repos=" ".join([repo.strip()
-                    for repo in form.repos.data.split(',')]),
+                repos=" ".join(form.repos.data.split()),
                 user=flask.g.user,
                 selected_chroots=form.selected_chroots,
                 description=form.description.data,
@@ -84,8 +83,7 @@ def api_new_copr():
 
             if form.initial_pkgs.data:
                 builds_logic.BuildsLogic.add_build(
-                    pkgs=" ".join([pkg.strip()
-                        for pkg in form.initial_pkgs.data.split(',')]),
+                    pkgs=" ".join(form.initial_pkgs.data.split()),
                     copr=copr,
                     owner=flask.g.user)
                 infos.append('Initial packages were successfully submitted '

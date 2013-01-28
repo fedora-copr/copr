@@ -88,10 +88,10 @@ class AddCopr(Command):
 
         repos = None
         if args.repos:
-            repos = ",".join(args.repos)
+            repos = ' '.join(args.repos)
         initial_pkgs = None
         if args.initial_pkgs:
-            initial_pkgs = ",".join(args.initial_pkgs)
+            initial_pkgs = ' '.join(args.initial_pkgs)
         data = {'name': args.name,
                 'repos': repos,
                 'initial_pkgs': initial_pkgs,
