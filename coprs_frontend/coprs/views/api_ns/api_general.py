@@ -117,8 +117,7 @@ def api_list_copr():
             user_relation = 'owned', username = username)
         repos = query.all()
         output = '{"output": "ok",\n"repos":[\n'
-        cnt = 0
-        for repo in repos:
+        for cnt, repo in enumerate(repos):
             output += '{'\
             '"name" : "%s", '\
             '"repos" : "%s", '\
@@ -126,7 +125,6 @@ def api_list_copr():
             '"instructions": "%s" '\
             '}\n' % (repo.name, repo.repos, repo.description,
                 repo.instructions)
-            cnt = cnt + 1
             if cnt < len(repos):
                 output += ','
         output += "]}\n"
