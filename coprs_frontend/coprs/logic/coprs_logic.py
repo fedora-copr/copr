@@ -221,7 +221,7 @@ class MockChrootsLogic(object):
 
     @classmethod
     def tuple_from_name(cls, user, name):
-        split_name = name.rsplit('-')
+        split_name = name.rsplit('-', 1)
         if len(split_name) < 2:
             raise exceptions.MalformedArgumentException(
                     'Chroot Name doesn\'t contain dash, can\'t determine chroot architecure.')
