@@ -173,6 +173,7 @@ class MockChrootsLogic(object):
         query = models.MockChroot.query
         if active_only:
             query = query.filter(models.MockChroot.is_active==True)
+        return query
 
     @classmethod
     def add(cls, user, name):

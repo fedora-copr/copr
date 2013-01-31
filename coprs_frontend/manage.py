@@ -112,7 +112,7 @@ class DropChrootCommand(ChrootCommand):
 class DisplayChrootsCommand(Command):
     'Displays current mock chroots'
     def run(self, active_only):
-        for ch in coprs_logic.MockChrootsLogic.get_multiple(active_only=active_only):
+        for ch in coprs_logic.MockChrootsLogic.get_multiple(None, active_only=active_only).all():
             print ch.chroot_name
 
     option_list = (

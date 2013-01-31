@@ -14,10 +14,12 @@ def perm_type_from_num(num):
 # this should probably be stored in DB with the whole mock_chroot...
 @app.template_filter('os_name_short')
 def os_name_short(os_name, os_version):
-    if os_version == 'rawhide':
-        return os_version
-    if os_name == 'fedora':
-        return 'fc.{0}'.format(os_version)
-    elif os_name == 'epel':
-        return 'el{0}'.format(os_version)
+    # TODO: make it models.MockChroot method or not?
+    if os_version:
+        if os_version == 'rawhide':
+            return os_version
+        if os_name == 'fedora':
+            return 'fc.{0}'.format(os_version)
+        elif os_name == 'epel':
+            return 'el{0}'.format(os_version)
     return os_name
