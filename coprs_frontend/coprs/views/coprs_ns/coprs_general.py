@@ -1,6 +1,7 @@
 import time
 
 import flask
+import sqlalchemy
 
 from coprs import db
 from coprs import exceptions
@@ -90,9 +91,11 @@ def copr_new():
 
 @coprs_ns.route('/detail/<username>/<coprname>/')
 def copr_detail(username, coprname):
-    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
-    copr = query.first()
-    if not copr:
+    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_mock_chroots=True)
+    try:
+        print dir(db)
+        copr = query.one()
+    except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     return flask.render_template('coprs/detail/overview.html',

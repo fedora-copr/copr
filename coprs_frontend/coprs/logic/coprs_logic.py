@@ -10,6 +10,7 @@ class CoprsLogic(object):
     @classmethod
     def get(cls, user, username, coprname, **kwargs):
         with_builds = kwargs.get('with_builds', False)
+        with_mock_chroots = kwargs.get('with_mock_chroots', False)
 
         query = db.session.query(models.Copr).\
                            join(models.Copr.owner).\
@@ -21,6 +22,9 @@ class CoprsLogic(object):
             query = query.outerjoin(models.Copr.builds).\
                           options(db.contains_eager(models.Copr.builds)).\
                           order_by(models.Build.submitted_on.desc())
+        if with_mock_chroots:
+            query = query.outerjoin(*models.Copr.mock_chroots.attr).\
+                          options(db.contains_eager(*models.Copr.mock_chroots.attr))
 
         return query
 
