@@ -255,6 +255,27 @@ class TestCoprUpdate(CoprsTestCase):
             assert self.mc3.chroot_name in mock_chroots_names
             assert self.mc1.chroot_name not in mock_chroots_names
 
+    def test_update_deletes_multiple_chroots(self, f_users, f_coprs, f_copr_permissions, f_mock_chroots):
+        # https://fedorahosted.org/copr/ticket/42
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u2, self.c2, self.mc1])
+            # add one more mock_chroot, so that we can remove two
+            cc = self.models.CoprChroot()
+            cc.mock_chroot = self.mc1
+            self.c2.copr_chroots.append(cc)
+
+            r = c.post('/coprs/detail/{0}/{1}/update/'.format(self.u2.name, self.c2.name),
+                       data = {'name': self.c2.name, self.mc1.chroot_name: 'y', 'id': self.c2.id},
+                       follow_redirects = True)
+            assert 'Copr was updated successfully' in r.data
+            self.db.session.add_all([self.c2, self.mc1])
+            mock_chroots = self.models.MockChroot.query.join(self.models.CoprChroot).\
+                                                        filter(self.models.CoprChroot.copr_id==\
+                                                               self.c2.id).all()
+            assert len(mock_chroots) == 1
 
 class TestCoprApplyForPermissions(CoprsTestCase):
     def test_apply(self, f_users, f_coprs):
