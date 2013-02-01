@@ -174,8 +174,6 @@ class Worker(multiprocessing.Process):
         jobdata.destdir = self.opts.destdir + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'] + '/'
         jobdata.build_id = build['id']
         jobdata.results = self.opts.results_baseurl + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'] + '/'
-        # add the results dir to the jobdata.repos
-        jobdata.repos.append(jobdata.results)
         jobdata.copr_id = build['copr']['id']
         jobdata.user_id = build['user_id']
         jobdata.user_name = build['copr']['owner']['name']
@@ -296,10 +294,12 @@ class Worker(multiprocessing.Process):
                 self.callback.log('Starting build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id,ip, job.timeout, job.destdir, chroot, str(job.repos)))
                 self.callback.log('building pkgs: %s' % ' '.join(job.pkgs))
                 try:
+                    chroot_repos = list(job.repos)
+                    chroot_repos.append(job.results + '/' + chroot)
                     chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
                          destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
-                         repos=job.repos, 
+                         repos=chroot_repos,
                          callback=mockremote.CliLogCallBack(quiet=True,logfn=chrootlogfile))
                     mr.build_pkgs(job.pkgs)
                 except mockremote.MockRemoteError, e:
