@@ -6,7 +6,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from coprs import constants
 from coprs import db
 from coprs import helpers
-from coprs import sql_types
+from coprs import sql_custom
 
 class Serializer(object):
     def to_dict(self, options = {}):
@@ -108,6 +108,8 @@ class User(db.Model, Serializer):
 
 
 class Copr(db.Model, Serializer):
+    query_class = sql_custom.FullTextQuery
+
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(100), nullable = False)
     repos = db.Column(db.Text)
@@ -117,7 +119,7 @@ class Copr(db.Model, Serializer):
     # duplicate information, but speeds up a lot and makes queries simpler
     build_count = db.Column(db.Integer, default = 0)
     # fulltext
-    copr_ts_col = db.Column(sql_types.Tsvector)
+    copr_ts_col = db.Column(sql_custom.Tsvector)
     copr_ts_idx = db.Index('copr_ts_col', postgresql_using='gin')
 
     # relations
@@ -137,7 +139,8 @@ class Copr(db.Model, Serializer):
     def instructions_or_not_filled(self):
         return self.instructions or 'Instructions not filled in by author.'
 
-# fulltext search trigger for copr
+### fulltext search trigger for copr
+# postgres
 sqlalchemy.event.listen(
     Copr.__table__,
     'after_create',
@@ -146,6 +149,35 @@ sqlalchemy.event.listen(
          FOR EACH ROW EXECUTE PROCEDURE \
          tsvector_update_trigger(copr_ts_col, 'pg_catalog.english', name, description, instructions);").\
          execute_if(dialect='postgresql')
+)
+
+# sqlite
+sqlalchemy.event.listen(
+    Copr.__table__,
+    'after_create',
+    sqlalchemy.schema.DDL("CREATE TRIGGER copr_ts_update \
+                          AFTER UPDATE OF name, description, instructions \
+                          ON copr \
+                          FOR EACH ROW \
+                          BEGIN \
+                          UPDATE copr SET copr_ts_col = coalesce(name, '') || ' ' || \
+                          coalesce(description, '') || ' ' || coalesce(instructions, ''); \
+                          END;").\
+                          execute_if(dialect='sqlite')
+)
+
+sqlalchemy.event.listen(
+    Copr.__table__,
+    'after_create',
+    sqlalchemy.schema.DDL("CREATE TRIGGER copr_ts_insert \
+                          AFTER INSERT \
+                          ON copr \
+                          FOR EACH ROW \
+                          BEGIN \
+                          UPDATE copr SET copr_ts_col = coalesce(name, '') || ' ' || \
+                          coalesce(description, '') || ' ' || coalesce(instructions, ''); \
+                          END;").\
+                          execute_if(dialect='sqlite')
 )
 
 class CoprPermission(db.Model, Serializer):

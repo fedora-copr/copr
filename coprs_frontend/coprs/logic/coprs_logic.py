@@ -52,7 +52,7 @@ class CoprsLogic(object):
 
     @classmethod
     def get_multiple_fulltext(cls, user, search_string):
-        query = models.Copr.query.filter(models.Copr.copr_ts_col.match(search_string))
+        query = models.Copr.query.fulltext(models.Copr.copr_ts_col, search_string)
         return query
 
     @classmethod
