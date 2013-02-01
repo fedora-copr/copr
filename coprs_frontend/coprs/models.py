@@ -1,10 +1,12 @@
 import datetime
 
+import sqlalchemy
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from coprs import constants
 from coprs import db
 from coprs import helpers
+from coprs import sql_types
 
 class Serializer(object):
     def to_dict(self, options = {}):
@@ -114,6 +116,9 @@ class Copr(db.Model, Serializer):
     instructions = db.Column(db.Text)
     # duplicate information, but speeds up a lot and makes queries simpler
     build_count = db.Column(db.Integer, default = 0)
+    # fulltext
+    copr_ts_col = db.Column(sql_types.Tsvector)
+    copr_ts_idx = db.Index('copr_ts_col', postgresql_using='gin')
 
     # relations
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -131,6 +136,17 @@ class Copr(db.Model, Serializer):
     @property
     def instructions_or_not_filled(self):
         return self.instructions or 'Instructions not filled in by author.'
+
+# fulltext search trigger for copr
+sqlalchemy.event.listen(
+    Copr.__table__,
+    'after_create',
+    sqlalchemy.schema.DDL("CREATE TRIGGER copr_ts_update BEFORE INSERT OR UPDATE \
+         ON copr \
+         FOR EACH ROW EXECUTE PROCEDURE \
+         tsvector_update_trigger(copr_ts_col, 'pg_catalog.english', name, description, instructions);").\
+         execute_if(dialect='postgresql')
+)
 
 class CoprPermission(db.Model, Serializer):
     # 0 = nothing, 1 = asked for, 2 = approved
