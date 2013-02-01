@@ -511,11 +511,12 @@ class MockRemote(object):
                     self.callback.log("Success building %s" % os.path.basename(pkg))
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
-                    rc, out, err = createrepo(self.destdir)
-                    if err.strip():
-                        self.callback.error("Error making local repo: %s" % self.destdir)
-                        self.callback.error("%s" % err)
-                        #FIXME - maybe clean up .repodata and .olddata here?
+                    for d in [self.destdir + self.destdir + '/' + self.chroot]
+                        rc, out, err = createrepo(d)
+                        if err.strip():
+                            self.callback.error("Error making local repo: %s" % d)
+                            self.callback.error("%s" % err)
+                            #FIXME - maybe clean up .repodata and .olddata here?
                         
             if self.failed:
                 if len(self.failed) != len(to_be_built):
