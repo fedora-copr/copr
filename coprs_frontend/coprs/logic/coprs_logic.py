@@ -51,6 +51,11 @@ class CoprsLogic(object):
         return query
 
     @classmethod
+    def get_multiple_fulltext(cls, user, search_string):
+        query = models.Copr.query.filter(models.Copr.copr_ts_col.match(search_string))
+        return query
+
+    @classmethod
     def add(cls, user, name, repos, selected_chroots, description,
         instructions, check_for_duplicates=False):
         copr = models.Copr(name=name,
