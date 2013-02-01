@@ -17,6 +17,9 @@
     {% if g.user %}
       <div class="add-copr">+ <a href={{ url_for('coprs_ns.copr_add') }}>add a new Copr</a></div>
     {% endif %}
+    {% if fulltext %}
+      <div class="search-results">Displaying results for search "{{ fulltext }}"</div>
+    {% endif %}
       {% for copr in coprs %}
         <div class="copr">
           <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">{{ copr.owner.name }}/{{ copr.name }}</a>
@@ -30,8 +33,8 @@
       {% else %}
         <p>No coprs...</p>
       {% endfor %}
-    <div class="pagination">
-      {{ render_pagination(request, paginator) }}
-    </div>
+      <div class="pagination">
+      	{{ render_pagination(request, paginator) }}
+      </div>
   </div>
 {% endblock %}

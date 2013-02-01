@@ -137,6 +137,11 @@ div.copr .repos {
   color: #808080;
 }
 
+div.search-results {
+  font-size: 1.3em;
+  text-align: center;
+}
+
 div.add-copr {
   background-color: #ececec;
   padding: 0.5em;
