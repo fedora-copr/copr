@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy import types
 from sqlalchemy.ext import compiler
 
@@ -19,6 +20,6 @@ def compile_tsvector(element, compiler, **kw):
 class FullTextQuery(db.Query):
     def fulltext(self, column, search_string):
         if db.engine.dialect.name == 'postgresql':
-            return self.filter(column.match(search_string))
+            return self.filter(column.op('@@@')(func.plainto_tsquery(search_string)))
         else:
             return self.filter(column.like('%{0}%'.format(search_string)))
