@@ -22,10 +22,10 @@ def upgrade():
 
     session = sa.orm.sessionmaker(bind=op.get_bind())()
     metadata = sa.MetaData()
-    op.execute("UPDATE copr \
-                SET copr_ts_col = to_tsvector('pg_catalog.english', coalesce(name, '') || ' ' || \
-                    coalesce(description, '') || ' ' || coalesce(instructions, ''))")
     if op.get_bind().dialect.name == 'postgresql':
+        op.execute("UPDATE copr \
+                    SET copr_ts_col = to_tsvector('pg_catalog.english', coalesce(name, '') || ' ' || \
+                        coalesce(description, '') || ' ' || coalesce(instructions, ''))")
         # no need to coalesce here, the trigger doesn't need it
         op.execute("CREATE TRIGGER copr_ts_update BEFORE INSERT OR UPDATE \
                     ON copr \
