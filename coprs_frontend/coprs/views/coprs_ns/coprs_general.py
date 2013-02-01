@@ -93,7 +93,6 @@ def copr_new():
 def copr_detail(username, coprname):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_mock_chroots=True)
     try:
-        print dir(db)
         copr = query.one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
