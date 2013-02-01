@@ -58,14 +58,17 @@ div.login, div.login a {
   font-weight: bold;
   text-decoration: none;
   line-height: 250%;
+  text-align: right;
 
   position: relative;
   float: right;
+  margin-left: 0.3em;
 }
 
 div.login .text {
   font-weight: normal;
 }
+
 
 div.page, div.menu-inner {
   width: 780px;
@@ -221,6 +224,15 @@ dt.field-label {
 
 input.rounded {
   padding-left: 4px;
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+}
+
+input.fulltext-submit {
+  color: white;
+  font-weight: bold;
+  background-color: #3d69a8;
   border-radius: 10px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;

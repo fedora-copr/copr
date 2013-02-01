@@ -16,7 +16,10 @@
       {% else %}
         <div><a href="{{ url_for('misc.login') }}">log in</a></div>
       {% endif %}
-        <input class="rounded" type="text" name="search_text">
+      <form method="get" action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
+        <input class="rounded" type="text" name="fulltext">
+	<input class="fulltext-submit" type="submit" value="search">
+      </form>
     </div>
   </div>
 </div>
