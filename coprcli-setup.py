@@ -30,6 +30,7 @@ requires = [
 subcommands = [
     'list = copr_cli.subcommands:List',
     'add-copr = copr_cli.subcommands:AddCopr',
+    'build-copr = copr_cli.subcommands:Build',
 ]
 
 __name__ = 'copr-cli'

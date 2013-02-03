@@ -109,3 +109,40 @@ class AddCopr(Command):
             print output['message']
         else:
             print 'Something went wrong:\n  {0}'.format(output['error'])
+
+
+class Build(Command):
+    """ Build a new package into a given copr. """
+
+    log = logging.getLogger(__name__)
+
+    def get_parser(self, prog_name):
+        parser = super(type(self), self).get_parser(prog_name)
+        parser.add_argument('copr')
+        parser.add_argument('pkgs', nargs='+', action='append')
+        parser.add_argument('--memory', dest='memory',
+                            help="")
+        parser.add_argument('--timeout', dest='timeout',
+                            help="")
+        return parser
+
+    def take_action(self, args):
+        user = set_user()
+        URL = '{0}/coprs/detail/{1}/{2}/new_build/'.format(
+            copr_api_url,
+            user['username'],
+            args.copr)
+
+        data = {'pkgs': ' '.join(args.pkgs[0]),
+                'memory': args.memory,
+                'timeout': args.timeout
+                }
+
+        req = requests.post(URL,
+                            auth=(user['username'], user['token']),
+                            data=data)
+        output = json.loads(req.text)
+        if req.status_code != 200:
+            print 'Something went wrong:\n  {0}'.format(output['error'])
+        else:
+            print output['message']
