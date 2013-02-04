@@ -19,7 +19,7 @@ def set_user():
     """ Retrieve the user information from the config file. """
     config = ConfigParser.ConfigParser()
     config.read(os.path.join(os.path.expanduser('~'), '.config',
-        'copr'))
+                'copr'))
     username = config.get('copr-cli', 'username', None)
     token = config.get('copr-cli', 'token', None)
     return {'username': username, 'token': token}
@@ -53,7 +53,7 @@ class List(cliff.lister.Lister):
             else:
                 columns = ['output']
                 values = ['No copr retrieved for user: "{0}"'.format(
-                            user['username'])]
+                    user['username'])]
                 return (columns, [values])
         else:
             columns = ['output']
@@ -97,7 +97,7 @@ class AddCopr(Command):
                 'initial_pkgs': initial_pkgs,
                 'description': args.description,
                 'instructions': args.instructions
-        }
+                }
         for chroot in args.chroots:
             data[chroot] = 'y'
 
