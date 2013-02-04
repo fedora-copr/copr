@@ -126,3 +126,38 @@ def api_coprs_by_owner(username=None):
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
+
+
+@api_ns.route('/coprs/detail/<username>/<coprname>/new_build/',
+    methods = ["POST"])
+@login_required
+def copr_new_build(username, coprname):
+    form = forms.BuildForm()
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    httpcode = 200
+    if not copr:
+        output = {'output': 'notok', 'error':
+            'Copr with name {0} does not exist.'.format(coprname)}
+        httpcode = 500
+
+    else:
+        if form.validate_on_submit() and flask.g.user.can_build_in(copr):
+            # we're checking authorization above for now
+            build = builds_logic.BuildsLogic.add(user=flask.g.user,
+                pkgs=form.pkgs.data.replace('\n', ' '), copr=copr)
+
+            if flask.g.user.proven:
+                build.memory_reqs = form.memory_reqs.data
+                build.timeout = form.timeout.data
+
+            db.session.commit()
+
+            output = {'output': 'ok', 'message':
+                'Build was added to {0}.'.format(coprname)}
+        else:
+            output = {'output': 'notok', 'error': 'Invalid request'}
+            httpcode = 500
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
