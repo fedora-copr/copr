@@ -127,6 +127,10 @@ class Copr(db.Model, Serializer):
     owner = db.relationship('User', backref = db.backref('coprs'))
     mock_chroots = association_proxy('copr_chroots', 'mock_chroot')
 
+    __mapper_args__ = {
+        'order_by' : created_on
+    }
+
     @property
     def repos_list(self):
         return self.repos.split()
