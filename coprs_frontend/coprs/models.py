@@ -128,7 +128,7 @@ class Copr(db.Model, Serializer):
     mock_chroots = association_proxy('copr_chroots', 'mock_chroot')
 
     __mapper_args__ = {
-        'order_by' : created_on
+        'order_by' : created_on.desc()
     }
 
     @property
