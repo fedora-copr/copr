@@ -141,10 +141,6 @@ class TestCoprDetail(CoprsTestCase):
         assert '<td>{0}'.format(self.u3.name) in r.data
         assert '<td>{0}'.format(self.u1.name) in r.data
 
-    def test_copr_detail_doesnt_contain_forms_for_anonymous_user(self, f_users, f_coprs):
-        r = self.tc.get('/coprs/detail/{0}/{1}/'.format(self.u2.name, self.c3.name))
-        assert '<form' not in r.data
-
     def test_copr_detail_allows_asking_for_permissions(self, f_users, f_coprs, f_copr_permissions):
         with self.tc as c:
             with c.session_transaction() as s:
