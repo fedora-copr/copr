@@ -53,6 +53,7 @@ def api_new_copr():
 
     """
     form = forms.CoprFormFactory.create_form_cls()(csrf_enabled=False)
+    httpcode = 200
     if form.validate_on_submit():
         infos = []
         try:
@@ -79,14 +80,20 @@ def api_new_copr():
             db.session.commit()
         except exceptions.DuplicateException, err:
             output = {'output': 'notok', 'error': err}
+            httpcode = 500
             db.session.rollback()
 
     else:
-        errormsg = "\n".join(form.errors['name'])
+        errormsg = ''
+        if form.errors:
+            errormsg = "\n".join(form.errors['name'])
         errormsg = errormsg.replace('"', "'")
         output = {'output': 'notok', 'error': errormsg}
+        httpcode = 500
 
-    return flask.jsonify(output)
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
 
 
 @api_ns.route('/owned/')
@@ -101,6 +108,7 @@ def api_coprs_by_owner(username=None):
 
     """
     username = flask.request.args.get('username', None) or username
+    httpcode = 200
     if 'username':
         query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
             user_relation='owned', username=username)
@@ -113,5 +121,8 @@ def api_coprs_by_owner(username=None):
                                     'instructions': repo.instructions})
     else:
         output = {'output': 'notok', 'error': 'Invalid request'}
+        httpcode = 500
 
-    return flask.jsonify(output)
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
