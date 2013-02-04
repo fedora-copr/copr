@@ -1,3 +1,4 @@
+import base64
 import datetime
 import functools
 
@@ -79,8 +80,13 @@ def logout():
 def login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        token = flask.request.args.get('token')
-        username = flask.request.args.get('username')
+        token = None
+        username = None
+        if 'Authorization' in flask.request.headers:
+            base64string = flask.request.headers['Authorization']
+            base64string = base64string.split()[1].strip()
+            userstring = base64.b64decode(base64string)
+            (username, token) = userstring.split(':')
         token_auth = False
         if token and username:
             user = models.User.query.filter(

@@ -101,7 +101,9 @@ class AddCopr(Command):
         for chroot in args.chroots:
             data[chroot] = 'y'
 
-        req = requests.post(URL, params=user, data=data)
+        req = requests.post(URL,
+                            auth=(user['username'], user['token']),
+                            data=data)
         output = json.loads(req.text)
         if output['output'] == 'ok':
             print output['message']
