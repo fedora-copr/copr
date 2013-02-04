@@ -24,13 +24,14 @@ def api_home():
     return flask.render_template('api.html')
 
 
-@api_ns.route('/new/', methods = ["GET", "POST"])
+@api_ns.route('/new/', methods=["GET", "POST"])
 @login_required
 def api_new_token():
     """ Method use to generate a new API token for the current user.
     """
     user = flask.g.user
-    user.api_token = helpers.generate_api_token(flask.current_app.config['API_TOKEN_LENGTH'])
+    user.api_token = helpers.generate_api_token(
+        flask.current_app.config['API_TOKEN_LENGTH'])
     user.api_token_expiration = datetime.date.today() \
         + datetime.timedelta(days=30)
     db.session.add(user)
@@ -64,8 +65,7 @@ def api_new_copr():
                 selected_chroots=form.selected_chroots,
                 description=form.description.data,
                 instructions=form.instructions.data,
-                check_for_duplicates=True,
-                )
+                check_for_duplicates=True)
             infos.append('New copr was successfully created.')
 
             if form.initial_pkgs.data:
@@ -73,10 +73,10 @@ def api_new_copr():
                     pkgs=" ".join(form.initial_pkgs.data.split()),
                     copr=copr,
                     owner=flask.g.user)
-                infos.append('Initial packages were successfully submitted '
-                        'for building.')
+                infos.append('Initial packages were successfully '
+                    'submitted for building.')
 
-            output = {'output': 'ok', 'message' : '\n'.join(infos)}
+            output = {'output': 'ok', 'message': '\n'.join(infos)}
             db.session.commit()
         except exceptions.DuplicateException, err:
             output = {'output': 'notok', 'error': err}
@@ -129,11 +129,12 @@ def api_coprs_by_owner(username=None):
 
 
 @api_ns.route('/coprs/detail/<username>/<coprname>/new_build/',
-    methods = ["POST"])
+    methods=["POST"])
 @login_required
 def copr_new_build(username, coprname):
     form = forms.BuildForm()
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username,
+        coprname).first()
     httpcode = 200
     if not copr:
         output = {'output': 'notok', 'error':
