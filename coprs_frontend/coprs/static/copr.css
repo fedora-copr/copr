@@ -61,14 +61,16 @@ div.login, div.login a {
   text-align: right;
 
   position: relative;
-  float: right;
   margin-left: 0.3em;
+}
+
+div.login {
+  float: right;
 }
 
 div.login .text {
   font-weight: normal;
 }
-
 
 div.page, div.menu-inner {
   width: 780px;
