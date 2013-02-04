@@ -20,6 +20,7 @@ def compile_tsvector(element, compiler, **kw):
 class FullTextQuery(db.Query):
     def fulltext(self, column, search_string):
         if db.engine.dialect.name == 'postgresql':
-            return self.filter(column.op('@@@')(func.plainto_tsquery(search_string)))
+            search_with_or = ' | '.join(search_string.split())
+            return self.filter(column.op('@@@')(func.to_tsquery(search_with_or)))
         else:
             return self.filter(column.like('%{0}%'.format(search_string)))
