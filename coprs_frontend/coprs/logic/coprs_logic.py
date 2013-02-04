@@ -46,8 +46,7 @@ class CoprsLogic(object):
                           join(aliased_user, models.CoprPermission.user).\
                           filter(aliased_user.openid_name == models.User.openidize_name(username))
         if with_mock_chroots:
-            query = query.outerjoin(*models.Copr.mock_chroots.attr).\
-                          options(db.contains_eager(*models.Copr.mock_chroots.attr))
+            query = query.options(db.subqueryload(*models.Copr.mock_chroots.attr))
         return query
 
     @classmethod
