@@ -12,7 +12,7 @@ from cliff.commandmanager import CommandManager
 __version__ = '0.1.0'
 __description__ = "CLI tool to run copr"
 
-copr_url = 'http://localhost:5000'
+copr_url = 'http://copr-fe.cloud.fedoraproject.org/'
 copr_api_url = '{0}/api'.format(copr_url)
 
 
