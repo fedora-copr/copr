@@ -132,7 +132,7 @@ def api_coprs_by_owner(username=None):
     methods=["POST"])
 @login_required
 def copr_new_build(username, coprname):
-    form = forms.BuildForm()
+    form = forms.BuildForm(csrf_enabled=False)
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username,
         coprname).first()
     httpcode = 200
