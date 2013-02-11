@@ -20,7 +20,7 @@ Message:
 
 if not app.debug:
     mail_handler = logging.handlers.SMTPHandler('127.0.0.1',
-                                                'copr-fe-error@{0}'.format(app.config['SERVER_NAME']),
+                                                'copr-fe-error@{0}'.format(app.config['SERVER_NAME'] or 'fedorahosted.org'),
                                                 send_logs_to,
                                                 'Yay, error in copr frontend occured!')
     mail_handler.setFormatter(formatter)
