@@ -7,3 +7,4 @@ flask-wtf
 alembic
 pytest
 flask-script
+flask-whooshee

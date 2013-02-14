@@ -5,6 +5,7 @@ import flask
 
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.openid import OpenID
+from flask.ext.whooshee import Whooshee
 
 app = flask.Flask(__name__)
 
@@ -17,10 +18,12 @@ else:
 
 oid = OpenID(app, app.config['OPENID_STORE'])
 db = SQLAlchemy(app)
+whooshee = Whooshee(app)
 
 import coprs.filters
 import coprs.log
 import coprs.models
+import coprs.whoosheers
 
 from coprs.views import api_ns
 from coprs.views.api_ns import api_general

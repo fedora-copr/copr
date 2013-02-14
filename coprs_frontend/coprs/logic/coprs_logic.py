@@ -4,6 +4,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import helpers
 from coprs import models
+from coprs import whoosheers
 
 class CoprsLogic(object):
     """Used for manipulating Coprs. All methods accept user object as a first argument, as this may be needed in future."""
@@ -51,7 +52,12 @@ class CoprsLogic(object):
 
     @classmethod
     def get_multiple_fulltext(cls, user, search_string):
-        query = models.Copr.query.fulltext(models.Copr.copr_ts_col, search_string)
+        try:
+            ids = whoosheers.CoprUserWhoosheer.search(search_string, values_of='copr_id')
+        except ValueError as e:
+            # too short search_string
+            ids = []
+        query = models.Copr.query.filter(models.Copr.id.in_(ids))
         return query
 
     @classmethod
