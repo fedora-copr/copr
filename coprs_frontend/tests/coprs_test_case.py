@@ -22,8 +22,8 @@ class CoprsTestCase(object):
         datadir = os.path.commonprefix([self.app.config['DATABASE'], self.app.config['OPENID_STORE']])
         if not os.path.exists(datadir):
             os.makedirs(datadir)
-
         coprs.db.create_all()
+        self.db.session.commit()
 
     def teardown_method(self, method):
         # delete just data, not the tables
@@ -35,22 +35,24 @@ class CoprsTestCase(object):
         return {'Authorization': 'Basic ' + base64.b64encode('doesntmatter:{0}'.format(self.backend_passwd))}
 
     @pytest.fixture
-    def f_users(self):
-        self.u1 = models.User(openid_name = 'http://user1.id.fedoraproject.org/', proven = False, mail = 'user1@foo.bar')
-        self.u2 = models.User(openid_name = 'http://user2.id.fedoraproject.org/', proven = False, mail = 'user2@spam.foo')
-        self.u3 = models.User(openid_name = 'http://user3.id.fedoraproject.org/', proven = False, mail = 'baz@bar.bar')
-
-        self.db.session.add_all([self.u1, self.u2, self.u3])
+    def f_db(self):
         self.db.session.commit()
 
     @pytest.fixture
+    def f_users(self):
+        self.u1 = models.User(openid_name = u'http://user1.id.fedoraproject.org/', proven = False, mail = 'user1@foo.bar')
+        self.u2 = models.User(openid_name = u'http://user2.id.fedoraproject.org/', proven = False, mail = 'user2@spam.foo')
+        self.u3 = models.User(openid_name = u'http://user3.id.fedoraproject.org/', proven = False, mail = 'baz@bar.bar')
+
+        self.db.session.add_all([self.u1, self.u2, self.u3])
+
+    @pytest.fixture
     def f_coprs(self):
-        self.c1 = models.Copr(name = 'foocopr', owner = self.u1)
-        self.c2 = models.Copr(name = 'foocopr', owner = self.u2)
-        self.c3 = models.Copr(name = 'barcopr', owner = self.u2)
+        self.c1 = models.Copr(name = u'foocopr', owner = self.u1)
+        self.c2 = models.Copr(name = u'foocopr', owner = self.u2)
+        self.c3 = models.Copr(name = u'barcopr', owner = self.u2)
 
         self.db.session.add_all([self.c1, self.c2, self.c3])
-        self.db.session.commit()
 
     @pytest.fixture
     def f_mock_chroots(self):
@@ -78,7 +80,6 @@ class CoprsTestCase(object):
             self.db.session.add_all([cc1, cc2, cc3, cc4])
 
         self.db.session.add_all([self.mc1, self.mc2, self.mc3, self.mc4])
-        self.db.session.commit()
 
     @pytest.fixture
     def f_builds(self):
@@ -88,7 +89,6 @@ class CoprsTestCase(object):
         self.b4 = models.Build(copr = self.c2, user = self.u2, chroots = 'fedora-17-x86_64 fedora-17-i386', submitted_on = 100)
 
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
-        self.db.session.commit()
 
     @pytest.fixture
     def f_copr_permissions(self):
@@ -97,4 +97,3 @@ class CoprsTestCase(object):
         self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = helpers.PermissionEnum.num('request'), copr_admin = helpers.PermissionEnum.num('approved'))
 
         self.db.session.add_all([self.cp1, self.cp2, self.cp3])
-        self.db.session.commit()

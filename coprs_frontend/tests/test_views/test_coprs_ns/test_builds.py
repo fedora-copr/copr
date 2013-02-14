@@ -3,12 +3,12 @@ import flask
 from tests.coprs_test_case import CoprsTestCase
 
 class TestCoprShowBuilds(CoprsTestCase):
-    def test_copr_show_builds(self, f_users, f_coprs, f_builds):
+    def test_copr_show_builds(self, f_users, f_coprs, f_builds, f_db):
         r = self.tc.get('/coprs/detail/{0}/{1}/builds/'.format(self.u2.name, self.c2.name))
         assert r.data.count('<tr class="build-') == 2
 
 class TestCoprAddBuild(CoprsTestCase):
-    def test_copr_owner_can_add_build(self, f_users, f_coprs):
+    def test_copr_owner_can_add_build(self, f_users, f_coprs, f_db):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
@@ -19,7 +19,7 @@ class TestCoprAddBuild(CoprsTestCase):
                       follow_redirects = True)
             assert self.models.Build.query.first().pkgs == 'http://testing'
 
-    def test_copr_allowed_user_can_add_build(self, f_users, f_coprs, f_copr_permissions):
+    def test_copr_allowed_user_can_add_build(self, f_users, f_coprs, f_copr_permissions, f_db):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
@@ -30,7 +30,7 @@ class TestCoprAddBuild(CoprsTestCase):
                       follow_redirects = True)
             assert self.models.Build.query.first().pkgs == 'http://testing'
 
-    def test_copr_not_yet_allowed_user_cant_add_build(self, f_users, f_coprs, f_copr_permissions):
+    def test_copr_not_yet_allowed_user_cant_add_build(self, f_users, f_coprs, f_copr_permissions, f_db):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
@@ -41,7 +41,7 @@ class TestCoprAddBuild(CoprsTestCase):
                       follow_redirects = True)
             assert not self.models.Build.query.first()
 
-    def test_copr_user_without_permission_cant_add_build(self, f_users, f_coprs, f_copr_permissions):
+    def test_copr_user_without_permission_cant_add_build(self, f_users, f_coprs, f_copr_permissions, f_db):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u3.openid_name
@@ -53,7 +53,7 @@ class TestCoprAddBuild(CoprsTestCase):
             assert not self.models.Build.query.first()
 
 class TestCoprCancelBuild(CoprsTestCase):
-    def test_copr_build_submitter_can_cancel_build(self, f_users, f_coprs, f_builds):
+    def test_copr_build_submitter_can_cancel_build(self, f_users, f_coprs, f_builds, f_db):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u1.openid_name
@@ -65,7 +65,7 @@ class TestCoprCancelBuild(CoprsTestCase):
             self.db.session.add(self.b1)
             assert self.b1.canceled == True
 
-    def test_copr_build_non_submitter_cannot_cancel_build(self, f_users, f_coprs, f_builds):
+    def test_copr_build_non_submitter_cannot_cancel_build(self, f_users, f_coprs, f_builds, f_db):
         with self.tc as c:
             with c.session_transaction() as s:
                 s['openid'] = self.u2.openid_name

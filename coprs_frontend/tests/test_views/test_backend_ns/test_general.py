@@ -8,18 +8,18 @@ class TestWaitingBuilds(CoprsTestCase):
     def test_no_waiting_builds(self):
         assert '"builds": []' in self.tc.get('/backend/waiting_builds/').data
 
-    def test_waiting_build_only_lists_not_started_or_ended(self, f_users, f_coprs, f_builds):
+    def test_waiting_build_only_lists_not_started_or_ended(self, f_users, f_coprs, f_builds, f_db):
         r = self.tc.get('/backend/waiting_builds/')
         assert len(json.loads(r.data)['builds']) == 2
 
 class TestUpdateBuilds(CoprsTestCase):
-    def test_updating_requires_password(self, f_users, f_coprs, f_builds):
+    def test_updating_requires_password(self, f_users, f_coprs, f_builds, f_db):
         r = self.tc.post('/backend/update_builds/',
                          content_type = 'application/json',
                          data = '')
         assert 'You have to provide the correct password' in r.data
 
-    def test_update_build_started(self, f_users, f_coprs, f_builds):
+    def test_update_build_started(self, f_users, f_coprs, f_builds, f_db):
         data = """
 {
   "builds":[
@@ -43,7 +43,7 @@ class TestUpdateBuilds(CoprsTestCase):
         assert updated.results == 'http://server/results/foo/bar/'
         assert updated.started_on == 1234
 
-    def test_update_build_ended(self, f_users, f_coprs, f_builds):
+    def test_update_build_ended(self, f_users, f_coprs, f_builds, f_db):
         data = """
 {
   "builds":[
@@ -67,7 +67,7 @@ class TestUpdateBuilds(CoprsTestCase):
         assert updated.status == 1
         assert updated.ended_on == 12345
 
-    def test_update_more_existent_and_non_existent_builds(self, f_users, f_coprs, f_builds):
+    def test_update_more_existent_and_non_existent_builds(self, f_users, f_coprs, f_builds, f_db):
         data = """
 {
   "builds":[
