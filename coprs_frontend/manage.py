@@ -3,7 +3,7 @@
 import os
 
 import flask
-from flask.ext.script import Manager, Command, Option
+from flask.ext.script import Manager, Command, Option, Group
 
 from coprs import app
 from coprs import db
@@ -125,6 +125,42 @@ class DisplayChrootsCommand(Command):
                    default=False),
     )
 
+class AlterUserCommand(Command):
+    def run(self, name, **kwargs):
+        user = models.User.query.filter(models.User.openid_name==models.User.openidize_name(name)).first()
+        if not user:
+            print 'No user named {0}.'.format(name)
+            return
+
+        if kwargs['admin']:
+            user.admin = True
+        if kwargs['no_admin']:
+            user.admin = False
+        if kwargs['proven']:
+            user.proven = True
+        if kwargs['no_proven']:
+            user.proven = False
+
+        db.session.commit()
+
+    option_list = (
+        Option('name'),
+        Group(
+            Option('--admin',
+                   action='store_true'),
+            Option('--no-admin',
+                   action='store_true'),
+            exclusive=True
+        ),
+        Group(
+            Option('--proven',
+                   action='store_true'),
+            Option('--no-proven',
+                   action='store_true'),
+            exclusive=True
+        )
+    )
+
 manager = Manager(app)
 manager.add_command('create_sqlite_file', CreateSqliteFileCommand())
 manager.add_command('create_db', CreateDBCommand())
@@ -133,6 +169,7 @@ manager.add_command('create_chroot', CreateChrootCommand())
 manager.add_command('alter_chroot', AlterChrootCommand())
 manager.add_command('display_chroots', DisplayChrootsCommand())
 manager.add_command('drop_chroot', DropChrootCommand())
+manager.add_command('alter_user', AlterUserCommand())
 
 if __name__ == '__main__':
     manager.run()
