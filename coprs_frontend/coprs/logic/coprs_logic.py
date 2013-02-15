@@ -4,6 +4,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import helpers
 from coprs import models
+from coprs import signals
 from coprs import whoosheers
 
 class CoprsLogic(object):
@@ -80,6 +81,7 @@ class CoprsLogic(object):
         if check_for_duplicates and cls.exists_for_current_user(user, copr.name).all():
             raise exceptions.DuplicateException(
                 'Copr: "{0}" already exists'.format(copr.name))
+        signals.copr_created.send(cls, copr=copr)
         db.session.add(copr)
 
     @classmethod

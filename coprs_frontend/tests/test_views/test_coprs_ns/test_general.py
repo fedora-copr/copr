@@ -1,5 +1,7 @@
 import flask
 
+from coprs.signals import copr_created
+
 from tests.coprs_test_case import CoprsTestCase
 
 class TestCoprsShow(CoprsTestCase):
@@ -71,6 +73,20 @@ class TestCoprNew(CoprsTestCase):
 
             # make sure no initial build was submitted
             assert self.models.Build.query.first() == None
+
+    def test_copr_new_emits_signal(self, f_users, f_mock_chroots, f_db):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+            # TODO: this should probably be mocked...
+            signals_received = []
+            def test_receiver(sender, **kwargs):
+                signals_received.append(kwargs['copr'])
+            copr_created.connect(test_receiver)
+            r = c.post('/coprs/new/', data={'name': 'foo', 'fedora-rawhide-i386': 'y', 'arches': ['i386']}, follow_redirects=True)
+            assert len(signals_received) == 1
+            assert signals_received[0].name == 'foo'
+
 
     def test_copr_new_exists_for_another_user(self, f_users, f_coprs, f_mock_chroots, f_db):
         with self.tc as c:
