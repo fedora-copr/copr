@@ -3,6 +3,7 @@ import time
 from coprs import db
 from coprs import exceptions
 from coprs import models
+from coprs import signals
 
 from coprs.logic import coprs_logic
 
@@ -88,6 +89,8 @@ class BuildsLogic(object):
             value = upd_dict.get(attr, None)
             if value != None:
                 setattr(build, attr, value)
+                if attr == 'ended_on':
+                    signals.build_finished.send(cls, build=build)
 
         db.session.add(build)
 
