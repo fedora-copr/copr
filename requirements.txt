@@ -1,10 +1,11 @@
 # Used for when working from a virtualenv.
 # Use this file by running "$ pip install -r requirements.txt"
+alembic
 argparse
+blinker
 flask-sqlalchemy
 flask-openid
-flask-wtf
-alembic
-pytest
 flask-script
 flask-whooshee
+flask-wtf
+pytest
