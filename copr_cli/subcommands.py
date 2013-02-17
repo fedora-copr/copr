@@ -2,20 +2,13 @@
 
 import ConfigParser
 import json
-import logging
-import requests
 import os
 import sys
 
-import cliff.lister
-import cliff.show
-
-from cliff.command import Command
-
-from main import copr_api_url
+import requests
 
 
-def set_user():
+def get_user():
     """ Retrieve the user information from the config file. """
     config = ConfigParser.ConfigParser()
     config.read(os.path.join(os.path.expanduser('~'), '.config',
@@ -25,124 +18,138 @@ def set_user():
     return {'username': username, 'token': token}
 
 
-class List(cliff.lister.Lister):
+def get_api_url():
+    """ Retrieve the user information from the config file. """
+    config = ConfigParser.ConfigParser(
+        {'copr_url': 'http://copr-fe.cloud.fedoraproject.org'})
+    config.read(os.path.join(os.path.expanduser('~'), '.config',
+                'copr'))
+    copr_url = config.get('copr-cli', 'copr_url')
+    return '%s/api' % copr_url
+
+
+def list(username=None):
     """ List all the copr of a user. """
+    user = get_user()
+    copr_api_url = get_api_url()
+    url = '{0}/owned/'.format(copr_api_url)
 
-    log = logging.getLogger(__name__)
+    if username:
+        user['username'] = username
+    del(user['token'])
 
-    def get_parser(self, prog_name):
-        parser = super(type(self), self).get_parser(prog_name)
-        parser.add_argument("username", nargs='?')
-        return parser
-
-    def take_action(self, args):
-        user = set_user()
-
-        if args.username:
-            user['username'] = args.username
-        URL = '{0}/owned/'.format(copr_api_url)
-        req = requests.get(URL, params=user)
-        output = json.loads(req.text)
-        if 'repos' in output:
-            if output['repos']:
-                columns = ['name', 'description', 'repos', 'instructions']
-                values = []
-                for entry in output['repos']:
-                    values.append([entry[key] for key in columns])
-                return (columns, values)
-            else:
-                columns = ['output']
-                values = ['No copr retrieved for user: "{0}"'.format(
-                    user['username'])]
-                return (columns, [values])
+    req = requests.get(url, params=user)
+    output = json.loads(req.text)
+    columns = []
+    values = []
+    if 'repos' in output:
+        if output['repos']:
+            columns = ['name', 'description', 'repos', 'instructions']
+            values = []
+            for entry in output['repos']:
+                values.append([entry[key] for key in columns])
         else:
             columns = ['output']
-            values = ['Wrong output format returned by the server']
-            return (columns, [values])
+            values = ['No copr retrieved for user: "{0}"'.format(
+                user['username'])]
+    else:
+        columns = ['output']
+        values = ['Wrong output format returned by the server']
+
+    def _list_to_row(values, widths):
+        ''' Return a print ready version of the provided list '''
+        row = []
+        cnt = 0
+        for item in values:
+            max_width = widths[cnt]
+            cnt += 1
+            if not item:
+                item = ''
+            if cnt < len(values):
+                row.append(item.ljust(max_width + 1))
+            else:
+                row.append(item)
+        return row
+
+    if len(columns) > 1:
+        widths = {}
+        cnt = 0
+        for item in columns:
+            widths[cnt] = len(item)
+            cnt += 1
+        for row in values:
+            cnt = 0
+            for item in row:
+                if not item:
+                    item = ''
+                widths[cnt] = max(widths[cnt], len(item))
+                cnt += 1
+
+        headers = '|'.join(_list_to_row(columns, widths))
+        print headers
+        print '-' * len(headers)
+        for row in values:
+            print "|".join(_list_to_row(row, widths))
+
+    else:
+        max_width = len(values[0])
+        headers = columns[0]
+        print headers
+        print "-"*len(headers)
+        print values[0]
 
 
-class AddCopr(Command):
+def create(name, chroots=[], description=None, instructions=None,
+           repos=None, initial_pkgs=None):
     """ Create a new copr. """
+    user = get_user()
+    copr_api_url = get_api_url()
+    URL = '{0}/copr/new/'.format(copr_api_url)
 
-    log = logging.getLogger(__name__)
+    repos = None
+    if type(repos) == list():
+        repos = ' '.join(repos)
+    initial_pkgs = None
+    if type(initial_pkgs) == list():
+        initial_pkgs = ' '.join(initial_pkgs)
+    data = {'name': name,
+            'repos': repos,
+            'initial_pkgs': initial_pkgs,
+            'description': description,
+            'instructions': instructions
+            }
+    for chroot in chroots:
+        data[chroot] = 'y'
 
-    def get_parser(self, prog_name):
-        parser = super(type(self), self).get_parser(prog_name)
-        parser.add_argument("name")
-        parser.add_argument("--chroot", dest="chroots", action='append',
-                            help="")
-        parser.add_argument('--repo', dest='repos', action='append',
-                            help="")
-        parser.add_argument('--initial-pkgs', dest='initial_pkgs',
-                            action='append',
-                            help="")
-        parser.add_argument('--description',
-                            help="")
-        parser.add_argument('--instructions',
-                            help="")
-        return parser
-
-    def take_action(self, args):
-        user = set_user()
-        URL = '{0}/copr/new/'.format(copr_api_url)
-
-        repos = None
-        if args.repos:
-            repos = ' '.join(args.repos)
-        initial_pkgs = None
-        if args.initial_pkgs:
-            initial_pkgs = ' '.join(args.initial_pkgs)
-        data = {'name': args.name,
-                'repos': repos,
-                'initial_pkgs': initial_pkgs,
-                'description': args.description,
-                'instructions': args.instructions
-                }
-        for chroot in args.chroots:
-            data[chroot] = 'y'
-
-        req = requests.post(URL,
-                            auth=(user['username'], user['token']),
-                            data=data)
-        output = json.loads(req.text)
-        if output['output'] == 'ok':
-            print output['message']
-        else:
-            print 'Something went wrong:\n  {0}'.format(output['error'])
+    req = requests.post(URL,
+                        auth=(user['username'], user['token']),
+                        data=data)
+    output = json.loads(req.text)
+    if output['output'] == 'ok':
+        print output['message']
+    else:
+        print 'Something went wrong:\n  {0}'.format(output['error'])
 
 
-class Build(Command):
+def build(copr, pkgs, memory, timeout):
     """ Build a new package into a given copr. """
+    user = get_user()
+    copr_api_url = get_api_url()
+    URL = '{0}/coprs/detail/{1}/{2}/new_build/'.format(
+        copr_api_url,
+        user['username'],
+        copr)
 
-    log = logging.getLogger(__name__)
+    data = {'pkgs': ' '.join(pkgs),
+            'memory': memory,
+            'timeout': timeout
+            }
 
-    def get_parser(self, prog_name):
-        parser = super(type(self), self).get_parser(prog_name)
-        parser.add_argument('copr')
-        parser.add_argument('pkgs', nargs='+', action='append')
-        parser.add_argument('--memory', dest='memory',
-                            help="")
-        parser.add_argument('--timeout', dest='timeout',
-                            help="")
-        return parser
-
-    def take_action(self, args):
-        user = set_user()
-        URL = '{0}/coprs/detail/{1}/{2}/new_build/'.format(
-            copr_api_url,
-            user['username'],
-            args.copr)
-
-        data = {'pkgs': ' '.join(args.pkgs[0]),
-                'memory': args.memory,
-                'timeout': args.timeout
-                }
-
-        req = requests.post(URL,
-                            auth=(user['username'], user['token']),
-                            data=data)
-        output = json.loads(req.text)
-        if req.status_code != 200:
-            print 'Something went wrong:\n  {0}'.format(output['error'])
-        else:
-            print output['message']
+    req = requests.post(URL,
+                        auth=(user['username'], user['token']),
+                        data=data)
+    output = json.loads(req.text)
+    if req.status_code != 200:
+        print 'Something went wrong:\n  {0}'.format(output['error'])
+    else:
+        print output['message']

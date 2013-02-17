@@ -1,11 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
-try:
-    from setuptools import setup
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup
+from setuptools import setup
 
 import sys
 
@@ -13,25 +8,13 @@ f = open('README')
 long_description = f.read().strip()
 f.close()
 
-# Ridiculous as it may seem, we need to import multiprocessing and
-# logging here in order to get tests to pass smoothly on python 2.7.
-try:
-    import multiprocessing
-    import logging
-except ImportError:
-    pass
 
 from copr_cli.main import __description__, __version__
 
 requires = [
-    'cliff',
+    'requests',
 ]
 
-subcommands = [
-    'list = copr_cli.subcommands:List',
-    'add-copr = copr_cli.subcommands:AddCopr',
-    'build-copr = copr_cli.subcommands:Build',
-]
 
 __name__ = 'copr-cli'
 __version__ = __version__
@@ -39,6 +22,7 @@ __description__ = __description__
 __author__ = "Pierre-Yves Chibon"
 __author_email__ = "pingou@pingoured.fr"
 __url__ = "http://fedorahosted.org/copr/"
+
 
 setup(
     name=__name__,
@@ -64,7 +48,6 @@ setup(
     entry_points={
         'console_scripts': [
             'copr-cli = copr_cli.main:main'
-        ],
-        'copr_cli.subcommands': subcommands,
+        ]
     },
 )
