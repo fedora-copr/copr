@@ -102,16 +102,12 @@ def setup_parser():
 
 def main(argv=sys.argv[1:]):
     """ Main function """
-    # Set up parser for global args
-    parser = setup_parser()
-    # Parse the commandline
-    arg = parser.parse_args()
-    arg.func(arg)
-
-
-if __name__ == '__main__':
     try:
-        main()
+        # Set up parser for global args
+        parser = setup_parser()
+        # Parse the commandline
+        arg = parser.parse_args()
+        arg.func(arg)
     except KeyboardInterrupt:
         print "\nInterrupted by user."
         sys.exit(1)
@@ -121,3 +117,7 @@ if __name__ == '__main__':
     except Exception, e:
         print 'Error: {0}'.format(e)
         sys.exit(100)
+
+
+if __name__ == '__main__':
+    main()
