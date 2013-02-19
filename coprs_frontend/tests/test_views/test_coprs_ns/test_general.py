@@ -351,14 +351,14 @@ class TestCoprUpdatePermissions(CoprsTestCase):
             u1_c3_perms = self.models.CoprPermission.query.filter(self.models.CoprPermission.copr_id == self.c3.id).\
                                                            filter(self.models.CoprPermission.user_id == self.u1.id).\
                                                            first()
-            assert u1_c3_perms.copr_builder == self.helpers.PermissionEnum.num('approved')
-            assert u1_c3_perms.copr_admin == self.helpers.PermissionEnum.num('request')
+            assert u1_c3_perms.copr_builder == self.helpers.PermissionEnum('approved')
+            assert u1_c3_perms.copr_admin == self.helpers.PermissionEnum('request')
 
             u3_c3_perms = self.models.CoprPermission.query.filter(self.models.CoprPermission.copr_id == self.c3.id).\
                                                            filter(self.models.CoprPermission.user_id == self.u3.id).\
                                                            first()
-            assert u3_c3_perms.copr_builder == self.helpers.PermissionEnum.num('nothing')
-            assert u3_c3_perms.copr_admin == self.helpers.PermissionEnum.num('approved')
+            assert u3_c3_perms.copr_builder == self.helpers.PermissionEnum('nothing')
+            assert u3_c3_perms.copr_admin == self.helpers.PermissionEnum('approved')
 
     def test_copr_admin_can_update_permissions(self, f_users, f_coprs, f_copr_permissions, f_db):
         with self.tc as c:

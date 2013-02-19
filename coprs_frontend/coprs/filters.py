@@ -9,7 +9,7 @@ def date_from_secs(secs):
 
 @app.template_filter('perm_type_from_num')
 def perm_type_from_num(num):
-    return helpers.PermissionEnum.key(num)
+    return helpers.PermissionEnum(num)
 
 # this should probably be stored in DB with the whole mock_chroot...
 @app.template_filter('os_name_short')

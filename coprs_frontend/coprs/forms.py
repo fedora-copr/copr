@@ -61,8 +61,8 @@ class StringListFilter(object):
 class ValueToPermissionNumberFilter(object):
     def __call__(self, value):
         if value:
-            return helpers.PermissionEnum.num('request')
-        return helpers.PermissionEnum.num('nothing')
+            return helpers.PermissionEnum('request')
+        return helpers.PermissionEnum('nothing')
 
 class CoprFormFactory(object):
     @staticmethod
@@ -146,9 +146,9 @@ class PermissionsApplierFormFactory(object):
         admin_default = False
 
         if permission:
-            if permission.copr_builder != helpers.PermissionEnum.num('nothing'):
+            if permission.copr_builder != helpers.PermissionEnum('nothing'):
                 builder_default = True
-            if permission.copr_admin != helpers.PermissionEnum.num('nothing'):
+            if permission.copr_admin != helpers.PermissionEnum('nothing'):
                 admin_default = True
 
         setattr(F, 'copr_builder', wtf.BooleanField(default = builder_default, filters = [ValueToPermissionNumberFilter()]))

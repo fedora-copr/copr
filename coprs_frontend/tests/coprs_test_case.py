@@ -92,8 +92,8 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_copr_permissions(self):
-        self.cp1 = models.CoprPermission(copr = self.c2, user = self.u1, copr_builder = helpers.PermissionEnum.num('approved'), copr_admin = helpers.PermissionEnum.num('nothing'))
-        self.cp2 = models.CoprPermission(copr = self.c3, user = self.u3, copr_builder = helpers.PermissionEnum.num('nothing'), copr_admin = helpers.PermissionEnum.num('nothing'))
-        self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = helpers.PermissionEnum.num('request'), copr_admin = helpers.PermissionEnum.num('approved'))
+        self.cp1 = models.CoprPermission(copr = self.c2, user = self.u1, copr_builder = helpers.PermissionEnum('approved'), copr_admin = helpers.PermissionEnum('nothing'))
+        self.cp2 = models.CoprPermission(copr = self.c3, user = self.u3, copr_builder = helpers.PermissionEnum('nothing'), copr_admin = helpers.PermissionEnum('nothing'))
+        self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = helpers.PermissionEnum('request'), copr_admin = helpers.PermissionEnum('approved'))
 
         self.db.session.add_all([self.cp1, self.cp2, self.cp3])

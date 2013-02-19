@@ -17,19 +17,19 @@ def generate_api_token(size=30):
     return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
 
 
+class EnumType(type):
+    def __call__(self, attr):
+        if isinstance(attr, int):
+            for k, v in self.vals.items():
+                if v == attr:
+                    return k
+            raise KeyError('num {0} is not mapped'.format(attr))
+        else:
+            return self.vals[attr]
+
 class PermissionEnum(object):
+    __metaclass__ = EnumType
     vals = {'nothing': 0, 'request': 1, 'approved': 2}
-
-    @classmethod
-    def num(cls, key):
-        return cls.vals[key]
-
-    @classmethod
-    def key(cls, num):
-        for k, n in cls.vals.items():
-            if n == num:
-                return k
-        raise KeyError('num {0} is not mapped'.format(num))
 
     @classmethod
     def choices_list(cls, without = -1):
