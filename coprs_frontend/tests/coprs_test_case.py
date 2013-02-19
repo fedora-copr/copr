@@ -1,6 +1,5 @@
 import base64
 import os
-os.environ['COPRS_ENVIRON_UNITTEST'] = '1'
 
 import pytest
 

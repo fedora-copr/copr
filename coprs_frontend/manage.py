@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import argparse
 import os
+import subprocess
 
 import flask
 from flask.ext.script import Manager, Command, Option, Group
@@ -10,6 +12,17 @@ from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs.logic import coprs_logic
+
+class TestCommand(Command):
+    def run(self, test_args):
+        os.environ['COPRS_ENVIRON_UNITTEST'] = '1'
+        subprocess.call(['py.test'] + test_args)
+
+    option_list = (
+        Option('-a',
+               dest='test_args',
+               nargs=argparse.REMAINDER),
+    )
 
 class CreateSqliteFileCommand(Command):
     'Create the sqlite DB file (not the tables). Used for alembic, "create_db" does this automatically.'
@@ -162,6 +175,7 @@ class AlterUserCommand(Command):
     )
 
 manager = Manager(app)
+manager.add_command('test', TestCommand())
 manager.add_command('create_sqlite_file', CreateSqliteFileCommand())
 manager.add_command('create_db', CreateDBCommand())
 manager.add_command('drop_db', DropDBCommand())
