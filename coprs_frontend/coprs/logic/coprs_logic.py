@@ -98,7 +98,7 @@ class CoprsLogic(object):
             # if we fire a models.Copr.query, it will use the modified copr in session
             # -> workaround this by just getting the name
             old_copr_name = db.session.query(models.Copr.name).filter(models.Copr.id==copr.id).first()[0]
-            action = models.Action(action_type='rename',
+            action = models.Action(action_type=helpers.ActionTypeEnum('rename'),
                                    object_type='copr',
                                    object_id=copr.id,
                                    old_value='{0}/{1}'.format(copr.owner.name, old_copr_name),
