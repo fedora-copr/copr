@@ -12,3 +12,8 @@ class DuplicateException(BaseException):
 
 class InsufficientRightsException(BaseException):
     pass
+
+class ActionInProgressException(BaseException):
+    def __init__(self, msg, action):
+        self.msg = msg
+        self.action = action

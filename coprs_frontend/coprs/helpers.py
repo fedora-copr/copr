@@ -35,6 +35,14 @@ class PermissionEnum(object):
     def choices_list(cls, without = -1):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
+class ActionTypeEnum(object):
+    __metaclass__ = EnumType
+    vals = {'delete': 0, 'rename': 1}
+
+class BackendResultEnum(object):
+    __metaclass__ = EnumType
+    vals = {'waiting': 0, 'success': 1, 'failure': 2}
+
 class Paginator(object):
     def __init__(self, query, total_count, page = 1, per_page_override = None, urls_count_override = None):
         self.query = query

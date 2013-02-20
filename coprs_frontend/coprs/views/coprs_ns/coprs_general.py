@@ -177,10 +177,16 @@ def copr_update(username, coprname):
         copr.instructions = form.instructions.data
         coprs_logic.CoprChrootsLogic.update_from_names(flask.g.user, copr, form.selected_chroots)
 
-        coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
-        db.session.commit()
-        flask.flash('Copr was updated successfully.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = form.name.data))
+        try:
+            coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
+        except exceptions.ActionInProgressException as e:
+            flask.flash('Can\'t change this Copr name, there is another operation in progress: {0}'.format(e.action))
+            db.session.rollback()
+        else:
+            flask.flash('Copr was updated successfully.')
+            db.session.commit()
+
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = copr.name))
     else:
         return copr_edit(username, coprname, form)
 

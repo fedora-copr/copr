@@ -78,7 +78,7 @@ class CoprsLogic(object):
 
     @classmethod
     def new(cls, user, copr, check_for_duplicates = True):
-        if check_for_duplicates and cls.exists_for_current_user(user, copr.name).all():
+        if check_for_duplicates and cls.exists_for_user(user, copr.name).all():
             raise exceptions.DuplicateException(
                 'Copr: "{0}" already exists'.format(copr.name))
         signals.copr_created.send(cls, copr=copr)
@@ -86,15 +86,31 @@ class CoprsLogic(object):
 
     @classmethod
     def update(cls, user, copr, check_for_duplicates = True):
-        if check_for_duplicates and cls.exists_for_current_user(user, copr.name).all():
-            raise exceptions.DuplicateException(
-                'Copr: "{0}" already exists'.format(copr.name))
+        action = cls.unfinished_actions(user, copr).first()
+        if action:
+            raise exceptions.ActionInProgressException('Action in progress on this copr.', action)
+
+        existing = cls.exists_for_user(copr.owner, copr.name).first()
+        if existing:
+            if check_for_duplicates and existing.id != copr.id:
+                raise exceptions.DuplicateException('Copr: "{0}" already exists'.format(copr.name))
+        else: # we're renaming
+            # if we fire a models.Copr.query, it will use the modified copr in session
+            # -> workaround this by just getting the name
+            old_copr_name = db.session.query(models.Copr.name).filter(models.Copr.id==copr.id).first()[0]
+            action = models.Action(action_type='rename',
+                                   object_type='copr',
+                                   object_id=copr.id,
+                                   old_value='{0}/{1}'.format(copr.owner.name, old_copr_name),
+                                   new_value='{0}/{1}'.format(copr.owner.name, copr.name),
+                                   created_on=int(time.time()))
+            db.session.add(action)
         db.session.add(copr)
 
     @classmethod
-    def exists_for_current_user(cls, user, coprname):
-        existing = models.Copr.query.filter(models.Copr.name == coprname).\
-                                     filter(models.Copr.owner_id == user.id)
+    def exists_for_user(cls, user, coprname):
+        existing = models.Copr.query.filter(models.Copr.name==coprname).\
+                                     filter(models.Copr.owner_id==user.id)
 
         return existing
 
@@ -102,6 +118,14 @@ class CoprsLogic(object):
     def increment_build_count(cls, user, copr): # TODO API of this method is different, maybe change?
         models.Copr.query.filter(models.Copr.id == copr.id).\
                           update({models.Copr.build_count: models.Copr.build_count + 1})
+
+    @classmethod
+    def unfinished_actions(cls, user, copr):
+        actions = models.Action.query.filter(models.Action.object_type=='copr').\
+                                      filter(models.Action.object_id==copr.id).\
+                                      filter(models.Action.backend_result==0)
+
+        return actions
 
 class CoprPermissionsLogic(object):
     @classmethod

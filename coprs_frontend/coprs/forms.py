@@ -41,7 +41,7 @@ class CoprUniqueNameValidator(object):
         self.message = message
 
     def __call__(self, form, field):
-        existing = coprs_logic.CoprsLogic.exists_for_current_user(flask.g.user, field.data).first()
+        existing = coprs_logic.CoprsLogic.exists_for_user(flask.g.user, field.data).first()
 
         if existing and str(existing.id) != form.id.data:
             raise wtf.ValidationError(self.message.format(field.data))

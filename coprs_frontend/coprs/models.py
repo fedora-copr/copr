@@ -1,4 +1,5 @@
 import datetime
+import time
 
 import sqlalchemy
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -211,3 +212,32 @@ class CoprChroot(db.Model, Serializer):
     copr = db.relationship('Copr', backref = db.backref('copr_chroots',
                                                         single_parent=True,
                                                         cascade='all,delete,delete-orphan'))
+
+class Action(db.Model, Serializer):
+    id = db.Column(db.Integer, primary_key=True)
+    # delete, rename,
+    action_type = db.Column(db.Integer, nullable=False)
+    # copr,
+    object_type = db.Column(db.String(20))
+    object_id = db.Column(db.Integer)
+    old_value = db.Column(db.String(255))
+    new_value = db.Column(db.String(255))
+    backend_result = db.Column(db.Integer, default=helpers.BackendResultEnum('waiting'))
+    backend_message = db.Column(db.Text)
+    created_on = db.Column(db.Integer)
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        if self.action_type == 'delete':
+            return 'Deleting {0} {1}'.format(self.object_type, self.old_value)
+        elif self.action_type == 'rename':
+            return 'Renaming {0} from {1} to {2}.'.format(self.object_type,
+                                                          self.old_value,
+                                                          self.new_value)
+
+        return 'Action {0} on {1}, old value: {2}, new value: {3}.'.format(self.action_type,
+                                                                           self.object_type,
+                                                                           self.old_value,
+                                                                           self.new_value)
