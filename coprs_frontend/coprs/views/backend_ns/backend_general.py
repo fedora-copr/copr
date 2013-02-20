@@ -1,6 +1,7 @@
 import flask
 
 from coprs import db
+from coprs import helpers
 from coprs import models
 
 from coprs.logic import builds_logic
@@ -40,3 +41,9 @@ def update_builds():
     db.session.commit()
 
     return flask.jsonify({'updated_builds_ids': list(existing.keys()), 'non_existing_builds_ids': non_existing_ids})
+
+@backend_ns.route('/waiting_actions/')
+def waiting_actions():
+    actions = models.Action.query.filter(models.Action.backend_result==helpers.BackendResultEnum('waiting')).all()
+
+    return flask.jsonify({'actions': [action.to_dict(options={'__columns_except__': ['backend_result', 'backend_message']}) for action in actions]})
