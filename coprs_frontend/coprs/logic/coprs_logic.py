@@ -26,7 +26,10 @@ class CoprsLogic(object):
                           order_by(models.Build.submitted_on.desc())
         if with_mock_chroots:
             query = query.outerjoin(*models.Copr.mock_chroots.attr).\
-                          options(db.contains_eager(*models.Copr.mock_chroots.attr))
+                          options(db.contains_eager(*models.Copr.mock_chroots.attr)).\
+                          order_by(models.MockChroot.os_release.asc()).\
+                          order_by(models.MockChroot.os_version.asc()).\
+                          order_by(models.MockChroot.arch.asc())
 
         return query
 
