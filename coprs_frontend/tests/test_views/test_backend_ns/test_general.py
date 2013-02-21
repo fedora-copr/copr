@@ -127,3 +127,71 @@ class TestUpdateBuilds(CoprsTestCase):
         assert len(signals_received) == 1
         self.db.session.add(self.b2)
         assert signals_received[0].id == 2
+
+class TestWaitingActions(CoprsTestCase):
+    def test_no_waiting_builds(self):
+        assert '"actions": []' in self.tc.get('/backend/waiting_actions/').data
+
+    def test_waiting_build_only_lists_not_started_or_ended(self, f_users, f_coprs, f_actions, f_db):
+        r = self.tc.get('/backend/waiting_actions/')
+        assert len(json.loads(r.data)['actions']) == 2
+
+class TestUpdateActions(CoprsTestCase):
+    data1 = """
+{
+  "actions":[
+    {
+      "id": 1,
+      "backend_result": 1,
+      "backend_message": "no problem"
+    }
+  ]
+}"""
+    data2 = """
+{
+  "actions":[
+    {
+      "id": 1,
+      "backend_result": 1,
+      "backend_message": null
+    },
+    {
+      "id": 2,
+      "backend_result": 2,
+      "backend_message": "problem!"
+    },
+    {
+      "id": 100,
+      "backend_result": 123,
+      "backend_message": "wheeeee!"
+    }
+  ]
+}"""
+
+    def test_update_one_action(self, f_users, f_coprs, f_actions, f_db):
+       r = self.tc.post('/backend/update_actions/',
+                         content_type='application/json',
+                         headers=self.auth_header,
+                         data=self.data1)
+       assert json.loads(r.data)["updated_actions_ids"] == [1]
+       assert json.loads(r.data)["non_existing_actions_ids"] == []
+
+       updated = self.models.Action.query.filter(self.models.Action.id==1).first()
+       assert updated.backend_result == 1
+       assert updated.backend_message == "no problem"
+
+    def test_update_more_existent_and_non_existent_builds(self, f_users, f_coprs, f_actions, f_db):
+       r = self.tc.post('/backend/update_actions/',
+                         content_type='application/json',
+                         headers=self.auth_header,
+                         data=self.data2)
+       assert sorted(json.loads(r.data)["updated_actions_ids"]) == [1, 2]
+       assert json.loads(r.data)["non_existing_actions_ids"] == [100]
+
+       updated = self.models.Action.query.filter(self.models.Action.id==1).first()
+       assert updated.backend_result == 1
+       assert updated.backend_message == None
+
+       updated2 = self.models.Action.query.filter(self.models.Action.id==2).first()
+       assert updated2.backend_result == 2
+       assert updated2.backend_message == "problem!"

@@ -47,3 +47,28 @@ def waiting_actions():
     actions = models.Action.query.filter(models.Action.backend_result==helpers.BackendResultEnum('waiting')).all()
 
     return flask.jsonify({'actions': [action.to_dict(options={'__columns_except__': ['backend_result', 'backend_message']}) for action in actions]})
+
+# TODO: this is very similar to update_builds, we should pull out the common functionality into a single function
+@backend_ns.route('/update_actions/', methods=['POST', 'PUT'])
+@misc.backend_authenticated
+def update_actions():
+    to_update = {}
+    for action in flask.request.json['actions']:
+        to_update[action['id']] = action
+
+    if not to_update:
+        return json.dumps({'warning': 'No parsed actions'})
+
+    existing = {}
+    for action in models.Action.query.filter(models.Action.id.in_(to_update.keys())).all():
+        existing[action.id] = action
+
+    non_existing_ids = list(set(to_update.keys()) - set(existing.keys()))
+
+    for i, action in existing.items():
+        existing[i].backend_result = to_update[i]['backend_result']
+        existing[i].backend_message = to_update[i]['backend_message']
+
+    db.session.commit()
+
+    return flask.jsonify({'updated_actions_ids': list(existing.keys()), 'non_existing_actions_ids': non_existing_ids})

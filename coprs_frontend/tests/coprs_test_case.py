@@ -1,5 +1,6 @@
 import base64
 import os
+import time
 
 import pytest
 
@@ -96,3 +97,26 @@ class CoprsTestCase(object):
         self.cp3 = models.CoprPermission(copr = self.c3, user = self.u1, copr_builder = helpers.PermissionEnum('request'), copr_admin = helpers.PermissionEnum('approved'))
 
         self.db.session.add_all([self.cp1, self.cp2, self.cp3])
+
+    @pytest.fixture
+    def f_actions(self):
+        self.a1 = models.Action(action_type=helpers.ActionTypeEnum('rename'),
+                                object_type='copr',
+                                object_id=self.c1.id,
+                                old_value='{0}/{1}'.format(self.c1.owner.name, self.c1.name),
+                                new_value='{0}/new_name'.format(self.c1.owner.name),
+                                created_on=int(time.time()))
+        self.a2 = models.Action(action_type=helpers.ActionTypeEnum('rename'),
+                                object_type='copr',
+                                object_id=self.c2.id,
+                                old_value='{0}/{1}'.format(self.c2.owner.name, self.c2.name),
+                                new_value='{0}/new_name2'.format(self.c2.owner.name),
+                                created_on=int(time.time()))
+        self.a3 = models.Action(action_type=helpers.ActionTypeEnum('delete'),
+                                object_type='copr',
+                                object_id=100,
+                                old_value='asd/qwe',
+                                new_value=None,
+                                backend_result=helpers.BackendResultEnum('success'),
+                                created_on=int(time.time()))
+        self.db.session.add_all([self.a1, self.a2, self.a3])
