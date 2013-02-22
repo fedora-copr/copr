@@ -1,5 +1,10 @@
 #-*- coding: UTF-8 -*-
 
+"""
+Function actually doing the work of calling the API and handling the
+output.
+"""
+
 import ConfigParser
 import json
 import os
@@ -7,14 +12,22 @@ import sys
 
 import requests
 
+import copr_exceptions
+
 
 def get_user():
     """ Retrieve the user information from the config file. """
     config = ConfigParser.ConfigParser()
-    config.read(os.path.join(os.path.expanduser('~'), '.config',
-                'copr'))
-    username = config.get('copr-cli', 'username', None)
-    token = config.get('copr-cli', 'token', None)
+    if not config.read(os.path.join(os.path.expanduser('~'), '.config',
+                'copr')):
+        raise copr_exceptions.CoprCliNoConfException(
+            'No configuration file "~/.config/copr" found.')
+    try:
+        username = config.get('copr-cli', 'username', None)
+        token = config.get('copr-cli', 'token', None)
+    except ConfigParser.Error, err:
+        raise copr_exceptions.CoprCliConfigException(
+            'Bad configuration file: %s' % err)
     return {'username': username, 'token': token}
 
 

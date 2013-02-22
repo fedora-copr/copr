@@ -4,6 +4,7 @@ import argparse
 import sys
 
 import subcommands
+import copr_exceptions
 
 __version__ = '0.1.0'
 __description__ = "CLI tool to run copr"
@@ -114,9 +115,12 @@ def main(argv=sys.argv[1:]):
     except argparse.ArgumentTypeError, e:
         print "\nError: {0}".format(e)
         sys.exit(2)
-    except Exception, e:
-        print 'Error: {0}'.format(e)
-        sys.exit(100)
+    except copr_exceptions.CoprCliException, e:
+        print "\nError: {0}".format(e)
+        sys.exit(3)
+    #except Exception, e:
+        #print 'Error: {0}'.format(e)
+        #sys.exit(100)
 
 
 if __name__ == '__main__':
