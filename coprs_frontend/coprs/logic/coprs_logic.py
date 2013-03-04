@@ -56,12 +56,7 @@ class CoprsLogic(object):
 
     @classmethod
     def get_multiple_fulltext(cls, user, search_string):
-        try:
-            ids = whoosheers.CoprUserWhoosheer.search(search_string, values_of='copr_id')
-        except ValueError as e:
-            # too short search_string
-            ids = []
-        query = models.Copr.query.filter(models.Copr.id.in_(ids))
+        query = models.Copr.query.join(models.User).whooshee_search(search_string)
         return query
 
     @classmethod
