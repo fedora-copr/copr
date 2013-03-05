@@ -51,6 +51,11 @@ worker_logdir=/var/log/copr/workers/
 # default is true
 #daemonize=true
 
+# publish fedmsg notifications from workers if true
+# default is false
+#fedmsg_enabled=false
+
+
 [builder]
 # default is 1800
 timeout=3600

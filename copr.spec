@@ -55,6 +55,7 @@ Requires:   createrepo
 Requires:   python-bunch
 Requires:   python-requests
 Requires:   logrotate
+Requires:   fedmsg
 
 %description backend
 COPR is lightweight build system. It allows you to create new project in WebUI,

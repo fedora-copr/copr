@@ -13,12 +13,17 @@ import ansible.errors
 from ansible import callbacks
 import requests
 
+try:
+    import fedmsg
+except ImportError:
+    pass  # fedmsg is optional
+
 
 
 
 class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
     ''' playbook callbacks - quietly! '''
-    
+
     def __init__(self, verbose=False):
 
         self.verbose = verbose
@@ -63,7 +68,7 @@ class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
 class WorkerCallback(object):
     def __init__(self, logfile=None):
         self.logfile = logfile
-    
+
     def log(self, msg):
         if self.logfile:
             now = time.strftime('%F %T')
@@ -71,15 +76,15 @@ class WorkerCallback(object):
                 open(self.logfile, 'a').write(str(now) + ': ' + msg + '\n')
             except (IOError, OSError), e:
                 print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
-        
+
 
 class Worker(multiprocessing.Process):
     def __init__(self, opts, jobs, events, worker_num, ip=None, create=True, callback=None):
- 
+
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
-        
-            
+
+
         # job management stuff
         self.jobs = jobs
         self.events = events # event queue for communicating back to dispatcher
@@ -92,72 +97,94 @@ class Worker(multiprocessing.Process):
         if not self.callback:
             self.logfile = self.opts.worker_logdir + '/worker-%s.log' % self.worker_num
             self.callback = WorkerCallback(logfile = self.logfile)
-        
+
         if ip:
             self.callback.log('creating worker: %s' % ip)
-            self.event('creating worker: %s' % ip)
+            self.event('worker.create', 'creating worker: {ip}', dict(ip=ip))
         else:
             self.callback.log('creating worker: dynamic ip')
-            self.event('creating worker: dynamic ip')
+            self.event('worker.create', 'creating worker: dynamic ip')
 
-    def event(self, what):
+    def event(self, topic, template, content=None):
+        """ Multi-purpose logging method.
+
+        Logs messages to two different destinations:
+            - The internal "events" queue for communicating back to the
+              dispatcher.
+            - The fedmsg bus.  Messages are posted asynchronously to a
+              zmq.PUB socket.
+
+        """
+
+        content = content or {}
+        what = template.format(**content)
+
         if self.ip:
             who = 'worker-%s-%s' % (self.worker_num, self.ip)
         else:
             who = 'worker-%s' % (self.worker_num)
-        
+
         self.events.put({'when':time.time(), 'who':who, 'what':what})
+        try:
+            content['who'] = who
+            content['what'] = what
+            if self.opts.fedmsg_enabled:
+                fedmsg.publish(modname="copr", topic=topic, msg=content)
+        except Exception, e:
+            # XXX - Maybe log traceback as well with traceback.format_exc()
+            self.callback.log('failed to publish message: %s' % e)
+            pass  # But continue on happily.
 
     def spawn_instance(self):
         """call the spawn playbook to startup/provision a building instance"""
-        
-        
+
+
         self.callback.log('spawning instance begin')
         start = time.time()
-        
+
         stats = callbacks.AggregateStats()
         playbook_cb = SilentPlaybookCallbacks(verbose=False)
         runner_cb = callbacks.DefaultRunnerCallbacks()
         # fixme - extra_vars to include ip as a var if we need to specify ips
         # also to include info for instance type to handle the memory requirements of builds
-        play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.spawn_playbook, 
-                             callbacks=playbook_cb, runner_callbacks=runner_cb, 
+        play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.spawn_playbook,
+                             callbacks=playbook_cb, runner_callbacks=runner_cb,
                              remote_user='root')
 
         play.run()
         self.callback.log('spawning instance end')
         self.callback.log('Instance spawn/provision took %s sec' % (time.time() - start))
-        
+
         if self.ip:
             return self.ip
-            
+
         for i in play.SETUP_CACHE:
             if i =='localhost':
                 continue
             return i
-        
+
         # if we get here we're in trouble
         self.callback.log('No IP back from spawn_instance - dumping cache output')
         self.callback.log(str(play.SETUP_CACHE))
         self.callback.log(str(play.stats.summarize('localhost')))
         self.callback.log('Test spawn_instance playbook manually')
-        
+
         return None
 
     def terminate_instance(self,ip):
         """call the terminate playbook to destroy the building instance"""
         self.callback.log('terminate instance begin')
-        
+
         stats = callbacks.AggregateStats()
         playbook_cb = SilentPlaybookCallbacks(verbose=False)
         runner_cb = callbacks.DefaultRunnerCallbacks()
-        play = ansible.playbook.PlayBook(host_list=ip +',', stats=stats, playbook=self.opts.terminate_playbook, 
-                             callbacks=playbook_cb, runner_callbacks=runner_cb, 
+        play = ansible.playbook.PlayBook(host_list=ip +',', stats=stats, playbook=self.opts.terminate_playbook,
+                             callbacks=playbook_cb, runner_callbacks=runner_cb,
                              remote_user='root')
 
         play.run()
         self.callback.log('terminate instance end')
-    
+
     def parse_job(self, jobfile):
         # read the json of the job in
         # break out what we need return a bunch of the info we need
@@ -180,40 +207,40 @@ class Worker(multiprocessing.Process):
     # maybe we move this to the callback?
     def post_to_frontend(self, data):
         """send data to frontend"""
-        
+
         headers = {'content-type': 'application/json'}
         url='%s/update_builds/' % self.opts.frontend_url
         auth=('user', self.opts.frontend_auth)
-        
+
         msg = None
         try:
-            r = requests.post(url, data=json.dumps(data), auth=auth, 
+            r = requests.post(url, data=json.dumps(data), auth=auth,
                               headers=headers)
             if r.status_code != 200:
                 msg = 'Failed to submit to frontend: %s: %s' % (r.status_code, r.text)
         except requests.RequestException, e:
             msg = 'Post request failed: %s' % e
-            
+
         if msg:
             self.callback.log(msg)
             return False
 
         return True
-    
+
     # maybe we move this to the callback?
     def mark_started(self, job):
-        
+
 
         build = {'id':job.build_id,
                  'started_on': job.started_on,
                  'results': job.results,
                  }
         data = {'builds':[build]}
-        
+
         if not self.post_to_frontend(data):
             raise errors.CoprWorkerError, "Could not communicate to front end to submit status info"
-    
-    # maybe we move this to the callback?    
+
+    # maybe we move this to the callback?
     def return_results(self, job):
 
         self.callback.log('%s status %s. Took %s seconds' % (job.build_id, job.status, job.ended_on - job.started_on))
@@ -222,7 +249,7 @@ class Worker(multiprocessing.Process):
                  'status': job.status,
                  }
         data = {'builds':[build]}
-        
+
         if not self.post_to_frontend(data):
             raise errors.CoprWorkerError, "Could not communicate to front end to submit results"
 
@@ -240,16 +267,16 @@ class Worker(multiprocessing.Process):
                 jobfile = self.jobs.get()
             except Queue.Empty:
                 break
-            
+
             # parse the job json into our info
             job = self.parse_job(jobfile)
-            
+
             # FIXME
             # this is our best place to sanity check the job before starting
             # up any longer process
-            
+
             job.jobfile = jobfile
-            
+
             # spin up our build instance
             if self.create:
                 try:
@@ -261,14 +288,30 @@ class Worker(multiprocessing.Process):
                     self.callback.log('failure to setup instance: %s' % e)
                     raise
 
+            # This assumes there are certs and a fedmsg config on disk
+            try:
+                if self.opts.fedmsg_enabled:
+                    fedmsg.init(name="relay_inbound", cert_prefix="copr", active=True)
+            except Exception, e:
+                self.callback.log('failed to initialize fedmsg: %s' % e)
+                pass  # But continue on happily.
+
             status = 1
             job.started_on = time.time()
             self.mark_started(job)
 
-            self.event('build start: user:%s copr:%s build:%s ip:%s  pid:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid))            
+            template = 'build start: user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid}'
+            content = dict(user=job.user_name, copr=job.copr_name,
+                           build=job.build_id, ip=ip, pid=self.pid)
+            self.event('build.start', template, content)
 
             for chroot in job.chroots:
-                self.event('chroot start: chroot:%s user:%s copr:%s build:%s ip:%s  pid:%s' % (chroot, job.user_name, job.copr_name, job.build_id, ip, self.pid))            
+                template = 'chroot start: chroot:{chroot} user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid}'
+                content = dict(chroot=chroot, user=job.user_name,
+                               copr=job.copr_name, build=job.build_id,
+                               ip=ip, pid=self.pid)
+                self.event('chroot.start', template, content)
+
                 chroot_destdir = job.destdir + '/' + chroot
                 # setup our target dir locally
                 if not os.path.exists(chroot_destdir):
@@ -286,15 +329,15 @@ class Worker(multiprocessing.Process):
                 # this should use ansible to download the pkg on the remote system
                 # and run a series of checks on the package before we
                 # start the build - most importantly license checks.
-                
-                        
+
+
                 self.callback.log('Starting build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id,ip, job.timeout, job.destdir, chroot, str(job.repos)))
                 self.callback.log('building pkgs: %s' % ' '.join(job.pkgs))
                 try:
                     chroot_repos = list(job.repos)
                     chroot_repos.append(job.results + '/' + chroot)
                     chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
-                    mr = mockremote.MockRemote(builder=ip, timeout=job.timeout, 
+                    mr = mockremote.MockRemote(builder=ip, timeout=job.timeout,
                          destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
                          repos=chroot_repos,
                          callback=mockremote.CliLogCallBack(quiet=True,logfn=chrootlogfile))
@@ -306,15 +349,19 @@ class Worker(multiprocessing.Process):
                 else:
                     # we can't really trace back if we just fail normally
                     # check if any pkgs didn't build
-                    if mr.failed: 
+                    if mr.failed:
                         status = 0
                 self.callback.log('Finished build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id, ip, job.timeout, job.destdir, chroot, str(job.repos)))
             job.ended_on = time.time()
-            
+
             job.status = status
             self.return_results(job)
             self.callback.log('worker finished build: %s' % ip)
-            self.event('build end: user:%s copr:%s build:%s ip:%s  pid:%s status:%s' % (job.user_name, job.copr_name, job.build_id, ip, self.pid, job.status))
+            template = 'build end: user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid} status:{status}'
+            content = dict(user=job.user_name, copr=job.copr_name,
+                           build=job.build_id, ip=ip, pid=self.pid,
+                           status=job.status)
+            self.event('build.end', template, content)
             # clean up the instance
             if self.create:
                 self.terminate_instance(ip)

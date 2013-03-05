@@ -36,7 +36,7 @@ class CoprJobGrab(multiprocessing.Process):
 
     def event(self, what):
         self.events.put({'when':time.time(), 'who':'jobgrab', 'what':what})
-        
+
     def fetch_jobs(self):
         try:
             r = requests.get('%s/waiting_builds/' % self.opts.frontend_url) # auth stuff here? maybe/maybenot
@@ -48,7 +48,7 @@ class CoprJobGrab(multiprocessing.Process):
             except ValueError, e:
                 self.event('Error getting JSON build list from FE %s' % e)
                 return
-            
+
             if 'builds' in r_json and r_json['builds']:
                 self.event('%s jobs returned' % len(r_json['builds']))
                 count = 0
@@ -94,12 +94,12 @@ class CoprLog(multiprocessing.Process):
 
         # setup a log file to write to
         self.logfile = self.opts.logfile
-    
+
     def log(self, event):
-        
+
         when =  time.strftime('%F %T', time.gmtime(event['when']))
         msg = '%s : %s: %s' % (when, event['who'], event['what'].strip())
-            
+
         try:
             open(self.logfile, 'a').write(msg + '\n')
         except (IOError, OSError), e:
@@ -116,18 +116,18 @@ class CoprLog(multiprocessing.Process):
 
 class CoprBackend(object):
     """core process - starts/stops/initializes workers"""
-    
+
     def __init__(self, config_file=None, ext_opts=None):
         # read in config file
         # put all the config items into a single self.opts bunch
-        
+
         if not config_file:
             raise errors.CoprBackendError, "Must specify config_file"
-        
+
         self.config_file = config_file
         self.ext_opts = ext_opts # to stow our cli options for read_conf()
         self.opts = self.read_conf()
-        
+
         self.jobs = multiprocessing.Queue() # job is a path to a jobfile on the localfs
         self.events = multiprocessing.Queue()
         # event format is a dict {when:time, who:[worker|logger|job|main], what:str}
@@ -136,7 +136,7 @@ class CoprBackend(object):
         # create logger
         self._logger = CoprLog(self.opts, self.events)
         self._logger.start()
-        
+
         self.event('Starting up Job Grabber')
         # create job grabber
         self._jobgrab = CoprJobGrab(self.opts, self.events, self.jobs)
@@ -144,13 +144,13 @@ class CoprBackend(object):
 
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0750)
-        
+
         self.workers = []
         self.added_jobs = []
 
     def event(self, what):
         self.events.put({'when':time.time(), 'who':'main', 'what':what})
-        
+
     def read_conf(self):
         "read in config file - return Bunch of config data"
         opts = Bunch()
@@ -166,6 +166,7 @@ class CoprBackend(object):
             opts.destdir = _get_conf(cp, 'backend', 'destdir', None)
             opts.daemonize = _get_conf(cp, 'backend', 'daemonize', True)
             opts.exit_on_worker = _get_conf(cp, 'backend', 'exit_on_worker', False)
+            opts.fedmsg_enabled = _get_conf(cp, 'backend', 'fedmsg_enabled', False)
             opts.sleeptime = int(_get_conf(cp, 'backend', 'sleeptime', 10))
             opts.num_workers = int(_get_conf(cp, 'backend', 'num_workers', 8))
             opts.timeout = int(_get_conf(cp, 'builder', 'timeout', 1800))
@@ -174,28 +175,28 @@ class CoprBackend(object):
             # thoughts for later
             # ssh key for connecting to builders?
             # cloud key stuff?
-            # 
+            #
         except ConfigParser.Error, e:
             raise errors.CoprBackendError, 'Error parsing config file: %s: %s' % (self.config_file, e)
-        
-        
+
+
         if not opts.jobsdir or not opts.destdir:
             raise errors.CoprBackendError, "Incomplete Config - must specify jobsdir and destdir in configuration"
-            
+
         if self.ext_opts:
             for v in self.ext_opts:
                 setattr(opts, v, self.ext_opts.get(v))
         return opts
-        
-        
-    
+
+
+
     def run(self):
 
         abort = False
         while not abort:
             # re-read config into opts
             self.opts = self.read_conf()
-            
+
             if self.jobs.qsize():
                 self.event("# jobs in queue: %s" % self.jobs.qsize())
                 # this handles starting/growing the number of workers
@@ -227,7 +228,7 @@ class CoprBackend(object):
             time.sleep(self.opts.sleeptime)
 
 # lifted from certmaster
-def daemonize(pidfile=None): 
+def daemonize(pidfile=None):
     """
     Daemonize this process with the UNIX double-fork trick.
     Writes the new PID to the provided file name if not None.
@@ -235,7 +236,7 @@ def daemonize(pidfile=None):
 
     cur_umask = os.umask(077)
     os.umask(cur_umask)
-    
+
     pid = os.fork()
     if pid > 0:
         sys.exit(0)
@@ -249,7 +250,7 @@ def daemonize(pidfile=None):
     os.close(2)
 
     # The standard I/O file descriptors are redirected to /dev/null by default.
-    if (hasattr(os, "devnull")):  
+    if (hasattr(os, "devnull")):
         REDIRECT_TO = os.devnull
     else:
         REDIRECT_TO = "/dev/null"
@@ -277,24 +278,24 @@ def parse_args(args):
             help="pid file to use for copr-be if daemonized")
     parser.add_option('-x', '--exit', default=False, dest='exit_on_worker',
             action='store_true', help="exit on worker failure")
-            
+
     opts, args = parser.parse_args(args)
     if not os.path.exists(opts.config_file):
         print "No config file found at: %s" % opts.config_file
         sys.exit(1)
     opts.config_file = os.path.abspath(opts.config_file)
-    
+
     ret_opts = Bunch()
     for o in ('daemonize', 'exit_on_worker', 'pidfile', 'config_file'):
         setattr(ret_opts, o, getattr(opts, o))
 
     return ret_opts
-    
-    
-    
+
+
+
 def main(args):
     opts = parse_args(args)
-    
+
     try:
         cbe = CoprBackend(opts.config_file, ext_opts=opts)
         if opts.daemonize:
@@ -308,7 +309,7 @@ def main(args):
         raise
     except KeyboardInterrupt, e:
         pass
-    
+
 if __name__ == '__main__':
     try:
         main(sys.argv[1:])
@@ -319,4 +320,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt, e:
         print "\nUser cancelled, may need cleanup\n"
         sys.exit(0)
-        
