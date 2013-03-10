@@ -43,13 +43,16 @@ def get_api_url():
 
 def list(username=None):
     """ List all the copr of a user. """
-    user = get_user()
+    user = {}
+    if not username:
+        user = get_user()
+        del(user['token'])
+
     copr_api_url = get_api_url()
     url = '{0}/owned/'.format(copr_api_url)
 
     if username:
         user['username'] = username
-    del(user['token'])
 
     req = requests.get(url, params=user)
     output = json.loads(req.text)
