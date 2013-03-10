@@ -40,7 +40,7 @@ def action_list(args):
     :param args: argparse arguments provided by the user
 
     """
-    subcommands.list(args.username)
+    subcommands.listcoprs(args.username)
 
 
 def setup_parser():

@@ -41,7 +41,7 @@ def get_api_url():
     return '%s/api' % copr_url
 
 
-def list(username=None):
+def listcoprs(username=None):
     """ List all the copr of a user. """
     user = {}
     if not username:
@@ -55,6 +55,16 @@ def list(username=None):
         user['username'] = username
 
     req = requests.get(url, params=user)
+
+    if '<title>Sign in Coprs</title>' in req.text:
+        print 'Invalid API token'
+        return
+
+    output = json.loads(req.text)
+    if req.status_code != 200:
+        print 'Something went wrong:\n {0}'.format(output['error'])
+        return
+
     output = json.loads(req.text)
     columns = []
     values = []
@@ -140,11 +150,15 @@ def create(name, chroots=[], description=None, instructions=None,
     req = requests.post(URL,
                         auth=(user['username'], user['token']),
                         data=data)
+    if '<title>Sign in Coprs</title>' in req.text:
+        print 'Invalid API token'
+        return
+
     output = json.loads(req.text)
-    if output['output'] == 'ok':
-        print output['message']
+    if req.status_code != 200:
+        print 'Something went wrong:\n {0}'.format(output['error'])
     else:
-        print 'Something went wrong:\n  {0}'.format(output['error'])
+        print output['message']
 
 
 def build(copr, pkgs, memory, timeout):
@@ -164,8 +178,13 @@ def build(copr, pkgs, memory, timeout):
     req = requests.post(URL,
                         auth=(user['username'], user['token']),
                         data=data)
+
+    if '<title>Sign in Coprs</title>' in req.text:
+        print 'Invalid API token'
+        return
+
     output = json.loads(req.text)
     if req.status_code != 200:
-        print 'Something went wrong:\n  {0}'.format(output['error'])
+        print 'Something went wrong:\n {0}'.format(output['error'])
     else:
         print output['message']
