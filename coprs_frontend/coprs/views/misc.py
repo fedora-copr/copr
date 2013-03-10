@@ -76,8 +76,7 @@ def logout():
     flask.flash(u'You were signed out')
     return flask.redirect(oid.get_next_url())
 
-
-def login_required(f):
+def api_login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
         token = None
@@ -97,7 +96,19 @@ def login_required(f):
                 and user.api_token_expiration >= datetime.date.today():
                 token_auth = True
                 flask.g.user = user
-        if not token_auth and flask.g.user is None:
+        if not token_auth:
+            output = {'output': 'notok', 'error': 'Login invalid/expired'}
+            jsonout = flask.jsonify(output)
+            jsonout.status_code = 500
+            return jsonout
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def login_required(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if flask.g.user is None:
             return flask.redirect(flask.url_for('misc.login',
                 next = flask.request.url))
         return f(*args, **kwargs)

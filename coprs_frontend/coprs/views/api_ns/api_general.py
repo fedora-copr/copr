@@ -1,6 +1,7 @@
 import datetime
 import time
 
+import base64
 import flask
 
 from coprs import db
@@ -8,7 +9,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 
-from coprs.views.misc import login_required
+from coprs.views.misc import login_required, api_login_required
 
 from coprs.views.api_ns import api_ns
 
@@ -40,7 +41,7 @@ def api_new_token():
 
 
 @api_ns.route('/copr/new/', methods=['POST'])
-@login_required
+@api_login_required
 def api_new_copr():
     """ Receive information from the user on how to create its new copr,
     check their validity and create the corresponding copr.
@@ -130,7 +131,7 @@ def api_coprs_by_owner(username=None):
 
 @api_ns.route('/coprs/detail/<username>/<coprname>/new_build/',
     methods=["POST"])
-@login_required
+@api_login_required
 def copr_new_build(username, coprname):
     form = forms.BuildForm(csrf_enabled=False)
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username,
