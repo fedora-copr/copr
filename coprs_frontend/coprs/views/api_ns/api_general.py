@@ -31,6 +31,10 @@ def api_new_token():
     """ Method use to generate a new API token for the current user.
     """
     user = flask.g.user
+    copr64 = base64.b64encode('copr') + '##'
+    api_login = helpers.generate_api_token(
+        flask.current_app.config['API_TOKEN_LENGTH'] - len(copr64))
+    user.api_login = api_login
     user.api_token = helpers.generate_api_token(
         flask.current_app.config['API_TOKEN_LENGTH'])
     user.api_token_expiration = datetime.date.today() \

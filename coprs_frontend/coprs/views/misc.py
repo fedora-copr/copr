@@ -57,7 +57,10 @@ def create_or_login(resp):
     if not user: # create if not created already
         expiration_date_token = datetime.date.today() \
             + datetime.timedelta(days=30)
+        copr64 = base64.b64encode('copr') + '##'
         user = models.User(openid_name = resp.identity_url, mail = resp.email,
+            api_login = copr64 + helpers.generate_api_token(
+                app.config['API_TOKEN_LENGTH'] - len(copr64)),
             api_token = helpers.generate_api_token(app.config['API_TOKEN_LENGTH']),
             api_token_expiration = expiration_date_token)
         db.session.add(user)
@@ -89,8 +92,7 @@ def api_login_required(f):
         token_auth = False
         if token and username:
             user = models.User.query.filter(
-                models.User.openid_name == models.User.openidize_name(username)
-                ).first()
+                models.User.api_login == username).first()
             if user \
                 and user.api_token == token \
                 and user.api_token_expiration >= datetime.date.today():

@@ -40,7 +40,7 @@ Usage:
 ::
 
  [copr-cli]
- username = <insert here your username>
+ username = <insert here your API login>
  token = <insert here your API token>
 
 

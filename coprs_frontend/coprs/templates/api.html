@@ -20,6 +20,7 @@
     {% if g.user %}
     <p>Your information:</p>
     <pre style="font-size:120%">
+    API login       :   {{ g.user.api_login }}
     API token       :   {{ g.user.api_token }}
     Expiration date :   {{ g.user.api_token_expiration }}
     </pre>
