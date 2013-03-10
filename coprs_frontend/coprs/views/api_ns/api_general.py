@@ -110,7 +110,7 @@ def api_coprs_by_owner(username=None):
     """
     username = flask.request.args.get('username', None) or username
     httpcode = 200
-    if 'username':
+    if username:
         query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
             user_relation='owned', username=username)
         repos = query.all()
