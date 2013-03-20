@@ -25,7 +25,6 @@ class CoprUserWhoosheer(AbstractWhoosheer):
         instructions = whoosh.fields.TEXT())
 
     models = [models.Copr, models.User]
-    index = None
 
     @classmethod
     def update_user(cls, writer, user):
