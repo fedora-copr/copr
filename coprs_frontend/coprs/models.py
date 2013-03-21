@@ -139,6 +139,10 @@ class Copr(db.Model, Serializer):
     def instructions_or_not_filled(self):
         return self.instructions or 'Instructions not filled in by author.'
 
+    @property
+    def active_mock_chroots(self):
+        return filter(lambda x: x.is_active, self.mock_chroots)
+
 class CoprPermission(db.Model, Serializer):
     # 0 = nothing, 1 = asked for, 2 = approved
     # not using enum, as that translates to varchar on some DBs

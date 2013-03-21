@@ -61,9 +61,7 @@ class BuildsLogic(object):
             pkgs=pkgs,
             copr=copr,
             repos=copr.repos,
-            chroots=' '.join(map(lambda x: x.chroot_name,
-                             filter(lambda b: b.is_active, #only add active chroots
-                                    copr.mock_chroots))),
+            chroots=' '.join(map(lambda x: x.chroot_name, copr.active_mock_chroots)),
             user=user,
             submitted_on=int(time.time()))
         # no need to check for authorization here

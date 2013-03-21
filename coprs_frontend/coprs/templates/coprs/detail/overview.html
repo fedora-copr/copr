@@ -12,10 +12,10 @@
       <th class="leftmost">Release</th>
       <th class="rightmost">Architecture</th>
     </tr>
-    {% for mock_chroot in copr.mock_chroots %}
-      {% if loop.index < copr.mock_chroots|length %}
-        {% if mock_chroot.os_release != copr.mock_chroots[loop.index].os_release or
-              mock_chroot.os_version != copr.mock_chroots[loop.index].os_version %}
+    {% for mock_chroot in copr.active_mock_chroots %}
+      {% if loop.index < copr.active_mock_chroots|length %}
+        {% if mock_chroot.os_release != copr.active_mock_chroots[loop.index].os_release or
+              mock_chroot.os_version != copr.active_mock_chroots[loop.index].os_version %}
           {# next release is different => release-end #}
           <tr class="release-end">
         {% else %}
@@ -24,8 +24,8 @@
       {% else %}{# last line => release-end for sure #}
         <tr class="release-end">
       {% endif %}
-        {% if mock_chroot.os_release != copr.mock_chroots[loop.index0 - 1].os_release or
-	      mock_chroot.os_version != copr.mock_chroots[loop.index0 - 1].os_version or
+        {% if mock_chroot.os_release != copr.active_mock_chroots[loop.index0 - 1].os_release or
+	      mock_chroot.os_version != copr.active_mock_chroots[loop.index0 - 1].os_version or
 	      loop.index0 == 0 %}
           {# previous os_release-os_version were different or this is the first one #}
           <td>{{ mock_chroot.os_release|capitalize }} {{ mock_chroot.os_version }}</td>

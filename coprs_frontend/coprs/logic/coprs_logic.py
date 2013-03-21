@@ -41,7 +41,9 @@ class CoprsLogic(object):
 
         query = db.session.query(models.Copr).\
                            join(models.Copr.owner).\
-                           options(db.contains_eager(models.Copr.owner))
+                           options(db.contains_eager(models.Copr.owner)).\
+                           order_by(models.Copr.id.desc())
+
         if user_relation == 'owned':
             query = query.filter(models.User.openid_name == models.User.openidize_name(username))
         elif user_relation == 'allowed':
@@ -51,7 +53,12 @@ class CoprsLogic(object):
                           join(aliased_user, models.CoprPermission.user).\
                           filter(aliased_user.openid_name == models.User.openidize_name(username))
         if with_mock_chroots:
-            query = query.options(db.subqueryload(*models.Copr.mock_chroots.attr))
+            query = query.outerjoin(*models.Copr.mock_chroots.attr).\
+                          options(db.contains_eager(*models.Copr.mock_chroots.attr)).\
+                          order_by(models.MockChroot.os_release.asc()).\
+                          order_by(models.MockChroot.os_version.asc()).\
+                          order_by(models.MockChroot.arch.asc())
+
         return query
 
     @classmethod

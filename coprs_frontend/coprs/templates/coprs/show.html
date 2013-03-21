@@ -25,7 +25,7 @@
           <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">{{ copr.owner.name }}/{{ copr.name }}</a>
 	  <p>{{ copr.description_or_not_filled }}</p>
 	  <p class="repos">
-	    {% for mock_chroot in copr.mock_chroots %}
+	    {% for mock_chroot in copr.active_mock_chroots %}
               {{ mock_chroot.os_release|os_name_short(mock_chroot.os_version) }}.{{ mock_chroot.arch }}{% if not loop.last %}, {% endif %}
 	    {% endfor %}
 	  </p>
