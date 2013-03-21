@@ -15,7 +15,7 @@ def waiting_builds():
 
     builds = query[0:10]
     return flask.jsonify({'builds': [build.to_dict(options = {'copr': {'owner': {},
-                                                                       '__columns_except__': ['chroots', 'repos', 'build_count'],
+                                                                       '__columns_only__': ['id', 'name'],
                                                                        '__included_ids__': False},
                                                               '__included_ids__': False}) for build in builds]})
 
