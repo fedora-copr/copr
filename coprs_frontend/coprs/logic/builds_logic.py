@@ -57,6 +57,7 @@ class BuildsLogic(object):
 
     @classmethod
     def add(cls, user, pkgs, copr):
+        coprs_logic.CoprsLogic.raise_if_unfinished_action(user, copr)
         build = models.Build(
             pkgs=pkgs,
             copr=copr,

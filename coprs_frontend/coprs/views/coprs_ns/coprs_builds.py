@@ -51,16 +51,20 @@ def copr_new_build(username, coprname):
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     if form.validate_on_submit() and flask.g.user.can_build_in(copr):
-        build = builds_logic.BuildsLogic.add(user=flask.g.user,
-                                             pkgs=form.pkgs.data.replace('\n', ' '),
-                                             copr=copr) # we're checking authorization above for now
-        if flask.g.user.proven:
-            build.memory_reqs = form.memory_reqs.data
-            build.timeout = form.timeout.data
+        try:
+            build = builds_logic.BuildsLogic.add(user=flask.g.user,
+                                                 pkgs=form.pkgs.data.replace('\n', ' '),
+                                                 copr=copr) # we're checking authorization above for now
+            if flask.g.user.proven:
+                build.memory_reqs = form.memory_reqs.data
+                build.timeout = form.timeout.data
+        except exceptions.ActionInProgressException as e:
+            flask.flash('Can\'t build in this Copr, there is an operation in progress: {0}'.format(e.action))
+            db.session.rollback()
+        else:
+            flask.flash("Build was added")
+            db.session.commit()
 
-        db.session.commit()
-
-        flask.flash("Build was added")
         return flask.redirect(flask.url_for('coprs_ns.copr_builds', username=username, coprname=copr.name))
     else:
         return copr_add_build(username=username, coprname=coprname, form=form)
