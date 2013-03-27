@@ -9,6 +9,7 @@ from coprs import whoosheers
 
 class CoprsLogic(object):
     """Used for manipulating Coprs. All methods accept user object as a first argument, as this may be needed in future."""
+
     @classmethod
     def get(cls, user, username, coprname, **kwargs):
         with_builds = kwargs.get('with_builds', False)
@@ -91,9 +92,7 @@ class CoprsLogic(object):
 
     @classmethod
     def update(cls, user, copr, check_for_duplicates = True):
-        action = cls.unfinished_actions(user, copr).first()
-        if action:
-            raise exceptions.ActionInProgressException('Action in progress on this copr.', action)
+        cls.raise_if_unfinished_action(user, copr)
 
         existing = cls.exists_for_user(copr.owner, copr.name).first()
         if existing:
@@ -125,12 +124,22 @@ class CoprsLogic(object):
                           update({models.Copr.build_count: models.Copr.build_count + 1})
 
     @classmethod
-    def unfinished_actions(cls, user, copr):
+    def unfinished_actions_for(cls, user, copr):
         actions = models.Action.query.filter(models.Action.object_type=='copr').\
                                       filter(models.Action.object_id==copr.id).\
-                                      filter(models.Action.backend_result==0)
+                                      filter(models.Action.backend_result==helpers.BackendResultEnum('waiting'))
 
         return actions
+
+    @classmethod
+    def raise_if_unfinished_action(cls, user, copr):
+        """This method raises ActionInProgressException if given copr has an unfinished
+        action. Returns None otherwise.
+        """
+        unfinished_actions = cls.unfinished_actions_for(user, copr).all()
+        if unfinished_actions:
+            raise exceptions.ActionInProgressException('Action in progress on this copr.', unfinished_actions[0])
+
 
 class CoprPermissionsLogic(object):
     @classmethod

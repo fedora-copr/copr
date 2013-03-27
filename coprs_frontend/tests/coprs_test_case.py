@@ -100,6 +100,8 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_actions(self):
+        # if using actions, we need to flush coprs into db, so that we can get their ids
+        self.f_db()
         self.a1 = models.Action(action_type=helpers.ActionTypeEnum('rename'),
                                 object_type='copr',
                                 object_id=self.c1.id,
