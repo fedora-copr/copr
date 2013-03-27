@@ -27,6 +27,11 @@
           <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Edit</a>
         </li>
       {% endif %}
+      {% if g.user and g.user == copr.owner %}
+        <li class="{% block delete_selected %}unselected{% endblock %}">
+          <a href="{{ url_for('coprs_ns.copr_delete', username=copr.owner.name, coprname=copr.name) }}">Delete</a>
+        </li>
+      {% endif %}
     </ul>
   </div>
   {% block detail_body %}{% endblock %}

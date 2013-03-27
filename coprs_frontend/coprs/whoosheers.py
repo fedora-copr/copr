@@ -53,3 +53,7 @@ class CoprUserWhoosheer(AbstractWhoosheer):
                             coprname=copr.name,
                             description=copr.description,
                             instructions=copr.instructions)
+
+    @classmethod
+    def delete_copr(cls, writer, copr):
+        writer.delete_by_term('copr_id', copr.id)

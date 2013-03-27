@@ -236,3 +236,27 @@ def copr_update_permissions(username, coprname):
         flask.flash('Copr permissions were updated successfully.')
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
+
+@coprs_ns.route('/detail/<username>/<coprname>/delete/', methods=['GET', 'POST'])
+@login_required
+def copr_delete(username, coprname):
+    form = forms.CoprDeleteForm()
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    # only owner can delete a copr
+    if flask.g.user != copr.owner:
+        flask.flash('Only owners may delete their Coprs.')
+        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
+
+    if form.validate_on_submit():
+        try:
+            coprs_logic.CoprsLogic.delete(flask.g.user, copr)
+        except exceptions.ActionInProgressException as e:
+            db.session.rollback()
+            flask.flash('Can\'t manipulate this Copr, there is another operation in progress: {0}'.format(e.action))
+            return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
+        else:
+            db.session.commit()
+            flask.flash('Copr was deleted successfully.')
+            return flask.redirect(flask.url_for('coprs_ns.coprs_by_owner', username=username))
+    else:
+        return flask.render_template('coprs/detail/delete.html', form=form, copr=copr)

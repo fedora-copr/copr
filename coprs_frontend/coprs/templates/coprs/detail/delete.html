@@ -1,0 +1,14 @@
+{% extends "coprs/detail.html" %}
+{% block title %}Delete {{ copr.owner.name }}/{{ copr.name }}?{% endblock %}
+{% block delete_selected %}selected{% endblock %}
+{% from "coprs/_coprs_forms.html" import copr_delete_form %}
+
+{% block detail_body %}
+  <p>If you really want to delete this Copr, you'll have to answer this riddle:</p>
+  <p>{{ range(5)|random }}.{{ range(10)|random }} hens lay {{ range(5)|random }}.{{ range(10)|random }} eggs in
+  {{ range(5)|random }}.{{ range(10)|random }} days. How many eggs do {{ range(5)|random }}.{{ range(10)|random }}
+  hens lay in {{ range(5)|random }}.{{ range(10)|random }} days?</p>
+  <p>Ok, kidding, just type "<strong>yes</strong>" into the below box.</p>
+  {{ copr_delete_form(form, copr) }}
+
+{% endblock %}

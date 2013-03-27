@@ -112,6 +112,23 @@ class CoprsLogic(object):
         db.session.add(copr)
 
     @classmethod
+    def delete(cls, user, copr, check_for_duplicates=True):
+        # for the time being, we authorize user to do this in view...
+        # TODO: do we want to dump the information somewhere, so that we can search it in future?
+        cls.raise_if_unfinished_action(user, copr)
+        action = models.Action(action_type=helpers.ActionTypeEnum('delete'),
+                               object_type='copr',
+                               object_id=copr.id,
+                               old_value='{0}/{1}'.format(copr.owner.name, copr.name),
+                               new_value='',
+                               created_on=int(time.time()))
+
+        db.session.add(action)
+        db.session.delete(copr)
+
+        return copr
+
+    @classmethod
     def exists_for_user(cls, user, coprname):
         existing = models.Copr.query.filter(models.Copr.name==coprname).\
                                      filter(models.Copr.owner_id==user.id)

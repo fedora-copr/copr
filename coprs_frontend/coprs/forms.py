@@ -123,6 +123,9 @@ class CoprFormFactory(object):
 
         return F
 
+class CoprDeleteForm(wtf.Form):
+    verify = wtf.TextField('Confirm deleting by typing "yes"',
+                           validators=[wtf.Required(), wtf.Regexp(r'^yes$', message='Type "yes" - without the quotes, lowercase.')])
 
 class BuildForm(wtf.Form):
     pkgs = wtf.TextAreaField('Pkgs',

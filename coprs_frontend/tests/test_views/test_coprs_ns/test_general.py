@@ -370,3 +370,44 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                        data = {'copr_builder_1': '2', 'copr_admin_3': '2'},
                        follow_redirects = True)
             assert 'Copr permissions were updated' in r.data
+
+class TestCoprDelete(CoprsTestCase):
+    def test_delete(self, f_users, f_coprs, f_db):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u1, self.c1])
+            r = c.post('/coprs/detail/{0}/{1}/delete/'.format(self.u1.name, self.c1.name),
+                       data = {'verify': 'yes'},
+                       follow_redirects = True)
+            assert 'Copr was deleted successfully' in r.data
+            assert self.models.Action.query.first().id == self.c1.id
+            assert not self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first()
+
+    def test_copr_delete_does_not_delete_if_verify_filled_wrongly(self, f_users, f_coprs, f_db):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add_all([self.u1, self.c1])
+            r = c.post('/coprs/detail/{0}/{1}/delete/'.format(self.u1.name, self.c1.name),
+                       data = {'verify': 'no'},
+                       follow_redirects = True)
+            assert 'Copr was deleted successfully' not in r.data
+            assert not self.models.Action.query.first()
+            assert self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first()
+
+    def test_non_owner_cant_delete(self, f_users, f_coprs, f_db):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u2.openid_name
+
+            self.db.session.add_all([self.u1, self.u2, self.c1])
+            r = c.post('/coprs/detail/{0}/{1}/delete/'.format(self.u1.name, self.c1.name),
+                       data = {'verify': 'yes'},
+                       follow_redirects = True)
+            self.db.session.add_all([self.c1])
+            assert 'Copr was deleted successfully' not in r.data
+            assert not self.models.Action.query.first()
+            assert self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first()

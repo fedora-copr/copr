@@ -31,6 +31,23 @@
   </form>
 {% endmacro %}
 
+{% macro copr_delete_form(form, copr) %}
+  <form action="{{ url_for('coprs_ns.copr_delete', username=copr.owner.name, coprname=copr.name) }}" method="post">
+    <dl>
+      {{ form.csrf_token }}
+      <dd>
+        {% if form.verify.errors %}
+          {% for error in form.verify.errors %}
+            <p class="form-error">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+      </dd>
+      {{ form.verify }}
+      <dt><input type="submit" value="Delete"></dt>
+    </dl>
+  </form>
+{% endmacro %}
+
 {% macro copr_permissions_form(form, copr, permissions) %}
   {% if permissions %}
     <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.owner.name, coprname=copr.name) }}" method=post>
