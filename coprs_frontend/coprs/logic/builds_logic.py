@@ -6,6 +6,7 @@ from coprs import models
 from coprs import signals
 
 from coprs.logic import coprs_logic
+from coprs.logic import users_logic
 
 class BuildsLogic(object):
     @classmethod
@@ -59,6 +60,8 @@ class BuildsLogic(object):
     def add(cls, user, pkgs, copr):
         coprs_logic.CoprsLogic.raise_if_unfinished_action(user, copr,
                                                           'Can\'t build while there is an operation in progress: {action}')
+        users_logic.UsersLogic.raise_if_cant_build_in_copr(user, copr,
+                                                           'You don\'t have permissions to build in this copr.')
         build = models.Build(
             pkgs=pkgs,
             copr=copr,
@@ -66,15 +69,11 @@ class BuildsLogic(object):
             chroots=' '.join(map(lambda x: x.chroot_name, copr.active_mock_chroots)),
             user=user,
             submitted_on=int(time.time()))
-        # no need to check for authorization here
-        cls.new(user, build, copr, check_authorized=False)
+        cls.new(user, build, copr)
         return build
 
     @classmethod
-    def new(cls, user, build, copr, check_authorized = True):
-        if check_authorized:
-            if not user.can_build_in(copr):
-                raise exceptions.InsufficientRightsException('User {0} cannot build in copr {1}/{2}'.format(user.name, copr.owner.name, copr.name))
+    def new(cls, user, build, copr):
         if not build.submitted_on:
             build.submitted_on = int(time.time())
         if not build.user:
