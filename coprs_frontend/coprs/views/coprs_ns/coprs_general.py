@@ -164,10 +164,6 @@ def copr_edit(username, coprname, form=None):
 def copr_update(username, coprname):
     form = forms.CoprFormFactory.create_form_cls()()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    # only owner can update a copr
-    if not flask.g.user.can_edit(copr):
-        flask.flash('Only owners and admins may update their Coprs.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = form.name.data))
 
     if form.validate_on_submit():
         # we don't change owner (yet)
@@ -179,8 +175,8 @@ def copr_update(username, coprname):
 
         try:
             coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
-        except exceptions.ActionInProgressException as e:
-            flask.flash('Can\'t change this Copr name, there is another operation in progress: {0}'.format(e.action))
+        except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
+            flask.flash(e)
             db.session.rollback()
         else:
             flask.flash('Copr was updated successfully.')
@@ -252,7 +248,7 @@ def copr_delete(username, coprname):
             coprs_logic.CoprsLogic.delete(flask.g.user, copr)
         except exceptions.ActionInProgressException as e:
             db.session.rollback()
-            flask.flash('Can\'t manipulate this Copr, there is another operation in progress: {0}'.format(e.action))
+            flask.flash(e)
             return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
         else:
             db.session.commit()

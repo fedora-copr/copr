@@ -59,7 +59,7 @@ def copr_new_build(username, coprname):
                 build.memory_reqs = form.memory_reqs.data
                 build.timeout = form.timeout.data
         except exceptions.ActionInProgressException as e:
-            flask.flash('Can\'t build in this Copr, there is an operation in progress: {0}'.format(e.action))
+            flask.flash(e)
             db.session.rollback()
         else:
             flask.flash("Build was added")

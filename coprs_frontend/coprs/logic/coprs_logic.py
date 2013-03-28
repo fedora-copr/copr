@@ -92,7 +92,9 @@ class CoprsLogic(object):
 
     @classmethod
     def update(cls, user, copr, check_for_duplicates = True):
-        cls.raise_if_unfinished_action(user, copr)
+        cls.raise_if_unfinished_action(user, copr,
+                                       'Can\'t change this Copr name, another operation is in progress: {action}')
+        cls.raise_if_cant_update(user, copr, 'Only owners and admins may update their Coprs.')
 
         existing = cls.exists_for_user(copr.owner, copr.name).first()
         if existing:
@@ -115,7 +117,8 @@ class CoprsLogic(object):
     def delete(cls, user, copr, check_for_duplicates=True):
         # for the time being, we authorize user to do this in view...
         # TODO: do we want to dump the information somewhere, so that we can search it in future?
-        cls.raise_if_unfinished_action(user, copr)
+        cls.raise_if_unfinished_action(user, copr,
+                                       'Can\'t delete this Copr, another operation is in progress: {action}')
         action = models.Action(action_type=helpers.ActionTypeEnum('delete'),
                                object_type='copr',
                                object_id=copr.id,
@@ -149,13 +152,22 @@ class CoprsLogic(object):
         return actions
 
     @classmethod
-    def raise_if_unfinished_action(cls, user, copr):
+    def raise_if_unfinished_action(cls, user, copr, message):
         """This method raises ActionInProgressException if given copr has an unfinished
         action. Returns None otherwise.
         """
         unfinished_actions = cls.unfinished_actions_for(user, copr).all()
         if unfinished_actions:
-            raise exceptions.ActionInProgressException('Action in progress on this copr.', unfinished_actions[0])
+            raise exceptions.ActionInProgressException(message, unfinished_actions[0])
+
+    @classmethod
+    def raise_if_cant_update(cls, user, copr, message):
+        """This method raises InsufficientRightsException if given user cant update
+        given copr. Returns None otherwise.
+        """
+        # TODO: this is a bit inconsistent - shouldn't the user method be called can_update?
+        if not user.can_edit(copr):
+            raise exceptions.InsufficientRightsException(message)
 
 
 class CoprPermissionsLogic(object):
