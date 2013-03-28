@@ -216,20 +216,20 @@ def copr_update_permissions(username, coprname):
     permissions = copr.copr_permissions
     permissions_form = forms.PermissionsFormFactory.create_form_cls(permissions)()
 
-    # only owner can update copr permissions
-    if not flask.g.user.can_edit(copr):
-        flask.flash('Only owners and admins may update their Coprs permissions.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
-
     if permissions_form.validate_on_submit():
         # we don't change owner (yet)
-        for perm in permissions:
-            new_builder = permissions_form['copr_builder_{0}'.format(perm.user_id)].data
-            new_admin = permissions_form['copr_admin_{0}'.format(perm.user_id)].data
-            coprs_logic.CoprPermissionsLogic.update_permissions(flask.g.user, copr, perm, new_builder, new_admin)
-
-        db.session.commit()
-        flask.flash('Copr permissions were updated successfully.')
+        try:
+            for perm in permissions:
+                new_builder = permissions_form['copr_builder_{0}'.format(perm.user_id)].data
+                new_admin = permissions_form['copr_admin_{0}'.format(perm.user_id)].data
+                coprs_logic.CoprPermissionsLogic.update_permissions(flask.g.user, copr, perm, new_builder, new_admin)
+        # for now, we don't check for actions here, as permissions operation don't collide with any actions
+        except exceptions.InsufficientRightsException as e:
+            db.session.rollback()
+            flask.flash(e)
+        else:
+            db.session.commit()
+            flask.flash('Copr permissions were updated successfully.')
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 

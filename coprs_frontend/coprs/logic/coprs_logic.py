@@ -6,6 +6,7 @@ from coprs import helpers
 from coprs import models
 from coprs import signals
 from coprs import whoosheers
+from coprs.logic import users_logic
 
 class CoprsLogic(object):
     """Used for manipulating Coprs. All methods accept user object as a first argument, as this may be needed in future."""
@@ -94,7 +95,8 @@ class CoprsLogic(object):
     def update(cls, user, copr, check_for_duplicates = True):
         cls.raise_if_unfinished_action(user, copr,
                                        'Can\'t change this Copr name, another operation is in progress: {action}')
-        cls.raise_if_cant_update(user, copr, 'Only owners and admins may update their Coprs.')
+        users_logic.UsersLogic.raise_if_cant_update_copr(user, copr,
+                                                         'Only owners and admins may update their Coprs.')
 
         existing = cls.exists_for_user(copr.owner, copr.name).first()
         if existing:
@@ -160,16 +162,6 @@ class CoprsLogic(object):
         if unfinished_actions:
             raise exceptions.ActionInProgressException(message, unfinished_actions[0])
 
-    @classmethod
-    def raise_if_cant_update(cls, user, copr, message):
-        """This method raises InsufficientRightsException if given user cant update
-        given copr. Returns None otherwise.
-        """
-        # TODO: this is a bit inconsistent - shouldn't the user method be called can_update?
-        if not user.can_edit(copr):
-            raise exceptions.InsufficientRightsException(message)
-
-
 class CoprPermissionsLogic(object):
     @classmethod
     def get(cls, user, copr, searched_user):
@@ -190,6 +182,8 @@ class CoprPermissionsLogic(object):
 
     @classmethod
     def update_permissions(cls, user, copr, copr_permission, new_builder, new_admin):
+        users_logic.UsersLogic.raise_if_cant_update_copr(user, copr,
+                                                         'Only owners and admins may update their Coprs permissions.')
         models.CoprPermission.query.filter(models.CoprPermission.copr_id == copr.id).\
                                     filter(models.CoprPermission.user_id == copr_permission.user_id).\
                                     update({'copr_builder': new_builder,
