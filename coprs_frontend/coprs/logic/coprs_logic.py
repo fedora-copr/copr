@@ -117,7 +117,8 @@ class CoprsLogic(object):
 
     @classmethod
     def delete(cls, user, copr, check_for_duplicates=True):
-        # for the time being, we authorize user to do this in view...
+        if not copr.owner == user:
+            raise exceptions.InsufficientRightsException('Only owners may delete their Coprs.')
         # TODO: do we want to dump the information somewhere, so that we can search it in future?
         cls.raise_if_unfinished_action(user, copr,
                                        'Can\'t delete this Copr, another operation is in progress: {action}')

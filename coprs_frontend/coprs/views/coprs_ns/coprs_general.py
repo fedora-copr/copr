@@ -238,15 +238,11 @@ def copr_update_permissions(username, coprname):
 def copr_delete(username, coprname):
     form = forms.CoprDeleteForm()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    # only owner can delete a copr
-    if flask.g.user != copr.owner:
-        flask.flash('Only owners may delete their Coprs.')
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
 
     if form.validate_on_submit():
         try:
             coprs_logic.CoprsLogic.delete(flask.g.user, copr)
-        except exceptions.ActionInProgressException as e:
+        except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
             db.session.rollback()
             flask.flash(e)
             return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
