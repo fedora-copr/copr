@@ -43,6 +43,10 @@ class BackendResultEnum(object):
     __metaclass__ = EnumType
     vals = {'waiting': 0, 'success': 1, 'failure': 2}
 
+class RoleEnum(object):
+    __metaclass__ = EnumType
+    vals = {'user': 0, 'admin': 1}
+
 class Paginator(object):
     def __init__(self, query, total_count, page = 1, per_page_override = None, urls_count_override = None):
         self.query = query

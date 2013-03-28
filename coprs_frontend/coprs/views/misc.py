@@ -107,15 +107,27 @@ def api_login_required(f):
     return decorated_function
 
 
-def login_required(f):
-    @functools.wraps(f)
-    def decorated_function(*args, **kwargs):
-        if flask.g.user is None:
-            return flask.redirect(flask.url_for('misc.login',
-                next = flask.request.url))
-        return f(*args, **kwargs)
-    return decorated_function
-
+def login_required(role=helpers.RoleEnum('user')):
+    def view_wrapper(f):
+        @functools.wraps(f)
+        def decorated_function(*args, **kwargs):
+            if flask.g.user is None:
+                return flask.redirect(flask.url_for('misc.login',
+                    next = flask.request.url))
+            if role == helpers.RoleEnum('admin') and not flask.g.user.admin:
+                flask.flash('You are not allowed to access admin section.')
+                return flask.redirect(flask.url_for('coprs_ns.coprs_show'))
+            return f(*args, **kwargs)
+        return decorated_function
+    # hack: if login_required is used without params, the "role" parameter
+    # is in fact the decorated function, so we need to return
+    # the wrapped function, not the wrapper
+    # proper solution would be to use login_required() with parentheses
+    # everywhere, even if they're empty - TODO
+    if callable(role):
+        return view_wrapper(role)
+    else:
+        return view_wrapper
 
 # backend authentication
 def backend_authenticated(f):

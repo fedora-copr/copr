@@ -40,9 +40,9 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_users(self):
-        self.u1 = models.User(openid_name = u'http://user1.id.fedoraproject.org/', proven = False, mail = 'user1@foo.bar')
-        self.u2 = models.User(openid_name = u'http://user2.id.fedoraproject.org/', proven = False, mail = 'user2@spam.foo')
-        self.u3 = models.User(openid_name = u'http://user3.id.fedoraproject.org/', proven = False, mail = 'baz@bar.bar')
+        self.u1 = models.User(openid_name=u'http://user1.id.fedoraproject.org/', proven=False, admin=True, mail='user1@foo.bar')
+        self.u2 = models.User(openid_name=u'http://user2.id.fedoraproject.org/', proven = False, mail='user2@spam.foo')
+        self.u3 = models.User(openid_name=u'http://user3.id.fedoraproject.org/', proven=False, mail='baz@bar.bar')
 
         self.db.session.add_all([self.u1, self.u2, self.u3])
 

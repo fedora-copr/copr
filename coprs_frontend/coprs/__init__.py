@@ -25,6 +25,8 @@ import coprs.log
 import coprs.models
 import coprs.whoosheers
 
+from coprs.views import admin_ns
+from coprs.views.admin_ns import admin_general
 from coprs.views import api_ns
 from coprs.views.api_ns import api_general
 from coprs.views import coprs_ns
@@ -35,6 +37,7 @@ from coprs.views.backend_ns import backend_general
 from coprs.views import misc
 
 app.register_blueprint(api_ns.api_ns)
+app.register_blueprint(admin_ns.admin_ns)
 app.register_blueprint(coprs_ns.coprs_ns)
 app.register_blueprint(misc.misc)
 app.register_blueprint(backend_ns.backend_ns)
