@@ -143,7 +143,8 @@ class TestUpdateActions(CoprsTestCase):
     {
       "id": 1,
       "backend_result": 1,
-      "backend_message": "no problem"
+      "message": "no problem",
+      "ended_on": 123
     }
   ]
 }"""
@@ -153,17 +154,20 @@ class TestUpdateActions(CoprsTestCase):
     {
       "id": 1,
       "backend_result": 1,
-      "backend_message": null
+      "message": null,
+      "ended_on": 1234
     },
     {
       "id": 2,
       "backend_result": 2,
-      "backend_message": "problem!"
+      "message": "problem!",
+      "ended_on": 12345
     },
     {
       "id": 100,
       "backend_result": 123,
-      "backend_message": "wheeeee!"
+      "message": "wheeeee!",
+      "ended_on": 123456
     }
   ]
 }"""
@@ -178,7 +182,8 @@ class TestUpdateActions(CoprsTestCase):
 
        updated = self.models.Action.query.filter(self.models.Action.id==1).first()
        assert updated.backend_result == 1
-       assert updated.backend_message == "no problem"
+       assert updated.message == "no problem"
+       assert updated.ended_on == 123
 
     def test_update_more_existent_and_non_existent_builds(self, f_users, f_coprs, f_actions, f_db):
        r = self.tc.post('/backend/update_actions/',
@@ -190,8 +195,10 @@ class TestUpdateActions(CoprsTestCase):
 
        updated = self.models.Action.query.filter(self.models.Action.id==1).first()
        assert updated.backend_result == 1
-       assert updated.backend_message == None
+       assert updated.message == None
+       assert updated.ended_on == 1234
 
        updated2 = self.models.Action.query.filter(self.models.Action.id==2).first()
        assert updated2.backend_result == 2
-       assert updated2.backend_message == "problem!"
+       assert updated2.message == "problem!"
+       assert updated2.ended_on == 12345

@@ -255,3 +255,8 @@ def copr_delete(username, coprname):
             return flask.redirect(flask.url_for('coprs_ns.coprs_by_owner', username=username))
     else:
         return flask.render_template('coprs/detail/delete.html', form=form, copr=copr)
+
+@coprs_ns.route('/detail/<username>/<coprname>/legal_flag/')
+@login_required
+def copr_legal_flag(username, coprname):
+    pass

@@ -58,7 +58,7 @@ class BuildsLogic(object):
 
     @classmethod
     def add(cls, user, pkgs, copr):
-        coprs_logic.CoprsLogic.raise_if_unfinished_action(user, copr,
+        coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(user, copr,
                                                           'Can\'t build while there is an operation in progress: {action}')
         users_logic.UsersLogic.raise_if_cant_build_in_copr(user, copr,
                                                            'You don\'t have permissions to build in this copr.')

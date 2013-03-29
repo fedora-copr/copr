@@ -269,7 +269,7 @@ class CoprChroot(db.Model, Serializer):
                                                         cascade='all,delete,delete-orphan'))
 
 class Action(db.Model, Serializer):
-    """Representation of a custom action that needs backends cooperation"""
+    """Representation of a custom action that needs backends cooperation/admin attention/..."""
     id = db.Column(db.Integer, primary_key=True)
     # delete, rename, ...; see helpers.ActionTypeEnum
     action_type = db.Column(db.Integer, nullable=False)
@@ -282,10 +282,12 @@ class Action(db.Model, Serializer):
     new_value = db.Column(db.String(255))
     # backend result, see helpers.BackendResultEnum
     backend_result = db.Column(db.Integer, default=helpers.BackendResultEnum('waiting'))
-    # optional message from the backend
-    backend_message = db.Column(db.Text)
+    # optional message from the backend/whatever
+    message = db.Column(db.Text)
     # time created as returned by int(time.time())
     created_on = db.Column(db.Integer)
+    # time ended as returned by int(time.time())
+    ended_on = db.Column(db.Integer)
 
     def __str__(self):
         return self.__unicode__()

@@ -93,7 +93,7 @@ class CoprsLogic(object):
 
     @classmethod
     def update(cls, user, copr, check_for_duplicates = True):
-        cls.raise_if_unfinished_action(user, copr,
+        cls.raise_if_unfinished_blocking_action(user, copr,
                                        'Can\'t change this Copr name, another operation is in progress: {action}')
         users_logic.UsersLogic.raise_if_cant_update_copr(user, copr,
                                                          'Only owners and admins may update their Coprs.')
@@ -120,7 +120,7 @@ class CoprsLogic(object):
         if not copr.owner == user:
             raise exceptions.InsufficientRightsException('Only owners may delete their Coprs.')
         # TODO: do we want to dump the information somewhere, so that we can search it in future?
-        cls.raise_if_unfinished_action(user, copr,
+        cls.raise_if_unfinished_blocking_action(user, copr,
                                        'Can\'t delete this Copr, another operation is in progress: {action}')
         action = models.Action(action_type=helpers.ActionTypeEnum('delete'),
                                object_type='copr',
@@ -147,19 +147,22 @@ class CoprsLogic(object):
                           update({models.Copr.build_count: models.Copr.build_count + 1})
 
     @classmethod
-    def unfinished_actions_for(cls, user, copr):
+    def unfinished_blocking_actions_for(cls, user, copr):
+        blocking_actions = [helpers.ActionTypeEnum('rename'),
+                            helpers.ActionTypeEnum('delete')]
         actions = models.Action.query.filter(models.Action.object_type=='copr').\
                                       filter(models.Action.object_id==copr.id).\
-                                      filter(models.Action.backend_result==helpers.BackendResultEnum('waiting'))
+                                      filter(models.Action.backend_result==helpers.BackendResultEnum('waiting')).\
+                                      filter(models.Action.action_type.in_(blocking_actions))
 
         return actions
 
     @classmethod
-    def raise_if_unfinished_action(cls, user, copr, message):
+    def raise_if_unfinished_blocking_action(cls, user, copr, message):
         """This method raises ActionInProgressException if given copr has an unfinished
         action. Returns None otherwise.
         """
-        unfinished_actions = cls.unfinished_actions_for(user, copr).all()
+        unfinished_actions = cls.unfinished_blocking_actions_for(user, copr).all()
         if unfinished_actions:
             raise exceptions.ActionInProgressException(message, unfinished_actions[0])
 
