@@ -75,4 +75,18 @@
       <dd><input type="submit" value="Save"></dd>
     </form>
   {% endif %}
+  {% endmacro %}
+
+{% macro copr_legal_form(form, copr) %}
+<form class="legal-flag" method="post" action={{ url_for('coprs_ns.copr_legal_flag', username=copr.owner.name, coprname=copr.name) }}>
+  If you think that this copr may be violating our policies, you can mark it for legal review.
+  You can add an optional comment describing what you think is wrong here.
+
+  <dl>
+    {{ render_field(form.comment, rows=5, cols=50) }}
+    <dt>
+      <input type="submit" value="Raise Legal Flag">
+    </dt>
+  </dl>
+  </form>
 {% endmacro %}

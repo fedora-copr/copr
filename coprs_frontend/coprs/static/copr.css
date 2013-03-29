@@ -311,3 +311,13 @@ table.releases th.rightmost {
 table.releases tr.release-end {
   border-bottom: 3px solid #f2f2f2;
 }
+
+form.legal-flag, form.legal-flag input {
+  color: #888888;
+  margin-top: 5px;
+}
+
+hr {
+  margin-top: 25px;
+  margin-bottom: 25px;
+}

@@ -104,13 +104,15 @@ def copr_new():
 @coprs_ns.route('/detail/<username>/<coprname>/')
 def copr_detail(username, coprname):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_mock_chroots=True)
+    form = forms.CoprLegalForm()
     try:
         copr = query.one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     return flask.render_template('coprs/detail/overview.html',
-                                 copr=copr)
+                                 copr=copr,
+                                 form=form)
 
 @coprs_ns.route('/detail/<username>/<coprname>/permissions/')
 def copr_permissions(username, coprname):
@@ -256,7 +258,18 @@ def copr_delete(username, coprname):
     else:
         return flask.render_template('coprs/detail/delete.html', form=form, copr=copr)
 
-@coprs_ns.route('/detail/<username>/<coprname>/legal_flag/')
+@coprs_ns.route('/detail/<username>/<coprname>/legal_flag/', methods=['POST'])
 @login_required
 def copr_legal_flag(username, coprname):
-    pass
+    form = forms.CoprLegalForm()
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+
+    action = models.Action(action_type=helpers.ActionTypeEnum('legal-flag'),
+                           object_type='copr',
+                           object_id=copr.id,
+                           message=form.comment.data,
+                           created_on=int(time.time()))
+    db.session.add(action)
+    db.session.commit()
+    flask.flash('Admin was noticed about your report and will investigate the copr shortly.')
+    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
