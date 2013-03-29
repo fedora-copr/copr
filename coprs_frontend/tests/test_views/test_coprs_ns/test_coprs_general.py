@@ -1,5 +1,7 @@
 import flask
 
+from flexmock import flexmock
+
 from coprs.signals import copr_created
 
 from tests.coprs_test_case import CoprsTestCase
@@ -370,6 +372,29 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                        data = {'copr_builder_1': '2', 'copr_admin_3': '2'},
                        follow_redirects = True)
             assert 'Copr permissions were updated' in r.data
+
+    def test_copr_admin_can_give_up_his_permissions(self, f_users, f_coprs, f_copr_permissions, f_db):
+        # if admin is giving up his permission and there are more permissions for
+        # this copr, then if the admin is altered first, he won't be permitted
+        # to alter the other permissions and the whole update would fail
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+        self.db.session.add_all([self.u2, self.c3, self.cp2, self.cp3])
+        # mock out the order of CoprPermission objects, so that we are sure
+        # the admin is the first one and therefore this fails if
+        # the view doesn't reorder the permissions
+        flexmock(self.models.Copr, copr_permissions=[self.cp3, self.cp2])
+        r = c.post('/coprs/detail/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
+                   data = {'copr_admin_1': '1', 'copr_admin_3': '1'},
+                   follow_redirects = True)
+        self.db.session.add_all([self.u1, self.c3])
+        perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id==self.u1.id).\
+                                                filter(self.models.CoprPermission.copr_id==self.c3.id).\
+                                                first()
+        assert perm.copr_admin == 1
+        assert 'Copr permissions were updated' in r.data
+
 
 class TestCoprDelete(CoprsTestCase):
     def test_delete(self, f_users, f_coprs, f_db):

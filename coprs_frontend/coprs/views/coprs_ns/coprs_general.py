@@ -219,6 +219,9 @@ def copr_update_permissions(username, coprname):
     if permissions_form.validate_on_submit():
         # we don't change owner (yet)
         try:
+            # if admin is changing his permissions, his must be changed last
+            # so that we don't get InsufficientRightsException
+            permissions.sort(cmp=lambda x, y: -1 if y.user_id == flask.g.user.id else 1)
             for perm in permissions:
                 new_builder = permissions_form['copr_builder_{0}'.format(perm.user_id)].data
                 new_admin = permissions_form['copr_admin_{0}'.format(perm.user_id)].data

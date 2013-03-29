@@ -8,4 +8,5 @@ flask-openid
 flask-script
 flask-whooshee
 flask-wtf
+flexmock
 pytest
