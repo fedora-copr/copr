@@ -39,12 +39,16 @@ class CoprsLogic(object):
     def get_multiple(cls, user, **kwargs):
         user_relation = kwargs.get('user_relation', None)
         username = kwargs.get('username', None)
-        with_mock_chroots = kwargs.get('with_mock_chroots')
+        with_mock_chroots = kwargs.get('with_mock_chroots', None)
+        ids = kwargs.get('ids', None)
 
         query = db.session.query(models.Copr).\
                            join(models.Copr.owner).\
                            options(db.contains_eager(models.Copr.owner)).\
                            order_by(models.Copr.id.desc())
+
+        if isinstance(ids, list): # can be an empty list
+            query = query.filter(models.Copr.id.in_(ids))
 
         if user_relation == 'owned':
             query = query.filter(models.User.openid_name == models.User.openidize_name(username))
