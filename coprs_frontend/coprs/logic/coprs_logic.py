@@ -121,8 +121,7 @@ class CoprsLogic(object):
 
     @classmethod
     def delete(cls, user, copr, check_for_duplicates=True):
-        if not copr.owner == user:
-            raise exceptions.InsufficientRightsException('Only owners may delete their Coprs.')
+        cls.raise_if_cant_delete(user, copr)
         # TODO: do we want to dump the information somewhere, so that we can search it in future?
         cls.raise_if_unfinished_blocking_action(user, copr,
                                        'Can\'t delete this Copr, another operation is in progress: {action}')
@@ -169,6 +168,14 @@ class CoprsLogic(object):
         unfinished_actions = cls.unfinished_blocking_actions_for(user, copr).all()
         if unfinished_actions:
             raise exceptions.ActionInProgressException(message, unfinished_actions[0])
+
+    @classmethod
+    def raise_if_cant_delete(cls, user, copr):
+        """This method raises InsufficientRightsException if given copr cant be deleted
+        by given user. Returns None otherwise.
+        """
+        if not user.admin and user != copr.owner:
+            raise exceptions.InsufficientRightsException('Only owners may delete their Coprs.')
 
 class CoprPermissionsLogic(object):
     @classmethod
