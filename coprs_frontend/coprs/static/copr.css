@@ -328,6 +328,12 @@ div.legal-flag div.message {
   font-size: 1em;
 }
 
+div.legal-flag form {
+  display: inline;
+  text-align: right;
+  float: right;
+}
+
 hr {
   margin-top: 25px;
   margin-bottom: 25px;

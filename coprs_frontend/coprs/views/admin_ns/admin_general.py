@@ -1,5 +1,8 @@
+import time
+
 import flask
 
+from coprs import db
 from coprs import helpers
 from coprs import models
 
@@ -33,3 +36,12 @@ def legal_flag():
 
     return flask.render_template('admin/legal-flag.html',
                                  legal_flags=legal_flags)
+
+@admin_ns.route('/legal-flag/<int:action_id>/resolve/', methods=['POST'])
+@login_required(role=helpers.RoleEnum('admin'))
+def legal_flag_resolve(action_id):
+    action = models.Action.query.filter(models.Action.id==action_id).\
+                                 update({'ended_on': int(time.time())})
+    db.session.commit()
+    flask.flash('Legal flag resolved')
+    return flask.redirect(flask.url_for('admin_ns.legal_flag'))
