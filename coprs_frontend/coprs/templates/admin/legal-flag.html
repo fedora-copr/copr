@@ -6,9 +6,16 @@
   {% for flag in legal_flags %}
     <div class="legal-flag">
       <div>
-        <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.owner.name, coprname=flag.copr.name) }}>
-          {{ flag.copr.owner.name }}/{{ flag.copr.name }}
-        </a>
+        {% if flag.copr %}
+          <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.owner.name, coprname=flag.copr.name) }}>
+            {{ flag.copr.owner.name }}/{{ flag.copr.name }}
+          </a>
+          | <a href="">Freeze</a>
+	  | <a href="{{ url_for('coprs_ns.copr_delete', username=flag.copr.owner.name, coprname=flag.copr.name) }}">Delete</a>
+        {% else %}
+          {{ flag.old_value }} - copr was deleted
+        {% endif %}
+        | <a href="">Resolve</a>
       </div>
       <div class="message">
         {{ flag.message }}
