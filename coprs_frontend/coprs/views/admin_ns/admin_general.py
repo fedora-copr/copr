@@ -27,7 +27,9 @@ def legal_flag():
     # is not very good (and sqlalchemy complains about it)
     coprs = coprs_logic.CoprsLogic.get_multiple(flask.g.user, ids=ids).all() if ids else []
     for flag in legal_flags:
-        flag.copr = filter(lambda x: flag.object_id == x.id, coprs)[0]
+        # handle the situation where copr was deleted in the meanwhile
+        copr = filter(lambda x: flag.object_id == x.id, coprs)
+        flag.copr = copr[0] if copr else None
 
     return flask.render_template('admin/legal-flag.html',
                                  legal_flags=legal_flags)
