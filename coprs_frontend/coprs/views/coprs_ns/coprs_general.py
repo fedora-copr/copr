@@ -268,6 +268,8 @@ def copr_legal_flag(username, coprname):
                            object_type='copr',
                            object_id=copr.id,
                            message=form.comment.data,
+                           old_value='{0}/{1}'.format(username, coprname),
+                           new_value='{0}/{1}'.format(username, coprname),
                            created_on=int(time.time()))
     db.session.add(action)
     db.session.commit()
