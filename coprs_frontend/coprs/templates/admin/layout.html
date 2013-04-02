@@ -3,6 +3,12 @@
 {% block title %}Coprs - Admin{% endblock %}
 
 {% block body %}
-Admin menu
+  <div class="horizontal-menu">
+    <ul>
+      <li class="{% block legal_flag_selected %}unselected{% endblock %}">
+        <a href="{{ url_for('admin_ns.legal_flag') }}">Legal Flags</a>
+      </li>
+    </ul>
+  </div>
 {% block admin_body %}{% endblock %}
 {% endblock %}

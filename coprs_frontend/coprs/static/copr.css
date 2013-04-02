@@ -317,6 +317,17 @@ form.legal-flag, form.legal-flag input {
   margin-top: 5px;
 }
 
+div.legal-flag {
+  margin: 10px;
+  font-size: 1.2em;
+}
+
+div.legal-flag div.message {
+  display: none;
+  margin-bottom: 10px;
+  font-size: 1em;
+}
+
 hr {
   margin-top: 25px;
   margin-bottom: 25px;

@@ -1,0 +1,18 @@
+{% extends "admin/layout.html" %}
+
+{% block legal_flag_selected %}selected{% endblock %}
+
+{% block admin_body %}
+  {% for flag in legal_flags %}
+    <div class="legal-flag">
+      <div>
+        <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.owner.name, coprname=flag.copr.name) }}>
+          {{ flag.copr.owner.name }}/{{ flag.copr.name }}
+        </a>
+      </div>
+      <div class="message">
+        {{ flag.message }}
+      </div>
+    </div>
+  {% endfor %}
+{% endblock %}

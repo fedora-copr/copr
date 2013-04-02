@@ -18,3 +18,15 @@ $(document).ready(function() {
     }
   );
 });
+
+// admin legal-flag divs rolling
+$(document).ready(function() {
+  $("div.legal-flag").hover(
+    function() {
+      $(this).children(".message").show("fast");
+    },
+    function() {
+      $(this).children(".message").hide("fast");
+    }
+  )
+});
