@@ -293,12 +293,14 @@ class Action(db.Model, Serializer):
         return self.__unicode__()
 
     def __unicode__(self):
-        if self.action_type == 'delete':
+        if self.action_type == helpers.ActionTypeEnum('delete'):
             return 'Deleting {0} {1}'.format(self.object_type, self.old_value)
-        elif self.action_type == 'rename':
+        elif self.action_type == helpers.ActionTypeEnum('rename'):
             return 'Renaming {0} from {1} to {2}.'.format(self.object_type,
                                                           self.old_value,
                                                           self.new_value)
+        elif self.action_type == helpers.ActionTypeEnum('legal-flag'):
+            return 'Legal flag on copr {0}.'.format(self.old_value)
 
         return 'Action {0} on {1}, old value: {2}, new value: {3}.'.format(self.action_type,
                                                                            self.object_type,
