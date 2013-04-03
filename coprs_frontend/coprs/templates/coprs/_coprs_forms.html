@@ -77,7 +77,7 @@
   {% endif %}
   {% endmacro %}
 
-{% macro copr_legal_form(form, copr) %}
+{% macro copr_legal_flag_form(form, copr) %}
 <form class="legal-flag" method="post" action={{ url_for('coprs_ns.copr_legal_flag', username=copr.owner.name, coprname=copr.name) }}>
   If you think that this copr may be violating our policies, you can mark it for legal review.
   You can add an optional comment describing what you think is wrong here.

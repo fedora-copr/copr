@@ -268,6 +268,31 @@ class CoprChroot(db.Model, Serializer):
                                                         single_parent=True,
                                                         cascade='all,delete,delete-orphan'))
 
+class LegalFlag(db.Model, Serializer):
+    id = db.Column(db.Integer, primary_key=True)
+    # message from user who raised the flag (what he thinks is wrong)
+    raise_message = db.Column(db.Text)
+    # time of raising the flag as returned by int(time.time())
+    raised_on = db.Column(db.Integer)
+    # time of resolving the flag by admin as returned by int(time.time())
+    resolved_on = db.Column(db.Integer)
+
+    # relations
+    copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'), nullable=True)
+    # cascade='all' means that we want to keep these even if copr is deleted
+    copr = db.relationship('Copr', backref=db.backref('legal_flags', cascade='all'))
+    # user who reported the problem
+    reporter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    reporter = db.relationship('User',
+                               backref=db.backref('legal_flags_raised'),
+                               foreign_keys=[reporter_id])
+    # admin who resolved the problem
+    resolver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    resolver = db.relationship('User',
+                               backref=db.backref('legal_flags_resolved'),
+                               foreign_keys=[resolver_id])
+
+
 class Action(db.Model, Serializer):
     """Representation of a custom action that needs backends cooperation/admin attention/..."""
     id = db.Column(db.Integer, primary_key=True)

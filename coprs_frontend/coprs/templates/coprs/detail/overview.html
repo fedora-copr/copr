@@ -1,6 +1,6 @@
 {% extends "coprs/detail.html" %}
 
-{% from "coprs/_coprs_forms.html" import copr_legal_form with context %}
+{% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
 
 {% block overview_selected %}selected{% endblock %}
 
@@ -51,5 +51,5 @@
   {% endif %}
 
   <hr>
-  {{ copr_legal_form(form, copr) }}
+  {{ copr_legal_flag_form(form, copr) }}
 {% endblock %}

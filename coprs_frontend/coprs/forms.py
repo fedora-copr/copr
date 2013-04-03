@@ -138,7 +138,7 @@ class BuildForm(wtf.Form):
                                validators = [wtf.NumberRange(min = constants.MIN_BUILD_TIMEOUT, max = constants.MAX_BUILD_TIMEOUT)],
                                default = constants.DEFAULT_BUILD_TIMEOUT)
 
-class CoprLegalForm(wtf.Form):
+class CoprLegalFlagForm(wtf.Form):
     comment = wtf.TextAreaField('Comment')
 
 class PermissionsApplierFormFactory(object):
