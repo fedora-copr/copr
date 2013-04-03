@@ -119,6 +119,6 @@ class CoprsTestCase(object):
                                 object_id=100,
                                 old_value='asd/qwe',
                                 new_value=None,
-                                backend_result=helpers.BackendResultEnum('success'),
+                                result=helpers.BackendResultEnum('success'),
                                 created_on=int(time.time()))
         self.db.session.add_all([self.a1, self.a2, self.a3])

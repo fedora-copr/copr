@@ -155,7 +155,7 @@ class CoprsLogic(object):
                             helpers.ActionTypeEnum('delete')]
         actions = models.Action.query.filter(models.Action.object_type=='copr').\
                                       filter(models.Action.object_id==copr.id).\
-                                      filter(models.Action.backend_result==helpers.BackendResultEnum('waiting')).\
+                                      filter(models.Action.result==helpers.BackendResultEnum('waiting')).\
                                       filter(models.Action.action_type.in_(blocking_actions))
 
         return actions

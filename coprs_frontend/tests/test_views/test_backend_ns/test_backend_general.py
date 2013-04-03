@@ -142,7 +142,7 @@ class TestUpdateActions(CoprsTestCase):
   "actions":[
     {
       "id": 1,
-      "backend_result": 1,
+      "result": 1,
       "message": "no problem",
       "ended_on": 123
     }
@@ -153,19 +153,19 @@ class TestUpdateActions(CoprsTestCase):
   "actions":[
     {
       "id": 1,
-      "backend_result": 1,
+      "result": 1,
       "message": null,
       "ended_on": 1234
     },
     {
       "id": 2,
-      "backend_result": 2,
+      "result": 2,
       "message": "problem!",
       "ended_on": 12345
     },
     {
       "id": 100,
-      "backend_result": 123,
+      "result": 123,
       "message": "wheeeee!",
       "ended_on": 123456
     }
@@ -181,7 +181,7 @@ class TestUpdateActions(CoprsTestCase):
        assert json.loads(r.data)["non_existing_actions_ids"] == []
 
        updated = self.models.Action.query.filter(self.models.Action.id==1).first()
-       assert updated.backend_result == 1
+       assert updated.result == 1
        assert updated.message == "no problem"
        assert updated.ended_on == 123
 
@@ -194,11 +194,11 @@ class TestUpdateActions(CoprsTestCase):
        assert json.loads(r.data)["non_existing_actions_ids"] == [100]
 
        updated = self.models.Action.query.filter(self.models.Action.id==1).first()
-       assert updated.backend_result == 1
+       assert updated.result == 1
        assert updated.message == None
        assert updated.ended_on == 1234
 
        updated2 = self.models.Action.query.filter(self.models.Action.id==2).first()
-       assert updated2.backend_result == 2
+       assert updated2.result == 2
        assert updated2.message == "problem!"
        assert updated2.ended_on == 12345

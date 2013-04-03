@@ -280,8 +280,8 @@ class Action(db.Model, Serializer):
     # old and new values of the changed property
     old_value = db.Column(db.String(255))
     new_value = db.Column(db.String(255))
-    # backend result, see helpers.BackendResultEnum
-    backend_result = db.Column(db.Integer, default=helpers.BackendResultEnum('waiting'))
+    # result of the action, see helpers.BackendResultEnum
+    result = db.Column(db.Integer, default=helpers.BackendResultEnum('waiting'))
     # optional message from the backend/whatever
     message = db.Column(db.Text)
     # time created as returned by int(time.time())
