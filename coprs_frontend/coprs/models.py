@@ -122,7 +122,9 @@ class User(db.Model, Serializer):
     @property
     def coprs_count(self):
         """Get number of coprs for this user."""
-        return Copr.query.filter_by(owner=self).count()
+        return Copr.query.filter_by(owner=self).\
+                          filter_by(deleted=False).\
+                          count()
 
 
 class Copr(db.Model, Serializer):
@@ -140,6 +142,7 @@ class Copr(db.Model, Serializer):
     instructions = db.Column(db.Text)
     # duplicate information, but speeds up a lot and makes queries simpler
     build_count = db.Column(db.Integer, default = 0)
+    deleted = db.Column(db.Boolean, default=False)
 
     # relations
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))

@@ -132,6 +132,25 @@ class TestCoprNew(CoprsTestCase):
             assert copr.build_count == 1
             assert 'Initial packages were successfully submitted' in r.data
 
+    def test_copr_new_is_allowed_even_if_deleted_has_same_name(self, f_users, f_coprs, f_mock_chroots, f_db):
+        with self.tc as c:
+            with c.session_transaction() as s:
+                s['openid'] = self.u1.openid_name
+
+            self.db.session.add(self.c1)
+            self.c1.deleted = True
+            self.c1.owner = self.u1
+            self.db.session.commit()
+
+            self.db.session.add(self.c1)
+            r = c.post('/coprs/new/', data = {'name': self.c1.name, 'fedora-rawhide-i386': 'y', 'arches': ['i386']}, follow_redirects = True)
+            self.db.session.add_all([self.c1, self.u1])
+            assert len(self.models.Copr.query.filter(self.models.Copr.name==self.c1.name).\
+                                              filter(self.models.Copr.owner==self.u1).\
+                                              all()) == 2
+            assert self.success_string in r.data
+
+
 class TestCoprDetail(CoprsTestCase):
     def test_copr_detail_not_found(self):
         r = self.tc.get('/coprs/detail/foo/bar/')
@@ -407,8 +426,9 @@ class TestCoprDelete(CoprsTestCase):
                        data = {'verify': 'yes'},
                        follow_redirects = True)
             assert 'Copr was deleted successfully' in r.data
+            self.db.session.add(self.c1)
             assert self.models.Action.query.first().id == self.c1.id
-            assert not self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first()
+            assert self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first().deleted
 
     def test_copr_delete_does_not_delete_if_verify_filled_wrongly(self, f_users, f_coprs, f_db):
         with self.tc as c:

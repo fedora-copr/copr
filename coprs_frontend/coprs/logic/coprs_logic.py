@@ -20,7 +20,8 @@ class CoprsLogic(object):
                            join(models.Copr.owner).\
                            options(db.contains_eager(models.Copr.owner)).\
                            filter(models.Copr.name == coprname).\
-                           filter(models.User.openid_name == models.User.openidize_name(username))
+                           filter(models.User.openid_name == models.User.openidize_name(username)).\
+                           filter(models.Copr.deleted==False)
 
         if with_builds:
             query = query.outerjoin(models.Copr.builds).\
@@ -40,12 +41,16 @@ class CoprsLogic(object):
         user_relation = kwargs.get('user_relation', None)
         username = kwargs.get('username', None)
         with_mock_chroots = kwargs.get('with_mock_chroots', None)
+        incl_deleted = kwargs.get('incl_deleted', None)
         ids = kwargs.get('ids', None)
 
         query = db.session.query(models.Copr).\
                            join(models.Copr.owner).\
                            options(db.contains_eager(models.Copr.owner)).\
                            order_by(models.Copr.id.desc())
+
+        if not incl_deleted:
+            query = query.filter(models.Copr.deleted==False)
 
         if isinstance(ids, list): # can be an empty list
             query = query.filter(models.Copr.id.in_(ids))
@@ -69,7 +74,9 @@ class CoprsLogic(object):
 
     @classmethod
     def get_multiple_fulltext(cls, user, search_string):
-        query = models.Copr.query.join(models.User).whooshee_search(search_string)
+        query = models.Copr.query.join(models.User).\
+                                  filter(models.Copr.deleted==False).\
+                                  whooshee_search(search_string)
         return query
 
     @classmethod
@@ -88,7 +95,7 @@ class CoprsLogic(object):
         return copr
 
     @classmethod
-    def new(cls, user, copr, check_for_duplicates = True):
+    def new(cls, user, copr, check_for_duplicates=True):
         if check_for_duplicates and cls.exists_for_user(user, copr.name).all():
             raise exceptions.DuplicateException(
                 'Copr: "{0}" already exists'.format(copr.name))
@@ -109,7 +116,9 @@ class CoprsLogic(object):
         else: # we're renaming
             # if we fire a models.Copr.query, it will use the modified copr in session
             # -> workaround this by just getting the name
-            old_copr_name = db.session.query(models.Copr.name).filter(models.Copr.id==copr.id).first()[0]
+            old_copr_name = db.session.query(models.Copr.name).filter(models.Copr.id==copr.id).\
+                                                               filter(models.Copr.deleted==False).\
+                                                               first()[0]
             action = models.Action(action_type=helpers.ActionTypeEnum('rename'),
                                    object_type='copr',
                                    object_id=copr.id,
@@ -131,16 +140,18 @@ class CoprsLogic(object):
                                old_value='{0}/{1}'.format(copr.owner.name, copr.name),
                                new_value='',
                                created_on=int(time.time()))
+        copr.deleted = True
 
         db.session.add(action)
-        db.session.delete(copr)
 
         return copr
 
     @classmethod
-    def exists_for_user(cls, user, coprname):
+    def exists_for_user(cls, user, coprname, incl_deleted=False):
         existing = models.Copr.query.filter(models.Copr.name==coprname).\
                                      filter(models.Copr.owner_id==user.id)
+        if not incl_deleted:
+            existing = existing.filter(models.Copr.deleted==False)
 
         return existing
 

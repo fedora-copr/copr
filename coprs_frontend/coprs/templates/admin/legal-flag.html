@@ -5,18 +5,27 @@
 {% block admin_body %}
   {% for flag in legal_flags %}
     <div class="legal-flag">
-      <div>
+	    <div>
+        {% if not flag.copr.deleted %}
         <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.owner.name, coprname=flag.copr.name) }}>
-          {{ flag.copr.owner.name }}/{{ flag.copr.name }}
-        </a>
-        | <a href="">Freeze</a>
-	| <a href="{{ url_for('coprs_ns.copr_delete', username=flag.copr.owner.name, coprname=flag.copr.name) }}">Delete</a>
+        {% endif %}
+        {{ flag.copr.owner.name }}/{{ flag.copr.name }}
+        {% if not flag.copr.deleted %}
+          </a>
+        {% endif %}
+	|
+        {% if flag.copr.deleted %}
+          Already deleted
+        {% else %}
+          <a href="">Freeze</a>
+          | <a href="{{ url_for('coprs_ns.copr_delete', username=flag.copr.owner.name, coprname=flag.copr.name) }}">Delete</a>
+        {% endif %}
 	<form method="post" action="{{ url_for('admin_ns.legal_flag_resolve', flag_id=flag.id) }}">
             <input type="submit" value="Resolve">
           </form>
       </div>
       <div class="message">
-        {{ flag.message }}
+        {{ flag.raise_message }}
       </div>
     </div>
   {% else %}
