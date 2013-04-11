@@ -288,12 +288,14 @@ class LegalFlag(db.Model, Serializer):
     reporter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     reporter = db.relationship('User',
                                backref=db.backref('legal_flags_raised'),
-                               foreign_keys=[reporter_id])
+                               foreign_keys=[reporter_id],
+                               primaryjoin='LegalFlag.reporter_id==User.id')
     # admin who resolved the problem
     resolver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     resolver = db.relationship('User',
                                backref=db.backref('legal_flags_resolved'),
-                               foreign_keys=[resolver_id])
+                               foreign_keys=[resolver_id],
+                               primaryjoin='LegalFlag.resolver_id==User.id')
 
 
 class Action(db.Model, Serializer):
