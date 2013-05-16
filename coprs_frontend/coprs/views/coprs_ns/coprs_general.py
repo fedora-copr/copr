@@ -272,3 +272,36 @@ def copr_legal_flag(username, coprname):
     db.session.commit()
     flask.flash('Admin was noticed about your report and will investigate the copr shortly.')
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
+
+@coprs_ns.route('/repo/<reponame>.repo')
+def generate_repo_file(reponame):
+    ''' Generate repo file for a given repo name.
+        Reponame = username-coprname '''
+    # This solution is used because flask splits off the last part after a
+    # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
+    # FAS usernames may not contain dashes, so this construction is safe.
+
+    if '-' not in reponame:
+        return page_not_found('Bad repository name: {0}. Must be username-coprname'.format(reponame))
+
+    username, coprname = reponame.split('-', 1)
+    copr = None
+    try:
+        # query.one() is used since it fetches all builds, unlike query.first().
+        copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname,
+                with_builds=True).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found('Copr {0}/{1} does not exist'.format(username, coprname))
+
+    url = ''
+    for build in copr.builds:
+        if build.results:
+            url = build.results
+            break
+
+    if not url:
+        return page_not_found('Repository not initialized: No finished builds in {0}/{1}.'.format(username, coprname))
+
+    response = flask.make_response(flask.render_template('coprs/copr.repo', copr=copr, url=url))
+    response.mimetype='text/plain'
+    return response

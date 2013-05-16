@@ -1,4 +1,5 @@
 import flask
+import pytest
 
 from flexmock import flexmock
 
@@ -456,3 +457,34 @@ class TestCoprDelete(CoprsTestCase):
             assert 'Copr was deleted successfully' not in r.data
             assert not self.models.Action.query.first()
             assert self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first()
+
+class TestCoprRepoGeneration(CoprsTestCase):
+    @pytest.fixture
+    def f_custom_builds(self):
+        ''' Custom builds are used in order not to break the default ones '''
+        self.b5 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=9, ended_on=200, results='foo://bar.baz', status=1)
+        self.b6 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=11)
+        self.b7 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=10, ended_on=150, results='foo://bar.baz', status=1)
+
+        self.db.session.add_all([self.b5, self.b6, self.b7])
+
+    def test_fail_on_missing_dash(self):
+        r = self.tc.get('/coprs/repo/reponamewithoutdash.repo')
+        assert r.status_code == 404
+        assert 'Bad repository name' in r.data
+
+    def test_fail_on_nonexistent_copr(self):
+        r = self.tc.get('/coprs/repo/bogus-nonexistent-repo.repo')
+        assert r.status_code == 404
+        assert 'bogus/nonexistent-repo does not exist' in r.data
+
+    def test_fail_on_no_finished_builds(self, f_users,  f_coprs, f_db):
+        r = self.tc.get(
+            '/coprs/repo/{0}-{1}.repo'.format(self.u1.name, self.c1.name))
+        assert r.status_code == 404
+        assert 'Repository not initialized' in r.data
+
+    def test_works_on_older_builds(self, f_users, f_coprs, f_custom_builds, f_db):
+        r = self.tc.get('/coprs/repo/{0}-{1}.repo'.format(self.u1.name, self.c1.name))
+        assert r.status_code == 200
+        assert 'baseurl=foo://bar.baz' in r.data
