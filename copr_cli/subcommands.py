@@ -118,7 +118,6 @@ def listcoprs(username=None):
             print "|".join(_list_to_row(row, widths))
 
     else:
-        max_width = len(values[0])
         headers = columns[0]
         print headers
         print "-"*len(headers)
