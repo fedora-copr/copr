@@ -8,6 +8,10 @@ License:	GPLv2+
 URL:		https://fedorahosted.org/copr/
 Source0:	%{name}-%{version}.tar.gz
 
+BuildRequires: asciidoc
+BuildRequires: libxslt
+BuildRequires: util-linux
+
 %description
 COPR is lightway Koji. It allows you to create new project in WebUI, and
 submit new builds and COPR will create yum repository from latests builds.
@@ -74,8 +78,14 @@ This package contains command line interface.
 %build
 mv copr_cli/README.rst ./
 
+# convert manages
+a2x -d manpage -f manpage man/copr-cli.1.asciidoc
+
 %install
 %{__python} coprcli-setup.py install --root %{buildroot}
+
+install -d %{buildroot}%{_mandir}/man1
+install -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 
 %pre backend
 getent group copr >/dev/null || groupadd -r copr
@@ -93,5 +103,7 @@ useradd -r -g copr -G apache -d %{_var}/lib/copr -s /bin/bash -c "COPR user" cop
 %doc LICENSE README.rst
 %{_bindir}/copr-cli
 %{python_sitelib}/*
+%doc %{_mandir}/man1/copr-cli.1*
 
 %changelog
+

@@ -1,0 +1,89 @@
+copr-cli(1)
+==========
+:man source:  copr
+:man manual:  COPR
+
+NAME
+----
+copr-cli - command line interface for COPR
+
+
+SYNOPSIS
+--------
+copr-cli [-h] [--version] {list,create,build} ...
+
+DESCRIPTION
+-----------
+
+This command allow you to interact with build system COPR from command line.
+
+OPTIONS
+-------
+
+-h, --help::
+show this help message and exit
+
+--version::
+show program's version number and exit
+
+ACTIONS
+-------
+
+list [username]::
+List all the copr of the provided username. If no username is provided,
+then your coprs are listed.
+
+create::
+Create a new copr.
+
+build ::
+Build packages to a specified copr.
+
+
+`copr-cli create [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli create [-h] [--chroot CHROOTS] [--repo REPOS]
+                       [--initial-pkgs INITIAL_PKGS]
+                       [--description DESCRIPTION]
+                       [--instructions INSTRUCTIONS]
+                       name
+
+--chroot::
+Chroot to use for this copr. Can be specified multiple times.
+
+--repo::
+Repository to add to this copr. Can be specified multiple times.
+
+--initial-pkgs::
+List of packages to build in this new copr. Can be specified multiple times.
+
+--description::
+Description of the copr.
+
+--instructions::
+Instructions for the copr.
+
+
+`copr-cli build [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli build [-h] [--memory MEMORY] [--timeout TIMEOUT]
+                      copr pkgs [pkgs ...]
+
+--memory::
+TBD
+
+--timeout::
+TBD
+
+copr::
+The copr repo to build the package in
+
+pkgs::
+Package to build.
+
+
+AUTHORS
+-------
+Miroslav Suchý <msuchy@redhat.com>
