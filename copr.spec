@@ -1,5 +1,5 @@
 Name:		copr
-Version:	1.0
+Version:	1.1
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -106,4 +106,7 @@ useradd -r -g copr -G apache -d %{_var}/lib/copr -s /bin/bash -c "COPR user" cop
 %doc %{_mandir}/man1/copr-cli.1*
 
 %changelog
+* Mon Jun 17 2013 Miroslav Suchý <msuchy@redhat.com> 1.1-1
+- new package built with tito
+
 
