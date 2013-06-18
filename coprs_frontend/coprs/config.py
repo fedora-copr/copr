@@ -25,6 +25,9 @@ class Config(object):
 
 class ProductionConfig(Config):
     DEBUG = False
+    #SECRET_KEY = 'put_some_secret_here'
+    #BACKEND_PASSWORD = 'password_here'
+    #SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://login:password@/db_name'
 
 class DevelopmentConfig(Config):
     DEBUG = True
