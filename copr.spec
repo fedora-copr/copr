@@ -82,8 +82,15 @@ mv copr_cli/README.rst ./
 a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 
 %install
-%{__python} coprcli-setup.py install --root %{buildroot}
 
+#frontend
+install -d %{buildroot}%{_datadir}/coprs_frontend
+cp -a coprs_frontend/* %{buildroot}%{_datadir}/coprs_frontend
+mv %{buildroot}%{_datadir}/coprs_frontend/coprs.conf.example ./
+rm %{buildroot}%{_datadir}/coprs_frontend/CONTRIBUTION_GUIDELINES
+
+#copr-cli
+%{__python} coprcli-setup.py install --root %{buildroot}
 install -d %{buildroot}%{_mandir}/man1
 install -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 
@@ -93,11 +100,19 @@ getent passwd copr >/dev/null || \
 useradd -r -g copr -G apache -d %{_var}/lib/copr -s /bin/bash -c "COPR user" copr
 /usr/bin/passwd -l copr >/dev/null
 
+%pre frontend
+getent group copr-fe >/dev/null || groupadd -r copr-fe
+getent passwd copr-fe >/dev/null || \
+useradd -r -g copr-fe -G copr-fe -d %{_datadir}/coprs_frontend -s /bin/bash -c "COPR frontend user" copr-fe
+/usr/bin/passwd -l copr-fe >/dev/null
+
 %files backend
 %doc LICENSE README
 
 %files frontend
-%doc LICENSE
+%doc LICENSE coprs.conf.example
+%defattr(-, copr-fe, copr-fe, -)
+%{_datadir}/coprs_frontend
 
 %files cli
 %doc LICENSE README.rst
