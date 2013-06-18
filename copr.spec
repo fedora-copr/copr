@@ -114,7 +114,7 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 %dir %{_datadir}/copr
 
 %files frontend
-%doc LICENSE coprs.conf.example
+%doc LICENSE coprs.conf.example copr-setup.txt
 %defattr(-, copr-fe, copr-fe, -)
 %dir %{_datadir}/copr
 %dir %{_datadir}/copr/data

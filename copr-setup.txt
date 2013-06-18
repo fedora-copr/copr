@@ -89,4 +89,5 @@ Required pkgs:
   - pip install -I  SQLAlchemy MarkupSafe 
   - pip install pytest
 
+- edit credentials in coprs_frontend/coprs/config.py
 
