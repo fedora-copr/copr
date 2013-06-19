@@ -47,6 +47,8 @@ Requires:   python-flask
 Requires:   python-flask-openid
 Requires:   python-flask-wtf
 Requires:   python-flask-sqlalchemy
+Requires:   python-flask-script
+Requires:   python-flask-whooshee
 #Requires:	python-virtualenv
 Requires:   python-blinker
 Requires:	python-whoosh
