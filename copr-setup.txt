@@ -90,4 +90,6 @@ Required pkgs:
   - pip install pytest
 
 - edit credentials in coprs_frontend/coprs/config.py
+- cd /usr/share/copr/coprs_frontend
+- ./manage.py create_db --alembic alembic.ini
 
