@@ -43,6 +43,7 @@ Requires:	mod_wsgi
 Requires:	postgresql-server
 Requires:   postgresql-devel
 Requires:	gcc
+Requires:	python-alembic
 Requires:   python-flask
 Requires:   python-flask-openid
 Requires:   python-flask-wtf
