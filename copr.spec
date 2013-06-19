@@ -8,6 +8,7 @@ License:	GPLv2+
 URL:		https://fedorahosted.org/copr/
 Source0:	%{name}-%{version}.tar.gz
 
+BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux

@@ -19,6 +19,9 @@ class Config(object):
     # Token length, defaults to 30, DB set to varchar 255
     API_TOKEN_LENGTH = 30
 
+    # Expiration of API token in days
+    API_TOKEN_EXPIRATION = 180
+
     # logging options
     SEND_LOGS_TO = []
     LOGGING_LEVEL = logging.ERROR
