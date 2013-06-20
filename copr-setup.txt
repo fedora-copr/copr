@@ -91,5 +91,56 @@ Required pkgs:
 
 - edit credentials in coprs_frontend/coprs/config.py
 - cd /usr/share/copr/coprs_frontend
+- configure DB first - see DB section below
+# for develop setup do:
 - ./manage.py create_db --alembic alembic.ini
+# for production setup do:
+COPRS_ENVIRON_PRODUCTION=1 ./manage.py create_db  --alembic alembic.ini
 
+- for developing you can run:
+  ./manage.py runserver -t <FQDN>
+  and this will load DevelopmentConfig from coprs_frontend/coprs/config.py
+
+- for production is used ProductionConfig from coprs_frontend/coprs/config.py
+
+
+DB config
+=========
+
+Copr can use either SQLite or PostgreSQL. Choose one.
+
+SQLite
+~~~~~~
+
+- yum install sqlite
+- in file coprs_frontend/coprs/config.py put:
+  SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
+This will use sqlite db file in /usr/share/copr/data/copr.db (manage.py will create that file)
+
+PostgreSQL
+~~~~~~~~~~
+
+- yum install -y postgresql-server
+- chkconfig postgresql on
+- on Fedoras, run:
+ postgresql-setup initdb
+- everywhere else run:
+ service postgresql initdb
+
+- service postgresql start
+- su - postgres -c 'PGPASSWORD=coprpass ; createdb -E UTF8 coprdb ; yes $PGPASSWORD | createuser -P -sDR copr-fe'
+
+Configure the user to use md5 password to connect to that database. Put the lines like following to /var/lib/pgsql/data/pg_hba.conf. Avoid the common pitfall: Make sure you put them *before* those existing lines that are for all..
+
+local coprdb copr-fe md5
+host  coprdb copr-fe 127.0.0.1/8 md5
+host  coprdb copr-fe ::1/128 md5
+local coprdb postgres  ident
+
+Then reload PostgreSQL:
+ service postgresql reload
+
+and test the connection:
+
+PGPASSWORD=coprpass psql -a -U copr-fe coprdb
+PGPASSWORD=coprpass psql -a -h localhost -U copr-fe coprdb
