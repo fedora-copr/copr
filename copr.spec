@@ -94,6 +94,9 @@ a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 #frontend
 install -d %{buildroot}%{_datadir}/copr/coprs_frontend
 install -d %{buildroot}%{_datadir}/copr/data/openid_store
+install -d %{buildroot}%{_datadir}/copr/data/openid_store/associations
+install -d %{buildroot}%{_datadir}/copr/data/openid_store/nonces
+install -d %{buildroot}%{_datadir}/copr/data/openid_store/temp
 install -d %{buildroot}%{_datadir}/copr/data/whooshee
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
