@@ -80,6 +80,7 @@ COPRS_ENVIRON_PRODUCTION=1 ./manage.py create_db  --alembic alembic.ini
 
 - for production is used ProductionConfig from coprs_frontend/coprs/config.py
 
+- setenforce 0 (sorry, putting on TODO)
 
 DB config
 =========
