@@ -62,25 +62,8 @@ Required pkgs:
   - gcc
 
 - apache setup
-   coprs.conf:
-
-<VirtualHost *:80>
-    ServerName yourservername.here
-
-    WSGIDaemonProcess yourservername.hereuser=copr-fe group=copr-fe threads=5
-    WSGIScriptAlias / /path/to/coprs_git_tree/coprs_frontend/application
-    WSGIProcessGroup yourservername.here
-    WSGIPassAuthorization On
-
-    ErrorLog logs/error_coprs
-    CustomLog logs/access_coprs common
-
-    <Directory /var/www/coprs_frontend>
-        WSGIApplicationGroup %{GLOBAL}
-        Order deny,allow
-        Allow from all
-    </Directory>
-</VirtualHost>
+  cp /usr/share/doc/copr-frontend-*/coprs.conf.example /etc/httpd/conf.d/coprs.conf
+  and edit it to your needs - at least ServerName, port and WSGIScriptAlias
 
 - virtenv of flask and friends
   - virtualenv --distribute virtenv  
