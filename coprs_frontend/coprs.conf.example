@@ -9,9 +9,12 @@
     ErrorLog logs/error_coprs
     CustomLog logs/access_coprs common
 
-    <Directory /usr/share/copr/coprs_frontend>
+    <Directory /usr/share/copr>
         WSGIApplicationGroup %{GLOBAL}
-        Order deny,allow
-        Allow from all
+        # apache 2.2 (el6, F17)
+        #Order deny,allow
+        #Allow from all
+        # apache 2.4 (F18+)
+        Require all granted
     </Directory>
 </VirtualHost>
