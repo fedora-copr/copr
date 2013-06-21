@@ -94,6 +94,9 @@ SQLite
 - in file coprs_frontend/coprs/config.py put:
   SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
 This will use sqlite db file in /usr/share/copr/data/copr.db (manage.py will create that file)
+- Note that you have to either create db as copr-fe user or you have to run:
+  chown copr-fe:copr-fe /usr/share/copr/data/copr.db
+  after you run "./manage.py create_db"
 
 PostgreSQL
 ~~~~~~~~~~
