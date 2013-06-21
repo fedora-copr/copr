@@ -51,15 +51,9 @@ Required pkgs:
 
 
 Frontend:
-rhel6ish - add epel
-
-Required pkgs:
-  - httpd
-  - mod_wsgi
-  - postgresql-server
-  - postgresql-devel
-  - python-virtualenv
-  - gcc
+- rhel6ish - add epel
+- add yum repository http://copr-be.cloud.fedoraproject.org/results/msuchy/copr/
+- yum install copr-frontend
 
 - apache setup
   cp /usr/share/doc/copr-frontend-*/coprs.conf.example /etc/httpd/conf.d/coprs.conf
