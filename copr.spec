@@ -12,6 +12,7 @@ BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
+BuildRequires: python-setuptools
 
 %description
 COPR is lightway Koji. It allows you to create new project in WebUI, and
