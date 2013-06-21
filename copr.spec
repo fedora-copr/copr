@@ -14,6 +14,9 @@ BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
+%if 0%{?rhel} < 7 && 0%{?rhel} > 0
+BuildRequires: python-argparse
+%endif
 
 %description
 COPR is lightway Koji. It allows you to create new project in WebUI, and
