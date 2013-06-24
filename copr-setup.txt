@@ -82,6 +82,10 @@ COPRS_ENVIRON_PRODUCTION=1 ./manage.py create_db  --alembic alembic.ini
 
 - setenforce 0 (sorry, putting on TODO)
 
+- Add chroots. E.g:
+COPRS_ENVIRON_PRODUCTION=1  ./manage.py create_chroot fedora-18-x86_64 fedora-18-i386
+
+
 DB config
 =========
 
