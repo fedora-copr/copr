@@ -136,6 +136,7 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 
 %{_datadir}/copr/coprs_frontend
 %ghost %{_datadir}/copr/data/copr.db
+%config(noreplace)%{_datadir}/copr/coprs_frontend/coprs/config.py
 
 %files cli
 %doc LICENSE README.rst
