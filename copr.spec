@@ -97,6 +97,8 @@ install -d %{buildroot}%{_datadir}/copr/data/openid_store/associations
 install -d %{buildroot}%{_datadir}/copr/data/openid_store/nonces
 install -d %{buildroot}%{_datadir}/copr/data/openid_store/temp
 install -d %{buildroot}%{_datadir}/copr/data/whooshee
+install -d %{buildroot}%{_datadir}/copr/data/whooshee/copr_user_whoosheer
+
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
@@ -130,6 +132,8 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 %dir %{_datadir}/copr/data
 %dir %{_datadir}/copr/data/openid_store
 %dir %{_datadir}/copr/data/whooshee
+%dir %{_datadir}/copr/data/whooshee/copr_user_whoosheer
+
 %{_datadir}/copr/coprs_frontend
 %ghost %{_datadir}/copr/data/copr.db
 
