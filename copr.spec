@@ -45,7 +45,6 @@ This package contains backend.
 Summary:    Frontend for COPR
 Requires:   httpd
 Requires:	mod_wsgi
-Requires:	gcc
 Requires:	python-alembic
 Requires:   python-flask
 Requires:   python-flask-openid
