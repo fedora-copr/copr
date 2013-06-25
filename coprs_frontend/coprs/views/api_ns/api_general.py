@@ -38,7 +38,7 @@ def api_new_token():
     user.api_token = helpers.generate_api_token(
         flask.current_app.config['API_TOKEN_LENGTH'])
     user.api_token_expiration = datetime.date.today() \
-        + datetime.timedelta(days=30)
+        + datetime.timedelta(days=flask.current_app.config['API_TOKEN_EXPIRATION'])
     db.session.add(user)
     db.session.commit()
     return flask.redirect(flask.url_for('api_ns.api_home'))

@@ -56,7 +56,7 @@ def create_or_login(resp):
         models.User.openid_name == resp.identity_url).first()
     if not user: # create if not created already
         expiration_date_token = datetime.date.today() \
-            + datetime.timedelta(days=30)
+            + datetime.timedelta(days=flask.current_app.config['API_TOKEN_EXPIRATION'])
         copr64 = base64.b64encode('copr') + '##'
         user = models.User(openid_name = resp.identity_url, mail = resp.email,
             api_login = copr64 + helpers.generate_api_token(

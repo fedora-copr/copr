@@ -13,8 +13,8 @@
     should not be shared!</span>.
     </p>
 
-    <p>The API token is valid for 30 days after you generated it, this
-    in order to ensure you are you every 30 days.
+    <p>The API token is valid for {{ config['API_TOKEN_EXPIRATION'] }} days after you generated it, this
+    in order to ensure you are you every {{ config['API_TOKEN_EXPIRATION'] }} days.
     </p>
 
     {% if g.user %}
