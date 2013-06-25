@@ -58,6 +58,7 @@ Requires:	python-psycopg2
 Requires:	python-whoosh
 # for tests:
 Requires:	pytest
+Requires:   python-flexmock
 
 %description frontend
 COPR is lightway Koji. It allows you to create new project in WebUI, and
