@@ -1,8 +1,10 @@
 import base64
 import os
 import time
+from functools import wraps
 
 import pytest
+import decorator
 
 import coprs
 
@@ -122,3 +124,46 @@ class CoprsTestCase(object):
                                 result=helpers.BackendResultEnum('success'),
                                 created_on=int(time.time()))
         self.db.session.add_all([self.a1, self.a2, self.a3])
+
+
+
+
+class TransactionDecorator(object):
+
+    """
+    This is decorator as a class.
+
+    Its purpose is to replace repetative lines of 'with' statements
+    in test's functions. Everytime you find your self writing test function
+    which uses following 'with's construct:
+
+    with self.tc as test_client:
+        with c.session_transaction() as session:
+            session['openid'] = self.u.openid_name
+
+    where 'u' stands for any user from 'f_users' fixture, use this to decorate
+    your test function:
+
+    @TransactionDecorator('u')
+    def test_function_without_with_statements(self, f_users):
+        # write code as you were in with 'self.tc as test_client' indent
+        # you can also access object 'test_client' through 'self.test_client'
+
+    where decorator parameter ''u'' stands for string representation of any
+    user from 'f_users' fixture from which you wish to store 'openid_name'.
+    Please note that you **must** include 'f_users' fixture in decorated
+    function parameters.
+
+    """
+
+    def __init__(self, user):
+        self.user = user
+
+    def __call__(self, fn):
+        @wraps(fn)
+        def wrapper(fn, fn_self, *args):
+            with fn_self.tc as fn_self.test_client:
+                with fn_self.test_client.session_transaction() as session:
+                    session['openid'] = getattr(fn_self, self.user).openid_name
+                return fn(fn_self, *args)
+        return decorator.decorator(wrapper, fn)
