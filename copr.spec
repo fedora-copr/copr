@@ -91,6 +91,10 @@ a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 
 %install
 
+#backend
+install -d %{buildroot}%{_sharedstatedir}/copr
+install -d %{buildroot}%{_sharedstatedir}/copr/results
+
 #frontend
 install -d %{buildroot}%{_sysconfdir}
 install -d %{buildroot}%{_datadir}/copr/coprs_frontend
@@ -127,6 +131,8 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 %files backend
 %doc LICENSE README
 %dir %{_datadir}/copr
+%dir %{_sharedstatedir}/copr
+%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/results
 
 %files frontend
 %doc LICENSE coprs.conf.example copr-setup.txt
