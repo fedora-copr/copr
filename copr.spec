@@ -128,6 +128,9 @@ getent passwd copr-fe >/dev/null || \
 useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash -c "COPR frontend user" copr-fe
 /usr/bin/passwd -l copr-fe >/dev/null
 
+%post frontend
+service httpd condrestart
+
 %files backend
 %doc LICENSE README
 %dir %{_datadir}/copr
