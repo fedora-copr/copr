@@ -15,6 +15,11 @@ elif 'COPRS_ENVIRON_UNITTEST' in os.environ:
     app.config.from_object('coprs.config.UnitTestConfig')
 else:
     app.config.from_object('coprs.config.DevelopmentConfig')
+if os.environ.get('COPR_CONFIG'):
+	app.config.from_envvar('COPR_CONFIG')
+else:
+    app.config.from_pyfile('/etc/copr/copr.conf', silent=True)
+
 
 oid = OpenID(app, app.config['OPENID_STORE'])
 db = SQLAlchemy(app)

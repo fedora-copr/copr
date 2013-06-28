@@ -23,7 +23,7 @@ class Config(object):
     API_TOKEN_EXPIRATION = 180
 
     # logging options
-    SEND_LOGS_TO = []
+    SEND_LOGS_TO = ['root@localhost']
     LOGGING_LEVEL = logging.ERROR
 
 class ProductionConfig(Config):

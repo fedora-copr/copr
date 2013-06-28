@@ -92,6 +92,7 @@ a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 %install
 
 #frontend
+install -d %{buildroot}%{_sysconfdir}
 install -d %{buildroot}%{_datadir}/copr/coprs_frontend
 install -d %{buildroot}%{_datadir}/copr/data/openid_store
 install -d %{buildroot}%{_datadir}/copr/data/openid_store/associations
@@ -102,6 +103,7 @@ install -d %{buildroot}%{_datadir}/copr/data/whooshee/copr_user_whoosheer
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
+mv %{buildroot}%{_datadir}/copr/coprs_frontend/config %{buildroot}%{_sysconfdir}/copr
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
 touch %{buildroot}%{_datadir}/copr/data/copr.db
 
@@ -137,7 +139,11 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 
 %{_datadir}/copr/coprs_frontend
 %ghost %{_datadir}/copr/data/copr.db
-%config(noreplace)%{_datadir}/copr/coprs_frontend/coprs/config.py
+%{_datadir}/copr/coprs_frontend/coprs/config.py
+
+%defattr(600, copr-fe, copr-fe, 700)
+%dir %{_sysconfdir}/copr
+%config(noreplace)  %{_sysconfdir}/copr/*
 
 %files cli
 %doc LICENSE README.rst

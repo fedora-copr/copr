@@ -66,13 +66,13 @@ Frontend:
   - pip install -I  SQLAlchemy MarkupSafe 
   - pip install pytest
 
-- edit credentials in coprs_frontend/coprs/config.py
+- edit credentials /etc/copr/copr.conf (or /etc/copr/copr-devel.conf for development mode)
 - cd /usr/share/copr/coprs_frontend
 - configure DB first - see DB section below
 # for develop setup do:
-- ./manage.py create_db --alembic alembic.ini
+COPR_CONFIG=/etc/copr/copr_devel.conf ./manage.py create_db --alembic alembic.ini
 # for production setup do:
-COPRS_ENVIRON_PRODUCTION=1 ./manage.py create_db  --alembic alembic.ini
+./manage.py create_db  --alembic alembic.ini
 
 - for developing you can run:
   ./manage.py runserver -t <FQDN>
@@ -83,7 +83,7 @@ COPRS_ENVIRON_PRODUCTION=1 ./manage.py create_db  --alembic alembic.ini
 - setenforce 0 (sorry, putting on TODO)
 
 - Add chroots. E.g:
- su - copr-fe -c 'OPRS_ENVIRON_PRODUCTION=1  ./manage.py create_chroot fedora-18-x86_64 fedora-18-i386'
+ su - copr-fe -c './manage.py create_chroot fedora-18-x86_64 fedora-18-i386'
 
 
 DB config
@@ -95,8 +95,8 @@ SQLite
 ~~~~~~
 
 - yum install sqlite
-- in file coprs_frontend/coprs/config.py put:
-  SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
+- in file /etc/copr/copr.conf put:
+  SQLALCHEMY_DATABASE_URI = 'sqlite:////usr/share/copr/data/copr.db'
 This will use sqlite db file in /usr/share/copr/data/copr.db (manage.py will create that file)
 - Note that you have to either create db as copr-fe user or you have to run:
   chown copr-fe:copr-fe /usr/share/copr/data/copr.db
