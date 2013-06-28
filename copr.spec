@@ -20,7 +20,7 @@ BuildRequires: python-argparse
 
 %description
 COPR is lightway Koji. It allows you to create new project in WebUI, and
-submit new builds and COPR will create yum repository from latests builds.
+submit new builds and COPR will create yum repository from latest builds.
 
 %package backend
 Summary:	Backend for COPR
@@ -37,7 +37,7 @@ Requires:   python-requests
 
 %description backend
 COPR is lightway Koji. It allows you to create new project in WebUI, and
-submit new builds and COPR will create yum repository from latests builds.
+submit new builds and COPR will create yum repository from latest builds.
 
 This package contains backend.
 
