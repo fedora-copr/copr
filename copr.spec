@@ -19,12 +19,12 @@ BuildRequires: python-argparse
 %endif
 
 %description
-COPR is lightway Koji. It allows you to create new project in WebUI, and
+COPR is lightweight buildsystem. It allows you to create new project in WebUI, and
 submit new builds and COPR will create yum repository from latest builds.
 
 %package backend
 Summary:	Backend for COPR
-Requires:   ansible >= 0.9
+Requires:   ansible >= 1.2
 Requires:   lighttpd
 Requires:   euca2ools
 Requires:   rsync
@@ -36,7 +36,7 @@ Requires:   python-bunch
 Requires:   python-requests
 
 %description backend
-COPR is lightway Koji. It allows you to create new project in WebUI, and
+COPR is lightweight buildsystem. It allows you to create new project in WebUI, and
 submit new builds and COPR will create yum repository from latest builds.
 
 This package contains backend.
@@ -61,7 +61,7 @@ Requires:	pytest
 Requires:   python-flexmock
 
 %description frontend
-COPR is lightway Koji. It allows you to create new project in WebUI, and
+COPR is lightweight buildsystem. It allows you to create new project in WebUI, and
 submit new builds and COPR will create yum repository from latests builds.
 
 This package contains frontend.
@@ -74,7 +74,7 @@ Requires:   python-argparse
 %endif
 
 %description cli
-COPR is lightway Koji. It allows you to create new project in WebUI, and
+COPR is lightweight buildsystem. It allows you to create new project in WebUI, and
 submit new builds and COPR will create yum repository from latests builds.
 
 This package contains command line interface.
