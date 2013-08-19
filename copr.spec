@@ -94,6 +94,13 @@ a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 #backend
 install -d %{buildroot}%{_sharedstatedir}/copr
 install -d %{buildroot}%{_sharedstatedir}/copr/results
+install -d %{buildroot}%{_var}/log/copr
+install -d %{buildroot}%{_var}/log/copr/workers/
+# for ghost files
+touch %{buildroot}%{_var}/log/copr/copr.log
+for i in `seq 7`; do
+	touch %{buildroot}%{_var}/log/copr/workers/worker-$i.log
+done
 
 #frontend
 install -d %{buildroot}%{_sysconfdir}
@@ -136,6 +143,10 @@ service httpd condrestart
 %dir %{_datadir}/copr
 %dir %{_sharedstatedir}/copr
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/results
+%dir %attr(0755, copr, copr) %{_var}/log/copr
+%dir %attr(0755, copr, copr) %{_var}/log/copr/workers
+%ghost %{_var}/log/copr/copr.log
+%ghost %{_var}/log/copr/workers/worker-*.log
 
 %files frontend
 %doc LICENSE coprs.conf.example copr-setup.txt

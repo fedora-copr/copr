@@ -8,8 +8,8 @@ jobsdir=/srv/copr-work/jobs
 destdir=/var/lib/copr/results
 sleeptime=30
 num_workers=5
-logfile=/srv/copr-work/logs/copr.log
-worker_logdir=/srv/copr-work/logs/workers/
+logfile=/var/log/copr/copr.log
+worker_logdir=/var/log/copr/workers/
 
 
 [builder]
