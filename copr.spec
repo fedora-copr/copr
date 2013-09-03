@@ -96,6 +96,9 @@ install -d %{buildroot}%{_sharedstatedir}/copr
 install -d %{buildroot}%{_sharedstatedir}/copr/results
 install -d %{buildroot}%{_var}/log/copr
 install -d %{buildroot}%{_var}/log/copr/workers/
+install -d %{buildroot}%{_pkgdocdir}/lighttpd/
+
+cp -a backend-dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
 # for ghost files
 touch %{buildroot}%{_var}/log/copr/copr.log
 for i in `seq 7`; do
@@ -147,6 +150,7 @@ service httpd condrestart
 %dir %attr(0755, copr, copr) %{_var}/log/copr/workers
 %ghost %{_var}/log/copr/copr.log
 %ghost %{_var}/log/copr/workers/worker-*.log
+%doc %{_pkgdocdir}/lighttpd
 
 %files frontend
 %doc LICENSE coprs.conf.example copr-setup.txt
