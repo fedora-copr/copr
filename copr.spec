@@ -159,7 +159,6 @@ service httpd condrestart
 
 %{_datadir}/copr/coprs_frontend
 %ghost %{_datadir}/copr/data/copr.db
-%{_datadir}/copr/coprs_frontend/coprs/config.py
 
 %defattr(600, copr-fe, copr-fe, 700)
 %dir %{_sysconfdir}/copr
