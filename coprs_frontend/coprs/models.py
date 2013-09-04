@@ -3,6 +3,7 @@ import time
 
 import sqlalchemy
 from sqlalchemy.ext.associationproxy import association_proxy
+from libravatar import libravatar_url
 
 from coprs import constants
 from coprs import db
@@ -125,6 +126,11 @@ class User(db.Model, Serializer):
         return Copr.query.filter_by(owner=self).\
                           filter_by(deleted=False).\
                           count()
+
+    @property
+    def gravatar_url(self):
+        """Return url to libravatar image."""
+        return libravatar_url(email = self.mail)
 
 
 class Copr(db.Model, Serializer):

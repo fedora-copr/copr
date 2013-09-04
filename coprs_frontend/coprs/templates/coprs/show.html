@@ -6,7 +6,7 @@
   {% if g.user %}
   <div class="user-info">
     <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Coprs">
-      <img src="{{ url_for('static', filename='default_user.png') }}" alt="User Image">
+      <img src="{{ g.user.gravatar_url }}" alt="User Image">
     </a>
     <p>{{ g.user.name }}</p>
     <p class="coprs-count">{{ g.user.coprs_count }}</p>
