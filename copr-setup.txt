@@ -18,7 +18,7 @@ Required pkgs:
  - euca2ools (or other cloud tools)
  - rsync
  - openssh-clients
- - mock - recent - from epel - including mockchain
+ - mock
  - yum-utils
  - createrepo
  - python-bunch
