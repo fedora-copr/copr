@@ -1,3 +1,7 @@
+%if 0%{?rhel} < 7 && 0%{?rhel} > 0
+%global _pkgdocdir %{_docdir}/%{name}-%{version}
+%endif
+
 Name:		copr
 Version:	1.1
 Release:	1%{?dist}
