@@ -60,7 +60,7 @@ Backend manualy:
    this is recomended to be separate mount point
 
 Frontend:
-- rhel6ish - add epel
+- if you run on EPEL - add epel repo
 - add yum repository http://copr-be.cloud.fedoraproject.org/results/msuchy/copr/
 - yum install copr-frontend
 
@@ -68,7 +68,7 @@ Frontend:
   cp /usr/share/doc/copr-frontend-*/coprs.conf.example /etc/httpd/conf.d/coprs.conf
   and edit it to your needs - at least ServerName, port and WSGIScriptAlias
 
-- virtenv of flask and friends
+- if you run on EPEL add virtenv of flask and friends
   - virtualenv --distribute virtenv  
   - source virtenv/bin/activate
   - pip install flask flask-sqlalchemy flask-openid flask-wtf alembic
