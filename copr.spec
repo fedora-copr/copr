@@ -56,7 +56,7 @@ Requires:   python-flask-whooshee
 Requires:   python-blinker
 Requires:	python-psycopg2
 Requires:   python-pylibravatar
-Requires:	python-whoosh
+Requires:	python-whoosh >= 2.5.3
 # for tests:
 Requires:	pytest
 Requires:   python-flexmock
