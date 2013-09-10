@@ -2,9 +2,11 @@
 INTEL_ARCHES = ['i386', 'x86_64']
 DEFAULT_ARCHES = INTEL_ARCHES
 
-CHROOTS = {'fedora-16':      DEFAULT_ARCHES,
+CHROOTS = {
            'fedora-17':      DEFAULT_ARCHES,
            'fedora-18':      DEFAULT_ARCHES,
+           'fedora-19':      DEFAULT_ARCHES,
+           'fedora-20':      DEFAULT_ARCHES,
            'fedora-rawhide': DEFAULT_ARCHES,
            'epel-5': DEFAULT_ARCHES,
            'epel-6': DEFAULT_ARCHES,
