@@ -5,3 +5,5 @@ data/
 dist/
 build/
 *.egg-info
+documentation/build
+documentation/python-doc
