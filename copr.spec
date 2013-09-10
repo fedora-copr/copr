@@ -21,6 +21,10 @@ BuildRequires: python-requests
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
+#for doc package
+BuildRequires: epydoc
+BuildRequires: graphviz
+BuildRequires: make
 
 %description
 COPR is lightweight buildsystem. It allows you to create new project in WebUI, and
@@ -84,6 +88,15 @@ submit new builds and COPR will create yum repository from latests builds.
 
 This package contains command line interface.
 
+%package doc
+Summary:    Code documentation for COPR
+
+%description doc
+COPR is lightweight buildsystem. It allows you to create new project in WebUI, and
+submit new builds and COPR will create yum repository from latests builds.
+
+This package include documentation for COPR code. Mostly useful for developers only.
+
 %prep
 %setup -q
 
@@ -93,6 +106,11 @@ mv copr_cli/README.rst ./
 
 # convert manages
 a2x -d manpage -f manpage man/copr-cli.1.asciidoc
+
+# build documentation
+pushd documentation
+make python
+popd
 
 %install
 
@@ -132,6 +150,9 @@ touch %{buildroot}%{_datadir}/copr/data/copr.db
 %{__python} coprcli-setup.py install --root %{buildroot}
 install -d %{buildroot}%{_mandir}/man1
 install -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
+
+#doc
+cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 
 %pre backend
 getent group copr >/dev/null || groupadd -r copr
@@ -181,6 +202,9 @@ service httpd condrestart
 %{_bindir}/copr-cli
 %{python_sitelib}/*
 %doc %{_mandir}/man1/copr-cli.1*
+
+%files doc
+%doc %{_pkgdocdir}/python-doc
 
 %changelog
 * Mon Jun 17 2013 Miroslav Suchý <msuchy@redhat.com> 1.1-1
