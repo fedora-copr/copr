@@ -12,6 +12,10 @@ Backend:
 ansible playbook: 
   http://infrastructure.fedoraproject.org/infra/ansible/playbooks/hosts/copr-be.cloud.fedoraproject.org.yml
 
+- enable epel (if you use RHEL)
+- enable optional channel (if you use RHEL)
+- install copr-backend package
+
 Required pkgs:
  - ansible - 0.9 or higher
  - [lig]httpd
