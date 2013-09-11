@@ -157,7 +157,7 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %pre backend
 getent group copr >/dev/null || groupadd -r copr
 getent passwd copr >/dev/null || \
-useradd -r -g copr -G apache -d %{_datadir}/copr -s /bin/bash -c "COPR user" copr
+useradd -r -g copr -G lighttpd -d %{_datadir}/copr -s /bin/bash -c "COPR user" copr
 /usr/bin/passwd -l copr >/dev/null
 
 %pre frontend
