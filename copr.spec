@@ -122,6 +122,7 @@ install -d %{buildroot}%{_var}/log/copr/workers/
 install -d %{buildroot}%{_pkgdocdir}/lighttpd/
 install -d %{buildroot}%{_datadir}/copr/backend
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
+cp -a copr-be.py %{buildroot}%{_datadir}/copr/
 
 cp -a backend-dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
 # for ghost files
@@ -179,7 +180,9 @@ service httpd condrestart
 %ghost %{_var}/log/copr/copr.log
 %ghost %{_var}/log/copr/workers/worker-*.log
 %doc %{_pkgdocdir}/lighttpd
+
 %{_datadir}/copr/backend
+%{_datadir}/copr/copr-be.py*
 
 %files frontend
 %doc LICENSE coprs.conf.example copr-setup.txt
