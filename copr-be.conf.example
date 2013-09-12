@@ -1,37 +1,56 @@
 [backend]
 
 # URL where are results visible
+# default is http://copr
 results_baseurl=http://copr-be.cloud.fedoraproject.org/results
 
 # ??? What is this
+# default is http://coprs/rest/api
 frontend_url=http://copr-fe.cloud.fedoraproject.org/backend
 
 # must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
+# default is PASSWORDHERE but you really should change it. really.
 frontend_auth=backend_password_from_fe_config
 
 # path to ansible playbook which spawns builder
 # see /usr/share/copr*/playbooks/ for examples
+# default is /etc/copr/builder_playbook.yml
 spawn_playbook=/srv/copr-work/provision/builderpb.yml
 
 # path to ansible playbook which terminate builder
+# default is /etc/copr/terminate_playbook.yml 
 terminate_playbook=/srv/copr-work/provision/terminatepb.yml
 
 # directory where jobs are stored
+# no defaults
 jobsdir=/srv/copr-work/jobs
 
 # directory where results are stored
 # should be accessible from web using 'results_baseurl' URL
+# no default
 destdir=/var/lib/copr/results
 
+# default is 10
 sleeptime=30
 
+# default is 8
 num_workers=5
 
 # path to log file
-logfile=/var/log/copr/copr.log
+# default is /var/log/copr/backend.log
+logfile=/var/log/copr/backend.log
 
+# default is /var/log/copr/workers/
 worker_logdir=/var/log/copr/workers/
 
+# exit on worker failure
+# default is false
+#exit_on_worker=false
+
+# Deamonize if true. Runs in foreground if false.
+# default is true
+#daemonize=true
 
 [builder]
+# default is 1800
 timeout=3600

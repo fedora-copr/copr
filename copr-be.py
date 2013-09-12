@@ -170,7 +170,7 @@ class CoprBackend(object):
             opts.num_workers = int(_get_conf(cp, 'backend', 'num_workers', 8))
             opts.timeout = int(_get_conf(cp, 'builder', 'timeout', 1800))
             opts.logfile = _get_conf(cp, 'backend', 'logfile', '/var/log/copr/backend.log')
-            opts.worker_logdir = _get_conf(cp, 'backend', 'worker_logdir', '/var/log/copr/worker/')
+            opts.worker_logdir = _get_conf(cp, 'backend', 'worker_logdir', '/var/log/copr/workers/')
             # thoughts for later
             # ssh key for connecting to builders?
             # cloud key stuff?
