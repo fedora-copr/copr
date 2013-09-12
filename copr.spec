@@ -145,7 +145,7 @@ install -d %{buildroot}%{_datadir}/copr/data/whooshee/copr_user_whoosheer
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
-mv %{buildroot}%{_datadir}/copr/coprs_frontend/config %{buildroot}%{_sysconfdir}/copr
+mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
 touch %{buildroot}%{_datadir}/copr/data/copr.db
 
