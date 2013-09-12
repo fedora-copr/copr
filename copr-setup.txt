@@ -15,6 +15,12 @@ ansible playbook:
 - enable epel (if you use RHEL)
 - enable optional channel (if you use RHEL)
 - install copr-backend package
+- edit /etc/copr/copr-be.conf
+  - change results_baseurl and frontend_url to your hostname
+  - frontend_auth must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
+  - spawn_playbook - path to ansible playbook which spawns builder
+  - terminate_playbook - path to ansible playbook which terminate builder
+  - others variables can be edited as well, but it is optional
 
 Required pkgs:
  - ansible - 0.9 or higher

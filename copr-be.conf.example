@@ -1,14 +1,34 @@
 [backend]
+
+# URL where are results visible
 results_baseurl=http://copr-be.cloud.fedoraproject.org/results
+
+# ??? What is this
 frontend_url=http://copr-fe.cloud.fedoraproject.org/backend
+
+# must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
 frontend_auth=backend_password_from_fe_config
+
+# path to ansible playbook which spawns builder
 spawn_playbook=/srv/copr-work/provision/builderpb.yml
+
+# path to ansible playbook which terminate builder
 terminate_playbook=/srv/copr-work/provision/terminatepb.yml
+
+# directory where jobs are stored
 jobsdir=/srv/copr-work/jobs
+
+# directory where results are stored
+# should be accessible from web using 'results_baseurl' URL
 destdir=/var/lib/copr/results
+
 sleeptime=30
+
 num_workers=5
+
+# path to log file
 logfile=/var/log/copr/copr.log
+
 worker_logdir=/var/log/copr/workers/
 
 
