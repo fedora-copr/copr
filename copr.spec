@@ -156,6 +156,7 @@ install -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 
 #doc
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
+cp -a playbooks %{buildroot}%{_pkgdocdir}/
 
 %pre backend
 getent group copr >/dev/null || groupadd -r copr
@@ -182,6 +183,7 @@ service httpd condrestart
 %ghost %{_var}/log/copr/copr.log
 %ghost %{_var}/log/copr/workers/worker-*.log
 %doc %{_pkgdocdir}/lighttpd
+%doc %{_pkgdocdir}/playbooks
 %config(noreplace) %{_sysconfdir}/copr/copr-be.conf
 
 %{_datadir}/copr/backend

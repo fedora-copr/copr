@@ -10,6 +10,7 @@ frontend_url=http://copr-fe.cloud.fedoraproject.org/backend
 frontend_auth=backend_password_from_fe_config
 
 # path to ansible playbook which spawns builder
+# see /usr/share/copr*/playbooks/ for examples
 spawn_playbook=/srv/copr-work/provision/builderpb.yml
 
 # path to ansible playbook which terminate builder
