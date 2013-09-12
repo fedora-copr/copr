@@ -121,8 +121,10 @@ install -d %{buildroot}%{_var}/log/copr
 install -d %{buildroot}%{_var}/log/copr/workers/
 install -d %{buildroot}%{_pkgdocdir}/lighttpd/
 install -d %{buildroot}%{_datadir}/copr/backend
+install -d %{buildroot}%{_sysconfdir}/copr
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a copr-be.py %{buildroot}%{_datadir}/copr/
+cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
 cp -a backend-dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
 # for ghost files
@@ -180,6 +182,7 @@ service httpd condrestart
 %ghost %{_var}/log/copr/copr.log
 %ghost %{_var}/log/copr/workers/worker-*.log
 %doc %{_pkgdocdir}/lighttpd
+%config(noreplace) %{_sysconfdir}/copr/copr-be.conf
 
 %{_datadir}/copr/backend
 %{_datadir}/copr/copr-be.py*
@@ -198,7 +201,10 @@ service httpd condrestart
 
 %defattr(600, copr-fe, copr-fe, 700)
 %dir %{_sysconfdir}/copr
-%config(noreplace)  %{_sysconfdir}/copr/*
+%config(noreplace)  %{_sysconfdir}/copr/copr.conf
+%config(noreplace)  %{_sysconfdir}/copr/copr_devel.conf
+%config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
+
 
 %files cli
 %doc LICENSE README.rst
