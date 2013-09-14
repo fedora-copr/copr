@@ -9,6 +9,7 @@ from coprs.logic import builds_logic
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 
+
 @backend_ns.route('/waiting_builds/')
 def waiting_builds():
     query = builds_logic.BuildsLogic.get_waiting_builds(None)
@@ -18,6 +19,7 @@ def waiting_builds():
                                                                        '__columns_only__': ['id', 'name'],
                                                                        '__included_ids__': False},
                                                               '__included_ids__': False}) for build in builds]})
+
 
 @backend_ns.route('/update_builds/', methods = ['POST', 'PUT'])
 @misc.backend_authenticated
@@ -42,11 +44,13 @@ def update_builds():
 
     return flask.jsonify({'updated_builds_ids': list(existing.keys()), 'non_existing_builds_ids': non_existing_ids})
 
+
 @backend_ns.route('/waiting_actions/')
 def waiting_actions():
     actions = models.Action.query.filter(models.Action.result==helpers.BackendResultEnum('waiting')).all()
 
     return flask.jsonify({'actions': [action.to_dict(options={'__columns_except__': ['result', 'message', 'ended_on']}) for action in actions]})
+
 
 # TODO: this is very similar to update_builds, we should pull out the common functionality into a single function
 @backend_ns.route('/update_actions/', methods=['POST', 'PUT'])

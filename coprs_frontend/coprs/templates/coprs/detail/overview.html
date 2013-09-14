@@ -11,7 +11,10 @@
   <div class="shift-right">{{ copr.instructions_or_not_filled}}</div>
   <h2>Yum repo</h2>
   <div class="shift-right">
-      <a href="{{ url_for('coprs_ns.generate_repo_file', reponame=copr.owner.name+'-'+copr.name) }}">
+      <a href="{{ url_for(
+        'coprs_ns.generate_repo_file',
+        username=copr.owner.name,
+        coprname=copr.name) }}">
           {{ copr.owner.name }}-{{ copr.name }}.repo</a></div>
   <h2>Active Releases</h2>
   <table class="releases">
@@ -51,7 +54,7 @@
       {% for repo in copr.repos_list %}
         <li><a href="{{ repo }}">{{ repo }}</a></li>
       {% endfor %}
-    </ul>  
+    </ul>
   {% endif %}
 
   <hr>

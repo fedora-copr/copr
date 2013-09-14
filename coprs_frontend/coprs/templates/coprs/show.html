@@ -15,7 +15,11 @@
   {% endif %}
   <div class="coprs-list-{% if g.user %}thin{% else %}thick{% endif %}">
     {% if g.user %}
-      <div class="add-copr">+ <a href={{ url_for('coprs_ns.copr_add') }}>add a new Copr</a></div>
+      <div class="add-copr">+
+        <a href={{ url_for('coprs_ns.copr_add', username=g.user.name) }}>
+          add a new Copr
+        </a>
+      </div>
     {% endif %}
     {% if fulltext %}
       <div class="search-results">Displaying results for search "{{ fulltext }}"</div>

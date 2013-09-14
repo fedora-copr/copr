@@ -1,8 +1,14 @@
 {% from "_helpers.html" import render_field %}
 
-{% macro copr_form(form, view, copr = None) %}
+{% macro copr_form(form, view, copr = None, username = None) %}
   {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
-  <form action="{% if copr %}{{ url_for(view, username = copr.owner.name, coprname = copr.name) }}{% else %}{{ url_for(view) }}{% endif %}" method=post class=add-entry>
+  <form action="{% if copr %}
+        {{ url_for(view, username = copr.owner.name, coprname = copr.name) }}
+    {% elif username %}
+        {{ url_for(view, username = username) }}
+    {% else %}
+        {{ url_for(view) }}
+    {% endif %}" method=post class=add-entry>
     <dl>
       {{ form.csrf_token }}
       {{ render_field(form.id, hidden = True) }}

@@ -16,6 +16,7 @@ from coprs.views.coprs_ns import coprs_ns
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 
+
 @coprs_ns.route('/', defaults = {'page': 1})
 @coprs_ns.route('/<int:page>/')
 def coprs_show(page=1):
@@ -26,8 +27,8 @@ def coprs_show(page=1):
     return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
 
 
-@coprs_ns.route('/owned/<username>/', defaults = {'page': 1})
-@coprs_ns.route('/owned/<username>/<int:page>/')
+@coprs_ns.route('/<username>/', defaults = {'page': 1})
+@coprs_ns.route('/<username>/<int:page>/')
 def coprs_by_owner(username=None, page=1):
     query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
                                                 user_relation='owned',
@@ -39,8 +40,8 @@ def coprs_by_owner(username=None, page=1):
     return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
 
 
-@coprs_ns.route('/allowed/<username>/', defaults = {'page': 1})
-@coprs_ns.route('/allowed/<username>/<int:page>/')
+@coprs_ns.route('/<username>/allowed/', defaults = {'page': 1})
+@coprs_ns.route('/<username>/allowed/<int:page>/')
 def coprs_by_allowed(username=None, page=1):
     query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
                                                 user_relation='allowed',
@@ -50,6 +51,7 @@ def coprs_by_allowed(username=None, page=1):
 
     coprs = paginator.sliced_query
     return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
+
 
 @coprs_ns.route('/fulltext/', defaults = {'page': 1})
 @coprs_ns.route('/fulltext/<int:page>/')
@@ -64,17 +66,18 @@ def coprs_fulltext_search(page=1):
                                  paginator=paginator,
                                  fulltext=fulltext)
 
-@coprs_ns.route('/add/')
+
+@coprs_ns.route('/<username>/add/')
 @login_required
-def copr_add():
+def copr_add(username):
     form = forms.CoprFormFactory.create_form_cls()()
 
     return flask.render_template('coprs/add.html', form = form)
 
 
-@coprs_ns.route('/new/', methods=['POST'])
+@coprs_ns.route('/<username>/new/', methods=['POST'])
 @login_required
-def copr_new():
+def copr_new(username):
     """ Receive information from the user on how to create its new copr
     and create it accordingly.
     """
@@ -101,7 +104,8 @@ def copr_new():
     else:
         return flask.render_template('coprs/add.html', form = form)
 
-@coprs_ns.route('/detail/<username>/<coprname>/')
+
+@coprs_ns.route('/<username>/<coprname>/')
 def copr_detail(username, coprname):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_mock_chroots=True)
     form = forms.CoprLegalFlagForm()
@@ -114,7 +118,8 @@ def copr_detail(username, coprname):
                                  copr=copr,
                                  form=form)
 
-@coprs_ns.route('/detail/<username>/<coprname>/permissions/')
+
+@coprs_ns.route('/<username>/<coprname>/permissions/')
 def copr_permissions(username, coprname):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
     copr = query.first()
@@ -145,7 +150,8 @@ def copr_permissions(username, coprname):
                                  permissions = permissions,
                                  current_user_permissions = user_perm)
 
-@coprs_ns.route('/detail/<username>/<coprname>/edit/')
+
+@coprs_ns.route('/<username>/<coprname>/edit/')
 @login_required
 def copr_edit(username, coprname, form=None):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
@@ -161,7 +167,7 @@ def copr_edit(username, coprname, form=None):
                                  form=form)
 
 
-@coprs_ns.route('/detail/<username>/<coprname>/update/', methods = ['POST'])
+@coprs_ns.route('/<username>/<coprname>/update/', methods = ['POST'])
 @login_required
 def copr_update(username, coprname):
     form = forms.CoprFormFactory.create_form_cls()()
@@ -189,7 +195,7 @@ def copr_update(username, coprname):
         return copr_edit(username, coprname, form)
 
 
-@coprs_ns.route('/detail/<username>/<coprname>/permissions_applier_change/', methods = ['POST'])
+@coprs_ns.route('/<username>/<coprname>/permissions_applier_change/', methods = ['POST'])
 @login_required
 def copr_permissions_applier_change(username, coprname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
@@ -210,7 +216,8 @@ def copr_permissions_applier_change(username, coprname):
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
-@coprs_ns.route('/detail/<username>/<coprname>/update_permissions/', methods = ['POST'])
+
+@coprs_ns.route('/<username>/<coprname>/update_permissions/', methods = ['POST'])
 @login_required
 def copr_update_permissions(username, coprname):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
@@ -238,7 +245,8 @@ def copr_update_permissions(username, coprname):
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
-@coprs_ns.route('/detail/<username>/<coprname>/delete/', methods=['GET', 'POST'])
+
+@coprs_ns.route('/<username>/<coprname>/delete/', methods=['GET', 'POST'])
 @login_required
 def copr_delete(username, coprname):
     form = forms.CoprDeleteForm()
@@ -258,7 +266,8 @@ def copr_delete(username, coprname):
     else:
         return flask.render_template('coprs/detail/delete.html', form=form, copr=copr)
 
-@coprs_ns.route('/detail/<username>/<coprname>/legal_flag/', methods=['POST'])
+
+@coprs_ns.route('/<username>/<coprname>/legal_flag/', methods=['POST'])
 @login_required
 def copr_legal_flag(username, coprname):
     form = forms.CoprLegalFlagForm()
@@ -273,13 +282,16 @@ def copr_legal_flag(username, coprname):
     flask.flash('Admin was noticed about your report and will investigate the copr shortly.')
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
 
-@coprs_ns.route('/repo/<reponame>.repo')
-def generate_repo_file(reponame):
+
+@coprs_ns.route('/<username>/<coprname>/repo/')
+def generate_repo_file(username, coprname):
     ''' Generate repo file for a given repo name.
         Reponame = username-coprname '''
     # This solution is used because flask splits off the last part after a
     # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
     # FAS usernames may not contain dashes, so this construction is safe.
+
+    reponame = "%s-%s" % (username, coprname)
 
     if '-' not in reponame:
         return page_not_found('Bad repository name: {0}. Must be username-coprname'.format(reponame))

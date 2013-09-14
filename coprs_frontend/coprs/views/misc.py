@@ -79,6 +79,7 @@ def logout():
     flask.flash(u'You were signed out')
     return flask.redirect(oid.get_next_url())
 
+
 def api_login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
@@ -128,6 +129,7 @@ def login_required(role=helpers.RoleEnum('user')):
         return view_wrapper(role)
     else:
         return view_wrapper
+
 
 # backend authentication
 def backend_authenticated(f):

@@ -15,8 +15,9 @@ from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.coprs_ns import coprs_general
 
-@coprs_ns.route('/detail/<username>/<coprname>/builds/', defaults={'page': 1})
-@coprs_ns.route('/detail/<username>/<coprname>/builds/<int:page>/')
+
+@coprs_ns.route('/<username>/<coprname>/builds/', defaults={'page': 1})
+@coprs_ns.route('/<username>/<coprname>/builds/<int:page>/')
 def copr_builds(username, coprname, page=1):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
@@ -29,7 +30,7 @@ def copr_builds(username, coprname, page=1):
     return flask.render_template('coprs/detail/builds.html', copr=copr, builds=paginator.sliced_query, paginator=paginator)
 
 
-@coprs_ns.route('/detail/<username>/<coprname>/add_build/')
+@coprs_ns.route('/<username>/<coprname>/add_build/')
 @login_required
 def copr_add_build(username, coprname, form=None):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
@@ -42,7 +43,8 @@ def copr_add_build(username, coprname, form=None):
 
     return flask.render_template('coprs/detail/add_build.html', copr=copr, form=form)
 
-@coprs_ns.route('/detail/<username>/<coprname>/new_build/', methods = ["POST"])
+
+@coprs_ns.route('/<username>/<coprname>/new_build/', methods = ["POST"])
 @login_required
 def copr_new_build(username, coprname):
     form = forms.BuildForm()
@@ -69,7 +71,8 @@ def copr_new_build(username, coprname):
     else:
         return copr_add_build(username=username, coprname=coprname, form=form)
 
-@coprs_ns.route('/detail/<username>/<coprname>/cancel_build/<int:build_id>/', methods = ['POST'])
+
+@coprs_ns.route('/<username>/<coprname>/cancel_build/<int:build_id>/', methods = ['POST'])
 @login_required
 def copr_cancel_build(username, coprname, build_id):
     # only the user who ran the build can cancel it
@@ -86,7 +89,8 @@ def copr_cancel_build(username, coprname, build_id):
 
     return flask.redirect(flask.url_for('coprs_ns.copr_builds', username = username, coprname = coprname))
 
-@coprs_ns.route('/detail/<username>/<coprname>/repeat_build/<int:build_id>/', methods = ['POST'])
+
+@coprs_ns.route('/<username>/<coprname>/repeat_build/<int:build_id>/', methods = ['POST'])
 @login_required
 def copr_repeat_build(username, coprname, build_id):
     build = builds_logic.BuildsLogic.get(flask.g.user, build_id).first()
