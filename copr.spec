@@ -10,7 +10,13 @@ Summary:	Cool Other Package Repo
 Group:		Applications/Productivity
 License:	GPLv2+
 URL:		https://fedorahosted.org/copr/
-Source0:	https://git.fedorahosted.org/cgit/copr.git/snapshot/%{name}-%{version}-1.tar.gz
+# Source is created by
+# git clone https://git.fedorahosted.org/git/copr.git
+# cd copr
+# tito build --tgz
+# content is same as https://git.fedorahosted.org/cgit/copr.git/snapshot/%{name}-%{version}-1.tar.gz
+# but checksum does not match due different metadata
+Source0:	%{name}-%{version}.tar.gz
 
 BuildArch:  noarch
 BuildRequires: asciidoc
