@@ -67,7 +67,7 @@ class TestCoprNew(CoprsTestCase):
         def test_receiver(sender, **kwargs):
             signals_received.append(kwargs['copr'])
         copr_created.connect(test_receiver)
-        r = self.test_client.post('/coprs/{0}/new/'.format(self.u1.name)', data={'name': 'foo', 'fedora-rawhide-i386': 'y', 'arches': ['i386']}, follow_redirects=True)
+        r = self.test_client.post('/coprs/{0}/new/'.format(self.u1.name), data={'name': 'foo', 'fedora-rawhide-i386': 'y', 'arches': ['i386']}, follow_redirects=True)
         assert len(signals_received) == 1
         assert signals_received[0].name == 'foo'
 
