@@ -164,7 +164,7 @@ rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
 touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 
 #copr-cli
-%{__python} coprcli-setup.py install --root %{buildroot}
+%{__python2} coprcli-setup.py install --root %{buildroot}
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 
