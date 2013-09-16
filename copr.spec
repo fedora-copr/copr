@@ -197,10 +197,10 @@ service httpd condrestart
 
 %files frontend
 %doc LICENSE coprs.conf.example copr-setup.txt
+%dir %{_datadir}/copr
 %{_datadir}/copr/coprs_frontend
 
 %defattr(-, copr-fe, copr-fe, -)
-%dir %{_datadir}/copr
 %dir %{_datadir}/copr/data
 %dir %{_datadir}/copr/data/openid_store
 %dir %{_datadir}/copr/data/whooshee
