@@ -27,7 +27,7 @@ BuildRequires: graphviz
 BuildRequires: make
 
 %description
-COPR is lightweight buildsystem. It allows you to create new project in WebUI, and
+COPR is lightweight build system. It allows you to create new project in WebUI, and
 submit new builds and COPR will create yum repository from latest builds.
 
 %package backend
