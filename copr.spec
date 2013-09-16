@@ -3,7 +3,7 @@
 %endif
 
 Name:		copr
-Version:	1.1
+Version:	1.2
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -226,6 +226,85 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Mon Sep 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.2-1
+- fix typo
+- move frontend data into /var/lib/copr
+- no need to own /usr/share/copr by copr-fe
+- mark application as executable
+- coprs_frontend does not need to be owned by copr-fe
+- add executable attribute to copr-be.py
+- remove shebang from dispatcher.py
+- squeeze description into 80 chars
+- fix typo
+- frontend need argparse too
+- move results into /var/lib/copr/public_html
+- name of dir is just copr-%%version
+- Remove un-necessary quote that breaks the tests
+- Adjust unit-tests to the new urls
+- Update the URL to be based upon a /user/copr/<action> structure
+- comment config copr-be.conf and add defaults
+- put examples of builderpb.yml and terminatepb.yml into doc dir
+- more detailed description of copr-be.conf
+- move files in config directory not directory itself
+- include copr-be.conf
+- include copr-be.py
+- create copr with lighttpd group
+- edit backend part of copr-setup.txt
+- remove fedora16 and add 19 and 20
+- create -doc subpackage with python documentation
+- add generated documentation on gitignore list
+- add script to generate python documentation
+- copr-setup.txt change to for mock
+- rhel6 do not know _pkgdocdir macro
+- make instruction clear
+- require recent whoosh
+- add support for libravatar
+- include backend in rpm
+- add notes about lighttpd config files and how to deploy them
+- do not list file twice
+- move log file to /var/log
+- change destdir in copr-be.conf.example
+- lightweight is the word and buildsystem has more meaning than 'koji'.
+- restart apache after upgrade of frontend
+- own directory where backend put results
+- removal of hidden-file-or-dir
+  /usr/share/copr/coprs_frontend/coprs/logic/.coprs_logic.py.swo
+- copr-backend.noarch: W: spelling-error %%description -l en_US latests ->
+  latest, latest's, la tests
+- simplify configuration - introduce /etc/copr/copr*.conf
+- Replace "with" statements with @TransactionDecorator decorator
+- add python-flexmock to deps of frontend
+- remove sentence which does not have meaning
+- change api token expiration to 120 days and make it configurable
+- create_chroot must be run as copr-fe user
+- add note that you have to add chroots to db
+- mark config.py as config so it is not overwritten during upgrade
+- own directory data/whooshee/copr_user_whoosheer
+- gcc is not needed
+- sqlite db must be owned by copr-fe user
+- copr does not work with selinux
+- create subdirs under data/openid_store
+- suggest to install frontend as package from copr repository
+- on el6 add python-argparse to BR
+- add python-requests to BR
+- add python-setuptools to BR
+- maintain apache configuration on one place only
+- apache 2.4 changed access control
+- require python-psycopg2
+- postgresql server is not needed
+- document how to create db
+- add to HOWTO how to create db
+- require python-alembic
+- add python-flask-script and python-flask-whooshee to requirements
+- change user in coprs.conf.example to copr-fe
+- fix paths in coprs.conf.example
+- copr is noarch package
+- add note where to configure frontend
+- move frontend to /usr/share/copr/coprs_frontend
+- put production placeholders in coprs_frontend/coprs/config.py
+- put frontend into copr.spec
+- web application should be put in /usr/share/%%{name}
+
 * Mon Jun 17 2013 Miroslav Suchý <msuchy@redhat.com> 1.1-1
 - new package built with tito
 
