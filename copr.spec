@@ -197,6 +197,8 @@ service httpd condrestart
 
 %files frontend
 %doc LICENSE coprs.conf.example copr-setup.txt
+%{_datadir}/copr/coprs_frontend
+
 %defattr(-, copr-fe, copr-fe, -)
 %dir %{_datadir}/copr
 %dir %{_datadir}/copr/data
@@ -204,7 +206,6 @@ service httpd condrestart
 %dir %{_datadir}/copr/data/whooshee
 %dir %{_datadir}/copr/data/whooshee/copr_user_whoosheer
 
-%{_datadir}/copr/coprs_frontend
 %ghost %{_datadir}/copr/data/copr.db
 
 %defattr(600, copr-fe, copr-fe, 700)
