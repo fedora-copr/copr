@@ -64,7 +64,7 @@ Backend manualy:
  - ntp should be enabled and started
  - ports 22, 80, 443 should be open
  - yum install copr-backend
- - cp /usr/share/doc/copr-backend*/lighttpd/* /etc/lighttpd/conf.d/
+ - cp /usr/share/doc/copr-*/lighttpd/* /etc/lighttpd/conf.d/
  - edit file /etc/lighttpd/lighttpd.conf as follows:
        -server.document-root = server_root + "/lighttpd"
        +server.document-root = "/srv/copr-repo"
