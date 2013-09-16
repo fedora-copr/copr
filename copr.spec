@@ -132,12 +132,15 @@ install -d %{buildroot}%{_var}/log/copr/workers/
 install -d %{buildroot}%{_pkgdocdir}/lighttpd/
 install -d %{buildroot}%{_datadir}/copr/backend
 install -d %{buildroot}%{_sysconfdir}/copr
+install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a copr-be.py %{buildroot}%{_datadir}/copr/
 cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
 cp -a backend-dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
+cp -a logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
+
 # for ghost files
 touch %{buildroot}%{_var}/log/copr/copr.log
 for i in `seq 7`; do
@@ -194,6 +197,7 @@ service httpd condrestart
 %dir %attr(0755, copr, copr) %{_var}/log/copr/workers
 %ghost %{_var}/log/copr/copr.log
 %ghost %{_var}/log/copr/workers/worker-*.log
+%config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
 %doc %{_pkgdocdir}/lighttpd
 %doc %{_pkgdocdir}/playbooks
 %config(noreplace) %{_sysconfdir}/copr/copr-be.conf
