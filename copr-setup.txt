@@ -67,7 +67,7 @@ Backend manualy:
  - cp /usr/share/doc/copr-*/lighttpd/* /etc/lighttpd/conf.d/
  - edit file /etc/lighttpd/lighttpd.conf as follows:
        -server.document-root = server_root + "/lighttpd"
-       +server.document-root = "/srv/copr-repo"
+       +server.document-root = "/var/lib/copr/public_html"
    this is recomended to be separate mount point
 
 Frontend:

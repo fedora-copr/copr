@@ -28,7 +28,7 @@ jobsdir=/srv/copr-work/jobs
 # directory where results are stored
 # should be accessible from web using 'results_baseurl' URL
 # no default
-destdir=/var/lib/copr/results
+destdir=/var/lib/copr/public_html/results
 
 # default is 10
 sleeptime=30

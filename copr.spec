@@ -116,12 +116,13 @@ popd
 
 #backend
 install -d %{buildroot}%{_sharedstatedir}/copr
-install -d %{buildroot}%{_sharedstatedir}/copr/results
+install -d %{buildroot}%{_sharedstatedir}/copr/public_html/results
 install -d %{buildroot}%{_var}/log/copr
 install -d %{buildroot}%{_var}/log/copr/workers/
 install -d %{buildroot}%{_pkgdocdir}/lighttpd/
 install -d %{buildroot}%{_datadir}/copr/backend
 install -d %{buildroot}%{_sysconfdir}/copr
+
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a copr-be.py %{buildroot}%{_datadir}/copr/
 cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
@@ -177,7 +178,8 @@ service httpd condrestart
 %doc LICENSE README
 %dir %{_datadir}/copr
 %dir %{_sharedstatedir}/copr
-%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/results
+%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
+%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/results
 %dir %attr(0755, copr, copr) %{_var}/log/copr
 %dir %attr(0755, copr, copr) %{_var}/log/copr/workers
 %ghost %{_var}/log/copr/copr.log
