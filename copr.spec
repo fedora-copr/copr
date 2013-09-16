@@ -44,7 +44,7 @@ Requires:   python-bunch
 Requires:   python-requests
 
 %description backend
-COPR is lightweight buildsystem. It allows you to create new project in WebUI,
+COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
 This package contains backend.
@@ -73,7 +73,7 @@ BuildRequires: python-argparse
 %endif
 
 %description frontend
-COPR is lightweight buildsystem. It allows you to create new project in WebUI,
+COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains frontend.
@@ -86,7 +86,7 @@ Requires:   python-argparse
 %endif
 
 %description cli
-COPR is lightweight buildsystem. It allows you to create new project in WebUI,
+COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains command line interface.
@@ -95,7 +95,7 @@ This package contains command line interface.
 Summary:    Code documentation for COPR
 
 %description doc
-COPR is lightweight buildsystem. It allows you to create new project in WebUI,
+COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
 This package include documentation for COPR code. Mostly useful for developers
