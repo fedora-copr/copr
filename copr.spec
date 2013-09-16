@@ -3,7 +3,7 @@
 %endif
 
 Name:		copr
-Version:	1.4
+Version:	1.5
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -236,6 +236,11 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Mon Sep 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.5-1
+- 1008532 - use __python2 instead of __python
+- 1008532 - do not mark man page as doc
+- 1008532 - preserve timestamp
+
 * Mon Sep 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.4-1
 - add logrotate file
 
