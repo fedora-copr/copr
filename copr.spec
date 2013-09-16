@@ -3,7 +3,7 @@
 %endif
 
 Name:		copr
-Version:	1.2
+Version:	1.3
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -232,6 +232,9 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Mon Sep 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.3-1
+- be clear how we create tgz
+
 * Mon Sep 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.2-1
 - fix typo
 - move frontend data into /var/lib/copr
