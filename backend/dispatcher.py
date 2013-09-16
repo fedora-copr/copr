@@ -1,6 +1,3 @@
-#!/usr/bin/python -tt
-
-
 import os
 import sys
 import multiprocessing
