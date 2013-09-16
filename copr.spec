@@ -230,7 +230,7 @@ service httpd condrestart
 %doc LICENSE README.rst
 %{_bindir}/copr-cli
 %{python_sitelib}/*
-%doc %{_mandir}/man1/copr-cli.1*
+%{_mandir}/man1/copr-cli.1*
 
 %files doc
 %doc %{_pkgdocdir}/python-doc
