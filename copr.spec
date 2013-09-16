@@ -141,18 +141,18 @@ done
 #frontend
 install -d %{buildroot}%{_sysconfdir}
 install -d %{buildroot}%{_datadir}/copr/coprs_frontend
-install -d %{buildroot}%{_datadir}/copr/data/openid_store
-install -d %{buildroot}%{_datadir}/copr/data/openid_store/associations
-install -d %{buildroot}%{_datadir}/copr/data/openid_store/nonces
-install -d %{buildroot}%{_datadir}/copr/data/openid_store/temp
-install -d %{buildroot}%{_datadir}/copr/data/whooshee
-install -d %{buildroot}%{_datadir}/copr/data/whooshee/copr_user_whoosheer
+install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store
+install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/associations
+install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/nonces
+install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/temp
+install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee
+install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
-touch %{buildroot}%{_datadir}/copr/data/copr.db
+touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 
 #copr-cli
 %{__python} coprcli-setup.py install --root %{buildroot}
@@ -198,15 +198,16 @@ service httpd condrestart
 %files frontend
 %doc LICENSE coprs.conf.example copr-setup.txt
 %dir %{_datadir}/copr
+%dir %{_sharedstatedir}/copr
 %{_datadir}/copr/coprs_frontend
 
 %defattr(-, copr-fe, copr-fe, -)
-%dir %{_datadir}/copr/data
-%dir %{_datadir}/copr/data/openid_store
-%dir %{_datadir}/copr/data/whooshee
-%dir %{_datadir}/copr/data/whooshee/copr_user_whoosheer
+%dir %{_sharedstatedir}/copr/data
+%dir %{_sharedstatedir}/copr/data/openid_store
+%dir %{_sharedstatedir}/copr/data/whooshee
+%dir %{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 
-%ghost %{_datadir}/copr/data/copr.db
+%ghost %{_sharedstatedir}/copr/data/copr.db
 
 %defattr(600, copr-fe, copr-fe, 700)
 %dir %{_sysconfdir}/copr

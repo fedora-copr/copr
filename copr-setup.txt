@@ -116,10 +116,10 @@ SQLite
 
 - yum install sqlite
 - in file /etc/copr/copr.conf put:
-  SQLALCHEMY_DATABASE_URI = 'sqlite:////usr/share/copr/data/copr.db'
-This will use sqlite db file in /usr/share/copr/data/copr.db (manage.py will create that file)
+  SQLALCHEMY_DATABASE_URI = 'sqlite:////var/lib/copr/data/copr.db'
+This will use sqlite db file in /var/lib/copr/data/copr.db (manage.py will create that file)
 - Note that you have to either create db as copr-fe user or you have to run:
-  chown copr-fe:copr-fe /usr/share/copr/data/copr.db
+  chown copr-fe:copr-fe /var/lib/copr/data/copr.db
   after you run "./manage.py create_db"
 
 PostgreSQL
