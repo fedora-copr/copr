@@ -166,7 +166,7 @@ touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 #copr-cli
 %{__python} coprcli-setup.py install --root %{buildroot}
 install -d %{buildroot}%{_mandir}/man1
-install -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
+install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 
 #doc
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
