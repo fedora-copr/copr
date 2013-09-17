@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Install SELinux policy modules
+for selinuxvariant in targeted; do
+	/usr/sbin/semodule -s ${selinuxvariant} -l > /dev/null 2>&1 \
+	&& /usr/sbin/semodule -s ${selinuxvariant} -i /usr/share/selinux/${selinuxvariant}/copr.pp.bz2
+done
+
+/usr/sbin/setsebool -P httpd_enable_cgi 1
+/usr/sbin/setsebool -P httpd_can_network_connect 1
+/usr/sbin/setsebool -P httpd_can_sendmail 1
+
+

@@ -1,0 +1,10 @@
+policy_module(copr,@@VERSION@@)
+
+## <desc>
+## <p>
+## Allow Copr BE to work with data (/var/lib/copr/public_html) stored
+## on NFS-mounted directories.
+## </p>
+## </desc>
+gen_tunable(copr_nfs_mountpoint,false)
+

@@ -1,6 +1,8 @@
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
+%global moduletype apps
+%global modulename copr
 
 Name:		copr
 Version:	1.5
@@ -31,6 +33,9 @@ BuildRequires: python-argparse
 BuildRequires: epydoc
 BuildRequires: graphviz
 BuildRequires: make
+#for selinux
+BuildRequires:  checkpolicy, selinux-policy-devel
+BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -107,6 +112,20 @@ and submit new builds and COPR will create yum repository from latests builds.
 This package include documentation for COPR code. Mostly useful for developers
 only.
 
+%package selinux
+Summary:	SELinux module for COPR
+Requires(post): policycoreutils, libselinux-utils
+Requires(post): policycoreutils-python
+Requires(post): selinux-policy-targeted
+Requires(postun): policycoreutils
+
+%description selinux
+COPR is lightweight build system. It allows you to create new project in WebUI,
+and submit new builds and COPR will create yum repository from latests builds.
+
+This package include SELinux targeted module for COPR
+
+
 %prep
 %setup -q
 
@@ -116,10 +135,23 @@ mv copr_cli/README.rst ./
 
 # convert manages
 a2x -d manpage -f manpage man/copr-cli.1.asciidoc
+a2x -d manpage -f manpage man/copr-selinux-enable.8.asciidoc
+a2x -d manpage -f manpage man/copr-selinux-relabel.8.asciidoc
 
 # build documentation
 pushd documentation
 make python
+popd
+
+#selinux
+pushd selinux
+perl -i -pe 'BEGIN { $VER = join ".", grep /^\d+$/, split /\./, "%{version}.%{release}"; } s!\@\@VERSION\@\@!$VER!g;' %{modulename}.te
+for selinuxvariant in targeted; do
+    make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
+    bzip2 -9 %{modulename}.pp
+    mv %{modulename}.pp.bz2 %{modulename}.pp.bz2.${selinuxvariant}
+    make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
+done
 popd
 
 %install
@@ -172,6 +204,24 @@ install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 cp -a playbooks %{buildroot}%{_pkgdocdir}/
 
+#selinux
+for selinuxvariant in targeted; do
+    install -d %{buildroot}%{_datadir}/selinux/${selinuxvariant}
+    install -p -m 644 selinux/%{modulename}.pp.bz2.${selinuxvariant} \
+           %{buildroot}%{_datadir}/selinux/${selinuxvariant}/%{modulename}.pp.bz2
+done
+# Install SELinux interfaces
+install -d %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}
+install -p -m 644 selinux/%{modulename}.if \
+  %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
+# Install copr-selinux-enable which will be called in %posttrans
+install -d %{buildroot}%{_sbindir}
+install -p -m 755 selinux/%{name}-selinux-enable %{buildroot}%{_sbindir}/%{name}-selinux-enable
+install -p -m 755 selinux/%{name}-selinux-relabel %{buildroot}%{_sbindir}/%{name}-selinux-relabel
+
+install -d %{buildroot}%{_mandir}/man8
+install -p -m 644 man/%{name}-selinux-enable.8 %{buildroot}/%{_mandir}/man8/
+install -p -m 644 man/%{name}-selinux-relabel.8 %{buildroot}/%{_mandir}/man8/
 %pre backend
 getent group copr >/dev/null || groupadd -r copr
 getent passwd copr >/dev/null || \
@@ -186,6 +236,26 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 
 %post frontend
 service httpd condrestart
+
+%post selinux
+if /usr/sbin/selinuxenabled ; then
+   %{_sbindir}/%{name}-selinux-enable
+fi
+
+%posttrans selinux
+if /usr/sbin/selinuxenabled ; then
+   %{_sbindir}/%{name}-selinux-relabel
+fi
+
+%postun
+# Clean up after package removal
+if [ $1 -eq 0 ]; then
+  for selinuxvariant in targeted; do
+      /usr/sbin/semodule -s ${selinuxvariant} -l > /dev/null 2>&1 \
+        && /usr/sbin/semodule -s ${selinuxvariant} -r %{modulename} || :
+    done
+fi
+%{sbinpath}/restorecon -rvvi %{_sharedstatedir}/copr
 
 %files backend
 %doc LICENSE README
@@ -234,6 +304,14 @@ service httpd condrestart
 
 %files doc
 %doc %{_pkgdocdir}/python-doc
+
+%files selinux
+%{_datadir}/selinux/*/%{modulename}.pp.bz2
+%{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
+%{_sbindir}/%{name}-selinux-enable
+%{_sbindir}/%{name}-selinux-relabel
+%{_mandir}/man8/%{name}-selinux-enable.8*
+%{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
 * Mon Sep 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.5-1

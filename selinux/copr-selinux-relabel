@@ -1,0 +1,9 @@
+#!/bin/bash
+
+for package in copr-backend copr-frontend copr-cli copr-selinux; do
+  rpm -q $package &>/dev/null && /usr/sbin/fixfiles -R $package restore
+done
+
+if [ -d /var/lib/copr ]; then
+        restorecon -rvvi /var/lib/copr
+fi
