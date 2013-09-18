@@ -4,9 +4,8 @@ WORK IN PROGRESS
   - SEE README FOR OVERVIEW
 
 
-
 - need at least 1 server
-- some instances/systems for builders
+- some instances/systems for builders (Fedora Copr use OpenStack)
 
 Backend:
 ansible playbook: 
@@ -21,54 +20,31 @@ ansible playbook:
   - spawn_playbook - path to ansible playbook which spawns builder
   - terminate_playbook - path to ansible playbook which terminate builder
     - you can see /usr/share/copr*/playbooks/ for examples
+    - for Fedora copr playbook see FEDORA PLAYBOOK below
   - others variables can be edited as well, but it is optional
+ - ntp should be enabled and started
+ - ports 22, 80, 443 should be open
+ - cp /usr/share/doc/copr-*/lighttpd/* /etc/lighttpd/conf.d/
+ - edit file /etc/lighttpd/lighttpd.conf as follows:
+       -server.document-root = server_root + "/lighttpd"
+       +server.document-root = "/var/lib/copr/public_html"
+   this is recomended to be separate mount point
 
-Required pkgs:
- - ansible - 0.9 or higher
- - [lig]httpd
- - euca2ools (or other cloud tools)
- - rsync
- - openssh-clients
- - mock
- - yum-utils
- - createrepo
- - python-bunch
- - python-requests
-
-
-- add copr user
-- give write access to a dir somewhere not in your homedir
-- git clone git://git.fedorahosted.org/copr.git into that dir
-- setup copr-be.conf
-- dirs needed to be setup?
-- setup webserver - point to results path from copr-be.conf
-- dirindexes enabled
-
-- builder provisioning 
-3. spawn instance playbook - 
+FEDORA PLAYBOOK:
+1. spawn instance playbook - 
    http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/builderpb.yml
    - just an ansible playbook which sets up and provisions an instance
      in our case it is using eucalyptus but it doesn't have to be
      any cloud provider - it just needs to be able to get an ip an
      ssh into it - cloud providers or private clouds just make more 
      sense
-4. provisioning dir
+2. provisioning dir [TODO - this playbook is old and need to be updated]
    http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/files/
    - what gets pushed to the other side - ssh keys, users, mock
      configs, etc
-5. terminate instance playbook -
+3. terminate instance playbook -
    http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/terminatepb.yml
 
-
-Backend manualy:
- - ntp should be enabled and started
- - ports 22, 80, 443 should be open
- - yum install copr-backend
- - cp /usr/share/doc/copr-*/lighttpd/* /etc/lighttpd/conf.d/
- - edit file /etc/lighttpd/lighttpd.conf as follows:
-       -server.document-root = server_root + "/lighttpd"
-       +server.document-root = "/var/lib/copr/public_html"
-   this is recomended to be separate mount point
 
 Frontend:
 - if you run on EPEL - add epel repo
