@@ -76,8 +76,6 @@ COPR_CONFIG=/etc/copr/copr_devel.conf ./manage.py create_db --alembic alembic.in
 
 - for production is used ProductionConfig from coprs_frontend/coprs/config.py
 
-- setenforce 0 (sorry, putting on TODO)
-
 - Add chroots. E.g:
  su - copr-fe -c './manage.py create_chroot fedora-18-x86_64 fedora-18-i386'
 
