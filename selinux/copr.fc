@@ -1,3 +1,3 @@
-#
-# This file is currently intentionally left blank.
-#
+
+/var/lib/copr(/.*)? gen_context(system_u:object_r:copr_data_t,s0)
+/var/log/copr(/.*)? gen_context(system_u:object_r:copr_httpd_log_t,s0)

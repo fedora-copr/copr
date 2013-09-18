@@ -8,3 +8,12 @@ policy_module(copr,@@VERSION@@)
 ## </desc>
 gen_tunable(copr_nfs_mountpoint,false)
 
+require {
+        type httpd_t;
+}
+
+type copr_data_t;
+files_type(copr_data_t);
+
+type copr_httpd_log_t;
+logging_log_file(copr_httpd_log_t);
