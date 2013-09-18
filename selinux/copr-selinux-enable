@@ -9,5 +9,5 @@ done
 /usr/sbin/setsebool -P httpd_enable_cgi 1
 /usr/sbin/setsebool -P httpd_can_network_connect 1
 /usr/sbin/setsebool -P httpd_can_sendmail 1
-
+/usr/sbin/setsebool -P nis_enabled 1
 
