@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.5
+Version:	1.6
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -315,6 +315,12 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Wed Sep 18 2013 Miroslav Suchý <msuchy@redhat.com> 1.6-1
+- add BR python-devel
+- generate selinux type for /var/lib/copr and /var/log/copr
+- clean up backend setup instructions
+- initial selinux subpackage
+
 * Mon Sep 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.5-1
 - 1008532 - use __python2 instead of __python
 - 1008532 - do not mark man page as doc
