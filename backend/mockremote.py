@@ -37,7 +37,7 @@ import socket
 import traceback
 
 # where we should execute mockchain from on the remote
-mockchain='/usr/bin/mockchain'
+mockchain = '/usr/bin/mockchain'
 # rsync path
 rsync='/usr/bin/rsync'
 
