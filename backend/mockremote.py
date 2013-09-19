@@ -572,7 +572,7 @@ def parse_args(args):
         sys.exit(1)
 
     if opts.packages_file and os.path.exists(opts.packages_file):
-            args.extend(read_list_from_file(opts.packages_file))
+        args.extend(read_list_from_file(opts.packages_file))
     
     #args = list(set(args)) # poor man's 'unique' - this also changes the order
     # :(
