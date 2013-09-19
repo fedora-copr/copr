@@ -23,7 +23,7 @@ terminate_playbook=/srv/copr-work/provision/terminatepb.yml
 
 # directory where jobs are stored
 # no defaults
-jobsdir=/srv/copr-work/jobs
+jobsdir=/var/lib/copr/jobs
 
 # directory where results are stored
 # should be accessible from web using 'results_baseurl' URL

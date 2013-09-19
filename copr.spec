@@ -159,6 +159,7 @@ popd
 
 #backend
 install -d %{buildroot}%{_sharedstatedir}/copr
+install -d %{buildroot}%{_sharedstatedir}/copr/jobs
 install -d %{buildroot}%{_sharedstatedir}/copr/public_html/results
 install -d %{buildroot}%{_var}/log/copr
 install -d %{buildroot}%{_var}/log/copr/workers/
@@ -262,6 +263,7 @@ fi
 %doc LICENSE README
 %dir %{_datadir}/copr
 %dir %{_sharedstatedir}/copr
+%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/jobs/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/results
 %dir %attr(0755, copr, copr) %{_var}/log/copr
