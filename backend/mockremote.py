@@ -39,7 +39,7 @@ import traceback
 # where we should execute mockchain from on the remote
 mockchain = '/usr/bin/mockchain'
 # rsync path
-rsync='/usr/bin/rsync'
+rsync = '/usr/bin/rsync'
 
 DEF_REMOTE_BASEDIR='/var/tmp'
 DEF_TIMEOUT=3600
