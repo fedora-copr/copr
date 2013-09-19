@@ -42,7 +42,7 @@ mockchain = '/usr/bin/mockchain'
 rsync = '/usr/bin/rsync'
 
 DEF_REMOTE_BASEDIR = '/var/tmp'
-DEF_TIMEOUT=3600
+DEF_TIMEOUT = 3600
 DEF_REPOS = []
 DEF_CHROOT= None
 DEF_USER = 'mockbuilder'
