@@ -41,7 +41,7 @@ mockchain = '/usr/bin/mockchain'
 # rsync path
 rsync = '/usr/bin/rsync'
 
-DEF_REMOTE_BASEDIR='/var/tmp'
+DEF_REMOTE_BASEDIR = '/var/tmp'
 DEF_TIMEOUT=3600
 DEF_REPOS = []
 DEF_CHROOT= None
