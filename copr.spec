@@ -272,6 +272,7 @@ fi
 %ghost %{_var}/log/copr/copr.log
 %ghost %{_var}/log/copr/workers/worker-*.log
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
+%dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/lighttpd
 %doc %{_pkgdocdir}/playbooks
 %dir %{_sysconfdir}/copr
