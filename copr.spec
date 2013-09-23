@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.6
+Version:	1.7
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -321,6 +321,16 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Mon Sep 23 2013 Miroslav Suchý <msuchy@redhat.com> 1.7-1
+- 1008532 - backend should own _pkgdocdir
+- 1008532 - backend should owns /etc/copr as well
+- 1008532 - require logrotate
+- 1008532 - do not distribute empty copr.if
+- 1008532 - use %%{?_smp_mflags} macro with make
+- move jobsdir to /var/lib/copr/jobs
+- correct playbooks path
+- selinux with enforce can be used for frontend
+
 * Wed Sep 18 2013 Miroslav Suchý <msuchy@redhat.com> 1.6-1
 - add BR python-devel
 - generate selinux type for /var/lib/copr and /var/log/copr
