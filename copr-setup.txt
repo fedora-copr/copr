@@ -44,6 +44,7 @@ FEDORA PLAYBOOK:
      configs, etc
 3. terminate instance playbook -
    http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/terminatepb.yml
+4. create ~copr/.ssh/id_rsa with ssh key to VM guests
 
 
 Frontend:
