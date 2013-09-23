@@ -274,6 +274,7 @@ fi
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
 %doc %{_pkgdocdir}/lighttpd
 %doc %{_pkgdocdir}/playbooks
+%dir %{_sysconfdir}/copr
 %config(noreplace) %{_sysconfdir}/copr/copr-be.conf
 
 %{_datadir}/copr/backend
