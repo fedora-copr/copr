@@ -225,10 +225,11 @@ install -p -m 755 selinux/%{name}-selinux-relabel %{buildroot}%{_sbindir}/%{name
 install -d %{buildroot}%{_mandir}/man8
 install -p -m 644 man/%{name}-selinux-enable.8 %{buildroot}/%{_mandir}/man8/
 install -p -m 644 man/%{name}-selinux-relabel.8 %{buildroot}/%{_mandir}/man8/
+
 %pre backend
 getent group copr >/dev/null || groupadd -r copr
 getent passwd copr >/dev/null || \
-useradd -r -g copr -G lighttpd -d %{_datadir}/copr -s /bin/bash -c "COPR user" copr
+useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 /usr/bin/passwd -l copr >/dev/null
 
 %pre frontend
