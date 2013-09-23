@@ -141,17 +141,17 @@ a2x -d manpage -f manpage man/copr-selinux-relabel.8.asciidoc
 
 # build documentation
 pushd documentation
-make python
+make %{?_smp_mflags} python
 popd
 
 #selinux
 pushd selinux
 perl -i -pe 'BEGIN { $VER = join ".", grep /^\d+$/, split /\./, "%{version}.%{release}"; } s!\@\@VERSION\@\@!$VER!g;' %{modulename}.te
 for selinuxvariant in targeted; do
-    make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
+    make %{?_smp_mflags} NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
     bzip2 -9 %{modulename}.pp
     mv %{modulename}.pp.bz2 %{modulename}.pp.bz2.${selinuxvariant}
-    make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
+    make %{?_smp_mflags} NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
 done
 popd
 
