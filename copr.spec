@@ -310,7 +310,8 @@ fi
 
 %files selinux
 %{_datadir}/selinux/*/%{modulename}.pp.bz2
-%{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
+# empty, do not distribute it for now
+%exclude %{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
 %{_sbindir}/%{name}-selinux-enable
 %{_sbindir}/%{name}-selinux-relabel
 %{_mandir}/man8/%{name}-selinux-enable.8*
