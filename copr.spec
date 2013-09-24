@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.7
+Version:	1.8
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -322,6 +322,11 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Tue Sep 24 2013 Miroslav Suchý <msuchy@redhat.com> 1.8-1
+- 1008532 - require python2-devel
+- add note about ssh keys to copr-setup.txt
+- set home of copr user to system default
+
 * Mon Sep 23 2013 Miroslav Suchý <msuchy@redhat.com> 1.7-1
 - 1008532 - backend should own _pkgdocdir
 - 1008532 - backend should owns /etc/copr as well
