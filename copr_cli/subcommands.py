@@ -47,11 +47,11 @@ def listcoprs(username=None):
         user = get_user()
         del(user['token'])
 
-    copr_api_url = get_api_url()
-    url = '{0}/owned/'.format(copr_api_url)
-
     if username:
         user['username'] = username
+
+        copr_api_url = get_api_url()
+    url = '{0}/coprs/{1}/'.format(copr_api_url, user['username'])
 
     req = requests.get(url, params=user)
 
@@ -128,7 +128,7 @@ def create(name, chroots=[], description=None, instructions=None,
     """ Create a new copr. """
     user = get_user()
     copr_api_url = get_api_url()
-    URL = '{0}/copr/new/'.format(copr_api_url)
+    URL = '{0}/coprs/{1}/new/'.format(copr_api_url, user['username'])
 
     repos = None
     if type(repos) == list():
@@ -163,7 +163,7 @@ def build(copr, pkgs, memory, timeout):
     """ Build a new package into a given copr. """
     user = get_user()
     copr_api_url = get_api_url()
-    URL = '{0}/coprs/detail/{1}/{2}/new_build/'.format(
+    URL = '{0}/coprs/{1}/{2}/new_build/'.format(
         copr_api_url,
         user['username'],
         copr)
