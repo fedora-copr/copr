@@ -44,9 +44,9 @@ def api_new_token():
     return flask.redirect(flask.url_for('api_ns.api_home'))
 
 
-@api_ns.route('/copr/new/', methods=['POST'])
+@api_ns.route('/coprs/<username>/new/', methods=['POST'])
 @api_login_required
-def api_new_copr():
+def api_new_copr(username):
     """ Receive information from the user on how to create its new copr,
     check their validity and create the corresponding copr.
 
@@ -101,8 +101,8 @@ def api_new_copr():
     return jsonout
 
 
-@api_ns.route('/owned/')
-@api_ns.route('/owned/<username>/')
+@api_ns.route('/coprs/')
+@api_ns.route('/coprs/<username>/')
 def api_coprs_by_owner(username=None):
     """ Return the list of coprs owned by the given user.
     username is taken either from GET params or from the URL itself
@@ -133,8 +133,7 @@ def api_coprs_by_owner(username=None):
     return jsonout
 
 
-@api_ns.route('/coprs/detail/<username>/<coprname>/new_build/',
-    methods=["POST"])
+@api_ns.route('/coprs/<username>/<coprname>/new_build/', methods=["POST"])
 @api_login_required
 def copr_new_build(username, coprname):
     form = forms.BuildForm(csrf_enabled=False)
