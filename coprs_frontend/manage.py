@@ -16,7 +16,8 @@ from coprs.logic import coprs_logic
 class TestCommand(Command):
     def run(self, test_args):
         os.environ['COPRS_ENVIRON_UNITTEST'] = '1'
-        os.environ['COPR_CONFIG'] = '/etc/copr/copr_unit_test.conf'
+        if not (('COPR_CONFIG' in os.environ) and os.environ['COPR_CONFIG']):
+            os.environ['COPR_CONFIG'] = '/etc/copr/copr_unit_test.conf'
         os.environ['PYTHONPATH'] = '.'
         subprocess.call(['py.test'] + (test_args or []))
 
