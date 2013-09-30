@@ -395,7 +395,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
     def test_fail_on_nonexistent_copr(self):
         r = self.tc.get('/coprs/bogus-nonexistent-repo/repo/')
         assert r.status_code == 404
-        assert 'bogus/nonexistent-repo does not exist' in r.data
+        assert 'Copr with name repo does not exist' in r.data
 
     def test_fail_on_no_finished_builds(self, f_users,  f_coprs, f_db):
         r = self.tc.get(
