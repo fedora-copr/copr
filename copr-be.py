@@ -1,18 +1,23 @@
 #!/usr/bin/python -tt
 
 
-import sys
-import os
-import glob
-import time
-import multiprocessing
-from backend.dispatcher import Worker
 from backend import errors
+from backend.dispatcher import Worker
 from bunch import Bunch
 import ConfigParser
-import optparse
+import daemon
+import glob
+import grp
 import json
+import lockfile
+import multiprocessing
+import optparse
+import os
+import pwd
 import requests
+import signal
+import sys
+import time
 
 def _get_conf(cp, section, option, default):
     """to make returning items from config parser less irritating"""
@@ -147,6 +152,7 @@ class CoprBackend(object):
 
         self.workers = []
         self.added_jobs = []
+        self.abort = False
 
     def event(self, what):
         self.events.put({'when':time.time(), 'who':'main', 'what':what})
@@ -192,8 +198,8 @@ class CoprBackend(object):
 
     def run(self):
 
-        abort = False
-        while not abort:
+        self.abort = False
+        while not self.abort:
             # re-read config into opts
             self.opts = self.read_conf()
 
@@ -227,46 +233,12 @@ class CoprBackend(object):
 
             time.sleep(self.opts.sleeptime)
 
-# lifted from certmaster
-def daemonize(pidfile=None):
-    """
-    Daemonize this process with the UNIX double-fork trick.
-    Writes the new PID to the provided file name if not None.
-    """
-
-    cur_umask = os.umask(077)
-    os.umask(cur_umask)
-
-    pid = os.fork()
-    if pid > 0:
-        sys.exit(0)
-    os.chdir("/")
-    os.setsid()
-    os.umask(cur_umask)
-    pid = os.fork()
-
-    os.close(0)
-    os.close(1)
-    os.close(2)
-
-    # The standard I/O file descriptors are redirected to /dev/null by default.
-    if (hasattr(os, "devnull")):
-        REDIRECT_TO = os.devnull
-    else:
-        REDIRECT_TO = "/dev/null"
-
-    # based on http://code.activestate.com/recipes/278731/
-    os.open(REDIRECT_TO, os.O_RDWR)     # standard input (0)
-
-    os.dup2(0, 1)                       # standard output (1)
-    os.dup2(0, 2)                       # standard error (2)
-
-
-
-    if pid > 0:
-        if pidfile is not None:
-            open(pidfile, "w").write(str(pid))
-        sys.exit(0)
+    def terminate(self):
+        """ Cleanup backend processes (just workers for now) """
+        self.abort = True
+        for w in self.workers:
+            self.workers.remove(w)
+            w.terminate()
 
 def parse_args(args):
     parser = optparse.OptionParser('\ncopr-be [options]')
@@ -298,14 +270,23 @@ def main(args):
 
     try:
         cbe = CoprBackend(opts.config_file, ext_opts=opts)
-        if opts.daemonize:
-            daemonize(opts.pidfile)
-        cbe.run()
+        context = daemon.DaemonContext(
+            pidfile=lockfile.FileLock(opts.pidfile),
+            gid = grp.getgrnam('copr').gr_gid,
+            uid = pwd.getpwnam('copr').pw_uid,
+            detach_process = opts.daemonize,
+            umask = 077,
+            signal_map = {
+                signal.SIGTERM: 'terminate',
+                signal.SIGHUP: 'terminate',
+            },
+        )
+        with context:
+            cbe.run()
     except Exception, e:
         print 'Killing/Dying'
         if 'cbe' in locals():
-            for w in cbe.workers:
-                w.terminate()
+            cbe.terminate()
         raise
     except KeyboardInterrupt, e:
         pass

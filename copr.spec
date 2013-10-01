@@ -53,6 +53,8 @@ Requires:   mock
 Requires:   yum-utils
 Requires:   createrepo
 Requires:   python-bunch
+Requires:   python-daemon
+Requires:   python-lockfile
 Requires:   python-requests
 Requires:   logrotate
 Requires:   fedmsg
