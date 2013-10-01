@@ -186,6 +186,9 @@ install -d %{buildroot}%{_datadir}/copr/backend
 install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 install -d %{buildroot}%{_unitdir}
+install -d %{buildroot}/%{_var}/log/copr-backend
+install -d %{buildroot}/%{_var}/run/copr-backend/
+install -d %{buildroot}/%{_tmpfilesdir}
 
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a copr-be.py %{buildroot}%{_datadir}/copr/
@@ -193,12 +196,14 @@ cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
 cp -a backend-dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
 cp -a logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
+cp -a tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 
 # for ghost files
 touch %{buildroot}%{_var}/log/copr/copr.log
 for i in `seq 7`; do
 	touch %{buildroot}%{_var}/log/copr/workers/worker-$i.log
 done
+touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 
 install -m 0644 copr-backend.service %{buildroot}/%{_unitdir}/
 
@@ -307,8 +312,12 @@ fi
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/results
 %dir %attr(0755, copr, copr) %{_var}/log/copr
 %dir %attr(0755, copr, copr) %{_var}/log/copr/workers
+%dir %attr(0755, copr, copr) %{_var}/run/copr-backend
+
 %ghost %{_var}/log/copr/copr.log
 %ghost %{_var}/log/copr/workers/worker-*.log
+%ghost %{_var}/run/copr-backend/copr-be.pid
+
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
 %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/lighttpd
@@ -316,6 +325,7 @@ fi
 %dir %{_sysconfdir}/copr
 %config(noreplace) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/copr-backend.service
+%{_tmpfilesdir}/copr-backend.conf
 
 %{_datadir}/copr/backend
 %{_datadir}/copr/copr-be.py*

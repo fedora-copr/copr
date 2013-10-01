@@ -4,7 +4,7 @@ After=syslog.target network.target auditd.service
 
 [Service]
 Type=forking
-PIDFile=/var/run/copr.pid
+PIDFile=/var/run/copr-backend/copr-be.pid
 ExecStart=/usr/share/copr/copr-be.py -d
 ExecReload=/bin/kill -HUP $MAINPID
 
