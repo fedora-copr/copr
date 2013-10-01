@@ -27,6 +27,7 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python2-devel
+BuildRequires: systemd
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -58,6 +59,9 @@ Requires:   python-lockfile
 Requires:   python-requests
 Requires:   logrotate
 Requires:   fedmsg
+Requires(post): systemd
+Requires(preun): systemd
+Requires(postun): systemd
 
 %description backend
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -181,6 +185,7 @@ install -d %{buildroot}%{_pkgdocdir}/lighttpd/
 install -d %{buildroot}%{_datadir}/copr/backend
 install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d/
+install -d %{buildroot}%{_unitdir}
 
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a copr-be.py %{buildroot}%{_datadir}/copr/
@@ -194,6 +199,8 @@ touch %{buildroot}%{_var}/log/copr/copr.log
 for i in `seq 7`; do
 	touch %{buildroot}%{_var}/log/copr/workers/worker-$i.log
 done
+
+install -m 0644 copr-backend.service %{buildroot}/%{_unitdir}/
 
 #frontend
 install -d %{buildroot}%{_sysconfdir}
@@ -253,6 +260,15 @@ getent passwd copr >/dev/null || \
 useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 /usr/bin/passwd -l copr >/dev/null
 
+%post backend
+%systemd_post copr-backend.service
+
+%preun backend
+%systemd_preun copr-backend.service
+
+%postun backend
+%systemd_postun_with_restart copr-backend.service
+
 %pre frontend
 getent group copr-fe >/dev/null || groupadd -r copr-fe
 getent passwd copr-fe >/dev/null || \
@@ -299,6 +315,7 @@ fi
 %doc %{_pkgdocdir}/playbooks
 %dir %{_sysconfdir}/copr
 %config(noreplace) %{_sysconfdir}/copr/copr-be.conf
+%{_unitdir}/copr-backend.service
 
 %{_datadir}/copr/backend
 %{_datadir}/copr/copr-be.py*

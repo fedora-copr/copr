@@ -1,0 +1,12 @@
+[Unit]
+Description=Copr Backend service
+After=syslog.target network.target auditd.service
+
+[Service]
+Type=forking
+PIDFile=/var/run/copr.pid
+ExecStart=/usr/share/copr/copr-be.py -d
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
