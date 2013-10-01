@@ -270,7 +270,7 @@ def daemonize(pidfile=None):
 
 def parse_args(args):
     parser = optparse.OptionParser('\ncopr-be [options]')
-    parser.add_option('-c', '--config', default='/etc/copr-be.conf', dest='config_file',
+    parser.add_option('-c', '--config', default='/etc/copr/copr-be.conf', dest='config_file',
             help="config file to use for copr-be run")
     parser.add_option('-d','--daemonize', default=False, dest='daemonize',
             action='store_true', help="daemonize or not")
