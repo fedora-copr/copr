@@ -94,9 +94,6 @@ class CoprLog(multiprocessing.Process):
         if not os.path.exists(logdir):
             os.makedirs(logdir, mode=0750)
 
-        if not os.path.exists(self.opts.destdir):
-            os.makedirs(self.opts.destdir, mode=0755)
-
         # setup a log file to write to
         self.logfile = self.opts.logfile
 
