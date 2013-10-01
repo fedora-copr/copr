@@ -168,7 +168,6 @@ class CoprBackend(object):
             opts.terminate_playbook = _get_conf(cp,'backend','terminate_playbook', '/etc/copr/terminate_playbook.yml')
             opts.jobsdir = _get_conf(cp, 'backend', 'jobsdir', None)
             opts.destdir = _get_conf(cp, 'backend', 'destdir', None)
-            opts.daemonize = _get_conf(cp, 'backend', 'daemonize', True)
             opts.exit_on_worker = _get_conf(cp, 'backend', 'exit_on_worker', False)
             opts.fedmsg_enabled = _get_conf(cp, 'backend', 'fedmsg_enabled', False)
             opts.sleeptime = int(_get_conf(cp, 'backend', 'sleeptime', 10))

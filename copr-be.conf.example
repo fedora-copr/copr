@@ -47,10 +47,6 @@ worker_logdir=/var/log/copr/workers/
 # default is false
 #exit_on_worker=false
 
-# Deamonize if true. Runs in foreground if false.
-# default is true
-#daemonize=true
-
 # publish fedmsg notifications from workers if true
 # default is false
 #fedmsg_enabled=false
