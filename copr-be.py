@@ -10,6 +10,7 @@ import glob
 import grp
 import json
 import lockfile
+import logging
 import multiprocessing
 import optparse
 import os
@@ -95,7 +96,7 @@ class CoprLog(multiprocessing.Process):
             os.makedirs(logdir, mode=0750)
 
         # setup a log file to write to
-        self.logfile = self.opts.logfile
+        logging.basicConfig(filename=self.opts.logfile, level=logging.DEBUG)
 
     def log(self, event):
 
@@ -103,7 +104,7 @@ class CoprLog(multiprocessing.Process):
         msg = '%s : %s: %s' % (when, event['who'], event['what'].strip())
 
         try:
-            open(self.logfile, 'a').write(msg + '\n')
+            logging.debug(msg)
         except (IOError, OSError), e:
             print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
 
