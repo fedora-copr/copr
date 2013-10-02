@@ -88,6 +88,7 @@ Requires:	python-whoosh >= 2.5.3
 # for tests:
 Requires:	pytest
 Requires:   python-flexmock
+Requires:   python-decorator
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -101,6 +102,7 @@ BuildRequires: python-pylibravatar
 BuildRequires: python-flask-wtf
 BuildRequires: pytest
 BuildRequires: python-flexmock
+BuildRequires: python-decorator
 
 %description frontend
 COPR is lightweight build system. It allows you to create new project in WebUI,
