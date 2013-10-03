@@ -50,7 +50,7 @@ FEDORA PLAYBOOK:
 Frontend:
 - if you run on EPEL - add epel repo
 - add yum repository http://copr-be.cloud.fedoraproject.org/results/msuchy/copr/
-- yum install copr-frontend
+- yum install copr-frontend copr-selinux
 
 - apache setup
   cp /usr/share/doc/copr-frontend-*/coprs.conf.example /etc/httpd/conf.d/coprs.conf
