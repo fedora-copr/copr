@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+
+/usr/sbin/copr-prune-repo >/var/log/copr.log 2>&1

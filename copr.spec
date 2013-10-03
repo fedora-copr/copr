@@ -59,6 +59,8 @@ Requires:   python-lockfile
 Requires:   python-requests
 Requires:   logrotate
 Requires:   fedmsg
+Requires:   gawk
+Requires:   crontabs
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
@@ -191,10 +193,14 @@ install -d %{buildroot}%{_unitdir}
 install -d %{buildroot}/%{_var}/log/copr-backend
 install -d %{buildroot}/%{_var}/run/copr-backend/
 install -d %{buildroot}/%{_tmpfilesdir}
+install -d %{buildroot}/%{_sbindir}
+install -d %{buildroot}%{_sysconfdir}/cron.daily
 
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a copr-be.py %{buildroot}%{_datadir}/copr/
 cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
+install -p -m 755 copr-prune-repo %{buildroot}%{_sbindir}/copr-prune-repo
+install -p -m 750 crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
 
 cp -a backend-dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
 cp -a logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
@@ -328,6 +334,8 @@ fi
 %config(noreplace) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/copr-backend.service
 %{_tmpfilesdir}/copr-backend.conf
+%{_sbindir}/copr-prune-repo
+%config(noreplace) %{_sysconfdir}/cron.daily/copr-backend
 
 %{_datadir}/copr/backend
 %{_datadir}/copr/copr-be.py*
