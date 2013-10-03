@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.8
+Version:	1.9
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -380,6 +380,28 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Thu Oct 03 2013 Miroslav Suchý <msuchy@redhat.com> 1.9-1
+- prune old builds
+- require python-decorator
+- remove requirements.txt
+- move TODO-backend to our wiki
+- create pid file in /var/run/copr-backend
+- add backend service file for systemd
+- remove daemonize option in config
+- use python logging
+- create pid file in /var/run by default
+- do not create destdir
+- use daemon module instead of home brew function
+- fix default location of copr-be.conf
+- 2 tests fixed, one still failing
+- fix failing test test_fail_on_missing_dash
+- fixing test_fail_on_nonexistent_copr test
+- run frontend unit tests when building package
+- Adjust URLs in the unit-tests to their new structure
+- Adjust the CLI to call the adjuste endpoint of the API
+- Adjust API endpoint to reflects the UI endpoints in their url structure
+- First pass at adding fedmsg hooks.
+
 * Tue Sep 24 2013 Miroslav Suchý <msuchy@redhat.com> 1.8-1
 - 1008532 - require python2-devel
 - add note about ssh keys to copr-setup.txt
