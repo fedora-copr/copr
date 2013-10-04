@@ -124,3 +124,13 @@ and test the connection:
 
 PGPASSWORD=coprpass psql -a -U copr-fe coprdb
 PGPASSWORD=coprpass psql -a -h localhost -U copr-fe coprdb
+
+Make yourself admin
+===================
+
+Run:
+  cd /usr/share/copr/coprs_frontend/
+  ./manage.py alter_user --admin msuchy
+
+Then navigate to:
+  http://your.copr.fqdn/admin
