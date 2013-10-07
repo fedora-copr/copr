@@ -30,6 +30,8 @@ jobsdir=/var/lib/copr/jobs
 # no default
 destdir=/var/lib/copr/public_html/results
 
+# how long (in seconds) backend should wait before query frontends
+# for new tasks in queue
 # default is 10
 sleeptime=30
 
