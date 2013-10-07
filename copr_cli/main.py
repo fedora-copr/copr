@@ -91,7 +91,7 @@ def setup_parser():
     parser_build.add_argument('copr',
                               help='The copr repo to build the package in'
                               )
-    parser_build.add_argument('pkgs', nargs='+', action='append')
+    parser_build.add_argument('pkgs', nargs='+')
     parser_build.add_argument('--memory', dest='memory',
                               help="")
     parser_build.add_argument('--timeout', dest='timeout',
