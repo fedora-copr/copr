@@ -16,6 +16,7 @@ DESCRIPTION
 -----------
 
 This command allow you to interact with build system COPR from command line.
+You need to generate and provide API key (see API KEY section below)
 
 OPTIONS
 -------
@@ -83,6 +84,19 @@ The copr repo to build the package in
 pkgs::
 Package to build.
 
+
+API KEY
+-------
+
+Visit page http://your.copr/api and note down API token.
+
+Open file \~/.config/copr and put there content:
+
+ [copr-cli]
+ username = msuchy
+ token = vbfseelqdebzedukgombekmuvbkqwo
+
+Be aware that API token have some expiration. See Expiration date on /api page.
 
 AUTHORS
 -------
