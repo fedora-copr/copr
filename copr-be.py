@@ -32,8 +32,7 @@ class CoprJobGrab(multiprocessing.Process):
     """Fetch jobs from the Frontend - submit them to the jobs queue for workers"""
 
     def __init__(self, opts, events, jobs):
-        # base class initialization
-        multiprocessing.Process.__init__(self, name="jobgrab")
+        super(multiprocessing.Process, self).__init__(name="jobgrab")
 
         self.opts = opts
         self.events = events
@@ -84,9 +83,7 @@ class CoprJobGrab(multiprocessing.Process):
 class CoprLog(multiprocessing.Process):
     """log mechanism where items from the events queue get recorded"""
     def __init__(self, opts, events):
-
-        # base class initialization
-        multiprocessing.Process.__init__(self, name="logger")
+        super(multiprocessing.Process, self).__init__(name="logger")
 
         self.opts = opts
         self.events = events
