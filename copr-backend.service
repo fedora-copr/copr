@@ -5,6 +5,7 @@ After=syslog.target network.target auditd.service
 [Service]
 Type=forking
 PIDFile=/var/run/copr-backend/copr-be.pid
+#ExecStartPre=/home/copr/cloud/ec2rc.variable
 ExecStart=/usr/share/copr/copr-be.py -d
 ExecReload=/bin/kill -HUP $MAINPID
 
