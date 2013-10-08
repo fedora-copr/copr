@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python -ttu
 
 
 from backend import errors
