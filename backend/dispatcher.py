@@ -109,6 +109,7 @@ class Worker(multiprocessing.Process):
         """ Multi-purpose logging method.
 
         Logs messages to two different destinations:
+            - To log file
             - The internal "events" queue for communicating back to the
               dispatcher.
             - The fedmsg bus.  Messages are posted asynchronously to a
@@ -124,6 +125,7 @@ class Worker(multiprocessing.Process):
         else:
             who = 'worker-%s' % (self.worker_num)
 
+        self.callback.log("event: who: %s, what: %s" % ( who, what))
         self.events.put({'when':time.time(), 'who':who, 'what':what})
         try:
             content['who'] = who
