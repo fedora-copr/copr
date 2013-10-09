@@ -256,11 +256,12 @@ class Worker(multiprocessing.Process):
         os.unlink(job.jobfile)
 
     def run(self):
-        # worker should startup and check if it can function
-        # for each job it takes from the jobs queue
-        # run opts.setup_playbook to create the instance
-        # do the build (mockremote)
-        # terminate the instance
+        """ Worker should startup and check if it can function
+         for each job it takes from the jobs queue
+         run opts.setup_playbook to create the instance
+         do the build (mockremote)
+         terminate the instance
+        """
 
         while not self.kill_received:
             try:
