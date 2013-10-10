@@ -266,7 +266,6 @@ def main(args):
     opts = parse_args(args)
 
     try:
-        cbe = CoprBackend(opts.config_file, ext_opts=opts)
         context = daemon.DaemonContext(
             pidfile=lockfile.FileLock(opts.pidfile),
             gid = grp.getgrnam('copr').gr_gid,
@@ -279,6 +278,7 @@ def main(args):
             },
         )
         with context:
+            cbe = CoprBackend(opts.config_file, ext_opts=opts)
             cbe.run()
     except Exception, e:
         print 'Killing/Dying'
