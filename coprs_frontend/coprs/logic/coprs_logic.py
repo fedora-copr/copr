@@ -105,14 +105,14 @@ class CoprsLogic(object):
     @classmethod
     def update(cls, user, copr, check_for_duplicates = True):
         cls.raise_if_unfinished_blocking_action(user, copr,
-                                       'Can\'t change this Copr name, another operation is in progress: {action}')
+                                       'Can\'t change this project name, another operation is in progress: {action}')
         users_logic.UsersLogic.raise_if_cant_update_copr(user, copr,
-                                                         'Only owners and admins may update their Coprs.')
+                                                         'Only owners and admins may update their projects.')
 
         existing = cls.exists_for_user(copr.owner, copr.name).first()
         if existing:
             if check_for_duplicates and existing.id != copr.id:
-                raise exceptions.DuplicateException('Copr: "{0}" already exists'.format(copr.name))
+                raise exceptions.DuplicateException('Project: "{0}" already exists'.format(copr.name))
         else: # we're renaming
             # if we fire a models.Copr.query, it will use the modified copr in session
             # -> workaround this by just getting the name
@@ -133,7 +133,7 @@ class CoprsLogic(object):
         cls.raise_if_cant_delete(user, copr)
         # TODO: do we want to dump the information somewhere, so that we can search it in future?
         cls.raise_if_unfinished_blocking_action(user, copr,
-                                       'Can\'t delete this Copr, another operation is in progress: {action}')
+                                       'Can\'t delete this project, another operation is in progress: {action}')
         action = models.Action(action_type=helpers.ActionTypeEnum('delete'),
                                object_type='copr',
                                object_id=copr.id,
@@ -186,7 +186,7 @@ class CoprsLogic(object):
         by given user. Returns None otherwise.
         """
         if not user.admin and user != copr.owner:
-            raise exceptions.InsufficientRightsException('Only owners may delete their Coprs.')
+            raise exceptions.InsufficientRightsException('Only owners may delete their projects.')
 
 class CoprPermissionsLogic(object):
     @classmethod
@@ -209,7 +209,7 @@ class CoprPermissionsLogic(object):
     @classmethod
     def update_permissions(cls, user, copr, copr_permission, new_builder, new_admin):
         users_logic.UsersLogic.raise_if_cant_update_copr(user, copr,
-                                                         'Only owners and admins may update their Coprs permissions.')
+                                                         'Only owners and admins may update their projects permissions.')
         models.CoprPermission.query.filter(models.CoprPermission.copr_id == copr.id).\
                                     filter(models.CoprPermission.user_id == copr_permission.user_id).\
                                     update({'copr_builder': new_builder,

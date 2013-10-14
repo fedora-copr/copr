@@ -37,7 +37,7 @@ class UrlListValidator(object):
 class CoprUniqueNameValidator(object):
     def __init__(self, message = None):
         if not message:
-            message = 'You already have copr named "{0}".'
+            message = 'You already have project named "{0}".'
         self.message = message
 
     def __call__(self, form, field):

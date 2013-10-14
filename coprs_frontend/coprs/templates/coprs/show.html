@@ -5,12 +5,12 @@
 {% block body %}
   {% if g.user %}
   <div class="user-info">
-    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Coprs">
+    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">
       <img src="{{ g.user.gravatar_url }}" alt="User Image">
     </a>
     <p>{{ g.user.name }}</p>
     <p class="coprs-count">
-      <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Coprs">{{ g.user.coprs_count }}</a>
+      <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">{{ g.user.coprs_count }}</a>
     </p>
     <p class="other-text">coprs</p>
   </div>
@@ -19,7 +19,7 @@
     {% if g.user %}
       <div class="add-copr">+
         <a href={{ url_for('coprs_ns.copr_add', username=g.user.name) }}>
-          add a new Copr
+          add a new Project
         </a>
       </div>
     {% endif %}
@@ -37,7 +37,7 @@
 	  </p>
         </div>
       {% else %}
-        <p>No coprs...</p>
+        <p>No projects...</p>
       {% endfor %}
       <div class="pagination">
       	{{ render_pagination(request, paginator) }}

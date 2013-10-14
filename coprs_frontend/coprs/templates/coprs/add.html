@@ -1,11 +1,11 @@
 {% extends "layout.html" %}
-{% block title %}Add a Copr{% endblock %}
-{% block header %}Add a new Copr{% endblock %}
+{% block title %}Add a Project{% endblock %}
+{% block header %}Add a new Project{% endblock %}
 {% from "coprs/_coprs_forms.html" import copr_form %}
 
 {% block body %}
 
-  <h1>Add a new Copr</h1>
+  <h1>Add a new Project</h1>
   {{ copr_form(form, view = 'coprs_ns.copr_new', username=g.user.name) }}
 
 {% endblock %}

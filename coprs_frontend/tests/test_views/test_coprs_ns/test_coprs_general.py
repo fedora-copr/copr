@@ -9,7 +9,7 @@ from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 class TestCoprsShow(CoprsTestCase):
     def test_show_no_entries(self):
-        assert 'No coprs...' in self.tc.get('/').data
+        assert 'No projects...' in self.tc.get('/').data
 
     def test_show_more_entries(self, f_users, f_coprs, f_db):
         r = self.tc.get('/')
@@ -20,7 +20,7 @@ class TestCoprsOwned(CoprsTestCase):
     def test_owned_none(self, f_users, f_coprs, f_db):
         self.db.session.add(self.u3)
         r = self.test_client.get('/coprs/{0}/'.format(self.u3.name))
-        assert 'No coprs...' in r.data
+        assert 'No projects...' in r.data
 
     @TransactionDecorator('u1')
     def test_owned_one(self, f_users, f_coprs, f_db):
@@ -34,7 +34,7 @@ class TestCoprsAllowed(CoprsTestCase):
     def test_allowed_none(self, f_users, f_coprs, f_copr_permissions, f_db):
         self.db.session.add(self.u3)
         r = self.test_client.get('/coprs/{0}/allowed/'.format(self.u3.name))
-        assert 'No coprs...' in r.data
+        assert 'No projects...' in r.data
 
     @TransactionDecorator('u2')
     def test_allowed_one(self, f_users, f_coprs, f_copr_permissions, f_db):
@@ -49,7 +49,7 @@ class TestCoprsAllowed(CoprsTestCase):
         assert r.data.count('<div class="copr">') == 1
 
 class TestCoprNew(CoprsTestCase):
-    success_string = 'New copr was successfully created'
+    success_string = 'New project was successfully created'
 
     @TransactionDecorator('u1')
     def test_copr_new_normal(self, f_users, f_mock_chroots, f_db):
@@ -92,7 +92,7 @@ class TestCoprNew(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/new/'.format(self.u1.name), data = {'name': self.c1.name, 'fedora-rawhide-i386': 'y'}, follow_redirects = True)
         self.db.session.add(self.c1)
         assert len(self.models.Copr.query.filter(self.models.Copr.name == self.c1.name).all()) == foocoprs
-        assert "You already have copr named" in r.data
+        assert "You already have project named" in r.data
 
     @TransactionDecorator('u1')
     def test_copr_new_with_initial_pkgs(self, f_users, f_mock_chroots, f_db):
@@ -203,7 +203,7 @@ class TestCoprUpdate(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/update/'.format(self.u1.name, self.c1.name),
                    data = {'name': self.c1.name, 'fedora-18-x86_64': 'y', 'id': self.c1.id},
                    follow_redirects = True)
-        assert 'Copr was updated successfully' in r.data
+        assert 'Project was updated successfully' in r.data
 
     @TransactionDecorator('u1')
     def test_copr_admin_can_update(self, f_users, f_coprs, f_copr_permissions, f_mock_chroots, f_db):
@@ -211,7 +211,7 @@ class TestCoprUpdate(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/update/'.format(self.u2.name, self.c3.name),
                    data = {'name': self.c3.name, 'fedora-rawhide-i386': 'y', 'id': self.c3.id},
                    follow_redirects = True)
-        assert 'Copr was updated successfully' in r.data
+        assert 'Project was updated successfully' in r.data
 
     @TransactionDecorator('u1')
     def test_update_multiple_chroots(self, f_users, f_coprs, f_copr_permissions, f_mock_chroots, f_db):
@@ -219,7 +219,7 @@ class TestCoprUpdate(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/update/'.format(self.u1.name, self.c1.name),
                    data = {'name': self.c1.name, self.mc2.chroot_name: 'y', self.mc3.chroot_name: 'y', 'id': self.c1.id},
                    follow_redirects = True)
-        assert 'Copr was updated successfully' in r.data
+        assert 'Project was updated successfully' in r.data
         self.db.session.add_all([self.c1, self.mc1, self.mc2, self.mc3])
         mock_chroots = self.models.MockChroot.query.join(self.models.CoprChroot).\
                                                     filter(self.models.CoprChroot.copr_id==\
@@ -241,7 +241,7 @@ class TestCoprUpdate(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/update/'.format(self.u2.name, self.c2.name),
                    data = {'name': self.c2.name, self.mc1.chroot_name: 'y', 'id': self.c2.id},
                    follow_redirects = True)
-        assert 'Copr was updated successfully' in r.data
+        assert 'Project was updated successfully' in r.data
         self.db.session.add_all([self.c2, self.mc1])
         mock_chroots = self.models.MockChroot.query.join(self.models.CoprChroot).\
                                                     filter(self.models.CoprChroot.copr_id==\
@@ -320,7 +320,7 @@ class TestCoprUpdatePermissions(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
                    data = {'copr_builder_1': '2', 'copr_admin_3': '2'},
                    follow_redirects = True)
-        assert 'Copr permissions were updated' in r.data
+        assert 'Project permissions were updated' in r.data
 
     @TransactionDecorator('u1')
     def test_copr_admin_can_give_up_his_permissions(self, f_users, f_coprs, f_copr_permissions, f_db):
@@ -340,7 +340,7 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                                                 filter(self.models.CoprPermission.copr_id==self.c3.id).\
                                                 first()
         assert perm.copr_admin == 1
-        assert 'Copr permissions were updated' in r.data
+        assert 'Project permissions were updated' in r.data
 
 
 class TestCoprDelete(CoprsTestCase):
@@ -351,7 +351,7 @@ class TestCoprDelete(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/delete/'.format(self.u1.name, self.c1.name),
                    data = {'verify': 'yes'},
                    follow_redirects = True)
-        assert 'Copr was deleted successfully' in r.data
+        assert 'Project was deleted successfully' in r.data
         self.db.session.add(self.c1)
         assert self.models.Action.query.first().id == self.c1.id
         assert self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first().deleted
@@ -362,7 +362,7 @@ class TestCoprDelete(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/delete/'.format(self.u1.name, self.c1.name),
                    data = {'verify': 'no'},
                    follow_redirects = True)
-        assert 'Copr was deleted successfully' not in r.data
+        assert 'Project was deleted successfully' not in r.data
         assert not self.models.Action.query.first()
         assert self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first()
 
@@ -373,7 +373,7 @@ class TestCoprDelete(CoprsTestCase):
                    data = {'verify': 'yes'},
                    follow_redirects = True)
         self.db.session.add_all([self.c1])
-        assert 'Copr was deleted successfully' not in r.data
+        assert 'Project was deleted successfully' not in r.data
         assert not self.models.Action.query.first()
         assert self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first()
 

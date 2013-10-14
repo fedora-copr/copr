@@ -71,7 +71,7 @@ def api_new_copr(username):
                 description=form.description.data,
                 instructions=form.instructions.data,
                 check_for_duplicates=True)
-            infos.append('New copr was successfully created.')
+            infos.append('New project was successfully created.')
 
             if form.initial_pkgs.data:
                 builds_logic.BuildsLogic.add_build(

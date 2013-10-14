@@ -90,7 +90,7 @@ def copr_new(username):
                                           description=form.description.data,
                                           instructions=form.instructions.data)
         db.session.commit()
-        flask.flash('New copr was successfully created.')
+        flask.flash('New project was successfully created.')
 
         if form.initial_pkgs.data:
             builds_logic.BuildsLogic.add(flask.g.user,
@@ -187,7 +187,7 @@ def copr_update(username, coprname):
             flask.flash(e)
             db.session.rollback()
         else:
-            flask.flash('Copr was updated successfully.')
+            flask.flash('Project was updated successfully.')
             db.session.commit()
 
         return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = copr.name))
@@ -203,16 +203,16 @@ def copr_permissions_applier_change(username, coprname):
     applier_permissions_form = forms.PermissionsApplierFormFactory.create_form_cls(permission)()
 
     if not copr:
-        return page_not_found('Copr with name {0} does not exist.'.format(name))
+        return page_not_found('Project with name {0} does not exist.'.format(name))
     if copr.owner == flask.g.user:
-        flask.flash('Owner cannot request permissions for his own copr.')
+        flask.flash('Owner cannot request permissions for his own project.')
     elif applier_permissions_form.validate_on_submit():
         # we rely on these to be 0 or 1 from form. TODO: abstract from that
         new_builder = applier_permissions_form.copr_builder.data
         new_admin = applier_permissions_form.copr_admin.data
         coprs_logic.CoprPermissionsLogic.update_permissions_by_applier(flask.g.user, copr, permission, new_builder, new_admin)
         db.session.commit()
-        flask.flash('Successfuly updated permissions do Copr "{0}".'.format(copr.name))
+        flask.flash('Successfuly updated permissions for project "{0}".'.format(copr.name))
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
@@ -241,7 +241,7 @@ def copr_update_permissions(username, coprname):
             flask.flash(e)
         else:
             db.session.commit()
-            flask.flash('Copr permissions were updated successfully.')
+            flask.flash('Project permissions were updated successfully.')
 
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
 
@@ -261,7 +261,7 @@ def copr_delete(username, coprname):
             return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
         else:
             db.session.commit()
-            flask.flash('Copr was deleted successfully.')
+            flask.flash('Project was deleted successfully.')
             return flask.redirect(flask.url_for('coprs_ns.coprs_by_owner', username=username))
     else:
         return flask.render_template('coprs/detail/delete.html', form=form, copr=copr)
@@ -279,7 +279,7 @@ def copr_legal_flag(username, coprname):
                                   reporter=flask.g.user)
     db.session.add(legal_flag)
     db.session.commit()
-    flask.flash('Admin was noticed about your report and will investigate the copr shortly.')
+    flask.flash('Admin was noticed about your report and will investigate the project shortly.')
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
 
 
@@ -294,7 +294,7 @@ def generate_repo_file(username, coprname):
     reponame = "%s-%s" % (username, coprname)
 
     if '-' not in reponame:
-        return page_not_found('Bad repository name: {0}. Must be username-coprname'.format(reponame))
+        return page_not_found('Bad repository name: {0}. Must be username-projectname'.format(reponame))
 
     username, coprname = reponame.split('-', 1)
     copr = None
@@ -303,7 +303,7 @@ def generate_repo_file(username, coprname):
         copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname,
                 with_builds=True).one()
     except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found('Copr {0}/{1} does not exist'.format(username, coprname))
+        return page_not_found('Project {0}/{1} does not exist'.format(username, coprname))
 
     url = ''
     for build in copr.builds:
