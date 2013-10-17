@@ -96,7 +96,7 @@ def get_ans_results(results, hostname):
 
 def _create_ans_conn(hostname, username, timeout):
     ans_conn = ansible.runner.Runner(remote_user=username,
-          host_list=hostname + ',', pattern=hostname, forks=1,
+          host_list=hostname + ',', pattern=hostname, forks=1, transport='ssh',
           timeout=timeout)
     return ans_conn
     
