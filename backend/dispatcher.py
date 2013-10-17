@@ -25,7 +25,7 @@ class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
     ''' playbook callbacks - quietly! '''
 
     def __init__(self, verbose=False):
-
+        super(SilentPlaybookCallbacks, self).__init__()
         self.verbose = verbose
 
     def on_start(self):
