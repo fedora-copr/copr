@@ -542,7 +542,7 @@ def parse_args(args):
     parser.add_option('-c', '--continue', default=False, action='store_true',
             dest='cont',
             help="if a pkg fails to build, continue to the next one")
-    parser.add_option('-a','--addrepo', default=DEF_REPOS, action='append',
+    parser.add_option('-a', '--addrepo', default=DEF_REPOS, action='append',
             dest='repos',
             help="add these repo baseurls to the chroot's yum config")
     parser.add_option('--recurse', default=False, action='store_true',
@@ -559,10 +559,10 @@ def parse_args(args):
            help="place to download all the results/packages")
     parser.add_option("--packages", dest="packages_file", default=None,
            help="file to read list of packages from")
-    parser.add_option("-q","--quiet", dest="quiet", default=False, action="store_true",
+    parser.add_option("-q", "--quiet", dest="quiet", default=False, action="store_true",
            help="output very little to the terminal")
 
-    opts,args = parser.parse_args(args)
+    opts, args = parser.parse_args(args)
 
     if not opts.builder:
         print "Must specify a system to build on"
@@ -598,7 +598,7 @@ def parse_args(args):
 def main(args):
 
     # parse args
-    opts,pkgs = parse_args(args)
+    opts, pkgs = parse_args(args)
 
     if not os.path.exists(opts.destdir):
         os.makedirs(opts.destdir)
