@@ -280,12 +280,12 @@ def main(args):
         with context:
             cbe = CoprBackend(opts.config_file, ext_opts=opts)
             cbe.run()
-    except Exception, e:
+    except Exception:
         print 'Killing/Dying'
         if 'cbe' in locals():
             cbe.terminate()
         raise
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         pass
 
 if __name__ == '__main__':
