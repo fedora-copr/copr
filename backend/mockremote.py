@@ -53,7 +53,7 @@ class SortedOptParser(optparse.OptionParser):
     def format_help(self, formatter=None):
         self.option_list.sort(key=methodcaller('get_opt_string'))
         return optparse.OptionParser.format_help(self, formatter=None)
-        
+
 
 def createrepo(path):
     if os.path.exists(path + '/repodata/repomd.xml'):
@@ -74,7 +74,7 @@ def read_list_from_file(fn):
         if line.startswith('#'):
             continue
         lst.append(line)
-    
+
     return lst
 
 def log(lf, msg):
@@ -91,7 +91,7 @@ def get_ans_results(results, hostname):
         return results['dark'][hostname]
     if hostname in results['contacted']:
         return results['contacted'][hostname]
-    
+
     return {}
 
 def _create_ans_conn(hostname, username, timeout):
@@ -99,8 +99,8 @@ def _create_ans_conn(hostname, username, timeout):
           host_list=hostname + ',', pattern=hostname, forks=1, transport='ssh',
           timeout=timeout)
     return ans_conn
-    
-def check_for_ans_error(results, hostname, err_codes=[], success_codes=[0], 
+
+def check_for_ans_error(results, hostname, err_codes=[], success_codes=[0],
                              return_on_error=['stdout', 'stderr']):
     """ returns True or False + dict
     dict includes 'msg'
@@ -108,11 +108,11 @@ def check_for_ans_error(results, hostname, err_codes=[], success_codes=[0],
     requested result codes
     """
     err_results = {}
-    
+
     if 'dark' in results and hostname in results['dark']:
         err_results['msg'] = "Error: Could not contact/connect to %s." % hostname
         return (True, err_results)
-    
+
     error = False
 
     if err_codes or success_codes:
@@ -130,12 +130,12 @@ def check_for_ans_error(results, hostname, err_codes=[], success_codes=[0],
             elif 'failed' in results['contacted'][hostname] and results['contacted'][hostname]['failed']:
                 error = True
                 err_results['msg'] = 'results included failed as true'
-                 
+
         if error:
             for item in return_on_error:
                 if item in results['contacted'][hostname]:
                     err_results[item] = results['contacted'][hostname][item]
-                    
+
     return error, err_results
 
 
@@ -143,58 +143,58 @@ class MockRemoteError(Exception):
 
     def __init__(self, msg):
         self.msg = msg
-    
+
     def __str__(self):
         return self.msg
 
 class BuilderError(MockRemoteError):
     pass
-        
+
 class DefaultCallBack(object):
     def __init__(self, **kwargs):
         self.quiet = kwargs.get('quiet', False)
         self.logfn = kwargs.get('logfn', None)
-        
+
     def start_build(self, pkg):
         pass
-    
+
     def end_build(self, pkg):
         pass
-        
+
     def start_download(self, pkg):
         pass
-    
+
     def end_download(self, pkg):
         pass
-    
+
     def error(self, msg):
         self.log("Error: %s" % msg)
 
     def log(self, msg):
         if not self.quiet:
             print msg
-    
+
 class CliLogCallBack(DefaultCallBack):
     def __init__(self, **kwargs):
         DefaultCallBack.__init__(self, **kwargs)
-        
+
     def start_build(self, pkg):
         msg = "Start build: %s" % pkg
         self.log(msg)
 
-    
+
     def end_build(self, pkg):
         msg = "End Build: %s" % pkg
         self.log(msg)
-        
+
     def start_download(self, pkg):
         msg = "Start retrieve results for: %s" % pkg
         self.log(msg)
-    
+
     def end_download(self, pkg):
         msg = "End retrieve results for: %s" % pkg
         self.log(msg)
-        
+
     def error(self, msg):
         self.log("Error: %s" % msg)
 
@@ -226,15 +226,15 @@ class Builder(object):
     @property
     def remote_build_dir(self):
         return self.tempdir + '/build/'
-        
+
     @property
     def tempdir(self):
         if self.mockremote.remote_tempdir:
             return self.mockremote.remote_tempdir
-            
+
         if self._tempdir:
             return self._tempdir
-            
+
         cmd='/bin/mktemp -d %s/%s-XXXXX' % (self.mockremote.remote_basedir, 'mockremote')
         self.conn.module_name="shell"
         self.conn.module_args = str(cmd)
@@ -251,13 +251,13 @@ class Builder(object):
         self.conn.module_args = str(cmd)
         self.conn.run()
         self._tempdir = tempdir
-        
+
         return self._tempdir
-    
+
     @tempdir.setter
     def tempdir(self, value):
         self._tempdir = value
-    
+
     def _get_remote_pkg_dir(self, pkg):
         # the pkg will build into a dir by mockchain named:
         # $tempdir/build/results/$chroot/$packagename
@@ -265,9 +265,9 @@ class Builder(object):
         pdn = s_pkg.replace('.src.rpm', '')
         remote_pkg_dir = self.remote_build_dir + '/results/' + self.chroot + '/' + pdn
         return remote_pkg_dir
-        
+
     def build(self, pkg):
-        
+
         # build the pkg passed in
         # add pkg to various lists
         # check for success/failure of build
@@ -275,7 +275,7 @@ class Builder(object):
         # returns success_bool, out, err
 
         success = False
-        
+
         # check if pkg is local or http
         dest = None
         if os.path.exists(pkg):
@@ -284,7 +284,7 @@ class Builder(object):
             margs = 'src=%s dest=%s' % (pkg, dest)
             self.conn.module_args = str(margs)
             self.mockremote.callback.log("Sending %s to %s to build" % (os.path.basename(pkg), self.hostname))
-            
+
             # FIXME should probably check this but <shrug>
             self.conn.run()
         else:
@@ -294,9 +294,9 @@ class Builder(object):
         buildcmd = '%s -r %s -l %s ' % (mockchain, self.chroot, self.remote_build_dir)
         for r in self.repos:
             buildcmd += '-a %s ' % r
-        
+
         buildcmd += dest
-        
+
         #print '  Running %s on %s' % (buildcmd, hostname)
         # run the mockchain command async
         # this runs it sync - FIXME
@@ -314,7 +314,7 @@ class Builder(object):
         myresults = get_ans_results(results, self.hostname)
         out = myresults.get('stdout', '')
         err = myresults.get('stderr', '')
-        
+
         successfile = self._get_remote_pkg_dir(pkg) + '/success'
         testcmd = '/usr/bin/test -f %s' % successfile
         self.conn.module_args = str(testcmd)
@@ -322,13 +322,13 @@ class Builder(object):
         is_err, err_results = check_for_ans_error(results, self.hostname, success_codes=[0])
         if not is_err:
             success = True
-        
+
         return success, out, err
-    
+
     def download(self, pkg, destdir):
         # download the pkg to destdir using rsync + ssh
         # return success/failure, stdout, stderr
-        
+
         success = False
         rpd = self._get_remote_pkg_dir(pkg)
         destdir = "'" + destdir.replace("'", "'\\''") + "'" # make spaces work w/our rsync command below :(
@@ -336,18 +336,18 @@ class Builder(object):
         remote_src = '%s@%s:%s' % (self.username, self.hostname, rpd)
         ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
         command = "%s -avH -e %s %s %s/" % (rsync, ssh_opts, remote_src, destdir)
-        cmd = subprocess.Popen(command, shell=True, 
+        cmd = subprocess.Popen(command, shell=True,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
+
         # rsync results into opts.destdir
         out, err = cmd.communicate()
         if cmd.returncode:
             success = False
         else:
             success = True
-        
+
         return success, out, err
-        
+
     def check(self):
         # do check of host
         # set checked if successful
@@ -362,11 +362,11 @@ class Builder(object):
             socket.gethostbyname(self.hostname)
         except socket.gaierror:
             raise BuilderError('%s could not be resolved' % self.hostname)
-            
+
         self.conn.module_name = "shell"
         self.conn.module_args = str("/bin/rpm -q mock rsync")
         res = self.conn.run()
-        # check for mock/rsync from results    
+        # check for mock/rsync from results
         is_err, err_results = check_for_ans_error(res, self.hostname, success_codes=[0])
         if is_err:
             if 'rc' in err_results:
@@ -392,12 +392,12 @@ class Builder(object):
         else:
             msg = '\n'.join(errors)
             raise BuilderError(msg)
-    
-        
+
+
 class MockRemote(object):
     def __init__(self, builder=None, user=DEF_USER, timeout=DEF_TIMEOUT,
                  destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False, recurse=False,
-                 repos=DEF_REPOS, callback=None, 
+                 repos=DEF_REPOS, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None):
 
         self.destdir = destdir
@@ -408,17 +408,17 @@ class MockRemote(object):
         self.callback = callback
         self.remote_basedir = remote_basedir
         self.remote_tempdir = remote_tempdir
-        
+
         if not self.callback:
             self.callback = DefaultCallBack()
-        
+
         self.callback.log("Setting up builder: %s" % builder)
         self.builder = Builder(builder, user, timeout, self)
 
         if not self.chroot:
             raise MockRemoteError("No chroot specified!")
-        
-            
+
+
         self.failed = []
         self.finished = []
         self.pkg_list = []
@@ -435,10 +435,10 @@ class MockRemote(object):
 
         if not pkgs:
             pkgs = self.pkg_list
-            
+
         built_pkgs = []
         downloaded_pkgs = {}
-        
+
         try_again = True
         to_be_built = pkgs
         while try_again:
@@ -450,10 +450,10 @@ class MockRemote(object):
                     continue
                 else:
                     just_built.append(pkg)
-                    
+
                 p_path = self._get_pkg_destpath(pkg)
 
-                # check the destdir to see if these pkgs need to be built            
+                # check the destdir to see if these pkgs need to be built
                 if os.path.exists(p_path):
                     if os.path.exists(p_path + '/success'):
                         self.callback.log("Skipping already built pkg %s" % os.path.basename(pkg))
@@ -462,13 +462,13 @@ class MockRemote(object):
                     # the failure and try rebuilding it
                     elif os.path.exists(p_path + '/fail'):
                         os.unlink(p_path + '/fail')
-                
+
                 # off to the builder object
                 # building
                 self.callback.start_build(pkg)
                 b_status, b_out, b_err = self.builder.build(pkg)
                 self.callback.end_build(pkg)
-                
+
                 # downloading
                 self.callback.start_download(pkg)
                 # mockchain makes things with the chroot appended - so suck down
@@ -479,7 +479,7 @@ class MockRemote(object):
                     if not self.cont:
                         raise MockRemoteError, msg
                     self.callback.error(msg)
-                        
+
                 self.callback.end_download(pkg)
                 # write out whatever came from the builder call into the destdir/chroot
                 if not os.path.exists(self.destdir + '/' + self.chroot):
@@ -491,8 +491,8 @@ class MockRemote(object):
                     r_log.write('\nstderr\n')
                     r_log.write(b_err)
                 r_log.close()
-                
-                
+
+
                 # checking where to stick stuff
                 if not b_status:
                     if self.recurse:
@@ -503,7 +503,7 @@ class MockRemote(object):
                         if not self.cont:
                             raise MockRemoteError, msg
                         self.callback.error(msg)
-                        
+
                 else:
                     self.callback.log("Success building %s" % os.path.basename(pkg))
                     built_pkgs.append(pkg)
@@ -514,7 +514,7 @@ class MockRemote(object):
                             self.callback.error("Error making local repo: %s" % d)
                             self.callback.error("%s" % err)
                             #FIXME - maybe clean up .repodata and .olddata here?
-                        
+
             if self.failed:
                 if len(self.failed) != len(to_be_built):
                     to_be_built = self.failed
@@ -531,7 +531,7 @@ class MockRemote(object):
                     try_again = False
             else:
                 try_again = False
-                        
+
 
 
 def parse_args(args):
@@ -561,27 +561,27 @@ def parse_args(args):
            help="file to read list of packages from")
     parser.add_option("-q","--quiet", dest="quiet", default=False, action="store_true",
            help="output very little to the terminal")
-           
+
     opts,args = parser.parse_args(args)
-    
+
     if not opts.builder:
         print "Must specify a system to build on"
         sys.exit(1)
 
     if opts.packages_file and os.path.exists(opts.packages_file):
         args.extend(read_list_from_file(opts.packages_file))
-    
+
     #args = list(set(args)) # poor man's 'unique' - this also changes the order
     # :(
-    
+
     if not args:
         print "Must specify at least one pkg to build"
         sys.exit(1)
-    
+
     if not opts.chroot:
         print "Must specify a mock chroot"
         sys.exit(1)
-    
+
     for url in opts.repos:
         if not (url.startswith('http') or  url.startswith('file://')):
             print "Only http[s] or file urls allowed for repos"
@@ -602,16 +602,16 @@ def main(args):
 
     if not os.path.exists(opts.destdir):
         os.makedirs(opts.destdir)
-    
+
     try:
         # setup our callback
         callback = CliLogCallBack(logfn=opts.logfile, quiet=opts.quiet)
         # our mockremote instance
-        mr = MockRemote(builder=opts.builder, user=opts.user, 
+        mr = MockRemote(builder=opts.builder, user=opts.user,
                timeout=opts.timeout, destdir=opts.destdir, chroot=opts.chroot,
                cont=opts.cont, recurse=opts.recurse, repos=opts.repos,
                callback=callback)
-        
+
         # FIXMES
         # things to think about doing:
         # output the remote tempdir when you start up
@@ -619,22 +619,22 @@ def main(args):
         # output where you're writing things to
         # consider option to sync over destdir to the remote system to use
         # as a local repo for the build
-        # 
-        
+        #
+
         if not opts.quiet:
             print "Building %s pkgs" % len(pkgs)
-        
+
         mr.build_pkgs(pkgs)
 
         if not opts.quiet:
             print "Output written to: %s" % mr.destdir
-        
+
     except MockRemoteError, e:
         print >>sys.stderr, "Error on build:"
         print >>sys.stderr, str(e)
         return
 
-    
+
 if __name__ == '__main__':
     try:
         main(sys.argv[1:])
