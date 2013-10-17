@@ -204,7 +204,7 @@ class CliLogCallBack(DefaultCallBack):
             try:
                 open(self.logfn, 'a').write(str(now) + ':' + msg + '\n')
             except (IOError, OSError), e:
-                print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfn, str(e))
+                print >> sys.stderr, 'Could not write to logfile %s - %s' % (self.logfn, str(e))
         if not self.quiet:
             print msg
 
@@ -235,8 +235,8 @@ class Builder(object):
         if self._tempdir:
             return self._tempdir
 
-        cmd='/bin/mktemp -d %s/%s-XXXXX' % (self.mockremote.remote_basedir, 'mockremote')
-        self.conn.module_name="shell"
+        cmd = '/bin/mktemp -d %s/%s-XXXXX' % (self.mockremote.remote_basedir, 'mockremote')
+        self.conn.module_name = "shell"
         self.conn.module_args = str(cmd)
         results = self.conn.run()
         tempdir = None
@@ -280,7 +280,7 @@ class Builder(object):
         dest = None
         if os.path.exists(pkg):
             dest = self.tempdir + '/' + os.path.basename(pkg)
-            self.conn.module_name="copy"
+            self.conn.module_name = "copy"
             margs = 'src=%s dest=%s' % (pkg, dest)
             self.conn.module_args = str(margs)
             self.mockremote.callback.log("Sending %s to %s to build" % (os.path.basename(pkg), self.hostname))
@@ -301,7 +301,7 @@ class Builder(object):
         # run the mockchain command async
         # this runs it sync - FIXME
         self.mockremote.callback.log('executing: %r' % buildcmd)
-        self.conn.module_name="shell"
+        self.conn.module_name = "shell"
         self.conn.module_args = str(buildcmd)
         results = self.conn.run()
 
@@ -630,8 +630,8 @@ def main(args):
             print "Output written to: %s" % mr.destdir
 
     except MockRemoteError, e:
-        print >>sys.stderr, "Error on build:"
-        print >>sys.stderr, str(e)
+        print >> sys.stderr, "Error on build:"
+        print >> sys.stderr, str(e)
         return
 
 
