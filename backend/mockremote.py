@@ -362,13 +362,9 @@ class Builder(object):
         except socket.gaierror:
             raise BuilderError('%s could not be resolved' % self.hostname)
             
-        # connect as user 
-        
-        ans = ansible.runner.Runner(host_list=self.hostname + ',', pattern='*', 
-              remote_user=self.username, forks=1, timeout=20)
-        ans.module_name = "shell"
-        ans.module_args = str("/bin/rpm -q mock rsync")
-        res = ans.run()
+        self.conn.module_name = "shell"
+        self.conn.module_args = str("/bin/rpm -q mock rsync")
+        res = self.conn.run()
         # check for mock/rsync from results    
         is_err, err_results = check_for_ans_error(res, self.hostname, success_codes=[0])
         if is_err:
@@ -379,9 +375,9 @@ class Builder(object):
 
 
         # test for path existence for mockchain and chroot config for this chroot
-        ans.module_name = "shell"
-        ans.module_args = str("/usr/bin/test -f %s && /usr/bin/test -f /etc/mock/%s.cfg" % (mockchain, self.chroot))
-        res = ans.run()
+        self.conn.module_name = "shell"
+        self.conn.module_args = "/usr/bin/test -f %s && /usr/bin/test -f /etc/mock/%s.cfg" % (mockchain, self.chroot)
+        res = self.conn.run()
 
         is_err, err_results = check_for_ans_error(res, self.hostname, success_codes=[0])
         if is_err:
