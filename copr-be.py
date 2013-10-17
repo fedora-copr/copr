@@ -291,6 +291,6 @@ def main(args):
 if __name__ == '__main__':
     try:
         main(sys.argv[1:])
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         print "\nUser cancelled, may need cleanup\n"
         sys.exit(0)
