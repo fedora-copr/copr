@@ -102,10 +102,11 @@ def _create_ans_conn(hostname, username, timeout):
     
 def check_for_ans_error(results, hostname, err_codes=[], success_codes=[0], 
                              return_on_error=['stdout', 'stderr']):
-    # returns True or False + dict
-    # dict includes 'msg'
-    # may include 'rc', 'stderr', 'stdout' and any other
-    # requested result codes
+    """ returns True or False + dict
+    dict includes 'msg'
+    may include 'rc', 'stderr', 'stdout' and any other
+    requested result codes
+    """
     err_results = {}
     
     if 'dark' in results and hostname in results['dark']:
