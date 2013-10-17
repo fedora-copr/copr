@@ -636,10 +636,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    try:
-        main(sys.argv[1:])
-    except Exception, e:
-
-        print "ERROR:  %s - %s" % (str(type(e)), str(e))
-        traceback.print_exc()
-        sys.exit(1)
+    main(sys.argv[1:])
