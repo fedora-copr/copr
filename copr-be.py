@@ -205,7 +205,7 @@ class CoprBackend(object):
                 # this handles starting/growing the number of workers
                 if len(self.workers) < self.opts.num_workers:
                     self.event("Spinning up more workers for jobs")
-                    for i in range(self.opts.num_workers - len(self.workers)):
+                    for _ in range(self.opts.num_workers - len(self.workers)):
                         worker_num = len(self.workers) + 1
                         w = Worker(self.opts, self.jobs, self.events, worker_num)
                         self.workers.append(w)
