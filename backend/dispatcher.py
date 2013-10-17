@@ -197,7 +197,7 @@ class Worker(multiprocessing.Process):
         jobdata.chroots = build['chroots'].split(' ')
         jobdata.memory_reqs = build['memory_reqs']
         jobdata.timeout = build['timeout']
-        jobdata.destdir = self.opts.destdir + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'] + '/'
+        jobdata.destdir = os.path.normpath(self.opts.destdir + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'])
         jobdata.build_id = build['id']
         jobdata.results = self.opts.results_baseurl + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'] + '/'
         jobdata.copr_id = build['copr']['id']
@@ -314,7 +314,7 @@ class Worker(multiprocessing.Process):
                                ip=ip, pid=self.pid)
                 self.event('chroot.start', template, content)
 
-                chroot_destdir = job.destdir + '/' + chroot
+                chroot_destdir = os.path.normpath(job.destdir + '/' + chroot)
                 # setup our target dir locally
                 if not os.path.exists(chroot_destdir):
                     try:
@@ -337,7 +337,7 @@ class Worker(multiprocessing.Process):
                 self.callback.log('building pkgs: %s' % ' '.join(job.pkgs))
                 try:
                     chroot_repos = list(job.repos)
-                    chroot_repos.append(job.results + '/' + chroot)
+                    chroot_repos.append(os.path.normpath(job.results + '/' + chroot))
                     chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
                     mr = mockremote.MockRemote(builder=ip, timeout=job.timeout,
                          destdir=job.destdir, chroot=chroot, cont=True, recurse=True,

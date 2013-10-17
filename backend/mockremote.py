@@ -264,7 +264,7 @@ class Builder(object):
         # $tempdir/build/results/$chroot/$packagename
         s_pkg = os.path.basename(pkg)
         pdn = s_pkg.replace('.src.rpm', '')
-        remote_pkg_dir = self.remote_build_dir + '/results/' + self.chroot + '/' + pdn
+        remote_pkg_dir = os.path.normpath(self.remote_build_dir + '/results/' + self.chroot + '/' + pdn)
         return remote_pkg_dir
 
     def build(self, pkg):
@@ -280,7 +280,7 @@ class Builder(object):
         # check if pkg is local or http
         dest = None
         if os.path.exists(pkg):
-            dest = self.tempdir + '/' + os.path.basename(pkg)
+            dest = os.path.normpath(self.tempdir + '/' + os.path.basename(pkg))
             self.conn.module_name = "copy"
             margs = 'src=%s dest=%s' % (pkg, dest)
             self.conn.module_args = str(margs)
@@ -474,7 +474,8 @@ class MockRemote(object):
                 self.callback.start_download(pkg)
                 # mockchain makes things with the chroot appended - so suck down
                 # that pkg subdir from w/i that location
-                d_ret, d_out, d_err = self.builder.download(pkg, self.destdir + '/' + self.chroot)
+                chroot_dir = os.path.normpath(self.destdir + '/' + self.chroot)
+                d_ret, d_out, d_err = self.builder.download(pkg, chroot_dir)
                 if not d_ret:
                     msg = "Failure to download %s: %s" % (pkg, d_out + d_err)
                     if not self.cont:
@@ -483,9 +484,9 @@ class MockRemote(object):
 
                 self.callback.end_download(pkg)
                 # write out whatever came from the builder call into the destdir/chroot
-                if not os.path.exists(self.destdir + '/' + self.chroot):
+                if not os.path.exists(chroot_dir):
                     os.makedirs(self.destdir + '/' + self.chroot)
-                r_log = open(self.destdir + '/' + self.chroot + '/mockchain.log', 'a')
+                r_log = open(chroot_dir + '/mockchain.log', 'a')
                 r_log.write('\n\n%s\n\n' % pkg)
                 r_log.write(b_out)
                 if b_err:
@@ -509,7 +510,7 @@ class MockRemote(object):
                     self.callback.log("Success building %s" % os.path.basename(pkg))
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
-                    for d in [self.destdir, self.destdir + '/' + self.chroot]:
+                    for d in [self.destdir, chroot_dir]:
                         rc, out, err = createrepo(d)
                         if err.strip():
                             self.callback.error("Error making local repo: %s" % d)
