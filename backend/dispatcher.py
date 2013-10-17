@@ -136,7 +136,6 @@ class Worker(multiprocessing.Process):
         except Exception, e:
             # XXX - Maybe log traceback as well with traceback.format_exc()
             self.callback.log('failed to publish message: %s' % e)
-            pass  # But continue on happily.
 
     def spawn_instance(self):
         """call the spawn playbook to startup/provision a building instance"""
