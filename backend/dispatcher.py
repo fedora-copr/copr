@@ -132,6 +132,7 @@ class Worker(multiprocessing.Process):
             content['what'] = what
             if self.opts.fedmsg_enabled:
                 fedmsg.publish(modname="copr", topic=topic, msg=content)
+        # pylint: disable=W0703
         except Exception, e:
             # XXX - Maybe log traceback as well with traceback.format_exc()
             self.callback.log('failed to publish message: %s' % e)
@@ -297,7 +298,6 @@ class Worker(multiprocessing.Process):
                     fedmsg.init(name="relay_inbound", cert_prefix="copr", active=True)
             except Exception, e:
                 self.callback.log('failed to initialize fedmsg: %s' % e)
-                pass  # But continue on happily.
 
             status = 1
             job.started_on = time.time()
