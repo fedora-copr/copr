@@ -285,8 +285,6 @@ def main(args):
         if 'cbe' in locals():
             cbe.terminate()
         raise
-    except KeyboardInterrupt:
-        pass
 
 if __name__ == '__main__':
     try:
