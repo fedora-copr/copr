@@ -291,80 +291,82 @@ class Worker(multiprocessing.Process):
                     self.callback.log('failure to setup instance: %s' % e)
                     raise
 
-            # This assumes there are certs and a fedmsg config on disk
             try:
-                if self.opts.fedmsg_enabled:
-                    fedmsg.init(name="relay_inbound", cert_prefix="copr", active=True)
-            except Exception, e:
-                self.callback.log('failed to initialize fedmsg: %s' % e)
-
-            status = 1
-            job.started_on = time.time()
-            self.mark_started(job)
-
-            template = 'build start: user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid}'
-            content = dict(user=job.user_name, copr=job.copr_name,
-                           build=job.build_id, ip=ip, pid=self.pid)
-            self.event('build.start', template, content)
-
-            for chroot in job.chroots:
-                template = 'chroot start: chroot:{chroot} user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid}'
-                content = dict(chroot=chroot, user=job.user_name,
-                               copr=job.copr_name, build=job.build_id,
-                               ip=ip, pid=self.pid)
-                self.event('chroot.start', template, content)
-
-                chroot_destdir = os.path.normpath(job.destdir + '/' + chroot)
-                # setup our target dir locally
-                if not os.path.exists(chroot_destdir):
-                    try:
-                        os.makedirs(chroot_destdir)
-                    except (OSError, IOError), e:
-                        msg = "Could not make results dir for job: %s - %s" % (chroot_destdir, str(e))
-                        self.callback.log(msg)
-                        status = 0
-                        continue
-
-                # FIXME
-                # need a plugin hook or some mechanism to check random
-                # info about the pkgs
-                # this should use ansible to download the pkg on the remote system
-                # and run a series of checks on the package before we
-                # start the build - most importantly license checks.
-
-
-                self.callback.log('Starting build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id,ip, job.timeout, job.destdir, chroot, str(job.repos)))
-                self.callback.log('building pkgs: %s' % ' '.join(job.pkgs))
+                # This assumes there are certs and a fedmsg config on disk
                 try:
-                    chroot_repos = list(job.repos)
-                    chroot_repos.append(os.path.normpath(job.results + '/' + chroot))
-                    chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
-                    mr = mockremote.MockRemote(builder=ip, timeout=job.timeout,
-                         destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
-                         repos=chroot_repos,
-                         callback=mockremote.CliLogCallBack(quiet=True,logfn=chrootlogfile))
-                    mr.build_pkgs(job.pkgs)
-                except mockremote.MockRemoteError, e:
-                    # record and break
-                    self.callback.log('%s - %s' % (ip, e))
-                    status = 0 # failure
-                else:
-                    # we can't really trace back if we just fail normally
-                    # check if any pkgs didn't build
-                    if mr.failed:
-                        status = 0
-                self.callback.log('Finished build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id, ip, job.timeout, job.destdir, chroot, str(job.repos)))
-            job.ended_on = time.time()
+                    if self.opts.fedmsg_enabled:
+                        fedmsg.init(name="relay_inbound", cert_prefix="copr", active=True)
+                except Exception, e:
+                    self.callback.log('failed to initialize fedmsg: %s' % e)
 
-            job.status = status
-            self.return_results(job)
-            self.callback.log('worker finished build: %s' % ip)
-            template = 'build end: user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid} status:{status}'
-            content = dict(user=job.user_name, copr=job.copr_name,
-                           build=job.build_id, ip=ip, pid=self.pid,
-                           status=job.status)
-            self.event('build.end', template, content)
-            # clean up the instance
-            if self.create:
-                self.terminate_instance(ip)
+                status = 1
+                job.started_on = time.time()
+                self.mark_started(job)
+
+                template = 'build start: user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid}'
+                content = dict(user=job.user_name, copr=job.copr_name,
+                               build=job.build_id, ip=ip, pid=self.pid)
+                self.event('build.start', template, content)
+
+                for chroot in job.chroots:
+                    template = 'chroot start: chroot:{chroot} user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid}'
+                    content = dict(chroot=chroot, user=job.user_name,
+                                   copr=job.copr_name, build=job.build_id,
+                                   ip=ip, pid=self.pid)
+                    self.event('chroot.start', template, content)
+
+                    chroot_destdir = os.path.normpath(job.destdir + '/' + chroot)
+                    # setup our target dir locally
+                    if not os.path.exists(chroot_destdir):
+                        try:
+                            os.makedirs(chroot_destdir)
+                        except (OSError, IOError), e:
+                            msg = "Could not make results dir for job: %s - %s" % (chroot_destdir, str(e))
+                            self.callback.log(msg)
+                            status = 0
+                            continue
+
+                    # FIXME
+                    # need a plugin hook or some mechanism to check random
+                    # info about the pkgs
+                    # this should use ansible to download the pkg on the remote system
+                    # and run a series of checks on the package before we
+                    # start the build - most importantly license checks.
+
+
+                    self.callback.log('Starting build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id,ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                    self.callback.log('building pkgs: %s' % ' '.join(job.pkgs))
+                    try:
+                        chroot_repos = list(job.repos)
+                        chroot_repos.append(os.path.normpath(job.results + '/' + chroot))
+                        chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
+                        mr = mockremote.MockRemote(builder=ip, timeout=job.timeout,
+                             destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
+                             repos=chroot_repos,
+                             callback=mockremote.CliLogCallBack(quiet=True,logfn=chrootlogfile))
+                        mr.build_pkgs(job.pkgs)
+                    except mockremote.MockRemoteError, e:
+                        # record and break
+                        self.callback.log('%s - %s' % (ip, e))
+                        status = 0 # failure
+                    else:
+                        # we can't really trace back if we just fail normally
+                        # check if any pkgs didn't build
+                        if mr.failed:
+                            status = 0
+                    self.callback.log('Finished build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id, ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                job.ended_on = time.time()
+
+                job.status = status
+                self.return_results(job)
+                self.callback.log('worker finished build: %s' % ip)
+                template = 'build end: user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid} status:{status}'
+                content = dict(user=job.user_name, copr=job.copr_name,
+                               build=job.build_id, ip=ip, pid=self.pid,
+                               status=job.status)
+                self.event('build.end', template, content)
+            finally:
+                # clean up the instance
+                if self.create:
+                    self.terminate_instance(ip)
 
