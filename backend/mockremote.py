@@ -142,6 +142,7 @@ def check_for_ans_error(results, hostname, err_codes=[], success_codes=[0],
 class MockRemoteError(Exception):
 
     def __init__(self, msg):
+        super(MockRemoteError, self).__init__()
         self.msg = msg
 
     def __str__(self):
