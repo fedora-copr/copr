@@ -134,3 +134,13 @@ Run:
 
 Then navigate to:
   http://your.copr.fqdn/admin
+
+
+DEBUGING
+========
+
+Run mockremote as standalone process:
+su - copr
+cd /usr/share/copr
+python backend/mockremote.py -b 172.16.3.4 -r fedora-19-x86_64 <url of src.rpm>
+
