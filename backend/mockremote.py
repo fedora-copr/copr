@@ -219,10 +219,10 @@ class Builder(object):
         self.mockremote = mockremote
         self.checked = False
         self._tempdir = None
-        # check out the host - make sure it can build/be contacted/etc
-        self.check()
         # if we're at this point we've connected and done stuff on the host
         self.conn = _create_ans_conn(self.hostname, self.username, self.timeout)
+        # check out the host - make sure it can build/be contacted/etc
+        self.check()
 
     @property
     def remote_build_dir(self):
