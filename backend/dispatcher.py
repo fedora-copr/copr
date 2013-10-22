@@ -151,7 +151,7 @@ class Worker(multiprocessing.Process):
         # also to include info for instance type to handle the memory requirements of builds
         play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.spawn_playbook,
                              callbacks=playbook_cb, runner_callbacks=runner_cb,
-                             remote_user='root')
+                             remote_user='root', transport='ssh')
 
         play.run()
         self.callback.log('spawning instance end')
@@ -182,7 +182,7 @@ class Worker(multiprocessing.Process):
         runner_cb = callbacks.DefaultRunnerCallbacks()
         play = ansible.playbook.PlayBook(host_list=ip +',', stats=stats, playbook=self.opts.terminate_playbook,
                              callbacks=playbook_cb, runner_callbacks=runner_cb,
-                             remote_user='root')
+                             remote_user='root', transport='ssh')
 
         play.run()
         self.callback.log('terminate instance end')
