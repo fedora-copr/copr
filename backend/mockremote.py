@@ -585,7 +585,7 @@ def parse_args(args):
         sys.exit(1)
 
     for url in opts.repos:
-        if not (url.startswith('http') or  url.startswith('file://')):
+        if not (url.startswith('http://') or url.startswith('https://') or  url.startswith('file://')):
             print "Only http[s] or file urls allowed for repos"
             sys.exit(1)
 
