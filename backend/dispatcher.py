@@ -12,6 +12,9 @@ import ansible.playbook
 import ansible.errors
 from ansible import callbacks
 import requests
+import subprocess
+import string
+from IPy import IP
 
 try:
     import fedmsg
@@ -144,47 +147,56 @@ class Worker(multiprocessing.Process):
         self.callback.log('spawning instance begin')
         start = time.time()
 
-        stats = callbacks.AggregateStats()
-        playbook_cb = SilentPlaybookCallbacks(verbose=False)
-        runner_cb = callbacks.DefaultRunnerCallbacks()
-        # fixme - extra_vars to include ip as a var if we need to specify ips
-        # also to include info for instance type to handle the memory requirements of builds
-        play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.spawn_playbook,
-                             callbacks=playbook_cb, runner_callbacks=runner_cb,
-                             remote_user='root', transport='ssh')
+        #Does not work, do not know why. See:
+        #https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
+        #stats = callbacks.AggregateStats()
+        #playbook_cb = SilentPlaybookCallbacks(verbose=False)
+        #runner_cb = callbacks.DefaultRunnerCallbacks()
+        ## fixme - extra_vars to include ip as a var if we need to specify ips
+        ## also to include info for instance type to handle the memory requirements of builds
+        #play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.spawn_playbook,
+        #                     callbacks=playbook_cb, runner_callbacks=runner_cb,
+        #                     remote_user='root', transport='ssh')
+        #play.run()
+        result = subprocess.check_output("ansible-playbook -c ssh %s" % self.opts.spawn_playbook,
+                shell=True)
+        self.callback.log('Raw output from playbook: %s' % result)
+        # 4rd line from end, first column
+        result = string.strip((result.split('\n'))[-4].split(' ')[0])
 
-        play.run()
         self.callback.log('spawning instance end')
         self.callback.log('Instance spawn/provision took %s sec' % (time.time() - start))
 
         if self.ip:
             return self.ip
 
-        for i in play.SETUP_CACHE:
-            if i =='localhost':
-                continue
-            return i
-
-        # if we get here we're in trouble
-        self.callback.log('No IP back from spawn_instance - dumping cache output')
-        self.callback.log(str(play.SETUP_CACHE))
-        self.callback.log(str(play.stats.summarize('localhost')))
-        self.callback.log('Test spawn_instance playbook manually')
-
-        return None
+        #for i in play.SETUP_CACHE:
+        #    if i =='localhost':
+        #        continue
+        #    return i
+        try:
+            IP(result)
+            return result
+        except ValueError:
+            # if we get here we're in trouble
+            self.callback.log('No IP back from spawn_instance - dumping cache output')
+            self.callback.log(str(play.SETUP_CACHE))
+            self.callback.log(str(play.stats.summarize('localhost')))
+            self.callback.log('Test spawn_instance playbook manually')
+            return None
 
     def terminate_instance(self,ip):
         """call the terminate playbook to destroy the building instance"""
         self.callback.log('terminate instance begin')
 
-        stats = callbacks.AggregateStats()
-        playbook_cb = SilentPlaybookCallbacks(verbose=False)
-        runner_cb = callbacks.DefaultRunnerCallbacks()
-        play = ansible.playbook.PlayBook(host_list=ip +',', stats=stats, playbook=self.opts.terminate_playbook,
-                             callbacks=playbook_cb, runner_callbacks=runner_cb,
-                             remote_user='root', transport='ssh')
-
-        play.run()
+        #stats = callbacks.AggregateStats()
+        #playbook_cb = SilentPlaybookCallbacks(verbose=False)
+        #runner_cb = callbacks.DefaultRunnerCallbacks()
+        #play = ansible.playbook.PlayBook(host_list=ip +',', stats=stats, playbook=self.opts.terminate_playbook,
+        #                     callbacks=playbook_cb, runner_callbacks=runner_cb,
+        #                     remote_user='root', transport='ssh')
+        #play.run()
+        subprocess.check_output("/usr/bin/ansible-playbook -c ssh -i '%s,' %s " % (ip, self.opts.terminate_playbook), shell=True)
         self.callback.log('terminate instance end')
 
     def parse_job(self, jobfile):
