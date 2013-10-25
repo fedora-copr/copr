@@ -130,7 +130,10 @@ class User(db.Model, Serializer):
     @property
     def gravatar_url(self):
         """Return url to libravatar image."""
-        return libravatar_url(email = self.mail)
+        try:
+            return libravatar_url(email = self.mail)
+        except IOError:
+            return "" 
 
 
 class Copr(db.Model, Serializer):
