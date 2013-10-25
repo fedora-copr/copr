@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.9
+Version:	1.10
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -380,6 +380,37 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Fri Oct 25 2013 Miroslav Suchý <msuchy@redhat.com> 1.10-1
+- do not normalize url
+- specify full prefix of http
+- execute playbook using /usr/bin/ansible-playbook
+- use ssh transport
+- check after connection is made
+- add notes about debuging mockremote
+- clean up instance even when worker fails
+- normalize paths before using
+- do not use exception variable
+- operator should be preceded and followed by space
+- remove trailing whitespace
+- convert comment to docstring
+- use ssh transport
+- do not create new ansible connection, reuse self.conn
+- run copr-be.py as copr
+- s/Copr/Project/ where we use copr in meaning of projects
+- number will link to those coprs, to which it refers
+- run log and jobgrab as copr user
+- log event to log file
+- convert comment into docstring
+- use unbufferred output for copr-be.py
+- hint how to set ec2 variables
+- document sleeptime
+- document copr_url for copr-cli
+- document how to set api key for copr-cli
+- do not create list of list
+- document SECRET_KEY variable
+- make note how to become admin
+- instruct people to install selinux with frontend
+
 * Thu Oct 03 2013 Miroslav Suchý <msuchy@redhat.com> 1.9-1
 - prune old builds
 - require python-decorator
