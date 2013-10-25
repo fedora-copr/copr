@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.10
+Version:	1.11
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -380,6 +380,9 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Sat Oct 26 2013 Miroslav Suchý <msuchy@redhat.com> 1.11-1
+- catch IOError from libravatar if there is no network
+
 * Fri Oct 25 2013 Miroslav Suchý <msuchy@redhat.com> 1.10-1
 - do not normalize url
 - specify full prefix of http
