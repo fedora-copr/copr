@@ -49,8 +49,7 @@ class TestCoprCancelBuild(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/cancel_build/{2}/'.format(self.u1.name, self.c1.name, self.b1.id),
                   data = {},
                   follow_redirects = True)
-        self.db.session.add(self.b1)
-        assert self.b1.canceled == True
+        assert self.models.Build.query.first().canceled is True
 
 
     @TransactionDecorator('u2')
@@ -59,5 +58,4 @@ class TestCoprCancelBuild(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/cancel_build/{2}/'.format(self.u1.name, self.c1.name, self.b1.id),
                   data = {},
                   follow_redirects = True)
-        self.db.session.add(self.b1)
-        assert self.b1.canceled == False
+        assert self.models.Build.query.first().canceled is False
