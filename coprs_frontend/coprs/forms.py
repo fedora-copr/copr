@@ -2,6 +2,7 @@ import re
 import urlparse
 
 import flask
+import wtforms
 
 from flask.ext import wtf
 
@@ -20,7 +21,7 @@ class UrlListValidator(object):
         urls = field.data.split()
         for u in urls:
             if not self.is_url(u):
-                raise wtf.ValidationError(self.message.format(u))
+                raise wtforms.ValidationError(self.message.format(u))
 
     def is_url(self, url):
         parsed = urlparse.urlparse(url)
@@ -44,7 +45,7 @@ class CoprUniqueNameValidator(object):
         existing = coprs_logic.CoprsLogic.exists_for_user(flask.g.user, field.data).first()
 
         if existing and str(existing.id) != form.id.data:
-            raise wtf.ValidationError(self.message.format(field.data))
+            raise wtforms.ValidationError(self.message.format(field.data))
 
 
 class StringListFilter(object):
@@ -70,19 +71,32 @@ class CoprFormFactory(object):
         class F(wtf.Form):
             # also use id here, to be able to find out whether user is updating a copr
             # if so, we don't want to shout that name already exists
-            id = wtf.HiddenField()
-            name = wtf.TextField('Name',
-                                 validators = [wtf.Required(),
-                                 wtf.Regexp(re.compile(r'^[\w.-]+$'), message='Name must contain only letters, digits, underscores, dashes and dots.'),
-                                 CoprUniqueNameValidator()])
-            description = wtf.TextAreaField('Description')
-            instructions = wtf.TextAreaField('Instructions')
-            repos = wtf.TextAreaField('Repos',
-                                      validators = [UrlListValidator()],
-                                      filters = [StringListFilter()])
-            initial_pkgs = wtf.TextAreaField('Initial packages to build',
-                                             validators = [UrlListValidator()],
-                                             filters = [StringListFilter()])
+            id = wtforms.HiddenField()
+
+            name = wtforms.TextField(
+                'Name',
+                validators=[
+                    wtforms.validators.Required(),
+                    wtforms.validators.Regexp(
+                        re.compile(r'^[\w.-]+$'),
+                        message='Name must contain only letters,'
+                        'digits, underscores, dashes and dots.'),
+                    CoprUniqueNameValidator()
+                ])
+
+            description = wtforms.TextAreaField('Description')
+
+            instructions = wtforms.TextAreaField('Instructions')
+
+            repos = wtforms.TextAreaField(
+                'Repos',
+                validators=[UrlListValidator()],
+                filters=[StringListFilter()])
+
+            initial_pkgs = wtforms.TextAreaField(
+                'Initial packages to build',
+                validators=[UrlListValidator()],
+                filters=[StringListFilter()])
 
             @property
             def selected_chroots(self):
@@ -115,7 +129,7 @@ class CoprFormFactory(object):
             checkbox_default = False
             if mock_chroots and ch in map(lambda x:x.chroot_name, mock_chroots):
                 checkbox_default = True
-            setattr(F, ch, wtf.BooleanField(ch, default=checkbox_default))
+            setattr(F, ch, wtforms.BooleanField(ch, default=checkbox_default))
             if ch[0] in F.chroots_sets:
                 F.chroots_sets[ch[0]].append(ch)
             else:
@@ -124,22 +138,41 @@ class CoprFormFactory(object):
         return F
 
 class CoprDeleteForm(wtf.Form):
-    verify = wtf.TextField('Confirm deleting by typing "yes"',
-                           validators=[wtf.Required(), wtf.Regexp(r'^yes$', message='Type "yes" - without the quotes, lowercase.')])
+    verify = wtforms.TextField(
+        'Confirm deleting by typing "yes"',
+        validators=[
+            wtforms.validators.Required(),
+            wtforms.validators.Regexp(
+                r'^yes$',
+                message='Type "yes" - without the quotes, lowercase.')
+        ])
 
 class BuildForm(wtf.Form):
-    pkgs = wtf.TextAreaField('Pkgs',
-                             validators = [wtf.Required(), UrlListValidator()],
-                             filters = [StringListFilter()])
-    memory_reqs = wtf.IntegerField('Memory requirements',
-                                   validators = [wtf.NumberRange(min = constants.MIN_BUILD_MEMORY, max = constants.MAX_BUILD_MEMORY)],
-                                   default = constants.DEFAULT_BUILD_MEMORY)
-    timeout = wtf.IntegerField('Timeout',
-                               validators = [wtf.NumberRange(min = constants.MIN_BUILD_TIMEOUT, max = constants.MAX_BUILD_TIMEOUT)],
-                               default = constants.DEFAULT_BUILD_TIMEOUT)
+    pkgs = wtforms.TextAreaField(
+        'Pkgs',
+        validators=[
+            wtforms.validators.Required(),
+            UrlListValidator()],
+        filters=[StringListFilter()])
+
+    memory_reqs = wtforms.IntegerField(
+        'Memory requirements',
+        validators=[
+            wtforms.validators.NumberRange(
+                min=constants.MIN_BUILD_MEMORY,
+                max=constants.MAX_BUILD_MEMORY)],
+        default=constants.DEFAULT_BUILD_MEMORY)
+
+    timeout = wtforms.IntegerField(
+        'Timeout',
+        validators=[
+            wtforms.validators.NumberRange(
+                min=constants.MIN_BUILD_TIMEOUT,
+                max=constants.MAX_BUILD_TIMEOUT)],
+        default=constants.DEFAULT_BUILD_TIMEOUT)
 
 class CoprLegalFlagForm(wtf.Form):
-    comment = wtf.TextAreaField('Comment')
+    comment = wtforms.TextAreaField('Comment')
 
 class PermissionsApplierFormFactory(object):
     @staticmethod
@@ -156,8 +189,15 @@ class PermissionsApplierFormFactory(object):
             if permission.copr_admin != helpers.PermissionEnum('nothing'):
                 admin_default = True
 
-        setattr(F, 'copr_builder', wtf.BooleanField(default = builder_default, filters = [ValueToPermissionNumberFilter()]))
-        setattr(F, 'copr_admin', wtf.BooleanField(default = admin_default, filters = [ValueToPermissionNumberFilter()]))
+        setattr(F, 'copr_builder',
+                wtforms.BooleanField(
+                    default=builder_default,
+                    filters=[ValueToPermissionNumberFilter()]))
+
+        setattr(F, 'copr_admin',
+                wtforms.BooleanField(
+                    default=admin_default,
+                    filters=[ValueToPermissionNumberFilter()]))
 
         return F
 
@@ -176,7 +216,16 @@ class PermissionsFormFactory(object):
             builder_default = perm.copr_builder
             admin_default = perm.copr_admin
 
-            setattr(F, 'copr_builder_{0}'.format(perm.user.id), wtf.SelectField(choices = builder_choices, default = builder_default, coerce = int))
-            setattr(F, 'copr_admin_{0}'.format(perm.user.id), wtf.SelectField(choices = admin_choices, default = admin_default, coerce = int))
+            setattr(F, 'copr_builder_{0}'.format(perm.user.id),
+                    wtforms.SelectField(
+                        choices=builder_choices,
+                        default=builder_default,
+                        coerce=int))
+
+            setattr(F, 'copr_admin_{0}'.format(perm.user.id),
+                    wtforms.SelectField(
+                        choices=admin_choices,
+                        default=admin_default,
+                        coerce=int))
 
         return F
