@@ -342,7 +342,8 @@ hr {
 
 .footer {
     padding: 25px;
-    background: #f2f2f2;
+    background: white;
+    font-size: 0.8em;
 }
 
 .footer p {

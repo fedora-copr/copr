@@ -31,5 +31,12 @@
     {% block body %}{% endblock %}
   </div>
 </div>
+<div class="footer">
+<p>
+  <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  <a href="https://fedorahosted.org/copr/">Copr Project</a>
+  <a class="last" href="{{ url_for('api_ns.api_home') }}">API</a>
+</p>
+</div>
 </body>
 </html>
