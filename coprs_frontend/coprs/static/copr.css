@@ -360,3 +360,10 @@ hr {
 .footer .last {
     border-right: none;
 }
+
+.required:before {
+    content: "* ";
+    color: red;
+    font-weight: bold;
+}
+

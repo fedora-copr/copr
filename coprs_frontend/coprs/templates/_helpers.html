@@ -1,6 +1,6 @@
-{% macro render_field(field, label=None) %}
+{% macro render_field(field, label=None, class='') %}
   {% if not kwargs['hidden'] %}
-    <dt class="field-label">{{ label or field.label }}</dt>
+    <dt class="field-label {{ class }}">{{ label or field.label }}</dt>
     <dd>
       {% if field.errors %}
         {% for error in field.errors %}

@@ -12,10 +12,10 @@
     <dl>
       {{ form.csrf_token }}
       {{ render_field(form.id, hidden = True) }}
-      {{ render_field(form.name, label='Project Name') }}
+      {{ render_field(form.name, label='Project Name', required = True, class="required") }}
       {{ render_field(form.description, rows=5, cols=50) }}
       {{ render_field(form.instructions, rows=5, cols=50) }}
-      <dt class="field-label">Chroots</dt>
+      <dt class="field-label required">Chroots</dt>
       {% if form._mock_chroots_error %}
         <p class="form-error">{{ form._mock_chroots_error }}</p>
       {% endif %}
