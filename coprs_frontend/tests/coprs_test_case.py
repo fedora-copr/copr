@@ -17,6 +17,7 @@ class CoprsTestCase(object):
         self.app = coprs.app
         self.app.testing = True
         self.db = coprs.db
+        self.db.session = self.db.create_scoped_session()
         self.models = models
         self.helpers = helpers
         self.backend_passwd = coprs.app.config['BACKEND_PASSWORD']
