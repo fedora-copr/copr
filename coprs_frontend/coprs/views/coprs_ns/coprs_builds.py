@@ -61,7 +61,7 @@ def copr_new_build(username, coprname):
                 build.memory_reqs = form.memory_reqs.data
                 build.timeout = form.timeout.data
         except exceptions.ActionInProgressException as e:
-            flask.flash(e)
+            flask.flash(str(e))
             db.session.rollback()
         else:
             flask.flash("Build was added")
@@ -81,8 +81,8 @@ def copr_cancel_build(username, coprname, build_id):
         return page_not_found('Build with id {0} does not exist.'.format(build_id))
     try:
         builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
-    except exceptions.InsufficientRightsException as ex:
-        flask.flash(ex.message)
+    except exceptions.InsufficientRightsException as e:
+        flask.flash(str(e))
     else:
         db.session.commit()
         flask.flash('Build was canceled')

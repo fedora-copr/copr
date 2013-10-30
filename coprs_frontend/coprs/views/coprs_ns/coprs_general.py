@@ -184,7 +184,7 @@ def copr_update(username, coprname):
         try:
             coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
         except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
-            flask.flash(e)
+            flask.flash(str(e))
             db.session.rollback()
         else:
             flask.flash('Project was updated successfully.')
@@ -238,7 +238,7 @@ def copr_update_permissions(username, coprname):
         # for now, we don't check for actions here, as permissions operation don't collide with any actions
         except exceptions.InsufficientRightsException as e:
             db.session.rollback()
-            flask.flash(e)
+            flask.flash(str(e))
         else:
             db.session.commit()
             flask.flash('Project permissions were updated successfully.')
@@ -257,7 +257,7 @@ def copr_delete(username, coprname):
             coprs_logic.CoprsLogic.delete(flask.g.user, copr)
         except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
             db.session.rollback()
-            flask.flash(e)
+            flask.flash(str(e))
             return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
         else:
             db.session.commit()
