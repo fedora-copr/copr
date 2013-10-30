@@ -114,7 +114,8 @@ class TestCoprNew(CoprsTestCase):
 
         self.db.session.add(self.c1)
         r = self.test_client.post('/coprs/{0}/new/'.format(self.u1.name), data = {'name': self.c1.name, 'fedora-rawhide-i386': 'y', 'arches': ['i386']}, follow_redirects = True)
-        self.db.session.add_all([self.c1, self.u1])
+        self.c1 = self.db.session.merge(self.c1)
+        self.u1 = self.db.session.merge(self.u1)
         assert len(self.models.Copr.query.filter(self.models.Copr.name==self.c1.name).\
                                           filter(self.models.Copr.owner==self.u1).\
                                           all()) == 2
@@ -220,7 +221,11 @@ class TestCoprUpdate(CoprsTestCase):
                    data = {'name': self.c1.name, self.mc2.chroot_name: 'y', self.mc3.chroot_name: 'y', 'id': self.c1.id},
                    follow_redirects = True)
         assert 'Project was updated successfully' in r.data
-        self.db.session.add_all([self.c1, self.mc1, self.mc2, self.mc3])
+        self.c1 = self.db.session.merge(self.c1)
+        self.mc1 = self.db.session.merge(self.mc1)
+        self.mc2 = self.db.session.merge(self.mc2)
+        self.mc3 = self.db.session.merge(self.mc3)
+
         mock_chroots = self.models.MockChroot.query.join(self.models.CoprChroot).\
                                                     filter(self.models.CoprChroot.copr_id==\
                                                            self.c1.id).all()
@@ -242,7 +247,8 @@ class TestCoprUpdate(CoprsTestCase):
                    data = {'name': self.c2.name, self.mc1.chroot_name: 'y', 'id': self.c2.id},
                    follow_redirects = True)
         assert 'Project was updated successfully' in r.data
-        self.db.session.add_all([self.c2, self.mc1])
+        self.c2 = self.db.session.merge(self.c2)
+        self.mc1 = self.db.session.merge(self.mc1)
         mock_chroots = self.models.MockChroot.query.join(self.models.CoprChroot).\
                                                     filter(self.models.CoprChroot.copr_id==\
                                                            self.c2.id).all()
@@ -258,7 +264,9 @@ class TestCoprApplyForPermissions(CoprsTestCase):
                    follow_redirects = True)
         assert 'Successfuly updated' in r.data
 
-        self.db.session.add_all([self.u1, self.u2, self.c1])
+        self.u1 = self.db.session.merge(self.u1)
+        self.u2 = self.db.session.merge(self.u2)
+        self.c1 = self.db.session.merge(self.c1)
         new_perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u2.id).\
                                                     filter(self.models.CoprPermission.copr_id == self.c1.id).\
                                                     first()
@@ -274,7 +282,8 @@ class TestCoprApplyForPermissions(CoprsTestCase):
                    follow_redirects = True)
         assert 'Successfuly updated' in r.data
 
-        self.db.session.add_all([self.u1, self.c2])
+        self.u1 = self.db.session.merge(self.u1)
+        self.c2 = self.db.session.merge(self.c2)
         new_perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id == self.u1.id).\
                                                     filter(self.models.CoprPermission.copr_id == self.c2.id).\
                                                     first()
@@ -301,7 +310,9 @@ class TestCoprUpdatePermissions(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
                    data = {'copr_builder_1': '2', 'copr_admin_1': '1', 'copr_admin_3': '2'},
                    follow_redirects = True)
-        self.db.session.add_all([self.c3, self.u1, self.u3])
+        self.u1 = self.db.session.merge(self.u1)
+        self.u3 = self.db.session.merge(self.u3)
+        self.c3 = self.db.session.merge(self.c3)
         u1_c3_perms = self.models.CoprPermission.query.filter(self.models.CoprPermission.copr_id == self.c3.id).\
                                                        filter(self.models.CoprPermission.user_id == self.u1.id).\
                                                        first()
@@ -335,7 +346,8 @@ class TestCoprUpdatePermissions(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/update_permissions/'.format(self.u2.name, self.c3.name),
                    data = {'copr_admin_1': '1', 'copr_admin_3': '1'},
                    follow_redirects = True)
-        self.db.session.add_all([self.u1, self.c3])
+        self.u1 = self.db.session.merge(self.u1)
+        self.c3 = self.db.session.merge(self.c3)
         perm = self.models.CoprPermission.query.filter(self.models.CoprPermission.user_id==self.u1.id).\
                                                 filter(self.models.CoprPermission.copr_id==self.c3.id).\
                                                 first()
@@ -372,7 +384,7 @@ class TestCoprDelete(CoprsTestCase):
         r = self.test_client.post('/coprs/{0}/{1}/delete/'.format(self.u1.name, self.c1.name),
                    data = {'verify': 'yes'},
                    follow_redirects = True)
-        self.db.session.add_all([self.c1])
+        self.c1 = self.db.session.merge(self.c1)
         assert 'Project was deleted successfully' not in r.data
         assert not self.models.Action.query.first()
         assert self.models.Copr.query.filter(self.models.Copr.id==self.c1.id).first()
