@@ -266,6 +266,10 @@ table.builds-table tr.details {
   display: none;
 }
 
+tr.build-state:hover {
+  text-decoration: underline;
+}
+
 tr.build-pending {
   color: #3B6EB4;
 }

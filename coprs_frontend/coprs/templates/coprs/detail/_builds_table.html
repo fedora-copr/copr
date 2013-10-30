@@ -12,7 +12,7 @@
         <th>State</th>
       </tr>
     {% for build in builds %}
-      <tr class="build-{{ build.state }}">
+      <tr class="build-{{ build.state }} build-state">
         <td>{{ build.id }}</td>
         <td>{{ build.submitted_on|date_from_secs }}</td>
         <td>{{ build.user.name }}</td>
