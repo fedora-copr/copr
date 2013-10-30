@@ -30,7 +30,7 @@
       {% endfor %}
       {{ render_field(form.repos, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used during build. Space separated.') }}
       {% if copr is none %}{# we're creating the copr, so display initial builds area #}
-        {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submited later.') }}
+        {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submitted later.') }}
       {% endif %}
       <dt><input type="submit" value="{% if copr %}Update{% else %}Create{% endif %}"></dt>
     </dl>
