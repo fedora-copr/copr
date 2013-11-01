@@ -54,7 +54,7 @@ def listcoprs(username=None):
     copr_api_url = get_api_url()
     url = '{0}/coprs/{1}/'.format(copr_api_url, user['username'])
 
-    req = requests.get(url, params=user)
+    req = requests.get(url)
 
     if '<title>Sign in Coprs</title>' in req.text:
         print 'Invalid API token'
