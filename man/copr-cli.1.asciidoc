@@ -94,6 +94,7 @@ Open file \~/.config/copr and put there content:
 
  [copr-cli]
  username = msuchy
+ login = Y57wcg==##fkfaxbkjhuoiebfafadl
  token = vbfseelqdebzedukgombekmuvbkqwo
 
 Be aware that API token have some expiration. See Expiration date on /api page.

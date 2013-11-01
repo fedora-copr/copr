@@ -23,11 +23,12 @@ def get_user():
             'No configuration file "~/.config/copr" found.')
     try:
         username = config.get('copr-cli', 'username', None)
+        login = config.get('copr-cli', 'login', None)
         token = config.get('copr-cli', 'token', None)
     except ConfigParser.Error, err:
         raise copr_exceptions.CoprCliConfigException(
             'Bad configuration file: %s' % err)
-    return {'username': username, 'token': token}
+    return {'username': username, 'token': token, 'login': login}
 
 
 def get_api_url():
@@ -146,7 +147,7 @@ def create(name, chroots=[], description=None, instructions=None,
         data[chroot] = 'y'
 
     req = requests.post(URL,
-                        auth=(user['username'], user['token']),
+                        auth=(user['login'], user['token']),
                         data=data)
     if '<title>Sign in Coprs</title>' in req.text:
         print 'Invalid API token'
@@ -174,7 +175,7 @@ def build(copr, pkgs, memory, timeout):
             }
 
     req = requests.post(URL,
-                        auth=(user['username'], user['token']),
+                        auth=(user['login'], user['token']),
                         data=data)
 
     if '<title>Sign in Coprs</title>' in req.text:
