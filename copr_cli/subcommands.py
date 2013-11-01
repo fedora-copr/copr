@@ -50,7 +50,7 @@ def listcoprs(username=None):
     if username:
         user['username'] = username
 
-        copr_api_url = get_api_url()
+    copr_api_url = get_api_url()
     url = '{0}/coprs/{1}/'.format(copr_api_url, user['username'])
 
     req = requests.get(url, params=user)
