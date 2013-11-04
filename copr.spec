@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.11
+Version:	1.12
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -380,6 +380,25 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Mon Nov 04 2013 Miroslav Suchý <msuchy@redhat.com> 1.12-1
+- do not send parameters when we neither need them nor use them
+- authenticate using api login, not using username
+- disable editing name of project
+- Add commented out WTF_CSRF_ENABLED = True to configs
+- Use new session for each test
+- fix test_coprs_general failures
+- fix test_coprs_builds failures
+- Add WTF_CSRF_ENABLED = False to unit test config
+- PEP8 fixes
+- Fix compatibility with wtforms 0.9
+- typo s/submited/submitted/
+- UX - show details of build only after click
+- add link to FAQ to footer
+- UX - add placeholders
+- UX - add asterisk to required fields
+- dynamicly generate url for home
+- add footer
+
 * Sat Oct 26 2013 Miroslav Suchý <msuchy@redhat.com> 1.11-1
 - catch IOError from libravatar if there is no network
 
