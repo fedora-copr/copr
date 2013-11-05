@@ -393,11 +393,12 @@ class TestCoprRepoGeneration(CoprsTestCase):
     @pytest.fixture
     def f_custom_builds(self):
         ''' Custom builds are used in order not to break the default ones '''
-        self.b5 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=9, ended_on=200, results='foo://bar.baz', status=1)
+        self.b5 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=9, ended_on=200, results='http://bar.baz', status=1)
         self.b6 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=11)
-        self.b7 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=10, ended_on=150, results='foo://bar.baz', status=1)
-
-        self.db.session.add_all([self.b5, self.b6, self.b7])
+        self.b7 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=10, ended_on=150, results='http://bar.baz', status=1)
+        self.mc1 = self.models.MockChroot(os_release='fedora', os_version='18', arch='x86_64')
+        self.cc1 = self.models.CoprChroot(mock_chroot = self.mc1, copr = self.c1)
+        self.db.session.add_all([self.b5, self.b6, self.b7, self.mc1, self.cc1])
 
     def test_fail_on_missing_dash(self):
         r = self.tc.get('/coprs/reponamewithoutdash/repo/')
@@ -405,17 +406,17 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert 'Copr with name repo does not exist' in r.data
 
     def test_fail_on_nonexistent_copr(self):
-        r = self.tc.get('/coprs/bogus-nonexistent-repo/repo/')
+        r = self.tc.get('/coprs/bogus-user/bogus-nonexistent-repo/repo/fedora-18-x86_64/')
         assert r.status_code == 404
-        assert 'Copr with name repo does not exist' in r.data
+        assert 'does not exist' in r.data
 
     def test_fail_on_no_finished_builds(self, f_users,  f_coprs, f_db):
         r = self.tc.get(
-            '/coprs/{0}/{1}/repo/'.format(self.u1.name, self.c1.name))
+            '/coprs/{0}/{1}/repo/fedora-18-x86_64/'.format(self.u1.name, self.c1.name))
         assert r.status_code == 404
         assert 'Repository not initialized' in r.data
 
     def test_works_on_older_builds(self, f_users, f_coprs, f_custom_builds, f_db):
-        r = self.tc.get('/coprs/{0}/{1}/repo/'.format(self.u1.name, self.c1.name))
+        r = self.tc.get('/coprs/{0}/{1}/repo/fedora-18-x86_64/'.format(self.u1.name, self.c1.name))
         assert r.status_code == 200
-        assert 'baseurl=foo://bar.baz' in r.data
+        assert 'baseurl=http://bar.baz' in r.data
