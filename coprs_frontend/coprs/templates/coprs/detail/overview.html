@@ -9,18 +9,12 @@
   <div class="shift-right">{{ copr.description_or_not_filled }}</div>
   <h2>Installation Instructions</h2>
   <div class="shift-right">{{ copr.instructions_or_not_filled}}</div>
-  <h2>Yum repo</h2>
-  <div class="shift-right">
-      <a href="{{ url_for(
-        'coprs_ns.generate_repo_file',
-        username=copr.owner.name,
-        coprname=copr.name) }}">
-          {{ copr.owner.name }}-{{ copr.name }}.repo</a></div>
   <h2>Active Releases</h2>
   <table class="releases">
     <tr>
       <th class="leftmost">Release</th>
-      <th class="rightmost">Architecture</th>
+      <th>Architecture</th>
+      <th class="rightmost">Yum Repo</th>
     </tr>
     {% for mock_chroot in copr.active_mock_chroots %}
       {% if loop.index < copr.active_mock_chroots|length %}
@@ -43,6 +37,20 @@
           <td></td>
         {% endif %}
       <td>{{ mock_chroot.arch }}</td>
+        {% if mock_chroot.os_release != copr.active_mock_chroots[loop.index0 - 1].os_release or
+        mock_chroot.os_version != copr.active_mock_chroots[loop.index0 - 1].os_version or
+        loop.index0 == 0 %}
+          {# previous os_release-os_version were different or this is the first one #}
+          <td><a href="{{ url_for(
+        'coprs_ns.generate_repo_file',
+        username=copr.owner.name,
+        coprname=copr.name,
+        chroot=mock_chroot.chroot_name) }}">
+          {{ copr.owner.name }}-{{ copr.name }}.repo</a></td>
+        {% else %}
+          <td></td>
+        {% endif %}
+
       </tr>
     {% else %}
       <tr colspan="2"><td>No active releases</td></tr>

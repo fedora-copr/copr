@@ -278,6 +278,12 @@ class MockChrootsLogic(object):
                                               models.MockChroot.arch==arch)
 
     @classmethod
+    def get_from_name(cls, chroot_name, active_only = False):
+        """ Returns MockChroot object for textual representation of chroot """
+        name_tuple = cls.tuple_from_name(None, chroot_name)
+        return cls.get(None, name_tuple[0], name_tuple[1], name_tuple[2], active_only = active_only)
+
+    @classmethod
     def get_multiple(cls, user, active_only=False):
         query = models.MockChroot.query
         if active_only:

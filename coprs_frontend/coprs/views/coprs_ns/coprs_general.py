@@ -2,6 +2,7 @@ import time
 
 import flask
 import sqlalchemy
+import urlparse
 
 from coprs import db
 from coprs import exceptions
@@ -283,8 +284,8 @@ def copr_legal_flag(username, coprname):
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
 
 
-@coprs_ns.route('/<username>/<coprname>/repo/')
-def generate_repo_file(username, coprname):
+@coprs_ns.route('/<username>/<coprname>/repo/<chroot>/')
+def generate_repo_file(username, coprname, chroot):
     ''' Generate repo file for a given repo name.
         Reponame = username-coprname '''
     # This solution is used because flask splits off the last part after a
@@ -305,6 +306,11 @@ def generate_repo_file(username, coprname):
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found('Project {0}/{1} does not exist'.format(username, coprname))
 
+    try:
+        mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found('Chroot %s does not exist' % chroot)
+
     url = ''
     for build in copr.builds:
         if build.results:
@@ -313,6 +319,8 @@ def generate_repo_file(username, coprname):
 
     if not url:
         return page_not_found('Repository not initialized: No finished builds in {0}/{1}.'.format(username, coprname))
+
+    url = urlparse.urljoin(url, "%s-%s-%s/" % (mock_chroot.os_release, '$releasever', '$basearch'))
 
     response = flask.make_response(flask.render_template('coprs/copr.repo', copr=copr, url=url))
     response.mimetype='text/plain'
