@@ -373,3 +373,7 @@ hr {
     font-weight: bold;
 }
 
+textarea {
+        width: 100%;
+}
+
