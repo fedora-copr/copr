@@ -292,6 +292,7 @@ tr.build-canceled {
 
 table.releases th {
   background-color: #f2f2f2;
+  text-align: left;
 }
 
 table.releases th.leftmost {
