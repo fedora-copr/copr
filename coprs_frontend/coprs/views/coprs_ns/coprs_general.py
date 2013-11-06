@@ -324,4 +324,5 @@ def generate_repo_file(username, coprname, chroot):
 
     response = flask.make_response(flask.render_template('coprs/copr.repo', copr=copr, url=url))
     response.mimetype='text/plain'
+    response.headers['Content-Disposition'] = 'filename=%s.repo' % reponame
     return response
