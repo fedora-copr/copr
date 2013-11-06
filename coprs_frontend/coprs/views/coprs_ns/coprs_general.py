@@ -320,7 +320,7 @@ def generate_repo_file(username, coprname, chroot):
     if not url:
         return page_not_found('Repository not initialized: No finished builds in {0}/{1}.'.format(username, coprname))
 
-    url = urlparse.urljoin(url, "%s-%s-%s/" % (mock_chroot.os_release, '$releasever', '$basearch'))
+    url = urlparse.urljoin(url, "%s-%s-%s/" % (mock_chroot.os_release, mock_chroot.os_version, '$basearch'))
 
     response = flask.make_response(flask.render_template('coprs/copr.repo', copr=copr, url=url))
     response.mimetype='text/plain'
