@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
-{% block title %}Coprs List{% endblock %}
-{% block header %}Coprs List{% endblock %}
+{% block title %}Project List{% endblock %}
+{% block header %}Project List{% endblock %}
 {% from "_helpers.html" import render_pagination %}
 {% block body %}
   {% if g.user %}
@@ -12,7 +12,7 @@
     <p class="coprs-count">
       <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">{{ g.user.coprs_count }}</a>
     </p>
-    <p class="other-text">coprs</p>
+    <p class="other-text">projects</p>
   </div>
   {% endif %}
   <div class="coprs-list-{% if g.user %}thin{% else %}thick{% endif %}">
