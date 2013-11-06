@@ -15,6 +15,7 @@
       {% if copr is none %}
         {{ render_field(form.name, label='Project Name', required = True, class="required") }}
       {% else %}
+        {{ render_field(form.name, hidden = True) }}
         {{ render_field(form.name, label='Project Name', disabled = True) }}
       {% endif %}
       {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.') }}
