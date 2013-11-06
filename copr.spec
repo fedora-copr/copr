@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.12
+Version:	1.13
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -380,6 +380,19 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Wed Nov 06 2013 Miroslav Suchý <msuchy@redhat.com> 1.13-1
+- suggest correct name of repo file
+- we could not use releasever macro
+- no need to capitalize Projects
+- another s/copr/project
+- add link to header for sign-in
+- fix failing tests
+- UX - let textarea will full widht of box
+- UX - make background of hovered builds darker
+- generate yum repo for each chroot of copr
+- align table header same way as ordinary rows
+- enable resulting repo and disable gpgchecks
+
 * Mon Nov 04 2013 Miroslav Suchý <msuchy@redhat.com> 1.12-1
 - do not send parameters when we neither need them nor use them
 - authenticate using api login, not using username
