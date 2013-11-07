@@ -21,7 +21,7 @@ from coprs.logic import coprs_logic
 @coprs_ns.route('/', defaults = {'page': 1})
 @coprs_ns.route('/<int:page>/')
 def coprs_show(page=1):
-    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, with_mock_chroots=True)
+    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, with_mock_chroots=False)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
@@ -34,7 +34,7 @@ def coprs_by_owner(username=None, page=1):
     query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
                                                 user_relation='owned',
                                                 username=username,
-                                                with_mock_chroots=True)
+                                                with_mock_chroots=False)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
@@ -47,7 +47,7 @@ def coprs_by_allowed(username=None, page=1):
     query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
                                                 user_relation='allowed',
                                                 username=username,
-                                                with_mock_chroots=True)
+                                                with_mock_chroots=False)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
