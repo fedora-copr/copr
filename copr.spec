@@ -264,7 +264,7 @@ pushd coprs_frontend
 TMPFILE=$(mktemp)
 COPR_CONFIG="$(pwd)/config/copr_unit_test.conf"  ./manage.py test | tee $TMPFILE
 # remove this when tests are fixed
-grep "2 failed, 64 passed" $TMPFILE
+grep "1 failed, 65 passed" $TMPFILE
 popd
 
 %pre backend

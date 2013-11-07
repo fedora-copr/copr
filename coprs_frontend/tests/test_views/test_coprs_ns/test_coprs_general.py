@@ -400,6 +400,14 @@ class TestCoprRepoGeneration(CoprsTestCase):
         self.cc1 = self.models.CoprChroot(mock_chroot = self.mc1, copr = self.c1)
         self.db.session.add_all([self.b5, self.b6, self.b7, self.mc1, self.cc1])
 
+    @pytest.fixture
+    def f_not_finished_builds(self):
+        ''' Custom builds are used in order not to break the default ones '''
+        self.b8 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=11)
+        self.mc1 = self.models.MockChroot(os_release='fedora', os_version='18', arch='x86_64')
+        self.cc1 = self.models.CoprChroot(mock_chroot = self.mc1, copr = self.c1)
+        self.db.session.add_all([self.b8, self.mc1, self.cc1])
+
     def test_fail_on_missing_dash(self):
         r = self.tc.get('/coprs/reponamewithoutdash/repo/')
         assert r.status_code == 404
@@ -410,7 +418,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert r.status_code == 404
         assert 'does not exist' in r.data
 
-    def test_fail_on_no_finished_builds(self, f_users,  f_coprs, f_db):
+    def test_fail_on_no_finished_builds(self, f_users,  f_coprs, f_not_finished_builds, f_db):
         r = self.tc.get(
             '/coprs/{0}/{1}/repo/fedora-18-x86_64/'.format(self.u1.name, self.c1.name))
         assert r.status_code == 404
