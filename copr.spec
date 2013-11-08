@@ -5,7 +5,7 @@
 %global modulename copr
 
 Name:		copr
-Version:	1.13
+Version:	1.14
 Release:	1%{?dist}
 Summary:	Cool Other Package Repo
 
@@ -380,6 +380,11 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Fri Nov 08 2013 Miroslav Suchý <msuchy@redhat.com> 1.14-1
+- 1028235 - add disclaimer about repos
+- fix pagination
+- fix one failing test
+
 * Wed Nov 06 2013 Miroslav Suchý <msuchy@redhat.com> 1.13-1
 - suggest correct name of repo file
 - we could not use releasever macro
