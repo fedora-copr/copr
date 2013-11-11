@@ -1,3 +1,4 @@
+import re
 import os
 import sys
 import multiprocessing
@@ -163,10 +164,15 @@ class Worker(multiprocessing.Process):
         result = subprocess.check_output("ansible-playbook -c ssh %s" % self.opts.spawn_playbook,
                 shell=True)
         self.callback.log('Raw output from playbook: %s' % result)
-        # 4rd line from end, first column
-        result = string.strip((result.split('\n'))[-4].split(' ')[0])
+        match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
+
+        if not match:
+            return None
+
+        ipaddr = match.group(1)
 
         self.callback.log('spawning instance end')
+        self.callback.log('got instance ip: %s' % ipaddr)
         self.callback.log('Instance spawn/provision took %s sec' % (time.time() - start))
 
         if self.ip:
@@ -177,8 +183,8 @@ class Worker(multiprocessing.Process):
         #        continue
         #    return i
         try:
-            IP(result)
-            return result
+            IP(ipaddr)
+            return ipaddr
         except ValueError:
             # if we get here we're in trouble
             self.callback.log('No IP back from spawn_instance - dumping cache output')

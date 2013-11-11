@@ -25,6 +25,8 @@
   - name: wait for the host to be hot
     local_action: wait_for host=${int_ip.stdout} port=22 delay=5 timeout=600
 
+  - debug: msg="IP={{ int_ip.stdout }}"
+
 
 - hosts: builder_temp_group
   user: root
