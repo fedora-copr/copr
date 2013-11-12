@@ -1,8 +1,11 @@
 import time
 
 import flask
+import platform
+import smtplib
 import sqlalchemy
 import urlparse
+from email.mime.text import MIMEText
 
 from coprs import db
 from coprs import exceptions
@@ -280,6 +283,19 @@ def copr_legal_flag(username, coprname):
                                   reporter=flask.g.user)
     db.session.add(legal_flag)
     db.session.commit()
+
+    hostname = platform.node()
+    navigate_to = "\nNavigate to http://%s%s" % (hostname, flask.url_for('admin_ns.legal_flag'))
+    contact = "\nContact on owner is: %s <%s>" % (username, copr.owner.mail)
+    reported_by = "\nReported by %s <%s>" % (flask.g.user.name, flask.g.user.mail)
+    msg = MIMEText(form.comment.data + navigate_to + contact + reported_by)
+    msg['Subject'] = 'Legal flag raised on %s' % coprname
+    msg['From'] = 'root@%s' % hostname
+    msg['To'] = 'root@localhost'
+    s = smtplib.SMTP('localhost')
+    s.sendmail('root@%s' % hostname, ['root'], msg.as_string())
+    s.quit()
+
     flask.flash('Admin was noticed about your report and will investigate the project shortly.')
     return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
 
