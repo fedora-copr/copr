@@ -1,5 +1,3 @@
-import time
-
 import flask
 
 from coprs import db
@@ -13,7 +11,6 @@ from coprs.logic import coprs_logic
 
 from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
-from coprs.views.coprs_ns import coprs_general
 
 
 @coprs_ns.route('/<username>/<coprname>/builds/', defaults={'page': 1})
