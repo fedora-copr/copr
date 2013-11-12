@@ -26,6 +26,8 @@ class Config(object):
     SEND_LOGS_TO = ['root@localhost']
     LOGGING_LEVEL = logging.ERROR
 
+    SEND_LEGAL_TO = ['root@localhost']
+
 class ProductionConfig(Config):
     DEBUG = False
     #SECRET_KEY = 'put_some_secret_here'
