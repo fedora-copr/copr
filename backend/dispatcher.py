@@ -223,7 +223,7 @@ class Worker(multiprocessing.Process):
         """send data to frontend"""
 
         headers = {'content-type': 'application/json'}
-        url='%s/update_builds/' % self.opts.frontend_url
+        url='%s/update_actions/' % self.opts.frontend_url
         auth=('user', self.opts.frontend_auth)
 
         msg = None
@@ -320,24 +320,23 @@ class Worker(multiprocessing.Process):
                                build=job.build_id, ip=ip, pid=self.pid)
                 self.event('build.start', template, content)
 
-                for chroot in job.chroots:
-                    template = 'chroot start: chroot:{chroot} user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid}'
-                    content = dict(chroot=chroot, user=job.user_name,
-                                   copr=job.copr_name, build=job.build_id,
-                                   ip=ip, pid=self.pid)
-                    self.event('chroot.start', template, content)
+                template = 'chroot start: chroot:{chroot} user:{user} copr:{copr} build:{build} ip:{ip}  pid:{pid}'
+                content = dict(chroot=job.chroot, user=job.user_name,
+                               copr=job.copr_name, build=job.build_id,
+                               ip=ip, pid=self.pid)
+                self.event('chroot.start', template, content)
 
-                    chroot_destdir = os.path.normpath(job.destdir + '/' + chroot)
-                    # setup our target dir locally
-                    if not os.path.exists(chroot_destdir):
-                        try:
-                            os.makedirs(chroot_destdir)
-                        except (OSError, IOError), e:
-                            msg = "Could not make results dir for job: %s - %s" % (chroot_destdir, str(e))
-                            self.callback.log(msg)
-                            status = 0
-                            continue
+                chroot_destdir = os.path.normpath(job.destdir + '/' + job.chroot)
+                # setup our target dir locally
+                if not os.path.exists(chroot_destdir):
+                    try:
+                        os.makedirs(chroot_destdir)
+                    except (OSError, IOError), e:
+                        msg = "Could not make results dir for job: %s - %s" % (chroot_destdir, str(e))
+                        self.callback.log(msg)
+                        status = 0
 
+                if status == 1:
                     # FIXME
                     # need a plugin hook or some mechanism to check random
                     # info about the pkgs
@@ -345,15 +344,14 @@ class Worker(multiprocessing.Process):
                     # and run a series of checks on the package before we
                     # start the build - most importantly license checks.
 
-
-                    self.callback.log('Starting build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id,ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                    self.callback.log('Starting build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id,ip, job.timeout, job.destdir, job.chroot, str(job.repos)))
                     self.callback.log('building pkgs: %s' % ' '.join(job.pkgs))
                     try:
                         chroot_repos = list(job.repos)
-                        chroot_repos.append(job.results + '/' + chroot)
+                        chroot_repos.append(job.results + '/' + job.chroot)
                         chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
                         mr = mockremote.MockRemote(builder=ip, timeout=job.timeout,
-                             destdir=job.destdir, chroot=chroot, cont=True, recurse=True,
+                             destdir=job.destdir, chroot=job.chroot, cont=True, recurse=True,
                              repos=chroot_repos,
                              callback=mockremote.CliLogCallBack(quiet=True,logfn=chrootlogfile))
                         mr.build_pkgs(job.pkgs)
@@ -366,7 +364,7 @@ class Worker(multiprocessing.Process):
                         # check if any pkgs didn't build
                         if mr.failed:
                             status = 0
-                    self.callback.log('Finished build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id, ip, job.timeout, job.destdir, chroot, str(job.repos)))
+                    self.callback.log('Finished build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id, ip, job.timeout, job.destdir, job.chroot, str(job.repos)))
                 job.ended_on = time.time()
 
                 job.status = status
