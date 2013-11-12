@@ -208,7 +208,7 @@ def copr_permissions_applier_change(username, coprname):
     applier_permissions_form = forms.PermissionsApplierFormFactory.create_form_cls(permission)()
 
     if not copr:
-        return page_not_found('Project with name {0} does not exist.'.format(name))
+        return page_not_found('Project with name {0} does not exist.'.format(coprname))
     if copr.owner == flask.g.user:
         flask.flash('Owner cannot request permissions for his own project.')
     elif applier_permissions_form.validate_on_submit():
