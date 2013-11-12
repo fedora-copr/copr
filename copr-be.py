@@ -3,6 +3,7 @@
 
 from backend import errors
 from backend.dispatcher import Worker
+from backend.actions import Action
 from bunch import Bunch
 import ConfigParser
 import daemon
@@ -67,6 +68,11 @@ class CoprJobGrab(multiprocessing.Process):
                             self.event('Wrote job: %s' % b['id'])
                 if count:
                     self.event('New jobs: %s' % count)
+            if 'actions' in r_json and r_json['actions']:
+                self.event('%s actions returned' % len(r_json['actions']))
+                for action in r_json['actions']:
+                    ao = Action(self.opts, self.events, action)
+                    ao.run()
 
     def run(self):
         abort = False
@@ -79,7 +85,6 @@ class CoprJobGrab(multiprocessing.Process):
                     self.added_jobs.append(n)
                     self.event('adding to work queue id %s' % n)
             time.sleep(self.opts.sleeptime)
-
 
 class CoprLog(multiprocessing.Process):
     """log mechanism where items from the events queue get recorded"""
