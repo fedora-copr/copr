@@ -131,7 +131,7 @@ class User(db.Model, Serializer):
         try:
             return libravatar_url(email = self.mail)
         except IOError:
-            return "" 
+            return ""
 
 
 class Copr(db.Model, Serializer):
@@ -199,10 +199,6 @@ class Build(db.Model, Serializer):
     pkgs = db.Column(db.Text)
     # was this build canceled by user?
     canceled = db.Column(db.Boolean, default = False)
-    ## These two are present for every build, as they might change in Copr
-    ## between submitting and starting build => we want to keep them as submitted
-    # list of space separated mock chroot names
-    chroots = db.Column(db.Text, nullable = False)
     # list of space separated additional repos
     repos = db.Column(db.Text)
     ## the three below represent time of important events for this build
@@ -226,26 +222,41 @@ class Build(db.Model, Serializer):
     copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'))
     copr = db.relationship('Copr', backref = db.backref('builds'))
 
+    chroots = association_proxy('build_chroots', 'mock_chroot')
+
+    @property
+    def chroot_states(self):
+        return map(lambda chroot: chroot.status, self.build_chroots)
+
+    @property
+    def has_pending_chroot(self):
+        return helpers.StatusEnum('pending') in self.chroot_states
+
+    @property
+    def status(self):
+        """ Return build status according to build status of its chroots """
+        if self.canceled:
+            return helpers.StatusEnum('canceled')
+
+        for state in ['failed', 'running', 'pending', 'succeeded']:
+            if helpers.StatusEnum(state) in self.chroot_states:
+                return helpers.StatusEnum(state)
+
     @property
     def state(self):
-        """Return text representation of status of this build"""
-        if self.status == 1:
-            return 'succeeded'
-        elif self.status == 0:
-            return 'failed'
-        if self.canceled:
-            return 'canceled'
-        if not self.ended_on and self.started_on:
-            return 'running'
-        return 'pending'
+        """ Return text representation of status of this build """
+        return helpers.StatusEnum(self.status)
 
     @property
     def cancelable(self):
-        """Find out if this build is cancelable.
+        """
+        Find out if this build is cancelable.
 
         ATM, build is cancelable only if it wasn't grabbed by backend.
         """
-        return self.state == 'pending'
+
+        return self.status == helpers.StatusEnum('pending')
+
 
 class MockChroot(db.Model, Serializer):
     """Representation of mock chroot"""
@@ -277,6 +288,18 @@ class CoprChroot(db.Model, Serializer):
     copr = db.relationship('Copr', backref = db.backref('copr_chroots',
                                                         single_parent=True,
                                                         cascade='all,delete,delete-orphan'))
+
+
+class BuildChroot(db.Model, Serializer):
+    """Representation of Build<->MockChroot relation"""
+    mock_chroot_id = db.Column(db.Integer, db.ForeignKey('mock_chroot.id'),
+                               primary_key=True)
+    mock_chroot = db.relationship('MockChroot', backref=db.backref('builds'))
+    build_id = db.Column(db.Integer, db.ForeignKey('build.id'),
+                         primary_key=True)
+    build = db.relationship('Build', backref=db.backref('build_chroots'))
+    status = db.Column(db.Integer, default=helpers.StatusEnum('pending'))
+
 
 class LegalFlag(db.Model, Serializer):
     id = db.Column(db.Integer, primary_key=True)
