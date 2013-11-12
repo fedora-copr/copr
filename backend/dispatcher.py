@@ -5,6 +5,7 @@ import time
 import Queue
 import json
 import mockremote
+from callback import FrontendCallback
 from bunch import Bunch
 import errors
 import ansible
@@ -97,6 +98,7 @@ class Worker(multiprocessing.Process):
         self.kill_received = False
         self.callback = callback
         self.create = create
+        self.frontend_callback = FrontendCallback(opts)
         if not self.callback:
             self.logfile = self.opts.worker_logdir + '/worker-%s.log' % self.worker_num
             self.callback = WorkerCallback(logfile = self.logfile)
@@ -221,25 +223,10 @@ class Worker(multiprocessing.Process):
     # maybe we move this to the callback?
     def post_to_frontend(self, data):
         """send data to frontend"""
-
-        headers = {'content-type': 'application/json'}
-        url='%s/update_actions/' % self.opts.frontend_url
-        auth=('user', self.opts.frontend_auth)
-
-        msg = None
-        try:
-            r = requests.post(url, data=json.dumps(data), auth=auth,
-                              headers=headers)
-            if r.status_code != 200:
-                msg = 'Failed to submit to frontend: %s: %s' % (r.status_code, r.text)
-        except requests.RequestException, e:
-            msg = 'Post request failed: %s' % e
-
-        if msg:
-            self.callback.log(msg)
-            return False
-
-        return True
+        result = self.frontend_callback.post_to_frontend(data)
+        if not result:
+            self.callback.log(self.frontend_callback.msg)
+        return result
 
     # maybe we move this to the callback?
     def mark_started(self, job):
