@@ -47,6 +47,14 @@ class RoleEnum(object):
     __metaclass__ = EnumType
     vals = {'user': 0, 'admin': 1}
 
+class StatusEnum(object):
+    __metaclass__ = EnumType
+    vals = {'succeeded': 0,
+            'failed':    1,
+            'canceled':  2,
+            'running':   3,
+            'pending':   4}
+
 class Paginator(object):
     def __init__(self, query, total_count, page = 1, per_page_override = None, urls_count_override = None):
         self.query = query
