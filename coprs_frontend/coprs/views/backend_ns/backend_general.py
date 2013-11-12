@@ -1,3 +1,5 @@
+import json
+
 import flask
 
 from coprs import db
