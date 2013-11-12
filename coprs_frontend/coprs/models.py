@@ -208,9 +208,6 @@ class Build(db.Model, Serializer):
     ended_on = db.Column(db.Integer)
     # url of the build results
     results = db.Column(db.Text)
-    # status as returned by backend, see build.state for value explanation
-    # (TODO: this would deserve an enum)
-    status = db.Column(db.Integer)
     # memory requirements for backend builder
     memory_reqs = db.Column(db.Integer, default = constants.DEFAULT_BUILD_MEMORY)
     # maximum allowed time of build, build will fail if exceeded
