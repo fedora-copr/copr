@@ -66,7 +66,6 @@ class BuildsLogic(object):
             pkgs=pkgs,
             copr=copr,
             repos=copr.repos,
-            chroots=' '.join(map(lambda x: x.chroot_name, copr.active_mock_chroots)),
             user=user,
             submitted_on=int(time.time()))
         cls.new(user, build, copr)
@@ -81,6 +80,15 @@ class BuildsLogic(object):
 
         coprs_logic.CoprsLogic.increment_build_count(user, copr)
         db.session.add(build)
+
+        # add BuildChroot object for each active chroot
+        # this copr is assigned to
+        for chroot in copr.active_mock_chroots:
+            buildchroot = models.BuildChroot(
+                build=build,
+                mock_chroot=chroot)
+
+            db.session.add(buildchroot)
 
     @classmethod
     def update_state_from_dict(cls, user, build, upd_dict):
