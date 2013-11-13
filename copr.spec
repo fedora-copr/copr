@@ -343,6 +343,7 @@ fi
 %files frontend
 %doc LICENSE coprs.conf.example copr-setup.txt
 %dir %{_datadir}/copr
+%dir %{_sysconfdir}/copr
 %dir %{_sharedstatedir}/copr
 %{_datadir}/copr/coprs_frontend
 
@@ -355,7 +356,6 @@ fi
 %ghost %{_sharedstatedir}/copr/data/copr.db
 
 %defattr(600, copr-fe, copr-fe, 700)
-%dir %{_sysconfdir}/copr
 %config(noreplace)  %{_sysconfdir}/copr/copr.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_devel.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
