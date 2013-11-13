@@ -1,81 +1,74 @@
-import json
-
 import flask
 
 from coprs import db
-from coprs import helpers
-from coprs import models
-
+from coprs.logic import actions_logic
 from coprs.logic import builds_logic
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 
 
-@backend_ns.route('/waiting_builds/')
-def waiting_builds():
-    query = builds_logic.BuildsLogic.get_waiting_builds(None)
-
-    builds = query[0:10]
-    return flask.jsonify({'builds': [build.to_dict(options = {'copr': {'owner': {},
-                                                                       '__columns_only__': ['id', 'name'],
-                                                                       '__included_ids__': False},
-                                                              '__included_ids__': False}) for build in builds]})
-
-
-@backend_ns.route('/update_builds/', methods = ['POST', 'PUT'])
+@backend_ns.route('/waiting/')
 @misc.backend_authenticated
-def update_builds():
-    to_update = {}
-    for build in flask.request.json['builds']: # first get ids of sent builds
-        to_update[build['id']] = build
+def waiting():
+    """
+    Return list of waiting actions and builds.
+    """
 
-    if not to_update:
-        return json.dumps({'warning': 'No parsed builds'})
+    # models.Actions
+    actions_list = [action.to_dict(
+        options={'__columns_except__': ['result', 'message', 'ended_on']})
+        for action in actions_logic.ActionsLogic.get_waiting()
+    ]
 
-    existing = {} # create a dict of existing builds {build.id: build, ...}
-    for build in builds_logic.BuildsLogic.get_by_ids(None, to_update.keys()).all():
-        existing[build.id] = build
+    # models.Builds
+    builds_list = []
 
-    non_existing_ids = list(set(to_update.keys()) - set(existing.keys()))
+    for build in builds_logic.BuildsLogic.get_waiting():
+        build_dict = build.to_dict(
+            options={'copr': {'owner': {},
+                              '__columns_only__': ['id', 'name'],
+                              '__included_ids__': False
+                              },
+                     '__included_ids__': False})
 
-    for i, build in existing.items(): # actually update existing builds
-        builds_logic.BuildsLogic.update_state_from_dict(None, build, to_update[i])
+        # return separate build for each chroot this build
+        # is assigned with
+        for chroot in build.chroots:
+            build_dict_copy = build_dict.copy()
+            build_dict_copy['chroot'] = chroot.chroot_name
+            builds_list.append(build_dict_copy)
 
-    db.session.commit()
-
-    return flask.jsonify({'updated_builds_ids': list(existing.keys()), 'non_existing_builds_ids': non_existing_ids})
-
-
-@backend_ns.route('/waiting_actions/')
-def waiting_actions():
-    actions = models.Action.query.filter(models.Action.result==helpers.BackendResultEnum('waiting')).all()
-
-    return flask.jsonify({'actions': [action.to_dict(options={'__columns_except__': ['result', 'message', 'ended_on']}) for action in actions]})
+    return flask.jsonify({'actions': actions_list, 'builds': builds_list})
 
 
-# TODO: this is very similar to update_builds, we should pull out the common functionality into a single function
-@backend_ns.route('/update_actions/', methods=['POST', 'PUT'])
+@backend_ns.route('/update/', methods=['POST', 'PUT'])
 @misc.backend_authenticated
-def update_actions():
-    to_update = {}
-    for action in flask.request.json['actions']:
-        to_update[action['id']] = action
+def update():
+    result = {}
 
-    if not to_update:
-        return json.dumps({'warning': 'No parsed actions'})
+    for typ, logic_cls in [('actions', actions_logic.ActionsLogic),
+                           ('builds', builds_logic.BuildsLogic)]:
 
-    existing = {}
-    for action in models.Action.query.filter(models.Action.id.in_(to_update.keys())).all():
-        existing[action.id] = action
+        if typ not in flask.request.json:
+            continue
 
-    non_existing_ids = list(set(to_update.keys()) - set(existing.keys()))
+        to_update = {}
+        for obj in flask.request.json[typ]:
+            to_update[obj['id']] = obj
 
-    for i, action in existing.items():
-        existing[i].result = to_update[i]['result']
-        existing[i].message = to_update[i]['message']
-        existing[i].ended_on = to_update[i]['ended_on']
+        existing = {}
+        for obj in logic_cls.get_by_ids(to_update.keys()).all():
+            existing[obj.id] = obj
 
-    db.session.commit()
+        non_existing_ids = list(set(to_update.keys()) - set(existing.keys()))
 
-    return flask.jsonify({'updated_actions_ids': list(existing.keys()), 'non_existing_actions_ids': non_existing_ids})
+        for i, obj in existing.items():
+            logic_cls.update_state_from_dict(obj, to_update[i])
+
+        db.session.commit()
+
+        result.update({'updated_{0}_ids'.format(typ): list(existing.keys()),
+                       'non_existing_{0}_ids'.format(typ): non_existing_ids})
+
+    return flask.jsonify(result)

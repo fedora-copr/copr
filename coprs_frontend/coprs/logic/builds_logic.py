@@ -10,7 +10,7 @@ from coprs.logic import users_logic
 
 class BuildsLogic(object):
     @classmethod
-    def get(cls, user, build_id):
+    def get(cls, build_id):
         query = models.Build.query.filter(models.Build.id == build_id)
         return query
 
@@ -38,7 +38,7 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_waiting_builds(cls, user):
+    def get_waiting(cls):
         # return builds that aren't both started and finished (if build start submission
         # fails, we still want to mark the build as non-waiting, if it ended)
         # this has very different goal then get_multiple, so implement it alone
@@ -53,7 +53,7 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_by_ids(cls, user, ids):
+    def get_by_ids(cls, ids):
         return models.Build.query.filter(models.Build.id.in_(ids))
 
     @classmethod
@@ -91,13 +91,32 @@ class BuildsLogic(object):
             db.session.add(buildchroot)
 
     @classmethod
-    def update_state_from_dict(cls, user, build, upd_dict):
-        for attr in ['results', 'started_on', 'ended_on', 'status']:
+    def update_state_from_dict(cls, build, upd_dict):
+        if 'chroot' in upd_dict:
+            # update respective chroot status
+            for build_chroot in build.build_chroots:
+                if build_chroot.mock_chroot.chroot_name == upd_dict['chroot']:
+                    build_chroot.status = upd_dict['status']
+
+                    db.session.add(build_chroot)
+
+        for attr in ['results', 'started_on', 'ended_on']:
             value = upd_dict.get(attr, None)
-            if value != None:
-                setattr(build, attr, value)
+            if value:
+                # only update started_on once
+                if attr == 'started_on' and build.started_on:
+                    continue
+
+                # only update ended_on and results
+                # when there are no pending builds
+                if (attr in ['ended_on', 'results'] and
+                        build.has_pending_chroot):
+                    continue
+
                 if attr == 'ended_on':
                     signals.build_finished.send(cls, build=build)
+
+                setattr(build, attr, value)
 
         db.session.add(build)
 
