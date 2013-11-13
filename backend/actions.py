@@ -47,4 +47,4 @@ class Action(object):
         elif self.data['action_type'] == 2: # legal-flag
             self.event("Action legal-flag: ignoring")
         if 'result' in result:
-            self.frontend_callback.post_to_frontend(result)
+            self.frontend_callback.post_to_frontend( {'actions': [result]} )
