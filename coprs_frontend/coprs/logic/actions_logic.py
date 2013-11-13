@@ -16,6 +16,8 @@ class ActionsLogic(object):
         query = (models.Action.query
                  .filter(models.Action.result ==
                          helpers.BackendResultEnum('waiting'))
+                 .filter(models.Action.type !=
+                         helpers.ActionTypeEnum('legal-flag'))
                  .order_by(models.Action.created_on.asc()))
 
         return query
