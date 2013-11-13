@@ -13,7 +13,7 @@ class FrontendCallback(object):
     def post_to_frontend(self, data):
         """ Send data to frontend """
         headers = {'content-type': 'application/json'}
-        url = '%s/update_actions/' % self.frontend_url
+        url = '%s/update/' % self.frontend_url
         auth = ('user', self.frontend_auth)
 
         self.msg = None

@@ -46,7 +46,7 @@ class CoprJobGrab(multiprocessing.Process):
 
     def fetch_jobs(self):
         try:
-            r = requests.get('%s/waiting_actions/' % self.opts.frontend_url, auth=('user', self.opts.frontend_auth))
+            r = requests.get('%s/waiting/' % self.opts.frontend_url, auth=('user', self.opts.frontend_auth))
         except requests.RequestException, e:
             self.event('Error retrieving jobs from %s: %s' % (self.opts.frontend_url, e))
         else:
