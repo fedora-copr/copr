@@ -32,6 +32,18 @@ class Action(object):
             result.result = 1 # success
         elif self.data['action_type'] == 1: # rename
             self.event("Action rename")
+            old_path = os.path.normpath(self.destdir + '/', self.data['old_value'])
+            new_path = os.path.normpath(self.destdir + '/', self.data['new_value'])
+            if os.path.exists(old_path):
+                if not os.path.exists(new_path):
+                    shutil.move(old_path, new_path)
+                    result.result = 1 # success
+                else:
+                    result.message = 'Destination directory already exist.'
+                    result.result = 2 # failure
+            else: # nothing to do, that is success too
+                result.result = 1 # success
+            result.job_ended_on = time.time()
         elif self.data['action_type'] == 2: # legal-flag
             self.event("Action legal-flag: ignoring")
         if 'result' in result:
