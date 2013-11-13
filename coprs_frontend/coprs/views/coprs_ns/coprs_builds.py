@@ -73,7 +73,7 @@ def copr_new_build(username, coprname):
 @login_required
 def copr_cancel_build(username, coprname, build_id):
     # only the user who ran the build can cancel it
-    build = builds_logic.BuildsLogic.get(flask.g.user, build_id).first()
+    build = builds_logic.BuildsLogic.get(build_id).first()
     if not build: # hey, this Build doesn't exist
         return page_not_found('Build with id {0} does not exist.'.format(build_id))
     try:
@@ -90,7 +90,7 @@ def copr_cancel_build(username, coprname, build_id):
 @coprs_ns.route('/<username>/<coprname>/repeat_build/<int:build_id>/', methods = ['POST'])
 @login_required
 def copr_repeat_build(username, coprname, build_id):
-    build = builds_logic.BuildsLogic.get(flask.g.user, build_id).first()
+    build = builds_logic.BuildsLogic.get(build_id).first()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username=username, coprname=coprname).first()
 
     if not build: # hey, this Build doesn't exist
