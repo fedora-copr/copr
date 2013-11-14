@@ -1,3 +1,4 @@
+%global with_test 0
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
@@ -259,13 +260,15 @@ install -d %{buildroot}%{_mandir}/man8
 install -p -m 644 man/%{name}-selinux-enable.8 %{buildroot}/%{_mandir}/man8/
 install -p -m 644 man/%{name}-selinux-relabel.8 %{buildroot}/%{_mandir}/man8/
 
-#%check
-#pushd coprs_frontend
-#TMPFILE=$(mktemp)
-#COPR_CONFIG="$(pwd)/config/copr_unit_test.conf"  ./manage.py test | tee $TMPFILE
-# remove this when tests are fixed
-#grep "1 failed, 65 passed" $TMPFILE
-#popd
+%check
+%if ! 0%{?with_test:1}
+    pushd coprs_frontend
+    TMPFILE=$(mktemp)
+    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf"  ./manage.py test | tee $TMPFILE
+    # remove this when tests are fixed
+    grep "1 failed, 65 passed" $TMPFILE
+    popd
+%endif
 
 %pre backend
 getent group copr >/dev/null || groupadd -r copr
