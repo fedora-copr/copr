@@ -68,17 +68,20 @@ class CoprsTestCase(object):
         if hasattr(self, 'c1'):
             cc1 = models.CoprChroot()
             cc1.mock_chroot = self.mc1
+            # c1 foocopr with fedora-18-x86_64
             self.c1.copr_chroots.append(cc1)
 
             cc2 = models.CoprChroot()
             cc2.mock_chroot = self.mc2
             cc3 = models.CoprChroot()
             cc3.mock_chroot = self.mc3
+            # c2 foocopr with fedora-17-i386 fedora-17-x86_64
             self.c2.copr_chroots.append(cc2)
             self.c2.copr_chroots.append(cc3)
 
             cc4 = models.CoprChroot()
             cc4.mock_chroot = self.mc4
+            # c3 barcopr with fedora-rawhide-i386
             self.c3.copr_chroots.append(cc4)
             self.db.session.add_all([cc1, cc2, cc3, cc4])
 
@@ -86,10 +89,10 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_builds(self):
-        self.b1 = models.Build(copr = self.c1, user = self.u1, chroots = 'fedora-18-x86_64', submitted_on = 50, started_on = 100)
-        self.b2 = models.Build(copr = self.c1, user = self.u2, chroots = 'fedora-17-x86_64', submitted_on = 10, ended_on = 150)
-        self.b3 = models.Build(copr = self.c2, user = self.u2, chroots = 'fedora-17-x86_64 fedora-17-i386', submitted_on = 10)
-        self.b4 = models.Build(copr = self.c2, user = self.u2, chroots = 'fedora-17-x86_64 fedora-17-i386', submitted_on = 100)
+        self.b1 = models.Build(copr = self.c1, user = self.u1, submitted_on = 50, started_on = 100)
+        self.b2 = models.Build(copr = self.c1, user = self.u2, submitted_on = 10, ended_on = 150)
+        self.b3 = models.Build(copr = self.c2, user = self.u2, submitted_on = 10)
+        self.b4 = models.Build(copr = self.c2, user = self.u2, submitted_on = 100)
 
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
 
