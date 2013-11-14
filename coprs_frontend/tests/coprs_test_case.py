@@ -10,6 +10,7 @@ import coprs
 
 from coprs import helpers
 from coprs import models
+from coprs.logic.builds_logic import BuildsLogic
 
 class CoprsTestCase(object):
     def setup_method(self, method):
@@ -93,6 +94,16 @@ class CoprsTestCase(object):
         self.b2 = models.Build(copr = self.c1, user = self.u2, submitted_on = 10, ended_on = 150)
         self.b3 = models.Build(copr = self.c2, user = self.u2, submitted_on = 10)
         self.b4 = models.Build(copr = self.c2, user = self.u2, submitted_on = 100)
+
+        for build in [self.b1, self.b2, self.b3, self.b4]:
+            self.db.session.add(build)
+
+            for chroot in build.copr.active_mock_chroots:
+                buildchroot = models.BuildChroot(
+                    build=build,
+                    mock_chroot=chroot)
+
+                self.db.session.add(buildchroot)
 
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
 
