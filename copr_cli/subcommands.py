@@ -8,8 +8,8 @@ output.
 import ConfigParser
 import json
 import os
-
 import requests
+import sys
 
 import copr_exceptions
 
@@ -127,6 +127,9 @@ def listcoprs(username=None):
 def create(name, chroots=[], description=None, instructions=None,
            repos=None, initial_pkgs=None):
     """ Create a new copr. """
+    if chroots is None:
+        print "Error: At least one chroot must be selected"
+        sys.exit(1)
     user = get_user()
     copr_api_url = get_api_url()
     URL = '{0}/coprs/{1}/new/'.format(copr_api_url, user['username'])
