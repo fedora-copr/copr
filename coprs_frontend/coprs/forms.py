@@ -118,7 +118,7 @@ class CoprFormFactory(object):
 
                 if not self.validate_mock_chroots_not_empty():
                     self._mock_chroots_error = 'At least one chroot' \
-                        'must be selected'
+                        ' must be selected'
                     return False
                 return True
 
