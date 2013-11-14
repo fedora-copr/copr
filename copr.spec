@@ -263,10 +263,7 @@ install -p -m 644 man/%{name}-selinux-relabel.8 %{buildroot}/%{_mandir}/man8/
 %check
 %if ! 0%{?with_test:1}
     pushd coprs_frontend
-    TMPFILE=$(mktemp)
-    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf"  ./manage.py test | tee $TMPFILE
-    # remove this when tests are fixed
-    grep "1 failed, 65 passed" $TMPFILE
+    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
     popd
 %endif
 

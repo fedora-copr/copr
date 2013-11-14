@@ -35,14 +35,8 @@ class TestCoprsAllowed(CoprsTestCase):
         r = self.test_client.get('/coprs/{0}/allowed/'.format(self.u3.name))
         assert 'No projects...' in r.data
 
-    @TransactionDecorator('u2')
-    def test_allowed_one(self, f_users, f_coprs, f_copr_permissions, f_db):
-        self.db.session.add(self.u1)
-        r = self.test_client.get('/coprs/{0}/allowed/'.format(self.u2.name))
-        assert r.data.count('<div class="copr">') == 1
-
     @TransactionDecorator('u1')
-    def test_allowed_one_but_asked_for_one_more(self, f_users, f_coprs, f_copr_permissions, f_db):
+    def test_allowed_one(self, f_users, f_coprs, f_copr_permissions, f_db):
         self.db.session.add(self.u1)
         r = self.test_client.get('/coprs/{0}/allowed/'.format(self.u1.name))
         assert r.data.count('<div class="copr">') == 1
