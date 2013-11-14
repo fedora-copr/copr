@@ -1,4 +1,3 @@
-import flask
 import pytest
 
 from flexmock import flexmock
@@ -132,7 +131,7 @@ class TestCoprDetail(CoprsTestCase):
         assert r.status_code == 200
         assert self.c1.name in r.data
 
-    def test_copr_detail_contains_builds(self, f_users, f_coprs, f_builds, f_db):
+    def test_copr_detail_contains_builds(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         r = self.tc.get('/coprs/{0}/{1}/builds/'.format(self.u1.name, self.c1.name))
         assert r.data.count('<tr class="build') == 2
 
@@ -173,13 +172,13 @@ class TestCoprDetail(CoprsTestCase):
         assert '/cancel_build/' not in r.data
 
     @TransactionDecorator('u1')
-    def test_copr_detail_doesnt_allow_non_submitter_to_cancel_build(self, f_users, f_coprs, f_builds, f_db):
+    def test_copr_detail_doesnt_allow_non_submitter_to_cancel_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         self.db.session.add_all([self.u2, self.c2])
         r = self.test_client.get('/coprs/{0}/{1}/builds/'.format(self.u2.name, self.c2.name))
         assert '/cancel_build/' not in r.data
 
     @TransactionDecorator('u2')
-    def test_copr_detail_allows_submitter_to_cancel_build(self, f_users, f_coprs, f_builds, f_db):
+    def test_copr_detail_allows_submitter_to_cancel_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         self.db.session.add_all([self.u2, self.c2])
         r = self.test_client.get('/coprs/{0}/{1}/builds/'.format(self.u2.name, self.c2.name))
         assert '/cancel_build/' in r.data
@@ -393,19 +392,39 @@ class TestCoprRepoGeneration(CoprsTestCase):
     @pytest.fixture
     def f_custom_builds(self):
         ''' Custom builds are used in order not to break the default ones '''
-        self.b5 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=9, ended_on=200, results='http://bar.baz', status=1)
-        self.b6 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=11)
-        self.b7 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=10, ended_on=150, results='http://bar.baz', status=1)
+        self.b5 = self.models.Build(copr=self.c1, user=self.u1, submitted_on=9, ended_on=200, results='http://bar.baz')
+        self.b6 = self.models.Build(copr=self.c1, user=self.u1, submitted_on=11)
+        self.b7 = self.models.Build(copr=self.c1, user=self.u1, submitted_on=10, ended_on=150, results='http://bar.baz')
         self.mc1 = self.models.MockChroot(os_release='fedora', os_version='18', arch='x86_64')
         self.cc1 = self.models.CoprChroot(mock_chroot = self.mc1, copr = self.c1)
+
+
+        # assign with chroots
+        for build in [self.b5, self.b6, self.b7]:
+            self.db.session.add(
+                self.models.BuildChroot(
+                    build=build,
+                    mock_chroot=self.mc1
+                )
+            )
+
         self.db.session.add_all([self.b5, self.b6, self.b7, self.mc1, self.cc1])
 
     @pytest.fixture
     def f_not_finished_builds(self):
         ''' Custom builds are used in order not to break the default ones '''
-        self.b8 = self.models.Build(copr=self.c1, user=self.u1, chroots='fedora-18-x86_64', submitted_on=11)
+        self.b8 = self.models.Build(copr=self.c1, user=self.u1, submitted_on=11)
         self.mc1 = self.models.MockChroot(os_release='fedora', os_version='18', arch='x86_64')
         self.cc1 = self.models.CoprChroot(mock_chroot = self.mc1, copr = self.c1)
+
+        # assign with chroot
+        self.db.session.add(
+            self.models.BuildChroot(
+                build=self.b8,
+                mock_chroot=self.mc1
+            )
+        )
+
         self.db.session.add_all([self.b8, self.mc1, self.cc1])
 
     def test_fail_on_missing_dash(self):
