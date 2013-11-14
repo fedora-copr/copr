@@ -297,6 +297,17 @@ class BuildChroot(db.Model, Serializer):
     build = db.relationship('Build', backref=db.backref('build_chroots'))
     status = db.Column(db.Integer, default=helpers.StatusEnum('pending'))
 
+    @property
+    def name(self):
+        """ Textual representation of name of this chroot """
+        return self.mock_chroot.chroot_name
+
+    @property
+    def state(self):
+        """ Return text representation of status of this build chroot """
+        return helpers.StatusEnum(self.status)
+
+
 
 class LegalFlag(db.Model, Serializer):
     id = db.Column(db.Integer, primary_key=True)

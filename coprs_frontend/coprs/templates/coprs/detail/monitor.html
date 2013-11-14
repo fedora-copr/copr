@@ -1,0 +1,28 @@
+{% extends "coprs/detail.html" %}
+{% block title %}Monitor {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+{% block monitor_selected %}selected{% endblock %}
+
+{% block detail_body %}
+  {% if build %}
+    <p>
+      Latest build status:
+      <strong>{{ build.state }}</strong>
+    </p>
+    {% if not build.canceled %}
+      <table class="monitor">
+        <tr>
+          <th>Chroot</th>
+          <th>State</th>
+        </tr>
+        {% for chroot in build.build_chroots %}
+          <tr class="build-{{ chroot.state }}">
+            <td>{{ chroot.name }}</td>
+            <td>{{ chroot.state }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+  {% else %}
+    <h2>No builds so far.</h2>
+  {% endif %}
+{% endblock %}

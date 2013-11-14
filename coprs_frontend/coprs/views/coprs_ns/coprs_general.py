@@ -344,3 +344,20 @@ def generate_repo_file(username, coprname, chroot):
     response.mimetype='text/plain'
     response.headers['Content-Disposition'] = 'filename=%s.repo' % reponame
     return response
+
+@coprs_ns.route('/<username>/<coprname>/monitor/')
+def copr_build_monitor(username, coprname):
+    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_mock_chroots=True)
+    form = forms.CoprLegalFlagForm()
+    try:
+        copr = query.one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
+
+    builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
+    build = builds_query.first()
+
+    return flask.render_template('coprs/detail/monitor.html',
+                                 copr=copr,
+                                 build=build,
+                                 form=form)

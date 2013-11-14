@@ -318,6 +318,10 @@ table.releases tr.release-end {
   border-bottom: 3px solid #f2f2f2;
 }
 
+table.monitor td {
+  padding: 0 20px;
+}
+
 form.legal-flag, form.legal-flag input {
   color: #888888;
   margin-top: 5px;
