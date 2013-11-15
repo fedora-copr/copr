@@ -1,4 +1,4 @@
-%global with_test 0
+%global with_test 1
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
