@@ -125,6 +125,12 @@ and test the connection:
 PGPASSWORD=coprpass psql -a -U copr-fe coprdb
 PGPASSWORD=coprpass psql -a -h localhost -U copr-fe coprdb
 
+Upgrade
+=======
+After upgrade of copr-frontend you should upgrade db schema:
+cd /usr/share/copr/coprs_frontend
+alembic upgrade head
+
 Make yourself admin
 ===================
 
