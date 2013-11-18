@@ -44,14 +44,14 @@ Build packages to a specified copr.
 `copr-cli create [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-usage: copr-cli create [-h] [--chroot CHROOTS] [--repo REPOS]
+usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--initial-pkgs INITIAL_PKGS]
                        [--description DESCRIPTION]
                        [--instructions INSTRUCTIONS]
                        name
 
 --chroot::
-Chroot to use for this copr. Can be specified multiple times.
+Chroot to use for this copr. Can be specified multiple times, but at least one must be present.
 
 --repo::
 Repository to add to this copr. Can be specified multiple times.
