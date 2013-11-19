@@ -48,6 +48,7 @@ DEF_REPOS = []
 DEF_CHROOT = None
 DEF_USER = 'mockbuilder'
 DEF_DESTDIR = os.getcwd()
+DEF_MACROS = {}
 
 class SortedOptParser(optparse.OptionParser):
     '''Optparser which sorts the options by opt before outputting --help'''
@@ -400,7 +401,8 @@ class MockRemote(object):
     def __init__(self, builder=None, user=DEF_USER, timeout=DEF_TIMEOUT,
                  destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False, recurse=False,
                  repos=DEF_REPOS, callback=None,
-                 remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None):
+                 remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
+                 macros=DEF_MACROS):
 
         self.destdir = destdir
         self.chroot = chroot
@@ -410,6 +412,7 @@ class MockRemote(object):
         self.callback = callback
         self.remote_basedir = remote_basedir
         self.remote_tempdir = remote_tempdir
+        self.macros = macros
 
         if not self.callback:
             self.callback = DefaultCallBack()
