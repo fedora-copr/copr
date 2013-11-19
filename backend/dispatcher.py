@@ -350,9 +350,11 @@ class Worker(multiprocessing.Process):
                         chroot_repos = list(job.repos)
                         chroot_repos.append(job.results + '/' + job.chroot)
                         chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
+                        macros = {'copr_username': job.user_name,
+                                  'copr_projectname': job.copr_name}
                         mr = mockremote.MockRemote(builder=ip, timeout=job.timeout,
                              destdir=job.destdir, chroot=job.chroot, cont=True, recurse=True,
-                             repos=chroot_repos,
+                             repos=chroot_repos, macros=macros,
                              callback=mockremote.CliLogCallBack(quiet=True,logfn=chrootlogfile))
                         mr.build_pkgs(job.pkgs)
                     except mockremote.MockRemoteError, e:
@@ -379,4 +381,3 @@ class Worker(multiprocessing.Process):
                 # clean up the instance
                 if self.create:
                     self.terminate_instance(ip)
-
