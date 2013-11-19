@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 DAYS=14
-RESULTDIR=$(awk -F "=" '/^destdir/ {print $2}' /etc/copr/copr-be.conf
+RESULTDIR=$(awk -F "=" '/^destdir/ {print $2}' /etc/copr/copr-be.conf)
 
 if [ ! -d $RESULTDIR ]; then
    echo "ERROR: destdir ($RESULTDIR) in /etc/copr/copr-be.conf does not exist."
@@ -16,6 +16,7 @@ for REPO in $( ls -d */*/* | grep -v '/repodata$' ); do
     for FAILED in $(find -name 'fail' -mtime +$DAYS); do
         rm -rf $(dirname $FAILED)
         echo -n .
+    done
 
     # Query latest (sucessfull) packages
     LATEST_PKGS=$(mktemp)
