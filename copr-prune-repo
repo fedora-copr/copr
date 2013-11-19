@@ -44,7 +44,7 @@ for REPO in $( ls -d */*/* | grep -v '/repodata$' ); do
     rm -f $LATEST_PKGS $ERR_LOG
     # unless we previosly deleted the repo, regen metadata
     if [ -d $(pwd) ]; then
-        createrepo --update -q .
+        createrepo --update -q . &>/dev/null || createrepo --update -q .
     fi
     popd >/dev/null
 done
