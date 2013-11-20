@@ -5,15 +5,15 @@
   {% if error %}<p class="error"><strong>Error:</strong> {{ error }}</p>{% endif %}
 
   <div>
-    <h2>Coprs API</h2>
+    <h1>Coprs API</h1>
 
-    <h3> API Token </h3>
+    <h2> API Token </h2>
     <p>In order to access the API, you will need to provide an API token.
     This token is unique, specific to you and <span style="font-weight:bold;">
     should not be shared!</span>.
     </p>
 
-    <p>The API token is valid for {{ config['API_TOKEN_EXPIRATION'] }} days after you generated it.
+    <p>The API token is valid for {{ config['API_TOKEN_EXPIRATION'] }} days after it has been generated.
     </p>
 
     {% if g.user %}
@@ -28,52 +28,113 @@
         <input type="button" value="Generate a new token" />
     </a>
     {% else %}
-    <p style="font-style:italic">You need to be logged in to see you API token.</p>
+    <p style="font-style:italic">You need to be logged in to see your API token.</p>
     {% endif %}
 
-    <h3>The API</h3>
+    <h2>The API</h2>
 
-    <h4>List someone's copr</h4>
+    <p>To make an API call to Copr, make a request to URL corresponding to
+    given call (URLs are listed below). Parameters are denoted by angle
+    brackets.  Result is represented as JSON map with "output": "ok" key-value
+    pair on success or "output": "notok" on failure. The rest of the map
+    represents result of the call and is described below for individual
+    calls.</p>
 
-    <p>To list the coprs owned by someone one argument is required:</p>
-    <table>
-        <tr>
-            <th>name</th> <td>The name of the user you would to list the
-                copr of.</td>
-        </tr>
-    </table>
-    <p>URL is:</p>
-    <pre style="font-size:120%">
-    /api/owned/&lt;username&gt;/
+    <h3>List someone's coprs</h3>
+
+    <h4>URL:</h4>
+    <pre style="font-size:120%">/api/coprs/&lt;username&gt;/</pre>
+    <div>or</div>
+    <pre style="font-size:120%">/api/coprs/?username="&lt;username&gt;"</pre>
+
+    <h4>URL parameters:</h4>
+    <ul>
+        <li><b>username</b> &ndash; The name of the user whose coprs you'd like
+                to list</li>
+    </ul>
+
+    <h4>Result:</h4>
+    <ul>
+        <li><b>"repos"</b> &ndash; List of coprs in given format:
+        <ul>
+            <li><b>"yum_repos"</b> &ndash; Map of chroots to yum repository
+            URLs. Chroots are in format
+            "&lt;release&gt;-&lt;version&gt;-&lt;architecture&gt;"</li>
+            <li><b>"additional_repos"</b> &ndash; List of additional
+            repositories that are required for this copr</li>
+            <li><b>"instructions"</b> &ndash; Installation instructions
+            provided by copr's owner </li>
+            <li><b>"name"</b> &ndash; Name of the copr</li>
+            <li><b>"description"</b> &ndash; Description provided by copr's
+            owner </li>
+        </ul>
+    </ul>
+
+    <h4>Example call URL</h4>
+    <pre style="font-size:120%">http://copr-fe.cloud.fedoraproject.org/api/coprs/jdaniels/</pre>
+
+    <h4>Example results</h4>
+    <pre>
+    {
+      "output": "ok",
+      "repos": [
+        {
+          "yum_repos": {
+            "fedora-19-i686": "http://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-i686/"
+            "fedora-19-x86_64": "http://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-x86_64/"
+          },
+          "additional_repos": "",
+          "instructions": "",
+          "name": "log4j",
+          "description": "Java logging package"
+        }
+      ]
+    }
     </pre>
 
-    <h4>Add a new copr</h4>
+
+    <h3>Create new copr</h3>
 
     <p><span style="font-style:italic">Login required</span></p>
 
-    <p>To add a new copr some informations are required:</p>
-    <table>
-        <tr>
-            <th>name</th> <td>The name of the copr to create.</td>
-        </tr><tr>
-            <th>chroots</th> <td>A comma separated list of chroots to
-                use in the copr.</td>
-        </tr><tr>
-            <th>repos</th> <td>A comma separated list of repositories
-                that this new copr should have access to.</td>
-        </tr><tr>
-            <th>initial_pkgs</th> <td>A comma separated list of initial
-                packages to build in this new copr.</td>
-        </tr>
-    </table>
+    <h4>URL:</h4>
+    <pre style="font-size:120%">/api/copr/&lt;username&gt;/new/</pre>
 
-    <p>URL is:</p>
-    <pre style="font-size:120%">
-    /api/copr/new/
-    </pre>
+    <h4>URL parameters:</h4>
+    <ul>
+        <li><b>username</b> &ndash; The name of the user whose copr should be
+        created</li>
+    </ul>
 
+    <h4>Parameters sent by POST:</h4>
+    <ul>
+        <li><b>name</b> &ndash; The name of the copr to be created</li>
+        <li><b>chroots</b> &ndash; A comma separated list of chroots to
+        use in the copr</li>
+        <li><b>repos</b> &ndash; A comma separated list of repositories
+        that this new copr should have access to</li>
+        <li><b>initial_pkgs</b> &ndash; A comma separated list of initial
+        packages to build in this new copr</li>
+    </ul>
 
-    <p>To come here, more information about the API itself.</p>
+    <h3>Add new build</h3>
+
+    <p><span style="font-style:italic">Login required</span></p>
+
+    <h4>URL:</h4>
+    <pre style="font-size:120%">/api/copr/&lt;username&gt;/&lt;coprname&gt;/new_build/</pre>
+
+    <h4>URL parameters:</h4>
+    <ul>
+        <li><b>username</b> &ndash; The name of given copr's owner</li>
+        <li><b>coprname</b> &ndash; The name of the copr in which the package
+        should be built</li>
+    </ul>
+
+    <h4>Parameters sent by POST:</h4>
+    <ul>
+        <li><b>pkgs</b> &ndash; Space separated list of package URLs (SRPMs) to be built</li>
+    </ul>
 
   </div>
 {% endblock %}
