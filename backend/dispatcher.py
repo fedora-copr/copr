@@ -213,7 +213,7 @@ class Worker(multiprocessing.Process):
         jobdata = Bunch()
         jobdata.pkgs = build['pkgs'].split(' ')
         jobdata.repos = [r for r in build['repos'].split(' ') if r.strip() ]
-        jobdata.chroots = build['chroots'].split(' ')
+        jobdata.chroot = build['chroot']
         jobdata.memory_reqs = build['memory_reqs']
         jobdata.timeout = build['timeout']
         jobdata.destdir = os.path.normpath(self.opts.destdir + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'])
