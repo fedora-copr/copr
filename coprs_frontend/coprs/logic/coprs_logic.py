@@ -41,6 +41,7 @@ class CoprsLogic(object):
         user_relation = kwargs.get('user_relation', None)
         username = kwargs.get('username', None)
         with_mock_chroots = kwargs.get('with_mock_chroots', None)
+        with_builds = kwargs.get('with_builds', None)
         incl_deleted = kwargs.get('incl_deleted', None)
         ids = kwargs.get('ids', None)
 
@@ -69,6 +70,11 @@ class CoprsLogic(object):
                           order_by(models.MockChroot.os_release.asc()).\
                           order_by(models.MockChroot.os_version.asc()).\
                           order_by(models.MockChroot.arch.asc())
+
+        if with_builds:
+            query = query.outerjoin(models.Copr.builds).\
+                          options(db.contains_eager(models.Copr.builds)).\
+                          order_by(models.Build.submitted_on.desc())
 
         return query
 

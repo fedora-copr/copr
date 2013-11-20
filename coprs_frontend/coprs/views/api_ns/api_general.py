@@ -3,6 +3,7 @@ import time
 
 import base64
 import flask
+import urlparse
 
 from coprs import db
 from coprs import exceptions
@@ -116,12 +117,21 @@ def api_coprs_by_owner(username=None):
     httpcode = 200
     if username:
         query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
-            user_relation='owned', username=username)
+            user_relation='owned', username=username, with_builds=True)
         repos = query.all()
         output = {'output': 'ok', 'repos': []}
         for repo in repos:
+            yum_repos = {}
+            for build in repo.builds:
+                if build.results:
+                    for chroot in repo.active_mock_chroots:
+                        release = '{chroot.os_release}-{chroot.os_version}-{chroot.arch}'.format(chroot=chroot)
+                        yum_repos[release] = urlparse.urljoin(build.results, release + '/')
+                    break
+
             output['repos'].append({'name': repo.name,
-                                    'repos': repo.repos,
+                                    'additional_repos': repo.repos,
+                                    'yum_repos': yum_repos,
                                     'description': repo.description,
                                     'instructions': repo.instructions})
     else:
@@ -131,7 +141,6 @@ def api_coprs_by_owner(username=None):
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
-
 
 @api_ns.route('/coprs/<username>/<coprname>/new_build/', methods=["POST"])
 @api_login_required
