@@ -270,6 +270,11 @@ class Worker(multiprocessing.Process):
          terminate the instance
         """
 
+        try:
+            import procname
+            procname.setprocname("worker")
+        except ImportError:
+            pass
         while not self.kill_received:
             try:
                 jobfile = self.jobs.get()

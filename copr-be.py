@@ -75,6 +75,11 @@ class CoprJobGrab(multiprocessing.Process):
                     ao.run()
 
     def run(self):
+        try:
+            import procname
+            procname.setprocname("CoprJobGrab")
+        except ImportError:
+            pass
         abort = False
         while not abort:
             self.fetch_jobs()
@@ -116,6 +121,11 @@ class CoprLog(multiprocessing.Process):
 
     # event format is a dict {when:time, who:[worker|logger|job|main], what:str}
     def run(self):
+        try:
+            import procname
+            procname.setprocname("CoprLog")
+        except ImportError:
+            pass
         abort = False
         while not abort:
             e = self.events.get()
