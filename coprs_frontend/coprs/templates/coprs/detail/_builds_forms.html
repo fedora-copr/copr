@@ -11,7 +11,10 @@
           {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #} 
           {{ render_field(form.memory_reqs, hidden = True) }} 
           {{ render_field(form.timeout, hidden = True) }} 
-        {% endif %} 
+        {% endif %}
+        <br />
+        You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr.
+        <br />
         <dd><input type="submit" value="Build"></dd> 
       </dl> 
     </form> 
