@@ -96,7 +96,8 @@ class BuildsLogic(object):
             # update respective chroot status
             for build_chroot in build.build_chroots:
                 if build_chroot.mock_chroot.chroot_name == upd_dict['chroot']:
-                    build_chroot.status = upd_dict['status']
+                    if 'status' in upd_dict:
+                        build_chroot.status = upd_dict['status']
 
                     db.session.add(build_chroot)
 

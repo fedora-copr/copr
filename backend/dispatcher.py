@@ -240,6 +240,8 @@ class Worker(multiprocessing.Process):
         build = {'id':job.build_id,
                  'started_on': job.started_on,
                  'results': job.results,
+                 'chroot': job.chroot,
+                 'status': 3, # running
                  }
         data = {'builds':[build]}
 
@@ -253,6 +255,7 @@ class Worker(multiprocessing.Process):
         build = {'id':job.build_id,
                  'ended_on': job.ended_on,
                  'status': job.status,
+                 'chroot': job.chroot,
                  }
         data = {'builds':[build]}
 
