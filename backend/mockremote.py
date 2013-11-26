@@ -32,6 +32,7 @@ import subprocess
 import ansible.runner
 import optparse
 from operator import methodcaller
+import pipes
 import time
 import socket
 import traceback
@@ -292,9 +293,9 @@ class Builder(object):
             dest = pkg
 
         # construct the mockchain command
-        buildcmd = '%s -r %s -l %s ' % (mockchain, self.chroot, self.remote_build_dir)
+        buildcmd = "%s -r %s -l %s " % (mockchain, pipes.quote(self.chroot), pipes.quote(self.remote_build_dir))
         for r in self.repos:
-            buildcmd += '-a %s ' % r
+            buildcmd += "-a %s " % pipes.quote(r)
 
         buildcmd += dest
 
