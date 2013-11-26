@@ -11,13 +11,19 @@
     {% if not build.canceled %}
       <table class="monitor">
         <tr>
-          <th>Chroot</th>
-          <th>State</th>
+          <th>Package</th>
+          {% for chroot in chroots %}
+          <th>
+            {{ chroot }}
+          </th>
+          {% endfor %}
         </tr>
-        {% for chroot in build.build_chroots %}
-          <tr class="build-{{ chroot.state }}">
-            <td>{{ chroot.name }}</td>
-            <td>{{ chroot.state }}</td>
+        {% for package, states in packages %}
+          <tr>
+            <td>{{ package }}</td>
+            {% for state in states %}
+                    <td class="centered build-{{ state }}">{{ state }}</td>
+            {% endfor %}
           </tr>
         {% endfor %}
       </table>

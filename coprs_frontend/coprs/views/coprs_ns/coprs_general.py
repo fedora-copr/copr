@@ -1,3 +1,4 @@
+import os
 import time
 
 import flask
@@ -355,9 +356,47 @@ def copr_build_monitor(username, coprname):
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
-    build = builds_query.first()
+    builds = builds_query.all()
+
+    # please don't waste time trying to decipher this
+    # the only reason why this is necessary is non-existent
+    # database design
+    #
+    # loop goes through last 50 builds trying to approximate
+    # per-package results based on previous builds
+    # - it can't determine build results if build contains
+    # more than one package as this data is not available
+
+    out = {}
+    build = None
+    chroots = []
+
+    if builds:
+        build = builds[0]
+        chroots = sorted([chroot.name for chroot in build.build_chroots])
+
+    for build in builds[:50]:
+        chroot_results = {chroot.name: chroot.state
+                          for chroot in build.build_chroots}
+
+        build_results = []
+        for chroot_name in chroots:
+            if chroot_name in chroot_results:
+                build_results.append(chroot_results[chroot_name])
+            else:
+                build_results.append('')
+
+        for pkg in build.pkgs.split():
+            base_pkg = os.path.basename(pkg).replace('.src.rpm', '')
+
+            if base_pkg in out:
+                continue
+
+            out[base_pkg] = build_results
 
     return flask.render_template('coprs/detail/monitor.html',
                                  copr=copr,
                                  build=build,
+                                 chroots=chroots,
+                                 packages=sorted(out.iteritems()),
                                  form=form)
