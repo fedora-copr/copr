@@ -23,7 +23,8 @@ def get_user():
     if not config.read(
             os.path.join(os.path.expanduser('~'), '.config', 'copr')):
         raise copr_exceptions.CoprCliNoConfException(
-            'No configuration file "~/.config/copr" found.')
+            'No configuration file "~/.config/copr" found. '
+            'See man copr-cli for more information')
     try:
         username = config.get('copr-cli', 'username', None)
         login = config.get('copr-cli', 'login', None)
