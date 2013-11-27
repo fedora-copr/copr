@@ -6,7 +6,7 @@ import sys
 import subcommands
 import copr_exceptions
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __description__ = "CLI tool to run copr"
 
 
