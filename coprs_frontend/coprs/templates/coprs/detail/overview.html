@@ -6,9 +6,9 @@
 
 {% block detail_body %}
   <h2>Description</h2>
-  <div class="shift-right">{{ copr.description_or_not_filled }}</div>
+  <div class="shift-right">{{ copr.description_or_not_filled|safe }}</div>
   <h2>Installation Instructions</h2>
-  <div class="shift-right">{{ copr.instructions_or_not_filled}}</div>
+  <div class="shift-right">{{ copr.instructions_or_not_filled|safe }}</div>
   <h2>Active Releases</h2>
   <div class="disclaimer">
     The following unofficial repositories are provided as-is by owner of this project.

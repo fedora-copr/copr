@@ -1,4 +1,5 @@
 import datetime
+import markdown
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
@@ -167,11 +168,15 @@ class Copr(db.Model, Serializer):
 
     @property
     def description_or_not_filled(self):
-        return self.description or 'Description not filled in by author.'
+        md = markdown.Markdown(safe_mode='replace',
+                   html_replacement_text='--RAW HTML NOT ALLOWED--')
+        return md.convert(self.description) or 'Description not filled in by author.'
 
     @property
     def instructions_or_not_filled(self):
-        return self.instructions or 'Instructions not filled in by author.'
+        md = markdown.Markdown(safe_mode='replace',
+                   html_replacement_text='--RAW HTML NOT ALLOWED--')
+        return md.convert(self.instructions) or 'Instructions not filled in by author.'
 
     @property
     def active_mock_chroots(self):
