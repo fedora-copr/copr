@@ -298,6 +298,12 @@ class Builder(object):
         for r in self.repos:
             buildcmd += "-a %s " % pipes.quote(r)
 
+        if self.mockremote.macros:
+            mock_opts = ['--define {k}={v}'.format(k=k,v=v) for k, v in
+                    self.mockremote.macros.items()]
+            if mock_opts:
+                buildcmd += "-m {mopts} ".format(mopts=pipes.quote(" ".join(mock_opts)))
+
         buildcmd += dest
 
         #print '  Running %s on %s' % (buildcmd, hostname)
