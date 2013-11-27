@@ -299,10 +299,9 @@ class Builder(object):
             buildcmd += "-a %s " % pipes.quote(r)
 
         if self.mockremote.macros:
-            mock_opts = ['--define {k}={v}'.format(k=k,v=v) for k, v in
-                    self.mockremote.macros.items()]
-            if mock_opts:
-                buildcmd += "-m {mopts} ".format(mopts=pipes.quote(" ".join(mock_opts)))
+            for k, v in self.mockremote.macros.items():
+                mock_opt = '--define=%s %s' % (k, v)
+                buildcmd += '-m %s' % pipes.quote(mock_opt)
 
         buildcmd += dest
 
