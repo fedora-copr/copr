@@ -36,11 +36,15 @@ def get_user():
 
 def get_api_url():
     """ Retrieve the user information from the config file. """
-    config = ConfigParser.ConfigParser(
-        {'copr_url': 'http://copr-fe.cloud.fedoraproject.org'})
-    config.read(os.path.join(os.path.expanduser('~'), '.config',
-                'copr'))
-    copr_url = config.get('copr-cli', 'copr_url')
+    config = ConfigParser.ConfigParser()
+    config.read(
+        os.path.join(os.path.expanduser('~'), '.config', 'copr')
+    )
+
+    # Default copr_url:
+    copr_url = 'http://copr-fe.cloud.fedoraproject.org/'
+    if config.has_section('copr-cli'):
+        copr_url = config.get('copr-cli', 'copr_url')
     return '%s/api' % copr_url
 
 
