@@ -301,7 +301,7 @@ class Builder(object):
         if self.mockremote.macros:
             for k, v in self.mockremote.macros.items():
                 mock_opt = '--define=%s %s' % (k, v)
-                buildcmd += '-m %s' % pipes.quote(mock_opt)
+                buildcmd += '-m %s ' % pipes.quote(mock_opt)
 
         buildcmd += dest
 
