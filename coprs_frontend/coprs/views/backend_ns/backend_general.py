@@ -37,6 +37,7 @@ def waiting():
         for chroot in build.chroots:
             build_dict_copy = build_dict.copy()
             build_dict_copy['chroot'] = chroot.chroot_name
+            build_dict_copy['buildroot_pkgs'] = build.copr.buildroot_pkgs(chroot)
             builds_list.append(build_dict_copy)
 
     return flask.jsonify({'actions': actions_list, 'builds': builds_list})

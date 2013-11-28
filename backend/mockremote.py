@@ -49,6 +49,7 @@ DEF_CHROOT = None
 DEF_USER = 'mockbuilder'
 DEF_DESTDIR = os.getcwd()
 DEF_MACROS = {}
+DEF_BUILDROOT_PKGS = ''
 
 class SortedOptParser(optparse.OptionParser):
     '''Optparser which sorts the options by opt before outputting --help'''
@@ -212,13 +213,14 @@ class CliLogCallBack(DefaultCallBack):
             print msg
 
 class Builder(object):
-    def __init__(self, hostname, username, timeout, mockremote):
+    def __init__(self, hostname, username, timeout, mockremote, buildroot_pkgs):
         self.hostname = hostname
         self.username = username
         self.timeout = timeout
         self.chroot = mockremote.chroot
         self.repos = mockremote.repos
         self.mockremote = mockremote
+        self.buildroot_pkgs = buildroot_pkgs
         self.checked = False
         self._tempdir = None
         # if we're at this point we've connected and done stuff on the host
@@ -269,6 +271,17 @@ class Builder(object):
         remote_pkg_dir = os.path.normpath(self.remote_build_dir + '/results/' + self.chroot + '/' + pdn)
         return remote_pkg_dir
 
+    def modify_base_buildroot(self):
+        """ modify mock config for current chroot
+
+        packages in buildroot_pkgs are added to minimal buildroot """
+        command = 'sed -i "1,\$s/config_opts\[\'chroot_setup_cmd\'\].*/config_opts\[\'chroot_setup_cmd\'\] = \'install @build %s\'/" /etc/mock/%s.cfg' % (self.buildroot_pkgs, self.chroot)
+        self.mockremote.callback.log('executing: %r' % command)
+        self.conn.module_name = "shell"
+        self.conn.module_args = command
+        # FIXME should probably check this but <shrug>
+        results = self.conn.run()
+
     def build(self, pkg):
 
         # build the pkg passed in
@@ -278,6 +291,7 @@ class Builder(object):
         # returns success_bool, out, err
 
         success = False
+        self.modify_base_buildroot()
 
         # check if pkg is local or http
         dest = None
@@ -407,7 +421,8 @@ class MockRemote(object):
                  destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False, recurse=False,
                  repos=DEF_REPOS, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
-                 macros=DEF_MACROS):
+                 macros=DEF_MACROS,
+                 buildroot_pkgs=DEF_BUILDROOT_PKGS):
 
         self.destdir = destdir
         self.chroot = chroot
@@ -423,7 +438,7 @@ class MockRemote(object):
             self.callback = DefaultCallBack()
 
         self.callback.log("Setting up builder: %s" % builder)
-        self.builder = Builder(builder, user, timeout, self)
+        self.builder = Builder(builder, user, timeout, self, buildroot_pkgs)
 
         if not self.chroot:
             raise MockRemoteError("No chroot specified!")

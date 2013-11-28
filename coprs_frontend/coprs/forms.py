@@ -186,6 +186,10 @@ class BuildForm(wtf.Form):
                 max=constants.MAX_BUILD_TIMEOUT)],
         default=constants.DEFAULT_BUILD_TIMEOUT)
 
+class ChrootForm(wtf.Form):
+    """ Validator for editing chroots in project (adding packages to minimal chroot) """
+    buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
+
 
 class CoprLegalFlagForm(wtf.Form):
     comment = wtforms.TextAreaField('Comment')

@@ -1,0 +1,13 @@
+{% extends "coprs/detail.html" %}
+
+{% block detail_body %}
+
+  <div class="horizontal-menu">
+    <ul>
+      <li class="{% block edit_chroot_selected %}unselected{% endblock %}">
+        <a href="#">Chroot</a>
+      </li>
+    </ul>
+  </div>
+  {% block detail_body2 %}{% endblock %}
+{% endblock %}

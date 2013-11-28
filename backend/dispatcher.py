@@ -214,6 +214,7 @@ class Worker(multiprocessing.Process):
         jobdata.pkgs = build['pkgs'].split(' ')
         jobdata.repos = [r for r in build['repos'].split(' ') if r.strip() ]
         jobdata.chroot = build['chroot']
+        jobdata.buildroot_pkgs = build['buildroot_pkgs']
         jobdata.memory_reqs = build['memory_reqs']
         jobdata.timeout = build['timeout']
         jobdata.destdir = os.path.normpath(self.opts.destdir + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'])
@@ -354,7 +355,7 @@ class Worker(multiprocessing.Process):
                                   'copr_projectname': job.copr_name}
                         mr = mockremote.MockRemote(builder=ip, timeout=job.timeout,
                              destdir=job.destdir, chroot=job.chroot, cont=True, recurse=True,
-                             repos=chroot_repos, macros=macros,
+                             repos=chroot_repos, macros=macros, buildroot_pkgs=job.buildroot_pkgs,
                              callback=mockremote.CliLogCallBack(quiet=True,logfn=chrootlogfile))
                         mr.build_pkgs(job.pkgs)
                     except mockremote.MockRemoteError, e:

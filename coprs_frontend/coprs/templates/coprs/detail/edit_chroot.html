@@ -1,0 +1,19 @@
+{% extends "coprs/detail/edit2.html" %}
+{% from "_helpers.html" import render_field %}
+{% block title %}Editing {{ copr.owner.name }}/{{ copr.name }}/{{ chroot.chroot_name }}{% endblock %}
+{% block edit_selected %}selected{% endblock %}
+{% block edit_chroot_selected %}selected{% endblock %}
+
+{% block detail_body2 %}
+
+  <h2>Edit chroot '{{ chroot.chroot_name }}'</h2>
+  <form action="{{ url_for('coprs_ns.chroot_update', username = copr.owner.name, coprname = copr.name, chrootname = chroot.chroot_name) }}" method=post class=add-entry>
+    <dl>
+      {{ form.csrf_token }}
+      {{ render_field(form.buildroot_pkgs, size=80, placeholder='Space separeted list of packages. E.g.: scl-utils-build rubu193-build') }}
+      <dt><input type="submit" value="Update"></dt>
+    </dl>
+  </form>
+
+
+{% endblock %}

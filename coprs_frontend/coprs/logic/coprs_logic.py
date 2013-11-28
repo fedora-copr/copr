@@ -258,6 +258,14 @@ class CoprChrootsLogic(object):
             db.session.add(models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
     @classmethod
+    def update_buildroot_pkgs(cls, copr, chroot, buildroot_pkgs):
+        current_chroots = copr.mock_chroots
+        copr_chroot = copr.check_copr_chroot(chroot)
+        if copr_chroot:
+           copr_chroot.buildroot_pkgs = buildroot_pkgs
+           db.session.add(copr_chroot)
+
+    @classmethod
     def update_from_names(cls, user, copr, names):
         current_chroots = copr.mock_chroots
         new_chroots = cls.mock_chroots_from_names(user, names)

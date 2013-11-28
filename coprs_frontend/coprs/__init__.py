@@ -37,6 +37,7 @@ from coprs.views.api_ns import api_general
 from coprs.views import coprs_ns
 from coprs.views.coprs_ns import coprs_builds
 from coprs.views.coprs_ns import coprs_general
+from coprs.views.coprs_ns import coprs_chroots
 from coprs.views import backend_ns
 from coprs.views.backend_ns import backend_general
 from coprs.views import misc

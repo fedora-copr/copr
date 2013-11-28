@@ -183,6 +183,25 @@ class Copr(db.Model, Serializer):
         """Returns list of active mock_chroots of this copr"""
         return filter(lambda x: x.is_active, self.mock_chroots)
 
+    def check_copr_chroot(self, chroot):
+        """Return object of chroot, if is related to our copr or None"""
+        result = None
+        # there will be max ~10 chroots per build, iteration will be probably faster than sql query
+        for copr_chroot in self.copr_chroots:
+            if copr_chroot.mock_chroot_id == chroot.id:
+                result = copr_chroot
+                break
+        return result
+
+    def buildroot_pkgs(self, chroot):
+        """Returns packages in minimal buildroot for given chroot."""
+        result = ''
+        # this is ugly as user can remove chroot after he submit build, but lets call this feature
+        copr_chroot = self.check_copr_chroot(chroot)
+        if copr_chroot:
+            result = copr_chroot.buildroot_pkgs
+        return result
+
 class CoprPermission(db.Model, Serializer):
     """Association class for Copr<->Permission relation"""
     ## see helpers.PermissionEnum for possible values of the fields below
@@ -284,6 +303,7 @@ class MockChroot(db.Model, Serializer):
 
 class CoprChroot(db.Model, Serializer):
     """Representation of Copr<->MockChroot relation"""
+    buildroot_pkgs = db.Column(db.Text)
     mock_chroot_id = db.Column(db.Integer, db.ForeignKey('mock_chroot.id'), primary_key = True)
     mock_chroot = db.relationship('MockChroot', backref = db.backref('copr_chroots'))
     copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'), primary_key = True)

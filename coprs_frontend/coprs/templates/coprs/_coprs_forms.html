@@ -29,7 +29,17 @@
         <table class="chroots-set">
           {% for ch in chs %}
             <tr>
-              <td>{{ form|attr(ch)|attr('label') }}</td><td>{{ form|attr(ch) }}</td>
+              <td>
+              {{ form|attr(ch)|attr('label') }}
+              {% if form|attr(ch)|attr('label') %}
+              {% else %}
+              {{ form|attr(ch)|attr('label') }}
+              {% endif %}
+              </td><td>{{ form|attr(ch) }}
+              {% if copr and form|attr(ch)|attr('data') %}
+              </td><td><a href="{{ url_for('coprs_ns.chroot_edit', username = copr.owner.name, coprname = copr.name, chrootname = form|attr(ch)|attr('label')|attr('text'))}}">[Edit]</a>
+              {% endif %}
+              </td>
             </tr>
           {% endfor %}
         </table>
