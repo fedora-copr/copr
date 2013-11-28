@@ -49,8 +49,8 @@ class RoleEnum(object):
 
 class StatusEnum(object):
     __metaclass__ = EnumType
-    vals = {'succeeded': 0,
-            'failed':    1,
+    vals = {'failed':    0,
+            'succeeded': 1,
             'canceled':  2,
             'running':   3,
             'pending':   4}

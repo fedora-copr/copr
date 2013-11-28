@@ -311,7 +311,7 @@ class Worker(multiprocessing.Process):
                 except Exception, e:
                     self.callback.log('failed to initialize fedmsg: %s' % e)
 
-                status = 1
+                status = 1 # succeeded
                 job.started_on = time.time()
                 self.mark_started(job)
 
@@ -334,9 +334,9 @@ class Worker(multiprocessing.Process):
                     except (OSError, IOError), e:
                         msg = "Could not make results dir for job: %s - %s" % (chroot_destdir, str(e))
                         self.callback.log(msg)
-                        status = 0
+                        status = 0 # fail
 
-                if status == 1:
+                if status == 1: # succeeded
                     # FIXME
                     # need a plugin hook or some mechanism to check random
                     # info about the pkgs
@@ -365,7 +365,7 @@ class Worker(multiprocessing.Process):
                         # we can't really trace back if we just fail normally
                         # check if any pkgs didn't build
                         if mr.failed:
-                            status = 0
+                            status = 0 # failure
                     self.callback.log('Finished build: id=%r builder=%r timeout=%r destdir=%r chroot=%r repos=%r' % (job.build_id, ip, job.timeout, job.destdir, job.chroot, str(job.repos)))
                 job.ended_on = time.time()
 
