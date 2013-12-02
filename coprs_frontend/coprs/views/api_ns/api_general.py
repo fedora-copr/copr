@@ -166,11 +166,30 @@ def copr_new_build(username, coprname):
 
             db.session.commit()
 
-            output = {'output': 'ok', 'message':
-                'Build was added to {0}.'.format(coprname)}
+            output = {'output': 'ok',
+                      'id': build.id,
+                      'message': 'Build was added to {0}.'.format(coprname)}
         else:
             output = {'output': 'notok', 'error': 'Invalid request'}
             httpcode = 500
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
+
+
+@api_ns.route('/coprs/build_status/<build_id>/', methods=["GET"])
+@api_login_required
+def build_status(build_id):
+    build = builds_logic.BuildsLogic.get(build_id).first()
+
+    if build:
+        httpcode = 200
+        output = {'output': 'ok',
+                  'status': build.state}
+    else:
+        output = {'output': 'notok', 'error': 'Invalid build'}
+        httpcode = 404
 
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
