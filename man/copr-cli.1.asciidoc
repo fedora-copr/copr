@@ -40,6 +40,9 @@ Create a new copr.
 build ::
 Build packages to a specified copr.
 
+status::
+Get status of the build.
+
 
 `copr-cli create [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,14 +72,17 @@ Instructions for the copr.
 `copr-cli build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-usage: copr-cli build [-h] [--memory MEMORY] [--timeout TIMEOUT]
+usage: copr-cli build [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       copr pkgs [pkgs ...]
 
 --memory::
-TBD
+Override memory for this build
 
 --timeout::
-TBD
+Override timeout for this build
+
+--nowait::
+Don't wait for build completion
 
 copr::
 The copr repo to build the package in
