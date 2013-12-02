@@ -73,7 +73,7 @@ def listcoprs(username=None):
     values = []
     if 'repos' in output:
         if output['repos']:
-            columns = ['name', 'description', 'yum_repos', 'additional_repos', 'instructions']
+            columns = ['name', 'description', 'instructions']
             values = []
             for entry in output['repos']:
                 values.append([entry[key] for key in columns])
