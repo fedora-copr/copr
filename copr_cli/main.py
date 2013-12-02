@@ -18,7 +18,7 @@ def action_build(args):
 
     """
     subcommands.build(args.copr, args.pkgs,
-                      args.memory, args.timeout)
+                      args.memory, args.timeout, not args.nowait)
 
 
 def action_create(args):
@@ -41,6 +41,10 @@ def action_list(args):
 
     """
     subcommands.listcoprs(args.username)
+
+
+def action_status(args):
+    subcommands.status(args.build_id)
 
 
 def setup_parser():
@@ -96,7 +100,17 @@ def setup_parser():
                               help="")
     parser_build.add_argument('--timeout', dest='timeout',
                               help="")
+    parser_build.add_argument('--nowait',
+                              help="Don't wait for build")
     parser_build.set_defaults(func=action_build)
+
+    # create the parser for the "status" command
+    parser_build = subparsers.add_parser('status',
+                                         help='Get build status of build'
+                                         ' specified by its ID')
+    parser_build.add_argument('build_id',
+                              help='Build ID')
+    parser_build.set_defaults(func=action_status)
 
     return parser
 

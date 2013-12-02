@@ -5,11 +5,14 @@ Function actually doing the work of calling the API and handling the
 output.
 """
 
-import ConfigParser
-import json
 import os
-import requests
 import sys
+import time
+import json
+import datetime
+import ConfigParser
+
+import requests
 
 import copr_exceptions
 
@@ -163,7 +166,33 @@ def create(name, chroots=[], description=None, instructions=None,
         print output['message']
 
 
-def build(copr, pkgs, memory, timeout):
+def _fetch_status(build_id):
+    user = get_user()
+    copr_api_url = get_api_url()
+    URL = '{0}/coprs/build_status/{1}/'.format(
+        copr_api_url,
+        build_id)
+
+    req = requests.get(URL, auth=(user['login'], user['token']))
+
+    if '<title>Sign in Coprs</title>' in req.text:
+        print('Invalid API token')
+        return
+
+    output = json.loads(req.text)
+    if req.status_code != 200:
+        return (False, output['error'])
+    else:
+        return (True, output['status'])
+
+
+def status(build_id):
+    """ Return status of build """
+    (ret, value) = _fetch_status(build_id)
+    print(value)
+
+
+def build(copr, pkgs, memory, timeout, wait=True):
     """ Build a new package into a given copr. """
     user = get_user()
     copr_api_url = get_api_url()
@@ -188,5 +217,32 @@ def build(copr, pkgs, memory, timeout):
     output = json.loads(req.text)
     if req.status_code != 200:
         print 'Something went wrong:\n {0}'.format(output['error'])
+        return False
     else:
         print output['message']
+
+    if wait:
+        print("Build ID: {0}".format(output['id']))
+        print("Watching build (this may be safely interrupted)...")
+        prevstatus = None
+        try:
+            while True:
+                (ret, status) = _fetch_status(output['id'])
+                if not ret:
+                    print("Unable to get build status: {0}".format(status))
+                    return False
+
+                now = datetime.datetime.now()
+                if prevstatus != status:
+                    print("{0} {1}".format(now.strftime('%H:%M:%S'), status))
+                    prevstatus = status
+
+                if status in ['succeeded', 'failed']:
+                    return True
+
+                time.sleep(60)
+
+        except KeyboardInterrupt:
+            pass
+
+    return True
