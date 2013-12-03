@@ -136,5 +136,48 @@
         <li><b>pkgs</b> &ndash; Space separated list of package URLs (SRPMs) to be built</li>
     </ul>
 
+    <h4>Example results</h4>
+    <pre>
+    {
+      "output": "ok",
+      "message": "Build was added to log4j.",
+      "id": 5
+    }
+    </pre>
+
+    <h3>Query build status</h3>
+
+    <p><span style="font-style:italic">Login required</span></p>
+
+    <h4>URL:</h4>
+    <pre style="font-size:120%">/api/copr/build_status/&lt;build_id&gt;/</pre>
+
+    <h4>URL parameters:</h4>
+    <ul>
+        <li><b>build_id</b> &ndash; Build ID returned by the <span style="font-style:italic">new_build</span> call</li>
+    </ul>
+
+    <h4>Result</h4>
+    <ul>
+        <li><b>status</b> &ndash; Status of the build, one of
+          <ul>
+            <li>pending</li>
+            <li>running</li>
+            <li>failed</li>
+            <li>succeeded</li>
+            <li>canceled</li>
+          </ul>
+        </li>
+    </ul>
+
+    <h4>Example result</h4>
+    <pre>
+    {
+      "status": "pending",
+      "output": "ok"
+    }
+    </pre>
+    </h4>
+
   </div>
 {% endblock %}
