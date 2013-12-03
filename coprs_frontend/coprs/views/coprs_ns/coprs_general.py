@@ -21,6 +21,7 @@ from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
+from coprs.helpers import guess_package_name
 
 
 @coprs_ns.route('/', defaults = {'page': 1})
@@ -356,7 +357,7 @@ def copr_build_monitor(username, coprname):
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
-    builds = builds_query.all()
+    builds = builds_query.order_by('-id').all()
 
     # please don't waste time trying to decipher this
     # the only reason why this is necessary is non-existent
@@ -372,10 +373,10 @@ def copr_build_monitor(username, coprname):
     chroots = []
 
     if builds:
-        build = builds[0]
+        build = builds[0]  # latest build
         chroots = sorted([chroot.name for chroot in build.build_chroots])
 
-    for build in builds[:50]:
+    for build in builds:
         chroot_results = {chroot.name: chroot.state
                           for chroot in build.build_chroots}
 
@@ -386,13 +387,14 @@ def copr_build_monitor(username, coprname):
             else:
                 build_results.append('')
 
-        for pkg in build.pkgs.split():
-            base_pkg = os.path.basename(pkg).replace('.src.rpm', '')
+        for pkg_url in build.pkgs.split():
+            pkg = os.path.basename(pkg_url)
+            pkg_name = guess_package_name(pkg)
 
-            if base_pkg in out:
+            if pkg_name in out:
                 continue
 
-            out[base_pkg] = build_results
+            out[pkg_name] = build_results
 
     return flask.render_template('coprs/detail/monitor.html',
                                  copr=copr,

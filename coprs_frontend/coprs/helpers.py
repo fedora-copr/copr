@@ -99,3 +99,27 @@ class Paginator(object):
         args = request.view_args.copy()
         args['page'] = page
         return flask.url_for(request.endpoint, **args)
+
+
+def guess_package_name(pkg):
+    """
+    Guess package name from possibly incomplete nvra string.
+
+    Return part of `pkg` up until numeric part is found (e.g. version string)
+    """
+
+    result = ''
+    pkg = pkg.replace('.rpm', '').replace('.src', '')
+
+    for delim in ['-', '.']:
+        if delim in pkg:
+            parts = pkg.split(delim)
+            for part in parts:
+                if any(map(lambda x: x.isdigit(), part)):
+                    return result[:-1]
+
+                result += part + '-'
+
+            return result[:-1]
+
+    return pkg
