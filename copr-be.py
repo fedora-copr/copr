@@ -286,7 +286,7 @@ def main(args):
             gid = grp.getgrnam('copr').gr_gid,
             uid = pwd.getpwnam('copr').pw_uid,
             detach_process = opts.daemonize,
-            umask = 077,
+            umask = 022,
             stderr = sys.stderr,
             signal_map = {
                 signal.SIGTERM: 'terminate',
