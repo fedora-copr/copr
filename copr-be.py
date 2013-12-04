@@ -287,6 +287,7 @@ def main(args):
             uid = pwd.getpwnam('copr').pw_uid,
             detach_process = opts.daemonize,
             umask = 077,
+            stderr = sys.stderr,
             signal_map = {
                 signal.SIGTERM: 'terminate',
                 signal.SIGHUP: 'terminate',
