@@ -216,7 +216,10 @@ class Worker(multiprocessing.Process):
         jobdata.chroot = build['chroot']
         jobdata.buildroot_pkgs = build['buildroot_pkgs']
         jobdata.memory_reqs = build['memory_reqs']
-        jobdata.timeout = build['timeout']
+        if build['timeout']:
+            jobdata.timeout = build['timeout']
+        else:
+            jobdata.timeout = self.opts.timeout
         jobdata.destdir = os.path.normpath(self.opts.destdir + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'])
         jobdata.build_id = build['id']
         jobdata.results = self.opts.results_baseurl + '/' + build['copr']['owner']['name'] + '/' + build['copr']['name'] + '/'
