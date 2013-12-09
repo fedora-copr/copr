@@ -220,11 +220,15 @@ class Builder(object):
         self.chroot = mockremote.chroot
         self.repos = mockremote.repos
         self.mockremote = mockremote
-        self.buildroot_pkgs = buildroot_pkgs
+        if buildroot_pkgs is None:
+            self.buildroot_pkgs = ''
+        else:
+            self.buildroot_pkgs = buildroot_pkgs
         self.checked = False
         self._tempdir = None
         # if we're at this point we've connected and done stuff on the host
         self.conn = _create_ans_conn(self.hostname, self.username, self.timeout)
+        self.root_conn = _create_ans_conn(self.hostname, 'root', self.timeout)
         # check out the host - make sure it can build/be contacted/etc
         self.check()
 
@@ -275,12 +279,21 @@ class Builder(object):
         """ modify mock config for current chroot
 
         packages in buildroot_pkgs are added to minimal buildroot """
-        command = 'sed -i "1,\$s/config_opts\[\'chroot_setup_cmd\'\].*/config_opts\[\'chroot_setup_cmd\'\] = \'install @build %s\'/" /etc/mock/%s.cfg' % (self.buildroot_pkgs, self.chroot)
-        self.mockremote.callback.log('executing: %r' % command)
-        self.conn.module_name = "shell"
-        self.conn.module_args = command
-        # FIXME should probably check this but <shrug>
-        results = self.conn.run()
+        if "'%s '" % self.buildroot_pkgs != pipes.quote(str(self.buildroot_pkgs)+' '):
+            # just different test if it contains only alphanumeric characters allowed in packages name
+            raise BuilderError("Do not try this kind of attack on me")
+        self.root_conn.module_name = "lineinfile"
+        self.root_conn.module_args = """dest=/etc/mock/%s.cfg line="config_opts['chroot_setup_cmd'] = 'install @buildsys-build %s'" regexp="^.*chroot_setup_cmd.*$" """ % (self.chroot, self.buildroot_pkgs)
+        self.mockremote.callback.log('putting %s into minimal buildroot of %s' % (self.buildroot_pkgs, self.chroot))
+        results = self.root_conn.run()
+
+        is_err, err_results = check_for_ans_error(results, self.hostname, success_codes=[0],
+                          return_on_error=['stdout', 'stderr'])
+        if is_err:
+            self.mockremote.callback.log("Error: %s" % err_results)
+            myresults = get_ans_results(results, self.hostname)
+            self.mockremote.callback.log("%s" % myresults)
+
 
     def build(self, pkg):
 
