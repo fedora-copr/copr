@@ -93,6 +93,7 @@ Requires:	python-whoosh >= 2.5.3
 Requires:	pytest
 Requires:   python-flexmock
 Requires:   python-decorator
+Requires:   yum
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -105,6 +106,7 @@ BuildRequires: python-flask-whooshee
 BuildRequires: python-pylibravatar
 BuildRequires: python-flask-wtf
 BuildRequires: pytest
+BuildRequires: yum
 BuildRequires: python-flexmock
 BuildRequires: python-decorator
 

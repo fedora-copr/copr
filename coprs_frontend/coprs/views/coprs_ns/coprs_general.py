@@ -21,7 +21,7 @@ from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
-from coprs.helpers import guess_package_name
+from coprs.helpers import parse_package_name
 
 
 @coprs_ns.route('/', defaults = {'page': 1})
@@ -389,7 +389,7 @@ def copr_build_monitor(username, coprname):
 
         for pkg_url in build.pkgs.split():
             pkg = os.path.basename(pkg_url)
-            pkg_name = guess_package_name(pkg)
+            pkg_name = parse_package_name(pkg)
 
             if pkg_name in out:
                 continue

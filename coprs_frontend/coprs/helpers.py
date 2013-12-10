@@ -6,6 +6,8 @@ import flask
 
 from coprs import constants
 
+from rpmUtils.miscutils import splitFilename
+
 def generate_api_token(size=30):
     """ Generate a random string used as token to access the API
     remotely.
@@ -101,13 +103,15 @@ class Paginator(object):
         return flask.url_for(request.endpoint, **args)
 
 
-def guess_package_name(pkg):
+def parse_package_name(pkg):
     """
-    Guess package name from possibly incomplete nvra string.
-
-    Return part of `pkg` up until numeric part is found (e.g. version string)
+    Parse package name from possibly incomplete nvra string.
     """
 
+    if pkg.count('.') >= 3 and pkg.count('-') >= 2:
+        return splitFilename(pkg)[0]
+
+    # doesn't seem like valid pkg string, try to guess package name
     result = ''
     pkg = pkg.replace('.rpm', '').replace('.src', '')
 
