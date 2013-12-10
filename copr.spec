@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.14
+Version:    1.15
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -383,6 +383,75 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Tue Dec 10 2013 Miroslav Suchý <msuchy@redhat.com> 1.15-1
+- [frontend] smarter package name parsing
+- [frontend] extend range to allow 0
+- handle default timeout on backend
+- initial support for SCL
+- [backend] create word readable files in result directory
+- [backend] print tracebacks
+- [frontend] monitor: display only pkg name w/o version
+- [doc] update api docs
+- [doc] update copr-cli manpage
+- [cli] list only name, description and instructions
+- [cli] add support for build status & build monitor
+- [frontend] add build status to API
+- [playbook] do not overwrite mockchain
+- [backend] add spece between options
+- [backend] pass mock options correctly
+- [frontend] support markdown in description and instructions
+- [backend] Add macros to mockchain define arguments
+- [backend] Pass copr username and project name to MockRemote
+- [backend] Handle additional macro specification in MockRemote
+- [frontend] monitor: show results per package
+- [frontend] add favicon
+- [backend] quote strings before passing to mockchain
+- send chroots with via callback to frontend
+- [cli] change cli to new api call
+- enhance API documentation
+- add yum_repos to coprs/user API call
+- [frontend] provide link to description of allowed content
+- [backend] we pass just one chroot
+- [backend] - variable play is not defined
+- if createrepo fail, run it again
+- [cron] fix syntax error
+- [man] state that --chroot for create command is required
+- [spec] enable tests
+- [howto] add note about upgrading db schema
+- [frontend]: add copr monitor
+- [tests]: replace test_allowed_one
+- [tests]: fix for BuildChroots & new backend view
+- [frontend] rewrite backend view to use Build <-> Chroot relation
+- [frontend] add Build <-> Chroot relation
+- 1030493 - [cli] check that at least one chroot is entered
+- [frontend] typo
+- fixup! [tests]: fix test_build_logic to handle BuildChroot
+- fixup! [frontend] add ActionsLogic
+- [tests]: fix test_build_logic to handle BuildChroot
+- [spec] enable/disable test using variable
+- add migration script - add table build_chroot
+- [frontend] skip legal-flag actions when dumping waiting actions
+- [frontend] rewrite backend view to use Build <-> Chroot relation
+- [frontend] add ActionsLogic
+- [frontend] create BuildChroot objects on new build
+- [frontend] add Build <-> Chroot relation
+- [frontend] add StatusEnum
+- [frontend] fix name -> coprname typo
+- [frontend] remove unused imports
+- [frontend] add missing json import
+- [backend] rework ip address extraction
+- ownership of /etc/copr should be just normal
+- [backend] - wrap up returning action in "action" blok
+- [backend] rename backend api url
+- [backend] handle "rename" action
+- [backend] handle "delete" action
+- base handling of actions
+- move callback to frontend to separate object
+- secure waiting_actions with password
+- pick only individual builds
+- make address, where we send legal flags, configurable
+- send email to root after legal flag have been raised
+
 * Fri Nov 08 2013 Miroslav Suchý <msuchy@redhat.com> 1.14-1
 - 1028235 - add disclaimer about repos
 - fix pagination
