@@ -5,21 +5,21 @@
 %global moduletype apps
 %global modulename copr
 
-Name:		copr
-Version:	1.14
-Release:	1%{?dist}
-Summary:	Cool Other Package Repo
+Name:       copr
+Version:    1.14
+Release:    1%{?dist}
+Summary:    Cool Other Package Repo
 
-Group:		Applications/Productivity
-License:	GPLv2+
-URL:		https://fedorahosted.org/copr/
+Group:      Applications/Productivity
+License:    GPLv2+
+URL:        https://fedorahosted.org/copr/
 # Source is created by
 # git clone https://git.fedorahosted.org/git/copr.git
 # cd copr
 # tito build --tgz
 # content is same as https://git.fedorahosted.org/cgit/copr.git/snapshot/%{name}-%{version}-1.tar.gz
 # but checksum does not match due different metadata
-Source0:	%{name}-%{version}.tar.gz
+Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -45,7 +45,7 @@ COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
 %package backend
-Summary:	Backend for COPR
+Summary:    Backend for COPR
 Requires:   ansible >= 1.2
 Requires:   lighttpd
 Requires:   euca2ools
@@ -75,22 +75,22 @@ This package contains backend.
 %package frontend
 Summary:    Frontend for COPR
 Requires:   httpd
-Requires:	mod_wsgi
-Requires:	python-alembic
+Requires:   mod_wsgi
+Requires:   python-alembic
 Requires:   python-flask
 Requires:   python-flask-openid
 Requires:   python-flask-wtf
 Requires:   python-flask-sqlalchemy
 Requires:   python-flask-script
 Requires:   python-flask-whooshee
-#Requires:	python-virtualenv
+#Requires:   python-virtualenv
 Requires:   python-blinker
 Requires:   python-markdown
-Requires:	python-psycopg2
+Requires:   python-psycopg2
 Requires:   python-pylibravatar
-Requires:	python-whoosh >= 2.5.3
+Requires:   python-whoosh >= 2.5.3
 # for tests:
-Requires:	pytest
+Requires:   pytest
 Requires:   python-flexmock
 Requires:   python-decorator
 Requires:   yum
@@ -117,8 +117,8 @@ and submit new builds and COPR will create yum repository from latests builds.
 This package contains frontend.
 
 %package cli
-Summary:	Command line interface for COPR
-Requires:	python-requests
+Summary:    Command line interface for COPR
+Requires:   python-requests
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
 %endif
@@ -140,7 +140,7 @@ This package include documentation for COPR code. Mostly useful for developers
 only.
 
 %package selinux
-Summary:	SELinux module for COPR
+Summary:        SELinux module for COPR
 Requires(post): policycoreutils, libselinux-utils
 Requires(post): policycoreutils-python
 Requires(post): selinux-policy-targeted
