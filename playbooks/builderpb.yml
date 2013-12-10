@@ -12,18 +12,18 @@
 
   tasks:
   - name: spin it up
-    local_action: ec2 keypair=${keypair} image=${image} type=${instance_type} wait=true group=${security_group}
+    local_action: ec2 keypair={{ keypair }} image={{ image }} type={{ instance_type }} wait=true group={{ security_group }}
     register: inst_res
 
   - name: get its internal ip b/c openstack is sometimes stupid
-    local_action: shell euca-describe-instances ${inst_res.instances[0].id} | grep INSTANCE | cut -f 18
+    local_action: shell euca-describe-instances {{ inst_res.instances[0].id }} | grep INSTANCE | cut -f 18
     register: int_ip
 
   - name: add it to the special group
-    local_action: add_host hostname=${int_ip.stdout} groupname=builder_temp_group
+    local_action: add_host hostname={{ int_ip.stdout }} groupname=builder_temp_group
 
   - name: wait for the host to be hot
-    local_action: wait_for host=${int_ip.stdout} port=22 delay=5 timeout=600
+    local_action: wait_for host={{ int_ip.stdout }} port=22 delay=5 timeout=600
 
   - debug: msg="IP={{ int_ip.stdout }}"
 
@@ -38,13 +38,13 @@
     action: shell hostname  `curl -s http://169.254.169.254/2009-04-04/meta-data/instance-id`
   
   - name: add repos
-    action: copy src=$files/$item dest=/etc/yum.repos.d/$item
+    action: copy src={{ files }}/{{ item }} dest=/etc/yum.repos.d/{{ item }}
     with_items:
     - builder.repo
     - epel6.repo
 
   - name: install pkgs
-    action: yum state=present pkg=$item
+    action: yum state=present pkg={{ item }}
     with_items:
     - mock
     - createrepo
@@ -62,10 +62,10 @@
     action: file state=directory path=/home/mockbuilder/.ssh mode=0700 owner=mockbuilder group=mockbuilder
 
   - name: mockbuilder authorized_keys
-    action: authorized_key user=mockbuilder key='$FILE(${files}/buildsys.pub)'
+    action: authorized_key user=mockbuilder key='$FILE({{ files }}/buildsys.pub)'
 
   - name: put updated mock configs into /etc/mock
-    action: copy src=$files/mock/$item dest=/etc/mock
+    action: copy src={{ files }}/mock/{{ item }} dest=/etc/mock
     with_items:
     - site-defaults.cfg
     - epel-5-x86_64.cfg

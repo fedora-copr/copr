@@ -10,7 +10,7 @@
     register: instanceid
 
   - name: terminate it
-    local_action: command euca-terminate-instances ${instanceid.stdout}
+    local_action: command euca-terminate-instances {{ instanceid.stdout }}
 
 
 
