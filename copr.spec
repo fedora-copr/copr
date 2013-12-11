@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.15
+Version:    1.16
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -383,6 +383,11 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Wed Dec 11 2013 Miroslav Suchý <msuchy@redhat.com> 1.16-1
+- [backend] store jobs in id-chroot.json file
+- [frontend] handle unknown build/chroot status
+- use newstyle ansible variables
+
 * Tue Dec 10 2013 Miroslav Suchý <msuchy@redhat.com> 1.15-1
 - [frontend] smarter package name parsing
 - [frontend] extend range to allow 0
