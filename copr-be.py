@@ -61,11 +61,12 @@ class CoprJobGrab(multiprocessing.Process):
                 count = 0
                 for b in r_json['builds']:
                     if 'id' in b:
-                        jobfile = self.opts.jobsdir + '/%s.json' % b['id']
-                        if not os.path.exists(jobfile) and b['id'] not in self.added_jobs:
+                        extended_id = "%s-%s" % (b['id'], b['chroot'])
+                        jobfile = self.opts.jobsdir + '/%s.json' % extended_id
+                        if not os.path.exists(jobfile) and extended_id not in self.added_jobs:
                             count += 1
                             open(jobfile, 'w').write(json.dumps(b))
-                            self.event('Wrote job: %s' % b['id'])
+                            self.event('Wrote job: %s' % extended_id)
                 if count:
                     self.event('New jobs: %s' % count)
             if 'actions' in r_json and r_json['actions']:
