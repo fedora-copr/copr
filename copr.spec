@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.17
+Version:    1.18
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -383,6 +383,9 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Wed Dec 11 2013 Miroslav Suchý <msuchy@redhat.com> 1.18-1
+- [frontend] inicialize variable
+
 * Wed Dec 11 2013 Miroslav Suchý <msuchy@redhat.com> 1.17-1
 - [frontend] fix latest build variable overwrite
 
