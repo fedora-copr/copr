@@ -266,7 +266,10 @@ class Build(db.Model, Serializer):
     @property
     def state(self):
         """ Return text representation of status of this build """
-        return helpers.StatusEnum(self.status)
+        if self.status is not None:
+            return helpers.StatusEnum(self.status)
+
+        return 'unknown'
 
     @property
     def cancelable(self):
@@ -330,7 +333,10 @@ class BuildChroot(db.Model, Serializer):
     @property
     def state(self):
         """ Return text representation of status of this build chroot """
-        return helpers.StatusEnum(self.status)
+        if self.status is not None:
+            return helpers.StatusEnum(self.status)
+
+        return 'unknown'
 
 
 
