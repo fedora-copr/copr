@@ -208,7 +208,7 @@ div.horizontal-menu li.selected a, div.horizontal-menu li.hovered a {
 }
 
 div.pkg-url-list {
-  white-space: pre;
+  white-space: pre-wrap;
   background-color: #f9f9f9;
   font-family: monospace;
   padding: 1em;
