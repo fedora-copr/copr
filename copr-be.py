@@ -165,8 +165,6 @@ class CoprBackend(object):
             os.makedirs(self.opts.worker_logdir, mode=0750)
 
         self.workers = []
-        self.added_jobs = []
-        self.abort = False
 
     def event(self, what):
         self.events.put({'when':time.time(), 'who':'main', 'what':what})
