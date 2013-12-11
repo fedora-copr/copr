@@ -371,6 +371,7 @@ def copr_build_monitor(username, coprname):
     out = {}
     build = None
     chroots = []
+    latest_build = None
 
     if builds:
         latest_build = builds[0]
