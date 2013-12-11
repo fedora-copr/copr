@@ -373,8 +373,8 @@ def copr_build_monitor(username, coprname):
     chroots = []
 
     if builds:
-        build = builds[0]  # latest build
-        chroots = sorted([chroot.name for chroot in build.build_chroots])
+        latest_build = builds[0]
+        chroots = sorted([chroot.name for chroot in latest_build.build_chroots])
 
     for build in builds:
         chroot_results = {chroot.name: chroot.state
@@ -398,7 +398,7 @@ def copr_build_monitor(username, coprname):
 
     return flask.render_template('coprs/detail/monitor.html',
                                  copr=copr,
-                                 build=build,
+                                 build=latest_build,
                                  chroots=chroots,
                                  packages=sorted(out.iteritems()),
                                  form=form)
