@@ -20,8 +20,8 @@ import copr_exceptions
 def get_user():
     """ Retrieve the user information from the config file. """
     config = ConfigParser.ConfigParser()
-    if not config.read(os.path.join(os.path.expanduser('~'), '.config',
-                'copr')):
+    if not config.read(
+            os.path.join(os.path.expanduser('~'), '.config', 'copr')):
         raise copr_exceptions.CoprCliNoConfException(
             'No configuration file "~/.config/copr" found.')
     try:
@@ -73,62 +73,32 @@ def listcoprs(username=None):
         return
 
     output = json.loads(req.text)
-    columns = []
-    values = []
+
     if 'repos' in output:
         if output['repos']:
-            columns = ['name', 'description', 'instructions']
-            values = []
-            for entry in output['repos']:
-                values.append([entry[key] for key in columns])
+            for repo in output['repos']:
+                print 'Name: {0}'.format(repo['name'])
+
+                if 'description' in repo:
+                    desc = repo['description']
+                    print ' ' * 5, 'Description: {0}'.format(desc)
+
+                if 'yum_repos' in repo:
+                    yum_repos = repo['yum_repos']
+                    print ' ' * 5, 'Yum repo: {0}'.format(yum_repos)
+
+                if 'additional_repos' in repo:
+                    add_repos = repo['additional_repos']
+                    print ' ' * 5, 'Additional repos: {0}'.format(add_repos)
+
+                if 'instructions' in repo:
+                    instructions = repo['instructions']
+                    print ' ' * 5, 'Instructions: {0}'.format(instructions)
         else:
-            columns = ['output']
-            values = ['No copr retrieved for user: "{0}"'.format(
-                user['username'])]
+            print 'No copr retrieved for user: "{0}"'.format(
+                user['username'])
     else:
-        columns = ['output']
-        values = ['Wrong output format returned by the server']
-
-    def _list_to_row(values, widths):
-        ''' Return a print ready version of the provided list '''
-        row = []
-        cnt = 0
-        for item in values:
-            max_width = widths[cnt]
-            cnt += 1
-            if not item:
-                item = ''
-            if cnt < len(values):
-                row.append(item.ljust(max_width + 1))
-            else:
-                row.append(item)
-        return row
-
-    if len(columns) > 1:
-        widths = {}
-        cnt = 0
-        for item in columns:
-            widths[cnt] = len(item)
-            cnt += 1
-        for row in values:
-            cnt = 0
-            for item in row:
-                if not item:
-                    item = ''
-                widths[cnt] = max(widths[cnt], len(item))
-                cnt += 1
-
-        headers = '|'.join(_list_to_row(columns, widths))
-        print headers
-        print '-' * len(headers)
-        for row in values:
-            print "|".join(_list_to_row(row, widths))
-
-    else:
-        headers = columns[0]
-        print headers
-        print "-"*len(headers)
-        print values[0]
+        print 'Un-expected data returned, please report this issue'
 
 
 def create(name, chroots=[], description=None, instructions=None,
