@@ -82,19 +82,21 @@ def listcoprs(username=None):
 
                 if 'description' in repo:
                     desc = repo['description']
-                    print ' ' * 5, 'Description: {0}'.format(desc)
+                    print ' ' * 2, 'Description: {0}'.format(desc)
 
                 if 'yum_repos' in repo:
                     yum_repos = repo['yum_repos']
-                    print ' ' * 5, 'Yum repo: {0}'.format(yum_repos)
+                    print ' ' * 2, 'Yum repo(s):'
+                    for k in sorted(yum_repos.keys()):
+                        print ' ' * 4, '{0}: {1}'.format(k, yum_repos[k])
 
                 if 'additional_repos' in repo:
                     add_repos = repo['additional_repos']
-                    print ' ' * 5, 'Additional repos: {0}'.format(add_repos)
+                    print ' ' * 2, 'Additional repos: {0}'.format(add_repos)
 
                 if 'instructions' in repo:
                     instructions = repo['instructions']
-                    print ' ' * 5, 'Instructions: {0}'.format(instructions)
+                    print ' ' * 2, 'Instructions: {0}'.format(instructions)
         else:
             print 'No copr retrieved for user: "{0}"'.format(
                 user['username'])
