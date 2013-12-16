@@ -1,4 +1,6 @@
 import flask
+import sys
+import time
 
 from coprs import db
 from coprs.logic import actions_logic
@@ -6,7 +8,7 @@ from coprs.logic import builds_logic
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
-
+from whoosh.index import LockError
 
 @backend_ns.route('/waiting/')
 @misc.backend_authenticated
@@ -67,7 +69,18 @@ def update():
         for i, obj in existing.items():
             logic_cls.update_state_from_dict(obj, to_update[i])
 
-        db.session.commit()
+        i = 5
+        exc_info = None
+        while i > 0:
+            try:
+                db.session.commit()
+                i = -100
+            except LockError:
+                i -= 1
+                exc_info = sys.exc_info()[2]
+                time.sleep(5)
+        if i == -100:
+            raise LockError, None, exc_info
 
         result.update({'updated_{0}_ids'.format(typ): list(existing.keys()),
                        'non_existing_{0}_ids'.format(typ): non_existing_ids})
