@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.18
+Version:    1.19
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -383,6 +383,19 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Mon Dec 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.19-1
+- [backend] log real cause if ansible crash
+- [frontend] try again if whoosh does not get lock
+- [backend] if frontend does not respond, repeat
+- print yum repos nicely
+- Bump the copr-cli release to 0.2.0 with all the changes made
+- Refer to the man page for more information about the configuration file for
+  copr-cli
+- Rework the layout of the list command
+- Fix parsing the copr_url from the configuration file
+- [backend] run createrepo as copr user
+- 1040615 - wrap lines with long URL
+
 * Wed Dec 11 2013 Miroslav Suchý <msuchy@redhat.com> 1.18-1
 - [frontend] inicialize variable
 
