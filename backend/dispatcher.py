@@ -161,8 +161,13 @@ class Worker(multiprocessing.Process):
         #                     callbacks=playbook_cb, runner_callbacks=runner_cb,
         #                     remote_user='root', transport='ssh')
         #play.run()
-        result = subprocess.check_output("ansible-playbook -c ssh %s" % self.opts.spawn_playbook,
-                shell=True)
+        try:
+            result = subprocess.check_output("ansible-playbook -c ssh %s" % self.opts.spawn_playbook,
+                    shell=True)
+        except subprocess.CalledProcessError:
+            sys.stderr.write("%s\n" % result)
+            self.callback.log("CalledProcessError: %s" % result)
+            raise subprocess.CalledProcessError, None, sys.exc_info()[2]
         self.callback.log('Raw output from playbook: %s' % result)
         match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
 

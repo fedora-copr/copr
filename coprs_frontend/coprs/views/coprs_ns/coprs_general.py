@@ -64,7 +64,11 @@ def coprs_by_allowed(username=None, page=1):
 @coprs_ns.route('/fulltext/<int:page>/')
 def coprs_fulltext_search(page=1):
     fulltext = flask.request.args.get('fulltext', '')
-    query = coprs_logic.CoprsLogic.get_multiple_fulltext(flask.g.user, fulltext)
+    try:
+        query = coprs_logic.CoprsLogic.get_multiple_fulltext(flask.g.user, fulltext)
+    except ValueError, e:
+        flask.flash(str(e))
+        return flask.redirect(flask.request.referrer or flask.url_for('coprs_ns.coprs_show'))
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
