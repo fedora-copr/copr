@@ -232,9 +232,15 @@ class Worker(multiprocessing.Process):
     # maybe we move this to the callback?
     def post_to_frontend(self, data):
         """send data to frontend"""
-        result = self.frontend_callback.post_to_frontend(data)
-        if not result:
-            self.callback.log(self.frontend_callback.msg)
+        i = 10
+        while i > 0:
+            result = self.frontend_callback.post_to_frontend(data)
+            if not result:
+                self.callback.log(self.frontend_callback.msg)
+                i -= 1
+                time.sleep(5)
+            else:
+                i = 0
         return result
 
     # maybe we move this to the callback?
