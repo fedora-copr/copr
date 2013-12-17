@@ -5,7 +5,6 @@ import flask
 import platform
 import smtplib
 import sqlalchemy
-import urlparse
 from email.mime.text import MIMEText
 
 from coprs import app
@@ -21,7 +20,7 @@ from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
-from coprs.helpers import parse_package_name
+from coprs.helpers import parse_package_name, render_repo
 
 
 @coprs_ns.route('/', defaults = {'page': 1})
@@ -344,11 +343,7 @@ def generate_repo_file(username, coprname, chroot):
     if not url:
         return page_not_found('Repository not initialized: No finished builds in {0}/{1}.'.format(username, coprname))
 
-    if mock_chroot.os_release == "fedora":
-        mock_chroot.os_version = '$releasever'
-    url = urlparse.urljoin(url, "%s-%s-%s/" % (mock_chroot.os_release, mock_chroot.os_version, '$basearch'))
-
-    response = flask.make_response(flask.render_template('coprs/copr.repo', copr=copr, url=url))
+    response = flask.make_response(render_repo(copr, mock_chroot, url))
     response.mimetype='text/plain'
     response.headers['Content-Disposition'] = 'filename=%s.repo' % reponame
     return response

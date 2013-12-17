@@ -1,7 +1,7 @@
 import math
 import random
 import string
-
+import urlparse
 import flask
 
 from coprs import constants
@@ -127,3 +127,10 @@ def parse_package_name(pkg):
             return result[:-1]
 
     return pkg
+
+def render_repo(copr, mock_chroot, url):
+    """ Render .repo file. No checks if copr or mock_chroot exists. """
+    if mock_chroot.os_release == "fedora":
+        mock_chroot.os_version = '$releasever'
+    url = urlparse.urljoin(url, "%s-%s-%s/" % (mock_chroot.os_release, mock_chroot.os_version, '$basearch'))
+    return flask.render_template('coprs/copr.repo', copr=copr, url=url)
