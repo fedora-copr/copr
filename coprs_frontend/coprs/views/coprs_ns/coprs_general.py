@@ -320,7 +320,6 @@ def generate_repo_file(username, coprname, chroot):
     if '-' not in reponame:
         return page_not_found('Bad repository name: {0}. Must be username-projectname'.format(reponame))
 
-    username, coprname = reponame.split('-', 1)
     copr = None
     try:
         # query.one() is used since it fetches all builds, unlike query.first().
