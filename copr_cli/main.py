@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import ConfigParser
 
 import subcommands
 import copr_exceptions
@@ -124,18 +125,17 @@ def main(argv=sys.argv[1:]):
         arg = parser.parse_args()
         arg.func(arg)
     except KeyboardInterrupt:
-        print "\nInterrupted by user."
+        sys.stderr.write("\nInterrupted by user.")
         sys.exit(1)
     except argparse.ArgumentTypeError, e:
-        print "\nError: {0}".format(e)
+        sys.stderr.write("\nError: {0}".format(e))
         sys.exit(2)
     except copr_exceptions.CoprCliException, e:
-        print "\nError: {0}".format(e)
+        sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(3)
     except ConfigParser.ParsingError, e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.stderr.write("Lines in INI file should not be indented.\n")
-        print \n
         sys.exit(4)
     #except Exception, e:
         #print 'Error: {0}'.format(e)
