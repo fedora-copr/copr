@@ -89,6 +89,8 @@ Requires:   python-markdown
 Requires:   python-psycopg2
 Requires:   python-pylibravatar
 Requires:   python-whoosh >= 2.5.3
+Requires(pre):   rpmdevtools
+Requires:   rpm-build
 # for tests:
 Requires:   pytest
 Requires:   python-flexmock
@@ -290,6 +292,7 @@ getent group copr-fe >/dev/null || groupadd -r copr-fe
 getent passwd copr-fe >/dev/null || \
 useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash -c "COPR frontend user" copr-fe
 /usr/bin/passwd -l copr-fe >/dev/null
+runuser -c "rpmdev-setuptree" copr-fe
 
 %post frontend
 service httpd condrestart
