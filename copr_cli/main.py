@@ -132,6 +132,11 @@ def main(argv=sys.argv[1:]):
     except copr_exceptions.CoprCliException, e:
         print "\nError: {0}".format(e)
         sys.exit(3)
+    except ConfigParser.ParsingError, e:
+        sys.stderr.write("\nError: {0}\n".format(e))
+        sys.stderr.write("Lines in INI file should not be indented.\n")
+        print \n
+        sys.exit(4)
     #except Exception, e:
         #print 'Error: {0}'.format(e)
         #sys.exit(100)
