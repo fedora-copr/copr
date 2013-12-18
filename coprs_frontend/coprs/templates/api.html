@@ -17,12 +17,15 @@
     </p>
 
     {% if g.user %}
-    <p>Your information:</p>
+    <p>Your information (you can directly paste this into ~/.config/copr):</p>
     <pre style="font-size:120%">
-    API login       :   {{ g.user.api_login }}
-    API token       :   {{ g.user.api_token }}
-    Expiration date :   {{ g.user.api_token_expiration }}
-    </pre>
+[copr-cli]
+login = {{ g.user.api_login }}
+username = {{ g.user.name }}
+token = {{ g.user.api_token }}
+copr_url = http://copr.fedoraproject.org
+# expiration date: {{ g.user.api_token_expiration }}
+</pre>
 
     <a href="{{ url_for('api_ns.api_new_token') }}">
         <input type="button" value="Generate a new token" />
