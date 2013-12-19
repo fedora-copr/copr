@@ -26,7 +26,7 @@ class Action(object):
             project = self.data['old_value']
             path = os.path.normpath(self.destdir + '/' + project)
             if os.path.exists(path):
-                self.events('Removing %s' % path)
+                self.event('Removing %s' % path)
                 shutil.rmtree(path)
             result.job_ended_on = time.time()
             result.result = 1 # success
