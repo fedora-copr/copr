@@ -8,7 +8,6 @@
       Latest build status:
       <strong>{{ build.state }}</strong>
     </p>
-    {% if not build.canceled %}
       <table class="monitor">
         <tr>
           <th>Package</th>
@@ -27,7 +26,6 @@
           </tr>
         {% endfor %}
       </table>
-    {% endif %}
   {% else %}
     <h2>No builds so far.</h2>
   {% endif %}
