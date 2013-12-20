@@ -43,7 +43,7 @@ def get_api_url():
     )
 
     # Default copr_url:
-    copr_url = 'http://copr-fe.cloud.fedoraproject.org/'
+    copr_url = 'http://copr.fedoraproject.org/'
     if config.has_section('copr-cli'):
         copr_url = config.get('copr-cli', 'copr_url')
     return '%s/api' % copr_url
