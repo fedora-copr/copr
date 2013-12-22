@@ -17,6 +17,7 @@ import optparse
 import os
 import pwd
 import requests
+import setproctitle
 import signal
 import sys
 import time
@@ -76,11 +77,7 @@ class CoprJobGrab(multiprocessing.Process):
                     ao.run()
 
     def run(self):
-        try:
-            import procname
-            procname.setprocname("CoprJobGrab")
-        except ImportError:
-            pass
+        setproctitle.setproctitle("CoprJobGrab")
         abort = False
         while not abort:
             self.fetch_jobs()
@@ -122,11 +119,7 @@ class CoprLog(multiprocessing.Process):
 
     # event format is a dict {when:time, who:[worker|logger|job|main], what:str}
     def run(self):
-        try:
-            import procname
-            procname.setprocname("CoprLog")
-        except ImportError:
-            pass
+        setproctitle.setproctitle("CoprLog")
         abort = False
         while not abort:
             e = self.events.get()

@@ -58,6 +58,7 @@ Requires:   python-bunch
 Requires:   python-daemon
 Requires:   python-lockfile
 Requires:   python-requests
+Requires:   python-setproctitle
 Requires:   logrotate
 Requires:   fedmsg
 Requires:   gawk

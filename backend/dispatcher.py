@@ -16,6 +16,7 @@ from ansible import callbacks
 import requests
 import subprocess
 import string
+import setproctitle
 from IPy import IP
 
 try:
@@ -287,11 +288,7 @@ class Worker(multiprocessing.Process):
          terminate the instance
         """
 
-        try:
-            import procname
-            procname.setprocname("worker")
-        except ImportError:
-            pass
+        setproctitle.setproctitle("worker")
         while not self.kill_received:
             try:
                 jobfile = self.jobs.get()
