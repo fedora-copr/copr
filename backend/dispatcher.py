@@ -215,7 +215,11 @@ class Worker(multiprocessing.Process):
     def parse_job(self, jobfile):
         # read the json of the job in
         # break out what we need return a bunch of the info we need
-        build = json.load(open(jobfile))
+        try:
+            build = json.load(open(jobfile))
+        except ValueError:
+            # empty file?
+            return None
         jobdata = Bunch()
         jobdata.pkgs = build['pkgs'].split(' ')
         jobdata.repos = [r for r in build['repos'].split(' ') if r.strip() ]
@@ -298,6 +302,10 @@ class Worker(multiprocessing.Process):
             # parse the job json into our info
             job = self.parse_job(jobfile)
 
+            if job is None:
+                self.callback.log('jobfile %s is mangled, please investigate' % jobfile)
+                time.sleep(self.opts.sleeptime)
+                continue
             # FIXME
             # this is our best place to sanity check the job before starting
             # up any longer process
