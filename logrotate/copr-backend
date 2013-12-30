@@ -7,7 +7,6 @@
     compress
     notifempty
     missingok
-    size=10M
     create 640 copr copr
 }
 
@@ -18,6 +17,5 @@
     compress
     notifempty
     missingok
-    size=10M
     create 640 copr copr
 }
