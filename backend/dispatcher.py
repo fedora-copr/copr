@@ -292,7 +292,7 @@ class Worker(multiprocessing.Process):
          terminate the instance
         """
 
-        setproctitle.setproctitle("worker")
+        setproctitle.setproctitle("worker %s" % self.worker_num)
         while not self.kill_received:
             try:
                 jobfile = self.jobs.get()
