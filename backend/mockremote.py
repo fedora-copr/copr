@@ -86,7 +86,7 @@ def log(lf, msg):
         try:
             open(lf, 'a').write(str(now) + ':' + msg + '\n')
         except (IOError, OSError), e:
-            print 'Could not write to logfile %s - %s' % (lf, str(e))
+            sys.stderr.write('Could not write to logfile %s - %s\n' % (lf, str(e)))
     print msg
 
 def get_ans_results(results, hostname):
@@ -604,7 +604,7 @@ def parse_args(args):
     opts, args = parser.parse_args(args)
 
     if not opts.builder:
-        print "Must specify a system to build on"
+        sys.stderr.write("Must specify a system to build on")
         sys.exit(1)
 
     if opts.packages_file and os.path.exists(opts.packages_file):
@@ -614,16 +614,16 @@ def parse_args(args):
     # :(
 
     if not args:
-        print "Must specify at least one pkg to build"
+        sys.stderr.write("Must specify at least one pkg to build")
         sys.exit(1)
 
     if not opts.chroot:
-        print "Must specify a mock chroot"
+        sys.stderr.write("Must specify a mock chroot")
         sys.exit(1)
 
     for url in opts.repos:
         if not (url.startswith('http://') or url.startswith('https://') or  url.startswith('file://')):
-            print "Only http[s] or file urls allowed for repos"
+            sys.stderr.write("Only http[s] or file urls allowed for repos")
             sys.exit(1)
 
     return opts, args

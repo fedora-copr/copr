@@ -257,7 +257,7 @@ def parse_args(args):
 
     opts, args = parser.parse_args(args)
     if not os.path.exists(opts.config_file):
-        print "No config file found at: %s" % opts.config_file
+        sys.stderr.write("No config file found at: %s\n" % opts.config_file)
         sys.exit(1)
     opts.config_file = os.path.abspath(opts.config_file)
 
@@ -289,7 +289,7 @@ def main(args):
             cbe = CoprBackend(opts.config_file, ext_opts=opts)
             cbe.run()
     except Exception:
-        print 'Killing/Dying'
+        sys.stderr.write("Killing/Dying\n")
         if 'cbe' in locals():
             cbe.terminate()
         raise
@@ -298,5 +298,5 @@ if __name__ == '__main__':
     try:
         main(sys.argv[1:])
     except KeyboardInterrupt:
-        print "\nUser cancelled, may need cleanup\n"
+        sys.stderr.write("\nUser cancelled, may need cleanup\n")
         sys.exit(0)
