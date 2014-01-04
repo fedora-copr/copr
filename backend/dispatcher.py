@@ -165,7 +165,8 @@ class Worker(multiprocessing.Process):
         try:
             result = subprocess.check_output("ansible-playbook -c ssh %s" % self.opts.spawn_playbook,
                     shell=True)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError, e:
+            result = e.output
             sys.stderr.write("%s\n" % result)
             self.callback.log("CalledProcessError: %s" % result)
             raise subprocess.CalledProcessError, None, sys.exc_info()[2]
