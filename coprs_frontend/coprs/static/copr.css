@@ -122,18 +122,17 @@ div.copr {
   -webkit-border-radius: 5px;
 }
 
-div.copr * {
-  padding-left: 1em;
-  padding-right: 1em;
-}
-
-div.copr a {
+a.coprs-list {
+  padding-left: 0.71em;
+  padding-right: 0.71em;
   font-size: 1.4em;
   font-weight: bold;
   display: block;
 }
 
 div.copr p {
+  padding-left: 1em;
+  padding-right: 1em;
   margin-top: 0.3em;
   margin-bottom: 0.3em;
 }
