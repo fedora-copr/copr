@@ -194,3 +194,16 @@ def build_status(build_id):
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
+
+@api_ns.route('/coprs/<username>/<coprname>/last_modified/', methods=["GET"])
+def build_status(username, coprname):
+    copr = coprs_logic.CoprsLogic.get(None, username,
+        coprname).first()
+    httpcode = 200
+    if not copr:
+        output = {'output': 'notok', 'error':
+            'Copr with name {0} does not exist.'.format(coprname)}
+        httpcode = 500
+
+    build = build_logic.BuildsLogic.get_multiple(None, username=username, coprname=coprname).order_by(models.Build.ended_on.desc())
+
