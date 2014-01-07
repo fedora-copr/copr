@@ -17,6 +17,32 @@ import requests
 import copr_exceptions
 
 
+def _get_data(req, user, copr=None):
+    """ Wrapper around response from server
+
+    check data and print nice error in case of some error (and return None)
+    otherwise return json object.
+    """
+    if '<title>Sign in Coprs</title>' in req.text:
+        sys.stderr.write("Invalid API token\n")
+        return
+
+    if req.status_code == 404:
+        if copr is not None:
+            sys.stderr.write("User %s is unknown.\n" % user['username'])
+        else:
+            sys.stderr.write("Project %s/%s not found.\n" % (user['username'], copr))
+        return
+    try:
+        output = json.loads(req.text)
+    except ValueError:
+        sys.stderr.write("Unknown response from server.\n")
+        return
+    if req.status_code != 200:
+        sys.stderr.write("Something went wrong:\n {0}\n".format(output['error']))
+        return
+    return output
+
 def get_user():
     """ Retrieve the user information from the config file. """
     config = ConfigParser.ConfigParser()
@@ -63,19 +89,10 @@ def listcoprs(username=None):
     url = '{0}/coprs/{1}/'.format(copr_api_url, user['username'])
 
     req = requests.get(url)
-
-    if '<title>Sign in Coprs</title>' in req.text:
-        print 'Invalid API token'
+    output = _get_data(req, user)
+    if output is None:
         return
-
-    output = json.loads(req.text)
-    if req.status_code != 200:
-        print 'Something went wrong:\n {0}'.format(output['error'])
-        return
-
-    output = json.loads(req.text)
-
-    if 'repos' in output:
+    elif 'repos' in output:
         if output['repos']:
             for repo in output['repos']:
                 print 'Name: {0}'.format(repo['name'])
@@ -132,16 +149,9 @@ def create(name, chroots=[], description=None, instructions=None,
     req = requests.post(URL,
                         auth=(user['login'], user['token']),
                         data=data)
-    if '<title>Sign in Coprs</title>' in req.text:
-        print 'Invalid API token'
-        return
-
-    output = json.loads(req.text)
-    if req.status_code != 200:
-        print 'Something went wrong:\n {0}'.format(output['error'])
-    else:
+    output = _get_data(req, user)
+    if output is not None:
         print output['message']
-
 
 def _fetch_status(build_id):
     user = get_user()
@@ -151,16 +161,13 @@ def _fetch_status(build_id):
         build_id)
 
     req = requests.get(URL, auth=(user['login'], user['token']))
-
-    if '<title>Sign in Coprs</title>' in req.text:
-        print('Invalid API token')
-        return
-
-    output = json.loads(req.text)
-    if req.status_code != 200:
-        return (False, output['error'])
-    else:
+    output = _get_data(req, user)
+    if output is None:
+        return (False, 'Error occurred.')
+    elif 'status' in output:
         return (True, output['status'])
+    else:
+        return (False, output['error'])
 
 
 def status(build_id):
@@ -186,22 +193,9 @@ def build(copr, pkgs, memory, timeout, wait=True):
     req = requests.post(URL,
                         auth=(user['login'], user['token']),
                         data=data)
-
-    if '<title>Sign in Coprs</title>' in req.text:
-        print 'Invalid API token'
+    output = _get_data(req, user, copr)
+    if output is None:
         return
-
-    if req.status_code == 404:
-        sys.stderr.write("Project %s/%s not found.\n" % (user['username'], copr))
-        return
-    try:
-        output = json.loads(req.text)
-    except ValueError:
-        sys.stderr.write("Unknown response from server.\n")
-        return
-    if req.status_code != 200:
-        print 'Something went wrong:\n {0}'.format(output['error'])
-        return False
     else:
         print output['message']
 
