@@ -79,15 +79,18 @@ class CoprJobGrab(multiprocessing.Process):
     def run(self):
         setproctitle.setproctitle("CoprJobGrab")
         abort = False
-        while not abort:
-            self.fetch_jobs()
-            for f in sorted(glob.glob(self.opts.jobsdir + '/*.json')):
-                n = os.path.basename(f).replace('.json', '')
-                if n not in self.added_jobs:
-                    self.jobs.put(f)
-                    self.added_jobs.append(n)
-                    self.event('adding to work queue id %s' % n)
-            time.sleep(self.opts.sleeptime)
+        try:
+            while not abort:
+                self.fetch_jobs()
+                for f in sorted(glob.glob(self.opts.jobsdir + '/*.json')):
+                    n = os.path.basename(f).replace('.json', '')
+                    if n not in self.added_jobs:
+                        self.jobs.put(f)
+                        self.added_jobs.append(n)
+                        self.event('adding to work queue id %s' % n)
+                time.sleep(self.opts.sleeptime)
+        except KeyboardInterrupt:
+            return
 
 class CoprLog(multiprocessing.Process):
     """log mechanism where items from the events queue get recorded"""
@@ -121,10 +124,13 @@ class CoprLog(multiprocessing.Process):
     def run(self):
         setproctitle.setproctitle("CoprLog")
         abort = False
-        while not abort:
-            e = self.events.get()
-            if 'when' in e and 'who' in e and 'what' in e:
-                self.log(e)
+        try:
+            while not abort:
+                e = self.events.get()
+                if 'when' in e and 'who' in e and 'what' in e:
+                    self.log(e)
+        except KeyboardInterrupt:
+            return
 
 class CoprBackend(object):
     """core process - starts/stops/initializes workers"""
@@ -201,7 +207,6 @@ class CoprBackend(object):
 
 
     def run(self):
-
         self.abort = False
         while not self.abort:
             # re-read config into opts
@@ -288,7 +293,7 @@ def main(args):
         with context:
             cbe = CoprBackend(opts.config_file, ext_opts=opts)
             cbe.run()
-    except Exception:
+    except (Exception, KeyboardInterrupt):
         sys.stderr.write("Killing/Dying\n")
         if 'cbe' in locals():
             cbe.terminate()
