@@ -115,6 +115,9 @@ class CoprLog(multiprocessing.Process):
         msg = '%s : %s: %s' % (when, event['who'], event['what'].strip())
 
         try:
+            if self.opts.verbose:
+                sys.stderr.write("%s\n" % msg)
+                sys.stderr.flush()
             logging.debug(msg)
         except (IOError, OSError), e:
             print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
@@ -187,6 +190,7 @@ class CoprBackend(object):
             opts.num_workers = int(_get_conf(cp, 'backend', 'num_workers', 8))
             opts.timeout = int(_get_conf(cp, 'builder', 'timeout', 1800))
             opts.logfile = _get_conf(cp, 'backend', 'logfile', '/var/log/copr/backend.log')
+            opts.verbose = _get_conf(cp, 'backend', 'verbose', False)
             opts.worker_logdir = _get_conf(cp, 'backend', 'worker_logdir', '/var/log/copr/workers/')
             # thoughts for later
             # ssh key for connecting to builders?
@@ -259,6 +263,8 @@ def parse_args(args):
             help="pid file to use for copr-be if daemonized")
     parser.add_option('-x', '--exit', default=False, dest='exit_on_worker',
             action='store_true', help="exit on worker failure")
+    parser.add_option('-v', '--verbose', default=False, dest='verbose',
+            action='store_true', help="be more verbose")
 
     opts, args = parser.parse_args(args)
     if not os.path.exists(opts.config_file):
