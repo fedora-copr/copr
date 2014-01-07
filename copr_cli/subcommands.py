@@ -191,7 +191,14 @@ def build(copr, pkgs, memory, timeout, wait=True):
         print 'Invalid API token'
         return
 
-    output = json.loads(req.text)
+    if req.status_code == 404:
+        sys.stderr.write("Project %s/%s not found.\n" % (user['username'], copr))
+        return
+    try:
+        output = json.loads(req.text)
+    except ValueError:
+        sys.stderr.write("Unknown response from server.\n")
+        return
     if req.status_code != 200:
         print 'Something went wrong:\n {0}'.format(output['error'])
         return False
