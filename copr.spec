@@ -120,6 +120,7 @@ This package contains frontend.
 %package cli
 Summary:    Command line interface for COPR
 Requires:   python-requests
+Requires:   python-setuptools
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
 %endif
