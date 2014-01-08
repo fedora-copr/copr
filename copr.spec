@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.19
+Version:    1.20
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -385,6 +385,34 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.20-1
+- [cli] no need to set const with action=store_true
+- [cli] code cleanup
+- 1049460 - print nice error when projects does not exist
+- 1049392 - require python-setuptools
+- [backend] add --verbose to log to stderr
+- [backend] handle KeyboardInterrupt without tons of tracebacks
+- 1048508 - fix links at projects lists
+- [backend] in case of error the output is in e.output
+- [selinux] allow httpd to search
+- [backend] set number of worker in name of process
+- [logrotate] rotate every week unconditionally
+- [backend] do not traceback if jobfile is mangled
+- [backend] print error messages to stderr
+- [cli] do not require additional arguments for --nowait
+- [backend] replace procname with setproctitle
+- [cli] use copr.fedoraproject.org as default url
+- [frontend] show monitor even if last build have been canceled
+- [backend] call correct function
+- [cli] print errors to stderr
+- 1044136 - do not print TB if config in mangled
+- 1044165 - Provide login and token information in the same form as entered to
+  ~/.config-copr
+- [frontend] code cleanup
+- [frontend] move rendering of .repo file to helpers
+- 1043649 - in case of Fedora use $releasever in repo file
+- [frontend] condition should be in reverse
+
 * Mon Dec 16 2013 Miroslav Suchý <msuchy@redhat.com> 1.19-1
 - [backend] log real cause if ansible crash
 - [frontend] try again if whoosh does not get lock
