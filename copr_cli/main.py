@@ -101,7 +101,7 @@ def setup_parser():
                               help="")
     parser_build.add_argument('--timeout', dest='timeout',
                               help="")
-    parser_build.add_argument('--nowait', action="store_true", default=False, const=True,
+    parser_build.add_argument('--nowait', action="store_true", default=False,
                               help="Don't wait for build")
     parser_build.set_defaults(func=action_build)
 
