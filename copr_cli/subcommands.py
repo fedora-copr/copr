@@ -28,7 +28,7 @@ def _get_data(req, user, copr=None):
         return
 
     if req.status_code == 404:
-        if copr is not None:
+        if copr is None:
             sys.stderr.write("User %s is unknown.\n" % user['username'])
         else:
             sys.stderr.write("Project %s/%s not found.\n" % (user['username'], copr))
