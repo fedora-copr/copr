@@ -49,5 +49,6 @@ for REPO in $( ls -d */*/* | grep -v '/repodata$' ); do
     popd >/dev/null
 done
 popd >/dev/null
+rm -rf /var/tmp/createrepo*
 echo
 echo Done
