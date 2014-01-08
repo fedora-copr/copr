@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.20
+Version:    1.21
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -385,6 +385,10 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.21-1
+- 1049460 - correct error message
+- [cron] manualy clean /var/tmp after createrepo
+
 * Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.20-1
 - [cli] no need to set const with action=store_true
 - [cli] code cleanup
