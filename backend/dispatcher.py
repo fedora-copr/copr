@@ -144,7 +144,7 @@ class Worker(multiprocessing.Process):
             # XXX - Maybe log traceback as well with traceback.format_exc()
             self.callback.log('failed to publish message: %s' % e)
 
-    def spawn_instance(self):
+    def spawn_instance(self, retry=0):
         """call the spawn playbook to startup/provision a building instance"""
 
 
@@ -169,7 +169,12 @@ class Worker(multiprocessing.Process):
             result = e.output
             sys.stderr.write("%s\n" % result)
             self.callback.log("CalledProcessError: %s" % result)
-            raise subprocess.CalledProcessError, None, sys.exc_info()[2]
+            # well mostly we run out of space in OpenStack, wait some time and try again
+            if retry < 3:
+                time.sleep(self.opts.sleeptime)
+                self.spawn_instance(retry+1)
+            else:
+                raise subprocess.CalledProcessError, None, sys.exc_info()[2]
         self.callback.log('Raw output from playbook: %s' % result)
         match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
 
