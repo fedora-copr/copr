@@ -53,7 +53,7 @@ Requires:   rsync
 Requires:   openssh-clients
 Requires:   mock
 Requires:   yum-utils
-Requires:   createrepo
+Requires:   createrepo_c
 Requires:   python-bunch
 Requires:   python-daemon
 Requires:   python-lockfile
