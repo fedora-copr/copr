@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.21
+Version:    1.22
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -385,6 +385,12 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Fri Jan 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.22-1
+- [backend] if we could not spawn VM, wait a moment and try again
+- [backend] use createrepo_c instead of createrepo
+- 1050952 - check if copr_url exist in config
+- [frontend] replace newlines in description by space in repo file
+
 * Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.21-1
 - 1049460 - correct error message
 - [cron] manualy clean /var/tmp after createrepo
