@@ -57,3 +57,42 @@ class TestCoprCancelBuild(CoprsTestCase):
                   data = {},
                   follow_redirects = True)
         assert self.models.Build.query.first().canceled is False
+
+
+class TestCoprDeleteBuild(CoprsTestCase):
+    @TransactionDecorator('u1')
+    def test_copr_build_submitter_can_delete_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.db.session.add_all([self.u1, self.c1, self.b1])
+        pkgs = 'one two three'
+        self.b1.pkgs = pkgs
+        r = self.test_client.post(
+            '/coprs/{0}/{1}/delete_build/{2}/'.format(self.u1.name,
+                                                      self.c1.name, self.b1.id),
+            data={},
+            follow_redirects=True)
+
+        assert 'Build was deleted' in r.data
+        b = (self.models.Build.query.filter(
+            self.models.Build.id == self.b1.id)
+            .first())
+        assert b is None
+        act = self.models.Action.query.first()
+        assert act.object_type == 'build'
+        assert act.old_value == 'user1/foocopr'
+        assert act.new_value == pkgs
+
+    @TransactionDecorator('u2')
+    def test_copr_build_non_submitter_cannot_delete_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.db.session.add_all([self.u1, self.c1, self.b1])
+        r = self.test_client.post(
+            '/coprs/{0}/{1}/delete_build/{2}/'.format(self.u1.name,
+                                                      self.c1.name, self.b1.id),
+            data={},
+            follow_redirects=True)
+
+        assert 'delete your own builds' in r.data
+        b = (self.models.Build.query.filter(
+            self.models.Build.id == self.b1.id)
+            .first())
+
+        assert b is not None

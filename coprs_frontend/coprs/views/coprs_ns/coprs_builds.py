@@ -109,3 +109,21 @@ def copr_repeat_build(username, coprname, build_id):
     flask.flash('Build was resubmitted')
 
     return flask.redirect(flask.url_for('coprs_ns.copr_builds', username = username, coprname = coprname))
+
+
+@coprs_ns.route('/<username>/<coprname>/delete_build/<int:build_id>/', methods=['POST'])
+@login_required
+def copr_delete_build(username, coprname, build_id):
+    build = builds_logic.BuildsLogic.get(build_id).first()
+    if not build:
+        return page_not_found('Build with id {0} does not exist.'.format(build_id))
+    try:
+        builds_logic.BuildsLogic.delete_build(flask.g.user, build)
+    except exceptions.InsufficientRightsException as e:
+        flask.flash(str(e))
+    else:
+        db.session.commit()
+        flask.flash('Build was deleted')
+
+    return flask.redirect(flask.url_for('coprs_ns.copr_builds',
+                                        username=username, coprname=coprname))

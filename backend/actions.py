@@ -4,6 +4,9 @@ import os.path
 import shutil
 import time
 
+from mockremote import createrepo
+
+
 class Action(object):
     """ Object to send data back to fronted """
 
@@ -21,15 +24,57 @@ class Action(object):
         """ Handle action (other then builds) - like rename or delete of project """
         result = Bunch()
         result.id = self.data['id']
-        if self.data['action_type'] == 0: # delete
-            self.event("Action delete")
-            project = self.data['old_value']
-            path = os.path.normpath(self.destdir + '/' + project)
-            if os.path.exists(path):
-                self.event('Removing %s' % path)
-                shutil.rmtree(path)
+        if self.data['action_type'] == 0:  # delete
+            if self.data['object_type'] == 'copr':
+                self.event("Action delete copr")
+                project = self.data['old_value']
+                path = os.path.normpath(self.destdir + '/' + project)
+                if os.path.exists(path):
+                    self.event('Removing copr %s' % path)
+                    shutil.rmtree(path)
+
+            elif self.data['object_type'] == 'build':
+                self.event("Action delete build")
+                project = self.data['old_value']
+                packages = map(lambda x:
+                               os.path.basename(x).replace('.src.rpm', ''),
+                               self.data['new_value'].split())
+
+                path = os.path.join(self.destdir, project)
+
+                self.event("Packages to delete {0}".format(' '.join(packages)))
+                self.event("Copr path {0}".format(path))
+
+                for chroot in os.listdir(path):
+                    self.event("In chroot {0}".format(chroot))
+                    altered = False
+
+                    for pkg in packages:
+                        pkg_path = os.path.join(path, chroot, pkg)
+                        if os.path.isdir(pkg_path):
+                            self.event('Removing build {0}'.format(pkg_path))
+                            shutil.rmtree(pkg_path)
+                            altered = True
+                        else:
+                            self.event('Package {0} dir not found in chroot {1}'
+                                       .format(pkg, chroot))
+
+                    if altered:
+                            self.event("Running createrepo")
+                            rc, out, err = createrepo(os.path.join(path, chroot))
+                            if err.strip():
+                                self.event("Error making local repo: {0}".format(err))
+
+                    log_path = os.path.join(
+                        path, chroot,
+                        'build-{0}.log'.format(self.data['object_id']))
+
+                    if os.path.isfile(log_path):
+                        self.event("Removing log {0}".format(log_path))
+                        os.unlink(log_path)
+
             result.job_ended_on = time.time()
-            result.result = 1 # success
+            result.result = 1  # success
         elif self.data['action_type'] == 1: # rename
             self.event("Action rename")
             old_path = os.path.normpath(self.destdir + '/', self.data['old_value'])
@@ -46,5 +91,6 @@ class Action(object):
             result.job_ended_on = time.time()
         elif self.data['action_type'] == 2: # legal-flag
             self.event("Action legal-flag: ignoring")
+
         if 'result' in result:
             self.frontend_callback.post_to_frontend( {'actions': [result]} )

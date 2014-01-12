@@ -35,3 +35,11 @@
     </form>
   {% endif %}
 {% endmacro %}
+
+{% macro copr_build_delete_form(build) %}
+  {% if build.ended_on %}
+    <form action="{{ url_for('coprs_ns.copr_delete_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post">
+      <input type="submit" value="Delete">
+    </form>
+  {% endif %}
+{% endmacro %}

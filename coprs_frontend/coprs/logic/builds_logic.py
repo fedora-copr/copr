@@ -3,6 +3,7 @@ import time
 from coprs import db
 from coprs import exceptions
 from coprs import models
+from coprs import helpers
 from coprs import signals
 
 from coprs.logic import coprs_logic
@@ -126,3 +127,21 @@ class BuildsLogic(object):
         if build.user_id != user.id:
             raise exceptions.InsufficientRightsException('You can only cancel your own builds.')
         build.canceled = True
+
+    @classmethod
+    def delete_build(cls, user, build):
+        if build.user_id != user.id:
+            raise exceptions.InsufficientRightsException('You can only delete your own builds.')
+
+        action = models.Action(action_type=helpers.ActionTypeEnum('delete'),
+                               object_type='build',
+                               object_id=build.id,
+                               old_value='{0}/{1}'.format(build.copr.owner.name,
+                                                          build.copr.name),
+                               new_value=build.pkgs,
+                               created_on=int(time.time()))
+
+        db.session.add(action)
+        for build_chroot in build.build_chroots:
+            db.session.delete(build_chroot)
+        db.session.delete(build)
