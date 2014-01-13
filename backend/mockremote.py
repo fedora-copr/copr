@@ -283,7 +283,10 @@ class Builder(object):
             # just different test if it contains only alphanumeric characters allowed in packages name
             raise BuilderError("Do not try this kind of attack on me")
         self.root_conn.module_name = "lineinfile"
-        self.root_conn.module_args = """dest=/etc/mock/%s.cfg line="config_opts['chroot_setup_cmd'] = 'install @buildsys-build %s'" regexp="^.*chroot_setup_cmd.*$" """ % (self.chroot, self.buildroot_pkgs)
+        if (self.chroot == 'epel-7-x86_64'):
+            self.root_conn.module_args = """dest=/etc/mock/epel-7-x86_64.cfg line="config_opts['chroot_setup_cmd'] = 'install bash bzip2 coreutils cpio diffutils findutils gawk gcc gcc-c++ grep gzip info make patch redhat-release-server redhat-rpm-config rpm-build sed shadow-utils tar unzip util-linux which xz %s'" regexp="^.*chroot_setup_cmd.*$" """ % (self.buildroot_pkgs)
+        else:
+            self.root_conn.module_args = """dest=/etc/mock/%s.cfg line="config_opts['chroot_setup_cmd'] = 'install @buildsys-build %s'" regexp="^.*chroot_setup_cmd.*$" """ % (self.chroot, self.buildroot_pkgs)
         self.mockremote.callback.log('putting %s into minimal buildroot of %s' % (self.buildroot_pkgs, self.chroot))
         results = self.root_conn.run()
 
