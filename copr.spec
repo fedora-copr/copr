@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.22
+Version:    1.23
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -385,6 +385,10 @@ fi
 %{_mandir}/man8/%{name}-selinux-relabel.8*
 
 %changelog
+* Mon Jan 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.23-1
+- [backend] rhel7-beta do not have comps
+- 1052073 - correctly parse malformed chroot
+
 * Fri Jan 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.22-1
 - [backend] if we could not spawn VM, wait a moment and try again
 - [backend] use createrepo_c instead of createrepo
