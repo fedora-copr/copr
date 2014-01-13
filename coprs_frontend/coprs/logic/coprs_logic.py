@@ -350,12 +350,13 @@ class MockChrootsLogic(object):
 
     @classmethod
     def tuple_from_name(cls, user, name):
+        """ valid name can be "fedora-rawhide-x86_64" or even "fedora-rawhide" """
         split_name = name.rsplit('-', 1)
         if len(split_name) < 2:
             raise exceptions.MalformedArgumentException(
                     'Chroot Name doesn\'t contain dash, can\'t determine chroot architecure.')
         if '-' in split_name[0]:
-            os_release, os_version = split_name[0].rsplit('-')
+            os_release, os_version = (split_name[0].rsplit('-'))[0:2]
         else:
             os_release, os_version = split_name[0], ''
 
