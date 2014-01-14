@@ -170,13 +170,13 @@ class Copr(db.Model, Serializer):
     def description_or_not_filled(self):
         md = markdown.Markdown(safe_mode='replace',
                    html_replacement_text='--RAW HTML NOT ALLOWED--')
-        return md.convert(self.description) or 'Description not filled in by author.'
+        return md.convert(self.description) or 'Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.'
 
     @property
     def instructions_or_not_filled(self):
         md = markdown.Markdown(safe_mode='replace',
                    html_replacement_text='--RAW HTML NOT ALLOWED--')
-        return md.convert(self.instructions) or 'Instructions not filled in by author.'
+        return md.convert(self.instructions) or 'Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo.'
 
     @property
     def active_mock_chroots(self):
