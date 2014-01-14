@@ -330,6 +330,8 @@ def generate_repo_file(username, coprname, chroot):
                 with_builds=True).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found('Project {0}/{1} does not exist'.format(username, coprname))
+    except exceptions.MalformedArgumentException, e:
+        return page_not_found("%s" % e)
 
     try:
         mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot).one()
