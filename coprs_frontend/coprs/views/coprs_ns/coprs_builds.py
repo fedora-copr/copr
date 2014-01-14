@@ -101,7 +101,7 @@ def copr_repeat_build(username, coprname, build_id):
 
     # TODO: do intersection of chroots with currently active?
     new_build = models.Build()
-    for a in ['pkgs', 'chroots', 'repos', 'memory_reqs', 'timeout']:
+    for a in ['pkgs', 'repos', 'memory_reqs', 'timeout']:
         setattr(new_build, a, getattr(build, a))
     builds_logic.BuildsLogic.new(flask.g.user, new_build, copr)
 
