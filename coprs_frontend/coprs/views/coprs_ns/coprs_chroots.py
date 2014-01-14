@@ -17,9 +17,12 @@ from coprs.views.coprs_ns import coprs_ns
 @login_required
 def chroot_edit(username, coprname, chrootname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
     if not copr:
         return page_not_found('Project with name {0} does not exist.'.format(coprname))
+    try:
+        chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
+    except ValueError, e:
+        return page_not_found("%s" % e)
     if not chroot:
         return page_not_found('Chroot name {0} does not exist.'.format(chrootname))
     form = forms.ChrootForm(buildroot_pkgs=copr.buildroot_pkgs(chroot))
@@ -34,9 +37,12 @@ def chroot_edit(username, coprname, chrootname):
 def chroot_update(username, coprname, chrootname):
     form = forms.ChrootForm()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
-    if not copr: # hey, this Copr doesn't exist
+    if not copr:
         return page_not_found('Projec with name {0} does not exist.'.format(coprname))
+    try:
+        chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
+    except ValueError, e:
+        return page_not_found("%s" % e)
     if form.validate_on_submit() and flask.g.user.can_build_in(copr):
         coprs_logic.CoprChrootsLogic.update_buildroot_pkgs(copr, chroot, form.buildroot_pkgs.data) 
         flask.flash("Buildroot {0} for project {1} was updated".format(chrootname, coprname))
