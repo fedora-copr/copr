@@ -1,6 +1,9 @@
 %global with_test 1
+%global with_server 1
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
+%global __python2 %{__python}
+%global with_server 0
 %endif
 %global moduletype apps
 %global modulename copr
@@ -28,7 +31,9 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python2-devel
+%if %{with_server}
 BuildRequires: systemd
+%endif
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -36,14 +41,17 @@ BuildRequires: python-argparse
 BuildRequires: epydoc
 BuildRequires: graphviz
 BuildRequires: make
+%if %{with_server}
 #for selinux
 BuildRequires:  checkpolicy, selinux-policy-devel
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
+%endif
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
+%if %{with_server}
 %package backend
 Summary:    Backend for COPR
 Requires:   ansible >= 1.2
@@ -116,6 +124,7 @@ COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains frontend.
+%endif # with_server
 
 %package cli
 Summary:    Command line interface for COPR
@@ -131,6 +140,7 @@ and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains command line interface.
 
+%if %{with_server}
 %package doc
 Summary:    Code documentation for COPR
 
@@ -153,7 +163,7 @@ COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
 This package include SELinux targeted module for COPR
-
+%endif
 
 %prep
 %setup -q
@@ -172,6 +182,7 @@ pushd documentation
 make %{?_smp_mflags} python
 popd
 
+%if %{with_server}
 #selinux
 pushd selinux
 perl -i -pe 'BEGIN { $VER = join ".", grep /^\d+$/, split /\./, "%{version}.%{release}"; } s!\@\@VERSION\@\@!$VER!g;' %{modulename}.te
@@ -182,9 +193,11 @@ for selinuxvariant in targeted; do
     make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
 done
 popd
+%endif
 
 %install
 
+%if %{with_server}
 #backend
 install -d %{buildroot}%{_sharedstatedir}/copr
 install -d %{buildroot}%{_sharedstatedir}/copr/jobs
@@ -236,12 +249,14 @@ mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
 touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
+%endif # with_server
 
 #copr-cli
 %{__python2} coprcli-setup.py install --root %{buildroot}
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 
+%if %{with_server}
 #doc
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 cp -a playbooks %{buildroot}%{_pkgdocdir}/
@@ -264,14 +279,16 @@ install -p -m 755 selinux/%{name}-selinux-relabel %{buildroot}%{_sbindir}/%{name
 install -d %{buildroot}%{_mandir}/man8
 install -p -m 644 man/%{name}-selinux-enable.8 %{buildroot}/%{_mandir}/man8/
 install -p -m 644 man/%{name}-selinux-relabel.8 %{buildroot}/%{_mandir}/man8/
+%endif
 
 %check
-%if ! 0%{?with_test:1}
+%if ! 0%{?with_test:1} && %{with_server}
     pushd coprs_frontend
     COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
     popd
 %endif
 
+%if %{with_server}
 %pre backend
 getent group copr >/dev/null || groupadd -r copr
 getent passwd copr >/dev/null || \
@@ -364,7 +381,7 @@ fi
 %config(noreplace)  %{_sysconfdir}/copr/copr.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_devel.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
-
+%endif # with_server
 
 %files cli
 %doc LICENSE README.rst
@@ -372,6 +389,7 @@ fi
 %{python_sitelib}/*
 %{_mandir}/man1/copr-cli.1*
 
+%if %{with_server}
 %files doc
 %doc %{_pkgdocdir}/python-doc
 
@@ -383,6 +401,7 @@ fi
 %{_sbindir}/%{name}-selinux-relabel
 %{_mandir}/man8/%{name}-selinux-enable.8*
 %{_mandir}/man8/%{name}-selinux-relabel.8*
+%endif # with_server
 
 %changelog
 * Mon Jan 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.23-1
