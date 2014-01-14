@@ -274,7 +274,10 @@ def copr_delete(username, coprname):
             flask.flash('Project was deleted successfully.')
             return flask.redirect(flask.url_for('coprs_ns.coprs_by_owner', username=username))
     else:
-        return flask.render_template('coprs/detail/delete.html', form=form, copr=copr)
+        if copr:
+            return flask.render_template('coprs/detail/delete.html', form=form, copr=copr)
+        else:
+            return page_not_found('Project {0}/{1} does not exist'.format(username, coprname))
 
 
 @coprs_ns.route('/<username>/<coprname>/legal_flag/', methods=['POST'])
