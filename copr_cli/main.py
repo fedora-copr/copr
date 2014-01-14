@@ -81,7 +81,7 @@ def setup_parser():
                                help="Repository to add to this copr")
     parser_create.add_argument('--initial-pkgs', dest='initial_pkgs',
                                action='append',
-                               help="List of packages to build in this "
+                               help="List of packages URL to build in this "
                                     "new copr")
     parser_create.add_argument('--description',
                                help="Description of the copr")
@@ -96,7 +96,8 @@ def setup_parser():
     parser_build.add_argument('copr',
                               help='The copr repo to build the package in'
                               )
-    parser_build.add_argument('pkgs', nargs='+')
+    parser_build.add_argument('pkgs', nargs='+',
+                              help='URL of packages to build')
     parser_build.add_argument('--memory', dest='memory',
                               help="")
     parser_build.add_argument('--timeout', dest='timeout',
