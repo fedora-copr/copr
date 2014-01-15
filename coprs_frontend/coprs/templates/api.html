@@ -23,7 +23,7 @@
 login = {{ g.user.api_login }}
 username = {{ g.user.name }}
 token = {{ g.user.api_token }}
-copr_url = http://copr.fedoraproject.org
+copr_url = https://copr.fedoraproject.org
 # expiration date: {{ g.user.api_token_expiration }}
 </pre>
 
@@ -74,7 +74,7 @@ copr_url = http://copr.fedoraproject.org
     </ul>
 
     <h4>Example call URL</h4>
-    <pre style="font-size:120%">http://copr-fe.cloud.fedoraproject.org/api/coprs/jdaniels/</pre>
+    <pre style="font-size:120%">https://copr.fedoraproject.org/api/coprs/jdaniels/</pre>
 
     <h4>Example results</h4>
     <pre>
@@ -83,8 +83,8 @@ copr_url = http://copr.fedoraproject.org
       "repos": [
         {
           "yum_repos": {
-            "fedora-19-i686": "http://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-i686/"
-            "fedora-19-x86_64": "http://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-x86_64/"
+            "fedora-19-i686": "https://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-i686/"
+            "fedora-19-x86_64": "https://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-x86_64/"
           },
           "additional_repos": "",
           "instructions": "",

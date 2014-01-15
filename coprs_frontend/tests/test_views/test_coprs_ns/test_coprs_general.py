@@ -440,4 +440,4 @@ class TestCoprRepoGeneration(CoprsTestCase):
     def test_works_on_older_builds(self, f_users, f_coprs, f_custom_builds, f_db):
         r = self.tc.get('/coprs/{0}/{1}/repo/fedora-18-x86_64/'.format(self.u1.name, self.c1.name))
         assert r.status_code == 200
-        assert 'baseurl=http://bar.baz' in r.data
+        assert 'baseurl=https://bar.baz' in r.data

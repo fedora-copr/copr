@@ -109,10 +109,10 @@ Be aware that API token have some expiration. See Expiration date on /api page.
 COPR URL
 --------
 
-You can alternatively specify different URL of Copr service. Open file \~/.config/copr and put there:
+You can alternatively specify different URL of Copr service. Open file `~/.config/copr` and put there:
 
  [copr-cli]
- copr_url = http://copr-fe.cloud.fedoraproject.org
+ copr_url = https://copr.fedoraproject.org
 
 The value above is default. Define copr_url only if you use different instance.
 

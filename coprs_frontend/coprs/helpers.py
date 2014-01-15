@@ -134,4 +134,5 @@ def render_repo(copr, mock_chroot, url):
         mock_chroot.os_version = '$releasever'
     url = urlparse.urljoin(url, "%s-%s-%s/" % (mock_chroot.os_release, mock_chroot.os_version, '$basearch'))
     copr.description = copr.description.replace("\n", " ")
+    url = url.replace("http://", "https://")
     return flask.render_template('coprs/copr.repo', copr=copr, url=url)
