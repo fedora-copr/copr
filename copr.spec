@@ -9,7 +9,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.23
+Version:    1.24
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -405,6 +405,22 @@ fi
 %endif # with_server
 
 %changelog
+* Thu Jan 16 2014 Miroslav Suchý <msuchy@redhat.com> 1.24-1
+- add BR python-markdown
+- [fronted] don't add description to .repo files
+- [spec] fix with_tests conditional
+- add build deletion
+- 1044158 - do not require fas username prior to login
+- replace http with https in copr-cli and in generated repo file
+- [cli] UX changes - explicitely state that pkgs is URL
+- 1053142 - only build copr-cli on el6
+- [frontend] correctly handle mangled chroot
+- [frontend] do not traceback when user malform url
+- [frontend] change default description and instructions to sound more
+  dangerously
+- 1052075 - do not set chroots on repeated build
+- 1052071 - do not throw ISE when copr does not exist
+
 * Mon Jan 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.23-1
 - [backend] rhel7-beta do not have comps
 - 1052073 - correctly parse malformed chroot
