@@ -27,50 +27,43 @@ def page_not_found(message):
 misc = flask.Blueprint('misc', __name__)
 
 
-@misc.route('/login/', methods=['GET', 'POST'])
+@misc.route('/login/', methods=['GET'])
 @oid.loginhandler
 def login():
     if flask.g.user is not None:
         return flask.redirect(oid.get_next_url())
-    if flask.request.method == 'POST':
-        fasusername = flask.request.form.get('fasuname')
-        if fasusername and ((app.config['USE_ALLOWED_USERS'] \
-            and fasusername in app.config['ALLOWED_USERS']) \
-            or not app.config['USE_ALLOWED_USERS']):
-            ask_for = []
-            if not models.User.query.filter(models.User.openid_name==models.User.openidize_name(fasusername)).first():
-                ask_for.append('email')
-            return oid.try_login('http://{0}.id.fedoraproject.org/'.format(fasusername), ask_for=ask_for)
-        else:
-            return flask.render_template('login.html',
-                            error='User "{0}" is not allowed'.format(
-                            fasusername))
-    return flask.render_template('login.html',
-                                 next=oid.get_next_url(),
-                                 error=oid.fetch_error())
+    else:
+        return oid.try_login('https://id.fedoraproject.org/', ask_for=['email'])
 
 @oid.after_login
 def create_or_login(resp):
     flask.session['openid'] = resp.identity_url
-    user = models.User.query.filter(
-        models.User.openid_name == resp.identity_url).first()
-    if not user: # create if not created already
-        expiration_date_token = datetime.date.today() \
-            + datetime.timedelta(days=flask.current_app.config['API_TOKEN_EXPIRATION'])
-        copr64 = base64.b64encode('copr') + '##'
-        user = models.User(openid_name = resp.identity_url, mail = resp.email,
-            api_login = copr64 + helpers.generate_api_token(
-                app.config['API_TOKEN_LENGTH'] - len(copr64)),
-            api_token = helpers.generate_api_token(app.config['API_TOKEN_LENGTH']),
-            api_token_expiration = expiration_date_token)
-        db.session.add(user)
-        db.session.commit()
-    flask.flash(u'Welcome, {0}'.format(user.name))
-    flask.g.user = user
-    redirect_to = oid.get_next_url()
-    if flask.request.url_root == oid.get_next_url():
-        return flask.redirect(flask.url_for('coprs_ns.coprs_by_owner', username=user.name))
-    return flask.redirect(oid.get_next_url())
+    fasusername = resp.identity_url.replace('.id.fedoraproject.org/', '').replace('http://', '')
+    if fasusername and ((app.config['USE_ALLOWED_USERS'] \
+            and fasusername in app.config['ALLOWED_USERS']) \
+            or not app.config['USE_ALLOWED_USERS']):
+        user = models.User.query.filter(
+            models.User.openid_name == resp.identity_url).first()
+        if not user: # create if not created already
+            expiration_date_token = datetime.date.today() \
+                + datetime.timedelta(days=flask.current_app.config['API_TOKEN_EXPIRATION'])
+            copr64 = base64.b64encode('copr') + '##'
+            user = models.User(openid_name = resp.identity_url, mail = resp.email,
+                api_login = copr64 + helpers.generate_api_token(
+                    app.config['API_TOKEN_LENGTH'] - len(copr64)),
+                api_token = helpers.generate_api_token(app.config['API_TOKEN_LENGTH']),
+                api_token_expiration = expiration_date_token)
+            db.session.add(user)
+            db.session.commit()
+        flask.flash(u'Welcome, {0}'.format(user.name))
+        flask.g.user = user
+        redirect_to = oid.get_next_url()
+        if flask.request.url_root == oid.get_next_url():
+            return flask.redirect(flask.url_for('coprs_ns.coprs_by_owner', username=user.name))
+        return flask.redirect(oid.get_next_url())
+    else:
+        flask.flash('User "{0}" is not allowed'.format(user.name))
+        return flask.redirect(oid.get_next_url())
 
 
 @misc.route('/logout/')
