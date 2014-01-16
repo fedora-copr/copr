@@ -118,6 +118,7 @@ BuildRequires: pytest
 BuildRequires: yum
 BuildRequires: python-flexmock
 BuildRequires: python-decorator
+BuildRequires: python-markdown
 
 %description frontend
 COPR is lightweight build system. It allows you to create new project in WebUI,
