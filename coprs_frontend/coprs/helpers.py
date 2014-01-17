@@ -133,5 +133,5 @@ def render_repo(copr, mock_chroot, url):
     if mock_chroot.os_release == "fedora":
         mock_chroot.os_version = '$releasever'
     url = urlparse.urljoin(url, "%s-%s-%s/" % (mock_chroot.os_release, mock_chroot.os_version, '$basearch'))
-    url = url.replace("http://", "https://")
+    #url = url.replace("http://", "https://")
     return flask.render_template('coprs/copr.repo', copr=copr, url=url)
