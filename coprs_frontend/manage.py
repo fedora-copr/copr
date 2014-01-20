@@ -19,7 +19,7 @@ class TestCommand(Command):
         if not (('COPR_CONFIG' in os.environ) and os.environ['COPR_CONFIG']):
             os.environ['COPR_CONFIG'] = '/etc/copr/copr_unit_test.conf'
         os.environ['PYTHONPATH'] = '.'
-        subprocess.call(['py.test'] + (test_args or []))
+        return subprocess.call(['py.test'] + (test_args or []))
 
     option_list = (
         Option('-a',
