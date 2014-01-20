@@ -79,7 +79,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
         act = self.models.Action.query.first()
         assert act.object_type == 'build'
         assert act.old_value == 'user1/foocopr'
-        assert act.new_value == pkgs
+        assert act.data == pkgs
 
     @TransactionDecorator('u2')
     def test_copr_build_non_submitter_cannot_delete_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):

@@ -38,7 +38,7 @@ class Action(object):
                 project = self.data['old_value']
                 packages = map(lambda x:
                                os.path.basename(x).replace('.src.rpm', ''),
-                               self.data['new_value'].split())
+                               self.data['data'].split())
 
                 path = os.path.join(self.destdir, project)
 

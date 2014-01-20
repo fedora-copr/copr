@@ -138,7 +138,7 @@ class BuildsLogic(object):
                                object_id=build.id,
                                old_value='{0}/{1}'.format(build.copr.owner.name,
                                                           build.copr.name),
-                               new_value=build.pkgs,
+                               data=build.pkgs,
                                created_on=int(time.time()))
 
         db.session.add(action)
