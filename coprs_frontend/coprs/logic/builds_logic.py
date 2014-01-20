@@ -79,7 +79,6 @@ class BuildsLogic(object):
         if not build.user:
             build.user = user
 
-        coprs_logic.CoprsLogic.increment_build_count(user, copr)
         db.session.add(build)
 
         # add BuildChroot object for each active chroot

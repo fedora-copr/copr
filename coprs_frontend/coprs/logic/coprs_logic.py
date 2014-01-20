@@ -162,11 +162,6 @@ class CoprsLogic(object):
         return existing
 
     @classmethod
-    def increment_build_count(cls, user, copr): # TODO API of this method is different, maybe change?
-        models.Copr.query.filter(models.Copr.id == copr.id).\
-                          update({models.Copr.build_count: models.Copr.build_count + 1})
-
-    @classmethod
     def unfinished_blocking_actions_for(cls, user, copr):
         blocking_actions = [helpers.ActionTypeEnum('rename'),
                             helpers.ActionTypeEnum('delete')]

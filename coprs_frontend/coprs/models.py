@@ -148,8 +148,6 @@ class Copr(db.Model, Serializer):
     # description and instructions given by copr owner
     description = db.Column(db.Text)
     instructions = db.Column(db.Text)
-    # duplicate information, but speeds up a lot and makes queries simpler
-    build_count = db.Column(db.Integer, default = 0)
     deleted = db.Column(db.Boolean, default=False)
 
     # relations
@@ -182,6 +180,12 @@ class Copr(db.Model, Serializer):
     def active_mock_chroots(self):
         """Returns list of active mock_chroots of this copr"""
         return filter(lambda x: x.is_active, self.mock_chroots)
+
+    @property
+    def build_count(self):
+        """ Return number of builds in this copr """
+
+        return len(self.builds)
 
     def check_copr_chroot(self, chroot):
         """Return object of chroot, if is related to our copr or None"""
