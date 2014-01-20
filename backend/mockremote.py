@@ -326,6 +326,8 @@ class Builder(object):
         # construct the mockchain command
         buildcmd = "%s -r %s -l %s " % (mockchain, pipes.quote(self.chroot), pipes.quote(self.remote_build_dir))
         for r in self.repos:
+            if "rawhide" in self.chroot:
+                r = r.replace("$releasever", "rawhide")
             buildcmd += "-a %s " % pipes.quote(r)
 
         if self.mockremote.macros:
