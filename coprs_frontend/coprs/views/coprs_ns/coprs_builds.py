@@ -87,7 +87,7 @@ def copr_cancel_build(username, coprname, build_id):
     return flask.redirect(flask.url_for('coprs_ns.copr_builds', username = username, coprname = coprname))
 
 
-@coprs_ns.route('/<username>/<coprname>/repeat_build/<int:build_id>/', methods = ['POST'])
+@coprs_ns.route('/<username>/<coprname>/repeat_build/<int:build_id>/', methods = ['GET', 'POST'])
 @login_required
 def copr_repeat_build(username, coprname, build_id):
     build = builds_logic.BuildsLogic.get(build_id).first()
@@ -99,7 +99,6 @@ def copr_repeat_build(username, coprname, build_id):
     if not copr:
         return page_not_found('Copr {0}/{1} does not exist.'.format(username, coprname))
 
-    # TODO: do intersection of chroots with currently active?
     new_build = models.Build()
     for a in ['pkgs', 'repos', 'memory_reqs', 'timeout']:
         setattr(new_build, a, getattr(build, a))
