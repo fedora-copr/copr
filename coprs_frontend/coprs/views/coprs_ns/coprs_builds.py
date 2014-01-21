@@ -18,7 +18,7 @@ from coprs.views.coprs_ns import coprs_ns
 def copr_builds(username, coprname, page=1):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
-    if not copr: # hey, this Copr doesn't exist
+    if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
@@ -32,7 +32,7 @@ def copr_builds(username, coprname, page=1):
 def copr_add_build(username, coprname, form=None):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
-    if not copr: # hey, this Copr doesn't exist
+    if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     if not form:
@@ -46,7 +46,7 @@ def copr_add_build(username, coprname, form=None):
 def copr_new_build(username, coprname):
     form = forms.BuildForm()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    if not copr: # hey, this Copr doesn't exist
+    if not copr:
         return page_not_found('Copr with name {0} does not exist.'.format(coprname))
 
     if form.validate_on_submit() and flask.g.user.can_build_in(copr):
@@ -74,7 +74,7 @@ def copr_new_build(username, coprname):
 def copr_cancel_build(username, coprname, build_id):
     # only the user who ran the build can cancel it
     build = builds_logic.BuildsLogic.get(build_id).first()
-    if not build: # hey, this Build doesn't exist
+    if not build:
         return page_not_found('Build with id {0} does not exist.'.format(build_id))
     try:
         builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
@@ -93,10 +93,10 @@ def copr_repeat_build(username, coprname, build_id):
     build = builds_logic.BuildsLogic.get(build_id).first()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username=username, coprname=coprname).first()
 
-    if not build: # hey, this Build doesn't exist
+    if not build:
         return page_not_found('Build with id {0} does not exist.'.format(build_id))
 
-    if not copr: # hey, this Copr doesn't exist
+    if not copr:
         return page_not_found('Copr {0}/{1} does not exist.'.format(username, coprname))
 
     # TODO: do intersection of chroots with currently active?
