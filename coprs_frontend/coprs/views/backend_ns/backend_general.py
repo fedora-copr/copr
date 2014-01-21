@@ -38,7 +38,7 @@ def waiting():
         # is assigned with
         for chroot in build.chroots:
             build_dict_copy = build_dict.copy()
-            build_dict_copy['chroot'] = chroot.chroot_name
+            build_dict_copy['chroot'] = chroot.name
             build_dict_copy['buildroot_pkgs'] = build.copr.buildroot_pkgs(chroot)
             builds_list.append(build_dict_copy)
 

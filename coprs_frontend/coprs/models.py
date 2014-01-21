@@ -298,7 +298,7 @@ class MockChroot(db.Model, Serializer):
     is_active = db.Column(db.Boolean, default = True)
 
     @property
-    def chroot_name(self):
+    def name(self):
         """Textual representation of name of this chroot"""
         if self.os_version:
             format_string = '{rel}-{ver}-{arch}'
@@ -332,7 +332,7 @@ class BuildChroot(db.Model, Serializer):
     @property
     def name(self):
         """ Textual representation of name of this chroot """
-        return self.mock_chroot.chroot_name
+        return self.mock_chroot.name
 
     @property
     def state(self):

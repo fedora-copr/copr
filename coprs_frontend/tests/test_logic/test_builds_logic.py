@@ -11,7 +11,7 @@ class TestBuildsLogic(CoprsTestCase):
         self.db.session.commit()
         b = BuildsLogic.add(self.u2, 'blah blah', self.c2)
         self.db.session.commit()
-        assert b.chroots[0].chroot_name == self.mc3.chroot_name
+        assert b.chroots[0].name == self.mc3.name
 
     def test_add_raises_if_copr_has_unfinished_actions(self, f_users, f_coprs, f_actions, f_db):
         with pytest.raises(ActionInProgressException):

@@ -41,7 +41,7 @@ class CreateDBCommand(Command):
     def run(self, alembic_ini=None):
         CreateSqliteFileCommand().run()
         db.create_all()
-            
+
         # load the Alembic configuration and generate the
         # version table, "stamping" it with the most recent rev:
         from alembic.config import Config
@@ -129,7 +129,7 @@ class DisplayChrootsCommand(Command):
     'Displays current mock chroots'
     def run(self, active_only):
         for ch in coprs_logic.MockChrootsLogic.get_multiple(None, active_only=active_only).all():
-            print ch.chroot_name
+            print ch.name
 
     option_list = (
             Option('--active-only',

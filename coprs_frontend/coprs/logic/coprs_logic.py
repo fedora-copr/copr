@@ -238,7 +238,7 @@ class CoprChrootsLogic(object):
         db_chroots = models.MockChroot.query.all()
         mock_chroots = []
         for ch in db_chroots:
-            if ch.chroot_name in names:
+            if ch.name in names:
                 mock_chroots.append(ch)
 
         return mock_chroots

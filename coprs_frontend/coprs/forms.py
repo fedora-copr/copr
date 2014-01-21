@@ -129,7 +129,7 @@ class CoprFormFactory(object):
                         have_any = True
                 return have_any
 
-        F.chroots_list = map(lambda x: x.chroot_name,
+        F.chroots_list = map(lambda x: x.name,
                              models.MockChroot.query.filter(
                                  models.MockChroot.is_active == True
                              ).all())
@@ -138,7 +138,7 @@ class CoprFormFactory(object):
         F.chroots_sets = {}
         for ch in F.chroots_list:
             checkbox_default = False
-            if mock_chroots and ch in map(lambda x: x.chroot_name,
+            if mock_chroots and ch in map(lambda x: x.name,
                                           mock_chroots):
                 checkbox_default = True
 

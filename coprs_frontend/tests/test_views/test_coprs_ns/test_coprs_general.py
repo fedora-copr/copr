@@ -211,7 +211,7 @@ class TestCoprUpdate(CoprsTestCase):
     def test_update_multiple_chroots(self, f_users, f_coprs, f_copr_permissions, f_mock_chroots, f_db):
         self.db.session.add_all([self.u1, self.c1, self.mc1, self.mc2, self.mc3])
         r = self.test_client.post('/coprs/{0}/{1}/update/'.format(self.u1.name, self.c1.name),
-                   data = {'name': self.c1.name, self.mc2.chroot_name: 'y', self.mc3.chroot_name: 'y', 'id': self.c1.id},
+                   data = {'name': self.c1.name, self.mc2.name: 'y', self.mc3.name: 'y', 'id': self.c1.id},
                    follow_redirects = True)
         assert 'Project was updated successfully' in r.data
         self.c1 = self.db.session.merge(self.c1)
@@ -222,10 +222,10 @@ class TestCoprUpdate(CoprsTestCase):
         mock_chroots = self.models.MockChroot.query.join(self.models.CoprChroot).\
                                                     filter(self.models.CoprChroot.copr_id==\
                                                            self.c1.id).all()
-        mock_chroots_names = map(lambda x: x.chroot_name, mock_chroots)
-        assert self.mc2.chroot_name in mock_chroots_names
-        assert self.mc3.chroot_name in mock_chroots_names
-        assert self.mc1.chroot_name not in mock_chroots_names
+        mock_chroots_names = map(lambda x: x.name, mock_chroots)
+        assert self.mc2.name in mock_chroots_names
+        assert self.mc3.name in mock_chroots_names
+        assert self.mc1.name not in mock_chroots_names
 
     @TransactionDecorator('u2')
     def test_update_deletes_multiple_chroots(self, f_users, f_coprs, f_copr_permissions, f_mock_chroots, f_db):
@@ -237,7 +237,7 @@ class TestCoprUpdate(CoprsTestCase):
         self.c2.copr_chroots.append(cc)
 
         r = self.test_client.post('/coprs/{0}/{1}/update/'.format(self.u2.name, self.c2.name),
-                   data = {'name': self.c2.name, self.mc1.chroot_name: 'y', 'id': self.c2.id},
+                   data = {'name': self.c2.name, self.mc1.name: 'y', 'id': self.c2.id},
                    follow_redirects = True)
         assert 'Project was updated successfully' in r.data
         self.c2 = self.db.session.merge(self.c2)
