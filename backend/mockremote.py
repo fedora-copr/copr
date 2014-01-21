@@ -81,14 +81,18 @@ def read_list_from_file(fn):
 
     return lst
 
-def log(lf, msg):
+def log(lf, msg, quiet=None):
     if lf:
         now = time.time()
         try:
-            open(lf, 'a').write(str(now) + ':' + msg + '\n')
+            with open(lf, 'a') as lfh:
+                fcntl.flock(lfh, fcntl.LOCK_EX)
+                lfh.write(str(now) + ':' + msg + '\n')
+                fcntl.flock(lfh, fcntl.LOCK_UN)
         except (IOError, OSError), e:
             sys.stderr.write('Could not write to logfile %s - %s\n' % (lf, str(e)))
-    print msg
+    if not quiet:
+        print msg
 
 def get_ans_results(results, hostname):
     if hostname in results['dark']:
@@ -204,14 +208,7 @@ class CliLogCallBack(DefaultCallBack):
         self.log("Error: %s" % msg)
 
     def log(self, msg):
-        if self.logfn:
-            now = time.time()
-            try:
-                open(self.logfn, 'a').write(str(now) + ':' + msg + '\n')
-            except (IOError, OSError), e:
-                print >> sys.stderr, 'Could not write to logfile %s - %s' % (self.logfn, str(e))
-        if not self.quiet:
-            print msg
+        log(self.logfn, msg, self.quiet)
 
 class Builder(object):
     def __init__(self, hostname, username, timeout, mockremote, buildroot_pkgs):
@@ -531,11 +528,13 @@ class MockRemote(object):
                 if not os.path.exists(chroot_dir):
                     os.makedirs(self.destdir + '/' + self.chroot)
                 r_log = open(chroot_dir + '/mockchain.log', 'a')
+                fcntl.flock(r_log, fcntl.LOCK_EX)
                 r_log.write('\n\n%s\n\n' % pkg)
                 r_log.write(b_out)
                 if b_err:
                     r_log.write('\nstderr\n')
                     r_log.write(b_err)
+                fcntl.flock(r_log, fcntl.LOCK_UN)
                 r_log.close()
 
 

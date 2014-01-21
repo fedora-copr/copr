@@ -1,3 +1,4 @@
+import fcntl
 import re
 import os
 import sys
@@ -79,7 +80,10 @@ class WorkerCallback(object):
         if self.logfile:
             now = time.strftime('%F %T')
             try:
-                open(self.logfile, 'a').write(str(now) + ': ' + msg + '\n')
+                with open(self.logfile, 'a') as lf:
+                    fcntl.flock(lf, fcntl.LOCK_EX)
+                    lf.write(str(now) + ': ' + msg + '\n')
+                    fcntl.flock(lf, fcntl.LOCK_UN)
             except (IOError, OSError), e:
                 print >>sys.stderr, 'Could not write to logfile %s - %s' % (self.logfile, str(e))
 
