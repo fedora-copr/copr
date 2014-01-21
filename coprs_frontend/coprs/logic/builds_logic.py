@@ -78,6 +78,8 @@ class BuildsLogic(object):
             build.submitted_on = int(time.time())
         if not build.user:
             build.user = user
+        if not build.copr:
+            build.copr = copr
 
         db.session.add(build)
 
