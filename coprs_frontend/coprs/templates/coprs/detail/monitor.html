@@ -20,8 +20,17 @@
         {% for package, states in packages %}
           <tr>
             <td>{{ package }}</td>
-            {% for state in states %}
-                    <td class="centered build-{{ state }}">{{ state }}</td>
+            {% for build_id, state in states %}
+              <td class="centered build-{{ state }}">
+                {% if state %}
+                  {{ state }}
+                {% else %}
+                  <a href="{{ url_for('coprs_ns.copr_repeat_build',
+                    username=copr.owner.name,
+                    coprname=copr.name,
+                    build_id=build_id) }}">resubmit</a>
+                {% endif %}
+              </td>
             {% endfor %}
           </tr>
         {% endfor %}

@@ -371,7 +371,7 @@ def copr_build_monitor(username, coprname):
     # the only reason why this is necessary is non-existent
     # database design
     #
-    # loop goes through last 50 builds trying to approximate
+    # loop goes through builds trying to approximate
     # per-package results based on previous builds
     # - it can't determine build results if build contains
     # more than one package as this data is not available
@@ -394,9 +394,9 @@ def copr_build_monitor(username, coprname):
         build_results = []
         for chroot_name in chroots:
             if chroot_name in chroot_results:
-                build_results.append(chroot_results[chroot_name])
+                build_results.append((build.id, chroot_results[chroot_name]))
             else:
-                build_results.append('not submitted yet')
+                build_results.append((build.id, None))
 
         for pkg_url in build.pkgs.split():
             pkg = os.path.basename(pkg_url)
