@@ -378,12 +378,14 @@ def copr_build_monitor(username, coprname):
 
     out = {}
     build = None
-    chroots = []
+    chroots = set([chroot.name for chroot in copr.active_chroots])
     latest_build = None
 
     if builds:
         latest_build = builds[0]
-        chroots = sorted([chroot.name for chroot in latest_build.build_chroots])
+        chroots.union([chroot.name for chroot in latest_build.build_chroots])
+
+    chroots = sorted(chroots)
 
     for build in builds:
         chroot_results = {chroot.name: chroot.state
@@ -394,7 +396,7 @@ def copr_build_monitor(username, coprname):
             if chroot_name in chroot_results:
                 build_results.append(chroot_results[chroot_name])
             else:
-                build_results.append('')
+                build_results.append('not submitted yet')
 
         for pkg_url in build.pkgs.split():
             pkg = os.path.basename(pkg_url)
