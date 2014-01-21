@@ -377,7 +377,8 @@ class Worker(multiprocessing.Process):
                         chroot_repos.append(job.results + '/' + job.chroot)
                         chrootlogfile = chroot_destdir + '/build-%s.log' % job.build_id
                         macros = {'copr_username': job.user_name,
-                                  'copr_projectname': job.copr_name}
+                                  'copr_projectname': job.copr_name,
+                                  'vendor': "Fedora Project COPR (%s/%s)" % (job.user_name, job.copr_name)}
                         mr = mockremote.MockRemote(builder=ip, timeout=job.timeout,
                              destdir=job.destdir, chroot=job.chroot, cont=True, recurse=True,
                              repos=chroot_repos, macros=macros, buildroot_pkgs=job.buildroot_pkgs,
