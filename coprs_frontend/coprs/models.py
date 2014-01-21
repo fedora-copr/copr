@@ -177,7 +177,7 @@ class Copr(db.Model, Serializer):
         return md.convert(self.instructions) or 'Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo.'
 
     @property
-    def active_mock_chroots(self):
+    def active_chroots(self):
         """Returns list of active mock_chroots of this copr"""
         return filter(lambda x: x.is_active, self.mock_chroots)
 

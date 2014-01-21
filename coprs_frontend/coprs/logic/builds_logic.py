@@ -83,7 +83,7 @@ class BuildsLogic(object):
 
         # add BuildChroot object for each active chroot
         # this copr is assigned to
-        for chroot in copr.active_mock_chroots:
+        for chroot in copr.active_chroots:
             buildchroot = models.BuildChroot(
                 build=build,
                 mock_chroot=chroot)

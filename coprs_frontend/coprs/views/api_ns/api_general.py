@@ -124,7 +124,7 @@ def api_coprs_by_owner(username=None):
             yum_repos = {}
             for build in repo.builds:
                 if build.results:
-                    for chroot in repo.active_mock_chroots:
+                    for chroot in repo.active_chroots:
                         release = '{chroot.os_release}-{chroot.os_version}-{chroot.arch}'.format(chroot=chroot)
                         yum_repos[release] = urlparse.urljoin(build.results, release + '/')
                     break

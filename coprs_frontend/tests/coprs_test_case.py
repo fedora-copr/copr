@@ -121,7 +121,7 @@ class CoprsTestCase(object):
         for build in [self.b1, self.b2, self.b3, self.b4]:
             self.db.session.add(build)
 
-            for chroot in build.copr.active_mock_chroots:
+            for chroot in build.copr.active_chroots:
                 buildchroot = models.BuildChroot(
                     build=build,
                     mock_chroot=chroot)
