@@ -36,6 +36,7 @@ import pipes
 import time
 import socket
 import traceback
+import urllib
 
 # where we should execute mockchain from on the remote
 mockchain = '/usr/bin/mockchain'
@@ -488,6 +489,7 @@ class MockRemote(object):
             self.failed = []
             just_built = []
             for pkg in to_be_built:
+                pkg = urllib.unquote("%s" % pkg)
                 if pkg in just_built:
                     self.callback.log("skipping duplicate pkg in this list: %s" % pkg)
                     continue
