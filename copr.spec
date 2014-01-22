@@ -354,7 +354,7 @@ fi
 %doc %{_pkgdocdir}/lighttpd
 %doc %{_pkgdocdir}/playbooks
 %dir %{_sysconfdir}/copr
-%config(noreplace) %{_sysconfdir}/copr/copr-be.conf
+%config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/copr-backend.service
 %{_tmpfilesdir}/copr-backend.conf
 %{_sbindir}/copr-prune-repo
