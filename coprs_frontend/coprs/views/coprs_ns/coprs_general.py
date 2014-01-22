@@ -298,7 +298,10 @@ def copr_legal_flag(username, coprname):
     navigate_to = "\nNavigate to http://%s%s" % (hostname, flask.url_for('admin_ns.legal_flag'))
     contact = "\nContact on owner is: %s <%s>" % (username, copr.owner.mail)
     reported_by = "\nReported by %s <%s>" % (flask.g.user.name, flask.g.user.mail)
-    msg = MIMEText(form.comment.data + navigate_to + contact + reported_by)
+    try:
+        msg = MIMEText(form.comment.data + navigate_to + contact + reported_by, "plain")
+    except UnicodeEncodeError:
+        msg = MIMEText(form.comment.data.encode('utf-8') + navigate_to + contact + reported_by, "plain", "utf-8")
     msg['Subject'] = 'Legal flag raised on %s' % coprname
     msg['From'] = 'root@%s' % hostname
     msg['To'] = ', '.join(send_to)
