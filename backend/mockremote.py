@@ -25,6 +25,7 @@
 # take args from mockchain (more or less)
 
 
+import fcntl
 import os
 import sys
 import subprocess
