@@ -96,3 +96,34 @@ class TestCoprDeleteBuild(CoprsTestCase):
             .first())
 
         assert b is not None
+
+
+class TestCoprRepeatBuild(CoprsTestCase):
+    @TransactionDecorator('u1')
+    def test_copr_build_submitter_can_repeat_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.db.session.add_all([self.u1, self.c1, self.b1])
+        pkgs = 'one two three'
+        self.b1.pkgs = pkgs
+        self.db.session.commit()
+
+        r = self.test_client.post(
+            '/coprs/{0}/{1}/repeat_build/{2}/'.format(self.u1.name,
+                                                      self.c1.name, self.b1.id),
+            data={},
+            follow_redirects=True)
+
+        assert 'Build was resubmitted' in r.data
+        assert len(self.models.Build.query
+                   .filter(self.models.Build.pkgs == pkgs)
+                   .all()) == 2
+
+    @TransactionDecorator('u2')
+    def test_copr_build_non_submitter_cannot_repeat_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.db.session.add_all([self.u1, self.c1, self.b1])
+        r = self.test_client.post(
+            '/coprs/{0}/{1}/repeat_build/{2}/'.format(self.u1.name,
+                                                      self.c1.name, self.b1.id),
+            data={},
+            follow_redirects=True)
+
+        assert 't have permissions to build' in r.data
