@@ -33,7 +33,7 @@ def login():
     if flask.g.user is not None:
         return flask.redirect(oid.get_next_url())
     else:
-        return oid.try_login('https://id.fedoraproject.org/', ask_for=['email'])
+        return oid.try_login('https://id.fedoraproject.org/', ask_for=['email', 'timezone'])
 
 @oid.after_login
 def create_or_login(resp):

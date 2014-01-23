@@ -1,4 +1,13 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
+{% from datetime import datetime %}
+{% from dateutil import tz %}
+{{ format_tz = "%%d-%%m-%%y %%H:%%M:%%S" }}
+{{ utc_tz = tz.tzutc() }}
+{% if g.user.timezone %}
+  {{ user_tz = g.user.timezone }}
+{% else %}
+  {{ user_tz = utc_tz }}
+{% endif %}
 
 {% macro builds_table(builds) %}
   {% if builds %}
@@ -14,10 +23,10 @@
     {% for build in builds %}
       <tr class="build-{{ build.state }} build-state">
         <td>{{ build.id }}</td>
-        <td>{{ build.submitted_on|date_from_secs }}</td>
+        <td>{{ datetime.strptime(build.submitted_on|date_from_secs, format_tz).replace(tzinfo=utc_tz).astimezone(g.user.timezone).strftime(format_tz) }}</td>
         <td>{{ build.user.name }}</td>
-        <td>{{ build.started_on|date_from_secs or 'Not yet' }}</td>
-        <td>{{ build.ended_on|date_from_secs or 'Not yet' }}</td>
+        <td>{{ datetime.strptime(build.started_on|date_from_secs, format_tz).replace(tzinfo=utc_tz).astimezone(g.user.timezone).strftime(format_tz) or 'Not yet' }}</td>
+        <td>{{ datetime.strptime(build.ended_on|date_from_secs, format_tz).replace(tzinfo=utc_tz).astimezone(g.user.timezone).strftime(format_tz) or 'Not yet' }}</td>
         <td>{{ build.state }}</td>
       </tr>
       <tr class="details">
