@@ -58,28 +58,31 @@ class BuildsLogic(object):
         return models.Build.query.filter(models.Build.id.in_(ids))
 
     @classmethod
-    def add(cls, user, pkgs, copr):
-        coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(user, copr,
-                                                          'Can\'t build while there is an operation in progress: {action}')
-        users_logic.UsersLogic.raise_if_cant_build_in_copr(user, copr,
-                                                           'You don\'t have permissions to build in this copr.')
+    def add(cls, user, pkgs, copr,
+            repos=None, memory_reqs=None, timeout=None):
+
+        coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
+            user, copr,
+            'Can\'t build while there is an operation in progress: {action}')
+        users_logic.UsersLogic.raise_if_cant_build_in_copr(
+            user, copr,
+            'You don\'t have permissions to build in this copr.')
+
+        if not repos:
+            repos = copr.repos
+
         build = models.Build(
+            user=user,
             pkgs=pkgs,
             copr=copr,
-            repos=copr.repos,
-            user=user,
+            repos=repos,
             submitted_on=int(time.time()))
-        cls.new(user, build, copr)
-        return build
 
-    @classmethod
-    def new(cls, user, build, copr):
-        if not build.submitted_on:
-            build.submitted_on = int(time.time())
-        if not build.user:
-            build.user = user
-        if not build.copr:
-            build.copr = copr
+        if memory_reqs:
+            build.memory_reqs = memory_reqs
+
+        if timeout:
+            build.timeout = timeout
 
         db.session.add(build)
 
@@ -91,6 +94,8 @@ class BuildsLogic(object):
                 mock_chroot=chroot)
 
             db.session.add(buildchroot)
+
+        return build
 
     @classmethod
     def update_state_from_dict(cls, build, upd_dict):

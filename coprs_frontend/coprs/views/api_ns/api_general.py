@@ -75,12 +75,13 @@ def api_new_copr(username):
             infos.append('New project was successfully created.')
 
             if form.initial_pkgs.data:
-                builds_logic.BuildsLogic.add_build(
+                builds_logic.BuildsLogic.add(
+                    user=flask.g.user,
                     pkgs=" ".join(form.initial_pkgs.data.split()),
-                    copr=copr,
-                    owner=flask.g.user)
+                    copr=copr)
+
                 infos.append('Initial packages were successfully '
-                    'submitted for building.')
+                             'submitted for building.')
 
             output = {'output': 'ok', 'message': '\n'.join(infos)}
             db.session.commit()
@@ -159,8 +160,10 @@ def copr_new_build(username, coprname):
     else:
         if form.validate_on_submit() and flask.g.user.can_build_in(copr):
             # we're checking authorization above for now
-            build = builds_logic.BuildsLogic.add(user=flask.g.user,
-                pkgs=form.pkgs.data.replace('\n', ' '), copr=copr)
+            build = builds_logic.BuildsLogic.add(
+                user=flask.g.user,
+                pkgs=form.pkgs.data.replace('\n', ' '),
+                copr=copr)
 
             if flask.g.user.proven:
                 build.memory_reqs = form.memory_reqs.data

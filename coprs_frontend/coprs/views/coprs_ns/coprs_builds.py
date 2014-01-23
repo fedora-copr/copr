@@ -1,7 +1,6 @@
 import flask
 
 from coprs import db
-from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
@@ -11,6 +10,8 @@ from coprs.logic import coprs_logic
 
 from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
+
+from coprs.exceptions import ActionInProgressException, InsufficientRightsException
 
 
 @coprs_ns.route('/<username>/<coprname>/builds/', defaults={'page': 1})
@@ -57,7 +58,7 @@ def copr_new_build(username, coprname):
             if flask.g.user.proven:
                 build.memory_reqs = form.memory_reqs.data
                 build.timeout = form.timeout.data
-        except exceptions.ActionInProgressException as e:
+        except ActionInProgressException as e:
             flask.flash(str(e))
             db.session.rollback()
         else:
@@ -78,7 +79,7 @@ def copr_cancel_build(username, coprname, build_id):
         return page_not_found('Build with id {0} does not exist.'.format(build_id))
     try:
         builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
-    except exceptions.InsufficientRightsException as e:
+    except InsufficientRightsException as e:
         flask.flash(str(e))
     else:
         db.session.commit()
@@ -99,13 +100,21 @@ def copr_repeat_build(username, coprname, build_id):
     if not copr:
         return page_not_found('Copr {0}/{1} does not exist.'.format(username, coprname))
 
-    new_build = models.Build()
-    for a in ['pkgs', 'repos', 'memory_reqs', 'timeout']:
-        setattr(new_build, a, getattr(build, a))
-    builds_logic.BuildsLogic.new(flask.g.user, new_build, copr)
+    try:
+        builds_logic.BuildsLogic.add(
+            user=flask.g.user,
+            pkgs=build.pkgs,
+            copr=copr,
+            repos=build.repos,
+            memory_reqs=build.memory_reqs,
+            timeout=build.timeout)
 
-    db.session.commit()
-    flask.flash('Build was resubmitted')
+    except (ActionInProgressException, InsufficientRightsException) as e:
+        db.session.rollback()
+        flask.flash(str(e))
+    else:
+        db.session.commit()
+        flask.flash('Build was resubmitted')
 
     return flask.redirect(flask.url_for('coprs_ns.copr_builds', username = username, coprname = coprname))
 
@@ -118,7 +127,7 @@ def copr_delete_build(username, coprname, build_id):
         return page_not_found('Build with id {0} does not exist.'.format(build_id))
     try:
         builds_logic.BuildsLogic.delete_build(flask.g.user, build)
-    except exceptions.InsufficientRightsException as e:
+    except InsufficientRightsException as e:
         flask.flash(str(e))
     else:
         db.session.commit()
