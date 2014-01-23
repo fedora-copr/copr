@@ -17,3 +17,16 @@ class TestBuildsLogic(CoprsTestCase):
         with pytest.raises(ActionInProgressException):
             b = BuildsLogic.add(self.u1, 'blah blah', self.c1)
         self.db.session.rollback()
+
+    def test_add_assigns_params_correctly(self, f_users, f_coprs, f_mock_chroots, f_db):
+        params = dict(
+            user=self.u1,
+            pkgs='blah blah',
+            copr=self.c1,
+            repos='repos',
+            memory_reqs=3000,
+            timeout=5000)
+
+        b = BuildsLogic.add(**params)
+        for k, v in params.items():
+            assert getattr(b, k) == v
