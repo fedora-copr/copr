@@ -131,12 +131,12 @@ def create(name, chroots=[], description=None, instructions=None,
     copr_api_url = get_api_url()
     URL = '{0}/coprs/{1}/new/'.format(copr_api_url, user['username'])
 
-    repos = None
     if type(repos) == list():
         repos = ' '.join(repos)
-    initial_pkgs = None
+
     if type(initial_pkgs) == list():
         initial_pkgs = ' '.join(initial_pkgs)
+
     data = {'name': name,
             'repos': repos,
             'initial_pkgs': initial_pkgs,
