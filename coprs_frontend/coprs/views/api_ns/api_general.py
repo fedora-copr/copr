@@ -90,9 +90,11 @@ def api_new_copr(username):
             db.session.rollback()
 
     else:
-        errormsg = ''
+        errormsg = 'Validation error\n'
         if form.errors:
-            errormsg = "\n".join(form.errors['name'])
+            for field, emsgs in form.errors.items():
+                errormsg += "- {0}: {1}\n".format(field, "\n".join(emsgs))
+
         errormsg = errormsg.replace('"', "'")
         output = {'output': 'notok', 'error': errormsg}
         httpcode = 500
