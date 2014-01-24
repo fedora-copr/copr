@@ -62,7 +62,7 @@ class User(db.Model, Serializer):
     # just mail :)
     mail = db.Column(db.String(150), nullable = False)
     # just timezone ;)
-    timezone = db.Column(db.String(50), nullable = False)
+    timezone = db.Column(db.String(50), nullable = True)
     # is this user proven? proven users can modify builder memory and timeout for single builds
     proven = db.Column(db.Boolean, default = False)
     # is this user admin of the system?

@@ -16,7 +16,7 @@ import sqlalchemy as sa
 
 def upgrade():
     """ Add 'data' colum to action table. """
-    op.add_column('user', sa.Column('timezone', sa.String(length=50), nullable=False))
+    op.add_column('user', sa.Column('timezone', sa.String(length=50), nullable=True))
 
 
 def downgrade():
