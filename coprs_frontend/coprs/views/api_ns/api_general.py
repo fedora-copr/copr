@@ -186,7 +186,10 @@ def copr_new_build(username, coprname):
 @api_ns.route('/coprs/build_status/<build_id>/', methods=["GET"])
 @api_login_required
 def build_status(build_id):
-    build = builds_logic.BuildsLogic.get(build_id).first()
+    if helpers.is_int(build_id):
+        build = builds_logic.BuildsLogic.get(build_id).first()
+    else:
+        build = None
 
     if build:
         httpcode = 200

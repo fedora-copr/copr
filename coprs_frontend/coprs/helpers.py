@@ -136,3 +136,11 @@ def render_repo(copr, mock_chroot, url):
     url = urlparse.urljoin(url, "%s-%s-%s/" % (mock_chroot.os_release, mock_chroot.os_version, '$basearch'))
     #url = url.replace("http://", "https://")
     return flask.render_template('coprs/copr.repo', copr=copr, url=url)
+
+def is_int(s):
+    """ Return True is argument is integer number. False otherwise. """
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
