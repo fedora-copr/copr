@@ -47,7 +47,7 @@ class BuildsLogic(object):
                                    join(models.User).\
                                    options(db.contains_eager(models.Build.copr)).\
                                    options(db.contains_eager('copr.owner')).\
-                                   filter(models.Build.started_on == None).\
+                                   filter((models.Build.started_on == None) | (models.Build.started_on < int(time.time()-7200))).\
                                    filter(models.Build.ended_on == None).\
                                    filter(models.Build.canceled != True).\
                                    order_by(models.Build.submitted_on.asc())
