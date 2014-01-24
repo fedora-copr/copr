@@ -98,6 +98,7 @@ Requires:   python-markdown
 Requires:   python-psycopg2
 Requires:   python-pylibravatar
 Requires:   python-whoosh >= 2.5.3
+Requires:   pytz
 # for tests:
 Requires:   pytest
 Requires:   python-flexmock
@@ -119,6 +120,7 @@ BuildRequires: yum
 BuildRequires: python-flexmock
 BuildRequires: python-decorator
 BuildRequires: python-markdown
+BuildRequires: pytz
 
 %description frontend
 COPR is lightweight build system. It allows you to create new project in WebUI,
