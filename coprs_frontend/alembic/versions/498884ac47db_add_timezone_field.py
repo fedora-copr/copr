@@ -1,14 +1,14 @@
 """add timezone field
 
 Revision ID: 498884ac47db
-Revises: 3a415c6392bc
+Revises: 4837ad1d96ea
 Create Date: 2014-01-23 12:15:04.450292
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '498884ac47db'
-down_revision = '3a415c6392bc'
+down_revision = '4837ad1d96ea'
 
 from alembic import op
 import sqlalchemy as sa
