@@ -285,6 +285,7 @@ install -p -m 644 man/%{name}-selinux-relabel.8 %{buildroot}/%{_mandir}/man8/
 %check
 %if %{with_test} && %{with_server} && %{_arch} == "x86_64"
     pushd coprs_frontend
+    rm -rf /tmp/copr.db /tmp/whooshee || :
     COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
     popd
 %endif
