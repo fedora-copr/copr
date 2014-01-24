@@ -49,6 +49,7 @@ def create_or_login(resp):
                 + datetime.timedelta(days=flask.current_app.config['API_TOKEN_EXPIRATION'])
             copr64 = base64.b64encode('copr') + '##'
             user = models.User(openid_name = resp.identity_url, mail = resp.email,
+                timezone = resp.timezone,
                 api_login = copr64 + helpers.generate_api_token(
                     app.config['API_TOKEN_LENGTH'] - len(copr64)),
                 api_token = helpers.generate_api_token(app.config['API_TOKEN_LENGTH']),
