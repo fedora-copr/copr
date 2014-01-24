@@ -8,6 +8,7 @@ from mockremote import createrepo
 
 
 class Action(object):
+
     """ Object to send data back to fronted """
 
     def __init__(self, opts, events, action):
@@ -18,27 +19,28 @@ class Action(object):
         self.events = events
 
     def event(self, what):
-        self.events.put({'when':time.time(), 'who':'action', 'what':what})
+        self.events.put({"when": time.time(), "who": "action", "what": what})
 
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
         result = Bunch()
-        result.id = self.data['id']
-        if self.data['action_type'] == 0:  # delete
-            if self.data['object_type'] == 'copr':
+        result.id = self.data["id"]
+
+        if self.data["action_type"] == 0:  # delete
+            if self.data["object_type"] == "copr":
                 self.event("Action delete copr")
-                project = self.data['old_value']
+                project = self.data["old_value"]
                 path = os.path.normpath(self.destdir + '/' + project)
                 if os.path.exists(path):
-                    self.event('Removing copr %s' % path)
+                    self.event("Removing copr {0}".format(path))
                     shutil.rmtree(path)
 
-            elif self.data['object_type'] == 'build':
+            elif self.data["object_type"] == "build":
                 self.event("Action delete build")
-                project = self.data['old_value']
+                project = self.data["old_value"]
                 packages = map(lambda x:
-                               os.path.basename(x).replace('.src.rpm', ''),
-                               self.data['data'].split())
+                               os.path.basename(x).replace(".src.rpm", ""),
+                               self.data["data"].split())
 
                 path = os.path.join(self.destdir, project)
 
@@ -52,18 +54,19 @@ class Action(object):
                     for pkg in packages:
                         pkg_path = os.path.join(path, chroot, pkg)
                         if os.path.isdir(pkg_path):
-                            self.event('Removing build {0}'.format(pkg_path))
+                            self.event("Removing build {0}".format(pkg_path))
                             shutil.rmtree(pkg_path)
                             altered = True
                         else:
-                            self.event('Package {0} dir not found in chroot {1}'
+                            self.event("Package {0} dir not found in chroot {1}"
                                        .format(pkg, chroot))
 
                     if altered:
-                            self.event("Running createrepo")
-                            rc, out, err = createrepo(os.path.join(path, chroot))
-                            if err.strip():
-                                self.event("Error making local repo: {0}".format(err))
+                        self.event("Running createrepo")
+                        rc, out, err = createrepo(os.path.join(path, chroot))
+                        if err.strip():
+                            self.event(
+                                "Error making local repo: {0}".format(err))
 
                     log_path = os.path.join(
                         path, chroot,
@@ -75,22 +78,27 @@ class Action(object):
 
             result.job_ended_on = time.time()
             result.result = 1  # success
-        elif self.data['action_type'] == 1: # rename
+
+        elif self.data["action_type"] == 1:  # rename
             self.event("Action rename")
-            old_path = os.path.normpath(self.destdir + '/', self.data['old_value'])
-            new_path = os.path.normpath(self.destdir + '/', self.data['new_value'])
+            old_path = os.path.normpath(
+                self.destdir + '/', self.data["old_value"])
+            new_path = os.path.normpath(
+                self.destdir + '/', self.data["new_value"])
+
             if os.path.exists(old_path):
                 if not os.path.exists(new_path):
                     shutil.move(old_path, new_path)
-                    result.result = 1 # success
+                    result.result = 1  # success
                 else:
-                    result.message = 'Destination directory already exist.'
-                    result.result = 2 # failure
-            else: # nothing to do, that is success too
-                result.result = 1 # success
+                    result.message = "Destination directory already exist."
+                    result.result = 2  # failure
+            else:  # nothing to do, that is success too
+                result.result = 1  # success
             result.job_ended_on = time.time()
-        elif self.data['action_type'] == 2: # legal-flag
+
+        elif self.data["action_type"] == 2:  # legal-flag
             self.event("Action legal-flag: ignoring")
 
-        if 'result' in result:
-            self.frontend_callback.post_to_frontend( {'actions': [result]} )
+        if "result" in result:
+            self.frontend_callback.post_to_frontend({"actions": [result]})
