@@ -54,8 +54,11 @@ def create_or_login(resp):
                     app.config['API_TOKEN_LENGTH'] - len(copr64)),
                 api_token = helpers.generate_api_token(app.config['API_TOKEN_LENGTH']),
                 api_token_expiration = expiration_date_token)
-            db.session.add(user)
-            db.session.commit()
+        else:
+            user.mail = resp.email
+            user.timezone = resp.timezone
+        db.session.add(user)
+        db.session.commit()
         flask.flash(u'Welcome, {0}'.format(user.name))
         flask.g.user = user
         redirect_to = oid.get_next_url()
