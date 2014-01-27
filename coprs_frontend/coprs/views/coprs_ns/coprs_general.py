@@ -23,120 +23,143 @@ from coprs.logic import coprs_logic
 from coprs.helpers import parse_package_name, render_repo
 
 
-@coprs_ns.route('/', defaults = {'page': 1})
-@coprs_ns.route('/<int:page>/')
+@coprs_ns.route("/", defaults={"page": 1})
+@coprs_ns.route("/<int:page>/")
 def coprs_show(page=1):
-    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user, with_mock_chroots=False)
+    query = coprs_logic.CoprsLogic.get_multiple(
+        flask.g.user, with_mock_chroots=False)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
+    return flask.render_template("coprs/show.html",
+                                 coprs=coprs,
+                                 paginator=paginator)
 
 
-@coprs_ns.route('/<username>/', defaults = {'page': 1})
-@coprs_ns.route('/<username>/<int:page>/')
+@coprs_ns.route("/<username>/", defaults={"page": 1})
+@coprs_ns.route("/<username>/<int:page>/")
 def coprs_by_owner(username=None, page=1):
     query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
-                                                user_relation='owned',
+                                                user_relation="owned",
                                                 username=username,
                                                 with_mock_chroots=False)
+
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
+    return flask.render_template("coprs/show.html",
+                                 coprs=coprs,
+                                 paginator=paginator)
 
 
-@coprs_ns.route('/<username>/allowed/', defaults = {'page': 1})
-@coprs_ns.route('/<username>/allowed/<int:page>/')
+@coprs_ns.route("/<username>/allowed/", defaults={"page": 1})
+@coprs_ns.route("/<username>/allowed/<int:page>/")
 def coprs_by_allowed(username=None, page=1):
     query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
-                                                user_relation='allowed',
+                                                user_relation="allowed",
                                                 username=username,
                                                 with_mock_chroots=False)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return flask.render_template('coprs/show.html', coprs=coprs, paginator=paginator)
+    return flask.render_template("coprs/show.html",
+                                 coprs=coprs,
+                                 paginator=paginator)
 
 
-@coprs_ns.route('/fulltext/', defaults = {'page': 1})
-@coprs_ns.route('/fulltext/<int:page>/')
+@coprs_ns.route("/fulltext/", defaults={"page": 1})
+@coprs_ns.route("/fulltext/<int:page>/")
 def coprs_fulltext_search(page=1):
-    fulltext = flask.request.args.get('fulltext', '')
+    fulltext = flask.request.args.get("fulltext", "")
     try:
-        query = coprs_logic.CoprsLogic.get_multiple_fulltext(flask.g.user, fulltext)
-    except ValueError, e:
+        query = coprs_logic.CoprsLogic.get_multiple_fulltext(
+            flask.g.user, fulltext)
+    except ValueError as e:
         flask.flash(str(e))
-        return flask.redirect(flask.request.referrer or flask.url_for('coprs_ns.coprs_show'))
+        return flask.redirect(flask.request.referrer or
+                              flask.url_for("coprs_ns.coprs_show"))
+
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return flask.render_template('coprs/show.html',
+    return flask.render_template("coprs/show.html",
                                  coprs=coprs,
                                  paginator=paginator,
                                  fulltext=fulltext)
 
 
-@coprs_ns.route('/<username>/add/')
+@coprs_ns.route("/<username>/add/")
 @login_required
 def copr_add(username):
     form = forms.CoprFormFactory.create_form_cls()()
 
-    return flask.render_template('coprs/add.html', form = form)
+    return flask.render_template("coprs/add.html", form=form)
 
 
-@coprs_ns.route('/<username>/new/', methods=['POST'])
+@coprs_ns.route("/<username>/new/", methods=["POST"])
 @login_required
 def copr_new(username):
-    """ Receive information from the user on how to create its new copr
+    """
+    Receive information from the user on how to create its new copr
     and create it accordingly.
     """
+
     form = forms.CoprFormFactory.create_form_cls()()
     if form.validate_on_submit():
-        copr = coprs_logic.CoprsLogic.add(flask.g.user,
-                                          name=form.name.data,
-                                          repos=form.repos.data.replace('\n', ' '),
-                                          selected_chroots=form.selected_chroots,
-                                          description=form.description.data,
-                                          instructions=form.instructions.data)
+        copr = coprs_logic.CoprsLogic.add(
+            flask.g.user,
+            name=form.name.data,
+            repos=form.repos.data.replace("\n", " "),
+            selected_chroots=form.selected_chroots,
+            description=form.description.data,
+            instructions=form.instructions.data)
+
         db.session.commit()
-        flask.flash('New project was successfully created.')
+        flask.flash("New project was successfully created.")
 
         if form.initial_pkgs.data:
-            builds_logic.BuildsLogic.add(flask.g.user,
-                                         pkgs=form.initial_pkgs.data.replace('\n', ' '),
-                                               copr=copr)
+            builds_logic.BuildsLogic.add(
+                flask.g.user,
+                pkgs=form.initial_pkgs.data.replace("\n", " "),
+                copr=copr)
+
             db.session.commit()
-            flask.flash('Initial packages were successfully submitted '
-                        'for building.')
+            flask.flash("Initial packages were successfully submitted "
+                        "for building.")
 
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=flask.g.user.name, coprname=copr.name))
+        return flask.redirect(flask.url_for("coprs_ns.copr_detail",
+                                            username=flask.g.user.name,
+                                            coprname=copr.name))
     else:
-        return flask.render_template('coprs/add.html', form = form)
+        return flask.render_template("coprs/add.html", form=form)
 
 
-@coprs_ns.route('/<username>/<coprname>/')
+@coprs_ns.route("/<username>/<coprname>/")
 def copr_detail(username, coprname):
-    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_mock_chroots=True)
+    query = coprs_logic.CoprsLogic.get(
+        flask.g.user, username, coprname, with_mock_chroots=True)
     form = forms.CoprLegalFlagForm()
     try:
         copr = query.one()
     except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
+        return page_not_found(
+            "Copr with name {0} does not exist.".format(coprname))
 
-    return flask.render_template('coprs/detail/overview.html',
+    return flask.render_template("coprs/detail/overview.html",
                                  copr=copr,
                                  form=form)
 
 
-@coprs_ns.route('/<username>/<coprname>/permissions/')
+@coprs_ns.route("/<username>/<coprname>/permissions/")
 def copr_permissions(username, coprname):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
     copr = query.first()
     if not copr:
-        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
+        return page_not_found(
+            "Copr with name {0} does not exist.".format(coprname))
 
-    permissions = coprs_logic.CoprPermissionsLogic.get_for_copr(flask.g.user, copr).all()
+    permissions = coprs_logic.CoprPermissionsLogic.get_for_copr(
+        flask.g.user, copr).all()
     if flask.g.user:
         user_perm = flask.g.user.permissions_for_copr(copr)
     else:
@@ -148,115 +171,147 @@ def copr_permissions(username, coprname):
     # generate a proper form for displaying
     if flask.g.user:
         if flask.g.user.can_edit(copr):
-            permissions_form = forms.PermissionsFormFactory.create_form_cls(permissions)()
+            permissions_form = forms.PermissionsFormFactory.create_form_cls(
+                permissions)()
         else:
             # https://github.com/ajford/flask-wtf/issues/58
-            permissions_applier_form = forms.PermissionsApplierFormFactory.create_form_cls(user_perm)(formdata=None)
+            permissions_applier_form = \
+                forms.PermissionsApplierFormFactory.create_form_cls(
+                    user_perm)(formdata=None)
 
-    return flask.render_template('coprs/detail/permissions.html',
-                                 copr = copr,
-                                 permissions_form = permissions_form,
-                                 permissions_applier_form = permissions_applier_form,
-                                 permissions = permissions,
-                                 current_user_permissions = user_perm)
+    return flask.render_template(
+        "coprs/detail/permissions.html",
+        copr=copr,
+        permissions_form=permissions_form,
+        permissions_applier_form=permissions_applier_form,
+        permissions=permissions,
+        current_user_permissions=user_perm)
 
 
-@coprs_ns.route('/<username>/<coprname>/edit/')
+@coprs_ns.route("/<username>/<coprname>/edit/")
 @login_required
 def copr_edit(username, coprname, form=None):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
     copr = query.first()
 
     if not copr:
-        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
-    if not form:
-        form = forms.CoprFormFactory.create_form_cls(copr.mock_chroots)(obj=copr)
+        return page_not_found(
+            "Copr with name {0} does not exist.".format(coprname))
 
-    return flask.render_template('coprs/detail/edit.html',
+    if not form:
+        form = forms.CoprFormFactory.create_form_cls(
+            copr.mock_chroots)(obj=copr)
+
+    return flask.render_template("coprs/detail/edit.html",
                                  copr=copr,
                                  form=form)
 
 
-@coprs_ns.route('/<username>/<coprname>/update/', methods = ['POST'])
+@coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
 @login_required
 def copr_update(username, coprname):
     form = forms.CoprFormFactory.create_form_cls()()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
     if form.validate_on_submit():
-        # we don't change owner (yet)
+        # we don"t change owner (yet)
         copr.name = form.name.data
-        copr.repos = form.repos.data.replace('\n', ' ')
+        copr.repos = form.repos.data.replace("\n", " ")
         copr.description = form.description.data
         copr.instructions = form.instructions.data
-        coprs_logic.CoprChrootsLogic.update_from_names(flask.g.user, copr, form.selected_chroots)
+        coprs_logic.CoprChrootsLogic.update_from_names(
+            flask.g.user, copr, form.selected_chroots)
 
         try:
-            coprs_logic.CoprsLogic.update(flask.g.user, copr, check_for_duplicates = False) # form validation checks for duplicates
-        except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
+            # form validation checks for duplicates
+            coprs_logic.CoprsLogic.update(
+                flask.g.user, copr, check_for_duplicates=False)
+        except (exceptions.ActionInProgressException,
+                exceptions.InsufficientRightsException) as e:
+
             flask.flash(str(e))
             db.session.rollback()
         else:
-            flask.flash('Project was updated successfully.')
+            flask.flash("Project was updated successfully.")
             db.session.commit()
 
-        return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = username, coprname = copr.name))
+        return flask.redirect(flask.url_for("coprs_ns.copr_detail",
+                                            username=username,
+                                            coprname=copr.name))
     else:
         return copr_edit(username, coprname, form)
 
 
-@coprs_ns.route('/<username>/<coprname>/permissions_applier_change/', methods = ['POST'])
+@coprs_ns.route("/<username>/<coprname>/permissions_applier_change/",
+                methods=["POST"])
 @login_required
 def copr_permissions_applier_change(username, coprname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    permission = coprs_logic.CoprPermissionsLogic.get(flask.g.user, copr, flask.g.user).first()
-    applier_permissions_form = forms.PermissionsApplierFormFactory.create_form_cls(permission)()
+    permission = coprs_logic.CoprPermissionsLogic.get(
+        flask.g.user, copr, flask.g.user).first()
+    applier_permissions_form = \
+        forms.PermissionsApplierFormFactory.create_form_cls(permission)()
 
     if not copr:
-        return page_not_found('Project with name {0} does not exist.'.format(coprname))
+        return page_not_found(
+            "Project with name {0} does not exist.".format(coprname))
+
     if copr.owner == flask.g.user:
-        flask.flash('Owner cannot request permissions for his own project.')
+        flask.flash("Owner cannot request permissions for his own project.")
     elif applier_permissions_form.validate_on_submit():
         # we rely on these to be 0 or 1 from form. TODO: abstract from that
         new_builder = applier_permissions_form.copr_builder.data
         new_admin = applier_permissions_form.copr_admin.data
-        coprs_logic.CoprPermissionsLogic.update_permissions_by_applier(flask.g.user, copr, permission, new_builder, new_admin)
+        coprs_logic.CoprPermissionsLogic.update_permissions_by_applier(
+            flask.g.user, copr, permission, new_builder, new_admin)
         db.session.commit()
-        flask.flash('Successfuly updated permissions for project "{0}".'.format(copr.name))
+        flask.flash(
+            "Successfuly updated permissions for project '{0}'."
+            .format(copr.name))
 
-    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
+    return flask.redirect(flask.url_for("coprs_ns.copr_detail",
+                                        username=copr.owner.name,
+                                        coprname=copr.name))
 
 
-@coprs_ns.route('/<username>/<coprname>/update_permissions/', methods = ['POST'])
+@coprs_ns.route("/<username>/<coprname>/update_permissions/", methods=["POST"])
 @login_required
 def copr_update_permissions(username, coprname):
     query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
     copr = query.first()
     permissions = copr.copr_permissions
-    permissions_form = forms.PermissionsFormFactory.create_form_cls(permissions)()
+    permissions_form = forms.PermissionsFormFactory.create_form_cls(
+        permissions)()
 
     if permissions_form.validate_on_submit():
         # we don't change owner (yet)
         try:
             # if admin is changing his permissions, his must be changed last
             # so that we don't get InsufficientRightsException
-            permissions.sort(cmp=lambda x, y: -1 if y.user_id == flask.g.user.id else 1)
+            permissions.sort(
+                cmp=lambda x, y: -1 if y.user_id == flask.g.user.id else 1)
             for perm in permissions:
-                new_builder = permissions_form['copr_builder_{0}'.format(perm.user_id)].data
-                new_admin = permissions_form['copr_admin_{0}'.format(perm.user_id)].data
-                coprs_logic.CoprPermissionsLogic.update_permissions(flask.g.user, copr, perm, new_builder, new_admin)
-        # for now, we don't check for actions here, as permissions operation don't collide with any actions
+                new_builder = permissions_form[
+                    "copr_builder_{0}".format(perm.user_id)].data
+                new_admin = permissions_form[
+                    "copr_admin_{0}".format(perm.user_id)].data
+                coprs_logic.CoprPermissionsLogic.update_permissions(
+                    flask.g.user, copr, perm, new_builder, new_admin)
+        # for now, we don't check for actions here, as permissions operation
+        # don't collide with any actions
         except exceptions.InsufficientRightsException as e:
             db.session.rollback()
             flask.flash(str(e))
         else:
             db.session.commit()
-            flask.flash('Project permissions were updated successfully.')
+            flask.flash("Project permissions were updated successfully.")
 
-    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name))
+    return flask.redirect(flask.url_for("coprs_ns.copr_detail",
+                                        username=copr.owner.name,
+                                        coprname=copr.name))
 
 
-@coprs_ns.route('/<username>/<coprname>/delete/', methods=['GET', 'POST'])
+@coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])
 @login_required
 def copr_delete(username, coprname):
     form = forms.CoprDeleteForm()
@@ -265,22 +320,29 @@ def copr_delete(username, coprname):
     if form.validate_on_submit():
         try:
             coprs_logic.CoprsLogic.delete(flask.g.user, copr)
-        except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
+        except (exceptions.ActionInProgressException,
+                exceptions.InsufficientRightsException) as e:
+
             db.session.rollback()
             flask.flash(str(e))
-            return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
+            return flask.redirect(flask.url_for("coprs_ns.copr_detail",
+                                                username=username,
+                                                coprname=coprname))
         else:
             db.session.commit()
-            flask.flash('Project was deleted successfully.')
-            return flask.redirect(flask.url_for('coprs_ns.coprs_by_owner', username=username))
+            flask.flash("Project was deleted successfully.")
+            return flask.redirect(flask.url_for("coprs_ns.coprs_by_owner",
+                                                username=username))
     else:
         if copr:
-            return flask.render_template('coprs/detail/delete.html', form=form, copr=copr)
+            return flask.render_template("coprs/detail/delete.html",
+                                         form=form, copr=copr)
         else:
-            return page_not_found('Project {0}/{1} does not exist'.format(username, coprname))
+            return page_not_found("Project {0}/{1} does not exist"
+                                  .format(username, coprname))
 
 
-@coprs_ns.route('/<username>/<coprname>/legal_flag/', methods=['POST'])
+@coprs_ns.route("/<username>/<coprname>/legal_flag/", methods=["POST"])
 @login_required
 def copr_legal_flag(username, coprname):
     form = forms.CoprLegalFlagForm()
@@ -293,87 +355,112 @@ def copr_legal_flag(username, coprname):
     db.session.add(legal_flag)
     db.session.commit()
 
-    send_to = app.config['SEND_LEGAL_TO'] or ['root@localhost']
+    send_to = app.config["SEND_LEGAL_TO"] or ["root@localhost"]
     hostname = platform.node()
-    navigate_to = "\nNavigate to http://%s%s" % (hostname, flask.url_for('admin_ns.legal_flag'))
-    contact = "\nContact on owner is: %s <%s>" % (username, copr.owner.mail)
-    reported_by = "\nReported by %s <%s>" % (flask.g.user.name, flask.g.user.mail)
+    navigate_to = "\nNavigate to http://{0}{1}".format(
+        hostname, flask.url_for("admin_ns.legal_flag"))
+
+    contact = "\nContact on owner is: {0} <{1}>".format(username,
+                                                        copr.owner.mail)
+
+    reported_by = "\nReported by {0} <{1}>".format(flask.g.user.name,
+                                                   flask.g.user.mail)
+
     try:
-        msg = MIMEText(form.comment.data + navigate_to + contact + reported_by, "plain")
+        msg = MIMEText(
+            form.comment.data + navigate_to + contact + reported_by, "plain")
     except UnicodeEncodeError:
-        msg = MIMEText(form.comment.data.encode('utf-8') + navigate_to + contact + reported_by, "plain", "utf-8")
-    msg['Subject'] = 'Legal flag raised on %s' % coprname
-    msg['From'] = 'root@%s' % hostname
-    msg['To'] = ', '.join(send_to)
-    s = smtplib.SMTP('localhost')
-    s.sendmail('root@%s' % hostname, send_to, msg.as_string())
+        msg = MIMEText(form.comment.data.encode(
+            "utf-8") + navigate_to + contact + reported_by, "plain", "utf-8")
+
+    msg["Subject"] = "Legal flag raised on {0}".format(coprname)
+    msg["From"] = "root@{0}".format(hostname)
+    msg["To"] = ", ".join(send_to)
+    s = smtplib.SMTP("localhost")
+    s.sendmail("root@{0}".format(hostname), send_to, msg.as_string())
     s.quit()
 
-    flask.flash('Admin was noticed about your report and will investigate the project shortly.')
-    return flask.redirect(flask.url_for('coprs_ns.copr_detail', username=username, coprname=coprname))
+    flask.flash("Admin was noticed about your report"
+                " and will investigate the project shortly.")
+
+    return flask.redirect(flask.url_for("coprs_ns.copr_detail",
+                                        username=username,
+                                        coprname=coprname))
 
 
-@coprs_ns.route('/<username>/<coprname>/repo/<chroot>/')
+@coprs_ns.route("/<username>/<coprname>/repo/<chroot>/")
 def generate_repo_file(username, coprname, chroot):
-    ''' Generate repo file for a given repo name.
-        Reponame = username-coprname '''
+    """ Generate repo file for a given repo name.
+        Reponame = username-coprname """
     # This solution is used because flask splits off the last part after a
     # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
     # FAS usernames may not contain dashes, so this construction is safe.
 
-    reponame = "%s-%s" % (username, coprname)
+    reponame = "{0}-{1}".format(username, coprname)
 
-    if '-' not in reponame:
-        return page_not_found('Bad repository name: {0}. Must be username-projectname'.format(reponame))
+    if "-" not in reponame:
+        return page_not_found(
+            "Bad repository name: {0}. Must be username-projectname"
+            .format(reponame))
 
     copr = None
     try:
-        # query.one() is used since it fetches all builds, unlike query.first().
+        # query.one() is used since it fetches all builds, unlike
+        # query.first().
         copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname,
-                with_builds=True).one()
+                                          with_builds=True).one()
     except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found('Project {0}/{1} does not exist'.format(username, coprname))
+        return page_not_found(
+            "Project {0}/{1} does not exist".format(username, coprname))
 
     try:
         mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot).one()
     except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found('Chroot %s does not exist' % chroot)
-    except ValueError, e:
-        return page_not_found("%s" % e)
+        return page_not_found("Chroot {0} does not exist".format(chroot))
+    except ValueError as e:
+        return page_not_found(str(e))
 
-    url = ''
+    url = ""
     for build in copr.builds:
         if build.results:
             url = build.results
             break
 
     if not url:
-        return page_not_found('Repository not initialized: No finished builds in {0}/{1}.'.format(username, coprname))
+        return page_not_found(
+            "Repository not initialized: No finished builds in {0}/{1}."
+            .format(username, coprname))
 
     response = flask.make_response(render_repo(copr, mock_chroot, url))
-    response.mimetype='text/plain'
-    response.headers['Content-Disposition'] = 'filename=%s.repo' % reponame
+    response.mimetype = "text/plain"
+    response.headers["Content-Disposition"] = "filename={0}.repo".format(
+        reponame)
+
     return response
 
-@coprs_ns.route('/<username>/<coprname>/monitor/')
+
+@coprs_ns.route("/<username>/<coprname>/monitor/")
 def copr_build_monitor(username, coprname):
-    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_mock_chroots=True)
+    query = coprs_logic.CoprsLogic.get(
+        flask.g.user, username, coprname, with_mock_chroots=True)
     form = forms.CoprLegalFlagForm()
     try:
         copr = query.one()
     except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found('Copr with name {0} does not exist.'.format(coprname))
+        return page_not_found(
+            "Copr with name {0} does not exist.".format(coprname))
 
-    builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
-    builds = builds_query.order_by('-id').all()
+    builds_query = builds_logic.BuildsLogic.get_multiple(
+        flask.g.user, copr=copr)
+    builds = builds_query.order_by("-id").all()
 
-    # please don't waste time trying to decipher this
+    # please don"t waste time trying to decipher this
     # the only reason why this is necessary is non-existent
     # database design
     #
     # loop goes through builds trying to approximate
     # per-package results based on previous builds
-    # - it can't determine build results if build contains
+    # - it can"t determine build results if build contains
     # more than one package as this data is not available
 
     out = {}
@@ -407,7 +494,7 @@ def copr_build_monitor(username, coprname):
 
             out[pkg_name] = build_results
 
-    return flask.render_template('coprs/detail/monitor.html',
+    return flask.render_template("coprs/detail/monitor.html",
                                  copr=copr,
                                  build=latest_build,
                                  chroots=chroots,

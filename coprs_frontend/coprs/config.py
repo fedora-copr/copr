@@ -1,20 +1,21 @@
-import logging
 import os
+import logging
+
 
 class Config(object):
-    DATA_DIR = os.path.join(os.path.dirname(__file__), '../../data')
-    DATABASE = os.path.join(DATA_DIR, 'copr.db')
-    OPENID_STORE = os.path.join(DATA_DIR, 'openid_store')
-    WHOOSHEE_DIR = os.path.join(DATA_DIR, 'whooshee')
-    SECRET_KEY = 'THISISNOTASECRETATALL'
-    BACKEND_PASSWORD = 'thisisbackend'
+    DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data")
+    DATABASE = os.path.join(DATA_DIR, "copr.db")
+    OPENID_STORE = os.path.join(DATA_DIR, "openid_store")
+    WHOOSHEE_DIR = os.path.join(DATA_DIR, "whooshee")
+    SECRET_KEY = "THISISNOTASECRETATALL"
+    BACKEND_PASSWORD = "thisisbackend"
 
     # restrict access to a set of users
     USE_ALLOWED_USERS = False
     ALLOWED_USERS = []
 
     # SQLAlchemy
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(DATABASE)
 
     # Token length, defaults to 30, DB set to varchar 255
     API_TOKEN_LENGTH = 30
@@ -23,26 +24,29 @@ class Config(object):
     API_TOKEN_EXPIRATION = 180
 
     # logging options
-    SEND_LOGS_TO = ['root@localhost']
+    SEND_LOGS_TO = ["root@localhost"]
     LOGGING_LEVEL = logging.ERROR
 
-    SEND_LEGAL_TO = ['root@localhost']
+    SEND_LEGAL_TO = ["root@localhost"]
+
 
 class ProductionConfig(Config):
     DEBUG = False
-    #SECRET_KEY = 'put_some_secret_here'
-    #BACKEND_PASSWORD = 'password_here'
-    #SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://login:password@/db_name'
+    #SECRET_KEY = "put_some_secret_here"
+    #BACKEND_PASSWORD = "password_here"
+    #SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://login:password@/db_name"
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
 
+
 class UnitTestConfig(Config):
     CSRF_ENABLED = False
-    DATABASE = os.path.abspath('tests/data/copr.db')
-    OPENID_STORE = os.path.abspath('tests/data/openid_store')
-    WHOOSHEE_DIR = os.path.abspath('tests/data/whooshee')
+    DATABASE = os.path.abspath("tests/data/copr.db")
+    OPENID_STORE = os.path.abspath("tests/data/openid_store")
+    WHOOSHEE_DIR = os.path.abspath("tests/data/whooshee")
 
     # SQLAlchemy
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.abspath(DATABASE)
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.abspath(DATABASE)

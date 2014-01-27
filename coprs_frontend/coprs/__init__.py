@@ -9,19 +9,19 @@ from flask.ext.whooshee import Whooshee
 
 app = flask.Flask(__name__)
 
-if 'COPRS_ENVIRON_PRODUCTION' in os.environ:
-    app.config.from_object('coprs.config.ProductionConfig')
-elif 'COPRS_ENVIRON_UNITTEST' in os.environ:
-    app.config.from_object('coprs.config.UnitTestConfig')
+if "COPRS_ENVIRON_PRODUCTION" in os.environ:
+    app.config.from_object("coprs.config.ProductionConfig")
+elif "COPRS_ENVIRON_UNITTEST" in os.environ:
+    app.config.from_object("coprs.config.UnitTestConfig")
 else:
-    app.config.from_object('coprs.config.DevelopmentConfig')
-if os.environ.get('COPR_CONFIG'):
-	app.config.from_envvar('COPR_CONFIG')
+    app.config.from_object("coprs.config.DevelopmentConfig")
+if os.environ.get("COPR_CONFIG"):
+    app.config.from_envvar("COPR_CONFIG")
 else:
-    app.config.from_pyfile('/etc/copr/copr.conf', silent=True)
+    app.config.from_pyfile("/etc/copr/copr.conf", silent=True)
 
 
-oid = OpenID(app, app.config['OPENID_STORE'])
+oid = OpenID(app, app.config["OPENID_STORE"])
 db = SQLAlchemy(app)
 whooshee = Whooshee(app)
 
@@ -48,4 +48,4 @@ app.register_blueprint(coprs_ns.coprs_ns)
 app.register_blueprint(misc.misc)
 app.register_blueprint(backend_ns.backend_ns)
 
-app.add_url_rule('/', 'coprs_ns.coprs_show', coprs_general.coprs_show)
+app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)

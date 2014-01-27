@@ -1,9 +1,8 @@
-import datetime
-import time
-
 import base64
-import flask
+import datetime
 import urlparse
+
+import flask
 
 from coprs import db
 from coprs import exceptions
@@ -18,37 +17,44 @@ from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 
 
-@api_ns.route('/')
+@api_ns.route("/")
 def api_home():
-    """ Renders the home page of the api.
+    """
+    Render the home page of the api.
     This page provides information on how to call/use the API.
     """
-    return flask.render_template('api.html')
+
+    return flask.render_template("api.html")
 
 
-@api_ns.route('/new/', methods=["GET", "POST"])
+@api_ns.route("/new/", methods=["GET", "POST"])
 @login_required
 def api_new_token():
-    """ Method use to generate a new API token for the current user.
     """
+    Generate a new API token for the current user.
+    """
+
     user = flask.g.user
-    copr64 = base64.b64encode('copr') + '##'
+    copr64 = base64.b64encode("copr") + "##"
     api_login = helpers.generate_api_token(
-        flask.current_app.config['API_TOKEN_LENGTH'] - len(copr64))
+        flask.current_app.config["API_TOKEN_LENGTH"] - len(copr64))
     user.api_login = api_login
     user.api_token = helpers.generate_api_token(
-        flask.current_app.config['API_TOKEN_LENGTH'])
-    user.api_token_expiration = datetime.date.today() \
-        + datetime.timedelta(days=flask.current_app.config['API_TOKEN_EXPIRATION'])
+        flask.current_app.config["API_TOKEN_LENGTH"])
+    user.api_token_expiration = datetime.date.today() + \
+        datetime.timedelta(
+            days=flask.current_app.config["API_TOKEN_EXPIRATION"])
+
     db.session.add(user)
     db.session.commit()
-    return flask.redirect(flask.url_for('api_ns.api_home'))
+    return flask.redirect(flask.url_for("api_ns.api_home"))
 
 
-@api_ns.route('/coprs/<username>/new/', methods=['POST'])
+@api_ns.route("/coprs/<username>/new/", methods=["POST"])
 @api_login_required
 def api_new_copr(username):
-    """ Receive information from the user on how to create its new copr,
+    """
+    Receive information from the user on how to create its new copr,
     check their validity and create the corresponding copr.
 
     :arg name: the name of the copr to add
@@ -59,6 +65,7 @@ def api_new_copr(username):
         build in this new copr
 
     """
+
     form = forms.CoprFormFactory.create_form_cls()(csrf_enabled=False)
     httpcode = 200
     if form.validate_on_submit():
@@ -72,7 +79,7 @@ def api_new_copr(username):
                 description=form.description.data,
                 instructions=form.instructions.data,
                 check_for_duplicates=True)
-            infos.append('New project was successfully created.')
+            infos.append("New project was successfully created.")
 
             if form.initial_pkgs.data:
                 builds_logic.BuildsLogic.add(
@@ -80,24 +87,24 @@ def api_new_copr(username):
                     pkgs=" ".join(form.initial_pkgs.data.split()),
                     copr=copr)
 
-                infos.append('Initial packages were successfully '
-                             'submitted for building.')
+                infos.append("Initial packages were successfully "
+                             "submitted for building.")
 
-            output = {'output': 'ok', 'message': '\n'.join(infos)}
+            output = {"output": "ok", "message": "\n".join(infos)}
             db.session.commit()
-        except exceptions.DuplicateException, err:
-            output = {'output': 'notok', 'error': err}
+        except exceptions.DuplicateException as err:
+            output = {"output": "notok", "error": err}
             httpcode = 500
             db.session.rollback()
 
     else:
-        errormsg = 'Validation error\n'
+        errormsg = "Validation error\n"
         if form.errors:
             for field, emsgs in form.errors.items():
                 errormsg += "- {0}: {1}\n".format(field, "\n".join(emsgs))
 
         errormsg = errormsg.replace('"', "'")
-        output = {'output': 'notok', 'error': errormsg}
+        output = {"output": "notok", "error": errormsg}
         httpcode = 500
 
     jsonout = flask.jsonify(output)
@@ -105,8 +112,8 @@ def api_new_copr(username):
     return jsonout
 
 
-@api_ns.route('/coprs/')
-@api_ns.route('/coprs/<username>/')
+@api_ns.route("/coprs/")
+@api_ns.route("/coprs/<username>/")
 def api_coprs_by_owner(username=None):
     """ Return the list of coprs owned by the given user.
     username is taken either from GET params or from the URL itself
@@ -116,45 +123,50 @@ def api_coprs_by_owner(username=None):
         coprs of.
 
     """
-    username = flask.request.args.get('username', None) or username
+    username = flask.request.args.get("username", None) or username
+    release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
     httpcode = 200
     if username:
-        query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
-            user_relation='owned', username=username, with_builds=True)
+        query = coprs_logic.CoprsLogic.get_multiple(
+            flask.g.user, user_relation="owned",
+            username=username, with_builds=True)
+
         repos = query.all()
-        output = {'output': 'ok', 'repos': []}
+        output = {"output": "ok", "repos": []}
         for repo in repos:
             yum_repos = {}
             for build in repo.builds:
                 if build.results:
                     for chroot in repo.active_chroots:
-                        release = '{chroot.os_release}-{chroot.os_version}-{chroot.arch}'.format(chroot=chroot)
-                        yum_repos[release] = urlparse.urljoin(build.results, release + '/')
+                        release = release_tmpl.format(chroot=chroot)
+                        yum_repos[release] = urlparse.urljoin(
+                            build.results, release + '/')
                     break
 
-            output['repos'].append({'name': repo.name,
-                                    'additional_repos': repo.repos,
-                                    'yum_repos': yum_repos,
-                                    'description': repo.description,
-                                    'instructions': repo.instructions})
+            output["repos"].append({"name": repo.name,
+                                    "additional_repos": repo.repos,
+                                    "yum_repos": yum_repos,
+                                    "description": repo.description,
+                                    "instructions": repo.instructions})
     else:
-        output = {'output': 'notok', 'error': 'Invalid request'}
+        output = {"output": "notok", "error": "Invalid request"}
         httpcode = 500
 
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
 
-@api_ns.route('/coprs/<username>/<coprname>/new_build/', methods=["POST"])
+
+@api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
 @api_login_required
 def copr_new_build(username, coprname):
     form = forms.BuildForm(csrf_enabled=False)
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username,
-        coprname).first()
+                                      coprname).first()
     httpcode = 200
     if not copr:
-        output = {'output': 'notok', 'error':
-            'Copr with name {0} does not exist.'.format(coprname)}
+        output = {"output": "notok", "error":
+                  "Copr with name {0} does not exist.".format(coprname)}
         httpcode = 500
 
     else:
@@ -171,11 +183,11 @@ def copr_new_build(username, coprname):
 
             db.session.commit()
 
-            output = {'output': 'ok',
-                      'id': build.id,
-                      'message': 'Build was added to {0}.'.format(coprname)}
+            output = {"output": "ok",
+                      "id": build.id,
+                      "message": "Build was added to {0}.".format(coprname)}
         else:
-            output = {'output': 'notok', 'error': 'Invalid request'}
+            output = {"output": "notok", "error": "Invalid request"}
             httpcode = 500
 
     jsonout = flask.jsonify(output)
@@ -183,7 +195,7 @@ def copr_new_build(username, coprname):
     return jsonout
 
 
-@api_ns.route('/coprs/build_status/<build_id>/', methods=["GET"])
+@api_ns.route("/coprs/build_status/<build_id>/", methods=["GET"])
 @api_login_required
 def build_status(build_id):
     if helpers.is_int(build_id):
@@ -193,13 +205,12 @@ def build_status(build_id):
 
     if build:
         httpcode = 200
-        output = {'output': 'ok',
-                  'status': build.state}
+        output = {"output": "ok",
+                  "status": build.state}
     else:
-        output = {'output': 'notok', 'error': 'Invalid build'}
+        output = {"output": "notok", "error": "Invalid build"}
         httpcode = 404
 
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
-

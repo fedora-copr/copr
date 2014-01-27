@@ -2,7 +2,9 @@ from coprs.helpers import parse_package_name
 
 from tests.coprs_test_case import CoprsTestCase
 
+
 class TestHelpers(CoprsTestCase):
+
     def test_guess_package_name(self):
         EXP = {
             'wat-1.2.rpm': 'wat',

@@ -8,36 +8,60 @@ from coprs import constants
 from coprs import db
 from coprs import helpers
 
+
 class Serializer(object):
-    def to_dict(self, options = {}):
-        """Usage:
-        SQLAlchObject.to_dict() => returns a flat dict of the object
-        SQLAlchObject.to_dict({'foo': {}}) => returns a dict of the object and will include a
-            flat dict of object foo inside of that
-        SQLAlchObject.to_dict({'foo': {'bar': {}}, 'spam': {}}) => returns a dict of the object,
-            which will include dict of foo (which will include dict of bar) and dict of spam
 
-        Options can also contain two special values: __columns_only__ and __columns_except__
-        If present, the first makes only specified fiels appear, the second removes specified fields.
-        Both of these fields must be either strings (only works for one field) or lists (for one and more fields).
-        SQLAlchObject.to_dict({'foo': {'__columns_except__': ['id']}, '__columns_only__': 'name'}) =>
-        The SQLAlchObject will only put its 'name' into the resulting dict, while 'foo' all of its fields except 'id'.
-
-        Options can also specify whether to include foo_id when displaying related foo object
-        (__included_ids__, defaults to True). This doesn't apply when __columns_only__ is specified.
+    def to_dict(self, options={}):
         """
+        Usage:
+
+        SQLAlchObject.to_dict() => returns a flat dict of the object
+        SQLAlchObject.to_dict({"foo": {}}) => returns a dict of the object
+            and will include a flat dict of object foo inside of that
+        SQLAlchObject.to_dict({"foo": {"bar": {}}, "spam": {}}) => returns
+            a dict of the object, which will include dict of foo
+            (which will include dict of bar) and dict of spam.
+
+        Options can also contain two special values: __columns_only__
+        and __columns_except__
+
+        If present, the first makes only specified fiels appear,
+        the second removes specified fields. Both of these fields
+        must be either strings (only works for one field) or lists
+        (for one and more fields).
+
+        SQLAlchObject.to_dict({"foo": {"__columns_except__": ["id"]},
+            "__columns_only__": "name"}) =>
+
+        The SQLAlchObject will only put its "name" into the resulting dict,
+        while "foo" all of its fields except "id".
+
+        Options can also specify whether to include foo_id when displaying
+        related foo object (__included_ids__, defaults to True).
+        This doesn"t apply when __columns_only__ is specified.
+        """
+
         result = {}
         columns = self.serializable_attributes
 
-        if options.has_key('__columns_only__'):
-            columns = options['__columns_only__']
+        if "__columns_only__" in options:
+            columns = options["__columns_only__"]
         else:
             columns = set(columns)
-            if options.has_key('__columns_except__'):
-                columns_except = options['__columns_except__'] if isinstance(options['__columns_except__'], list) else [options['__columns_except__']]
+            if "__columns_except__" in options:
+                columns_except = options["__columns_except__"]
+                if not isinstance(options["__columns_except__"], list):
+                    columns_except = [options["__columns_except__"]]
+
                 columns -= set(columns_except)
-            if options.has_key('__included_ids__') and options['__included_ids__'] == False:
-                related_objs_ids = [r + '_id' for r, o in options.items() if not r.startswith('__')]
+
+            if ("__included_ids__" in options and
+                    options["__included_ids__"] is False):
+
+                related_objs_ids = [
+                    r + "_id" for r, o in options.items()
+                    if not r.startswith("__")]
+
                 columns -= set(related_objs_ids)
 
             columns = list(columns)
@@ -54,93 +78,132 @@ class Serializer(object):
     def serializable_attributes(self):
         return map(lambda x: x.name, self.__table__.columns)
 
+
 class User(db.Model, Serializer):
-    """Represents user of the copr frontend"""
-    id = db.Column(db.Integer, primary_key = True)
+
+    """
+    Represents user of the copr frontend
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
     # openid_name for fas, e.g. http://bkabrda.id.fedoraproject.org/
-    openid_name = db.Column(db.String(100), nullable = False)
+    openid_name = db.Column(db.String(100), nullable=False)
     # just mail :)
     mail = db.Column(db.String(150), nullable = False)
     # just timezone ;)
     timezone = db.Column(db.String(50), nullable = True)
-    # is this user proven? proven users can modify builder memory and timeout for single builds
+    # is this user proven? proven users can modify builder memory and
+    # timeout for single builds
     proven = db.Column(db.Boolean, default = False)
     # is this user admin of the system?
-    admin = db.Column(db.Boolean, default = False)
+    admin = db.Column(db.Boolean, default=False)
     # stuff for the cli interface
-    api_login = db.Column(db.String(40), nullable = False, default = 'abc')
-    api_token = db.Column(db.String(40), nullable = False, default = 'abc')
-    api_token_expiration = db.Column(db.Date, nullable = False, default = datetime.date(2000, 1, 1))
+    api_login = db.Column(db.String(40), nullable=False, default="abc")
+    api_token = db.Column(db.String(40), nullable=False, default="abc")
+    api_token_expiration = db.Column(
+        db.Date, nullable=False, default=datetime.date(2000, 1, 1))
 
     @property
     def name(self):
-        """Returns the short username of the user, e.g. bkabrda"""
-        return self.openid_name.replace('.id.fedoraproject.org/', '').replace('http://', '')
+        """
+        Return the short username of the user, e.g. bkabrda
+        """
+
+        return self.openid_name.replace(
+            ".id.fedoraproject.org/", "").replace("http://", "")
 
     def permissions_for_copr(self, copr):
-        """Get permissions of this user for the given copr.
-        Caches the permission during one request, so use this if you access them multiple times
         """
-        if not hasattr(self, '_permissions_for_copr'):
+        Get permissions of this user for the given copr.
+        Caches the permission during one request,
+        so use this if you access them multiple times
+        """
+
+        if not hasattr(self, "_permissions_for_copr"):
             self._permissions_for_copr = {}
         if not copr.name in self._permissions_for_copr:
-            self._permissions_for_copr[copr.name] = CoprPermission.query.filter_by(user = self).filter_by(copr = copr).first()
+            self._permissions_for_copr[copr.name] = (CoprPermission.query
+                .filter_by(user=self).filter_by(copr=copr).first())
         return self._permissions_for_copr[copr.name]
 
     def can_build_in(self, copr):
-        """Determine if this user can build in the given copr."""
+        """
+        Determine if this user can build in the given copr.
+        """
+
         can_build = False
         if copr.owner == self:
             can_build = True
-        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_builder == helpers.PermissionEnum('approved'):
+        if (self.permissions_for_copr(copr) and
+                self.permissions_for_copr(copr).copr_builder ==
+                helpers.PermissionEnum("approved")):
+
             can_build = True
 
         return can_build
 
     def can_edit(self, copr):
-        """Determine if this user can edit the given copr."""
+        """
+        Determine if this user can edit the given copr.
+        """
+
         can_edit = False
         if copr.owner == self:
             can_edit = True
-        if self.permissions_for_copr(copr) and self.permissions_for_copr(copr).copr_admin == helpers.PermissionEnum('approved'):
+        if (self.permissions_for_copr(copr) and
+                self.permissions_for_copr(copr).copr_admin ==
+                helpers.PermissionEnum("approved")):
+
             can_edit = True
 
         return can_edit
 
     @classmethod
     def openidize_name(cls, name):
-        """Creates proper openid_name from short name.
+        """
+        Create proper openid_name from short name.
 
         >>> user.openid_name == User.openidize_name(user.name)
         True
         """
-        return 'http://{0}.id.fedoraproject.org/'.format(name)
+
+        return "http://{0}.id.fedoraproject.org/".format(name)
 
     @property
     def serializable_attributes(self):
         # enumerate here to prevent exposing credentials
-        return ['id', 'name']
+        return ["id", "name"]
 
     @property
     def coprs_count(self):
-        """Get number of coprs for this user."""
-        return Copr.query.filter_by(owner=self).\
-                          filter_by(deleted=False).\
-                          count()
+        """
+        Get number of coprs for this user.
+        """
+
+        return (Copr.query.filter_by(owner=self).
+                filter_by(deleted=False).
+                count())
 
     @property
     def gravatar_url(self):
-        """Return url to libravatar image."""
+        """
+        Return url to libravatar image.
+        """
+
         try:
-            return libravatar_url(email = self.mail)
+            return libravatar_url(email=self.mail)
         except IOError:
             return ""
 
 class Copr(db.Model, Serializer):
-    """Represents a single copr (private repo with builds, mock chroots, etc.)."""
-    id = db.Column(db.Integer, primary_key = True)
+
+    """
+    Represents a single copr (private repo with builds, mock chroots, etc.).
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
     # name of the copr, no fancy chars (checked by forms)
-    name = db.Column(db.String(100), nullable = False)
+    name = db.Column(db.String(100), nullable=False)
     # string containing urls of additional repos (separated by space)
     # that this copr will pull dependencies from
     repos = db.Column(db.Text)
@@ -152,46 +215,61 @@ class Copr(db.Model, Serializer):
     deleted = db.Column(db.Boolean, default=False)
 
     # relations
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    owner = db.relationship('User', backref = db.backref('coprs'))
-    mock_chroots = association_proxy('copr_chroots', 'mock_chroot')
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User", backref=db.backref("coprs"))
+    mock_chroots = association_proxy("copr_chroots", "mock_chroot")
 
     __mapper_args__ = {
-        'order_by' : created_on.desc()
+        "order_by": created_on.desc()
     }
 
     @property
     def repos_list(self):
-        """Returns repos of this copr as a list of strings"""
+        """
+        Return repos of this copr as a list of strings
+        """
         return self.repos.split()
 
     @property
     def description_or_not_filled(self):
-        md = markdown.Markdown(safe_mode='replace',
-                   html_replacement_text='--RAW HTML NOT ALLOWED--')
-        return md.convert(self.description) or 'Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.'
+        md = markdown.Markdown(
+            safe_mode="replace",
+            html_replacement_text="--RAW HTML NOT ALLOWED--")
+
+        return md.convert(self.description) or "Description not filled in by author. Very likely personal repository for testing purpose, which you should not use."
 
     @property
     def instructions_or_not_filled(self):
-        md = markdown.Markdown(safe_mode='replace',
-                   html_replacement_text='--RAW HTML NOT ALLOWED--')
-        return md.convert(self.instructions) or 'Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo.'
+        md = markdown.Markdown(
+            safe_mode="replace",
+            html_replacement_text="--RAW HTML NOT ALLOWED--")
+
+        return md.convert(self.instructions) or "Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo."
 
     @property
     def active_chroots(self):
-        """Returns list of active mock_chroots of this copr"""
+        """
+        Return list of active mock_chroots of this copr
+        """
+
         return filter(lambda x: x.is_active, self.mock_chroots)
 
     @property
     def build_count(self):
-        """ Return number of builds in this copr """
+        """
+        Return number of builds in this copr
+        """
 
         return len(self.builds)
 
     def check_copr_chroot(self, chroot):
-        """Return object of chroot, if is related to our copr or None"""
+        """
+        Return object of chroot, if is related to our copr or None
+        """
+
         result = None
-        # there will be max ~10 chroots per build, iteration will be probably faster than sql query
+        # there will be max ~10 chroots per build, iteration will be probably
+        # faster than sql query
         for copr_chroot in self.copr_chroots:
             if copr_chroot.mock_chroot_id == chroot.id:
                 result = copr_chroot
@@ -199,56 +277,70 @@ class Copr(db.Model, Serializer):
         return result
 
     def buildroot_pkgs(self, chroot):
-        """Returns packages in minimal buildroot for given chroot."""
-        result = ''
-        # this is ugly as user can remove chroot after he submit build, but lets call this feature
+        """
+        Return packages in minimal buildroot for given chroot.
+        """
+
+        result = ""
+        # this is ugly as user can remove chroot after he submit build, but
+        # lets call this feature
         copr_chroot = self.check_copr_chroot(chroot)
         if copr_chroot:
             result = copr_chroot.buildroot_pkgs
         return result
 
+
 class CoprPermission(db.Model, Serializer):
-    """Association class for Copr<->Permission relation"""
-    ## see helpers.PermissionEnum for possible values of the fields below
+
+    """
+    Association class for Copr<->Permission relation
+    """
+
+    # see helpers.PermissionEnum for possible values of the fields below
     # can this user build in the copr?
-    copr_builder = db.Column(db.SmallInteger, default = 0)
+    copr_builder = db.Column(db.SmallInteger, default=0)
     # can this user serve as an admin? (-> edit and approve permissions)
-    copr_admin = db.Column(db.SmallInteger, default = 0)
+    copr_admin = db.Column(db.SmallInteger, default=0)
 
     # relations
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key = True)
-    user = db.relationship('User', backref = db.backref('copr_permissions'))
-    copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'), primary_key = True)
-    copr = db.relationship('Copr', backref = db.backref('copr_permissions'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    user = db.relationship("User", backref=db.backref("copr_permissions"))
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True)
+    copr = db.relationship("Copr", backref=db.backref("copr_permissions"))
+
 
 class Build(db.Model, Serializer):
-    """Representation of one build in one copr"""
-    id = db.Column(db.Integer, primary_key = True)
+
+    """
+    Representation of one build in one copr
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
     # list of space separated urls of packages to build
     pkgs = db.Column(db.Text)
     # was this build canceled by user?
-    canceled = db.Column(db.Boolean, default = False)
+    canceled = db.Column(db.Boolean, default=False)
     # list of space separated additional repos
     repos = db.Column(db.Text)
-    ## the three below represent time of important events for this build
-    ## as returned by int(time.time())
-    submitted_on = db.Column(db.Integer, nullable = False)
+    # the three below represent time of important events for this build
+    # as returned by int(time.time())
+    submitted_on = db.Column(db.Integer, nullable=False)
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer)
     # url of the build results
     results = db.Column(db.Text)
     # memory requirements for backend builder
-    memory_reqs = db.Column(db.Integer, default = constants.DEFAULT_BUILD_MEMORY)
+    memory_reqs = db.Column(db.Integer, default=constants.DEFAULT_BUILD_MEMORY)
     # maximum allowed time of build, build will fail if exceeded
-    timeout = db.Column(db.Integer, default = constants.DEFAULT_BUILD_TIMEOUT)
+    timeout = db.Column(db.Integer, default=constants.DEFAULT_BUILD_TIMEOUT)
 
     # relations
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship('User', backref = db.backref('builds'))
-    copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'))
-    copr = db.relationship('Copr', backref = db.backref('builds'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user = db.relationship("User", backref=db.backref("builds"))
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
+    copr = db.relationship("Copr", backref=db.backref("builds"))
 
-    chroots = association_proxy('build_chroots', 'mock_chroot')
+    chroots = association_proxy("build_chroots", "mock_chroot")
 
     @property
     def chroot_states(self):
@@ -256,93 +348,124 @@ class Build(db.Model, Serializer):
 
     @property
     def has_pending_chroot(self):
-        return helpers.StatusEnum('pending') in self.chroot_states
+        return helpers.StatusEnum("pending") in self.chroot_states
 
     @property
     def status(self):
-        """ Return build status according to build status of its chroots """
-        if self.canceled:
-            return helpers.StatusEnum('canceled')
+        """
+        Return build status according to build status of its chroots
+        """
 
-        for state in ['failed', 'running', 'pending', 'succeeded']:
+        if self.canceled:
+            return helpers.StatusEnum("canceled")
+
+        for state in ["failed", "running", "pending", "succeeded"]:
             if helpers.StatusEnum(state) in self.chroot_states:
                 return helpers.StatusEnum(state)
 
     @property
     def state(self):
-        """ Return text representation of status of this build """
+        """
+        Return text representation of status of this build
+        """
+
         if self.status is not None:
             return helpers.StatusEnum(self.status)
 
-        return 'unknown'
+        return "unknown"
 
     @property
     def cancelable(self):
         """
         Find out if this build is cancelable.
 
-        ATM, build is cancelable only if it wasn't grabbed by backend.
+        ATM, build is cancelable only if it wasn"t grabbed by backend.
         """
 
-        return self.status == helpers.StatusEnum('pending')
+        return self.status == helpers.StatusEnum("pending")
 
 
 class MockChroot(db.Model, Serializer):
-    """Representation of mock chroot"""
-    id = db.Column(db.Integer, primary_key = True)
+
+    """
+    Representation of mock chroot
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
     # fedora/epel/..., mandatory
-    os_release = db.Column(db.String(50), nullable = False)
-    # 18/rawhide/..., optional (mock chroot doesn't need to have this)
-    os_version = db.Column(db.String(50), nullable = False)
+    os_release = db.Column(db.String(50), nullable=False)
+    # 18/rawhide/..., optional (mock chroot doesn"t need to have this)
+    os_version = db.Column(db.String(50), nullable=False)
     # x86_64/i686/..., mandatory
-    arch = db.Column(db.String(50), nullable = False)
-    is_active = db.Column(db.Boolean, default = True)
+    arch = db.Column(db.String(50), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
 
     @property
     def name(self):
-        """Textual representation of name of this chroot"""
+        """
+        Textual representation of name of this chroot
+        """
+
         if self.os_version:
-            format_string = '{rel}-{ver}-{arch}'
+            format_string = "{rel}-{ver}-{arch}"
         else:
-            format_string = '{rel}-{arch}'
+            format_string = "{rel}-{arch}"
         return format_string.format(rel=self.os_release,
                                     ver=self.os_version,
                                     arch=self.arch)
 
+
 class CoprChroot(db.Model, Serializer):
-    """Representation of Copr<->MockChroot relation"""
+
+    """
+    Representation of Copr<->MockChroot relation
+    """
+
     buildroot_pkgs = db.Column(db.Text)
-    mock_chroot_id = db.Column(db.Integer, db.ForeignKey('mock_chroot.id'), primary_key = True)
-    mock_chroot = db.relationship('MockChroot', backref = db.backref('copr_chroots'))
-    copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'), primary_key = True)
-    copr = db.relationship('Copr', backref = db.backref('copr_chroots',
-                                                        single_parent=True,
-                                                        cascade='all,delete,delete-orphan'))
+    mock_chroot_id = db.Column(
+        db.Integer, db.ForeignKey("mock_chroot.id"), primary_key=True)
+    mock_chroot = db.relationship(
+        "MockChroot", backref=db.backref("copr_chroots"))
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), primary_key=True)
+    copr = db.relationship("Copr",
+                           backref=db.backref(
+                               "copr_chroots",
+                               single_parent=True,
+                               cascade="all,delete,delete-orphan"))
 
 
 class BuildChroot(db.Model, Serializer):
-    """Representation of Build<->MockChroot relation"""
-    mock_chroot_id = db.Column(db.Integer, db.ForeignKey('mock_chroot.id'),
+
+    """
+    Representation of Build<->MockChroot relation
+    """
+
+    mock_chroot_id = db.Column(db.Integer, db.ForeignKey("mock_chroot.id"),
                                primary_key=True)
-    mock_chroot = db.relationship('MockChroot', backref=db.backref('builds'))
-    build_id = db.Column(db.Integer, db.ForeignKey('build.id'),
+    mock_chroot = db.relationship("MockChroot", backref=db.backref("builds"))
+    build_id = db.Column(db.Integer, db.ForeignKey("build.id"),
                          primary_key=True)
-    build = db.relationship('Build', backref=db.backref('build_chroots'))
-    status = db.Column(db.Integer, default=helpers.StatusEnum('pending'))
+    build = db.relationship("Build", backref=db.backref("build_chroots"))
+    status = db.Column(db.Integer, default=helpers.StatusEnum("pending"))
 
     @property
     def name(self):
-        """ Textual representation of name of this chroot """
+        """
+        Textual representation of name of this chroot
+        """
+
         return self.mock_chroot.name
 
     @property
     def state(self):
-        """ Return text representation of status of this build chroot """
+        """
+        Return text representation of status of this build chroot
+        """
+
         if self.status is not None:
             return helpers.StatusEnum(self.status)
 
-        return 'unknown'
-
+        return "unknown"
 
 
 class LegalFlag(db.Model, Serializer):
@@ -355,25 +478,32 @@ class LegalFlag(db.Model, Serializer):
     resolved_on = db.Column(db.Integer)
 
     # relations
-    copr_id = db.Column(db.Integer, db.ForeignKey('copr.id'), nullable=True)
-    # cascade='all' means that we want to keep these even if copr is deleted
-    copr = db.relationship('Copr', backref=db.backref('legal_flags', cascade='all'))
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), nullable=True)
+    # cascade="all" means that we want to keep these even if copr is deleted
+    copr = db.relationship(
+        "Copr", backref=db.backref("legal_flags", cascade="all"))
     # user who reported the problem
-    reporter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    reporter = db.relationship('User',
-                               backref=db.backref('legal_flags_raised'),
+    reporter_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    reporter = db.relationship("User",
+                               backref=db.backref("legal_flags_raised"),
                                foreign_keys=[reporter_id],
-                               primaryjoin='LegalFlag.reporter_id==User.id')
+                               primaryjoin="LegalFlag.reporter_id==User.id")
     # admin who resolved the problem
-    resolver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    resolver = db.relationship('User',
-                               backref=db.backref('legal_flags_resolved'),
+    resolver_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=True)
+    resolver = db.relationship("User",
+                               backref=db.backref("legal_flags_resolved"),
                                foreign_keys=[resolver_id],
-                               primaryjoin='LegalFlag.resolver_id==User.id')
+                               primaryjoin="LegalFlag.resolver_id==User.id")
 
 
 class Action(db.Model, Serializer):
-    """Representation of a custom action that needs backends cooperation/admin attention/..."""
+
+    """
+    Representation of a custom action that needs
+    backends cooperation/admin attention/...
+    """
+
     id = db.Column(db.Integer, primary_key=True)
     # delete, rename, ...; see helpers.ActionTypeEnum
     action_type = db.Column(db.Integer, nullable=False)
@@ -387,7 +517,8 @@ class Action(db.Model, Serializer):
     # additional data
     data = db.Column(db.Text)
     # result of the action, see helpers.BackendResultEnum
-    result = db.Column(db.Integer, default=helpers.BackendResultEnum('waiting'))
+    result = db.Column(
+        db.Integer, default=helpers.BackendResultEnum("waiting"))
     # optional message from the backend/whatever
     message = db.Column(db.Text)
     # time created as returned by int(time.time())
@@ -399,16 +530,14 @@ class Action(db.Model, Serializer):
         return self.__unicode__()
 
     def __unicode__(self):
-        if self.action_type == helpers.ActionTypeEnum('delete'):
-            return 'Deleting {0} {1}'.format(self.object_type, self.old_value)
-        elif self.action_type == helpers.ActionTypeEnum('rename'):
-            return 'Renaming {0} from {1} to {2}.'.format(self.object_type,
+        if self.action_type == helpers.ActionTypeEnum("delete"):
+            return "Deleting {0} {1}".format(self.object_type, self.old_value)
+        elif self.action_type == helpers.ActionTypeEnum("rename"):
+            return "Renaming {0} from {1} to {2}.".format(self.object_type,
                                                           self.old_value,
                                                           self.new_value)
-        elif self.action_type == helpers.ActionTypeEnum('legal-flag'):
-            return 'Legal flag on copr {0}.'.format(self.old_value)
+        elif self.action_type == helpers.ActionTypeEnum("legal-flag"):
+            return "Legal flag on copr {0}.".format(self.old_value)
 
-        return 'Action {0} on {1}, old value: {2}, new value: {3}.'.format(self.action_type,
-                                                                           self.object_type,
-                                                                           self.old_value,
-                                                                           self.new_value)
+        return "Action {0} on {1}, old value: {2}, new value: {3}.".format(
+            self.action_type, self.object_type, self.old_value, self.new_value)
