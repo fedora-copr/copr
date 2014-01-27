@@ -7,7 +7,7 @@ import ConfigParser
 import subcommands
 import copr_exceptions
 
-__version__ = '0.2.0'
+__version__ = "0.2.0"
 __description__ = "CLI tool to run copr"
 
 
@@ -54,71 +54,70 @@ def setup_parser():
     """
     parser = argparse.ArgumentParser(prog="copr-cli")
     # General connection options
-    parser.add_argument('--version', action='version',
-                        version='copr-cli %s' % (__version__))
+    parser.add_argument("--version", action="version",
+                        version="copr-cli {0}".format(__version__))
 
-    subparsers = parser.add_subparsers(title='actions')
+    subparsers = parser.add_subparsers(title="actions")
 
     # create the parser for the "list" command
-    parser_list = subparsers.add_parser('list',
-                                        help='List all the copr of the '
-                                             'provided '
+    parser_list = subparsers.add_parser("list",
+                                        help="List all the copr of the "
+                                             "provided "
                                         )
-    parser_list.add_argument("username", nargs='?',
-                             help='The username that you would like to '
-                             'list the copr of (defaults to current user)'
+    parser_list.add_argument("username", nargs="?",
+                             help="The username that you would like to "
+                             "list the copr of (defaults to current user)"
                              )
     parser_list.set_defaults(func=action_list)
 
     # create the parser for the "create" command
-    parser_create = subparsers.add_parser('create',
-                                          help='Create a new copr')
-    parser_create.add_argument('name',
-                               help='The name of the copr to create')
-    parser_create.add_argument("--chroot", dest="chroots", action='append',
+    parser_create = subparsers.add_parser("create",
+                                          help="Create a new copr")
+    parser_create.add_argument("name",
+                               help="The name of the copr to create")
+    parser_create.add_argument("--chroot", dest="chroots", action="append",
                                help="Chroot to use for this copr")
-    parser_create.add_argument('--repo', dest='repos', action='append',
+    parser_create.add_argument("--repo", dest="repos", action="append",
                                help="Repository to add to this copr")
-    parser_create.add_argument('--initial-pkgs', dest='initial_pkgs',
-                               action='append',
+    parser_create.add_argument("--initial-pkgs", dest="initial_pkgs",
+                               action="append",
                                help="List of packages URL to build in this "
                                     "new copr")
-    parser_create.add_argument('--description',
+    parser_create.add_argument("--description",
                                help="Description of the copr")
-    parser_create.add_argument('--instructions',
+    parser_create.add_argument("--instructions",
                                help="Instructions for the copr")
     parser_create.set_defaults(func=action_create)
 
     # create the parser for the "build" command
-    parser_build = subparsers.add_parser('build',
-                                         help='Build packages to a '
-                                         'specified copr')
-    parser_build.add_argument('copr',
-                              help='The copr repo to build the package in'
+    parser_build = subparsers.add_parser("build",
+                                         help="Build packages to a "
+                                         "specified copr")
+    parser_build.add_argument("copr",
+                              help="The copr repo to build the package in"
                               )
-    parser_build.add_argument('pkgs', nargs='+',
-                              help='URL of packages to build')
-    parser_build.add_argument('--memory', dest='memory',
+    parser_build.add_argument("pkgs", nargs="+",
+                              help="URL of packages to build")
+    parser_build.add_argument("--memory", dest="memory",
                               help="")
-    parser_build.add_argument('--timeout', dest='timeout',
+    parser_build.add_argument("--timeout", dest="timeout",
                               help="")
-    parser_build.add_argument('--nowait', action="store_true", default=False,
+    parser_build.add_argument("--nowait", action="store_true", default=False,
                               help="Don't wait for build")
     parser_build.set_defaults(func=action_build)
 
     # create the parser for the "status" command
-    parser_build = subparsers.add_parser('status',
-                                         help='Get build status of build'
-                                         ' specified by its ID')
-    parser_build.add_argument('build_id',
-                              help='Build ID')
+    parser_build = subparsers.add_parser("status",
+                                         help="Get build status of build"
+                                         " specified by its ID")
+    parser_build.add_argument("build_id",
+                              help="Build ID")
     parser_build.set_defaults(func=action_status)
 
     return parser
 
 
 def main(argv=sys.argv[1:]):
-    """ Main function """
     try:
         # Set up parser for global args
         parser = setup_parser()
@@ -138,10 +137,10 @@ def main(argv=sys.argv[1:]):
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.stderr.write("Lines in INI file should not be indented.\n")
         sys.exit(4)
-    #except Exception, e:
-        #print 'Error: {0}'.format(e)
-        #sys.exit(100)
+    # except Exception as e:
+        # print "Error: {0}".format(e)
+        # sys.exit(100)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
