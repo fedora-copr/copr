@@ -21,8 +21,13 @@
 {% endif %}
 
         <td>{{ build.user.name }}</td>
+{% if g.user %}
+        <td>{{ g.user.localized_time(build.started_on) or 'Not yet' }}</td>
+        <td>{{ g.user.localized_time(build.ended_on) or 'Not yet' }}</td>
+{% else %}
         <td>{{ build.started_on|date_from_secs or 'Not yet' }}</td>
         <td>{{ build.ended_on|date_from_secs or 'Not yet' }}</td>
+{% endif %}
         <td>{{ build.state }}</td>
       </tr>
       <tr class="details">
