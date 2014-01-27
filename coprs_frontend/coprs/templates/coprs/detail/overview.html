@@ -6,9 +6,9 @@
 
 {% block detail_body %}
   <h2>Description</h2>
-  <div class="shift-right">{{ copr.description_or_not_filled|markdown }}</div>
+  <div class="shift-right">{{ copr.description|markdown|default('Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.', true) }}</div>
   <h2>Installation Instructions</h2>
-  <div class="shift-right">{{ copr.instructions_or_not_filled|markdown }}</div>
+  <div class="shift-right">{{ copr.instructions|markdown|default('Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo.', true) }}</div>
   <h2>Active Releases</h2>
   <div class="disclaimer">
     The following unofficial repositories are provided as-is by owner of this project.

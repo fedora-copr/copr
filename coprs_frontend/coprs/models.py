@@ -161,14 +161,6 @@ class Copr(db.Model, helpers.Serializer):
         return self.repos.split()
 
     @property
-    def description_or_not_filled(self):
-        return self.description or "Description not filled in by author. Very likely personal repository for testing purpose, which you should not use."
-
-    @property
-    def instructions_or_not_filled(self):
-        return self.instructions or "Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo."
-
-    @property
     def active_chroots(self):
         """
         Return list of active mock_chroots of this copr
