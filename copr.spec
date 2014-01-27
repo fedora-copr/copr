@@ -61,7 +61,7 @@ Requires:   rsync
 Requires:   openssh-clients
 Requires:   mock
 Requires:   yum-utils
-Requires:   createrepo_c
+Requires:   createrepo_c >= 0.2.1-3
 Requires:   python-bunch
 Requires:   python-daemon
 Requires:   python-lockfile
