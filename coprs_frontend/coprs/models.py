@@ -1,6 +1,5 @@
 import datetime
 import markdown
-import pytz
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
@@ -136,21 +135,6 @@ class User(db.Model, Serializer):
             return libravatar_url(email = self.mail)
         except IOError:
             return ""
-
-    def localized_time(self, time_in):
-        """ return time shifted into self.timezone (and printed in ISO format)
-
-        Input is in EPOCH (seconds since epoch).
-        """
-        format_tz = "%Y-%m-%d %H:%M:%S %Z"
-        utc_tz = pytz.timezone('UTC')
-        if self.timezone:
-            user_tz = pytz.timezone(self.timezone)
-        else:
-            user_tz = utc_tz
-        dt_aware = datetime.datetime.fromtimestamp(time_in).replace(tzinfo=utc_tz)
-        dt_my_tz = dt_aware.astimezone(user_tz)
-        return dt_my_tz.strftime(format_tz)
 
 class Copr(db.Model, Serializer):
     """Represents a single copr (private repo with builds, mock chroots, etc.)."""

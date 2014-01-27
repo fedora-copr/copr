@@ -15,18 +15,18 @@
       <tr class="build-{{ build.state }} build-state">
         <td>{{ build.id }}</td>
 {% if g.user %}
-        <td>{{ g.user.localized_time(build.submitted_on) }}</td>
+        <td>{{ build.submitted_on|localized_time(g.user.timezone) }}</td>
 {% else %}
-        <td>{{ build.submitted_on|date_from_secs }}</td>
+        <td>{{ build.submitted_on|localized_time("UTC") }}</td>
 {% endif %}
 
         <td>{{ build.user.name }}</td>
 {% if g.user %}
-        <td>{{ g.user.localized_time(build.started_on) or 'Not yet' }}</td>
-        <td>{{ g.user.localized_time(build.ended_on) or 'Not yet' }}</td>
+        <td>{{ build.started_on|localized_time(g.user.timezone) }}</td>
+        <td>{{ build.ended_on|localized_time(g.user.timezone) }}</td>
 {% else %}
-        <td>{{ build.started_on|date_from_secs or 'Not yet' }}</td>
-        <td>{{ build.ended_on|date_from_secs or 'Not yet' }}</td>
+        <td>{{ build.started_on|localized_time("UTC") }}</td>
+        <td>{{ build.ended_on|localized_time("UTC") }}</td>
 {% endif %}
         <td>{{ build.state }}</td>
       </tr>
