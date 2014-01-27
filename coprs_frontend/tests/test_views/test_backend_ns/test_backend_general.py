@@ -143,10 +143,10 @@ class TestUpdateBuilds(CoprsTestCase):
         assert signals_received[0].id == 2
 
 class TestWaitingActions(CoprsTestCase):
-    def test_no_waiting_builds(self):
+    def test_no_waiting_actions(self):
         assert '"actions": []' in self.tc.get('/backend/waiting/', headers=self.auth_header).data
 
-    def test_waiting_build_only_lists_not_started_or_ended(self, f_users, f_coprs, f_actions, f_db):
+    def test_waiting_actions_only_lists_not_started_or_ended(self, f_users, f_coprs, f_actions, f_db):
         r = self.tc.get('/backend/waiting/', headers=self.auth_header)
         assert len(json.loads(r.data)['actions']) == 2
 
@@ -199,7 +199,7 @@ class TestUpdateActions(CoprsTestCase):
        assert updated.message == "no problem"
        assert updated.ended_on == 123
 
-    def test_update_more_existent_and_non_existent_builds(self, f_users, f_coprs, f_actions, f_db):
+    def test_update_more_existent_and_non_existent_actions(self, f_users, f_coprs, f_actions, f_db):
        r = self.tc.post('/backend/update/',
                          content_type='application/json',
                          headers=self.auth_header,
