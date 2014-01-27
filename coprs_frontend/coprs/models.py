@@ -2,8 +2,6 @@ import datetime
 import markdown
 import pytz
 
-from dateutil import tz
-
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
 
