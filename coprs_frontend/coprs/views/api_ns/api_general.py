@@ -198,7 +198,7 @@ def copr_new_build(username, coprname):
 @api_ns.route("/coprs/build_status/<build_id>/", methods=["GET"])
 @api_login_required
 def build_status(build_id):
-    if helpers.is_int(build_id):
+    if build_id.isdigit():
         build = builds_logic.BuildsLogic.get(build_id).first()
     else:
         build = None

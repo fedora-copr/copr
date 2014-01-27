@@ -157,15 +157,6 @@ def render_repo(copr, mock_chroot, url):
     return flask.render_template("coprs/copr.repo", copr=copr, url=url)
 
 
-def is_int(s):
-    """ Return True is argument is integer number. False otherwise. """
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
-
 class Serializer(object):
 
     def to_dict(self, options={}):
