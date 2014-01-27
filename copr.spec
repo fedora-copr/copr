@@ -9,7 +9,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.24
+Version:    1.25
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -408,6 +408,47 @@ fi
 %endif # with_server
 
 %changelog
+* Mon Jan 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.25-1
+- 1044085 - move timezone modification out of template and make it actually
+  work
+- clean up temp data if any
+- [db] timezone can be nullable
+- [frontend] actually save the timezone to model
+- fix colision of revision id
+- 1044085 - frontend: display time in user timezone
+- [frontend] rebuild stuck task
+- disable test on i386
+- use experimental createrepo_c to get rid of lock on temp files
+- [frontend] - do not throw ISE when build_id is malformed
+- [tests] add test for BuildLogic.add
+- [tests] add test for build resubmission
+- [frontend] permission checking is done in BuildLogic.add
+- [frontend] remove BuildLogic.new, use BL.add only
+- [api] fix validation error handling
+- [cli] fix initial_pkgs and repos not sent to backend
+- [frontend] fix BuildsLogic.new not assigning copr to build
+- [frontend] allow resubmitting builds from monitor
+- [frontend] allow GET on repeat_build
+- [frontend] 1050904 - monitor shows not submitted chroots
+- [frontend] rename active_mock_chroots to active_chroots
+- [frontend] rename MockChroot.chroot_name to .name
+- [frontend] 1054474 - drop Copr.build_count nonsense
+- [tests] fix https and repo generation
+- [tests] return exit code from manage.py test
+- 1054472 - Fix deleting multiple SRPMs
+- [spec] tighten acl on copr-be.conf
+- [backend] - add missing import
+- 1054082 - general: encode to utf8 if err in mimetext
+- [backend] lock log file before writing
+- 1055594 - mockremote: always unquote pkg url
+- 1054086 - change vendor tag
+- mockremote: rawhide instead of $releasever in repos when in rawhide chroot
+- 1055499 - do not replace version with $releasever on rawhide
+- 1055119 - do not propagate https until it is properly signed
+- fix spellings on chroot edit page
+- 1054341 - be more verbose about allowed licenses
+- 1054594 - temporary disable https in repo file
+
 * Thu Jan 16 2014 Miroslav Suchý <msuchy@redhat.com> 1.24-1
 - add BR python-markdown
 - [fronted] don't add description to .repo files
