@@ -164,3 +164,73 @@ def is_int(s):
         return True
     except ValueError:
         return False
+
+
+class Serializer(object):
+
+    def to_dict(self, options={}):
+        """
+        Usage:
+
+        SQLAlchObject.to_dict() => returns a flat dict of the object
+        SQLAlchObject.to_dict({"foo": {}}) => returns a dict of the object
+            and will include a flat dict of object foo inside of that
+        SQLAlchObject.to_dict({"foo": {"bar": {}}, "spam": {}}) => returns
+            a dict of the object, which will include dict of foo
+            (which will include dict of bar) and dict of spam.
+
+        Options can also contain two special values: __columns_only__
+        and __columns_except__
+
+        If present, the first makes only specified fiels appear,
+        the second removes specified fields. Both of these fields
+        must be either strings (only works for one field) or lists
+        (for one and more fields).
+
+        SQLAlchObject.to_dict({"foo": {"__columns_except__": ["id"]},
+            "__columns_only__": "name"}) =>
+
+        The SQLAlchObject will only put its "name" into the resulting dict,
+        while "foo" all of its fields except "id".
+
+        Options can also specify whether to include foo_id when displaying
+        related foo object (__included_ids__, defaults to True).
+        This doesn"t apply when __columns_only__ is specified.
+        """
+
+        result = {}
+        columns = self.serializable_attributes
+
+        if "__columns_only__" in options:
+            columns = options["__columns_only__"]
+        else:
+            columns = set(columns)
+            if "__columns_except__" in options:
+                columns_except = options["__columns_except__"]
+                if not isinstance(options["__columns_except__"], list):
+                    columns_except = [options["__columns_except__"]]
+
+                columns -= set(columns_except)
+
+            if ("__included_ids__" in options and
+                    options["__included_ids__"] is False):
+
+                related_objs_ids = [
+                    r + "_id" for r, o in options.items()
+                    if not r.startswith("__")]
+
+                columns -= set(related_objs_ids)
+
+            columns = list(columns)
+
+        for column in columns:
+            result[column] = getattr(self, column)
+
+        for related, values in options.items():
+            if hasattr(self, related):
+                result[related] = getattr(self, related).to_dict(values)
+        return result
+
+    @property
+    def serializable_attributes(self):
+        return map(lambda x: x.name, self.__table__.columns)
