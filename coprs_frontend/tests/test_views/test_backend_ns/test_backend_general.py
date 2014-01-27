@@ -12,9 +12,12 @@ class TestWaitingBuilds(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
         r = self.tc.get('/backend/waiting/', headers=self.auth_header)
+        #import sys
+        #sys.stderr.write(r.data)
         assert len(json.loads(r.data)['builds']) == 4
 
-
+# status = 0 # failure
+# status = 1 # succeeded
 class TestUpdateBuilds(CoprsTestCase):
     data1= """
 {
@@ -23,7 +26,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "id": 1,
      "copr_id": 2,
      "results": "http://server/results/foo/bar/",
-     "started_on": 1234
+     "started_on": 9223372036854775
    }
   ]
 }"""
@@ -36,7 +39,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "copr_id": 2,
      "status": 1,
      "chroot": "fedora-18-x86_64",
-     "ended_on": 12345
+     "ended_on": 9223372036854775
    }
   ]
 }"""
@@ -47,7 +50,7 @@ class TestUpdateBuilds(CoprsTestCase):
    {
      "id": 1,
      "copr_id": 2,
-     "started_on": 1234
+     "started_on": 9223372036854775
    },
    {
      "id": 2,
@@ -55,19 +58,19 @@ class TestUpdateBuilds(CoprsTestCase):
      "status": 0,
      "chroot": "fedora-18-x86_64",
      "results": "http://server/results/foo/bar/",
-     "ended_on": 123456
+     "ended_on": 9223372036854775
    },
    {
      "id": 123321,
      "copr_id": 1,
      "status": 0,
-     "ended_on": 123456
+     "ended_on": 9223372036854775
    },
    {
      "id": 1234321,
      "copr_id": 2,
      "results": "http://server/results/foo/bar/",
-     "started_on": 1234
+     "started_on": 9223372036854775
    }
   ]
 }"""
@@ -91,7 +94,7 @@ class TestUpdateBuilds(CoprsTestCase):
 
         updated = self.models.Build.query.filter(self.models.Build.id==1).first()
         assert updated.results == 'http://server/results/foo/bar/'
-        assert updated.started_on == 1234
+        assert updated.started_on == 9223372036854775
 
     def test_update_build_ended(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         r = self.tc.post('/backend/update/',
@@ -103,7 +106,7 @@ class TestUpdateBuilds(CoprsTestCase):
 
         updated = self.models.Build.query.filter(self.models.Build.id==1).first()
         assert updated.status == 1
-        assert updated.ended_on == 12345
+        assert updated.ended_on == 9223372036854775
 
     def test_update_more_existent_and_non_existent_builds(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
@@ -121,12 +124,12 @@ class TestUpdateBuilds(CoprsTestCase):
         assert sorted(json.loads(r.data)["non_existing_builds_ids"]) == [123321, 1234321]
 
         started = self.models.Build.query.filter(self.models.Build.id==1).first()
-        assert started.started_on == 1234
+        assert started.started_on == 9223372036854775
 
         ended = self.models.Build.query.filter(self.models.Build.id==2).first()
         assert ended.status == 0
         assert ended.results == 'http://server/results/foo/bar/'
-        assert ended.ended_on == 123456
+        assert ended.ended_on == 9223372036854775
 
     def test_build_ended_emmits_signal(self, f_users, f_coprs, f_builds, f_db):
         # TODO: this should probably be mocked...
@@ -158,7 +161,7 @@ class TestUpdateActions(CoprsTestCase):
       "id": 1,
       "result": 1,
       "message": "no problem",
-      "ended_on": 123
+      "ended_on": 9223372036854770
     }
   ]
 }"""
@@ -169,19 +172,19 @@ class TestUpdateActions(CoprsTestCase):
       "id": 1,
       "result": 1,
       "message": null,
-      "ended_on": 1234
+      "ended_on": 9223372036854775
     },
     {
       "id": 2,
       "result": 2,
       "message": "problem!",
-      "ended_on": 12345
+      "ended_on": 9223372036854775
     },
     {
       "id": 100,
       "result": 123,
       "message": "wheeeee!",
-      "ended_on": 123456
+      "ended_on": 9223372036854775
     }
   ]
 }"""
@@ -197,7 +200,7 @@ class TestUpdateActions(CoprsTestCase):
        updated = self.models.Action.query.filter(self.models.Action.id==1).first()
        assert updated.result == 1
        assert updated.message == "no problem"
-       assert updated.ended_on == 123
+       assert updated.ended_on == 9223372036854770
 
     def test_update_more_existent_and_non_existent_actions(self, f_users, f_coprs, f_actions, f_db):
        r = self.tc.post('/backend/update/',
@@ -210,9 +213,9 @@ class TestUpdateActions(CoprsTestCase):
        updated = self.models.Action.query.filter(self.models.Action.id==1).first()
        assert updated.result == 1
        assert updated.message == None
-       assert updated.ended_on == 1234
+       assert updated.ended_on == 9223372036854775
 
        updated2 = self.models.Action.query.filter(self.models.Action.id==2).first()
        assert updated2.result == 2
        assert updated2.message == "problem!"
-       assert updated2.ended_on == 12345
+       assert updated2.ended_on == 9223372036854775
