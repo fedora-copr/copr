@@ -110,9 +110,9 @@ class CoprsTestCase(object):
     @pytest.fixture
     def f_builds(self):
         self.b1 = models.Build(
-            copr=self.c1, user=self.u1, submitted_on=50, started_on=9223372036854770)
+            copr=self.c1, user=self.u1, submitted_on=50, started_on=139086644000)
         self.b2 = models.Build(
-            copr=self.c1, user=self.u2, submitted_on=10, ended_on=9223372036854775)
+            copr=self.c1, user=self.u2, submitted_on=10, ended_on=139086644000)
         self.b3 = models.Build(
             copr=self.c2, user=self.u2, submitted_on=10)
         self.b4 = models.Build(
