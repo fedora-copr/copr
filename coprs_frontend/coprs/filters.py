@@ -1,6 +1,10 @@
 import datetime
 import pytz
 import time
+import markdown
+
+from flask import Markup
+
 from coprs import app
 from coprs import helpers
 
@@ -30,6 +34,7 @@ def os_name_short(os_name, os_version):
             return "el{0}".format(os_version)
     return os_name
 
+
 @app.template_filter('localized_time')
 def localized_time(time_in, timezone):
     """ return time shifted into timezone (and printed in ISO format)
@@ -47,3 +52,15 @@ def localized_time(time_in, timezone):
     dt_aware = datetime.datetime.fromtimestamp(time_in).replace(tzinfo=utc_tz)
     dt_my_tz = dt_aware.astimezone(user_tz)
     return dt_my_tz.strftime(format_tz)
+
+
+@app.template_filter("markdown")
+def markdown_filter(data):
+    if not data:
+        return ''
+
+    md = markdown.Markdown(
+        safe_mode="replace",
+        html_replacement_text="--RAW HTML NOT ALLOWED--")
+
+    return Markup(md.convert(data))
