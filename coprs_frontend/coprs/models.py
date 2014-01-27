@@ -148,7 +148,7 @@ class User(db.Model, Serializer):
             user_tz = pytz.timezone(self.timezone)
         else:
             user_tz = utc_tz
-        dt_aware=datetime.datetime.fromtimestamp(time_in).replace(tzinfo=utc_tz)
+        dt_aware = datetime.datetime.fromtimestamp(time_in).replace(tzinfo=utc_tz)
         dt_my_tz = dt_aware.astimezone(user_tz)
         return dt_my_tz.strftime(format_tz)
 
