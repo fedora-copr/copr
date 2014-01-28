@@ -9,7 +9,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.25
+Version:    1.26
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -408,6 +408,12 @@ fi
 %endif # with_server
 
 %changelog
+* Tue Jan 28 2014 Miroslav Suchý <miroslav@suchy.cz> 1.26-1
+- lower testing date
+- move localized_time into filters
+- [frontend] update user data after login
+- [frontend] use iso-8601 date
+
 * Mon Jan 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.25-1
 - 1044085 - move timezone modification out of template and make it actually
   work
