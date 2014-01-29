@@ -220,6 +220,7 @@ div.shift-right {
 }
 
 dt.field-label {
+  margin: 15px 0;
   font-weight: bold;
 }
 
