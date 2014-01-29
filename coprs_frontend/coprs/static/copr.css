@@ -251,6 +251,7 @@ table.releases {
 
 table.chroots-set {
   display: inline;
+  margin-left: 40px;
 }
 
 table.builds-table {
