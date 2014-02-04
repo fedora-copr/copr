@@ -156,6 +156,42 @@ def api_coprs_by_owner(username=None):
     jsonout.status_code = httpcode
     return jsonout
 
+@api_ns.route("/coprs/<username>/<coprname>/detail/")
+def api_coprs_by_owner_detail(username, coprname):
+    """ Return detail of one project.
+
+    :arg username: the username of the person one would like to the
+        coprs of.
+    :arg coprname: the name of project.
+
+    """
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username,
+                                      coprname).first()
+    release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
+    httpcode = 200
+    if username and copr:
+        output = {"output": "ok", "detail": {}}
+        yum_repos = {}
+        for build in copr.builds:
+            if build.results:
+                for chroot in copr.active_chroots:
+                    release = release_tmpl.format(chroot=chroot)
+                    yum_repos[release] = urlparse.urljoin(
+                        build.results, release + '/')
+                break
+        output["detail"] = {"name": copr.name,
+                                "additional_repos": copr.repos,
+                                "yum_repos": yum_repos,
+                                "description": copr.description,
+                                "instructions": copr.instructions,
+                                "last_modified": builds_logic.BuildsLogic.last_modified(copr)}
+    else:
+        output = {"output": "notok", "error": "Copr with name {0} does not exist.".format(coprname)}
+        httpcode = 500
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
 
 @api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
 @api_login_required

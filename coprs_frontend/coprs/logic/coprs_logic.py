@@ -7,7 +7,6 @@ from coprs import models
 from coprs import signals
 from coprs.logic import users_logic
 
-
 class CoprsLogic(object):
 
     """

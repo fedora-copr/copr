@@ -162,3 +162,22 @@ class BuildsLogic(object):
         for build_chroot in build.build_chroots:
             db.session.delete(build_chroot)
         db.session.delete(build)
+
+    @classmethod
+    def last_modified(cls, copr):
+        """ Get build datetime (as epoch) of last successfull build
+
+        :arg copr: object of copr
+        """
+        builds = cls.get_multiple(None, copr=copr)
+
+        last_build = (builds
+                    .join(models.BuildChroot)
+                    .filter(models.BuildChroot.status == helpers.StatusEnum("succeeded"))
+                    .filter(models.Build.ended_on != None)
+                    .order_by(models.Build.ended_on.desc())
+                    ).first()
+        if last_build:
+            return last_build.ended_on
+        else:
+            return None
