@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
-{% block title %}API for Coprs{% endblock %}
-{% block header %}API for the Coprs Build System{% endblock %}
+{% block title %}API for Copr{% endblock %}
+{% block header %}API for the Copr Build System{% endblock %}
 {% block body %}
   {% if error %}<p class="error"><strong>Error:</strong> {{ error }}</p>{% endif %}
 
   <div>
-    <h1>Coprs API</h1>
+    <h1>Copr API</h1>
 
-    <h2> API Token </h2>
+    <h2>API Token</h2>
     <p>In order to access the API, you will need to provide an API token.
     This token is unique, specific to you and <span style="font-weight:bold;">
     should not be shared!</span>.
@@ -43,7 +43,7 @@ copr_url = http://copr.fedoraproject.org
     represents result of the call and is described below for individual
     calls.</p>
 
-    <h3>List someone's coprs</h3>
+    <h3>List someone's projects</h3>
 
     <h4>URL:</h4>
     <pre style="font-size:120%">/api/coprs/&lt;username&gt;/</pre>
@@ -52,23 +52,23 @@ copr_url = http://copr.fedoraproject.org
 
     <h4>URL parameters:</h4>
     <ul>
-        <li><b>username</b> &ndash; The name of the user whose coprs you'd like
+        <li><b>username</b> &ndash; The name of the user whose projects you'd like
                 to list</li>
     </ul>
 
     <h4>Result:</h4>
     <ul>
-        <li><b>"repos"</b> &ndash; List of coprs in given format:
+        <li><b>"repos"</b> &ndash; List of projects in given format:
         <ul>
             <li><b>"yum_repos"</b> &ndash; Map of chroots to yum repository
             URLs. Chroots are in format
             "&lt;release&gt;-&lt;version&gt;-&lt;architecture&gt;"</li>
             <li><b>"additional_repos"</b> &ndash; List of additional
-            repositories that are required for this copr</li>
+            repositories that are required for this project</li>
             <li><b>"instructions"</b> &ndash; Installation instructions
-            provided by copr's owner </li>
-            <li><b>"name"</b> &ndash; Name of the copr</li>
-            <li><b>"description"</b> &ndash; Description provided by copr's
+            provided by project's owner </li>
+            <li><b>"name"</b> &ndash; Name of the project</li>
+            <li><b>"description"</b> &ndash; Description provided by project's
             owner </li>
         </ul>
     </ul>
@@ -102,9 +102,9 @@ copr_url = http://copr.fedoraproject.org
 
     <h4>URL parameters:</h4>
     <ul>
-        <li><b>username</b> &ndash; The name of the user whose coprs you'd like
-                to list</li>
-        <li><b>priojectname</b> &ndash; The name of the project</li>
+        <li><b>username</b> &ndash; The name of the user whose projects you'd like
+                to show</li>
+        <li><b>projectname</b> &ndash; The name of the project</li>
 
     </ul>
 
@@ -116,11 +116,11 @@ copr_url = http://copr.fedoraproject.org
             URLs. Chroots are in format
             "&lt;release&gt;-&lt;version&gt;-&lt;architecture&gt;"</li>
             <li><b>"additional_repos"</b> &ndash; List of additional
-            repositories that are required for this copr</li>
+            repositories that are required for this project</li>
             <li><b>"instructions"</b> &ndash; Installation instructions
-            provided by copr's owner </li>
-            <li><b>"name"</b> &ndash; Name of the copr</li>
-            <li><b>"description"</b> &ndash; Description provided by copr's
+            provided by project's owner </li>
+            <li><b>"name"</b> &ndash; Name of the project</li>
+            <li><b>"description"</b> &ndash; Description provided by project's
             owner </li>
             <li><b>"last_modified"</b> &ndash; Datetime (in epoch format) of
             last successfull build.</li>
@@ -150,7 +150,7 @@ copr_url = http://copr.fedoraproject.org
     }
     </pre>
 
-    <h3>Create new copr</h3>
+    <h3>Create new project</h3>
 
     <p><span style="font-style:italic">Login required</span></p>
 
@@ -159,19 +159,19 @@ copr_url = http://copr.fedoraproject.org
 
     <h4>URL parameters:</h4>
     <ul>
-        <li><b>username</b> &ndash; The name of the user whose copr should be
+        <li><b>username</b> &ndash; The name of the user whose project should be
         created</li>
     </ul>
 
     <h4>Parameters sent by POST:</h4>
     <ul>
-        <li><b>name</b> &ndash; The name of the copr to be created</li>
+        <li><b>name</b> &ndash; The name of the project to be created</li>
         <li><b>chroots</b> &ndash; A comma separated list of chroots to
-        use in the copr</li>
+        use in the project</li>
         <li><b>repos</b> &ndash; A comma separated list of repositories
-        that this new copr should have access to</li>
+        that this new project should have access to</li>
         <li><b>initial_pkgs</b> &ndash; A comma separated list of initial
-        packages to build in this new copr</li>
+        packages to build in this new project</li>
     </ul>
 
     <h3>Add new build</h3>
@@ -179,12 +179,12 @@ copr_url = http://copr.fedoraproject.org
     <p><span style="font-style:italic">Login required</span></p>
 
     <h4>URL:</h4>
-    <pre style="font-size:120%">/api/copr/&lt;username&gt;/&lt;coprname&gt;/new_build/</pre>
+    <pre style="font-size:120%">/api/copr/&lt;username&gt;/&lt;projectname&gt;/new_build/</pre>
 
     <h4>URL parameters:</h4>
     <ul>
-        <li><b>username</b> &ndash; The name of given copr's owner</li>
-        <li><b>coprname</b> &ndash; The name of the copr in which the package
+        <li><b>username</b> &ndash; The name of given projects's owner</li>
+        <li><b>projectname</b> &ndash; The name of the project in which the package
         should be built</li>
     </ul>
 
