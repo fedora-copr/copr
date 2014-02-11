@@ -24,6 +24,16 @@ class CoprCommand(dnf.cli.Command):
 
     aliases = ("copr")
 
+    @staticmethod
+    def get_summary():
+        """Return a one line summary of what the command does."""
+        return _("interact with Copr repositories")
+
+    @staticmethod
+    def get_usage():
+        """Return a usage string for the command, including arguments."""
+        return _("copr enable name/project")
+
     def run(self, extcmds):
         # FIXME this should do dnf itself (BZ#1062889)
         if os.geteuid() != 0:
