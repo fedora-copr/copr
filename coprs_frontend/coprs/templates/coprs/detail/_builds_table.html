@@ -33,13 +33,13 @@
       <tr class="details">
         <td colspan=6 class="end">
           <div>
-          {% if g.user and g.user == build.user %}
+          {% if g.user and g.user.can_build_in(copr) %}
             {{ copr_build_cancel_form(build) }}
           {% endif %}
           {% if g.user and g.user.can_build_in(copr) %}
             {{ copr_build_repeat_form(build) }}
           {% endif %}
-          {% if g.user and g.user == build.user %}
+          {% if g.user and g.user.can_edit(copr) %}
             {{ copr_build_delete_form(build) }}
           {% endif %}
           <div>
