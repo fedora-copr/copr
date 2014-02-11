@@ -235,5 +235,103 @@ copr_url = http://copr.fedoraproject.org
     }
     </pre>
 
+    <h3>Copr Modification</h3>
+
+    <p><span style="font-style:italic">Login required</span></p>
+
+    <h4>URL:</h4>
+    <pre style="font-size:120%">/api/coprs/&lt;username&gt;/&lt;coprname&gt;/modify/</pre>
+
+    <h4>URL parameters:</h4>
+    <ul>
+        <li><b>username</b> &ndash; Name of the user whose copr you'd like to modify</li>
+        <li><b>coprname</b> &ndash; Name of the copr you'd you'd like to modify</li>
+    </ul>
+
+    <h4>Parameters sent by POST:</h4>
+    <ul>
+        <li><b>description</b> &ndash; Brief description of the project (Optional)</li>
+        <li><b>instructions</b> &ndash; Description of how your project can be
+        installed, etc. (Optional)</li>
+        <li><b>repos</b> &ndash; URL to additional yum repos, which can be used
+        during build. Space separated. (Optional)</li>
+    </ul>
+
+    <h4>Result</h4>
+    <ul>
+        <li><b>description</b> &ndash; Same as above</li>
+        <li><b>instructions</b> &ndash; Same as above</li>
+        <li><b>repos</b> &ndash; Same as above</li>
+    </ul>
+
+    <h4>Example result</h4>
+    <pre>
+    {
+      "output": "ok",
+      "repos": "foo",
+      "description": "bar",
+      "instructions": "baz"
+    }
+    </pre>
+
+    <h3>Chroot Modification</h3>
+
+    <p><span style="font-style:italic">Login required</span></p>
+
+    <h4>URL:</h4>
+    <pre style="font-size:120%">/api/coprs/&lt;username&gt;/&lt;coprname&gt;/modify/&lt;chrootname&gt;/</pre>
+
+    <h4>URL parameters:</h4>
+    <ul>
+        <li><b>username</b> &ndash; Name of the user whose chroot you'd like to modify</li>
+        <li><b>coprname</b> &ndash; Name of the copr whose chroot you'd like to modify</li>
+        <li><b>chrootname</b> &ndash; Name of the chroot you'd like to modify</li>
+    </ul>
+
+    <h4>Parameters sent by POST:</h4>
+    <ul>
+        <li><b>buildroot_pkgs</b> &ndash; Additional packages to be always present in minimal
+        buildroot</li>
+    </ul>
+
+    <h4>Result</h4>
+    <ul>
+        <li><b>buildroot_pkgs</b> &ndash; Same as above</li>
+    </ul>
+
+    <h4>Example result</h4>
+    <pre>
+    {
+      "output": "ok"
+      "buildroot_pkgs": "scl-utils-build",
+    }
+    </pre>
+
+    <h3>Chroot details</h3>
+
+    <h4>URL:</h4>
+    <pre style="font-size:120%">/api/coprs/&lt;username&gt;/&lt;coprname&gt;/detail/&lt;chrootname&gt;/</pre>
+
+    <h4>URL parameters:</h4>
+    <ul>
+        <li><b>username</b> &ndash; Name of the user whose chroot you'd like to know details of</li>
+        <li><b>coprname</b> &ndash; Name of the copr whose chroot you'd like to know details of</li>
+        <li><b>chrootname</b> &ndash; Name of the chroot you'd like to know details of</li>
+    </ul>
+
+    <h4>Result</h4>
+    <ul>
+        <li><b>buildroot_pkgs</b> &ndash; Additional packages to be always present in minimal
+        buildroot</li>
+    </ul>
+
+    <h4>Example result</h4>
+    <pre>
+    {
+      "output": "ok"
+      "buildroot_pkgs": "scl-utils-build",
+    }
+    </pre>
+
   </div>
 {% endblock %}

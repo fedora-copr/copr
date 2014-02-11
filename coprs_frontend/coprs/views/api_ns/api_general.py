@@ -250,3 +250,93 @@ def build_status(build_id):
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
+
+@api_ns.route('/coprs/<username>/<coprname>/modify/', methods=["POST"])
+@api_login_required
+def copr_modify(username, coprname):
+    form = forms.CoprModifyForm(csrf_enabled=False)
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+
+    if copr is None:
+        output = {'output': 'notok', 'error': 'Invalid copr name or username'}
+        httpcode = 500
+    elif not form.validate_on_submit():
+        output = {'output': 'notok', 'error': 'Invalid request'}
+        httpcode = 500
+    else:
+        # .raw_data needs to be inspected to figure out whether the field
+        # was not sent or was sent empty
+        if form.description.raw_data and len(form.description.raw_data):
+            copr.description = form.description.data
+        if form.instructions.raw_data and len(form.instructions.raw_data):
+            copr.instructions = form.instructions.data
+        if form.repos.raw_data and len(form.repos.raw_data):
+            copr.repos = form.repos.data
+
+        try:
+            coprs_logic.CoprsLogic.update(flask.g.user, copr)
+        except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
+            db.session.rollback()
+
+            output = {'output': 'notok', 'error': str(e)}
+            httpcode = 500
+        else:
+            db.session.commit()
+
+            output = {'output': 'ok',
+                      'description': copr.description,
+                      'instructions': copr.instructions,
+                      'repos': copr.repos}
+            httpcode = 200
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
+
+@api_ns.route('/coprs/<username>/<coprname>/modify/<chrootname>/', methods=["POST"])
+@api_login_required
+def copr_modify_chroot(username, coprname, chrootname):
+    form = forms.ModifyChrootForm(csrf_enabled=False)
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
+
+    if copr is None:
+        output = {'output': 'notok', 'error': 'Invalid copr name or username'}
+        httpcode = 500
+    elif chroot is None:
+        output = {'output': 'notok', 'error': 'Invalid chroot name'}
+        httpcode = 500
+    elif not form.validate_on_submit():
+        output = {'output': 'notok', 'error': 'Invalid request'}
+        httpcode = 500
+    else:
+        coprs_logic.CoprChrootsLogic.update_buildroot_pkgs(copr, chroot, form.buildroot_pkgs.data)
+        db.session.commit()
+
+        ch = copr.check_copr_chroot(chroot)
+        output = {'output': 'ok', 'buildroot_pkgs': ch.buildroot_pkgs}
+        httpcode = 200
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
+
+@api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["POST"])
+def copr_chroot_details(username, coprname, chrootname):
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
+
+    if copr is None:
+        output = {'output': 'notok', 'error': 'Invalid copr name or username'}
+        httpcode = 500
+    elif chroot is None:
+        output = {'output': 'notok', 'error': 'Invalid chroot name'}
+        httpcode = 500
+    else:
+        ch = copr.check_copr_chroot(chroot)
+        output = {'output': 'ok', 'buildroot_pkgs': ch.buildroot_pkgs}
+        httpcode = 200
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout

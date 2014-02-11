@@ -264,3 +264,18 @@ class PermissionsFormFactory(object):
                         coerce=int))
 
         return F
+
+class CoprModifyForm(wtf.Form):
+    description = wtforms.TextAreaField('Description',
+                                        validators=[wtforms.validators.Optional()])
+
+    instructions = wtforms.TextAreaField('Instructions',
+                                         validators=[wtforms.validators.Optional()])
+
+    repos = wtforms.TextAreaField('Repos',
+                                  validators=[UrlListValidator(),
+                                              wtforms.validators.Optional()],
+                                  filters=[StringListFilter()])
+
+class ModifyChrootForm(wtf.Form):
+    buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
