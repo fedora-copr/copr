@@ -5,8 +5,8 @@ import sys
 from dnf.yum.i18n import _
 from urlgrabber import grabber
 
-yes = set([_('yes'), _('y'), ''])
-no = set([_('no'), _('n')])
+yes = set([_('yes'), _('y')])
+no = set([_('no'), _('n'), ''])
 
 class Copr(dnf.Plugin):
     """DNF plugin supplying the 'copr' command."""
@@ -75,11 +75,12 @@ level.
 Please do not file bug reports about this packages in Fedora Bugzilla.
 In case of problems you should contact owner of this repository.
 
-Do you want to continue? [Y/n]: """)
+Do you want to continue? [y/N]: """)
         answer = raw_input(question).lower()
         answer = _(answer)
         while not ((answer in yes) or (answer in no)):
             answer = raw_input(question).lower()
+            answer = _(answer)
         if answer in yes:
             return
         else:
