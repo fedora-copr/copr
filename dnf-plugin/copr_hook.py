@@ -11,7 +11,7 @@ no = set([_('no'), _('n')])
 class Copr(dnf.Plugin):
     """DNF plugin supplying the 'copr' command."""
 
-    #name = 'copr'
+    name = 'copr'
 
     def __init__(self, base, cli):
         """Initialize the plugin instance."""
@@ -22,17 +22,19 @@ class Copr(dnf.Plugin):
 class CoprCommand(dnf.cli.Command):
     """ Copr plugin for DNF """
 
-    aliases = ("copr")
+    aliases = ("copr",)
 
     @staticmethod
     def get_summary():
         """Return a one line summary of what the command does."""
-        return _("interact with Copr repositories")
+        return _("""Interact with Copr repositories. Example:
+  copr enable rhscl/perl516 epel-6-x86_64
+""")
 
     @staticmethod
     def get_usage():
         """Return a usage string for the command, including arguments."""
-        return _("copr enable name/project")
+        return _("enable name/project chroot")
 
     def run(self, extcmds):
         # FIXME this should do dnf itself (BZ#1062889)
@@ -41,7 +43,10 @@ class CoprCommand(dnf.cli.Command):
         try:
             subcommand, project_name, chroot = extcmds
         except ValueError:
-            raise ValueError(_('exactly three additional parameters to copr command are required'))
+            self.cli.logger.critical(
+                _('Error: ') + _('exactly three additional parameters to copr command are required'))
+            dnf.cli.commands._err_mini_usage(self.cli, self.cli.base.basecmd)
+            raise dnf.cli.CliError(_('exactly three additional parameters to copr command are required'))
         repo_filename = "/etc/yum.repos.d/{}.repo".format(project_name.replace("/", "_"))
 
         if subcommand == "enable":
