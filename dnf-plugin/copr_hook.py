@@ -51,7 +51,7 @@ class CoprCommand(dnf.cli.Command):
                 _('Error: ') + _('exactly three additional parameters to copr command are required'))
             dnf.cli.commands._err_mini_usage(self.cli, self.cli.base.basecmd)
             raise dnf.cli.CliError(_('exactly three additional parameters to copr command are required'))
-        repo_filename = "/etc/yum.repos.d/{}.repo".format(project_name.replace("/", "_"))
+        repo_filename = "/etc/yum.repos.d/_copr_{}.repo".format(project_name.replace("/", "-"))
 
         if subcommand == "enable":
             #http://copr.fedoraproject.org/coprs/larsks/rcm/repo/epel-7-x86_64/
