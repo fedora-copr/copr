@@ -1,5 +1,4 @@
 import dnf
-import logging
 import os
 import sys
 import platform
@@ -12,8 +11,6 @@ import json
 yes = set([_('yes'), _('y')])
 no = set([_('no'), _('n'), ''])
 
-logger = logging.getLogger('dnf.plugin')
-
 class Copr(dnf.Plugin):
     """DNF plugin supplying the 'copr' command."""
 
@@ -24,7 +21,7 @@ class Copr(dnf.Plugin):
         super(Copr, self).__init__(base, cli)
         if cli is not None:
             cli.register_command(CoprCommand)
-        logger.debug("initialized Copr plugin")
+        cli.logger.debug("initialized Copr plugin")
 
 class CoprCommand(dnf.cli.Command):
     """ Copr plugin for DNF """
