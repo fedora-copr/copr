@@ -6,7 +6,7 @@
 
 {% block detail_body %}
   {% if builds %}
-    {{ builds_table(builds) }}
+    {{ builds_table(builds, paginator.page) }}
     <div class="pagination">
       {{ render_pagination(request, paginator) }}
     </div>

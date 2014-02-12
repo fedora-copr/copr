@@ -1,6 +1,6 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 
-{% macro builds_table(builds) %}
+{% macro builds_table(builds, page) %}
   {% if builds %}
     <table class="builds-table">
       <tr>
@@ -34,13 +34,13 @@
         <td colspan=6 class="end">
           <div>
           {% if g.user and g.user.can_build_in(copr) %}
-            {{ copr_build_cancel_form(build) }}
+            {{ copr_build_cancel_form(build, page) }}
           {% endif %}
           {% if g.user and g.user.can_build_in(copr) %}
-            {{ copr_build_repeat_form(build) }}
+            {{ copr_build_repeat_form(build, page) }}
           {% endif %}
           {% if g.user and g.user.can_edit(copr) %}
-            {{ copr_build_delete_form(build) }}
+            {{ copr_build_delete_form(build, page) }}
           {% endif %}
           <div>
             {% if build.results %}

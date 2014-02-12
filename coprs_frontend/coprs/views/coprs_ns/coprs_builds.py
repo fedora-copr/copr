@@ -86,9 +86,12 @@ def copr_new_build(username, coprname):
 
 
 @coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/",
+                defaults={"page": 1},
+                methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/<int:page>/",
                 methods=["POST"])
 @login_required
-def copr_cancel_build(username, coprname, build_id):
+def copr_cancel_build(username, coprname, build_id, page=1):
     # only the user who ran the build can cancel it
     build = builds_logic.BuildsLogic.get(build_id).first()
     if not build:
@@ -104,13 +107,17 @@ def copr_cancel_build(username, coprname, build_id):
 
     return flask.redirect(flask.url_for("coprs_ns.copr_builds",
                                         username=username,
-                                        coprname=coprname))
+                                        coprname=coprname,
+                                        page=page))
 
 
 @coprs_ns.route("/<username>/<coprname>/repeat_build/<int:build_id>/",
+                defaults={"page": 1},
+                methods=["GET", "POST"])
+@coprs_ns.route("/<username>/<coprname>/repeat_build/<int:build_id>/<int:page>/",
                 methods=["GET", "POST"])
 @login_required
-def copr_repeat_build(username, coprname, build_id):
+def copr_repeat_build(username, coprname, build_id, page=1):
     build = builds_logic.BuildsLogic.get(build_id).first()
     copr = coprs_logic.CoprsLogic.get(
         flask.g.user, username=username, coprname=coprname).first()
@@ -141,13 +148,17 @@ def copr_repeat_build(username, coprname, build_id):
 
     return flask.redirect(flask.url_for("coprs_ns.copr_builds",
                                         username=username,
-                                        coprname=coprname))
+                                        coprname=coprname,
+                                        page=page))
 
 
 @coprs_ns.route("/<username>/<coprname>/delete_build/<int:build_id>/",
+                defaults={"page": 1},
+                methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/delete_build/<int:build_id>/<int:page>/",
                 methods=["POST"])
 @login_required
-def copr_delete_build(username, coprname, build_id):
+def copr_delete_build(username, coprname, build_id, page=1):
     build = builds_logic.BuildsLogic.get(build_id).first()
     if not build:
         return page_not_found(
@@ -161,4 +172,5 @@ def copr_delete_build(username, coprname, build_id):
         flask.flash("Build was deleted")
 
     return flask.redirect(flask.url_for("coprs_ns.copr_builds",
-                                        username=username, coprname=coprname))
+                                        username=username, coprname=coprname,
+                                        page=page))
