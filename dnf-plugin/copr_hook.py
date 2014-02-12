@@ -6,6 +6,8 @@ import platform
 
 from dnf.yum.i18n import _
 from urlgrabber import grabber
+import urllib
+import json
 
 yes = set([_('yes'), _('y')])
 no = set([_('no'), _('n'), ''])
@@ -36,6 +38,7 @@ class CoprCommand(dnf.cli.Command):
   copr enable rhscl/perl516 epel-6-x86_64
   copr enable ignatenkobrain/ocltoys
   copr disable rhscl/perl516
+  copr list ignatenkobrain
 """)
 
     @staticmethod
@@ -43,7 +46,8 @@ class CoprCommand(dnf.cli.Command):
         """Return a usage string for the command, including arguments."""
         return _("""
 enable name/project [chroot]
-disable name/project""")
+disable name/project
+list name""")
 
     def run(self, extcmds):
         # FIXME this should do dnf itself (BZ#1062889)
@@ -67,9 +71,9 @@ disable name/project""")
             else:
                 chroot = ("epel-%s-x86_64" % dist[1].split(".", 1)[0], arch)
         repo_filename = "/etc/yum.repos.d/_copr_{}.repo".format(project_name.replace("/", "-"))
+        base_url = "http://copr.fedoraproject.org"
         if subcommand == "enable":
             #http://copr.fedoraproject.org/coprs/larsks/rcm/repo/epel-7-x86_64/
-            base_url = "http://copr.fedoraproject.org"
             api_path = "/coprs/{0}/repo/{1}/".format(project_name, chroot)
 
             self._ask_user()
@@ -87,6 +91,20 @@ disable name/project""")
             except OSError, e:
                 raise dnf.exceptions.Error(str(e)), None, sys.exc_info()[2]
             self.cli.logger.info(_("Repository successfully disabled."))
+        elif subcommand == "list":
+            #http://copr.fedoraproject.org/api/coprs/ignatenkobrain/
+            api_path = "/api/coprs/{}/".format(project_name)
+
+            opener = urllib.FancyURLopener({})
+            res = opener.open(base_url+api_path)
+            try:
+                json_parse = json.loads(res.read())
+            except ValueError:
+                raise dnf.exceptions.Error(_("Can't parse repositories for username '{}'.").format(project_name)), None, sys.exc_info()[2]
+            i = 0
+            while i < len(json_parse["repos"]):
+                print "{0}/{1}".format(project_name, json_parse["repos"][i]["name"])
+                i += 1
         else:
             raise dnf.exceptions.Error(_('Unknown subcommand {}.').format(subcommand))
 
