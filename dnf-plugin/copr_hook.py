@@ -61,7 +61,7 @@ class CoprCommand(dnf.cli.Command):
                 ug.urlgrab(base_url+api_path, filename=repo_filename)
             except grabber.URLGrabError, e:
                 raise dnf.exceptions.Error(str(e)), None, sys.exc_info()[2]
-            self.base.read_all_repos()
+            self.cli.logger.info(_("Repository successfully enabled."))
         else:
             raise dnf.exceptions.Error(_('Unknown subcommand {}.').format(subcommand))
 
