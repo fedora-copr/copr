@@ -33,12 +33,15 @@ class CoprCommand(dnf.cli.Command):
         """Return a one line summary of what the command does."""
         return _("""Interact with Copr repositories. Example:
   copr enable rhscl/perl516 epel-6-x86_64
+  copr disable rhscl/perl516 epel-6-x86_64
 """)
 
     @staticmethod
     def get_usage():
         """Return a usage string for the command, including arguments."""
-        return _("enable name/project chroot")
+        return _("""
+enable name/project chroot
+disable name/project chroot""")
 
     def run(self, extcmds):
         # FIXME this should do dnf itself (BZ#1062889)
@@ -66,6 +69,13 @@ class CoprCommand(dnf.cli.Command):
             except grabber.URLGrabError, e:
                 raise dnf.exceptions.Error(str(e)), None, sys.exc_info()[2]
             self.cli.logger.info(_("Repository successfully enabled."))
+        elif subcommand == "disable":
+            # FIXME is it Copr repo ?
+            try:
+                os.remove(repo_filename)
+            except OSError, e:
+                raise dnf.exceptions.Error(str(e)), None, sys.exc_info()[2]
+            self.cli.logger.info(_("Repository successfully disabled."))
         else:
             raise dnf.exceptions.Error(_('Unknown subcommand {}.').format(subcommand))
 
