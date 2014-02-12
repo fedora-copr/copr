@@ -68,11 +68,13 @@ class CoprCommand(dnf.cli.Command):
     @classmethod
     def _ask_user(cls):
         question = _("""
-You are going to enable Copr repository. Please not that this repository is not
-part of Fedora and may have various quality and Fedora distribution have no
-power over this repository and can not enforce some quality or security level.
- Please do not file bug reports about this packages in Fedora bugzilla.
+You are going to enable Copr repository. Please note that this repository is not
+part of Fedora distribution and may have various quality. Fedora distribution
+have no power over this repository and can not enforce some quality or security
+level.
+Please do not file bug reports about this packages in Fedora Bugzilla.
 In case of problems you should contact owner of this repository.
+
 Do you want to continue? [Y/n]: """)
         answer = raw_input(question).lower()
         answer = _(answer)
