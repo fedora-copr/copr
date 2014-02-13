@@ -321,7 +321,7 @@ def copr_modify_chroot(username, coprname, chrootname):
     jsonout.status_code = httpcode
     return jsonout
 
-@api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["POST"])
+@api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["GET"])
 def copr_chroot_details(username, coprname, chrootname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
