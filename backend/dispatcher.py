@@ -9,6 +9,7 @@ import subprocess
 import multiprocessing
 
 import ansible
+import ansible.utils
 from ansible import callbacks
 from bunch import Bunch
 from setproctitle import setproctitle
