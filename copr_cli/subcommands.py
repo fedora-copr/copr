@@ -183,9 +183,12 @@ def status(build_id):
     (ret, value) = _fetch_status(build_id)
     print(value)
 
+def build(copr, pkgs, memory, timeout, wait=True, result=None):
+    """ Build a new package into a given copr.
 
-def build(copr, pkgs, memory, timeout, wait=True):
-    """ Build a new package into a given copr. """
+    Result is dictionary where is returned "errmsg" in case of error.
+    And "id" and "status" otherwise.
+    """
     user = get_user()
     copr_api_url = get_api_url()
     URL = "{0}/coprs/{1}/{2}/new_build/".format(
@@ -211,11 +214,16 @@ def build(copr, pkgs, memory, timeout, wait=True):
         print("Build ID: {0}".format(output["id"]))
         print("Watching build (this may be safely interrupted)...")
         prevstatus = None
+        if result is not None:
+            result['id'] = output["id"]
         try:
             while True:
                 (ret, status) = _fetch_status(output["id"])
                 if not ret:
-                    print("Unable to get build status: {0}".format(status))
+                    errmsg = "Unable to get build status: {0}".format(status)
+                    print errmsg
+                    if result is not None:
+                        result['errmsg'] = errmsg
                     return False
 
                 now = datetime.datetime.now()
@@ -224,6 +232,8 @@ def build(copr, pkgs, memory, timeout, wait=True):
                     prevstatus = status
 
                 if status in ["succeeded", "failed"]:
+                    if result is not None:
+                        result['status'] = status
                     return True
 
                 time.sleep(60)
