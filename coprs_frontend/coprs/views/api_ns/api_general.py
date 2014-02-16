@@ -340,3 +340,33 @@ def copr_chroot_details(username, coprname, chrootname):
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
+
+@api_ns.route("/coprs/search/")
+@api_ns.route("/coprs/search/<project>/")
+def api_coprs_search_by_project(project=None):
+    """ Return the list of coprs found in search by the given text.
+    project is taken either from GET params or from the URL itself
+    (in this order).
+
+    :arg project: the text one would like find for coprs.
+
+    """
+    project = flask.request.args.get("project", None) or project
+    httpcode = 200
+    if project:
+        query = coprs_logic.CoprsLogic.get_multiple_fulltext(
+            flask.g.user, project)
+
+        repos = query.all()
+        output = {"output": "ok", "users": []}
+        for repo in repos:
+            output["repos"].append({"username": repo.owner,
+                                    "coprname"; repo.name,
+                                    "description": repo.description})
+    else:
+        output = {"output": "notok", "error": "Invalid request"}
+        httpcode = 500
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout

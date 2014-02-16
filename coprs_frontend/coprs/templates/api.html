@@ -333,5 +333,54 @@ copr_url = http://copr.fedoraproject.org
     }
     </pre>
 
+    <h3>Search for project</h3>
+
+    <h4>URL:</h4>
+    <pre style="font-size:120%">/api/coprs/search/&lt;project&gt;/</pre>
+    <div>or</div>
+    <pre style="font-size:120%">/api/coprs/?search="&lt;project&gt;"</pre>
+
+    <h4>URL parameters:</h4>
+    <ul>
+        <li><b>project</b> &ndash; The text of the project whose you'd like
+                to find</li>
+    </ul>
+
+    <h4>Result:</h4>
+    <ul>
+        <li><b>"repos"</b> &ndash; List of repos in given format:
+        <ul>
+            <li><b>"username"</b> &ndash; Name of the user</li>
+            <li><b>"coprname"</b> &ndash; Name of the copr</li>
+            <li><b>"description"</b> &ndash; Description of the copr</li>
+        </ul>
+    </ul>
+
+    <h4>Example call URL</h4>
+    <pre style="font-size:120%">https://copr.fedoraproject.org/api/coprs/search/tests/</pre>
+
+    <h4>Example results</h4>
+    <pre>
+    {
+      "output": "ok",
+      "repos": [
+        {
+          "username": "ignatenkobrain",
+          "coprname": "test",
+          "description": "Tests"
+        },
+          "username": "ignatenkobrain",
+          "coprname": "tests",
+          "description": ""
+        },
+        {
+          "username": "msuchy",
+          "coprname": "tests",
+          "description": "Copr testing repository, just for test various builds."
+        }
+      ]
+    }
+    </pre>
+
   </div>
 {% endblock %}
