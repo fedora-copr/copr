@@ -201,7 +201,7 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None):
     copr_api_url = get_api_url()
     URL = "{0}/coprs/{1}/{2}/new_build/".format(
         copr_api_url,
-        user["username"],
+        username,
         copr)
 
     data = {"pkgs": " ".join(pkgs),
