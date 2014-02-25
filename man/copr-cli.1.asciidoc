@@ -85,7 +85,9 @@ Override timeout for this build
 Don't wait for build completion
 
 copr::
-The copr repo to build the package in
+The copr repo to build the package in. This can be simple name of some of your projects. Or
+you can specify it as username/project. This way you can build into project of somebody else
+if you are allowed to.
 
 pkg_url::
 URL of package to build. Package must be placed on some public web of ftp, from where it can

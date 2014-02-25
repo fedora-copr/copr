@@ -5,14 +5,14 @@ Function actually doing the work of calling the API and handling the
 output.
 """
 
+import ConfigParser
+import datetime
+import json
 import os
+import re
+import requests
 import sys
 import time
-import json
-import datetime
-import ConfigParser
-
-import requests
 
 import copr_exceptions
 
@@ -190,6 +190,14 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None):
     And "id" and "status" otherwise.
     """
     user = get_user()
+    username = user["username"]
+
+    # if you specify copr as username/foo, retrieve and cut username
+    m = re.match(r"(\w+)/(\w+)", copr)
+    if m:
+        username = m.group(1)
+        copr = m.group(2)
+
     copr_api_url = get_api_url()
     URL = "{0}/coprs/{1}/{2}/new_build/".format(
         copr_api_url,

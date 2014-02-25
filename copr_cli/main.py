@@ -94,7 +94,7 @@ def setup_parser():
                                          help="Build packages to a "
                                          "specified copr")
     parser_build.add_argument("copr",
-                              help="The copr repo to build the package in"
+                              help="The copr repo to build the package in. Can just name of project or even in format username/project."
                               )
     parser_build.add_argument("pkgs", nargs="+",
                               help="URL of packages to build")
