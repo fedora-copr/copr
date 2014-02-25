@@ -470,7 +470,7 @@ class Worker(multiprocessing.Process):
                             recurse=True,
                             repos=chroot_repos,
                             macros=macros,
-                            lock=lock,
+                            lock=self.lock,
                             buildroot_pkgs=job.buildroot_pkgs,
                             callback=mockremote.CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile))
