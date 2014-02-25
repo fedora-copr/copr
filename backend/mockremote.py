@@ -663,15 +663,14 @@ class MockRemote(object):
                                       os.path.basename(pkg)))
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
-                    for d in [self.destdir, chroot_dir]:
-                        rc, out, err = createrepo(d, self.lock)
-                        if err.strip():
-                            self.callback.error(
-                                "Error making local repo: {0}".format(d))
+                    rc, out, err = createrepo(chroot_dir, self.lock)
+                    if err.strip():
+                        self.callback.error(
+                            "Error making local repo: {0}".format(chroot_dir))
 
-                            self.callback.error(str(err))
-                            # FIXME - maybe clean up .repodata and .olddata
-                            # here?
+                        self.callback.error(str(err))
+                        # FIXME - maybe clean up .repodata and .olddata
+                        # here?
 
             if self.failed:
                 if len(self.failed) != len(to_be_built):
