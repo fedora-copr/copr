@@ -103,7 +103,7 @@ class WorkerCallback(object):
 class Worker(multiprocessing.Process):
 
     def __init__(self, opts, jobs, events, worker_num,
-                 ip=None, create=True, callback=None):
+                 ip=None, create=True, callback=None, lock=None):
 
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
@@ -118,6 +118,7 @@ class Worker(multiprocessing.Process):
         self.kill_received = False
         self.callback = callback
         self.create = create
+        self.lock = lock
         self.frontend_callback = FrontendCallback(opts)
         if not self.callback:
             self.logfile = os.path.join(
@@ -469,6 +470,7 @@ class Worker(multiprocessing.Process):
                             recurse=True,
                             repos=chroot_repos,
                             macros=macros,
+                            lock=lock,
                             buildroot_pkgs=job.buildroot_pkgs,
                             callback=mockremote.CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile))

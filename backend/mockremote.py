@@ -62,15 +62,19 @@ class SortedOptParser(optparse.OptionParser):
         return optparse.OptionParser.format_help(self, formatter=None)
 
 
-def createrepo(path):
+def createrepo(path, lock):
     if os.path.exists(path + '/repodata/repomd.xml'):
         comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                 '--update', path]
     else:
         comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock', path]
+    if lock:
+        lock.acquire()
     cmd = subprocess.Popen(comm,
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = cmd.communicate()
+    if lock:
+        lock.release()
     return cmd.returncode, out, err
 
 
@@ -529,7 +533,7 @@ class MockRemote(object):
                  destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False,
                  recurse=False, repos=DEF_REPOS, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
-                 macros=DEF_MACROS,
+                 macros=DEF_MACROS, lock=None,
                  buildroot_pkgs=DEF_BUILDROOT_PKGS):
 
         self.destdir = destdir
@@ -541,6 +545,7 @@ class MockRemote(object):
         self.remote_basedir = remote_basedir
         self.remote_tempdir = remote_tempdir
         self.macros = macros
+        self.lock = lock
 
         if not self.callback:
             self.callback = DefaultCallBack()
@@ -659,7 +664,7 @@ class MockRemote(object):
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
                     for d in [self.destdir, chroot_dir]:
-                        rc, out, err = createrepo(d)
+                        rc, out, err = createrepo(d, self.lock)
                         if err.strip():
                             self.callback.error(
                                 "Error making local repo: {0}".format(d))

@@ -270,8 +270,10 @@ class CoprBackend(object):
                     self.event("Spinning up more workers for jobs")
                     for _ in range(self.opts.num_workers - len(self.workers)):
                         worker_num = len(self.workers) + 1
+                        lock = multiprocessing.Lock()
                         w = Worker(
-                            self.opts, self.jobs, self.events, worker_num)
+                            self.opts, self.jobs, self.events, worker_num,
+                            lock=lock)
                         self.workers.append(w)
                         w.start()
                     self.event("Finished starting worker processes")
