@@ -9,7 +9,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.26
+Version:    1.27
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -411,6 +411,35 @@ fi
 %endif # with_server
 
 %changelog
+* Wed Feb 26 2014 Miroslav Suchý <msuchy@redhat.com> 1.27-1
+- [frontend] update to jquery 1.11.0
+- [fronted] link username to fas
+- [cli] allow to build into projects of other users
+- [backend] do not create repo in destdir
+- [backend] ensure that only one createrepo is running at the same time
+- [cli] allow to get data from sent build
+- temporary workaround for BZ 1065251
+- Chroot details API now uses GET instead of POST
+- when deleting/canceling task, go to same page
+- add copr modification to web api
+- 1063311 - admin should be able to delete task
+- [frontend] Stray end tag h4.
+- [frontend] another s/coprs/projects/ rename
+- [frontend] provide info about last successfull build
+- [spec] rhel5 needs group definition even in subpackage
+- [frontend] move 'you agree' text to dd
+- [frontend] add margin to chroots-set
+- [frontend] add margin to field label
+- [frontend] put disclaimer to paragraph tags
+- [frontend] use black font color
+- [frontend] use default filter instead of *_not_filled
+- [frontend] use markdown template filter
+- [frontend] use isdigit instead of is_int
+- [frontend] move Serializer to helpers
+- [frontend] fix coding style and py3 compatibility
+- [cli] fix coding style and py3 compatibility
+- [backend] fix coding style and py3 compatibility
+
 * Tue Jan 28 2014 Miroslav Suchý <miroslav@suchy.cz> 1.26-1
 - lower testing date
 - move localized_time into filters
