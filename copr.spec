@@ -9,7 +9,7 @@
 %global modulename copr
 
 Name:       copr
-Version:    1.27
+Version:    1.28
 Release:    1%{?dist}
 Summary:    Cool Other Package Repo
 
@@ -411,6 +411,9 @@ fi
 %endif # with_server
 
 %changelog
+* Thu Feb 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.28-1
+- [backend] - pass lock to Actions
+
 * Wed Feb 26 2014 Miroslav Suchý <msuchy@redhat.com> 1.27-1
 - [frontend] update to jquery 1.11.0
 - [fronted] link username to fas
