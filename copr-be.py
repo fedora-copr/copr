@@ -40,7 +40,7 @@ class CoprJobGrab(multiprocessing.Process):
     - submit them to the jobs queue for workers
     """
 
-    def __init__(self, opts, events, jobs):
+    def __init__(self, opts, events, jobs, lock):
         # base class initialization
         multiprocessing.Process.__init__(self, name="jobgrab")
 
@@ -48,6 +48,7 @@ class CoprJobGrab(multiprocessing.Process):
         self.events = events
         self.jobs = jobs
         self.added_jobs = []
+        self.lock = lock
 
     def event(self, what):
         self.events.put({"when": time.time(), "who": "jobgrab", "what": what})
@@ -92,7 +93,7 @@ class CoprJobGrab(multiprocessing.Process):
                     len(r_json["actions"])))
 
                 for action in r_json["actions"]:
-                    ao = Action(self.opts, self.events, action)
+                    ao = Action(self.opts, self.events, action, self.lock)
                     ao.run()
 
     def run(self):
@@ -179,6 +180,7 @@ class CoprBackend(object):
         self.config_file = config_file
         self.ext_opts = ext_opts  # to stow our cli options for read_conf()
         self.opts = self.read_conf()
+        self.lock = multiprocessing.Lock()
 
         # job is a path to a jobfile on the localfs
         self.jobs = multiprocessing.Queue()
@@ -192,7 +194,7 @@ class CoprBackend(object):
 
         self.event("Starting up Job Grabber")
         # create job grabber
-        self._jobgrab = CoprJobGrab(self.opts, self.events, self.jobs)
+        self._jobgrab = CoprJobGrab(self.opts, self.events, self.jobs, self.lock)
         self._jobgrab.start()
 
         if not os.path.exists(self.opts.worker_logdir):
@@ -270,10 +272,9 @@ class CoprBackend(object):
                     self.event("Spinning up more workers for jobs")
                     for _ in range(self.opts.num_workers - len(self.workers)):
                         worker_num = len(self.workers) + 1
-                        lock = multiprocessing.Lock()
                         w = Worker(
                             self.opts, self.jobs, self.events, worker_num,
-                            lock=lock)
+                            lock=self.lock)
                         self.workers.append(w)
                         w.start()
                     self.event("Finished starting worker processes")

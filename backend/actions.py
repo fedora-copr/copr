@@ -11,12 +11,13 @@ class Action(object):
 
     """ Object to send data back to fronted """
 
-    def __init__(self, opts, events, action):
+    def __init__(self, opts, events, action, lock):
         super(Action, self).__init__()
         self.frontend_callback = FrontendCallback(opts)
         self.destdir = opts.destdir
         self.data = action
         self.events = events
+        self.lock = lock
 
     def event(self, what):
         self.events.put({"when": time.time(), "who": "action", "what": what})
@@ -63,7 +64,7 @@ class Action(object):
 
                     if altered:
                         self.event("Running createrepo")
-                        rc, out, err = createrepo(os.path.join(path, chroot))
+                        rc, out, err = createrepo(os.path.join(path, chroot), self.lock)
                         if err.strip():
                             self.event(
                                 "Error making local repo: {0}".format(err))

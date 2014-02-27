@@ -62,7 +62,7 @@ class SortedOptParser(optparse.OptionParser):
         return optparse.OptionParser.format_help(self, formatter=None)
 
 
-def createrepo(path, lock):
+def createrepo(path, lock=None):
     if os.path.exists(path + '/repodata/repomd.xml'):
         comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                 '--update', path]
