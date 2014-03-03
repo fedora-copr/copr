@@ -139,16 +139,16 @@ class BuildsLogic(object):
 
     @classmethod
     def cancel_build(cls, user, build):
-        if build.user_id != user.id:
+        if not (user.can_build_in(build.copr):
             raise exceptions.InsufficientRightsException(
-                "You can only cancel your own builds.")
+                "You are not allowed to cancel this build.")
         build.canceled = True
 
     @classmethod
     def delete_build(cls, user, build):
-        if build.user_id != user.id:
+        if not (user.can_build_in(build.copr):
             raise exceptions.InsufficientRightsException(
-                "You can only delete your own builds.")
+                "You are not allowed to delete this build.")
 
         action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type="build",
