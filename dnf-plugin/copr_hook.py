@@ -85,7 +85,7 @@ list name""")
             if "Fedora" in dist:
                 chroot = ("fedora-%s-x86_64" % dist[2].lower() if "Rawhide" in dist else dist[1])
             else:
-                chroot = ("epel-%s-x86_64" % dist[1].split(".", 1)[0], arch)
+                chroot = ("epel-%s-x86_64" % dist[1].split(".", 1)[0])
         repo_filename = "/etc/yum.repos.d/_copr_{}.repo".format(project_name.replace("/", "-"))
         base_url = "http://copr.fedoraproject.org"
         if subcommand == "enable":
