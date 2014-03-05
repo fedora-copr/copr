@@ -53,7 +53,7 @@ Frontend:
 - yum install copr-frontend copr-selinux
 
 - apache setup
-  cp /usr/share/doc/copr-frontend-*/coprs.conf.example /etc/httpd/conf.d/coprs.conf
+  cp /usr/share/doc/copr-frontend/coprs.conf.example /etc/httpd/conf.d/coprs.conf
   and edit it to your needs - at least ServerName, port and WSGIScriptAlias
 
 - if you run on EPEL add virtenv of flask and friends
@@ -63,7 +63,7 @@ Frontend:
   - pip install -I  SQLAlchemy MarkupSafe 
   - pip install pytest
 
-- edit credentials /etc/copr/copr.conf (or /etc/copr/copr-devel.conf for development mode)
+- edit credentials /etc/copr/copr.conf (or /etc/copr/copr_devel.conf for development mode)
 - cd /usr/share/copr/coprs_frontend
 - configure DB first - see DB section below
 # for develop setup do:
