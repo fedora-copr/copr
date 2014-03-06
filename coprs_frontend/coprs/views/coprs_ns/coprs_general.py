@@ -317,7 +317,7 @@ def copr_delete(username, coprname):
     form = forms.CoprDeleteForm()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
-    if form.validate_on_submit():
+    if form.validate_on_submit() and copr:
         try:
             coprs_logic.CoprsLogic.delete(flask.g.user, copr)
         except (exceptions.ActionInProgressException,
