@@ -183,6 +183,23 @@ def status(build_id):
     (ret, value) = _fetch_status(build_id)
     print(value)
 
+def cancel(build_id):
+    """ Cancel specified build_id """
+    user = get_user()
+    copr_api_url = get_api_url()
+    #/coprs/rhscl/nodejs010/cancel_build/4060/
+    URL = "{0}/coprs/cancel_build/{1}/".format(
+        copr_api_url,
+        build_id)
+    req = requests.get(URL, auth=(user["login"], user["token"]))
+    output = _get_data(req, user)
+    if output is None:
+        return (False, "Error occurred.")
+    elif "status" in output:
+        return (True, output["status"])
+    else:
+        return (False, output["error"])
+
 def build(copr, pkgs, memory, timeout, wait=True, result=None):
     """ Build a new package into a given copr.
 

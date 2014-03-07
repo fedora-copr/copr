@@ -47,6 +47,14 @@ def action_list(args):
 def action_status(args):
     subcommands.status(args.build_id)
 
+def action_cancel(args):
+    """ Method called when the 'cancel' action has been selected by the
+    user.
+
+    :param args: argparse arguments provided by the user
+
+    """
+    subcommands.cancel(args.build_id)
 
 def setup_parser():
     """
@@ -113,6 +121,13 @@ def setup_parser():
     parser_build.add_argument("build_id",
                               help="Build ID")
     parser_build.set_defaults(func=action_status)
+
+    # create the parser for the "cancel" command
+    parser_build = subparsers.add_parser("cancel",
+        help="Cancel build specified by its ID")
+    parser_build.add_argument("build_id",
+                              help="Build ID")
+    parser_build.set_defaults(func=action_cancel)
 
     return parser
 

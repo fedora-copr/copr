@@ -251,6 +251,52 @@ def build_status(build_id):
     jsonout.status_code = httpcode
     return jsonout
 
+@api_ns.route("/coprs/build_detail/<build_id>/", methods=["GET"])
+def build_detail(build_id):
+    if build_id.isdigit():
+        build = builds_logic.BuildsLogic.get(build_id).first()
+    else:
+        build = None
+
+    if build:
+        httpcode = 200
+        output = {"output": "ok",
+                  "owner": build.copr.owner.name,
+                  "project": build.copr.name,
+                  "status": build.state}
+    else:
+        output = {"output": "notok", "error": "Invalid build"}
+        httpcode = 404
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
+
+@api_ns.route("/coprs/cancel_build/<build_id>/", methods=["POST"])
+@api_login_required
+def cancel_build(build_id):
+    if build_id.isdigit():
+        build = builds_logic.BuildsLogic.get(build_id).first()
+    else:
+        build = None
+
+    if build:
+        try:
+            builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
+        except InsufficientRightsException as e:
+            output = {'output': 'notok', 'error': str(e)}
+            httpcode = 500
+        else:
+            db.session.commit()
+            httpcode = 200
+            output = {'output': 'ok', status: "Build canceled"}
+    else:
+        output = {"output": "notok", "error": "Invalid build"}
+        httpcode = 404
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
+
 @api_ns.route('/coprs/<username>/<coprname>/modify/', methods=["POST"])
 @api_login_required
 def copr_modify(username, coprname):
@@ -361,7 +407,7 @@ def api_coprs_search_by_project(project=None):
         output = {"output": "ok", "users": []}
         for repo in repos:
             output["repos"].append({"username": repo.owner,
-                                    "coprname"; repo.name,
+                                    "coprname": repo.name,
                                     "description": repo.description})
     else:
         output = {"output": "notok", "error": "Invalid request"}

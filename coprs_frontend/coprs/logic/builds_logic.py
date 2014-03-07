@@ -139,14 +139,14 @@ class BuildsLogic(object):
 
     @classmethod
     def cancel_build(cls, user, build):
-        if not (user.can_build_in(build.copr):
+        if not (user.can_build_in(build.copr)):
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to cancel this build.")
         build.canceled = True
 
     @classmethod
     def delete_build(cls, user, build):
-        if not (user.can_build_in(build.copr):
+        if not (user.can_build_in(build.copr)):
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to delete this build.")
 
