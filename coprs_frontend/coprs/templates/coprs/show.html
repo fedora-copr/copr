@@ -15,6 +15,21 @@
     <p class="other-text">projects</p>
   </div>
   {% endif %}
+    {% if not g.user and not fulltext%}
+        <div class="about-copr">
+            <p>Copr is an easy-to-use automatic build system providing a package repository as its output.</p>
+            <p>Start with making your own repository in these three steps:</p>
+            <ol>
+                <li>choose an architecture and system you want to build for</li>
+                <li>provide Copr with src.rpm packages available online</li>
+                <li>let Coper do all the work and wait for your new repo</li>
+            </ol>
+            <p>For more information please visit <a href="https://fedorahosted.org/copr/">Copr wiki</a></p>
+        </div>
+    {% endif %}
+      <div class="pagination">
+      	{{ render_pagination(request, paginator) }}
+      </div>
   <div class="coprs-list-{% if g.user %}thin{% else %}thick{% endif %}">
     {% if g.user %}
       <div class="add-copr">+

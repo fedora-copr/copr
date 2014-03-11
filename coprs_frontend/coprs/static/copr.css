@@ -99,6 +99,24 @@ div.user-info .other-text {
   font-size: 0.6em;
 }
 
+div.about-copr {
+  width: 100%;
+  background-color: #ececec;
+  padding-top: 1em;
+  padding-bottom: 1em;
+
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+}
+
+div.about-copr p {
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
 div.coprs-list-thin, div.coprs-list-thick {
   float: left;
 }
