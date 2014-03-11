@@ -134,7 +134,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
             data={},
             follow_redirects=True)
 
-        assert "delete your own builds" in r.data
+        assert "allowed to delete this build" in r.data
         b = (self.models.Build.query.filter(
             self.models.Build.id == self.b1.id)
             .first())
