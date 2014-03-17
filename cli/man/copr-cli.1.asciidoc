@@ -5,7 +5,7 @@ copr-cli(1)
 
 NAME
 ----
-copr-cli - command line interface for Copr
+copr-cli - command line interface for the Copr service
 
 
 SYNOPSIS
@@ -15,7 +15,7 @@ copr-cli [-h] [--version] {list,create,build} ...
 DESCRIPTION
 -----------
 
-This command allows you to interact with the Copr build system from the command line.
+This command allows you to interact with the Copr service from the command line.
 
 You need to generate an API key first (see the API KEY section below).
 
@@ -32,14 +32,14 @@ ACTIONS
 -------
 
 list [username]::
-List all the coprs of the provided username. If no username is provided,
-then your copr repositories are listed.
+List all the projects of the provided username. If no username is provided,
+then your projects are listed.
 
 create::
-Create a new copr.
+Create a new project.
 
 build ::
-Build packages for a specified copr.
+Build packages for a specified project.
 
 status::
 Get the status of the build.
@@ -55,26 +55,26 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        name
 
 --chroot::
-Chroot to use for this copr. Can be specified multiple times, but at least one must be present.
+Chroot to use for this project. Can be specified multiple times, but at least one must be present.
 
 --repo::
-Repository to add to this copr. Can be specified multiple times.
+Repository to add to this project. Can be specified multiple times.
 
 --initial-pkgs::
-List of packages to build in this new copr. Can be specified multiple times.
+List of packages to build in this new project. Can be specified multiple times.
 
 --description::
-Description of the copr.
+Description of the project.
 
 --instructions::
-Instructions for the copr.
+Instructions for the project.
 
 
 `copr-cli build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr-cli build [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                      copr pkg_url [pkg_url ...]
+                      project pkg_url [pkg_url ...]
 
 --memory::
 Override memory for this build
@@ -85,8 +85,8 @@ Override timeout for this build
 --nowait::
 Don't wait for build completion
 
-copr::
-The copr repo to build the package in. This can be a simple name of some of
+project::
+The project build the package in. This can be a simple name of some of
 your projects. Alternatively, you can specify it as username/project. This
 way you can build into the project of another user provided you have the
 permissions to do so.
