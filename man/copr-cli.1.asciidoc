@@ -5,7 +5,7 @@ copr-cli(1)
 
 NAME
 ----
-copr-cli - command line interface for COPR
+copr-cli - command line interface for Copr
 
 
 SYNOPSIS
@@ -15,8 +15,9 @@ copr-cli [-h] [--version] {list,create,build} ...
 DESCRIPTION
 -----------
 
-This command allow you to interact with build system COPR from command line.
-You need to generate and provide API key (see API KEY section below)
+This command allows you to interact with the Copr build system from the command line.
+
+You need to generate an API key first (see the API KEY section below).
 
 OPTIONS
 -------
@@ -25,23 +26,23 @@ OPTIONS
 show this help message and exit
 
 --version::
-show program's version number and exit
+show the program's version number and exit
 
 ACTIONS
 -------
 
 list [username]::
-List all the copr of the provided username. If no username is provided,
-then your coprs are listed.
+List all the coprs of the provided username. If no username is provided,
+then your copr repositories are listed.
 
 create::
 Create a new copr.
 
 build ::
-Build packages to a specified copr.
+Build packages for a specified copr.
 
 status::
-Get status of the build.
+Get the status of the build.
 
 
 `copr-cli create [options]`
@@ -85,38 +86,45 @@ Override timeout for this build
 Don't wait for build completion
 
 copr::
-The copr repo to build the package in. This can be simple name of some of your projects. Or
-you can specify it as username/project. This way you can build into project of somebody else
-if you are allowed to.
+The copr repo to build the package in. This can be a simple name of some of
+your projects. Alternatively, you can specify it as username/project. This
+way you can build into the project of another user provided you have the
+permissions to do so.
 
 pkg_url::
-URL of package to build. Package must be placed on some public web of ftp, from where it can
-be downloaded.
+URL of the package to build. The package must be placed on a public web or
+ftp server.
 
 
 API KEY
 -------
 
-Visit page http://your.copr/api and note down API token.
-
-Open file `~/.config/copr` and put there content:
+Visit the page https://copr.fedoraproject.org/api/ to obtain an API token.
+This token must be saved in the file `~/.config/copr` in the following
+format:
 
  [copr-cli]
  username = msuchy
  login = Y57wcg==##fkfaxbkjhuoiebfafadl
  token = vbfseelqdebzedukgombekmuvbkqwo
 
-Be aware that API token have some expiration. See Expiration date on /api page.
+Be aware that API tokens have an expiration date. The expiration date for
+your token is listed on the /api page.
+
+If you are using a different instance for the Copr service, the API token is
+available from http://your.copr.server/api/
 
 COPR URL
 --------
 
-You can alternatively specify different URL of Copr service. Open file `~/.config/copr` and put there:
+You can alternatively specify a different URL for the Copr service.
+Open the file `~/.config/copr` provide the `copr_url` setting:
 
  [copr-cli]
  copr_url = https://copr.fedoraproject.org
 
-The value above is default. Define copr_url only if you use different instance.
+The value listed above is the default value. Only define copr_url only if
+you use a different instance.
 
 AUTHORS
 -------

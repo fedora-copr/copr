@@ -17,11 +17,12 @@ DESCRIPTION
 -----------
 
 The *copr-selinux-relabel* program will call restorecon(8) on all
-Copr files. Efectively restore SELinux context.
+Copr files. This effectively restores the SELinux context.
 
-The program is called by rpm post script and it
+The program is called by an rpm post script and it
 is not usually required to run it manually.
 
-=head1 SEE ALSO
+SEE ALSO
+--------
 
 copr-selinux-enable(8), restorecon(8)

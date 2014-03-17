@@ -16,10 +16,10 @@ copr-selinux-enable
 DESCRIPTION
 -----------
 
-The *copr-selinux-enable* program will install and enable Copr
-SELinux module and sets required SELinux bool flags.
+The *copr-selinux-enable* program will install and enable the Copr
+SELinux module and set the required SELinux flags.
 
-The program is called by rpm post script and it
+The program is called by an rpm post script and it
 is not usually required to run it manually.
 
 SEE ALSO
