@@ -6,7 +6,7 @@
 %global modulename copr
 
 Name:       copr-selinux
-Version:    1.29
+Version:    1.30
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -105,6 +105,9 @@ fi
 %{_mandir}/man8/%{name}-relabel.8*
 
 %changelog
+* Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
+- finish move selinux into separate package
+
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
 - new package built with tito
 
