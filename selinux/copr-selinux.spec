@@ -67,21 +67,21 @@ install -p -m 644 %{modulename}.if \
   %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
 # Install copr-selinux-enable which will be called in %posttrans
 install -d %{buildroot}%{_sbindir}
-install -p -m 755 %{name}-selinux-enable %{buildroot}%{_sbindir}/%{name}-selinux-enable
-install -p -m 755 %{name}-selinux-relabel %{buildroot}%{_sbindir}/%{name}-selinux-relabel
+install -p -m 755 %{name}-enable %{buildroot}%{_sbindir}/%{name}-enable
+install -p -m 755 %{name}-relabel %{buildroot}%{_sbindir}/%{name}-relabel
 
 install -d %{buildroot}%{_mandir}/man8
-install -p -m 644 man/%{name}-selinux-enable.8 %{buildroot}/%{_mandir}/man8/
-install -p -m 644 man/%{name}-selinux-relabel.8 %{buildroot}/%{_mandir}/man8/
+install -p -m 644 man/%{name}-enable.8 %{buildroot}/%{_mandir}/man8/
+install -p -m 644 man/%{name}-relabel.8 %{buildroot}/%{_mandir}/man8/
 
 %post
 if /usr/sbin/selinuxenabled ; then
-   %{_sbindir}/%{name}-selinux-enable
+   %{_sbindir}/%{name}-enable
 fi
 
 %posttrans
 if /usr/sbin/selinuxenabled ; then
-   %{_sbindir}/%{name}-selinux-relabel
+   %{_sbindir}/%{name}-relabel
 fi
 
 %postun
@@ -99,10 +99,10 @@ fi
 %{_datadir}/selinux/*/%{modulename}.pp.bz2
 # empty, do not distribute it for now
 %exclude %{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
-%{_sbindir}/%{name}-selinux-enable
-%{_sbindir}/%{name}-selinux-relabel
-%{_mandir}/man8/%{name}-selinux-enable.8*
-%{_mandir}/man8/%{name}-selinux-relabel.8*
+%{_sbindir}/%{name}-enable
+%{_sbindir}/%{name}-relabel
+%{_mandir}/man8/%{name}-enable.8*
+%{_mandir}/man8/%{name}-relabel.8*
 
 %changelog
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
