@@ -1,0 +1,10 @@
+Documentation of python:
+    # epydoc needs to be installed, it needs texlive, ouch :-(
+    # graphviz needs to be installed.
+    # In the Copr git repo checkout, in documentation/ directory:
+    git rm -rf python-doc
+    make python
+    git add python-doc
+    rm -rf build
+    # update python-doc.readme
+    git commit -m 'Updating python documentation.' .

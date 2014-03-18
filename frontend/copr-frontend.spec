@@ -1,26 +1,21 @@
-%global with_server 1
+%global with_test 1
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %global __python2 %{__python}
-%global with_server 0
 %endif
-%global moduletype apps
-%global modulename copr
 
-Name:       copr
+Name:       copr-frontend
 Version:    1.28
 Release:    1%{?dist}
-Summary:    Cool Other Package Repo
+Summary:    Frontend for Copr
 
 Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://fedorahosted.org/copr/
 # Source is created by
 # git clone https://git.fedorahosted.org/git/copr.git
-# cd copr
+# cd copr/frontend
 # tito build --tgz
-# content is same as https://git.fedorahosted.org/cgit/copr.git/snapshot/%{name}-%{version}-1.tar.gz
-# but checksum does not match due different metadata
 Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
@@ -30,9 +25,7 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python2-devel
-%if %{with_server}
 BuildRequires: systemd
-%endif
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -40,34 +33,52 @@ BuildRequires: python-argparse
 BuildRequires: epydoc
 BuildRequires: graphviz
 BuildRequires: make
-%if %{with_server}
-#for selinux
-BuildRequires:  checkpolicy, selinux-policy-devel
-BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
+
+Requires:   httpd
+Requires:   mod_wsgi
+Requires:   python-alembic
+Requires:   python-flask
+Requires:   python-flask-openid
+Requires:   python-flask-wtf
+Requires:   python-flask-sqlalchemy
+Requires:   python-flask-script
+Requires:   python-flask-whooshee
+#Requires:   python-virtualenv
+Requires:   python-blinker
+Requires:   python-markdown
+Requires:   python-psycopg2
+Requires:   python-pylibravatar
+Requires:   python-whoosh >= 2.5.3
+Requires:   pytz
+# for tests:
+Requires:   pytest
+Requires:   python-flexmock
+Requires:   python-decorator
+Requires:   yum
+%if 0%{?rhel} < 7 && 0%{?rhel} > 0
+BuildRequires: python-argparse
 %endif
+# check
+BuildRequires: python-flask
+BuildRequires: python-flask-script
+BuildRequires: python-flask-sqlalchemy
+BuildRequires: python-flask-openid
+BuildRequires: python-flask-whooshee
+BuildRequires: python-pylibravatar
+BuildRequires: python-flask-wtf
+BuildRequires: pytest
+BuildRequires: yum
+BuildRequires: python-flexmock
+BuildRequires: python-decorator
+BuildRequires: python-markdown
+BuildRequires: pytz
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latest builds.
-
-%package cli
-Summary:    Command line interface for COPR
-Requires:   python-requests
-Requires:   python-setuptools
-%if 0%{?rhel} < 6 && 0%{?rhel} > 0
-Group:      Applications/Productivity
-%endif
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-Requires:   python-argparse
-%endif
-
-%description cli
-COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
-This package contains command line interface.
+This package contains frontend.
 
-%if %{with_server}
 %package doc
 Summary:    Code documentation for COPR
 
@@ -78,123 +89,74 @@ and submit new builds and COPR will create yum repository from latests builds.
 This package include documentation for COPR code. Mostly useful for developers
 only.
 
-%package selinux
-Summary:        SELinux module for COPR
-Requires(post): policycoreutils, libselinux-utils
-Requires(post): policycoreutils-python
-Requires(post): selinux-policy-targeted
-Requires(postun): policycoreutils
-
-%description selinux
-COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latests builds.
-
-This package include SELinux targeted module for COPR
-%endif
-
 %prep
 %setup -q
 
 
 %build
-mv copr_cli/README.rst ./
-
-# convert manages
-a2x -d manpage -f manpage man/copr-cli.1.asciidoc
-a2x -d manpage -f manpage man/copr-selinux-enable.8.asciidoc
-a2x -d manpage -f manpage man/copr-selinux-relabel.8.asciidoc
-
 # build documentation
 pushd documentation
 make %{?_smp_mflags} python
 popd
 
-%if %{with_server}
-#selinux
-pushd selinux
-perl -i -pe 'BEGIN { $VER = join ".", grep /^\d+$/, split /\./, "%{version}.%{release}"; } s!\@\@VERSION\@\@!$VER!g;' %{modulename}.te
-for selinuxvariant in targeted; do
-    make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
-    bzip2 -9 %{modulename}.pp
-    mv %{modulename}.pp.bz2 %{modulename}.pp.bz2.${selinuxvariant}
-    make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
-done
-popd
-%endif
-
 %install
 
-#copr-cli
-%{__python2} coprcli-setup.py install --root %{buildroot}
-install -d %{buildroot}%{_mandir}/man1
-install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
+install -d %{buildroot}%{_sysconfdir}/copr
+install -d %{buildroot}%{_datadir}/copr/coprs_frontend
+install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store
+install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/associations
+install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/nonces
+install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/temp
+install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee
+install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 
-%if %{with_server}
-#doc
+cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
+mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
+mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
+rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
+touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
+
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 
-#selinux
-for selinuxvariant in targeted; do
-    install -d %{buildroot}%{_datadir}/selinux/${selinuxvariant}
-    install -p -m 644 selinux/%{modulename}.pp.bz2.${selinuxvariant} \
-           %{buildroot}%{_datadir}/selinux/${selinuxvariant}/%{modulename}.pp.bz2
-done
-# Install SELinux interfaces
-install -d %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}
-install -p -m 644 selinux/%{modulename}.if \
-  %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
-# Install copr-selinux-enable which will be called in %posttrans
-install -d %{buildroot}%{_sbindir}
-install -p -m 755 selinux/%{name}-selinux-enable %{buildroot}%{_sbindir}/%{name}-selinux-enable
-install -p -m 755 selinux/%{name}-selinux-relabel %{buildroot}%{_sbindir}/%{name}-selinux-relabel
-
-install -d %{buildroot}%{_mandir}/man8
-install -p -m 644 man/%{name}-selinux-enable.8 %{buildroot}/%{_mandir}/man8/
-install -p -m 644 man/%{name}-selinux-relabel.8 %{buildroot}/%{_mandir}/man8/
+%check
+%if %{with_test} && %{_arch} == "x86_64"
+    pushd coprs_frontend
+    rm -rf /tmp/copr.db /tmp/whooshee || :
+    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
+    popd
 %endif
 
-%if %{with_server}
-%post selinux
-if /usr/sbin/selinuxenabled ; then
-   %{_sbindir}/%{name}-selinux-enable
-fi
+%pre
+getent group copr-fe >/dev/null || groupadd -r copr-fe
+getent passwd copr-fe >/dev/null || \
+useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash -c "COPR frontend user" copr-fe
+/usr/bin/passwd -l copr-fe >/dev/null
 
-%posttrans selinux
-if /usr/sbin/selinuxenabled ; then
-   %{_sbindir}/%{name}-selinux-relabel
-fi
+%post
+service httpd condrestart
 
-%postun
-# Clean up after package removal
-if [ $1 -eq 0 ]; then
-  for selinuxvariant in targeted; do
-      /usr/sbin/semodule -s ${selinuxvariant} -l > /dev/null 2>&1 \
-        && /usr/sbin/semodule -s ${selinuxvariant} -r %{modulename} || :
-    done
-fi
-%{sbinpath}/restorecon -rvvi %{_sharedstatedir}/copr
+%files
+%doc LICENSE coprs.conf.example
+%dir %{_datadir}/copr
+%dir %{_sysconfdir}/copr
+%dir %{_sharedstatedir}/copr
+%{_datadir}/copr/coprs_frontend
 
-%endif # with_server
+%defattr(-, copr-fe, copr-fe, -)
+%dir %{_sharedstatedir}/copr/data
+%dir %{_sharedstatedir}/copr/data/openid_store
+%dir %{_sharedstatedir}/copr/data/whooshee
+%dir %{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 
-%files cli
-%doc LICENSE README.rst
-%{_bindir}/copr-cli
-%{python_sitelib}/*
-%{_mandir}/man1/copr-cli.1*
+%ghost %{_sharedstatedir}/copr/data/copr.db
 
-%if %{with_server}
+%defattr(600, copr-fe, copr-fe, 700)
+%config(noreplace)  %{_sysconfdir}/copr/copr.conf
+%config(noreplace)  %{_sysconfdir}/copr/copr_devel.conf
+%config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
+
 %files doc
 %doc %{_pkgdocdir}/python-doc
-
-%files selinux
-%{_datadir}/selinux/*/%{modulename}.pp.bz2
-# empty, do not distribute it for now
-%exclude %{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
-%{_sbindir}/%{name}-selinux-enable
-%{_sbindir}/%{name}-selinux-relabel
-%{_mandir}/man8/%{name}-selinux-enable.8*
-%{_mandir}/man8/%{name}-selinux-relabel.8*
-%endif # with_server
 
 %changelog
 * Thu Feb 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.28-1
