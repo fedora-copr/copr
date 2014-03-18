@@ -1,0 +1,33 @@
+    {
+      "output": "ok",
+      "repos": [
+        {
+          "yum_repos": {
+            "fedora-19-i686": "https://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-i686/",
+            "fedora-19-x86_64": "https://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-x86_64/"
+          },
+          "additional_repos": "",
+          "instructions": "",
+          "name": "log4j",
+          "description": "Java logging package"
+        }, {
+          "yum_repos": {
+            "fedora-19-i686": "https://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-i686/",
+            "fedora-19-x86_64": "https://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-x86_64/"
+          },
+          "additional_repos": "",
+          "instructions": "",
+          "name": "xyzzy",
+          "description": "Java logging package"
+        }, {
+          "yum_repos": {
+            "fedora-19-i686": "https://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-i686/",
+            "fedora-19-x86_64": "https://copr-be.cloud.fedoraproject.org/results/jdaniels/log4j/fedora-19-x86_64/"
+          },
+          "additional_repos": "",
+          "instructions": "",
+          "name": "my-fancy-repo",
+          "description": "Java logging package"
+        }
+      ]
+    }
