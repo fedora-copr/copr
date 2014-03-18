@@ -54,6 +54,23 @@ def localized_time(time_in, timezone):
     return dt_my_tz.strftime(format_tz)
 
 
+@app.template_filter('time_ago')
+def time_ago(time_in):
+    """ returns string saying how long ago the time on input was
+
+    Input is in EPOCH (seconds since epoch).
+    """
+    now = datetime.datetime.now()
+    diff = now - datetime.datetime.fromtimestamp(time_in)
+    secdiff = diff.seconds
+    if secdiff < 120:
+        return "1 minute"
+    elif secdiff < 7200:
+        return str(secdiff/60) + " minutes"
+    else:
+        return str(secdiff/3600) + "hours"
+
+
 @app.template_filter("markdown")
 def markdown_filter(data):
     if not data:

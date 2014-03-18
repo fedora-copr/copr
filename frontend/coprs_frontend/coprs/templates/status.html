@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %} Copr status {% endblock %}
+{% block header %} Copr status {% endblock %}
+{% block body %}
+<h1>{%if number == 0:%}
+        No tasks
+    {%elif number == 1:%}
+        {{number}} task
+    {%else%}
+        {{number}} tasks
+    {%endif%}
+    in queue
+</h1>
+
+    </h2>
+<table class="status-table">
+    <tr>
+        <th>Waiting</th>
+        <th>Project</th>
+        <th>Packages</th>
+        <th>Chroot</th>
+    </tr>
+    {% for build in builds %}
+        <tr>
+            <th>{{ build.time | time_ago }}</th>
+            <th><a href="{{ url_for('coprs_ns.copr_detail', username = build.owner, coprname = build.copr) }}">{{build.owner}}/{{build.copr}}</a></th>
+            <th>{%for pkg in build.pkgs[0:2]:%}{{pkg}}<br>{%endfor%}
+                {%if build.pkgs|length > 2:%}
+                ...{{build.pkgs|length}} more
+                {%endif%}
+            </th>
+            <th>{{ build.chroot }}</th>
+        </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
