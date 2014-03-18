@@ -285,6 +285,23 @@ table.builds-table tr.details {
   display: none;
 }
 
+table.status-table {
+  width: 100%;
+}
+
+table.status-table tr:nth-child(odd) {
+  background-color: #ccc;
+}       
+            
+table.status-table tr:nth-child(even) {
+  background-color: #eee;
+}           
+        
+table.status-table tr:first-child {
+  color: #fff;
+  background-color: #1f4b89;
+}
+
 tr.build-state:hover {
   text-decoration: underline;
   background-color: #E6E6E6;
