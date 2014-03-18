@@ -2,7 +2,7 @@
 *.pyo
 *.swp
 data/
-dist/
+cli/dist/
 build/
 *.egg-info
 documentation/build
