@@ -1,0 +1,28 @@
+copr-selinux-enable(8)
+=====================
+:man source:  copr
+:man manual:  COPR
+
+NAME
+----
+
+copr-selinux-enable - enable Copr SELinux policy
+
+SYNOPSIS
+--------
+
+copr-selinux-enable
+
+DESCRIPTION
+-----------
+
+The *copr-selinux-enable* program will install and enable the Copr
+SELinux module and set the required SELinux flags.
+
+The program is called by an rpm post script and it
+is not usually required to run it manually.
+
+SEE ALSO
+--------
+
+copr-selinux-relabel(8)
