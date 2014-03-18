@@ -13,7 +13,7 @@ BUILD_DIR := build
 EPYDOC_BIN := `which epydoc`
 EPYDOC_SWITCHES := --inheritance listed --graph all --html
 PYTHON_DOC_DIR := python-doc
-PYTHON_DIRS := ../backend ../copr_cli ../coprs_frontend 
+PYTHON_DIRS := ../copr_cli 
 
 # TARGETS
 # schema is not incldued here, since you need a live db

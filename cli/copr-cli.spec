@@ -3,20 +3,18 @@
 %global __python2 %{__python}
 %endif
 
-Name:       copr
+Name:       copr-cli
 Version:    1.28
 Release:    1%{?dist}
-Summary:    Cool Other Package Repo
+Summary:    Command line interface for COPR
 
 Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://fedorahosted.org/copr/
 # Source is created by
 # git clone https://git.fedorahosted.org/git/copr.git
-# cd copr
+# cd copr/cli
 # tito build --tgz
-# content is same as https://git.fedorahosted.org/cgit/copr.git/snapshot/%{name}-%{version}-1.tar.gz
-# but checksum does not match due different metadata
 Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
@@ -26,9 +24,6 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python2-devel
-%if %{with_server}
-BuildRequires: systemd
-%endif
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -37,22 +32,13 @@ BuildRequires: epydoc
 BuildRequires: graphviz
 BuildRequires: make
 
-%description
-COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latest builds.
-
-%package cli
-Summary:    Command line interface for COPR
 Requires:   python-requests
 Requires:   python-setuptools
-%if 0%{?rhel} < 6 && 0%{?rhel} > 0
-Group:      Applications/Productivity
-%endif
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
 %endif
 
-%description cli
+%description
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
@@ -85,8 +71,7 @@ make %{?_smp_mflags} python
 popd
 
 %install
-
-#copr-cli
+install -d %{buildroot}%{_pkgdocdir}/
 %{__python2} coprcli-setup.py install --root %{buildroot}
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
@@ -94,9 +79,7 @@ install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 #doc
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 
-
-
-%files cli
+%files
 %doc LICENSE README.rst
 %{_bindir}/copr-cli
 %{python_sitelib}/*

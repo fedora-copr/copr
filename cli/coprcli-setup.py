@@ -4,10 +4,12 @@ from setuptools import setup
 
 import sys
 
-f = open('README')
-long_description = f.read().strip()
-f.close()
+long_description = """Copr is designed to be a lightweight buildsystem that allows contributors
+to create packages, put them in repositories, and make it easy for users
+to install the packages onto their system. Within the Fedora Project it
+is used to allow packagers to create third party repositories.
 
+This part is a command line interface to use copr."""
 
 from copr_cli.main import __description__, __version__
 
