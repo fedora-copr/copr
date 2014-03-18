@@ -110,7 +110,7 @@ cp -a tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 # for ghost files
 touch %{buildroot}%{_var}/log/copr/copr.log
 for i in `seq 7`; do
-	touch %{buildroot}%{_var}/log/copr/workers/worker-$i.log
+    touch %{buildroot}%{_var}/log/copr/workers/worker-$i.log
 done
 touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 
