@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.28
+Version:    1.29
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -90,6 +90,9 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 
 
 %changelog
+* Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
+- move copr-cli in standalone package
+
 * Thu Feb 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.28-1
 - [backend] - pass lock to Actions
 
