@@ -166,6 +166,8 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 
 %files doc
 %doc %{_pkgdocdir}/python-doc
+%exclude %{_pkgdocdir}/lighttpd
+%exclude %{_pkgdocdir}/playbooks
 
 %changelog
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
