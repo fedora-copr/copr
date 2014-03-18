@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.29
+Version:    1.30
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -170,6 +170,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
+- [backend] exclude files which are part of main package
+- copr-backend.src:113: W: mixed-use-of-spaces-and-tabs (spaces: line 5, tab:
+  line 113)
+
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
 - move backend into separate package
 
