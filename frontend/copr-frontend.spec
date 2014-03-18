@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.28
+Version:    1.29
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -159,6 +159,9 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
+- move frontend to standalone package
+
 * Thu Feb 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.28-1
 - [backend] - pass lock to Actions
 
