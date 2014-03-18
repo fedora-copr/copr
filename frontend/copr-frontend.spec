@@ -102,6 +102,7 @@ popd
 %install
 
 install -d %{buildroot}%{_sysconfdir}/copr
+install -d %{buildroot}%{_pkgdocdir}
 install -d %{buildroot}%{_datadir}/copr/coprs_frontend
 install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store
 install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/associations
