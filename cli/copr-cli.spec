@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.29
+Version:    1.30
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -96,6 +96,12 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %endif
 
 %changelog
+* Wed Mar 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
+- BR make is not needed
+- build -doc subpackage only for fedoras
+- add LICENSE to -doc
+- replace 'copr' with 'project'
+
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
 - move copr-cli in standalone package
 
