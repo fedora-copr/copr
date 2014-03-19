@@ -30,7 +30,6 @@ BuildRequires: python-argparse
 #for doc package
 BuildRequires: epydoc
 BuildRequires: graphviz
-BuildRequires: make
 
 Requires:   python-requests
 Requires:   python-setuptools
