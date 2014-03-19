@@ -445,8 +445,9 @@ def copr_legal_flag(username, coprname):
                                         coprname=coprname))
 
 
-@coprs_ns.route("/<username>/<coprname>/repo/<chroot>/")
-def generate_repo_file(username, coprname, chroot):
+@coprs_ns.route("/<username>/<coprname>/repo/<chroot>/", defaults={"repofile": None})
+@coprs_ns.route("/<username>/<coprname>/repo/<chroot>/<repofile>")
+def generate_repo_file(username, coprname, chroot, repofile):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
     # This solution is used because flask splits off the last part after a
@@ -454,6 +455,12 @@ def generate_repo_file(username, coprname, chroot):
     # FAS usernames may not contain dashes, so this construction is safe.
 
     reponame = "{0}-{1}".format(username, coprname)
+
+    if repofile is not None and repofile != username + '-' + coprname + '-' + chroot + '.repo':
+        return page_not_found(
+            "Repository filename does not match expected: {0}"
+            .format(repofile))
+
 
     if "-" not in reponame:
         return page_not_found(

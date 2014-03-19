@@ -51,8 +51,9 @@
         'coprs_ns.generate_repo_file',
         username=copr.owner.name,
         coprname=copr.name,
-        chroot=mock_chroot.name) }}">
-          {{ copr.owner.name }}-{{ copr.name }}.repo</a></td>
+        chroot=mock_chroot.name,
+        repofile=copr.owner.name+'-'+copr.name+'-'+mock_chroot.name+'.repo') }}">
+          {{ copr.owner.name }}-{{ copr.name }}-{{mock_chroot.name}}.repo</a></td>
         {% else %}
           <td></td>
         {% endif %}
