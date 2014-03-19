@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.29
+Version:    1.30
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -160,6 +160,12 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Wed Mar 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
+- Fix typo in API doc HTML
+- white background
+- status page
+- create _pkgdocdir
+
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
 - move frontend to standalone package
 
