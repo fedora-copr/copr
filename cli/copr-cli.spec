@@ -44,6 +44,7 @@ and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains command line interface.
 
+%if 0%{?fedora}
 %package doc
 Summary:    Code documentation for COPR
 
@@ -53,7 +54,7 @@ and submit new builds and COPR will create yum repository from latests builds.
 
 This package include documentation for COPR code. Mostly useful for developers
 only.
-
+%endif
 
 %prep
 %setup -q
@@ -65,10 +66,12 @@ mv copr_cli/README.rst ./
 # convert manages
 a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 
+%if 0%{?fedora}
 # build documentation
 pushd documentation
 make %{?_smp_mflags} python
 popd
+%endif
 
 %install
 install -d %{buildroot}%{_pkgdocdir}/
@@ -77,7 +80,9 @@ install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 
 #doc
+%if 0%{?fedora}
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
+%endif
 
 %files
 %doc LICENSE README.rst
@@ -85,10 +90,11 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %{python_sitelib}/*
 %{_mandir}/man1/copr-cli.1*
 
+%if 0%{?fedora}
 %files doc
 %doc LICENSE
 %doc %{_pkgdocdir}/python-doc
-
+%endif
 
 %changelog
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
