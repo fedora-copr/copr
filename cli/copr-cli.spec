@@ -86,6 +86,7 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %{_mandir}/man1/copr-cli.1*
 
 %files doc
+%doc LICENSE
 %doc %{_pkgdocdir}/python-doc
 
 
