@@ -404,7 +404,7 @@ def api_coprs_search_by_project(project=None):
             flask.g.user, project)
 
         repos = query.all()
-        output = {"output": "ok", "users": []}
+        output = {"output": "ok", "repos": []}
         for repo in repos:
             output["repos"].append({"username": repo.owner,
                                     "coprname": repo.name,
