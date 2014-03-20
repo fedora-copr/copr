@@ -118,10 +118,13 @@ def copr_new(username):
         flask.flash("New project was successfully created.")
 
         if form.initial_pkgs.data:
-            builds_logic.BuildsLogic.add(
-                flask.g.user,
-                pkgs=form.initial_pkgs.data.replace("\n", " "),
-                copr=copr)
+            # we need to build each package separately now
+            pkgs = form.initial_pkgs.data.replace("\n", " ").split(" ")
+            for pkg in pkgs:
+                builds_logic.BuildsLogic.add(
+                    flask.g.user,
+                    pkgs=pkg,
+                    copr=copr)
 
             db.session.commit()
             flask.flash("Initial packages were successfully submitted "

@@ -82,10 +82,12 @@ def api_new_copr(username):
             infos.append("New project was successfully created.")
 
             if form.initial_pkgs.data:
-                builds_logic.BuildsLogic.add(
-                    user=flask.g.user,
-                    pkgs=" ".join(form.initial_pkgs.data.split()),
-                    copr=copr)
+                pkgs = form.initial_pkgs.data.split()
+                for pkg in pkgs:
+                    builds_logic.BuildsLogic.add(
+                        user=flask.g.user,
+                        pkgs=pkg,
+                        copr=copr)
 
                 infos.append("Initial packages were successfully "
                              "submitted for building.")
@@ -208,19 +210,25 @@ def copr_new_build(username, coprname):
     else:
         if form.validate_on_submit() and flask.g.user.can_build_in(copr):
             # we're checking authorization above for now
-            build = builds_logic.BuildsLogic.add(
-                user=flask.g.user,
-                pkgs=form.pkgs.data.replace('\n', ' '),
-                copr=copr)
+            # and also creating separate build for each package
+            pkgs=form.pkgs.data.replace('\n', ' ').split(" ")
+            ids = []
+            for pkg in pkgs:
+                build = builds_logic.BuildsLogic.add(
+                    user=flask.g.user,
+                    pkgs=pkg,
+                    copr=copr)
 
-            if flask.g.user.proven:
-                build.memory_reqs = form.memory_reqs.data
-                build.timeout = form.timeout.data
+                if flask.g.user.proven:
+                    build.memory_reqs = form.memory_reqs.data
+                    build.timeout = form.timeout.data
 
-            db.session.commit()
+                db.session.commit()
+                ids.append(build.id)
+
 
             output = {"output": "ok",
-                      "id": build.id,
+                      "ids": ids,
                       "message": "Build was added to {0}.".format(coprname)}
         else:
             output = {"output": "notok", "error": "Invalid request"}

@@ -63,13 +63,13 @@ def copr_new_build(username, coprname):
 
     if form.validate_on_submit():
         try:
-            build = builds_logic.BuildsLogic.add(user=flask.g.user,
-                                                 pkgs=form.pkgs.data.replace(
-                                                     "\n", " "),
-                                                 copr=copr)
-            if flask.g.user.proven:
-                build.memory_reqs = form.memory_reqs.data
-                build.timeout = form.timeout.data
+            pkgs = pkgs=form.pkgs.data.replace("\n", " ").split(" ")
+            for pkg in pkgs:
+                build = builds_logic.BuildsLogic.add(user=flask.g.user,
+                                                     pkgs=pkg, copr=copr)
+                if flask.g.user.proven:
+                    build.memory_reqs = form.memory_reqs.data
+                    build.timeout = form.timeout.data
 
         except (ActionInProgressException, InsufficientRightsException) as e:
             flask.flash(str(e))

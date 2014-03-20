@@ -236,29 +236,35 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None):
         print(output["message"])
 
     if wait:
-        print("Build ID: {0}".format(output["id"]))
-        print("Watching build (this may be safely interrupted)...")
-        prevstatus = None
-        if result is not None:
-            result['id'] = output["id"]
+        print("{0} builds were added.".format(len(output["ids"])))
+        print("Watching builds (this may be safely interrupted)...")
+        prevstatus = {}
+        for id in output["ids"]:
+            prevstatus[id] = None
+            if result is not None:
+                result[id] = {}
         try:
             while True:
-                (ret, status) = _fetch_status(output["id"])
-                if not ret:
-                    errmsg = "Unable to get build status: {0}".format(status)
-                    print errmsg
-                    if result is not None:
-                        result['errmsg'] = errmsg
-                    return False
+                for id in output["ids"]:
+                    (ret, status) = _fetch_status(id)
+                    if not ret:
+                        errmsg = "Build {1}: Unable to get build status: {0}".format(status,id)
+                        print errmsg
+                        if result is not None:
+                            result[id]['errmsg'] = errmsg
+                        return False
 
-                now = datetime.datetime.now()
-                if prevstatus != status:
-                    print("{0} {1}".format(now.strftime("%H:%M:%S"), status))
-                    prevstatus = status
+                    now = datetime.datetime.now()
+                    if prevstatus[id] != status:
+                        print("{0} Build {2}: {1}".format(now.strftime("%H:%M:%S"), status, id))
+                        prevstatus[id] = status
 
-                if status in ["succeeded", "failed"]:
-                    if result is not None:
-                        result['status'] = status
+                    if status in ["succeeded", "failed"]:
+                        if result is not None:
+                            result[id]['status'] = status
+                        output["ids"].remove(id)
+
+                if not output["ids"]:
                     return True
 
                 time.sleep(60)
