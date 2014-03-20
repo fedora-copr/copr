@@ -6,8 +6,8 @@
     WSGIScriptAlias / /usr/share/copr/coprs_frontend/application
     WSGIProcessGroup 127.0.0.1
 
-    ErrorLog logs/error_coprs
-    CustomLog logs/access_coprs common
+    #ErrorLog logs/error_log
+    #CustomLog logs/access_log common
 
     <Directory /usr/share/copr>
         WSGIApplicationGroup %{GLOBAL}
