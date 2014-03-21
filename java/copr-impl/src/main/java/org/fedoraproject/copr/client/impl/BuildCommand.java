@@ -39,7 +39,7 @@ public class BuildCommand
     @Override
     protected String getCommandUrl()
     {
-        return "/api/copr/" + request.getUserName() + "/" + request.getProjectName() + "/new_build/";
+        return "/api/coprs/" + request.getUserName() + "/" + request.getProjectName() + "/new_build/";
     }
 
     @Override

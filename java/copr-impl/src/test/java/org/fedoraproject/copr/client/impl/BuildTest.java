@@ -36,7 +36,7 @@ public class BuildTest
     public void testBuild()
         throws Exception
     {
-        expect( mock.post( "/api/copr/john/toy/new_build/" ) ).andReturn( "build1" );
+        expect( mock.post( "/api/coprs/john/toy/new_build/" ) ).andReturn( "build1" );
         replay( mock );
 
         BuildRequest request = new BuildRequest( "john", "toy" );
@@ -54,7 +54,7 @@ public class BuildTest
     public void testBuildFail()
         throws Exception
     {
-        expect( mock.post( "/api/copr/john/toy/new_build/" ) ).andReturn( "fail" );
+        expect( mock.post( "/api/coprs/john/toy/new_build/" ) ).andReturn( "fail" );
         replay( mock );
 
         BuildRequest request = new BuildRequest( "john", "toy" );
