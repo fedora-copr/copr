@@ -17,7 +17,7 @@ def status_home():
             build_dict = {
                 'chroot' : chroot.name,
                 'time' : build.submitted_on,
-                'owner' : build.user.name,
+                'owner' : build.copr.owner.name,
                 'pkgs' : pkgs,
                 'copr' : build.copr.name}
             builds_list.append(build_dict)
