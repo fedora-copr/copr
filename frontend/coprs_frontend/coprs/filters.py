@@ -62,13 +62,13 @@ def time_ago(time_in):
     """
     now = datetime.datetime.now()
     diff = now - datetime.datetime.fromtimestamp(time_in)
-    secdiff = diff.seconds
+    secdiff = int(diff.total_seconds())
     if secdiff < 120:
         return "1 minute"
     elif secdiff < 7200:
         return str(secdiff/60) + " minutes"
     else:
-        return str(secdiff/3600) + "hours"
+        return str(secdiff/3600) + " hours"
 
 
 @app.template_filter("markdown")
