@@ -46,6 +46,11 @@ public abstract class RpcTest
         return mock;
     }
 
+    protected CoprConfiguration getConfiguration()
+    {
+        return new CoprConfiguration();
+    }
+
     @Before
     public void setUp()
         throws Exception
@@ -57,7 +62,7 @@ public abstract class RpcTest
         InetSocketAddress address = server.getServiceAddress();
         url = "http://" + address.getHostName() + ":" + address.getPort();
 
-        CoprConfiguration configuration = new CoprConfiguration();
+        CoprConfiguration configuration = getConfiguration();
         configuration.setUrl( url );
 
         CoprService copr = new DefaultCoprService();

@@ -21,10 +21,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -49,6 +52,11 @@ public abstract class RpcCommand<T>
     protected abstract Map<String, String> getExtraArguments();
 
     protected abstract T parseResponse( JsonObject response );
+
+    protected boolean requiresAuthentication()
+    {
+        return false;
+    }
 
     public T execute( DefaultCoprSession session )
         throws CoprException
@@ -78,6 +86,23 @@ public abstract class RpcCommand<T>
                     nameValuePairs.add( new BasicNameValuePair( entry.getKey(), entry.getValue() ) );
                 }
                 post.setEntity( new UrlEncodedFormEntity( nameValuePairs ) );
+            }
+
+            if ( requiresAuthentication() )
+            {
+                String login = session.getConfiguration().getLogin();
+                if ( login == null || login.isEmpty() )
+                    throw new CoprException( "Authentification is required to perform this command "
+                        + "but no login was provided in configuration" );
+
+                String token = session.getConfiguration().getToken();
+                if ( token == null || token.isEmpty() )
+                    throw new CoprException( "Authentification is required to perform this command "
+                        + "but no login was provided in configuration" );
+
+                String auth = login + ":" + token;
+                String encodedAuth = DatatypeConverter.printBase64Binary( auth.getBytes( StandardCharsets.UTF_8 ) );
+                request.setHeader( "Authorization", "Basic " + encodedAuth );
             }
 
             request.addHeader( "Accept", APPLICATION_JSON.getMimeType() );

@@ -37,6 +37,12 @@ public class BuildCommand
     }
 
     @Override
+    protected boolean requiresAuthentication()
+    {
+        return true;
+    }
+
+    @Override
     protected String getCommandUrl()
     {
         return "/api/coprs/" + request.getUserName() + "/" + request.getProjectName() + "/new_build/";

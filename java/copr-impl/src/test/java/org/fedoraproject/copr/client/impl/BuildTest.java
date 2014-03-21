@@ -24,6 +24,7 @@ import static org.junit.Assert.fail;
 import org.easymock.EasyMockRunner;
 import org.fedoraproject.copr.client.BuildRequest;
 import org.fedoraproject.copr.client.BuildResult;
+import org.fedoraproject.copr.client.CoprConfiguration;
 import org.fedoraproject.copr.client.CoprException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,17 @@ import org.junit.runner.RunWith;
 public class BuildTest
     extends RpcTest
 {
+    @Override
+    protected CoprConfiguration getConfiguration()
+    {
+        CoprConfiguration config = super.getConfiguration();
+
+        config.setLogin( "test-login" );
+        config.setToken( "p4s5w0rd" );
+
+        return config;
+    }
+
     @Test
     public void testBuild()
         throws Exception
