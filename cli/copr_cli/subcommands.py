@@ -259,7 +259,7 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None):
                         print("{0} Build {2}: {1}".format(now.strftime("%H:%M:%S"), status, id))
                         prevstatus[id] = status
 
-                    if status in ["succeeded", "failed"]:
+                    if status in ["succeeded", "failed", "canceled"]:
                         if result is not None:
                             result[id]['status'] = status
                         output["ids"].remove(id)
