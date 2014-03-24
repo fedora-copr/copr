@@ -414,7 +414,7 @@ def api_coprs_search_by_project(project=None):
         repos = query.all()
         output = {"output": "ok", "repos": []}
         for repo in repos:
-            output["repos"].append({"username": repo.owner,
+            output["repos"].append({"username": repo.owner.name,
                                     "coprname": repo.name,
                                     "description": repo.description})
     else:
