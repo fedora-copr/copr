@@ -263,6 +263,12 @@ def copr_permissions_applier_change(username, coprname):
         flask.flash("Owner cannot request permissions for his own project.")
     elif applier_permissions_form.validate_on_submit():
         # we rely on these to be 0 or 1 from form. TODO: abstract from that
+        if permission is not None:
+            old_builder = permission.copr_builder
+            old_admin = permission.copr_admin
+        else:
+            old_builder = 0
+            old_admin = 0
         new_builder = applier_permissions_form.copr_builder.data
         new_admin = applier_permissions_form.copr_admin.data
         coprs_logic.CoprPermissionsLogic.update_permissions_by_applier(
@@ -271,6 +277,30 @@ def copr_permissions_applier_change(username, coprname):
         flask.flash(
             "Successfuly updated permissions for project '{0}'."
             .format(copr.name))
+        admin_mails = [copr.owner.mail]
+        for perm in copr.copr_permissions:
+            # this 2 means that his status (admin) is approved
+            if perm.copr_admin == 2:
+                admin_mails.append(perm.user.mail)
+
+        # sending emails
+        if flask.current_app.config["SEND_EMAILS"]:
+            for mail in admin_mails:
+                msg = MIMEText("{6} is asking for these permissions:\n\n"
+                               "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
+                               "Project: {4}\nOwner: {5}".format(
+                                        helpers.PermissionEnum(old_builder),
+                                        helpers.PermissionEnum(new_builder),
+                                        helpers.PermissionEnum(old_admin),
+                                        helpers.PermissionEnum(new_admin),
+                                        copr.name, copr.owner.name, flask.g.user.name), "plain")
+                msg["Subject"] = "[Copr] {0}: {1} is asking permissons".format(copr.name, flask.g.user.name)
+                msg["From"] = "root@{0}".format(platform.node())
+                msg["To"] = perm.user.mail
+                s = smtplib.SMTP("localhost")
+                s.sendmail("root@{0}".format(platform.node()),perm.user.mail , msg.as_string())
+                s.quit()
+
 
     return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                         username=copr.owner.name,
@@ -294,12 +324,32 @@ def copr_update_permissions(username, coprname):
             permissions.sort(
                 cmp=lambda x, y: -1 if y.user_id == flask.g.user.id else 1)
             for perm in permissions:
+                old_builder = perm.copr_builder
+                old_admin = perm.copr_admin
                 new_builder = permissions_form[
                     "copr_builder_{0}".format(perm.user_id)].data
                 new_admin = permissions_form[
                     "copr_admin_{0}".format(perm.user_id)].data
                 coprs_logic.CoprPermissionsLogic.update_permissions(
                     flask.g.user, copr, perm, new_builder, new_admin)
+                if flask.current_app.config["SEND_EMAILS"]:
+                    if old_builder is not new_builder or \
+                       old_admin is not new_admin:
+                        msg = MIMEText("Your permissions have changed:\n\n"
+                                       "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
+                                       "Project: {4}\nOwner: {5}".format(
+                                                helpers.PermissionEnum(old_builder),
+                                                helpers.PermissionEnum(new_builder),
+                                                helpers.PermissionEnum(old_admin),
+                                                helpers.PermissionEnum(new_admin),
+                                                copr.name, copr.owner.name), "plain")
+                        msg["Subject"] = "[Copr] {0}: Your permissions have changed".format(copr.name)
+                        msg["From"] = "root@{0}".format(platform.node())
+                        msg["To"] = perm.user.mail
+                        s = smtplib.SMTP("localhost")
+                        s.sendmail("root@{0}".format(platform.node()),perm.user.mail , msg.as_string())
+                        s.quit()
+
         # for now, we don't check for actions here, as permissions operation
         # don't collide with any actions
         except exceptions.InsufficientRightsException as e:
