@@ -198,7 +198,6 @@ def api_coprs_by_owner_detail(username, coprname):
 @api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
 @api_login_required
 def copr_new_build(username, coprname):
-    form = forms.BuildForm(csrf_enabled=False)
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username,
                                       coprname).first()
     httpcode = 200
@@ -208,16 +207,24 @@ def copr_new_build(username, coprname):
         httpcode = 500
 
     else:
+        form = forms.BuildFormFactory.create_form_cls(
+                    copr.active_chroots)(csrf_enabled=False)
         if form.validate_on_submit() and flask.g.user.can_build_in(copr):
             # we're checking authorization above for now
             # and also creating separate build for each package
             pkgs=form.pkgs.data.replace('\n', ' ').split(" ")
             ids = []
+            chroots = []
+            for chroot in copr.active_chroots:
+                if chroot.name in form.selected_chroots:
+                    chroots.append(chroot)
+
             for pkg in pkgs:
                 build = builds_logic.BuildsLogic.add(
                     user=flask.g.user,
                     pkgs=pkg,
-                    copr=copr)
+                    copr=copr,
+                    chroots=chroots)
 
                 if flask.g.user.proven:
                     build.memory_reqs = form.memory_reqs.data

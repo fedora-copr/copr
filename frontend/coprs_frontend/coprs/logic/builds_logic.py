@@ -68,7 +68,7 @@ class BuildsLogic(object):
 
     @classmethod
     def add(cls, user, pkgs, copr,
-            repos=None, memory_reqs=None, timeout=None):
+            repos=None, memory_reqs=None, timeout=None, chroots=[]):
 
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             user, copr,
@@ -95,9 +95,12 @@ class BuildsLogic(object):
 
         db.session.add(build)
 
-        # add BuildChroot object for each active chroot
+        # add BuildChroot object for each active (or selected) chroot
         # this copr is assigned to
-        for chroot in copr.active_chroots:
+        if not chroots:
+            chroots = copr.active_chroots
+
+        for chroot in chroots:
             buildchroot = models.BuildChroot(
                 build=build,
                 mock_chroot=chroot)

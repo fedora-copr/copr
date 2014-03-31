@@ -45,7 +45,7 @@ def copr_add_build(username, coprname, form=None):
             "Copr with name {0} does not exist.".format(coprname))
 
     if not form:
-        form = forms.BuildForm()
+        form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
 
     return flask.render_template("coprs/detail/add_build.html",
                                  copr=copr,
@@ -55,18 +55,28 @@ def copr_add_build(username, coprname, form=None):
 @coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
 @login_required
 def copr_new_build(username, coprname):
-    form = forms.BuildForm()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     if not copr:
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))
 
+    form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
+
     if form.validate_on_submit():
         try:
             pkgs = pkgs=form.pkgs.data.replace("\n", " ").split(" ")
+            chroots = []
+            for chroot in copr.active_chroots:
+                if chroot.name in form.selected_chroots:
+                    chroots.append(chroot)
+
             for pkg in pkgs:
-                build = builds_logic.BuildsLogic.add(user=flask.g.user,
-                                                     pkgs=pkg, copr=copr)
+                build = builds_logic.BuildsLogic.add(
+                    user=flask.g.user,
+                    pkgs=pkg,
+                    copr=copr,
+                    chroots = chroots)
+
                 if flask.g.user.proven:
                     build.memory_reqs = form.memory_reqs.data
                     build.timeout = form.timeout.data

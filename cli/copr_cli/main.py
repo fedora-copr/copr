@@ -19,7 +19,7 @@ def action_build(args):
 
     """
     subcommands.build(args.copr, args.pkgs,
-                      args.memory, args.timeout, not args.nowait)
+                      args.memory, args.timeout, not args.nowait, chroots=args.chroots)
 
 
 def action_create(args):
@@ -106,6 +106,8 @@ def setup_parser():
                               )
     parser_build.add_argument("pkgs", nargs="+",
                               help="URL of packages to build")
+    parser_build.add_argument("--chroot", dest="chroots", action="append",
+                               help="If you don't need this build for all the project's chroots - you can use it several times for each chroot.")
     parser_build.add_argument("--memory", dest="memory",
                               help="")
     parser_build.add_argument("--timeout", dest="timeout",

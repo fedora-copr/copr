@@ -242,6 +242,12 @@ dt.field-label {
   font-weight: bold;
 }
 
+dl.field-label-help {
+  margin-top: -15px;
+  margin-bottom: 15px;
+  color: #777;
+}
+
 input.rounded {
   padding-left: 4px;
   border-radius: 10px;
