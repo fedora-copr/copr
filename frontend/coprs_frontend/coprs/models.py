@@ -120,7 +120,7 @@ class User(db.Model, helpers.Serializer):
         """
 
         try:
-            return libravatar_url(email=self.mail)
+            return libravatar_url(email=self.mail, https=True)
         except IOError:
             return ""
 
