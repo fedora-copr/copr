@@ -242,7 +242,7 @@ dt.field-label {
   font-weight: bold;
 }
 
-dl.field-label-help {
+dd.field-label-help {
   margin-top: -15px;
   margin-bottom: 15px;
   color: #777;

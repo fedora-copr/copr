@@ -73,8 +73,11 @@ Instructions for the project.
 `copr-cli build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-usage: copr-cli build [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+usage: copr-cli build [-h] [-r CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       project pkg_url [pkg_url ...]
+
+-r --chroot::
+If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.
 
 --memory::
 Override memory for this build

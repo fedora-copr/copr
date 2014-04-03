@@ -200,7 +200,7 @@ def cancel(build_id):
     else:
         return (False, output["error"])
 
-def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=[]):
+def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=None):
     """ Build a new package into a given copr.
 
     Result is dictionary where is returned "errmsg" in case of error.
@@ -226,7 +226,7 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=[]):
             "timeout": timeout
             }
 
-    if chroots:
+    if chroots is not None:
         for chroot in chroots:
             data[chroot] = "y"
 
