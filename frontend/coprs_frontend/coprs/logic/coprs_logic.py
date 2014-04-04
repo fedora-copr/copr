@@ -17,17 +17,24 @@ class CoprsLogic(object):
     """
 
     @classmethod
+    def get_all(cls):
+        """ Return all coprs without those which are deleted. """
+        query = (db.session.query(models.Copr)
+                 .join(models.Copr.owner)
+                 .options(db.contains_eager(models.Copr.owner))
+                 .filter(models.Copr.deleted == False))
+        return query
+
+    @classmethod
     def get(cls, user, username, coprname, **kwargs):
         with_builds = kwargs.get("with_builds", False)
         with_mock_chroots = kwargs.get("with_mock_chroots", False)
 
-        query = (db.session.query(models.Copr)
-                 .join(models.Copr.owner)
-                 .options(db.contains_eager(models.Copr.owner))
+        query = (cls.get_all()
                  .filter(models.Copr.name == coprname)
                  .filter(models.User.openid_name ==
                          models.User.openidize_name(username))
-                 .filter(models.Copr.deleted == False))
+                 )
 
         if with_builds:
             query = (query.outerjoin(models.Copr.builds)
@@ -90,6 +97,10 @@ class CoprsLogic(object):
                      .order_by(models.Build.submitted_on.desc()))
 
         return query
+
+    @classmethod
+    def get_playground(cls):
+        return cls.get_all().filter(models.Copr.playground == True)
 
     @classmethod
     def get_multiple_fulltext(cls, user, search_string):

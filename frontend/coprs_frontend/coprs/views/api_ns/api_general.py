@@ -431,3 +431,17 @@ def api_coprs_search_by_project(project=None):
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
+
+@api_ns.route("/playground/list/")
+def playground_list():
+    """ Return list of coprs which are part of playground """
+    query = coprs_logic.CoprsLogic.get_playground()
+    repos = query.all()
+    output = {"output": "ok", "repos": []}
+    for repo in repos:
+        output["repos"].append({"username": repo.owner.name,
+                                "coprname": repo.name})
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = 200
+    return jsonout
