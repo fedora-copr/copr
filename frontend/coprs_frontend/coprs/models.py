@@ -143,6 +143,7 @@ class Copr(db.Model, helpers.Serializer):
     description = db.Column(db.Text)
     instructions = db.Column(db.Text)
     deleted = db.Column(db.Boolean, default=False)
+    playground = db.Column(db.Boolean, default=False)
 
     # relations
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
