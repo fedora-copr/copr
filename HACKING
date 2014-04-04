@@ -1,0 +1,8 @@
+
+* when you change models and you need to generate alembic upgrade file:
+  cd /usr/share/copr
+  alembic --revision --autogenerate -m "describe the change"
+
+* upgrade schema:
+  cd /usr/share/copr
+  alembic upgrade head
