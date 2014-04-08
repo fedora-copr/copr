@@ -68,7 +68,15 @@ def api_new_copr(username):
 
     form = forms.CoprFormFactory.create_form_cls()(csrf_enabled=False)
     httpcode = 200
-    if form.validate_on_submit():
+
+    # are there any arguments in POST which our form doesn't know?
+    if sum([1 for post_key in flask.request.form.keys() \
+                if post_key not in form.__dict__.keys()]):
+        output = {"output": "notok", "error":
+                "Unknown arguments passed (non-existing chroot probably)"}
+        httpcode = 500
+
+    elif form.validate_on_submit():
         infos = []
         try:
             copr = coprs_logic.CoprsLogic.add(
@@ -209,7 +217,15 @@ def copr_new_build(username, coprname):
     else:
         form = forms.BuildFormFactory.create_form_cls(
                     copr.active_chroots)(csrf_enabled=False)
-        if form.validate_on_submit() and flask.g.user.can_build_in(copr):
+
+        # are there any arguments in POST which our form doesn't know?
+        if sum([1 for post_key in flask.request.form.keys() \
+                    if post_key not in form.__dict__.keys()]):
+            output = {"output": "notok", "error":
+                    "Unknown arguments passed (non-existing chroot probably)"}
+            httpcode = 500
+
+        elif form.validate_on_submit() and flask.g.user.can_build_in(copr):
             # we're checking authorization above for now
             # and also creating separate build for each package
             pkgs=form.pkgs.data.replace('\n', ' ').split(" ")
