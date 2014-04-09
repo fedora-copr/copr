@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.31
+Version:    1.32
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -170,6 +170,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Apr 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.32-1
+- include ec2rc in service unit file
+
 * Wed Apr 09 2014 Miroslav Suchý <msuchy@redhat.com> 1.31-1
 - 1077791 - set perm of cronfile to 755
 - 1077791 - add LICENSE to -doc subpackage
