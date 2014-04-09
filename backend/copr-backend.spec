@@ -100,7 +100,7 @@ cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a copr-be.py %{buildroot}%{_datadir}/copr/
 cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 install -p -m 755 copr-prune-repo %{buildroot}%{_sbindir}/copr-prune-repo
-install -p -m 750 crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
+install -p -m 755 crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
 
 cp -a dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
 cp -a logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
