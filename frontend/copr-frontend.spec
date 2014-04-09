@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.30
+Version:    1.31
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -160,6 +160,25 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Wed Apr 09 2014 Miroslav Suchý <msuchy@redhat.com> 1.31-1
+- validate chroots in POST requests with API
+- add /playground/list/ api call
+- add playground column to copr table
+- Make repo urls nicer so that last part matches filename
+- fixes and documentation for 66287cc8
+- use https for gravatar urls
+- We can choose chroots for new builds
+- [frontend] delete all builds with their project
+- [frontend] config comments
+- [frontend] sending emails when perms change
+- [frontend] typo s/Coper/Copr/
+- api: fix coprs.models.User usage in search
+- status page fix: long time
+- status page fix: project's owner
+- building pkgs separately
+- [frontend] let apache log in default location
+- api: fix KeyError in search
+
 * Wed Mar 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
 - Fix typo in API doc HTML
 - white background
