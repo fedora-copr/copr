@@ -164,6 +164,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %{_datadir}/copr/copr-be.py*
 
 %files doc
+%doc LICENSE
 %doc %{_pkgdocdir}/python-doc
 %exclude %{_pkgdocdir}/lighttpd
 %exclude %{_pkgdocdir}/playbooks
