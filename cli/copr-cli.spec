@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.30
+Version:    1.31
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -96,6 +96,11 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %endif
 
 %changelog
+* Thu Apr 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.31-1
+- We can choose chroots for new builds
+- copr-cli waiting fix
+- building pkgs separately
+
 * Wed Mar 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
 - BR make is not needed
 - build -doc subpackage only for fedoras
