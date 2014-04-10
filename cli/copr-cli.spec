@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.31
+Version:    1.32
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -96,6 +96,9 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %endif
 
 %changelog
+* Thu Apr 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.32-1
+- be less strict in parsing fas/copr-name
+
 * Thu Apr 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.31-1
 - We can choose chroots for new builds
 - copr-cli waiting fix
