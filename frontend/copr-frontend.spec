@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.31
+Version:    1.32
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -160,6 +160,9 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Thu Apr 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.32-1
+- send permissions request to admin not to requestee
+
 * Wed Apr 09 2014 Miroslav Suchý <msuchy@redhat.com> 1.31-1
 - validate chroots in POST requests with API
 - add /playground/list/ api call
