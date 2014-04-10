@@ -210,7 +210,7 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=None):
     username = user["username"]
 
     # if you specify copr as username/foo, retrieve and cut username
-    m = re.match(r"(\w+)/(\w+)", copr)
+    m = re.match(r"(.+)/(.+)", copr)
     if m:
         username = m.group(1)
         copr = m.group(2)
