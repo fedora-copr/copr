@@ -296,9 +296,9 @@ def copr_permissions_applier_change(username, coprname):
                                         copr.name, copr.owner.name, flask.g.user.name), "plain")
                 msg["Subject"] = "[Copr] {0}: {1} is asking permissons".format(copr.name, flask.g.user.name)
                 msg["From"] = "root@{0}".format(platform.node())
-                msg["To"] = perm.user.mail
+                msg["To"] = mail
                 s = smtplib.SMTP("localhost")
-                s.sendmail("root@{0}".format(platform.node()),perm.user.mail , msg.as_string())
+                s.sendmail("root@{0}".format(platform.node()), mail , msg.as_string())
                 s.quit()
 
 
