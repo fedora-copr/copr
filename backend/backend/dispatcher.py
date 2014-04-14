@@ -128,10 +128,8 @@ class Worker(multiprocessing.Process):
 
         if ip:
             self.callback.log("creating worker: {0}".format(ip))
-            self.event("worker.create", "creating worker: {ip}", dict(ip=ip))
         else:
             self.callback.log("creating worker: dynamic ip")
-            self.event("worker.create", "creating worker: dynamic ip")
 
     def event(self, topic, template, content=None):
         """ Multi-purpose logging method.
