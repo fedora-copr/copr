@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.32
+Version:    1.33
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -170,6 +170,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Apr 15 2014 Miroslav Suchý <miroslav@suchy.cz> 1.33-1
+- do not publish copr.worker messages
+- better count workers
+
 * Thu Apr 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.32-1
 - include ec2rc in service unit file
 
