@@ -196,6 +196,7 @@ class CoprBackend(object):
         # create job grabber
         self._jobgrab = CoprJobGrab(self.opts, self.events, self.jobs, self.lock)
         self._jobgrab.start()
+        self.worker_num = 0
 
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0750)
@@ -271,9 +272,9 @@ class CoprBackend(object):
                 if len(self.workers) < self.opts.num_workers:
                     self.event("Spinning up more workers for jobs")
                     for _ in range(self.opts.num_workers - len(self.workers)):
-                        worker_num = len(self.workers) + 1
+                        self.worker_num += 1
                         w = Worker(
-                            self.opts, self.jobs, self.events, worker_num,
+                            self.opts, self.jobs, self.events, self.worker_num,
                             lock=self.lock)
                         self.workers.append(w)
                         w.start()
