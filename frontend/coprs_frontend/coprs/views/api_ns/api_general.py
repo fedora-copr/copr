@@ -411,8 +411,13 @@ def copr_chroot_details(username, coprname, chrootname):
         httpcode = 500
     else:
         ch = copr.check_copr_chroot(chroot)
-        output = {'output': 'ok', 'buildroot_pkgs': ch.buildroot_pkgs}
-        httpcode = 200
+        if ch:
+            output = {'output': 'ok', 'buildroot_pkgs': ch.buildroot_pkgs}
+            httpcode = 200
+        else:
+            output = {"output": "notok", "error": "Invalid chroot for this project."}
+            httpcode = 404
+
 
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
