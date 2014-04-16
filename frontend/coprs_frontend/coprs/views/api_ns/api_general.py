@@ -462,7 +462,7 @@ def playground_list():
     for repo in repos:
         output["repos"].append({"username": repo.owner.name,
                                 "coprname": repo.name,
-                                "chroots": repo.active_chroots})
+                                "chroots": [chroot.name for chroot in repo.active_chroots]})
 
     jsonout = flask.jsonify(output)
     jsonout.status_code = 200
