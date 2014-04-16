@@ -284,7 +284,7 @@ def copr_permissions_applier_change(username, coprname):
                 admin_mails.append(perm.user.mail)
 
         # sending emails
-        if flask.current_app.config["SEND_EMAILS"]:
+        if flask.current_app.config.get("SEND_EMAILS", False):
             for mail in admin_mails:
                 msg = MIMEText("{6} is asking for these permissions:\n\n"
                                "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
@@ -332,7 +332,7 @@ def copr_update_permissions(username, coprname):
                     "copr_admin_{0}".format(perm.user_id)].data
                 coprs_logic.CoprPermissionsLogic.update_permissions(
                     flask.g.user, copr, perm, new_builder, new_admin)
-                if flask.current_app.config["SEND_EMAILS"]:
+                if flask.current_app.config.get("SEND_EMAILS", False):
                     if old_builder is not new_builder or \
                        old_admin is not new_admin:
                         msg = MIMEText("Your permissions have changed:\n\n"
