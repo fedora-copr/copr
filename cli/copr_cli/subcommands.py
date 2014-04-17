@@ -20,29 +20,29 @@ import copr_exceptions
 def _get_data(req, user, copr=None):
     """ Wrapper around response from server
 
-    check data and print nice error in case of some error (and return None)
-    otherwise return json object.
+    checks data and raises a CoprCliRequestException with nice error message
+    or CoprCliUnknownResponseException in case of some some error. 
+    Otherwise return json object.
     """
     if "<title>Sign in Coprs</title>" in req.text:
-        sys.stderr.write("Invalid API token\n")
+        raise copr_exceptions.CoprCliRequestException("Invalid API token\n")
         return
 
     if req.status_code == 404:
         if copr is None:
-            sys.stderr.write("User {0} is unknown.\n".format(user["username"]))
+            raise copr_exceptions.CoprCliRequestException(
+                        "User {0} is unknown.\n".format(user["username"]))
         else:
-            sys.stderr.write("Project {0}/{1} not found.\n".format(
-                             (user["username"], copr)))
-        return
+            raise copr_exceptions.CoprCliRequestException(
+                        "Project {0}/{1} not found.\n".format(
+                        user["username"], copr))
     try:
         output = json.loads(req.text)
     except ValueError:
-        sys.stderr.write("Unknown response from server.\n")
-        return
+        raise copr_exceptions.CoprCliUnknownResponseException(
+                    "Unknown response from the server.")
     if req.status_code != 200:
-        sys.stderr.write(
-            "Something went wrong:\n {0}\n".format(output["error"]))
-        return
+        raise copr_exceptions.CoprCliRequestException(output["error"])
     return output
 
 
@@ -131,8 +131,8 @@ def create(name, chroots=[], description=None, instructions=None,
            repos=None, initial_pkgs=None):
     """ Create a new copr. """
     if chroots is None:
-        sys.stderr.write("Error: At least one chroot must be selected\n")
-        sys.exit(1)
+        raise copr_exceptions.CoprCliRequestException(
+                    "At least one chroot must be selected")
 
     user = get_user()
     copr_api_url = get_api_url()

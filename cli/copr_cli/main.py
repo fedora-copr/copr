@@ -144,6 +144,10 @@ def main(argv=sys.argv[1:]):
     except KeyboardInterrupt:
         sys.stderr.write("\nInterrupted by user.")
         sys.exit(1)
+    except copr_exceptions.CoprCliRequestException, e:
+        sys.stderr.write("\nSomething went wrong:")
+        sys.stderr.write("\nError: {0}\n".format(e))
+        sys.exit(1)
     except argparse.ArgumentTypeError, e:
         sys.stderr.write("\nError: {0}".format(e))
         sys.exit(2)
@@ -154,6 +158,9 @@ def main(argv=sys.argv[1:]):
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.stderr.write("Lines in INI file should not be indented.\n")
         sys.exit(4)
+    except copr_exceptions.CoprCliUnknownResponseException, e:
+        sys.stderr.write("\nError: {0}\n".format(e))
+        sys.exit(5)
     # except Exception as e:
         # print "Error: {0}".format(e)
         # sys.exit(100)
