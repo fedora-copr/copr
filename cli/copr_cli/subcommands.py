@@ -191,7 +191,7 @@ def cancel(build_id):
     URL = "{0}/coprs/cancel_build/{1}/".format(
         copr_api_url,
         build_id)
-    req = requests.get(URL, auth=(user["login"], user["token"]))
+    req = requests.post(URL, auth=(user["login"], user["token"]))
     output = _get_data(req, user)
     if output is None:
         return (False, "Error occurred.")

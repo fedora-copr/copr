@@ -320,7 +320,7 @@ def cancel_build(build_id):
         else:
             db.session.commit()
             httpcode = 200
-            output = {'output': 'ok', status: "Build canceled"}
+            output = {'output': 'ok', 'status': "Build canceled"}
     else:
         output = {"output": "notok", "error": "Invalid build"}
         httpcode = 404
