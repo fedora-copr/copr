@@ -1,3 +1,8 @@
+//hide build details
+$(document).ready(function () {
+  $("table.builds-table tr.details").hide();
+});
+
 // showing build details
 $(document).ready(function () {
   $("table.builds-table tr[class^='build-']").each(function (i, e) {
