@@ -48,7 +48,12 @@ class Action(object):
                 self.event("Packages to delete {0}".format(' '.join(packages)))
                 self.event("Copr path {0}".format(path))
 
-                for chroot in os.listdir(path):
+                try:
+                    chroot_list = os.listdir(path)
+                except OSError:
+                    # already deleted
+                    chroot_list = []
+                for chroot in chroot_list:
                     self.event("In chroot {0}".format(chroot))
                     altered = False
 
