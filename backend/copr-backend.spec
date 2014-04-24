@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.33
+Version:    1.34
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -170,6 +170,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Apr 24 2014 Miroslav Suchý <msuchy@redhat.com> 1.34-1
+- if directory does not exist, do not try to delete it
+
 * Tue Apr 15 2014 Miroslav Suchý <miroslav@suchy.cz> 1.33-1
 - do not publish copr.worker messages
 - better count workers
