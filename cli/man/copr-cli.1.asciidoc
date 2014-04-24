@@ -38,7 +38,10 @@ then your projects are listed.
 create::
 Create a new project.
 
-build ::
+delete::
+Delete an entire project.
+
+build::
 Build packages for a specified project.
 
 status::

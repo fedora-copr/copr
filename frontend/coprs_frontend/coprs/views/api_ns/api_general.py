@@ -122,6 +122,40 @@ def api_new_copr(username):
     return jsonout
 
 
+@api_ns.route("/coprs/<username>/<coprname>/delete/", methods=["POST"])
+@api_login_required
+def api_copr_delete(username, coprname):
+    """ Deletes selected user's project
+    """
+    form = forms.CoprDeleteForm(csrf_enabled=False)
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    httpcode = 200
+
+    if form.validate_on_submit() and copr:
+        builds_query = builds_logic.BuildsLogic.get_multiple(
+        flask.g.user, copr=copr)
+        try:
+            for build in builds_query:
+                builds_logic.BuildsLogic.delete_build(flask.g.user, build)
+            coprs_logic.CoprsLogic.delete(flask.g.user, copr)
+        except (exceptions.ActionInProgressException,
+                exceptions.InsufficientRightsException) as err:
+            output = {"output": "notok", "error": err}
+            httpcode = 500
+            db.session.rollback()
+        else:
+            message = "Project {0} has been deleted.".format(coprname)
+            output = {"output": "ok", "message": message}
+            db.session.commit()
+    else:
+        output = {"output": "notok", "error": "Invalid request"}
+        httpcode = 500
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
+
+
 @api_ns.route("/coprs/")
 @api_ns.route("/coprs/<username>/")
 def api_coprs_by_owner(username=None):

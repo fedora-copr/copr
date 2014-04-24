@@ -161,6 +161,26 @@ def create(name, chroots=[], description=None, instructions=None,
         print(output["message"])
 
 
+def delete(copr):
+    """ Delete the entire project.
+    """
+    user = get_user()
+    username = user["username"]
+
+    copr_api_url = get_api_url()
+    URL = "{0}/coprs/{1}/{2}/delete/".format(
+        copr_api_url,
+        username,
+        copr)
+
+    data = {"verify": "yes"}
+
+    req = requests.post(URL,
+                        auth=(user["login"], user["token"]),
+                        data=data)
+    output = _get_data(req, user, copr)
+
+
 def _fetch_status(build_id):
     user = get_user()
     copr_api_url = get_api_url()

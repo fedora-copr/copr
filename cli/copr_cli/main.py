@@ -33,6 +33,14 @@ def action_create(args):
                        args.instructions, args.repos,
                        args.initial_pkgs)
 
+def action_delete(args):
+    """ Method called when the 'delete' action has been selected by the
+    user.
+
+    :param args: argparse arguments provided by the user
+    """
+    subcommands.delete(args.copr)
+
 
 def action_list(args):
     """ Method called when the 'list' action has been selected by the
@@ -96,6 +104,13 @@ def setup_parser():
     parser_create.add_argument("--instructions",
                                help="Instructions for the copr")
     parser_create.set_defaults(func=action_create)
+
+    # create the parser for the "delete" command
+    parser_delete = subparsers.add_parser("delete",
+                                          help="Deletes the entire project")
+    parser_delete.add_argument("copr",
+                              help="Name of your project to be deleted.")
+    parser_delete.set_defaults(func=action_delete)
 
     # create the parser for the "build" command
     parser_build = subparsers.add_parser("build",
