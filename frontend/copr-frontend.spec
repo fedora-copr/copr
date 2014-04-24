@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.33
+Version:    1.34
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -160,6 +160,13 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Thu Apr 24 2014 Miroslav Suchý <msuchy@redhat.com> 1.34-1
+- add indexes
+- 1086729 - make build tab friendly for users without JS
+- copr-cli cancel fix
+- correctly print chroots
+- [frontend] SEND_EMAILS config correction
+
 * Tue Apr 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.33-1
 - api: add chroots to playground api call
 - check if chroot exist for specified project
