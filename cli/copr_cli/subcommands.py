@@ -43,6 +43,10 @@ def _get_data(req, user, copr=None):
                     "Unknown response from the server.")
     if req.status_code != 200:
         raise copr_exceptions.CoprCliRequestException(output["error"])
+
+    if output is None:
+        raise copr_exceptions.CoprCliUnknownResponseException(
+                    "No response from the server.")
     return output
 
 
@@ -254,15 +258,12 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=None):
                         auth=(user["login"], user["token"]),
                         data=data)
     output = _get_data(req, user, copr)
-    if output is None:
-        return
-    else:
-        print(output["message"])
+    print("{1}:\n  {0} build(s) were added successfully\n".format(len(output["ids"]), copr))
 
     if wait:
-        print("{0} builds were added.".format(len(output["ids"])))
-        print("Watching builds (this may be safely interrupted)...")
+        print("Watching build(s): (this may be safely interrupted)")
         prevstatus = {}
+        failed_ids = []
         for id in output["ids"]:
             prevstatus[id] = None
             if result is not None:
@@ -272,28 +273,31 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=None):
                 for id in output["ids"]:
                     (ret, status) = _fetch_status(id)
                     if not ret:
-                        errmsg = "Build {1}: Unable to get build status: {0}".format(status,id)
-                        print errmsg
+                        errmsg = "  Build {1}: Unable to get build status: {0}".format(status,id)
                         if result is not None:
                             result[id]['errmsg'] = errmsg
-                        return False
+                        raise copr_exceptions.CoprCliRequestException(errmsg)
 
                     now = datetime.datetime.now()
                     if prevstatus[id] != status:
-                        print("{0} Build {2}: {1}".format(now.strftime("%H:%M:%S"), status, id))
+                        print("  {0} Build {2}: {1}".format(now.strftime("%H:%M:%S"), status, id))
                         prevstatus[id] = status
 
                     if status in ["succeeded", "failed", "canceled"]:
                         if result is not None:
                             result[id]['status'] = status
+                        if status in ["failed"]:
+                            failed_ids.append(id)
                         output["ids"].remove(id)
 
                 if not output["ids"]:
-                    return True
-
+                    break
                 time.sleep(60)
+
+            if failed_ids:
+                raise copr_exceptions.CoprCliRequestException(
+                        "Build(s) {0} failed.".format(
+                        ", ".join(str(x) for x in failed_ids)))
 
         except KeyboardInterrupt:
             pass
-
-    return True
