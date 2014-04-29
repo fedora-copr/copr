@@ -26,8 +26,15 @@ class CoprCliConfigException(CoprCliException):
 
 
 class CoprCliRequestException(Exception):
-    """ Exception thrown when server says no. For example,
+    """ Exception thrown when the request is bad. For example,
     the user provided wrong project name or build ID. 
+    """
+    pass
+
+
+class CoprCliBuildException(Exception):
+    """ Exception thrown when one or more builds fail and Cli is waiting
+    for the result.
     """
     pass
 

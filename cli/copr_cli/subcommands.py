@@ -295,7 +295,7 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=None):
                 time.sleep(60)
 
             if failed_ids:
-                raise copr_exceptions.CoprCliRequestException(
+                raise copr_exceptions.CoprCliBuildException(
                         "Build(s) {0} failed.".format(
                         ", ".join(str(x) for x in failed_ids)))
 
