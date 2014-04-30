@@ -103,6 +103,15 @@ class CoprsLogic(object):
         return cls.get_all().filter(models.Copr.playground == True)
 
     @classmethod
+    def set_playground(cls, user, copr):
+        if user.admin:
+            db.session.add(copr)
+            pass
+        else:
+            raise exceptions.InsufficientRightsException(
+                    "User is not a system admin")
+
+    @classmethod
     def get_multiple_fulltext(cls, user, search_string):
         query = (models.Copr.query.join(models.User)
                  .filter(models.Copr.deleted == False)

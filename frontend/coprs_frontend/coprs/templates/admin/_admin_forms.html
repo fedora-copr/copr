@@ -1,0 +1,31 @@
+{% from "_helpers.html" import render_field %}
+
+{% macro admin_playground_form(form, copr) %}
+  <form action="{{ url_for('admin_ns.playground_set', username=copr.owner.name, coprname=copr.name) }}" method="post">
+      {{ form.csrf_token }}
+        <table class="status-table">
+            <tbody>
+                <tr>
+                    <th>Project</th>
+                    <th>Playground</th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <th>{{copr.owner.name}}/{{copr.name}}</th>
+                    <th>{{ form.playground }}</th>
+                    <th><input type="submit" value="Set"></th>
+                </tr>
+            </tbody>
+        </table>
+  </form>
+{% endmacro %}
+
+{% macro admin_playground_search(form) %}
+  <form action="{{ url_for('admin_ns.playground') }}" method="post">
+    <dl>
+      {{ form.csrf_token }}
+      Playground flag: {{ form.project }}
+      <dt><input type="submit" value="Set"></dt>
+    </dl>
+  </form>
+{% endmacro %}

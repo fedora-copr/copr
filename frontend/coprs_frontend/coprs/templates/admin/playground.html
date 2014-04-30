@@ -1,0 +1,16 @@
+{% extends "admin/layout.html" %}
+{% from "admin/_admin_forms.html" import admin_playground_form %}
+{% from "admin/_admin_forms.html" import admin_playground_search %}
+
+{% block playground_selected %}selected{% endblock %}
+
+{% block admin_body %}
+{% if form_search: %}
+{{ admin_playground_search(form_search) }}
+{% endif %}
+
+{% if form_set and copr:%}
+{{ admin_playground_form(form_set, copr) }}
+{% endif %}
+
+{% endblock %}

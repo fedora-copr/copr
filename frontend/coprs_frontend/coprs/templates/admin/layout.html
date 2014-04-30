@@ -8,6 +8,9 @@
       <li class="{% block legal_flag_selected %}unselected{% endblock %}">
         <a href="{{ url_for('admin_ns.legal_flag') }}">Legal Flags</a>
       </li>
+      <li class="{% block playground_selected %}unselected{% endblock %}">
+        <a href="{{ url_for('admin_ns.playground') }}">Playground</a>
+      </li>
     </ul>
   </div>
 {% block admin_body %}{% endblock %}
