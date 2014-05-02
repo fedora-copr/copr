@@ -21,7 +21,7 @@ else:
     app.config.from_pyfile("/etc/copr/copr.conf", silent=True)
 
 
-oid = OpenID(app, app.config["OPENID_STORE"])
+oid = OpenID(app, app.config["OPENID_STORE"], safe_roots=[])
 db = SQLAlchemy(app)
 whooshee = Whooshee(app)
 
