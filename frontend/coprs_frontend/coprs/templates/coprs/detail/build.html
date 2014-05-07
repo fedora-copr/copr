@@ -1,0 +1,70 @@
+{% extends "coprs/detail.html" %}
+{% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
+{% block title %}Build {{ build.id }} in {{ build.copr.owner.name }}/{{ build.copr.name }}{% endblock %}
+
+{% block detail_body %}
+
+{% if build.copr != copr %}
+<h2 class="build-detail"> Build {{ build.id }} doesn't belong to this project. </h2>
+<p> You can go to <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}"> {{ build.copr.owner.name }}/{{ build.copr.name }}/build/{{build.id}} </a>to see this build. </p>
+
+
+{% else %}
+    <h2 class="build-detail"> Build {{ build.id }} in {{ build.copr.owner.name }}/{{ build.copr.name }}</h2>
+    <div class="build-buttons" >
+      {% if g.user and g.user.can_build_in(copr) %}
+        {{ copr_build_cancel_form(build, page) }}
+      {% endif %}
+      {% if g.user and g.user.can_build_in(copr) %}
+        {{ copr_build_repeat_form(build, page) }}
+      {% endif %}
+      {% if g.user and g.user.can_edit(copr) %}
+        {{ copr_build_delete_form(build, page) }}
+      {% endif %}
+    </div>
+
+    <dl>
+        <dt class="field-label"> Package name:<dt>
+            <dd>{{ build.pkgs|pkg_name }}</dd>
+        </dt>
+        <dt class="field-label"> Build time:</dt>
+            <dd><b>Submitted: </b> 
+                {% if g.user %}
+                    {{ build.submitted_on|localized_time(g.user.timezone) }}
+                {% else %}
+                    {{ build.submitted_on|localized_time("UTC") }}
+                {% endif %}
+                 ({{ build.submitted_on|time_ago }} ago)
+            </dd>
+            <dd><b>Started: </b> 
+                {% if g.user %}
+                    {{ build.started_on|localized_time(g.user.timezone) }}
+                {% else %}
+                    {{ build.started_on|localized_time("UTC") }}
+                {% endif %}
+                 ({{ build.started_on|time_ago }} ago)
+            </dd>
+            <dd><b>Build time:  </b> {{ build.started_on|time_ago(build.ended_on) }} </dd>
+        <dt class="field-label"> Results:</dt>
+            {% if build.results %}
+                <dd><a href="{{ build.results }}">{{ build.results }}</a></dd>
+            {% else %}
+                <dd>No results yet</dd>
+            {% endif %}
+        <dt class="field-label"> Chroots:</dt>
+            {% for chroot in build.build_chroots %}
+                <dd><b>{{ chroot.name }}: </b>
+                <span class="build-{{ chroot.status|state_from_num }}">{{ chroot.status|state_from_num }}</span>
+                </dd>
+            {% endfor %}
+        <dt class="field-label"> Package URL:</dt>
+            {% if build.pkgs is not none %}{% for pkg in build.pkgs.split() %}
+                <dd> <a href="{{ pkg }}">{{ pkg }}</a></dd>
+            {% endfor %}{% endif %}
+        <dt class="field-label"> Submitted by:</dt>
+            <dd>{{ build.user.name }}</dd>
+    </dl>
+    
+
+{% endif %}
+{% endblock %}

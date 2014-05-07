@@ -232,7 +232,9 @@ class TestCoprDetail(CoprsTestCase):
         assert '<select id="copr_admin_1" name="copr_admin_1">' in r.data
 
     def test_copr_detail_doesnt_show_cancel_build_for_anonymous(self, f_users, f_coprs, f_builds, f_db):
-        r = self.tc.get("/coprs/{0}/{1}/".format(self.u2.name, self.c2.name))
+        r = self.tc.get(
+            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name,
+                                        str(self.c2.builds[0].id)))
         assert "/cancel_build/" not in r.data
 
     @TransactionDecorator("u1")
@@ -241,7 +243,8 @@ class TestCoprDetail(CoprsTestCase):
 
         self.db.session.add_all([self.u2, self.c2])
         r = self.test_client.get(
-            "/coprs/{0}/{1}/builds/".format(self.u2.name, self.c2.name))
+            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name,
+                                        str(self.c2.builds[0].id)))
         assert "/cancel_build/" not in r.data
 
     @TransactionDecorator("u2")
@@ -250,7 +253,8 @@ class TestCoprDetail(CoprsTestCase):
 
         self.db.session.add_all([self.u2, self.c2])
         r = self.test_client.get(
-            "/coprs/{0}/{1}/builds/".format(self.u2.name, self.c2.name))
+            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name,
+                                        str(self.c2.builds[0].id)))
         assert "/cancel_build/" in r.data
 
 

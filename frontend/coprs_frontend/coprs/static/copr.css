@@ -21,6 +21,14 @@ h2 {
   font-size: 1.1em;
 }
 
+h2.build-detail {
+  font-size: 1.8em;
+}
+
+h3 {
+  font-size: 1.1em;
+}
+
 #logo {
   position: relative;
   top: 8px;
@@ -238,7 +246,7 @@ div.shift-right {
 }
 
 dt.field-label {
-  margin: 15px 0;
+  margin: 15px 0 0 0;
   font-weight: bold;
 }
 
@@ -286,6 +294,10 @@ table.builds-table form {
   display: inline;
 }
 
+div.build-buttons form {
+  display: inline;
+}
+
 table.builds-table tr.details {
   width: 100%;
 }
@@ -307,29 +319,36 @@ table.status-table tr:first-child {
   background-color: #1f4b89;
 }
 
-tr.build-state:hover {
+table.status-table a {
   text-decoration: underline;
-  background-color: #E6E6E6;
+}
+
+tr.build-row {
+  color: #666;
+}
+
+tr.build-row-succeeded {
+  color: black;
 }
 
 .build-pending {
-  color: #3B6EB4;
+  color: #55b;
 }
 
 .build-running {
-  color: #FF6600;
+  color: #c84;
 }
 
 .build-succeeded {
-  color: #22DD22;
+  color: #272;
 }
 
 .build-failed {
-  color: #DD2222;
+  color: #c44;
 }
 
-.build-canceled {
-  color: #CDC90C;
+.build-cancelled {
+  color: #666;
 }
 
 table.releases th {

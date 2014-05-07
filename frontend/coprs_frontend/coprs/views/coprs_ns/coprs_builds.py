@@ -14,6 +14,41 @@ from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException)
 
 
+
+@coprs_ns.route("/build/<int:build_id>/")
+def copr_build_redirect(build_id):
+    build = builds_logic.BuildsLogic.get_by_id(build_id)
+    if not build:
+        return page_not_found(
+            "Build {0} does not exist.".format(str(build_id)))
+
+    return flask.redirect(flask.url_for("coprs_ns.copr_build",
+                                        username = build.copr.owner.name,
+                                        coprname = build.copr.name,
+                                        build_id = build_id))
+
+
+@coprs_ns.route("/<username>/<coprname>/build/<int:build_id>/")
+def copr_build(username, coprname, build_id):
+    build = builds_logic.BuildsLogic.get_by_id(build_id)
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+
+    if not build:
+        return page_not_found(
+            "Build {0} does not exist.".format(str(build_id)))
+
+    if not copr: # but the build does
+        return flask.render_template("coprs/detail/build-no-project.html",
+                                        build = build,
+                                        username = username,
+                                        coprname = coprname)
+
+    return flask.render_template("coprs/detail/build.html",
+                                        build = build,
+                                        copr = copr)
+        
+
+
 @coprs_ns.route("/<username>/<coprname>/builds/", defaults={"page": 1})
 @coprs_ns.route("/<username>/<coprname>/builds/<int:page>/")
 def copr_builds(username, coprname, page=1):
@@ -27,7 +62,7 @@ def copr_builds(username, coprname, page=1):
         flask.g.user, copr=copr)
 
     paginator = helpers.Paginator(
-        builds_query, copr.build_count, page, per_page_override=10)
+        builds_query, copr.build_count, page, per_page_override=30)
 
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,

@@ -2,57 +2,27 @@
 
 {% macro builds_table(builds, page) %}
   {% if builds %}
-    <table class="builds-table">
+    <table class="status-table">
       <tr>
         <th>Id</th>
-        <th>Submitted on</th>
-        <th>Submitted by</th>
-        <th>Started on</th>
-        <th>Ended on</th>
-        <th>State</th>
+        <th>Package</th>
+        <th>Submitted</th>
+        <th>Build time</th>
+        <th>Status</th>
       </tr>
     {% for build in builds %}
-      <tr class="build-{{ build.state }} build-state">
-        <td>{{ build.id }}</td>
-{% if g.user %}
-        <td>{{ build.submitted_on|localized_time(g.user.timezone) }}</td>
-{% else %}
-        <td>{{ build.submitted_on|localized_time("UTC") }}</td>
-{% endif %}
-
-        <td>{{ build.user.name }}</td>
-{% if g.user %}
-        <td>{{ build.started_on|localized_time(g.user.timezone) }}</td>
-        <td>{{ build.ended_on|localized_time(g.user.timezone) }}</td>
-{% else %}
-        <td>{{ build.started_on|localized_time("UTC") }}</td>
-        <td>{{ build.ended_on|localized_time("UTC") }}</td>
-{% endif %}
-        <td>{{ build.state }}</td>
-      </tr>
-      <tr class="details">
-        <td colspan=6 class="end">
-          <div>
-          {% if g.user and g.user.can_build_in(copr) %}
-            {{ copr_build_cancel_form(build, page) }}
-          {% endif %}
-          {% if g.user and g.user.can_build_in(copr) %}
-            {{ copr_build_repeat_form(build, page) }}
-          {% endif %}
-          {% if g.user and g.user.can_edit(copr) %}
-            {{ copr_build_delete_form(build, page) }}
-          {% endif %}
-          <div>
-            {% if build.results %}
-              <h2>Results: </h2><a href="{{ build.results }}">{{ build.results }}</a>
+      <tr class="build-row build-row-{{ build.state }}" >
+        <th><a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{ build.id }}</a></th>
+        <th>{{ build.pkgs|pkg_name }}</th> 
+        <th>
+            {% if g.user %}
+                {{ build.submitted_on|localized_time(g.user.timezone) }}
             {% else %}
-              <h2>No results yet.</h2>
+                {{ build.submitted_on|localized_time("UTC") }}
             {% endif %}
-          <div>
-          <h2>Package URLs:</h2>
-          <div class="pkg-url-list">{% if build.pkgs is not none %}{% for pkg in build.pkgs.split() %}<a href="{{ pkg }}">{{ pkg }}</a>
-{% endfor %}{% endif %}</div>
-        </td>
+        </th>
+        <th> {{ build.started_on|time_ago(build.ended_on) }} </th>
+        <th class="build-{{ build.state }}">{{ build.state }}</th>
       </tr>
     {% endfor %}
     </table>
