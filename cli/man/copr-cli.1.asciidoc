@@ -47,6 +47,9 @@ Build packages for a specified project.
 status::
 Get the status of the build.
 
+cancel::
+Cancel a build of given id.
+
 
 `copr-cli create [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
