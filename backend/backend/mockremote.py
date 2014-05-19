@@ -63,11 +63,21 @@ class SortedOptParser(optparse.OptionParser):
 
 
 def createrepo(path, lock=None):
-    if os.path.exists(path + '/repodata/repomd.xml'):
-        comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
-                '--update', path]
+    if "epel-5" in path:
+        # this is because rhel-5 doesn't know sha256
+        if os.path.exists(path + '/repodata/repomd.xml'):
+            comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
+                    '--update', '-s', 'sha', path]
+        else:
+            comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
+                    '-s', 'sha', path]
     else:
-        comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock', path]
+        if os.path.exists(path + '/repodata/repomd.xml'):
+            comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
+                    '--update', path]
+        else:
+            comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
+                    path]
     if lock:
         lock.acquire()
     cmd = subprocess.Popen(comm,
