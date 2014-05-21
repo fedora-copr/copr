@@ -36,6 +36,7 @@ BuildRequires: make
 
 Requires:   httpd
 Requires:   mod_wsgi
+Requires:   passwd
 Requires:   python-alembic
 Requires:   python-flask
 Requires:   python-flask-openid
