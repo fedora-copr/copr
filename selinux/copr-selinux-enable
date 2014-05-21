@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install SELinux policy modules
-for selinuxvariant in targeted; do
+for selinuxvariant in targeted mls; do
 	/usr/sbin/semodule -s ${selinuxvariant} -l > /dev/null 2>&1 \
 	&& /usr/sbin/semodule -s ${selinuxvariant} -i /usr/share/selinux/${selinuxvariant}/copr.pp.bz2
 done

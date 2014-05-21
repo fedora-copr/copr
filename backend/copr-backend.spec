@@ -44,6 +44,8 @@ Requires:   python-daemon
 Requires:   python-lockfile
 Requires:   python-requests
 Requires:   python-setproctitle
+Requires:   python-retask
+Requires:   redis
 Requires:   logrotate
 Requires:   fedmsg
 Requires:   gawk

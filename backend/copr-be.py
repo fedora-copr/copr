@@ -5,6 +5,8 @@ from backend import errors
 from backend.dispatcher import Worker
 from backend.actions import Action
 from bunch import Bunch
+from retask.task import Task
+from retask.queue import Queue
 import ConfigParser
 import daemon
 import glob

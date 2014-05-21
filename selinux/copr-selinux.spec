@@ -2,8 +2,10 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %global __python2 %{__python}
 %endif
+
 %global moduletype apps
 %global modulename copr
+%{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' /usr/share/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
 Version:    1.30
@@ -30,6 +32,9 @@ Requires(post): policycoreutils, libselinux-utils
 Requires(post): policycoreutils-python
 Requires(post): selinux-policy-targeted
 Requires(postun): policycoreutils
+%if "%{_selinux_policy_version}" != ""
+Requires:      selinux-policy >= %{_selinux_policy_version}
+%endif
 
 
 %description
@@ -48,7 +53,7 @@ a2x -d manpage -f manpage man/copr-selinux-enable.8.asciidoc
 a2x -d manpage -f manpage man/copr-selinux-relabel.8.asciidoc
 
 perl -i -pe 'BEGIN { $VER = join ".", grep /^\d+$/, split /\./, "%{version}.%{release}"; } s!\@\@VERSION\@\@!$VER!g;' %{modulename}.te
-for selinuxvariant in targeted; do
+for selinuxvariant in targeted mls; do
     make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
     bzip2 -9 %{modulename}.pp
     mv %{modulename}.pp.bz2 %{modulename}.pp.bz2.${selinuxvariant}
@@ -56,7 +61,7 @@ for selinuxvariant in targeted; do
 done
 
 %install
-for selinuxvariant in targeted; do
+for selinuxvariant in targeted mls; do
     install -d %{buildroot}%{_datadir}/selinux/${selinuxvariant}
     install -p -m 644 %{modulename}.pp.bz2.${selinuxvariant} \
            %{buildroot}%{_datadir}/selinux/${selinuxvariant}/%{modulename}.pp.bz2
@@ -87,7 +92,7 @@ fi
 %postun
 # Clean up after package removal
 if [ $1 -eq 0 ]; then
-  for selinuxvariant in targeted; do
+  for selinuxvariant in targeted mls; do
       /usr/sbin/semodule -s ${selinuxvariant} -l > /dev/null 2>&1 \
         && /usr/sbin/semodule -s ${selinuxvariant} -r %{modulename} || :
     done
