@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.34
+Version:    1.35
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -160,6 +160,14 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Wed May 21 2014 Miroslav Suchý <msuchy@redhat.com> 1.35-1
+- build detail and new builds table
+- admin/playground page
+- Use "https" in API template
+- Use flask_openid safe_roots to mitigate Covert Redirect.
+- add newline at the end of repo file
+- [cli & api] delete a project
+
 * Thu Apr 24 2014 Miroslav Suchý <msuchy@redhat.com> 1.34-1
 - add indexes
 - 1086729 - make build tab friendly for users without JS
