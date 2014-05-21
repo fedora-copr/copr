@@ -8,7 +8,7 @@
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' /usr/share/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
-Version:    1.30
+Version:    1.31
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -110,6 +110,9 @@ fi
 %{_mandir}/man8/%{name}-relabel.8*
 
 %changelog
+* Wed May 21 2014 Miroslav Suchý <msuchy@redhat.com> 1.31-1
+- follow selinux packaging draft
+
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
 - finish move selinux into separate package
 
