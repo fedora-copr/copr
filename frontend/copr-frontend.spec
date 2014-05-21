@@ -32,7 +32,6 @@ BuildRequires: python-argparse
 #for doc package
 BuildRequires: epydoc
 BuildRequires: graphviz
-BuildRequires: make
 
 Requires:   httpd
 Requires:   mod_wsgi
