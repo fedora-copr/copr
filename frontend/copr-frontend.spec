@@ -157,6 +157,7 @@ service httpd condrestart
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
 
 %files doc
+%doc LICENSE
 %dir %{_pkgdocdir}
 %doc %{_pkgdocdir}/python-doc
 
