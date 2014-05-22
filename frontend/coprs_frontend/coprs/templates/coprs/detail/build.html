@@ -12,15 +12,13 @@
 {% else %}
     <h2 class="build-detail"> Build {{ build.id }} in {{ build.copr.owner.name }}/{{ build.copr.name }}</h2>
     <div class="build-buttons" >
-      {% if g.user and g.user.can_build_in(copr) %}
+    {% if g.user and g.user.can_build_in(copr) %}
         {{ copr_build_cancel_form(build, page) }}
-      {% endif %}
-      {% if g.user and g.user.can_build_in(copr) %}
         {{ copr_build_repeat_form(build, page) }}
-      {% endif %}
-      {% if g.user and g.user.can_edit(copr) %}
-        {{ copr_build_delete_form(build, page) }}
-      {% endif %}
+        {% if g.user.can_edit(copr) or build.user == g.user %}
+            {{ copr_build_delete_form(build, page) }}
+        {% endif %}
+    {% endif %}
     </div>
 
     <dl>
