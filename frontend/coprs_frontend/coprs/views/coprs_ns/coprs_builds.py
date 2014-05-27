@@ -1,4 +1,5 @@
 import flask
+import re
 
 from coprs import db
 from coprs import forms
@@ -98,30 +99,45 @@ def copr_new_build(username, coprname):
     form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
 
     if form.validate_on_submit():
-        try:
-            pkgs = pkgs=form.pkgs.data.replace("\n", " ").split(" ")
+        pkgs = pkgs=form.pkgs.data.replace("\n", " ").split(" ")
+
+        # validate (and skip bad) urls
+        bad_urls = []
+        for pkg in pkgs:
+            if not re.match("^.*\.src\.rpm$", pkg):
+                bad_urls.append(pkg)
+                flask.flash("Bad url: {0} (skipped)".format(pkg))
+        for bad_url in bad_urls:
+            pkgs.remove(bad_url)
+
+        if not pkgs:
+            flask.flash("No builds submitted")
+        else:
+            # check which chroots we need
             chroots = []
             for chroot in copr.active_chroots:
                 if chroot.name in form.selected_chroots:
                     chroots.append(chroot)
 
-            for pkg in pkgs:
-                build = builds_logic.BuildsLogic.add(
-                    user=flask.g.user,
-                    pkgs=pkg,
-                    copr=copr,
-                    chroots = chroots)
+            # build each package as a separate build
+            try:
+                for pkg in pkgs:
+                    build = builds_logic.BuildsLogic.add(
+                        user=flask.g.user,
+                        pkgs=pkg,
+                        copr=copr,
+                        chroots = chroots)
 
-                if flask.g.user.proven:
-                    build.memory_reqs = form.memory_reqs.data
-                    build.timeout = form.timeout.data
+                    if flask.g.user.proven:
+                        build.memory_reqs = form.memory_reqs.data
+                        build.timeout = form.timeout.data
 
-        except (ActionInProgressException, InsufficientRightsException) as e:
-            flask.flash(str(e))
-            db.session.rollback()
-        else:
-            flask.flash("Build was added")
-            db.session.commit()
+            except (ActionInProgressException, InsufficientRightsException) as e:
+                flask.flash(str(e))
+                db.session.rollback()
+            else:
+                flask.flash("Build was added")
+                db.session.commit()
 
         return flask.redirect(flask.url_for("coprs_ns.copr_builds",
                                             username=username,

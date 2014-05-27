@@ -1,5 +1,6 @@
 import os
 import time
+import re
 
 import flask
 import platform
@@ -118,17 +119,30 @@ def copr_new(username):
         flask.flash("New project was successfully created.")
 
         if form.initial_pkgs.data:
-            # we need to build each package separately now
             pkgs = form.initial_pkgs.data.replace("\n", " ").split(" ")
-            for pkg in pkgs:
-                builds_logic.BuildsLogic.add(
-                    flask.g.user,
-                    pkgs=pkg,
-                    copr=copr)
 
-            db.session.commit()
-            flask.flash("Initial packages were successfully submitted "
-                        "for building.")
+            # validate (and skip bad) urls
+            bad_urls = []
+            for pkg in pkgs:
+                if not re.match("^.*\.src\.rpm$", pkg):
+                    bad_urls.append(pkg)
+                    flask.flash("Bad url: {0} (skipped)".format(pkg))
+            for bad_url in bad_urls:
+                pkgs.remove(bad_url)
+
+            if not pkgs:
+                flask.flash("No initial packages submitted")
+            else:
+                # build each package as a separate build
+                for pkg in pkgs:
+                    builds_logic.BuildsLogic.add(
+                        flask.g.user,
+                        pkgs=pkg,
+                        copr=copr)
+
+                db.session.commit()
+                flask.flash("Initial packages were successfully submitted "
+                            "for building.")
 
         return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                             username=flask.g.user.name,

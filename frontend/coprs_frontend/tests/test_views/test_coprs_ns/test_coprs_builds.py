@@ -20,10 +20,10 @@ class TestCoprAddBuild(CoprsTestCase):
         self.db.session.add_all([self.u1, self.c1])
         self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u1.name, self.c1.name),
-                              data={"pkgs": "http://testing"},
+                              data={"pkgs": "http://testing.src.rpm"},
                               follow_redirects=True)
 
-        assert self.models.Build.query.first().pkgs == "http://testing"
+        assert self.models.Build.query.first().pkgs == "http://testing.src.rpm"
 
     @TransactionDecorator("u1")
     def test_copr_allowed_user_can_add_build(self, f_users, f_coprs,
@@ -33,10 +33,10 @@ class TestCoprAddBuild(CoprsTestCase):
         self.db.session.add_all([self.u2, self.c2])
         self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u2.name, self.c2.name),
-                              data={"pkgs": "http://testing"},
+                              data={"pkgs": "http://testing.src.rpm"},
                               follow_redirects=True)
 
-        assert self.models.Build.query.first().pkgs == "http://testing"
+        assert self.models.Build.query.first().pkgs == "http://testing.src.rpm"
 
     @TransactionDecorator("u1")
     def test_copr_not_yet_allowed_user_cant_add_build(self, f_users, f_coprs,
@@ -45,7 +45,7 @@ class TestCoprAddBuild(CoprsTestCase):
         self.db.session.add_all([self.u2, self.c3])
         self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u2.name, self.c3.name),
-                              data={"pkgs": "http://testing"},
+                              data={"pkgs": "http://testing.src.rpm"},
                               follow_redirects=True)
 
         assert not self.models.Build.query.first()
@@ -59,7 +59,7 @@ class TestCoprAddBuild(CoprsTestCase):
         self.db.session.add_all([self.u1, self.c1])
         self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u1.name, self.c1.name),
-                              data={"pkgs": "http://testing"},
+                              data={"pkgs": "http://testing.src.rpm"},
                               follow_redirects=True)
 
         assert not self.models.Build.query.first()

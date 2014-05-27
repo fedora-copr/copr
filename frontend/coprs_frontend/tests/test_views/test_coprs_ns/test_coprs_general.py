@@ -129,8 +129,8 @@ class TestCoprNew(CoprsTestCase):
         r = self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
                                   data={"name": "foo",
                                         "fedora-rawhide-i386": "y",
-                                        "initial_pkgs": ["http://f",
-                                                         "http://b"]},
+                                        "initial_pkgs": ["http://a/f.src.rpm",
+                                                         "http://a/b.src.rpm"]},
                                   follow_redirects=True)
 
         copr = self.models.Copr.query.filter(
