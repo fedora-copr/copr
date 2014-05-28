@@ -7,6 +7,7 @@ import platform
 import smtplib
 import sqlalchemy
 from email.mime.text import MIMEText
+from itertools import groupby
 
 from coprs import app
 from coprs import db
@@ -544,6 +545,9 @@ def copr_build_monitor(username, coprname):
     out = {}
     build = None
     chroots = set([chroot.name for chroot in copr.active_chroots])
+    oses = [chroot.os for chroot in copr.active_chroots]
+    oses_grouped = [(len(list(group)),key) for key, group in groupby(oses)]
+    archs = [chroot.arch for chroot in copr.active_chroots]
     latest_build = None
 
     if builds:
@@ -575,6 +579,6 @@ def copr_build_monitor(username, coprname):
     return flask.render_template("coprs/detail/monitor.html",
                                  copr=copr,
                                  build=latest_build,
-                                 chroots=chroots,
+                                 chroots=chroots, oses = oses_grouped, archs = archs,
                                  packages=sorted(out.iteritems()),
                                  form=form)

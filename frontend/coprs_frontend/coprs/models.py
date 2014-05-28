@@ -329,6 +329,16 @@ class MockChroot(db.Model, helpers.Serializer):
                                     ver=self.os_version,
                                     arch=self.arch)
 
+    @property
+    def os(self):
+        if self.os_version:
+            format_string = "{rel} {ver}"
+        else:
+            format_string = "{rel}"
+        return format_string.format(rel=self.os_release,
+                                    ver=self.os_version)
+        
+
 
 class CoprChroot(db.Model, helpers.Serializer):
 

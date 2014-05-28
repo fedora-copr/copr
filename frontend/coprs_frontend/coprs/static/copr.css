@@ -303,6 +303,7 @@ table.builds-table tr.details {
 
 table.status-table {
   width: 100%;
+  text-align: center;
 }
 
 table.status-table tr:nth-child(odd) {
@@ -313,7 +314,7 @@ table.status-table tr:nth-child(even) {
   background-color: #eee;
 }           
         
-table.status-table tr:first-child {
+table.status-table th {
   color: #fff;
   background-color: #1f4b89;
 }

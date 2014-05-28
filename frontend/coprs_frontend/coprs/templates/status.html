@@ -22,14 +22,14 @@
     </tr>
     {% for build in builds %}
         <tr>
-            <th>{{ build.time | time_ago }}</th>
-            <th><a href="{{ url_for('coprs_ns.copr_detail', username = build.owner, coprname = build.copr) }}">{{build.owner}}/{{build.copr}}</a></th>
-            <th>{%for pkg in build.pkgs[0:2]:%}{{pkg}}<br>{%endfor%}
+            <td>{{ build.time | time_ago }}</td>
+            <td><a href="{{ url_for('coprs_ns.copr_detail', username = build.owner, coprname = build.copr) }}">{{build.owner}}/{{build.copr}}</a></td>
+            <td>{%for pkg in build.pkgs[0:2]:%}{{pkg}}<br>{%endfor%}
                 {%if build.pkgs|length > 2:%}
                 ...{{build.pkgs|length}} more
                 {%endif%}
-            </th>
-            <th>{{ build.chroot }}</th>
+            </td>
+            <td>{{ build.chroot }}</td>
         </tr>
     {% endfor %}
 </table>

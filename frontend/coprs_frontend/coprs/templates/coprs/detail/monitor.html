@@ -8,10 +8,18 @@
       Latest build status:
       <strong>{{ build.state }}</strong>
     </p>
-      <table class="monitor">
+      <table class="status-table">
+        <tr></tr>
         <tr>
-          <th>Package</th>
-          {% for chroot in chroots %}
+          <th rowspan="2">Packages</th>
+          {% for i, chroot in oses %}
+          <th colspan="{{i}}">
+            {{ chroot|capitalize }}
+          </th>
+          {% endfor %}
+        </tr>
+        <tr>
+          {% for chroot in archs %}
           <th>
             {{ chroot }}
           </th>
