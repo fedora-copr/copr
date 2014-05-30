@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.37
+Version:    1.38
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -162,6 +162,10 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.38-1
+- [frontend] running build can not be deleted
+- [frontend] cancel status set to all chroots
+
 * Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.37-1
 - [frontend] monitor table design unified
 - [frontend] skipping bad package urls
