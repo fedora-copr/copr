@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.36
+Version:    1.37
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -162,6 +162,12 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.37-1
+- [frontend] monitor table design unified
+- [frontend] skipping bad package urls
+- builders can delete their builds
+- css fix
+
 * Wed May 21 2014 Miroslav Suchý <msuchy@redhat.com> 1.36-1
 - 1077794 - add LICENSE to -doc subpackage
 - 1077794 - own /usr/share/doc/copr-frontend
