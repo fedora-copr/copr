@@ -226,7 +226,7 @@ def copr_delete_build(username, coprname, build_id, page=1):
             "Build with id {0} does not exist.".format(build_id))
     try:
         builds_logic.BuildsLogic.delete_build(flask.g.user, build)
-    except InsufficientRightsException as e:
+    except (InsufficientRightsException, ActionInProgressException) as e:
         flask.flash(str(e))
     else:
         db.session.commit()

@@ -159,6 +159,10 @@ class BuildsLogic(object):
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to delete this build.")
 
+        if build.state == "running":
+            raise exceptions.ActionInProgressException(
+                "You can not delete build which is running.", "Running build")
+
         action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type="build",
                                object_id=build.id,
