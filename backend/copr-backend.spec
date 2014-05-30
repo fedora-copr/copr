@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.34
+Version:    1.35
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -172,6 +172,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.35-1
+- follow selinux packaging draft
+- [backend] epel 5 repo fix (sha256 -> sha)
+
 * Thu Apr 24 2014 Miroslav Suchý <msuchy@redhat.com> 1.34-1
 - if directory does not exist, do not try to delete it
 
