@@ -150,6 +150,8 @@ class BuildsLogic(object):
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to cancel this build.")
         build.canceled = True
+        for chroot in build.build_chroots:
+            chroot.status = 2; #canceled
 
     @classmethod
     def delete_build(cls, user, build):
