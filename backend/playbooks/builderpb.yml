@@ -71,4 +71,4 @@
     - epel-5-x86_64.cfg
     - epel-5-i386.cfg
 
-
+- lineinfile: dest=/root/.bashrc line="ulimit -n 10240" insertafter=EOF
