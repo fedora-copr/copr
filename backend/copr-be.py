@@ -63,7 +63,7 @@ class CoprJobGrab(multiprocessing.Process):
 
         except requests.RequestException as e:
             self.event("Error retrieving jobs from {0}: {1}".format(
-                       (self.opts.frontend_url, e)))
+                       self.opts.frontend_url, e))
         else:
             try:
                 r_json = json.loads(r.content)  # using old requests on el6 :(
