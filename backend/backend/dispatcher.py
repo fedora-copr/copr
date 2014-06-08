@@ -19,6 +19,8 @@ import errors
 import mockremote
 from callback import FrontendCallback
 
+ansible_playbook="ansible-playbook"
+
 try:
     import fedmsg
 except ImportError:
@@ -163,50 +165,57 @@ class Worker(multiprocessing.Process):
             # XXX - Maybe log traceback as well with traceback.format_exc()
             self.callback.log("failed to publish message: {0}".format(e))
 
-    def spawn_instance(self, retry=0):
+    def run_ansible_playbook(self, args, name="running playbook", attempts=3):
+        """
+        call ansible playbook
+            - well mostly we run out of space in OpenStack so we rather try
+              multiple times (attempts param)
+            - dump any attempt failure
+        """
+
+        # Ansible playbook python API does not work here, dunno why.  See:
+        # https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
+
+        command="{0} {1}".format(ansible_playbook, args)
+
+        for i in range(0, attempts):
+            try:
+                attempt_desc = ": retry: " if i else ": begin: "
+                self.callback.log(name + attempt_desc + command)
+
+                result = subprocess.check_output(command, shell=True)
+                self.callback.log("Raw playbook output:\n{0}\n".format(result))
+                break
+
+            except subprocess.CalledProcessError as e:
+                result = None
+                self.callback.log("CalledProcessError: \n{0}\n".format(e.output))
+                sys.stderr.write("{0}\n".format(e.output))
+                # FIXME: this is not purpose of opts.sleeptime
+                time.sleep(self.opts.sleeptime)
+
+        self.callback.log(name + ": end")
+        return result
+
+    def spawn_instance(self):
         """call the spawn playbook to startup/provision a building instance"""
 
-        self.callback.log("spawning instance begin")
         start = time.time()
 
-        # Does not work, do not know why. See:
+        # Ansible playbook python API does not work here, dunno why.  See:
         # https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
-        #stats = callbacks.AggregateStats()
-        #playbook_cb = SilentPlaybookCallbacks(verbose=False)
-        #runner_cb = callbacks.DefaultRunnerCallbacks()
-        # fixme - extra_vars to include ip as a var if we need to specify ips
-        # also to include info for instance type to handle the memory requirements of builds
-        # play = ansible.playbook.PlayBook(stats=stats, playbook=self.opts.spawn_playbook,
-        #                     callbacks=playbook_cb, runner_callbacks=runner_cb,
-        #                     remote_user="root", transport="ssh")
-        # play.run()
-        try:
-            result = subprocess.check_output(
-                "ansible-playbook -c ssh {0}".format(self.opts.spawn_playbook),
-                shell=True)
 
-        except subprocess.CalledProcessError as e:
-            result = e.output
-            sys.stderr.write("{0}\n".format(result))
-            self.callback.log("CalledProcessError: {0}".format(result))
-            # well mostly we run out of space in OpenStack, wait some time and
-            # try again
-            if retry < 3:
-                time.sleep(self.opts.sleeptime)
-                self.spawn_instance(retry + 1)
-            else:
-                # FIXME: this can't work and whole retry is implemented
-                # incorrectly, should use decorator instead
-                raise subprocess.CalledProcessError, None, sys.exc_info()[2]
-        self.callback.log("Raw output from playbook: {0}".format(result))
+        args = "-c ssh {0}".format(self.opts.spawn_playbook)
+        result = self.run_ansible_playbook(args, "spawning instance")
+        if not result:
+            return None
+
         match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
-
         if not match:
             return None
 
         ipaddr = match.group(1)
 
-        self.callback.log("spawning instance end")
         self.callback.log("got instance ip: {0}".format(ipaddr))
         self.callback.log(
             "Instance spawn/provision took {0} sec".format(time.time() - start))
@@ -229,23 +238,13 @@ class Worker(multiprocessing.Process):
             self.callback.log("Test spawn_instance playbook manually")
             return None
 
-    def terminate_instance(self, ip):
+    def terminate_instance(self, instance_ip):
         """call the terminate playbook to destroy the building instance"""
-        self.callback.log("terminate instance begin")
 
-        #stats = callbacks.AggregateStats()
-        #playbook_cb = SilentPlaybookCallbacks(verbose=False)
-        #runner_cb = callbacks.DefaultRunnerCallbacks()
-        # play = ansible.playbook.PlayBook(host_list=ip +",", stats=stats, playbook=self.opts.terminate_playbook,
-        #                     callbacks=playbook_cb, runner_callbacks=runner_cb,
-        #                     remote_user="root", transport="ssh")
-        # play.run()
-        subprocess.check_output(
-            "/usr/bin/ansible-playbook -c ssh -i '{0},' {1} ".format(
-                ip, self.opts.terminate_playbook),
-            shell=True)
+        args = "-c ssh -i '{0},' {1}".format(instance_ip,
+                self.opts.terminate_playbook)
+        self.run_ansible_playbook(args, "terminate instance")
 
-        self.callback.log("terminate instance end")
 
     def parse_job(self, jobfile):
         # read the json of the job in
