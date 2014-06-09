@@ -98,7 +98,7 @@ def copr_new_build(username, coprname):
     form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
 
     if form.validate_on_submit():
-        pkgs = pkgs=form.pkgs.data.replace("\n", " ").split(" ")
+        pkgs = form.pkgs.data.replace("\n", " ").split(" ")
 
         # validate (and skip bad) urls
         bad_urls = []
