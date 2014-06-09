@@ -72,8 +72,9 @@ class BuildsLogic(object):
 
     @classmethod
     def add(cls, user, pkgs, copr,
-            repos=None, memory_reqs=None, timeout=None, chroots=[]):
-
+            repos=None, memory_reqs=None, timeout=None, chroots=None):
+        if chroots is None:
+            chroots = []
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             user, copr,
             "Can't build while there is an operation in progress: {action}")
