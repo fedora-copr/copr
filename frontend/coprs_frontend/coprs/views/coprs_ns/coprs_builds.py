@@ -24,9 +24,9 @@ def copr_build_redirect(build_id):
             "Build {0} does not exist.".format(str(build_id)))
 
     return flask.redirect(flask.url_for("coprs_ns.copr_build",
-                                        username = build.copr.owner.name,
-                                        coprname = build.copr.name,
-                                        build_id = build_id))
+                                        username=build.copr.owner.name,
+                                        coprname=build.copr.name,
+                                        build_id=build_id))
 
 
 @coprs_ns.route("/<username>/<coprname>/build/<int:build_id>/")
@@ -40,13 +40,13 @@ def copr_build(username, coprname, build_id):
 
     if not copr: # but the build does
         return flask.render_template("coprs/detail/build-no-project.html",
-                                        build = build,
-                                        username = username,
-                                        coprname = coprname)
+                                        build=build,
+                                        username=username,
+                                        coprname=coprname)
 
     return flask.render_template("coprs/detail/build.html",
-                                        build = build,
-                                        copr = copr)
+                                        build=build,
+                                        copr=copr)
         
 
 
