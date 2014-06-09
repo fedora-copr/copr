@@ -207,7 +207,7 @@ class Serializer(object):
                     options["__included_ids__"] is False):
 
                 related_objs_ids = [
-                    r + "_id" for r, o in options.items()
+                    r + "_id" for r, _ in options.items()
                     if not r.startswith("__")]
 
                 columns -= set(related_objs_ids)
