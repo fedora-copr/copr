@@ -542,11 +542,13 @@ class MockRemote(object):
 
     def __init__(self, builder=None, user=DEF_USER, timeout=DEF_TIMEOUT,
                  destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False,
-                 recurse=False, repos=DEF_REPOS, callback=None,
+                 recurse=False, repos=None, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
                  macros=DEF_MACROS, lock=None,
                  buildroot_pkgs=DEF_BUILDROOT_PKGS):
 
+        if repos is None:
+            repos = DEF_REPOS
         self.destdir = destdir
         self.chroot = chroot
         self.repos = repos
