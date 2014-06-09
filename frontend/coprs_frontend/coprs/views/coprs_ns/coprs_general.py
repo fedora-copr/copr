@@ -477,11 +477,6 @@ def generate_repo_file(username, coprname, chroot, repofile):
             .format(repofile))
 
 
-    if "-" not in reponame:
-        return page_not_found(
-            "Bad repository name: {0}. Must be username-projectname"
-            .format(reponame))
-
     copr = None
     try:
         # query.one() is used since it fetches all builds, unlike
@@ -492,12 +487,10 @@ def generate_repo_file(username, coprname, chroot, repofile):
         return page_not_found(
             "Project {0}/{1} does not exist".format(username, coprname))
 
-    try:
-        mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot).one()
-    except sqlalchemy.orm.exc.NoResultFound:
+    mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot,
+                                    noarch=True).first()
+    if not mock_chroot:
         return page_not_found("Chroot {0} does not exist".format(chroot))
-    except ValueError as e:
-        return page_not_found(str(e))
 
     url = ""
     for build in copr.builds:

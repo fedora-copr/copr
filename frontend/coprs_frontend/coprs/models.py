@@ -320,23 +320,15 @@ class MockChroot(db.Model, helpers.Serializer):
         """
         Textual representation of name of this chroot
         """
-
-        if self.os_version:
-            format_string = "{rel}-{ver}-{arch}"
-        else:
-            format_string = "{rel}-{arch}"
-        return format_string.format(rel=self.os_release,
-                                    ver=self.os_version,
-                                    arch=self.arch)
+        return "{0}-{1}-{2}".format(
+                    self.os_release, self.os_version, self.arch)
 
     @property
     def os(self):
-        if self.os_version:
-            format_string = "{rel} {ver}"
-        else:
-            format_string = "{rel}"
-        return format_string.format(rel=self.os_release,
-                                    ver=self.os_version)
+        """
+        Textual representation of the operating system name
+        """
+        return "{0} {1}".format(self.os_release, self.os_version)
         
 
 

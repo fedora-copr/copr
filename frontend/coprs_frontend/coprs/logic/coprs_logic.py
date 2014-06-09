@@ -365,21 +365,29 @@ class CoprChrootsLogic(object):
 class MockChrootsLogic(object):
 
     @classmethod
-    def get(cls, user, os_release, os_version, arch, active_only=False):
+    def get(cls, user, os_release, os_version, arch, active_only=False, noarch=False):
+        if noarch and not arch:
+            return (models.MockChroot.query
+                    .filter(models.MockChroot.os_release == os_release,
+                            models.MockChroot.os_version == os_version))
+
         return (models.MockChroot.query
                 .filter(models.MockChroot.os_release == os_release,
                         models.MockChroot.os_version == os_version,
                         models.MockChroot.arch == arch))
 
     @classmethod
-    def get_from_name(cls, chroot_name, active_only=False):
+    def get_from_name(cls, chroot_name, active_only=False, noarch=False):
         """
+        chroot_name should be os-version-architecture, e.g. fedora-rawhide-x86_64
+        the architecture could be optional with noarch=True
+
         Return MockChroot object for textual representation of chroot
         """
 
-        name_tuple = cls.tuple_from_name(None, chroot_name)
-        return cls.get(None, name_tuple[0], name_tuple[1],
-                       name_tuple[2], active_only=active_only)
+        name_tuple = cls.tuple_from_name(None, chroot_name, noarch=noarch)
+        return cls.get(None, name_tuple[0], name_tuple[1], name_tuple[2],
+                active_only=active_only, noarch=noarch)
 
     @classmethod
     def get_multiple(cls, user, active_only=False):
@@ -435,21 +443,21 @@ class MockChrootsLogic(object):
         db.session.delete(mock_chroot)
 
     @classmethod
-    def tuple_from_name(cls, user, name):
+    def tuple_from_name(cls, user, name, noarch=False):
         """
-        valid name can be "fedora-rawhide-x86_64" or even "fedora-rawhide"
-        """
+        input should be os-version-architecture, e.g. fedora-rawhide-x86_64
 
-        split_name = name.rsplit('-', 1)
-        if len(split_name) < 2:
+        the architecture could be optional with noarch=True
+
+        returns ("os", "vetsion", "arch") or ("os", "version", None)
+        """
+        splitted_name = name.split("-")
+        if (not noarch and len(splitted_name) is not 3)\
+            or (noarch and len(splitted_name) not in (2,3)):
             raise exceptions.MalformedArgumentException(
-                "Chroot Name doesn't contain dash,"
-                " can't determine chroot architecure.")
+                "Chroot name is not valid")
 
-        if '-' in split_name[0]:
-            os_release, os_version = (split_name[0].rsplit('-'))[0:2]
-        else:
-            os_release, os_version = split_name[0], ''
+        if noarch:
+            splitted_name.append(None)
 
-        arch = split_name[1]
-        return (os_release, os_version, arch)
+        return tuple(splitted_name)
