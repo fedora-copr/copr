@@ -22,6 +22,6 @@ def status_home():
                 'copr' : build.copr.name}
             builds_list.append(build_dict)
     builds_number = len(builds_list)
-    return flask.render_template("status.html", 
+    return flask.render_template("status.html",
                                 builds=builds_list,
                                 number=builds_number)
