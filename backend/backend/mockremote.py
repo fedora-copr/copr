@@ -674,7 +674,7 @@ class MockRemote(object):
                                       os.path.basename(pkg)))
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
-                    rc, out, err = createrepo(chroot_dir, self.lock)
+                    _, _, err = createrepo(chroot_dir, self.lock)
                     if err.strip():
                         self.callback.error(
                             "Error making local repo: {0}".format(chroot_dir))
