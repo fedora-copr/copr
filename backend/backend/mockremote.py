@@ -24,6 +24,7 @@
 # repeat
 # take args from mockchain (more or less)
 
+from __future__ import print_function
 
 import os
 import sys
