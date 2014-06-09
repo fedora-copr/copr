@@ -329,7 +329,6 @@ class MockChroot(db.Model, helpers.Serializer):
         Textual representation of the operating system name
         """
         return "{0} {1}".format(self.os_release, self.os_version)
-        
 
 
 class CoprChroot(db.Model, helpers.Serializer):
