@@ -67,8 +67,8 @@ class BuildsLogic(object):
         return models.Build.query.filter(models.Build.id.in_(ids))
 
     @classmethod
-    def get_by_id(cls, id):
-        return models.Build.query.get(id)
+    def get_by_id(cls, build_id):
+        return models.Build.query.get(build_id)
 
     @classmethod
     def add(cls, user, pkgs, copr,
