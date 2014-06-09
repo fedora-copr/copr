@@ -64,7 +64,7 @@ def localized_time(time_in, timezone):
 
 
 @app.template_filter('time_ago')
-def time_ago(time_in, until = None):
+def time_ago(time_in, until=None):
     """ returns string saying how long ago the time on input was
 
     Input is in EPOCH (seconds since epoch).
