@@ -151,7 +151,7 @@ class BuildsLogic(object):
                 "You are not allowed to cancel this build.")
         build.canceled = True
         for chroot in build.build_chroots:
-            chroot.status = 2; #canceled
+            chroot.status = 2 #canceled
 
     @classmethod
     def delete_build(cls, user, build):
