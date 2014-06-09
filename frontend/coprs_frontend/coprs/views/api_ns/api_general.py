@@ -262,7 +262,7 @@ def copr_new_build(username, coprname):
         elif form.validate_on_submit() and flask.g.user.can_build_in(copr):
             # we're checking authorization above for now
             # and also creating separate build for each package
-            pkgs=form.pkgs.data.replace('\n', ' ').split(" ")
+            pkgs = form.pkgs.data.replace('\n', ' ').split(" ")
             ids = []
             chroots = []
             for chroot in copr.active_chroots:
