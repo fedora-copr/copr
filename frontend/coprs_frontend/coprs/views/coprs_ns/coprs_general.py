@@ -362,7 +362,7 @@ def copr_update_permissions(username, coprname):
                         msg["From"] = "root@{0}".format(platform.node())
                         msg["To"] = perm.user.mail
                         s = smtplib.SMTP("localhost")
-                        s.sendmail("root@{0}".format(platform.node()),perm.user.mail , msg.as_string())
+                        s.sendmail("root@{0}".format(platform.node()), perm.user.mail, msg.as_string())
                         s.quit()
 
         # for now, we don't check for actions here, as permissions operation
