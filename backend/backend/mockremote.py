@@ -294,7 +294,7 @@ class Builder(object):
         self.conn.module_args = str(cmd)
         results = self.conn.run()
         tempdir = None
-        for hn, resdict in results["contacted"].items():
+        for _, resdict in results["contacted"].items():
             tempdir = resdict["stdout"]
 
         # if still nothing then we"ve broken
