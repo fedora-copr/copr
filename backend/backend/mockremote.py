@@ -136,14 +136,20 @@ def _create_ans_conn(hostname, username, timeout):
     return ans_conn
 
 
-def check_for_ans_error(results, hostname, err_codes=[], success_codes=[0],
-                        return_on_error=["stdout", "stderr"]):
+def check_for_ans_error(results, hostname, err_codes=None, success_codes=None,
+                        return_on_error=None):
     """
     Return True or False + dict
     dict includes 'msg'
     may include 'rc', 'stderr', 'stdout' and any other requested result codes
     """
 
+    if err_codes is None:
+        err_codes = []
+    if success_codes is None:
+        success_codes = [0]
+    if return_on_error is None:
+        return_on_error = ["stdout", "stderr"]
     err_results = {}
 
     if "dark" in results and hostname in results["dark"]:
