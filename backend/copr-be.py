@@ -199,6 +199,7 @@ class CoprBackend(object):
         self._jobgrab = CoprJobGrab(self.opts, self.events, self.jobs, self.lock)
         self._jobgrab.start()
         self.worker_num = 0
+        self.abort = False
 
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0750)
