@@ -539,7 +539,7 @@ def copr_build_monitor(username, coprname):
     build = None
     chroots = set([chroot.name for chroot in copr.active_chroots])
     oses = [chroot.os for chroot in copr.active_chroots]
-    oses_grouped = [(len(list(group)),key) for key, group in groupby(oses)]
+    oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
     archs = [chroot.arch for chroot in copr.active_chroots]
     latest_build = None
 
