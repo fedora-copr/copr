@@ -572,6 +572,6 @@ def copr_build_monitor(username, coprname):
     return flask.render_template("coprs/detail/monitor.html",
                                  copr=copr,
                                  build=latest_build,
-                                 chroots=chroots, oses=oses_grouped, archs = archs,
+                                 chroots=chroots, oses=oses_grouped, archs=archs,
                                  packages=sorted(out.iteritems()),
                                  form=form)
