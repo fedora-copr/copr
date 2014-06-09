@@ -159,7 +159,7 @@ def render_repo(copr, mock_chroot, url):
 
 class Serializer(object):
 
-    def to_dict(self, options={}):
+    def to_dict(self, options=None):
         """
         Usage:
 
@@ -190,6 +190,8 @@ class Serializer(object):
         """
 
         result = {}
+        if options is None:
+            options = {}
         columns = self.serializable_attributes
 
         if "__columns_only__" in options:
