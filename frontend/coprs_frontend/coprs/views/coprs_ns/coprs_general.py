@@ -313,7 +313,7 @@ def copr_permissions_applier_change(username, coprname):
                 msg["From"] = "root@{0}".format(platform.node())
                 msg["To"] = mail
                 s = smtplib.SMTP("localhost")
-                s.sendmail("root@{0}".format(platform.node()), mail , msg.as_string())
+                s.sendmail("root@{0}".format(platform.node()), mail, msg.as_string())
                 s.quit()
 
 
