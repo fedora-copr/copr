@@ -470,15 +470,19 @@ def api_coprs_search_by_project(project=None):
     project = flask.request.args.get("project", None) or project
     httpcode = 200
     if project:
-        query = coprs_logic.CoprsLogic.get_multiple_fulltext(
-            flask.g.user, project)
+        try:
+            query = coprs_logic.CoprsLogic.get_multiple_fulltext(
+                flask.g.user, project)
 
-        repos = query.all()
-        output = {"output": "ok", "repos": []}
-        for repo in repos:
-            output["repos"].append({"username": repo.owner.name,
-                                    "coprname": repo.name,
-                                    "description": repo.description})
+            repos = query.all()
+            output = {"output": "ok", "repos": []}
+            for repo in repos:
+                output["repos"].append({"username": repo.owner.name,
+                                        "coprname": repo.name,
+                                        "description": repo.description})
+        except ValueError as e:
+            output = {"output": "nook", "error": str(e)}
+
     else:
         output = {"output": "notok", "error": "Invalid request"}
         httpcode = 500
