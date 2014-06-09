@@ -47,7 +47,6 @@ def copr_build(username, coprname, build_id):
     return flask.render_template("coprs/detail/build.html",
                                         build=build,
                                         copr=copr)
-        
 
 
 @coprs_ns.route("/<username>/<coprname>/builds/", defaults={"page": 1})
