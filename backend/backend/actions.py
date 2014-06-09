@@ -69,7 +69,7 @@ class Action(object):
 
                     if altered:
                         self.event("Running createrepo")
-                        rc, out, err = createrepo(os.path.join(path, chroot), self.lock)
+                        _, _, err = createrepo(os.path.join(path, chroot), self.lock)
                         if err.strip():
                             self.event(
                                 "Error making local repo: {0}".format(err))
