@@ -40,14 +40,17 @@ class UrlListValidator(object):
 
 class CoprUniqueNameValidator(object):
 
-    def __init__(self, message=None):
+    def __init__(self, message=None, owner=None):
         if not message:
             message = "You already have project named '{0}'."
         self.message = message
+        if not owner:
+            owner = flask.g.user
+        self.owner = owner
 
     def __call__(self, form, field):
         existing = coprs_logic.CoprsLogic.exists_for_user(
-            flask.g.user, field.data).first()
+            self.owner, field.data).first()
 
         if existing and str(existing.id) != form.id.data:
             raise wtforms.ValidationError(self.message.format(field.data))
@@ -77,7 +80,7 @@ class ValueToPermissionNumberFilter(object):
 class CoprFormFactory(object):
 
     @staticmethod
-    def create_form_cls(mock_chroots=None):
+    def create_form_cls(mock_chroots=None, owner=None):
         class F(wtf.Form):
             # also use id here, to be able to find out whether user
             # is updating a copr if so, we don't want to shout
@@ -92,7 +95,7 @@ class CoprFormFactory(object):
                         re.compile(r"^[\w.-]+$"),
                         message="Name must contain only letters,"
                         "digits, underscores, dashes and dots."),
-                    CoprUniqueNameValidator()
+                    CoprUniqueNameValidator(owner=owner)
                 ])
 
             description = wtforms.TextAreaField("Description")

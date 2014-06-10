@@ -228,8 +228,8 @@ def copr_edit(username, coprname, form=None):
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
 @login_required
 def copr_update(username, coprname):
-    form = forms.CoprFormFactory.create_form_cls()()
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    form = forms.CoprFormFactory.create_form_cls(owner=copr.owner)()
 
     if form.validate_on_submit():
         # we don"t change owner (yet)
