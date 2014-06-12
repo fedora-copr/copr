@@ -299,6 +299,17 @@ class Build(db.Model, helpers.Serializer):
 
         return self.status == helpers.StatusEnum("pending")
 
+    @property
+    def repeatable(self):
+        """
+        Find out if this build is repeatable.
+
+        Build is repeatable only if it's not pending
+        (because it would just duplicate the same thing in db)
+        """
+
+        return self.status != helpers.StatusEnum("pending")
+
 
 class MockChroot(db.Model, helpers.Serializer):
 

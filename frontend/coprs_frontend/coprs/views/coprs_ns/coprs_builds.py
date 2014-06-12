@@ -195,7 +195,7 @@ def copr_repeat_build(username, coprname, build_id, page=1):
             user=flask.g.user,
             pkgs=build.pkgs,
             copr=copr,
-            repos=build.repos,
+            repos=copr.repos,
             memory_reqs=build.memory_reqs,
             timeout=build.timeout)
 
