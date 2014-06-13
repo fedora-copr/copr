@@ -26,6 +26,12 @@ try:
 except ImportError:
     pass  # fedmsg is optional
 
+def ans_extra_vars_encode(extra_vars, name):
+    """ transform dict into --extra-vars="json string" """
+    if not extra_vars:
+        return ""
+    return "--extra-vars='{{\"{0}\": {1}}}'".format(
+            name, json.dumps(extra_vars))
 
 class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
 
@@ -197,7 +203,7 @@ class Worker(multiprocessing.Process):
         self.callback.log(name + ": end")
         return result
 
-    def spawn_instance(self):
+    def spawn_instance(self, job):
         """call the spawn playbook to startup/provision a building instance"""
 
         start = time.time()
@@ -205,7 +211,16 @@ class Worker(multiprocessing.Process):
         # Ansible playbook python API does not work here, dunno why.  See:
         # https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
 
-        args = "-c ssh {0}".format(self.opts.spawn_playbook)
+        extra_vars = {}
+        if self.opts.spawn_vars:
+            for i in self.opts.spawn_vars.split(","):
+                if i == 'chroot':
+                    extra_vars['chroot'] = job['chroot']
+
+        args = "-c ssh {0} {1}".format(
+                self.opts.spawn_playbook,
+                ans_extra_vars_encode(extra_vars, "copr_task"))
+
         result = self.run_ansible_playbook(args, "spawning instance")
         if not result:
             return None
@@ -241,8 +256,15 @@ class Worker(multiprocessing.Process):
     def terminate_instance(self, instance_ip):
         """call the terminate playbook to destroy the building instance"""
 
-        args = "-c ssh -i '{0},' {1}".format(instance_ip,
-                self.opts.terminate_playbook)
+        term_args = {}
+        if self.opts.terminate_vars:
+            for i in self.opts.terminate_vars.split(","):
+                if i == "ip":
+                    term_args["ip"] = instance_ip
+
+        args = "-c ssh -i '{0},' {1} {2}".format(
+                instance_ip, self.opts.terminate_playbook,
+                ans_extra_vars_encode(term_args, "copr_task"))
         self.run_ansible_playbook(args, "terminate instance")
 
 
@@ -368,7 +390,7 @@ class Worker(multiprocessing.Process):
             # spin up our build instance
             if self.create:
                 try:
-                    ip = self.spawn_instance()
+                    ip = self.spawn_instance(job)
                     if not ip:
                         raise errors.CoprWorkerError(
                             "No IP found from creating instance")

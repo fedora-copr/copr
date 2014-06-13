@@ -244,6 +244,10 @@ class CoprBackend(object):
             opts.verbose = _get_conf(cp, "backend", "verbose", False)
             opts.worker_logdir = _get_conf(
                 cp, "backend", "worker_logdir", "/var/log/copr/workers/")
+            opts.spawn_vars = _get_conf(cp, "backend", "spawn_vars", None)
+            opts.terminate_vars = _get_conf(cp, "backend", "terminate_vars",
+                None)
+
             # thoughts for later
             # ssh key for connecting to builders?
             # cloud key stuff?
