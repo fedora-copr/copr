@@ -8,9 +8,10 @@ if [ ! -d $RESULTDIR ]; then
    exit 1
 fi
 
-pushd $RESULTDIR >/dev/null
+pushd $RESULTDIR >/dev/null || ( echo "Could not change to $RESULTDIR"; exit 1)
+
 for REPO in $( ls -d */*/* | grep -v '/repodata$' ); do
-    pushd $REPO >/dev/null
+    pushd $REPO >/dev/null || continue
 
     # Removing failed builds
     for FAILED in $(find -name 'fail' -mtime +$DAYS); do
