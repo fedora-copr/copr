@@ -122,6 +122,7 @@ class Worker(multiprocessing.Process):
         self.events = events
         self.worker_num = worker_num
         self.ip = ip
+        self.vm_name = None
         self.opts = opts
         self.kill_received = False
         self.callback = callback
@@ -228,8 +229,11 @@ class Worker(multiprocessing.Process):
         match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
         if not match:
             return None
-
         ipaddr = match.group(1)
+
+        match = re.search(r'vm_name=([^\{\}"]+)', result, re.MULTILINE)
+        if match:
+            self.vm_name = match.group(1)
 
         self.callback.log("got instance ip: {0}".format(ipaddr))
         self.callback.log(
@@ -261,6 +265,8 @@ class Worker(multiprocessing.Process):
             for i in self.opts.terminate_vars.split(","):
                 if i == "ip":
                     term_args["ip"] = instance_ip
+                if i == "vm_name":
+                    term_args["vm_name"] = self.vm_name
 
         args = "-c ssh -i '{0},' {1} {2}".format(
                 instance_ip, self.opts.terminate_playbook,
