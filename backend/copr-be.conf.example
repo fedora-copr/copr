@@ -37,6 +37,8 @@ terminate_playbook=/srv/copr-work/provision/terminatepb.yml
 # Currently supported parameters:
 # - ip
 #       IP address of builder which should be terminated
+# - vm_name
+#       name of VM (if provided by spawn script)
 # default is None (empty)
 #terminate_vars=ip
 
