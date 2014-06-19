@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.35
+Version:    1.36
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -172,6 +172,31 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Jun 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.36-1
+- backend: migrate to nova ansible module
+- backend: make sure that exit() exit whole script not just sub-shell
+- backend: allow passing additional info to playbooks
+- handle {spawn,terminate}_instance equally
+- backend: stop if you could not change to directory
+- W:310, 8: Attribute 'abort' defined outside __init__ (attribute-defined-
+  outside-init)
+- W:139, 0: Dangerous default value [] as argument (dangerous-default-value)
+  W:139, 0: Dangerous default value [0] as argument (dangerous-default-value)
+  W:139, 0: Dangerous default value ['stdout', 'stderr'] as argument
+  (dangerous-default-value)
+- W:543, 4: Dangerous default value DEF_MACROS ({}) as argument (dangerous-
+  default-value)
+- W:543, 4: Dangerous default value DEF_REPOS ([]) as argument (dangerous-
+  default-value)
+- W:677,24: Unused variable 'out' (unused-variable) W:677,20: Unused variable
+  'rc' (unused-variable)
+- W:297,12: Unused variable 'hn' (unused-variable)
+- C:116, 0: Unnecessary parens after 'print' keyword (superfluous-parens)
+- W: 72,28: Unused variable 'out' (unused-variable) W: 72,24: Unused variable
+  'rc' (unused-variable)
+- fix typo in exception message printing
+- 1102788 - Increase number of file descriptors on the build machine
+
 * Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.35-1
 - follow selinux packaging draft
 - [backend] epel 5 repo fix (sha256 -> sha)
