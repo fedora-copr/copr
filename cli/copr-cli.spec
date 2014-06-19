@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.32
+Version:    1.33
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -96,6 +96,14 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %endif
 
 %changelog
+* Thu Jun 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.33-1
+- cancel added to the man page
+- exit code 4 for failed build and man pages updated
+- error and shell return code 1 when build fails
+- delete a project
+- shell return codes with errors
+- copr-cli cancel fix
+
 * Thu Apr 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.32-1
 - be less strict in parsing fas/copr-name
 
