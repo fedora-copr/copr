@@ -81,6 +81,7 @@ This package contains frontend.
 
 %package doc
 Summary:    Code documentation for COPR
+Obsoletes:  copr-doc < 1.38
 
 %description doc
 COPR is lightweight build system. It allows you to create new project in WebUI,
