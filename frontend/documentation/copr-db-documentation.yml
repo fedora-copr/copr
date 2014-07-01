@@ -1,0 +1,41 @@
+---
+
+# Playbook to generate a database documentation of Copr frontend
+# Needs a Copr frontend instance with postgreSQL database
+# and root access with rsa (without password)
+#
+# Usage:
+# $ ansible-playbook -i SERVER-IP, copr-db-documentation.yml
+#
+# Output:
+# coprdb.html, coprdb.png and coprdb.dia in the same folder as your playbook is
+
+- name: generate copr db documentation
+  hosts: all
+  user: root
+  gather_facts: False
+  
+  tasks:
+  - name: install packages
+    action: yum name=postgresql_autodoc state=latest
+
+  - name: generate database graph
+    shell: postgresql_autodoc -t dot -u copr-fe -d coprdb --password=coprpass
+
+  - name: transform it into png
+    shell: dot -Tpng coprdb.dot -o coprdb.png
+
+  - name: generate database html
+    shell: postgresql_autodoc -t html -u copr-fe -d coprdb --password=coprpass
+
+  - name: generate database dia
+    shell: postgresql_autodoc -t dia -u copr-fe -d coprdb --password=coprpass
+
+  - name: get the png file
+    fetch: src=/root/coprdb.png dest=./ flat=yes
+
+  - name: get the html file
+    fetch: src=/root/coprdb.html dest=./ flat=yes
+
+  - name: get the dia file
+    fetch: src=/root/coprdb.dia dest=./ flat=yes
