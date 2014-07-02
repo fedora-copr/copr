@@ -389,6 +389,7 @@ class Builder(object):
         # returns success_bool, out, err
 
         success = False
+        build_details = {}
         self.modify_base_buildroot()
 
         # check if pkg is local or http
@@ -408,6 +409,24 @@ class Builder(object):
             self.conn.run()
         else:
             dest = pkg
+
+        # get the package information
+        # TODO
+        # version
+        self.conn.module_name = "shell"
+        self.conn.module_args = "rpm -qp --qf \"%{VERSION}\n\" "+pkg
+        self.mockremote.callback.log("Getting package information: version")
+        results = self.conn.run()
+        if "contacted" in results:
+            build_details["pkg_version"] = results["contacted"].itervalues().next()[u"stdout"]
+
+        # name
+        self.conn.module_name = "shell"
+        self.conn.module_args = "rpm -qp --qf \"%{NAME}\n\" "+pkg
+        self.mockremote.callback.log("Getting package information: name")
+        results = self.conn.run()
+        if "contacted" in results:
+            build_details["pkg_name"] = results["contacted"].itervalues().next()[u"stdout"]
 
         # construct the mockchain command
         buildcmd = "{0} -r {1} -l {2} ".format(
@@ -440,7 +459,7 @@ class Builder(object):
 
         if is_err:
             return (success, err_results.get("stdout", ""),
-                    err_results.get("stderr", ""))
+                    err_results.get("stderr", ""), build_details)
 
         # we know the command ended successfully but not if the pkg built
         # successfully
@@ -458,7 +477,7 @@ class Builder(object):
         if not is_err:
             success = True
 
-        return success, out, err
+        return success, out, err, build_details
 
     def download(self, pkg, destdir):
         # download the pkg to destdir using rsync + ssh
@@ -596,6 +615,9 @@ class MockRemote(object):
         built_pkgs = []
         downloaded_pkgs = {}
 
+        build_details = {}
+        skipped = False
+
         try_again = True
         to_be_built = pkgs
         while try_again:
@@ -615,6 +637,7 @@ class MockRemote(object):
                 # check the destdir to see if these pkgs need to be built
                 if os.path.exists(p_path):
                     if os.path.exists(os.path.join(p_path, "success")):
+                        skipped = True
                         self.callback.log(
                             "Skipping already built pkg {0}".format(
                                 os.path.basename(pkg)))
@@ -628,7 +651,7 @@ class MockRemote(object):
                 # off to the builder object
                 # building
                 self.callback.start_build(pkg)
-                b_status, b_out, b_err = self.builder.build(pkg)
+                b_status, b_out, b_err, build_details = self.builder.build(pkg)
                 self.callback.end_build(pkg)
 
                 # downloading
@@ -714,6 +737,8 @@ class MockRemote(object):
                     try_again = False
             else:
                 try_again = False
+
+        return skipped, build_details
 
 
 def parse_args(args):

@@ -307,6 +307,10 @@ class Worker(multiprocessing.Process):
         jobdata.user_id = build["user_id"]
         jobdata.user_name = build["copr"]["owner"]["name"]
         jobdata.copr_name = build["copr"]["name"]
+
+        jobdata.pkg_version = ""
+        jobdata.pkg_name = ""
+
         return jobdata
 
     # maybe we move this to the callback?
@@ -350,6 +354,8 @@ class Worker(multiprocessing.Process):
             "ended_on": job.ended_on,
             "status": job.status,
             "chroot": job.chroot,
+            "pkg_version": job.pkg_version,
+            "pkg_name": job.pkg_name,
         }
 
         data = {"builds": [build]}
@@ -500,7 +506,12 @@ class Worker(multiprocessing.Process):
                             callback=mockremote.CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile))
 
-                        mr.build_pkgs(job.pkgs)
+                        skipped, build_details = mr.build_pkgs(job.pkgs)
+
+                        if skipped:
+                            status = 5 # skipped
+
+                        job.update(build_details)
 
                     except mockremote.MockRemoteError, e:
                         # record and break
