@@ -62,7 +62,8 @@ class StatusEnum(object):
             "succeeded": 1,
             "canceled":  2,
             "running":   3,
-            "pending":   4}
+            "pending":   4,
+            "skipped":   5} # if there was this package built already
 
 
 class Paginator(object):

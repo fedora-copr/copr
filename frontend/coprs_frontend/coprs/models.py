@@ -274,7 +274,7 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return helpers.StatusEnum("canceled")
 
-        for state in ["failed", "running", "pending", "succeeded"]:
+        for state in ["failed", "running", "pending", "succeeded", "skipped"]:
             if helpers.StatusEnum(state) in self.chroot_states:
                 return helpers.StatusEnum(state)
 

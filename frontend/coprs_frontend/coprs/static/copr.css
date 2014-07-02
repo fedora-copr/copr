@@ -331,6 +331,10 @@ tr.build-row-succeeded {
   color: black;
 }
 
+tr.build-row-skipped {
+  color: black;
+}
+
 .build-pending {
   color: #55b;
 }
@@ -340,6 +344,10 @@ tr.build-row-succeeded {
 }
 
 .build-succeeded {
+  color: #272;
+}
+
+.build-skipped {
   color: #272;
 }
 
