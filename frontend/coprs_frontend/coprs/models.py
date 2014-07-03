@@ -233,6 +233,10 @@ class Build(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     # list of space separated urls of packages to build
     pkgs = db.Column(db.Text)
+    # the real name of the package got by rpm
+    pkg_name = db.Column(db.Text)
+    # version of the package got by rpm
+    pkg_version = db.Column(db.Text)
     # was this build canceled by user?
     canceled = db.Column(db.Boolean, default=False)
     # list of space separated additional repos

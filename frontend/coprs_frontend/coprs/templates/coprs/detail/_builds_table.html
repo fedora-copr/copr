@@ -6,6 +6,7 @@
       <tr>
         <th>Id</th>
         <th>Package</th>
+        <th>Version</th>
         <th>Submitted</th>
         <th>Build time</th>
         <th>Status</th>
@@ -14,6 +15,13 @@
       <tr class="build-row build-row-{{ build.state }}" >
         <td><a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{ build.id }}</a></td>
         <td>{{ build.pkgs|pkg_name }}</td> 
+        <td>
+            {% if build.pkg_version %} 
+                {{ build.pkg_version}}
+            {% else %}
+                 - 
+            {% endif %}
+        </td> 
         <td>
             {% if g.user %}
                 {{ build.submitted_on|localized_time(g.user.timezone) }}
