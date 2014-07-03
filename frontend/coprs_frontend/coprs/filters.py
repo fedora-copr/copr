@@ -114,3 +114,19 @@ def parse_package_name(pkg):
     if pkg is not None:
         return helpers.parse_package_name(os.path.basename(pkg))
     return pkg
+
+
+@app.template_filter("basename")
+def parse_package_name(pkg):
+    if pkg is not None:
+        return os.path.basename(pkg)
+    return pkg
+
+
+@app.template_filter("build_state_description")
+def build_state_decoration(state):
+    description = ""
+    if state == "skipped":
+        description = "This package has already been built previously"
+
+    return description

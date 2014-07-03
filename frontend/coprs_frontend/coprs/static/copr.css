@@ -22,7 +22,9 @@ h2 {
 }
 
 h2.build-detail {
-  font-size: 1.8em;
+  font-size: 1.4em;
+  margin-bottom: 0px;
+  font-weight: normal;
 }
 
 h3 {
@@ -357,6 +359,25 @@ tr.build-row-skipped {
 
 .build-cancelled {
   color: #666;
+}
+
+dl.aligned dt {
+  font-weight: bolder;
+}
+
+dl.aligned dd {
+  margin-left: 0;
+}
+
+dl.aligned dt.oneline {
+  float: left;
+  clear: left;
+  margin-right: 9px;
+  font-weight: bold;
+}
+
+dl.aligned div {
+  margin-bottom: 18px;
 }
 
 table.releases th {

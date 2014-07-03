@@ -30,7 +30,7 @@
             {% endif %}
         </td>
         <td> {{ build.started_on|time_ago(build.ended_on) }} </td>
-        <td class="build-{{ build.state }}">{{ build.state }}</td>
+        <td class="build-{{build.state}}" alt="{{build.state|build_state_description}}">{{ build.state }}</td>
       </tr>
     {% endfor %}
     </table>
