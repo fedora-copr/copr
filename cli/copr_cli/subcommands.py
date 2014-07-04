@@ -290,6 +290,10 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=None):
                             failed_ids.append(id)
                         output["ids"].remove(id)
 
+                    if status == "unknown":
+                        raise copr_exceptions.CoprCliBuildException(
+                            "Unknown status.")
+
                 if not output["ids"]:
                     break
                 time.sleep(60)
