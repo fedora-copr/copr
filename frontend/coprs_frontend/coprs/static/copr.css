@@ -28,7 +28,12 @@ h2.build-detail {
 }
 
 h3 {
-  font-size: 1.1em;
+  font-size: 1.4em;
+  color: #1F4B89;
+}
+
+h4 {
+  margin-bottom: 0px;
 }
 
 #logo {

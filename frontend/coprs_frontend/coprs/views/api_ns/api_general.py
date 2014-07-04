@@ -317,6 +317,7 @@ def build_status(build_id):
     return jsonout
 
 @api_ns.route("/coprs/build_detail/<build_id>/", methods=["GET"])
+@api_ns.route("/coprs/build/<build_id>/", methods=["GET"])
 def build_detail(build_id):
     if build_id.isdigit():
         build = builds_logic.BuildsLogic.get(build_id).first()
@@ -325,10 +326,23 @@ def build_detail(build_id):
 
     if build:
         httpcode = 200
+        chroots = {}
+        for chroot in build.build_chroots:
+            chroots[chroot.name] = chroot.state
+
         output = {"output": "ok",
-                  "owner": build.copr.owner.name,
+                  "status": build.state,
                   "project": build.copr.name,
-                  "status": build.state}
+                  "owner": build.copr.owner.name,
+                  "results": build.results,
+                  "pkg_name": build.pkg_name,
+                  "pkg_version": build.pkg_version,
+                  "chroots": chroots,
+                  "submitted_on": build.submitted_on,
+                  "started_on": build.started_on,
+                  "ended_on": build.ended_on,
+                  "src_pkg": build.pkgs,
+                  "submitted_by": build.user.name}
     else:
         output = {"output": "notok", "error": "Invalid build"}
         httpcode = 404
