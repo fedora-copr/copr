@@ -11,7 +11,8 @@
       <table class="status-table">
         <tr></tr>
         <tr>
-          <th rowspan="2">Packages</th>
+          <th rowspan="2">Package</th>
+          <th rowspan="2">Version</th>
           {% for i, chroot in oses %}
           <th colspan="{{i}}">
             {{ chroot|capitalize }}
@@ -25,9 +26,16 @@
           </th>
           {% endfor %}
         </tr>
-        {% for package, states in packages %}
+        {% for package, version, states in packages %}
           <tr>
             <td>{{ package }}</td>
+            <td>
+                {% if version: %}
+                    {{ version }}
+                {% else %}
+                    - 
+                {% endif %}
+            </td>
             {% for build_id, state in states %}
               <td class="centered build-{{ state }}">
                 {% if state %}

@@ -535,7 +535,7 @@ def copr_build_monitor(username, coprname):
     # - it can"t determine build results if build contains
     # more than one package as this data is not available
 
-    out = {}
+    packages = []
     build = None
     chroots = set([chroot.name for chroot in copr.active_chroots])
     oses = [chroot.os for chroot in copr.active_chroots]
@@ -549,6 +549,7 @@ def copr_build_monitor(username, coprname):
 
     chroots = sorted(chroots)
 
+    out = []
     for build in builds:
         chroot_results = {chroot.name: chroot.state
                           for chroot in build.build_chroots}
@@ -567,11 +568,12 @@ def copr_build_monitor(username, coprname):
             if pkg_name in out:
                 continue
 
-            out[pkg_name] = build_results
+            packages.append((pkg_name, build.pkg_version, build_results))
+            out.append(pkg_name)
 
     return flask.render_template("coprs/detail/monitor.html",
                                  copr=copr,
                                  build=latest_build,
                                  chroots=chroots, oses=oses_grouped, archs=archs,
-                                 packages=sorted(out.iteritems()),
+                                 packages=packages,
                                  form=form)
