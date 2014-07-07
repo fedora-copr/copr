@@ -164,7 +164,8 @@ class BuildsLogic(object):
             raise exceptions.ActionInProgressException(
                 "You can not delete build which is running.", "Running build")
 
-        action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
+        if build.state != "failed":
+            action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type="build",
                                object_id=build.id,
                                old_value="{0}/{1}".format(build.copr.owner.name,
@@ -172,7 +173,7 @@ class BuildsLogic(object):
                                data=build.pkgs,
                                created_on=int(time.time()))
 
-        db.session.add(action)
+            db.session.add(action)
         for build_chroot in build.build_chroots:
             db.session.delete(build_chroot)
         db.session.delete(build)
