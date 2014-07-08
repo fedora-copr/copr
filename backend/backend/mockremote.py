@@ -410,23 +410,13 @@ class Builder(object):
         else:
             dest = pkg
 
-        # get the package information
-        # TODO
-        # version
+        # srpm version
         self.conn.module_name = "shell"
         self.conn.module_args = "rpm -qp --qf \"%{VERSION}\n\" "+pkg
         self.mockremote.callback.log("Getting package information: version")
         results = self.conn.run()
         if "contacted" in results:
             build_details["pkg_version"] = results["contacted"].itervalues().next()[u"stdout"]
-
-        # name
-        self.conn.module_name = "shell"
-        self.conn.module_args = "rpm -qp --qf \"%{NAME}\n\" "+pkg
-        self.mockremote.callback.log("Getting package information: name")
-        results = self.conn.run()
-        if "contacted" in results:
-            build_details["pkg_name"] = results["contacted"].itervalues().next()[u"stdout"]
 
         # construct the mockchain command
         buildcmd = "{0} -r {1} -l {2} ".format(
@@ -476,6 +466,14 @@ class Builder(object):
 
         if not is_err:
             success = True
+
+            self.mockremote.callback.log("Listing built binary packages")
+            self.conn.module_name = "shell"
+            self.conn.module_args = "cd {0} && for f in `ls *.rpm | grep -v \"src.rpm$\"`; do rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; done".format(self._get_remote_pkg_dir(pkg))
+            results = self.conn.run()
+            build_details["built_packages"] = results["contacted"].itervalues().next()[u"stdout"]
+            self.mockremote.callback.log("Packages:\n"+build_details["built_packages"])
+
 
         return success, out, err, build_details
 

@@ -309,7 +309,7 @@ class Worker(multiprocessing.Process):
         jobdata.copr_name = build["copr"]["name"]
 
         jobdata.pkg_version = ""
-        jobdata.pkg_name = ""
+        jobdata.built_packages = ""
 
         return jobdata
 
@@ -355,7 +355,7 @@ class Worker(multiprocessing.Process):
             "status": job.status,
             "chroot": job.chroot,
             "pkg_version": job.pkg_version,
-            "pkg_name": job.pkg_name,
+            "built_packages": job.built_packages,
         }
 
         data = {"builds": [build]}
