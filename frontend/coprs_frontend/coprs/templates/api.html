@@ -281,8 +281,8 @@ copr_url = https://copr.fedoraproject.org
         <li><b>project</b> &ndash; Name of the project.</li>
         <li><b>owner</b> &ndash; Name of the owner.</li>
         <li><b>results</b>&ndash; URL with the results.</li>
-        <li><b>pkg_name</b>&ndash; Name of the built package.</li>
-        <li><b>pkg_version</b>&ndash; Version of the built package.</li>
+        <li><b>built_pkgs</b>&ndash; List of built packages.</li>
+        <li><b>src_version</b>&ndash; Version of the source package.</li>
         <li><b>chroots</b>&ndash; Chroots in which the package has been build and their build states.</li>
         <li><b>submitted_on</b>&ndash; Datetime when the build was submitted. (in epoch format) </li>
         <li><b>started_on</b>&ndash; Datetime when the build process started. (in epoch format)</li>
@@ -298,8 +298,12 @@ copr_url = https://copr.fedoraproject.org
       "project": "myproject",
       "owner": "msuchy",
       "results": "http://copr-be.cloud.fedoraproject.org/results/msuchy/myproject/",
-      "pkg_name": "hello",
-      "pkg_version": "2.8",
+      "built_pkgs": [
+        "hello 2.8",
+        "hello-gui 2.8",
+        "super-lib 5.4"
+      ],
+      "src_version": "2.8",
       "chroots": {
         "fedora-20-i386": "succeeded",
         "fedora-20-x86_64": "succeeded"

@@ -125,7 +125,7 @@ class BuildsLogic(object):
 
                     db.session.add(build_chroot)
 
-        for attr in ["results", "started_on", "ended_on", "pkg_version", "pkg_name"]:
+        for attr in ["results", "started_on", "ended_on", "pkg_version", "built_packages"]:
             value = upd_dict.get(attr, None)
             if value:
                 # only update started_on once

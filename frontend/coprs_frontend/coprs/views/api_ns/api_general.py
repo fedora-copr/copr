@@ -330,13 +330,17 @@ def build_detail(build_id):
         for chroot in build.build_chroots:
             chroots[chroot.name] = chroot.state
 
+        built_packages = None
+        if build.built_packages:
+            built_packages = build.built_packages.split("\n")
+
         output = {"output": "ok",
                   "status": build.state,
                   "project": build.copr.name,
                   "owner": build.copr.owner.name,
                   "results": build.results,
-                  "pkg_name": build.pkg_name,
-                  "pkg_version": build.pkg_version,
+                  "built_pkgs": built_packages,
+                  "src_version": build.pkg_version,
                   "chroots": chroots,
                   "submitted_on": build.submitted_on,
                   "started_on": build.started_on,

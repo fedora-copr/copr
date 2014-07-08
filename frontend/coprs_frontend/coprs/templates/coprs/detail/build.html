@@ -36,17 +36,11 @@
                 {% endif %}
         </div>
         <div>
-            <dt class="oneline"> Name:</dt>
-                {% if build.pkg_name %}
-                    <dd>{{ build.pkg_name }}</dd>
-                {% else %}
-                    <dd> - </dd>
-                {% endif %}
-
-
-            <dt class="oneline"> Version:</dt>
-                {% if build.pkg_version %}
-                    <dd>{{ build.pkg_version }}</dd>
+            <dt> Built packages:</dt>
+                {% if build.built_packages %}
+                    {% for pkg in build.built_packages.split("\n"): %}
+                        <dd>{{ pkg }}</dd>
+                    {% endfor %}
                 {% else %}
                     <dd> - </dd>
                 {% endif %}
