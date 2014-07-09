@@ -218,8 +218,14 @@ class Worker(multiprocessing.Process):
                 if i == 'chroot':
                     extra_vars['chroot'] = job['chroot']
 
+        arch = job['chroot'].split("-")[2]
+        try:
+            spawn_playbook = self.opts.spawn_playbook[arch]
+        except KeyError:
+            return None
+
         args = "-c ssh {0} {1}".format(
-                self.opts.spawn_playbook,
+                spawn_playbook,
                 ans_extra_vars_encode(extra_vars, "copr_task"))
 
         result = self.run_ansible_playbook(args, "spawning instance")

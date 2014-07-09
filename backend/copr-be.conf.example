@@ -12,10 +12,22 @@ frontend_url=http://copr-fe.cloud.fedoraproject.org/backend
 # default is PASSWORDHERE but you really should change it. really.
 frontend_auth=backend_password_from_fe_config
 
-# path to ansible playbook which spawns builder
+# comma-separated architectures 
+# default is i386,x86_64
+architectures=i386,x86_64
+
+# paths to ansible playbooks which spawns builder
 # see /usr/share/copr*/playbooks/ for examples
-# default is /etc/copr/builder_playbook.yml
-spawn_playbook=/srv/copr-work/provision/builderpb.yml
+# you need to specify an extra variable with  playbook
+#   for each architecture above as spawn_playbook-arch=PATH
+# example for i386:
+#   spawn_playbook-i386=/etc/copr/builder_playbook-i386.yml
+# defaults are: (also automatically generated for each architecture above)
+# spawn_playbook-i386=/etc/copr/builder_playbook-i386.yml
+# spawn_playbook-x86_64=/etc/copr/builder_playbook-x86_64.yml
+# spawn_playbook-ANY_ARCH=/etc/copr/builder_playbook-ANY_ARCH.yml
+spawn_playbook-i386=/srv/copr-work/provision/builderpb-i386.yml
+spawn_playbook-x86_64=/srv/copr-work/provision/builderpb-x86_64.yml
 
 # What variables will be send to spawn_playbook.  Expects comma separated list
 # of keywords.  For example 'spawn_vars=chroot' will create

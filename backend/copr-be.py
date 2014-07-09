@@ -222,9 +222,14 @@ class CoprBackend(object):
             opts.frontend_auth = _get_conf(
                 cp, "backend", "frontend_auth", "PASSWORDHERE")
 
-            opts.spawn_playbook = _get_conf(
-                cp, "backend", "spawn_playbook",
-                "/etc/copr/builder_playbook.yml")
+            opts.architectures = _get_conf(
+                cp, "backend", "architectures", "i386 x86_64").split(",")
+
+            opts.spawn_playbook = {}
+            for arch in opts.architectures:
+                opts.spawn_playbook[arch] = _get_conf(
+                    cp, "backend", "spawn_playbook-{0}".format(arch),
+                    "/etc/copr/builder_playbook-{0}.yml".format(arch))
 
             opts.terminate_playbook = _get_conf(
                 cp, "backend", "terminate_playbook",
