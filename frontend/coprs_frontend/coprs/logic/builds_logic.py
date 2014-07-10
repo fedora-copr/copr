@@ -132,10 +132,10 @@ class BuildsLogic(object):
                 if attr == "started_on" and build.started_on:
                     continue
 
-                # only update ended_on and results
-                # when there are no pending builds
-                if (attr in ["ended_on", "results"] and
-                        build.has_pending_chroot):
+                # update ended_on when everything really ends
+                # update results when there is repo initialized for every chroot
+                if (attr == "ended_on" and build.has_unfinished_chroot) or \
+                   (attr == "results" and build.has_pending_chroot):
                     continue
 
                 if attr == "ended_on":

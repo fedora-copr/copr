@@ -270,6 +270,11 @@ class Build(db.Model, helpers.Serializer):
         return helpers.StatusEnum("pending") in self.chroot_states
 
     @property
+    def has_unfinished_chroot(self):
+        return helpers.StatusEnum("pending") in self.chroot_states or \
+               helpers.StatusEnum("running") in self.chroot_states
+
+    @property
     def status(self):
         """
         Return build status according to build status of its chroots
