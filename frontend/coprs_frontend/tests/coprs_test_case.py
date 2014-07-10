@@ -121,10 +121,14 @@ class CoprsTestCase(object):
         for build in [self.b1, self.b2, self.b3, self.b4]:
             self.db.session.add(build)
 
+            status = None
+            if build is self.b1: # this build is going to be deleted
+                status = 1 # succeeded
             for chroot in build.copr.active_chroots:
                 buildchroot = models.BuildChroot(
                     build=build,
-                    mock_chroot=chroot)
+                    mock_chroot=chroot,
+                    status = status)
 
                 self.db.session.add(buildchroot)
 

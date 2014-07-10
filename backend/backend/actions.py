@@ -36,7 +36,9 @@ class Action(object):
                     self.event("Removing copr {0}".format(path))
                     shutil.rmtree(path)
 
-            elif self.data["object_type"] == "build":
+            elif self.data["object_type"] in ["build-succeeded", 
+                                              "build-skipped",
+                                              "build-failed"]:
                 self.event("Action delete build")
                 project = self.data["old_value"]
                 packages = map(lambda x:
@@ -57,22 +59,31 @@ class Action(object):
                     self.event("In chroot {0}".format(chroot))
                     altered = False
 
+                    # We need to delete the files only if they belong
+                    # to the build. For example if my build fails and I send
+                    # fixed pkg with the same version again, it succeeds and 
+                    # than I delete the failed, it would delete the succeeded
+                    # files as well - that would be wrong.
                     for pkg in packages:
-                        pkg_path = os.path.join(path, chroot, pkg)
-                        if os.path.isdir(pkg_path):
-                            self.event("Removing build {0}".format(pkg_path))
-                            shutil.rmtree(pkg_path)
-                            altered = True
-                        else:
-                            self.event("Package {0} dir not found in chroot {1}"
-                                       .format(pkg, chroot))
+                        if self.data["object_type"] == "build-succeeded" or \
+                            (self.data["object_type"] == "build-failed" and
+                            os.path.exists(os.path.join(path, chroot, pkg, "fail"))):
+                            pkg_path = os.path.join(path, chroot, pkg)
+                            if os.path.isdir(pkg_path):
+                                self.event("Removing build {0}".format(pkg_path))
+                                shutil.rmtree(pkg_path)
+                                altered = True
+                            else:
+                                self.event(
+                                    "Package {0} dir not found in chroot {1}"
+                                    .format(pkg, chroot))
 
-                    if altered:
-                        self.event("Running createrepo")
-                        _, _, err = createrepo(os.path.join(path, chroot), self.lock)
-                        if err.strip():
-                            self.event(
-                                "Error making local repo: {0}".format(err))
+                            if altered:
+                                self.event("Running createrepo")
+                                _, _, err = createrepo(os.path.join(path, chroot), self.lock)
+                                if err.strip():
+                                    self.event(
+                                        "Error making local repo: {0}".format(err))
 
                     log_path = os.path.join(
                         path, chroot,

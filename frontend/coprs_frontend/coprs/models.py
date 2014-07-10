@@ -319,6 +319,20 @@ class Build(db.Model, helpers.Serializer):
 
         return self.status != helpers.StatusEnum("pending")
 
+    @property
+    def deletable(self):
+        """
+        Find out if this build is deletable.
+
+        Build is deletable only when it's finished. (also means cancelled)
+        It is important to remember that "failed" state doesn't ultimately
+        mean it's finished - so we need to check whether the "ended_on"
+        property has been set.
+        """
+
+        return self.state in ["succeeded", "canceled", "skipped"] or \
+               (self.state == "failed" and self.ended_on is not None)
+
 
 class MockChroot(db.Model, helpers.Serializer):
 

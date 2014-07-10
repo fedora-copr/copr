@@ -160,13 +160,16 @@ class BuildsLogic(object):
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to delete this build.")
 
-        if build.state == "running":
+        if not build.deletable:
             raise exceptions.ActionInProgressException(
-                "You can not delete build which is running.", "Running build")
+                "You can not delete build which is not finished.",
+                "Unfinished build")
 
-        if build.state != "failed":
+        # Only failed (and finished), succeeded, skipped and cancelled get here.
+        if build.state != "cancelled": #has nothing in backend to delete
+            object_type = "build-{0}".format(build.state)
             action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
-                               object_type="build",
+                               object_type=object_type,
                                object_id=build.id,
                                old_value="{0}/{1}".format(build.copr.owner.name,
                                                           build.copr.name),
@@ -174,6 +177,7 @@ class BuildsLogic(object):
                                created_on=int(time.time()))
 
             db.session.add(action)
+
         for build_chroot in build.build_chroots:
             db.session.delete(build_chroot)
         db.session.delete(build)
