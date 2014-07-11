@@ -547,7 +547,7 @@ class Worker(multiprocessing.Process):
 
                 content = dict(user=job.user_name, copr=job.copr_name,
                                build=job.build_id, ip=ip, pid=self.pid,
-                               status=job.status)
+                               status=job.status, chroot=job.chroot)
                 self.event("build.end", template, content)
 
             finally:
