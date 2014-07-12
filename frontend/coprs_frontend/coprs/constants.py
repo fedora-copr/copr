@@ -7,6 +7,7 @@ CHROOTS = {
     "fedora-18":      DEFAULT_ARCHES,
     "fedora-19":      DEFAULT_ARCHES,
     "fedora-20":      DEFAULT_ARCHES,
+    "fedora-21":      DEFAULT_ARCHES,
     "fedora-rawhide": DEFAULT_ARCHES,
     "epel-5": DEFAULT_ARCHES,
     "epel-6": DEFAULT_ARCHES,
