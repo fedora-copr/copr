@@ -175,7 +175,6 @@ class BuildsLogic(object):
                                                           build.copr.name),
                                data=build.pkgs,
                                created_on=int(time.time()))
-
             db.session.add(action)
 
         for build_chroot in build.build_chroots:

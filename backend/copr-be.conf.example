@@ -23,9 +23,9 @@ architectures=i386,x86_64
 # example for i386:
 #   spawn_playbook-i386=/etc/copr/builder_playbook-i386.yml
 # defaults are: (also automatically generated for each architecture above)
-# spawn_playbook-i386=/etc/copr/builder_playbook-i386.yml
-# spawn_playbook-x86_64=/etc/copr/builder_playbook-x86_64.yml
-# spawn_playbook-ANY_ARCH=/etc/copr/builder_playbook-ANY_ARCH.yml
+# spawn_playbook-i386=/srv/copr-work/provision/builderpb-i386.yml
+# spawn_playbook-x86_64=/srv/copr-work/provision/builderpb-x86_64.yml
+# spawn_playbook-ANY_ARCH=/srv/copr-work/provision/builderpb-ANY_ARCH.yml
 spawn_playbook-i386=/srv/copr-work/provision/builderpb-i386.yml
 spawn_playbook-x86_64=/srv/copr-work/provision/builderpb-x86_64.yml
 
@@ -41,7 +41,7 @@ spawn_playbook-x86_64=/srv/copr-work/provision/builderpb-x86_64.yml
 #spawn_vars=chroot
 
 # path to ansible playbook which terminate builder
-# default is /etc/copr/terminate_playbook.yml 
+# default is /srv/copr-work/provision/terminatepb.yml 
 terminate_playbook=/srv/copr-work/provision/terminatepb.yml
 
 # The same option as 'spawn_vars' above, except that variables will be send to
