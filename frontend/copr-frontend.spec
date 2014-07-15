@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.38
+Version:    1.39
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -163,6 +163,29 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Tue Jul 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.39-1
+- frontend: add f21 chroot
+- 1118829 - suggest owners to entry link to reporting web
+- small changes after review
+- better and safer deleting of builds
+- [frontend] build's ended_on time fix
+- [frontend] built pkgs info - include subpackages
+- deleting of failed builds fixed
+- [frontend] api build details extended
+- pkg name on the build page
+- [frontend] pkg version on the Monitor page
+- [frontend] pkg name and version on the build page
+- [frontend] pkg name and version support
+- [frontend] skipped state support
+- Ansible playbok to generate frontend db documentation
+- obsolete copr-doc
+- [frontend] repeat build button in all states of build except pending
+- [frontend] project update by admin fix
+- get rid of multi assigment
+- [frontend] repofiles without specifying architecture
+- api search fix
+- WSGIPassAuthorization needs to be on
+
 * Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.38-1
 - [frontend] running build can not be deleted
 - [frontend] cancel status set to all chroots
