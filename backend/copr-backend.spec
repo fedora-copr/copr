@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.37
+Version:    1.38
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -172,6 +172,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Jul 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.38-1
+- [backend] built pkgs fix
+
 * Tue Jul 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.37-1
 - [backend] shell command uses pipes.quote
 - Return the chroot that finished when sending build.end
