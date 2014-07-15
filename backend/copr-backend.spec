@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.36
+Version:    1.37
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -172,6 +172,15 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Jul 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.37-1
+- [backend] shell command uses pipes.quote
+- Return the chroot that finished when sending build.end
+- better and safer deleting of builds
+- [backend] separate playbooks for each architecture
+- [backend] built pkgs - include subpackages
+- [backend] skipped status and package details implemented
+- document vm_name option
+
 * Thu Jun 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.36-1
 - backend: migrate to nova ansible module
 - backend: make sure that exit() exit whole script not just sub-shell
