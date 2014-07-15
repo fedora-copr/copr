@@ -469,7 +469,7 @@ class Builder(object):
 
             self.mockremote.callback.log("Listing built binary packages")
             self.conn.module_name = "shell"
-            self.conn.module_args = pipes.quote("cd {0} && for f in `ls *.rpm | grep -v \"src.rpm$\"`; do rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; done".format(self._get_remote_pkg_dir(pkg)))
+            self.conn.module_args = "cd {0} && for f in `ls *.rpm | grep -v \"src.rpm$\"`; do rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; done".format(pipes.quote(self._get_remote_pkg_dir(pkg)))
             results = self.conn.run()
             build_details["built_packages"] = results["contacted"].itervalues().next()[u"stdout"]
             self.mockremote.callback.log("Packages:\n"+build_details["built_packages"])
