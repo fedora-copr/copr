@@ -172,6 +172,50 @@ class Worker(multiprocessing.Process):
             # XXX - Maybe log traceback as well with traceback.format_exc()
             self.callback.log("failed to publish message: {0}".format(e))
 
+
+    def _announce_start(self, job, ip="none"):
+        """
+        Announce everywhere that a build process started now.
+        """
+        job.started_on = time.time()
+        self.mark_started(job)
+
+        template = "build start: user:{user} copr:{copr}" \
+            " build:{build} ip:{ip}  pid:{pid}"
+
+        content = dict(user=job.user_name, copr=job.copr_name,
+                       build=job.build_id, ip=ip, pid=self.pid)
+        self.event("build.start", template, content)
+
+        template = "chroot start: chroot:{chroot} user:{user}" \
+            "copr:{copr} build:{build} ip:{ip}  pid:{pid}"
+
+        content = dict(chroot=job.chroot, user=job.user_name,
+                       copr=job.copr_name, build=job.build_id,
+                       ip=ip, pid=self.pid)
+
+        self.event("chroot.start", template, content)
+
+
+    def _announce_end(self, job, ip="none"):
+        """
+        Announce everywhere that a build process ended now.
+        """
+        job.ended_on = time.time()
+
+        self.return_results(job)
+        self.callback.log("worker finished build: {0}".format(ip))
+        template = "build end: user:{user} copr:{copr} build:{build}" \
+            " ip:{ip}  pid:{pid} status:{status}"
+
+        content = dict(user=job.user_name, copr=job.copr_name,
+                       build=job.build_id, ip=ip, pid=self.pid,
+                       status=job.status, chroot=job.chroot)
+        self.event("build.end", template, content)
+        pass
+
+
+
     def run_ansible_playbook(self, args, name="running playbook", attempts=3):
         """
         call ansible playbook
@@ -372,6 +416,21 @@ class Worker(multiprocessing.Process):
 
         os.unlink(job.jobfile)
 
+
+    def pkg_built_before(self, pkgs, chroot, destdir):
+        """
+        Check whether the package has already been built in this chroot.
+        """
+        s_pkg = os.path.basename(pkgs[0])
+        pdn = s_pkg.replace(".src.rpm", "")
+        resdir = "{0}/{1}/{2}".format(destdir, chroot, pdn)
+        resdir = os.path.normpath(resdir)
+        if os.path.exists(resdir):
+            if os.path.exists(os.path.join(resdir, "success")):
+                return True
+        return False
+
+
     def run(self):
         """
         Worker should startup and check if it can function
@@ -388,7 +447,7 @@ class Worker(multiprocessing.Process):
             except Queue.Empty:
                 break
 
-            # parse the job json into our info
+            # Parse the job json into our info
             job = self.parse_job(jobfile)
 
             if job is None:
@@ -399,11 +458,44 @@ class Worker(multiprocessing.Process):
                 time.sleep(self.opts.sleeptime)
                 continue
 
+            job.jobfile = jobfile
+
+
+            # Checking whether the build is not cancelled
+            # TODO 
+
+
+
+            # Initialize Fedmsg
+            # (this assumes there are certs and a fedmsg config on disk)
+            try:
+                if self.opts.fedmsg_enabled:
+                    fedmsg.init(
+                        name="relay_inbound",
+                        cert_prefix="copr",
+                        active=True)
+
+            except Exception, e:
+                self.callback.log(
+                    "failed to initialize fedmsg: {0}".format(e))
+
+
+            # Checking whether to build or skip
+            if self.pkg_built_before(job.pkgs, job.chroot, job.destdir):
+                self._announce_start(job)
+                self.callback.log("Skipping: package {0} has been"\
+                            "already built before.".format(
+                            ' '.join(job.pkgs)))
+                job.status = 5 # skipped
+                self._announce_end(job)
+                continue
+
+
+
             # FIXME
             # this is our best place to sanity check the job before starting
             # up any longer process
 
-            job.jobfile = jobfile
 
             # spin up our build instance
             if self.create:
@@ -416,41 +508,13 @@ class Worker(multiprocessing.Process):
                 except ansible.errors.AnsibleError, e:
                     self.callback.log(
                         "failure to setup instance: {0}".format(e))
-
                     raise
 
-            try:
-                # This assumes there are certs and a fedmsg config on disk
-                try:
-                    if self.opts.fedmsg_enabled:
-                        fedmsg.init(
-                            name="relay_inbound",
-                            cert_prefix="copr",
-                            active=True)
 
-                except Exception, e:
-                    self.callback.log(
-                        "failed to initialize fedmsg: {0}".format(e))
+            try:
+                self._announce_start(job, ip)
 
                 status = 1  # succeeded
-                job.started_on = time.time()
-                self.mark_started(job)
-
-                template = "build start: user:{user} copr:{copr}" \
-                    " build:{build} ip:{ip}  pid:{pid}"
-
-                content = dict(user=job.user_name, copr=job.copr_name,
-                               build=job.build_id, ip=ip, pid=self.pid)
-                self.event("build.start", template, content)
-
-                template = "chroot start: chroot:{chroot} user:{user}" \
-                    "copr:{copr} build:{build} ip:{ip}  pid:{pid}"
-
-                content = dict(chroot=job.chroot, user=job.user_name,
-                               copr=job.copr_name, build=job.build_id,
-                               ip=ip, pid=self.pid)
-
-                self.event("chroot.start", template, content)
 
                 chroot_destdir = os.path.normpath(
                     job.destdir + '/' + job.chroot)
@@ -471,7 +535,8 @@ class Worker(multiprocessing.Process):
                     # FIXME
                     # need a plugin hook or some mechanism to check random
                     # info about the pkgs
-                    # this should use ansible to download the pkg on the remote system
+                    # this should use ansible to download the pkg on
+                    # the remote system
                     # and run a series of checks on the package before we
                     # start the build - most importantly license checks.
 
@@ -512,10 +577,7 @@ class Worker(multiprocessing.Process):
                             callback=mockremote.CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile))
 
-                        skipped, build_details = mr.build_pkgs(job.pkgs)
-
-                        if skipped:
-                            status = 5 # skipped
+                        build_details = mr.build_pkgs(job.pkgs)
 
                         job.update(build_details)
 
@@ -537,18 +599,8 @@ class Worker(multiprocessing.Process):
                             job.timeout, job.destdir,
                             job.chroot, str(job.repos)))
 
-                job.ended_on = time.time()
-
                 job.status = status
-                self.return_results(job)
-                self.callback.log("worker finished build: {0}".format(ip))
-                template = "build end: user:{user} copr:{copr} build:{build}" \
-                    " ip:{ip}  pid:{pid} status:{status}"
-
-                content = dict(user=job.user_name, copr=job.copr_name,
-                               build=job.build_id, ip=ip, pid=self.pid,
-                               status=job.status, chroot=job.chroot)
-                self.event("build.end", template, content)
+                self._announce_end(job, ip)
 
             finally:
                 # clean up the instance

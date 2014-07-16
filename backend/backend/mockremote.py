@@ -614,7 +614,6 @@ class MockRemote(object):
         downloaded_pkgs = {}
 
         build_details = {}
-        skipped = False
 
         try_again = True
         to_be_built = pkgs
@@ -632,19 +631,9 @@ class MockRemote(object):
 
                 p_path = self._get_pkg_destpath(pkg)
 
-                # check the destdir to see if these pkgs need to be built
-                if os.path.exists(p_path):
-                    if os.path.exists(os.path.join(p_path, "success")):
-                        skipped = True
-                        self.callback.log(
-                            "Skipping already built pkg {0}".format(
-                                os.path.basename(pkg)))
-
-                        continue
-                    # if we"re asking to build it and it is marked as fail - nuke
-                    # the failure and try rebuilding it
-                    elif os.path.exists(os.path.join(p_path, "fail")):
-                        os.unlink(os.path.join(p_path, "fail"))
+                # if it's marked as fail, nuke the failure and try to rebuild it
+                if os.path.exists(os.path.join(p_path, "fail")):
+                    os.unlink(os.path.join(p_path, "fail"))
 
                 # off to the builder object
                 # building
@@ -736,7 +725,7 @@ class MockRemote(object):
             else:
                 try_again = False
 
-        return skipped, build_details
+        return build_details
 
 
 def parse_args(args):
