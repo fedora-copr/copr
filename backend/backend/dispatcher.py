@@ -7,6 +7,7 @@ import Queue
 import json
 import subprocess
 import multiprocessing
+import requests
 
 import ansible
 import ansible.utils
@@ -416,6 +417,23 @@ class Worker(multiprocessing.Process):
 
         os.unlink(job.jobfile)
 
+    # maybe we move this to the callback?
+    def build_starting(self, job):
+        # FIXME very bad name....
+        """ Is the build canceled? If not, set it as Starting and return True
+        """
+        data = {"build_id": job.build_id,
+                "chroot": job.chroot}
+
+        result = None
+        try:
+            result = self.frontend_callback.build_starting(data)
+        except requests.RequestException, e:
+            raise errors.CoprWorkerError(
+                "Could not communicate to front end to submit results")
+
+        return result
+
 
     def pkg_built_before(self, pkgs, chroot, destdir):
         """
@@ -462,7 +480,8 @@ class Worker(multiprocessing.Process):
 
 
             # Checking whether the build is not cancelled
-            # TODO 
+            if self.build_starting(job):
+                continue
 
 
 

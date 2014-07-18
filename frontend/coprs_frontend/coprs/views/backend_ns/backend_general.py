@@ -90,13 +90,26 @@ def update():
     return flask.jsonify(result)
 
 
-@backend_ns.route("/starting_build/<build_id>/", methods=["POST", "PUT"])
+@backend_ns.route("/starting_build/", methods=["POST", "PUT"])
 @misc.backend_authenticated
-def start_build(build_id):
+def starting_build():
     """
     Check if the build is not cancelled and set it to running state
     """
-    pass
+
+    result = {"canceled": True}
+
+    if "build_id" in flask.request.json and "chroot" in flask.request.json:
+        build = builds_logic.BuildsLogic.get_by_id(flask.request.json["build_id"])
+
+    if build and not build.cancelled:
+        builds_logic.BuildsLogic.update_state_from_dict(build, {
+                                        "chroot": flask.request.json["chroot"],
+                                        "status": 6}) # starting
+        db.session.commit()
+        result["canceled"] = False
+
+    return flask.jsonify(result)
 
 
 
