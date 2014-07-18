@@ -63,7 +63,8 @@ class StatusEnum(object):
             "canceled":  2,
             "running":   3,
             "pending":   4,
-            "skipped":   5} # if there was this package built already
+            "skipped":   5, # if there was this package built already
+            "starting":  6} # build picked by worker but no VM initialized
 
 
 class Paginator(object):

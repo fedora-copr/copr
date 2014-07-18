@@ -88,3 +88,15 @@ def update():
                        "non_existing_{0}_ids".format(typ): non_existing_ids})
 
     return flask.jsonify(result)
+
+
+@backend_ns.route("/starting_build/<build_id>/", methods=["POST", "PUT"])
+@misc.backend_authenticated
+def start_build(build_id):
+    """
+    Check if the build is not cancelled and set it to running state
+    """
+    pass
+
+
+

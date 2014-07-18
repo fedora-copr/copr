@@ -267,11 +267,16 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def has_pending_chroot(self):
-        return helpers.StatusEnum("pending") in self.chroot_states
+        # FIXME bad name
+        # used when checking if the repo is initialized and results can be set
+        # i think this is the only purpose - check
+        return helpers.StatusEnum("pending") in self.chroot_states or \
+               helpers.StatusEnum("starting") in self.chroot_states
 
     @property
     def has_unfinished_chroot(self):
         return helpers.StatusEnum("pending") in self.chroot_states or \
+               helpers.StatusEnum("starting") in self.chroot_states or \
                helpers.StatusEnum("running") in self.chroot_states
 
     @property
@@ -283,7 +288,7 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return helpers.StatusEnum("canceled")
 
-        for state in ["failed", "running", "pending", "succeeded", "skipped"]:
+        for state in ["failed", "running", "starting", "pending", "succeeded", "skipped"]:
             if helpers.StatusEnum(state) in self.chroot_states:
                 return helpers.StatusEnum(state)
 
@@ -303,7 +308,7 @@ class Build(db.Model, helpers.Serializer):
         """
         Find out if this build is cancelable.
 
-        ATM, build is cancelable only if it wasn"t grabbed by backend.
+        Build is cancelabel only when it's pending (not started)
         """
 
         return self.status == helpers.StatusEnum("pending")
@@ -313,11 +318,12 @@ class Build(db.Model, helpers.Serializer):
         """
         Find out if this build is repeatable.
 
-        Build is repeatable only if it's not pending
-        (because it would just duplicate the same thing in db)
+        Build is repeatable only if it's not pending, starting or running
         """
 
-        return self.status != helpers.StatusEnum("pending")
+        return self.status != helpers.StatusEnum("pending") and \
+               self.status != helpers.StatusEnum("starting") and \
+               self.status != helpers.StatusEnum("running")
 
     @property
     def deletable(self):
