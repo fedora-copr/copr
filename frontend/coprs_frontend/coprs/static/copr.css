@@ -483,3 +483,18 @@ textarea {
 .centered {
   text-align: center;
 }
+
+.hidden {
+  display: none;
+}
+
+.chroot-dialog {
+  font-size: 1em;
+  font-family: Cantarell, "Droid Sans", Verdana, sans-serif;
+}
+
+.chroot-dialog div.ui-dialog-titlebar {
+  background: #1F4B89 none;
+  border: none;
+  color: white;
+

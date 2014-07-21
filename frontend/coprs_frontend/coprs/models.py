@@ -204,6 +204,17 @@ class Copr(db.Model, helpers.Serializer):
             result = copr_chroot.buildroot_pkgs
         return result
 
+    @property
+    def modified_chroots(self):
+        """
+        Return list of chroots which has been modified
+        """
+        modified_chroots=[]
+        for chroot in self.active_chroots:
+            if self.buildroot_pkgs(chroot):
+                modified_chroots.append(chroot)
+        return modified_chroots
+
 
 class CoprPermission(db.Model, helpers.Serializer):
 
