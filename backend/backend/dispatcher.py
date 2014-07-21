@@ -7,7 +7,6 @@ import Queue
 import json
 import subprocess
 import multiprocessing
-import requests
 
 import ansible
 import ansible.utils
@@ -364,23 +363,11 @@ class Worker(multiprocessing.Process):
 
         return jobdata
 
-    # maybe we move this to the callback?
-    def post_to_frontend(self, data):
-        """send data to frontend"""
-        i = 10
-        while i > 0:
-            result = self.frontend_callback.post_to_frontend(data)
-            if not result:
-                self.callback.log(self.frontend_callback.msg)
-                i -= 1
-                time.sleep(5)
-            else:
-                i = 0
-        return result
 
-    # maybe we move this to the callback?
     def mark_started(self, job):
-
+        """
+        Send data about started build to the frontend
+        """
         build = {"id": job.build_id,
                  "started_on": job.started_on,
                  "results": job.results,
@@ -389,13 +376,17 @@ class Worker(multiprocessing.Process):
                  }
         data = {"builds": [build]}
 
-        if not self.post_to_frontend(data):
+        try:
+            self.frontend_callback.update(data)
+        except:
             raise errors.CoprWorkerError(
                 "Could not communicate to front end to submit status info")
 
-    # maybe we move this to the callback?
-    def return_results(self, job):
 
+    def return_results(self, job):
+        """
+        Send the build results to the frontend
+        """
         self.callback.log(
             "{0} status {1}. Took {2} seconds".format(
                 job.build_id, job.status, job.ended_on - job.started_on))
@@ -411,28 +402,31 @@ class Worker(multiprocessing.Process):
 
         data = {"builds": [build]}
 
-        if not self.post_to_frontend(data):
+        try:
+            self.frontend_callback.update(data)
+        except:
             raise errors.CoprWorkerError(
                 "Could not communicate to front end to submit results")
 
         os.unlink(job.jobfile)
 
-    # maybe we move this to the callback?
-    def build_starting(self, job):
-        # FIXME very bad name....
-        """ Is the build canceled? If not, set it as Starting and return True
-        """
-        data = {"build_id": job.build_id,
-                "chroot": job.chroot}
 
-        result = None
+    def starting_build(self, job):
+        """
+        Announce to the frontend that a build is starting.
+        Return: True if the build can start
+                False if the build can not start (build is cancelled)
+        """
+        response = None
         try:
-            result = self.frontend_callback.build_starting(data)
-        except requests.RequestException, e:
+            response = self.frontend_callback.starting_build(
+                                                    job.build_id,
+                                                    job.chroot)
+        except:
             raise errors.CoprWorkerError(
                 "Could not communicate to front end to submit results")
 
-        return result
+        return response
 
 
     def pkg_built_before(self, pkgs, chroot, destdir):
@@ -480,7 +474,7 @@ class Worker(multiprocessing.Process):
 
 
             # Checking whether the build is not cancelled
-            if self.build_starting(job):
+            if not self.starting_build(job):
                 continue
 
 

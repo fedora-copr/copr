@@ -97,17 +97,17 @@ def starting_build():
     Check if the build is not cancelled and set it to running state
     """
 
-    result = {"canceled": True}
+    result = {"can_start": False}
 
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
         build = builds_logic.BuildsLogic.get_by_id(flask.request.json["build_id"])
 
-    if build and not build.cancelled:
+    if build and not build.canceled:
         builds_logic.BuildsLogic.update_state_from_dict(build, {
                                         "chroot": flask.request.json["chroot"],
                                         "status": 6}) # starting
         db.session.commit()
-        result["canceled"] = False
+        result["can_start"] = True
 
     return flask.jsonify(result)
 

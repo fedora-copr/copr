@@ -1,62 +1,81 @@
 import json
 import requests
+from functools import wraps
+import time
 
 
 class FrontendCallback(object):
+    """
+    Object to send data back to fronted
+    """
 
-    """ Object to send data back to fronted """
-
-    def __init__(self, opts):
+    def __init__(self, opts, log=None):
         super(FrontendCallback, self).__init__()
         self.frontend_url = opts.frontend_url
         self.frontend_auth = opts.frontend_auth
+        self.log = log
         self.msg = None
 
-    def post_to_frontend(self, data):
-        """ Send data to frontend """
 
+    def _post_to_frontend(self, data, url_path):
+        """
+        Make a request to the frontend
+        """
         headers = {"content-type": "application/json"}
-        url = "{0}/update/".format(self.frontend_url)
+        url = "{0}/{1}/".format(self.frontend_url, url_path)
         auth = ("user", self.frontend_auth)
 
         self.msg = None
+        response = None
         try:
-            r = requests.post(url, data=json.dumps(data), auth=auth,
+            response = requests.post(url, data=json.dumps(data), auth=auth,
                               headers=headers)
-            if r.status_code != 200:
+            if response.status_code != 200:
                 self.msg = "Failed to submit to frontend: {0}: {1}".format(
-                    r.status_code, r.text)
-
-        except requests.RequestException, e:
-            self.msg = "Post request failed: {0}".format(e)
-
-        if self.msg:
-            return False
-        else:
-            return True
-
-
-    def build_starting(self, data):
-        headers = {"content-type": "application/json"}
-        url = "{0}/starting_build/".format(self.frontend_url)
-        auth = ("user", self.frontend_auth)
-
-        self.msg = None
-        r = None
-        try:
-            r = requests.post(url, data=json.dumps(data), auth=auth,
-                              headers=headers)
-            if r.status_code != 200 or "canceled" not in r.json():
-                self.msg = "Failed to submit to frontend: {0}: {1}".format(
-                    r.status_code, r.text)
+                    response.status_code, response.text)
                 raise requests.RequestException(self.msg)
-
         except requests.RequestException, e:
             self.msg = "Post request failed: {0}".format(e)
             raise
+        return response
 
-        return r.json()["canceled"]
-            
-            
 
+    def _post_to_frontend_repeatedly(self, data, url_path, max_repeats=10):
+        """
+        Make a request max_repeats-time to the frontend
+        """
+        repeats = 0
+        while repeats <= max_repeats:
+            try:
+                response = self._post_to_frontend(data, url_path)
+                break
+            except requests.RequestException:
+                if self.log:
+                    self.log(self.msg)
+                if repeats == max_repeats:
+                    raise
+                repeats += 1
+                time.sleep(5)
+        return response
+
+
+    def update(self, data):
+        """
+        Send data to be updated in the frontend
+        """
+        self._post_to_frontend_repeatedly(data, "update")
+
+
+    def starting_build(self, build_id, chroot_name):
+        """
+        Announce to the frontend that a build is starting.
+        Return: True if the build can start
+                False if the build can not start (can be cancelled or deleted)
+        """
+        data = {"build_id": build_id, "chroot": chroot_name}
+        response = self._post_to_frontend_repeatedly(data, "starting_build")
+        if "can_start" not in response.json():
+            raise requests.RequestException("Bad respond from the frontend")
+        return response.json()["can_start"]
+        
 
