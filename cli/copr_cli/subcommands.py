@@ -246,7 +246,7 @@ def build(copr, pkgs, memory, timeout, wait=True, result=None, chroots=None):
         copr)
 
     data = {"pkgs": " ".join(pkgs),
-            "memory": memory,
+            "memory_reqs": memory,
             "timeout": timeout
             }
 
