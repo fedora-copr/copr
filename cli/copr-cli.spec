@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.35
+Version:    1.36
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -96,6 +96,9 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %endif
 
 %changelog
+* Tue Jul 22 2014 Miroslav Suchý <msuchy@redhat.com> 1.36-1
+- use correct name of variable
+
 * Fri Jul 04 2014 Miroslav Suchý <msuchy@redhat.com> 1.35-1
 - [cli] stop waiting when the status is unknown
 
