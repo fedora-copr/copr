@@ -497,4 +497,16 @@ textarea {
   background: #1F4B89 none;
   border: none;
   color: white;
+}
+
+.dnf-enable-field {
+  background-color: #ededed;
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+}
 
