@@ -29,7 +29,7 @@ class BuildsLogic(object):
         username = kwargs.get("username", None)
         coprname = kwargs.get("coprname", None)
 
-        query = models.Build.query.order_by(models.Build.submitted_on.desc())
+        query = models.Build.query.order_by(models.Build.id.desc())
 
         # if we get copr, query by its id
         if copr:

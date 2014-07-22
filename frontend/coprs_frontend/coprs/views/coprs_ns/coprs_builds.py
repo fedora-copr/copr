@@ -62,7 +62,7 @@ def copr_builds(username, coprname, page=1):
         flask.g.user, copr=copr)
 
     paginator = helpers.Paginator(
-        builds_query, copr.build_count, page, per_page_override=30)
+        builds_query, copr.build_count, page, per_page_override=10)
 
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,
@@ -93,7 +93,7 @@ def copr_new_build(username, coprname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
     if not copr:
         return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
+            "Project {0}/{1} does not exist.".format(username, coprname))
 
     form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
 
