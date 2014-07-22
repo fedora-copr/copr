@@ -1,0 +1,33 @@
+{% extends "status.html" %}
+{% block waiting_selected %}selected{% endblock %}
+{% block status_body %}
+<h2>{%if number == 0:%}
+        No tasks
+    {%elif number == 1:%}
+        {{number}} task
+    {%else%}
+        {{number}} tasks
+    {%endif%}
+    are waiting
+</h2>
+
+<table class="status-table">
+    <tr>
+        <th>Waiting</th>
+        <th>Project</th>
+        <th>Build</th>
+        <th>Packages</th>
+        <th>Chroot</th>
+    </tr>
+    {% for task in tasks %}
+        <tr>
+            <td>{{ task.build.submitted_on | time_ago }}</td>
+            <td><a href="{{ url_for('coprs_ns.copr_detail', username = task.build.user.name, coprname = task.build.copr.name) }}">{{task.build.user.name}}/{{task.build.copr.name}}</a></td>
+            <td><a href="{{ url_for('coprs_ns.copr_build', username = task.build.user.name, coprname = task.build.copr.name, build_id = task.build_id) }}">{{task.build_id}}</a></td>
+            <td>{{ task.build.pkgs | pkg_name }} </td>
+            <td>{{ task.mock_chroot.name }}</td>
+        </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

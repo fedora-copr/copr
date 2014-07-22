@@ -18,6 +18,12 @@ class BuildsLogic(object):
         return query
 
     @classmethod
+    def get_build_tasks(cls, status):
+        query = models.BuildChroot.query.filter(models.BuildChroot.status == status)
+        query.order_by(models.BuildChroot.build_id.desc())
+        return query
+
+    @classmethod
     def get_multiple(cls, user, **kwargs):
         copr = kwargs.get("copr", None)
         username = kwargs.get("username", None)

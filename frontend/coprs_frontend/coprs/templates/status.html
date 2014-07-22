@@ -1,37 +1,17 @@
 {% extends "layout.html" %}
-{% block title %} Copr status {% endblock %}
-{% block header %} Copr status {% endblock %}
+{% block title %} Task queue - Copr {% endblock %}
+{% block header %} Task queue - Copr {% endblock %}
 {% block body %}
-<h1>{%if number == 0:%}
-        No tasks
-    {%elif number == 1:%}
-        {{number}} task
-    {%else%}
-        {{number}} tasks
-    {%endif%}
-    in queue
-</h1>
-
-    </h2>
-<table class="status-table">
-    <tr>
-        <th>Waiting</th>
-        <th>Project</th>
-        <th>Packages</th>
-        <th>Chroot</th>
-    </tr>
-    {% for build in builds %}
-        <tr>
-            <td>{{ build.time | time_ago }}</td>
-            <td><a href="{{ url_for('coprs_ns.copr_detail', username = build.owner, coprname = build.copr) }}">{{build.owner}}/{{build.copr}}</a></td>
-            <td>{%for pkg in build.pkgs[0:2]:%}{{pkg}}<br>{%endfor%}
-                {%if build.pkgs|length > 2:%}
-                ...{{build.pkgs|length}} more
-                {%endif%}
-            </td>
-            <td>{{ build.chroot }}</td>
-        </tr>
-    {% endfor %}
-</table>
-
+<h1> Task queue </h1>
+<div class="horizontal-menu">
+  <ul>
+    <li class="{% block waiting_selected %}unselected{% endblock %}">
+      <a href="{{ url_for('status_ns.waiting') }}">Waiting</a>
+    </li>
+    <li class="{% block running_selected %}unselected{% endblock %}">
+      <a href="{{ url_for('status_ns.running') }}">Running</a>
+    </li>
+  </ul>
+</div>
+{% block status_body %}{% endblock %}
 {% endblock %}
