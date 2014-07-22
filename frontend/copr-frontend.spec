@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.39
+Version:    1.40
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -163,6 +163,17 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Tue Jul 22 2014 Miroslav Suchý <msuchy@redhat.com> 1.40-1
+- [frontend] status page fix
+- [frontend] How to enable a repo on a Overview page
+- [frontend] build listing fix
+- [frontend] status page extension - running tasks
+- [frontend] modified chroots in overview
+- FrontendCallback prettified
+- Starting state implemented, cancelling fixed
+- [frontend] new build status: Starting
+- [frontend] db migration
+
 * Tue Jul 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.39-1
 - frontend: add f21 chroot
 - 1118829 - suggest owners to entry link to reporting web
