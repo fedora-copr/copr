@@ -570,6 +570,7 @@ def copr_build_monitor(username, coprname):
 
             packages.append((pkg_name, build.pkg_version, build_results))
             out.append(pkg_name)
+        packages.sort()
 
     return flask.render_template("coprs/detail/monitor.html",
                                  copr=copr,
