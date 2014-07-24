@@ -347,23 +347,12 @@ class Builder(object):
             raise BuilderError("Do not try this kind of attack on me")
 
         self.root_conn.module_name = "lineinfile"
-        if self.chroot == "epel-7-x86_64":
-            self.root_conn.module_args = (
-                "dest=/etc/mock/epel-7-x86_64.cfg"
-                " line=\"config_opts['chroot_setup_cmd'] = 'install"
-                " bash bzip2 coreutils cpio diffutils findutils"
-                " gawk gcc gcc-c++ grep gzip info make patch"
-                " redhat-release-server redhat-rpm-config rpm-build"
-                " sed shadow-utils tar unzip util-linux which xz {0}'\""
-                " regexp=\"^.*chroot_setup_cmd.*$\"".format(
-                    self.buildroot_pkgs))
-        else:
-            self.root_conn.module_args = (
-                "dest=/etc/mock/{0}.cfg"
-                " line=\"config_opts['chroot_setup_cmd'] ="
-                " 'install @buildsys-build {1}'\""
-                " regexp=\"^.*chroot_setup_cmd.*$\"".format(
-                    self.chroot, self.buildroot_pkgs))
+        self.root_conn.module_args = (
+            "dest=/etc/mock/{0}.cfg"
+            " line=\"config_opts['chroot_setup_cmd'] ="
+            " 'install @buildsys-build {1}'\""
+            " regexp=\"^.*chroot_setup_cmd.*$\"".format(
+                self.chroot, self.buildroot_pkgs))
 
         self.mockremote.callback.log(
             "putting {0} into minimal buildroot of {1}".format(
