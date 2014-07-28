@@ -24,25 +24,23 @@ def waiting():
         for action in actions_logic.ActionsLogic.get_waiting()
     ]
 
-    # models.Builds
-    builds_list = []
-
-    for build in builds_logic.BuildsLogic.get_waiting():
-        build_dict = build.to_dict(
-            options={"copr": {"owner": {},
-                              "__columns_only__": ["id", "name"],
-                              "__included_ids__": False
-                              },
-                     "__included_ids__": False})
-
-        # return separate build for each chroot this build
-        # is assigned with
-        for chroot in build.chroots:
-            build_dict_copy = build_dict.copy()
-            build_dict_copy["chroot"] = chroot.name
-            build_dict_copy[
-                "buildroot_pkgs"] = build.copr.buildroot_pkgs(chroot)
-            builds_list.append(build_dict_copy)
+    # tasks represented by models.BuildChroot with some other stuff
+    builds_list = [
+        {
+            "task_id": str(task.build.id)+"-"+task.mock_chroot.name,
+            "build_id": task.build.id,
+            "project_owner": task.build.copr.owner.name,
+            "project_name": task.build.copr.name,
+            "submitter": task.build.user.name,
+            "pkgs": task.build.pkgs,
+            "chroot": task.mock_chroot.name,
+            "buildroot_pkgs": task.build.copr.buildroot_pkgs(task.mock_chroot),
+            "repos": task.build.repos,
+            "memory_reqs": task.build.memory_reqs,
+            "timeout": task.build.timeout
+        }
+        for task in builds_logic.BuildsLogic.get_build_task_queue()
+    ]
 
     return flask.jsonify({"actions": actions_list, "builds": builds_list})
 

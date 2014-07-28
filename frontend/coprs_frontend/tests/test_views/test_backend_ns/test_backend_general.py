@@ -14,7 +14,7 @@ class TestWaitingBuilds(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
         r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        assert len(json.loads(r.data)["builds"]) == 4
+        assert len(json.loads(r.data)["builds"]) == 5
 
 
 # status = 0 # failure
