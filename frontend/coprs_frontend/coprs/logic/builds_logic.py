@@ -1,4 +1,6 @@
 import time
+from sqlalchemy import or_
+from sqlalchemy import and_
 
 from coprs import db
 from coprs import exceptions
@@ -20,6 +22,24 @@ class BuildsLogic(object):
     @classmethod
     def get_build_tasks(cls, status):
         query = models.BuildChroot.query.filter(models.BuildChroot.status == status)
+        query.order_by(models.BuildChroot.build_id.desc())
+        return query
+
+    @classmethod
+    def get_build_task_queue(cls):
+        """
+        Returns BuildChroots which are - waiting to be built or
+                                       - older than 2 hours and unfinished
+        """
+        query = models.BuildChroot.query.join(models.Build).filter(or_(
+                    models.BuildChroot.status == helpers.StatusEnum("pending"),
+                    models.BuildChroot.status == helpers.StatusEnum("starting"),
+                    and_(
+                        models.BuildChroot.status == helpers.StatusEnum("running"),
+                        models.Build.started_on < int(time.time() - 7200),
+                        models.Build.ended_on == None
+                        )
+                    ))
         query.order_by(models.BuildChroot.build_id.desc())
         return query
 

@@ -8,9 +8,7 @@ from coprs import helpers
 @status_ns.route("/")
 @status_ns.route("/waiting/")
 def waiting():
-    tasks = []
-    for build in builds_logic.BuildsLogic.get_waiting():
-        tasks += build.build_chroots
+    tasks = builds_logic.BuildsLogic.get_build_task_queue()
     return flask.render_template("status/waiting.html",
                                 number=len(list(tasks)),
                                 tasks=tasks)
