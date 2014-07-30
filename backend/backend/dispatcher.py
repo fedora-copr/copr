@@ -14,6 +14,8 @@ from ansible import callbacks
 from bunch import Bunch
 from setproctitle import setproctitle
 from IPy import IP
+from retask.task import Task
+from retask.queue import Queue
 
 import errors
 import mockremote
@@ -110,14 +112,15 @@ class WorkerCallback(object):
 
 class Worker(multiprocessing.Process):
 
-    def __init__(self, opts, jobs, events, worker_num,
+    def __init__(self, opts, events, worker_num,
                  ip=None, create=True, callback=None, lock=None):
 
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
 
         # job management stuff
-        self.jobs = jobs
+        self.task_queue = Queue("copr-be")
+        self.task_queue.connect()
         # event queue for communicating back to dispatcher
         self.events = events
         self.worker_num = worker_num
@@ -183,15 +186,15 @@ class Worker(multiprocessing.Process):
         template = "build start: user:{user} copr:{copr}" \
             " build:{build} ip:{ip}  pid:{pid}"
 
-        content = dict(user=job.user_name, copr=job.copr_name,
+        content = dict(user=job.project_owner, copr=job.project_name,
                        build=job.build_id, ip=ip, pid=self.pid)
         self.event("build.start", template, content)
 
         template = "chroot start: chroot:{chroot} user:{user}" \
             "copr:{copr} build:{build} ip:{ip}  pid:{pid}"
 
-        content = dict(chroot=job.chroot, user=job.user_name,
-                       copr=job.copr_name, build=job.build_id,
+        content = dict(chroot=job.chroot, user=job.project_owner,
+                       copr=job.project_name, build=job.build_id,
                        ip=ip, pid=self.pid)
 
         self.event("chroot.start", template, content)
@@ -208,7 +211,7 @@ class Worker(multiprocessing.Process):
         template = "build end: user:{user} copr:{copr} build:{build}" \
             " ip:{ip}  pid:{pid} status:{status}"
 
-        content = dict(user=job.user_name, copr=job.copr_name,
+        content = dict(user=job.project_owner, copr=job.project_name,
                        build=job.build_id, ip=ip, pid=self.pid,
                        status=job.status, chroot=job.chroot)
         self.event("build.end", template, content)
@@ -324,44 +327,34 @@ class Worker(multiprocessing.Process):
         self.run_ansible_playbook(args, "terminate instance")
 
 
-    def parse_job(self, jobfile):
-        # read the json of the job in
-        # break out what we need return a bunch of the info we need
-        try:
-            build = json.load(open(jobfile))
-        except ValueError:
-            # empty file?
-            return None
-        jobdata = Bunch()
-        jobdata.pkgs = build["pkgs"].split(" ")
-        jobdata.repos = [r for r in build["repos"].split(" ") if r.strip()]
-        jobdata.chroot = build["chroot"]
-        jobdata.buildroot_pkgs = build["buildroot_pkgs"]
-        jobdata.memory_reqs = build["memory_reqs"]
-        if build["timeout"]:
-            jobdata.timeout = build["timeout"]
-        else:
-            jobdata.timeout = self.opts.timeout
-        jobdata.destdir = os.path.normpath(
+    def create_job(self, task):
+        """
+        Create a Bunch from the task dict and add some stuff
+        """
+        job = Bunch()
+        job.update(task)
+
+        job.pkgs = [task["pkgs"]] # just for now
+
+        job.repos = [r for r in task["repos"].split(" ") if r.strip()]
+
+        if not task["timeout"]:
+            job.timeout = self.opts.timeout
+
+        job.destdir = os.path.normpath(
             os.path.join(self.opts.destdir,
-                         build["copr"]["owner"]["name"],
-                         build["copr"]["name"]))
+                task["project_owner"],
+                task["project_name"]))
 
-        jobdata.build_id = build["id"]
-        jobdata.results = os.path.join(
+        job.results = os.path.join(
             self.opts.results_baseurl,
-            build["copr"]["owner"]["name"],
-            build["copr"]["name"] + "/")
+            task["project_owner"],
+            task["project_name"] + "/")
 
-        jobdata.copr_id = build["copr"]["id"]
-        jobdata.user_id = build["user_id"]
-        jobdata.user_name = build["copr"]["owner"]["name"]
-        jobdata.copr_name = build["copr"]["name"]
+        job.pkg_version = ""
+        job.built_packages = ""
 
-        jobdata.pkg_version = ""
-        jobdata.built_packages = ""
-
-        return jobdata
+        return job
 
 
     def mark_started(self, job):
@@ -408,8 +401,6 @@ class Worker(multiprocessing.Process):
             raise errors.CoprWorkerError(
                 "Could not communicate to front end to submit results")
 
-        os.unlink(job.jobfile)
-
 
     def starting_build(self, job):
         """
@@ -454,24 +445,13 @@ class Worker(multiprocessing.Process):
 
         setproctitle("worker {0}".format(self.worker_num))
         while not self.kill_received:
-            try:
-                jobfile = self.jobs.get()
-            except Queue.Empty:
-                break
+            task = self.task_queue.dequeue()
 
-            # Parse the job json into our info
-            job = self.parse_job(jobfile)
-
-            if job is None:
-                self.callback.log(
-                    'jobfile {0} is mangled, please investigate'.format(
-                        jobfile))
-
+            if not task:
                 time.sleep(self.opts.sleeptime)
                 continue
 
-            job.jobfile = jobfile
-
+            job = self.create_job(task.data)
 
             # Checking whether the build is not cancelled
             if not self.starting_build(job):
@@ -570,10 +550,10 @@ class Worker(multiprocessing.Process):
                             chroot_destdir, job.build_id)
 
                         macros = {
-                            "copr_username": job.user_name,
-                            "copr_projectname": job.copr_name,
+                            "copr_username": job.project_owner,
+                            "copr_projectname": job.project_name,
                             "vendor": "Fedora Project COPR ({0}/{1})".format(
-                                job.user_name, job.copr_name)
+                                job.project_owner, job.project_name)
                         }
 
                         mr = mockremote.MockRemote(

@@ -7,6 +7,7 @@ from backend.actions import Action
 from bunch import Bunch
 from retask.task import Task
 from retask.queue import Queue
+from retask import ConnectionError
 import ConfigParser
 import daemon
 import glob
@@ -42,76 +43,63 @@ class CoprJobGrab(multiprocessing.Process):
     - submit them to the jobs queue for workers
     """
 
-    def __init__(self, opts, events, jobs, lock):
+    def __init__(self, opts, events, lock):
         # base class initialization
         multiprocessing.Process.__init__(self, name="jobgrab")
 
         self.opts = opts
         self.events = events
-        self.jobs = jobs
+        self.task_queue = Queue("copr-be")
+        self.task_queue.connect()
         self.added_jobs = []
         self.lock = lock
 
     def event(self, what):
         self.events.put({"when": time.time(), "who": "jobgrab", "what": what})
 
-    def fetch_jobs(self):
+    def load_tasks(self):
         try:
             r = requests.get(
                 "{0}/waiting/".format(self.opts.frontend_url),
                 auth=("user", self.opts.frontend_auth))
+            r_json = r.json()
 
         except requests.RequestException as e:
             self.event("Error retrieving jobs from {0}: {1}".format(
                        self.opts.frontend_url, e))
-        else:
-            try:
-                r_json = json.loads(r.content)  # using old requests on el6 :(
-            except ValueError as e:
-                self.event("Error getting JSON build list from FE {0}"
-                           .format(e))
-                return
+            return
 
-            if "builds" in r_json and r_json["builds"]:
-                self.event("{0} jobs returned".format(len(r_json["builds"])))
-                count = 0
-                for b in r_json["builds"]:
-                    if "id" in b:
-                        extended_id = "{0}-{1}".format(b["id"], b["chroot"])
-                        jobfile = os.path.join(
-                            self.opts.jobsdir,
-                            "{0}.json".format(extended_id))
+        except ValueError as e:
+            self.event("Error getting JSON build list from FE {0}"
+                       .format(e))
+            return
 
-                        if (not os.path.exists(jobfile) and
-                                extended_id not in self.added_jobs):
+        if "builds" in r_json and r_json["builds"]:
+            self.event("{0} jobs returned".format(len(r_json["builds"])))
+            count = 0
+            for task in r_json["builds"]:
+                if "task_id" in task and task["task_id"] not in self.added_jobs:
+                    self.added_jobs.append(task["task_id"])
+                    task_obj = Task(task)
+                    self.task_queue.enqueue(task_obj)
+                    count += 1
+            if count:
+                self.event("New jobs: %s" % count)
 
-                            count += 1
-                            open(jobfile, 'w').write(json.dumps(b))
-                            self.event("Wrote job: {0}".format(extended_id))
-                if count:
-                    self.event("New jobs: %s" % count)
-            if "actions" in r_json and r_json["actions"]:
-                self.event("{0} actions returned".format(
-                    len(r_json["actions"])))
+        if "actions" in r_json and r_json["actions"]:
+            self.event("{0} actions returned".format(
+                len(r_json["actions"])))
 
-                for action in r_json["actions"]:
-                    ao = Action(self.opts, self.events, action, self.lock)
-                    ao.run()
+            for action in r_json["actions"]:
+                ao = Action(self.opts, self.events, action, self.lock)
+                ao.run()
 
     def run(self):
         setproctitle.setproctitle("CoprJobGrab")
         abort = False
         try:
             while not abort:
-                self.fetch_jobs()
-                for f in sorted(glob.glob(
-                        os.path.join(self.opts.jobsdir, "*.json"))):
-
-                    n = os.path.basename(f).replace(".json", "")
-                    if n not in self.added_jobs:
-                        self.jobs.put(f)
-                        self.added_jobs.append(n)
-                        self.event("adding to work queue id {0}".format(n))
+                self.load_tasks()
                 time.sleep(self.opts.sleeptime)
         except KeyboardInterrupt:
             return
@@ -184,8 +172,16 @@ class CoprBackend(object):
         self.opts = self.read_conf()
         self.lock = multiprocessing.Lock()
 
-        # job is a path to a jobfile on the localfs
-        self.jobs = multiprocessing.Queue()
+        self.task_queue = Queue('copr-be')
+        try:
+            self.task_queue.connect()
+            # ensure that the queue is empty
+            while self.task_queue.length:
+                self.task_queue.dequeue()
+        except ConnectionError as e:
+            raise errors.CoprBackendError(
+                        "Could not connect to Redis. {0}".format(str(e)))
+
         self.events = multiprocessing.Queue()
         # event format is a dict {when:time, who:[worker|logger|job|main],
         # what:str}
@@ -196,7 +192,7 @@ class CoprBackend(object):
 
         self.event("Starting up Job Grabber")
         # create job grabber
-        self._jobgrab = CoprJobGrab(self.opts, self.events, self.jobs, self.lock)
+        self._jobgrab = CoprJobGrab(self.opts, self.events, self.lock)
         self._jobgrab.start()
         self.worker_num = 0
         self.abort = False
@@ -235,7 +231,6 @@ class CoprBackend(object):
                 cp, "backend", "terminate_playbook",
                 "/srv/copr-work/provision/terminatepb.yml")
 
-            opts.jobsdir = _get_conf(cp, "backend", "jobsdir", None)
             opts.destdir = _get_conf(cp, "backend", "destdir", None)
             opts.exit_on_worker = _get_conf(
                 cp, "backend", "exit_on_worker", False)
@@ -262,10 +257,10 @@ class CoprBackend(object):
                 "Error parsing config file: {0}: {1}".format(
                     self.config_file, e))
 
-        if not opts.jobsdir or not opts.destdir:
+        if not opts.destdir:
             raise errors.CoprBackendError(
                 "Incomplete Config - must specify"
-                " jobsdir and destdir in configuration")
+                " destdir in configuration")
 
         if self.ext_opts:
             for v in self.ext_opts:
@@ -278,19 +273,18 @@ class CoprBackend(object):
             # re-read config into opts
             self.opts = self.read_conf()
 
-            if self.jobs.qsize():
-                self.event("# jobs in queue: {0}".format(self.jobs.qsize()))
-                # this handles starting/growing the number of workers
-                if len(self.workers) < self.opts.num_workers:
-                    self.event("Spinning up more workers for jobs")
-                    for _ in range(self.opts.num_workers - len(self.workers)):
-                        self.worker_num += 1
-                        w = Worker(
-                            self.opts, self.jobs, self.events, self.worker_num,
-                            lock=self.lock)
-                        self.workers.append(w)
-                        w.start()
-                    self.event("Finished starting worker processes")
+            self.event("# jobs in queue: {0}".format(self.task_queue.length))
+            # this handles starting/growing the number of workers
+            if len(self.workers) < self.opts.num_workers:
+                self.event("Spinning up more workers")
+                for _ in range(self.opts.num_workers - len(self.workers)):
+                    self.worker_num += 1
+                    w = Worker(
+                        self.opts, self.events, self.worker_num,
+                        lock=self.lock)
+                    self.workers.append(w)
+                    w.start()
+                self.event("Finished starting worker processes")
                 # FIXME - prune out workers
                 # if len(self.workers) > self.opts.num_workers:
                 #    killnum = len(self.workers) - self.opts.num_workers
