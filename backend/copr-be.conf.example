@@ -14,20 +14,33 @@ frontend_auth=backend_password_from_fe_config
 
 # comma-separated architectures 
 # default is i386,x86_64
-architectures=i386,x86_64
+#architectures=i386,x86_64
 
-# paths to ansible playbooks which spawns builder
-# see /usr/share/copr*/playbooks/ for examples
-# you need to specify an extra variable with  playbook
-#   for each architecture above as spawn_playbook-arch=PATH
-# example for i386:
-#   spawn_playbook-i386=/etc/copr/builder_playbook-i386.yml
-# defaults are: (also automatically generated for each architecture above)
-# spawn_playbook-i386=/srv/copr-work/provision/builderpb-i386.yml
-# spawn_playbook-x86_64=/srv/copr-work/provision/builderpb-x86_64.yml
-# spawn_playbook-ANY_ARCH=/srv/copr-work/provision/builderpb-ANY_ARCH.yml
-spawn_playbook-i386=/srv/copr-work/provision/builderpb-i386.yml
-spawn_playbook-x86_64=/srv/copr-work/provision/builderpb-x86_64.yml
+
+# Set a number of build groups (default is 1)
+build_groups=1
+
+# For each build group set:
+#   name - name of the group (will be shown in the worker process name)
+#   archs - architectures to build by this group
+#   spawn_playbook - path to an ansible playbook which spawns a builder
+#   terminate_playbook - path to an ansible playbook to terminate the builder
+#   max_workers - maximum number of workers in this group
+#
+#   Use prefix groupX where X is number of group starting from zero.
+# 
+# Example: (and also default values)
+#   group0_name=PC
+#   group0_archs=i386,x86_64
+#   group0_spawn_playbook=/srv/copr-work/provision/builderpb-PC.yml
+#   group0_terminate_playbook=/srv/copr-work/provision/terminatepb-PC.yml
+#   group0_max_workers=8
+group0_name=PC
+group0_archs=i386,x86_64
+group0_spawn_playbook=/srv/copr-work/provision/builderpb-PC.yml
+group0_terminate_playbook=/srv/copr-work/provision/terminatepb-PC.yml
+group0_max_workers=8
+
 
 # What variables will be send to spawn_playbook.  Expects comma separated list
 # of keywords.  For example 'spawn_vars=chroot' will create
@@ -39,10 +52,6 @@ spawn_playbook-x86_64=/srv/copr-work/provision/builderpb-x86_64.yml
 #
 # default is None (empty)
 #spawn_vars=chroot
-
-# path to ansible playbook which terminate builder
-# default is /srv/copr-work/provision/terminatepb.yml 
-terminate_playbook=/srv/copr-work/provision/terminatepb.yml
 
 # The same option as 'spawn_vars' above, except that variables will be send to
 # terminate_playbook ansible script.

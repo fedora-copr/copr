@@ -49,8 +49,11 @@ class CoprJobGrab(multiprocessing.Process):
 
         self.opts = opts
         self.events = events
-        self.task_queue = Queue("copr-be")
-        self.task_queue.connect()
+        self.task_queue = []
+        for group in self.opts.build_groups:
+            self.task_queue.append(Queue("copr-be-{0}".format(
+                    str(group["id"]))))
+            self.task_queue[group["id"]].connect()
         self.added_jobs = []
         self.lock = lock
 
@@ -79,10 +82,16 @@ class CoprJobGrab(multiprocessing.Process):
             count = 0
             for task in r_json["builds"]:
                 if "task_id" in task and task["task_id"] not in self.added_jobs:
-                    self.added_jobs.append(task["task_id"])
-                    task_obj = Task(task)
-                    self.task_queue.enqueue(task_obj)
-                    count += 1
+                    # this will ignore and throw away unconfigured architectures
+                    # FIXME: don't do ^
+                    arch = task["chroot"].split("-")[2]
+                    for group in self.opts.build_groups:
+                        if arch in group["archs"]:
+                            self.added_jobs.append(task["task_id"])
+                            task_obj = Task(task)
+                            self.task_queue[group["id"]].enqueue(task_obj)
+                            count += 1
+                            break
             if count:
                 self.event("New jobs: %s" % count)
 
@@ -169,6 +178,8 @@ class CoprBackend(object):
 
         self.config_file = config_file
         self.ext_opts = ext_opts  # to stow our cli options for read_conf()
+        self.worker_num = []
+        self.workers = []
         self.opts = self.read_conf()
         self.lock = multiprocessing.Lock()
 
@@ -186,6 +197,7 @@ class CoprBackend(object):
         # event format is a dict {when:time, who:[worker|logger|job|main],
         # what:str}
 
+
         # create logger
         self._logger = CoprLog(self.opts, self.events)
         self._logger.start()
@@ -194,13 +206,11 @@ class CoprBackend(object):
         # create job grabber
         self._jobgrab = CoprJobGrab(self.opts, self.events, self.lock)
         self._jobgrab.start()
-        self.worker_num = 0
         self.abort = False
 
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0750)
 
-        self.workers = []
 
     def event(self, what):
         self.events.put({"when": time.time(), "who": "main", "what": what})
@@ -218,18 +228,31 @@ class CoprBackend(object):
             opts.frontend_auth = _get_conf(
                 cp, "backend", "frontend_auth", "PASSWORDHERE")
 
-            opts.architectures = _get_conf(
-                cp, "backend", "architectures", "i386,x86_64").split(",")
+            opts.build_groups_count = _get_conf(
+                cp, "backend", "build_groups", 1)
 
-            opts.spawn_playbook = {}
-            for arch in opts.architectures:
-                opts.spawn_playbook[arch] = _get_conf(
-                    cp, "backend", "spawn_playbook-{0}".format(arch),
-                    "/srv/copr-work/provision/builderpb-{0}.yml".format(arch))
-
-            opts.terminate_playbook = _get_conf(
-                cp, "backend", "terminate_playbook",
-                "/srv/copr-work/provision/terminatepb.yml")
+            opts.build_groups = []
+            for id in range(int(opts.build_groups_count)):
+                group = {
+                    "id": int(id),
+                    "name": _get_conf(
+                            cp, "backend", "group{0}_name".format(id), "PC"),
+                    "archs": _get_conf(
+                            cp, "backend", "group{0}_archs".format(id), 
+                            "i386,x86_64").split(","),
+                    "spawn_playbook": _get_conf(
+                            cp, "backend", "group{0}_spawn_playbook".format(id),
+                            "/srv/copr-work/provision/builderpb-PC.yml"),
+                    "terminate_playbook": _get_conf(
+                            cp, "backend",
+                            "group{0}_terminate_playbook".format(id),
+                            "/srv/copr-work/provision/terminatepb-PC.yml"),
+                    "max_workers": int(_get_conf(
+                            cp, "backend", "group{0}_max_workers".format(id), 8))
+                }
+                opts.build_groups.append(group)
+                self.worker_num.append(0)
+                self.workers.append([])
 
             opts.destdir = _get_conf(cp, "backend", "destdir", None)
             opts.exit_on_worker = _get_conf(
@@ -237,7 +260,6 @@ class CoprBackend(object):
             opts.fedmsg_enabled = _get_conf(
                 cp, "backend", "fedmsg_enabled", False)
             opts.sleeptime = int(_get_conf(cp, "backend", "sleeptime", 10))
-            opts.num_workers = int(_get_conf(cp, "backend", "num_workers", 8))
             opts.timeout = int(_get_conf(cp, "builder", "timeout", 1800))
             opts.logfile = _get_conf(
                 cp, "backend", "logfile", "/var/log/copr/backend.log")
@@ -274,16 +296,18 @@ class CoprBackend(object):
             self.opts = self.read_conf()
 
             self.event("# jobs in queue: {0}".format(self.task_queue.length))
-            # this handles starting/growing the number of workers
-            if len(self.workers) < self.opts.num_workers:
-                self.event("Spinning up more workers")
-                for _ in range(self.opts.num_workers - len(self.workers)):
-                    self.worker_num += 1
-                    w = Worker(
-                        self.opts, self.events, self.worker_num,
-                        lock=self.lock)
-                    self.workers.append(w)
-                    w.start()
+            for group in self.opts.build_groups:
+                id = group["id"]
+                # this handles starting/growing the number of workers
+                if len(self.workers[id]) < group["max_workers"]:
+                    self.event("Spinning up more workers")
+                    for _ in range(group["max_workers"] - len(self.workers[id])):
+                        self.worker_num[id] += 1
+                        w = Worker(
+                            self.opts, self.events, self.worker_num[id], id,
+                            lock=self.lock)
+                        self.workers[id].append(w)
+                        w.start()
                 self.event("Finished starting worker processes")
                 # FIXME - prune out workers
                 # if len(self.workers) > self.opts.num_workers:
@@ -292,17 +316,17 @@ class CoprBackend(object):
                 # insert a poison pill? Kill after something? I dunno.
                 # FIXME - if a worker bombs out - we need to check them
                 # and startup a new one if it happens
-            # check for dead workers and abort
-            for w in self.workers:
-                if not w.is_alive():
-                    self.event("Worker {0} died unexpectedly".format(
-                        w.worker_num))
-                    if self.opts.exit_on_worker:
-                        raise errors.CoprBackendError(
-                            "Worker died unexpectedly, exiting")
-                    else:
-                        self.workers.remove(w)  # it is not working anymore
-                        w.terminate()  # kill it with a fire
+                # check for dead workers and abort
+                for w in self.workers[id]:
+                    if not w.is_alive():
+                        self.event("Worker {0} died unexpectedly".format(
+                            w.worker_num))
+                        if self.opts.exit_on_worker:
+                            raise errors.CoprBackendError(
+                                "Worker died unexpectedly, exiting")
+                        else:
+                            self.workers[id].remove(w)  # it is not working anymore
+                            w.terminate()  # kill it with a fire
 
             time.sleep(self.opts.sleeptime)
 
@@ -312,9 +336,11 @@ class CoprBackend(object):
         """
 
         self.abort = True
-        for w in self.workers:
-            self.workers.remove(w)
-            w.terminate()
+        for group in self.opts.build_groups:
+            id = group["id"]
+            for w in self.workers[id]:
+                self.workers[id].remove(w)
+                w.terminate()
 
 
 def parse_args(args):

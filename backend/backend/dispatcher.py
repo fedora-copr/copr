@@ -112,14 +112,14 @@ class WorkerCallback(object):
 
 class Worker(multiprocessing.Process):
 
-    def __init__(self, opts, events, worker_num,
+    def __init__(self, opts, events, worker_num, group_id,
                  ip=None, create=True, callback=None, lock=None):
 
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
 
         # job management stuff
-        self.task_queue = Queue("copr-be")
+        self.task_queue = Queue("copr-be-{0}".format(str(group_id)))
         self.task_queue.connect()
         # event queue for communicating back to dispatcher
         self.events = events
@@ -265,9 +265,8 @@ class Worker(multiprocessing.Process):
                 if i == 'chroot':
                     extra_vars['chroot'] = job['chroot']
 
-        arch = job['chroot'].split("-")[2]
         try:
-            spawn_playbook = self.opts.spawn_playbook[arch]
+            spawn_playbook = self.opts.build_groups[self.group_id]["spawn_playbook"]
         except KeyError:
             return None
 
@@ -322,7 +321,7 @@ class Worker(multiprocessing.Process):
                     term_args["vm_name"] = self.vm_name
 
         args = "-c ssh -i '{0},' {1} {2}".format(
-                instance_ip, self.opts.terminate_playbook,
+                instance_ip, self.opts.build_groups[self.group_id]["terminate_playbook"],
                 ans_extra_vars_encode(term_args, "copr_task"))
         self.run_ansible_playbook(args, "terminate instance")
 
@@ -443,7 +442,10 @@ class Worker(multiprocessing.Process):
         terminate the instance.
         """
 
-        setproctitle("worker {0}".format(self.worker_num))
+        setproctitle("worker-{0} {1}".format(
+                    self.opts.build_groups[self.group_id]["name"],
+                    self.worker_num))
+
         while not self.kill_received:
             # this sometimes caused TypeError in random worker
             # when another one  picekd up a task to build
