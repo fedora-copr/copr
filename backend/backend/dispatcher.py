@@ -186,14 +186,14 @@ class Worker(multiprocessing.Process):
         template = "build start: user:{user} copr:{copr}" \
             " build:{build} ip:{ip}  pid:{pid}"
 
-        content = dict(user=job.project_owner, copr=job.project_name,
+        content = dict(user=job.submitter, copr=job.project_name,
                        build=job.build_id, ip=ip, pid=self.pid)
         self.event("build.start", template, content)
 
         template = "chroot start: chroot:{chroot} user:{user}" \
             "copr:{copr} build:{build} ip:{ip}  pid:{pid}"
 
-        content = dict(chroot=job.chroot, user=job.project_owner,
+        content = dict(chroot=job.chroot, user=job.submitter,
                        copr=job.project_name, build=job.build_id,
                        ip=ip, pid=self.pid)
 
@@ -211,7 +211,7 @@ class Worker(multiprocessing.Process):
         template = "build end: user:{user} copr:{copr} build:{build}" \
             " ip:{ip}  pid:{pid} status:{status}"
 
-        content = dict(user=job.project_owner, copr=job.project_name,
+        content = dict(user=job.submitter, copr=job.project_name,
                        build=job.build_id, ip=ip, pid=self.pid,
                        status=job.status, chroot=job.chroot)
         self.event("build.end", template, content)
