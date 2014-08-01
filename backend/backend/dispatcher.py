@@ -445,7 +445,13 @@ class Worker(multiprocessing.Process):
 
         setproctitle("worker {0}".format(self.worker_num))
         while not self.kill_received:
-            task = self.task_queue.dequeue()
+            # this sometimes caused TypeError in random worker
+            # when another one  picekd up a task to build
+            # why?
+            try:
+                task = self.task_queue.dequeue()
+            except TypeError:
+                pass
 
             if not task:
                 time.sleep(self.opts.sleeptime)
