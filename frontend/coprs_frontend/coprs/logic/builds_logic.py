@@ -218,7 +218,7 @@ class BuildsLogic(object):
         last_build = (builds
                     .join(models.BuildChroot)
                     .filter((models.BuildChroot.status == helpers.StatusEnum("succeeded"))
-                          or (models.BuildChroot.status == helpers.StatusEnum("skipped")))
+                            | (models.BuildChroot.status == helpers.StatusEnum("skipped")))
                     .filter(models.Build.ended_on != None)
                     .order_by(models.Build.ended_on.desc())
                     ).first()
