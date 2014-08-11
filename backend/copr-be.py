@@ -183,15 +183,8 @@ class CoprBackend(object):
         self.opts = self.read_conf()
         self.lock = multiprocessing.Lock()
 
-        self.task_queue = Queue('copr-be')
-        try:
-            self.task_queue.connect()
-            # ensure that the queue is empty
-            while self.task_queue.length:
-                self.task_queue.dequeue()
-        except ConnectionError as e:
-            raise errors.CoprBackendError(
-                        "Could not connect to Redis. {0}".format(str(e)))
+        # make sure there is nothing in our task queues
+        self.clean_task_queues()
 
         self.events = multiprocessing.Queue()
         # event format is a dict {when:time, who:[worker|logger|job|main],
@@ -289,6 +282,17 @@ class CoprBackend(object):
                 setattr(opts, v, self.ext_opts.get(v))
         return opts
 
+    def clean_task_queues(self):
+        try:
+            for group in self.opts.build_groups:
+                queue = Queue("copr-be-{0}".format(group["id"]))
+                queue.connect()
+                while queue.length():
+                    queue.dequeue()
+        except ConnectionError:
+            raise errors.CoprBackendError(
+                "Could not connect to a task queue. Is Redis running?")
+
     def run(self):
         self.abort = False
         while not self.abort:
@@ -333,6 +337,7 @@ class CoprBackend(object):
     def terminate(self):
         """
         Cleanup backend processes (just workers for now)
+        And also clean all task queues as they would survive copr restart
         """
 
         self.abort = True
@@ -341,6 +346,7 @@ class CoprBackend(object):
             for w in self.workers[id]:
                 self.workers[id].remove(w)
                 w.terminate()
+        self.clean_task_queues()
 
 
 def parse_args(args):
