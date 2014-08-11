@@ -14,18 +14,20 @@ ansible playbook:
 - enable epel (if you use RHEL)
 - enable optional channel (if you use RHEL)
 - install copr-backend package
+- make sure that Redis is up and running
 - edit /etc/copr/copr-be.conf
   - change results_baseurl and frontend_url to your hostname
   - frontend_auth must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
-  - spawn_playbook - path to ansible playbook which spawns builder
-  - terminate_playbook - path to ansible playbook which terminate builder
-    - you can see /usr/share/doc/copr*/playbooks/ for examples
-    - for Fedora copr playbook see FEDORA PLAYBOOK below
-  - others variables can be edited as well, but it is optional
- - ntp should be enabled and started
- - ports 22, 80, 443 should be open
- - cp /usr/share/doc/copr-*/lighttpd/* /etc/lighttpd/conf.d/
- - edit file /etc/lighttpd/lighttpd.conf as follows:
+  - define your build groups: (more info in the config comments)
+    - spawn_playbook - path to ansible playbook which spawns builder
+    - terminate_playbook - path to ansible playbook which terminate builder
+      - you can see /usr/share/doc/copr*/playbooks/ for examples
+      - for Fedora copr playbook see FEDORA PLAYBOOK below
+  - other variables can be edited as well, but it is optional
+- ntp should be enabled and started
+- ports 22, 80, 443 should be open
+- cp /usr/share/doc/copr-*/lighttpd/* /etc/lighttpd/conf.d/
+- edit file /etc/lighttpd/lighttpd.conf as follows:
        -server.document-root = server_root + "/lighttpd"
        +server.document-root = "/var/lib/copr/public_html"
    this is recomended to be separate mount point
