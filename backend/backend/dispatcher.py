@@ -124,6 +124,7 @@ class Worker(multiprocessing.Process):
         # event queue for communicating back to dispatcher
         self.events = events
         self.worker_num = worker_num
+        self.group_id = group_id
         self.ip = ip
         self.vm_name = None
         self.opts = opts

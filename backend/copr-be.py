@@ -183,6 +183,16 @@ class CoprBackend(object):
         self.opts = self.read_conf()
         self.lock = multiprocessing.Lock()
 
+        self.task_queues = []
+        try:
+            for group in self.opts.build_groups:
+                id = group["id"]
+                self.task_queues[id] = Queue("copr-be-{0}".format(id))
+                self.task_queues[id].connect()
+        except ConnectionError:
+            raise errors.CoprBackendError(
+                "Could not connect to a task queue. Is Redis running?")
+
         # make sure there is nothing in our task queues
         self.clean_task_queues()
 
@@ -284,10 +294,8 @@ class CoprBackend(object):
 
     def clean_task_queues(self):
         try:
-            for group in self.opts.build_groups:
-                queue = Queue("copr-be-{0}".format(group["id"]))
-                queue.connect()
-                while queue.length():
+            for queue in self.task_queues:
+                while queue.length:
                     queue.dequeue()
         except ConnectionError:
             raise errors.CoprBackendError(
@@ -299,9 +307,11 @@ class CoprBackend(object):
             # re-read config into opts
             self.opts = self.read_conf()
 
-            self.event("# jobs in queue: {0}".format(self.task_queue.length))
             for group in self.opts.build_groups:
                 id = group["id"]
+                self.event("# jobs in {0} queue: {1}".format(
+                                        group["name"],
+                                        self.task_queues[id].length))
                 # this handles starting/growing the number of workers
                 if len(self.workers[id]) < group["max_workers"]:
                     self.event("Spinning up more workers")
