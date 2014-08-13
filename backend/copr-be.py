@@ -187,7 +187,7 @@ class CoprBackend(object):
         try:
             for group in self.opts.build_groups:
                 id = group["id"]
-                self.task_queues[id] = Queue("copr-be-{0}".format(id))
+                self.task_queues.append(Queue("copr-be-{0}".format(id)))
                 self.task_queues[id].connect()
         except ConnectionError:
             raise errors.CoprBackendError(
