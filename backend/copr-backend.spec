@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.39
+Version:    1.40
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -172,6 +172,14 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Aug 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.40-1
+- [backend] queue cleaning
+- [backend] experimental build groups for more architectures
+- [backend] fix of a strange beaviour of retask
+- [backend] fedmsg shows submitter instead of project owner
+- [backend] new task queue for workers using retask
+- epel-7 comps workaround is need no more, since CENTOS7 have been released
+
 * Tue Jul 22 2014 Miroslav Suchý <msuchy@redhat.com> 1.39-1
 - FrontendCallback prettified
 - Starting state implemented, cancelling fixed
