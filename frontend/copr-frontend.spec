@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.40
+Version:    1.41
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -163,6 +163,13 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Wed Aug 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.41-1
+- [frontend] bugifx: for some projects API doesn't return last-modified time in
+  detail resource.
+- new queue for backend
+- [frontend] new waiting queue
+- [frontend] sorting packages on the Monitor view
+
 * Tue Jul 22 2014 Miroslav Suchý <msuchy@redhat.com> 1.40-1
 - [frontend] status page fix
 - [frontend] How to enable a repo on a Overview page
