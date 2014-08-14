@@ -366,7 +366,7 @@ def cancel_build(build_id):
     if build:
         try:
             builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
-        except InsufficientRightsException as e:
+        except exceptions.InsufficientRightsException as e:
             output = {'output': 'notok', 'error': str(e)}
             httpcode = 500
         else:
