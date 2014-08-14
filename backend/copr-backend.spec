@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.40
+Version:    1.41
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -172,6 +172,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Aug 14 2014 Miroslav Suchý <miroslav@suchy.cz> 1.41-1
+- [backend] fix of fix
+- [backend] couple of fixes
+
 * Wed Aug 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.40-1
 - [backend] queue cleaning
 - [backend] experimental build groups for more architectures
