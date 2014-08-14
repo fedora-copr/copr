@@ -22,8 +22,8 @@ BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
-BuildRequires: python-requests
 BuildRequires: python2-devel
+BuildRequires: python-copr-client
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -31,8 +31,8 @@ BuildRequires: python-argparse
 BuildRequires: epydoc
 BuildRequires: graphviz
 
-Requires:   python-requests
 Requires:   python-setuptools
+Requires:   python-copr-client
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
 %endif
@@ -60,6 +60,8 @@ only.
 
 
 %build
+%{__python2} setup.py build
+
 mv copr_cli/README.rst ./
 
 # convert manages
@@ -74,7 +76,7 @@ popd
 
 %install
 install -d %{buildroot}%{_pkgdocdir}/
-%{__python2} coprcli-setup.py install --root %{buildroot}
+%{__python2} setup.py install --root %{buildroot}
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 

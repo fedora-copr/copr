@@ -1,14 +1,69 @@
 #-*- coding: UTF-8 -*-
 
+__version__ = "0.3.0"
+__description__ = "CLI tool to run copr"
+
 import argparse
 import sys
 import ConfigParser
+import datetime
+import time
+from collections import defaultdict
 
-import subcommands
-import copr_exceptions
+from copr_client import CoprClient
+import copr_client.exceptions as copr_exceptions
 
-__version__ = "0.2.0"
-__description__ = "CLI tool to run copr"
+# client = CoprClient.create_from_file_config()
+client = CoprClient(dict(
+    login="Y29wcg==##fragphakffjdnlehuegu",
+    username="vgologuz",
+    token="srkqukvupebdipjfqyncohhvftiksi",
+    copr_url="http://copr-fe-dev.cloud.fedoraproject.org"
+))
+
+
+def _watch_builds(build_ids):
+    print("Watching build(s): (this may be safely interrupted)")
+    prevstatus = defaultdict()
+    failed_ids = []
+    watched_ids = build_ids[:]
+
+    try:
+        while True:
+            for build_id in watched_ids:
+                build_status = client.get_build_status(build_id)
+                if build_status.output != "ok":
+                    errmsg = "  Build {1}: Unable to get build status: {0}".format(
+                        build_status.error, build_id)
+                    raise copr_exceptions.CoprRequestException(errmsg)
+
+                now = datetime.datetime.now()
+                if prevstatus[build_id] != build_status.status:
+                    prevstatus[build_id] = build_status.status
+                    print("  {0} Build {2}: {1}".format(
+                        now.strftime("%H:%M:%S"),
+                        build_status.status, build_id))
+
+                if build_status.status in ["failed"]:
+                    failed_ids.append(build_id)
+                if build_status.status in ["succeeded", "skipped",
+                                           "failed", "canceled"]:
+                    watched_ids.remove(build_id)
+                if build_status.status == "unknown":
+                    raise copr_exceptions.CoprBuildException(
+                        "Unknown status.")
+
+            if not watched_ids:
+                break
+            time.sleep(60)
+
+        if failed_ids:
+            raise copr_exceptions.CoprBuildException(
+                    "Build(s) {0} failed.".format(
+                    ", ".join(str(x) for x in failed_ids)))
+
+    except KeyboardInterrupt:
+        pass
 
 
 def action_build(args):
@@ -18,8 +73,17 @@ def action_build(args):
     :param args: argparse arguments provided by the user
 
     """
-    subcommands.build(args.copr, args.pkgs,
-                      args.memory, args.timeout, not args.nowait, chroots=args.chroots)
+    result = client.create_new_build(
+        projectname=args.copr, chroots=args.chroots, pkgs=args.pkgs,
+        memory=args.memory, timeout=args.timeout)
+    if result.output != "ok":
+        print(result.error)
+        return
+    print(result.message)
+    print("Created builds: {0}".format(" ".join(map(str, result.ids))))
+
+    if not args.nowait:
+        _watch_builds(result.ids)
 
 
 def action_create(args):
@@ -29,9 +93,12 @@ def action_create(args):
     :param args: argparse arguments provided by the user
 
     """
-    subcommands.create(args.name, args.chroots, args.description,
-                       args.instructions, args.repos,
-                       args.initial_pkgs)
+    result = client.create_project(
+        projectname=args.name, description=args.description,
+        instructions=args.instructions, chroots=args.chroots,
+        repos=args.repos, initial_pkgs=args.initial_pkgs)
+    print(result)
+
 
 def action_delete(args):
     """ Method called when the 'delete' action has been selected by the
@@ -39,7 +106,8 @@ def action_delete(args):
 
     :param args: argparse arguments provided by the user
     """
-    subcommands.delete(args.copr)
+    result = client.delete_project(projectname=args.copr)
+    print(result)
 
 
 def action_list(args):
@@ -49,20 +117,31 @@ def action_list(args):
     :param args: argparse arguments provided by the user
 
     """
-    subcommands.listcoprs(args.username)
+    username = args.username or client.username
+    result = client.get_projects_list(username)
+    if result.response["output"] != "ok":
+        print(result.error)
+        print("Un-expected data returned, please report this issue")
+    elif not result.projects:
+        print("No copr retrieved for user: '{0}'".format(username))
+        return
+
+    for prj in result.projects:
+        print(prj)
 
 
 def action_status(args):
-    subcommands.status(args.build_id)
+    result = client.get_build_status(args.build_id)
+    print(result)
+
 
 def action_cancel(args):
     """ Method called when the 'cancel' action has been selected by the
     user.
-
     :param args: argparse arguments provided by the user
-
     """
-    subcommands.cancel(args.build_id)
+    result = client.cancel_build(args.build_id)
+    print(result)
 
 def setup_parser():
     """
@@ -159,24 +238,24 @@ def main(argv=sys.argv[1:]):
     except KeyboardInterrupt:
         sys.stderr.write("\nInterrupted by user.")
         sys.exit(1)
-    except copr_exceptions.CoprCliRequestException, e:
+    except copr_exceptions.CoprRequestException, e:
         sys.stderr.write("\nSomething went wrong:")
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(1)
     except argparse.ArgumentTypeError, e:
         sys.stderr.write("\nError: {0}".format(e))
         sys.exit(2)
-    except copr_exceptions.CoprCliException, e:
+    except copr_exceptions.CoprException, e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(3)
     except ConfigParser.ParsingError, e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.stderr.write("Lines in INI file should not be indented.\n")
         sys.exit(3)
-    except copr_exceptions.CoprCliBuildException, e:
+    except copr_exceptions.CoprBuildException, e:
         sys.stderr.write("\nBuild error: {0}\n".format(e))
         sys.exit(4)
-    except copr_exceptions.CoprCliUnknownResponseException, e:
+    except copr_exceptions.CoprUnknownResponseException, e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(5)
     # except Exception as e:

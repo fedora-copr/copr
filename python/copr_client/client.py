@@ -1,6 +1,7 @@
 #-*- coding: UTF-8 -*-
 
 import json
+from pprint import pprint
 import os
 import sys
 import ConfigParser
@@ -69,7 +70,7 @@ class CoprClient(object):
                 "Bad configuration file: {0}".format(err))
         return CoprClient(config=config)
 
-    def _fetch(self, url, data=None, copr=None, method=None,
+    def _fetch(self, url, data=None, projectname=None, method=None,
                skip_auth=False, on_error_response=None):
         """ Fetch data from server,
         checks response and raises a CoprCliRequestException with nice error message
@@ -79,7 +80,7 @@ class CoprClient(object):
         :param url: formed url to fetch
         :param data: serialised data to send
         :param skip_auth: don't send auth credentials
-        :param copr: name of the copr project
+        :param projectname: name of the copr project
         :param on_error_response: function to handle responses with bad status code
         """
         if method is None:
@@ -113,24 +114,24 @@ class CoprClient(object):
 
         #TODO: better status code handling
         if response.status_code == 404:
-            if copr is None:
+            if projectname is None:
                 raise exceptions.CoprRequestException(
                             "User {0} is unknown.\n".format(self.username))
             else:
                 raise exceptions.CoprRequestException(
                             "Project {0}/{1} not found.\n".format(
-                            self.username, copr))
+                            self.username, projectname))
 
         if 400 <= response.status_code < 500:
-            raise Exception("Bad request, raw response body: {0}".format(response.text))
+            log.error("Bad request, raw response body: {0}".format(response.text))
         elif response.status_code >= 500:
             #import ipdb; ipdb.set_trace()
-            raise Exception("Server error, raw response body: {0}".format(response.text))
+            log.error("Server error, raw response body: {0}".format(response.text))
 
         try:
             output = json.loads(response.text)
         except ValueError:
-            import ipdb; ipdb.set_trace()
+            #import ipdb; ipdb.set_trace()
             raise exceptions.CoprUnknownResponseException(
                         "Unknown response from the server.")
         if response.status_code != 200:
@@ -162,30 +163,30 @@ class CoprClient(object):
         response = self._fetch(url, method="post")
         return CancelBuildResponse(self, response, build_id)
 
-    def delete_project(self, name):
+    def delete_project(self, projectname):
         """
             Delete the entire project
         """
         url = "{0}/coprs/{1}/{2}/delete/".format(
-            self.api_url, self.username, name
+            self.api_url, self.username, projectname
         )
         response = self._fetch(
             url, data={"verify": "yes"}, method="post")
-        return DeleteProjectResponse(self, response, name)
+        return DeleteProjectResponse(self, response, projectname)
 
-    def get_project_details(self, name):
+    def get_project_details(self, projectname):
         """
             Get project details
         """
         url = "{0}/coprs/{1}/{2}/detail/".format(
-            self.api_url, self.username, name
+            self.api_url, self.username, projectname
         )
 
         response = self._fetch(url, skip_auth=True)
-        return ProjectDetailsResponse(self, response, name)
+        return ProjectDetailsResponse(self, response, projectname)
 
     def create_project(
-            self, name,
+            self, projectname,
             description=None, instructions=None,
             chroots=None, repos=None, initial_pkgs=None
     ):
@@ -202,7 +203,7 @@ class CoprClient(object):
         if type(initial_pkgs) == list():
             initial_pkgs = " ".join(initial_pkgs)
 
-        data = {"name": name,
+        data = {"name": projectname,
                 "repos": repos,
                 "initial_pkgs": initial_pkgs,
                 "description": description,
@@ -215,15 +216,16 @@ class CoprClient(object):
         response = self._fetch(url, data=data, method="post")
         return CreateProjectResponse(
             self, response,
-            name=name, description=description, instructions=instructions,
+            name=projectname, description=description, instructions=instructions,
             repos=repos, chroots=chroots, initial_pkgs=initial_pkgs
         )
 
-    def get_projects_list(self):
+    def get_projects_list(self, username=None):
         """
             Get list of projects created by the user
         """
-        url = "{0}/coprs/{1}/".format(self.api_url, self.username)
+        url = "{0}/coprs/{1}/".format(
+            self.api_url, username or self.username)
         response = self._fetch(url)
         return GetProjectsListResponse(self, response)
 
@@ -234,12 +236,12 @@ class CoprClient(object):
         response = self._fetch(url, skip_auth=True)
         return BaseResponse(self, response)
 
-    def modify_project_chroot_details(self, name, chroot, pkgs=None):
+    def modify_project_chroot_details(self, projectname, chroot, pkgs=None):
         if pkgs is None:
             pkgs = []
 
         url = "{0}/coprs/{1}/{2}/modify/{3}/".format(
-            self.api_url, self.username, name, chroot
+            self.api_url, self.username, projectname, chroot
         )
         data = {
             "buildroot_pkgs": " ".join(pkgs)
@@ -247,19 +249,19 @@ class CoprClient(object):
         response = self._fetch(url, data=data, method="post")
         return BaseResponse(self, response)
 
-    def modify_project(self, name, description=None,
+    def modify_project(self, projectname, description=None,
                        instructions=None, repos=None):
 
         """
             Modifies main project settings
-            :param name:
+            :param projectname:
             :param description:
             :param instructions:
             :param repos:
             :return:
         """
         url = "{0}/coprs/{1}/{2}/modify/".format(
-            self.api_url, self.username, name
+            self.api_url, self.username, projectname
         )
         data = {}
         if description:
@@ -270,15 +272,14 @@ class CoprClient(object):
             data["repos"] = repos
 
         response = self._fetch(url, data=data, method="post")
-        return ModifyProjectResponse(self, response, name, description,
+        return ModifyProjectResponse(self, response, projectname, description,
                                      instructions, repos)
 
-    def create_new_build(self, copr_project,
-                     pkgs, timeout, memory,
-                     wait=True, result=None, chroots=None):
+    def create_new_build(self, projectname, pkgs,
+                         timeout=None, memory=None, chroots=None):
         """
 
-            :param copr_project: name of copr project (without user namespace)
+            :param projectname: name of copr project (without user namespace)
             :param pkgs: list of packages to include in build
 
             :param timeout: ?? build timeout
@@ -291,7 +292,7 @@ class CoprClient(object):
         """
 
         url = "{0}/coprs/{1}/{2}/new_build/".format(
-            self.api_url, self.username, copr_project
+            self.api_url, self.username, projectname
         )
         data = {
             "pkgs": " ".join(pkgs),
@@ -304,7 +305,7 @@ class CoprClient(object):
         response = self._fetch(url, data, method="post")
         return BuildRequestResponse(
             self, response,
-            copr_project, pkgs, memory, timeout, chroots)
+            projectname, pkgs, memory, timeout, chroots)
 
     def search_projects(self, query):
         url = "{0}/coprs/search/{1}/".format(

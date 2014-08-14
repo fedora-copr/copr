@@ -46,8 +46,59 @@ class ProjectMixin(object):
         return self.client.delete_project(self.project_name)
 
 
+class ProjectWrapper(object):
+    def __init__(self, username, projectname,
+                 description=None, instructions=None,
+                 yum_repos=None, additional_repos=None):
+
+        self.username = username
+        self.projectname = projectname
+        self.description = description or "<No description provided>"
+        self.instructions = instructions
+        self.yum_repos = yum_repos or {}
+        self.additional_repos = additional_repos or {}
+
+    def __str__(self):
+        out = list()
+        out.append("Name: {0}".format(self.projectname))
+        out.append("  Description: {0}".format(self.description))
+
+        if self.yum_repos:
+            out.append("  Yum repo(s)")
+            for k in sorted(self.yum_repos.keys()):
+                out.append("    {0}: {1}".format(k, self.yum_repos[k]))
+        if self.additional_repos:
+            out.append("  Additional repo: {0}".format(self.additional_repos))
+        if self.instructions:
+            out.append("  Instructions: {0}".format(self.instructions))
+
+        out.append("")
+        return "\n".join(out)
+
+
 class GetProjectsListResponse(BaseResponse):
     _simple_fields = ["output", "repos"]
+
+    def __init__(self, client, response, username=None):
+        super(GetProjectsListResponse, self).__init__(client, response)
+        self.username = username or self.client.username
+
+    @property
+    def projects(self):
+        if not self.response or \
+                self.response.get("output", None) != "ok" or \
+                not self.response.get("repos"):
+            return None
+        else:
+            return [
+                ProjectWrapper(
+                    username=self.username,
+                    projectname=prj.get("name"),
+                    description=prj.get("description"),
+                    yum_repos=prj.get("yum_repos"),
+                    additional_repos=prj.get("additional_repos"),
+                ) for prj in self.response["repos"]
+            ]
 
 
 class CreateProjectResponse(BaseResponse, ProjectMixin):
@@ -183,6 +234,8 @@ class CancelBuildResponse(BaseResponse, BuildMixin):
 
 
 class BuildRequestResponse(BaseResponse, ProjectMixin):
+    _simple_fields = ["message", "output", "error", "ids"]
+
     def __init__(self, client, response,
                  copr_project, pkgs, memory, timeout, chroots):
         super(BuildRequestResponse, self).__init__(client, response)

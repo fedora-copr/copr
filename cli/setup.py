@@ -14,7 +14,7 @@ This part is a command line interface to use copr."""
 from copr_cli.main import __description__, __version__
 
 requires = [
-    'requests',
+    'copr-client'
 ]
 
 
