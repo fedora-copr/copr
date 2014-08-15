@@ -3,6 +3,7 @@
 {% block builds_selected %}selected{% endblock %}
 {% from "_helpers.html" import render_pagination %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
+{% from "coprs/detail/_build_states.html" import build_states %}
 
 {% block detail_body %}
   {% if builds %}
@@ -13,4 +14,5 @@
   {% else %}
     <h2>No builds so far.</h2>
   {% endif %}
+  {{ build_states() }}
 {% endblock %}
