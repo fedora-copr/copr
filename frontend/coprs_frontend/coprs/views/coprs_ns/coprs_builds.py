@@ -62,7 +62,7 @@ def copr_builds(username, coprname, page=1):
         flask.g.user, copr=copr)
 
     paginator = helpers.Paginator(
-        builds_query, copr.build_count, page, per_page_override=10)
+        builds_query, copr.build_count, page, per_page_override=20)
 
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,

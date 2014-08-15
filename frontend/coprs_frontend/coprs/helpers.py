@@ -80,8 +80,8 @@ class Paginator(object):
         self._sliced_query = None
 
     def page_slice(self, page):
-        return (constants.ITEMS_PER_PAGE * (page - 1),
-                constants.ITEMS_PER_PAGE * page)
+        return (self.per_page * (page - 1),
+                self.per_page * page)
 
     @property
     def sliced_query(self):
