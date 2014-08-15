@@ -426,11 +426,25 @@ class Builder(object):
         buildcmd += dest
 
         # run the mockchain command async
-        # this runs it sync - FIXME
         self.mockremote.callback.log("executing: {0}".format(buildcmd))
         self.conn.module_name = "shell"
         self.conn.module_args = buildcmd
-        results = self.conn.run()
+
+        _, poller = self.conn.run_async(self.timeout)
+
+        waited = 0
+        while True:
+            results = poller.poll()
+
+            if results["contacted"] or results["dark"]:
+                break
+
+            if waited >= self.timeout:
+                self.mockremote.callback.log("Build timeout expired.")
+                return False, "", "Timeout expired", build_details
+
+            time.sleep(10)
+            waited += 10
 
         is_err, err_results = check_for_ans_error(
             results, self.hostname, success_codes=[0],
@@ -448,6 +462,7 @@ class Builder(object):
 
         successfile = os.path.join(self._get_remote_pkg_dir(pkg), "success")
         testcmd = "/usr/bin/test -f {0}".format(successfile)
+        self.conn.module_name = "shell"
         self.conn.module_args = testcmd
         results = self.conn.run()
         is_err, err_results = check_for_ans_error(
