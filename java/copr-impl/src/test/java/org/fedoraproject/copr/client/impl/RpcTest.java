@@ -23,7 +23,6 @@ import org.easymock.MockType;
 import org.fedoraproject.copr.client.CoprConfiguration;
 import org.fedoraproject.copr.client.CoprService;
 import org.fedoraproject.copr.client.CoprSession;
-import org.fedoraproject.copr.client.impl.DefaultCoprService;
 import org.junit.After;
 import org.junit.Before;
 
