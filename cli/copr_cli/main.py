@@ -13,18 +13,12 @@ from collections import defaultdict
 from copr_client import CoprClient
 import copr_client.exceptions as copr_exceptions
 
-# client = CoprClient.create_from_file_config()
-client = CoprClient(dict(
-    login="Y29wcg==##fragphakffjdnlehuegu",
-    username="vgologuz",
-    token="srkqukvupebdipjfqyncohhvftiksi",
-    copr_url="http://copr-fe-dev.cloud.fedoraproject.org"
-))
+client = CoprClient.create_from_file_config()
 
 
 def _watch_builds(build_ids):
     print("Watching build(s): (this may be safely interrupted)")
-    prevstatus = defaultdict()
+    prevstatus = defaultdict(lambda: None)
     failed_ids = []
     watched_ids = build_ids[:]
 

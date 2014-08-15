@@ -53,7 +53,7 @@ class ProjectWrapper(object):
 
         self.username = username
         self.projectname = projectname
-        self.description = description or "<No description provided>"
+        self.description = description
         self.instructions = instructions
         self.yum_repos = yum_repos or {}
         self.additional_repos = additional_repos or {}
@@ -64,7 +64,7 @@ class ProjectWrapper(object):
         out.append("  Description: {0}".format(self.description))
 
         if self.yum_repos:
-            out.append("  Yum repo(s)")
+            out.append("  Yum repo(s):")
             for k in sorted(self.yum_repos.keys()):
                 out.append("    {0}: {1}".format(k, self.yum_repos[k]))
         if self.additional_repos:
@@ -101,7 +101,7 @@ class GetProjectsListResponse(BaseResponse):
             ]
 
 
-class CreateProjectResponse(BaseResponse, ProjectMixin):
+class CreateProjectResponse(ProjectMixin, BaseResponse):
     _simple_fields = ["message", "output"]
 
     def __init__(self, client, response,
@@ -124,7 +124,7 @@ class CreateProjectResponse(BaseResponse, ProjectMixin):
             return unicode(self.message)
 
 
-class ModifyProjectResponse(BaseResponse, ProjectMixin):
+class ModifyProjectResponse(ProjectMixin, BaseResponse):
     def __init__(self, client, response,
                  name, description=None,
                  instructions=None, repos=None):
@@ -135,7 +135,7 @@ class ModifyProjectResponse(BaseResponse, ProjectMixin):
         self.repos = repos
 
 
-class ProjectDetailsResponse(BaseResponse, ProjectMixin):
+class ProjectDetailsResponse(ProjectMixin, BaseResponse):
     _simple_fields = ["detail", "output"]
 
     def __init__(self, client, response, name):
@@ -154,7 +154,7 @@ class ProjectDetailsResponse(BaseResponse, ProjectMixin):
         return self.get_project_details()
 
 
-class DeleteProjectResponse(BaseResponse, ProjectMixin):
+class DeleteProjectResponse(ProjectMixin, BaseResponse):
     _simple_fields = ["message", "output"]
 
     def __init__(self, client, response, name):
@@ -189,14 +189,14 @@ class BuildMixin(object):
 
     def __str__(self):
         if not self.response:
-            return super(BuildStatusResponse, self).__str__()
+            return super(BuildMixin, self).__str__()
         elif self.response["output"] == "ok":
             return self.response["status"]
         else:
             return self.response["error"]
 
 
-class BuildStatusResponse(BaseResponse, BuildMixin):
+class BuildStatusResponse(BuildMixin, BaseResponse):
     _simple_fields = ["status", "output", "error"]
 
     def __init__(self, client, response, build_id):
@@ -207,7 +207,7 @@ class BuildStatusResponse(BaseResponse, BuildMixin):
         return self.get_build_status()
 
 
-class BuildDetailsResponse(BaseResponse, BuildMixin):
+class BuildDetailsResponse(BuildMixin, BaseResponse):
     _simple_fields = [
         'status', 'error', 'submitted_by', 'results', 'src_pkg', 'started_on',
         'submitted_on', 'owner', 'chroots', 'project', 'built_pkgs',
@@ -222,7 +222,7 @@ class BuildDetailsResponse(BaseResponse, BuildMixin):
         return self.get_build_details()
 
 
-class CancelBuildResponse(BaseResponse, BuildMixin):
+class CancelBuildResponse(BuildMixin, BaseResponse):
     _simple_fields = ["message", "output", "error"]
 
     def __init__(self, client, response, build_id):
@@ -232,8 +232,16 @@ class CancelBuildResponse(BaseResponse, BuildMixin):
     def repeat_action(self):
         return self.client.cancel_build(self.build_id)
 
+    # def __str__(self):
+    #     if not self.response:
+    #         return super(CancelBuildResponse, self).__str__()
+    #     elif self.response["output"] == "ok":
+    #         return self.response["status"]
+    #     else:
+    #         return self.response["error"]
 
-class BuildRequestResponse(BaseResponse, ProjectMixin):
+
+class BuildRequestResponse(ProjectMixin, BaseResponse):
     _simple_fields = ["message", "output", "error", "ids"]
 
     def __init__(self, client, response,
@@ -268,7 +276,7 @@ class ProjectChrootMixin(ProjectMixin):
             self.project_name, self.chroot, pkgs=pkgs)
 
 
-class ProjectChrootDetailsResponse(BaseResponse, ProjectChrootMixin):
+class ProjectChrootDetailsResponse(ProjectChrootMixin, BaseResponse):
     def __init__(self, client, response, name, chroot):
         super(ProjectChrootDetailsResponse, self).__init__(client, response)
         self.project_name = name
@@ -278,7 +286,7 @@ class ProjectChrootDetailsResponse(BaseResponse, ProjectChrootMixin):
         return self.get_project_details()
 
 
-class ModifyProjectChrootResponse(BaseResponse, ProjectChrootMixin):
+class ModifyProjectChrootResponse(ProjectChrootMixin, BaseResponse):
     def __init__(self, client, response, name, chroot, pkgs):
         super(ModifyProjectChrootResponse, self).__init__(client, response)
         self.project_name = name

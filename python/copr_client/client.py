@@ -253,7 +253,8 @@ class CoprClient(object):
                        instructions=None, repos=None):
 
         """
-            Modifies main project settings
+            Modifies main project settings.
+
             :param projectname:
             :param description:
             :param instructions:
@@ -278,16 +279,14 @@ class CoprClient(object):
     def create_new_build(self, projectname, pkgs,
                          timeout=None, memory=None, chroots=None):
         """
+            Creates new build in `projectname` copr.
 
             :param projectname: name of copr project (without user namespace)
             :param pkgs: list of packages to include in build
-
-            :param timeout: ?? build timeout
-
+            :param timeout: ?build timeout
             :param memory: amount of required memory for build process
             :param wait: if True function wait for packages to be build
-            :param result:
-            :param chroots:
+            :param chroots: build only with given chroots
 
         """
 
