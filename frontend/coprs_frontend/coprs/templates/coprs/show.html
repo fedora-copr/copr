@@ -15,7 +15,10 @@
     <p class="other-text">projects</p>
     <hr>
     <p class="coprs-count">
-    <a href="{{url_for("status_ns.waiting")}}">Copr status</a>
+
+        <a href="{{url_for('status_ns.waiting')}}">Copr status</a>
+        <br />
+        <a href="{{url_for('recent_ns.recent')}}">Recent builds</a>
     </p>
   </div>
   {% endif %}
@@ -37,7 +40,7 @@
   <div class="coprs-list-{% if g.user %}thin{% else %}thick{% endif %}">
     {% if g.user %}
       <div class="add-copr">+
-        <a href={{ url_for('coprs_ns.copr_add', username=g.user.name) }}>
+        <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}">
           add a new project
         </a>
       </div>

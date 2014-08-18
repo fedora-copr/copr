@@ -43,6 +43,8 @@ from coprs.views.backend_ns import backend_general
 from coprs.views import misc
 from coprs.views import status_ns
 from coprs.views.status_ns import status_general
+from coprs.views import recent_ns
+from coprs.views.recent_ns import recent_general
 
 app.register_blueprint(api_ns.api_ns)
 app.register_blueprint(admin_ns.admin_ns)
@@ -50,5 +52,6 @@ app.register_blueprint(coprs_ns.coprs_ns)
 app.register_blueprint(misc.misc)
 app.register_blueprint(backend_ns.backend_ns)
 app.register_blueprint(status_ns.status_ns)
+app.register_blueprint(recent_ns.recent_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)

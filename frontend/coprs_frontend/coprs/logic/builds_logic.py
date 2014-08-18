@@ -24,6 +24,17 @@ class BuildsLogic(object):
             .order_by(models.BuildChroot.build_id.desc())
 
     @classmethod
+    def get_recent_tasks(cls, limit=None):
+        if not limit:
+            limit = 100
+
+        return models.Build.query \
+            .filter(models.Build.ended_on != None) \
+            .order_by(models.Build.id.desc()) \
+            .limit(limit)
+
+
+    @classmethod
     def get_build_task_queue(cls):
         """
         Returns BuildChroots which are - waiting to be built or
