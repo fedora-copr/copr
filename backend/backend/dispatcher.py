@@ -222,7 +222,7 @@ class Worker(multiprocessing.Process):
 
 
 
-    def run_ansible_playbook(self, args, name="running playbook", attempts=3):
+    def run_ansible_playbook(self, args, name="running playbook", attempts=9):
         """
         call ansible playbook
             - well mostly we run out of space in OpenStack so we rather try
@@ -255,7 +255,11 @@ class Worker(multiprocessing.Process):
         return result
 
     def spawn_instance(self, job):
-        """call the spawn playbook to startup/provision a building instance"""
+        """
+        call the spawn playbook to startup/provision a building instance
+        get an IP and test if the builder responds
+        repeat this until you get an IP of working builder
+        """
 
         start = time.time()
 
@@ -277,40 +281,37 @@ class Worker(multiprocessing.Process):
                 spawn_playbook,
                 ans_extra_vars_encode(extra_vars, "copr_task"))
 
-        result = self.run_ansible_playbook(args, "spawning instance")
-        if not result:
-            return None
+        i = 0
+        while True:
+            i += 1
+            self.callback.log("Spawning a builder. Try No. {0}".format(i))
+            result = self.run_ansible_playbook(args, "spawning instance")
+            if not result:
+                continue
 
-        match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
-        if not match:
-            return None
-        ipaddr = match.group(1)
+            match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
+            if not match:
+                continue
+            ipaddr = match.group(1)
 
-        match = re.search(r'vm_name=([^\{\}"]+)', result, re.MULTILINE)
-        if match:
-            self.vm_name = match.group(1)
+            match = re.search(r'vm_name=([^\{\}"]+)', result, re.MULTILINE)
+            if match:
+                self.vm_name = match.group(1)
 
-        self.callback.log("got instance ip: {0}".format(ipaddr))
-        self.callback.log(
-            "Instance spawn/provision took {0} sec".format(time.time() - start))
-
-        if self.ip:
-            return self.ip
-
-        # for i in play.SETUP_CACHE:
-        #    if i =="localhost":
-        #        continue
-        #    return i
-        try:
-            IP(ipaddr)
-            return ipaddr
-        except ValueError:
-            # if we get here we"re in trouble
+            self.callback.log("got instance ip: {0}".format(ipaddr))
             self.callback.log(
-                "No IP back from spawn_instance - dumping cache output")
-            self.callback.log(str(result))
-            self.callback.log("Test spawn_instance playbook manually")
-            return None
+                "Instance spawn/provision took {0} sec".format(time.time() - start))
+
+            try:
+                IP(ipaddr)
+                return ipaddr
+
+            except ValueError:
+                # if we get here we"re in trouble
+                self.callback.log(
+                    "No IP back from spawn_instance - dumping cache output")
+                self.callback.log(str(result))
+                continue
 
     def terminate_instance(self, instance_ip):
         """call the terminate playbook to destroy the building instance"""
@@ -507,7 +508,7 @@ class Worker(multiprocessing.Process):
 
 
             # spin up our build instance
-            if self.create:
+            if self.create and not self.ip:
                 try:
                     ip = self.spawn_instance(job)
                     if not ip:
@@ -518,6 +519,8 @@ class Worker(multiprocessing.Process):
                     self.callback.log(
                         "failure to setup instance: {0}".format(e))
                     raise
+            else:
+                ip = self.ip
 
 
             try:
