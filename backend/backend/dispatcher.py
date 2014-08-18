@@ -9,6 +9,7 @@ import subprocess
 import multiprocessing
 
 import ansible
+import ansible.runner
 import ansible.utils
 from ansible import callbacks
 from bunch import Bunch
@@ -287,10 +288,12 @@ class Worker(multiprocessing.Process):
             self.callback.log("Spawning a builder. Try No. {0}".format(i))
             result = self.run_ansible_playbook(args, "spawning instance")
             if not result:
+                self.callback.log("No result, trying again")
                 continue
 
             match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
             if not match:
+                self.callback.log("No ip in the result, trying again")
                 continue
             ipaddr = match.group(1)
 
@@ -304,14 +307,34 @@ class Worker(multiprocessing.Process):
 
             try:
                 IP(ipaddr)
-                return ipaddr
-
             except ValueError:
                 # if we get here we"re in trouble
                 self.callback.log(
-                    "No IP back from spawn_instance - dumping cache output")
+                    "Invalid IP back from spawn_instance - dumping cache output")
                 self.callback.log(str(result))
                 continue
+
+            # we were getting some dead instancies
+            # that's why I'm testing the conncectivity here
+            connection = ansible.runner.Runner(
+                            remote_user="root",
+                            host_list=ipaddr+",",
+                            pattern=ipaddr,
+                            forks=1,
+                            transport="ssh",
+                            timeout="500")
+            connection.module_name = "shell"
+            connection.module_args = "echo hello"
+            res = connection.run()
+
+            if res["contacted"]:
+                return ipaddr
+
+            else:
+                self.callback.log("Worker is not responding to" \
+                        "the testing playbook. Spawning another one.")
+                self.terminate_instance(ipaddr)
+
 
     def terminate_instance(self, instance_ip):
         """call the terminate playbook to destroy the building instance"""
