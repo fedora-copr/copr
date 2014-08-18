@@ -16,14 +16,12 @@ class BuildsLogic(object):
 
     @classmethod
     def get(cls, build_id):
-        query = models.Build.query.filter(models.Build.id == build_id)
-        return query
+        return models.Build.query.filter(models.Build.id == build_id)
 
     @classmethod
     def get_build_tasks(cls, status):
-        query = models.BuildChroot.query.filter(models.BuildChroot.status == status)
-        query.order_by(models.BuildChroot.build_id.desc())
-        return query
+        return models.BuildChroot.query.filter(models.BuildChroot.status == status)\
+            .order_by(models.BuildChroot.build_id.desc())
 
     @classmethod
     def get_build_task_queue(cls):
@@ -40,7 +38,7 @@ class BuildsLogic(object):
                         models.Build.ended_on == None
                         )
                     ))
-        query.order_by(models.BuildChroot.build_id.desc())
+        query = query.order_by(models.BuildChroot.build_id.desc())
         return query
 
     @classmethod
