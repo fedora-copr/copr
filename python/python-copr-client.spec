@@ -3,39 +3,32 @@
 %global __python2 %{__python}
 %endif
 
-Name:       copr-cli
-Version:    1.36
+Name:       python-copr-client
+Version:    1.42
 Release:    1%{?dist}
-Summary:    Command line interface for COPR
+Summary:    Python interface for COPR
 
 Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://fedorahosted.org/copr/
 # Source is created by
 # git clone https://git.fedorahosted.org/git/copr.git
-# cd copr/cli
+# cd copr/python
 # tito build --tgz
 Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
-BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
+BuildRequires: python-requests
 BuildRequires: python2-devel
-BuildRequires: python-copr-client
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-BuildRequires: python-argparse
-%endif
 #for doc package
 BuildRequires: epydoc
 BuildRequires: graphviz
 
+Requires:   python-requests
 Requires:   python-setuptools
-Requires:   python-copr-client
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-Requires:   python-argparse
-%endif
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -62,10 +55,7 @@ only.
 %build
 %{__python2} setup.py build
 
-mv copr_cli/README.rst ./
-
-# convert manages
-a2x -d manpage -f manpage man/copr-cli.1.asciidoc
+mv copr_client/README.rst ./
 
 %if 0%{?fedora}
 # build documentation
@@ -77,8 +67,6 @@ popd
 %install
 install -d %{buildroot}%{_pkgdocdir}/
 %{__python2} setup.py install --root %{buildroot}
-install -d %{buildroot}%{_mandir}/man1
-install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 
 #doc
 %if 0%{?fedora}
@@ -87,9 +75,7 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 
 %files
 %doc LICENSE README.rst
-%{_bindir}/copr-cli
 %{python_sitelib}/*
-%{_mandir}/man1/copr-cli.1*
 
 %if 0%{?fedora}
 %files doc

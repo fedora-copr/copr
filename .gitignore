@@ -4,6 +4,7 @@
 data/
 cli/dist/
 build/
+python-doc/
 *.egg-info
 documentation/build
 documentation/python-doc
