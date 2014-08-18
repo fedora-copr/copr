@@ -6,7 +6,8 @@ to create packages, put them in repositories, and make it easy for users
 to install the packages onto their system. Within the Fedora Project it
 is used to allow packagers to create third party repositories.
 
-This part is a python client to access copr service.
+This part is a python client to access copr service. It's aimed
+to provide access to all copr api methods.
 
 About this project:
 -------------------
@@ -24,14 +25,19 @@ The client depends on:
 Usage:
 ------
 
-- Create an account on copr `test instance`_
-- Go to the API page: http://copr-fe.cloud.fedoraproject.org/api
-- Retrieve your API token
+- Create an account on copr instance
+- Go to the API page: http://copr.fedoraproject.org/api
+- Retrieve your API login & token
 
 ::
 
     from python_copr.main import CoprClient
-
+    client = CoprClient({
+        "login": "<login from /api>",
+        "token": "<token from /api>",
+        "username": "<copr username>",
+        "copr_url": "<url copr instance ; optional>"
+    })
 
 Alternatively you could use configuration file:
 - Create the file ``~/.config/copr``
@@ -40,8 +46,9 @@ Alternatively you could use configuration file:
 ::
 
  [copr-cli]
- username = <insert here your API login>
+ login = <insert here your API login>
+ username = <insert here your copr username>
  token = <insert here your API token>
+ copr_url = <insert here copr url>
 
 
-You should then be able to use copr-cli to list, create and build on copr.
