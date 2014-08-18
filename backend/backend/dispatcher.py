@@ -136,7 +136,9 @@ class Worker(multiprocessing.Process):
         if not self.callback:
             self.logfile = os.path.join(
                 self.opts.worker_logdir,
-                "worker-{0}.log".format(self.worker_num))
+                "worker-{0}-{1}.log".format(
+                            self.opts.build_groups[self.group_id]["name"],
+                            self.worker_num))
             self.callback = WorkerCallback(logfile=self.logfile)
 
         if ip:
