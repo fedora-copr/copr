@@ -443,11 +443,11 @@ class Worker(multiprocessing.Process):
         terminate the instance.
         """
 
-        setproctitle("worker-{0} {1}".format(
-                    self.opts.build_groups[self.group_id]["name"],
-                    self.worker_num))
-
         while not self.kill_received:
+            setproctitle("worker-{0} {1}  No task".format(
+                        self.opts.build_groups[self.group_id]["name"],
+                        self.worker_num))
+
             # this sometimes caused TypeError in random worker
             # when another one  picekd up a task to build
             # why?
@@ -461,6 +461,11 @@ class Worker(multiprocessing.Process):
                 continue
 
             job = self.create_job(task.data)
+
+            setproctitle("worker-{0} {1}  Task: {2}".format(
+                        self.opts.build_groups[self.group_id]["name"],
+                        self.worker_num,
+                        job.task_id))
 
             # Checking whether the build is not cancelled
             if not self.starting_build(job):
