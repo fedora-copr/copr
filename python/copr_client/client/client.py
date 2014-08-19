@@ -6,10 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-from pprint import pprint
 import os
-import sys
-
 import logging
 
 import requests
@@ -31,8 +28,7 @@ from .responses import BuildStatusResponse, BuildRequestResponse, \
     ProjectDetailsResponse, BuildDetailsResponse, \
     GetProjectsListResponse, ModifyProjectResponse, SearchResponse
 
-__version__ = "0.0.1"
-__description__ = "Python client for copr service"
+
 
 
 class CoprClient(object):

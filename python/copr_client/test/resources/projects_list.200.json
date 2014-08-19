@@ -1,0 +1,8 @@
+{"output": "ok",
+ "repos": [
+    {"additional_repos": "http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-7-$basearch/",
+   "description": "Test description",
+   "instructions": "",
+   "name": "perl516-el7",
+   "yum_repos": {"epel-7-x86_64": "http://copr-be.cloud.fedoraproject.org/results/rhscl/perl516-el7/epel-7-x86_64/"}}]
+}

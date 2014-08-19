@@ -1,0 +1,21 @@
+{
+    "status": "succeeded",
+    "project": "atomic-next",
+    "submitted_by": "eparis",
+    "results": "http://copr-be.cloud.fedoraproject.org/results/walters/atomic-next/",
+    "src_pkg": "https://maxamillion.fedorapeople.org/golang-github-stretchr-objx-0-0.1.gitcbeaeb1.fc21.src.rpm",
+    "started_on": 1408036756,
+    "built_pkgs": [
+        "golang-github-stretchr-objx-devel 0"
+    ],
+    "submitted_on": 1408031345,
+    "ended_on": 1408037034,
+    "owner": "walters",
+    "output": "ok",
+    "chroots": {
+        "fedora-21-x86_64": "skipped",
+        "fedora-20-x86_64": "succeeded",
+        "fedora-rawhide-x86_64": "skipped"
+    },
+    "src_version": "0"
+}

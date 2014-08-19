@@ -43,7 +43,7 @@ setup(
         "Development Status :: 1 - Alpha",
     ],
     install_requires=requires,
-    packages=['copr_client'],
+    packages=['copr_client', 'copr_client.client', 'copr_client.test'],
     include_package_data=True,
     zip_safe=False,
 )

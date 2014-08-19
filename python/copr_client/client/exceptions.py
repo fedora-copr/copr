@@ -27,7 +27,7 @@ class CoprConfigException(CoprException):
 
 class CoprRequestException(Exception):
     """ Exception thrown when the request is bad. For example,
-    the user provided wrong project name or build ID. 
+    the user provided wrong project name or build ID.
     """
     pass
 

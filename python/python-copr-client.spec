@@ -28,6 +28,8 @@ BuildRequires: python2-devel
 %if 0%{?with_python3}
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
+BuildRequires:  python3-pytest
+BuildRequires:  python3-mock
 %endif # if with_python3
 #for doc package
 BuildRequires: epydoc
@@ -90,13 +92,14 @@ find %{py3dir} -name '*.py' | xargs sed -i '1s|^#!python|#!%{__python3}|'
 find -name '*.py' | xargs sed -i '1s|^#!python|#!%{__python2}|'
 
 
-
 %build
 CFLAGS="$RPM_OPT_FLAGS" %{__python2} setup.py build
 
 %if 0%{?with_python3}
 pushd %{py3dir}
+
 CFLAGS="$RPM_OPT_FLAGS" %{__python3} setup.py build
+
 popd
 %endif # with_python3
 
@@ -110,7 +113,7 @@ popd
 %endif
 
 %install
-rm -rf %{buildroot}
+
 install -d %{buildroot}%{_pkgdocdir}/
 
 %if 0%{?with_python3}
@@ -127,6 +130,18 @@ find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
 %if 0%{?fedora}
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %endif
+#rm -rf %{buildroot}
+
+%check
+
+%{__python2} -m pytest copr_client/test
+
+%if 0%{?with_python3}
+pushd %{py3dir}
+%{__python3} -m pytest copr_client
+popd
+%endif # with_python3
+
 
 %files
 %doc LICENSE README.rst
