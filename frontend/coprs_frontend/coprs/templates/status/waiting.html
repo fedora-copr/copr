@@ -21,7 +21,13 @@
     </tr>
     {% for task in tasks %}
         <tr>
-            <td>{{ task.build.submitted_on | time_ago }}</td>
+            <td>
+                {% if task.state == "starting" %}
+                    <span class="build-starting">starting</span>
+                {% else %}
+                    {{ task.build.submitted_on | time_ago }}
+                {% endif %}
+            </td>
             <td><a href="{{ url_for('coprs_ns.copr_detail', username = task.build.copr.owner.name, coprname = task.build.copr.name) }}">{{task.build.copr.owner.name}}/{{task.build.copr.name}}</a></td>
             <td><a href="{{ url_for('coprs_ns.copr_build', username = task.build.copr.owner.name, coprname = task.build.copr.name, build_id = task.build_id) }}">{{task.build_id}}</a></td>
             <td>{{ task.build.pkgs | pkg_name }} </td>
