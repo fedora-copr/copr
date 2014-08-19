@@ -56,6 +56,18 @@ class CoprUniqueNameValidator(object):
             raise wtforms.ValidationError(self.message.format(field.data))
 
 
+class NameNotNumberValidator(object):
+
+    def __init__(self, message=None, owner=None):
+        if not message:
+            message = "Project's name can not be just number."
+        self.message = message
+
+    def __call__(self, form, field):
+        if field.data.isdigit():
+            raise wtforms.ValidationError(self.message.format(field.data))
+
+
 class StringListFilter(object):
 
     def __call__(self, value):
@@ -95,7 +107,8 @@ class CoprFormFactory(object):
                         re.compile(r"^[\w.-]+$"),
                         message="Name must contain only letters,"
                         "digits, underscores, dashes and dots."),
-                    CoprUniqueNameValidator(owner=owner)
+                    CoprUniqueNameValidator(owner=owner),
+                    NameNotNumberValidator()
                 ])
 
             description = wtforms.TextAreaField("Description")
