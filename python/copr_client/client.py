@@ -1,23 +1,35 @@
 #-*- coding: UTF-8 -*-
 
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+
 import json
 from pprint import pprint
 import os
 import sys
-import ConfigParser
+
 import logging
+
+import requests
+import six
+
+from six.moves import configparser
+
 
 logging.basicConfig(level=logging.WARN)
 log = logging.getLogger(__name__)
 
 
-import requests
-import exceptions
+from .exceptions import CoprConfigException, CoprNoConfException, CoprRequestException, \
+    CoprUnknownResponseException
 
 from .responses import BuildStatusResponse, BuildRequestResponse, \
     CreateProjectResponse, BaseResponse, \
     DeleteProjectResponse, CancelBuildResponse, \
-    ProjectDetailsResponse, BuildDetailsResponse, GetProjectsListResponse, ModifyProjectResponse, SearchResponse
+    ProjectDetailsResponse, BuildDetailsResponse, \
+    GetProjectsListResponse, ModifyProjectResponse, SearchResponse
 
 __version__ = "0.0.1"
 __description__ = "Python client for copr service"
@@ -54,19 +66,23 @@ class CoprClient(object):
             Retrieve copr client information from the config file.
             :param filepath: specifies config location, default: "~/.config/copr"
         """
-        raw_config = ConfigParser.ConfigParser()
+        raw_config = configparser.ConfigParser()
         if not filepath:
             filepath = os.path.join(os.path.expanduser("~"), ".config", "copr")
         config = {}
         if not raw_config.read(filepath):
-            raise exceptions.CoprNoConfException(
+            raise CoprNoConfException(
                 "No configuration file '~/.config/copr' found. "
                 "See man copr-cli for more information")
         try:
             for field in ["username", "login", "token", "copr_url"]:
-                config[field] = raw_config.get("copr-cli", field, None)
-        except ConfigParser.Error as err:
-            raise exceptions.CoprConfigException(
+                if six.PY2:
+                    config[field] = raw_config.get("copr-cli", field, None)
+                elif six.PY3:
+                    config[field] = raw_config["copr-cli"].get(field, None)
+
+        except configparser.Error as err:
+            raise CoprConfigException(
                 "Bad configuration file: {0}".format(err))
         return CoprClient(config=config)
 
@@ -87,7 +103,6 @@ class CoprClient(object):
             method = "get"
 
         log.debug("Fetching url: {0}, for login: {1}".format(url, self.login))
-
         kwargs = {}
         if not skip_auth:
             kwargs["auth"] = (self.login, self.token)
@@ -97,8 +112,6 @@ class CoprClient(object):
         if method not in ["get", "post", "head", "delete", "put"]:
             raise Exception("Method {0} not allowed".format(method))
 
-        #print("Url: {0}".format(url))
-        #print(kwargs)
         response = requests.request(
             method=method.upper(),
             url=url,
@@ -107,7 +120,7 @@ class CoprClient(object):
         log.debug("raw response: {0}".format(response.text))
 
         if "<title>Sign in Coprs</title>" in response.text:
-            raise exceptions.CoprRequestException("Invalid API token\n")
+            raise CoprRequestException("Invalid API token\n")
 
         if response.status_code > 299 and on_error_response is not None:
             return on_error_response(response)
@@ -115,30 +128,28 @@ class CoprClient(object):
         #TODO: better status code handling
         if response.status_code == 404:
             if projectname is None:
-                raise exceptions.CoprRequestException(
+                raise CoprRequestException(
                             "User {0} is unknown.\n".format(self.username))
             else:
-                raise exceptions.CoprRequestException(
+                raise CoprRequestException(
                             "Project {0}/{1} not found.\n".format(
                             self.username, projectname))
 
         if 400 <= response.status_code < 500:
             log.error("Bad request, raw response body: {0}".format(response.text))
         elif response.status_code >= 500:
-            #import ipdb; ipdb.set_trace()
             log.error("Server error, raw response body: {0}".format(response.text))
 
         try:
             output = json.loads(response.text)
         except ValueError:
-            #import ipdb; ipdb.set_trace()
-            raise exceptions.CoprUnknownResponseException(
+            raise CoprUnknownResponseException(
                         "Unknown response from the server.")
         if response.status_code != 200:
-            raise exceptions.CoprRequestException(output["error"])
+            raise CoprRequestException(output["error"])
 
         if output is None:
-            raise exceptions.CoprUnknownResponseException(
+            raise CoprUnknownResponseException(
                         "No response from the server.")
         return output
 

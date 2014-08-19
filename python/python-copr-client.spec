@@ -2,11 +2,12 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %global __python2 %{__python}
 %endif
+%global with_python3 1
 
 Name:       python-copr-client
 Version:    1.42
 Release:    1%{?dist}
-Summary:    Python interface for COPR
+Summary:    Python interface for Copr
 
 Group:      Applications/Productivity
 License:    GPLv2+
@@ -22,19 +23,46 @@ BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
+BuildRequires: python-six
 BuildRequires: python2-devel
+%if 0%{?with_python3}
+BuildRequires:  python3-devel
+BuildRequires:  python3-setuptools
+%endif # if with_python3
 #for doc package
 BuildRequires: epydoc
 BuildRequires: graphviz
 
-Requires:   python-requests
-Requires:   python-setuptools
+Requires: python-requests
+Requires: python-setuptools
+Requires: python-six
+%if 0%{?with_python3}
+Requires: python3-six
+Requires: python3-requests
+%endif # if with_python3
+
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains command line interface.
+
+
+%if 0%{?with_python3}
+%package -n python3-copr-client
+Summary:        Python interface for Copr
+Group:          Applications/Productivity
+
+%description -n python3-copr-client
+COPR is lightweight build system. It allows you to create new project in WebUI,
+and submit new builds and COPR will create yum repository from latests builds.
+
+This package include documentation for COPR code. Mostly useful for developers
+only.
+
+%endif # with_python3
+
 
 %if 0%{?fedora}
 %package doc
@@ -48,12 +76,29 @@ This package include documentation for COPR code. Mostly useful for developers
 only.
 %endif
 
+
+
 %prep
 %setup -q
 
+%if 0%{?with_python3}
+rm -rf %{py3dir}
+cp -a . %{py3dir}
+find %{py3dir} -name '*.py' | xargs sed -i '1s|^#!python|#!%{__python3}|'
+%endif # with_python3
+
+find -name '*.py' | xargs sed -i '1s|^#!python|#!%{__python2}|'
+
+
 
 %build
-%{__python2} setup.py build
+CFLAGS="$RPM_OPT_FLAGS" %{__python2} setup.py build
+
+%if 0%{?with_python3}
+pushd %{py3dir}
+CFLAGS="$RPM_OPT_FLAGS" %{__python3} setup.py build
+popd
+%endif # with_python3
 
 mv copr_client/README.rst ./
 
@@ -65,8 +110,18 @@ popd
 %endif
 
 %install
+rm -rf %{buildroot}
 install -d %{buildroot}%{_pkgdocdir}/
-%{__python2} setup.py install --root %{buildroot}
+
+%if 0%{?with_python3}
+pushd %{py3dir}
+%{__python3} setup.py install --skip-build --root %{buildroot}
+find %{buildroot}%{python3_sitelib} -name '*.exe' | xargs rm -f
+popd
+%endif # with_python3
+
+%{__python2} setup.py install --skip-build --root %{buildroot}
+find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
 
 #doc
 %if 0%{?fedora}
@@ -76,6 +131,12 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %files
 %doc LICENSE README.rst
 %{python_sitelib}/*
+
+%if 0%{?with_python3}
+%{python3_sitelib}/*
+%endif # with_python3
+
+
 
 %if 0%{?fedora}
 %files doc
