@@ -24,12 +24,16 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python-six
+BuildRequires: python-mock
+BuildRequires: pytest
 BuildRequires: python2-devel
 %if 0%{?with_python3}
-BuildRequires:  python3-devel
-BuildRequires:  python3-setuptools
-BuildRequires:  python3-pytest
-BuildRequires:  python3-mock
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
+BuildRequires: python3-pytest
+BuildRequires: python3-mock
+BuildRequires: python3-requests
+BuildRequires: python3-six
 %endif # if with_python3
 #for doc package
 BuildRequires: epydoc
