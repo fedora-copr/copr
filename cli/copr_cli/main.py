@@ -14,7 +14,11 @@ from copr_client import CoprClient
 import copr_client.client.exceptions as copr_exceptions
 
 
-client = CoprClient.create_from_file_config()
+try:
+    client = CoprClient.create_from_file_config()
+except copr_exceptions.CoprNoConfException as e:
+    print(e)
+    sys.exit(1)
 
 
 def _watch_builds(build_ids):
