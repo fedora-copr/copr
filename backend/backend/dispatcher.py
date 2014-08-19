@@ -322,7 +322,7 @@ class Worker(multiprocessing.Process):
                             pattern=ipaddr,
                             forks=1,
                             transport="ssh",
-                            timeout="500")
+                            timeout=500)
             connection.module_name = "shell"
             connection.module_args = "echo hello"
             res = connection.run()
