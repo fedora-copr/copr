@@ -33,8 +33,7 @@ class CoprsLogic(object):
 
         query = (cls.get_all()
                  .filter(models.Copr.name == coprname)
-                 .filter(models.User.openid_name ==
-                         models.User.openidize_name(username))
+                 .filter(models.User.username == username)
                  )
 
         if with_builds:
@@ -73,7 +72,7 @@ class CoprsLogic(object):
 
         if user_relation == "owned":
             query = query.filter(
-                models.User.openid_name == models.User.openidize_name(username))
+                models.User.username == username)
         elif user_relation == "allowed":
             aliased_user = db.aliased(models.User)
 
@@ -82,8 +81,7 @@ class CoprsLogic(object):
                      .filter(models.CoprPermission.copr_builder ==
                              helpers.PermissionEnum('approved'))
                      .join(aliased_user, models.CoprPermission.user)
-                     .filter(aliased_user.openid_name ==
-                             models.User.openidize_name(username)))
+                     .filter(aliased_user.username == username))
 
         if with_mock_chroots:
             query = (query.outerjoin(*models.Copr.mock_chroots.attr)

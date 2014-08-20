@@ -48,18 +48,18 @@ class CoprsTestCase(object):
     @pytest.fixture
     def f_users(self):
         self.u1 = models.User(
-            openid_name=u"http://user1.id.fedoraproject.org/",
+            username=u"user1",
             proven=False,
             admin=True,
             mail="user1@foo.bar")
 
         self.u2 = models.User(
-            openid_name=u"http://user2.id.fedoraproject.org/",
+            username=u"user2",
             proven=False,
             mail="user2@spam.foo")
 
         self.u3 = models.User(
-            openid_name=u"http://user3.id.fedoraproject.org/",
+            username=u"user3",
             proven=False,
             mail="baz@bar.bar")
 
@@ -198,7 +198,7 @@ class TransactionDecorator(object):
 
     with self.tc as test_client:
         with c.session_transaction() as session:
-            session['openid'] = self.u.openid_name
+            session['openid'] = self.u.username
 
     where 'u' stands for any user from 'f_users' fixture, use this to decorate
     your test function:
@@ -209,7 +209,7 @@ class TransactionDecorator(object):
         # you can also access object 'test_client' through 'self.test_client'
 
     where decorator parameter ''u'' stands for string representation of any
-    user from 'f_users' fixture from which you wish to store 'openid_name'.
+    user from 'f_users' fixture from which you wish to store 'username'.
     Please note that you **must** include 'f_users' fixture in decorated
     function parameters.
 
@@ -223,6 +223,6 @@ class TransactionDecorator(object):
         def wrapper(fn, fn_self, *args):
             with fn_self.tc as fn_self.test_client:
                 with fn_self.test_client.session_transaction() as session:
-                    session["openid"] = getattr(fn_self, self.user).openid_name
+                    session["openid"] = getattr(fn_self, self.user).username
                 return fn(fn_self, *args)
         return decorator.decorator(wrapper, fn)

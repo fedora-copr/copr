@@ -78,8 +78,7 @@ class BuildsLogic(object):
                      .options(db.contains_eager(models.Build.copr))
                      .join(models.Copr.owner)
                      .filter(models.Copr.name == coprname)
-                     .filter(models.User.openid_name ==
-                             models.User.openidize_name(username))
+                     .filter(models.User.username == username)
                      .order_by(models.Build.submitted_on.desc()))
         else:
             raise exceptions.ArgumentMissingException(

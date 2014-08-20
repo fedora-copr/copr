@@ -10,13 +10,27 @@ from coprs import helpers
 from coprs import models
 from coprs import oid
 
+def fed_openidize_name(name):
+    """
+    Create proper Fedora OpenID name from short name.
+
+    >>> fedoraoid == fed_openidize_name(user.name)
+    True
+    """
+
+    return "http://{0}.id.fedoraproject.org/".format(name)
+
+def fed_raw_name(oidname):
+    return oidname.replace(".id.fedoraproject.org/", "") \
+                  .replace("http://", "")
 
 @app.before_request
 def lookup_current_user():
     flask.g.user = None
     if "openid" in flask.session:
+        username = fed_raw_name(flask.session["openid"])
         flask.g.user = models.User.query.filter(
-            models.User.openid_name == flask.session["openid"]).first()
+            models.User.username == username).first()
 
 
 @app.errorhandler(404)
@@ -48,15 +62,16 @@ def create_or_login(resp):
                          and fasusername in app.config["ALLOWED_USERS"])
                         or not app.config["USE_ALLOWED_USERS"]):
 
+        username = fed_raw_name(resp.identity_url)
         user = models.User.query.filter(
-            models.User.openid_name == resp.identity_url).first()
+            models.User.username == username).first()
         if not user:  # create if not created already
             expiration_date_token = datetime.date.today() + \
                 datetime.timedelta(
                     days=flask.current_app.config["API_TOKEN_EXPIRATION"])
 
             copr64 = base64.b64encode("copr") + "##"
-            user = models.User(openid_name=resp.identity_url, mail=resp.email,
+            user = models.User(username=username, mail=resp.email,
                                timezone=resp.timezone,
                                api_login=copr64 + helpers.generate_api_token(
                                    app.config["API_TOKEN_LENGTH"] - len(copr64)),

@@ -7,25 +7,31 @@ from coprs import constants
 from coprs import db
 from coprs import helpers
 
-
 class User(db.Model, helpers.Serializer):
 
     """
     Represents user of the copr frontend
     """
 
+    # PK;  TODO: the 'username' could be also PK
     id = db.Column(db.Integer, primary_key=True)
-    # openid_name for fas, e.g. http://bkabrda.id.fedoraproject.org/
-    openid_name = db.Column(db.String(100), nullable=False)
-    # just mail :)
+
+    # unique username
+    username = db.Column(db.String(100), nullable=False, unique=True)
+
+    # email
     mail = db.Column(db.String(150), nullable=False)
-    # just timezone ;)
+
+    # optional timezone
     timezone = db.Column(db.String(50), nullable=True)
+
     # is this user proven? proven users can modify builder memory and
     # timeout for single builds
     proven = db.Column(db.Boolean, default=False)
+
     # is this user admin of the system?
     admin = db.Column(db.Boolean, default=False)
+
     # stuff for the cli interface
     api_login = db.Column(db.String(40), nullable=False, default="abc")
     api_token = db.Column(db.String(40), nullable=False, default="abc")
@@ -38,8 +44,7 @@ class User(db.Model, helpers.Serializer):
         Return the short username of the user, e.g. bkabrda
         """
 
-        return self.openid_name.replace(
-            ".id.fedoraproject.org/", "").replace("http://", "")
+        return self.username
 
     def permissions_for_copr(self, copr):
         """
@@ -87,17 +92,6 @@ class User(db.Model, helpers.Serializer):
 
         return can_edit
 
-    @classmethod
-    def openidize_name(cls, name):
-        """
-        Create proper openid_name from short name.
-
-        >>> user.openid_name == User.openidize_name(user.name)
-        True
-        """
-
-        return "http://{0}.id.fedoraproject.org/".format(name)
-
     @property
     def serializable_attributes(self):
         # enumerate here to prevent exposing credentials
@@ -123,7 +117,6 @@ class User(db.Model, helpers.Serializer):
             return libravatar_url(email=self.mail, https=True)
         except IOError:
             return ""
-
 
 class Copr(db.Model, helpers.Serializer):
 
