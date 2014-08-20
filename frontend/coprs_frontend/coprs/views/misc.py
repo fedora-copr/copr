@@ -108,7 +108,9 @@ def api_login_required(f):
                 token_auth = True
                 flask.g.user = user
         if not token_auth:
-            output = {"output": "notok", "error": "Login invalid/expired"}
+            output = {"output": "notok", "error": "Login invalid/expired. " \
+                            "Please visit https://copr.fedoraproject.org/api " \
+                            "get or renew your API token."}
             jsonout = flask.jsonify(output)
             jsonout.status_code = 500
             return jsonout
