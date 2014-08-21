@@ -5,7 +5,7 @@
 %global with_python3 1
 
 Name:       python-copr
-Version:    1.44
+Version:    1.45
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -158,6 +158,9 @@ popd
 %endif
 
 %changelog
+* Thu Aug 21 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.45-1
+- change package name: python-copr-client -> python-copr
+
 * Tue Aug 19 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.44-1
 - [python-client] fixed BuildRequires
 
