@@ -24,14 +24,21 @@ class BuildsLogic(object):
             .order_by(models.BuildChroot.build_id.desc())
 
     @classmethod
-    def get_recent_tasks(cls, limit=None):
+    def get_recent_tasks(cls, user=None, limit=None):
         if not limit:
             limit = 100
 
-        return models.Build.query \
-            .filter(models.Build.ended_on != None) \
+        query = models.Build.query \
+            .filter(models.Build.ended_on != None)
+
+        if user is not None:
+            query = query.filter(models.Build.user_id == user.id)
+
+        query = query \
             .order_by(models.Build.id.desc()) \
             .limit(limit)
+
+        return query
 
 
     @classmethod
