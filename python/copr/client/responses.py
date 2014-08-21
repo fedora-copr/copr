@@ -15,7 +15,7 @@ class BaseResponse(object):
 
     def __init__(self, client, response):
         """
-        :param client: copr_client.main.Client
+        :param client: copr.main.Client
         :param response:
         """
         self.response = response

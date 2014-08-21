@@ -4,7 +4,7 @@ import pytest
 import mock
 from requests.models import Response
 
-from copr_client import CoprClient
+from copr import CoprClient
 
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)

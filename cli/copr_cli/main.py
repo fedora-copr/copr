@@ -10,8 +10,8 @@ import datetime
 import time
 from collections import defaultdict
 
-from copr_client import CoprClient
-import copr_client.client.exceptions as copr_exceptions
+from copr import CoprClient
+import copr.client.exceptions as copr_exceptions
 
 
 try:

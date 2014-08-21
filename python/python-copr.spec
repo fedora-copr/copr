@@ -4,7 +4,7 @@
 %endif
 %global with_python3 1
 
-Name:       python-copr-client
+Name:       python-copr
 Version:    1.44
 Release:    1%{?dist}
 Summary:    Python interface for Copr
@@ -50,9 +50,10 @@ Requires: python3-requests
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latests builds.
+and submit new builds and COPR will create yum repository from latest builds.
 
-This package contains command line interface.
+This package contains python interface to access Copr service. Mostly useful for developers
+only.
 
 
 %if 0%{?with_python3}
@@ -62,9 +63,9 @@ Group:          Applications/Productivity
 
 %description -n python3-copr-client
 COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latests builds.
+and submit new builds and COPR will create yum repository from latest builds.
 
-This package include documentation for COPR code. Mostly useful for developers
+This package contains python interface to access Copr service. Mostly useful for developers
 only.
 
 %endif # with_python3
@@ -72,17 +73,15 @@ only.
 
 %if 0%{?fedora}
 %package doc
-Summary:    Code documentation for COPR
+Summary:    Code documentation for python-copr package.
 
 %description doc
 COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latests builds.
+and submit new builds and COPR will create yum repository from latest builds.
 
-This package include documentation for COPR code. Mostly useful for developers
+This package includes documentation for python-copr. Mostly useful for developers
 only.
 %endif
-
-
 
 %prep
 %setup -q
@@ -107,7 +106,7 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python3} setup.py build
 popd
 %endif # with_python3
 
-mv copr_client/README.rst ./
+mv copr/README.rst ./
 
 %if 0%{?fedora}
 # build documentation
@@ -117,8 +116,6 @@ popd
 %endif
 
 %install
-
-install -d %{buildroot}%{_pkgdocdir}/
 
 %if 0%{?with_python3}
 pushd %{py3dir}
@@ -131,21 +128,20 @@ popd
 find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
 
 #doc
+install -d %{buildroot}%{_pkgdocdir}/
+
 %if 0%{?fedora}
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %endif
-#rm -rf %{buildroot}
 
 %check
-
-%{__python2} -m pytest copr_client/test
+%{__python2} -m pytest copr/test
 
 %if 0%{?with_python3}
 pushd %{py3dir}
-%{__python3} -m pytest copr_client
+%{__python3} -m pytest copr/test
 popd
 %endif # with_python3
-
 
 %files
 %doc LICENSE README.rst
@@ -154,8 +150,6 @@ popd
 %if 0%{?with_python3}
 %{python3_sitelib}/*
 %endif # with_python3
-
-
 
 %if 0%{?fedora}
 %files doc

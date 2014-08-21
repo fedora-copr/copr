@@ -11,14 +11,14 @@ is used to allow packagers to create third party repositories.
 
 This part is a python client to the copr service."""
 
-from copr_client.client import __description__, __version__
+from copr.client import __description__, __version__
 
 requires = [
     'requests',
 ]
 
 
-__name__ = 'copr-client'
+__name__ = 'copr'
 __version__ = __version__
 __description__ = __description__
 __author__ = "Valentin Gologuzov"
@@ -43,7 +43,7 @@ setup(
         "Development Status :: 1 - Alpha",
     ],
     install_requires=requires,
-    packages=['copr_client', 'copr_client.client', 'copr_client.test'],
+    packages=['copr', 'copr.client', 'copr.test'],
     include_package_data=True,
     zip_safe=False,
 )
