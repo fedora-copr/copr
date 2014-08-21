@@ -23,7 +23,12 @@
       {% if g.user %}
         <div><span class="text">logged in as </span><a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a></div>
       {% else %}
-        <div><a href="{{ url_for('misc.login') }}">log in</a> | <a href="https://admin.fedoraproject.org/accounts/user/new">sign up</a></div>
+        <div>
+            <a href="{{ url_for('misc.login') }}">log in</a> |
+            {% for key,val in config.KRB5_LOGIN.iteritems() %}
+            <a href="{{ config.KRB5_LOGIN_BASEURI }}{{ val.URI }}/">{{ val.log_text }}</a> |
+            {% endfor %}
+            <a href="https://admin.fedoraproject.org/accounts/user/new">sign up</a></div>
       {% endif %}
       <form method="get" action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
         <input class="rounded" type="text" name="fulltext">

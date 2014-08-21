@@ -10,6 +10,9 @@ class Config(object):
     SECRET_KEY = "THISISNOTASECRETATALL"
     BACKEND_PASSWORD = "thisisbackend"
 
+    KRB5_LOGIN_BASEURI = "/krb5_login/"
+    KRB5_LOGIN = {}
+
     # restrict access to a set of users
     USE_ALLOWED_USERS = False
     ALLOWED_USERS = []

@@ -501,3 +501,22 @@ class Action(db.Model, helpers.Serializer):
 
         return "Action {0} on {1}, old value: {2}, new value: {3}.".format(
             self.action_type, self.object_type, self.old_value, self.new_value)
+
+
+class Krb5Login(db.Model, helpers.Serializer):
+    """
+    Represents additional user information for kerberos authentication.
+    """
+
+    __tablename__ = "krb5_login"
+
+    # FK to User table
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    # 'string' from 'copr.conf' from KRB5_LOGIN[string]
+    config_name = db.Column(db.String(30), nullable=False, primary_key=True)
+
+    # krb's primary, i.e. 'username' from 'username@EXAMPLE.COM'
+    primary = db.Column(db.String(80), nullable=False, primary_key=True)
+
+    user = db.relationship("User", backref=db.backref("krb5_logins"))

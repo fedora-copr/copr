@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}Permission denied{% endblock %}
+{% block header %}Permission denied!{% endblock %}
+{% block body %}
+  {% if message %}
+    {{ message }}
+  {% else %}
+    You are not allowed to see this page.
+  {% endif %}
+{% endblock %}

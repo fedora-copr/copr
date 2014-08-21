@@ -2,6 +2,7 @@ import base64
 import datetime
 import functools
 
+import re
 import flask
 
 from coprs import app
@@ -20,15 +21,39 @@ def fed_openidize_name(name):
 
     return "http://{0}.id.fedoraproject.org/".format(name)
 
+
+def create_user_wrapper(username, email, timezone=None):
+    expiration_date_token = datetime.date.today() + \
+        datetime.timedelta(
+            days=flask.current_app.config["API_TOKEN_EXPIRATION"])
+
+    copr64 = base64.b64encode("copr") + "##"
+    user = models.User(username=username, mail=email,
+                       timezone=timezone,
+                       api_login=copr64 + helpers.generate_api_token(
+                           app.config["API_TOKEN_LENGTH"] - len(copr64)),
+                       api_token=helpers.generate_api_token(
+                           app.config["API_TOKEN_LENGTH"]),
+                       api_token_expiration=expiration_date_token)
+    return user
+
+
 def fed_raw_name(oidname):
     return oidname.replace(".id.fedoraproject.org/", "") \
                   .replace("http://", "")
 
+def krb_strip_realm(fullname):
+    return re.sub(r'@.*', '', fullname)
+
 @app.before_request
 def lookup_current_user():
-    flask.g.user = None
+    flask.g.user = username = None
     if "openid" in flask.session:
         username = fed_raw_name(flask.session["openid"])
+    elif "krb5_login" in flask.session:
+        username = flask.session["krb5_login"]
+
+    if username:
         flask.g.user = models.User.query.filter(
             models.User.username == username).first()
 
@@ -39,6 +64,71 @@ def page_not_found(message):
 
 
 misc = flask.Blueprint("misc", __name__)
+
+
+@misc.route(app.config['KRB5_LOGIN_BASEURI'] + "<name>/", methods=["GET"])
+def krb5_login(name):
+    """
+    Handle the Kerberos authentication.
+
+    Note that if we are able to get here, either the user is authenticated
+    correctly, or apache is mis-configured and it does not perform KRB
+    authentication at all.  Note also, even if that can be considered ugly, we
+    are reusing oid's get_next_url feature with kerberos login.
+    """
+
+    # Already logged in?
+    if flask.g.user is not None:
+        return flask.redirect(oid.get_next_url())
+
+    krb_config = app.config['KRB5_LOGIN']
+
+    found = None
+    for key in krb_config.keys():
+        if krb_config[key]['URI'] == name:
+            found = key
+            break
+
+    if not found:
+        # no KRB5_LOGIN.<name> configured in copr.conf
+        return flask.render_template("404.html"), 404
+
+    if not 'REMOTE_USER' in flask.request.environ:
+        nocred = "Kerberos authentication failed (no credentials provided)"
+        return flask.render_template("403.html",
+                message=nocred), 403
+
+    krb_username = flask.request.environ['REMOTE_USER']
+    username = krb_strip_realm(krb_username)
+
+    login = models.Krb5Login.query \
+            .filter(models.Krb5Login.config_name == key) \
+            .filter(models.Krb5Login.primary == username) \
+            .first()
+    if login:
+        flask.g.user = login.user
+        flask.session['krb5_login'] = login.user.name
+        flask.flash(u"Welcome, {0}".format(flask.g.user.name))
+        return flask.redirect(oid.get_next_url())
+
+    # We need to create row in 'krb5_login' table
+    user = models.User.query \
+            .filter(models.User.username == username) \
+            .first()
+    if not user:
+        # Even the item in 'user' table does not exist, create _now_
+        email = username + "@" + krb_config[key]['email_domain']
+        user = create_user_wrapper(username, email)
+        db.session.add(user)
+
+    login = models.Krb5Login(user=user, primary=username, config_name=key)
+    db.session.add(login)
+    db.session.commit()
+
+    flask.flash(u"Welcome, {0}".format(user.name))
+    flask.g.user = user
+    flask.session['krb5_login'] = user.name
+    return flask.redirect(oid.get_next_url())
 
 
 @misc.route("/login/", methods=["GET"])
@@ -66,18 +156,7 @@ def create_or_login(resp):
         user = models.User.query.filter(
             models.User.username == username).first()
         if not user:  # create if not created already
-            expiration_date_token = datetime.date.today() + \
-                datetime.timedelta(
-                    days=flask.current_app.config["API_TOKEN_EXPIRATION"])
-
-            copr64 = base64.b64encode("copr") + "##"
-            user = models.User(username=username, mail=resp.email,
-                               timezone=resp.timezone,
-                               api_login=copr64 + helpers.generate_api_token(
-                                   app.config["API_TOKEN_LENGTH"] - len(copr64)),
-                               api_token=helpers.generate_api_token(
-                                   app.config["API_TOKEN_LENGTH"]),
-                               api_token_expiration=expiration_date_token)
+            user = create_user_wrapper(username, resp.email, resp.timezone)
         else:
             user.mail = resp.email
             user.timezone = resp.timezone
@@ -99,6 +178,7 @@ def create_or_login(resp):
 @misc.route("/logout/")
 def logout():
     flask.session.pop("openid", None)
+    flask.session.pop("krb5_login", None)
     flask.flash(u"You were signed out")
     return flask.redirect(oid.get_next_url())
 
