@@ -56,7 +56,7 @@ class BuildsLogic(object):
                         models.Build.ended_on == None
                         )
                     ))
-        query = query.order_by(models.BuildChroot.build_id.desc())
+        query = query.order_by(models.BuildChroot.build_id.asc())
         return query
 
     @classmethod
