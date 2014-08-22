@@ -54,13 +54,20 @@
         mock_chroot.os_version != copr.active_chroots[loop.index0 - 1].os_version or
         loop.index0 == 0 %}
           {# previous os_release-os_version were different or this is the first one #}
-          <td><a href="{{ url_for(
-        'coprs_ns.generate_repo_file',
-        username=copr.owner.name,
-        coprname=copr.name,
-        chroot=mock_chroot.os_release+"-"+mock_chroot.os_version,
-        repofile=copr.owner.name+'-'+copr.name+'-'+mock_chroot.os_release+"-"+mock_chroot.os_version+'.repo') }}">
-          {{ copr.owner.name }}-{{ copr.name }}-{{mock_chroot.os_release+"-"+mock_chroot.os_version}}.repo</a></td>
+          <td>
+            <a href="{{
+                url_for(
+                'coprs_ns.generate_repo_file',
+                username=copr.owner.name,
+                coprname=copr.name,
+                chroot=mock_chroot.os_release+"-"+mock_chroot.os_version,
+                repofile=copr.owner.name+'-'+copr.name+'-'+mock_chroot.os_release+"-"+mock_chroot.os_version+'.repo',
+                _scheme='https',
+                _external=True
+              )}}">
+            {{ copr.owner.name }}-{{ copr.name }}-{{mock_chroot.os_release+"-"+mock_chroot.os_version}}.repo
+            </a>
+          </td>
         {% else %}
           <td></td>
         {% endif %}
