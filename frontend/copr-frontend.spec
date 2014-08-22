@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.41
+Version:    1.42
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -163,6 +163,22 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Fri Aug 22 2014 Adam Samalik <asamalik@redhat.com> 1.42-1
+- [frontend] make all html tags to have the same left-padding
+- [frontend][RHBZ:1128602] RFE: define banner for local instance
+- [frontend][RHBZ:1131186] Use https URLs to install copr repo file
+- [frontend] [RHBZ:1128231] Show list of recent builds owned by user ( for
+  logged in users).
+- [API] friendly notification about invalid/expired token
+- [frontend] project name can not be just number
+- [frontend] starting builds highlighted on the waiting list
+- [frontend] [BZ:1128231] RFE: frontend user interface like koji: added
+  `/recent` page which list of ended builds.
+- [frontend] fixed SQLa ordering queries.
+- [frontend] paginator fix
+- [frontend] build states list
+- [frontend] minor bugfix: fixed api method `cancel build`.
+
 * Wed Aug 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.41-1
 - [frontend] bugifx: for some projects API doesn't return last-modified time in
   detail resource.
