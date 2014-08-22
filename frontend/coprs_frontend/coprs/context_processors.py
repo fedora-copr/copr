@@ -8,3 +8,5 @@ BANNER_LOCATION = "/var/lib/copr/banner-include.html"
 def include_banner():
     if os.path.exists(BANNER_LOCATION):
         return {"copr_banner": open(BANNER_LOCATION).read()}
+    else:
+        return {}
