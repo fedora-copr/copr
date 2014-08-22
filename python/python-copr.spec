@@ -27,60 +27,60 @@ BuildRequires: python-six
 BuildRequires: python-mock
 BuildRequires: pytest
 BuildRequires: python2-devel
+#for doc package
+BuildRequires: epydoc
+BuildRequires: graphviz
+
+Requires: python-setuptools
+Requires: python-six
+Requires: python-requests
+
+%description
+COPR is lightweight build system. It allows you to create new project in WebUI,
+and submit new builds and COPR will create yum repository from latest builds.
+
+This package contains python interface to access Copr service. Mostly useful
+for developers.
+only
+
+
 %if 0%{?with_python3}
+%package -n python3-copr
+Summary:        Python interface for Copr
+Group:          Applications/Productivity
+
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-pytest
 BuildRequires: python3-mock
 BuildRequires: python3-requests
 BuildRequires: python3-six
-%endif # if with_python3
-#for doc package
-BuildRequires: epydoc
-BuildRequires: graphviz
 
-Requires: python-requests
-Requires: python-setuptools
-Requires: python-six
-%if 0%{?with_python3}
+Requires: python3-setuptools
 Requires: python3-six
 Requires: python3-requests
-%endif # if with_python3
 
-
-%description
+%description -n python3-copr
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
-This package contains python interface to access Copr service. Mostly useful for developers
-only.
-
-
-%if 0%{?with_python3}
-%package -n python3-copr-client
-Summary:        Python interface for Copr
-Group:          Applications/Productivity
-
-%description -n python3-copr-client
-COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latest builds.
-
-This package contains python interface to access Copr service. Mostly useful for developers
-only.
+This package contains python interface to access Copr service. Mostly useful
+for developers.
+only
 
 %endif # with_python3
 
 
 %if 0%{?fedora}
 %package doc
-Summary:    Code documentation for python-copr package.
+Summary:    Code documentation for python-copr package
 
 %description doc
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
-This package includes documentation for python-copr. Mostly useful for developers
-only.
+This package includes documentation for python-copr. Mostly useful for
+developers only.
 %endif
 
 %prep
@@ -96,12 +96,12 @@ find -name '*.py' | xargs sed -i '1s|^#!python|#!%{__python2}|'
 
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" %{__python2} setup.py build
+CFLAGS="%{optflags}" %{__python2} setup.py build
 
 %if 0%{?with_python3}
 pushd %{py3dir}
 
-CFLAGS="$RPM_OPT_FLAGS" %{__python3} setup.py build
+CFLAGS="%{optflags}" %{__python3} setup.py build
 
 popd
 %endif # with_python3
@@ -148,13 +148,15 @@ popd
 %{python_sitelib}/*
 
 %if 0%{?with_python3}
+%files -n python3-copr
+%doc LICENSE README.rst
 %{python3_sitelib}/*
 %endif # with_python3
 
 %if 0%{?fedora}
 %files doc
 %doc LICENSE
-%doc %{_pkgdocdir}/python-doc
+%doc %{_pkgdocdir}
 %endif
 
 %changelog
