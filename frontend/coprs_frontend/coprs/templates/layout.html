@@ -11,6 +11,11 @@
   <script src="{{ url_for('static', filename='copr.js') }}"></script>
 </head>
 <body>
+
+{% if copr_banner %}
+    {{ copr_banner | safe }}
+{% endif  %}
+
 <div class="menu">
   <div class="menu-inner">
     <a href="{{ url_for('coprs_ns.coprs_show') }}"><img id="logo" src="{{ url_for('static', filename='copr_logo.png') }}" alt="Copr Build System"></a>

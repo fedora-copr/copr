@@ -46,6 +46,8 @@ from coprs.views.status_ns import status_general
 from coprs.views import recent_ns
 from coprs.views.recent_ns import recent_general
 
+from .context_processors import include_banner
+
 app.register_blueprint(api_ns.api_ns)
 app.register_blueprint(admin_ns.admin_ns)
 app.register_blueprint(coprs_ns.coprs_ns)
