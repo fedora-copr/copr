@@ -163,9 +163,9 @@ a.coprs-list {
   display: block;
 }
 
-div.copr p {
-  padding-left: 1em;
-  padding-right: 1em;
+div.copr p, div.copr h1, div.copr h2, div.copr h3 {
+  padding-left: 15px;
+  padding-right: 15px;
   margin-top: 0.3em;
   margin-bottom: 0.3em;
 }
@@ -249,7 +249,7 @@ div.pkg-url-list {
 }
 
 div.shift-right {
-  margin-left: 1em;
+  margin-left: 15px;
 }
 
 dt.field-label {
