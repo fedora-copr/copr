@@ -40,8 +40,7 @@ COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
 This package contains python interface to access Copr service. Mostly useful
-for developers.
-only
+for developers only.
 
 
 %if 0%{?with_python3}
@@ -65,8 +64,8 @@ COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
 This package contains python interface to access Copr service. Mostly useful
-for developers.
-only
+for developers only.
+
 
 %endif # with_python3
 
@@ -81,6 +80,7 @@ and submit new builds and COPR will create yum repository from latest builds.
 
 This package includes documentation for python-copr. Mostly useful for
 developers only.
+
 %endif
 
 %prep
