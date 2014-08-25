@@ -2,11 +2,11 @@
 
 # URL where are results visible
 # default is http://copr
-results_baseurl=http://copr-be.cloud.fedoraproject.org/results
+results_baseurl=https://copr-be.cloud.fedoraproject.org/results
 
 # ??? What is this
 # default is http://coprs/rest/api
-frontend_url=http://copr-fe.cloud.fedoraproject.org/backend
+frontend_url=https://copr-fe.cloud.fedoraproject.org/backend
 
 # must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
 # default is PASSWORDHERE but you really should change it. really.
