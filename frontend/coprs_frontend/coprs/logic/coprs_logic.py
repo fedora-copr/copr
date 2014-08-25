@@ -1,4 +1,5 @@
 import time
+from sqlalchemy import and_
 
 from coprs import db
 from coprs import exceptions
@@ -114,8 +115,16 @@ class CoprsLogic(object):
     @classmethod
     def get_multiple_fulltext(cls, user, search_string):
         query = (models.Copr.query.join(models.User)
-                 .filter(models.Copr.deleted == False)
-                 .whooshee_search(search_string))
+                 .filter(models.Copr.deleted == False))
+        if "/" in search_string:
+            # searching for user/project
+            name = "%{}%".format(search_string.split("/")[0])
+            project = "%{}%".format(search_string.split("/")[1])
+            query = query.filter(and_(models.User.openid_name.ilike(name),
+                              models.Copr.name.ilike(project)))
+        else:
+            # fulltext search
+            query = query.whooshee_search(search_string)
         return query
 
     @classmethod

@@ -12,6 +12,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs.logic import coprs_logic
+from coprs.whoosheers import CoprUserWhoosheer
 
 
 class TestCommand(Command):
@@ -217,6 +218,27 @@ class AlterUserCommand(Command):
         )
     )
 
+class UpdateIndexesCommand(Command):
+    """
+    recreates whoosh indexes for all projects
+    """
+
+    def run(self):
+        writer = CoprUserWhoosheer.index.writer()
+        for copr in coprs_logic.CoprsLogic.get_all():
+            CoprUserWhoosheer.delete_copr(writer, copr)
+        writer.commit(optimize=True)
+
+        writer = CoprUserWhoosheer.index.writer()
+        writer.schema = CoprUserWhoosheer.schema
+        writer.commit(optimize=True)
+
+        writer = CoprUserWhoosheer.index.writer()
+        for copr in coprs_logic.CoprsLogic.get_all():
+            CoprUserWhoosheer.insert_copr(writer, copr)
+        writer.commit(optimize=True)
+
+
 manager = Manager(app)
 manager.add_command("test", TestCommand())
 manager.add_command("create_sqlite_file", CreateSqliteFileCommand())
@@ -227,6 +249,7 @@ manager.add_command("alter_chroot", AlterChrootCommand())
 manager.add_command("display_chroots", DisplayChrootsCommand())
 manager.add_command("drop_chroot", DropChrootCommand())
 manager.add_command("alter_user", AlterUserCommand())
+manager.add_command("update_indexes", UpdateIndexesCommand())
 
 if __name__ == "__main__":
     manager.run()

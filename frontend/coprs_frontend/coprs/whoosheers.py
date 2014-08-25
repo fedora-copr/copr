@@ -12,7 +12,11 @@ class CoprUserWhoosheer(AbstractWhoosheer):
         copr_id=whoosh.fields.NUMERIC(stored=True, unique=True),
         user_id=whoosh.fields.NUMERIC(stored=True),
         username=whoosh.fields.TEXT(),
-        coprname=whoosh.fields.TEXT(),
+        # treat dash as a normal character - so searching for example
+        # "copr-dev" will really search for "copr-dev"
+        coprname=whoosh.fields.TEXT(
+            analyzer=whoosh.analysis.StandardAnalyzer(
+                expression=r"\w+(-\.?\w+)*")),
         description=whoosh.fields.TEXT(),
         instructions=whoosh.fields.TEXT())
 
