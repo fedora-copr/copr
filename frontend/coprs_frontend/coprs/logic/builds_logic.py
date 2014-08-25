@@ -1,3 +1,5 @@
+from itertools import groupby
+import os
 import time
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -242,3 +244,72 @@ class BuildsLogic(object):
             return last_build.ended_on
         else:
             return None
+
+    @classmethod
+    def get_multiply_by_copr(cls, copr):
+        """ Get collection of builds in copr
+
+        :arg copr: object of copr
+        """
+        query = models.Build.query.filter(models.Build.copr == copr) \
+            .order_by(models.Build.id.desc())
+
+        return query
+
+
+class BuildsMonitorLogic(object):
+
+    @classmethod
+    def get_monitor_data(cls, copr):
+        builds = BuildsLogic.get_multiply_by_copr(copr).all()
+
+        # please don"t waste time trying to decipher this
+        # the only reason why this is necessary is non-existent
+        # database design
+        #
+        # loop goes through builds trying to approximate
+        # per-package results based on previous builds
+        # - it can"t determine build results if build contains
+        # more than one package as this data is not available
+
+        chroots = set(chroot.name for chroot in copr.active_chroots)
+        latest_build = None
+        if builds:
+            latest_build = builds[0]
+            chroots.union([chroot.name for chroot
+                           in latest_build.build_chroots])
+
+        chroots = sorted(chroots)
+        out = []
+        packages = []
+        for build in builds:
+            chroot_results = {chroot.name: chroot.state
+                              for chroot in build.build_chroots}
+
+            build_results = []
+            for chroot_name in chroots:
+                if chroot_name in chroot_results:
+                    results = chroot_results[chroot_name]
+                else:
+                    results = None
+
+                build_results.append((build.id, results))
+
+            for pkg_url in build.pkgs.split():
+                pkg = os.path.basename(pkg_url)
+                pkg_name = helpers.parse_package_name(pkg)
+
+                if pkg_name in out:
+                    continue
+
+                packages.append((pkg_name, build.pkg_version, build_results))
+                out.append(pkg_name)
+            packages.sort()
+
+        print(packages)
+        return {
+            "builds": builds,
+            "chroots": chroots,
+            "packages": packages,
+            "latest_build": latest_build,
+        }

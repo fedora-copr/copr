@@ -510,71 +510,23 @@ def generate_repo_file(username, coprname, chroot, repofile):
 
     return response
 
-
 @coprs_ns.route("/<username>/<coprname>/monitor/")
 def copr_build_monitor(username, coprname):
-    query = coprs_logic.CoprsLogic.get(
-        flask.g.user, username, coprname, with_mock_chroots=True)
-    form = forms.CoprLegalFlagForm()
     try:
-        copr = query.one()
+        copr = coprs_logic.CoprsLogic.get(
+            flask.g.user, username, coprname).first()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))
 
-    builds_query = builds_logic.BuildsLogic.get_multiple(
-        flask.g.user, copr=copr)
-    builds = builds_query.order_by("-id").all()
-
-    # please don"t waste time trying to decipher this
-    # the only reason why this is necessary is non-existent
-    # database design
-    #
-    # loop goes through builds trying to approximate
-    # per-package results based on previous builds
-    # - it can"t determine build results if build contains
-    # more than one package as this data is not available
-
-    packages = []
-    build = None
-    chroots = set([chroot.name for chroot in copr.active_chroots])
+    form = forms.CoprLegalFlagForm()
     oses = [chroot.os for chroot in copr.active_chroots]
     oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
     archs = [chroot.arch for chroot in copr.active_chroots]
-    latest_build = None
+    kwargs = dict(copr=copr, oses=oses_grouped, archs=archs, form=form)
 
-    if builds:
-        latest_build = builds[0]
-        chroots.union([chroot.name for chroot in latest_build.build_chroots])
-
-    chroots = sorted(chroots)
-
-    out = []
-    for build in builds:
-        chroot_results = {chroot.name: chroot.state
-                          for chroot in build.build_chroots}
-
-        build_results = []
-        for chroot_name in chroots:
-            if chroot_name in chroot_results:
-                build_results.append((build.id, chroot_results[chroot_name]))
-            else:
-                build_results.append((build.id, None))
-
-        for pkg_url in build.pkgs.split():
-            pkg = os.path.basename(pkg_url)
-            pkg_name = parse_package_name(pkg)
-
-            if pkg_name in out:
-                continue
-
-            packages.append((pkg_name, build.pkg_version, build_results))
-            out.append(pkg_name)
-        packages.sort()
-
-    return flask.render_template("coprs/detail/monitor.html",
-                                 copr=copr,
-                                 build=latest_build,
-                                 chroots=chroots, oses=oses_grouped, archs=archs,
-                                 packages=packages,
-                                 form=form)
+    monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
+    kwargs.update(monitor)
+    kwargs["build"] = kwargs["latest_build"]
+    del kwargs["latest_build"]
+    return flask.render_template("coprs/detail/monitor.html", **kwargs)

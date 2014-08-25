@@ -8,6 +8,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import forms
 from coprs import helpers
+from coprs.logic.api_logic import BuildWrapper, MonitorWrapper
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -519,6 +520,21 @@ def playground_list():
         output["repos"].append({"username": repo.owner.name,
                                 "coprname": repo.name,
                                 "chroots": [chroot.name for chroot in repo.active_chroots]})
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = 200
+    return jsonout
+
+@api_ns.route("/coprs/<username>/<coprname>/monitor/", methods=["GET"])
+def monitor(username, coprname):
+    copr = coprs_logic.CoprsLogic.get(
+        flask.g.user, username, coprname).first()
+
+    monitor_data = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
+    output = MonitorWrapper(monitor_data).to_dict()
+
+    #output["href"] = flask.url_for(".monitor",
+    #    username=username, coprname=coprname)
 
     jsonout = flask.jsonify(output)
     jsonout.status_code = 200
