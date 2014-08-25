@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.41
+Version:    1.42
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -172,6 +172,16 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Aug 25 2014 Adam Samalik <asamalik@redhat.com> 1.42-1
+- [backend] [RHBZ:1128606 ] For rhel-5 builds pass "--checksum md5" to
+  `createrepo_c` command.
+- [backend] fix of builder test
+- [backend] test builder instance after spawning
+- [backend] never give up while spawning an OpenStack VM
+- [backend] worker's log filename correction
+- [backend] task id in worker process' name
+- [backend] async build playbooks
+
 * Thu Aug 14 2014 Miroslav Suchý <miroslav@suchy.cz> 1.41-1
 - [backend] fix of fix
 - [backend] couple of fixes
