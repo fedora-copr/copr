@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.42
+Version:    1.43
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -163,6 +163,10 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Mon Aug 25 2014 Adam Samalik <asamalik@redhat.com> 1.43-1
+- [frontend] bugfix: context_processor shouldn't return None
+- [frontend] task queue sorting fix
+
 * Fri Aug 22 2014 Adam Samalik <asamalik@redhat.com> 1.42-1
 - [frontend] make all html tags to have the same left-padding
 - [frontend][RHBZ:1128602] RFE: define banner for local instance
