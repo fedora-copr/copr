@@ -2,7 +2,12 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %global __python2 %{__python}
 %endif
+
+%if 0%{?fedora}
 %global with_python3 1
+%else
+%global with_python3 0
+%endif
 
 Name:       python-copr
 Version:    1.46
