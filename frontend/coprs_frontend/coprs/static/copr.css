@@ -41,6 +41,34 @@ h4 {
   top: 8px;
 }
 
+div.left-side-space {
+  font-size: 0.6em;
+  color: black;
+  font-weight: normal;
+}
+
+div.left-side-space div {
+  margin-top: 30px;
+}
+
+div.left-side-space div a{
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+div.left-side-space div div.recent{
+  margin-top: 10px;
+}
+
+div.left-side-space div div.recent a {
+  font-size: 1.3em;
+  font-weight: normal;
+}
+
+div.left-side-space div div.recent span.time {
+  color: #808080;
+}
+
 div.menu {
   font-size: 0.9em;
   background-image: url("header_background.png");
@@ -104,13 +132,19 @@ div.user-info {
   font-weight: bold;
 }
 
-div.user-info .coprs-count {
+div.user-info p {
   margin: 0px;
+}
+
+div.user-info p.username {
+  margin-bottom: 10px;
+}
+
+div.user-info .coprs-count {
   font-size: 0.8em;
 }
 
 div.user-info .other-text {
-  margin: 0px;
   font-size: 0.6em;
 }
 

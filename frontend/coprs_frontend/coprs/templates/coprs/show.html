@@ -8,18 +8,28 @@
     <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">
       <img src="{{ g.user.gravatar_url }}" alt="User Image">
     </a>
-    <p>{{ g.user.name }}</p>
+    <p class="username">{{ g.user.name }}</p>
     <p class="coprs-count">
       <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">{{ g.user.coprs_count }}</a>
     </p>
     <p class="other-text">projects</p>
-    <hr>
-    <p class="coprs-count">
-
-        <a href="{{url_for('status_ns.waiting')}}">Copr status</a>
-        <br />
-        <a href="{{url_for('recent_ns.recent')}}">Recent builds</a>
-    </p>
+    <div class="left-side-space">
+        <div>
+            <a href="{{url_for('status_ns.waiting')}}">Copr status</a>
+        </div>
+        <div>
+            <a href="{{url_for('recent_ns.recent')}}">My finished builds</a>
+            {% if users_builds: %}
+                {% for build in users_builds: %}
+                    <div class="recent">
+                        <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{build.id}}</a> <span class="build build-{{build.state}}">{{build.state}} </span><br>
+                        {{build.pkgs | pkg_name}} <br>
+                        <span class="time">{{build.ended_on|time_ago()}} ago</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
   </div>
   {% endif %}
     {% if not g.user and not fulltext%}

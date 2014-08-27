@@ -33,9 +33,16 @@ def coprs_show(page=1):
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
+
+    if flask.g.user:
+        users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)   
+    else:
+        users_builds = []
+
     return flask.render_template("coprs/show.html",
                                  coprs=coprs,
-                                 paginator=paginator)
+                                 paginator=paginator,
+                                 users_builds=users_builds)
 
 
 @coprs_ns.route("/<username>/", defaults={"page": 1})
@@ -49,9 +56,16 @@ def coprs_by_owner(username=None, page=1):
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
+
+    if flask.g.user:
+        users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)   
+    else:
+        users_builds = []
+
     return flask.render_template("coprs/show.html",
                                  coprs=coprs,
-                                 paginator=paginator)
+                                 paginator=paginator,
+                                 users_builds=users_builds)
 
 
 @coprs_ns.route("/<username>/allowed/", defaults={"page": 1})
