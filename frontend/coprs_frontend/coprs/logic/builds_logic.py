@@ -31,7 +31,8 @@ class BuildsLogic(object):
             limit = 100
 
         query = models.Build.query \
-            .filter(models.Build.ended_on != None)
+            .filter(models.Build.ended_on != None) \
+            .order_by(models.Build.ended_on.desc())
 
         if user is not None:
             query = query.filter(models.Build.user_id == user.id)
