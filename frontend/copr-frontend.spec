@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.43
+Version:    1.44
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -163,6 +163,11 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Wed Aug 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.44-1
+- fix spec parsing on arm
+-  'manage.py update_indexes' and search fix
+- [RHBZ:1131286] RFE: API endpoint for a project's "monitor" status
+
 * Mon Aug 25 2014 Adam Samalik <asamalik@redhat.com> 1.43-1
 - [frontend] bugfix: context_processor shouldn't return None
 - [frontend] task queue sorting fix
