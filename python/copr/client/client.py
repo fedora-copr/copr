@@ -72,10 +72,10 @@ class CoprClient(object):
                 "See man copr-cli for more information")
         try:
             for field in ["username", "login", "token", "copr_url"]:
-                if six.PY2:
-                    config[field] = raw_config.get("copr-cli", field, None)
-                elif six.PY3:
+                if six.PY3:
                     config[field] = raw_config["copr-cli"].get(field, None)
+                else:
+                    config[field] = raw_config.get("copr-cli", field, None)
 
         except configparser.Error as err:
             raise CoprConfigException(
