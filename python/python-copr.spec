@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.47
+Version:    1.48
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -165,6 +165,9 @@ popd
 %endif
 
 %changelog
+* Wed Aug 27 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.48-1
+- [python-copr] small fix due to the old version of python-six in RHEL-7
+
 * Wed Aug 27 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.47-1
 - [python-copr] Build python3 package only for fedora
 - [python-copr] minor description fix in .spec
