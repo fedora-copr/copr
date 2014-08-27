@@ -121,7 +121,7 @@ touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 
 %check
-%if %{with_test} && %{_arch} == "x86_64"
+%if %{with_test} && "%{_arch}" == "x86_64"
     pushd coprs_frontend
     rm -rf /tmp/copr.db /tmp/whooshee || :
     COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
