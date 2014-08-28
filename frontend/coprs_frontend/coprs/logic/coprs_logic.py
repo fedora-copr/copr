@@ -118,7 +118,7 @@ class CoprsLogic(object):
             # searching for user/project
             name = "%{}%".format(search_string.split("/")[0])
             project = "%{}%".format(search_string.split("/")[1])
-            query = query.filter(and_(models.User.openid_name.ilike(name),
+            query = query.filter(and_(models.User.username.ilike(name),
                               models.Copr.name.ilike(project)))
         else:
             # fulltext search
