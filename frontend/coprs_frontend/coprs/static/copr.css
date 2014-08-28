@@ -48,21 +48,38 @@ div.left-side-space {
 }
 
 div.left-side-space div {
-  margin-top: 30px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  //border-top: 1px solid #ddd;
 }
 
-div.left-side-space div a{
-  font-size: 1.1em;
+div.left-side-space div div {
+  border: none;
+  margin-top: 0px;
+  //background-color: #f9f9f9;
+}
+
+div.left-side-space div a.menu {
+  font-size: 1.2em;
   font-weight: bold;
+  //background-color: #ececec;
+  display: block;
+  margin-bottom: 8px;
 }
 
-div.left-side-space div div.recent{
-  margin-top: 10px;
+div.left-side-space div div.recent {
+  margin-bottom: 15px;
+  margin-top: 0px;
 }
 
 div.left-side-space div div.recent a {
-  font-size: 1.3em;
-  font-weight: normal;
+  font-size: 1em;
+}
+
+div.left-side-space div div.recent span.head {
+  font-weight: bold;
 }
 
 div.left-side-space div div.recent span.time {
@@ -153,6 +170,7 @@ div.about-copr {
   background-color: #ececec;
   padding-top: 1em;
   padding-bottom: 1em;
+  margin-bottom: 1em;
 
   border-radius: 5px;
   -moz-border-radius: 5px;

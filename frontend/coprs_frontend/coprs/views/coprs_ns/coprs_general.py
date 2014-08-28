@@ -34,14 +34,18 @@ def coprs_show(page=1):
 
     coprs = paginator.sliced_query
 
-    if flask.g.user:
-        users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)   
-    else:
-        users_builds = []
+    # flask.g.user is none when no user is logged - showing builds from everyone
+    users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
+
+    waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
+    running_tasks = len(list(builds_logic.BuildsLogic.get_build_tasks(
+                                        helpers.StatusEnum("running"))))
 
     return flask.render_template("coprs/show.html",
                                  coprs=coprs,
                                  paginator=paginator,
+                                 waiting_tasks=waiting_tasks,
+                                 running_tasks=running_tasks,
                                  users_builds=users_builds)
 
 
@@ -57,14 +61,18 @@ def coprs_by_owner(username=None, page=1):
 
     coprs = paginator.sliced_query
 
-    if flask.g.user:
-        users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)   
-    else:
-        users_builds = []
+    # flask.g.user is none when no user is logged - showing builds from everyone
+    users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
+
+    waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
+    running_tasks = len(list(builds_logic.BuildsLogic.get_build_tasks(
+                                        helpers.StatusEnum("running"))))
 
     return flask.render_template("coprs/show.html",
                                  coprs=coprs,
                                  paginator=paginator,
+                                 waiting_tasks=waiting_tasks,
+                                 running_tasks=running_tasks,
                                  users_builds=users_builds)
 
 

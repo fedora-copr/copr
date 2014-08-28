@@ -3,35 +3,6 @@
 {% block header %}Project List{% endblock %}
 {% from "_helpers.html" import render_pagination %}
 {% block body %}
-  {% if g.user %}
-  <div class="user-info">
-    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">
-      <img src="{{ g.user.gravatar_url }}" alt="User Image">
-    </a>
-    <p class="username">{{ g.user.name }}</p>
-    <p class="coprs-count">
-      <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">{{ g.user.coprs_count }}</a>
-    </p>
-    <p class="other-text">projects</p>
-    <div class="left-side-space">
-        <div>
-            <a href="{{url_for('status_ns.waiting')}}">Copr status</a>
-        </div>
-        <div>
-            <a href="{{url_for('recent_ns.recent')}}">My finished builds</a>
-            {% if users_builds: %}
-                {% for build in users_builds: %}
-                    <div class="recent">
-                        <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{build.id}}</a> <span class="build build-{{build.state}}">{{build.state}} </span><br>
-                        {{build.pkgs | pkg_name}} <br>
-                        <span class="time">{{build.ended_on|time_ago()}} ago</span>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </div>
-  </div>
-  {% endif %}
     {% if not g.user and not fulltext%}
         <div class="about-copr">
             <p>Copr is an easy-to-use automatic build system providing a package repository as its output.</p>
@@ -44,10 +15,51 @@
             <p>For more information please visit <a href="https://fedorahosted.org/copr/">Copr wiki</a></p>
         </div>
     {% endif %}
-      <div class="pagination">
-      	{{ render_pagination(request, paginator) }}
-      </div>
-  <div class="coprs-list-{% if g.user %}thin{% else %}thick{% endif %}">
+  <div class="user-info">
+  {% if g.user %}
+    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">
+      <img src="{{ g.user.gravatar_url }}" alt="User Image">
+    </a>
+    <p class="username">{{ g.user.name }}</p>
+    <p class="coprs-count">
+      <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" title="My Projects">{{ g.user.coprs_count }}</a>
+    </p>
+    <p class="other-text">projects</p>
+  {% endif %}
+    <div class="left-side-space">
+        <div>
+            <a class="menu" href="{{url_for('status_ns.waiting')}}">Task queue</a>
+            <div>
+                {% if running_tasks: %} 
+                    {{running_tasks}}
+                {% else: %}
+                    No
+                {% endif %} running <br> 
+                {% if waiting_tasks: %}
+                    {{waiting_tasks}}
+                {% else: %}
+                    No
+                {% endif %} waiting
+            </div>
+        </div>
+        <div>
+            <a class="menu" href="{{url_for('recent_ns.recent')}}">
+                {% if g.user: %} My recent builds {% else %} Recent builds {% endif %}
+            </a>
+            {% if users_builds: %}
+                {% for build in users_builds: %}
+                    <div class="recent">
+                        <span class="head">
+                            <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{build.id}}</a> - <span class="build build-{{build.state}}">{{build.state}} </span></span><br>
+                        <span> {{build.pkgs | pkg_name}} </span> <br>
+                        <span class="time">{{build.ended_on|time_ago()}} ago</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+  </div>
+  <div class="coprs-list-{% if g.user %}thin{% else %}thin{% endif %}">
     {% if g.user %}
       <div class="add-copr">+
         <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}">
