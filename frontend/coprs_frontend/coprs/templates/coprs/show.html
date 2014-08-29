@@ -51,6 +51,7 @@
                     <div class="recent">
                         <span class="head">
                             <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{build.id}}</a> - <span class="build build-{{build.state}}">{{build.state}} </span></span><br>
+                        <span> <a href="{{url_for("coprs_ns.copr_detail", username = build.copr.owner.name, coprname = build.copr.name)}}">  {{build.copr.owner.name}}/{{build.copr.name}} </a> </span> <br>
                         <span> {{build.pkgs | pkg_name}} </span> <br>
                         <span class="time">{{build.ended_on|time_ago()}} ago</span>
                     </div>
