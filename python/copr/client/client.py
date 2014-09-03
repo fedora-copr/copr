@@ -1,5 +1,9 @@
 #-*- coding: UTF-8 -*-
 
+"""
+This module provides CoprClient.
+"""
+
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
@@ -22,26 +26,28 @@ log = logging.getLogger(__name__)
 from .exceptions import CoprConfigException, CoprNoConfException, CoprRequestException, \
     CoprUnknownResponseException
 
-from .responses import BuildStatusResponse, BuildRequestResponse, \
+from .responses import BuildRequestResponse, \
     CreateProjectResponse, BaseResponse, \
     DeleteProjectResponse, CancelBuildResponse, \
     ProjectDetailsResponse, BuildDetailsResponse, \
-    GetProjectsListResponse, ModifyProjectResponse, SearchResponse
-
-
+    GetProjectsListResponse, ModifyProjectResponse, SearchResponse, \
+    ProjectChrootDetailsResponse, ModifyProjectChrootResponse
 
 
 class CoprClient(object):
-    def __init__(self, config=None):
-        """ Main interface to the copr service
-            :param config: Configuration dictionary.
-            Fields:
-            copr_url - copr service location
-            login - user login, used for identification
-            token - copr api token
-            username - used as copr projects root
+    """ Main interface to the copr service
+    """
 
+    def __init__(self, config=None):
         """
+        @param config: Dictionary with client configuration. \n
+            Fields: \n
+            copr_url - copr service location \n
+            login - user login, used for identification \n
+            token - copr api token \n
+            username - used as copr projects root \n
+        """
+
         self.token = config.get("token")
         self.login = config.get("login")
         self.username = config.get("username")
@@ -54,14 +60,21 @@ class CoprClient(object):
 
     @property
     def api_url(self):
+        """
+            Url to API endpoint
+        """
         return "{0}/api".format(self.copr_url)
 
     @staticmethod
     def create_from_file_config(filepath=None):
+        """ Creates Copr client using the information from the config file.
+            @param filepath: specifies config location,
+                default: "~/.config/copr"
+            @type filepath: C{str}
+
+            @rtype: L{CoprClient}
         """
-            Retrieve copr client information from the config file.
-            :param filepath: specifies config location, default: "~/.config/copr"
-        """
+
         raw_config = configparser.ConfigParser()
         if not filepath:
             filepath = os.path.join(os.path.expanduser("~"), ".config", "copr")
@@ -82,21 +95,30 @@ class CoprClient(object):
                 "Bad configuration file: {0}".format(err))
         return CoprClient(config=config)
 
-    def _fetch(self, url, data=None, projectname=None, method=None,
-               skip_auth=False, on_error_response=None):
-        """ Fetch data from server,
-        checks response and raises a CoprCliRequestException with nice error message
-        or CoprCliUnknownResponseException in case of some some error.
-        Otherwise return json object.
+    def _fetch(self, url, data=None, projectname=None, username=None,
+               method=None, skip_auth=False, on_error_response=None):
+        """ Fetches data from server,
+        checks response and raises a CoprRequestException with nice error message
+        or CoprUnknownResponseException in case of some some error. \n
+        Otherwise return unpacked json object.
 
-        :param url: formed url to fetch
-        :param data: serialised data to send
-        :param skip_auth: don't send auth credentials
-        :param projectname: name of the copr project
-        :param on_error_response: function to handle responses with bad status code
+            @param url: formed url to fetch
+            @param data: [optional] serialised data to send
+            @param skip_auth: [optional] don't send auth credentials
+            @param projectname: [optional] name of the copr project
+            @param username: [optional] use alternative username
+            @param on_error_response: [optional] function to handle responses
+                with bad status code
+
+            @return: deserialized response
+            @rtype: C{dict}
         """
+
         if method is None:
             method = "get"
+
+        if not username:
+            username = self.username
 
         log.debug("Fetching url: {0}, for login: {1}".format(url, self.login))
         kwargs = {}
@@ -115,7 +137,7 @@ class CoprClient(object):
         )
         log.debug("raw response: {0}".format(response.text))
 
-        if "<title>Sign in Coprs</title>" in response.text:
+        if "<title>Sign in Copr</title>" in response.text:
             raise CoprRequestException("Invalid API token\n")
 
         if response.status_code > 299 and on_error_response is not None:
@@ -125,39 +147,40 @@ class CoprClient(object):
         if response.status_code == 404:
             if projectname is None:
                 raise CoprRequestException(
-                            "User {0} is unknown.\n".format(self.username))
+                    "User {0} is unknown.\n".format(username))
             else:
                 raise CoprRequestException(
-                            "Project {0}/{1} not found.\n".format(
-                            self.username, projectname))
+                    "Project {0}/{1} not found.\n".format(
+                        username, projectname))
 
         if 400 <= response.status_code < 500:
-            log.error("Bad request, raw response body: {0}".format(response.text))
+            log.error("Bad request, raw response body: {0}".
+                      format(response.text))
         elif response.status_code >= 500:
-            log.error("Server error, raw response body: {0}".format(response.text))
+            log.error("Server error, raw response body: {0}".
+                      format(response.text))
 
         try:
             output = json.loads(response.text)
         except ValueError:
             raise CoprUnknownResponseException(
-                        "Unknown response from the server.")
+                "Unknown response from the server.")
         if response.status_code != 200:
             raise CoprRequestException(output["error"])
 
         if output is None:
-            raise CoprUnknownResponseException(
-                        "No response from the server.")
+            raise CoprUnknownResponseException("No response from the server.")
         return output
 
-    def get_build_status(self, build_id):
-        url = "{0}/coprs/build_status/{1}/".format(
-            self.api_url, build_id)
-
-        response = self._fetch(url)
-        return BuildStatusResponse(
-            client=self, build_id=build_id, response=response)
-
     def get_build_details(self, build_id):
+        """ Returns build details.
+
+            @param build_id: Build identifier
+            @type build_id: C{int}
+
+            @rtype: L{BuildDetailsResponse}
+        """
+
         url = "{0}/coprs/build/{1}/".format(
             self.api_url, build_id)
 
@@ -165,40 +188,73 @@ class CoprClient(object):
         return BuildDetailsResponse(self, response, build_id)
 
     def cancel_build(self, build_id):
+        """ Cancels build.
+            Auth required.
+            If build can't be canceled do nothing.
+
+            @param build_id: Build identifier
+            @type build_id: L{int}
+
+            @rtype: L{CancelBuildResponse}
+        """
+
         url = "{0}/coprs/cancel_build/{1}/".format(
             self.api_url, build_id)
         response = self._fetch(url, method="post")
         return CancelBuildResponse(self, response, build_id)
 
-    def delete_project(self, projectname):
-        """
-            Delete the entire project
-        """
-        url = "{0}/coprs/{1}/{2}/delete/".format(
-            self.api_url, self.username, projectname
-        )
-        response = self._fetch(
-            url, data={"verify": "yes"}, method="post")
-        return DeleteProjectResponse(self, response, projectname)
+    def get_project_details(self, projectname, username=None):
+        """ Returns project details
 
-    def get_project_details(self, projectname):
+            @param projectname: Copr projectname
+            @param username: [optional] use alternative username
+
+            @rtype: L{ProjectDetailsResponse}
         """
-            Get project details
-        """
+
+        if not username:
+            username = self.username
         url = "{0}/coprs/{1}/{2}/detail/".format(
-            self.api_url, self.username, projectname
+            self.api_url, username, projectname
         )
 
         response = self._fetch(url, skip_auth=True)
-        return ProjectDetailsResponse(self, response, projectname)
+        return ProjectDetailsResponse(self, response, projectname, username)
+
+    def delete_project(self, projectname, username=None):
+        """ Deletes the entire project.
+            Auth required.
+
+            @param projectname: Copr projectname
+            @param username: [optional] use alternative username
+
+            @rtype: L{DeleteProjectResponse}
+        """
+
+        if not username:
+            username = self.username
+        url = "{0}/coprs/{1}/{2}/delete/".format(
+            self.api_url, username, projectname
+        )
+        response = self._fetch(
+            url, data={"verify": "yes"}, method="post")
+        return DeleteProjectResponse(self, response, projectname,
+                                     username=username)
 
     def create_project(
             self, projectname,
             description=None, instructions=None,
             chroots=None, repos=None, initial_pkgs=None
     ):
-        """
-            Create a new copr project
+        """ Creates a new copr project
+            Auth required.
+
+            @param projectname: Copr project name
+            @param chroots: List of target chroots
+            @param description: [optional] Project description
+            @param instructions: [optional] Instructions for end users
+
+            @rtype: L{CreateProjectResponse}
         """
 
         url = "{0}/coprs/{1}/new/".format(
@@ -223,53 +279,31 @@ class CoprClient(object):
         response = self._fetch(url, data=data, method="post")
         return CreateProjectResponse(
             self, response,
-            name=projectname, description=description, instructions=instructions,
-            repos=repos, chroots=chroots, initial_pkgs=initial_pkgs
+            name=projectname, description=description,
+            instructions=instructions, repos=repos, chroots=chroots,
+            initial_pkgs=initial_pkgs, username=self.username
         )
 
-    def get_projects_list(self, username=None):
+    def modify_project(self, projectname, username=None,
+                       description=None, instructions=None, repos=None):
+        """ Modifies main project configuration.
+            Auth required.
+
+            @param projectname: Copr project name
+            @param username: [optional] use alternative username
+            @param description: [optional] project description
+            @param instructions: [optional] instructions for end users
+            @param repos: [optional] list of additional repos to be used during
+                the build process
+
+            @rtype: L{ModifyProjectResponse}
         """
-            Get list of projects created by the user
-        """
-        url = "{0}/coprs/{1}/".format(
-            self.api_url, username or self.username)
-        response = self._fetch(url)
-        return GetProjectsListResponse(self, response)
 
-    def get_project_chroot_details(self, name, chroot):
-        url = "{0}/coprs/{1}/{2}/detail/{3}/".format(
-            self.api_url, self.username, name, chroot
-        )
-        response = self._fetch(url, skip_auth=True)
-        return BaseResponse(self, response)
+        if not username:
+            username = self.username
 
-    def modify_project_chroot_details(self, projectname, chroot, pkgs=None):
-        if pkgs is None:
-            pkgs = []
-
-        url = "{0}/coprs/{1}/{2}/modify/{3}/".format(
-            self.api_url, self.username, projectname, chroot
-        )
-        data = {
-            "buildroot_pkgs": " ".join(pkgs)
-        }
-        response = self._fetch(url, data=data, method="post")
-        return BaseResponse(self, response)
-
-    def modify_project(self, projectname, description=None,
-                       instructions=None, repos=None):
-
-        """
-            Modifies main project settings.
-
-            :param projectname:
-            :param description:
-            :param instructions:
-            :param repos:
-            :return:
-        """
         url = "{0}/coprs/{1}/{2}/modify/".format(
-            self.api_url, self.username, projectname
+            self.api_url, username, projectname
         )
         data = {}
         if description:
@@ -280,25 +314,91 @@ class CoprClient(object):
             data["repos"] = repos
 
         response = self._fetch(url, data=data, method="post")
-        return ModifyProjectResponse(self, response, projectname, description,
-                                     instructions, repos)
+        return ModifyProjectResponse(
+            self, response, username=username,
+            projectname=projectname, description=description,
+            instructions=instructions, repos=repos
+        )
 
-    def create_new_build(self, projectname, pkgs,
+    def get_projects_list(self, username=None):
+        """ Returns list of projects created by the user
+
+            @param username: [optional] use alternative username
+
+            @rtype: L{GetProjectsListResponse}
+        """
+        if not username:
+            username = self.username
+
+        url = "{0}/coprs/{1}/".format(
+            self.api_url, username)
+        response = self._fetch(url)
+        return GetProjectsListResponse(self, response, username=username)
+
+    def get_project_chroot_details(self, projectname, chroot, username=None):
+        """ Returns details of chroot used in project
+
+            @param projectname: Copr project name
+            @param chroot: chroot name
+
+            @param username: [optional] use alternative username
+
+            @rtype: L{ProjectChrootDetailsResponse}
+        """
+        if not username:
+            username = self.username
+
+        url = "{0}/coprs/{1}/{2}/detail/{3}/".format(
+            self.api_url, username, projectname, chroot
+        )
+        response = self._fetch(url, skip_auth=True)
+        return ProjectChrootDetailsResponse(self, response, username=username)
+
+    def modify_project_chroot_details(self, projectname, chroot,
+                                      pkgs=None, username=None):
+        """ Modifies chroot used in project
+
+            @param projectname: Copr project name
+            @param chroot: chroot name
+
+            @param username: [optional] use alternative username
+
+            @rtype: L{ModifyProjectChrootResponse}
+        """
+        if pkgs is None:
+            pkgs = []
+
+        if not username:
+            username = self.username
+
+        url = "{0}/coprs/{1}/{2}/modify/{3}/".format(
+            self.api_url, username, projectname, chroot
+        )
+        data = {
+            "buildroot_pkgs": " ".join(pkgs)
+        }
+        response = self._fetch(url, data=data, method="post")
+        return ModifyProjectChrootResponse(self, response, username=username)
+
+    def create_new_build(self, projectname, pkgs, username=None,
                          timeout=None, memory=None, chroots=None):
-        """
-            Creates new build in `projectname` copr.
+        """ Creates new build
 
-            :param projectname: name of copr project (without user namespace)
-            :param pkgs: list of packages to include in build
-            :param timeout: ?build timeout
-            :param memory: amount of required memory for build process
-            :param wait: if True function wait for packages to be build
-            :param chroots: build only with given chroots
+            @param projectname: name of Copr project (without user namespace)
+            @param pkgs: list of packages to include in build
+            @param username: [optional] use alternative username
+            @param timeout: [optional] build timeout
+            @param memory: [optional] amount of required memory for build process
+            @param chroots: [optional] build only with given chroots
 
+            @rtype: L{BuildRequestResponse}
         """
+        if not username:
+            username = self.username
+
 
         url = "{0}/coprs/{1}/{2}/new_build/".format(
-            self.api_url, self.username, projectname
+            self.api_url, username, projectname
         )
         data = {
             "pkgs": " ".join(pkgs),
@@ -310,10 +410,17 @@ class CoprClient(object):
 
         response = self._fetch(url, data, method="post")
         return BuildRequestResponse(
-            self, response,
-            projectname, pkgs, memory, timeout, chroots)
+            client=self, response=response, username=username,
+            pkgs=pkgs, memory=memory, timeout=timeout, chroots=chroots
+        )
 
     def search_projects(self, query):
+        """ Search projects by substring
+
+            @param query: substring to search
+
+            @rtype: L{SearchResponse}
+        """
         url = "{0}/coprs/search/{1}/".format(
             self.api_url, query
         )

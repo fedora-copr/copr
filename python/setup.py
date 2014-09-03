@@ -15,6 +15,7 @@ from copr.client import __description__, __version__
 
 requires = [
     'requests',
+    'six'
 ]
 
 

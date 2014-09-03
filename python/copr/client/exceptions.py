@@ -1,13 +1,13 @@
 #-*- coding: UTF-8 -*-
 
 """
-Exceptions for copr-cli
+Exceptions for Copr client.
 """
 
 
 class CoprException(Exception):
 
-    """ Basic exception class for copr-cli. """
+    """ Basic exception class for Copr client. """
     pass
 
 
@@ -33,14 +33,14 @@ class CoprRequestException(Exception):
 
 
 class CoprBuildException(Exception):
-    """ Exception thrown when one or more builds fail and Cli is waiting
+    """ Exception thrown when one or more builds fail and client is waiting
     for the result.
     """
     pass
 
 
 class CoprUnknownResponseException(Exception):
-    """ Exception thrown when the response is unknown to cli.
-    It usualy means that something is broken.
+    """ Exception thrown when the response is unknown to client.
+    It usually means that something is broken.
     """
     pass

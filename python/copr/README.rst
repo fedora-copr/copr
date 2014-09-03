@@ -1,5 +1,5 @@
 Copr python client
-========
+==================
 
 Copr is designed to be a lightweight buildsystem that allows contributors
 to create packages, put them in repositories, and make it easy for users
@@ -21,6 +21,7 @@ The client depends on:
 
 .. _python2.6 +
 .. _python-requests: http://docs.python-requests.org/en/latest/
+.. _python-six
 
 Usage:
 ------
