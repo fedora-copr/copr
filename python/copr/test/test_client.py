@@ -50,8 +50,8 @@ def test_projects_list(mock_request):
     mock_request.return_value = make_mock_response("projects_list.200.json")
 
     test_resp = mock_client.get_projects_list()
-    assert len(test_resp.projects) == 1
-    test_project = test_resp.projects[0]
+    assert len(test_resp.projects_list) == 1
+    test_project = test_resp.projects_list[0]
     assert test_project.projectname == "perl516-el7"
     assert test_project.description == "Test description"
 

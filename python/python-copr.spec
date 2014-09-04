@@ -34,6 +34,8 @@ BuildRequires: pytest
 BuildRequires: python2-devel
 #for doc package
 BuildRequires: epydoc
+BuildRequires: python-sphinx
+BuildRequires: python-docutils
 BuildRequires: graphviz
 
 Requires: python-setuptools
