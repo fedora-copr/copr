@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.48
+Version:    1.49
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -165,6 +165,16 @@ popd
 %endif
 
 %changelog
+* Fri Sep 05 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.49-1
+- [python-copr] 
+- bugfix in cancel_build - more docsrtings
+- using sphinx documentation for rpm build
+- added instruction to build documentation
+- re-implemented Response handling  
+- started transition to sphinx documentation  
+- added optional argument `username` to most client methods
+- removed method  `get_build_status`
+
 * Wed Aug 27 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.48-1
 - [python-copr] small fix due to the old version of python-six in RHEL-7
 
