@@ -9,7 +9,9 @@ About
 Python-copr is a python client to access the Copr build service
 through its `API <http://copr.fedoraproject.org/api>`_.
 
-Python-copr right now in an alpha stage, so expect lot of changes.
+Python-copr right now in an alpha stage, so expect lot of changes. Now it targets python 2.7
+and python3.3+.
+
 
 Installation
 ============
@@ -17,24 +19,42 @@ Installation
 repo
 ++++
 [Soon] Available for fedora 19, fedora 20.
-dnf install python-copr python-copr-doc
+::
+
+    dnf install python-copr python-copr-doc
 
 source
 ++++++
 
-``git clone https://git.fedorahosted.org/git/copr.git``
+.. code-block:: bash
 
+    git clone https://git.fedorahosted.org/git/copr.git
+    cd python
+    # enable virtualenv if needed
+    pip install -r requirements.txt
+    python setup.py install
+
+Contact
+=======
+
+If you have any questions, please contact us:
+
+    - IRC: #fedora-buildsys@irc.freenode.net
+    - mailing list: copr-devel@lists.fedorahosted.org
+      [`signup <https://fedorahosted.org/mailman/listinfo/copr-devel>`_]
+      [`archives <https://lists.fedorahosted.org/pipermail/copr-devel/>`_]
 
 
 Usage
 =====
 
 All interaction are done through copr.CoprClient.
-
 It can be created directly or using config file :file:`/etc/copr.conf`
 
-*CoprClient* has methods directly reflects Copr api, received data
- are wrapped into the Response object.
+*CoprClient* offers methods that directly reflect Copr api. Received data
+are wrapped into the Response object.
+Depending on used methods Responses will have different set of
+provided attributes and methods.
 
 
 Auto-generated documentation
