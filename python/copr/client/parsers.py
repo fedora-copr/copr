@@ -55,8 +55,8 @@ class ProjectDetailsFieldsParser(IParser):
     def parse(data, field, **kwargs):
         if field in ProjectDetailsFieldsParser.provided_fields:
             if "detail" in data:
-                if field in data:
-                    return data[field]
+                if field in data["detail"]:
+                    return data["detail"][field]
                 else:
                     raise KeyError("Response missing field `{}`".format(field))
             else:

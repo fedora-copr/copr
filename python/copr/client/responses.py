@@ -9,8 +9,6 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-__docformat__ = "restructuredtext en"
-
 import weakref
 
 #
@@ -23,8 +21,9 @@ class CoprResponse(object):
     """
         Wrapper for Copr api responses
 
-        :ivar .responses.BaseHandle handle: handle object which provide shortcuts
+        :ivar handle: handle object which provide shortcuts
             based on request and/or response data
+            (:py:class:`~.responses.BaseHandle` and its derivatives)
         :ivar dict data: json structure from Copr api
     """
 
@@ -223,12 +222,18 @@ class ProjectChrootHandle(BaseHandle):
 class ProjectWrapper(object):
     """
         Helper class to represent project objects
+
+        ``__str__`` overridden to produces pretty formatted representation
+
+        :ivar handle: :py:class:`.responses.ProjectHandle`
+
+        :ivar username: project owner
+        :ivar projectname: project names
     """
 
     def __init__(self, client, username, projectname,
                  description=None, instructions=None,
                  yum_repos=None, additional_repos=None):
-        #print("username " + username)
         self.username = username
         self.projectname = projectname
         self.description = description
@@ -260,6 +265,12 @@ class ProjectWrapper(object):
 class BuildWrapper(object):
     """
         Helper class to represent build objects
+
+        :ivar handle: :py:class:`.responses.BuildHandle`
+
+        :ivar username: project owner
+        :ivar projectname: project names
+        :ivar int build_id: build identifier
     """
 
     def __init__(self, client, username, projectname, build_id,
@@ -278,6 +289,12 @@ class BuildWrapper(object):
 class ProjectChrootWrapper(object):
     """
         Helper class to represent project chroot objects
+
+        :ivar handle: :py:class:`.responses.ProjectChrootHandle`
+
+        :ivar username: project owner
+        :ivar projectname: project names
+        :ivar chrootname: chroot name
     """
 
     def __init__(self, client, username, projectname, chrootname,

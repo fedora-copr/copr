@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-__docformat__ = "restructuredtext en"
 
 import json
 import os
@@ -76,7 +75,7 @@ class CoprClient(object):
         :param filepath: specifies config location,
             default: "~/.config/copr"
         :type filepath: `str`
-        :rtype: :py:class:`CoprClient`
+        :rtype: :py:class:`~.client.CoprClient`
 
         """
 
@@ -186,7 +185,13 @@ class CoprClient(object):
             :param projectname: [optional] Copr project name
             :param username: [optional] Copr project owner
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **handle:** :py:class:`~.responses.BuildHandle`
+                - text fields: "project", "owner", "status", "results",
+                "submitted_on", "started_on", "ended_on",
+                "built_pkgs", "src_pkg", "src_version"
+
 
         """
 
@@ -227,19 +232,22 @@ class CoprClient(object):
             :param projectname: [optional] Copr project name
             :param username: [optional] Copr project owner
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **handle:** :py:class:`~.responses.BuildHandle`
+                - text fields: "status"
         """
 
         url = "{0}/coprs/cancel_build/{1}/".format(
             self.api_url, build_id)
 
-        data = self._fetch(url, skip_auth=True)
+        data = self._fetch(url, skip_auth=False, method='post')
         response = CoprResponse(
             client=self,
             method="cancel_build",
             data=data,
             parsers=[
-                CommonMsgErrorOutParser,
+                fabric_simple_fields_parser(["status", "output", "error"]),
             ]
         )
         response.handle = BuildHandle(
@@ -259,7 +267,9 @@ class CoprClient(object):
             :param memory: [optional] amount of required memory for build process
             :param chroots: [optional] build only with given chroots
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
         """
         if not username:
             username = self.username
@@ -302,7 +312,14 @@ class CoprClient(object):
             :param projectname: Copr projectname
             :param username: [optional] use alternative username
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - text fields: "description", "instructions", "last_modified",
+                "name"
+
+                - **chroots_list**: list of
+                  :py:class:`~.responses.ProjectChrootWrapper`
         """
         if not username:
             username = self.username
@@ -324,6 +341,7 @@ class CoprClient(object):
             },
             parsers=[
                 ProjectChrootsParser,
+                ProjectDetailsFieldsParser,
             ]
         )
         response.handle = ProjectHandle(client=self, response=response,
@@ -338,7 +356,10 @@ class CoprClient(object):
             :param projectname: Copr projectname
             :param username: [optional] use alternative username
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - text fields: "message"
         """
 
         if not username:
@@ -376,9 +397,11 @@ class CoprClient(object):
             :param description: [optional] Project description
             :param instructions: [optional] Instructions for end users
 
-            :return: :py:class:`.responses.CoprResponse` with fields:
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
 
-                **handle:** :py:class:`.responses.ProjectHandle`
+                - **handle:** :py:class:`~.responses.ProjectHandle`
+                - text fields: "message"
         """
 
         url = "{0}/coprs/{1}/new/".format(
@@ -433,7 +456,11 @@ class CoprClient(object):
             :param repos: [optional] list of additional repos to be used during
                 the build process
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - **handle:** :py:class:`~.responses.ProjectHandle`
+                - text fields: "buildroot_pkgs"
         """
 
         if not username:
@@ -458,6 +485,7 @@ class CoprClient(object):
             data=result_data,
             parsers=[
                 CommonMsgErrorOutParser,
+                fabric_simple_fields_parser(["buildroot_pkgs"])
             ]
         )
         response.handle = ProjectHandle(client=self, response=response,
@@ -469,7 +497,12 @@ class CoprClient(object):
 
             :param username: [optional] use alternative username
 
-            :return: :py:class:`.responses.CoprResponse`
+
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - **projects_list**: list of
+                  :py:class:`~.responses.ProjectWrapper`
         """
         if not username:
             username = self.username
@@ -484,7 +517,6 @@ class CoprClient(object):
             parsers=[
                 CommonMsgErrorOutParser,
                 ProjectListParser,
-                ProjectDetailsFieldsParser,
             ]
         )
         response.handle = BaseHandle(client=self, username=username,
@@ -500,7 +532,11 @@ class CoprClient(object):
 
             :param username: [optional] use alternative username
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - **handle:** :py:class:`~.responses.ProjectChrootHandle`
+                - text fields: "buildroot_pkgs"
         """
         if not username:
             username = self.username
@@ -535,7 +571,12 @@ class CoprClient(object):
 
             :param username: [optional] use alternative username
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - **handle:** :py:class:`~.responses.ProjectChrootHandle`
+                - text fields: "buildroot_pkgs"
+
         """
         if pkgs is None:
             pkgs = []
@@ -573,7 +614,11 @@ class CoprClient(object):
 
             :param query: substring to search
 
-            :return: :py:class:`.responses.CoprResponse`
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - **projects_list**: list of
+                  :py:class:`~.responses.ProjectWrapper`
         """
         url = "{0}/coprs/search/{1}/".format(
             self.api_url, query
