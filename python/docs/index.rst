@@ -16,15 +16,23 @@ and python3.3+.
 Installation
 ============
 
+Dependencies:
+-------------
+::
+
+ python2.6+
+ python-requests
+ python-six
+
 repo
-++++
+----
 [Soon] Available for fedora 19, fedora 20.
 ::
 
     dnf install python-copr python-copr-doc
 
 source
-++++++
+------
 
 .. code-block:: bash
 

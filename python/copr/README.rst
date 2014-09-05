@@ -12,16 +12,9 @@ to provide access to all copr api methods.
 About this project:
 -------------------
 - Webiste:  https://fedorahosted.org/copr/
+- Python-copr documentation: http://python-copr.readthedocs.org
 - Git: http://git.fedorahosted.org/cgit/copr.git
 - Test instance: http://copr-fe.cloud.fedoraproject.org/
-
-Dependencies:
--------------
-The client depends on:
-
-.. _python2.6 +
-.. _python-requests: http://docs.python-requests.org/en/latest/
-.. _python-six
 
 Usage:
 ------

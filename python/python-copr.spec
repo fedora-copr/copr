@@ -33,10 +33,8 @@ BuildRequires: python-mock
 BuildRequires: pytest
 BuildRequires: python2-devel
 #for doc package
-BuildRequires: epydoc
 BuildRequires: python-sphinx
 BuildRequires: python-docutils
-BuildRequires: graphviz
 
 Requires: python-setuptools
 Requires: python-six
@@ -78,7 +76,7 @@ for developers only.
 
 
 %if 0%{?fedora}
-%package doc
+%package -n python-copr-doc
 Summary:    Code documentation for python-copr package
 
 %description doc
@@ -117,8 +115,8 @@ mv copr/README.rst ./
 
 %if 0%{?fedora}
 # build documentation
-pushd documentation
-make %{?_smp_mflags} python
+pushd docs
+make %{?_smp_mflags} html
 popd
 %endif
 
@@ -138,7 +136,7 @@ find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
 install -d %{buildroot}%{_pkgdocdir}/
 
 %if 0%{?fedora}
-cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
+cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %endif
 
 %check
@@ -161,7 +159,7 @@ popd
 %endif # with_python3
 
 %if 0%{?fedora}
-%files doc
+%files -n python-copr-doc
 %doc LICENSE
 %doc %{_pkgdocdir}
 %endif
