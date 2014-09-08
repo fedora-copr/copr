@@ -23,7 +23,7 @@ class IParser(object):
 
 def fabric_simple_fields_parser(fields, name=None):
     class FieldsParser(IParser):
-        provided_fields = fields
+        provided_fields = set(fields)
 
         @staticmethod
         def parse(data, field, **kwargs):
@@ -48,8 +48,8 @@ CommonMsgErrorOutParser = fabric_simple_fields_parser(
 
 
 class ProjectDetailsFieldsParser(IParser):
-    provided_fields = {"description", "instructions", "last_modified",
-                       "name"}
+    provided_fields = set(["description", "instructions", "last_modified",
+                       "name"])
 
     @staticmethod
     def parse(data, field, **kwargs):
@@ -67,7 +67,7 @@ class ProjectDetailsFieldsParser(IParser):
 
 
 class ProjectChrootsParser(IParser):
-    provided_fields = {"chroots"}
+    provided_fields = set(["chroots"])
 
     @staticmethod
     def parse(data, field, client=None, **kwargs):
@@ -92,7 +92,7 @@ class ProjectChrootsParser(IParser):
 
 
 class ProjectListParser(IParser):
-    provided_fields = {"projects_list"}
+    provided_fields = set(["projects_list"])
 
     @staticmethod
     def parse(data, field, client=None, **kwargs):
@@ -124,7 +124,7 @@ class ProjectListParser(IParser):
 
 
 class NewBuildListParser(IParser):
-    provided_fields = {"builds_list"}
+    provided_fields = set(["builds_list"])
 
     @staticmethod
     def parse(data, field, client=None, **kwargs):

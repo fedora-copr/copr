@@ -9,7 +9,7 @@ About
 Python-copr is a python client to access the Copr build service
 through its `API <http://copr.fedoraproject.org/api>`_.
 
-Python-copr right now is in alpha stage, so expect lot of changes. Now it targets python 2.7
+Python-copr right now is in alpha stage, so expect lot of changes. Now it targets python 2.6+
 and python3.3+.
 
 
