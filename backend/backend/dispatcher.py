@@ -456,7 +456,8 @@ class Worker(multiprocessing.Process):
         return response
 
 
-    def pkg_built_before(self, pkgs, chroot, destdir):
+    @classmethod
+    def pkg_built_before(cls, pkgs, chroot, destdir):
         """
         Check whether the package has already been built in this chroot.
         """
