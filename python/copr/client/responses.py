@@ -222,7 +222,7 @@ class ProjectChrootHandle(BaseHandle):
         Shortcut to :meth:`~.client.CoprClient.modify_project_chroot_details`
         """
         return self.client.modify_project_chroot_details(
-            self.projectname, self.chrootname, pkgs=None, username=None)
+            self.projectname, self.chrootname, pkgs=pkgs)
 
 
 class ProjectWrapper(object):
