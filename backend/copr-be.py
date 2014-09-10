@@ -10,7 +10,6 @@ from retask.queue import Queue
 from retask import ConnectionError
 import ConfigParser
 import daemon
-import glob
 import grp
 import json
 import lockfile
