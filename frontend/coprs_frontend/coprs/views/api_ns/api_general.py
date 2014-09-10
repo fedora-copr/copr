@@ -9,7 +9,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs.helpers import fix_protocol_for_backend
-from coprs.logic.api_logic import BuildWrapper, MonitorWrapper
+from coprs.logic.api_logic import MonitorWrapper
 
 from coprs.views.misc import login_required, api_login_required
 
