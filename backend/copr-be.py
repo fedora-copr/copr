@@ -199,9 +199,9 @@ class CoprBackend(object):
         self.task_queues = []
         try:
             for group in self.opts.build_groups:
-                id = group["id"]
-                self.task_queues.append(Queue("copr-be-{0}".format(id)))
-                self.task_queues[id].connect()
+                group_id = group["id"]
+                self.task_queues.append(Queue("copr-be-{0}".format(group_id)))
+                self.task_queues[group_id].connect()
         except ConnectionError:
             raise CoprBackendError(
                 "Could not connect to a task queue. Is Redis running?")
