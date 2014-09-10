@@ -58,8 +58,7 @@ class CoprResponse(object):
                                          request_kwargs=self.request_kwargs)
                     self._parsed_data[item] = value
                     return value
-            else:
-                raise KeyError(str(item))
+            raise KeyError(str(item))
 
     def __str__(self):
         return str(self.data)
