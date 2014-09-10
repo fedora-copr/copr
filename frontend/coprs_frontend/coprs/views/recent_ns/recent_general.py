@@ -1,4 +1,4 @@
-import flask, os
+import flask
 
 from urlparse import urlparse
 from . import recent_ns
