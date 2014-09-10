@@ -2,8 +2,6 @@
 
 from setuptools import setup
 
-import sys
-
 long_description = """Copr is designed to be a lightweight buildsystem that allows contributors
 to create packages, put them in repositories, and make it easy for users
 to install the packages onto their system. Within the Fedora Project it
