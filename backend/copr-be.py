@@ -11,7 +11,6 @@ from retask import ConnectionError
 import ConfigParser
 import daemon
 import grp
-import json
 import lockfile
 import logging
 import multiprocessing
