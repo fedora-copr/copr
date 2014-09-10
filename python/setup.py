@@ -17,7 +17,6 @@ requires = [
 ]
 
 
-__name__ = 'copr'
 __version__ = __version__
 __description__ = __description__
 __author__ = "Valentin Gologuzov"
@@ -26,7 +25,7 @@ __url__ = "http://fedorahosted.org/copr/"
 
 
 setup(
-    name=__name__,
+    name='copr',
     version=__version__,
     description=__description__,
     long_description=long_description,
