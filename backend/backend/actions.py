@@ -36,7 +36,7 @@ class Action(object):
                     self.event("Removing copr {0}".format(path))
                     shutil.rmtree(path)
 
-            elif self.data["object_type"] in ["build-succeeded", 
+            elif self.data["object_type"] in ["build-succeeded",
                                               "build-skipped",
                                               "build-failed"]:
                 self.event("Action delete build")
