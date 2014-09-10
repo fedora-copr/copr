@@ -233,7 +233,7 @@ class Worker(multiprocessing.Process):
         # Ansible playbook python API does not work here, dunno why.  See:
         # https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
 
-        command="{0} {1}".format(ansible_playbook, args)
+        command = "{0} {1}".format(ansible_playbook, args)
 
         for i in range(0, attempts):
             try:
