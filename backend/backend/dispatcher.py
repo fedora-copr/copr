@@ -3,7 +3,6 @@ import os
 import sys
 import time
 import fcntl
-import Queue
 import json
 import subprocess
 import multiprocessing
