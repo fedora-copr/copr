@@ -42,23 +42,29 @@ class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
         super(SilentPlaybookCallbacks, self).__init__()
         self.verbose = verbose
 
-    def on_start(self):
+    @classmethod
+    def on_start(cls):
         callbacks.call_callback_module("playbook_on_start")
 
-    def on_notify(self, host, handler):
+    @classmethod
+    def on_notify(cls, host, handler):
         callbacks.call_callback_module("playbook_on_notify", host, handler)
 
-    def on_no_hosts_matched(self):
+    @classmethod
+    def on_no_hosts_matched(cls):
         callbacks.call_callback_module("playbook_on_no_hosts_matched")
 
-    def on_no_hosts_remaining(self):
+    @classmethod
+    def on_no_hosts_remaining(cls):
         callbacks.call_callback_module("playbook_on_no_hosts_remaining")
 
-    def on_task_start(self, name, is_conditional):
+    @classmethod
+    def on_task_start(cls, name, is_conditional):
         callbacks.call_callback_module(
             "playbook_on_task_start", name, is_conditional)
 
-    def on_vars_prompt(self, varname,
+    @classmethod
+    def on_vars_prompt(cls, varname,
                        private=True, prompt=None, encrypt=None,
                        confirm=False, salt_size=None, salt=None):
 
@@ -73,21 +79,26 @@ class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
 
         return result
 
-    def on_setup(self):
+    @classmethod
+    def on_setup(cls):
         callbacks.call_callback_module("playbook_on_setup")
 
-    def on_import_for_host(self, host, imported_file):
+    @classmethod
+    def on_import_for_host(cls, host, imported_file):
         callbacks.call_callback_module(
             "playbook_on_import_for_host", host, imported_file)
 
-    def on_not_import_for_host(self, host, missing_file):
+    @classmethod
+    def on_not_import_for_host(cls, host, missing_file):
         callbacks.call_callback_module(
             "playbook_on_not_import_for_host", host, missing_file)
 
-    def on_play_start(self, pattern):
+    @classmethod
+    def on_play_start(cls, pattern):
         callbacks.call_callback_module("playbook_on_play_start", pattern)
 
-    def on_stats(self, stats):
+    @classmethod
+    def on_stats(cls, stats):
         callbacks.call_callback_module("playbook_on_stats", stats)
 
 
