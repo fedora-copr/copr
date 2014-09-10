@@ -220,8 +220,6 @@ class Worker(multiprocessing.Process):
                        build=job.build_id, ip=ip, pid=self.pid,
                        status=job.status, chroot=job.chroot)
         self.event("build.end", template, content)
-        pass
-
 
 
     def run_ansible_playbook(self, args, name="running playbook", attempts=9):
