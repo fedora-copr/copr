@@ -76,5 +76,4 @@ class FrontendCallback(object):
         if "can_start" not in response.json():
             raise requests.RequestException("Bad respond from the frontend")
         return response.json()["can_start"]
-        
 
