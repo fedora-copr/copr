@@ -15,7 +15,6 @@ from ansible import callbacks
 from bunch import Bunch
 from setproctitle import setproctitle
 from IPy import IP
-from retask.task import Task
 from retask.queue import Queue
 from .exceptions import MockRemoteError, CoprWorkerError
 
