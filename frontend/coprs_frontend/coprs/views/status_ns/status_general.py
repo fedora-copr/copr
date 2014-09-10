@@ -1,6 +1,5 @@
 import flask
 
-from urlparse import urlparse
 from coprs.views.status_ns import status_ns
 from coprs.logic import builds_logic
 from coprs import helpers
