@@ -61,7 +61,7 @@ class Action(object):
 
                     # We need to delete the files only if they belong
                     # to the build. For example if my build fails and I send
-                    # fixed pkg with the same version again, it succeeds and 
+                    # fixed pkg with the same version again, it succeeds and
                     # than I delete the failed, it would delete the succeeded
                     # files as well - that would be wrong.
                     for pkg in packages:
