@@ -2,7 +2,6 @@ import flask
 
 from . import recent_ns
 from coprs.logic import builds_logic
-from coprs import helpers
 
 import logging
 log = logging.getLogger(__name__)
