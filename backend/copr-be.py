@@ -327,19 +327,19 @@ class CoprBackend(object):
             self.opts = self.read_conf()
 
             for group in self.opts.build_groups:
-                id = group["id"]
+                group_id = group["id"]
                 self.event("# jobs in {0} queue: {1}".format(
                                         group["name"],
-                                        self.task_queues[id].length))
+                                        self.task_queues[group_id].length))
                 # this handles starting/growing the number of workers
-                if len(self.workers[id]) < group["max_workers"]:
+                if len(self.workers[group_id]) < group["max_workers"]:
                     self.event("Spinning up more workers")
-                    for _ in range(group["max_workers"] - len(self.workers[id])):
-                        self.worker_num[id] += 1
+                    for _ in range(group["max_workers"] - len(self.workers[group_id])):
+                        self.worker_num[group_id] += 1
                         w = Worker(
-                            self.opts, self.events, self.worker_num[id], id,
+                            self.opts, self.events, self.worker_num[group_id], group_id,
                             lock=self.lock)
-                        self.workers[id].append(w)
+                        self.workers[group_id].append(w)
                         w.start()
                 self.event("Finished starting worker processes")
                 # FIXME - prune out workers
