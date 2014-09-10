@@ -251,23 +251,23 @@ class CoprBackend(object):
                 cp, "backend", "do_sign", False, mode="bool")
 
             opts.build_groups = []
-            for id in range(int(opts.build_groups_count)):
+            for group_id in range(int(opts.build_groups_count)):
                 group = {
-                    "id": int(id),
+                    "id": int(group_id),
                     "name": _get_conf(
-                            cp, "backend", "group{0}_name".format(id), "PC"),
+                            cp, "backend", "group{0}_name".format(group_id), "PC"),
                     "archs": _get_conf(
-                            cp, "backend", "group{0}_archs".format(id),
+                            cp, "backend", "group{0}_archs".format(group_id),
                             "i386,x86_64").split(","),
                     "spawn_playbook": _get_conf(
-                            cp, "backend", "group{0}_spawn_playbook".format(id),
+                            cp, "backend", "group{0}_spawn_playbook".format(group_id),
                             "/srv/copr-work/provision/builderpb-PC.yml"),
                     "terminate_playbook": _get_conf(
                             cp, "backend",
-                            "group{0}_terminate_playbook".format(id),
+                            "group{0}_terminate_playbook".format(group_id),
                             "/srv/copr-work/provision/terminatepb-PC.yml"),
                     "max_workers": int(_get_conf(
-                            cp, "backend", "group{0}_max_workers".format(id), 8))
+                            cp, "backend", "group{0}_max_workers".format(group_id), 8))
                 }
                 opts.build_groups.append(group)
                 self.worker_num.append(0)
