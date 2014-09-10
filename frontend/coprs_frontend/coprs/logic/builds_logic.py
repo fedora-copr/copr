@@ -1,4 +1,3 @@
-from itertools import groupby
 import os
 import time
 from sqlalchemy import or_
