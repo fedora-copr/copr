@@ -41,9 +41,8 @@ class Action(object):
                                               "build-failed"]:
                 self.event("Action delete build")
                 project = self.data["old_value"]
-                packages = map(lambda x:
-                               os.path.basename(x).replace(".src.rpm", ""),
-                               self.data["data"].split())
+                packages = [os.path.basename(x).replace(".src.rpm", "") for x in \
+                               self.data["data"].split()]
 
                 path = os.path.join(self.destdir, project)
 
