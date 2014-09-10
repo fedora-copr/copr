@@ -1,4 +1,4 @@
-import flask, os
+import flask
 
 from urlparse import urlparse
 from coprs.views.status_ns import status_ns
