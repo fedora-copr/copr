@@ -371,9 +371,9 @@ class CoprBackend(object):
 
         self.abort = True
         for group in self.opts.build_groups:
-            id = group["id"]
-            for w in self.workers[id]:
-                self.workers[id].remove(w)
+            group_id = group["id"]
+            for w in self.workers[group_id]:
+                self.workers[group_id].remove(w)
                 w.terminate()
         self.clean_task_queues()
 
