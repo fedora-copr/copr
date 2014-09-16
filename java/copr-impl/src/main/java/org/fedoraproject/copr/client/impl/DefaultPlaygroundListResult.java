@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fedoraproject.copr.client;
+package org.fedoraproject.copr.client.impl;
+
+import java.util.Collections;
+import java.util.List;
+
+import org.fedoraproject.copr.client.PlaygroundListResult;
+import org.fedoraproject.copr.client.ProjectId;
 
 /**
  * @author Mikolaj Izdebski
  */
-public interface CoprSession
-    extends AutoCloseable
+public class DefaultPlaygroundListResult
+    implements PlaygroundListResult
 {
-    ListResult list( ListRequest request )
-        throws CoprException;
+    private final List<ProjectId> projects;
 
-    PlaygroundListResult playgroundList( PlaygroundListRequest request )
-        throws CoprException;
+    public DefaultPlaygroundListResult( List<ProjectId> projects )
+    {
+        this.projects = Collections.unmodifiableList( projects );
+    }
 
-    BuildResult build( BuildRequest request )
-        throws CoprException;
-
-    @Override
-    void close()
-        throws CoprException;
+    public List<ProjectId> getProjects()
+    {
+        return projects;
+    }
 }

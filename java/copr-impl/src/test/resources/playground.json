@@ -1,0 +1,41 @@
+{
+  "output": "ok",
+  "repos": [
+    {
+      "chroots": [
+        "epel-6-i386",
+        "epel-6-x86_64",
+        "fedora-rawhide-x86_64",
+        "fedora-rawhide-i386",
+        "fedora-20-x86_64",
+        "fedora-20-i386",
+        "epel-7-x86_64"
+      ],
+      "coprname": "fedwatch",
+      "username": "sochotni"
+    },
+    {
+      "chroots": [
+        "fedora-rawhide-x86_64",
+        "fedora-rawhide-i386"
+      ],
+      "coprname": "python-3.4",
+      "username": "bkabrda"
+    },
+    {
+      "chroots": [
+        "fedora-19-i386",
+        "epel-6-i386",
+        "fedora-20-i386",
+        "fedora-rawhide-i386",
+        "fedora-19-x86_64",
+        "epel-6-x86_64",
+        "fedora-rawhide-x86_64",
+        "fedora-20-x86_64",
+        "epel-7-x86_64"
+      ],
+      "coprname": "yum-rawhide",
+      "username": "james"
+    }
+  ]
+}

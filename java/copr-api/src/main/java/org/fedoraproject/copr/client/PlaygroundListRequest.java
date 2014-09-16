@@ -18,19 +18,9 @@ package org.fedoraproject.copr.client;
 /**
  * @author Mikolaj Izdebski
  */
-public interface CoprSession
-    extends AutoCloseable
+public class PlaygroundListRequest
 {
-    ListResult list( ListRequest request )
-        throws CoprException;
-
-    PlaygroundListResult playgroundList( PlaygroundListRequest request )
-        throws CoprException;
-
-    BuildResult build( BuildRequest request )
-        throws CoprException;
-
-    @Override
-    void close()
-        throws CoprException;
+    public PlaygroundListRequest()
+    {
+    }
 }
