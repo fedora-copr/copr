@@ -18,22 +18,39 @@ package org.fedoraproject.copr.client;
 /**
  * @author Mikolaj Izdebski
  */
-public interface CoprSession
-    extends AutoCloseable
+public class DetailRequest
 {
-    ListResult list( ListRequest request )
-        throws CoprException;
+    private String userName;
 
-    PlaygroundListResult playgroundList( PlaygroundListRequest request )
-        throws CoprException;
+    private String projectName;
 
-    DetailResult detail( DetailRequest request )
-        throws CoprException;
+    public DetailRequest()
+    {
+    }
 
-    BuildResult build( BuildRequest request )
-        throws CoprException;
+    public DetailRequest( String userName, String projectName )
+    {
+        this.userName = userName;
+        this.projectName = projectName;
+    }
 
-    @Override
-    void close()
-        throws CoprException;
+    public String getUserName()
+    {
+        return userName;
+    }
+
+    public void setUserName( String userName )
+    {
+        this.userName = userName;
+    }
+
+    public String getProjectName()
+    {
+        return projectName;
+    }
+
+    public void setProjectName( String projectName )
+    {
+        this.projectName = projectName;
+    }
 }

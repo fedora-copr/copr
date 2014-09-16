@@ -15,25 +15,21 @@
  */
 package org.fedoraproject.copr.client;
 
+import java.util.Date;
+import java.util.List;
+
 /**
  * @author Mikolaj Izdebski
  */
-public interface CoprSession
-    extends AutoCloseable
+public interface DetailResult
 {
-    ListResult list( ListRequest request )
-        throws CoprException;
+    public abstract Date getLastModified();
 
-    PlaygroundListResult playgroundList( PlaygroundListRequest request )
-        throws CoprException;
+    public abstract List<YumRepository> getYumRepositories();
 
-    DetailResult detail( DetailRequest request )
-        throws CoprException;
+    public abstract String getAdditionalRepos();
 
-    BuildResult build( BuildRequest request )
-        throws CoprException;
+    public abstract String getInstructions();
 
-    @Override
-    void close()
-        throws CoprException;
+    public abstract String getDescription();
 }

@@ -1,0 +1,15 @@
+{
+  "detail": {
+    "additional_repos": "",
+    "description": "Fixed or tweaked versions of some Fedora packages, for personal use.",
+    "instructions": "Nothing complicated, really...",
+    "last_modified": 1407916203,
+    "name": "override",
+    "yum_repos": {
+      "fedora-20-x86_64": "http://copr-be.cloud.fedoraproject.org/results/mizdebsk/override/fedora-20-x86_64/",
+      "fedora-21-x86_64": "http://copr-be.cloud.fedoraproject.org/results/mizdebsk/override/fedora-21-x86_64/",
+      "fedora-rawhide-x86_64": "http://copr-be.cloud.fedoraproject.org/results/mizdebsk/override/fedora-rawhide-x86_64/"
+    }
+  },
+  "output": "ok"
+}

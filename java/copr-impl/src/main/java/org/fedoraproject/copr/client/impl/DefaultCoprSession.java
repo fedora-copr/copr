@@ -22,6 +22,8 @@ import org.fedoraproject.copr.client.BuildResult;
 import org.fedoraproject.copr.client.CoprConfiguration;
 import org.fedoraproject.copr.client.CoprException;
 import org.fedoraproject.copr.client.CoprSession;
+import org.fedoraproject.copr.client.DetailRequest;
+import org.fedoraproject.copr.client.DetailResult;
 import org.fedoraproject.copr.client.ListRequest;
 import org.fedoraproject.copr.client.ListResult;
 import org.fedoraproject.copr.client.PlaygroundListRequest;
@@ -72,6 +74,14 @@ public class DefaultCoprSession
         throws CoprException
     {
         PlaygroundListCommand command = new PlaygroundListCommand( request );
+        return command.execute( this );
+    }
+
+    @Override
+    public DetailResult detail( DetailRequest request )
+        throws CoprException
+    {
+        DetailCommand command = new DetailCommand( request );
         return command.execute( this );
     }
 
