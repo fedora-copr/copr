@@ -17,12 +17,12 @@ from setproctitle import setproctitle
 from IPy import IP
 from retask.task import Task
 from retask.queue import Queue
+from .exceptions import MockRemoteError, CoprWorkerError
 
-import errors
 import mockremote
 from callback import FrontendCallback
 
-ansible_playbook="ansible-playbook"
+ansible_playbook = "ansible-playbook"
 
 try:
     import fedmsg
@@ -106,7 +106,7 @@ class WorkerCallback(object):
                     fcntl.flock(lf, fcntl.LOCK_EX)
                     lf.write(str(now) + ': ' + msg + '\n')
                     fcntl.flock(lf, fcntl.LOCK_UN)
-            except (IOError, OSError), e:
+            except (IOError, OSError) as e:
                 sys.stderr.write("Could not write to logfile {0} - {1}\n"
                                  .format(self.logfile, str(e)))
 
@@ -175,7 +175,7 @@ class Worker(multiprocessing.Process):
             if self.opts.fedmsg_enabled:
                 fedmsg.publish(modname="copr", topic=topic, msg=content)
         # pylint: disable=W0703
-        except Exception, e:
+        except Exception as e:
             # XXX - Maybe log traceback as well with traceback.format_exc()
             self.callback.log("failed to publish message: {0}".format(e))
 
@@ -401,7 +401,7 @@ class Worker(multiprocessing.Process):
         try:
             self.frontend_callback.update(data)
         except:
-            raise errors.CoprWorkerError(
+            raise CoprWorkerError(
                 "Could not communicate to front end to submit status info")
 
 
@@ -427,7 +427,7 @@ class Worker(multiprocessing.Process):
         try:
             self.frontend_callback.update(data)
         except:
-            raise errors.CoprWorkerError(
+            raise CoprWorkerError(
                 "Could not communicate to front end to submit results")
 
 
@@ -443,7 +443,7 @@ class Worker(multiprocessing.Process):
                                                     job.build_id,
                                                     job.chroot)
         except:
-            raise errors.CoprWorkerError(
+            raise CoprWorkerError(
                 "Could not communicate to front end to submit results")
 
         return response
@@ -511,7 +511,7 @@ class Worker(multiprocessing.Process):
                         cert_prefix="copr",
                         active=True)
 
-            except Exception, e:
+            except Exception as e:
                 self.callback.log(
                     "failed to initialize fedmsg: {0}".format(e))
 
@@ -538,10 +538,10 @@ class Worker(multiprocessing.Process):
                 try:
                     ip = self.spawn_instance(job)
                     if not ip:
-                        raise errors.CoprWorkerError(
+                        raise CoprWorkerError(
                             "No IP found from creating instance")
 
-                except ansible.errors.AnsibleError, e:
+                except ansible.errors.AnsibleError as e:
                     self.callback.log(
                         "failure to setup instance: {0}".format(e))
                     raise
@@ -561,7 +561,7 @@ class Worker(multiprocessing.Process):
                 if not os.path.exists(chroot_destdir):
                     try:
                         os.makedirs(chroot_destdir)
-                    except (OSError, IOError), e:
+                    except (OSError, IOError) as e:
                         msg = "Could not make results dir" \
                               " for job: {0} - {1}".format(chroot_destdir,
                                                            str(e))
@@ -617,9 +617,12 @@ class Worker(multiprocessing.Process):
 
                         build_details = mr.build_pkgs(job.pkgs)
 
+                        mr.add_pubkey(os.path.normpath(
+                            os.path.join(job.destdir, job.chroot)))
+
                         job.update(build_details)
 
-                    except mockremote.MockRemoteError, e:
+                    except MockRemoteError as e:
                         # record and break
                         self.callback.log("{0} - {1}".format(ip, e))
                         status = 0  # failure

@@ -1,0 +1,14 @@
+[Unit]
+Description=uWSGI Module
+After=syslog.target
+
+[Service]
+ExecStart=/sbin/uwsgi --ini /etc/copr-keygen/uwsgi.ini
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=main
+
+[Install]
+WantedBy=multi-user.target

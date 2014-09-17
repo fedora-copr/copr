@@ -1,23 +1,24 @@
+%global with_test 1
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
+%global __python2 %{__python}
 %endif
 
-Name:       copr-backend
-Version:    1.42
+Name:       copr-keygen
+Version:    1.52
 Release:    1%{?dist}
-Summary:    Backend for Copr
+Summary:    Part of Copr build system. Aux service that generate keys for sign.
 
 Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://fedorahosted.org/copr/
 # Source is created by
 # git clone https://git.fedorahosted.org/git/copr.git
-# cd copr/backend
+# cd copr/frontend
 # tito build --tgz
 Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
-BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
@@ -27,249 +28,259 @@ BuildRequires: systemd
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
-#for doc package
-BuildRequires: epydoc
-BuildRequires: graphviz
 
+#for doc package
+BuildRequires: sphinx
+BuildRequires: python-sphinxcontrib-httpdomain
+
+Requires:   haveged
+Requires:   gnupg
+Requires:   mod_wsgi
+Requires:   httpd
 Requires:   obs-signd
-Requires:   ansible >= 1.2
-Requires:   lighttpd
-Requires:   euca2ools
-Requires:   rsync
-Requires:   openssh-clients
-Requires:   mock
-Requires:   yum-utils
-Requires:   createrepo_c >= 0.2.1-3
-Requires:   python-bunch
-Requires:   python-daemon
-Requires:   python-lockfile
-Requires:   python-requests
-Requires:   python-setproctitle
-Requires:   python-retask
-Requires:   redis
-Requires:   logrotate
-Requires:   fedmsg
-Requires:   gawk
-Requires:   crontabs
-Requires:   uwsgi
-Requires(post): systemd
-Requires(preun): systemd
-Requires(postun): systemd
+Requires:   python-six
+Requires:   passwd
+Requires:   python-flask
+Requires:   python-flask-script
+# for tests:
+Requires:   pytest
+%if 0%{?rhel} < 7 && 0%{?rhel} > 0
+BuildRequires: python-argparse
+%endif
+
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
-This package contains backend.
+This package contains aux service that generate keys for package signing.
 
 %package doc
-Summary:    Code documentation for COPR backend
+Summary:    Code documentation for COPR
+Obsoletes:  copr-doc < 1.38
 
 %description doc
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
 
-This package include documentation for COPR code. Mostly useful for developers
-only.
+This package contains aux service that generate keys for package signing.
+
 
 %prep
 %setup -q
 
 
+
 %build
-# build documentation
-pushd documentation
-make %{?_smp_mflags} python
+
+CFLAGS="%{optflags}" %{__python2} setup.py build
+
+pushd docs
+  make html
 popd
+
 
 %install
 
-install -d %{buildroot}%{_sharedstatedir}/copr
-install -d %{buildroot}%{_sharedstatedir}/copr/jobs
-install -d %{buildroot}%{_sharedstatedir}/copr/public_html/results
-install -d %{buildroot}%{_var}/log/copr
-install -d %{buildroot}%{_var}/log/copr/workers/
-install -d %{buildroot}%{_pkgdocdir}/lighttpd/
-install -d %{buildroot}%{_datadir}/copr/backend
-install -d %{buildroot}%{_sysconfdir}/copr
-install -d %{buildroot}%{_sysconfdir}/logrotate.d/
-install -d %{buildroot}%{_unitdir}
-install -d %{buildroot}/%{_var}/log/copr-backend
-install -d %{buildroot}/%{_var}/run/copr-backend/
-install -d %{buildroot}/%{_tmpfilesdir}
-install -d %{buildroot}/%{_sbindir}
-install -d %{buildroot}%{_sysconfdir}/cron.daily
+%{__python2} setup.py install --skip-build --root %{buildroot}
+find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
+
+
+install -d %{buildroot}%{_sysconfdir}/copr-keygen
 install -d %{buildroot}%{_sysconfdir}/sudoers.d
+install -d %{buildroot}%{_pkgdocdir}
+install -d %{buildroot}%{_pkgdocdir}/httpd
+install -d %{buildroot}%{_pkgdocdir}/sign
+install -d %{buildroot}%{_datadir}/copr-keygen
+install -d %{buildroot}%{_bindir}
+install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/phrases
+install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/gnupg
 
-cp -a backend/* %{buildroot}%{_datadir}/copr/backend
-cp -a copr-be.py %{buildroot}%{_datadir}/copr/
-cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
-install -p -m 755 copr-prune-repo %{buildroot}%{_sbindir}/copr-prune-repo
-install -p -m 755 crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
+install -d %{buildroot}%{_unitdir}/
 
-cp -a dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
-cp -a logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
-cp -a tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
+#%{__install} -p -m 0644 run/uwsgi.ini %{buildroot}%{_sysconfdir}/copr-keygen/
+#%{__install} -p -m 0644 run/copr-keygen.uwsgi.service %{buildroot}%{_unitdir}/copr-keygen.uwsgi.service
 
-# for ghost files
-touch %{buildroot}%{_var}/log/copr/copr.log
-for i in `seq 7`; do
-    touch %{buildroot}%{_var}/log/copr/workers/worker-$i.log
-done
-touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 
-install -m 0644 copr-backend.service %{buildroot}/%{_unitdir}/
-install -m 0644 dist/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
+%{__install} -p -m 0644 run/signd-copr.service %{buildroot}%{_unitdir}/signd-copr.service
+%{__install} -p -m 0644 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
 
-#doc
-cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
-cp -a playbooks %{buildroot}%{_pkgdocdir}/
+%{__install} -p -m 0644 run/application.py %{buildroot}%{_datadir}/copr-keygen/
+%{__install} -p -m 0644 configs/httpd/copr-keygen.conf.example %{buildroot}%{_pkgdocdir}/httpd/
+%{__install} -p -m 0644 configs/sign/sign.conf.example %{buildroot}%{_pkgdocdir}/sign/sign.conf.example
+
+cp -a configs/sudoers/copr_signer %{buildroot}%{_sysconfdir}/sudoers.d/copr_signer
+
+# docs
+cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
+
+%check
 
 %pre
-getent group copr >/dev/null || groupadd -r copr
-getent passwd copr >/dev/null || \
-useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
-/usr/bin/passwd -l copr >/dev/null
+getent group copr-signer >/dev/null || groupadd -r copr-signer
+getent passwd copr-signer >/dev/null || \
+  useradd -r -g copr-signer -G copr-signer -d %{_datadir}/copr-keygen -s /bin/bash -c "Copr rpm signer" copr-signer
+/usr/bin/passwd -l copr-signer >/dev/null
+
 
 %post
-%systemd_post copr-backend.service
+service httpd condrestart
+#service haveged enable
 
-%preun
-%systemd_preun copr-backend.service
-
-%postun
-%systemd_postun_with_restart copr-backend.service
 
 %files
-%doc LICENSE
-%dir %{_datadir}/copr
-%dir %{_sharedstatedir}/copr
-%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/jobs/
-%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
-%dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/results
-%dir %attr(0755, copr, copr) %{_var}/log/copr
-%dir %attr(0755, copr, copr) %{_var}/log/copr/workers
-%dir %attr(0755, copr, copr) %{_var}/run/copr-backend
+%doc LICENSE docs/INSTALL.rst docs/README.rst
+%doc configs/local_settings.py.example
 
-%ghost %{_var}/log/copr/copr.log
-%ghost %{_var}/log/copr/workers/worker-*.log
-%ghost %{_var}/run/copr-backend/copr-be.pid
+%{_datadir}/copr-keygen/*
+%{python2_sitelib}/*
 
-%config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
-%dir %{_pkgdocdir}
-%doc %{_pkgdocdir}/lighttpd
-%doc %{_pkgdocdir}/playbooks
-%dir %{_sysconfdir}/copr
-%config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
-%{_unitdir}/copr-backend.service
-%{_tmpfilesdir}/copr-backend.conf
-%{_sbindir}/copr-prune-repo
-%config(noreplace) %{_sysconfdir}/cron.daily/copr-backend
+%{_unitdir}/*
+%{_bindir}/gpg_copr.sh
 
-
-
-%{_datadir}/copr/backend
-%{_datadir}/copr/copr-be.py*
-
-%config(noreplace) %attr(0600, root, root)  %{_sysconfdir}/sudoers.d/copr
+%defattr(600, copr-signer, copr-signer, 700)
+%{_sharedstatedir}/copr-keygen
+%config(noreplace) %{_sysconfdir}/copr-keygen
+%config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
 
 %files doc
 %doc LICENSE
-%doc %{_pkgdocdir}/python-doc
-%exclude %{_pkgdocdir}/lighttpd
-%exclude %{_pkgdocdir}/playbooks
+%doc %{_pkgdocdir}
+
 
 %changelog
-* Mon Aug 25 2014 Adam Samalik <asamalik@redhat.com> 1.42-1
-- [backend] [RHBZ:1128606 ] For rhel-5 builds pass "--checksum md5" to
-  `createrepo_c` command.
-- [backend] fix of builder test
-- [backend] test builder instance after spawning
-- [backend] never give up while spawning an OpenStack VM
-- [backend] worker's log filename correction
-- [backend] task id in worker process' name
-- [backend] async build playbooks
+* Wed Aug 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.44-1
+- fix spec parsing on arm
+-  'manage.py update_indexes' and search fix
+- [RHBZ:1131286] RFE: API endpoint for a project's "monitor" status
 
-* Thu Aug 14 2014 Miroslav Suchý <miroslav@suchy.cz> 1.41-1
-- [backend] fix of fix
-- [backend] couple of fixes
+* Mon Aug 25 2014 Adam Samalik <asamalik@redhat.com> 1.43-1
+- [frontend] bugfix: context_processor shouldn't return None
+- [frontend] task queue sorting fix
 
-* Wed Aug 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.40-1
-- [backend] queue cleaning
-- [backend] experimental build groups for more architectures
-- [backend] fix of a strange beaviour of retask
-- [backend] fedmsg shows submitter instead of project owner
-- [backend] new task queue for workers using retask
-- epel-7 comps workaround is need no more, since CENTOS7 have been released
+* Fri Aug 22 2014 Adam Samalik <asamalik@redhat.com> 1.42-1
+- [frontend] make all html tags to have the same left-padding
+- [frontend][RHBZ:1128602] RFE: define banner for local instance
+- [frontend][RHBZ:1131186] Use https URLs to install copr repo file
+- [frontend] [RHBZ:1128231] Show list of recent builds owned by user ( for
+  logged in users).
+- [API] friendly notification about invalid/expired token
+- [frontend] project name can not be just number
+- [frontend] starting builds highlighted on the waiting list
+- [frontend] [BZ:1128231] RFE: frontend user interface like koji: added
+  `/recent` page which list of ended builds.
+- [frontend] fixed SQLa ordering queries.
+- [frontend] paginator fix
+- [frontend] build states list
+- [frontend] minor bugfix: fixed api method `cancel build`.
 
-* Tue Jul 22 2014 Miroslav Suchý <msuchy@redhat.com> 1.39-1
+* Wed Aug 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.41-1
+- [frontend] bugifx: for some projects API doesn't return last-modified time in
+  detail resource.
+- new queue for backend
+- [frontend] new waiting queue
+- [frontend] sorting packages on the Monitor view
+
+* Tue Jul 22 2014 Miroslav Suchý <msuchy@redhat.com> 1.40-1
+- [frontend] status page fix
+- [frontend] How to enable a repo on a Overview page
+- [frontend] build listing fix
+- [frontend] status page extension - running tasks
+- [frontend] modified chroots in overview
 - FrontendCallback prettified
 - Starting state implemented, cancelling fixed
-- [backend] faster skipping
+- [frontend] new build status: Starting
+- [frontend] db migration
 
-* Tue Jul 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.38-1
-- [backend] built pkgs fix
-
-* Tue Jul 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.37-1
-- [backend] shell command uses pipes.quote
-- Return the chroot that finished when sending build.end
+* Tue Jul 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.39-1
+- frontend: add f21 chroot
+- 1118829 - suggest owners to entry link to reporting web
+- small changes after review
 - better and safer deleting of builds
-- [backend] separate playbooks for each architecture
-- [backend] built pkgs - include subpackages
-- [backend] skipped status and package details implemented
-- document vm_name option
+- [frontend] build's ended_on time fix
+- [frontend] built pkgs info - include subpackages
+- deleting of failed builds fixed
+- [frontend] api build details extended
+- pkg name on the build page
+- [frontend] pkg version on the Monitor page
+- [frontend] pkg name and version on the build page
+- [frontend] pkg name and version support
+- [frontend] skipped state support
+- Ansible playbok to generate frontend db documentation
+- obsolete copr-doc
+- [frontend] repeat build button in all states of build except pending
+- [frontend] project update by admin fix
+- get rid of multi assigment
+- [frontend] repofiles without specifying architecture
+- api search fix
+- WSGIPassAuthorization needs to be on
 
-* Thu Jun 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.36-1
-- backend: migrate to nova ansible module
-- backend: make sure that exit() exit whole script not just sub-shell
-- backend: allow passing additional info to playbooks
-- handle {spawn,terminate}_instance equally
-- backend: stop if you could not change to directory
-- W:310, 8: Attribute 'abort' defined outside __init__ (attribute-defined-
-  outside-init)
-- W:139, 0: Dangerous default value [] as argument (dangerous-default-value)
-  W:139, 0: Dangerous default value [0] as argument (dangerous-default-value)
-  W:139, 0: Dangerous default value ['stdout', 'stderr'] as argument
-  (dangerous-default-value)
-- W:543, 4: Dangerous default value DEF_MACROS ({}) as argument (dangerous-
-  default-value)
-- W:543, 4: Dangerous default value DEF_REPOS ([]) as argument (dangerous-
-  default-value)
-- W:677,24: Unused variable 'out' (unused-variable) W:677,20: Unused variable
-  'rc' (unused-variable)
-- W:297,12: Unused variable 'hn' (unused-variable)
-- C:116, 0: Unnecessary parens after 'print' keyword (superfluous-parens)
-- W: 72,28: Unused variable 'out' (unused-variable) W: 72,24: Unused variable
-  'rc' (unused-variable)
-- fix typo in exception message printing
-- 1102788 - Increase number of file descriptors on the build machine
+* Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.38-1
+- [frontend] running build can not be deleted
+- [frontend] cancel status set to all chroots
 
-* Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.35-1
-- follow selinux packaging draft
-- [backend] epel 5 repo fix (sha256 -> sha)
+* Fri May 30 2014 Miroslav Suchý <msuchy@redhat.com> 1.37-1
+- [frontend] monitor table design unified
+- [frontend] skipping bad package urls
+- builders can delete their builds
+- css fix
+
+* Wed May 21 2014 Miroslav Suchý <msuchy@redhat.com> 1.36-1
+- 1077794 - add LICENSE to -doc subpackage
+- 1077794 - own /usr/share/doc/copr-frontend
+- 1077794 - remove BR make
+- 1077794 - require passwd
+
+* Wed May 21 2014 Miroslav Suchý <msuchy@redhat.com> 1.35-1
+- build detail and new builds table
+- admin/playground page
+- Use "https" in API template
+- Use flask_openid safe_roots to mitigate Covert Redirect.
+- add newline at the end of repo file
+- [cli & api] delete a project
 
 * Thu Apr 24 2014 Miroslav Suchý <msuchy@redhat.com> 1.34-1
-- if directory does not exist, do not try to delete it
+- add indexes
+- 1086729 - make build tab friendly for users without JS
+- copr-cli cancel fix
+- correctly print chroots
+- [frontend] SEND_EMAILS config correction
 
-* Tue Apr 15 2014 Miroslav Suchý <miroslav@suchy.cz> 1.33-1
-- do not publish copr.worker messages
-- better count workers
+* Tue Apr 15 2014 Miroslav Suchý <msuchy@redhat.com> 1.33-1
+- api: add chroots to playground api call
+- check if chroot exist for specified project
+- better explain additional yum repos
 
 * Thu Apr 10 2014 Miroslav Suchý <msuchy@redhat.com> 1.32-1
-- include ec2rc in service unit file
+- send permissions request to admin not to requestee
 
 * Wed Apr 09 2014 Miroslav Suchý <msuchy@redhat.com> 1.31-1
-- 1077791 - set perm of cronfile to 755
-- 1077791 - add LICENSE to -doc subpackage
-- 1077791 - remove make as BR
+- validate chroots in POST requests with API
+- add /playground/list/ api call
+- add playground column to copr table
+- Make repo urls nicer so that last part matches filename
+- fixes and documentation for 66287cc8
+- use https for gravatar urls
+- We can choose chroots for new builds
+- [frontend] delete all builds with their project
+- [frontend] config comments
+- [frontend] sending emails when perms change
+- [frontend] typo s/Coper/Copr/
+- api: fix coprs.models.User usage in search
+- status page fix: long time
+- status page fix: project's owner
+- building pkgs separately
+- [frontend] let apache log in default location
+- api: fix KeyError in search
 
-* Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
-- [backend] exclude files which are part of main package
-- copr-backend.src:113: W: mixed-use-of-spaces-and-tabs (spaces: line 5, tab:
-  line 113)
+* Wed Mar 19 2014 Miroslav Suchý <msuchy@redhat.com> 1.30-1
+- Fix typo in API doc HTML
+- white background
+- status page
+- create _pkgdocdir
 
 * Tue Mar 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.29-1
-- move backend into separate package
+- move frontend to standalone package
 
 * Thu Feb 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.28-1
 - [backend] - pass lock to Actions

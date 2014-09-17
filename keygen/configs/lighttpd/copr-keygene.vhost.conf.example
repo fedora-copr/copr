@@ -1,0 +1,13 @@
+$SERVER["socket"] == "0.0.0.0:3782" {
+  server.name = "localhost"
+
+  fastcgi.server = ("/" =>
+    ((
+        "socket" => "/tmp/copr-keygen-fcgi.sock",
+        "bin-path" => "/usr/share/copr-keygen/app.fcgi",
+        "check-local" => "disable",
+        "max-procs" => 1
+    ))
+  )
+
+}

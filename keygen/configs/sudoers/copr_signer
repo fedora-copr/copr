@@ -1,0 +1,3 @@
+Defaults:copr-signer !requiretty
+
+copr-signer ALL = (root) NOPASSWD: /bin/gpg, /bin/gpg2, /usr/bin/gpg, /usr/bin/gpg2

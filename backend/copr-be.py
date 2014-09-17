@@ -1,7 +1,7 @@
 #!/usr/bin/python -ttu
 
 
-from backend import errors
+from backend.exceptions import CoprBackendError
 from backend.dispatcher import Worker
 from backend.actions import Action
 from bunch import Bunch
@@ -128,7 +128,7 @@ class CoprLog(multiprocessing.Process):
 
         logdir = os.path.dirname(self.opts.logfile)
         if not os.path.exists(logdir):
-            os.makedirs(logdir, mode=0750)
+            os.makedirs(logdir, mode=0o750)
 
         # setup a log file to write to
         logging.basicConfig(filename=self.opts.logfile, level=logging.DEBUG)
@@ -174,7 +174,7 @@ class CoprBackend(object):
         # put all the config items into a single self.opts bunch
 
         if not config_file:
-            raise errors.CoprBackendError("Must specify config_file")
+            raise CoprBackendError("Must specify config_file")
 
         self.config_file = config_file
         self.ext_opts = ext_opts  # to stow our cli options for read_conf()
@@ -190,7 +190,7 @@ class CoprBackend(object):
                 self.task_queues.append(Queue("copr-be-{0}".format(id)))
                 self.task_queues[id].connect()
         except ConnectionError:
-            raise errors.CoprBackendError(
+            raise CoprBackendError(
                 "Could not connect to a task queue. Is Redis running?")
 
         # make sure there is nothing in our task queues
@@ -212,7 +212,7 @@ class CoprBackend(object):
         self.abort = False
 
         if not os.path.exists(self.opts.worker_logdir):
-            os.makedirs(self.opts.worker_logdir, mode=0750)
+            os.makedirs(self.opts.worker_logdir, mode=0o750)
 
 
     def event(self, what):
@@ -278,12 +278,12 @@ class CoprBackend(object):
             # cloud key stuff?
             #
         except ConfigParser.Error as e:
-            raise errors.CoprBackendError(
+            raise CoprBackendError(
                 "Error parsing config file: {0}: {1}".format(
                     self.config_file, e))
 
         if not opts.destdir:
-            raise errors.CoprBackendError(
+            raise CoprBackendError(
                 "Incomplete Config - must specify"
                 " destdir in configuration")
 
@@ -298,7 +298,7 @@ class CoprBackend(object):
                 while queue.length:
                     queue.dequeue()
         except ConnectionError:
-            raise errors.CoprBackendError(
+            raise CoprBackendError(
                 "Could not connect to a task queue. Is Redis running?")
 
     def run(self):
@@ -336,7 +336,7 @@ class CoprBackend(object):
                         self.event("Worker {0} died unexpectedly".format(
                             w.worker_num))
                         if self.opts.exit_on_worker:
-                            raise errors.CoprBackendError(
+                            raise CoprBackendError(
                                 "Worker died unexpectedly, exiting")
                         else:
                             self.workers[id].remove(w)  # it is not working anymore
@@ -398,7 +398,7 @@ def main(args):
             gid=grp.getgrnam("copr").gr_gid,
             uid=pwd.getpwnam("copr").pw_uid,
             detach_process=opts.daemonize,
-            umask=022,
+            umask=0o22,
             stderr=sys.stderr,
             signal_map={
                 signal.SIGTERM: "terminate",

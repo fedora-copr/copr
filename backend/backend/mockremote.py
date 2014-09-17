@@ -25,8 +25,11 @@
 # take args from mockchain (more or less)
 
 from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
 
-import os
+
 import sys
 import time
 import fcntl
@@ -37,7 +40,12 @@ import optparse
 import subprocess
 from operator import methodcaller
 
+import os
 import ansible.runner
+
+
+from .exceptions import MockRemoteError, BuilderError
+from .sign import sign_rpms_in_dir, get_pubkey
 
 # where we should execute mockchain from on the remote
 mockchain = "/usr/bin/mockchain"
@@ -149,7 +157,7 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None,
         err_results["msg"] = "Error: Could not contact/connect" \
             " to {0}.".format(hostname)
 
-        return (True, err_results)
+        return True, err_results
 
     error = False
 
@@ -178,20 +186,6 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None,
                     err_results[item] = results["contacted"][hostname][item]
 
     return error, err_results
-
-
-class MockRemoteError(Exception):
-
-    def __init__(self, msg):
-        super(MockRemoteError, self).__init__()
-        self.msg = msg
-
-    def __str__(self):
-        return self.msg
-
-
-class BuilderError(MockRemoteError):
-    pass
 
 
 class DefaultCallBack(object):
@@ -566,6 +560,30 @@ class MockRemote(object):
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
                  macros=None, lock=None,
                  buildroot_pkgs=DEF_BUILDROOT_PKGS):
+        """
+
+        :param builder: builder hostname
+        :param user: user to run as/connect as on builder systems
+        :param timeout: ssh timeout
+        :param destdir: target directory to put built packages
+        :param chroot: chroot config name/base to use in the mock build
+                       (e.g.: fedora20_i386 )
+        :param cont: if a pkg fails to build, continue to the next one
+        :param bool recurse: if more than one pkg and it fails to build,
+                             try to build the rest and come back to it
+        :param repos: additional repositories for mock
+        :param DefaultCallBack callback: object with hooks for notifications
+                                         about build progress
+        :param remote_basedir: basedir on builder
+        :param remote_tempdir: tempdir on builder
+        :param macros: {    "copr_username": ...,
+                            "copr_projectname": ...,
+                            "vendor": ...}
+        :param multiprocessing.Lock lock: instance of Lock shared between
+            Copr backend process
+        :param buildroot_pkgs: whitespace separated string with additional
+                               packages that should present during build
+        """
 
         if repos is None:
             repos = DEF_REPOS
@@ -594,6 +612,7 @@ class MockRemote(object):
         self.failed = []
         self.finished = []
         self.pkg_list = []
+        self.callback.log("self dict: {}".format(self.__dict__))
 
     def _get_pkg_destpath(self, pkg):
         s_pkg = os.path.basename(pkg)
@@ -601,6 +620,75 @@ class MockRemote(object):
         resdir = "{0}/{1}/{2}".format(self.destdir, self.chroot, pdn)
         resdir = os.path.normpath(resdir)
         return resdir
+
+    def add_pubkey(self, chroot_dir):
+        """
+            Adds pubkey.gpg with public key to ``chroot_dir``
+            using `copr_username` and `copr_projectname` from self.macros.
+        """
+        self.callback.log("Retrieving pubkey ")
+        # TODO: sign repodata as well ?
+        user = self.macros["copr_username"]
+        project = self.macros["copr_projectname"]
+        pubkey_path = os.path.join(chroot_dir, "pubkey.gpg")
+        try:
+            #TODO: uncomment this when key revoke/change will be implemented
+            #if os.path.exists(pubkey_path):
+            #    return
+
+            get_pubkey(user, project, pubkey_path)
+            self.callback.log(
+                "Added pubkey for user {} project {} into the directory: {}".
+                format(user, project, chroot_dir))
+
+        except Exception as e:
+            self.callback.error(
+                "failed to retrieve pubkey for user {} project {} due to: \n"
+                "{}".format(user, project, e))
+
+    def sign_built_packages(self, chroot_dir, pkg):
+        """
+            Sign built rpms
+             using `copr_username` and `copr_projectname` from self.macros
+             by means of obs-sign. If user builds doesn't have a key pair
+             at sign service, it would be created through ``copr-keygen``
+
+        :param chroot_dir: Directory with rpms to be signed
+        :param pkg: path to the source package
+
+        """
+        source_basename = os.path.basename(pkg).replace(".src.rpm", "")
+        self.callback.log("Going to sign pkgs from source: {} in chroot: {}".
+                          format(source_basename, chroot_dir))
+
+        try:
+            sign_rpms_in_dir(self.macros["copr_username"],
+                             self.macros["copr_projectname"],
+                             os.path.join(chroot_dir, source_basename),
+                             callback=self.callback)
+        except Exception as e:
+            self.callback.log(
+                "failed to sign packages "
+                "built from `{}` with error: \n"
+                "{}".format(pkg, e)
+            )
+            if isinstance(e, MockRemoteError):
+                raise e
+
+        self.callback.log("Sign done,")
+
+    @staticmethod
+    def log_to_file_safe(filepath, to_out_list, to_err_list):
+        r_log = open(filepath, 'a')
+        fcntl.flock(r_log, fcntl.LOCK_EX)
+        for to_out in to_out_list:
+            r_log.write(to_out)
+        if to_err_list:
+            r_log.write("\nstderr\n")
+            for to_err in to_err_list:
+                r_log.write(to_err)
+        fcntl.flock(r_log, fcntl.LOCK_UN)
+        r_log.close()
 
     def build_pkgs(self, pkgs=None):
 
@@ -661,15 +749,9 @@ class MockRemote(object):
                     os.makedirs(
                         os.path.join(self.destdir, self.chroot))
 
-                r_log = open(os.path.join(chroot_dir, "mockchain.log"), 'a')
-                fcntl.flock(r_log, fcntl.LOCK_EX)
-                r_log.write("\n\n{0}\n\n".format(pkg))
-                r_log.write(b_out)
-                if b_err:
-                    r_log.write("\nstderr\n")
-                    r_log.write(b_err)
-                fcntl.flock(r_log, fcntl.LOCK_UN)
-                r_log.close()
+                self.log_to_file_safe(
+                    os.path.join(chroot_dir, "mockchain.log"),
+                    ["\n\n{0}\n\n".format(pkg), b_out], [b_err])
 
                 # checking where to stick stuff
                 if not b_status:
@@ -689,6 +771,9 @@ class MockRemote(object):
                 else:
                     self.callback.log("Success building {0}".format(
                                       os.path.basename(pkg)))
+
+                    self.sign_built_packages(chroot_dir, pkg)
+
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
                     _, _, err = createrepo(chroot_dir, self.lock)

@@ -1,0 +1,20 @@
+<VirtualHost 0.0.0.0:80>
+    ServerName 127.0.0.1
+
+    WSGIPassAuthorization On
+    WSGIDaemonProcess 127.0.0.1 user=copr-signer group=copr-signer threads=5
+    WSGIScriptAlias / /usr/share/copr-keygen/application.py
+    WSGIProcessGroup 127.0.0.1
+
+    ErrorLog logs/error_log
+    CustomLog logs/access_log common
+
+    <Directory /usr/share/copr-keygen>
+        WSGIApplicationGroup %{GLOBAL}
+        # apache 2.2 (el6, F17)
+        #Order deny,allow
+        #Allow from all
+        # apache 2.4 (F18+)
+        Require all granted
+    </Directory>
+</VirtualHost>

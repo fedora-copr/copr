@@ -1,0 +1,10 @@
+[Unit]
+Description=GPG Sign Daemon
+After=syslog.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/signd.pid
+Environment="GNUPGHOME=/var/lib/copr-keygen/gnupg"
+ExecStart=/usr/sbin/signd -f
+Restart=on-abort
