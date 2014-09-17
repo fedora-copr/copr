@@ -13,6 +13,7 @@ This package contains aux service that generate keys for package signing.
 requires = [
     'flask',
     'six',
+    'sphinxcontrib-httpdomain',
 ]
 
 

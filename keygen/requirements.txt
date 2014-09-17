@@ -1,0 +1,3 @@
+sphinxcontrib-httpdomain
+flask
+six
