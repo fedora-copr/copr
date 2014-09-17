@@ -1,18 +1,20 @@
-from flask import Response
+class KeygenServiceBaseException(Exception):
+    status_code = 500
 
-from . import app
+    def __init__(self, *args, **kwargs):
+        super(KeygenServiceBaseException, self).__init__(*args)
+        self.kwargs = kwargs
+
+    def __str__(self):
+        out = "Keygen service error\n"
+        out += "args: {}\n".format(repr(self.args))
+        out += "kwargs: {}\n".format(repr(self.kwargs))
+        return out
 
 
-class BadRequestException(Exception):
+class BadRequestException(KeygenServiceBaseException):
     status_code = 400
 
 
-class GpgErrorException(Exception):
+class GpgErrorException(KeygenServiceBaseException):
     status_code = 500
-
-
-@app.errorhandler(BadRequestException)
-def handle_invalid_usage(error):
-    response = Response(error.message, content_type="text/plain;charset=UTF-8")
-    response.status_code = error.status_code
-    return response

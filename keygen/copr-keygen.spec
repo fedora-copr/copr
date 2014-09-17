@@ -29,9 +29,9 @@ BuildRequires: systemd
 BuildRequires: python-argparse
 %endif
 
-Requires:   python-six
-Requires:   python-flask
-Requires:   python-flask-script
+BuildRequires:   python-six
+BuildRequires:   python-flask
+BuildRequires:   python-flask-script
 
 #for doc package
 BuildRequires: sphinx

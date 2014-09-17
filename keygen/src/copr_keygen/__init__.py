@@ -7,13 +7,15 @@ from __future__ import absolute_import
 import json
 
 from flask import Flask, request, Response
+from copr_keygen.exceptions import BadRequestException, \
+    KeygenServiceBaseException
 
 app = Flask(__name__)
 app.config.from_object("copr_keygen.default_settings")
 app.config.from_envvar("COPR_KEYGEN_CONFIG", silent=True)
 
 
-from .logic import create_new_key, check_user_not_exists, create_passphrase
+from .logic import create_new_key, user_exists
 
 
 @app.route('/ping')
@@ -52,30 +54,39 @@ def gen_key():
     :return: Http response with plain text content
 
     :status 201: on success, returns empty data
+    :status 200: key already exists, nothing done
     :status 400: incorrect request
     :status 500: internal server error
 
     """
-    query = json.loads(request.data)
+    try:
+        query = json.loads(request.data)
+    except Exception as e:
+        raise BadRequestException("Failed to parse request body: {}".format(e))
 
-    print(repr(query))
+    if "name_real" not in query:
+        raise BadRequestException("Request query missing required "
+                                  "parameter `name_real`".format(query))
 
-    mail = query["name_email"]
+    if "name_email" not in query:
+        raise BadRequestException("Request query missing required "
+                                  "parameter `name_real`".format(query))
 
-    # TODO: get fingerprints by names to ensure that no such keys in keyring
-    if not True == query.get("force", False):
-        check_user_not_exists(app, mail)
+    name_email = query["name_email"]
 
-    stdout, stderr = create_new_key(
+    if user_exists(app, name_email):
+        response = Response("", content_type="text/plain;charset=UTF-8")
+        response.status_code = 200
+        return response
+
+    create_new_key(
         app,
         name_real=query["name_real"],
-        name_email=mail,
+        name_email=name_email,
         name_comment=query.get("name_comment", None),
         key_length=query.get("key_length", app.config["GPG_KEY_LENGTH"]),
         expire=query.get("expire", app.config["GPG_EXPIRE"]),
     )
-
-    create_passphrase(app, mail)
 
     response = Response("", content_type="text/plain;charset=UTF-8")
     response.status_code = 201
@@ -91,3 +102,10 @@ def gen_key():
 #
 #     #cmd = "gpg --with-colons --fingerprint gafoo | awk -F: '$1 == "fpr" {print $10;}'"
 #     #TODO: complete implementation
+
+
+@app.errorhandler(KeygenServiceBaseException)
+def handle_invalid_usage(error):
+    response = Response(error.message, content_type="text/plain;charset=UTF-8")
+    response.status_code = error.status_code
+    return response
