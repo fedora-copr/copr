@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.44
+Version:    1.45
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -163,6 +163,16 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Thu Sep 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.45-1
+- revert f0e5c211f86cc3691fda8d4412c21ef6338a339f
+- [frontend] including project name
+- [frontend] recent builds on the home page
+- [frontend] project search update after patch
+- support for kerberos authentication
+- do not strictly resist on Fedora's OpenID
+- [frontend] recent builds sorting fix
+- [frontend] user's recent builds on their home page
+
 * Wed Aug 27 2014 Miroslav Suchý <msuchy@redhat.com> 1.44-1
 - fix spec parsing on arm
 -  'manage.py update_indexes' and search fix
