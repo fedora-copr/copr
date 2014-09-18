@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.43
+Version:    1.44
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -180,6 +180,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Sep 18 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.44-1
+- [backend] type fix
+
 * Thu Sep 18 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.43-1
 - [backend] config parsing: convert fields to proper data type. 
 - [backend] added option to disable package signing.
