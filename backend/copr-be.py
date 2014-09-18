@@ -26,13 +26,26 @@ import sys
 import time
 
 
-def _get_conf(cp, section, option, default):
+def _get_conf(cp, section, option, default, mode=None):
     """
     To make returning items from config parser less irritating
+
+    :param mode: convert obtained value, possible modes:
+      - None (default): do nothing
+      - "bool" or "boolean"
+      - "int"
+      - "float"
     """
 
     if cp.has_section(section) and cp.has_option(section, option):
-        return cp.get(section, option)
+        if mode is None:
+            return cp.get(section, option)
+        elif mode in ["bool", "boolean"]:
+            return cp.getboolean(section, option)
+        elif mode == "int":
+            return cp.getint(section, option)
+        elif mode == "float":
+            return cp.getfloat(section, option)
     return default
 
 
@@ -232,7 +245,10 @@ class CoprBackend(object):
                 cp, "backend", "frontend_auth", "PASSWORDHERE")
 
             opts.build_groups_count = _get_conf(
-                cp, "backend", "build_groups", 1)
+                cp, "backend", "build_groups", 1, mode="int")
+
+            opts.do_sign = _get_conf(
+                cp, "backend", "do_sign", False, mode="bool")
 
             opts.build_groups = []
             for id in range(int(opts.build_groups_count)):
@@ -241,7 +257,7 @@ class CoprBackend(object):
                     "name": _get_conf(
                             cp, "backend", "group{0}_name".format(id), "PC"),
                     "archs": _get_conf(
-                            cp, "backend", "group{0}_archs".format(id), 
+                            cp, "backend", "group{0}_archs".format(id),
                             "i386,x86_64").split(","),
                     "spawn_playbook": _get_conf(
                             cp, "backend", "group{0}_spawn_playbook".format(id),
@@ -259,14 +275,17 @@ class CoprBackend(object):
 
             opts.destdir = _get_conf(cp, "backend", "destdir", None)
             opts.exit_on_worker = _get_conf(
-                cp, "backend", "exit_on_worker", False)
+                cp, "backend", "exit_on_worker", False, mode="bool")
             opts.fedmsg_enabled = _get_conf(
-                cp, "backend", "fedmsg_enabled", False)
-            opts.sleeptime = int(_get_conf(cp, "backend", "sleeptime", 10))
-            opts.timeout = int(_get_conf(cp, "builder", "timeout", 1800))
+                cp, "backend", "fedmsg_enabled", False, mode="bool")
+            opts.sleeptime = _get_conf(
+                cp, "backend", "sleeptime", 10, mode="int")
+            opts.timeout = _get_conf(
+                cp, "builder", "timeout", 1800, mode="int")
             opts.logfile = _get_conf(
                 cp, "backend", "logfile", "/var/log/copr/backend.log")
-            opts.verbose = _get_conf(cp, "backend", "verbose", False)
+            opts.verbose = _get_conf(
+                cp, "backend", "verbose", False, mode="boo")
             opts.worker_logdir = _get_conf(
                 cp, "backend", "worker_logdir", "/var/log/copr/workers/")
             opts.spawn_vars = _get_conf(cp, "backend", "spawn_vars", None)

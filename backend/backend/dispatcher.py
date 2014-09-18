@@ -462,7 +462,6 @@ class Worker(multiprocessing.Process):
                 return True
         return False
 
-
     def run(self):
         """
         Worker should startup and check if it can function
@@ -500,8 +499,6 @@ class Worker(multiprocessing.Process):
             if not self.starting_build(job):
                 continue
 
-
-
             # Initialize Fedmsg
             # (this assumes there are certs and a fedmsg config on disk)
             try:
@@ -515,7 +512,6 @@ class Worker(multiprocessing.Process):
                 self.callback.log(
                     "failed to initialize fedmsg: {0}".format(e))
 
-
             # Checking whether to build or skip
             if self.pkg_built_before(job.pkgs, job.chroot, job.destdir):
                 self._announce_start(job)
@@ -525,13 +521,9 @@ class Worker(multiprocessing.Process):
                 job.status = 5 # skipped
                 self._announce_end(job)
                 continue
-
-
-
             # FIXME
             # this is our best place to sanity check the job before starting
             # up any longer process
-
 
             # spin up our build instance
             if self.create and not self.ip:
@@ -547,7 +539,6 @@ class Worker(multiprocessing.Process):
                     raise
             else:
                 ip = self.ip
-
 
             try:
                 self._announce_start(job, ip)
@@ -611,14 +602,16 @@ class Worker(multiprocessing.Process):
                             repos=chroot_repos,
                             macros=macros,
                             lock=self.lock,
+                            do_sign=self.opts.do_sign,
                             buildroot_pkgs=job.buildroot_pkgs,
                             callback=mockremote.CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile))
 
                         build_details = mr.build_pkgs(job.pkgs)
 
-                        mr.add_pubkey(os.path.normpath(
-                            os.path.join(job.destdir, job.chroot)))
+                        if self.opts.do_sign:
+                            mr.add_pubkey(os.path.normpath(
+                                os.path.join(job.destdir, job.chroot)))
 
                         job.update(build_details)
 

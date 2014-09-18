@@ -558,7 +558,7 @@ class MockRemote(object):
                  destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False,
                  recurse=False, repos=None, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
-                 macros=None, lock=None,
+                 macros=None, lock=None, do_sign=False,
                  buildroot_pkgs=DEF_BUILDROOT_PKGS):
         """
 
@@ -581,6 +581,8 @@ class MockRemote(object):
                             "vendor": ...}
         :param multiprocessing.Lock lock: instance of Lock shared between
             Copr backend process
+        :param bool do_sign: enable package signing, require configured
+            signer host and correct /etc/sign.conf
         :param buildroot_pkgs: whitespace separated string with additional
                                packages that should present during build
         """
@@ -599,6 +601,7 @@ class MockRemote(object):
         self.remote_tempdir = remote_tempdir
         self.macros = macros
         self.lock = lock
+        self.do_sign = do_sign
 
         if not self.callback:
             self.callback = DefaultCallBack()
@@ -675,7 +678,7 @@ class MockRemote(object):
             if isinstance(e, MockRemoteError):
                 raise e
 
-        self.callback.log("Sign done,")
+        self.callback.log("Sign done")
 
     @staticmethod
     def log_to_file_safe(filepath, to_out_list, to_err_list):
@@ -772,7 +775,8 @@ class MockRemote(object):
                     self.callback.log("Success building {0}".format(
                                       os.path.basename(pkg)))
 
-                    self.sign_built_packages(chroot_dir, pkg)
+                    if self.do_sign:
+                        self.sign_built_packages(chroot_dir, pkg)
 
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
@@ -839,6 +843,8 @@ def parse_args(args):
                       help="place to download all the results/packages")
     parser.add_option("--packages", dest="packages_file", default=None,
                       help="file to read list of packages from")
+    parser.add_option("--do-sign", dest="do_sign", default=False,
+                      help="enable package signing")
     parser.add_option("-q", "--quiet", dest="quiet", default=False,
                       action="store_true",
                       help="output very little to the terminal")
@@ -898,7 +904,8 @@ def main(args):
                         cont=opts.cont,
                         recurse=opts.recurse,
                         repos=opts.repos,
-                        callback=callback)
+                        do_sign=opts.do_sign,
+                        callback=callback,)
 
         # FIXMES
         # things to think about doing:

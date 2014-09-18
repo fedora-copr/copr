@@ -3,7 +3,7 @@ An outline of package sign process in Copr
 
 To sign packages we decided to use obs-signd
 `1 <http://en.opensuse.org/openSUSE:Build_Service_Signer>`__.
-Unfortunately it doesn't manage use keys in any way, but it's possible
+Unfortunately it doesn't manage user keys in any way, but it's possible
 to minimize Copr operations with gpg key-pairs.
 
 Expected setup
