@@ -285,7 +285,7 @@ class CoprBackend(object):
             opts.logfile = _get_conf(
                 cp, "backend", "logfile", "/var/log/copr/backend.log")
             opts.verbose = _get_conf(
-                cp, "backend", "verbose", False, mode="boo")
+                cp, "backend", "verbose", False, mode="bool")
             opts.worker_logdir = _get_conf(
                 cp, "backend", "worker_logdir", "/var/log/copr/workers/")
             opts.spawn_vars = _get_conf(cp, "backend", "spawn_vars", None)
