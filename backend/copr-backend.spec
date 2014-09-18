@@ -51,7 +51,7 @@ Requires:   logrotate
 Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
-Requires:   uwsgi
+
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd

@@ -14,7 +14,7 @@ License:    GPLv2+
 URL:        https://fedorahosted.org/copr/
 # Source is created by
 # git clone https://git.fedorahosted.org/git/copr.git
-# cd copr/frontend
+# cd copr/keygen
 # tito build --tgz
 Source0: %{name}-%{version}.tar.gz
 
@@ -102,10 +102,6 @@ install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/gnupg
 
 install -d %{buildroot}%{_unitdir}/
 
-#%{__install} -p -m 0644 run/uwsgi.ini %{buildroot}%{_sysconfdir}/copr-keygen/
-#%{__install} -p -m 0644 run/copr-keygen.uwsgi.service %{buildroot}%{_unitdir}/copr-keygen.uwsgi.service
-
-
 %{__install} -p -m 0644 run/signd-copr.service %{buildroot}%{_unitdir}/signd-copr.service
 %{__install} -p -m 0644 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
 
@@ -129,8 +125,9 @@ getent passwd copr-signer >/dev/null || \
 
 %post
 service httpd condrestart
-#service haveged enable
 
+%postun
+service httpd condrestart
 
 %files
 %doc LICENSE docs/INSTALL.rst docs/README.rst

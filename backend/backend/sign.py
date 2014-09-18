@@ -33,10 +33,10 @@ def create_gpg_email(username, projectname):
 
 def get_pubkey(username, projectname, outfile=None):
     """
-    Re
+    Retrieves public key for user/project from signer host.
 
     :param outfile: [optional] file to write obtained key
-    :return:
+    :return: public keys
 
     :raises: CoprSignError or CoprSignNoKeyError
     """
@@ -48,7 +48,7 @@ def get_pubkey(username, projectname, outfile=None):
         stdout, stderr = handle.communicate()
     except Exception as e:
         raise CoprSignError("Failed to get user pubkey"
-                            " dut to: {}".format(e))
+                            " due to: {}".format(e))
 
     if handle.returncode != 0:
         if "unknown key:" in stderr:
@@ -65,8 +65,8 @@ def get_pubkey(username, projectname, outfile=None):
     if outfile:
         with open(outfile, "w") as handle:
             handle.write(stdout)
-    else:
-        return stdout
+
+    return stdout
 
 
 def _sign_one(path, email, callback=None):
