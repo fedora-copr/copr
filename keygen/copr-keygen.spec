@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-keygen
-Version:    1.53
+Version:    1.54
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for sign.
 
@@ -150,6 +150,10 @@ service httpd condrestart
 
 
 %changelog
+* Thu Sep 18 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.54-1
+- [keygen] minor fixes/typos
+- [keygen] fixed BuildRequeres in .spec; added requirements.txt
+
 * Wed Sep 17 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.53-1
 - new package [copr-keygen] built with tito
 
