@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.42
+Version:    1.43
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -180,6 +180,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Sep 18 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.43-1
+- [backend] config parsing: convert fields to proper data type. 
+- [backend] added option to disable package signing.
+- [keygen] new component for copr: gpg key generation for package sign
+- [backend] broadcast both submitter and owner to fedmsg
+- [backend] example backend config: changes url protocol to HTTPS.
+
 * Mon Aug 25 2014 Adam Samalik <asamalik@redhat.com> 1.42-1
 - [backend] [RHBZ:1128606 ] For rhel-5 builds pass "--checksum md5" to
   `createrepo_c` command.
