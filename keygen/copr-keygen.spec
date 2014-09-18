@@ -19,7 +19,6 @@ URL:        https://fedorahosted.org/copr/
 Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
-BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
@@ -31,7 +30,6 @@ BuildRequires: python-argparse
 
 BuildRequires:   python-six
 BuildRequires:   python-flask
-BuildRequires:   python-flask-script
 
 #for doc package
 BuildRequires: sphinx
@@ -45,7 +43,6 @@ Requires:   obs-signd
 Requires:   python-six
 Requires:   passwd
 Requires:   python-flask
-Requires:   python-flask-script
 # for tests:
 Requires:   pytest
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
@@ -100,9 +97,6 @@ install -d %{buildroot}%{_bindir}
 install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/phrases
 install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/gnupg
 
-install -d %{buildroot}%{_unitdir}/
-
-%{__install} -p -m 0644 run/signd-copr.service %{buildroot}%{_unitdir}/signd-copr.service
 %{__install} -p -m 0644 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
 
 %{__install} -p -m 0644 run/application.py %{buildroot}%{_datadir}/copr-keygen/
@@ -136,7 +130,6 @@ service httpd condrestart
 %{_datadir}/copr-keygen/*
 %{python2_sitelib}/*
 
-%{_unitdir}/*
 %{_bindir}/gpg_copr.sh
 
 %defattr(600, copr-signer, copr-signer, 700)
