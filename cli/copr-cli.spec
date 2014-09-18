@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.36
+Version:    1.37
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -98,6 +98,15 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %endif
 
 %changelog
+* Thu Sep 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.37-1
+- [python-copr] Renamed package: python-copr-client -> python-copr
+- [cli]  In case of missing config show proper message, hide traceback.
+- [python-client] added a few unittest, changed package layout, updated .spec
+  to run tests during %%check. [copr-cli] reflected changes in python-client
+- [python-copr,copr-cli] fixing, cleanup
+- [python-copr,copr-cli] Copr-cli now uses python-copr-cli package. [copr-cli]
+  updated .spec to reflect usage of python-copr-client
+
 * Tue Jul 22 2014 Miroslav Suchý <msuchy@redhat.com> 1.36-1
 - use correct name of variable
 
