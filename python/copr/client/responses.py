@@ -132,6 +132,13 @@ class ProjectHandle(BaseHandle):
         return self.client.delete_project(
             self.projectname, username=self.username)
 
+    def create_new_build(self, src_pkgs, chroots=None):
+        """
+            Shortcut to :meth"`~.client.CoprClient.create_new_build'
+        """
+        return self.client.create_new_build(self.projectname,
+                                            src_pkgs, chroots)
+
 
 class BuildHandle(BaseHandle):
     """

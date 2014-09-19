@@ -82,7 +82,7 @@ class ProjectChrootsParser(IParser):
                         chrootname=chrootname,
                         repo_url=url
                     )
-                    for chrootname, url in data["detail"]["yum_repos"].iteritems()
+                    for chrootname, url in data["detail"]["yum_repos"].items()
                 ]
             else:
                 raise KeyError("Response missing data about chroots")

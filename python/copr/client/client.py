@@ -300,10 +300,10 @@ class CoprClient(object):
                 NewBuildListParser,
             ]
         )
-        response.handle = BuildHandle(
-            self, response=response, build_id=None,
-            projectname=projectname, username=username
-        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname, username=username)
+
         return response
 
     def get_project_details(self, projectname, username=None):
@@ -318,7 +318,7 @@ class CoprClient(object):
                 - text fields: "description", "instructions", "last_modified",
                 "name"
 
-                - **chroots_list**: list of
+                - **chroots**: list of
                   :py:class:`~.responses.ProjectChrootWrapper`
         """
         if not username:
@@ -485,6 +485,7 @@ class CoprClient(object):
             data=result_data,
             parsers=[
                 CommonMsgErrorOutParser,
+                ProjectDetailsFieldsParser,
                 fabric_simple_fields_parser(["buildroot_pkgs"])
             ]
         )

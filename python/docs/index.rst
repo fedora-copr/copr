@@ -64,17 +64,19 @@ are wrapped into the Response object.
 Depending on used methods Responses will have different set of
 provided attributes and methods.
 
+.. toctree::
+    Examples
 
-Auto-generated documentation
-----------------------------
+Autodoc
+-------
 See method signatures and response objects in
 the auto generated documentation:
 
 
 .. toctree::
-
     CoprClient
     Responses
+
 
 
 Indices and tables
