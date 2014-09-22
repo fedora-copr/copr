@@ -11,7 +11,7 @@
 %endif
 
 Name:       copr-keygen
-Version:    1.55
+Version:    1.56
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for sign.
 
@@ -238,6 +238,11 @@ service httpd condrestart
 
 
 %changelog
+* Mon Sep 22 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.56-1
+- [keygen] .spec: run tests, build py3 version for fedora
+- [keygen] py3 compatibility
+- [keygen] added unittests
+
 * Thu Sep 18 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.55-1
 - [keygen] cleanup in .spec
 
