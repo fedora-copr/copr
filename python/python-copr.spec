@@ -86,7 +86,7 @@ and submit new builds and COPR will create yum repository from latest builds.
 This package includes documentation for python-copr. Mostly useful for
 developers only.
 
-%endif
+%endif # ?fedora
 
 %prep
 %setup -q
@@ -118,7 +118,7 @@ mv copr/README.rst ./
 pushd docs
 make %{?_smp_mflags} html
 popd
-%endif
+%endif # ?fedora
 
 %install
 
