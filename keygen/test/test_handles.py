@@ -17,7 +17,7 @@ def test_ping():
     with app.test_client() as c:
         rv = c.get('/ping')
         assert rv.status_code == 200
-        assert rv.data == "pong\n"
+        assert rv.data == b"pong\n"
 
 
 json_data = json.dumps({
@@ -39,7 +39,6 @@ class TestGenKey(object):
         create_new_key.return_value = None
 
         with app.test_client() as c:
-            #pass
             rv = c.post('/gen_key', data=json_data)
             assert rv.status_code == 201
 

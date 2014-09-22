@@ -93,7 +93,7 @@ def create_new_key(
             name_real=name_real,
             comment=name_comment,
             name_email=name_email,
-            expire=expire or 0))
+            expire=expire or 0).encode('utf-8'))
 
     cmd = [
         app.config["GPG_BINARY"], "-v", "--batch",

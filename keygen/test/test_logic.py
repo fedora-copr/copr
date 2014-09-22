@@ -121,7 +121,7 @@ class TestUserExists(TestCase):
 
 @mock.patch("copr_keygen.logic.user_exists")
 @mock.patch("copr_keygen.logic.Popen")
-class TestCreateKey(TestCase):
+class TestGenKey(TestCase):
     def test_simple_create(self, popen, user_exists):
         """
         Check correct key generation.

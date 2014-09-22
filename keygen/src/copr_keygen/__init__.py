@@ -60,7 +60,8 @@ def gen_key():
 
     """
     try:
-        query = json.loads(request.data)
+        charset = request.headers.get('charset', 'utf-8')
+        query = json.loads(request.data.decode(charset))
     except Exception as e:
         raise BadRequestException("Failed to parse request body: {}".format(e))
 
@@ -95,7 +96,7 @@ def gen_key():
 
 @app.errorhandler(KeygenServiceBaseException)
 def handle_invalid_usage(error):
-    response = Response(error.message, content_type="text/plain;charset=UTF-8")
+    response = Response(error.msg, content_type="text/plain;charset=UTF-8")
     response.status_code = error.status_code
     response.data = str(error)
     return response
@@ -110,3 +111,4 @@ def handle_invalid_usage(error):
 ##     #cmd = "gpg --with-colons --fingerprint gafoo |
 #           awk -F: '$1 == "fpr" {print $10;}'"
 #     #TODO: complete implementation
+

@@ -1,6 +1,10 @@
 class KeygenServiceBaseException(Exception):
     status_code = 500
 
+    @property
+    def msg(self):
+        return str(self)
+
     def __init__(self, *args, **kwargs):
         super(KeygenServiceBaseException, self).__init__(*args)
         self.kwargs = kwargs
