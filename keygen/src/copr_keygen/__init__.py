@@ -93,19 +93,20 @@ def gen_key():
     return response
 
 
+@app.errorhandler(KeygenServiceBaseException)
+def handle_invalid_usage(error):
+    response = Response(error.message, content_type="text/plain;charset=UTF-8")
+    response.status_code = error.status_code
+    response.data = str(error)
+    return response
+
+
 # @app.route('/remove_key', methods=["post"])
 # def remove_key():
 #     raise NotImplementedError()
 #     query = json.loads(request.data)
 #     print(repr(query))
 #     mail = query["name_email"]
-#
-#     #cmd = "gpg --with-colons --fingerprint gafoo | awk -F: '$1 == "fpr" {print $10;}'"
+##     #cmd = "gpg --with-colons --fingerprint gafoo |
+#           awk -F: '$1 == "fpr" {print $10;}'"
 #     #TODO: complete implementation
-
-
-@app.errorhandler(KeygenServiceBaseException)
-def handle_invalid_usage(error):
-    response = Response(error.message, content_type="text/plain;charset=UTF-8")
-    response.status_code = error.status_code
-    return response

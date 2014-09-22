@@ -6,20 +6,23 @@ import tempfile
 from .exceptions import GpgErrorException
 
 
-def _ensure_passphrase_exist(app, name_email):
+def ensure_passphrase_exist(app, name_email):
     """ Need this to tell signd server that `name_email` available in keyring
     Key not protected by passphrase, so we write *something* to passphrase file.
     """
+    def create():
+        with open(location, "w") as handle:
+            handle.write("1")
+            handle.write(os.linesep)
 
     location = os.path.join(app.config["PHRASES_DIR"], name_email)
     try:
         with open(location) as handle:
-            if handle.read():
-                pass
+            content = handle.read()
+            if not content:
+                create()
     except IOError:
-        with open(location, "w") as handle:
-            handle.write("1")
-            handle.write(os.linesep)
+        create()
 
 
 def user_exists(app, mail):
@@ -42,7 +45,7 @@ def user_exists(app, mail):
 
     if handle.returncode == 0:
         # TODO: validate that we really got exactly one line in stdout
-        _ensure_passphrase_exist(app, mail)
+        ensure_passphrase_exist(app, mail)
         return True
     elif "error reading key" in stderr:
         return False
@@ -83,7 +86,7 @@ def create_new_key(
     if user_exists(app, name_email):
         return
 
-    with tempfile.NamedTemporaryFile(delete=False) as out:
+    with tempfile.NamedTemporaryFile() as out:
         out.write(template.format(
             key_type="RSA",
             key_length=key_length or 2048,

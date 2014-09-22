@@ -1,6 +1,7 @@
 *.pyc
 *.pyo
 *.swp
+.coverage
 data/
 cli/dist/
 build/
