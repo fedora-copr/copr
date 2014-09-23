@@ -22,7 +22,7 @@ from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
-from coprs.helpers import parse_package_name, render_repo
+from coprs.helpers import parse_package_name, generate_repo_url
 
 
 @coprs_ns.route("/", defaults={"page": 1})
@@ -525,12 +525,16 @@ def generate_repo_file(username, coprname, chroot, repofile):
             "Repository not initialized: No finished builds in {0}/{1}."
             .format(username, coprname))
 
-    response = flask.make_response(render_repo(copr, mock_chroot, url))
+    repo_url = generate_repo_url(mock_chroot, url)
+    response = flask.make_response(
+        flask.render_template("coprs/copr.repo", copr=copr, url=repo_url))
+
     response.mimetype = "text/plain"
-    response.headers["Content-Disposition"] = "filename={0}.repo".format(
-        reponame)
+    response.headers["Content-Disposition"] = \
+        "filename={0}.repo".format(reponame)
 
     return response
+
 
 @coprs_ns.route("/<username>/<coprname>/monitor/")
 def copr_build_monitor(username, coprname):

@@ -5,6 +5,7 @@ import urlparse
 import flask
 
 from coprs import constants
+from coprs import app
 
 from rpmUtils.miscutils import splitFilename
 
@@ -145,8 +146,10 @@ def parse_package_name(pkg):
     return pkg
 
 
-def render_repo(copr, mock_chroot, url):
-    """ Render .repo file. No checks if copr or mock_chroot exists. """
+def generate_repo_url(mock_chroot, url):
+    """ Generates url with build results for .repo file.
+    No checks if copr or mock_chroot exists.
+    """
     if mock_chroot.os_release == "fedora":
         if mock_chroot.os_version != "rawhide":
             mock_chroot.os_version = "$releasever"
@@ -155,9 +158,33 @@ def render_repo(copr, mock_chroot, url):
         url, "{0}-{1}-{2}/".format(mock_chroot.os_release,
                                    mock_chroot.os_version, "$basearch"))
 
-    url = url.replace("http://", "https://")
-    return flask.render_template("coprs/copr.repo", copr=copr, url=url)
+    return url
 
+
+def fix_protocol_for_backend(url):
+    """
+    Ensure that url either has http or https protocol according to the
+    option in app config "ENFORCE_PROTOCOL_FOR_BACKEND_URL"
+    """
+    if app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] == "https":
+        return url.replace("http://", "https://")
+    elif app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] == "http":
+        return url.replace("https://", "http://")
+    else:
+        return url
+
+
+def fix_protocol_for_frontend(url):
+    """
+    Ensure that url either has http or https protocol according to the
+    option in app config "ENFORCE_PROTOCOL_FOR_FRONTEND_URL"
+    """
+    if app.config["ENFORCE_PROTOCOL_FOR_FRONTEND_URL"] == "https":
+        return url.replace("http://", "https://")
+    elif app.config["ENFORCE_PROTOCOL_FOR_FRONTEND_URL"] == "http":
+        return url.replace("https://", "http://")
+    else:
+        return url
 
 class Serializer(object):
 

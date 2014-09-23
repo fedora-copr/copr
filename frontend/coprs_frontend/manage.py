@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 import argparse
 import os
@@ -22,7 +22,7 @@ class TestCommand(Command):
         if not (("COPR_CONFIG" in os.environ) and os.environ["COPR_CONFIG"]):
             os.environ["COPR_CONFIG"] = "/etc/copr/copr_unit_test.conf"
         os.environ["PYTHONPATH"] = "."
-        return subprocess.call(["py.test"] + (test_args or []))
+        return subprocess.call(["/usr/bin/python", "-m", "pytest"] + (test_args or []))
 
     option_list = (
         Option("-a",

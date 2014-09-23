@@ -62,9 +62,8 @@
                 coprname=copr.name,
                 chroot=mock_chroot.os_release+"-"+mock_chroot.os_version,
                 repofile=copr.owner.name+'-'+copr.name+'-'+mock_chroot.os_release+"-"+mock_chroot.os_version+'.repo',
-                _scheme='https',
                 _external=True
-              )}}">
+              )|fix_url_https_frontend}}">
             {{ copr.owner.name }}-{{ copr.name }}-{{mock_chroot.os_release+"-"+mock_chroot.os_version}}.repo
             </a>
           </td>

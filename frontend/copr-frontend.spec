@@ -50,15 +50,18 @@ Requires:   python-psycopg2
 Requires:   python-pylibravatar
 Requires:   python-whoosh >= 2.5.3
 Requires:   pytz
+Requires:   python-six
 # for tests:
 Requires:   pytest
 Requires:   python-flexmock
+Requires:   python-mock
 Requires:   python-decorator
 Requires:   yum
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
 # check
+BuildRequires: python-six
 BuildRequires: python-flask
 BuildRequires: python-flask-script
 BuildRequires: python-flask-sqlalchemy
@@ -69,6 +72,7 @@ BuildRequires: python-flask-wtf
 BuildRequires: pytest
 BuildRequires: yum
 BuildRequires: python-flexmock
+BuildRequires: python-mock
 BuildRequires: python-decorator
 BuildRequires: python-markdown
 BuildRequires: pytz

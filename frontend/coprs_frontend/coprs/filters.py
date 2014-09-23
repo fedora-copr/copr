@@ -130,3 +130,13 @@ def build_state_decoration(state):
         description = "This package has already been built previously"
 
     return description
+
+
+@app.template_filter("fix_url_https_backend")
+def fix_url_https_backend(url):
+    return helpers.fix_protocol_for_backend(url)
+
+
+@app.template_filter("fix_url_https_frontend")
+def fix_url_https_fronend(url):
+    return helpers.fix_protocol_for_frontend(url)

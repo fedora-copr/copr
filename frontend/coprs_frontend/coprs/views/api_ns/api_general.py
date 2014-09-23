@@ -8,6 +8,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import forms
 from coprs import helpers
+from coprs.helpers import fix_protocol_for_backend
 from coprs.logic.api_logic import BuildWrapper, MonitorWrapper
 
 from coprs.views.misc import login_required, api_login_required
@@ -184,8 +185,8 @@ def api_coprs_by_owner(username=None):
                 if build.results:
                     for chroot in repo.active_chroots:
                         release = release_tmpl.format(chroot=chroot)
-                        yum_repos[release] = urlparse.urljoin(
-                            build.results, release + '/')
+                        yum_repos[release] = fix_protocol_for_backend(
+                            urlparse.urljoin(build.results, release + '/'))
                     break
 
             output["repos"].append({"name": repo.name,
@@ -221,8 +222,8 @@ def api_coprs_by_owner_detail(username, coprname):
             if build.results:
                 for chroot in copr.active_chroots:
                     release = release_tmpl.format(chroot=chroot)
-                    yum_repos[release] = urlparse.urljoin(
-                        build.results, release + '/')
+                    yum_repos[release] = fix_protocol_for_backend(
+                        urlparse.urljoin(build.results, release + '/'))
                 break
         output["detail"] = {"name": copr.name,
                                 "additional_repos": copr.repos,

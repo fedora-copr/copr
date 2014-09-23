@@ -1,6 +1,6 @@
 [{{ copr.owner.name }}-{{ copr.name }}]
 name=Copr repo for {{ copr.name }} owned by {{ copr.owner.name }}
-baseurl={{ url }}
+baseurl={{ url | fix_url_https_backend }}
 skip_if_unavailable=True
 gpgcheck=0
 enabled=1

@@ -32,6 +32,12 @@ class Config(object):
 
     SEND_LEGAL_TO = ["root@localhost"]
 
+    # prefer http or https, default setting preserve old behaviour
+    USE_HTTPS_FOR_RESULTS = True
+
+    ENFORCE_PROTOCOL_FOR_BACKEND_URL = "https"
+    ENFORCE_PROTOCOL_FOR_FRONTEND_URL = "https"
+
 
 class ProductionConfig(Config):
     DEBUG = False
@@ -43,6 +49,10 @@ class ProductionConfig(Config):
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
+
+    ENFORCE_PROTOCOL_FOR_BACKEND_URL = "http"
+    ENFORCE_PROTOCOL_FOR_FRONTEND_URL = "http"
+
 
 
 class UnitTestConfig(Config):
