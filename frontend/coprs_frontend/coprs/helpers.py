@@ -186,6 +186,7 @@ def fix_protocol_for_frontend(url):
     else:
         return url
 
+
 class Serializer(object):
 
     def to_dict(self, options=None):

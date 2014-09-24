@@ -32,11 +32,11 @@ class Config(object):
 
     SEND_LEGAL_TO = ["root@localhost"]
 
-    # prefer http or https, default setting preserve old behaviour
-    USE_HTTPS_FOR_RESULTS = True
-
-    ENFORCE_PROTOCOL_FOR_BACKEND_URL = "https"
-    ENFORCE_PROTOCOL_FOR_FRONTEND_URL = "https"
+    # post-process url leading to backend
+    # possible options: None, "http", "https"
+    ENFORCE_PROTOCOL_FOR_BACKEND_URL = None
+    ## post-process url leading to frontend
+    ENFORCE_PROTOCOL_FOR_FRONTEND_URL = None
 
 
 class ProductionConfig(Config):
