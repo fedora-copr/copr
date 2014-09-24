@@ -7,7 +7,7 @@
 # this package doesn't support rhel7- since it doesn't have python3* packages
 
 Name:       copr-keygen
-Version:    1.56
+Version:    1.57
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for sign.
 
@@ -170,6 +170,11 @@ service httpd condrestart
 
 
 %changelog
+* Wed Sep 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.57-1
+- [keygen] changed shebang in run scripts to #!/usr/bin/python3, Requires:
+  {,python3-}mod_wsgi
+- [keygen] package only python3 version, targeting f19+
+
 * Mon Sep 22 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.56-1
 - [keygen] .spec: run tests, build py3 version for fedora
 - [keygen] py3 compatibility
