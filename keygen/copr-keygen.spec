@@ -40,7 +40,7 @@ BuildRequires: python-sphinxcontrib-httpdomain
 
 Requires:   haveged
 Requires:   gnupg
-Requires:   mod_wsgi
+Requires:   python3-mod_wsgi
 Requires:   httpd
 Requires:   obs-signd
 Requires:   passwd
@@ -161,6 +161,7 @@ service httpd condrestart
 %defattr(600, copr-signer, copr-signer, 700)
 %{_sharedstatedir}/copr-keygen
 %config(noreplace) %{_sysconfdir}/copr-keygen
+%defattr(600, root, root)
 %config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
 
 
