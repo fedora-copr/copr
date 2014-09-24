@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.45
+Version:    1.46
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -167,6 +167,10 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Wed Sep 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.46-1
+- [frontend] added helper function and flask filter which allows to ensure that
+  url starts with either http or https, see config
+
 * Thu Sep 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.45-1
 - revert f0e5c211f86cc3691fda8d4412c21ef6338a339f
 - [frontend] including project name
