@@ -4,11 +4,7 @@
 %global __python2 %{__python}
 %endif
 
-%if 0%{?fedora}
-%global with_python3 1
-%else
-%global with_python3 0
-%endif
+# this package doesn't support rhel7- since it doesn't have python3* packages
 
 Name:       copr-keygen
 Version:    1.56
@@ -26,23 +22,19 @@ Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
 BuildRequires: util-linux
-BuildRequires: python-setuptools
-BuildRequires: python-requests
-BuildRequires: python2-devel
 BuildRequires: systemd
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-BuildRequires: python-argparse
-%endif
 
-BuildRequires:   python-six
-BuildRequires:   python-flask
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
+BuildRequires: python3-six
+BuildRequires: python3-flask
 
 # for tests
-BuildRequires:   pytest
-BuildRequires:   python-mock
-BuildRequires:   python-pytest-cov
+BuildRequires: python3-pytest
+BuildRequires: python3-pytest-cov
+BuildRequires: python3-mock
 
-#for doc package
+#for doc package # move to python3 when available in fedora
 BuildRequires: sphinx
 BuildRequires: python-sphinxcontrib-httpdomain
 
@@ -51,14 +43,16 @@ Requires:   gnupg
 Requires:   mod_wsgi
 Requires:   httpd
 Requires:   obs-signd
-Requires:   python-six
 Requires:   passwd
-Requires:   python-flask
-# for tests:
-Requires:   pytest
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-BuildRequires: python-argparse
-%endif
+
+Requires:   python3-setuptools
+Requires:   python3-six
+Requires:   python3-flask
+
+# tests
+Requires:   python3-pytest
+Requires:   python3-pytest-cov
+Requires:   python3-mock
 
 
 %description -n copr-keygen
@@ -68,39 +62,20 @@ and submit new builds and COPR will create yum repository from latest builds.
 This package contains aux service that generate keys for package signing.
 
 
-%if 0%{?with_python3}
-%package -n python3-copr-keygen
-Summary:        Python interface for Copr
-Group:          Applications/Productivity
-
-BuildRequires: python3-devel
-BuildRequires: python3-setuptools
-BuildRequires: python3-pytest
-BuildRequires: python3-pytest-cov
-BuildRequires: python3-mock
-BuildRequires: python3-requests
-BuildRequires: python3-six
-BuildRequires: python3-flask
-
-Requires: python3-setuptools
-Requires: python3-six
-Requires: python3-requests
-Requires: python3-flask
-
-
-%description -n python3-copr-keygen
-COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latest builds.
-
-This package contains aux service that generate keys for package signing.
-
-%endif # with_python3
-
-
 %if 0%{?fedora}
 %package -n copr-keygen-doc
-Summary:    Code documentation for COPR
+Summary:    Code documentation for copr-keygen component of Copr buildsystem.
 Obsoletes:  copr-doc < 1.38
+
+BuildRequires: python-devel
+BuildRequires: python-setuptools
+BuildRequires: python-mock
+BuildRequires: python-requests
+BuildRequires: python-six
+BuildRequires: python-flask
+
+BuildRequires: python-sphinx
+
 
 %description doc
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -113,25 +88,11 @@ This package contains document for copr-keygen service.
 
 %prep
 %setup -q
-%if 0%{?with_python3}
-rm -rf %{py3dir}
-cp -a . %{py3dir}
-find %{py3dir} -name '*.py' | xargs sed -i '1s|^#!python|#!%{__python3}|'
-%endif # with_python3
 
 
 %build
 
-CFLAGS="%{optflags}" %{__python2} setup.py build
-
-%if 0%{?with_python3}
-pushd %{py3dir}
-
 CFLAGS="%{optflags}" %{__python3} setup.py build
-
-popd
-%endif # with_python3
-
 
 %if 0%{?fedora}
 # build documentation
@@ -143,15 +104,8 @@ popd
 
 %install
 
-%if 0%{?with_python3}
-pushd %{py3dir}
 %{__python3} setup.py install --skip-build --root %{buildroot}
 find %{buildroot}%{python3_sitelib} -name '*.exe' | xargs rm -f
-popd
-%endif # with_python3
-
-%{__python2} setup.py install --skip-build --root %{buildroot}
-find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
 
 
 install -d %{buildroot}%{_sysconfdir}/copr-keygen
@@ -178,13 +132,8 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %endif
 
 %check
-PYTHONPATH=./src:$PYTHONPATH %{__python2} -m pytest  --cov-report term-missing --cov ./src tests
 
-%if 0%{?with_python3}
-pushd %{py3dir}
 PYTHONPATH=./src:$PYTHONPATH %{__python3} -m pytest  --cov-report term-missing --cov ./src tests
-popd
-%endif # with_python3
 
 
 %pre
@@ -205,21 +154,6 @@ service httpd condrestart
 %doc configs/local_settings.py.example
 
 %{_datadir}/copr-keygen/*
-%{python2_sitelib}/*
-
-%{_bindir}/gpg_copr.sh
-
-%defattr(600, copr-signer, copr-signer, 700)
-%{_sharedstatedir}/copr-keygen
-%config(noreplace) %{_sysconfdir}/copr-keygen
-%config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
-
-%if 0%{?with_python3}
-%files -n python3-copr-keygen
-%doc LICENSE docs/INSTALL.rst docs/README.rst
-%doc configs/local_settings.py.example
-
-%{_datadir}/copr-keygen/*
 %{python3_sitelib}/*
 
 %{_bindir}/gpg_copr.sh
@@ -228,12 +162,9 @@ service httpd condrestart
 %{_sharedstatedir}/copr-keygen
 %config(noreplace) %{_sysconfdir}/copr-keygen
 %config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
-%endif # with_python3
-
 
 
 %files -n copr-keygen-doc
-%doc LICENSE
 %doc %{_pkgdocdir}
 
 
