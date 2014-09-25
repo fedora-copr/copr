@@ -31,6 +31,22 @@ from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     ProjectDetailsFieldsParser
 
 
+## add deco to check that login/token are provided
+## and  raise correct error
+##
+##
+""" "No configuration file '~/.config/copr' found. "
+    "see documentation at /usr/share/doc/python-copr/ "
+"""
+# or
+"""
+    "No api login and\or api token are provided"
+    "See man copr-cli for more information")
+"""
+
+##
+
+
 class CoprClient(object):
     """ Main interface to the copr service
 
@@ -54,6 +70,8 @@ class CoprClient(object):
         self.login = config.get("login")
         self.username = config.get("username")
         self.copr_url = config.get("copr_url", "http://copr.fedoraproject.org/")
+
+        self.no_config = config.get("no_config", False)
 
     def __str__(self):
         return "<Copr client. username: {0}, api url: {1}>".format(
@@ -84,19 +102,21 @@ class CoprClient(object):
             filepath = os.path.join(os.path.expanduser("~"), ".config", "copr")
         config = {}
         if not raw_config.read(filepath):
-            raise CoprNoConfException(
+            log.warning(
                 "No configuration file '~/.config/copr' found. "
                 "See man copr-cli for more information")
-        try:
-            for field in ["username", "login", "token", "copr_url"]:
-                if six.PY3:
-                    config[field] = raw_config["copr-cli"].get(field, None)
-                else:
-                    config[field] = raw_config.get("copr-cli", field, None)
+            config["no_config"] = True
+        else:
+            try:
+                for field in ["username", "login", "token", "copr_url"]:
+                    if six.PY3:
+                        config[field] = raw_config["copr-cli"].get(field, None)
+                    else:
+                        config[field] = raw_config.get("copr-cli", field, None)
 
-        except configparser.Error as err:
-            raise CoprConfigException(
-                "Bad configuration file: {0}".format(err))
+            except configparser.Error as err:
+                raise CoprConfigException(
+                    "Bad configuration file: {0}".format(err))
         return CoprClient(config=config)
 
     def _fetch(self, url, data=None, projectname=None, username=None,

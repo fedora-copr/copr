@@ -29,22 +29,24 @@ The CLI depends on:
 Usage:
 ------
 
-.. _test instance: http://copr-fe.cloud.fedoraproject.org/
+.. _test instance: http://copr-fe-dev.cloud.fedoraproject.org/
 
 - Create an account on copr `test instance`_
-- Go to the API page: http://copr-fe.cloud.fedoraproject.org/api
+- Go to the API page: http://copr.fedoraproject.org/api
 - Retrieve your API token
 - Create the file ``~/.config/copr``
 - In this file add the following content
+(simpler way is just to copy it from /api)
 
 ::
 
  [copr-cli]
- username = <insert here your API login>
+ username = <insert here your login>
+ login = <insert here your API login>
  token = <insert here your API token>
+ copr_url = https://copr.fedoraproject.org
 
-
-You should then be able to use copr-cli to list, create and build on copr.
+You should be able to use copr-cli to list, create and build on copr.
 
 .. note:: You can use directly copr-cli to list someone's copr repo but to create
  a copr or build packages into an existing repo you need to authenticate

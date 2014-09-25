@@ -99,7 +99,6 @@ class TestHelpers(CoprsTestCase):
             raise e
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
 
-
     def test_fix_protocol_for_frontend(self):
         http_url = "http://example.com/repo"
         https_url = "https://example.com/repo"

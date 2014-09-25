@@ -1,4 +1,5 @@
-#-*- coding: UTF-8 -*-
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 
 __version__ = "0.3.0"
 __description__ = "CLI tool to run copr"
@@ -14,47 +15,97 @@ from copr import CoprClient
 import copr.client.exceptions as copr_exceptions
 
 
+no_config_warning = """
+|================ WARNING: =======================|
+|File '~/.config/copr' is missing or incorrect.   |
+| See documentation: man copr-cli.                |
+| Any operation requiring credentionals will fail!|
+|=================================================|
+
+"""
+
+no_config = True
 try:
     client = CoprClient.create_from_file_config()
-except copr_exceptions.CoprNoConfException as e:
-    print(e)
-    sys.exit(1)
+    no_config = False
+except (copr_exceptions.CoprNoConfException,
+        copr_exceptions.CoprConfigException) as e:
+    print(no_config_warning)
+    client = CoprClient({
+        "copr_url": "http://copr.fedoraproject.org"
+    })
 
 
-def _watch_builds(build_ids):
+def check_username_presence(func):
+    def wrapper(args):
+        if no_config and args.username is None:
+            print("Error: Operation requires username\n"
+                  "Pass username to command or create `~/.config/copr`")
+            sys.exit(6)
+
+        if args.username is None and client.username is None:
+            print("Error: Operation requires username\n"
+                  "Pass username to command or add it to `~/.config/copr`")
+
+        return func(args)
+
+    wrapper.__doc__ = func.__doc__
+    wrapper.__name__ = func.__name__
+    return wrapper
+
+
+def requires_api_auth(func):
+    def wrapper(args):
+        if no_config:
+            print("Error: Operation requires api authentication\n"
+                  "File `~/.config/copr` is missing or incorrect")
+            sys.exit(6)
+
+        return func(args)
+
+    wrapper.__doc__ = func.__doc__
+    wrapper.__name__ = func.__name__
+    return wrapper
+
+
+def _watch_builds(builds_list):
+    """
+    :param builds_list: list of BuildWrapper
+
+    """
     print("Watching build(s): (this may be safely interrupted)")
     prevstatus = defaultdict(lambda: None)
     failed_ids = []
-    watched_ids = build_ids[:]
+    watched_ids = [bw.build_id for bw in builds_list]
 
     try:
         while True:
             for build_id in watched_ids:
-                build_status = client.get_build_status(build_id)
-                if build_status.output != "ok":
-                    errmsg = "  Build {1}: Unable to get build status: {0}".format(
-                        build_status.error, build_id)
+                build_details = client.get_build_details(build_id)
+                if build_details.output != "ok":
+                    errmsg = "  Build {1}: Unable to get build status: {0}".\
+                        format(build_details.error, build_id)
                     raise copr_exceptions.CoprRequestException(errmsg)
 
                 now = datetime.datetime.now()
-                if prevstatus[build_id] != build_status.status:
-                    prevstatus[build_id] = build_status.status
+                if prevstatus[build_id] != build_details.status:
+                    prevstatus[build_id] = build_details.status
                     print("  {0} Build {2}: {1}".format(
                         now.strftime("%H:%M:%S"),
-                        build_status.status, build_id))
+                        build_details.status, build_id))
 
-                if build_status.status in ["failed"]:
+                if build_details.status in ["failed"]:
                     failed_ids.append(build_id)
-                if build_status.status in ["succeeded", "skipped",
+                if build_details.status in ["succeeded", "skipped",
                                            "failed", "canceled"]:
                     watched_ids.remove(build_id)
-                if build_status.status == "unknown":
+                if build_details.status == "unknown":
                     raise copr_exceptions.CoprBuildException(
                         "Unknown status.")
 
             if not watched_ids:
                 break
-            time.sleep(60)
+            time.sleep(3)
 
         if failed_ids:
             raise copr_exceptions.CoprBuildException(
@@ -65,6 +116,7 @@ def _watch_builds(build_ids):
         pass
 
 
+@requires_api_auth
 def action_build(args):
     """ Method called when the 'build' action has been selected by the
     user.
@@ -79,12 +131,13 @@ def action_build(args):
         print(result.error)
         return
     print(result.message)
-    print("Created builds: {0}".format(" ".join(map(str, result.ids))))
+    print("Created builds: {0}".format(" ".join(map(str, result.builds_list))))
 
     if not args.nowait:
-        _watch_builds(result.ids)
+        _watch_builds(result.builds_list)
 
 
+@requires_api_auth
 def action_create(args):
     """ Method called when the 'create' action has been selected by the
     user.
@@ -96,9 +149,10 @@ def action_create(args):
         projectname=args.name, description=args.description,
         instructions=args.instructions, chroots=args.chroots,
         repos=args.repos, initial_pkgs=args.initial_pkgs)
-    print(result)
+    print(result.message)
 
 
+@requires_api_auth
 def action_delete(args):
     """ Method called when the 'delete' action has been selected by the
     user.
@@ -106,9 +160,10 @@ def action_delete(args):
     :param args: argparse arguments provided by the user
     """
     result = client.delete_project(projectname=args.copr)
-    print(result)
+    print(result.message)
 
 
+@check_username_presence
 def action_list(args):
     """ Method called when the 'list' action has been selected by the
     user.
@@ -118,29 +173,31 @@ def action_list(args):
     """
     username = args.username or client.username
     result = client.get_projects_list(username)
-    if result.response["output"] != "ok":
+    if result.output != "ok":
         print(result.error)
         print("Un-expected data returned, please report this issue")
-    elif not result.projects:
+    elif not result.projects_list:
         print("No copr retrieved for user: '{0}'".format(username))
         return
 
-    for prj in result.projects:
+    for prj in result.projects_list:
         print(prj)
 
 
 def action_status(args):
-    result = client.get_build_status(args.build_id)
-    print(result)
+    result = client.get_build_details(args.build_id)
+    print(result.status)
 
 
+@requires_api_auth
 def action_cancel(args):
     """ Method called when the 'cancel' action has been selected by the
     user.
     :param args: argparse arguments provided by the user
     """
     result = client.cancel_build(args.build_id)
-    print(result)
+    print(result.status)
+
 
 def setup_parser():
     """
@@ -237,24 +294,24 @@ def main(argv=sys.argv[1:]):
     except KeyboardInterrupt:
         sys.stderr.write("\nInterrupted by user.")
         sys.exit(1)
-    except copr_exceptions.CoprRequestException, e:
+    except copr_exceptions.CoprRequestException as e:
         sys.stderr.write("\nSomething went wrong:")
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(1)
-    except argparse.ArgumentTypeError, e:
+    except argparse.ArgumentTypeError as e:
         sys.stderr.write("\nError: {0}".format(e))
         sys.exit(2)
-    except copr_exceptions.CoprException, e:
+    except copr_exceptions.CoprException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(3)
-    except ConfigParser.ParsingError, e:
+    except ConfigParser.ParsingError as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.stderr.write("Lines in INI file should not be indented.\n")
         sys.exit(3)
-    except copr_exceptions.CoprBuildException, e:
+    except copr_exceptions.CoprBuildException as e:
         sys.stderr.write("\nBuild error: {0}\n".format(e))
         sys.exit(4)
-    except copr_exceptions.CoprUnknownResponseException, e:
+    except copr_exceptions.CoprUnknownResponseException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(5)
     # except Exception as e:
