@@ -117,6 +117,7 @@ install -d %{buildroot}%{_datadir}/copr-keygen
 install -d %{buildroot}%{_bindir}
 install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/phrases
 install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/gnupg
+install -d %{buildroot}%{_localstatedir}/log/copr-keygen
 
 %{__install} -p -m 0644 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
 
@@ -158,9 +159,13 @@ service httpd condrestart
 
 %{_bindir}/gpg_copr.sh
 
+
 %defattr(600, copr-signer, copr-signer, 700)
 %{_sharedstatedir}/copr-keygen
 %config(noreplace) %{_sysconfdir}/copr-keygen
+%{_localstatedir}/log/copr-keygen/
+%ghost %{_localstatedir}/log/copr-keygen/main.log
+
 %defattr(600, root, root)
 %config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
 

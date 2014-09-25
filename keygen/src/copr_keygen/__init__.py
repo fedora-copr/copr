@@ -5,8 +5,12 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
+from logging import getLogger
+from logging.handlers import RotatingFileHandler
 
 from flask import Flask, request, Response
+import os
 from copr_keygen.exceptions import BadRequestException, \
     KeygenServiceBaseException
 
@@ -15,7 +19,29 @@ app.config.from_object("copr_keygen.default_settings")
 app.config.from_envvar("COPR_KEYGEN_CONFIG", silent=True)
 
 
+# setup logger
+if not app.config["DEBUG"]:
+    filename = os.path.join(app.config["LOG_DIR"], "main.log")
+    if os.path.exists(app.config["LOG_DIR"]):
+        handler = RotatingFileHandler(filename,
+                                      maxBytes=50*1024*1024,
+                                      backupCount=5)
+        handler.setLevel(app.config["LOG_LEVEL"])
+        handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s'
+            '[%(module)s:%(pathname)s:%(lineno)d]'
+            ': %(message)s '
+        ))
+        logger = getLogger(__name__)
+        logger.addHandler(handler)
+        logger.setLevel(app.config["LOG_LEVEL"])
+
+# end setup logger
+
+
 from .logic import create_new_key, user_exists
+
+log = logging.getLogger(__name__)
 
 
 @app.route('/ping')
@@ -111,4 +137,5 @@ def handle_invalid_usage(error):
 ##     #cmd = "gpg --with-colons --fingerprint gafoo |
 #           awk -F: '$1 == "fpr" {print $10;}'"
 #     #TODO: complete implementation
+
 

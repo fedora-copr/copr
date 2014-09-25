@@ -7,13 +7,15 @@ import six
 
 if six.PY3:
     from unittest import mock
+    from unittest.mock import patch
 else:
     import mock
+    from mock import patch
 
 import pytest
 
 from copr_keygen import app
-from copr_keygen.exceptions import GpgErrorException
+from copr_keygen.exceptions import GpgErrorException, KeygenServiceBaseException
 from copr_keygen.logic import ensure_passphrase_exist
 
 import copr_keygen.logic as logic
@@ -92,7 +94,7 @@ class MockPopenHandle(object):
         self.stderr = stderr or "mock stderr"
 
     def communicate(self):
-        return self.stdout, self.stderr
+        return self.stdout.encode(), self.stderr.encode()
 
 
 @mock.patch("copr_keygen.logic.ensure_passphrase_exist")
@@ -129,13 +131,19 @@ class TestGenKey(TestCase):
         it exists
         """
 
-        user_exists_returns = [False, True]
-        user_exists.side_effect = \
-            lambda *args, **kwargs: user_exists_returns.pop(0)
-        popen.return_value = MockPopenHandle(0)
+        with mock.patch("tempfile.NamedTemporaryFile") as tmpfile:
+            user_exists_returns = [False, True]
+            user_exists.side_effect = \
+                lambda *args, **kwargs: user_exists_returns.pop(0)
 
-        res = logic.create_new_key(app, TEST_NAME, TEST_EMAIL, TEST_KEYLENGTH)
-        assert res is None
+            def check_gpg_genkey_file_exists(*args, **kwargs):
+                assert tmpfile.called
+                return MockPopenHandle(0)
+
+            popen.side_effect = check_gpg_genkey_file_exists
+
+            res = logic.create_new_key(app, TEST_NAME, TEST_EMAIL, TEST_KEYLENGTH)
+            assert res is None
 
     def test_strange_situation_create(self, popen, user_exists):
         """
@@ -168,4 +176,21 @@ class TestGenKey(TestCase):
         popen.return_value = MockPopenHandle(1, stderr=err_msg)
         with pytest.raises(GpgErrorException) as e:
             logic.create_new_key(app, TEST_NAME, TEST_EMAIL, TEST_KEYLENGTH)
-            assert e.msg == err_msg
+            assert e.message == err_msg
+
+    def test_tmpfiles_errors(self, popen, user_exists):
+        user_exists.return_value = False
+
+        with mock.patch("tempfile.NamedTemporaryFile") as tmpfile:
+            tmpfile.side_effect = OSError()
+            with pytest.raises(KeygenServiceBaseException) as e:
+                logic.create_new_key(app, TEST_NAME, TEST_EMAIL, TEST_KEYLENGTH)
+
+            assert not popen.called
+
+        with mock.patch("tempfile.NamedTemporaryFile") as tmpfile:
+            tmpfile.return_value.write.side_effect = OSError()
+            with pytest.raises(KeygenServiceBaseException) as e:
+                logic.create_new_key(app, TEST_NAME, TEST_EMAIL, TEST_KEYLENGTH)
+
+            assert not popen.called
