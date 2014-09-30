@@ -74,8 +74,9 @@ class CoprClient(object):
         self.no_config = config.get("no_config", False)
 
     def __str__(self):
-        return "<Copr client. username: {0}, api url: {1}>".format(
-            self.username, self.api_url
+        return "<Copr client. username: {0}, api url: {1}, " \
+               "login presents: {2}, token presents: {3}>".format(
+            self.username, self.api_url, bool(self.login), bool(self.token)
         )
 
     @property
@@ -86,13 +87,16 @@ class CoprClient(object):
         return "{0}/api".format(self.copr_url)
 
     @staticmethod
-    def create_from_file_config(filepath=None):
+    def create_from_file_config(filepath=None, ignore_error=False):
         """
         Creates Copr client using the information from the config file.
 
         :param filepath: specifies config location,
             default: "~/.config/copr"
         :type filepath: `str`
+        :param bool ignore_error: When true creates default Client
+            without credentionals
+
         :rtype: :py:class:`~.client.CoprClient`
 
         """
@@ -105,7 +109,9 @@ class CoprClient(object):
             log.warning(
                 "No configuration file '~/.config/copr' found. "
                 "See man copr-cli for more information")
-            config["no_config"] = True
+
+            if not ignore_error:
+                raise CoprNoConfException()
         else:
             try:
                 for field in ["username", "login", "token", "copr_url"]:
@@ -115,8 +121,9 @@ class CoprClient(object):
                         config[field] = raw_config.get("copr-cli", field, None)
 
             except configparser.Error as err:
-                raise CoprConfigException(
-                    "Bad configuration file: {0}".format(err))
+                if not ignore_error:
+                    raise CoprConfigException(
+                        "Bad configuration file: {0}".format(err))
         return CoprClient(config=config)
 
     def _fetch(self, url, data=None, projectname=None, username=None,

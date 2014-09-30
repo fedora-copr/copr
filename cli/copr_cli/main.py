@@ -24,179 +24,186 @@ no_config_warning = """
 
 """
 
-no_config = True
-try:
-    client = CoprClient.create_from_file_config()
-    no_config = False
-except (copr_exceptions.CoprNoConfException,
-        copr_exceptions.CoprConfigException) as e:
-    print(no_config_warning)
-    client = CoprClient({
-        "copr_url": "http://copr.fedoraproject.org"
-    })
 
+class Commands(object):
+    def __init__(self):
 
-def check_username_presence(func):
-    def wrapper(args):
-        if no_config and args.username is None:
-            print("Error: Operation requires username\n"
-                  "Pass username to command or create `~/.config/copr`")
-            sys.exit(6)
+        self.no_config = True
+        try:
+            self.client = CoprClient.create_from_file_config()
+            self.no_config = False
+            #print("CREATED FROM CONFIG")
+        except (copr_exceptions.CoprNoConfException,
+                copr_exceptions.CoprConfigException) as e:
+            print(no_config_warning)
+            self.client = CoprClient({
+                "copr_url": "http://copr.fedoraproject.org",
+                "no_config": True
+            })
+            #print("BBBBBBBBBBBBB")
 
-        if args.username is None and client.username is None:
-            print("Error: Operation requires username\n"
-                  "Pass username to command or add it to `~/.config/copr`")
+    def requires_api_auth(func):
+        """ Decorator that checks config presence
+        """
+        def wrapper(self, args):
+            if self.no_config:
+                print("Error: Operation requires api authentication\n"
+                      "File `~/.config/copr` is missing or incorrect")
+                sys.exit(6)
 
-        return func(args)
+            return func(self, args)
 
-    wrapper.__doc__ = func.__doc__
-    wrapper.__name__ = func.__name__
-    return wrapper
+        wrapper.__doc__ = func.__doc__
+        wrapper.__name__ = func.__name__
+        return wrapper
 
+    def check_username_presence(func):
+        """ Decorator that checks if username was provided
+        """
+        def wrapper(self, args):
+            if self.no_config and args.username is None:
+                print("Error: Operation requires username\n"
+                      "Pass username to command or create `~/.config/copr`")
+                sys.exit(6)
 
-def requires_api_auth(func):
-    def wrapper(args):
-        if no_config:
-            print("Error: Operation requires api authentication\n"
-                  "File `~/.config/copr` is missing or incorrect")
-            sys.exit(6)
+            if args.username is None and self.client.username is None:
+                print("Error: Operation requires username\n"
+                      "Pass username to command or add it to `~/.config/copr`")
 
-        return func(args)
+            return func(self, args)
 
-    wrapper.__doc__ = func.__doc__
-    wrapper.__name__ = func.__name__
-    return wrapper
+        wrapper.__doc__ = func.__doc__
+        wrapper.__name__ = func.__name__
+        return wrapper
 
+    # def _watch_builds(sefl, builds_list):
+    #     """
+    #     :param builds_list: list of BuildWrapper
+    #
+    #     """
+    #     print("Watching build(s): (this may be safely interrupted)")
+    #     prevstatus = defaultdict(lambda: None)
+    #     failed_ids = []
+    #     watched_ids = [bw.build_id for bw in builds_list]
+    #
+    #     try:
+    #         while True:
+    #             for build_id in watched_ids:
+    #                 build_details = client.get_build_details(build_id)
+    #                 if build_details.output != "ok":
+    #                     errmsg = "  Build {1}: Unable to get build status: {0}".\
+    #                         format(build_details.error, build_id)
+    #                     raise copr_exceptions.CoprRequestException(errmsg)
+    #
+    #                 now = datetime.datetime.now()
+    #                 if prevstatus[build_id] != build_details.status:
+    #                     prevstatus[build_id] = build_details.status
+    #                     print("  {0} Build {2}: {1}".format(
+    #                         now.strftime("%H:%M:%S"),
+    #                         build_details.status, build_id))
+    #
+    #                 if build_details.status in ["failed"]:
+    #                     failed_ids.append(build_id)
+    #                 if build_details.status in ["succeeded", "skipped",
+    #                                            "failed", "canceled"]:
+    #                     watched_ids.remove(build_id)
+    #                 if build_details.status == "unknown":
+    #                     raise copr_exceptions.CoprBuildException(
+    #                         "Unknown status.")
+    #
+    #             if not watched_ids:
+    #                 break
+    #             time.sleep(3)
+    #
+    #         if failed_ids:
+    #             raise copr_exceptions.CoprBuildException(
+    #                     "Build(s) {0} failed.".format(
+    #                     ", ".join(str(x) for x in failed_ids)))
+    #
+    #     except KeyboardInterrupt:
+    #         pass
+    #
+    #
+    # @requires_api_auth
+    # def action_build(args):
+    #     """ Method called when the 'build' action has been selected by the
+    #     user.
+    #
+    #     :param args: argparse arguments provided by the user
+    #
+    #     """
+    #     result = client.create_new_build(
+    #         projectname=args.copr, chroots=args.chroots, pkgs=args.pkgs,
+    #         memory=args.memory, timeout=args.timeout)
+    #     if result.output != "ok":
+    #         print(result.error)
+    #         return
+    #     print(result.message)
+    #     print("Created builds: {0}".format(" ".join(map(str, result.builds_list))))
+    #
+    #     if not args.nowait:
+    #         _watch_builds(result.builds_list)
+    #
+    #
+    # @requires_api_auth
+    # def action_create(args):
+    #     """ Method called when the 'create' action has been selected by the
+    #     user.
+    #
+    #     :param args: argparse arguments provided by the user
+    #
+    #     """
+    #     result = client.create_project(
+    #         projectname=args.name, description=args.description,
+    #         instructions=args.instructions, chroots=args.chroots,
+    #         repos=args.repos, initial_pkgs=args.initial_pkgs)
+    #     print(result.message)
+    #
+    #
+    # @requires_api_auth
+    # def action_delete(args):
+    #     """ Method called when the 'delete' action has been selected by the
+    #     user.
+    #
+    #     :param args: argparse arguments provided by the user
+    #     """
+    #     result = client.delete_project(projectname=args.copr)
+    #     print(result.message)
+    #
+    #
+    @check_username_presence
+    def action_list(self, args):
+        """ Method called when the 'list' action has been selected by the
+        user.
 
-def _watch_builds(builds_list):
-    """
-    :param builds_list: list of BuildWrapper
+        :param args: argparse arguments provided by the user
 
-    """
-    print("Watching build(s): (this may be safely interrupted)")
-    prevstatus = defaultdict(lambda: None)
-    failed_ids = []
-    watched_ids = [bw.build_id for bw in builds_list]
+        """
+        username = args.username or self.client.username
+        result = self.client.get_projects_list(username)
+        #import ipdb; ipdb.set_trace()
+        if result.output != "ok":
+            print("Error: {}".format(result.error))
+            #print("Un-expected data returned, please report this issue")
+        elif not result.projects_list:
+            print("No copr retrieved for user: '{0}'".format(username))
+            return
 
-    try:
-        while True:
-            for build_id in watched_ids:
-                build_details = client.get_build_details(build_id)
-                if build_details.output != "ok":
-                    errmsg = "  Build {1}: Unable to get build status: {0}".\
-                        format(build_details.error, build_id)
-                    raise copr_exceptions.CoprRequestException(errmsg)
+        for prj in result.projects_list:
+            print(prj)
 
-                now = datetime.datetime.now()
-                if prevstatus[build_id] != build_details.status:
-                    prevstatus[build_id] = build_details.status
-                    print("  {0} Build {2}: {1}".format(
-                        now.strftime("%H:%M:%S"),
-                        build_details.status, build_id))
+    def action_status(self, args):
+        result = self.client.get_build_details(args.build_id)
+        print(result.status)
 
-                if build_details.status in ["failed"]:
-                    failed_ids.append(build_id)
-                if build_details.status in ["succeeded", "skipped",
-                                           "failed", "canceled"]:
-                    watched_ids.remove(build_id)
-                if build_details.status == "unknown":
-                    raise copr_exceptions.CoprBuildException(
-                        "Unknown status.")
-
-            if not watched_ids:
-                break
-            time.sleep(3)
-
-        if failed_ids:
-            raise copr_exceptions.CoprBuildException(
-                    "Build(s) {0} failed.".format(
-                    ", ".join(str(x) for x in failed_ids)))
-
-    except KeyboardInterrupt:
-        pass
-
-
-@requires_api_auth
-def action_build(args):
-    """ Method called when the 'build' action has been selected by the
-    user.
-
-    :param args: argparse arguments provided by the user
-
-    """
-    result = client.create_new_build(
-        projectname=args.copr, chroots=args.chroots, pkgs=args.pkgs,
-        memory=args.memory, timeout=args.timeout)
-    if result.output != "ok":
-        print(result.error)
-        return
-    print(result.message)
-    print("Created builds: {0}".format(" ".join(map(str, result.builds_list))))
-
-    if not args.nowait:
-        _watch_builds(result.builds_list)
-
-
-@requires_api_auth
-def action_create(args):
-    """ Method called when the 'create' action has been selected by the
-    user.
-
-    :param args: argparse arguments provided by the user
-
-    """
-    result = client.create_project(
-        projectname=args.name, description=args.description,
-        instructions=args.instructions, chroots=args.chroots,
-        repos=args.repos, initial_pkgs=args.initial_pkgs)
-    print(result.message)
-
-
-@requires_api_auth
-def action_delete(args):
-    """ Method called when the 'delete' action has been selected by the
-    user.
-
-    :param args: argparse arguments provided by the user
-    """
-    result = client.delete_project(projectname=args.copr)
-    print(result.message)
-
-
-@check_username_presence
-def action_list(args):
-    """ Method called when the 'list' action has been selected by the
-    user.
-
-    :param args: argparse arguments provided by the user
-
-    """
-    username = args.username or client.username
-    result = client.get_projects_list(username)
-    if result.output != "ok":
-        print(result.error)
-        print("Un-expected data returned, please report this issue")
-    elif not result.projects_list:
-        print("No copr retrieved for user: '{0}'".format(username))
-        return
-
-    for prj in result.projects_list:
-        print(prj)
-
-
-def action_status(args):
-    result = client.get_build_details(args.build_id)
-    print(result.status)
-
-
-@requires_api_auth
-def action_cancel(args):
-    """ Method called when the 'cancel' action has been selected by the
-    user.
-    :param args: argparse arguments provided by the user
-    """
-    result = client.cancel_build(args.build_id)
-    print(result.status)
+    @requires_api_auth
+    def action_cancel(self, args):
+        """ Method called when the 'cancel' action has been selected by the
+        user.
+        :param args: argparse arguments provided by the user
+        """
+        result = self.client.cancel_build(args.build_id)
+        print(result.status)
 
 
 def setup_parser():
@@ -219,7 +226,7 @@ def setup_parser():
                              help="The username that you would like to "
                              "list the copr of (defaults to current user)"
                              )
-    parser_list.set_defaults(func=action_list)
+    parser_list.set_defaults(func="action_list")
 
     # create the parser for the "create" command
     parser_create = subparsers.add_parser("create",
@@ -238,14 +245,14 @@ def setup_parser():
                                help="Description of the copr")
     parser_create.add_argument("--instructions",
                                help="Instructions for the copr")
-    parser_create.set_defaults(func=action_create)
+    parser_create.set_defaults(func="action_create")
 
     # create the parser for the "delete" command
     parser_delete = subparsers.add_parser("delete",
                                           help="Deletes the entire project")
     parser_delete.add_argument("copr",
                               help="Name of your project to be deleted.")
-    parser_delete.set_defaults(func=action_delete)
+    parser_delete.set_defaults(func="action_delete")
 
     # create the parser for the "build" command
     parser_build = subparsers.add_parser("build",
@@ -264,7 +271,7 @@ def setup_parser():
                               help="")
     parser_build.add_argument("--nowait", action="store_true", default=False,
                               help="Don't wait for build")
-    parser_build.set_defaults(func=action_build)
+    parser_build.set_defaults(func="action_build")
 
     # create the parser for the "status" command
     parser_build = subparsers.add_parser("status",
@@ -272,25 +279,42 @@ def setup_parser():
                                          " specified by its ID")
     parser_build.add_argument("build_id",
                               help="Build ID")
-    parser_build.set_defaults(func=action_status)
+    parser_build.set_defaults(func="action_status")
 
     # create the parser for the "cancel" command
     parser_build = subparsers.add_parser("cancel",
         help="Cancel build specified by its ID")
     parser_build.add_argument("build_id",
                               help="Build ID")
-    parser_build.set_defaults(func=action_cancel)
+    parser_build.set_defaults(func="action_cancel")
 
     return parser
 
 
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+    datefmt='%H:%M:%S'
+)
+
+log = logging.getLogger()
+log.info("Logger initiated")
+
 def main(argv=sys.argv[1:]):
     try:
+        #print(argv)
         # Set up parser for global args
         parser = setup_parser()
         # Parse the commandline
-        arg = parser.parse_args()
-        arg.func(arg)
+        arg = parser.parse_args(argv)
+        #arg.func(arg)
+
+        commands = Commands()
+        #print("Created client: {}".format(commands.client))
+        getattr(commands, arg.func)(arg)
+
     except KeyboardInterrupt:
         sys.stderr.write("\nInterrupted by user.")
         sys.exit(1)
