@@ -20,7 +20,7 @@ app.config.from_envvar("COPR_KEYGEN_CONFIG", silent=True)
 
 
 # setup logger
-if not app.config["DEBUG"]:
+if not app.config["DEBUG"] or app.config["DEBUG_WITH_LOG"]:
     filename = os.path.join(app.config["LOG_DIR"], "main.log")
     if os.path.exists(app.config["LOG_DIR"]):
         handler = RotatingFileHandler(filename,
@@ -51,6 +51,7 @@ def ping():
 
     :status 200: server alive
     """
+    log.debug("got ping")
     return Response("pong\n", content_type="text/plain;charset=UTF-8")
 
 
@@ -91,6 +92,7 @@ def gen_key():
     except Exception as e:
         raise BadRequestException("Failed to parse request body: {}".format(e))
 
+    log.info("received gen_key query: {}".format(query))
     if "name_real" not in query:
         raise BadRequestException("Request query missing required "
                                   "parameter `name_real`".format(query))
