@@ -1,4 +1,5 @@
 import base64
+from collections import defaultdict
 import os
 import time
 from functools import wraps
@@ -108,6 +109,37 @@ class CoprsTestCase(object):
         self.db.session.add_all([self.mc1, self.mc2, self.mc3, self.mc4])
 
     @pytest.fixture
+    def f_mock_chroots_many(self):
+        """
+        Adds more chroots to self.c1
+        """
+        self.mc_list = []
+        for arch in ["x86_64", "i386"]:
+            for os_version in range(17, 22):
+                mc = models.MockChroot(
+                    os_release="fedora", os_version=os_version,
+                    arch=arch, is_active=True)
+                self.mc_list.append(mc)
+
+            for os_version in [5, 6, 7]:
+                mc = models.MockChroot(
+                    os_release="epel", os_version=os_version,
+                    arch=arch, is_active=True)
+                self.mc_list.append(mc)
+
+        self.mc_list[-1].is_active = False
+
+        # only bind to coprs if the test has used the f_coprs fixture
+        if hasattr(self, "c1"):
+            for mc in self.mc_list:
+                cc = models.CoprChroot()
+                cc.mock_chroot = mc
+                self.c1.copr_chroots.append(cc)
+
+
+        self.db.session.add_all(self.mc_list)
+
+    @pytest.fixture
     def f_builds(self):
         self.b1 = models.Build(
             copr=self.c1, user=self.u1, submitted_on=50, started_on=139086644000)
@@ -133,6 +165,44 @@ class CoprsTestCase(object):
                 self.db.session.add(buildchroot)
 
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
+
+    @pytest.fixture
+    def f_builds_many_chroots(self):
+        self.b_many_chroots = models.Build(
+            id=12347,
+            copr=self.c1, user=self.u1,
+            submitted_on=50, started_on=139086644000,
+            pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
+            pkg_version="1.58"
+        )
+
+        self.db.session.add(self.b_many_chroots)
+        self.status_by_chroot = {
+            'epel-5-i386': 0,
+            'epel-5-x86_64': 1,
+            'epel-6-i386': 0,
+            'epel-6-x86_64': 3,
+            'epel-7-x86_64': 4,
+            'fedora-17-i386': 5,
+            'fedora-17-x86_64': 6,
+            'fedora-18-i386': 2,
+            'fedora-18-x86_64': 3,
+            'fedora-19-i386': 0,
+            'fedora-19-x86_64': 0,
+            'fedora-20-i386': 1,
+            'fedora-20-x86_64': 1,
+            'fedora-21-i386': 1,
+            'fedora-21-x86_64': 4
+        }
+
+        for chroot in self.b_many_chroots.copr.active_chroots:
+            buildchroot = models.BuildChroot(
+                build=self.b_many_chroots,
+                mock_chroot=chroot,
+                status = self.status_by_chroot[chroot.name])
+            self.db.session.add(buildchroot)
+
+        self.db.session.add(self.b_many_chroots)
 
     @pytest.fixture
     def f_copr_permissions(self):

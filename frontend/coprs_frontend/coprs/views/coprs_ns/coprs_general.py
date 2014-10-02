@@ -546,12 +546,20 @@ def copr_build_monitor(username, coprname):
             "Copr with name {0} does not exist.".format(coprname))
 
     form = forms.CoprLegalFlagForm()
-    oses = [chroot.os for chroot in copr.active_chroots]
-    oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
-    archs = [chroot.arch for chroot in copr.active_chroots]
-    kwargs = dict(copr=copr, oses=oses_grouped, archs=archs, form=form)
 
     monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
+
+    md_chroots = monitor["chroots"]
+    active_chroots = sorted(
+        copr.active_chroots,
+        key=lambda chroot: md_chroots.index(chroot.name)
+    )
+    oses = [chroot.os for chroot in active_chroots]
+    oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
+    archs = [chroot.arch for chroot in active_chroots]
+
+    kwargs = dict(copr=copr, oses=oses_grouped, archs=archs,
+                  form=form)
     kwargs.update(monitor)
     kwargs["build"] = kwargs["latest_build"]
     del kwargs["latest_build"]

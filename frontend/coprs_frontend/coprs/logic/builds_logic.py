@@ -283,8 +283,8 @@ class BuildsMonitorLogic(object):
         out = []
         packages = []
         for build in builds:
-            chroot_results = {chroot.name: chroot.state
-                              for chroot in build.build_chroots}
+            chroot_results = dict(
+                [(chroot.name, chroot.state) for chroot in build.build_chroots])
 
             build_results = []
             for chroot_name in chroots:
@@ -306,7 +306,6 @@ class BuildsMonitorLogic(object):
                 out.append(pkg_name)
             packages.sort()
 
-        print(packages)
         return {
             "builds": builds,
             "chroots": chroots,

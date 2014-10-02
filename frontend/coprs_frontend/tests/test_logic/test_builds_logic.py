@@ -1,7 +1,9 @@
 import pytest
+from coprs import helpers
 
 from coprs.exceptions import ActionInProgressException
 from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.builds_logic import BuildsMonitorLogic
 
 from tests.coprs_test_case import CoprsTestCase
 
@@ -38,3 +40,12 @@ class TestBuildsLogic(CoprsTestCase):
         b = BuildsLogic.add(**params)
         for k, v in params.items():
             assert getattr(b, k) == v
+
+    def test_monitor_logic(self, f_users, f_coprs, f_mock_chroots_many, f_builds_many_chroots, f_db):
+        copr = self.c1
+        md = BuildsMonitorLogic.get_monitor_data(copr)
+        results = md["packages"][-1][2]
+        mchroots = md["chroots"]
+
+        for chr, res in zip(mchroots, results):
+            assert helpers.StatusEnum(self.status_by_chroot[chr]) == res[1]
