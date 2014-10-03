@@ -40,7 +40,7 @@ from .parsers import fabric_simple_fields_parser, ProjectListParser, \
 """
 # or
 """
-    "No api login and\or api token are provided"
+    "No api login and/or api token are provided"
     "See man copr-cli for more information")
 """
 
