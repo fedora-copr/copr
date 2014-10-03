@@ -40,7 +40,6 @@ class Commands(object):
                 "copr_url": "http://copr.fedoraproject.org",
                 "no_config": True
             })
-            #print("BBBBBBBBBBBBB")
 
     def requires_api_auth(func):
         """ Decorator that checks config presence
