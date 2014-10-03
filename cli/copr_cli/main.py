@@ -264,7 +264,8 @@ def setup_parser():
     parser_build.add_argument("pkgs", nargs="+",
                               help="URL of packages to build")
     parser_build.add_argument("-r", "--chroot", dest="chroots", action="append",
-        help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
+        help="If you don't need this build for all the project's chroots. You can use it several times for each"
+		" chroot you need.")
     parser_build.add_argument("--memory", dest="memory",
                               help="")
     parser_build.add_argument("--timeout", dest="timeout",
