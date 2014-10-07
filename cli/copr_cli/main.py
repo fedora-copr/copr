@@ -30,7 +30,7 @@ class Commands(object):
         try:
             self.client = CoprClient.create_from_file_config()
         except (copr_exceptions.CoprNoConfException,
-                copr_exceptions.CoprConfigException) as e:
+                copr_exceptions.CoprConfigException):
             print(no_config_warning)
             self.client = CoprClient({
                 "copr_url": "http://copr.fedoraproject.org",
@@ -129,7 +129,6 @@ class Commands(object):
         except KeyboardInterrupt:
             pass
 
-
     @requires_api_auth
     def action_build(self, args):
         """ Method called when the 'build' action has been selected by the
@@ -153,7 +152,6 @@ class Commands(object):
 
             self._watch_builds(result.builds_list)
 
-
     @requires_api_auth
     def action_create(self, args):
         """ Method called when the 'create' action has been selected by the
@@ -169,7 +167,6 @@ class Commands(object):
             repos=args.repos, initial_pkgs=args.initial_pkgs)
         print(result.message)
 
-
     @requires_api_auth
     def action_delete(self, args):
         """ Method called when the 'delete' action has been selected by the
@@ -179,7 +176,6 @@ class Commands(object):
         """
         result = self.client.delete_project(projectname=args.copr)
         print(result.message)
-
 
     @check_username_presence
     def action_list(self, args):
@@ -228,13 +224,15 @@ def setup_parser():
     subparsers = parser.add_subparsers(title="actions")
 
     # create the parser for the "list" command
-    parser_list = subparsers.add_parser("list",
-                                        help="List all the copr of the "
-                                             "provided "
+    parser_list = subparsers.add_parser(
+        "list",
+        help="List all the copr of the "
+             "provided "
     )
-    parser_list.add_argument("username", nargs="?",
-                             help="The username that you would like to "
-                                  "list the copr of (defaults to current user)"
+    parser_list.add_argument(
+        "username", nargs="?",
+        help="The username that you would like to "
+             "list the copr of (defaults to current user)"
     )
     parser_list.set_defaults(func="action_list")
 
@@ -268,14 +266,17 @@ def setup_parser():
     parser_build = subparsers.add_parser("build",
                                          help="Build packages to a "
                                               "specified copr")
-    parser_build.add_argument("copr",
-                              help="The copr repo to build the package in. Can just name of project or even in format username/project."
+    parser_build.add_argument(
+        "copr",
+        help="The copr repo to build the package in. Can just name of project or even in format username/project."
     )
     parser_build.add_argument("pkgs", nargs="+",
                               help="URL of packages to build")
-    parser_build.add_argument("-r", "--chroot", dest="chroots", action="append",
-                              help="If you don't need this build for all the project's chroots. You can use it several times for each"
-                                   " chroot you need.")
+    parser_build.add_argument(
+        "-r", "--chroot", dest="chroots", action="append",
+        help="If you don't need this build for all the project's chroots. You can use it several times for each"
+             " chroot you need."
+    )
     parser_build.add_argument("--memory", dest="memory",
                               help="")
     parser_build.add_argument("--timeout", dest="timeout",
@@ -316,15 +317,12 @@ log.info("Logger initiated")
 
 def main(argv=sys.argv[1:]):
     try:
-        # print(argv)
         # Set up parser for global args
         parser = setup_parser()
         # Parse the commandline
         arg = parser.parse_args(argv)
-        #arg.func(arg)
 
         commands = Commands()
-        #print("Created client: {}".format(commands.client))
         getattr(commands, arg.func)(arg)
 
     except KeyboardInterrupt:

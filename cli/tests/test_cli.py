@@ -1,3 +1,4 @@
+import os
 import argparse
 from collections import defaultdict
 import json
@@ -25,28 +26,24 @@ else:
     import mock
     from mock import MagicMock
 
-
 import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    format= '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+    format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
     datefmt='%H:%M:%S'
 )
 
 log = logging.getLogger()
 log.info("Logger initiated")
 
-
 from copr_cli import main
 
 
 @mock.patch('copr_cli.main.CoprClient')
 def test_error_keyboard_interrupt(mock_cc, capsys):
-
-
     mock_client = MagicMock(no_config=False)
-    mock_client.get_build_details.side_effect =  KeyboardInterrupt()
+    mock_client.get_build_details.side_effect = KeyboardInterrupt()
     mock_cc.create_from_file_config.return_value = mock_client
 
     with pytest.raises(SystemExit) as err:
@@ -73,6 +70,7 @@ def test_error_copr_request(mock_cc, capsys):
     assert "Something went wrong" in stderr
     assert error_msg in stderr
 
+
 @mock.patch('copr_cli.main.setup_parser')
 @mock.patch('copr_cli.main.CoprClient')
 def test_error_argument_error(mock_cc, mock_setup_parser, capsys):
@@ -85,11 +83,12 @@ def test_error_argument_error(mock_cc, mock_setup_parser, capsys):
         argparse.ArgumentTypeError(error_msg)
 
     with pytest.raises(SystemExit) as err:
-         main.main(argv=["status", "123"])
+        main.main(argv=["status", "123"])
 
     assert err.value.code == 2
     stdout, stderr = capsys.readouterr()
     assert error_msg in stderr
+
 
 @mock.patch('copr_cli.main.CoprClient')
 def test_error_no_args(mock_cc, capsys):
@@ -105,6 +104,7 @@ def test_error_no_args(mock_cc, capsys):
         stdout, stderr = capsys.readouterr()
         assert "usage: copr-cli" in stderr
         assert "too few arguments" in stderr
+
 
 @mock.patch('copr_cli.main.CoprClient')
 def test_error_copr_common_exception(mock_cc, capsys):
@@ -177,7 +177,7 @@ def test_cancel_build_no_config(mock_cc, capsys):
 def test_cancel_build_response(mock_cc, capsys):
     response_status = "foobar"
 
-    mock_client = MagicMock(no_config=False,)
+    mock_client = MagicMock(no_config=False, )
     mock_client.cancel_build.return_value = MagicMock(status=response_status)
     mock_cc.create_from_file_config.return_value = mock_client
 
@@ -186,43 +186,16 @@ def test_cancel_build_response(mock_cc, capsys):
     assert "{}\n".format(response_status) in out
 
 
+def read_res(name):
+    dirpath = os.path.dirname(os.path.abspath(__file__))
+    filepath = os.path.join(dirpath, "resources", name)
+    return open(filepath).read()
+
 
 @mock.patch('copr_cli.main.CoprClient')
-def test_list_project(mock_cc,  capsys):
-    response_data = {"output": "ok",
-    "repos": [
-      {u'additional_repos': u'http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/ http://people.redhat.com/~msuchy/rhscl-1.1-rhel-6-candidate-perl516/',
-   u'description': u'A recent stable release of Perl with a number of additional utilities, scripts, and database connectors for MySQL and PostgreSQL. This version provides a large number of new features and enhancements, including new debugging options, improved Unicode support, and better performance.',
-   u'instructions': u'',
-   u'name': u'perl516',
-   u'yum_repos': {u'epel-6-x86_64': u'http://copr-be.cloud.fedoraproject.org/results/rhscl/perl516/epel-6-x86_64/'}},
-  {u'additional_repos': u'http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/rhscl/v8314/epel-6-$basearch/',
-   u'description': u'A recent stable release of Ruby with Rails 3.2.8 and a large collection of Ruby gems. This Software Collection gives developers on Red Hat Enterprise Linux 6 access to Ruby 1.9, which provides a number of new features and enhancements, including improved Unicode support, enhanced threading, and faster load times.',
-   u'instructions': u'',
-   u'name': u'ruby193',
-   u'yum_repos': {u'epel-6-x86_64': u'http://copr-be.cloud.fedoraproject.org/results/rhscl/ruby193/epel-6-x86_64/'}}]}
-
-    expected_output = """Name: perl516
-  Description: A recent stable release of Perl with a number of additional utilities, scripts, and database connectors for MySQL and PostgreSQL. This version provides a large number of new features and enhancements, including new debugging options, improved Unicode support, and better performance.
-  Yum repo(s):
-    epel-6-x86_64: http://copr-be.cloud.fedoraproject.org/results/rhscl/perl516/epel-6-x86_64/
-  Additional repo: http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/ http://people.redhat.com/~msuchy/rhscl-1.1-rhel-6-candidate-perl516/
-
-Name: ruby193
-  Description: A recent stable release of Ruby with Rails 3.2.8 and a large collection of Ruby gems. This Software Collection gives developers on Red Hat Enterprise Linux 6 access to Ruby 1.9, which provides a number of new features and enhancements, including improved Unicode support, enhanced threading, and faster load times.
-  Yum repo(s):
-    epel-6-x86_64: http://copr-be.cloud.fedoraproject.org/results/rhscl/ruby193/epel-6-x86_64/
-  Additional repo: http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/rhscl/v8314/epel-6-$basearch/
-"""
-    e2 = """Name: perl516
-  Description: A recent stable release of Perl with a number of additional utilities, scripts, and database connectors for MySQL and PostgreSQL. This version provides a large number of new features and enhancements, including new debugging options, improved Unicode support, and better performance.
-  Yum repo(s):
-    epel-6-x86_64: http://copr-be.cloud.fedoraproject.org/results/rhscl/perl516/epel-6-x86_64/
-  Additional repo: http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/ http://people.redhat.com/~msuchy/rhscl-1.1-rhel-6-candidate-perl516/
-
-Name: ruby193
-  Description: A recent stable release of Ruby with Rails 3.2.8 and a large collection of Ruby gems. This Software Collection gives developers on Red Hat Enterprise Linux 6 access to Ruby 1.9, which provides a number of new features and enhancements, including improved Unicode support, enhanced threading, and faster load times.
-"""
+def test_list_project(mock_cc, capsys):
+    response_data = json.load(open('tests/resources/list_projects_response.json'))
+    expected_output = read_res('list_projects_expected.txt')
 
     # no config
     mock_cc.create_from_file_config.side_effect = CoprNoConfException()
@@ -243,7 +216,7 @@ Name: ruby193
 
 
 @mock.patch('copr_cli.main.CoprClient')
-def test_list_project_no_username(mock_cc,  capsys):
+def test_list_project_no_username(mock_cc, capsys):
     mock_cc.create_from_file_config.side_effect = CoprNoConfException()
 
     with pytest.raises(SystemExit) as err:
@@ -255,7 +228,7 @@ def test_list_project_no_username(mock_cc,  capsys):
 
 
 @mock.patch('copr_cli.main.CoprClient')
-def test_list_project_no_username2(mock_cc,  capsys):
+def test_list_project_no_username2(mock_cc, capsys):
     mock_cc.create_from_file_config.return_value = CoprClient(defaultdict())
 
     with pytest.raises(SystemExit) as err:
@@ -267,7 +240,7 @@ def test_list_project_no_username2(mock_cc,  capsys):
 
 
 @mock.patch('copr_cli.main.CoprClient')
-def test_list_project_error_msg(mock_cc,  capsys):
+def test_list_project_error_msg(mock_cc, capsys):
     mock_client = MagicMock(no_config=False, username="dummy")
     mock_cc.create_from_file_config.return_value = mock_client
 
@@ -284,7 +257,7 @@ def test_list_project_error_msg(mock_cc,  capsys):
 
 
 @mock.patch('copr_cli.main.CoprClient')
-def test_list_project_empty_list(mock_cc,  capsys):
+def test_list_project_empty_list(mock_cc, capsys):
     mock_client = MagicMock(no_config=False, username="dummy")
     mock_cc.create_from_file_config.return_value = mock_client
 
@@ -369,6 +342,7 @@ def test_create_project(mock_cc, capsys):
 
     assert "{}\n".format(response_message) in stdout
 
+
 @mock.patch('copr_cli.main.CoprClient')
 def test_create_build_no_wait_ok(mock_cc, capsys):
     response_message = "foobar"
@@ -408,6 +382,7 @@ def test_create_build_no_wait_error(mock_cc, capsys):
     assert response_message in stdout
 
     assert not mock_client._watch_build.called
+
 
 @mock.patch('copr_cli.main.time')
 @mock.patch('copr_cli.main.CoprClient')
@@ -462,7 +437,6 @@ def test_create_build_wait_error_status(mock_cc, capsys):
         ])
         assert err.value.code == 1
 
-
     stdout, stderr = capsys.readouterr()
     assert response_message in stdout
     assert "Created builds" in stdout
@@ -497,6 +471,7 @@ def test_create_build_wait_unknown_build_status(mock_cc, capsys):
     assert "Created builds" in stdout
     assert "Watching build" in stdout
 
+
 @mock.patch('copr_cli.main.CoprClient')
 def test_create_build_wait_keyboard_interrupt(mock_cc, capsys):
     response_message = "foobar"
@@ -523,6 +498,7 @@ def test_create_build_wait_keyboard_interrupt(mock_cc, capsys):
     assert "Created builds" in stdout
     assert "Watching build" in stdout
 
+
 @mock.patch('copr_cli.main.time')
 @mock.patch('copr_cli.main.CoprClient')
 class TestCreateBuild(object):
@@ -539,6 +515,7 @@ class TestCreateBuild(object):
             ])
 
         self.stage = 0
+
         def incr(*args, **kwargs):
             self.stage += 1
 
@@ -585,6 +562,7 @@ class TestCreateBuild(object):
             ])
 
         self.stage = 0
+
         def incr(*args, **kwargs):
             self.stage += 1
 
