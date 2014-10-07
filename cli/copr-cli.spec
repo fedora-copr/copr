@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.37
+Version:    1.38
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -87,6 +87,12 @@ install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Tue Oct 07 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.38-1
+- [cli] Added symlink for executable: copr -> copr-cli
+- [cli] removed epydoc documentation
+- [python-copr, cli] test coverage
+- [python-copr, cli] updating copr-cli to use python-copr
+
 * Thu Sep 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.37-1
 - [python-copr] Renamed package: python-copr-client -> python-copr
 - [cli]  In case of missing config show proper message, hide traceback.
