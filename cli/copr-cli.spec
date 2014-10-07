@@ -23,16 +23,13 @@ BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python2-devel
-BuildRequires: python-copr-client
+BuildRequires: python-copr
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
-#for doc package
-BuildRequires: epydoc
-BuildRequires: graphviz
 
 Requires:   python-setuptools
-Requires:   python-copr-client
+Requires:   python-copr
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
 %endif
@@ -67,23 +64,13 @@ mv copr_cli/README.rst ./
 # convert manages
 a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 
-%if 0%{?fedora}
-# build documentation
-pushd documentation
-make %{?_smp_mflags} python
-popd
-%endif
-
 %install
 install -d %{buildroot}%{_pkgdocdir}/
 %{__python2} setup.py install --root %{buildroot}
+ln -sf /bin/copr-cli /bin/cop
+
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
-
-#doc
-%if 0%{?fedora}
-cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
-%endif
 
 %files
 %doc LICENSE README.rst
@@ -94,7 +81,6 @@ cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 %if 0%{?fedora}
 %files doc
 %doc LICENSE
-%doc %{_pkgdocdir}/python-doc
 %endif
 
 %changelog

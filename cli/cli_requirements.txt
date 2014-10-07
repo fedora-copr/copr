@@ -1,4 +1,4 @@
 # Used for when working from a virtualenv.
 # Use this file by running "$ pip install -r cli_requirements.txt"
-cliff
+# copr # add when python-copr also present in PyPI
 requests
