@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.50
+Version:    1.51
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -165,6 +165,11 @@ popd
 %endif
 
 %changelog
+* Tue Oct 07 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.51-1
+- [python-copr, cli] test coverage 
+- [python-copr, cli] updating copr-cli to use python-copr
+- [python-copr] minor fixes, added usage examples to docs
+
 * Mon Sep 08 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.50-1
 - [python-copr] fix: we need to support python 2.6 due to epel-6
 
