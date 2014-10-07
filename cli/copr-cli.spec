@@ -67,7 +67,8 @@ a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 %install
 install -d %{buildroot}%{_pkgdocdir}/
 %{__python2} setup.py install --root %{buildroot}
-ln -sf /bin/copr-cli /bin/cop
+
+ln -sf %{_bindir}/copr-cli %{buildroot}%{_bindir}/copr
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
@@ -77,6 +78,8 @@ install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 %{_bindir}/copr-cli
 %{python_sitelib}/*
 %{_mandir}/man1/copr-cli.1*
+%{_bindir}/copr
+
 
 %if 0%{?fedora}
 %files doc
