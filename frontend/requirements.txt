@@ -1,0 +1,15 @@
+Flask
+Flask-OpenID
+Flask-SQLAlchemy==1.0
+Flask-Script
+Flask-WTF
+SQLAlchemy==0.8.7
+pytest
+pytest-cov
+blinker
+pytz
+markdown
+pyLibravatar
+pydns
+flexmock
+decorator

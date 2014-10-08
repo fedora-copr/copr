@@ -10,3 +10,7 @@ python-doc/
 *.egg-info
 documentation/build
 documentation/python-doc
+_venv/
+*.junit.xml
+coverage.xml
+

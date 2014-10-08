@@ -194,7 +194,7 @@ def read_res(name):
 
 @mock.patch('copr_cli.main.CoprClient')
 def test_list_project(mock_cc, capsys):
-    response_data = json.load(open('tests/resources/list_projects_response.json'))
+    response_data = json.loads(read_res('list_projects_response.json'))
     expected_output = read_res('list_projects_expected.txt')
 
     # no config
