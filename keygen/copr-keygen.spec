@@ -9,7 +9,7 @@
 Name:       copr-keygen
 Version:    1.58
 Release:    1%{?dist}
-Summary:    Part of Copr build system. Aux service that generate keys for sign.
+Summary:    Part of Copr build system. Aux service that generate keys for signd
 
 Group:      Applications/Productivity
 License:    GPLv2+
@@ -64,7 +64,7 @@ This package contains aux service that generate keys for package signing.
 
 %if 0%{?fedora}
 %package -n copr-keygen-doc
-Summary:    Code documentation for copr-keygen component of Copr buildsystem.
+Summary:    Code documentation for copr-keygen component of Copr buildsystem
 Obsoletes:  copr-doc < 1.38
 
 BuildRequires: python-devel
@@ -98,6 +98,7 @@ CFLAGS="%{optflags}" %{__python3} setup.py build
 # build documentation
 pushd docs
 make %{?_smp_mflags} html
+rm _build/html/.buildinfo
 popd
 %endif # ?fedora
 
@@ -119,9 +120,9 @@ install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/phrases
 install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/gnupg
 install -d %{buildroot}%{_localstatedir}/log/copr-keygen
 
-%{__install} -p -m 0644 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
+%{__install} -p -m 0755 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
 
-%{__install} -p -m 0644 run/application.py %{buildroot}%{_datadir}/copr-keygen/
+%{__install} -p -m 0755 run/application.py %{buildroot}%{_datadir}/copr-keygen/
 %{__install} -p -m 0644 configs/httpd/copr-keygen.conf.example %{buildroot}%{_pkgdocdir}/httpd/
 %{__install} -p -m 0644 configs/sign/sign.conf.example %{buildroot}%{_pkgdocdir}/sign/sign.conf.example
 
@@ -158,16 +159,13 @@ service httpd condrestart
 %{python3_sitelib}/*
 
 %{_bindir}/gpg_copr.sh
-
+%config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
 
 %defattr(600, copr-signer, copr-signer, 700)
 %{_sharedstatedir}/copr-keygen
 %config(noreplace) %{_sysconfdir}/copr-keygen
 %{_localstatedir}/log/copr-keygen/
 %ghost %{_localstatedir}/log/copr-keygen/main.log
-
-%defattr(600, root, root)
-%config(noreplace)  %{_sysconfdir}/sudoers.d/copr_signer
 
 
 %files -n copr-keygen-doc
