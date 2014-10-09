@@ -21,15 +21,18 @@ pip install -r keygen/requirements.txt
 
 mkdir -p _report
 
-python -m pytest python/copr  --junitxml=_report/python-copr.junit.xml --cov-report xml --cov python/copr/client
+COPR_CONFIG="$(pwd)/frontend/coprs_frontend/config/copr_unit_test.conf"  \
+    python -m pytest frontend/coprs_frontend/tests --junitxml=_report/frontend.junit.xml --cov-report xml --cov frontend/coprs_frontend/coprs
+mv {,_report/frontend.}coverage.xml
+
+python -m pytest backend/tests  --junitxml=_report/backend.junit.xml --cov-report xml --cov backend/backend
+mv {,_report/backend.}coverage.xml
+
+python -m pytest python/copr/test  --junitxml=_report/python-copr.junit.xml --cov-report xml --cov python/copr/client
 mv {,_report/python-copr.}coverage.xml
 
 PYTHONPATH=python/:cli/:$PYTHONPATH  python -m pytest cli/tests --junitxml=_report/cli.junit.xml --cov-report xml --cov cli/copr_cli
 mv {,_report/cli.}coverage.xml
-
-COPR_CONFIG="$(pwd)/frontend/coprs_frontend/config/copr_unit_test.conf"  \
-    python -m pytest frontend/coprs_frontend/tests --junitxml=_report/frontend.junit.xml --cov-report xml --cov frontend/coprs_frontend/coprs
-mv {,_report/frontend.}coverage.xml
 
 PYTHONPATH=keygen/src:$PYTHONPATH python -B -m pytest keygen/tests  --junitxml=_report/keygen.junit.xml --cov-report xml --cov keygen/src
 mv {,_report/keygen.}coverage.xml
