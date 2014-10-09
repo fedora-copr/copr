@@ -6,6 +6,7 @@ find . -path '*/__pycache__' | xargs rm -rfv
 virtualenv _venv
 source _venv/bin/activate
 
+
 pip install  pytest mock pytest-cov sphinx flask flask-script SQLAlchemy==0.8.7 flask-whooshee Flask-OpenID Flask-SQLAlchemy==1.0  Flask-WTF blinker pytz markdown pyLibravatar pydns  flexmock whoosh decorator
 
 
@@ -15,14 +16,23 @@ cp -rv /usr/lib64/python2.7/site-packages/rpm _venv/lib/python2.7/site-packages/
 pip install -r python/requirements.txt
 pip install -r cli/requirements.txt
 pip install -r frontend/requirements.txt
+pip install -r keygen/requirements.txt
 
 
-python -m pytest python/copr  --junitxml=python-copr.junit.xml --cov-report xml --cov python/copr/client
+mkdir -p _report
 
-PYTHONPATH=python/:cli/:$PYTHONPATH  python -m pytest cli/tests --junitxml=cli.junit.xml --cov-report xml --cov cli/copr_cli
+python -m pytest python/copr  --junitxml=_report/python-copr.junit.xml --cov-report xml --cov python/copr/client
+mv {,_report/python-copr.}coverage.xml
+
+PYTHONPATH=python/:cli/:$PYTHONPATH  python -m pytest cli/tests --junitxml=_report/cli.junit.xml --cov-report xml --cov cli/copr_cli
+mv {,_report/cli.}coverage.xml
 
 COPR_CONFIG="$(pwd)/frontend/coprs_frontend/config/copr_unit_test.conf"  \
-    python -m pytest frontend/coprs_frontend/tests --junitxml=frontend.junit.xml --cov-report xml --cov frontend/coprs_frontend/coprs
+    python -m pytest frontend/coprs_frontend/tests --junitxml=_report/frontend.junit.xml --cov-report xml --cov frontend/coprs_frontend/coprs
+mv {,_report/frontend.}coverage.xml
+
+PYTHONPATH=keygen/src:$PYTHONPATH python -B -m pytest keygen/tests  --junitxml=_report/keygen.junit.xml --cov-report xml --cov keygen/src
+mv {,_report/keygen.}coverage.xml
 
 deactivate
 

@@ -3,6 +3,7 @@ Flask-OpenID
 Flask-SQLAlchemy==1.0
 Flask-Script
 Flask-WTF
+flask-whooshee==0.0.6
 SQLAlchemy==0.8.7
 pytest
 pytest-cov
