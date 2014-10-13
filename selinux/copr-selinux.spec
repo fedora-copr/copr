@@ -27,7 +27,7 @@ BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires:  checkpolicy, selinux-policy-devel
-BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
+BuildRequires:  policycoreutils
 Requires(post): policycoreutils, libselinux-utils
 Requires(post): policycoreutils-python
 Requires(post): selinux-policy-targeted
@@ -70,7 +70,7 @@ done
 install -d %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}
 install -p -m 644 %{modulename}.if \
   %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
-# Install copr-selinux-enable which will be called in %posttrans
+# Install copr-selinux-enable which will be called in %%posttrans
 install -d %{buildroot}%{_sbindir}
 install -p -m 755 %{name}-enable %{buildroot}%{_sbindir}/%{name}-enable
 install -p -m 755 %{name}-relabel %{buildroot}%{_sbindir}/%{name}-relabel
@@ -97,7 +97,7 @@ if [ $1 -eq 0 ]; then
         && /usr/sbin/semodule -s ${selinuxvariant} -r %{modulename} || :
     done
 fi
-%{sbinpath}/restorecon -rvvi %{_sharedstatedir}/copr
+%{_sbindir}/restorecon -rvvi %{_sharedstatedir}/copr
 
 %files
 %doc LICENSE
