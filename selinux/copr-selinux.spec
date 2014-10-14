@@ -8,7 +8,7 @@
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
-Version:    1.32
+Version:    1.33
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -110,6 +110,9 @@ fi
 %{_mandir}/man8/%{name}-relabel.8*
 
 %changelog
+* Tue Oct 14 2014 Miroslav Suchý <msuchy@redhat.com> 1.33-1
+- 1077795 - use macro for /usr/share/
+
 * Mon Oct 13 2014 Miroslav Suchý <msuchy@redhat.com> 1.32-1
 - 1077795 - spec cleanup
 
