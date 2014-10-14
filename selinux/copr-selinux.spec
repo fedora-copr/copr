@@ -5,7 +5,7 @@
 
 %global moduletype apps
 %global modulename copr
-%{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' /usr/share/selinux/devel/policyhelp 2>/dev/null)}
+%{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
 Version:    1.32
@@ -54,10 +54,10 @@ a2x -d manpage -f manpage man/copr-selinux-relabel.8.asciidoc
 
 perl -i -pe 'BEGIN { $VER = join ".", grep /^\d+$/, split /\./, "%{version}.%{release}"; } s!\@\@VERSION\@\@!$VER!g;' %{modulename}.te
 for selinuxvariant in targeted mls; do
-    make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
+    make NAME=${selinuxvariant} -f %{_datadir}/selinux/devel/Makefile
     bzip2 -9 %{modulename}.pp
     mv %{modulename}.pp.bz2 %{modulename}.pp.bz2.${selinuxvariant}
-    make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
+    make NAME=${selinuxvariant} -f %{_datadir}/selinux/devel/Makefile clean
 done
 
 %install
