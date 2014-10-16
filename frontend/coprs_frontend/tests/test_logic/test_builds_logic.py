@@ -41,7 +41,7 @@ class TestBuildsLogic(CoprsTestCase):
         for k, v in params.items():
             assert getattr(b, k) == v
 
-    def test_monitor_logic(self, f_users, f_coprs, f_mock_chroots_many, f_builds_many_chroots, f_db):
+    def test_monitor_logic(self, f_users, f_coprs, f_mock_chroots_many, f_build_many_chroots, f_db):
         copr = self.c1
         md = BuildsMonitorLogic.get_monitor_data(copr)
         results = md["packages"][-1][2]

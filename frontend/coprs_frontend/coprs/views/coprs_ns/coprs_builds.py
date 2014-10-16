@@ -197,7 +197,9 @@ def copr_repeat_build(username, coprname, build_id, page=1):
             copr=copr,
             repos=copr.repos,
             memory_reqs=build.memory_reqs,
-            timeout=build.timeout)
+            timeout=build.timeout,
+            chroots=build.chroots,
+        )
 
     except (ActionInProgressException, InsufficientRightsException) as e:
         db.session.rollback()

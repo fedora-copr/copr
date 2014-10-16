@@ -1,3 +1,4 @@
+from coprs import models
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
@@ -142,6 +143,53 @@ class TestCoprDeleteBuild(CoprsTestCase):
 
 
 class TestCoprRepeatBuild(CoprsTestCase):
+    @TransactionDecorator("u1")
+    def test_copr_build_chroots_subset_preserved_on_build_repeat(
+            self, f_users, f_coprs, f_mock_chroots_many, f_db):
+        self.b_few_chroots = models.Build(
+            id=2345,
+            copr=self.c1, user=self.u1,
+            submitted_on=50, started_on=139086644000,
+            pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
+            pkg_version="1.58"
+        )
+
+        self.db.session.add(self.b_few_chroots)
+        self.status_by_chroot = {
+            'epel-5-i386': 0,
+            'fedora-20-i386': 1,
+            'fedora-20-x86_64': 1,
+            'fedora-21-i386': 1,
+            'fedora-21-x86_64': 4
+        }
+
+        for chroot in self.b_few_chroots.copr.active_chroots:
+            if chroot.name in self.status_by_chroot:
+                buildchroot = models.BuildChroot(
+                    build=self.b_few_chroots,
+                    mock_chroot=chroot,
+                    status = self.status_by_chroot[chroot.name])
+                self.db.session.add(buildchroot)
+
+        self.db.session.add_all([self.u1, self.c1, self.b_few_chroots])
+        self.db.session.commit()
+
+        r = self.test_client.post(
+            "/coprs/{0}/{1}/repeat_build/{2}/"
+            .format(self.u1.name, self.c1.name, self.b_few_chroots.id),
+            data={},
+            follow_redirects=True)
+
+        assert "Build was resubmitted" in r.data
+
+        new_build = self.models.Build.query.filter(
+            self.models.Build.id != 2345).first()
+
+        expected_build_chroots_name_set = set(self.status_by_chroot.keys())
+        result_build_chroots_name_set = set([c.name for c in new_build.chroots])
+
+        assert result_build_chroots_name_set == expected_build_chroots_name_set
+
 
     @TransactionDecorator("u1")
     def test_copr_build_submitter_can_repeat_build(self, f_users,
