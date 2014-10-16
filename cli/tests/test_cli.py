@@ -102,7 +102,7 @@ def test_error_no_args(mock_cc, capsys):
         assert err.value.code == 2
 
         stdout, stderr = capsys.readouterr()
-        assert "usage: copr-cli" in stderr
+        assert "usage: copr" in stderr
         assert "too few arguments" in stderr
 
 
@@ -297,7 +297,7 @@ def test_status_response_no_args(mock_cc, capsys):
     assert err.value.code == 2
 
     stdout, stderr = capsys.readouterr()
-    assert "usage: copr-cli" in stderr
+    assert "usage: copr" in stderr
     assert "too few arguments" in stderr
 
 
@@ -313,6 +313,61 @@ def test_delete_project(mock_cc, capsys):
     main.main(argv=["delete", "foo"])
     out, err = capsys.readouterr()
     assert "{}\n".format(response_message) in out
+
+
+@mock.patch('copr_cli.main.subprocess')
+@mock.patch('copr_cli.main.CoprClient')
+def test_download_build(mock_cc, mock_sp, capsys):
+    mock_client = MagicMock(no_config=False)
+    mock_client.get_build_details.return_value = \
+        MagicMock(
+            data={"chroots": {
+                u'epel-6-x86_64': u'succeeded', u'epel-6-i386': u'succeeded'
+            }},
+            src_pkg="http://example/python/python-copr-1.50-1.fc20.src.rpm",
+            results="http://example.com/results/",
+        )
+    mock_cc.create_from_file_config.return_value = mock_client
+
+    mock_sp.call.return_value = None
+    main.main(argv=["download-build", "foo"])
+    stdout, stderr = capsys.readouterr()
+
+    expected_sp_call_args = [
+        mock.call(['wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
+            '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
+            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20/']),
+        mock.call(['wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
+            '-P', u'./epel-6-i386', '--cut-dirs', '6',
+            'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20/'])
+    ]
+
+    assert mock_sp.call.call_args_list == expected_sp_call_args
+
+@mock.patch('copr_cli.main.subprocess')
+@mock.patch('copr_cli.main.CoprClient')
+def test_download_build_select_chroot(mock_cc, mock_sp, capsys):
+    mock_client = MagicMock(no_config=False)
+    mock_client.get_build_details.return_value = \
+        MagicMock(
+            data={"chroots": {
+                u'epel-6-x86_64': u'succeeded', u'epel-6-i386': u'succeeded'
+            }},
+            src_pkg="http://example/python/python-copr-1.50-1.fc20.src.rpm",
+            results="http://example.com/results/",
+        )
+    mock_cc.create_from_file_config.return_value = mock_client
+
+    mock_sp.call.return_value = None
+    main.main(argv=["download-build", "foo", "-r", "epel-6-x86_64"])
+    stdout, stderr = capsys.readouterr()
+    expected_sp_call_args = [
+        mock.call(['wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
+            '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
+            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20/']),
+    ]
+
+    assert mock_sp.call.call_args_list == expected_sp_call_args
 
 
 @mock.patch('copr_cli.main.CoprClient')

@@ -30,6 +30,7 @@ BuildRequires: python-argparse
 
 Requires:   python-setuptools
 Requires:   python-copr
+Requires:   wget
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
 %endif

@@ -1,10 +1,13 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+import os
+import subprocess
 
 __version__ = "0.3.0"
 __description__ = "CLI tool to run copr"
 
 import argparse
+from urlparse import urlparse
 import sys
 import datetime
 import time
@@ -202,6 +205,33 @@ class Commands(object):
         result = self.client.get_build_details(args.build_id)
         print(result.status)
 
+    def action_download_build(self, args):
+        result = self.client.get_build_details(args.build_id)
+        # TODO: can be simplified after https://bugzilla.redhat.com/show_bug.cgi?id=1133650
+        #  and addition of that paths to api
+
+        o = urlparse(result.src_pkg)
+        pkgs_name = os.path.split(o.path)[-1]
+        assert pkgs_name.endswith(".src.rpm")
+
+        base_url = result.results
+        base_len = len(os.path.split(base_url))
+
+        pkg_dir = pkgs_name[:-8]
+        for chroot, status in result.data["chroots"].items():
+            if args.chroots and chroot not in args.chroots:
+                continue
+
+            cmd = "wget -r -nH --no-parent --reject 'index.html*'".split(' ')
+
+            cmd.extend(['-P', os.path.join(args.dest, chroot)])
+            cmd.extend(['--cut-dirs', str(base_len + 4)])
+            cmd.append("{}{}/{}/".format(base_url, chroot, pkg_dir))
+
+            subprocess.call(cmd)
+
+
+
     @requires_api_auth
     def action_cancel(self, args):
         """ Method called when the 'cancel' action has been selected by the
@@ -216,10 +246,10 @@ def setup_parser():
     """
     Set the main arguments.
     """
-    parser = argparse.ArgumentParser(prog="copr-cli")
+    parser = argparse.ArgumentParser(prog="copr")
     # General connection options
     parser.add_argument("--version", action="version",
-                        version="copr-cli {0}".format(__version__))
+                        version="copr {0}".format(__version__))
 
     subparsers = parser.add_subparsers(title="actions")
 
@@ -292,6 +322,19 @@ def setup_parser():
     parser_build.add_argument("build_id",
                               help="Build ID")
     parser_build.set_defaults(func="action_status")
+
+    # create the parser for the "download-build" command
+    parser_build = subparsers.add_parser("download-build", help="Fetches built packages")
+    parser_build.add_argument("build_id",
+                              help="Build ID")
+    parser_build.add_argument(
+        "-r", "--chroot", dest="chroots", action="append",
+        help="Select chroots to fetch"
+    )
+    parser_build.add_argument("--dest", "-d", dest="dest",
+                              help="Base directory to store packages", default=".")
+
+    parser_build.set_defaults(func="action_download_build")
 
     # create the parser for the "cancel" command
     parser_build = subparsers.add_parser("cancel",

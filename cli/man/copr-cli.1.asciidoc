@@ -50,6 +50,9 @@ Get the status of the build.
 cancel::
 Cancel a build of given id.
 
+download-build::
+Download a build to local directory.
+
 
 `copr-cli create [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
