@@ -348,7 +348,7 @@ class CoprBackend(object):
                 # FIXME - if a worker bombs out - we need to check them
                 # and startup a new one if it happens
                 # check for dead workers and abort
-                for w in self.workers[id]:
+                for w in self.workers[group_id]:
                     if not w.is_alive():
                         self.event("Worker {0} died unexpectedly".format(
                             w.worker_num))
@@ -356,7 +356,7 @@ class CoprBackend(object):
                             raise CoprBackendError(
                                 "Worker died unexpectedly, exiting")
                         else:
-                            self.workers[id].remove(w)  # it is not working anymore
+                            self.workers[group_id].remove(w)  # it is not working anymore
                             w.terminate()  # kill it with a fire
 
             time.sleep(self.opts.sleeptime)
