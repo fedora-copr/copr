@@ -611,6 +611,7 @@ class Worker(multiprocessing.Process):
                             macros=macros,
                             lock=self.lock,
                             do_sign=self.opts.do_sign,
+                            build_id=job.build_id,
                             buildroot_pkgs=job.buildroot_pkgs,
                             callback=mockremote.CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile))

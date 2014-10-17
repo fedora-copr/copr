@@ -554,13 +554,18 @@ class Builder(object):
             raise BuilderError(msg)
 
 
+def get_target_dir(chroot_dir, pkg_name):
+    source_basename = os.path.basename(pkg_name).replace(".src.rpm", "")
+    return os.path.join(chroot_dir, source_basename)
+
+
 class MockRemote(object):
 
     def __init__(self, builder=None, user=DEF_USER, timeout=DEF_TIMEOUT,
                  destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False,
                  recurse=False, repos=None, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
-                 macros=None, lock=None, do_sign=False,
+                 macros=None, lock=None, do_sign=False, build_id=None,
                  buildroot_pkgs=DEF_BUILDROOT_PKGS):
         """
 
@@ -662,14 +667,15 @@ class MockRemote(object):
         :param pkg: path to the source package
 
         """
-        source_basename = os.path.basename(pkg).replace(".src.rpm", "")
+        #source_basename = os.path.basename(pkg).replace(".src.rpm", "")
         self.callback.log("Going to sign pkgs from source: {} in chroot: {}".
-                          format(source_basename, chroot_dir))
+                          format(pkg, chroot_dir))
 
         try:
             sign_rpms_in_dir(self.macros["copr_username"],
                              self.macros["copr_projectname"],
-                             os.path.join(chroot_dir, source_basename),
+                             #os.path.join(chroot_dir, source_basename),
+                             get_target_dir(chroot_dir, pkg),
                              callback=self.callback)
         except Exception as e:
             self.callback.log(
@@ -757,6 +763,13 @@ class MockRemote(object):
                 self.log_to_file_safe(
                     os.path.join(chroot_dir, "mockchain.log"),
                     ["\n\n{0}\n\n".format(pkg), b_out], [b_err])
+
+                ## adding info file with
+                try:
+                    with open(os.path.join(get_target_dir(chroot_dir, pkg), "build.info"), 'w') as info_file:
+                        info_file.write("build_id={}\n".format(self.build_id))
+                except IOError:
+                    pass
 
                 # checking where to stick stuff
                 if not b_status:
