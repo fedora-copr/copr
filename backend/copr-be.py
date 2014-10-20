@@ -22,7 +22,7 @@ import setproctitle
 import signal
 import sys
 import time
-
+from callback import FrontendCallback
 
 def _get_conf(cp, section, option, default, mode=None):
     """
@@ -111,7 +111,8 @@ class CoprJobGrab(multiprocessing.Process):
                 len(r_json["actions"])))
 
             for action in r_json["actions"]:
-                ao = Action(self.opts, self.events, action, self.lock)
+                ao = Action(self.events, action, self.lock, destdir=self.opts.destdir,
+                            frontend_callback=FrontendCallback(self.opts))
                 ao.run()
 
     def run(self):

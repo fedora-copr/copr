@@ -1,20 +1,23 @@
-from bunch import Bunch
-from callback import FrontendCallback
 import os.path
 import shutil
 import time
+
+from bunch import Bunch
 
 from mockremote import createrepo
 
 
 class Action(object):
+    """ Object to send data back to fronted
 
-    """ Object to send data back to fronted """
+    :param multiprocessing.Queue events: ? collects events for logging
 
-    def __init__(self, opts, events, action, lock):
+    """
+
+    def __init__(self, events, action, lock, frontend_callback, destdir):
         super(Action, self).__init__()
-        self.frontend_callback = FrontendCallback(opts)
-        self.destdir = opts.destdir
+        self.frontend_callback = frontend_callback
+        self.destdir = destdir
         self.data = action
         self.events = events
         self.lock = lock
@@ -27,7 +30,7 @@ class Action(object):
         result = Bunch()
         result.id = self.data["id"]
 
-        if self.data["action_type"] == 0:  # delete
+        if self.data["action_type"] == ActionType.DELETE:
             if self.data["object_type"] == "copr":
                 self.event("Action delete copr")
                 project = self.data["old_value"]
@@ -42,7 +45,7 @@ class Action(object):
                 self.event("Action delete build")
                 project = self.data["old_value"]
                 packages = [os.path.basename(x).replace(".src.rpm", "") for x in \
-                               self.data["data"].split()]
+                            self.data["data"].split()]
 
                 path = os.path.join(self.destdir, project)
 
@@ -65,8 +68,9 @@ class Action(object):
                     # files as well - that would be wrong.
                     for pkg in packages:
                         if self.data["object_type"] == "build-succeeded" or \
-                            (self.data["object_type"] == "build-failed" and
-                            os.path.exists(os.path.join(path, chroot, pkg, "fail"))):
+                                (self.data["object_type"] == "build-failed" and
+                                      os.path.exists(os.path.join(path, chroot, pkg, "fail"))
+                                ):
                             pkg_path = os.path.join(path, chroot, pkg)
                             if os.path.isdir(pkg_path):
                                 self.event("Removing build {0}".format(pkg_path))
@@ -95,12 +99,12 @@ class Action(object):
             result.job_ended_on = time.time()
             result.result = 1  # success
 
-        elif self.data["action_type"] == 1:  # rename
+        elif self.data["action_type"] == ActionType.RENAME:
             self.event("Action rename")
-            old_path = os.path.normpath(
-                self.destdir + '/', self.data["old_value"])
-            new_path = os.path.normpath(
-                self.destdir + '/', self.data["new_value"])
+            old_path = os.path.normpath(os.path.join(
+                self.destdir, self.data["old_value"]))
+            new_path = os.path.normpath(os.path.join(
+                self.destdir, self.data["new_value"]))
 
             if os.path.exists(old_path):
                 if not os.path.exists(new_path):
@@ -113,8 +117,20 @@ class Action(object):
                 result.result = 1  # success
             result.job_ended_on = time.time()
 
-        elif self.data["action_type"] == 2:  # legal-flag
+        elif self.data["action_type"] == ActionType.LEGAL_FLAG:
             self.event("Action legal-flag: ignoring")
 
         if "result" in result:
             self.frontend_callback.update({"actions": [result]})
+
+
+class ActionType(object):
+    DELETE = 0
+    RENAME = 1
+    LEGAL_FLAG = 2
+
+
+class ActionResult(object):
+    WAITING = 0
+    SUCCESS = 1
+    FAILURE = 2
