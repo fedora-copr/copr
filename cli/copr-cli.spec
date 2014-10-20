@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.38
+Version:    1.39
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -90,6 +90,11 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Mon Oct 20 2014 Miroslav Suchý <msuchy@redhat.com> 1.39-1
+- add man page for copr(1)
+- [cli] [RHBZ: #1149889]  RFE: download command in copr-cli
+- A few fixes for CI
+
 * Tue Oct 07 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.38-1
 - [cli] Added symlink for executable: copr -> copr-cli
 - [cli] removed epydoc documentation
