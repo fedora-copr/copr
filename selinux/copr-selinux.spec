@@ -108,6 +108,7 @@ fi
 %{_sbindir}/%{name}-relabel
 %{_mandir}/man8/%{name}-enable.8*
 %{_mandir}/man8/%{name}-relabel.8*
+%dir %{_datadir}/selinux/mls
 
 %changelog
 * Tue Oct 14 2014 Miroslav Suchý <msuchy@redhat.com> 1.33-1
