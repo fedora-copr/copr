@@ -73,12 +73,14 @@ ln -sf %{_bindir}/copr-cli %{buildroot}%{_bindir}/copr
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
+install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 %files
 %doc LICENSE README.rst
 %{_bindir}/copr-cli
 %{python_sitelib}/*
 %{_mandir}/man1/copr-cli.1*
+%{_mandir}/man1/copr.1*
 %{_bindir}/copr
 
 
