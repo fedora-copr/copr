@@ -118,6 +118,7 @@ class User(db.Model, helpers.Serializer):
         except IOError:
             return ""
 
+
 class Copr(db.Model, helpers.Serializer):
 
     """
@@ -137,6 +138,9 @@ class Copr(db.Model, helpers.Serializer):
     instructions = db.Column(db.Text)
     deleted = db.Column(db.Boolean, default=False)
     playground = db.Column(db.Boolean, default=False)
+
+    # should copr run `createrepo` each time when build packages are changed
+    auto_createrepo = db.Column(db.Boolean, default=True)
 
     # relations
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))

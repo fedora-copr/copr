@@ -225,12 +225,15 @@ def api_coprs_by_owner_detail(username, coprname):
                     yum_repos[release] = fix_protocol_for_backend(
                         urlparse.urljoin(build.results, release + '/'))
                 break
-        output["detail"] = {"name": copr.name,
-                                "additional_repos": copr.repos,
-                                "yum_repos": yum_repos,
-                                "description": copr.description,
-                                "instructions": copr.instructions,
-                                "last_modified": builds_logic.BuildsLogic.last_modified(copr)}
+        output["detail"] = {
+            "name": copr.name,
+            "additional_repos": copr.repos,
+            "yum_repos": yum_repos,
+            "description": copr.description,
+            "instructions": copr.instructions,
+            "last_modified": builds_logic.BuildsLogic.last_modified(copr),
+            "auto_createrepo": copr.auto_createrepo,
+        }
     else:
         output = {"output": "notok", "error": "Copr with name {0} does not exist.".format(coprname)}
         httpcode = 500

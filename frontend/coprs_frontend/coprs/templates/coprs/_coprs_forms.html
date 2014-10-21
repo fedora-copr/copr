@@ -20,8 +20,14 @@
       {% endif %}
       {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.') }}
       {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.') }}
+
+
+
+
       <dd>You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden..</dd>
       <dt class="field-label required">Chroots</dt>
+
+
       {% if form._mock_chroots_error %}
         <p class="form-error">{{ form._mock_chroots_error }}</p>
       {% endif %}
@@ -48,6 +54,10 @@
       {% if copr is none %}{# we're creating the copr, so display initial builds area #}
         {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submitted later.') }}
       {% endif %}
+
+      {{ render_field(form.auto_createrepo, label="Generate repo data after build ") }}
+
+
       <dt><input type="submit" value="{% if copr %}Update{% else %}Create{% endif %}"></dt>
     </dl>
   </form>

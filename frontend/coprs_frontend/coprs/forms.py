@@ -99,10 +99,10 @@ class CoprFormFactory(object):
             # that name already exists
             id = wtforms.HiddenField()
 
-            name = wtforms.TextField(
+            name = wtforms.StringField(
                 "Name",
                 validators=[
-                    wtforms.validators.Required(),
+                    wtforms.validators.DataRequired(),
                     wtforms.validators.Regexp(
                         re.compile(r"^[\w.-]+$"),
                         message="Name must contain only letters,"
@@ -124,6 +124,8 @@ class CoprFormFactory(object):
                 "Initial packages to build",
                 validators=[UrlListValidator()],
                 filters=[StringListFilter()])
+
+            auto_createrepo = wtforms.BooleanField()
 
             @property
             def selected_chroots(self):

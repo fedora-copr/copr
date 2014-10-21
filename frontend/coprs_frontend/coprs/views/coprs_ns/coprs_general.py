@@ -259,6 +259,7 @@ def copr_update(username, coprname):
         copr.repos = form.repos.data.replace("\n", " ")
         copr.description = form.description.data
         copr.instructions = form.instructions.data
+        copr.auto_createrepo = form.auto_createrepo.data
         coprs_logic.CoprChrootsLogic.update_from_names(
             flask.g.user, copr, form.selected_chroots)
 
