@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import json
 import logging
 from logging import getLogger
-from logging.handlers import RotatingFileHandler
+from logging import FileHandler
 
 from flask import Flask, request, Response
 import os
@@ -23,9 +23,7 @@ app.config.from_envvar("COPR_KEYGEN_CONFIG", silent=True)
 if not app.config["DEBUG"] or app.config["DEBUG_WITH_LOG"]:
     filename = os.path.join(app.config["LOG_DIR"], "main.log")
     if os.path.exists(app.config["LOG_DIR"]):
-        handler = RotatingFileHandler(filename,
-                                      maxBytes=50*1024*1024,
-                                      backupCount=5)
+        handler = FileHandler(filename)
         handler.setLevel(app.config["LOG_LEVEL"])
         handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s'

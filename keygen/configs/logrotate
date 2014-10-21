@@ -1,0 +1,12 @@
+/var/log/copr-keygen/*.log {
+    weekly
+    rotate 5
+    copytruncate
+    compress
+    notifempty
+    missingok
+    create 640 copr-signer copr-signer
+    postrotate
+        /bin/systemctl reload httpd.service > /dev/null 2>/dev/null || true
+    endscript
+}

@@ -45,6 +45,7 @@ Requires:   httpd
 Requires:   obs-signd
 Requires:   passwd
 
+Requires:   logrotate
 Requires:   python3-setuptools
 Requires:   python3-six
 Requires:   python3-flask
@@ -119,11 +120,14 @@ install -d %{buildroot}%{_bindir}
 install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/phrases
 install -d -m 500 %{buildroot}%{_sharedstatedir}/copr-keygen/gnupg
 install -d %{buildroot}%{_localstatedir}/log/copr-keygen
+install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 
 %{__install} -p -m 0755 run/gpg_copr.sh %{buildroot}/%{_bindir}/gpg_copr.sh
 
 %{__install} -p -m 0755 run/application.py %{buildroot}%{_datadir}/copr-keygen/
 %{__install} -p -m 0644 configs/httpd/copr-keygen.conf.example %{buildroot}%{_pkgdocdir}/httpd/
+%{__install} -p -m 0644 configs/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-keygen
+
 %{__install} -p -m 0644 configs/sign/sign.conf.example %{buildroot}%{_pkgdocdir}/sign/sign.conf.example
 
 cp -a configs/sudoers/copr_signer %{buildroot}%{_sysconfdir}/sudoers.d/copr_signer
@@ -164,7 +168,10 @@ service httpd condrestart
 %defattr(600, copr-signer, copr-signer, 700)
 %{_sharedstatedir}/copr-keygen
 %config(noreplace) %{_sysconfdir}/copr-keygen
-%{_localstatedir}/log/copr-keygen/
+
+%{_sysconfdir}/logrotate.d/copr-keygen
+
+%dir %{_localstatedir}/log/copr-keygen
 %ghost %{_localstatedir}/log/copr-keygen/main.log
 
 
