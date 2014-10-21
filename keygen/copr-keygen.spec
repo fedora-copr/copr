@@ -7,7 +7,7 @@
 # this package doesn't support rhel7- since it doesn't have python3* packages
 
 Name:       copr-keygen
-Version:    1.58
+Version:    1.59
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -180,6 +180,10 @@ service httpd condrestart
 
 
 %changelog
+* Tue Oct 21 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.59-1
+- [keygen] replaced Python RotatedFileHandler with logrotate.d
+- [keygen] [.spec] fixes to follow Fedora packaging guidelines
+
 * Wed Oct 01 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.58-1
 - [keygen] python3 bugfix,  added logging
 
