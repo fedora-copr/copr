@@ -1,7 +1,11 @@
+import flask
 import pytest
 
 from flexmock import flexmock
+import mock
+import time
 
+from coprs import models
 from coprs.signals import copr_created
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
@@ -632,3 +636,41 @@ class TestCoprRepoGeneration(CoprsTestCase):
             app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
             raise e
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
+
+
+class TestSearch(CoprsTestCase):
+
+    @mock.patch("coprs.views.coprs_ns.coprs_general.render_template")
+    def test_search_basic(self, mc_render_template, f_users,  f_db):
+        #mc_flask.render_template.return_value = mock.MagicMock()
+        #self.prefix = u"prefix_{}_".format(int(time.time()))
+        self.prefix = u"prefix"
+
+        self.s_coprs = []
+
+        for x in range(5):
+            self.s_coprs.append(models.Copr(name=self.prefix + str(x), owner=self.u1))
+
+        for x in range(7):
+            self.s_coprs.append(models.Copr(name=self.prefix + str(x), owner=self.u2))
+
+        self.db.session.add_all(self.s_coprs)
+        self.db.session.commit()
+
+        mc_render_template.side_effect = lambda *args, **kwargs: flask.render_template(*args, **kwargs)
+
+        self.tc.get("/coprs/fulltext/?fulltext={}".format(self.prefix))
+        qargs, qkwargs = mc_render_template.call_args
+        assert qkwargs["paginator"].total_count == 5+7
+
+        self.tc.get("/coprs/fulltext/?fulltext={}".format("user1/prefix"))
+        qargs, qkwargs = mc_render_template.call_args
+        assert qkwargs["paginator"].total_count == 5
+
+        self.tc.get("/coprs/fulltext/?fulltext={}".format("user1"))
+        qargs, qkwargs = mc_render_template.call_args
+        assert qkwargs["paginator"].total_count == 5
+
+        self.tc.get("/coprs/fulltext/?fulltext={}".format("user1/"))
+        qargs, qkwargs = mc_render_template.call_args
+        assert qkwargs["paginator"].total_count == 5

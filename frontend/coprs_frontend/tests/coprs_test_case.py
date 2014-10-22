@@ -2,10 +2,12 @@ import base64
 from collections import defaultdict
 import os
 import time
+import glob
 from functools import wraps
 
 import pytest
 import decorator
+import shutil
 
 import coprs
 
@@ -14,6 +16,21 @@ from coprs import models
 
 
 class CoprsTestCase(object):
+
+    @classmethod
+    def setup_class(cls):
+        config = coprs.app.config
+        if "LOCAL_TMP_DIR" in config:
+            path = os.path.abspath(config["LOCAL_TMP_DIR"])
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+    @classmethod
+    def teardown_class(cls):
+        config = coprs.app.config
+        # TODO: some tests fails with this cleanup - investigate and fix
+        #if "LOCAL_TMP_DIR" in config:
+        #    shutil.rmtree(os.path.abspath(config["LOCAL_TMP_DIR"]))
 
     def setup_method(self, method):
         self.tc = coprs.app.test_client()
@@ -25,10 +42,10 @@ class CoprsTestCase(object):
         self.helpers = helpers
         self.backend_passwd = coprs.app.config["BACKEND_PASSWORD"]
         # create datadir if it doesn't exist
-        datadir = os.path.commonprefix(
-            [self.app.config["DATABASE"], self.app.config["OPENID_STORE"]])
-        if not os.path.exists(datadir):
-            os.makedirs(datadir)
+        #datadir = os.path.commonprefix(
+        #    [self.app.config["DATABASE"], self.app.config["OPENID_STORE"]])
+        #if not os.path.exists(datadir):
+        #    os.makedirs(datadir)
         coprs.db.create_all()
         self.db.session.commit()
 

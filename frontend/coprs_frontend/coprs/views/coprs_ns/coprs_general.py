@@ -2,6 +2,7 @@ import time
 import re
 
 import flask
+from flask import render_template
 import platform
 import smtplib
 import sqlalchemy
@@ -105,10 +106,10 @@ def coprs_fulltext_search(page=1):
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return flask.render_template("coprs/show.html",
-                                 coprs=coprs,
-                                 paginator=paginator,
-                                 fulltext=fulltext)
+    return render_template("coprs/show.html",
+                             coprs=coprs,
+                             paginator=paginator,
+                             fulltext=fulltext)
 
 
 @coprs_ns.route("/<username>/add/")

@@ -39,5 +39,5 @@ PYTHONPATH=keygen/src:$PYTHONPATH python -B -m pytest keygen/tests  --junitxml=_
 mv {,_report/keygen.}coverage.xml
 
 deactivate
-
+rm -rf _tmp/*
 
