@@ -8,7 +8,7 @@
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
-Version:    1.34
+Version:    1.35
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -111,6 +111,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Wed Oct 22 2014 Miroslav Suchý <msuchy@redhat.com> 1.35-1
+- remove old changelogs
+
 * Mon Oct 20 2014 Miroslav Suchý <msuchy@redhat.com> 1.34-1
 - 1077795 - co-own /usr/share/selinux/mls
 
