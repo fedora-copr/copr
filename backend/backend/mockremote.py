@@ -61,24 +61,6 @@ DEF_BUILDROOT_PKGS = ""
 
 from .createrepo import createrepo
 
-def createrepo_orig(path, lock=None):
-    comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock']
-    if os.path.exists(path + '/repodata/repomd.xml'):
-        comm.append("--update")
-    if "epel-5" in path:
-        # this is because rhel-5 doesn't know sha256
-        comm.extend(['-s', 'sha', '--checksum', 'md5'])
-    comm.append(path)
-
-    if lock:
-        lock.acquire()
-    cmd = subprocess.Popen(comm,
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = cmd.communicate()
-    if lock:
-        lock.release()
-    return cmd.returncode, out, err
-
 
 def read_list_from_file(fn):
     lst = []
@@ -550,13 +532,17 @@ def get_target_dir(chroot_dir, pkg_name):
 
 
 class MockRemote(object):
+    #TODO: Refactor me!
+    #   mock remote now do too much things
+    #   idea: send events according to the build progress to handler
 
     def __init__(self, builder=None, user=DEF_USER, timeout=DEF_TIMEOUT,
                  destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False,
                  recurse=False, repos=None, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
                  macros=None, lock=None, do_sign=False, build_id=None,
-                 buildroot_pkgs=DEF_BUILDROOT_PKGS):
+                 buildroot_pkgs=DEF_BUILDROOT_PKGS, front_url=None):
+
         """
 
         :param builder: builder hostname
@@ -582,6 +568,8 @@ class MockRemote(object):
             signer host and correct /etc/sign.conf
         :param buildroot_pkgs: whitespace separated string with additional
                                packages that should present during build
+        :param str front_url: url to the copr frontend
+
         """
 
         if repos is None:
@@ -599,6 +587,7 @@ class MockRemote(object):
         self.macros = macros
         self.lock = lock
         self.do_sign = do_sign
+        self.front_url = front_url
 
         if not self.callback:
             self.callback = DefaultCallBack()
@@ -785,7 +774,12 @@ class MockRemote(object):
 
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
-                    _, _, err = createrepo(chroot_dir, self.lock)
+                    _, _, err = createrepo(
+                        path=chroot_dir, lock=self.lock,
+                        front_url=self.front_url,
+                        username=self.macros["copr_username"],
+                        projectname=self.macros["copr_projectname"]
+                    )
                     if err.strip():
                         self.callback.error(
                             "Error making local repo: {0}".format(chroot_dir))
@@ -853,6 +847,8 @@ def parse_args(args):
     parser.add_option("-q", "--quiet", dest="quiet", default=False,
                       action="store_true",
                       help="output very little to the terminal")
+    parser.add_option("-f", "--front_url", dest="front_url",
+                  help="copr frontend url")
 
     opts, args = parser.parse_args(args)
 
@@ -881,6 +877,10 @@ def parse_args(args):
             sys.stderr.write("Only http[s] or file urls allowed for repos")
             sys.exit(1)
 
+    if not opts.front_url:
+        print("No front url was specified, exiting", file=sys.stderr)
+        sys.exit(1)
+
     return opts, args
 
 
@@ -901,16 +901,19 @@ def main(args):
         # setup our callback
         callback = CliLogCallBack(logfn=opts.logfile, quiet=opts.quiet)
         # our mockremote instance
-        mr = MockRemote(builder=opts.builder,
-                        user=opts.user,
-                        timeout=opts.timeout,
-                        destdir=opts.destdir,
-                        chroot=opts.chroot,
-                        cont=opts.cont,
-                        recurse=opts.recurse,
-                        repos=opts.repos,
-                        do_sign=opts.do_sign,
-                        callback=callback,)
+        mr = MockRemote(
+            builder=opts.builder,
+            user=opts.user,
+            timeout=opts.timeout,
+            destdir=opts.destdir,
+            chroot=opts.chroot,
+            cont=opts.cont,
+            recurse=opts.recurse,
+            repos=opts.repos,
+            do_sign=opts.do_sign,
+            callback=callback,
+            front_url=opts.front_url,
+        )
 
         # FIXMES
         # things to think about doing:
