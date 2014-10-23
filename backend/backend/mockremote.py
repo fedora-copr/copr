@@ -59,8 +59,9 @@ DEF_DESTDIR = os.getcwd()
 DEF_MACROS = {}
 DEF_BUILDROOT_PKGS = ""
 
+from .createrepo import createrepo
 
-def createrepo(path, lock=None):
+def createrepo_orig(path, lock=None):
     comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock']
     if os.path.exists(path + '/repodata/repomd.xml'):
         comm.append("--update")

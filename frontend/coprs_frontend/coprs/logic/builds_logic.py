@@ -214,7 +214,7 @@ class BuildsLogic(object):
             object_type = "build-{0}".format(build.state)
             data_dict = {"pkgs": build.pkgs,
                          "username": build.copr.owner.name,
-                         "project": build.copr.name}
+                         "projectname": build.copr.name}
 
             action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type=object_type,

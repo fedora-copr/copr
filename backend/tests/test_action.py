@@ -51,6 +51,12 @@ class TestAction(object):
         self.pkgs = ["foo.src.rpm", "bar.src.rpm"]
         self.pkgs_stripped = ["foo", "bar"]
 
+        self.ext_data_for_delete_build = json.dumps({
+            "pkgs": " ".join(self.pkgs),
+            "username": "foo",
+            "projectname": "bar"
+        })
+
     def teardown_method(self, method):
         self.rm_tmp_dir()
 
@@ -292,7 +298,7 @@ class TestAction(object):
                     "object_type": obj_type,
                     "id": 7,
                     "old_value": "not-existing-project",
-                    "data": json.dumps({"pkgs": " ".join(self.pkgs)}),
+                    "data": self.ext_data_for_delete_build,
                 },
                 events=self.test_q, lock=None,
                 frontend_callback=mc_front_cb,
@@ -349,7 +355,7 @@ class TestAction(object):
                 "object_type": "build-succeeded",
                 "id": 7,
                 "old_value": "old_dir",
-                "data": json.dumps({"pkgs": " ".join(self.pkgs)}),
+                "data": self.ext_data_for_delete_build,
                 "object_id": 42
             },
             events=self.test_q, lock=None,
@@ -429,7 +435,7 @@ class TestAction(object):
                 "object_type": "build-succeeded",
                 "id": 7,
                 "old_value": "old_dir",
-                "data": json.dumps({"pkgs": " ".join(self.pkgs)}),
+                "data": self.ext_data_for_delete_build,
                 "object_id": 42
             },
             events=self.test_q, lock=None,

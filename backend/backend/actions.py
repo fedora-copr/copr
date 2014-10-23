@@ -111,8 +111,11 @@ class Action(object):
 
                     if altered:
                         self.event("Running createrepo")
-                        _, _, err = createrepo(path=os.path.join(path, chroot), lock=self.lock,
-                                               front_url=self.front_url)
+                        _, _, err = createrepo(
+                            path=os.path.join(path, chroot), lock=self.lock,
+                            front_url=self.front_url,
+                            username=ext_data["username"], projectname=ext_data["projectname"]
+                        )
                         if err.strip():
                             self.event(
                                 "Error making local repo: {0}".format(err))

@@ -122,7 +122,6 @@ class TestCreaterepoUnsafe(object):
             createrepo_unsafe(path, None)
             assert mc_popen.call_args == mock.call(expected, stderr=-1, stdout=-1)
 
-
     def test_createrepo_devel_generated_commands_existing_repodata(self, mc_popen):
 
         mc_popen.return_value.communicate.return_value = ("", "")
