@@ -401,6 +401,7 @@ class TestAction(object):
             assert_what_from_queue(self.test_q, msg_list=["Removing log"])
         else:
             assert_fedora20()
+            assert_what_from_queue(self.test_q, msg_list=["Removing log"])
             assert_what_from_queue(self.test_q, msg_list=["In chroot epel7"])
             assert_epel7()
 
