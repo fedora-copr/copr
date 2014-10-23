@@ -590,6 +590,9 @@ class Worker(multiprocessing.Process):
                     try:
                         chroot_repos = list(job.repos)
                         chroot_repos.append(job.results + '/' + job.chroot)
+                        # for RHBZ: #1150954
+                        chroot_repos.append(job.results + '/' + job.chroot + '/devel')
+
                         chrootlogfile = "{0}/build-{1}.log".format(
                             chroot_destdir, job.build_id)
 
