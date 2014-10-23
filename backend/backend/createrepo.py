@@ -20,7 +20,7 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
     :param lock: [optional]
     :param str dest_dir: [optional] relative to path location for repomd, in most cases
         you should also provide base_url.
-    :param str base_url: optional parameter for createrepo_c, "--baseurl" 
+    :param str base_url: optional parameter for createrepo_c, "--baseurl"
 
     :return tuple: (return_code,  stdout, stderr)
     """
@@ -33,8 +33,8 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
         comm.extend(['-s', 'sha', '--checksum', 'md5'])
 
     if dest_dir:
-        comm.extend(['--outputdir', dest_dir])
         dest_dir_path = os.path.join(path, dest_dir)
+        comm.extend(['--outputdir', dest_dir_path])
         if not os.path.exists(dest_dir_path):
             os.makedirs(dest_dir_path)
 

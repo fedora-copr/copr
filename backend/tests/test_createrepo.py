@@ -128,10 +128,12 @@ class TestCreaterepoUnsafe(object):
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
         expected_epel_5 = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                            '-s', 'sha', '--checksum', 'md5',
-                           '--outputdir', 'devel', '--baseurl', '../', path_epel_5]
+                           '--outputdir', os.path.join(path_epel_5, "devel"),
+                           '--baseurl', '../', path_epel_5]
         path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
         expected_fedora = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
-                           '--outputdir', 'devel', '--baseurl', '../', path_fedora]
+                           '--outputdir', os.path.join(path_fedora, "devel"),
+                           '--baseurl', '../', path_fedora]
         for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
             os.makedirs(path)
 
@@ -149,28 +151,27 @@ class TestCreaterepoUnsafe(object):
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
         expected_epel_5 = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                            '-s', 'sha', '--checksum', 'md5',
-                           '--outputdir', 'devel', '--baseurl', '../', path_epel_5]
+                           '--outputdir', os.path.join(path_epel_5, "devel"),
+                           '--baseurl', '../', path_epel_5]
         path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
         expected_fedora = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
-                           '--outputdir', 'devel', '--baseurl', '../', path_fedora]
-        for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
-            os.makedirs(path)
-
-            createrepo_unsafe(path, lock=None, base_url="../", dest_dir="devel")
-            assert mc_popen.call_args == mock.call(expected, stderr=-1, stdout=-1)
-
-    def test_createrepo_devel_creates_folder(self, mc_popen):
-
-        mc_popen.return_value.communicate.return_value = ("", "")
-        path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
-        expected_epel_5 = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
-                           '-s', 'sha', '--checksum', 'md5',
-                           '--outputdir', 'devel', '--baseurl', '../', path_epel_5]
-        path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
-        expected_fedora = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
-                           '--outputdir', 'devel', '--baseurl', '../', path_fedora]
+                           '--outputdir', os.path.join(path_fedora, "devel"),
+                           '--baseurl', '../', path_fedora]
         for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
             os.makedirs(path)
 
             createrepo_unsafe(path, lock=None, base_url="../", dest_dir="devel")
             assert os.path.exists(os.path.join(path, "devel"))
+            assert mc_popen.call_args == mock.call(expected, stderr=-1, stdout=-1)
+    #
+    # def test_createrepo_devel_creates_folder(self, mc_popen):
+    #
+    #     mc_popen.return_value.communicate.return_value = ("", "")
+    #     path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
+    #     path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
+    #
+    #     for path in [path_epel_5, path_fedora]:
+    #         os.makedirs(path)
+    #
+    #         createrepo_unsafe(path, lock=None, base_url="../", dest_dir="devel")
+    #         assert os.path.exists(os.path.join(path, "devel"))
