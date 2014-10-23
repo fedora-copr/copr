@@ -43,8 +43,9 @@ def createrepo_unsafe(path, lock=None):
 def get_auto_createrepo_status(front_url, username, projectname):
     client = CoprClient({"copr_url": front_url})
     result = client.get_project_details(projectname, username)
-    if "auto_createrepo" in result.data:
-        return bool(result.data["auto_createrepo"])
+
+    if "auto_createrepo" in result.data["detail"]:
+        return bool(result.data["detail"]["auto_createrepo"])
     else:
         return True
 
@@ -53,6 +54,7 @@ def createrepo(path, front_url, username, projectname, lock=None):
     # TODO: add means of logging
 
     if get_auto_createrepo_status(front_url, username, projectname):
-        createrepo_unsafe(path, lock)
-
+        return createrepo_unsafe(path, lock)
+    else:
+        return None
 

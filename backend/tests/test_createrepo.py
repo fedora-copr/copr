@@ -27,7 +27,7 @@ from backend.createrepo import createrepo, createrepo_unsafe
 @mock.patch('backend.createrepo.createrepo_unsafe')
 @mock.patch('backend.createrepo.CoprClient')
 def test_createrepo_conditional(mc_client, mc_create_unsafe):
-    mc_client.return_value.get_project_details.return_value = MagicMock(data={})
+    mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {}})
 
     createrepo(path="/tmp/", front_url="http://example.com/api",
                username="foo", projectname="bar", lock=None)
@@ -35,7 +35,7 @@ def test_createrepo_conditional(mc_client, mc_create_unsafe):
     mc_create_unsafe.reset_mock()
 
     for val in [True, False]:
-        mc_client.return_value.get_project_details.return_value = MagicMock(data={"auto_createrepo": val})
+        mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {"auto_createrepo": val}})
 
         createrepo(path="/tmp/", front_url="http://example.com/api",
                    username="foo", projectname="bar", lock=None)
@@ -129,5 +129,4 @@ class TestCreaterepoUnsafe(object):
 
 
             createrepo_unsafe(path, None)
-            print(mc_popen.call_args)
             assert mc_popen.call_args == mock.call(expected, stderr=-1, stdout=-1)
