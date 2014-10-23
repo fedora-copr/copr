@@ -230,7 +230,6 @@ class CoprBackend(object):
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0o750)
 
-
     def event(self, what):
         self.events.put({"when": time.time(), "who": "main", "what": what})
 
@@ -242,8 +241,15 @@ class CoprBackend(object):
             cp.read(self.config_file)
             opts.results_baseurl = _get_conf(
                 cp, "backend", "results_baseurl", "http://copr")
+
+            #TODO: this should be built from frontend_base_url + '/backend'
             opts.frontend_url = _get_conf(
                 cp, "backend", "frontend_url", "http://coprs/rest/api")
+
+            # We need this to access public api
+            opts.frontend_base_url = _get_conf(
+                cp, "backend", "frontend_base_url", "http://coprs/")
+
             opts.frontend_auth = _get_conf(
                 cp, "backend", "frontend_auth", "PASSWORDHERE")
 

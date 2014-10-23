@@ -775,11 +775,15 @@ class MockRemote(object):
 
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
+                    self.callback.log("Createrepo:: macros:  {}; front url: {}; path: {}".format(
+                        self.macros, self.front_url, chroot_dir
+                    ))
                     _, _, err = createrepo(
-                        path=chroot_dir, lock=self.lock,
+                        path=chroot_dir,
                         front_url=self.front_url,
                         username=self.macros["copr_username"],
-                        projectname=self.macros["copr_projectname"]
+                        projectname=self.macros["copr_projectname"],
+                        lock=self.lock,
                     )
                     if err.strip():
                         self.callback.error(
