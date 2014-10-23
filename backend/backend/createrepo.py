@@ -1,12 +1,12 @@
 import sys
-from backend.helpers import SortedOptParser
-
-__author__ = 'vgologuz'
 
 import os
 import subprocess
+from subprocess import Popen
 
 from copr.client import CoprClient
+
+from backend.helpers import SortedOptParser
 
 
 def createrepo_unsafe(path, lock=None):
@@ -31,10 +31,10 @@ def createrepo_unsafe(path, lock=None):
 
     if lock:
         with lock.acquire():
-            cmd = subprocess.Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = cmd.communicate()
     else:
-        cmd = subprocess.Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = cmd.communicate()
 
     return cmd.returncode, out, err
@@ -52,8 +52,7 @@ def get_auto_createrepo_status(front_url, username, projectname):
 def createrepo(path, front_url, username, projectname, lock=None):
     # TODO: add means of logging
 
-    print("  ".join(map(str, [path, front_url, username, projectname])))
-    #if get_auto_createrepo_status(front_url, username, projectname):
-    #    createrepo_unsafe(path, lock)
+    if get_auto_createrepo_status(front_url, username, projectname):
+        createrepo_unsafe(path, lock)
 
 

@@ -42,7 +42,7 @@ def main(args):
 
     createrepo(path=args[0], front_url=opts.api_url,
                username=opts.user, projectname=opts.project)
-    #print(args)
+
 
 if __name__ == "__main__":
     """

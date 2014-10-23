@@ -30,6 +30,7 @@ class TestArgParser(object):
         args = ['-u', 'foo', '-p', 'bar', '-a', 'http://example.com/api/', '/tmp']
 
         createrepo_main(args)
+        stdout, stderr = capsys.readouterr()
         assert mc_main.call_args == mock.call(username='foo', projectname='bar',
                                           front_url='http://example.com/api/', path='/tmp')
 
