@@ -29,23 +29,21 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-
 import sys
 import time
 import fcntl
 import pipes
 import socket
 import urllib
-import optparse
 import subprocess
-from operator import methodcaller
-
 import os
+
 import ansible.runner
 
-
+from .helpers import SortedOptParser
 from .exceptions import MockRemoteError, BuilderError
 from .sign import sign_rpms_in_dir, get_pubkey
+
 
 # where we should execute mockchain from on the remote
 mockchain = "/usr/bin/mockchain"
@@ -60,15 +58,6 @@ DEF_USER = "mockbuilder"
 DEF_DESTDIR = os.getcwd()
 DEF_MACROS = {}
 DEF_BUILDROOT_PKGS = ""
-
-
-class SortedOptParser(optparse.OptionParser):
-
-    """Optparser which sorts the options by opt before outputting --help"""
-
-    def format_help(self, formatter=None):
-        self.option_list.sort(key=methodcaller("get_opt_string"))
-        return optparse.OptionParser.format_help(self, formatter=None)
 
 
 def createrepo(path, lock=None):

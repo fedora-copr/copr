@@ -1,4 +1,7 @@
+PyYAML
 ansible
 setproctitle
+redis
 retask
-python-deamon
+python-daemon
+bunch

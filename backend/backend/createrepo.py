@@ -1,3 +1,6 @@
+import sys
+from backend.helpers import SortedOptParser
+
 __author__ = 'vgologuz'
 
 import os
@@ -49,7 +52,8 @@ def get_auto_createrepo_status(front_url, username, projectname):
 def createrepo(path, front_url, username, projectname, lock=None):
     # TODO: add means of logging
 
-    if get_auto_createrepo_status(front_url, username, projectname):
-        createrepo_unsafe(path, lock)
+    print("  ".join(map(str, [path, front_url, username, projectname])))
+    #if get_auto_createrepo_status(front_url, username, projectname):
+    #    createrepo_unsafe(path, lock)
 
 
