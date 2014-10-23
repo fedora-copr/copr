@@ -381,7 +381,6 @@ class TestAction(object):
                 "Package bar dir not found in chroot epel7",
             ])
 
-
         def assert_fedora20():
             assert_what_from_queue(self.test_q, msg_list=[
                 "Removing build ",
@@ -399,12 +398,13 @@ class TestAction(object):
             assert_epel7()
             assert_what_from_queue(self.test_q, msg_list=["In chroot fedora20"])
             assert_fedora20()
+            assert_what_from_queue(self.test_q, msg_list=["Removing log"])
         else:
             assert_fedora20()
             assert_what_from_queue(self.test_q, msg_list=["In chroot epel7"])
             assert_epel7()
 
-        assert_what_from_queue(self.test_q, msg_list=["Removing log"])
+
 
         with pytest.raises(EmptyQueue):
             self.test_q.get_nowait()
