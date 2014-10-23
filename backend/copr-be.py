@@ -1,9 +1,7 @@
 #!/usr/bin/python -ttu
 
 
-from backend.exceptions import CoprBackendError
-from backend.dispatcher import Worker
-from backend.actions import Action
+
 from bunch import Bunch
 from retask.task import Task
 from retask.queue import Queue
@@ -22,7 +20,12 @@ import setproctitle
 import signal
 import sys
 import time
-from callback import FrontendCallback
+
+from backend.exceptions import CoprBackendError
+from backend.dispatcher import Worker
+from backend.actions import Action
+from backend.callback import FrontendCallback
+
 
 def _get_conf(cp, section, option, default, mode=None):
     """
