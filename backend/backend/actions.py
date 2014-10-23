@@ -1,10 +1,11 @@
+import json
 import os.path
 import shutil
 import time
 
 from bunch import Bunch
 
-from mockremote import createrepo
+from .createrepo import createrepo
 
 
 class Action(object):
@@ -23,13 +24,14 @@ class Action(object):
 
     """
 
-    def __init__(self, events, action, lock, frontend_callback, destdir):
+    def __init__(self, events, action, lock, frontend_callback, destdir, front_url):
         super(Action, self).__init__()
         self.frontend_callback = frontend_callback
         self.destdir = destdir
         self.data = action
         self.events = events
         self.lock = lock
+        self.front_url = front_url
 
     def event(self, what):
         self.events.put({"when": time.time(), "who": "action", "what": what})
@@ -66,8 +68,11 @@ class Action(object):
     def handle_delete_build(self):
         self.event("Action delete build")
         project = self.data["old_value"]
+        ext_data = json.loads(self.data["data"])
+
         packages = [os.path.basename(x).replace(".src.rpm", "") for x in \
-                    self.data["data"].split()]
+                    ext_data["pkgs"].split()]
+        #            self.data["data"].split()]
 
         path = os.path.join(self.destdir, project)
 
@@ -106,7 +111,8 @@ class Action(object):
 
                     if altered:
                         self.event("Running createrepo")
-                        _, _, err = createrepo(os.path.join(path, chroot), self.lock)
+                        _, _, err = createrepo(path=os.path.join(path, chroot), lock=self.lock,
+                                               front_url=self.front_url)
                         if err.strip():
                             self.event(
                                 "Error making local repo: {0}".format(err))

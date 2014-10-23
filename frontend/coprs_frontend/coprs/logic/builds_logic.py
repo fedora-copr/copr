@@ -1,3 +1,4 @@
+import json
 import os
 import time
 from sqlalchemy import or_
@@ -211,12 +212,16 @@ class BuildsLogic(object):
         # Only failed (and finished), succeeded, skipped and cancelled get here.
         if build.state != "cancelled": #has nothing in backend to delete
             object_type = "build-{0}".format(build.state)
+            data_dict = {"pkgs": build.pkgs,
+                         "username": build.copr.owner.name,
+                         "project": build.copr.name}
+
             action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type=object_type,
                                object_id=build.id,
                                old_value="{0}/{1}".format(build.copr.owner.name,
                                                           build.copr.name),
-                               data=build.pkgs,
+                               data=json.dumps(data_dict),
                                created_on=int(time.time()))
             db.session.add(action)
 

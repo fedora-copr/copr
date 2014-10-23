@@ -75,7 +75,7 @@ class TestAction(object):
 
     def test_action_event(self, mc_time):
         test_action = Action(events=self.test_q, action={}, lock=None,
-                             frontend_callback=None, destdir=None)
+                             frontend_callback=None, destdir=None, front_url=None)
         with pytest.raises(EmptyQueue):
             test_action.events.get_nowait()
 
@@ -98,7 +98,8 @@ class TestAction(object):
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
-            destdir=None
+            destdir=None,
+            front_url=None
         )
         test_action.run()
         assert not mc_front_cb.called
@@ -128,7 +129,8 @@ class TestAction(object):
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
-            destdir=tmp_dir
+            destdir=tmp_dir,
+            front_url=None
         )
         test_action.run()
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
@@ -158,7 +160,8 @@ class TestAction(object):
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
-            destdir=os.path.join(tmp_dir, "dir-not-exists")
+            destdir=os.path.join(tmp_dir, "dir-not-exists"),
+            front_url=None
         )
         test_action.run()
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
@@ -187,7 +190,8 @@ class TestAction(object):
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
-            destdir=tmp_dir
+            destdir=tmp_dir,
+            front_url=None
         )
         test_action.run()
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
@@ -216,7 +220,8 @@ class TestAction(object):
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
-            destdir=os.path.join(tmp_dir, "dir-not-exists")
+            destdir=os.path.join(tmp_dir, "dir-not-exists"),
+            front_url=None
         )
         test_action.run()
 
@@ -250,7 +255,8 @@ class TestAction(object):
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
-            destdir=tmp_dir
+            destdir=tmp_dir,
+            front_url=None
         )
         test_action.run()
 
@@ -286,11 +292,12 @@ class TestAction(object):
                     "object_type": obj_type,
                     "id": 7,
                     "old_value": "not-existing-project",
-                    "data": " ".join(self.pkgs),
+                    "data": json.dumps({"pkgs": " ".join(self.pkgs)}),
                 },
                 events=self.test_q, lock=None,
                 frontend_callback=mc_front_cb,
-                destdir=tmp_dir
+                destdir=tmp_dir,
+                front_url=None
             )
             with mock.patch("backend.actions.shutil") as mc_shutil:
                 test_action.run()
@@ -342,12 +349,13 @@ class TestAction(object):
                 "object_type": "build-succeeded",
                 "id": 7,
                 "old_value": "old_dir",
-                "data": " ".join(self.pkgs),
+                "data": json.dumps({"pkgs": " ".join(self.pkgs)}),
                 "object_id": 42
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
-            destdir=tmp_dir
+            destdir=tmp_dir,
+            front_url=None,
         )
 
         assert os.path.exists(foo_pkg_dir)
@@ -421,12 +429,13 @@ class TestAction(object):
                 "object_type": "build-succeeded",
                 "id": 7,
                 "old_value": "old_dir",
-                "data": " ".join(self.pkgs),
+                "data": json.dumps({"pkgs": " ".join(self.pkgs)}),
                 "object_id": 42
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
-            destdir=tmp_dir
+            destdir=tmp_dir,
+            front_url=None
         )
 
         test_action.run()

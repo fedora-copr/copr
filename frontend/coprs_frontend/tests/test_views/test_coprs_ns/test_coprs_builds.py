@@ -1,3 +1,4 @@
+import json
 from coprs import models
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -119,7 +120,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
         act = self.models.Action.query.first()
         assert act.object_type == "build-succeeded"
         assert act.old_value == "user1/foocopr"
-        assert act.data == pkgs
+        assert json.loads(act.data)["pkgs"] == pkgs
 
     @TransactionDecorator("u2")
     def test_copr_build_non_submitter_cannot_delete_build(self, f_users,
