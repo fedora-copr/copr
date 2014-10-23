@@ -31,21 +31,16 @@ def main(args):
         sys.exit(1)
 
     if not opts.front_url:
-        print("No api url was specified, exiting", file=sys.stderr)
+        print("No front url was specified, exiting", file=sys.stderr)
         sys.exit(1)
 
     if not args:
         print("No directory with repo was specified, exiting", file=sys.stderr)
         sys.exit(1)
 
-    result = createrepo(path=args[0], front_url=opts.front_url,
-                        username=opts.user, projectname=opts.project)
-    if not result:
-        print("Createrepo was skipped")
-    else:
-        retcode, stdout, stderr = result
-        print("STDOUT: {}".format(stdout))
-        print("STDERR: {}".format(stderr))
+    createrepo(path=args[0], front_url=opts.front_url,
+               username=opts.user, projectname=opts.project)
+
 
 
 if __name__ == "__main__":
