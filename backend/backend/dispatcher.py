@@ -615,7 +615,7 @@ class Worker(multiprocessing.Process):
                             buildroot_pkgs=job.buildroot_pkgs,
                             callback=mockremote.CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile),
-                            front_url=self.opts.frontend_url,
+                            front_url=self.opts.frontend_base_url,
                         )
 
                         build_details = mr.build_pkgs(job.pkgs)
