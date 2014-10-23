@@ -744,11 +744,12 @@ class MockRemote(object):
                     ["\n\n{0}\n\n".format(pkg), b_out], [b_err])
 
                 ## adding info file with
-                try:
-                    with open(os.path.join(get_target_dir(chroot_dir, pkg), "build.info"), 'w') as info_file:
-                        info_file.write("build_id={}\n".format(self.build_id))
-                except IOError:
-                    pass
+                # TODO: add self.build_id
+                # try:
+                #     with open(os.path.join(get_target_dir(chroot_dir, pkg), "build.info"), 'w') as info_file:
+                #         info_file.write("build_id={}\n".format(self.build_id))
+                # except IOError:
+                #     pass
 
                 # checking where to stick stuff
                 if not b_status:
