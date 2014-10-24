@@ -23,6 +23,7 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python2-devel
+BuildRequires: python-copr
 BuildRequires: systemd
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
@@ -46,6 +47,7 @@ Requires:   python-lockfile
 Requires:   python-requests
 Requires:   python-setproctitle
 Requires:   python-retask
+Requires:   python-copr
 Requires:   redis
 Requires:   logrotate
 Requires:   fedmsg
