@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.45
+Version:    1.46
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -182,6 +182,15 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Oct 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.46-1
+- [backend] added handling of new action type: "createrepo"
+- [backend] added dependency on `python-copr`
+- [backend] added to mockchroot -a /devel/repodata subfolder
+- [backend] new config option to define the public frontend api endpoint
+- [backend] conditional execution of createrepo_c
+- [backend] unittest for Action and minor refactoring
+- [backend] rotate backend.log as well
+
 * Thu Sep 18 2014 Miroslav Suchý <msuchy@redhat.com> 1.45-1
 - [backend][keygen] minor fixes/typos
 
