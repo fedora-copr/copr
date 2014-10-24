@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.46
+Version:    1.47
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -167,6 +167,16 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Fri Oct 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.47-1
+- [frontend] sending createrepo action
+- [frontend] [html]  new option to configure copr->auto_creatrepo
+- [fronted] adding option to disable auto invokation of createrepo
+- [frontent] [WIP]fixing unittest, better isolation during test run
+- [frontend] [RHBZ: #1149091] bugfix:  'Repeat' does not respect chroot
+  selection of original build
+- Added script to automate tests execution inside virtualenv
+- [frontend] [RHBZ:#1146825] Reorder chroots for monitor widget
+
 * Wed Sep 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.46-1
 - [frontend] added helper function and flask filter which allows to ensure that
   url starts with either http or https, see config
