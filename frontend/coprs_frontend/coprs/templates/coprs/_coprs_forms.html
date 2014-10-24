@@ -36,16 +36,23 @@
           {% for ch in chs %}
             <tr>
               <td>
-              {{ form|attr(ch)|attr('label') }}
-              {% if form|attr(ch)|attr('label') %}
-              {% else %}
-              {{ form|attr(ch)|attr('label') }}
-              {% endif %}
-              </td><td>{{ form|attr(ch) }}
-              {% if copr and form|attr(ch)|attr('data') %}
-              </td><td><a href="{{ url_for('coprs_ns.chroot_edit', username = copr.owner.name, coprname = copr.name, chrootname = form|attr(ch)|attr('label')|attr('text'))}}">[Edit]</a>
-              {% endif %}
+                {{ form|attr(ch)|attr('label') }}
+                {% if form|attr(ch)|attr('label') %}
+                  {% else %}
+                  {{ form|attr(ch)|attr('label') }}
+                {% endif %}
               </td>
+              <td>
+                {{ form|attr(ch) }}
+              </td>
+              {% if copr and form|attr(ch)|attr('data') %}
+                <td>
+                  <a href="{{ url_for('coprs_ns.chroot_edit', username = copr.owner.name, coprname = copr.name, chrootname = form|attr(ch)|attr('label')|attr('text'))}}">
+                    [Edit]
+                  </a>
+
+                </td>
+              {% endif %}
             </tr>
           {% endfor %}
         </table>
@@ -55,7 +62,13 @@
         {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submitted later.') }}
       {% endif %}
 
-      {{ render_field(form.auto_createrepo, label="Generate repo data after build ") }}
+      <dt class="field-label">
+        <label for="auto_createrepo">Build release options</label>
+      </dt>
+      <dd>
+        Automatically re-create repository metadata:
+        {{ form.auto_createrepo }}
+      </dd>
 
 
       <dt><input type="submit" value="{% if copr %}Update{% else %}Create{% endif %}"></dt>
