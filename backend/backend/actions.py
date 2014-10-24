@@ -5,7 +5,7 @@ import time
 
 from bunch import Bunch
 
-from .createrepo import createrepo
+from .createrepo import createrepo, createrepo_unsafe
 
 
 class Action(object):
@@ -52,11 +52,7 @@ class Action(object):
 
             path = os.path.join(self.destdir, username, projectname, chroot)
 
-            errcode, _, err = createrepo(
-                path=path, lock=self.lock,
-                front_url=self.front_url,
-                username=username, projectname=projectname
-            )
+            errcode, _, err = createrepo_unsafe(path=path, lock=self.lock)
             if errcode != 0 or err.strip():
                 self.add_event("Error making local repo: {0}".format(err))
                 failure = True
