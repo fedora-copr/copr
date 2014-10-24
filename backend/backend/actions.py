@@ -33,14 +33,41 @@ class Action(object):
         self.lock = lock
         self.front_url = front_url
 
-    def event(self, what):
+    def add_event(self, what):
         self.events.put({"when": time.time(), "who": "action", "what": what})
 
     def handle_legal_flag(self):
-        self.event("Action legal-flag: ignoring")
+        self.add_event("Action legal-flag: ignoring")
+
+    def handle_createrepo(self, result):
+        self.add_event("Action create repo")
+        data = json.loads(self.data["data"])
+        username = data["username"]
+        projectname = data["projectname"]
+        chroots = data["chroots"]
+
+        failure = False
+        for chroot in chroots:
+            self.add_event("Creating repo for: {}/{}/{}".format(username, projectname, chroot))
+
+            path = os.path.join(self.destdir, username, projectname, chroot)
+
+            errcode, _, err = createrepo(
+                path=os.path.join(path, chroot), lock=self.lock,
+                front_url=self.front_url,
+                username=username, projectname=projectname
+            )
+            if errcode != 0 or err.strip():
+                self.add_event("Error making local repo: {0}".format(err))
+                failure = True
+
+        if failure:
+            result.result = ActionResult.FAILURE
+        else:
+            result.result = ActionResult.SUCCESS
 
     def handle_rename(self, result):
-        self.event("Action rename")
+        self.add_event("Action rename")
         old_path = os.path.normpath(os.path.join(
             self.destdir, self.data["old_value"]))
         new_path = os.path.normpath(os.path.join(
@@ -49,24 +76,24 @@ class Action(object):
         if os.path.exists(old_path):
             if not os.path.exists(new_path):
                 shutil.move(old_path, new_path)
-                result.result = 1  # success
+                result.result = ActionResult.SUCCESS
             else:
                 result.message = "Destination directory already exist."
-                result.result = 2  # failure
+                result.result = ActionResult.FAILURE
         else:  # nothing to do, that is success too
-            result.result = 1  # success
+            result.result = ActionResult.SUCCESS
         result.job_ended_on = time.time()
 
     def handle_delete_copr_project(self):
-        self.event("Action delete copr")
+        self.add_event("Action delete copr")
         project = self.data["old_value"]
         path = os.path.normpath(self.destdir + '/' + project)
         if os.path.exists(path):
-            self.event("Removing copr {0}".format(path))
+            self.add_event("Removing copr {0}".format(path))
             shutil.rmtree(path)
 
     def handle_delete_build(self):
-        self.event("Action delete build")
+        self.add_event("Action delete build")
         project = self.data["old_value"]
         ext_data = json.loads(self.data["data"])
 
@@ -76,8 +103,8 @@ class Action(object):
 
         path = os.path.join(self.destdir, project)
 
-        self.event("Packages to delete {0}".format(' '.join(packages)))
-        self.event("Copr path {0}".format(path))
+        self.add_event("Packages to delete {0}".format(' '.join(packages)))
+        self.add_event("Copr path {0}".format(path))
 
         try:
             chroot_list = os.listdir(path)
@@ -86,7 +113,7 @@ class Action(object):
             chroot_list = []
 
         for chroot in chroot_list:
-            self.event("In chroot {0}".format(chroot))
+            self.add_event("In chroot {0}".format(chroot))
             altered = False
 
             # We need to delete the files only if they belong
@@ -101,23 +128,23 @@ class Action(object):
                         ):
                     pkg_path = os.path.join(path, chroot, pkg)
                     if os.path.isdir(pkg_path):
-                        self.event("Removing build {0}".format(pkg_path))
+                        self.add_event("Removing build {0}".format(pkg_path))
                         shutil.rmtree(pkg_path)
                         altered = True
                     else:
-                        self.event(
+                        self.add_event(
                             "Package {0} dir not found in chroot {1}"
                             .format(pkg, chroot))
 
                     if altered:
-                        self.event("Running createrepo")
+                        self.add_event("Running createrepo")
                         _, _, err = createrepo(
                             path=os.path.join(path, chroot), lock=self.lock,
                             front_url=self.front_url,
                             username=ext_data["username"], projectname=ext_data["projectname"]
                         )
                         if err.strip():
-                            self.event(
+                            self.add_event(
                                 "Error making local repo: {0}".format(err))
 
             log_path = os.path.join(
@@ -125,7 +152,7 @@ class Action(object):
                 'build-{0}.log'.format(self.data['object_id']))
 
             if os.path.isfile(log_path):
-                self.event("Removing log {0}".format(log_path))
+                self.add_event("Removing log {0}".format(log_path))
                 os.unlink(log_path)
 
     def run(self):
@@ -142,8 +169,7 @@ class Action(object):
                     ["build-succeeded", "build-skipped", "build-failed"]:
                 self.handle_delete_build()
 
-            result.job_ended_on = time.time()
-            result.result = 1  # success
+            result.result = ActionResult.SUCCESS
 
         elif action_type == ActionType.LEGAL_FLAG:
             self.handle_legal_flag()
@@ -152,6 +178,10 @@ class Action(object):
             self.handle_rename(result)
 
         if "result" in result:
+            if result.result == ActionResult.SUCCESS and \
+                    not getattr(result, "job_ended_on", None):
+                result.job_ended_on = time.time()
+
             self.frontend_callback.update({"actions": [result]})
 
 
@@ -159,6 +189,7 @@ class ActionType(object):
     DELETE = 0
     RENAME = 1
     LEGAL_FLAG = 2
+    CREATEREPO = 3
 
 
 class ActionResult(object):

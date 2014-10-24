@@ -88,7 +88,7 @@ class TestAction(object):
         test_string = "Foo Bar"
 
         mc_time.time.return_value = self.test_time
-        test_action.event(test_string)
+        test_action.add_event(test_string)
         result_dict = test_action.events.get()
         assert result_dict["when"] == self.test_time
         assert result_dict["who"] == "action"
