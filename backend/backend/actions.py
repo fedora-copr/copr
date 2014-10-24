@@ -177,6 +177,9 @@ class Action(object):
         elif action_type == ActionType.RENAME:
             self.handle_rename(result)
 
+        elif action_type == ActionType.CREATEREPO:
+            self.handle_createrepo(result)
+
         if "result" in result:
             if result.result == ActionResult.SUCCESS and \
                     not getattr(result, "job_ended_on", None):
