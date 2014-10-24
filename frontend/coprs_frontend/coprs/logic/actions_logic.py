@@ -1,3 +1,5 @@
+import json
+import time
 from coprs import db
 from coprs import models
 from coprs import helpers
@@ -50,4 +52,21 @@ class ActionsLogic(object):
             if value:
                 setattr(action, attr, value)
 
+        db.session.add(action)
+
+    @classmethod
+    def send_createrepo(cls, username, coprname, chroots):
+        data_dict = {
+            "username": username,
+            "projectname": coprname,
+            "chroots": chroots
+        }
+        action = models.Action(
+            action_type=helpers.ActionTypeEnum("createrepo"),
+            object_type="None",
+            object_id=0,
+            old_value="",
+            data=json.dumps(data_dict),
+            created_on=int(time.time()),
+        )
         db.session.add(action)

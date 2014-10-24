@@ -20,8 +20,7 @@ from coprs.views.misc import login_required, page_not_found
 
 from coprs.views.coprs_ns import coprs_ns
 
-from coprs.logic import builds_logic
-from coprs.logic import coprs_logic
+from coprs.logic import builds_logic, coprs_logic, actions_logic
 from coprs.helpers import parse_package_name, generate_repo_url
 
 
@@ -403,6 +402,22 @@ def copr_update_permissions(username, coprname):
                                         username=copr.owner.name,
                                         coprname=copr.name))
 
+@coprs_ns.route("/<username>/<coprname>/createrepo/", methods=["POST"])
+@login_required
+def copr_createrepo(username, coprname):
+
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+
+    #import ipdb; ipdb.set_trace()
+    chroots = [c.name for c in copr.active_chroots]
+    actions_logic.ActionsLogic.send_createrepo(
+        username=copr.owner.name, coprname=copr.name,
+        chroots=chroots)
+
+    db.session.commit()
+    return flask.redirect(flask.url_for("coprs_ns.copr_detail",
+                                        username=copr.owner.name,
+                                        coprname=copr.name))
 
 @coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])
 @login_required

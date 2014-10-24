@@ -89,7 +89,15 @@
     <div>
 
       <h2>Release options</h2>
-      <button>Run createrepo</button>
+      <form action="{{
+        url_for(
+          'coprs_ns.copr_createrepo',
+          username=copr.owner.name,
+          coprname=copr.name
+        ) }}" method="post" >
+
+        <button type="submit">Run createrepo</button>
+      </form>
     </div>
   {% endif %}
 

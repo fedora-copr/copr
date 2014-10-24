@@ -44,7 +44,12 @@ class PermissionEnum(object):
 
 class ActionTypeEnum(object):
     __metaclass__ = EnumType
-    vals = {"delete": 0, "rename": 1, "legal-flag": 2}
+    vals = {
+        "delete": 0,
+        "rename": 1,
+        "legal-flag": 2,
+        "createrepo": 3,
+    }
 
 
 class BackendResultEnum(object):
