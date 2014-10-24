@@ -125,7 +125,7 @@ class CoprFormFactory(object):
                 validators=[UrlListValidator()],
                 filters=[StringListFilter()])
 
-            auto_createrepo = wtforms.BooleanField()
+            auto_createrepo = wtforms.BooleanField(default=True)
 
             @property
             def selected_chroots(self):

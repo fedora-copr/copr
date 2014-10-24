@@ -85,6 +85,14 @@
     </ul>
   {% endif %}
 
+  {% if g.user and g.user.can_edit(copr) %}
+    <div>
+
+      <h2>Release options</h2>
+      <button>Run createrepo</button>
+    </div>
+  {% endif %}
+
 {% for chroot in copr.modified_chroots %}
 <div id="dialog-{{chroot.name}}" class="hidden" title="{{chroot.name}} minimal buildroot">
     <ul>

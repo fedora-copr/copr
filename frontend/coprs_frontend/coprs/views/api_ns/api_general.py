@@ -88,7 +88,9 @@ def api_new_copr(username):
                 selected_chroots=form.selected_chroots,
                 description=form.description.data,
                 instructions=form.instructions.data,
-                check_for_duplicates=True)
+                check_for_duplicates=True,
+                auto_createrepo=form.auto_createrepo.data
+            )
             infos.append("New project was successfully created.")
 
             if form.initial_pkgs.data:

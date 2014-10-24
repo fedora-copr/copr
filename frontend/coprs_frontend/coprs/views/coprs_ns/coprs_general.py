@@ -136,7 +136,9 @@ def copr_new(username):
             repos=form.repos.data.replace("\n", " "),
             selected_chroots=form.selected_chroots,
             description=form.description.data,
-            instructions=form.instructions.data)
+            instructions=form.instructions.data,
+            auto_createrepo=form.auto_createrepo.data,
+        )
 
         db.session.commit()
         flask.flash("New project was successfully created.")
