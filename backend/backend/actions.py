@@ -53,7 +53,7 @@ class Action(object):
             path = os.path.join(self.destdir, username, projectname, chroot)
 
             errcode, _, err = createrepo(
-                path=os.path.join(path, chroot), lock=self.lock,
+                path=path, lock=self.lock,
                 front_url=self.front_url,
                 username=username, projectname=projectname
             )
