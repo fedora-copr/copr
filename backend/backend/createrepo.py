@@ -44,7 +44,7 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
     comm.append(path)
 
     if lock:
-        with lock.acquire():
+        with lock:
             cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = cmd.communicate()
     else:

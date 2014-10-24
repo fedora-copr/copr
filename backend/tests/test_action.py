@@ -387,7 +387,6 @@ class TestAction(object):
                 "Running createrepo",
                 "Package bar dir not found in chroot fedora20",
                 "Running createrepo",
-
             ])
 
         ev = self.test_q.get_nowait()
@@ -404,8 +403,6 @@ class TestAction(object):
             assert_what_from_queue(self.test_q, msg_list=["Removing log"])
             assert_what_from_queue(self.test_q, msg_list=["In chroot epel7"])
             assert_epel7()
-
-
 
         with pytest.raises(EmptyQueue):
             self.test_q.get_nowait()
@@ -454,7 +451,6 @@ class TestAction(object):
                 error_event_recorded = True
 
         assert error_event_recorded
-
 
 
 def assert_what_from_queue(q, msg_list, who="action"):

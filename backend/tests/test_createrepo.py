@@ -90,8 +90,8 @@ class TestCreaterepoUnsafe(object):
             self.shared_state["lock_status"] = copy.copy(self.shared_state["in_lock"])
             return mock.DEFAULT
 
-        mocked_lock.acquire.return_value.__enter__.side_effect = enter_lock
-        mocked_lock.acquire.return_value.__exit__.side_effect = exit_lock
+        mocked_lock.__enter__.side_effect = enter_lock
+        mocked_lock.__exit__.side_effect = exit_lock
 
         mc_popen.side_effect = popen_side_effect
         mc_popen.return_value.communicate.return_value = ("", "")
