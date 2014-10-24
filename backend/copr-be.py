@@ -116,7 +116,7 @@ class CoprJobGrab(multiprocessing.Process):
             for action in r_json["actions"]:
                 ao = Action(self.events, action, self.lock, destdir=self.opts.destdir,
                             frontend_callback=FrontendCallback(self.opts),
-                            front_url=self.opts.frontend_url)
+                            front_url=self.opts.frontend_base_url)
                 ao.run()
 
     def run(self):
