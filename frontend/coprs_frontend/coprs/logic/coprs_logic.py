@@ -111,7 +111,7 @@ class CoprsLogic(object):
                     "User is not a system admin")
 
     @classmethod
-    def get_multiple_fulltext(cls, user, search_string):
+    def get_multiple_fulltext(cls, search_string):
         query = (models.Copr.query.join(models.User)
                  .filter(models.Copr.deleted == False))
         if "/" in search_string:

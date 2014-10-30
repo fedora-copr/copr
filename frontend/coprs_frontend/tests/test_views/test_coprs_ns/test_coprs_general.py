@@ -645,7 +645,6 @@ class TestSearch(CoprsTestCase):
         #mc_flask.render_template.return_value = mock.MagicMock()
         #self.prefix = u"prefix_{}_".format(int(time.time()))
         self.prefix = u"prefix"
-
         self.s_coprs = []
 
         for x in range(5):

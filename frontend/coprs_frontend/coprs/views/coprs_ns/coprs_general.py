@@ -95,8 +95,7 @@ def coprs_by_allowed(username=None, page=1):
 def coprs_fulltext_search(page=1):
     fulltext = flask.request.args.get("fulltext", "")
     try:
-        query = coprs_logic.CoprsLogic.get_multiple_fulltext(
-            flask.g.user, fulltext)
+        query = coprs_logic.CoprsLogic.get_multiple_fulltext(fulltext)
     except ValueError as e:
         flask.flash(str(e))
         return flask.redirect(flask.request.referrer or

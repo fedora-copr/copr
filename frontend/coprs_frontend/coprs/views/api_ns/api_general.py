@@ -496,8 +496,7 @@ def api_coprs_search_by_project(project=None):
     httpcode = 200
     if project:
         try:
-            query = coprs_logic.CoprsLogic.get_multiple_fulltext(
-                flask.g.user, project)
+            query = coprs_logic.CoprsLogic.get_multiple_fulltext(project)
 
             repos = query.all()
             output = {"output": "ok", "repos": []}

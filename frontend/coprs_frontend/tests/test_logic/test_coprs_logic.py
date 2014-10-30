@@ -4,6 +4,7 @@ from coprs.exceptions import ActionInProgressException
 from coprs.helpers import ActionTypeEnum
 from coprs.logic.coprs_logic import CoprsLogic
 
+from coprs import models
 from tests.coprs_test_case import CoprsTestCase
 
 
@@ -28,3 +29,40 @@ class TestCoprsLogic(CoprsTestCase):
         # test will fail if this raises exception
         CoprsLogic.raise_if_unfinished_blocking_action(
             None, self.c1, "ha, failed")
+
+    def test_fulltext_whooshee_return_all_hits(self, f_users, f_db):
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1153039
+        self.prefix = u"prefix"
+        self.s_coprs = []
+
+        u1_count = 150
+        for x in range(u1_count):
+            self.s_coprs.append(models.Copr(name=self.prefix + str(x), owner=self.u1))
+
+        u2_count = 7
+        for x in range(u2_count):
+            self.s_coprs.append(models.Copr(name=self.prefix + str(x), owner=self.u2))
+
+        u3_count = 9
+        for x in range(u3_count):
+            self.s_coprs.append(models.Copr(name=u"_wrong_" + str(x), owner=self.u3))
+
+
+        self.db.session.add_all(self.s_coprs)
+        self.db.session.commit()
+
+        #query = CoprsLogic.get_multiple_fulltext("prefix")
+        pre_query = models.Copr.query.join(models.User).filter(models.Copr.deleted == False)
+
+        query = pre_query.whooshee_search(self.prefix)
+
+
+        results = query.all()
+        #import ipdb; ipdb.set_trace()
+        for obj in results:
+            assert self.prefix in obj.name
+
+        obtained = len(results)
+        expected = u1_count + u2_count
+        # TODO: uncomment when fix in flask-whooshee will be released
+        #assert obtained == expected
