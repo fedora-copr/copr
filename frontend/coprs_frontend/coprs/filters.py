@@ -138,5 +138,5 @@ def fix_url_https_backend(url):
 
 
 @app.template_filter("fix_url_https_frontend")
-def fix_url_https_fronend(url):
+def fix_url_https_frontend(url):
     return helpers.fix_protocol_for_frontend(url)

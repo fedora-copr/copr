@@ -23,7 +23,7 @@
 login = {{ g.user.api_login }}
 username = {{ g.user.name }}
 token = {{ g.user.api_token }}
-copr_url = https://copr.fedoraproject.org
+copr_url = {{ ('https://' + config['PUBLIC_COPR_HOSTNAME'])| fix_url_https_frontend}}
 # expiration date: {{ g.user.api_token_expiration }}
 </pre>
 
