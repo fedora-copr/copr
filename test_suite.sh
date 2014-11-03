@@ -43,6 +43,7 @@ pep8 --max-line-length=120 python/copr > _report/python-copr_pep8.txt  || echo '
 pep8 --max-line-length=120 backend/backend backend/copr-be.py > _report/backend_pep8.txt  || echo 'pep8 did not finish with return code 0'
 pep8 --max-line-length=120 frontend/coprs_frontend > _report/frontend_pep8.txt  || echo 'pep8 did not finish with return code 0'
 pep8 --max-line-length=120 cli/copr_cli > _report/copr-cli_pep8.txt  || echo 'pep8 did not finish with return code 0'
+pep8 --max-line-length=120 keygen/src > _report/keygen_pep8.txt  || echo 'pep8 did not finish with return code 0'
 
 deactivate
 rm -rf _tmp/*
