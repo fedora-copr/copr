@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.51
+Version:    1.52
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -165,6 +165,9 @@ popd
 %endif
 
 %changelog
+* Mon Nov 03 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.52-1
+- [python-copr] removed log config from client
+
 * Tue Oct 07 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.51-1
 - [python-copr, cli] test coverage 
 - [python-copr, cli] updating copr-cli to use python-copr
