@@ -63,11 +63,11 @@ class CoprJobGrab(multiprocessing.Process):
 
         self.opts = opts
         self.events = events
-        self.task_queue = []
+        self.task_queues = []
         for group in self.opts.build_groups:
-            self.task_queue.append(Queue("copr-be-{0}".format(
+            self.task_queues.append(Queue("copr-be-{0}".format(
                     str(group["id"]))))
-            self.task_queue[group["id"]].connect()
+            self.task_queues[group["id"]].connect()
         self.added_jobs = []
         self.lock = lock
 
@@ -103,7 +103,7 @@ class CoprJobGrab(multiprocessing.Process):
                         if arch in group["archs"]:
                             self.added_jobs.append(task["task_id"])
                             task_obj = Task(task)
-                            self.task_queue[group["id"]].enqueue(task_obj)
+                            self.task_queues[group["id"]].enqueue(task_obj)
                             count += 1
                             break
             if count:
@@ -115,7 +115,7 @@ class CoprJobGrab(multiprocessing.Process):
 
             for action in r_json["actions"]:
                 ao = Action(self.events, action, self.lock, destdir=self.opts.destdir,
-                            frontend_callback=FrontendCallback(self.opts),
+                            frontend_callback=FrontendCallback(self.opts, self.events),
                             front_url=self.opts.frontend_base_url)
                 ao.run()
 
@@ -146,8 +146,12 @@ class CoprLog(multiprocessing.Process):
         if not os.path.exists(logdir):
             os.makedirs(logdir, mode=0o750)
 
+    def setup_log_handler(self):
+        sys.stderr.write("Running setup handler {} \n".format(self.opts))
         # setup a log file to write to
         logging.basicConfig(filename=self.opts.logfile, level=logging.DEBUG)
+
+        self.log({"when": time.time(), "who": self.__class__.__name__, "what": "Logger iniated"})
 
     def log(self, event):
 
@@ -155,13 +159,14 @@ class CoprLog(multiprocessing.Process):
         msg = "{0} : {1}: {2}".format(when,
                                       event["who"],
                                       event["what"].strip())
-
         try:
             if self.opts.verbose:
                 sys.stderr.write("{0}\n".format(msg))
                 sys.stderr.flush()
             logging.debug(msg)
+
         except (IOError, OSError) as e:
+
             sys.stderr.write("Could not write to logfile {0} - {1}\n".format(
                 self.logfile, e))
 
@@ -169,6 +174,7 @@ class CoprLog(multiprocessing.Process):
     # what:str}
     def run(self):
         setproctitle.setproctitle("CoprLog")
+        self.setup_log_handler()
         abort = False
         try:
             while not abort:

@@ -217,12 +217,12 @@ class CliLogCallBack(DefaultCallBack):
 class Builder(object):
 
     def __init__(self, hostname, username,
-                 timeout, mockremote, buildroot_pkgs):
+                 timeout, chroot, mockremote, buildroot_pkgs):
 
         self.hostname = hostname
         self.username = username
         self.timeout = timeout
-        self.chroot = mockremote.chroot
+        self.chroot = chroot
         self.repos = mockremote.repos
         self.mockremote = mockremote
 
@@ -536,21 +536,25 @@ class MockRemote(object):
     #   mock remote now do too much things
     #   idea: send events according to the build progress to handler
 
-    def __init__(self, builder=None, user=DEF_USER, timeout=DEF_TIMEOUT,
-                 destdir=DEF_DESTDIR, chroot=DEF_CHROOT, cont=False,
-                 recurse=False, repos=None, callback=None,
+    def __init__(self, builder=None, user=DEF_USER, job=None,
+                 cont=False, recurse=False, repos=None, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
-                 macros=None, lock=None, do_sign=False, build_id=None,
-                 buildroot_pkgs=DEF_BUILDROOT_PKGS, front_url=None):
+                 macros=None, lock=None, do_sign=False,  front_url=None):
 
         """
 
         :param builder: builder hostname
         :param user: user to run as/connect as on builder systems
-        :param timeout: ssh timeout
-        :param destdir: target directory to put built packages
-        :param chroot: chroot config name/base to use in the mock build
-                       (e.g.: fedora20_i386 )
+        :param backend.job.BuildJob job: Job object with the following attributes::
+            :ivar timeout: ssh timeout
+            :ivar destdir: target directory to put built packages
+            :ivar chroot: chroot config name/base to use in the mock build
+                           (e.g.: fedora20_i386 )
+            :ivar buildroot_pkgs: whitespace separated string with additional
+                               packages that should present during build
+            :ivar build_id: copr build.id
+
+
         :param cont: if a pkg fails to build, continue to the next one
         :param bool recurse: if more than one pkg and it fails to build,
                              try to build the rest and come back to it
@@ -566,8 +570,7 @@ class MockRemote(object):
             Copr backend process
         :param bool do_sign: enable package signing, require configured
             signer host and correct /etc/sign.conf
-        :param buildroot_pkgs: whitespace separated string with additional
-                               packages that should present during build
+
         :param str front_url: url to the copr frontend
 
         """
@@ -576,9 +579,10 @@ class MockRemote(object):
             repos = DEF_REPOS
         if macros is None:
             macros = DEF_MACROS
-        self.destdir = destdir
-        self.chroot = chroot
+
+        self.job = job
         self.repos = repos
+
         self.cont = cont
         self.recurse = recurse
         self.callback = callback
@@ -593,9 +597,11 @@ class MockRemote(object):
             self.callback = DefaultCallBack()
 
         self.callback.log("Setting up builder: {0}".format(builder))
-        self.builder = Builder(builder, user, timeout, self, buildroot_pkgs)
+        self.builder = Builder(hostname=builder, username=user, chroot=self.job.chroot,
+                               timeout=self.job.timeout or DEF_TIMEOUT,
+                               mockremote=self, buildroot_pkgs=self.job.buildroot_pkgs)
 
-        if not self.chroot:
+        if not self.job.chroot:
             raise MockRemoteError("No chroot specified!")
 
         self.failed = []
@@ -606,19 +612,19 @@ class MockRemote(object):
     def _get_pkg_destpath(self, pkg):
         s_pkg = os.path.basename(pkg)
         pdn = s_pkg.replace(".src.rpm", "")
-        resdir = "{0}/{1}/{2}".format(self.destdir, self.chroot, pdn)
+        resdir = "{0}/{1}/{2}".format(self.job.destdir, self.job.chroot, pdn)
         resdir = os.path.normpath(resdir)
         return resdir
 
     def add_pubkey(self, chroot_dir):
         """
             Adds pubkey.gpg with public key to ``chroot_dir``
-            using `copr_username` and `copr_projectname` from self.macros.
+            using `copr_username` and `copr_projectname` from self.job.
         """
         self.callback.log("Retrieving pubkey ")
         # TODO: sign repodata as well ?
-        user = self.macros["copr_username"]
-        project = self.macros["copr_projectname"]
+        user = self.job.project_owner
+        project = self.job.project_name
         pubkey_path = os.path.join(chroot_dir, "pubkey.gpg")
         try:
             #TODO: uncomment this when key revoke/change will be implemented
@@ -638,7 +644,7 @@ class MockRemote(object):
     def sign_built_packages(self, chroot_dir, pkg):
         """
             Sign built rpms
-             using `copr_username` and `copr_projectname` from self.macros
+             using `copr_username` and `copr_projectname` from self.job
              by means of obs-sign. If user builds doesn't have a key pair
              at sign service, it would be created through ``copr-keygen``
 
@@ -651,9 +657,8 @@ class MockRemote(object):
                           format(pkg, chroot_dir))
 
         try:
-            sign_rpms_in_dir(self.macros["copr_username"],
-                             self.macros["copr_projectname"],
-                             #os.path.join(chroot_dir, source_basename),
+            sign_rpms_in_dir(self.job.project_owner,
+                             self.job.project_name,
                              get_target_dir(chroot_dir, pkg),
                              callback=self.callback)
         except Exception as e:
@@ -721,7 +726,7 @@ class MockRemote(object):
                 # mockchain makes things with the chroot appended - so suck down
                 # that pkg subdir from w/i that location
                 chroot_dir = os.path.normpath(
-                    os.path.join(self.destdir, self.chroot))
+                    os.path.join(self.job.destdir, self.job.chroot))
 
                 d_ret, d_out, d_err = self.builder.download(pkg, chroot_dir)
                 if not d_ret:
@@ -737,7 +742,7 @@ class MockRemote(object):
                 # destdir/chroot
                 if not os.path.exists(chroot_dir):
                     os.makedirs(
-                        os.path.join(self.destdir, self.chroot))
+                        os.path.join(self.job.destdir, self.job.chroot))
 
                 self.log_to_file_safe(
                     os.path.join(chroot_dir, "mockchain.log"),
@@ -760,7 +765,7 @@ class MockRemote(object):
                                 os.path.basename(pkg)))
                     else:
                         msg = "Error building {0}\nSee logs/results in {1}" \
-                              .format(os.path.basename(pkg), self.destdir)
+                              .format(os.path.basename(pkg), self.job.destdir)
 
                         if not self.cont:
                             raise MockRemoteError(msg)
@@ -775,14 +780,14 @@ class MockRemote(object):
 
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
-                    self.callback.log("Createrepo:: macros:  {}; front url: {}; path: {}".format(
-                        self.macros, self.front_url, chroot_dir
+                    self.callback.log("Createrepo:: owner:  {}; project: {}; front url: {}; path: {}".format(
+                        self.job.project_owner, self.job.project_name, self.front_url, chroot_dir
                     ))
                     _, _, err = createrepo(
                         path=chroot_dir,
                         front_url=self.front_url,
-                        username=self.macros["copr_username"],
-                        projectname=self.macros["copr_projectname"],
+                        username=self.job.project_owner,
+                        projectname=self.job.project_name,
                         lock=self.lock,
                     )
                     if err.strip():
@@ -906,12 +911,19 @@ def main(args):
         # setup our callback
         callback = CliLogCallBack(logfn=opts.logfile, quiet=opts.quiet)
         # our mockremote instance
+
+        class JobClass(object):
+            __slots__ = ["timeout", "destdir", "chroot"]
+
+        job = JobClass()
+        job.timeout = opts.timeout
+        job.destdir = opts.destdir
+        job.chroot = opts.chroot
+
         mr = MockRemote(
+            job=job,
             builder=opts.builder,
             user=opts.user,
-            timeout=opts.timeout,
-            destdir=opts.destdir,
-            chroot=opts.chroot,
             cont=opts.cont,
             recurse=opts.recurse,
             repos=opts.repos,
@@ -935,7 +947,7 @@ def main(args):
         mr.build_pkgs(pkgs)
 
         if not opts.quiet:
-            print("Output written to: {0}".format(mr.destdir))
+            print("Output written to: {0}".format(opts.destdir))
 
     except MockRemoteError as e:
         sys.stderr.write("Error on build:\n")

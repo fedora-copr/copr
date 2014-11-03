@@ -79,8 +79,9 @@ def update():
                 i -= 1
                 exc_info = sys.exc_info()[2]
                 time.sleep(5)
+
         if i != -100:
-            raise LockError, None, exc_info
+            raise LockError(None).with_traceback(exc_info)
 
         result.update({"updated_{0}_ids".format(typ): list(existing.keys()),
                        "non_existing_{0}_ids".format(typ): non_existing_ids})

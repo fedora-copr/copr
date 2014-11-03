@@ -11,14 +11,16 @@ import ansible
 import ansible.runner
 import ansible.utils
 from ansible import callbacks
-from bunch import Bunch
+
 from setproctitle import setproctitle
 from IPy import IP
 from retask.queue import Queue
-from .exceptions import MockRemoteError, CoprWorkerError
 
-import mockremote
-from callback import FrontendCallback
+from .exceptions import MockRemoteError, CoprWorkerError
+from .job import BuildJob
+
+from .mockremote import MockRemote, CliLogCallBack
+from .callback import FrontendCallback
 
 ansible_playbook = "ansible-playbook"
 
@@ -142,7 +144,7 @@ class Worker(multiprocessing.Process):
         self.callback = callback
         self.create = create
         self.lock = lock
-        self.frontend_callback = FrontendCallback(opts)
+        self.frontend_callback = FrontendCallback(opts, events)
         if not self.callback:
             self.logfile = os.path.join(
                 self.opts.worker_logdir,
@@ -159,7 +161,7 @@ class Worker(multiprocessing.Process):
     def event(self, topic, template, content=None):
         """ Multi-purpose logging method.
 
-        Logs messages to two different destinations:
+        Logs messages to three different destinations:
             - To log file
             - The internal "events" queue for communicating back to the
               dispatcher.
@@ -188,7 +190,6 @@ class Worker(multiprocessing.Process):
             # XXX - Maybe log traceback as well with traceback.format_exc()
             self.callback.log("failed to publish message: {0}".format(e))
 
-
     def _announce_start(self, job, ip="none"):
         """
         Announce everywhere that a build process started now.
@@ -214,7 +215,6 @@ class Worker(multiprocessing.Process):
 
         self.event("chroot.start", template, content)
 
-
     def _announce_end(self, job, ip="none"):
         """
         Announce everywhere that a build process ended now.
@@ -231,7 +231,6 @@ class Worker(multiprocessing.Process):
                        build=job.build_id, ip=ip, pid=self.pid,
                        status=job.status, chroot=job.chroot)
         self.event("build.end", template, content)
-
 
     def run_ansible_playbook(self, args, name="running playbook", attempts=9):
         """
@@ -345,7 +344,6 @@ class Worker(multiprocessing.Process):
                         "the testing playbook. Spawning another one.")
                 self.terminate_instance(ipaddr)
 
-
     def terminate_instance(self, instance_ip):
         """call the terminate playbook to destroy the building instance"""
 
@@ -362,47 +360,16 @@ class Worker(multiprocessing.Process):
                 ans_extra_vars_encode(term_args, "copr_task"))
         self.run_ansible_playbook(args, "terminate instance")
 
-
-    def create_job(self, task):
-        """
-        Create a Bunch from the task dict and add some stuff
-        """
-        job = Bunch()
-        job.update(task)
-
-        job.pkgs = [task["pkgs"]] # just for now
-
-        job.repos = [r for r in task["repos"].split(" ") if r.strip()]
-
-        if not task["timeout"]:
-            job.timeout = self.opts.timeout
-
-        job.destdir = os.path.normpath(
-            os.path.join(self.opts.destdir,
-                task["project_owner"],
-                task["project_name"]))
-
-        job.results = os.path.join(
-            self.opts.results_baseurl,
-            task["project_owner"],
-            task["project_name"] + "/")
-
-        job.pkg_version = ""
-        job.built_packages = ""
-
-        return job
-
-
     def mark_started(self, job):
         """
         Send data about started build to the frontend
         """
-        build = {"id": job.build_id,
-                 "started_on": job.started_on,
-                 "results": job.results,
-                 "chroot": job.chroot,
-                 "status": 3,  # running
-                 }
+
+        job.status = 3  # running
+        build = job.to_dict()
+
+        self.callback.log("build: {}".format(build))
+        #build["status"] = 3  # running
         data = {"builds": [build]}
 
         try:
@@ -410,7 +377,6 @@ class Worker(multiprocessing.Process):
         except:
             raise CoprWorkerError(
                 "Could not communicate to front end to submit status info")
-
 
     def return_results(self, job):
         """
@@ -420,23 +386,16 @@ class Worker(multiprocessing.Process):
             "{0} status {1}. Took {2} seconds".format(
                 job.build_id, job.status, job.ended_on - job.started_on))
 
-        build = {
-            "id": job.build_id,
-            "ended_on": job.ended_on,
-            "status": job.status,
-            "chroot": job.chroot,
-            "pkg_version": job.pkg_version,
-            "built_packages": job.built_packages,
-        }
-
-        data = {"builds": [build]}
+        self.callback.log("build: {}".format(job.to_dict()))
+        data = {"builds": [job.to_dict()]}
 
         try:
             self.frontend_callback.update(data)
-        except:
+        except Exception as err:
             raise CoprWorkerError(
-                "Could not communicate to front end to submit results")
-
+                "Could not communicate to front end to submit results: {}"
+                .format(err)
+            )
 
     def starting_build(self, job):
         """
@@ -444,17 +403,16 @@ class Worker(multiprocessing.Process):
         Return: True if the build can start
                 False if the build can not start (build is cancelled)
         """
-        response = None
+
         try:
-            response = self.frontend_callback.starting_build(
-                                                    job.build_id,
-                                                    job.chroot)
-        except:
+            response = self.frontend_callback.starting_build(job.build_id, job.chroot)
+        except Exception as err:
             raise CoprWorkerError(
-                "Could not communicate to front end to submit results")
+                "Could not communicate to front end to submit results: {}"
+                .format(err)
+            )
 
         return response
-
 
     @classmethod
     def pkg_built_before(cls, pkgs, chroot, destdir):
@@ -496,12 +454,13 @@ class Worker(multiprocessing.Process):
                 time.sleep(self.opts.sleeptime)
                 continue
 
-            job = self.create_job(task.data)
+            job = BuildJob(task.data, self.opts)
 
             setproctitle("worker-{0} {1}  Task: {2}".format(
-                        self.opts.build_groups[self.group_id]["name"],
-                        self.worker_num,
-                        job.task_id))
+                self.opts.build_groups[self.group_id]["name"],
+                self.worker_num,
+                job.build_id
+            ))
 
             # Checking whether the build is not cancelled
             if not self.starting_build(job):
@@ -603,20 +562,16 @@ class Worker(multiprocessing.Process):
                                 job.project_owner, job.project_name)
                         }
 
-                        mr = mockremote.MockRemote(
+                        mr = MockRemote(
                             builder=ip,
-                            timeout=job.timeout,
-                            destdir=job.destdir,
-                            chroot=job.chroot,
+                            job=job,
                             cont=True,
                             recurse=True,
                             repos=chroot_repos,
                             macros=macros,
                             lock=self.lock,
                             do_sign=self.opts.do_sign,
-                            build_id=job.build_id,
-                            buildroot_pkgs=job.buildroot_pkgs,
-                            callback=mockremote.CliLogCallBack(
+                            callback=CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile),
                             front_url=self.opts.frontend_base_url,
                         )
