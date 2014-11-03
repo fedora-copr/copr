@@ -16,8 +16,8 @@ import six
 from six.moves import configparser
 
 
-logging.basicConfig(level=logging.WARN)
 log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler)
 
 from .exceptions import CoprConfigException, CoprNoConfException, \
     CoprRequestException, \
