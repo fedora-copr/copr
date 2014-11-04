@@ -31,11 +31,10 @@ def test_createrepo_conditional_true(mc_client, mc_create_unsafe):
 
     createrepo(path="/tmp/", front_url="http://example.com/api",
                username="foo", projectname="bar", lock=None)
-
     mc_create_unsafe.reset_mock()
 
-
-    mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {"auto_createrepo": True}})
+    mc_client.return_value.get_project_details.return_value = MagicMock(
+        data={"detail": {"auto_createrepo": True}})
 
     createrepo(path="/tmp/", front_url="http://example.com/api",
                username="foo", projectname="bar", lock=None)
@@ -47,10 +46,11 @@ def test_createrepo_conditional_true(mc_client, mc_create_unsafe):
 def test_createrepo_conditional_false(mc_client, mc_create_unsafe):
     mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {"auto_createrepo": False}})
 
+    base_url = "http://example.com/repo/"
     createrepo(path="/tmp/", front_url="http://example.com/api",
-               username="foo", projectname="bar", lock=None)
+               username="foo", projectname="bar", base_url=base_url, lock=None)
 
-    assert mc_create_unsafe.call_args == mock.call('/tmp/', None, dest_dir='devel', base_url='../')
+    assert mc_create_unsafe.call_args == mock.call('/tmp/', None, dest_dir='devel', base_url=base_url)
 
 
 @mock.patch('backend.createrepo.Popen')
@@ -58,6 +58,7 @@ class TestCreaterepoUnsafe(object):
     def setup_method(self, method):
         self.tmp_dir_name = self.make_temp_dir()
         self.test_time = time.time()
+        self.base_url = "http://example.com/repo/"
 
     def teardown_method(self, method):
         self.rm_tmp_dir()
@@ -129,11 +130,11 @@ class TestCreaterepoUnsafe(object):
         expected_epel_5 = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                            '-s', 'sha', '--checksum', 'md5',
                            '--outputdir', os.path.join(path_epel_5, "devel"),
-                           '--baseurl', '../', path_epel_5]
+                           '--baseurl', self.base_url, path_epel_5]
         path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
         expected_fedora = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                            '--outputdir', os.path.join(path_fedora, "devel"),
-                           '--baseurl', '../', path_fedora]
+                           '--baseurl', self.base_url, path_fedora]
         for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
             os.makedirs(path)
 
@@ -142,7 +143,7 @@ class TestCreaterepoUnsafe(object):
             with open(os.path.join(repo_path, "repomd.xml"), "w") as handle:
                 handle.write("1")
 
-            createrepo_unsafe(path, lock=None, base_url="../", dest_dir="devel")
+            createrepo_unsafe(path, lock=None, base_url=self.base_url, dest_dir="devel")
             assert mc_popen.call_args == mock.call(expected, stderr=-1, stdout=-1)
 
     def test_createrepo_devel_generated_commands(self, mc_popen):
@@ -152,15 +153,15 @@ class TestCreaterepoUnsafe(object):
         expected_epel_5 = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                            '-s', 'sha', '--checksum', 'md5',
                            '--outputdir', os.path.join(path_epel_5, "devel"),
-                           '--baseurl', '../', path_epel_5]
+                           '--baseurl', self.base_url, path_epel_5]
         path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
         expected_fedora = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                            '--outputdir', os.path.join(path_fedora, "devel"),
-                           '--baseurl', '../', path_fedora]
+                           '--baseurl', self.base_url, path_fedora]
         for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
             os.makedirs(path)
 
-            createrepo_unsafe(path, lock=None, base_url="../", dest_dir="devel")
+            createrepo_unsafe(path, lock=None, base_url=self.base_url, dest_dir="devel")
             assert os.path.exists(os.path.join(path, "devel"))
             assert mc_popen.call_args == mock.call(expected, stderr=-1, stdout=-1)
     #
@@ -173,5 +174,5 @@ class TestCreaterepoUnsafe(object):
     #     for path in [path_epel_5, path_fedora]:
     #         os.makedirs(path)
     #
-    #         createrepo_unsafe(path, lock=None, base_url="../", dest_dir="devel")
+    #         createrepo_unsafe(path, lock=None, base_url=self.base_url, dest_dir="devel")
     #         assert os.path.exists(os.path.join(path, "devel"))
