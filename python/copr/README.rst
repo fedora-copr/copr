@@ -26,12 +26,12 @@ Usage:
 ::
 
     from python_copr.main import CoprClient
-    client = CoprClient({
-        "login": "<login from /api>",
-        "token": "<token from /api>",
-        "username": "<copr username>",
-        "copr_url": "<url copr instance ; optional>"
-    })
+    client = CoprClient(
+        login="<login from /api>",
+        token="<token from /api>",
+        username="<copr username>",
+        copr_url="<url copr instance ; optional>"
+    )
 
 Alternatively you could use configuration file:
 - Create the file ``~/.config/copr``

@@ -199,7 +199,7 @@ def test_list_project(mock_cc, capsys):
 
     # no config
     mock_cc.create_from_file_config.side_effect = CoprNoConfException()
-    mocked_client = MagicMock(CoprClient(dict(no_config=True)))
+    mocked_client = MagicMock(CoprClient(no_config=True))
 
     control_response = CoprResponse(client=None, method="", data=response_data,
                                     parsers=[ProjectListParser, CommonMsgErrorOutParser])
@@ -229,7 +229,7 @@ def test_list_project_no_username(mock_cc, capsys):
 
 @mock.patch('copr_cli.main.CoprClient')
 def test_list_project_no_username2(mock_cc, capsys):
-    mock_cc.create_from_file_config.return_value = CoprClient(defaultdict())
+    mock_cc.create_from_file_config.return_value = CoprClient()
 
     with pytest.raises(SystemExit) as err:
         main.main(argv=["list"])

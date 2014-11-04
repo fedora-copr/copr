@@ -56,22 +56,27 @@ class CoprClient(object):
     :ivar unicode copr_url: used as copr projects root
 
     Could be created:
-        - directly by providing a `dict` with credentionals
+        - directly
         - using static method :py:meth:`CoprClient.create_from_file_config`
 
     """
 
-    def __init__(self, config=None):
+    def __init__(self, username=None, login=None, token=None, copr_url=None,
+                 no_config=False):
         """
-        :param dict config: Dictionary with client configuration.
+            :param unicode username: username used by default for all requests
+            :param unicode login: user login, used for identification
+            :param unicode token: copr api token
+            :param unicode copr_url: used as copr projects root
+            :param bool no_config: helper flag to indicate that no config was provided
         """
 
-        self.token = config.get("token")
-        self.login = config.get("login")
-        self.username = config.get("username")
-        self.copr_url = config.get("copr_url", "http://copr.fedoraproject.org/")
+        self.token = token
+        self.login = login
+        self.username = username
+        self.copr_url = copr_url or "http://copr.fedoraproject.org/"
 
-        self.no_config = config.get("no_config", False)
+        self.no_config = no_config
 
     def __str__(self):
         return "<Copr client. username: {0}, api url: {1}, " \
@@ -109,7 +114,7 @@ class CoprClient(object):
             log.warning(
                 "No configuration file '~/.config/copr' found. "
                 "See man copr-cli for more information")
-
+            config["no_config"] = True
             if not ignore_error:
                 raise CoprNoConfException()
         else:
@@ -124,7 +129,7 @@ class CoprClient(object):
                 if not ignore_error:
                     raise CoprConfigException(
                         "Bad configuration file: {0}".format(err))
-        return CoprClient(config=config)
+        return CoprClient(**config)
 
     def _fetch(self, url, data=None, projectname=None, username=None,
                method=None, skip_auth=False, on_error_response=None):

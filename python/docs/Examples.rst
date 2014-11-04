@@ -3,8 +3,15 @@ Create client
 ::
 
     from copr.client import CoprClient
+
+    # using default config location  ~/.config/copr
     cl = CoprClient.create_from_file_config()
 
+    # using config at ~/.config/alt_copr
+    cl = CoprClient.create_from_file_config("~/.config/alt_copr")
+
+    # directly
+    cl = CoprClient(username="foo", login="abcd", token="efgk", copr_url="http://example.com/")
 
 Get projects list
 -----------------

@@ -13,12 +13,12 @@ config_location = os.path.join(resource_location, "copr_cli.conf")
 
 
 def test_client_from_dict():
-    cl = CoprClient(dict(
+    cl = CoprClient(
         login="api-login",
         username="user_name",
         token="api-token",
         copr_url="http://copr-fe-dev.cloud.fedoraproject.org"
-    ))
+    )
 
     assert isinstance(cl, CoprClient)
     assert cl.login == "api-login"

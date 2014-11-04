@@ -41,10 +41,10 @@ class Commands(object):
         except (copr_exceptions.CoprNoConfException,
                 copr_exceptions.CoprConfigException):
             print(no_config_warning)
-            self.client = CoprClient({
-                "copr_url": "http://copr.fedoraproject.org",
-                "no_config": True
-            })
+            self.client = CoprClient(
+                copr_url=u"http://copr.fedoraproject.org",
+                no_config=True
+            )
 
     def requires_api_auth(func):
         """ Decorator that checks config presence
