@@ -24,7 +24,9 @@ class Action(object):
 
     """
 
-    def __init__(self, events, action, lock, frontend_callback, destdir, front_url):
+    def __init__(self, events, action, lock,
+                 frontend_callback, destdir,
+                 front_url, results_root_url):
         super(Action, self).__init__()
         self.frontend_callback = frontend_callback
         self.destdir = destdir
@@ -32,6 +34,7 @@ class Action(object):
         self.events = events
         self.lock = lock
         self.front_url = front_url
+        self.results_root_url = results_root_url
 
     def add_event(self, what):
         self.events.put({"when": time.time(), "who": "action", "what": what})
@@ -91,11 +94,13 @@ class Action(object):
     def handle_delete_build(self):
         self.add_event("Action delete build")
         project = self.data["old_value"]
-        ext_data = json.loads(self.data["data"])
 
-        packages = [os.path.basename(x).replace(".src.rpm", "") for x in \
-                    ext_data["pkgs"].split()]
-        #            self.data["data"].split()]
+        ext_data = json.loads(self.data["data"])
+        username = ext_data["username"]
+        projectname = ext_data["projectname"]
+
+        packages = [os.path.basename(x).replace(".src.rpm", "")
+                    for x in ext_data["pkgs"].split()]
 
         path = os.path.join(self.destdir, project)
 
@@ -118,10 +123,10 @@ class Action(object):
             # than I delete the failed, it would delete the succeeded
             # files as well - that would be wrong.
             for pkg in packages:
-                if self.data["object_type"] == "build-succeeded" or \
-                        (self.data["object_type"] == "build-failed" and
-                              os.path.exists(os.path.join(path, chroot, pkg, "fail"))
-                        ):
+                if self.data["object_type"] == "build-succeeded" or (
+                        self.data["object_type"] == "build-failed" and
+                        os.path.exists(os.path.join(path, chroot, pkg, "fail"))):
+
                     pkg_path = os.path.join(path, chroot, pkg)
                     if os.path.isdir(pkg_path):
                         self.add_event("Removing build {0}".format(pkg_path))
@@ -132,16 +137,19 @@ class Action(object):
                             "Package {0} dir not found in chroot {1}"
                             .format(pkg, chroot))
 
-                    if altered:
-                        self.add_event("Running createrepo")
-                        _, _, err = createrepo(
-                            path=os.path.join(path, chroot), lock=self.lock,
-                            front_url=self.front_url,
-                            username=ext_data["username"], projectname=ext_data["projectname"]
-                        )
-                        if err.strip():
-                            self.add_event(
-                                "Error making local repo: {0}".format(err))
+            if altered:
+                self.add_event("Running createrepo")
+
+                result_base_url = "/".join([self.results_root_url, username,
+                                             projectname, chroot])
+                _, _, err = createrepo(
+                    path=os.path.join(path, chroot), lock=self.lock,
+                    front_url=self.front_url, base_url=result_base_url,
+                    username=username, projectname=projectname
+                )
+                if err.strip():
+                    self.add_event(
+                        "Error making local repo: {0}".format(err))
 
             log_path = os.path.join(
                 path, chroot,

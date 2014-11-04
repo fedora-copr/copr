@@ -69,11 +69,11 @@ def createrepo(path, front_url, username, projectname, base_url=None, lock=None)
         Creates repo depending on the project setting "auto_createrepo".
         When enabled creates `repodata` at the provided path, otherwise
 
-    :param str path: directory with rpms
-    :param str front_url: url to the copr frontend
-    :param str username: copr project owner username
-    :param str projectname: copr project name
-    :param str base_url: base_url to access rpms independently of repomd location
+    :param path: directory with rpms
+    :param front_url: url to the copr frontend
+    :param username: copr project owner username
+    :param projectname: copr project name
+    :param base_url: base_url to access rpms independently of repomd location
     :param Multiprocessing.Lock lock:  [optional] global copr-backend lock
 
     :return: tuple(returncode, stdout, stderr) produced by `createrepo_c`

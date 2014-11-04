@@ -20,14 +20,14 @@ else:
 
 import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
-    datefmt='%H:%M:%S'
-)
-
-log = logging.getLogger()
-log.info("Logger initiated")
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+#     datefmt='%H:%M:%S'
+# )
+#
+# log = logging.getLogger()
+# log.info("Logger initiated")
 
 from backend.actions import Action, ActionType, ActionResult
 
@@ -38,6 +38,10 @@ if six.PY3:
 else:
     import Queue as queue
     from Queue import Empty  as EmptyQueue
+
+
+RESULTS_ROOT_URL = "http://example.com/results"
+
 
 @mock.patch("backend.actions.time")
 class TestAction(object):
@@ -80,8 +84,15 @@ class TestAction(object):
         return self.tmp_dir_name
 
     def test_action_event(self, mc_time):
-        test_action = Action(events=self.test_q, action={}, lock=None,
-                             frontend_callback=None, destdir=None, front_url=None)
+        test_action = Action(
+            events=self.test_q,
+            action={}, lock=None,
+            frontend_callback=None,
+            destdir=None,
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
+        )
+
         with pytest.raises(EmptyQueue):
             test_action.events.get_nowait()
 
@@ -105,7 +116,8 @@ class TestAction(object):
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
             destdir=None,
-            front_url=None
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
         )
         test_action.run()
         assert not mc_front_cb.called
@@ -136,7 +148,8 @@ class TestAction(object):
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
             destdir=tmp_dir,
-            front_url=None
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
         )
         test_action.run()
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
@@ -167,7 +180,8 @@ class TestAction(object):
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
             destdir=os.path.join(tmp_dir, "dir-not-exists"),
-            front_url=None
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
         )
         test_action.run()
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
@@ -197,7 +211,8 @@ class TestAction(object):
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
             destdir=tmp_dir,
-            front_url=None
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
         )
         test_action.run()
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
@@ -227,7 +242,8 @@ class TestAction(object):
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
             destdir=os.path.join(tmp_dir, "dir-not-exists"),
-            front_url=None
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
         )
         test_action.run()
 
@@ -262,7 +278,8 @@ class TestAction(object):
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
             destdir=tmp_dir,
-            front_url=None
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
         )
         test_action.run()
 
@@ -303,7 +320,8 @@ class TestAction(object):
                 events=self.test_q, lock=None,
                 frontend_callback=mc_front_cb,
                 destdir=tmp_dir,
-                front_url=None
+                front_url=None,
+                results_root_url=RESULTS_ROOT_URL
             )
             with mock.patch("backend.actions.shutil") as mc_shutil:
                 test_action.run()
@@ -362,6 +380,7 @@ class TestAction(object):
             frontend_callback=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
+            results_root_url=RESULTS_ROOT_URL
         )
 
         assert os.path.exists(foo_pkg_dir)
@@ -384,7 +403,7 @@ class TestAction(object):
         def assert_fedora20():
             assert_what_from_queue(self.test_q, msg_list=[
                 "Removing build ",
-                "Running createrepo",
+                #"Running createrepo",
                 "Package bar dir not found in chroot fedora20",
                 "Running createrepo",
             ])
@@ -406,6 +425,16 @@ class TestAction(object):
 
         with pytest.raises(EmptyQueue):
             self.test_q.get_nowait()
+
+        create_repo_expected_call = mock.call(
+            username=u'foo',
+            projectname=u'bar',
+            base_url=u'http://example.com/results/foo/bar/fedora20',
+            lock=None,
+            path='{}/old_dir/fedora20'.format(self.tmp_dir_name),
+            front_url=None
+        )
+        assert mc_createrepo.call_args == create_repo_expected_call
 
     @mock.patch("backend.actions.createrepo")
     def test_delete_build_succeeded_createrepo_error(self, mc_createrepo, mc_time):
@@ -439,7 +468,8 @@ class TestAction(object):
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
             destdir=tmp_dir,
-            front_url=None
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
         )
 
         test_action.run()

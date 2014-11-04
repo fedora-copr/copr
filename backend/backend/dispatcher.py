@@ -574,6 +574,7 @@ class Worker(multiprocessing.Process):
                             callback=CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile),
                             front_url=self.opts.frontend_base_url,
+                            results_base_url=self.opts.results_baseurl
                         )
 
                         build_details = mr.build_pkgs(job.pkgs)

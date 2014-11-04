@@ -539,7 +539,8 @@ class MockRemote(object):
     def __init__(self, builder=None, user=DEF_USER, job=None,
                  cont=False, recurse=False, repos=None, callback=None,
                  remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
-                 macros=None, lock=None, do_sign=False,  front_url=None):
+                 macros=None, lock=None, do_sign=False,
+                 front_url=None, results_base_url=None):
 
         """
 
@@ -592,6 +593,7 @@ class MockRemote(object):
         self.lock = lock
         self.do_sign = do_sign
         self.front_url = front_url
+        self.results_base_url = results_base_url or u''
 
         if not self.callback:
             self.callback = DefaultCallBack()
@@ -684,6 +686,30 @@ class MockRemote(object):
                 r_log.write(to_err)
         fcntl.flock(r_log, fcntl.LOCK_UN)
         r_log.close()
+
+    def do_createrepo(self, chroot_dir):
+        base_url = "/".join([self.results_base_url, self.job.project_owner,
+                             self.job.project_name, self.job.chroot])
+        self.callback.log("Createrepo:: owner:  {}; project: {}; front url: {}; path: {}; base_url: {}".format(
+            self.job.project_owner, self.job.project_name, self.front_url, chroot_dir, base_url
+        ))
+
+
+        _, _, err = createrepo(
+            path=chroot_dir,
+            front_url=self.front_url,
+            base_url=base_url,
+            username=self.job.project_owner,
+            projectname=self.job.project_name,
+            lock=self.lock,
+        )
+        if err.strip():
+            self.callback.error(
+                "Error making local repo: {0}".format(chroot_dir))
+
+            self.callback.error(str(err))
+            # FIXME - maybe clean up .repodata and .olddata
+            # here?
 
     def build_pkgs(self, pkgs=None):
 
@@ -780,23 +806,7 @@ class MockRemote(object):
 
                     built_pkgs.append(pkg)
                     # createrepo with the new pkgs
-                    self.callback.log("Createrepo:: owner:  {}; project: {}; front url: {}; path: {}".format(
-                        self.job.project_owner, self.job.project_name, self.front_url, chroot_dir
-                    ))
-                    _, _, err = createrepo(
-                        path=chroot_dir,
-                        front_url=self.front_url,
-                        username=self.job.project_owner,
-                        projectname=self.job.project_name,
-                        lock=self.lock,
-                    )
-                    if err.strip():
-                        self.callback.error(
-                            "Error making local repo: {0}".format(chroot_dir))
-
-                        self.callback.error(str(err))
-                        # FIXME - maybe clean up .repodata and .olddata
-                        # here?
+                    self.do_createrepo(chroot_dir, )
 
             if self.failed:
                 if len(self.failed) != len(to_be_built):
@@ -858,7 +868,10 @@ def parse_args(args):
                       action="store_true",
                       help="output very little to the terminal")
     parser.add_option("-f", "--front_url", dest="front_url",
-                  help="copr frontend url")
+                      help="copr frontend url")
+    parser.add_option("--results_url", dest="results_base_url",
+                      help="backend base url for built packages")
+
 
     opts, args = parser.parse_args(args)
 
@@ -930,6 +943,7 @@ def main(args):
             do_sign=opts.do_sign,
             callback=callback,
             front_url=opts.front_url,
+            results_base_url=opts.results_base_url,
         )
 
         # FIXMES
