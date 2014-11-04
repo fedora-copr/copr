@@ -21,9 +21,6 @@
       {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.') }}
       {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.') }}
 
-
-
-
       <dd>You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden..</dd>
       <dt class="field-label required">Chroots</dt>
 
@@ -66,7 +63,7 @@
         <label for="auto_createrepo">Build release options</label>
       </dt>
       <dd>
-        Automatically re-create repository metadata:
+        Create repository metadata automatically:
         {{ form.auto_createrepo }}
       </dd>
 
