@@ -13,6 +13,12 @@ import datetime
 import time
 from collections import defaultdict
 
+
+import logging
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
 from copr import CoprClient
 import copr.client.exceptions as copr_exceptions
 
@@ -251,6 +257,9 @@ def setup_parser():
     parser.add_argument("--version", action="version",
                         version="copr {0}".format(__version__))
 
+    parser.add_argument("--debug", dest="debug", action="store_true",
+                        help="Enable debug output")
+
     subparsers = parser.add_subparsers(title="actions")
 
     # create the parser for the "list" command
@@ -346,16 +355,13 @@ def setup_parser():
     return parser
 
 
-import logging
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
-    datefmt='%H:%M:%S'
-)
-
-log = logging.getLogger()
-log.info("Logger initiated")
+def enable_debug():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+        datefmt='%H:%M:%S'
+    )
+    log.debug("#  Debug log enabled  #")
 
 
 def main(argv=sys.argv[1:]):
@@ -364,6 +370,8 @@ def main(argv=sys.argv[1:]):
         parser = setup_parser()
         # Parse the commandline
         arg = parser.parse_args(argv)
+        if arg.debug:
+            enable_debug()
 
         commands = Commands()
         getattr(commands, arg.func)(arg)

@@ -25,17 +25,17 @@ if six.PY3:
 else:
     import mock
     from mock import MagicMock
-
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
-    datefmt='%H:%M:%S'
-)
-
-log = logging.getLogger()
-log.info("Logger initiated")
+#
+# import logging
+#
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+#     datefmt='%H:%M:%S'
+# )
+#
+# log = logging.getLogger()
+# log.info("Logger initiated")
 
 from copr_cli import main
 
@@ -284,6 +284,20 @@ def test_status_response(mock_cc, capsys):
     main.main(argv=["status", "123"])
     out, err = capsys.readouterr()
     assert "{}\n".format(response_status) in out
+
+@mock.patch('copr_cli.main.CoprClient')
+def test_debug_by_status_response(mock_cc, capsys):
+    response_status = "foobar"
+
+    mock_client = MagicMock(no_config=False)
+    mock_client.get_build_details.return_value = \
+        MagicMock(status=response_status)
+    mock_cc.create_from_file_config.return_value = mock_client
+
+    main.main(argv=["--debug", "status", "123"])
+    stdout, stderr = capsys.readouterr()
+    assert "{}\n".format(response_status) in stdout
+    assert "Debug log enabled " in stderr
 
 
 @mock.patch('copr_cli.main.CoprClient')
