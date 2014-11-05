@@ -144,6 +144,7 @@ class Worker(multiprocessing.Process):
         self.callback = callback
         self.create = create
         self.lock = lock
+        self.spawn_in_advance = self.opts.spawn_in_advance
         self.frontend_callback = FrontendCallback(opts, events)
         if not self.callback:
             self.logfile = os.path.join(
@@ -428,6 +429,19 @@ class Worker(multiprocessing.Process):
                 return True
         return False
 
+    def __spawn_with_check(self, job):
+        """ Wrapper around self.spawn_instance() with exception checking """
+        try:
+            ip = self.spawn_instance(job)
+            if not ip:
+                raise CoprWorkerError(
+                    "No IP found from creating instance")
+        except ansible.errors.AnsibleError as e:
+            self.callback.log("failure to setup instance: {0}".format(e))
+            raise
+        return ip
+
+
     def run(self):
         """
         Worker should startup and check if it can function
@@ -492,18 +506,10 @@ class Worker(multiprocessing.Process):
             # this is our best place to sanity check the job before starting
             # up any longer process
 
-            # spin up our build instance
             if self.create and not self.ip:
-                try:
-                    ip = self.spawn_instance(job)
-                    if not ip:
-                        raise CoprWorkerError(
-                            "No IP found from creating instance")
-
-                except ansible.errors.AnsibleError as e:
-                    self.callback.log(
-                        "failure to setup instance: {0}".format(e))
-                    raise
+                if not self.spawn_in_advance:
+                    ip = self.__spawn_with_check(job)
+                # else we get ip from similar calling at the enf of this while-loop
             else:
                 ip = self.ip
 
@@ -610,3 +616,5 @@ class Worker(multiprocessing.Process):
                 # clean up the instance
                 if self.create:
                     self.terminate_instance(ip)
+            if self.create and not self.ip and self.spawn_in_advance:
+                ip = self.__spawn_with_check(job)

@@ -147,6 +147,9 @@ class BackendConfigReader(object):
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
         opts.prune_script = _get_conf(cp, "backend", "prune_script", None, mode="path")
 
+        opts.spawn_in_advance = _get_conf(
+            cp, "backend", "spawn_in_advance", False, mode="bool")
+
         # thoughts for later
         # ssh key for connecting to builders?
         # cloud key stuff?
