@@ -1,13 +1,6 @@
 #!/usr/bin/python -ttu
 
-
-
-from bunch import Bunch
-from retask.task import Task
-from retask.queue import Queue
-from retask import ConnectionError
 import ConfigParser
-import daemon
 import grp
 import lockfile
 import logging
@@ -15,11 +8,18 @@ import multiprocessing
 import optparse
 import os
 import pwd
-import requests
-import setproctitle
 import signal
 import sys
 import time
+from collections import defaultdict
+
+import daemon
+import requests
+import setproctitle
+from bunch import Bunch
+from retask.task import Task
+from retask.queue import Queue
+from retask import ConnectionError
 
 from backend.exceptions import CoprBackendError
 from backend.dispatcher import Worker
@@ -201,8 +201,8 @@ class CoprBackend(object):
 
         self.config_file = config_file
         self.ext_opts = ext_opts  # to stow our cli options for read_conf()
-        self.worker_num = []
-        self.workers = []
+        self.workers_by_group_id = defaultdict(list)
+        self.max_worker_num_by_group_id = defaultdict(int)
         self.opts = self.read_conf()
         self.lock = multiprocessing.Lock()
 
@@ -286,8 +286,6 @@ class CoprBackend(object):
                             cp, "backend", "group{0}_max_workers".format(group_id), 8))
                 }
                 opts.build_groups.append(group)
-                self.worker_num.append(0)
-                self.workers.append([])
 
             opts.destdir = _get_conf(cp, "backend", "destdir", None)
             opts.exit_on_worker = _get_conf(
@@ -348,14 +346,17 @@ class CoprBackend(object):
                                         group["name"],
                                         self.task_queues[group_id].length))
                 # this handles starting/growing the number of workers
-                if len(self.workers[group_id]) < group["max_workers"]:
+                if len(self.workers_by_group_id[group_id]) < group["max_workers"]:
                     self.event("Spinning up more workers")
-                    for _ in range(group["max_workers"] - len(self.workers[group_id])):
-                        self.worker_num[group_id] += 1
+                    for _ in range(group["max_workers"] - len(self.workers_by_group_id[group_id])):
+                        self.max_worker_num_by_group_id[group_id] += 1
                         w = Worker(
-                            self.opts, self.events, self.worker_num[group_id], group_id,
-                            lock=self.lock)
-                        self.workers[group_id].append(w)
+                            self.opts, self.events,
+                            self.max_worker_num_by_group_id[group_id],
+                            group_id, lock=self.lock
+                        )
+
+                        self.workers_by_group_id[group_id].append(w)
                         w.start()
                 self.event("Finished starting worker processes")
                 # FIXME - prune out workers
@@ -366,16 +367,18 @@ class CoprBackend(object):
                 # FIXME - if a worker bombs out - we need to check them
                 # and startup a new one if it happens
                 # check for dead workers and abort
-                for w in self.workers[group_id]:
+                preserved_workers = []
+                for w in self.workers_by_group_id[group_id]:
                     if not w.is_alive():
-                        self.event("Worker {0} died unexpectedly".format(
-                            w.worker_num))
+                        self.event("Worker {0} died unexpectedly".format(w.worker_num))
                         if self.opts.exit_on_worker:
                             raise CoprBackendError(
                                 "Worker died unexpectedly, exiting")
                         else:
-                            self.workers[group_id].remove(w)  # it is not working anymore
                             w.terminate()  # kill it with a fire
+                    else:
+                        preserved_workers.append(w)
+                self.workers_by_group_id[group_id] = preserved_workers
 
             time.sleep(self.opts.sleeptime)
 
@@ -388,8 +391,8 @@ class CoprBackend(object):
         self.abort = True
         for group in self.opts.build_groups:
             group_id = group["id"]
-            for w in self.workers[group_id]:
-                self.workers[group_id].remove(w)
+            for w in self.workers_by_group_id[group_id]:
+                self.workers_by_group_id[group_id].remove(w)
                 w.terminate()
         self.clean_task_queues()
 
