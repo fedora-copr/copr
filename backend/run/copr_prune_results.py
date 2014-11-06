@@ -40,13 +40,11 @@ def prune_project(opts, path, username, projectname):
 
 
     # run prune project sh
-    #cmd = ["/usr/bin/copr_prune.sh", path, DAYS]
     days = getattr(opts, "prune_days", DEF_DAYS)
     prune_script = getattr(opts, "prune_script", DEF_PRUNE_SCRIPT)
 
     cmd = map(str, [prune_script, path, days])
 
-    print("CMD {}".format(cmd))
     handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
     stdout, stderr = handle.communicate()
 
@@ -67,7 +65,6 @@ def prune_project(opts, path, username, projectname):
     except Exception as exception:
         print("Createrepo for {}/{} failed with error: {}"
               .format(username, projectname, exception))
-
 
 
 def main():
