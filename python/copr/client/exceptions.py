@@ -25,21 +25,21 @@ class CoprConfigException(CoprException):
     pass
 
 
-class CoprRequestException(Exception):
+class CoprRequestException(CoprException):
     """ Exception thrown when the request is bad. For example,
     the user provided wrong project name or build ID.
     """
     pass
 
 
-class CoprBuildException(Exception):
+class CoprBuildException(CoprException):
     """ Exception thrown when one or more builds fail and client is waiting
     for the result.
     """
     pass
 
 
-class CoprUnknownResponseException(Exception):
+class CoprUnknownResponseException(CoprException):
     """ Exception thrown when the response is unknown to client.
     It usually means that something is broken.
     """
