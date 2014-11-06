@@ -379,6 +379,12 @@ def main(argv=sys.argv[1:]):
     except KeyboardInterrupt:
         sys.stderr.write("\nInterrupted by user.")
         sys.exit(1)
+    except copr_exceptions.CoprBuildException as e:
+        sys.stderr.write("\nBuild error: {0}\n".format(e))
+        sys.exit(4)
+    except copr_exceptions.CoprUnknownResponseException as e:
+        sys.stderr.write("\nError: {0}\n".format(e))
+        sys.exit(5)
     except copr_exceptions.CoprRequestException as e:
         sys.stderr.write("\nSomething went wrong:")
         sys.stderr.write("\nError: {0}\n".format(e))
@@ -389,12 +395,7 @@ def main(argv=sys.argv[1:]):
     except copr_exceptions.CoprException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(3)
-    except copr_exceptions.CoprBuildException as e:
-        sys.stderr.write("\nBuild error: {0}\n".format(e))
-        sys.exit(4)
-    except copr_exceptions.CoprUnknownResponseException as e:
-        sys.stderr.write("\nError: {0}\n".format(e))
-        sys.exit(5)
+
         # except Exception as e:
         # print "Error: {0}".format(e)
         # sys.exit(100)

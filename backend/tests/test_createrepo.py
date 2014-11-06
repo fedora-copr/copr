@@ -25,7 +25,7 @@ else:
 from backend.createrepo import createrepo, createrepo_unsafe
 
 @mock.patch('backend.createrepo.createrepo_unsafe')
-@mock.patch('backend.createrepo.CoprClient')
+@mock.patch('backend.helpers.CoprClient')
 def test_createrepo_conditional_true(mc_client, mc_create_unsafe):
     mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {}})
 
@@ -42,7 +42,7 @@ def test_createrepo_conditional_true(mc_client, mc_create_unsafe):
     mc_create_unsafe.reset_mock()
 
 @mock.patch('backend.createrepo.createrepo_unsafe')
-@mock.patch('backend.createrepo.CoprClient')
+@mock.patch('backend.helpers.CoprClient')
 def test_createrepo_conditional_false(mc_client, mc_create_unsafe):
     mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {"auto_createrepo": False}})
 
