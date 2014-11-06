@@ -104,9 +104,9 @@ install -d %{buildroot}%{_sysconfdir}/cron.daily
 install -d %{buildroot}%{_sysconfdir}/sudoers.d
 
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
-cp -a copr-be.py %{buildroot}%{_datadir}/copr/
+cp -a run/* %{buildroot}%{_datadir}/copr/
 cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
-install -p -m 755 copr-prune-repo %{buildroot}%{_sbindir}/copr-prune-repo
+
 install -p -m 755 crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
 
 cp -a dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
@@ -115,6 +115,8 @@ cp -a tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 
 # for ghost files
 touch %{buildroot}%{_var}/log/copr/copr.log
+touch %{buildroot}%{_var}/log/copr/prune_old.log
+
 for i in `seq 7`; do
     touch %{buildroot}%{_var}/log/copr/workers/worker-$i.log
 done
@@ -144,7 +146,8 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 
 %files
 %doc LICENSE
-%dir %{_datadir}/copr
+
+%{_datadir}/copr/*
 %dir %{_sharedstatedir}/copr
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/jobs/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
@@ -153,7 +156,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %dir %attr(0755, copr, copr) %{_var}/log/copr/workers
 %dir %attr(0755, copr, copr) %{_var}/run/copr-backend
 
-%ghost %{_var}/log/copr/copr.log
+%ghost %{_var}/log/copr/*.log
 %ghost %{_var}/log/copr/workers/worker-*.log
 %ghost %{_var}/run/copr-backend/copr-be.pid
 
@@ -165,13 +168,8 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/copr-backend.service
 %{_tmpfilesdir}/copr-backend.conf
-%{_sbindir}/copr-prune-repo
+
 %config(noreplace) %{_sysconfdir}/cron.daily/copr-backend
-
-
-
-%{_datadir}/copr/backend
-%{_datadir}/copr/copr-be.py*
 
 %config(noreplace) %attr(0600, root, root)  %{_sysconfdir}/sudoers.d/copr
 

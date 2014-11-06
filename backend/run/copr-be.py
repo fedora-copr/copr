@@ -1,5 +1,10 @@
 #!/usr/bin/python -ttu
 
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+
 import ConfigParser
 import grp
 import lockfile
@@ -25,6 +30,7 @@ from backend.exceptions import CoprBackendError
 from backend.dispatcher import Worker
 from backend.actions import Action
 from backend.callback import FrontendCallback
+from backend.helpers import BackendConfigReader
 
 
 def _get_conf(cp, section, option, default, mode=None):
@@ -203,7 +209,12 @@ class CoprBackend(object):
         self.ext_opts = ext_opts  # to stow our cli options for read_conf()
         self.workers_by_group_id = defaultdict(list)
         self.max_worker_num_by_group_id = defaultdict(int)
-        self.opts = self.read_conf()
+
+        #self.opts = self.read_conf()
+        self.config_reader = BackendConfigReader(self.config_file, self.ext_opts)
+        self.opts = None
+        self.update_conf()
+
         self.lock = multiprocessing.Lock()
 
         self.task_queues = []
@@ -240,90 +251,8 @@ class CoprBackend(object):
     def event(self, what):
         self.events.put({"when": time.time(), "who": "main", "what": what})
 
-    def read_conf(self):
-        "read in config file - return Bunch of config data"
-        opts = Bunch()
-        cp = ConfigParser.ConfigParser()
-        try:
-            cp.read(self.config_file)
-            opts.results_baseurl = _get_conf(
-                cp, "backend", "results_baseurl", "http://copr")
-
-            #TODO: this should be built from frontend_base_url + '/backend'
-            opts.frontend_url = _get_conf(
-                cp, "backend", "frontend_url", "http://coprs/rest/api")
-
-            # We need this to access public api
-            opts.frontend_base_url = _get_conf(
-                cp, "backend", "frontend_base_url", "http://coprs/")
-
-            opts.frontend_auth = _get_conf(
-                cp, "backend", "frontend_auth", "PASSWORDHERE")
-
-            opts.build_groups_count = _get_conf(
-                cp, "backend", "build_groups", 1, mode="int")
-
-            opts.do_sign = _get_conf(
-                cp, "backend", "do_sign", False, mode="bool")
-
-            opts.build_groups = []
-            for group_id in range(int(opts.build_groups_count)):
-                group = {
-                    "id": int(group_id),
-                    "name": _get_conf(
-                            cp, "backend", "group{0}_name".format(group_id), "PC"),
-                    "archs": _get_conf(
-                            cp, "backend", "group{0}_archs".format(group_id),
-                            "i386,x86_64").split(","),
-                    "spawn_playbook": _get_conf(
-                            cp, "backend", "group{0}_spawn_playbook".format(group_id),
-                            "/srv/copr-work/provision/builderpb-PC.yml"),
-                    "terminate_playbook": _get_conf(
-                            cp, "backend",
-                            "group{0}_terminate_playbook".format(group_id),
-                            "/srv/copr-work/provision/terminatepb-PC.yml"),
-                    "max_workers": int(_get_conf(
-                            cp, "backend", "group{0}_max_workers".format(group_id), 8))
-                }
-                opts.build_groups.append(group)
-
-            opts.destdir = _get_conf(cp, "backend", "destdir", None)
-            opts.exit_on_worker = _get_conf(
-                cp, "backend", "exit_on_worker", False, mode="bool")
-            opts.fedmsg_enabled = _get_conf(
-                cp, "backend", "fedmsg_enabled", False, mode="bool")
-            opts.sleeptime = _get_conf(
-                cp, "backend", "sleeptime", 10, mode="int")
-            opts.timeout = _get_conf(
-                cp, "builder", "timeout", 1800, mode="int")
-            opts.logfile = _get_conf(
-                cp, "backend", "logfile", "/var/log/copr/backend.log")
-            opts.verbose = _get_conf(
-                cp, "backend", "verbose", False, mode="bool")
-            opts.worker_logdir = _get_conf(
-                cp, "backend", "worker_logdir", "/var/log/copr/workers/")
-            opts.spawn_vars = _get_conf(cp, "backend", "spawn_vars", None)
-            opts.terminate_vars = _get_conf(cp, "backend", "terminate_vars",
-                None)
-
-            # thoughts for later
-            # ssh key for connecting to builders?
-            # cloud key stuff?
-            #
-        except ConfigParser.Error as e:
-            raise CoprBackendError(
-                "Error parsing config file: {0}: {1}".format(
-                    self.config_file, e))
-
-        if not opts.destdir:
-            raise CoprBackendError(
-                "Incomplete Config - must specify"
-                " destdir in configuration")
-
-        if self.ext_opts:
-            for v in self.ext_opts:
-                setattr(opts, v, self.ext_opts.get(v))
-        return opts
+    def update_conf(self):
+        self.opts = self.config_reader.read()
 
     def clean_task_queues(self):
         try:
@@ -338,7 +267,8 @@ class CoprBackend(object):
         self.abort = False
         while not self.abort:
             # re-read config into opts
-            self.opts = self.read_conf()
+            #self.opts = self.read_conf()
+            self.update_conf()
 
             for group in self.opts.build_groups:
                 group_id = group["id"]
