@@ -99,7 +99,7 @@ worker_logdir=/var/log/copr/workers/
 # minimum age for builds to be pruned
 prune_days=14
 # path to executable script to clean old build
-prune_script=/usr/sbin/copr_prune_old_builds.sh
+prune_script=/usr/share/copr/copr_prune_old_builds.sh
 
 [builder]
 # default is 1800
