@@ -15,7 +15,6 @@ from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException)
 
 
-
 @coprs_ns.route("/build/<int:build_id>/")
 def copr_build_redirect(build_id):
     build = builds_logic.BuildsLogic.get_by_id(build_id)
@@ -38,15 +37,12 @@ def copr_build(username, coprname, build_id):
         return page_not_found(
             "Build {0} does not exist.".format(str(build_id)))
 
-    if not copr: # but the build does
-        return flask.render_template("coprs/detail/build-no-project.html",
-                                        build=build,
-                                        username=username,
-                                        coprname=coprname)
+    if not copr:  # but the build does
+        return flask.render_template(
+            "coprs/detail/build-no-project.html",
+            build=build, username=username, coprname=coprname)
 
-    return flask.render_template("coprs/detail/build.html",
-                                        build=build,
-                                        copr=copr)
+    return flask.render_template("coprs/detail/build.html", build=build, copr=copr)
 
 
 @coprs_ns.route("/<username>/<coprname>/builds/", defaults={"page": 1})

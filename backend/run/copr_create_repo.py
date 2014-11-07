@@ -42,7 +42,6 @@ def main(args):
                username=opts.user, projectname=opts.project)
 
 
-
 if __name__ == "__main__":
     """
         Provides cli interface for conditional execution of createrepo_c

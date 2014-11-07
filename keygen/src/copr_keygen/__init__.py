@@ -134,8 +134,6 @@ def handle_invalid_usage(error):
 #     query = json.loads(request.data)
 #     print(repr(query))
 #     mail = query["name_email"]
-##     #cmd = "gpg --with-colons --fingerprint gafoo |
-#           awk -F: '$1 == "fpr" {print $10;}'"
-#     #TODO: complete implementation
-
-
+#     #cmd = "gpg --with-colons --fingerprint gafoo |
+#     #      awk -F: '$1 == "fpr" {print $10;}'"
+#     # TODO: complete implementation

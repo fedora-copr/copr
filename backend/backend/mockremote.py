@@ -360,7 +360,7 @@ class Builder(object):
 
         # srpm version
         self.conn.module_name = "shell"
-        self.conn.module_args = "rpm -qp --qf \"%{VERSION}\n\" "+pkg
+        self.conn.module_args = "rpm -qp --qf \"%{VERSION}\n\" {}".format(pkg)
         self.mockremote.callback.log("Getting package information: version")
         results = self.conn.run()
         if "contacted" in results:
@@ -432,13 +432,15 @@ class Builder(object):
 
             self.mockremote.callback.log("Listing built binary packages")
             self.conn.module_name = "shell"
-            self.conn.module_args = \
-              "cd {0} && for f in `ls *.rpm | grep -v \"src.rpm$\"`; do rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; done".format(
-              pipes.quote(self._get_remote_pkg_dir(pkg)))
+            self.conn.module_args = (
+                "cd {0} && "
+                "for f in `ls *.rpm |grep -v \"src.rpm$\"`; do"
+                "   rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
+                "done").format(pipes.quote(self._get_remote_pkg_dir(pkg)))
+
             results = self.conn.run()
             build_details["built_packages"] = results["contacted"].itervalues().next()[u"stdout"]
-            self.mockremote.callback.log("Packages:\n"+build_details["built_packages"])
-
+            self.mockremote.callback.log("Packages:\n{}".format(build_details["built_packages"]))
 
         return success, out, err, build_details
 
@@ -532,7 +534,7 @@ def get_target_dir(chroot_dir, pkg_name):
 
 
 class MockRemote(object):
-    #TODO: Refactor me!
+    # TODO: Refactor me!
     #   mock remote now do too much things
     #   idea: send events according to the build progress to handler
 
@@ -629,8 +631,8 @@ class MockRemote(object):
         project = self.job.project_name
         pubkey_path = os.path.join(chroot_dir, "pubkey.gpg")
         try:
-            #TODO: uncomment this when key revoke/change will be implemented
-            #if os.path.exists(pubkey_path):
+            # TODO: uncomment this when key revoke/change will be implemented
+            # if os.path.exists(pubkey_path):
             #    return
 
             get_pubkey(user, project, pubkey_path)
@@ -654,7 +656,7 @@ class MockRemote(object):
         :param pkg: path to the source package
 
         """
-        #source_basename = os.path.basename(pkg).replace(".src.rpm", "")
+
         self.callback.log("Going to sign pkgs from source: {} in chroot: {}".
                           format(pkg, chroot_dir))
 
@@ -690,10 +692,10 @@ class MockRemote(object):
     def do_createrepo(self, chroot_dir):
         base_url = "/".join([self.results_base_url, self.job.project_owner,
                              self.job.project_name, self.job.chroot])
-        self.callback.log("Createrepo:: owner:  {}; project: {}; front url: {}; path: {}; base_url: {}".format(
-            self.job.project_owner, self.job.project_name, self.front_url, chroot_dir, base_url
-        ))
-
+        self.callback.log("Createrepo:: owner:  {}; project: {}; "
+                          "front url: {}; path: {}; base_url: {}"
+                          .format(self.job.project_owner, self.job.project_name,
+                                  self.front_url, chroot_dir, base_url))
 
         _, _, err = createrepo(
             path=chroot_dir,
@@ -774,7 +776,7 @@ class MockRemote(object):
                     os.path.join(chroot_dir, "mockchain.log"),
                     ["\n\n{0}\n\n".format(pkg), b_out], [b_err])
 
-                ## adding info file with
+                # # adding info file with
                 # TODO: add self.build_id
                 # try:
                 #     with open(os.path.join(get_target_dir(chroot_dir, pkg), "build.info"), 'w') as info_file:
@@ -871,7 +873,6 @@ def parse_args(args):
                       help="copr frontend url")
     parser.add_option("--results_url", dest="results_base_url",
                       help="backend base url for built packages")
-
 
     opts, args = parser.parse_args(args)
 

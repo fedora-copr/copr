@@ -44,8 +44,6 @@ class BuildJob(object):
             key = str(key)
             setattr(self, key, val)
 
-        #self.__dict__.update(task_data)
-
         self.pkgs = [task_data["pkgs"]]  # just for now
         self.repos = [r for r in task_data["repos"].split(" ") if r.strip()]
         self.build_id = task_data["build_id"]

@@ -72,4 +72,3 @@ def createrepo(path, front_url, username, projectname, base_url=None, lock=None)
         return createrepo_unsafe(path, lock)
     else:
         return createrepo_unsafe(path, lock, base_url=base_url, dest_dir="devel")
-

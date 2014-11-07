@@ -237,8 +237,7 @@ class TestCoprDetail(CoprsTestCase):
 
     def test_copr_detail_doesnt_show_cancel_build_for_anonymous(self, f_users, f_coprs, f_builds, f_db):
         r = self.tc.get(
-            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name,
-                                        str(self.c2.builds[0].id)))
+            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
         assert "/cancel_build/" not in r.data
 
     @TransactionDecorator("u1")
@@ -247,8 +246,7 @@ class TestCoprDetail(CoprsTestCase):
 
         self.db.session.add_all([self.u2, self.c2])
         r = self.test_client.get(
-            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name,
-                                        str(self.c2.builds[0].id)))
+            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
         assert "/cancel_build/" not in r.data
 
     @TransactionDecorator("u2")
@@ -257,8 +255,7 @@ class TestCoprDetail(CoprsTestCase):
 
         self.db.session.add_all([self.u2, self.c2])
         r = self.test_client.get(
-            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name,
-                                        str(self.c2.builds[0].id)))
+            "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
         assert "/cancel_build/" in r.data
 
 
@@ -422,8 +419,12 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                                   follow_redirects=True)
 
         # very volatile, but will fail fast if something changes
-        check_string = '<select id="copr_builder_1" name="copr_builder_1"><option value="0">nothing</option><option value="1">'
-        check_string += 'request</option><option selected value="2">approved</option></select>'
+        check_string = (
+            '<select id="copr_builder_1" name="copr_builder_1">'
+            '<option value="0">nothing</option><option value="1">request</option>'
+            '<option selected value="2">approved</option>'
+            '</select>'
+        )
         assert check_string not in r.data
 
     @TransactionDecorator("u2")
@@ -610,7 +611,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert r.status_code == 404
         assert "does not exist" in r.data
 
-    def test_fail_on_no_finished_builds(self, f_users,  f_coprs,
+    def test_fail_on_no_finished_builds(self, f_users, f_coprs,
                                         f_not_finished_builds, f_db):
 
         r = self.tc.get(
@@ -641,9 +642,9 @@ class TestCoprRepoGeneration(CoprsTestCase):
 class TestSearch(CoprsTestCase):
 
     @mock.patch("coprs.views.coprs_ns.coprs_general.render_template")
-    def test_search_basic(self, mc_render_template, f_users,  f_db):
-        #mc_flask.render_template.return_value = mock.MagicMock()
-        #self.prefix = u"prefix_{}_".format(int(time.time()))
+    def test_search_basic(self, mc_render_template, f_users, f_db):
+        # mc_flask.render_template.return_value = mock.MagicMock()
+        # self.prefix = u"prefix_{}_".format(int(time.time()))
         self.prefix = u"prefix"
         self.s_coprs = []
 

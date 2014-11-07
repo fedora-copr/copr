@@ -38,7 +38,6 @@ def prune_project(opts, path, username, projectname):
             username, projectname, exception))
         return
 
-
     # run prune project sh
     days = getattr(opts, "prune_days", DEF_DAYS)
     prune_script = getattr(opts, "prune_script", DEF_PRUNE_SCRIPT)
@@ -68,7 +67,7 @@ def prune_project(opts, path, username, projectname):
 
 
 def main():
-    config_file= os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
+    config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
     opts = BackendConfigReader(config_file).read()
 
     results_dir = opts.destdir

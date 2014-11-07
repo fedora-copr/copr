@@ -65,7 +65,7 @@ class TestArgParser(object):
         assert "No project" in stderr
 
     def test_arg_parser_missing_front(self, mc_main, capsys):
-        args = ['-u', 'foo', '-p', 'bar',  '/tmp']
+        args = ['-u', 'foo', '-p', 'bar', '/tmp']
 
         with pytest.raises(SystemExit) as err:
             createrepo_main(args)
@@ -73,4 +73,3 @@ class TestArgParser(object):
         assert err.value.code == 1
         stdout, stderr = capsys.readouterr()
         assert "No front url" in stderr
-

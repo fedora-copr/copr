@@ -79,5 +79,3 @@ class CoprBackendError(Exception):
 
 class CoprWorkerError(CoprBackendError):
     pass
-
-

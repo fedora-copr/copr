@@ -236,8 +236,6 @@ class Commands(object):
 
             subprocess.call(cmd)
 
-
-
     @requires_api_auth
     def action_cancel(self, args):
         """ Method called when the 'cancel' action has been selected by the

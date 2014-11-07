@@ -10,7 +10,6 @@ from coprs.logic import users_logic
 
 
 class CoprsLogic(object):
-
     """
     Used for manipulating Coprs.
 
@@ -32,10 +31,11 @@ class CoprsLogic(object):
         with_builds = kwargs.get("with_builds", False)
         with_mock_chroots = kwargs.get("with_mock_chroots", False)
 
-        query = (cls.get_all()
-                 .filter(models.Copr.name == coprname)
-                 .filter(models.User.username == username)
-                 )
+        query = (
+            cls.get_all()
+            .filter(models.Copr.name == coprname)
+            .filter(models.User.username == username)
+        )
 
         if with_builds:
             query = (query.outerjoin(models.Copr.builds)
@@ -109,7 +109,7 @@ class CoprsLogic(object):
             pass
         else:
             raise exceptions.InsufficientRightsException(
-                    "User is not a system admin")
+                "User is not a system admin")
 
     @classmethod
     def get_multiple_fulltext(cls, search_string):
@@ -120,7 +120,7 @@ class CoprsLogic(object):
             name = "%{}%".format(search_string.split("/")[0])
             project = "%{}%".format(search_string.split("/")[1])
             query = query.filter(and_(models.User.username.ilike(name),
-                              models.Copr.name.ilike(project)))
+                                      models.Copr.name.ilike(project)))
         else:
             # fulltext search
             query = query.whooshee_search(search_string)
@@ -156,7 +156,7 @@ class CoprsLogic(object):
     def update(cls, user, copr, check_for_duplicates=True):
         cls.raise_if_unfinished_blocking_action(
             user, copr, "Can't change this project name,"
-            " another operation is in progress: {action}")
+                        " another operation is in progress: {action}")
 
         users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr, "Only owners and admins may update their projects.")
@@ -193,7 +193,7 @@ class CoprsLogic(object):
         # search it in future?
         cls.raise_if_unfinished_blocking_action(
             user, copr, "Can't delete this project,"
-            " another operation is in progress: {action}")
+                        " another operation is in progress: {action}")
 
         action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type="copr",
@@ -259,7 +259,6 @@ class CoprsLogic(object):
 
 
 class CoprPermissionsLogic(object):
-
     @classmethod
     def get(cls, user, copr, searched_user):
         query = (models.CoprPermission.query
@@ -285,7 +284,7 @@ class CoprPermissionsLogic(object):
 
         users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr, "Only owners and admins may update"
-            " their projects permissions.")
+                        " their projects permissions.")
 
         (models.CoprPermission.query
          .filter(models.CoprPermission.copr_id == copr.id)
@@ -297,13 +296,13 @@ class CoprPermissionsLogic(object):
     def update_permissions_by_applier(cls, user, copr, copr_permission, new_builder, new_admin):
         if copr_permission:
             # preserve approved permissions if set
-            if (not new_builder or copr_permission.copr_builder !=
-                    helpers.PermissionEnum("approved")):
+            if (not new_builder or
+                    copr_permission.copr_builder != helpers.PermissionEnum("approved")):
 
                 copr_permission.copr_builder = new_builder
 
-            if (not new_admin or copr_permission.copr_admin !=
-                    helpers.PermissionEnum("approved")):
+            if (not new_admin or
+                    copr_permission.copr_admin != helpers.PermissionEnum("approved")):
 
                 copr_permission.copr_admin = new_admin
         else:
@@ -321,7 +320,6 @@ class CoprPermissionsLogic(object):
 
 
 class CoprChrootsLogic(object):
-
     @classmethod
     def mock_chroots_from_names(cls, user, names):
         db_chroots = models.MockChroot.query.all()
@@ -372,7 +370,6 @@ class CoprChrootsLogic(object):
 
 
 class MockChrootsLogic(object):
-
     @classmethod
     def get(cls, user, os_release, os_version, arch, active_only=False, noarch=False):
         if noarch and not arch:
@@ -396,7 +393,7 @@ class MockChrootsLogic(object):
 
         name_tuple = cls.tuple_from_name(None, chroot_name, noarch=noarch)
         return cls.get(None, name_tuple[0], name_tuple[1], name_tuple[2],
-                active_only=active_only, noarch=noarch)
+                       active_only=active_only, noarch=noarch)
 
     @classmethod
     def get_multiple(cls, user, active_only=False):
@@ -458,15 +455,20 @@ class MockChrootsLogic(object):
 
         the architecture could be optional with noarch=True
 
-        returns ("os", "vetsion", "arch") or ("os", "version", None)
+        returns ("os", "version", "arch") or ("os", "version", None)
         """
-        splitted_name = name.split("-")
-        if (not noarch and len(splitted_name) is not 3)\
-            or (noarch and len(splitted_name) not in (2,3)):
+        split_name = name.split("-")
+        valid = False
+        if noarch and len(split_name) in [2, 3]:
+            valid = True
+        if not noarch and len(split_name) == 3:
+            valid = True
+
+        if not valid:
             raise exceptions.MalformedArgumentException(
                 "Chroot name is not valid")
 
-        if noarch:
-            splitted_name.append(None)
+        if noarch and len(split_name) == 2:
+            split_name.append(None)
 
-        return tuple(splitted_name)
+        return tuple(split_name)

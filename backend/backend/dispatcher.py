@@ -328,7 +328,7 @@ class Worker(multiprocessing.Process):
             # that's why I'm testing the conncectivity here
             connection = ansible.runner.Runner(
                 remote_user="root",
-                host_list=ipaddr+",",
+                host_list="{},".format(ipaddr),
                 pattern=ipaddr,
                 forks=1,
                 transport="ssh",
@@ -440,7 +440,6 @@ class Worker(multiprocessing.Process):
             self.callback.log("failure to setup instance: {0}".format(e))
             raise
         return ip
-
 
     def run(self):
         """

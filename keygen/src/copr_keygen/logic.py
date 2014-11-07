@@ -153,4 +153,3 @@ def create_new_key(
         os.remove(out.name)
     except Exception as e:
         log.error(e)
-

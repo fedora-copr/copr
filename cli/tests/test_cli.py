@@ -285,6 +285,7 @@ def test_status_response(mock_cc, capsys):
     out, err = capsys.readouterr()
     assert "{}\n".format(response_status) in out
 
+
 @mock.patch('copr_cli.main.CoprClient')
 def test_debug_by_status_response(mock_cc, capsys):
     response_status = "foobar"
@@ -348,15 +349,20 @@ def test_download_build(mock_cc, mock_sp, capsys):
     stdout, stderr = capsys.readouterr()
 
     expected_sp_call_args = [
-        mock.call(['wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
+        mock.call([
+            'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
             '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
-            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20/']),
-        mock.call(['wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
+            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20/'
+        ]),
+        mock.call([
+            'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
             '-P', u'./epel-6-i386', '--cut-dirs', '6',
-            'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20/'])
+            'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20/'
+        ])
     ]
 
     assert mock_sp.call.call_args_list == expected_sp_call_args
+
 
 @mock.patch('copr_cli.main.subprocess')
 @mock.patch('copr_cli.main.CoprClient')
@@ -376,9 +382,11 @@ def test_download_build_select_chroot(mock_cc, mock_sp, capsys):
     main.main(argv=["download-build", "foo", "-r", "epel-6-x86_64"])
     stdout, stderr = capsys.readouterr()
     expected_sp_call_args = [
-        mock.call(['wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
+        mock.call([
+            'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
             '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
-            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20/']),
+            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20/'
+        ]),
     ]
 
     assert mock_sp.call.call_args_list == expected_sp_call_args

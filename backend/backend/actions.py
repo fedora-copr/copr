@@ -140,8 +140,8 @@ class Action(object):
             if altered:
                 self.add_event("Running createrepo")
 
-                result_base_url = "/".join([self.results_root_url, username,
-                                             projectname, chroot])
+                result_base_url = "/".join(
+                    [self.results_root_url, username, projectname, chroot])
                 _, _, err = createrepo(
                     path=os.path.join(path, chroot), lock=self.lock,
                     front_url=self.front_url, base_url=result_base_url,

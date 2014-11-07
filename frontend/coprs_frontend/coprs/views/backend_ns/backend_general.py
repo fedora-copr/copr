@@ -19,15 +19,17 @@ def waiting():
     """
 
     # models.Actions
-    actions_list = [action.to_dict(
-        options={"__columns_except__": ["result", "message", "ended_on"]})
+    actions_list = [
+        action.to_dict(options={
+            "__columns_except__": ["result", "message", "ended_on"]
+        })
         for action in actions_logic.ActionsLogic.get_waiting()
     ]
 
     # tasks represented by models.BuildChroot with some other stuff
     builds_list = [
         {
-            "task_id": str(task.build.id)+"-"+task.mock_chroot.name,
+            "task_id": "{}-{}".format(task.build.id, task.mock_chroot.name),
             "build_id": task.build.id,
             "project_owner": task.build.copr.owner.name,
             "project_name": task.build.copr.name,
@@ -103,12 +105,9 @@ def starting_build():
 
     if build and not build.canceled:
         builds_logic.BuildsLogic.update_state_from_dict(build, {
-                                        "chroot": flask.request.json["chroot"],
-                                        "status": 6}) # starting
+            "chroot": flask.request.json["chroot"],
+            "status": 6})  # starting
         db.session.commit()
         result["can_start"] = True
 
     return flask.jsonify(result)
-
-
-

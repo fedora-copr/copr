@@ -37,7 +37,7 @@ if six.PY3:
     from queue import Empty as EmptyQueue
 else:
     import Queue as queue
-    from Queue import Empty  as EmptyQueue
+    from Queue import Empty as EmptyQueue
 
 
 RESULTS_ROOT_URL = "http://example.com/results"
@@ -73,13 +73,11 @@ class TestAction(object):
         root_tmp_dir = tempfile.gettempdir()
         subdir = "test_action_{}".format(time.time())
         self.tmp_dir_name = os.path.join(root_tmp_dir, subdir)
-        #print(self.tmp_dir_name)
+
         os.mkdir(self.tmp_dir_name)
         os.mkdir(os.path.join(self.tmp_dir_name, "old_dir"))
 
         self.test_content = "time: {}\n".format(self.test_time)
-
-
 
         return self.tmp_dir_name
 
@@ -333,7 +331,7 @@ class TestAction(object):
 
             ev_2 = self.test_q.get_nowait()
             assert "Packages to delete" in ev_2["what"]
-            assert " ".join(self.pkgs_stripped) in  ev_2["what"]
+            assert " ".join(self.pkgs_stripped) in ev_2["what"]
             assert ev_2["who"] == "action"
 
             ev_3 = self.test_q.get_nowait()
@@ -341,7 +339,7 @@ class TestAction(object):
             assert ev_3["who"] == "action"
 
             with pytest.raises(EmptyQueue):
-               self.test_q.get_nowait()
+                self.test_q.get_nowait()
 
     @mock.patch("backend.actions.createrepo")
     def test_delete_build_succeeded(self, mc_createrepo, mc_time):
@@ -349,7 +347,7 @@ class TestAction(object):
         mc_front_cb = MagicMock()
 
         mc_createrepo.return_value = (0, "", "")
-        #mc_createrepo.side_effect = IOError()
+        # mc_createrepo.side_effect = IOError()
 
         tmp_dir = self.make_temp_dir()
 
@@ -365,7 +363,7 @@ class TestAction(object):
 
         log_path = os.path.join(chroot_1_dir, "build-42.log")
         with open(log_path, "w") as fh:
-             fh.write(self.test_content)
+            fh.write(self.test_content)
 
         test_action = Action(
             action={
@@ -403,7 +401,6 @@ class TestAction(object):
         def assert_fedora20():
             assert_what_from_queue(self.test_q, msg_list=[
                 "Removing build ",
-                #"Running createrepo",
                 "Package bar dir not found in chroot fedora20",
                 "Running createrepo",
             ])
@@ -442,7 +439,7 @@ class TestAction(object):
         mc_front_cb = MagicMock()
 
         mc_createrepo.return_value = (1, "", "Create repo failed")
-        #mc_createrepo.side_effect = IOError()
+        # mc_createrepo.side_effect = IOError()
 
         tmp_dir = self.make_temp_dir()
 

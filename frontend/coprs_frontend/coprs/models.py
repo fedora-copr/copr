@@ -7,6 +7,7 @@ from coprs import constants
 from coprs import db
 from coprs import helpers
 
+
 class User(db.Model, helpers.Serializer):
 
     """
@@ -55,9 +56,13 @@ class User(db.Model, helpers.Serializer):
 
         if not hasattr(self, "_permissions_for_copr"):
             self._permissions_for_copr = {}
-        if not copr.name in self._permissions_for_copr:
-            self._permissions_for_copr[copr.name] = (CoprPermission.query
-                .filter_by(user=self).filter_by(copr=copr).first())
+        if copr.name not in self._permissions_for_copr:
+            self._permissions_for_copr[copr.name] = (
+                CoprPermission.query
+                .filter_by(user=self)
+                .filter_by(copr=copr)
+                .first()
+            )
         return self._permissions_for_copr[copr.name]
 
     def can_build_in(self, copr):
@@ -206,7 +211,7 @@ class Copr(db.Model, helpers.Serializer):
         """
         Return list of chroots which has been modified
         """
-        modified_chroots=[]
+        modified_chroots = []
         for chroot in self.active_chroots:
             if self.buildroot_pkgs(chroot):
                 modified_chroots.append(chroot)
@@ -279,13 +284,13 @@ class Build(db.Model, helpers.Serializer):
         # used when checking if the repo is initialized and results can be set
         # i think this is the only purpose - check
         return helpers.StatusEnum("pending") in self.chroot_states or \
-               helpers.StatusEnum("starting") in self.chroot_states
+            helpers.StatusEnum("starting") in self.chroot_states
 
     @property
     def has_unfinished_chroot(self):
         return helpers.StatusEnum("pending") in self.chroot_states or \
-               helpers.StatusEnum("starting") in self.chroot_states or \
-               helpers.StatusEnum("running") in self.chroot_states
+            helpers.StatusEnum("starting") in self.chroot_states or \
+            helpers.StatusEnum("running") in self.chroot_states
 
     @property
     def status(self):
@@ -329,9 +334,9 @@ class Build(db.Model, helpers.Serializer):
         Build is repeatable only if it's not pending, starting or running
         """
 
-        return self.status != helpers.StatusEnum("pending") and \
-               self.status != helpers.StatusEnum("starting") and \
-               self.status != helpers.StatusEnum("running")
+        return self.status not in [helpers.StatusEnum("pending"),
+                                   helpers.StatusEnum("starting"),
+                                   helpers.StatusEnum("running"), ]
 
     @property
     def deletable(self):
@@ -344,8 +349,10 @@ class Build(db.Model, helpers.Serializer):
         property has been set.
         """
 
-        return self.state in ["succeeded", "canceled", "skipped"] or \
-               (self.state == "failed" and self.ended_on is not None)
+        if self.state == "failed" and self.ended_on is not None:
+            return True
+
+        return self.state in ["succeeded", "canceled", "skipped"]
 
 
 class MockChroot(db.Model, helpers.Serializer):
@@ -368,8 +375,7 @@ class MockChroot(db.Model, helpers.Serializer):
         """
         Textual representation of name of this chroot
         """
-        return "{0}-{1}-{2}".format(
-                    self.os_release, self.os_version, self.arch)
+        return "{0}-{1}-{2}".format(self.os_release, self.os_version, self.arch)
 
     @property
     def os(self):

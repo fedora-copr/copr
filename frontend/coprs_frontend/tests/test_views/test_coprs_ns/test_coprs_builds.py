@@ -169,7 +169,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
                 buildchroot = models.BuildChroot(
                     build=self.b_few_chroots,
                     mock_chroot=chroot,
-                    status = self.status_by_chroot[chroot.name])
+                    status=self.status_by_chroot[chroot.name])
                 self.db.session.add(buildchroot)
 
         self.db.session.add_all([self.u1, self.c1, self.b_few_chroots])
@@ -190,7 +190,6 @@ class TestCoprRepeatBuild(CoprsTestCase):
         result_build_chroots_name_set = set([c.name for c in new_build.chroots])
 
         assert result_build_chroots_name_set == expected_build_chroots_name_set
-
 
     @TransactionDecorator("u1")
     def test_copr_build_submitter_can_repeat_build(self, f_users,

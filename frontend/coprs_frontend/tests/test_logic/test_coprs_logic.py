@@ -47,22 +47,19 @@ class TestCoprsLogic(CoprsTestCase):
         for x in range(u3_count):
             self.s_coprs.append(models.Copr(name=u"_wrong_" + str(x), owner=self.u3))
 
-
         self.db.session.add_all(self.s_coprs)
         self.db.session.commit()
 
-        #query = CoprsLogic.get_multiple_fulltext("prefix")
+        # query = CoprsLogic.get_multiple_fulltext("prefix")
         pre_query = models.Copr.query.join(models.User).filter(models.Copr.deleted == False)
 
         query = pre_query.whooshee_search(self.prefix)
 
-
         results = query.all()
-        #import ipdb; ipdb.set_trace()
         for obj in results:
             assert self.prefix in obj.name
 
         obtained = len(results)
         expected = u1_count + u2_count
-        # TODO: uncomment when fix in flask-whooshee will be released
-        #assert obtained == expected
+        # TODO: uncomment after fix in flask-whooshee will be released
+        # assert obtained == expected

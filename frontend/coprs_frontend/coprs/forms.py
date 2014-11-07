@@ -306,6 +306,7 @@ class PermissionsFormFactory(object):
 
         return F
 
+
 class CoprModifyForm(wtf.Form):
     description = wtforms.TextAreaField('Description',
                                         validators=[wtforms.validators.Optional()])
@@ -318,8 +319,10 @@ class CoprModifyForm(wtf.Form):
                                               wtforms.validators.Optional()],
                                   filters=[StringListFilter()])
 
+
 class ModifyChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
+
 
 class AdminPlaygroundForm(wtf.Form):
     playground = wtforms.BooleanField("Playground")
@@ -327,4 +330,3 @@ class AdminPlaygroundForm(wtf.Form):
 
 class AdminPlaygroundSearchForm(wtf.Form):
     project = wtforms.TextField("Project")
-

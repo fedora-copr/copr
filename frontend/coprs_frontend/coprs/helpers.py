@@ -64,13 +64,13 @@ class RoleEnum(object):
 
 class StatusEnum(object):
     __metaclass__ = EnumType
-    vals = {"failed":    0,
+    vals = {"failed": 0,
             "succeeded": 1,
-            "canceled":  2,
-            "running":   3,
-            "pending":   4,
-            "skipped":   5, # if there was this package built already
-            "starting":  6} # build picked by worker but no VM initialized
+            "canceled": 2,
+            "running": 3,
+            "pending": 4,
+            "skipped": 5,  # if there was this package built already
+            "starting": 6}  # build picked by worker but no VM initialized
 
 
 class Paginator(object):
@@ -102,11 +102,10 @@ class Paginator(object):
     def border_url(self, request, start):
         if start:
             if self.page - 1 > self.urls_count / 2:
-                return (self.url_for_other_page(request, 1), 1)
+                return self.url_for_other_page(request, 1), 1
         else:
             if self.page < self.pages - self.urls_count / 2:
-                return (self.url_for_other_page(request, self.pages),
-                        self.pages)
+                return self.url_for_other_page(request, self.pages), self.pages
 
         return None
 

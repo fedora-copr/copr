@@ -35,7 +35,7 @@ class Config(object):
     # post-process url leading to backend
     # possible options: None, "http", "https"
     ENFORCE_PROTOCOL_FOR_BACKEND_URL = None
-    ## post-process url leading to frontend
+    # post-process url leading to frontend
     ENFORCE_PROTOCOL_FOR_FRONTEND_URL = None
 
     PUBLIC_COPR_HOSTNAME = "copr-fe-dev.cloud.fedoraproject.org"
@@ -43,9 +43,9 @@ class Config(object):
 
 class ProductionConfig(Config):
     DEBUG = False
-    #SECRET_KEY = "put_some_secret_here"
-    #BACKEND_PASSWORD = "password_here"
-    #SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://login:password@/db_name"
+    # SECRET_KEY = "put_some_secret_here"
+    # BACKEND_PASSWORD = "password_here"
+    # SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://login:password@/db_name"
     PUBLIC_COPR_HOSTNAME = "copr.fedoraproject.org"
 
 
@@ -57,6 +57,7 @@ class DevelopmentConfig(Config):
     ENFORCE_PROTOCOL_FOR_FRONTEND_URL = "http"
 
     PUBLIC_COPR_HOSTNAME = "localhost:5000"
+
 
 class UnitTestConfig(Config):
     CSRF_ENABLED = False

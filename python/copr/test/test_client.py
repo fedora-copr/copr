@@ -33,11 +33,10 @@ def test_client_from_config():
     assert cl.token == "api-token"
     assert cl.username == "user_name"
 
+
 @mock.patch('requests.request')
 def test_list_projects(mock_request):
     mock_client = CoprClient.create_from_file_config(config_location)
-
-
 
 
 # TODO: package https://github.com/dropbox/responses and use it
@@ -60,6 +59,7 @@ def test_projects_list(mock_request):
     test_project = test_resp.projects_list[0]
     assert test_project.projectname == "perl516-el7"
     assert test_project.description == "Test description"
+
 
 @mock.patch('requests.request')
 def test_get_build_status(mock_request):

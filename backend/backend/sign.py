@@ -161,4 +161,3 @@ def create_user_keys(username, projectname):
             msg="Failed to create key-pair for user: {}, project:{}"
             .format(username, projectname),
             request=query, response=response)
-

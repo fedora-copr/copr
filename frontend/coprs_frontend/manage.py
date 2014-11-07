@@ -218,6 +218,7 @@ class AlterUserCommand(Command):
         )
     )
 
+
 class UpdateIndexesCommand(Command):
     """
     recreates whoosh indexes for all projects

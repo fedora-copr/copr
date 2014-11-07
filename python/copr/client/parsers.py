@@ -48,8 +48,7 @@ CommonMsgErrorOutParser = fabric_simple_fields_parser(
 
 
 class ProjectDetailsFieldsParser(IParser):
-    provided_fields = set(["description", "instructions", "last_modified",
-                       "name"])
+    provided_fields = set(["description", "instructions", "last_modified", "name"])
 
     @staticmethod
     def parse(data, field, **kwargs):
@@ -106,7 +105,7 @@ class ProjectListParser(IParser):
                         # include username into the response
                         # of user_projects_list
 
-                        #TODO: inconsistency in api between search ans list
+                        # TODO: inconsistency in api between search ans list
                         # user projects
                         projectname=prj.get("name") or prj.get("coprname"),
 
@@ -145,4 +144,3 @@ class NewBuildListParser(IParser):
         else:
             raise KeyError("Field `{}` not supported by parser".
                            format(field))
-

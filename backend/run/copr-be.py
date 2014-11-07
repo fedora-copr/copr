@@ -71,8 +71,7 @@ class CoprJobGrab(multiprocessing.Process):
         self.events = events
         self.task_queues = []
         for group in self.opts.build_groups:
-            self.task_queues.append(Queue("copr-be-{0}".format(
-                    str(group["id"]))))
+            self.task_queues.append(Queue("copr-be-{0}".format(group["id"])))
             self.task_queues[group["id"]].connect()
         self.added_jobs = []
         self.lock = lock
@@ -210,7 +209,6 @@ class CoprBackend(object):
         self.workers_by_group_id = defaultdict(list)
         self.max_worker_num_by_group_id = defaultdict(int)
 
-        #self.opts = self.read_conf()
         self.config_reader = BackendConfigReader(self.config_file, self.ext_opts)
         self.opts = None
         self.update_conf()
@@ -233,7 +231,6 @@ class CoprBackend(object):
         self.events = multiprocessing.Queue()
         # event format is a dict {when:time, who:[worker|logger|job|main],
         # what:str}
-
 
         # create logger
         self._logger = CoprLog(self.opts, self.events)
@@ -267,14 +264,14 @@ class CoprBackend(object):
         self.abort = False
         while not self.abort:
             # re-read config into opts
-            #self.opts = self.read_conf()
             self.update_conf()
 
             for group in self.opts.build_groups:
                 group_id = group["id"]
-                self.event("# jobs in {0} queue: {1}".format(
-                                        group["name"],
-                                        self.task_queues[group_id].length))
+                self.event(
+                    "# jobs in {0} queue: {1}"
+                    .format(group["name"], self.task_queues[group_id].length)
+                )
                 # this handles starting/growing the number of workers
                 if len(self.workers_by_group_id[group_id]) < group["max_workers"]:
                     self.event("Spinning up more workers")

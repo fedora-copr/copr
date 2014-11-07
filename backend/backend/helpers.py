@@ -72,7 +72,7 @@ class BackendConfigReader(object):
                     " destdir in configuration")
 
             return opts
-        
+
         except ConfigParser.Error as e:
             raise CoprBackendError(
                 "Error parsing config file: {0}: {1}".format(
@@ -86,7 +86,7 @@ class BackendConfigReader(object):
         opts.results_baseurl = _get_conf(
             cp, "backend", "results_baseurl", "http://copr")
 
-        #TODO: this should be built from frontend_base_url + '/backend'
+        # TODO: this should be built from frontend_base_url + '/backend'
         opts.frontend_url = _get_conf(
             cp, "backend", "frontend_url", "http://coprs/rest/api")
 
@@ -105,27 +105,26 @@ class BackendConfigReader(object):
 
         opts.build_groups = []
         for group_id in range(int(opts.build_groups_count)):
+            archs = _get_conf(cp, "backend",
+                              "group{0}_archs".format(group_id),
+                              default="i386,x86_64").split(",")
             group = {
                 "id": int(group_id),
-                "name": _get_conf(
-                        cp, "backend", "group{0}_name".format(group_id), "PC"),
-                "archs": _get_conf(
-                        cp, "backend", "group{0}_archs".format(group_id),
-                        "i386,x86_64").split(","),
+                "name": _get_conf(cp, "backend", "group{0}_name".format(group_id), "PC"),
+                "archs": archs,
                 "spawn_playbook": _get_conf(
-                        cp, "backend", "group{0}_spawn_playbook".format(group_id),
-                        "/srv/copr-work/provision/builderpb-PC.yml"),
+                    cp, "backend", "group{0}_spawn_playbook".format(group_id),
+                    default="/srv/copr-work/provision/builderpb-PC.yml"),
                 "terminate_playbook": _get_conf(
-                        cp, "backend",
-                        "group{0}_terminate_playbook".format(group_id),
-                        "/srv/copr-work/provision/terminatepb-PC.yml"),
-                "max_workers": int(_get_conf(
-                        cp, "backend", "group{0}_max_workers".format(group_id), 8))
+                    cp, "backend", "group{0}_terminate_playbook".format(group_id),
+                    default="/srv/copr-work/provision/terminatepb-PC.yml"),
+                "max_workers": _get_conf(
+                    cp, "backend", "group{0}_max_workers".format(group_id),
+                    default=8, mode="int")
             }
             opts.build_groups.append(group)
 
         opts.destdir = _get_conf(cp, "backend", "destdir", None, mode="path")
-
 
         opts.exit_on_worker = _get_conf(
             cp, "backend", "exit_on_worker", False, mode="bool")

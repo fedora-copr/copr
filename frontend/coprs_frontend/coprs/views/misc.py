@@ -11,6 +11,7 @@ from coprs import helpers
 from coprs import models
 from coprs import oid
 
+
 def fed_openidize_name(name):
     """
     Create proper Fedora OpenID name from short name.
@@ -42,8 +43,10 @@ def fed_raw_name(oidname):
     return oidname.replace(".id.fedoraproject.org/", "") \
                   .replace("http://", "")
 
+
 def krb_strip_realm(fullname):
     return re.sub(r'@.*', '', fullname)
+
 
 @app.before_request
 def lookup_current_user():
@@ -93,36 +96,35 @@ def krb5_login(name):
         # no KRB5_LOGIN.<name> configured in copr.conf
         return flask.render_template("404.html"), 404
 
-    if not 'REMOTE_USER' in flask.request.environ:
+    if 'REMOTE_USER' not in flask.request.environ:
         nocred = "Kerberos authentication failed (no credentials provided)"
-        return flask.render_template("403.html",
-                message=nocred), 403
+        return flask.render_template("403.html", message=nocred), 403
 
     krb_username = flask.request.environ['REMOTE_USER']
     username = krb_strip_realm(krb_username)
 
-    login = models.Krb5Login.query \
-            .filter(models.Krb5Login.config_name == key) \
-            .filter(models.Krb5Login.primary == username) \
-            .first()
-    if login:
-        flask.g.user = login.user
-        flask.session['krb5_login'] = login.user.name
+    krb_login = (
+        models.Krb5Login.query
+        .filter(models.Krb5Login.config_name == key)
+        .filter(models.Krb5Login.primary == username)
+        .first()
+    )
+    if krb_login:
+        flask.g.user = krb_login.user
+        flask.session['krb5_login'] = krb_login.user.name
         flask.flash(u"Welcome, {0}".format(flask.g.user.name))
         return flask.redirect(oid.get_next_url())
 
     # We need to create row in 'krb5_login' table
-    user = models.User.query \
-            .filter(models.User.username == username) \
-            .first()
+    user = models.User.query.filter(models.User.username == username).first()
     if not user:
         # Even the item in 'user' table does not exist, create _now_
         email = username + "@" + krb_config[key]['email_domain']
         user = create_user_wrapper(username, email)
         db.session.add(user)
 
-    login = models.Krb5Login(user=user, primary=username, config_name=key)
-    db.session.add(login)
+    krb_login = models.Krb5Login(user=user, primary=username, config_name=key)
+    db.session.add(krb_login)
     db.session.commit()
 
     flask.flash(u"Welcome, {0}".format(user.name))
@@ -203,9 +205,12 @@ def api_login_required(f):
                 token_auth = True
                 flask.g.user = user
         if not token_auth:
-            output = {"output": "notok", "error": "Login invalid/expired. " \
-                            "Please visit https://copr.fedoraproject.org/api " \
-                            "get or renew your API token."}
+            output = {
+                "output": "notok",
+                "error": "Login invalid/expired. "
+                         "Please visit https://copr.fedoraproject.org/api "
+                         "get or renew your API token.",
+            }
             jsonout = flask.jsonify(output)
             jsonout.status_code = 500
             return jsonout

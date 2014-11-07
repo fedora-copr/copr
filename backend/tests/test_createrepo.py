@@ -24,6 +24,7 @@ else:
 
 from backend.createrepo import createrepo, createrepo_unsafe
 
+
 @mock.patch('backend.createrepo.createrepo_unsafe')
 @mock.patch('backend.helpers.CoprClient')
 def test_createrepo_conditional_true(mc_client, mc_create_unsafe):
@@ -40,6 +41,7 @@ def test_createrepo_conditional_true(mc_client, mc_create_unsafe):
                username="foo", projectname="bar", lock=None)
 
     mc_create_unsafe.reset_mock()
+
 
 @mock.patch('backend.createrepo.createrepo_unsafe')
 @mock.patch('backend.helpers.CoprClient')

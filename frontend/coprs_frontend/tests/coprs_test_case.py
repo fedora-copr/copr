@@ -29,7 +29,7 @@ class CoprsTestCase(object):
     def teardown_class(cls):
         config = coprs.app.config
         # TODO: some tests fails with this cleanup - investigate and fix
-        #if "LOCAL_TMP_DIR" in config:
+        # if "LOCAL_TMP_DIR" in config:
         #    shutil.rmtree(os.path.abspath(config["LOCAL_TMP_DIR"]))
 
     def setup_method(self, method):
@@ -42,9 +42,9 @@ class CoprsTestCase(object):
         self.helpers = helpers
         self.backend_passwd = coprs.app.config["BACKEND_PASSWORD"]
         # create datadir if it doesn't exist
-        #datadir = os.path.commonprefix(
+        # datadir = os.path.commonprefix(
         #    [self.app.config["DATABASE"], self.app.config["OPENID_STORE"]])
-        #if not os.path.exists(datadir):
+        # if not os.path.exists(datadir):
         #    os.makedirs(datadir)
         coprs.db.create_all()
         self.db.session.commit()
@@ -153,7 +153,6 @@ class CoprsTestCase(object):
                 cc.mock_chroot = mc
                 self.c1.copr_chroots.append(cc)
 
-
         self.db.session.add_all(self.mc_list)
 
     @pytest.fixture
@@ -171,13 +170,13 @@ class CoprsTestCase(object):
             self.db.session.add(build)
 
             status = None
-            if build is self.b1: # this build is going to be deleted
-                status = 1 # succeeded
+            if build is self.b1:  # this build is going to be deleted
+                status = 1  # succeeded
             for chroot in build.copr.active_chroots:
                 buildchroot = models.BuildChroot(
                     build=build,
                     mock_chroot=chroot,
-                    status = status)
+                    status=status)
 
                 self.db.session.add(buildchroot)
 
@@ -210,11 +209,10 @@ class CoprsTestCase(object):
                 buildchroot = models.BuildChroot(
                     build=self.b_few_chroots,
                     mock_chroot=chroot,
-                    status = self.status_by_chroot[chroot.name])
+                    status=self.status_by_chroot[chroot.name])
                 self.db.session.add(buildchroot)
 
         self.db.session.add(self.b_few_chroots)
-
 
     @pytest.fixture
     def f_build_many_chroots(self):
@@ -249,7 +247,7 @@ class CoprsTestCase(object):
             buildchroot = models.BuildChroot(
                 build=self.b_many_chroots,
                 mock_chroot=chroot,
-                status = self.status_by_chroot[chroot.name])
+                status=self.status_by_chroot[chroot.name])
             self.db.session.add(buildchroot)
 
         self.db.session.add(self.b_many_chroots)

@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-
 import json
 import os
 import logging
@@ -31,20 +30,16 @@ from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     ProjectDetailsFieldsParser
 
 
-## add deco to check that login/token are provided
-## and  raise correct error
-##
-##
-""" "No configuration file '~/.config/copr' found. "
-    "see documentation at /usr/share/doc/python-copr/ "
-"""
+# TODO: add deco to check that login/token are provided
+# and  raise correct error
+# """ "No configuration file '~/.config/copr' found. "
+# "see documentation at /usr/share/doc/python-copr/ "
+# """
 # or
-"""
-    "No api login and/or api token are provided"
-    "See man copr-cli for more information")
-"""
-
-##
+# """
+# "No api login and/or api token are provided"
+#    "See man copr-cli for more information")
+# """
 
 
 class CoprClient(object):
@@ -79,10 +74,10 @@ class CoprClient(object):
         self.no_config = no_config
 
     def __str__(self):
-        return "<Copr client. username: {0}, api url: {1}, " \
-               "login presents: {2}, token presents: {3}>".format(
-            self.username, self.api_url, bool(self.login), bool(self.token)
-        )
+        return (
+            "<Copr client. username: {0}, api url: {1}, "
+            "login presents: {2}, token presents: {3}>"
+        ).format(self.username, self.api_url, bool(self.login), bool(self.token))
 
     @property
     def api_url(self):
@@ -238,10 +233,11 @@ class CoprClient(object):
             parsers=[
                 CommonMsgErrorOutParser,
                 fabric_simple_fields_parser(
-                    ["project", "owner", "status", "results",
-                     "submitted_on", "started_on", "ended_on",
-                     "built_pkgs", "src_pkg", "src_version",
-                     ],  # TODO: convert unix time
+                    [
+                        "project", "owner", "status", "results",
+                        "submitted_on", "started_on", "ended_on",
+                        "built_pkgs", "src_pkg", "src_version",
+                    ],  # TODO: convert unix time
                     "BuildDetailsParser"
                 )
             ]
@@ -669,4 +665,3 @@ class CoprClient(object):
         )
         response.handle = BaseHandle(client=self, response=response)
         return response
-
