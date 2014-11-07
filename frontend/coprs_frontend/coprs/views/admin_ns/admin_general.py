@@ -15,6 +15,7 @@ from coprs.views.misc import login_required
 
 from coprs.exceptions import InsufficientRightsException
 
+
 @admin_ns.route("/")
 @login_required(role=helpers.RoleEnum("admin"))
 def admin_index():
@@ -24,12 +25,13 @@ def admin_index():
 @admin_ns.route("/legal-flag/")
 @login_required(role=helpers.RoleEnum("admin"))
 def legal_flag():
-    legal_flags = (models.LegalFlag.query
-                   .outerjoin(models.LegalFlag.copr)
-                   .options(db.contains_eager(models.LegalFlag.copr))
-                   .filter(models.LegalFlag.resolved_on == None)
-                   .order_by(models.LegalFlag.raised_on.desc())
-                   .all())
+    legal_flags = (
+        models.LegalFlag.query
+        .outerjoin(models.LegalFlag.copr)
+        .options(db.contains_eager(models.LegalFlag.copr))
+        .filter(models.LegalFlag.resolved_on == None)
+        .order_by(models.LegalFlag.raised_on.desc())
+        .all())
 
     return flask.render_template("admin/legal-flag.html",
                                  legal_flags=legal_flags)
@@ -65,13 +67,14 @@ def playground():
             copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
             if copr:
-                return flask.redirect(flask.url_for("admin_ns.playground_project",
-                                            username=username,
-                                            coprname=coprname))
+                return flask.redirect(flask.url_for(
+                    "admin_ns.playground_project",
+                    username=username,
+                    coprname=coprname))
             else:
                 flask.flash("This project does not exist")
 
-    return flask.render_template("admin/playground.html", form_search = form)
+    return flask.render_template("admin/playground.html", form_search=form)
 
 
 @admin_ns.route("/playground/<username>/<coprname>/")
@@ -84,9 +87,7 @@ def playground_project(username, coprname):
 
     form = forms.AdminPlaygroundForm()
     form.playground.data = copr.playground
-    return flask.render_template("admin/playground.html",
-                                        form_set = form,
-                                        copr = copr)
+    return flask.render_template("admin/playground.html", form_set=form, copr=copr)
 
 
 @admin_ns.route("/playground/<username>/<coprname>/set/", methods=["POST"])
@@ -107,7 +108,6 @@ def playground_set(username, coprname):
                 flask.flash("Playground flag has been updated")
                 db.session.commit()
 
-    return flask.redirect(flask.url_for("admin_ns.playground_project", 
+    return flask.redirect(flask.url_for("admin_ns.playground_project",
                                         username=username,
                                         coprname=coprname))
-

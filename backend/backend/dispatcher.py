@@ -29,12 +29,13 @@ try:
 except ImportError:
     pass  # fedmsg is optional
 
+
 def ans_extra_vars_encode(extra_vars, name):
     """ transform dict into --extra-vars="json string" """
     if not extra_vars:
         return ""
-    return "--extra-vars='{{\"{0}\": {1}}}'".format(
-            name, json.dumps(extra_vars))
+    return "--extra-vars='{{\"{0}\": {1}}}'".format(name, json.dumps(extra_vars))
+
 
 class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
 
@@ -147,11 +148,11 @@ class Worker(multiprocessing.Process):
         self.spawn_in_advance = self.opts.spawn_in_advance
         self.frontend_callback = FrontendCallback(opts, events)
         if not self.callback:
-            self.logfile = os.path.join(
-                self.opts.worker_logdir,
-                "worker-{0}-{1}.log".format(
-                            self.opts.build_groups[self.group_id]["name"],
-                            self.worker_num))
+            log_name = "worker-{0}-{1}.log".format(
+                self.opts.build_groups[self.group_id]["name"],
+                self.worker_num)
+
+            self.logfile = os.path.join(self.opts.worker_logdir, log_name)
             self.callback = WorkerCallback(logfile=self.logfile)
 
         if ip:
@@ -289,8 +290,7 @@ class Worker(multiprocessing.Process):
             return None
 
         args = "-c ssh {0} {1}".format(
-                spawn_playbook,
-                ans_extra_vars_encode(extra_vars, "copr_task"))
+            spawn_playbook, ans_extra_vars_encode(extra_vars, "copr_task"))
 
         i = 0
         while True:
@@ -327,12 +327,13 @@ class Worker(multiprocessing.Process):
             # we were getting some dead instancies
             # that's why I'm testing the conncectivity here
             connection = ansible.runner.Runner(
-                            remote_user="root",
-                            host_list=ipaddr+",",
-                            pattern=ipaddr,
-                            forks=1,
-                            transport="ssh",
-                            timeout=500)
+                remote_user="root",
+                host_list=ipaddr+",",
+                pattern=ipaddr,
+                forks=1,
+                transport="ssh",
+                timeout=500
+            )
             connection.module_name = "shell"
             connection.module_args = "echo hello"
             res = connection.run()
@@ -341,8 +342,9 @@ class Worker(multiprocessing.Process):
                 return ipaddr
 
             else:
-                self.callback.log("Worker is not responding to" \
-                        "the testing playbook. Spawning another one.")
+                self.callback.log(
+                    "Worker is not responding to"
+                    "the testing playbook. Spawning another one.")
                 self.terminate_instance(ipaddr)
 
     def terminate_instance(self, instance_ip):
@@ -357,8 +359,8 @@ class Worker(multiprocessing.Process):
                     term_args["vm_name"] = self.vm_name
 
         args = "-c ssh -i '{0},' {1} {2}".format(
-                instance_ip, self.opts.build_groups[self.group_id]["terminate_playbook"],
-                ans_extra_vars_encode(term_args, "copr_task"))
+            instance_ip, self.opts.build_groups[self.group_id]["terminate_playbook"],
+            ans_extra_vars_encode(term_args, "copr_task"))
         self.run_ansible_playbook(args, "terminate instance")
 
     def mark_started(self, job):
@@ -368,11 +370,9 @@ class Worker(multiprocessing.Process):
 
         job.status = 3  # running
         build = job.to_dict()
-
         self.callback.log("build: {}".format(build))
-        #build["status"] = 3  # running
-        data = {"builds": [build]}
 
+        data = {"builds": [build]}
         try:
             self.frontend_callback.update(data)
         except:
@@ -453,8 +453,8 @@ class Worker(multiprocessing.Process):
 
         while not self.kill_received:
             setproctitle("worker-{0} {1}  No task".format(
-                        self.opts.build_groups[self.group_id]["name"],
-                        self.worker_num))
+                self.opts.build_groups[self.group_id]["name"],
+                self.worker_num))
 
             # this sometimes caused TypeError in random worker
             # when another one  picekd up a task to build
@@ -496,10 +496,11 @@ class Worker(multiprocessing.Process):
             # Checking whether to build or skip
             if self.pkg_built_before(job.pkgs, job.chroot, job.destdir):
                 self._announce_start(job)
-                self.callback.log("Skipping: package {0} has been"\
-                            "already built before.".format(
-                            ' '.join(job.pkgs)))
-                job.status = 5 # skipped
+                self.callback.log(
+                    "Skipping: package {0} has been already built before."
+                    .format(' '.join(job.pkgs)))
+
+                job.status = 5  # skipped
                 self._announce_end(job)
                 continue
             # FIXME

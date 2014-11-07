@@ -37,8 +37,8 @@ def coprs_show(page=1):
     users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
 
     waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
-    running_tasks = len(list(builds_logic.BuildsLogic.get_build_tasks(
-                                        helpers.StatusEnum("running"))))
+    running_tasks = len(list(builds_logic.BuildsLogic
+                             .get_build_tasks(helpers.StatusEnum("running"))))
 
     return flask.render_template("coprs/show.html",
                                  coprs=coprs,
@@ -64,8 +64,8 @@ def coprs_by_owner(username=None, page=1):
     users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
 
     waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
-    running_tasks = len(list(builds_logic.BuildsLogic.get_build_tasks(
-                                        helpers.StatusEnum("running"))))
+    running_tasks = len(list(builds_logic.BuildsLogic
+                             .get_build_tasks(helpers.StatusEnum("running"))))
 
     return flask.render_template("coprs/show.html",
                                  coprs=coprs,
@@ -104,10 +104,8 @@ def coprs_fulltext_search(page=1):
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return render_template("coprs/show.html",
-                             coprs=coprs,
-                             paginator=paginator,
-                             fulltext=fulltext)
+    return render_template("coprs/show.html", coprs=coprs,
+                           paginator=paginator, fulltext=fulltext)
 
 
 @coprs_ns.route("/<username>/add/")
@@ -324,21 +322,22 @@ def copr_permissions_applier_change(username, coprname):
         # sending emails
         if flask.current_app.config.get("SEND_EMAILS", False):
             for mail in admin_mails:
-                msg = MIMEText("{6} is asking for these permissions:\n\n"
-                               "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
-                               "Project: {4}\nOwner: {5}".format(
-                                        helpers.PermissionEnum(old_builder),
-                                        helpers.PermissionEnum(new_builder),
-                                        helpers.PermissionEnum(old_admin),
-                                        helpers.PermissionEnum(new_admin),
-                                        copr.name, copr.owner.name, flask.g.user.name), "plain")
+                msg = MIMEText(
+                    "{6} is asking for these permissions:\n\n"
+                    "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
+                    "Project: {4}\nOwner: {5}".format(
+                        helpers.PermissionEnum(old_builder),
+                        helpers.PermissionEnum(new_builder),
+                        helpers.PermissionEnum(old_admin),
+                        helpers.PermissionEnum(new_admin),
+                        copr.name, copr.owner.name, flask.g.user.name))
+
                 msg["Subject"] = "[Copr] {0}: {1} is asking permissons".format(copr.name, flask.g.user.name)
                 msg["From"] = "root@{0}".format(platform.node())
                 msg["To"] = mail
                 s = smtplib.SMTP("localhost")
                 s.sendmail("root@{0}".format(platform.node()), mail, msg.as_string())
                 s.quit()
-
 
     return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                         username=copr.owner.name,
@@ -370,24 +369,25 @@ def copr_update_permissions(username, coprname):
                     "copr_admin_{0}".format(perm.user_id)].data
                 coprs_logic.CoprPermissionsLogic.update_permissions(
                     flask.g.user, copr, perm, new_builder, new_admin)
-                if flask.current_app.config.get("SEND_EMAILS", False):
-                    if old_builder is not new_builder or \
-                       old_admin is not new_admin:
-                        msg = MIMEText("Your permissions have changed:\n\n"
-                                       "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
-                                       "Project: {4}\nOwner: {5}".format(
-                                                helpers.PermissionEnum(old_builder),
-                                                helpers.PermissionEnum(new_builder),
-                                                helpers.PermissionEnum(old_admin),
-                                                helpers.PermissionEnum(new_admin),
-                                                copr.name, copr.owner.name), "plain")
-                        msg["Subject"] = "[Copr] {0}: Your permissions have changed".format(copr.name)
-                        msg["From"] = "root@{0}".format(platform.node())
-                        msg["To"] = perm.user.mail
-                        s = smtplib.SMTP("localhost")
-                        s.sendmail("root@{0}".format(platform.node()), perm.user.mail, msg.as_string())
-                        s.quit()
+                if flask.current_app.config.get("SEND_EMAILS", False) and \
+                        (old_builder is not new_builder or old_admin is not new_admin):
 
+                    msg = MIMEText(
+                        "Your permissions have changed:\n\n"
+                        "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
+                        "Project: {4}\nOwner: {5}".format(
+                            helpers.PermissionEnum(old_builder),
+                            helpers.PermissionEnum(new_builder),
+                            helpers.PermissionEnum(old_admin),
+                            helpers.PermissionEnum(new_admin),
+                            copr.name, copr.owner.name))
+
+                    msg["Subject"] = "[Copr] {0}: Your permissions have changed".format(copr.name)
+                    msg["From"] = "root@{0}".format(platform.node())
+                    msg["To"] = perm.user.mail
+                    s = smtplib.SMTP("localhost")
+                    s.sendmail("root@{0}".format(platform.node()), perm.user.mail, msg.as_string())
+                    s.quit()
         # for now, we don't check for actions here, as permissions operation
         # don't collide with any actions
         except exceptions.InsufficientRightsException as e:
@@ -401,13 +401,13 @@ def copr_update_permissions(username, coprname):
                                         username=copr.owner.name,
                                         coprname=copr.name))
 
+
 @coprs_ns.route("/<username>/<coprname>/createrepo/", methods=["POST"])
 @login_required
 def copr_createrepo(username, coprname):
 
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
 
-    #import ipdb; ipdb.set_trace()
     chroots = [c.name for c in copr.active_chroots]
     actions_logic.ActionsLogic.send_createrepo(
         username=copr.owner.name, coprname=copr.name,
@@ -418,6 +418,7 @@ def copr_createrepo(username, coprname):
                                         username=copr.owner.name,
                                         coprname=copr.name))
 
+
 @coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])
 @login_required
 def copr_delete(username, coprname):
@@ -426,7 +427,8 @@ def copr_delete(username, coprname):
 
     if form.validate_on_submit() and copr:
         builds_query = builds_logic.BuildsLogic.get_multiple(
-        flask.g.user, copr=copr)
+            flask.g.user, copr=copr)
+
         try:
             for build in builds_query:
                 builds_logic.BuildsLogic.delete_build(flask.g.user, build)
@@ -515,8 +517,6 @@ def generate_repo_file(username, coprname, chroot, repofile):
             "Repository filename does not match expected: {0}"
             .format(repofile))
 
-
-    copr = None
     try:
         # query.one() is used since it fetches all builds, unlike
         # query.first().
@@ -526,8 +526,7 @@ def generate_repo_file(username, coprname, chroot, repofile):
         return page_not_found(
             "Project {0}/{1} does not exist".format(username, coprname))
 
-    mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot,
-                                    noarch=True).first()
+    mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot, noarch=True).first()
     if not mock_chroot:
         return page_not_found("Chroot {0} does not exist".format(chroot))
 

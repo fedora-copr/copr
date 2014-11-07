@@ -43,7 +43,6 @@ class BuildsLogic(object):
 
         return query
 
-
     @classmethod
     def get_build_task_queue(cls):
         """
@@ -51,14 +50,14 @@ class BuildsLogic(object):
                                        - older than 2 hours and unfinished
         """
         query = models.BuildChroot.query.join(models.Build).filter(or_(
-                    models.BuildChroot.status == helpers.StatusEnum("pending"),
-                    models.BuildChroot.status == helpers.StatusEnum("starting"),
-                    and_(
-                        models.BuildChroot.status == helpers.StatusEnum("running"),
-                        models.Build.started_on < int(time.time() - 7200),
-                        models.Build.ended_on == None
-                        )
-                    ))
+            models.BuildChroot.status == helpers.StatusEnum("pending"),
+            models.BuildChroot.status == helpers.StatusEnum("starting"),
+            and_(
+                models.BuildChroot.status == helpers.StatusEnum("running"),
+                models.Build.started_on < int(time.time() - 7200),
+                models.Build.ended_on is None
+            )
+        ))
         query = query.order_by(models.BuildChroot.build_id.asc())
         return query
 
@@ -102,7 +101,7 @@ class BuildsLogic(object):
                  .filter((models.Build.started_on == None)
                          | (models.Build.started_on < int(time.time() - 7200)))
                  .filter(models.Build.ended_on == None)
-                 .filter(models.Build.canceled != True)
+                 .filter(models.Build.canceled == False)
                  .order_by(models.Build.submitted_on.asc()))
         return query
 
@@ -196,7 +195,7 @@ class BuildsLogic(object):
                 "You are not allowed to cancel this build.")
         build.canceled = True
         for chroot in build.build_chroots:
-            chroot.status = 2 #canceled
+            chroot.status = 2  # canceled
 
     @classmethod
     def delete_build(cls, user, build):
@@ -210,19 +209,21 @@ class BuildsLogic(object):
                 "Unfinished build")
 
         # Only failed (and finished), succeeded, skipped and cancelled get here.
-        if build.state != "cancelled": #has nothing in backend to delete
+        if build.state != "cancelled":  # has nothing in backend to delete
             object_type = "build-{0}".format(build.state)
             data_dict = {"pkgs": build.pkgs,
                          "username": build.copr.owner.name,
                          "projectname": build.copr.name}
 
-            action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
-                               object_type=object_type,
-                               object_id=build.id,
-                               old_value="{0}/{1}".format(build.copr.owner.name,
-                                                          build.copr.name),
-                               data=json.dumps(data_dict),
-                               created_on=int(time.time()))
+            action = models.Action(
+                action_type=helpers.ActionTypeEnum("delete"),
+                object_type=object_type,
+                object_id=build.id,
+                old_value="{0}/{1}".format(build.copr.owner.name,
+                                           build.copr.name),
+                data=json.dumps(data_dict),
+                created_on=int(time.time())
+            )
             db.session.add(action)
 
         for build_chroot in build.build_chroots:
@@ -237,13 +238,13 @@ class BuildsLogic(object):
         """
         builds = cls.get_multiple(None, copr=copr)
 
-        last_build = (builds
-                    .join(models.BuildChroot)
-                    .filter((models.BuildChroot.status == helpers.StatusEnum("succeeded"))
-                            | (models.BuildChroot.status == helpers.StatusEnum("skipped")))
-                    .filter(models.Build.ended_on != None)
-                    .order_by(models.Build.ended_on.desc())
-                    ).first()
+        last_build = (
+            builds.join(models.BuildChroot)
+            .filter((models.BuildChroot.status == helpers.StatusEnum("succeeded"))
+                    | (models.BuildChroot.status == helpers.StatusEnum("skipped")))
+            .filter(models.Build.ended_on != None)
+            .order_by(models.Build.ended_on.desc())
+        ).first()
         if last_build:
             return last_build.ended_on
         else:

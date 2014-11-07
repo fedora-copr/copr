@@ -72,10 +72,10 @@ def api_new_copr(username):
     httpcode = 200
 
     # are there any arguments in POST which our form doesn't know?
-    if sum([1 for post_key in flask.request.form.keys() \
-                if post_key not in form.__dict__.keys()]):
-        output = {"output": "notok", "error":
-                "Unknown arguments passed (non-existing chroot probably)"}
+    if any([post_key not in form.__dict__.keys()
+            for post_key in flask.request.form.keys()]):
+        output = {"output": "notok",
+                  "error": "Unknown arguments passed (non-existing chroot probably)"}
         httpcode = 500
 
     elif form.validate_on_submit():
@@ -136,8 +136,7 @@ def api_copr_delete(username, coprname):
     httpcode = 200
 
     if form.validate_on_submit() and copr:
-        builds_query = builds_logic.BuildsLogic.get_multiple(
-        flask.g.user, copr=copr)
+        builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
         try:
             for build in builds_query:
                 builds_logic.BuildsLogic.delete_build(flask.g.user, build)
@@ -204,6 +203,7 @@ def api_coprs_by_owner(username=None):
     jsonout.status_code = httpcode
     return jsonout
 
+
 @api_ns.route("/coprs/<username>/<coprname>/detail/")
 def api_coprs_by_owner_detail(username, coprname):
     """ Return detail of one project.
@@ -244,6 +244,7 @@ def api_coprs_by_owner_detail(username, coprname):
     jsonout.status_code = httpcode
     return jsonout
 
+
 @api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
 @api_login_required
 def copr_new_build(username, coprname):
@@ -257,13 +258,13 @@ def copr_new_build(username, coprname):
 
     else:
         form = forms.BuildFormFactory.create_form_cls(
-                    copr.active_chroots)(csrf_enabled=False)
+            copr.active_chroots)(csrf_enabled=False)
 
         # are there any arguments in POST which our form doesn't know?
-        if sum([1 for post_key in flask.request.form.keys() \
-                    if post_key not in form.__dict__.keys()]):
-            output = {"output": "notok", "error":
-                    "Unknown arguments passed (non-existing chroot probably)"}
+        if any([post_key not in form.__dict__.keys()
+                for post_key in flask.request.form.keys()]):
+            output = {"output": "notok",
+                      "error": "Unknown arguments passed (non-existing chroot probably)"}
             httpcode = 500
 
         elif form.validate_on_submit() and flask.g.user.can_build_in(copr):
@@ -289,7 +290,6 @@ def copr_new_build(username, coprname):
 
                 db.session.commit()
                 ids.append(build.id)
-
 
             output = {"output": "ok",
                       "ids": ids,
@@ -322,6 +322,7 @@ def build_status(build_id):
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
+
 
 @api_ns.route("/coprs/build_detail/<build_id>/", methods=["GET"])
 @api_ns.route("/coprs/build/<build_id>/", methods=["GET"])
@@ -362,6 +363,7 @@ def build_detail(build_id):
     jsonout.status_code = httpcode
     return jsonout
 
+
 @api_ns.route("/coprs/cancel_build/<build_id>/", methods=["POST"])
 @api_login_required
 def cancel_build(build_id):
@@ -386,6 +388,7 @@ def cancel_build(build_id):
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
+
 
 @api_ns.route('/coprs/<username>/<coprname>/modify/', methods=["POST"])
 @api_login_required
@@ -429,6 +432,7 @@ def copr_modify(username, coprname):
     jsonout.status_code = httpcode
     return jsonout
 
+
 @api_ns.route('/coprs/<username>/<coprname>/modify/<chrootname>/', methods=["POST"])
 @api_login_required
 def copr_modify_chroot(username, coprname, chrootname):
@@ -457,6 +461,7 @@ def copr_modify_chroot(username, coprname, chrootname):
     jsonout.status_code = httpcode
     return jsonout
 
+
 @api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["GET"])
 def copr_chroot_details(username, coprname, chrootname):
     copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
@@ -477,10 +482,10 @@ def copr_chroot_details(username, coprname, chrootname):
             output = {"output": "notok", "error": "Invalid chroot for this project."}
             httpcode = 404
 
-
     jsonout = flask.jsonify(output)
     jsonout.status_code = httpcode
     return jsonout
+
 
 @api_ns.route("/coprs/search/")
 @api_ns.route("/coprs/search/<project>/")
@@ -515,6 +520,7 @@ def api_coprs_search_by_project(project=None):
     jsonout.status_code = httpcode
     return jsonout
 
+
 @api_ns.route("/playground/list/")
 def playground_list():
     """ Return list of coprs which are part of playground """
@@ -530,6 +536,7 @@ def playground_list():
     jsonout.status_code = 200
     return jsonout
 
+
 @api_ns.route("/coprs/<username>/<coprname>/monitor/", methods=["GET"])
 def monitor(username, coprname):
     copr = coprs_logic.CoprsLogic.get(
@@ -537,9 +544,6 @@ def monitor(username, coprname):
 
     monitor_data = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
     output = MonitorWrapper(monitor_data).to_dict()
-
-    #output["href"] = flask.url_for(".monitor",
-    #    username=username, coprname=coprname)
 
     jsonout = flask.jsonify(output)
     jsonout.status_code = 200
