@@ -105,13 +105,13 @@ install -d %{buildroot}%{_sysconfdir}/sudoers.d
 
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
 cp -a run/* %{buildroot}%{_datadir}/copr/
-cp -a copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
+cp -a conf/copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
-install -p -m 755 crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
+install -p -m 755 conf/crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
 
-cp -a dist/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
-cp -a logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
-cp -a tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
+cp -a conf/lighttpd/* %{buildroot}%{_pkgdocdir}/lighttpd/
+cp -a conf/logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
+cp -a conf/tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 
 # for ghost files
 touch %{buildroot}%{_var}/log/copr/copr.log
@@ -123,11 +123,11 @@ done
 touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 
 install -m 0644 copr-backend.service %{buildroot}/%{_unitdir}/
-install -m 0644 dist/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
+install -m 0644 conf/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
 
 #doc
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
-cp -a playbooks %{buildroot}%{_pkgdocdir}/
+cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 
 %pre
 getent group copr >/dev/null || groupadd -r copr
