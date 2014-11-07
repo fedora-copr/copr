@@ -44,7 +44,7 @@ class BuildJob(object):
             key = str(key)
             setattr(self, key, val)
 
-        self.pkgs = [task_data["pkgs"]]  # just for now
+        self.pkg = task_data["pkgs"].split(" ")[0]  # just for now
         self.repos = [r for r in task_data["repos"].split(" ") if r.strip()]
         self.build_id = task_data["build_id"]
 
@@ -81,6 +81,9 @@ class BuildJob(object):
 
         return result
 
+    def __str__(self):
+        return str(self.__unicode__())
+
     def __unicode__(self):
         return u"BuildJob<id: {build_id}, owner: {project_owner}, " \
-               u"project: {project_name},>".format(self.__dict__)
+               u"project: {project_name}, source pkg : {pkg} >".format(self.__dict__)

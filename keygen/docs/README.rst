@@ -9,7 +9,7 @@ to minimize Copr operations with gpg key-pairs.
 Expected setup
 --------------
 
-**host-sign**: secure machine where key-pairs is stored in /root/.gnupg/
+**host-sign**: secure machine where key-pairs is stored in /usr/share/copr-keygen/gnupg/
 it runs:
 
 -  [A] perl signd from *obs-signd*

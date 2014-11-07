@@ -2,11 +2,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
+import fcntl
 
 from operator import methodcaller
 import optparse
 import ConfigParser
 import os
+import sys
+import time
 
 from bunch import Bunch
 from copr.client import CoprClient
@@ -164,3 +167,18 @@ def get_auto_createrepo_status(front_url, username, projectname):
         return bool(result.data["detail"]["auto_createrepo"])
     else:
         return True
+
+
+def log(lf, msg, quiet=None):
+    if lf:
+        now = time.time()
+        try:
+            with open(lf, "a") as lfh:
+                fcntl.flock(lfh, fcntl.LOCK_EX)
+                lfh.write(str(now) + ":" + msg + "\n")
+                fcntl.flock(lfh, fcntl.LOCK_UN)
+        except (IOError, OSError) as e:
+            sys.stderr.write(
+                "Could not write to logfile {0} - {1}\n".format(lf, str(e)))
+    if not quiet:
+        print(msg)

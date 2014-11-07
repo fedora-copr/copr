@@ -15,11 +15,12 @@ from ansible import callbacks
 from setproctitle import setproctitle
 from IPy import IP
 from retask.queue import Queue
+from backend.mockremote.callback import CliLogCallBack
 
 from .exceptions import MockRemoteError, CoprWorkerError
 from .job import BuildJob
 
-from .mockremote import MockRemote, CliLogCallBack
+from .mockremote import MockRemote
 from .callback import FrontendCallback
 
 ansible_playbook = "ansible-playbook"
@@ -549,8 +550,7 @@ class Worker(multiprocessing.Process):
                                           job.timeout, job.destdir,
                                           job.chroot, str(job.repos)))
 
-                    self.callback.log("building pkgs: {0}".format(
-                        ' '.join(job.pkgs)))
+                    self.callback.log("building pkgs: {0}".format(job.pkg))
 
                     try:
                         chroot_repos = list(job.repos)
@@ -569,7 +569,7 @@ class Worker(multiprocessing.Process):
                         }
 
                         mr = MockRemote(
-                            builder=ip,
+                            builder_host=ip,
                             job=job,
                             cont=True,
                             recurse=True,
@@ -583,11 +583,10 @@ class Worker(multiprocessing.Process):
                             results_base_url=self.opts.results_baseurl
                         )
 
-                        build_details = mr.build_pkgs(job.pkgs)
+                        build_details = mr.build_pkgs()
 
                         if self.opts.do_sign:
-                            mr.add_pubkey(os.path.normpath(
-                                os.path.join(job.destdir, job.chroot)))
+                            mr.add_pubkey()
 
                         job.update(build_details)
 
@@ -595,11 +594,11 @@ class Worker(multiprocessing.Process):
                         # record and break
                         self.callback.log("{0} - {1}".format(ip, e))
                         status = 0  # failure
-                    else:
-                        # we can"t really trace back if we just fail normally
-                        # check if any pkgs didn"t build
-                        if mr.failed:
-                            status = 0  # failure
+                    # else:
+                    #     # we can"t really trace back if we just fail normally
+                    #     # check if any pkgs didn"t build
+                    #     if mr.failed:
+                    #         status = 0  # failure
 
                     self.callback.log(
                         "Finished build: id={0} builder={1}"
