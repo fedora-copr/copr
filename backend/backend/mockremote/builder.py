@@ -1,9 +1,10 @@
 import os
 import pipes
 import socket
-import subprocess
+from subprocess import Popen, PIPE
 import time
-import ansible.runner
+
+from ansible.runner import Runner
 
 from ..exceptions import BuilderError, BuilderTimeOutError
 
@@ -26,20 +27,19 @@ class Builder(object):
         self.macros = macros or {}  # rename macros to mock_ext_options
         self.callback = callback
 
-        if buildroot_pkgs is None:
-            self.buildroot_pkgs = ""
-        else:
-            self.buildroot_pkgs = buildroot_pkgs
+        self.buildroot_pkgs = buildroot_pkgs or ""
 
         self.checked = False
         self._remote_tempdir = remote_tempdir
         self._remote_basedir = remote_basedir
         # if we're at this point we've connected and done stuff on the host
+        #  TODO: maybe do this lazy ?
         self.conn = _create_ans_conn(
             self.hostname, self.username, self.timeout)
         self.root_conn = _create_ans_conn(self.hostname, "root", self.timeout)
-        # check out the host - make sure it can build/be contacted/etc
-        self.check()
+
+        # Before use: check out the host - make sure it can build/be contacted/etc
+        # self.check()
 
     @property
     def remote_build_dir(self):
@@ -56,6 +56,7 @@ class Builder(object):
         results = self._run_ansible(create_tmpdir_cmd)
 
         tempdir = None
+        # TODO: use check_for_ans_error
         for _, resdict in results["contacted"].items():
             tempdir = resdict["stdout"]
 
@@ -149,7 +150,7 @@ class Builder(object):
         build_details["built_packages"] = list(results["contacted"].values())[0][u"stdout"]
         self.callback.log("Packages:\n{}".format(build_details["built_packages"]))
 
-    def check_build_success(self, is_err, pkg, results):
+    def check_build_success(self, pkg, results):
         myresults = get_ans_results(results, self.hostname)
         out = myresults.get("stdout", "")
         err = myresults.get("stderr", "")
@@ -184,7 +185,7 @@ class Builder(object):
 
     def get_package_version(self, pkg):
         self.callback.log("Getting package information: version")
-        results = self._run_ansible("rpm -qp --qf \"%{{VERSION}}\n\" {}".format(pkg))
+        results = self._run_ansible("rpm -qp --qf \"%{{VERSION}}\" {}".format(pkg))
         if "contacted" in results:
             # TODO:  do more sane
             return list(results["contacted"].values())[0][u"stdout"]
@@ -269,7 +270,7 @@ class Builder(object):
 
         # we know the command ended successfully but not if the pkg built
         # successfully
-        err, is_err, out = self.check_build_success(is_err, pkg, results)
+        err, is_err, out = self.check_build_success(pkg, results)
         if not is_err:
             success = True
             self.collect_built_packages(build_details, pkg)
@@ -280,7 +281,6 @@ class Builder(object):
         # download the pkg to destdir using rsync + ssh
         # return success/failure, stdout, stderr
 
-        success = False
         rpd = self._get_remote_pkg_dir(pkg)
         # make spaces work w/our rsync command below :(
         destdir = "'" + destdir.replace("'", "'\\''") + "'"
@@ -290,8 +290,7 @@ class Builder(object):
         command = "{0} -avH -e {1} {2} {3}/".format(
             rsync, ssh_opts, remote_src, destdir)
 
-        cmd = subprocess.Popen(command, shell=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
 
         # rsync results into opts.destdir
         out, err = cmd.communicate()
@@ -345,7 +344,7 @@ class Builder(object):
         if is_err:
             if "rc" in err_results:
                 errors.append(
-                    "Warning: {0} lacks mockchain on chroot {1}".format(
+                    "Warning: {0} lacks mockchain binary or mock config for chroot {1}".format(
                         self.hostname, self.chroot))
             else:
                 errors.append(err_results["msg"])
@@ -358,12 +357,12 @@ class Builder(object):
 
 
 def _create_ans_conn(hostname, username, timeout):
-    ans_conn = ansible.runner.Runner(remote_user=username,
-                                     host_list=hostname + ",",
-                                     pattern=hostname,
-                                     forks=1,
-                                     transport="ssh",
-                                     timeout=timeout)
+    ans_conn = Runner(remote_user=username,
+                      host_list=hostname + ",",
+                      pattern=hostname,
+                      forks=1,
+                      transport="ssh",
+                      timeout=timeout)
     return ans_conn
 
 

@@ -130,6 +130,7 @@ class MockRemote(object):
                                remote_basedir=self.remote_basedir,
                                remote_tempdir=self.remote_tempdir,
                                macros=self.macros, repos=self.repos)
+        self.builder.check()
 
         if not self.job.chroot:
             raise MockRemoteError("No chroot specified!")
