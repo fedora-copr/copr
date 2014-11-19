@@ -556,7 +556,7 @@ def generate_repo_file(username, coprname, chroot, repofile):
 def copr_build_monitor(username, coprname):
     try:
         copr = coprs_logic.CoprsLogic.get(
-            flask.g.user, username, coprname).first()
+            flask.g.user, username, coprname, with_mock_chroots=True).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))

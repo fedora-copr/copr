@@ -8,7 +8,38 @@ import time
 from coprs import models
 from coprs.signals import copr_created
 
+from coprs.logic.coprs_logic import CoprsLogic
+
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
+
+
+class TestMonitor(CoprsTestCase):
+
+    def test_regression_monitor_no_copr_returned(self, f_db, f_users, f_mock_chroots):
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1165284
+
+        copr_name = u"temp"
+
+        # trying to get monitor page for non-existing project
+        res = self.tc.get("/coprs/{}/{}/monitor/".format(self.u1.name, copr_name))
+        assert res.status_code == 404
+
+        tmp_copr = models.Copr(name=copr_name, owner=self.u1)
+        cc = models.CoprChroot()
+        cc.mock_chroot = self.mc1
+        tmp_copr.copr_chroots.append(cc)
+
+        self.db.session.add_all([tmp_copr, cc])
+        self.db.session.commit()
+
+        res = self.tc.get("/coprs/{}/{}/monitor/".format(self.u1.name, copr_name))
+        assert res.status_code == 200
+
+        self.db.session.add(CoprsLogic.delete(self.u1, tmp_copr))
+        self.db.session.commit()
+
+        res = self.tc.get("/coprs/{}/{}/monitor/".format(self.u1.name, copr_name))
+        assert res.status_code == 404
 
 
 class TestCoprsShow(CoprsTestCase):
