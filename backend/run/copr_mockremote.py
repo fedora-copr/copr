@@ -7,7 +7,7 @@ import sys
 import os
 
 from backend.exceptions import MockRemoteError
-from backend.mockremote import MockRemote, DEF_CHROOT, DEF_USER, DEF_REPOS, DEF_TIMEOUT, DEF_DESTDIR
+from backend.mockremote import MockRemote, DEF_CHROOT, DEF_BUILD_USER, DEF_REPOS, DEF_TIMEOUT, DEF_DESTDIR
 from backend.helpers import SortedOptParser
 from backend.mockremote.callback import CliLogCallBack
 
@@ -45,7 +45,7 @@ def parse_args(args):
                       " defaults to not logging")
     parser.add_option("-b", "--builder", dest="builder", default=None,
                       help="builder to use")
-    parser.add_option("-u", dest="user", default=DEF_USER,
+    parser.add_option("-u", dest="user", default=DEF_BUILD_USER,
                       help="user to run as/connect as on builder systems")
     parser.add_option("-t", "--timeout", dest="timeout", type="int",
                       default=DEF_TIMEOUT,
@@ -129,8 +129,8 @@ def main(args):
             job=job,
             builder_host=opts.builder,
             user=opts.user,
-            cont=opts.cont,
-            recurse=opts.recurse,
+            # cont=opts.cont,
+            # recurse=opts.recurse,
             repos=opts.repos,
             do_sign=opts.do_sign,
             callback=callback,

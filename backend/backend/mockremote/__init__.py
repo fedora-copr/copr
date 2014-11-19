@@ -32,9 +32,10 @@ from __future__ import absolute_import
 import fcntl
 import urllib
 import os
+from bunch import Bunch
 
 from ..constants import DEF_REMOTE_BASEDIR, DEF_TIMEOUT, DEF_REPOS, \
-    DEF_USER, DEF_MACROS
+    DEF_BUILD_USER, DEF_MACROS
 from ..exceptions import MockRemoteError
 
 
@@ -48,7 +49,7 @@ from .callback import DefaultCallBack
 
 def get_target_dir(chroot_dir, pkg_name):
     source_basename = os.path.basename(pkg_name).replace(".src.rpm", "")
-    return os.path.join(chroot_dir, source_basename)
+    return os.path.normpath(os.path.join(chroot_dir, source_basename))
 
 
 class MockRemote(object):
@@ -56,16 +57,16 @@ class MockRemote(object):
     #   mock remote now do too much things
     #   idea: send events according to the build progress to handler
 
-    def __init__(self, builder_host=None, user=DEF_USER, job=None,
-                 cont=False, recurse=False, repos=None, callback=None,
-                 remote_basedir=DEF_REMOTE_BASEDIR, remote_tempdir=None,
-                 macros=None, lock=None, do_sign=False,
-                 front_url=None, results_base_url=None):
+    def __init__(self, builder_host=None, job=None,
+                 repos=None,
+                 callback=None,
+                 macros=None,
+                 opts=None,
+                 lock=None):
 
         """
-
         :param builder_host: builder hostname or ip
-        :param user: user to run as/connect as on builder systems
+
         :param backend.job.BuildJob job: Job object with the following attributes::
             :ivar timeout: ssh timeout
             :ivar destdir: target directory to put built packages
@@ -77,58 +78,67 @@ class MockRemote(object):
             :ivar pkg: pkg to build
 
 
-        :param cont: if a pkg fails to build, continue to the next one
-        :param bool recurse: if more than one pkg and it fails to build,
-                             try to build the rest and come back to it
         :param repos: additional repositories for mock
         :param backend.mockremote.callback.DefaultCallBack callback: object with hooks for notifications
                                          about build progress
-        :param remote_basedir: basedir on builder
-        :param remote_tempdir: tempdir on builder
+
         :param macros: {    "copr_username": ...,
                             "copr_projectname": ...,
                             "vendor": ...}
         :param multiprocessing.Lock lock: instance of Lock shared between
             Copr backend process
-        :param bool do_sign: enable package signing, require configured
-            signer host and correct /etc/sign.conf
+        :param DefaultCallback callback: build progress handler
 
-        :param str front_url: url to the copr frontend
+        :param Bunch opts: builder options, used keys::
+            :ivar build_user: user to run as/connect as on builder systems
+            :ivar do_sign: enable package signing, require configured
+                signer host and correct /etc/sign.conf
+            :ivar frontend_base_url: url to the copr frontend
+            :ivar results_base_url: base url for the built results
+            :ivar remote_basedir: basedir on builder
+            :ivar remote_tempdir: tempdir on builder
 
+        # Removed:
+        # :param cont: if a pkg fails to build, continue to the next one--
+        # :param bool recurse: if more than one pkg and it fails to build,
+        #                      try to build the rest and come back to it
         """
+        self.opts = Bunch(
+            do_sign=False,
+            frontend_base_url=None,
+            results_base_url=u"",
+            build_user=DEF_BUILD_USER,
+            remote_basedir=DEF_REMOTE_BASEDIR,
+            remote_tempdir=None,
+        )
+        if opts:
+            self.opts.update(opts)
 
         self.max_retry_count = 2  # TODO: add config option
-        if repos is None:
-            repos = DEF_REPOS
-        if macros is None:
-            macros = DEF_MACROS
 
         self.job = job
-        self.repos = repos
+        self.repos = repos or DEF_REPOS
 
         # TODO: remove or re-implement
         # self.cont = cont    # unused since we build only one pkg at time
         # self.recurse = recurse
 
         self.callback = callback
-        self.remote_basedir = remote_basedir
-        self.remote_tempdir = remote_tempdir
-        self.macros = macros
+        self.macros = macros or DEF_MACROS
         self.lock = lock
-        self.do_sign = do_sign
-        self.front_url = front_url
-        self.results_base_url = results_base_url or u''
 
         if not self.callback:
             self.callback = DefaultCallBack()
 
         self.callback.log("Setting up builder: {0}".format(builder_host))
-        self.builder = Builder(hostname=builder_host, username=user, chroot=self.job.chroot,
+        self.builder = Builder(hostname=builder_host,
+                               username=self.opts.build_user,
+                               chroot=self.job.chroot,
                                timeout=self.job.timeout or DEF_TIMEOUT,
                                buildroot_pkgs=self.job.buildroot_pkgs,
                                callback=self.callback,
-                               remote_basedir=self.remote_basedir,
-                               remote_tempdir=self.remote_tempdir,
+                               remote_basedir=self.opts.remote_basedir,
+                               remote_tempdir=self.opts.remote_tempdir,
                                macros=self.macros, repos=self.repos)
         self.builder.check()
 
@@ -138,8 +148,7 @@ class MockRemote(object):
         self.failed = []
         self.finished = []
 
-        #self.built_packages = []
-        self.callback.log("self dict: {}".format(self.__dict__))
+        # self.callback.log("self dict: {}".format(self.__dict__))
 
     @property
     def chroot_dir(self):
@@ -201,7 +210,7 @@ class MockRemote(object):
                              get_target_dir(self.chroot_dir, self.pkg),
                              callback=self.callback)
         except Exception as e:
-            self.callback.log(
+            self.callback.error(
                 "failed to sign packages "
                 "built from `{}` with error: \n"
                 "{}".format(self.pkg, e)
@@ -225,16 +234,16 @@ class MockRemote(object):
         r_log.close()
 
     def do_createrepo(self):
-        base_url = "/".join([self.results_base_url, self.job.project_owner,
+        base_url = "/".join([self.opts.results_base_url, self.job.project_owner,
                              self.job.project_name, self.job.chroot])
         self.callback.log("Createrepo:: owner:  {}; project: {}; "
                           "front url: {}; path: {}; base_url: {}"
                           .format(self.job.project_owner, self.job.project_name,
-                                  self.front_url, self.chroot_dir, base_url))
+                                  self.opts.frontend_base_url, self.chroot_dir, base_url))
 
         _, _, err = createrepo(
             path=self.chroot_dir,
-            front_url=self.front_url,
+            front_url=self.opts.frontend_base_url,
             base_url=base_url,
             username=self.job.project_owner,
             projectname=self.job.project_name,
@@ -251,7 +260,7 @@ class MockRemote(object):
     def on_success_build(self):
         self.callback.log("Success building {0}".format(os.path.basename(self.pkg)))
 
-        if self.do_sign:
+        if self.opts.do_sign:
             self.sign_built_packages()
 
         # self.built_packages.append(self.pkg)
@@ -271,6 +280,7 @@ class MockRemote(object):
 
     def build_pkg_and_process_results(self):
         self.prepare_build_dir()
+        self.mark_dir_with_build_id()
 
         # building
         self.callback.start_build(self.pkg)
@@ -279,8 +289,8 @@ class MockRemote(object):
 
         # downloading
         self.callback.start_download(self.pkg)
-        d_ret, d_out, d_err = self.builder.download(self.pkg, self.chroot_dir)
-        if not d_ret:
+        d_success, d_out, d_err = self.builder.download(self.pkg, self.chroot_dir)
+        if not d_success:
             raise MockRemoteError(
                 "Failure to download {0}: {1}".format(self.pkg, d_out + d_err))
 
@@ -288,7 +298,6 @@ class MockRemote(object):
         self.log_to_file_safe(os.path.join(self.chroot_dir, "mockchain.log"),
                               ["\n\n{0}\n\n".format(self.pkg), b_out], [b_err])
 
-        self.mark_dir_with_build_id()
         if b_status:
             self.on_success_build()
             return build_details

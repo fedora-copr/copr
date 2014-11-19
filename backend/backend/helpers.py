@@ -12,6 +12,8 @@ import sys
 import time
 
 from bunch import Bunch
+import datetime
+from backend.constants import DEF_BUILD_USER
 from copr.client import CoprClient
 
 from .exceptions import CoprBackendError
@@ -103,6 +105,9 @@ class BackendConfigReader(object):
         opts.do_sign = _get_conf(
             cp, "backend", "do_sign", False, mode="bool")
 
+        opts.build_user = _get_conf(
+            cp, "backend", "build_user", DEF_BUILD_USER)
+
         opts.build_groups_count = _get_conf(
             cp, "backend", "build_groups", 1, mode="int")
 
@@ -171,7 +176,7 @@ def get_auto_createrepo_status(front_url, username, projectname):
 
 def log(lf, msg, quiet=None):
     if lf:
-        now = time.time()
+        now = datetime.datetime.utcnow().isoformat()
         try:
             with open(lf, "a") as lfh:
                 fcntl.flock(lfh, fcntl.LOCK_EX)

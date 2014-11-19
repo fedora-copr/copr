@@ -30,7 +30,7 @@ class DefaultCallBack(object):
 class CliLogCallBack(DefaultCallBack):
 
     def __init__(self, **kwargs):
-        DefaultCallBack.__init__(self, **kwargs)
+        super(CliLogCallBack, self).__init__(**kwargs)
 
     def start_build(self, pkg):
         msg = "Start build: {0}".format(pkg)

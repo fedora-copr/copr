@@ -33,10 +33,11 @@ class Builder(object):
         self._remote_tempdir = remote_tempdir
         self._remote_basedir = remote_basedir
         # if we're at this point we've connected and done stuff on the host
-        #  TODO: maybe do this lazy ?
         self.conn = _create_ans_conn(
             self.hostname, self.username, self.timeout)
         self.root_conn = _create_ans_conn(self.hostname, "root", self.timeout)
+
+        # self.callback.log("Created builder: {}".format(self.__dict__))
 
         # Before use: check out the host - make sure it can build/be contacted/etc
         # self.check()

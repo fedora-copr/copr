@@ -571,16 +571,17 @@ class Worker(multiprocessing.Process):
                         mr = MockRemote(
                             builder_host=ip,
                             job=job,
-                            cont=True,
-                            recurse=True,
                             repos=chroot_repos,
                             macros=macros,
                             lock=self.lock,
-                            do_sign=self.opts.do_sign,
+
                             callback=CliLogCallBack(
                                 quiet=True, logfn=chrootlogfile),
-                            front_url=self.opts.frontend_base_url,
-                            results_base_url=self.opts.results_baseurl
+
+                            opts=self.opts,
+                            # do_sign=self.opts.do_sign,
+                            # front_url=self.opts.frontend_base_url,
+                            # results_base_url=self.opts.results_baseurl
                         )
 
                         build_details = mr.build_pkgs()
@@ -594,11 +595,6 @@ class Worker(multiprocessing.Process):
                         # record and break
                         self.callback.log("{0} - {1}".format(ip, e))
                         status = 0  # failure
-                    # else:
-                    #     # we can"t really trace back if we just fail normally
-                    #     # check if any pkgs didn"t build
-                    #     if mr.failed:
-                    #         status = 0  # failure
 
                     self.callback.log(
                         "Finished build: id={0} builder={1}"

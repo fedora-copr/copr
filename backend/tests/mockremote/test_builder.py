@@ -34,7 +34,6 @@ def noop(*args, **kwargs):
     pass
 
 
-
 def print_all(*args, **kwargs):
     pprint(args)
     pprint(kwargs)
