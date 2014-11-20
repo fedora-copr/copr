@@ -44,7 +44,6 @@ setup(
     ],
     install_requires=requires,
     packages=['copr_cli'],
-    namespace_packages=['copr_cli'],
     include_package_data=True,
     zip_safe=False,
     entry_points={

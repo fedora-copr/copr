@@ -87,8 +87,7 @@ class Commands(object):
         """
          :param builds_list: list of BuildWrapper
          """
-        print("Watching build(s): {}\n this may be safely interrupted)".format(
-            [b.build_id for b in builds_list]))
+        print("Watching build(s): (this may be safely interrupted)")
 
         prevstatus = defaultdict(lambda: None)
         failed_ids = []
@@ -154,11 +153,10 @@ class Commands(object):
             return
         print(result.message)
 
-        print("Created builds: {0}".format(" ".join(map(str, result.builds_list))))
+        build_ids = [bw.build_id for bw in result.builds_list]
+        print("Created builds: {}".format(" ".join(map(str, build_ids))))
 
         if not args.nowait:
-            print("\n called")
-
             self._watch_builds(result.builds_list)
 
     @requires_api_auth
