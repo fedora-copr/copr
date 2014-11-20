@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.53
+Version:    1.54
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -165,6 +165,10 @@ popd
 %endif
 
 %changelog
+* Thu Nov 20 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.54-1
+- fixed poor decision abou CoprClient constructor, now it accepts
+  kwargs arguments instead of config dict
+
 * Mon Nov 03 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.53-1
 - [python-copr] syntax bugfix
 
