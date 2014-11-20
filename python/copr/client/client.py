@@ -6,6 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import sys
 import os
 import logging
 
@@ -15,8 +16,15 @@ import six
 from six.moves import configparser
 
 
+if sys.version_info < (2, 7):
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+else:
+    from logging import NullHandler
+
 log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log.addHandler(NullHandler())
 
 from .exceptions import CoprConfigException, CoprNoConfException, \
     CoprRequestException, \
