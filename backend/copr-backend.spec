@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.46
+Version:    1.47
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -180,6 +180,12 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Nov 20 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.47-1
+- refactored mockremote, added  explicit BuildJob class
+- allow to spawn builder in advance
+- copr-prune-repo respects auto_createrepo option
+- bugfix: repeated config reads produced constantly growing lists
+
 * Fri Oct 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.46-1
 - [backend] added handling of new action type: "createrepo"
 - [backend] added dependency on `python-copr`
