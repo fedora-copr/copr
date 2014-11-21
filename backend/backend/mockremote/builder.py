@@ -37,7 +37,7 @@ class Builder(object):
             self.hostname, self.username, self.timeout)
         self.root_conn = _create_ans_conn(self.hostname, "root", self.timeout)
 
-        # self.callback.log("Created builder: {}".format(self.__dict__))
+        self.callback.log("Created builder: {}".format(self.__dict__))
 
         # Before use: check out the host - make sure it can build/be contacted/etc
         # self.check()
@@ -239,7 +239,6 @@ class Builder(object):
         # return success/failure,stdout,stderr of build command
         # returns success_bool, out, err
 
-        success = False
         build_details = {}
         self.modify_base_buildroot()
 
@@ -266,12 +265,13 @@ class Builder(object):
             return_on_error=["stdout", "stderr"])
 
         if is_err:
-            return (success, err_results.get("stdout", ""),
+            return (False, err_results.get("stdout", ""),
                     err_results.get("stderr", ""), build_details)
 
         # we know the command ended successfully but not if the pkg built
         # successfully
         err, is_err, out = self.check_build_success(pkg, results)
+        success = False
         if not is_err:
             success = True
             self.collect_built_packages(build_details, pkg)

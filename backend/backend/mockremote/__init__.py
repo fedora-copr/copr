@@ -148,7 +148,7 @@ class MockRemote(object):
         self.failed = []
         self.finished = []
 
-        # self.callback.log("self dict: {}".format(self.__dict__))
+        self.callback.log("self dict: {}".format(self.__dict__))
 
     @property
     def chroot_dir(self):
@@ -285,11 +285,13 @@ class MockRemote(object):
         # building
         self.callback.start_build(self.pkg)
         b_status, b_out, b_err, build_details = self.builder.build(self.pkg)
+        self.callback.log("builder.build output: {}".format((b_status, b_out, b_err, build_details)))
         self.callback.end_build(self.pkg)
 
         # downloading
         self.callback.start_download(self.pkg)
         d_success, d_out, d_err = self.builder.download(self.pkg, self.chroot_dir)
+        self.callback.log("builder.download output {}".format((d_success, d_out, d_err)))
         if not d_success:
             raise MockRemoteError(
                 "Failure to download {0}: {1}".format(self.pkg, d_out + d_err))
