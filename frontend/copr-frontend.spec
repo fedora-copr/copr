@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.47
+Version:    1.48
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -167,6 +167,11 @@ service httpd condrestart
 %doc %{_pkgdocdir}/python-doc
 
 %changelog
+* Mon Nov 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.48-1
+- [frontend] fixed paramater validation for API hanlde `create_new_copr`
+- [frontend] show "createrepo" action only when user disable auto_createrepo
+- [frontend] removed hardcoded frontend url from /api page.
+
 * Fri Oct 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.47-1
 - [frontend] sending createrepo action
 - [frontend] [html]  new option to configure copr->auto_creatrepo
