@@ -10,6 +10,7 @@ from coprs import db
 from coprs import helpers
 from coprs import models
 from coprs import oid
+from coprs.logic.users_logic import UsersLogic
 
 
 def fed_openidize_name(name):
@@ -189,16 +190,15 @@ def api_login_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
         token = None
-        username = None
+        apt_login = None
         if "Authorization" in flask.request.headers:
             base64string = flask.request.headers["Authorization"]
             base64string = base64string.split()[1].strip()
             userstring = base64.b64decode(base64string)
-            (username, token) = userstring.split(":")
+            (apt_login, token) = userstring.split(":")
         token_auth = False
-        if token and username:
-            user = models.User.query.filter(
-                models.User.api_login == username).first()
+        if token and apt_login:
+            user = UsersLogic.get_by_api_login(apt_login).first()
             if (user and user.api_token == token and
                     user.api_token_expiration >= datetime.date.today()):
 

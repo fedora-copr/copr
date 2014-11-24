@@ -125,7 +125,10 @@ class CoprFormFactory(object):
                 validators=[UrlListValidator()],
                 filters=[StringListFilter()])
 
-            auto_createrepo = wtforms.BooleanField(default=True)
+            # FIXME: false_values used for API, json API shouldn't not be
+            # validated in the same way as plain POST requests
+            auto_createrepo = wtforms.BooleanField(
+                default=True, false_values=["", "false", False])
 
             @property
             def selected_chroots(self):

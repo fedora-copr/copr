@@ -80,7 +80,6 @@ class TestHelpers(CoprsTestCase):
         https_url = "https://example.com/repo"
 
         orig = app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"]
-        print("Orig: {}".format(orig))
         try:
             app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = "https"
             assert fix_protocol_for_backend(https_url) == https_url

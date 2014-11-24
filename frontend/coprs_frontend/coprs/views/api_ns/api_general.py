@@ -80,6 +80,9 @@ def api_new_copr(username):
 
     elif form.validate_on_submit():
         infos = []
+        auto_createrepo = form.auto_createrepo.data
+        if "auto_createrepo" not in flask.request.data:
+            auto_createrepo = True
         try:
             copr = coprs_logic.CoprsLogic.add(
                 name=form.name.data.strip(),
@@ -89,7 +92,7 @@ def api_new_copr(username):
                 description=form.description.data,
                 instructions=form.instructions.data,
                 check_for_duplicates=True,
-                auto_createrepo=form.auto_createrepo.data
+                auto_createrepo=auto_createrepo
             )
             infos.append("New project was successfully created.")
 

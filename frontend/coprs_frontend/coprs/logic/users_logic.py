@@ -1,7 +1,17 @@
 from coprs import exceptions
 
+from coprs.models import User
+
 
 class UsersLogic(object):
+
+    @classmethod
+    def get(cls, username):
+        return User.query.filter(User.username == username)
+
+    @classmethod
+    def get_by_api_login(cls, login):
+        return User.query.filter(User.api_login == login)
 
     @classmethod
     def raise_if_cant_update_copr(cls, user, copr, message):
