@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.48
+Version:    1.49
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -180,6 +180,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Nov 25 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.49-1
+- [backend] small bug in dispatcher
+
 * Tue Nov 25 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.48-1
 - bugfixes, disabled debug prints, fixed PEP8 violations
 
