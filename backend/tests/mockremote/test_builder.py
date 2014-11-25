@@ -39,6 +39,10 @@ def print_all(*args, **kwargs):
     pprint(kwargs)
 
 
+def assert_in_log(msg, log_list):
+    assert any(msg in record for record in log_list)
+
+
 class TestBuilder(object):
     BUILDER_BUILDROOT_PKGS = []
     BUILDER_CHROOT = "fedora-20-i386"
@@ -439,7 +443,8 @@ class TestBuilder(object):
 
         builder.modify_base_buildroot()
 
-        assert "putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs) in self._cb_log[0]
+        assert_in_log("putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs),
+                      self._cb_log)
 
         assert not builder.conn.run.called
         assert builder.root_conn.run.called
@@ -451,8 +456,7 @@ class TestBuilder(object):
         ).format(self.BUILDER_CHROOT, br_pkgs)
         assert builder.root_conn.module_args == expected
 
-        assert len(self._cb_log) == 3
-        assert "Error: " in self._cb_log[1]
+        assert_in_log("Error: ", self._cb_log[1:])
 
     def test_modify_base_buildroot(self, ):
         builder = self.get_test_builder()
@@ -465,7 +469,8 @@ class TestBuilder(object):
 
         builder.modify_base_buildroot()
 
-        assert "putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs) in self._cb_log[0]
+        assert_in_log("putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs),
+                      self._cb_log)
 
         assert not builder.conn.run.called
         assert builder.root_conn.run.called
@@ -477,11 +482,8 @@ class TestBuilder(object):
         ).format(self.BUILDER_CHROOT, br_pkgs)
         assert builder.root_conn.module_args == expected
 
-        assert len(self._cb_log) == 1
-
     def test_collect_build_packages(self):
         builder = self.get_test_builder()
-
 
         bd = {}
         stdout = "stdout"
@@ -498,7 +500,6 @@ class TestBuilder(object):
             "done".format(builder._get_remote_pkg_dir(self.BUILDER_PKG_BASE))
         )
         assert builder.conn.module_args == expected
-        assert len(self._cb_log) == 2
 
     @mock.patch("backend.mockremote.builder.check_for_ans_error")
     def test_check_build_success(self, mc_check_for_ans_errror):
