@@ -47,6 +47,8 @@ class BuildJob(object):
             setattr(self, key, val)
 
         self.pkg = task_data["pkgs"].split(" ")[0]  # just for now
+        del self.pkgs  # better to produce error, than use it blindly
+
         self.repos = [r for r in task_data["repos"].split(" ") if r.strip()]
         self.build_id = task_data["build_id"]
 

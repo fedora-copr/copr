@@ -16,6 +16,7 @@
 # copyright 2012 Red Hat, Inc.
 
 
+# Original approach was:
 # take list of pkgs
 # take single hostname
 # send 1 pkg at a time to host
@@ -23,6 +24,8 @@
 # rsync results back
 # repeat
 # take args from mockchain (more or less)
+
+# now we build only one package per MockRemote instance
 
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -307,7 +310,7 @@ class MockRemote(object):
             raise MockRemoteError("Error occurred during build{0}"
                                   .format(os.path.basename(self.pkg)))
 
-    def build_pkgs(self):
+    def build_pkg(self):
         """Build pkg defined in self.job
 
 

@@ -1,18 +1,10 @@
-__author__ = 'vgologuz'
-
 import os
-
-from collections import defaultdict
-import json
-from pprint import pprint
-from _pytest.capture import capsys
-import pytest
 import copy
 import tempfile
 import shutil
+import time
 
 import six
-import time
 
 if six.PY3:
     from unittest import mock

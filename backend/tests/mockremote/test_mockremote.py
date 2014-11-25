@@ -292,7 +292,7 @@ class TestMockRemote(object):
         self.mr.build_pkg_and_process_results.side_effect = [
             MockRemoteError(err_msg), build_details]
 
-        result = self.mr.build_pkgs()
+        result = self.mr.build_pkg()
         assert result == build_details
         assert err_msg in self._cb_log["error"][-1]
 
@@ -303,4 +303,4 @@ class TestMockRemote(object):
         self.mr.build_pkg_and_process_results.side_effect = MockRemoteError(err_msg)
 
         with pytest.raises(MockRemoteError):
-            self.mr.build_pkgs()
+            self.mr.build_pkg()

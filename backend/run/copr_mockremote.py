@@ -150,7 +150,7 @@ def main(args):
         if not opts.quiet:
             print("Building {0} pkgs".format(len(pkgs)))
 
-        mr.build_pkgs()
+        mr.build_pkg()
 
         if not opts.quiet:
             print("Output written to: {0}".format(opts.destdir))

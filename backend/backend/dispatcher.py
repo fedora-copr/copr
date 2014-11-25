@@ -417,17 +417,16 @@ class Worker(multiprocessing.Process):
         return response
 
     @classmethod
-    def pkg_built_before(cls, pkgs, chroot, destdir):
+    def pkg_built_before(cls, pkg, chroot, destdir):
         """
         Check whether the package has already been built in this chroot.
         """
-        s_pkg = os.path.basename(pkgs[0])
+        s_pkg = os.path.basename(pkg)
         pdn = s_pkg.replace(".src.rpm", "")
         resdir = "{0}/{1}/{2}".format(destdir, chroot, pdn)
         resdir = os.path.normpath(resdir)
-        if os.path.exists(resdir):
-            if os.path.exists(os.path.join(resdir, "success")):
-                return True
+        if os.path.exists(resdir) and os.path.exists(os.path.join(resdir, "success")):
+            return True
         return False
 
     def __spawn_with_check(self, job):
@@ -494,11 +493,11 @@ class Worker(multiprocessing.Process):
                     "failed to initialize fedmsg: {0}".format(e))
 
             # Checking whether to build or skip
-            if self.pkg_built_before(job.pkgs, job.chroot, job.destdir):
+            if self.pkg_built_before(job.pkg, job.chroot, job.destdir):
                 self._announce_start(job)
                 self.callback.log(
                     "Skipping: package {0} has been already built before."
-                    .format(' '.join(job.pkgs)))
+                    .format(' '.join(job.pkg)))
 
                 job.status = 5  # skipped
                 self._announce_end(job)
@@ -584,7 +583,7 @@ class Worker(multiprocessing.Process):
                             # results_base_url=self.opts.results_baseurl
                         )
 
-                        build_details = mr.build_pkgs()
+                        build_details = mr.build_pkg()
 
                         if self.opts.do_sign:
                             mr.add_pubkey()
