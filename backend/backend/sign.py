@@ -113,8 +113,11 @@ def sign_rpms_in_dir(username, projectname, path, opts, callback=None):
     rpm_list = [
         os.path.join(path, filename)
         for filename in os.listdir(path)
-        if filename.endswith("rpm")
+        if filename.endswith(".rpm")
     ]
+
+    if not rpm_list:
+        return
 
     try:
         get_pubkey(username, projectname)
@@ -135,8 +138,8 @@ def sign_rpms_in_dir(username, projectname, path, opts, callback=None):
             errors.append((rpm, e))
 
     if errors:
-        raise MockRemoteError("Rpm sign failed, affected rpms: {}"
-                              .format([err[0] for err in errors]))
+        raise CoprSignError("Rpm sign failed, affected rpms: {}"
+                            .format([err[0] for err in errors]))
 
 
 def create_user_keys(username, projectname, opts):

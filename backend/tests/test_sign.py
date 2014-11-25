@@ -1,0 +1,296 @@
+import os
+
+from collections import defaultdict
+import json
+from pprint import pprint
+from _pytest.capture import capsys
+from bunch import Bunch
+import pytest
+import copy
+import tempfile
+import shutil
+
+import six
+import time
+from backend.exceptions import CoprSignError, CoprSignNoKeyError, CoprKeygenRequestError
+
+if six.PY3:
+    from unittest import mock
+    from unittest.mock import MagicMock
+else:
+    import mock
+    from mock import MagicMock
+
+from backend.sign import get_pubkey, _sign_one, sign_rpms_in_dir, create_user_keys
+
+
+STDOUT = "stdout"
+STDERR = "stderr"
+
+
+class TestSign(object):
+
+    def setup_method(self, method):
+        self.username = "foo"
+        self.projectname = "bar"
+
+        self.usermail = "foo_bar@copr.fedorahosted.org"
+        self.test_time = time.time()
+        self.tmp_dir_path = None
+
+        self.opts = Bunch(keygen_host="example.com")
+
+    def teardown_method(self, method):
+        if self.tmp_dir_path:
+            shutil.rmtree(self.tmp_dir_path)
+
+    @pytest.fixture
+    def tmp_dir(self):
+        subdir = "test_createrepo_{}".format(time.time())
+        self.tmp_dir_path = os.path.join(tempfile.gettempdir(), subdir)
+        os.mkdir(self.tmp_dir_path)
+
+    @pytest.fixture
+    def tmp_files(self):
+        # ! require tmp_dir created before
+        self.file_names = ["foo.rpm", "bar.rpm", "bad", "morebadrpm"]
+        for name in self.file_names:
+            path = os.path.join(self.tmp_dir_path, name)
+            with open(path, "w") as handle:
+                handle.write("1")
+
+    @mock.patch("backend.sign.Popen")
+    def test_get_pubkey(self, mc_popen):
+        mc_handle = MagicMock()
+        mc_handle.communicate.return_value = (STDOUT, STDERR)
+        mc_handle.returncode = 0
+        mc_popen.return_value = mc_handle
+
+        result = get_pubkey(self.username, self.projectname)
+        assert result == STDOUT
+        assert mc_popen.call_args[0][0] == ['sudo', '/bin/sign', '-u', self.usermail, '-p']
+
+
+    @mock.patch("backend.sign.Popen")
+    def test_get_pubkey_error(self, mc_popen):
+        mc_popen.side_effect = IOError(STDERR)
+
+        with pytest.raises(CoprSignError):
+            get_pubkey(self.username, self.projectname)
+
+
+    @mock.patch("backend.sign.Popen")
+    def test_get_pubkey_unknown_key(self, mc_popen):
+        mc_handle = MagicMock()
+        mc_handle.communicate.return_value = (STDOUT, "unknown key: foobar")
+        mc_handle.returncode = 1
+        mc_popen.return_value = mc_handle
+
+        with pytest.raises(CoprSignNoKeyError):
+            get_pubkey(self.username, self.projectname)
+
+    @mock.patch("backend.sign.Popen")
+    def test_get_pubkey_unknown_error(self, mc_popen):
+        mc_handle = MagicMock()
+        mc_handle.communicate.return_value = (STDOUT, STDERR)
+        mc_handle.returncode = 1
+        mc_popen.return_value = mc_handle
+
+        with pytest.raises(CoprSignError):
+            get_pubkey(self.username, self.projectname)
+
+    @mock.patch("backend.sign.Popen")
+    def test_get_pubkey_outfile(self, mc_popen, tmp_dir):
+        mc_handle = MagicMock()
+        mc_handle.communicate.return_value = (STDOUT, STDERR)
+        mc_handle.returncode = 0
+        mc_popen.return_value = mc_handle
+
+        outfile_path = os.path.join(self.tmp_dir_path, "out.pub")
+        assert not os.path.exists(outfile_path)
+        result = get_pubkey(self.username, self.projectname, outfile_path)
+        assert result == STDOUT
+        assert os.path.exists(outfile_path)
+        with open(outfile_path) as handle:
+            content = handle.read()
+            assert STDOUT == content
+
+    @mock.patch("backend.sign.Popen")
+    def test_sign_one(self, mc_popen):
+        mc_handle = MagicMock()
+        mc_handle.communicate.return_value = (STDOUT, STDERR)
+        mc_handle.returncode = 0
+        mc_popen.return_value = mc_handle
+
+        fake_path = "/tmp/pkg.rpm"
+        result = _sign_one(fake_path, self.usermail)
+        assert STDOUT, STDERR == result
+
+        expected_cmd = ['sudo', '/bin/sign', '-u', self.usermail, '-r', fake_path]
+        assert mc_popen.call_args[0][0] == expected_cmd
+
+    @mock.patch("backend.sign.Popen")
+    def test_sign_one_popen_error(self, mc_popen):
+        mc_popen.side_effect = IOError()
+
+        fake_path = "/tmp/pkg.rpm"
+        with pytest.raises(CoprSignError):
+             _sign_one(fake_path, self.usermail)
+
+        mc_cb = MagicMock()
+
+        with pytest.raises(CoprSignError):
+             _sign_one(fake_path, self.usermail, mc_cb)
+        assert isinstance(mc_cb.error.call_args[0][0], CoprSignError)
+
+    @mock.patch("backend.sign.Popen")
+    def test_sign_one_cmd_erro(self, mc_popen):
+        mc_handle = MagicMock()
+        mc_handle.communicate.return_value = (STDOUT, STDERR)
+        mc_handle.returncode = 1
+        mc_popen.return_value = mc_handle
+
+
+        fake_path = "/tmp/pkg.rpm"
+        with pytest.raises(CoprSignError):
+             _sign_one(fake_path, self.usermail)
+
+        mc_cb = MagicMock()
+
+        with pytest.raises(CoprSignError):
+             _sign_one(fake_path, self.usermail, mc_cb)
+        assert isinstance(mc_cb.error.call_args[0][0], CoprSignError)
+
+    @mock.patch("backend.sign.request")
+    def test_create_user_keys(self, mc_request):
+        mc_request.return_value.status_code = 200
+        create_user_keys(self.username, self.projectname, self.opts)
+
+        assert mc_request.called
+        expected_call = mock.call(
+            url="http://example.com/gen_key",
+            data='{"name_real": "foo_bar", "name_email": "foo_bar@copr.fedorahosted.org"}',
+            method="post"
+        )
+        assert mc_request.call_args == expected_call
+
+    @mock.patch("backend.sign.request")
+    def test_create_user_keys_error_1(self, mc_request):
+        mc_request.side_effect = IOError()
+        with pytest.raises(CoprKeygenRequestError):
+            create_user_keys(self.username, self.projectname, self.opts)
+
+
+    @mock.patch("backend.sign.request")
+    def test_create_user_keys(self, mc_request):
+        for code in [400, 401, 404, 500, 599]:
+            mc_request.return_value.status_code = code
+
+            with pytest.raises(CoprKeygenRequestError):
+                create_user_keys(self.username, self.projectname, self.opts)
+
+
+    @mock.patch("backend.sign._sign_one")
+    @mock.patch("backend.sign.create_user_keys")
+    @mock.patch("backend.sign.get_pubkey")
+    def test_sign_rpms_id_dir_nothing(self, mc_gp, mc_cuk, mc_so,
+                                      tmp_dir):
+        # empty target dir doesn't produce error
+        sign_rpms_in_dir(self.username, self.projectname,
+                         self.tmp_dir_path, self.opts)
+
+        assert not mc_gp.called
+        assert not mc_cuk.called
+        assert not mc_so.called
+
+    @mock.patch("backend.sign._sign_one")
+    @mock.patch("backend.sign.create_user_keys")
+    @mock.patch("backend.sign.get_pubkey")
+    def test_sign_rpms_id_dir_ok(self, mc_gp, mc_cuk, mc_so,
+                                      tmp_dir, tmp_files):
+        mc_cb = MagicMock()
+        sign_rpms_in_dir(self.username, self.projectname,
+                         self.tmp_dir_path, self.opts, callback=mc_cb)
+
+        assert mc_gp.called
+        assert not mc_cuk.called
+        assert mc_so.called
+
+        pathes = [call[0][0] for call in mc_so.call_args_list]
+        count = 0
+        for name in self.file_names:
+            if name.endswith(".rpm"):
+                count += 1
+                assert os.path.join(self.tmp_dir_path, name) in pathes
+        assert len(pathes) == count
+
+    @mock.patch("backend.sign._sign_one")
+    @mock.patch("backend.sign.create_user_keys")
+    @mock.patch("backend.sign.get_pubkey")
+    def test_sign_rpms_id_dir_error_on_pubkey(
+            self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
+
+        mc_gp.side_effect = CoprSignError("foobar")
+        mc_cb = MagicMock()
+        with pytest.raises(CoprSignError):
+            sign_rpms_in_dir(self.username, self.projectname,
+                             self.tmp_dir_path, self.opts, callback=mc_cb)
+
+        assert mc_gp.called
+        assert not mc_cuk.called
+        assert not mc_so.called
+
+    @mock.patch("backend.sign._sign_one")
+    @mock.patch("backend.sign.create_user_keys")
+    @mock.patch("backend.sign.get_pubkey")
+    def test_sign_rpms_id_dir_no_pub_key(
+            self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
+
+        mc_gp.side_effect = CoprSignNoKeyError("foobar")
+        mc_cb = MagicMock()
+
+        sign_rpms_in_dir(self.username, self.projectname,
+                         self.tmp_dir_path, self.opts, callback=mc_cb)
+
+        assert mc_gp.called
+        assert mc_cuk.called
+        assert mc_so.called
+
+    @mock.patch("backend.sign._sign_one")
+    @mock.patch("backend.sign.create_user_keys")
+    @mock.patch("backend.sign.get_pubkey")
+    def test_sign_rpms_id_dir_sign_error_one(
+            self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
+
+        mc_cb = MagicMock()
+
+        mc_so.side_effect = [
+            None, CoprSignError("foobar"), None
+        ]
+        with pytest.raises(CoprSignError):
+            sign_rpms_in_dir(self.username, self.projectname,
+                             self.tmp_dir_path, self.opts, callback=mc_cb)
+
+        assert mc_gp.called
+        assert not mc_cuk.called
+
+        assert mc_so.called
+
+    @mock.patch("backend.sign._sign_one")
+    @mock.patch("backend.sign.create_user_keys")
+    @mock.patch("backend.sign.get_pubkey")
+    def test_sign_rpms_id_dir_sign_error_all(
+            self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
+
+        mc_cb = MagicMock()
+
+        mc_so.side_effect = CoprSignError("foobar")
+        with pytest.raises(CoprSignError):
+            sign_rpms_in_dir(self.username, self.projectname,
+                             self.tmp_dir_path, self.opts, callback=mc_cb)
+
+        assert mc_gp.called
+        assert not mc_cuk.called
+
+        assert mc_so.called
+
