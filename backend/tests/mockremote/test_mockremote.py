@@ -90,7 +90,6 @@ class TestMockRemote(object):
         self.PKG_NAME = "foobar"
         self.PKG_VERSION = "1.2.3"
 
-
         self.HOST = "127.0.0.1"
         self.SRC_PKG_URL = "http://example.com/{}-{}.src.rpm".format(self.PKG_NAME, self.PKG_VERSION)
         self.JOB = BuildJob({

@@ -41,7 +41,15 @@ else:
 
 
 RESULTS_ROOT_URL = "http://example.com/results"
+STDOUT = "stdout"
+STDERR = "stderr"
 
+
+def assert_what_from_queue(q, msg_list, who="action"):
+    for msg in msg_list:
+        ev = q.get_nowait()
+        assert ev["who"] == who
+        assert msg in ev["what"]
 
 @mock.patch("backend.actions.time")
 class TestAction(object):
@@ -479,9 +487,133 @@ class TestAction(object):
 
         assert error_event_recorded
 
+    @mock.patch("backend.actions.createrepo_unsafe")
+    def test_handle_createrepo_ok(self, mc_createrepo_unsfe, mc_time):
+        mc_front_cb = MagicMock()
+        tmp_dir = self.make_temp_dir()
+        mc_createrepo_unsfe.return_value = 0, STDOUT, ""
 
-def assert_what_from_queue(q, msg_list, who="action"):
-    for msg in msg_list:
-        ev = q.get_nowait()
-        assert ev["who"] == who
-        assert msg in ev["what"]
+        action_data = json.dumps({
+            "chroots": ["epel-6-i386", "fedora-20-x86_64"],
+            "username": "foo",
+            "projectname": "bar"
+        })
+        test_action = Action(
+            action={
+                "action_type": ActionType.CREATEREPO,
+                "data": action_data,
+                "id": 8
+            },
+            events=self.test_q, lock=None,
+            frontend_callback=mc_front_cb,
+            destdir=tmp_dir,
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
+        )
+        test_action.run()
+
+        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
+
+        assert result_dict["id"] == 8
+        assert result_dict["result"] == ActionResult.SUCCESS
+
+        exp_call_1 = mock.call(lock=None, path=tmp_dir + u'/foo/bar/epel-6-i386')
+        exp_call_2 = mock.call(lock=None, path=tmp_dir + u'/foo/bar/fedora-20-x86_64')
+        assert exp_call_1 in mc_createrepo_unsfe.call_args_list
+        assert exp_call_2 in mc_createrepo_unsfe.call_args_list
+        assert len(mc_createrepo_unsfe.call_args_list) == 2
+
+
+    @mock.patch("backend.actions.createrepo_unsafe")
+    def test_handle_createrepo_failure_1(self, mc_createrepo_unsfe, mc_time):
+        mc_front_cb = MagicMock()
+        tmp_dir = self.make_temp_dir()
+        mc_createrepo_unsfe.return_value = 1, STDOUT, ""
+
+        action_data = json.dumps({
+            "chroots": ["epel-6-i386", "fedora-20-x86_64"],
+            "username": "foo",
+            "projectname": "bar"
+        })
+        test_action = Action(
+            action={
+                "action_type": ActionType.CREATEREPO,
+                "data": action_data,
+                "id": 9
+            },
+            events=self.test_q, lock=None,
+            frontend_callback=mc_front_cb,
+            destdir=tmp_dir,
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
+        )
+        test_action.run()
+
+        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
+
+        assert result_dict["id"] == 9
+        assert result_dict["result"] == ActionResult.FAILURE
+
+    @mock.patch("backend.actions.createrepo_unsafe")
+    def test_handle_createrepo_failure_2(self, mc_createrepo_unsfe, mc_time):
+        mc_front_cb = MagicMock()
+        tmp_dir = self.make_temp_dir()
+        mc_createrepo_unsfe.return_value = 0, STDOUT, STDERR
+
+        action_data = json.dumps({
+            "chroots": ["epel-6-i386", "fedora-20-x86_64"],
+            "username": "foo",
+            "projectname": "bar"
+        })
+        test_action = Action(
+            action={
+                "action_type": ActionType.CREATEREPO,
+                "data": action_data,
+                "id": 10
+            },
+            events=self.test_q, lock=None,
+            frontend_callback=mc_front_cb,
+            destdir=tmp_dir,
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
+        )
+        test_action.run()
+
+        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
+
+        assert result_dict["id"] == 10
+        assert result_dict["result"] == ActionResult.FAILURE
+
+    @mock.patch("backend.actions.createrepo_unsafe")
+    def test_handle_createrepo_failure_3(self, mc_createrepo_unsfe, mc_time):
+        mc_front_cb = MagicMock()
+        tmp_dir = self.make_temp_dir()
+        mc_createrepo_unsfe.side_effect = [
+            (0, STDOUT, ""),
+            (1, STDOUT, STDERR),
+        ]
+
+
+        action_data = json.dumps({
+            "chroots": ["epel-6-i386", "fedora-20-x86_64"],
+            "username": "foo",
+            "projectname": "bar"
+        })
+        test_action = Action(
+            action={
+                "action_type": ActionType.CREATEREPO,
+                "data": action_data,
+                "id": 10
+            },
+            events=self.test_q, lock=None,
+            frontend_callback=mc_front_cb,
+            destdir=tmp_dir,
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
+        )
+        test_action.run()
+
+        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
+
+        assert result_dict["id"] == 10
+        assert result_dict["result"] == ActionResult.FAILURE
