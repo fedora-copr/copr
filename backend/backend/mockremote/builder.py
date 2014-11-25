@@ -37,7 +37,7 @@ class Builder(object):
             self.hostname, self.username, self.timeout)
         self.root_conn = _create_ans_conn(self.hostname, "root", self.timeout)
 
-        self.callback.log("Created builder: {}".format(self.__dict__))
+        # self.callback.log("Created builder: {}".format(self.__dict__))
 
         # Before use: check out the host - make sure it can build/be contacted/etc
         # self.check()
@@ -225,7 +225,6 @@ class Builder(object):
 
             if waited >= self.timeout:
                 self.callback.log("Build timeout expired.")
-                #return False, "", "Timeout expired", build_details
                 raise BuilderTimeOutError("Build timeout expired.")
 
             time.sleep(10)

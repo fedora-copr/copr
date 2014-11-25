@@ -62,7 +62,6 @@ class TestCreateCopr(CoprsTestCase):
         assert copr.owner.id == self.u1.id
         assert copr.auto_createrepo
 
-
     @TransactionDecorator("u1")
     def test_api_create_copr_ok_all(self, f_users, f_mock_chroots, f_db):
         self.db.session.add_all([self.u1, self.mc1])

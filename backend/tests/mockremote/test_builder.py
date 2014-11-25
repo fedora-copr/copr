@@ -77,7 +77,6 @@ class TestBuilder(object):
         self.mc_ansible_runner.side_effect = lambda **kwargs: mock.MagicMock(**kwargs)
 
         self.test_root_path = tempfile.mkdtemp()
-        #print("Temp dir: {}".format(self.test_root_path))
 
         self.mc_callback = mock.MagicMock()
         self._cb_log = []
@@ -89,7 +88,7 @@ class TestBuilder(object):
     @property
     def buildcmd(self):
         return self.gen_mockchain_command(self.BUILDER_PKG)
-    #
+
     def teardown_method(self, method):
         self.mc_ansible_runner_patcher.stop()
         # remote tmp dir
@@ -326,8 +325,6 @@ class TestBuilder(object):
         with pytest.raises(BuilderError) as err:
             builder.checked = False
             builder.check()
-            #print(builder.conn.module_args)
-            #assert "usr/bin/test -f " in builder.conn.module_args
 
         assert "/usr/bin/test -f /usr/bin/mockchain" in self.stage_ctx[1]["conn"].module_args
         assert "/usr/bin/test -f /etc/mock/{}.cfg".format(self.BUILDER_CHROOT) in \
@@ -352,8 +349,6 @@ class TestBuilder(object):
         with pytest.raises(BuilderError) as err:
             builder.checked = False
             builder.check()
-            #print(builder.conn.module_args)
-            #assert "usr/bin/test -f " in builder.conn.module_args
 
         assert "/usr/bin/test -f /usr/bin/mockchain" in self.stage_ctx[1]["conn"].module_args
         assert "/usr/bin/test -f /etc/mock/{}.cfg".format(self.BUILDER_CHROOT) in \
@@ -422,10 +417,10 @@ class TestBuilder(object):
 
         for bad_pkg in [
             "../'HOME-example.src.pkg",
-            # i'm assuming that this also should cause error
-            #"~HOM/E-example.src.pkg; rm -rf",
-            #"../%HOME-example.src.pkg",
-            #"../%HOME-example.src.pkg"
+            # FIXME: i'm assuming that the following should also cause error
+            # "~HOM/E-example.src.pkg; rm -rf",
+            # "../%HOME-example.src.pkg",
+            # "../%HOME-example.src.pkg"
 
         ]:
             with pytest.raises(BuilderError) as err:
@@ -743,6 +738,7 @@ class TestBuilder(object):
 
         # revert to successful check build
         builder.check_build_success.return_value = (self.STDERR, False, self.STDOUT)
+
         # check update build details
         def upd(bd, pkg):
             bd["foo"] = "bar"

@@ -148,7 +148,7 @@ class MockRemote(object):
         self.failed = []
         self.finished = []
 
-        self.callback.log("self dict: {}".format(self.__dict__))
+        # self.callback.log("self dict: {}".format(self.__dict__))
 
     @property
     def chroot_dir(self):

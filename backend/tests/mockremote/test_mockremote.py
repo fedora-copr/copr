@@ -42,8 +42,7 @@ STDERR = "stderr"
 COPR_OWNER = "copr_owner"
 COPR_NAME = "copr_name"
 COPR_VENDOR = "vendor"
-# DESTDIR = "/dev/null"
-# CHROOT =
+
 
 class CallbackTest(DefaultCallBack):
     def __init__(self, log_dict, **kwargs):
@@ -66,8 +65,6 @@ class CallbackTest(DefaultCallBack):
 
 class TestMockRemote(object):
 
-
-
     def get_callback(self):
         self._cb_log = defaultdict(list)
         return CallbackTest(log_dict=self._cb_log)
@@ -77,13 +74,8 @@ class TestMockRemote(object):
         self.mr_cb = self.get_callback()
         patcher = mock.patch("backend.mockremote.Builder")
         self.mc_builder = patcher.start()
-
-
-
-
         self.mr = MockRemote(self.HOST, self.JOB, callback=self.mr_cb,
                              macros=self.MACROS, opts=self.OPTS)
-
         yield
         patcher.stop()
 
@@ -255,7 +247,7 @@ class TestMockRemote(object):
 
         assert self.mr.builder.download.called
         assert self.mr.builder.download.call_args == \
-               mock.call(self.SRC_PKG_URL, self.DESTDIR_CHROOT)
+            mock.call(self.SRC_PKG_URL, self.DESTDIR_CHROOT)
 
         assert self.mr.mark_dir_with_build_id.called
         assert self.mr.on_success_build.called
@@ -313,5 +305,3 @@ class TestMockRemote(object):
 
         with pytest.raises(MockRemoteError):
             self.mr.build_pkgs()
-
-
