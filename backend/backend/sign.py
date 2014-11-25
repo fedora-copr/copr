@@ -19,10 +19,6 @@ from .exceptions import CoprSignError, CoprSignNoKeyError, \
 SIGN_BINARY = "/bin/sign"
 DOMAIN = "fedorahosted.org"
 
-# TODO: discover from config
-# COPR_KEYGEN_URL = "http://127.0.0.1:3872/gen_key"
-COPR_KEYGEN_URL = "http://209.132.184.124/gen_key"
-
 
 def create_gpg_email(username, projectname):
     """
@@ -97,7 +93,7 @@ def _sign_one(path, email, callback=None):
     return stdout, stderr
 
 
-def sign_rpms_in_dir(username, projectname, path, callback=None):
+def sign_rpms_in_dir(username, projectname, path, opts, callback=None):
     """
     Signs rpms using obs-signd.
 
@@ -105,9 +101,11 @@ def sign_rpms_in_dir(username, projectname, path, callback=None):
     but we continue to try sign other pkgs.
 
 
+
     :param username: copr username
     :param projectname: copr projectname
     :param path: directory with rpms to be signed
+    :param Bunch opts: backend config
 
     :param .mockremote.DefaultCallBack callback: object to log progress,
         two methods are utilised: ``log`` and ``error``
@@ -121,7 +119,7 @@ def sign_rpms_in_dir(username, projectname, path, callback=None):
     try:
         get_pubkey(username, projectname)
     except CoprSignNoKeyError:
-        create_user_keys(username, projectname)
+        create_user_keys(username, projectname, opts)
 
     errors = []  # tuples (rpm_filepath, exception)
     for rpm in rpm_list:
@@ -141,13 +139,23 @@ def sign_rpms_in_dir(username, projectname, path, callback=None):
                               .format([err[0] for err in errors]))
 
 
-def create_user_keys(username, projectname):
+def create_user_keys(username, projectname, opts):
+    """
+    Generate a new key-pair at sign host
+
+    :param username:
+    :param projectname:
+    :param opts: backend config
+
+    :return: None
+    """
     data = json.dumps({
         "name_real": "{}_{}".format(username, projectname),
         "name_email": create_gpg_email(username, projectname)
     })
 
-    query = dict(url=COPR_KEYGEN_URL, data=data, method="post")
+    keygen_url = "http://{}/gen_key".format(opts.keygen_host)
+    query = dict(url=keygen_url, data=data, method="post")
     try:
         response = request(**query)
     except Exception as e:

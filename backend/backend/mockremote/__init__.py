@@ -211,7 +211,8 @@ class MockRemote(object):
             sign_rpms_in_dir(self.job.project_owner,
                              self.job.project_name,
                              get_target_dir(self.chroot_dir, self.pkg),
-                             callback=self.callback)
+                             opts=self.opts,
+                             callback=self.callback,)
         except Exception as e:
             self.callback.error(
                 "failed to sign packages "
