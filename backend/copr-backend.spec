@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.47
+Version:    1.48
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -180,6 +180,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Nov 25 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.48-1
+- bugfixes, disabled debug prints, fixed PEP8 violations
+
 * Thu Nov 20 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.47-1
 - refactored mockremote, added  explicit BuildJob class
 - allow to spawn builder in advance
