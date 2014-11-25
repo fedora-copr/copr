@@ -30,7 +30,8 @@ COPR_CONFIG="$(pwd)/frontend/coprs_frontend/config/copr_unit_test.conf"  \
     python -m pytest frontend/coprs_frontend/tests --junitxml=_report/frontend.junit.xml --cov-report xml --cov frontend/coprs_frontend/coprs $@
 mv {,_report/frontend.}coverage.xml
 
-PYTHONPATH=backend/run:backend:python:$PYTHONPATH python -m pytest backend/tests  --junitxml=_report/backend.junit.xml --cov-report xml --cov backend/backend $@
+PYTHONPATH=backend/run:backend:python:$PYTHONPATH python -m pytest backend/tests  --junitxml=_report/backend.junit.xml \
+    --cov-report xml --cov backend/backend --cov backend/run/copr-be.py  --cov backend/run/crop_prune_results.py $@
 mv {,_report/backend.}coverage.xml
 
 PYTHONPATH=python/:cli/:$PYTHONPATH  python -m pytest cli/tests --junitxml=_report/cli.junit.xml --cov-report xml --cov cli/copr_cli $@
