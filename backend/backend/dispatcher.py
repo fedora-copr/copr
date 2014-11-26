@@ -429,7 +429,7 @@ class Worker(multiprocessing.Process):
             return True
         return False
 
-    def __spawn_with_check(self, job):
+    def spawn_instance_with_check(self, job):
         """ Wrapper around self.spawn_instance() with exception checking """
         try:
             ip = self.spawn_instance(job)
@@ -508,7 +508,7 @@ class Worker(multiprocessing.Process):
 
             if self.create and not self.ip:
                 if not self.spawn_in_advance:
-                    ip = self.__spawn_with_check(job)
+                    ip = self.spawn_instance_with_check(job)
                 # else we get ip from similar calling at the enf of this while-loop
             else:
                 ip = self.ip
@@ -611,4 +611,4 @@ class Worker(multiprocessing.Process):
                 if self.create:
                     self.terminate_instance(ip)
             if self.create and not self.ip and self.spawn_in_advance:
-                ip = self.__spawn_with_check(job)
+                ip = self.spawn_instance_with_check(job)
