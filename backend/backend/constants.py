@@ -12,3 +12,9 @@ DEF_BUILD_USER = "mockbuilder"
 DEF_DESTDIR = os.getcwd()
 DEF_MACROS = {}
 DEF_BUILDROOT_PKGS = ""
+
+
+class BuildStatus(object):
+    FAILURE = 0
+    SUCCEEDED = 1
+    SKIPPED = 5

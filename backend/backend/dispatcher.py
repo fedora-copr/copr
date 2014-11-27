@@ -5,30 +5,34 @@ import time
 import fcntl
 import json
 import subprocess
+from subprocess import CalledProcessError
 import multiprocessing
 
 import ansible
 import ansible.runner
 import ansible.utils
 from ansible import callbacks
+from ansible.errors import AnsibleError
 
 from setproctitle import setproctitle
 from IPy import IP
 from retask.queue import Queue
 from backend.mockremote.callback import CliLogCallBack
 
-from .exceptions import MockRemoteError, CoprWorkerError
+from .exceptions import MockRemoteError, CoprWorkerError, CoprWorkerSpawnFailError
 from .job import BuildJob
 
 from .mockremote import MockRemote
 from .callback import FrontendCallback
+from .constants import BuildStatus
 
 ansible_playbook = "ansible-playbook"
 
 try:
     import fedmsg
 except ImportError:
-    pass  # fedmsg is optional
+    # fedmsg is optional
+    fedmsg = None
 
 
 def ans_extra_vars_encode(extra_vars, name):
@@ -36,74 +40,6 @@ def ans_extra_vars_encode(extra_vars, name):
     if not extra_vars:
         return ""
     return "--extra-vars='{{\"{0}\": {1}}}'".format(name, json.dumps(extra_vars))
-
-
-class SilentPlaybookCallbacks(callbacks.PlaybookCallbacks):
-
-    """ playbook callbacks - quietly! """
-
-    def __init__(self, verbose=False):
-        super(SilentPlaybookCallbacks, self).__init__()
-        self.verbose = verbose
-
-    @classmethod
-    def on_start(cls):
-        callbacks.call_callback_module("playbook_on_start")
-
-    @classmethod
-    def on_notify(cls, host, handler):
-        callbacks.call_callback_module("playbook_on_notify", host, handler)
-
-    @classmethod
-    def on_no_hosts_matched(cls):
-        callbacks.call_callback_module("playbook_on_no_hosts_matched")
-
-    @classmethod
-    def on_no_hosts_remaining(cls):
-        callbacks.call_callback_module("playbook_on_no_hosts_remaining")
-
-    @classmethod
-    def on_task_start(cls, name, is_conditional):
-        callbacks.call_callback_module(
-            "playbook_on_task_start", name, is_conditional)
-
-    @classmethod
-    def on_vars_prompt(cls, varname,
-                       private=True, prompt=None, encrypt=None,
-                       confirm=False, salt_size=None, salt=None):
-
-        result = None
-        sys.stderr.write(
-            "***** VARS_PROMPT WILL NOT BE RUN IN THIS KIND OF PLAYBOOK *****\n")
-
-        callbacks.call_callback_module(
-            "playbook_on_vars_prompt", varname, private=private,
-            prompt=prompt, encrypt=encrypt, confirm=confirm,
-            salt_size=salt_size, salt=None)
-
-        return result
-
-    @classmethod
-    def on_setup(cls):
-        callbacks.call_callback_module("playbook_on_setup")
-
-    @classmethod
-    def on_import_for_host(cls, host, imported_file):
-        callbacks.call_callback_module(
-            "playbook_on_import_for_host", host, imported_file)
-
-    @classmethod
-    def on_not_import_for_host(cls, host, missing_file):
-        callbacks.call_callback_module(
-            "playbook_on_not_import_for_host", host, missing_file)
-
-    @classmethod
-    def on_play_start(cls, pattern):
-        callbacks.call_callback_module("playbook_on_play_start", pattern)
-
-    @classmethod
-    def on_stats(cls, stats):
-        callbacks.call_callback_module("playbook_on_stats", stats)
 
 
 class WorkerCallback(object):
@@ -127,7 +63,7 @@ class WorkerCallback(object):
 class Worker(multiprocessing.Process):
 
     def __init__(self, opts, events, worker_num, group_id,
-                 ip=None, create=True, callback=None, lock=None):
+                 callback=None, lock=None):
 
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
@@ -139,15 +75,15 @@ class Worker(multiprocessing.Process):
         self.events = events
         self.worker_num = worker_num
         self.group_id = group_id
-        self.ip = ip
         self.vm_name = None
         self.opts = opts
         self.kill_received = False
-        self.callback = callback
-        self.create = create
+
         self.lock = lock
         self.spawn_in_advance = self.opts.spawn_in_advance
         self.frontend_callback = FrontendCallback(opts, events)
+
+        self.callback = callback
         if not self.callback:
             log_name = "worker-{0}-{1}.log".format(
                 self.opts.build_groups[self.group_id]["name"],
@@ -156,10 +92,7 @@ class Worker(multiprocessing.Process):
             self.logfile = os.path.join(self.opts.worker_logdir, log_name)
             self.callback = WorkerCallback(logfile=self.logfile)
 
-        if ip:
-            self.callback.log("creating worker: {0}".format(ip))
-        else:
-            self.callback.log("creating worker: dynamic ip")
+        self.callback.log("creating worker: dynamic ip")
 
     def event(self, topic, template, content=None):
         """ Multi-purpose logging method.
@@ -175,23 +108,20 @@ class Worker(multiprocessing.Process):
 
         content = content or {}
         what = template.format(**content)
-
-        if self.ip:
-            who = "worker-{0}-{1}".format(self.worker_num, self.ip)
-        else:
-            who = "worker-{0}".format(self.worker_num)
+        who = "worker-{0}".format(self.worker_num)
 
         self.callback.log("event: who: {0}, what: {1}".format(who, what))
         self.events.put({"when": time.time(), "who": who, "what": what})
-        try:
+
+        if self.opts.fedmsg_enabled and fedmsg:
             content["who"] = who
             content["what"] = what
-            if self.opts.fedmsg_enabled:
+            try:
                 fedmsg.publish(modname="copr", topic=topic, msg=content)
-        # pylint: disable=W0703
-        except Exception as e:
-            # XXX - Maybe log traceback as well with traceback.format_exc()
-            self.callback.log("failed to publish message: {0}".format(e))
+            # pylint: disable=W0703
+            except Exception as e:
+                # XXX - Maybe log traceback as well with traceback.format_exc()
+                self.callback.log("failed to publish message: {0}".format(e))
 
     def _announce_start(self, job, ip="none"):
         """
@@ -248,17 +178,16 @@ class Worker(multiprocessing.Process):
 
         command = "{0} {1}".format(ansible_playbook, args)
 
+        result = None
         for i in range(0, attempts):
             try:
-                attempt_desc = ": retry: " if i else ": begin: "
+                attempt_desc = ": retry: " if i > 0 else ": begin: "
                 self.callback.log(name + attempt_desc + command)
-
                 result = subprocess.check_output(command, shell=True)
                 self.callback.log("Raw playbook output:\n{0}\n".format(result))
                 break
 
-            except subprocess.CalledProcessError as e:
-                result = None
+            except CalledProcessError as e:
                 self.callback.log("CalledProcessError: \n{0}\n".format(e.output))
                 sys.stderr.write("{0}\n".format(e.output))
                 # FIXME: this is not purpose of opts.sleeptime
@@ -267,11 +196,75 @@ class Worker(multiprocessing.Process):
         self.callback.log(name + ": end")
         return result
 
+    def validate_new_vm(self, ipaddr):
+        # we were getting some dead instances
+        # that's why I'm testing the connectivity here
+        connection = ansible.runner.Runner(
+            remote_user="root",
+            host_list="{},".format(ipaddr),
+            pattern=ipaddr,
+            forks=1,
+            transport="ssh",
+            timeout=500
+        )
+        connection.module_name = "shell"
+        connection.module_args = "echo hello"
+
+        try:
+            res = connection.run()
+        except Exception as exception:
+            raise CoprWorkerSpawnFailError(
+                "Failed to check created VM ({})"
+                "due to ansible error: {}".format(ipaddr, exception))
+
+        if ipaddr not in res.get("contacted", {}):
+            self.callback.log(
+                "Worker is not responding to"
+                "the testing playbook. Terminating it.")
+            raise CoprWorkerSpawnFailError("Created VM ({}) was unresponsive "
+                                           "and therefore terminated".format(ipaddr))
+
+    def try_spawn(self, args):
+        """
+        Tries to spawn new vm using ansible
+
+        :param args: ansible for ansible command which spawns VM
+        :return str: valid ip address of new machine (nobody guarantee machine availability)
+        """
+        result = self.run_ansible_playbook(args, "spawning instance")
+        if not result:
+            raise CoprWorkerSpawnFailError("No result, trying again")
+        match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
+
+        if not match:
+            raise CoprWorkerSpawnFailError("No ip in the result, trying again")
+        ipaddr = match.group(1)
+        match = re.search(r'vm_name=([^\{\}"]+)', result, re.MULTILINE)
+
+        if match:
+            self.vm_name = match.group(1)
+        self.callback.log("got instance ip: {0}".format(ipaddr))
+
+        try:
+            IP(ipaddr)
+        except ValueError:
+            # if we get here we"re in trouble
+            msg = "Invalid IP back from spawn_instance - dumping cache output\n"
+            msg += str(result)
+            raise CoprWorkerSpawnFailError(msg)
+
+        return ipaddr
+
     def spawn_instance(self, job):
         """
         call the spawn playbook to startup/provision a building instance
         get an IP and test if the builder responds
         repeat this until you get an IP of working builder
+
+        :param BuildJob job:
+        :return:
+            :ip of created VM
+            :None couldn't find playbook to spin ip VM
         """
 
         start = time.time()
@@ -280,87 +273,59 @@ class Worker(multiprocessing.Process):
         # https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
 
         extra_vars = {}
-        if self.opts.spawn_vars:
-            for i in self.opts.spawn_vars.split(","):
-                if i == 'chroot':
-                    extra_vars['chroot'] = job['chroot']
+        for var in self.opts.spawn_vars:
+            if hasattr(job, var):
+                extra_vars[var] = getattr(job, var)
 
         try:
             spawn_playbook = self.opts.build_groups[self.group_id]["spawn_playbook"]
         except KeyError:
             return None
 
-        args = "-c ssh {0} {1}".format(
+        spawn_args = "-c ssh {0} {1}".format(
             spawn_playbook, ans_extra_vars_encode(extra_vars, "copr_task"))
 
+        # TODO: replace with for i in range(MAX_SPAWN_TRIES): ... else raise FatalError
         i = 0
         while True:
             i += 1
-            self.callback.log("Spawning a builder. Try No. {0}".format(i))
-            result = self.run_ansible_playbook(args, "spawning instance")
-            if not result:
-                self.callback.log("No result, trying again")
-                continue
-
-            match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
-            if not match:
-                self.callback.log("No ip in the result, trying again")
-                continue
-            ipaddr = match.group(1)
-
-            match = re.search(r'vm_name=([^\{\}"]+)', result, re.MULTILINE)
-            if match:
-                self.vm_name = match.group(1)
-
-            self.callback.log("got instance ip: {0}".format(ipaddr))
-            self.callback.log(
-                "Instance spawn/provision took {0} sec".format(time.time() - start))
-
             try:
-                IP(ipaddr)
-            except ValueError:
-                # if we get here we"re in trouble
-                self.callback.log(
-                    "Invalid IP back from spawn_instance - dumping cache output")
-                self.callback.log(str(result))
-                continue
+                self.callback.log("Spawning a builder. Try No. {0}".format(i))
 
-            # we were getting some dead instancies
-            # that's why I'm testing the conncectivity here
-            connection = ansible.runner.Runner(
-                remote_user="root",
-                host_list="{},".format(ipaddr),
-                pattern=ipaddr,
-                forks=1,
-                transport="ssh",
-                timeout=500
-            )
-            connection.module_name = "shell"
-            connection.module_args = "echo hello"
-            res = connection.run()
+                ipaddr = self.try_spawn(spawn_args)
+                try:
+                    self.validate_new_vm(ipaddr)
+                except CoprWorkerSpawnFailError:
+                    self.terminate_instance(ipaddr)
+                    raise
 
-            if res["contacted"]:
+                self.callback.log("Instance spawn/provision took {0} sec"
+                                  .format(time.time() - start))
                 return ipaddr
 
-            else:
-                self.callback.log(
-                    "Worker is not responding to"
-                    "the testing playbook. Spawning another one.")
-                self.terminate_instance(ipaddr)
+            except CoprWorkerSpawnFailError as exception:
+                self.callback.log("VM Spawn attemp failed with message: {}"
+                                  .format(exception.msg))
 
     def terminate_instance(self, instance_ip):
         """call the terminate playbook to destroy the building instance"""
 
         term_args = {}
-        if self.opts.terminate_vars:
-            for i in self.opts.terminate_vars.split(","):
-                if i == "ip":
-                    term_args["ip"] = instance_ip
-                if i == "vm_name":
-                    term_args["vm_name"] = self.vm_name
+        if "ip" in self.opts.terminate_vars:
+            term_args["ip"] = instance_ip
+        if "vm_name" in self.opts.terminate_vars:
+            term_args["vm_name"] = self.vm_name
+
+        try:
+            playbook = self.opts.build_groups[self.group_id]["terminate_playbook"]
+        except KeyError:
+            self.callback.log(
+                "Fatal error: no terminate playbook for group_id: {}; exiting"
+                .format(self.group_id))
+            sys.exit(255)
 
         args = "-c ssh -i '{0},' {1} {2}".format(
-            instance_ip, self.opts.build_groups[self.group_id]["terminate_playbook"],
+            instance_ip, playbook,
             ans_extra_vars_encode(term_args, "copr_task"))
         self.run_ansible_playbook(args, "terminate instance")
 
@@ -407,14 +372,14 @@ class Worker(multiprocessing.Process):
         """
 
         try:
-            response = self.frontend_callback.starting_build(job.build_id, job.chroot)
+            can_start = self.frontend_callback.starting_build(job.build_id, job.chroot)
         except Exception as err:
             raise CoprWorkerError(
                 "Could not communicate to front end to submit results: {}"
                 .format(err)
             )
 
-        return response
+        return can_start
 
     @classmethod
     def pkg_built_before(cls, pkg, chroot, destdir):
@@ -430,16 +395,154 @@ class Worker(multiprocessing.Process):
         return False
 
     def spawn_instance_with_check(self, job):
-        """ Wrapper around self.spawn_instance() with exception checking """
+        """ Wrapper around self.spawn_instance() with exception checking
+            :param BuildJob job:
+
+            :return str: ip of spawned vm
+            :raises:
+                CoprWorkError: spawn function doesn't return ip
+                AnsibleError: failure during anible command execution
+        """
         try:
             ip = self.spawn_instance(job)
             if not ip:
+                # TODO: maybe add specific exception?
                 raise CoprWorkerError(
                     "No IP found from creating instance")
-        except ansible.errors.AnsibleError as e:
+        except AnsibleError as e:
             self.callback.log("failure to setup instance: {0}".format(e))
             raise
         return ip
+
+    def init_fedmsg(self):
+        # Initialize Fedmsg
+        # (this assumes there are certs and a fedmsg config on disk)
+        if not (self.opts.fedmsg_enabled and fedmsg):
+            return
+
+        try:
+            fedmsg.init(name="relay_inbound", cert_prefix="copr", active=True)
+        except Exception as e:
+            self.callback.log(
+                "failed to initialize fedmsg: {0}".format(e))
+
+    def on_pkg_skip(self, job):
+        self._announce_start(job)
+        self.callback.log(
+            "Skipping: package {0} has been already built before."
+            .format(' '.join(job.pkg)))
+        job.status = BuildStatus.SKIPPED  # skipped
+        self._announce_end(job)
+
+    def obtain_job(self):
+        setproctitle("worker-{0} {1}  No task".format(
+            self.opts.build_groups[self.group_id]["name"],
+            self.worker_num))
+
+        # this sometimes caused TypeError in random worker
+        # when another one  picekd up a task to build
+        # why?
+        try:
+            task = self.task_queue.dequeue()
+        except TypeError:
+            return
+
+        # import ipdb; ipdb.set_trace()
+        job = BuildJob(task.data, self.opts)
+
+        setproctitle("worker-{0} {1}  Task: {2}".format(
+            self.opts.build_groups[self.group_id]["name"],
+            self.worker_num, job.build_id
+        ))
+
+        # Checking whether the build is not cancelled
+        if not self.starting_build(job):
+            return
+
+        # Checking whether to build or skip
+        if self.pkg_built_before(job.pkg, job.chroot, job.destdir):
+            self.on_pkg_skip(job)
+            return
+
+        # FIXME
+        # this is our best place to sanity check the job before starting
+        # up any longer process
+
+        return job
+
+    def do_job(self, ip, job):
+        self._announce_start(job, ip)
+        status = BuildStatus.SUCCEEDED
+        chroot_destdir = os.path.normpath(job.destdir + '/' + job.chroot)
+
+        # setup our target dir locally
+        if not os.path.exists(chroot_destdir):
+            try:
+                os.makedirs(chroot_destdir)
+            except (OSError, IOError) as e:
+                msg = "Could not make results dir" \
+                      " for job: {0} - {1}".format(chroot_destdir, str(e))
+
+                self.callback.log(msg)
+                status = BuildStatus.FAILURE
+
+        if status == BuildStatus.SUCCEEDED:
+            # FIXME
+            # need a plugin hook or some mechanism to check random
+            # info about the pkgs
+            # this should use ansible to download the pkg on
+            # the remote system
+            # and run a series of checks on the package before we
+            # start the build - most importantly license checks.
+
+            self.callback.log(
+                "Starting build: id={0} builder={1} timeout={2} destdir={3}"
+                " chroot={4} repos={5}"
+                .format(job.build_id, ip, job.timeout, job.destdir,
+                        job.chroot, str(job.repos)))
+
+            self.callback.log("Building pkgs: {0}".format(job.pkg))
+
+            chroot_repos = list(job.repos)
+            chroot_repos.append(job.results + '/' + job.chroot)
+            # for RHBZ: #1150954
+            chroot_repos.append(job.results + '/' + job.chroot + '/devel')
+
+            chroot_logfile = "{0}/build-{1}.log".format(
+                chroot_destdir, job.build_id)
+
+            macros = {
+                "copr_username": job.project_owner,
+                "copr_projectname": job.project_name,
+                "vendor": "Fedora Project COPR ({0}/{1})".format(
+                    job.project_owner, job.project_name)
+            }
+
+            try:
+                mr = MockRemote(
+                    builder_host=ip, job=job, repos=chroot_repos,
+                    macros=macros, opts=self.opts, lock=self.lock,
+                    callback=CliLogCallBack(quiet=True, logfn=chroot_logfile),
+                )
+                build_details = mr.build_pkg()
+                job.update(build_details)
+
+                if self.opts.do_sign:
+                    mr.add_pubkey()
+
+            except MockRemoteError as e:
+                # record and break
+                self.callback.log("{0} - {1}".format(ip, e))
+                status = BuildStatus.FAILURE
+
+            self.callback.log(
+                "Finished build: id={0} builder={1} timeout={2} destdir={3}"
+                " chroot={4} repos={5}"
+                .format(job.build_id, ip, job.timeout, job.destdir,
+                        job.chroot, str(job.repos)))
+
+        job.status = status
+        self._announce_end(job, ip)
 
     def run(self):
         """
@@ -448,167 +551,30 @@ class Worker(multiprocessing.Process):
         run opts.setup_playbook to create the instance
         do the build (mockremote)
         terminate the instance.
+
         """
+        self.init_fedmsg()
 
+        vm_ip = None
         while not self.kill_received:
-            setproctitle("worker-{0} {1}  No task".format(
-                self.opts.build_groups[self.group_id]["name"],
-                self.worker_num))
 
-            # this sometimes caused TypeError in random worker
-            # when another one  picekd up a task to build
-            # why?
-            try:
-                task = self.task_queue.dequeue()
-            except TypeError:
-                pass
-
-            if not task:
+            job = self.obtain_job()
+            if not job:
                 time.sleep(self.opts.sleeptime)
                 continue
 
-            job = BuildJob(task.data, self.opts)
-
-            setproctitle("worker-{0} {1}  Task: {2}".format(
-                self.opts.build_groups[self.group_id]["name"],
-                self.worker_num,
-                job.build_id
-            ))
-
-            # Checking whether the build is not cancelled
-            if not self.starting_build(job):
-                continue
-
-            # Initialize Fedmsg
-            # (this assumes there are certs and a fedmsg config on disk)
-            try:
-                if self.opts.fedmsg_enabled:
-                    fedmsg.init(
-                        name="relay_inbound",
-                        cert_prefix="copr",
-                        active=True)
-
-            except Exception as e:
-                self.callback.log(
-                    "failed to initialize fedmsg: {0}".format(e))
-
-            # Checking whether to build or skip
-            if self.pkg_built_before(job.pkg, job.chroot, job.destdir):
-                self._announce_start(job)
-                self.callback.log(
-                    "Skipping: package {0} has been already built before."
-                    .format(' '.join(job.pkg)))
-
-                job.status = 5  # skipped
-                self._announce_end(job)
-                continue
-            # FIXME
-            # this is our best place to sanity check the job before starting
-            # up any longer process
-
-            if self.create and not self.ip:
-                if not self.spawn_in_advance:
-                    ip = self.spawn_instance_with_check(job)
-                # else we get ip from similar calling at the enf of this while-loop
-            else:
-                ip = self.ip
+            if not vm_ip:
+                vm_ip = self.spawn_instance_with_check(job)
 
             try:
-                self._announce_start(job, ip)
-
-                status = 1  # succeeded
-
-                chroot_destdir = os.path.normpath(
-                    job.destdir + '/' + job.chroot)
-
-                # setup our target dir locally
-                if not os.path.exists(chroot_destdir):
-                    try:
-                        os.makedirs(chroot_destdir)
-                    except (OSError, IOError) as e:
-                        msg = "Could not make results dir" \
-                              " for job: {0} - {1}".format(chroot_destdir,
-                                                           str(e))
-
-                        self.callback.log(msg)
-                        status = 0  # fail
-
-                if status == 1:  # succeeded
-                    # FIXME
-                    # need a plugin hook or some mechanism to check random
-                    # info about the pkgs
-                    # this should use ansible to download the pkg on
-                    # the remote system
-                    # and run a series of checks on the package before we
-                    # start the build - most importantly license checks.
-
-                    self.callback.log("Starting build: id={0} builder={1}"
-                                      " timeout={2} destdir={3}"
-                                      " chroot={4} repos={5}".format(
-                                          job.build_id, ip,
-                                          job.timeout, job.destdir,
-                                          job.chroot, str(job.repos)))
-
-                    self.callback.log("building pkgs: {0}".format(job.pkg))
-
-                    try:
-                        chroot_repos = list(job.repos)
-                        chroot_repos.append(job.results + '/' + job.chroot)
-                        # for RHBZ: #1150954
-                        chroot_repos.append(job.results + '/' + job.chroot + '/devel')
-
-                        chrootlogfile = "{0}/build-{1}.log".format(
-                            chroot_destdir, job.build_id)
-
-                        macros = {
-                            "copr_username": job.project_owner,
-                            "copr_projectname": job.project_name,
-                            "vendor": "Fedora Project COPR ({0}/{1})".format(
-                                job.project_owner, job.project_name)
-                        }
-
-                        mr = MockRemote(
-                            builder_host=ip,
-                            job=job,
-                            repos=chroot_repos,
-                            macros=macros,
-                            lock=self.lock,
-
-                            callback=CliLogCallBack(
-                                quiet=True, logfn=chrootlogfile),
-
-                            opts=self.opts,
-                            # do_sign=self.opts.do_sign,
-                            # front_url=self.opts.frontend_base_url,
-                            # results_base_url=self.opts.results_baseurl
-                        )
-
-                        build_details = mr.build_pkg()
-
-                        if self.opts.do_sign:
-                            mr.add_pubkey()
-
-                        job.update(build_details)
-
-                    except MockRemoteError as e:
-                        # record and break
-                        self.callback.log("{0} - {1}".format(ip, e))
-                        status = 0  # failure
-
-                    self.callback.log(
-                        "Finished build: id={0} builder={1}"
-                        " timeout={2} destdir={3}"
-                        " chroot={4} repos={5}".format(
-                            job.build_id, ip,
-                            job.timeout, job.destdir,
-                            job.chroot, str(job.repos)))
-
-                job.status = status
-                self._announce_end(job, ip)
-
+                self.do_job(vm_ip, job)
             finally:
                 # clean up the instance
-                if self.create:
-                    self.terminate_instance(ip)
-            if self.create and not self.ip and self.spawn_in_advance:
-                ip = self.spawn_instance_with_check(job)
+                self.terminate_instance(vm_ip)
+                vm_ip = None
+
+            # TODO: since spawn requires job object to create vm
+            #   it's possible to have spawned VM with incorrect configuration
+            # disabling spawn in advance for now
+            # if self.spawn_in_advance:
+            #     vm_ip = self.spawn_instance_with_check(job)

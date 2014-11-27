@@ -83,3 +83,7 @@ class CoprBackendError(Exception):
 
 class CoprWorkerError(CoprBackendError):
     pass
+
+
+class CoprWorkerSpawnFailError(CoprWorkerError):
+    pass
