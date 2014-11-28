@@ -678,8 +678,6 @@ class TestDispatcher(object):
         assert self.worker.obtain_job.called
         assert self.worker.terminate_instance.called
 
-
-
     @mock.patch("backend.dispatcher.time")
     def test_run_no_job(self, mc_time, init_worker):
         self.worker.init_fedmsg = MagicMock()

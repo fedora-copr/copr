@@ -3,13 +3,13 @@ import requests
 import time
 
 
-class FrontendCallback(object):
+class FrontendClient(object):
     """
     Object to send data back to fronted
     """
 
     def __init__(self, opts, events):
-        super(FrontendCallback, self).__init__()
+        super(FrontendClient, self).__init__()
         self.frontend_url = opts.frontend_url
         self.frontend_auth = opts.frontend_auth
 

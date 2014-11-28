@@ -23,7 +23,7 @@ from .exceptions import MockRemoteError, CoprWorkerError, CoprWorkerSpawnFailErr
 from .job import BuildJob
 
 from .mockremote import MockRemote
-from .callback import FrontendCallback
+from .frontend import FrontendClient
 from .constants import BuildStatus
 
 ansible_playbook = "ansible-playbook"
@@ -81,7 +81,7 @@ class Worker(multiprocessing.Process):
 
         self.lock = lock
         self.spawn_in_advance = self.opts.spawn_in_advance
-        self.frontend_callback = FrontendCallback(opts, events)
+        self.frontend_callback = FrontendClient(opts, events)
 
         self.callback = callback
         if not self.callback:
@@ -573,8 +573,8 @@ class Worker(multiprocessing.Process):
                 self.terminate_instance(vm_ip)
                 vm_ip = None
 
-            # TODO: since spawn requires job object to create vm
-            #   it's possible to have spawned VM with incorrect configuration
-            # disabling spawn in advance for now
-            # if self.spawn_in_advance:
-            #     vm_ip = self.spawn_instance_with_check(job)
+                # TODO: since spawn requires job object to create vm
+                #   it's possible to have spawned VM with incorrect configuration
+                #   disabling spawn in advance for now
+                #   if self.spawn_in_advance:
+                #     vm_ip = self.spawn_instance_with_check(job)
