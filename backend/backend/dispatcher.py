@@ -446,6 +446,8 @@ class Worker(multiprocessing.Process):
             task = self.task_queue.dequeue()
         except TypeError:
             return
+        if not task:
+            return
 
         # import ipdb; ipdb.set_trace()
         job = BuildJob(task.data, self.opts)

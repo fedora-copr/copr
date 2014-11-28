@@ -617,6 +617,18 @@ class TestDispatcher(object):
         assert not self.worker.starting_build.called
         assert not self.worker.pkg_built_before.called
 
+    def test_obtain_job_dequeue_none_result(self, init_worker):
+        mc_tq = MagicMock()
+        self.worker.task_queue = mc_tq
+        self.worker.starting_build = MagicMock()
+        self.worker.pkg_built_before = MagicMock()
+        self.worker.pkg_built_before.return_value = False
+
+        mc_tq.dequeue.return_value = None
+        assert self.worker.obtain_job() is None
+        assert not self.worker.starting_build.called
+        assert not self.worker.pkg_built_before.called
+
     def test_obtain_job_on_starting_build(self, init_worker):
         mc_tq = MagicMock()
         self.worker.task_queue = mc_tq
