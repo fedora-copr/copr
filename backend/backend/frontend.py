@@ -1,5 +1,5 @@
 import json
-import requests
+from requests import post, RequestException
 import time
 
 
@@ -27,13 +27,12 @@ class FrontendClient(object):
         self.msg = None
 
         try:
-            response = requests.post(url, data=json.dumps(data), auth=auth,
-                                     headers=headers)
-            if response.status_code != 200:
+            response = post(url, data=json.dumps(data), auth=auth, headers=headers)
+            if response.status_code >= 400:
                 self.msg = "Failed to submit to frontend: {0}: {1}".format(
                     response.status_code, response.text)
-                raise requests.RequestException(self.msg)
-        except requests.RequestException as e:
+                raise RequestException(self.msg)
+        except RequestException as e:
             self.msg = "Post request failed: {0}".format(e)
             raise
         return response
@@ -42,18 +41,13 @@ class FrontendClient(object):
         """
         Make a request max_repeats-time to the frontend
         """
-        repeats = 0
-        while repeats <= max_repeats:
+        for i in range(max_repeats):
             try:
-                response = self._post_to_frontend(data, url_path)
-                break
-            except requests.RequestException:
-
-                if repeats == max_repeats:
-                    raise
-                repeats += 1
+                return self._post_to_frontend(data, url_path)
+            except RequestException:
                 time.sleep(5)
-        return response
+        else:
+            raise RequestException("Failed to post to frontend for {} times".format(max_repeats))
 
     def update(self, data):
         """
@@ -70,5 +64,5 @@ class FrontendClient(object):
         data = {"build_id": build_id, "chroot": chroot_name}
         response = self._post_to_frontend_repeatedly(data, "starting_build")
         if "can_start" not in response.json():
-            raise requests.RequestException("Bad respond from the frontend")
+            raise RequestException("Bad respond from the frontend")
         return response.json()["can_start"]
