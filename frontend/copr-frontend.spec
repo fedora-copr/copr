@@ -107,7 +107,6 @@ popd
 %install
 
 install -d %{buildroot}%{_sysconfdir}/copr
-install -d %{buildroot}%{_pkgdocdir}
 install -d %{buildroot}%{_datadir}/copr/coprs_frontend
 install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store
 install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/associations
@@ -121,8 +120,6 @@ mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
 touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
-
-cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 
 %check
 %if %{with_test} && "%{_arch}" == "x86_64"
@@ -162,9 +159,8 @@ service httpd condrestart
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
 
 %files doc
-%doc LICENSE
-%dir %{_pkgdocdir}
-%doc %{_pkgdocdir}/python-doc
+%license LICENSE
+%doc documentation/python-doc
 
 %changelog
 * Mon Nov 24 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.48-1
