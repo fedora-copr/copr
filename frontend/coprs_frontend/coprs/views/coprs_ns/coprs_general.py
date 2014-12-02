@@ -133,7 +133,7 @@ def copr_new(username):
             selected_chroots=form.selected_chroots,
             description=form.description.data,
             instructions=form.instructions.data,
-            auto_createrepo=form.auto_createrepo.data,
+            disable_createrepo=form.disable_createrepo.data,
         )
 
         db.session.commit()
@@ -257,7 +257,7 @@ def copr_update(username, coprname):
         copr.repos = form.repos.data.replace("\n", " ")
         copr.description = form.description.data
         copr.instructions = form.instructions.data
-        copr.auto_createrepo = form.auto_createrepo.data
+        copr.disable_createrepo = form.disable_createrepo.data
         coprs_logic.CoprChrootsLogic.update_from_names(
             flask.g.user, copr, form.selected_chroots)
 
@@ -414,6 +414,7 @@ def copr_createrepo(username, coprname):
         chroots=chroots)
 
     db.session.commit()
+    flask.flash("Repository metadata will be regenerated in a few minutes ...")
     return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                         username=copr.owner.name,
                                         coprname=copr.name))

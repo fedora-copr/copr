@@ -59,14 +59,17 @@
         {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submitted later.') }}
       {% endif %}
 
-      <dt class="field-label">
-        <label for="auto_createrepo">Build release options</label>
-      </dt>
-      <dd>
-        Create repository metadata automatically:
-        {{ form.auto_createrepo }}
+      <dt><b>Package repositories</b></dt>
+      <dd class="field-label-help">
+        Repository meta data is refreshed after each build. <br />
+        You can disable it with the option below. <br />
+        You will be still able to regenerate your repositories manually on the overview page.
       </dd>
-
+      <dd>
+        <!-- Create repository metadata automatically: -->
+        Disable automatic repository meta data generation
+        {{ form.disable_createrepo }}
+      </dd>
 
       <dt><input type="submit" value="{% if copr %}Update{% else %}Create{% endif %}"></dt>
     </dl>

@@ -1,5 +1,6 @@
 import base64
 import datetime
+import json
 import urlparse
 
 import flask
@@ -72,6 +73,7 @@ def api_new_copr(username):
     httpcode = 200
 
     # are there any arguments in POST which our form doesn't know?
+    # TODO: don't use WTFform for parsing and validation here
     if any([post_key not in form.__dict__.keys()
             for post_key in flask.request.form.keys()]):
         output = {"output": "notok",
@@ -80,9 +82,16 @@ def api_new_copr(username):
 
     elif form.validate_on_submit():
         infos = []
-        auto_createrepo = form.auto_createrepo.data
-        if "auto_createrepo" not in flask.request.data:
-            auto_createrepo = True
+
+        auto_createrepo = True
+        dct = json.loads(flask.request.data)
+        if "auto_createrepo" in dct:
+            val = dct["auto_createrepo"]
+            if isinstance(val, bool):
+                auto_createrepo = val
+            elif str(val).lower() in ["false", "no"]:
+                auto_createrepo = False
+
         try:
             copr = coprs_logic.CoprsLogic.add(
                 name=form.name.data.strip(),

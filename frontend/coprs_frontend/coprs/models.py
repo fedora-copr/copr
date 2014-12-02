@@ -179,6 +179,16 @@ class Copr(db.Model, helpers.Serializer):
 
         return len(self.builds)
 
+    @property
+    def disable_createrepo(self):
+
+        return not self.auto_createrepo
+
+    @disable_createrepo.setter
+    def disable_createrepo(self, value):
+
+        self.auto_createrepo = not bool(value)
+
     def check_copr_chroot(self, chroot):
         """
         Return object of chroot, if is related to our copr or None

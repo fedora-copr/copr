@@ -128,14 +128,14 @@ class CoprsLogic(object):
 
     @classmethod
     def add(cls, user, name, repos, selected_chroots, description,
-            instructions, auto_createrepo, check_for_duplicates=False):
+            instructions, check_for_duplicates=False, **kwargs):
         copr = models.Copr(name=name,
                            repos=repos,
                            owner=user,
                            description=description,
                            instructions=instructions,
                            created_on=int(time.time()),
-                           auto_createrepo=auto_createrepo)
+                           **kwargs)
 
         # form validation checks for duplicates
         CoprsLogic.new(user, copr,
