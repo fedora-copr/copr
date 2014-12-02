@@ -13,7 +13,7 @@ import time
 import setproctitle
 
 
-class CoprLog(multiprocessing.Process):
+class CoprBackendLog(multiprocessing.Process):
 
     """log mechanism where items from the events queue get recorded"""
 
@@ -61,8 +61,8 @@ class CoprLog(multiprocessing.Process):
         abort = False
         try:
             while not abort:
-                e = self.events.get()
-                if "when" in e and "who" in e and "what" in e:
-                    self.log(e)
+                event = self.events.get()
+                if "when" in event and "who" in event and "what" in event:
+                    self.log(event)
         except KeyboardInterrupt:
             return

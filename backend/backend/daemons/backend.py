@@ -22,7 +22,7 @@ from retask import ConnectionError
 from ..exceptions import CoprBackendError
 from ..dispatcher import Worker
 from ..helpers import BackendConfigReader
-from . import CoprJobGrab, CoprLog
+from . import CoprJobGrab, CoprBackendLog
 
 
 class CoprBackend(object):
@@ -67,7 +67,7 @@ class CoprBackend(object):
         # what:str}
 
         # create logger
-        self._logger = CoprLog(self.opts, self.events)
+        self._logger = CoprBackendLog(self.opts, self.events)
         self._logger.start()
 
         self.event("Starting up Job Grabber")
@@ -94,6 +94,44 @@ class CoprBackend(object):
             raise CoprBackendError(
                 "Could not connect to a task queue. Is Redis running?")
 
+    def spin_up_workers_by_group(self, group):
+        group_id = group["id"]
+        # this handles starting/growing the number of workers
+        if len(self.workers_by_group_id[group_id]) < group["max_workers"]:
+            self.event("Spinning up more workers")
+            for _ in range(group["max_workers"] - len(self.workers_by_group_id[group_id])):
+                self.max_worker_num_by_group_id[group_id] += 1
+                w = Worker(
+                    self.opts, self.events,
+                    self.max_worker_num_by_group_id[group_id],
+                    group_id, lock=self.lock
+                )
+
+                self.workers_by_group_id[group_id].append(w)
+                w.start()
+
+    def prune_dead_workers_by_group(self, group):
+        """ Removes dead workers from the pool
+
+        :return list: alive workers
+        :raises:
+            :CoprBackendError: when got dead worker and
+                has option "exit_on_worker" enabled
+        """
+        group_id = group["id"]
+        preserved_workers = []
+        for w in self.workers_by_group_id[group_id]:
+            if not w.is_alive():
+                self.event("Worker {0} died unexpectedly".format(w.worker_num))
+                if self.opts.exit_on_worker:
+                    raise CoprBackendError(
+                        "Worker died unexpectedly, exiting")
+                else:
+                    w.terminate()  # kill it with a fire
+            else:
+                preserved_workers.append(w)
+        return preserved_workers
+
     def run(self):
         self.abort = False
         while not self.abort:
@@ -102,24 +140,11 @@ class CoprBackend(object):
 
             for group in self.opts.build_groups:
                 group_id = group["id"]
-                self.event(
-                    "# jobs in {0} queue: {1}"
-                    .format(group["name"], self.task_queues[group_id].length)
-                )
-                # this handles starting/growing the number of workers
-                if len(self.workers_by_group_id[group_id]) < group["max_workers"]:
-                    self.event("Spinning up more workers")
-                    for _ in range(group["max_workers"] - len(self.workers_by_group_id[group_id])):
-                        self.max_worker_num_by_group_id[group_id] += 1
-                        w = Worker(
-                            self.opts, self.events,
-                            self.max_worker_num_by_group_id[group_id],
-                            group_id, lock=self.lock
-                        )
-
-                        self.workers_by_group_id[group_id].append(w)
-                        w.start()
+                self.event("# jobs in {0} queue: {1}"
+                           .format(group["name"], self.task_queues[group_id].length))
+                self.spin_up_workers_by_group(group)
                 self.event("Finished starting worker processes")
+
                 # FIXME - prune out workers
                 # if len(self.workers) > self.opts.num_workers:
                 #    killnum = len(self.workers) - self.opts.num_workers
@@ -128,17 +153,7 @@ class CoprBackend(object):
                 # FIXME - if a worker bombs out - we need to check them
                 # and startup a new one if it happens
                 # check for dead workers and abort
-                preserved_workers = []
-                for w in self.workers_by_group_id[group_id]:
-                    if not w.is_alive():
-                        self.event("Worker {0} died unexpectedly".format(w.worker_num))
-                        if self.opts.exit_on_worker:
-                            raise CoprBackendError(
-                                "Worker died unexpectedly, exiting")
-                        else:
-                            w.terminate()  # kill it with a fire
-                    else:
-                        preserved_workers.append(w)
+                preserved_workers = self.prune_dead_workers_by_group(group)
                 self.workers_by_group_id[group_id] = preserved_workers
 
             time.sleep(self.opts.sleeptime)
