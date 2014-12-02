@@ -1,3 +1,4 @@
+import json
 import flask
 import pytest
 
@@ -6,9 +7,11 @@ import mock
 import time
 
 from coprs import models
+from coprs.helpers import ActionTypeEnum
 from coprs.signals import copr_created
 
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.actions_logic import ActionsLogic
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -390,6 +393,60 @@ class TestCoprUpdate(CoprsTestCase):
                                 self.c2.id).all())
 
         assert len(mock_chroots) == 1
+
+    @TransactionDecorator("u1")
+    def test_re_enable_auto_createrepo_produce_action(
+            self, f_users, f_coprs, f_mock_chroots, f_db):
+
+        self.db.session.add_all(
+            [self.u1, self.c1, self.mc1, self.mc2, self.mc3])
+
+
+        username = self.u1.name
+        coprname = self.c1.name
+        copr_id = self.c1.id
+        chroot = self.mc1.name
+
+        # 1.ensure ACR enabled
+
+        self.db.session.commit()
+        c1_actual = CoprsLogic.get(None, self.u1.name, self.c1.name).one()
+        assert c1_actual.auto_createrepo
+        # 1. disabling ACR
+        self.test_client.post(
+            "/coprs/{0}/{1}/update/".format(username, coprname),
+            data={"name": coprname, chroot: "y", "id": copr_id,
+                  "disable_createrepo": True},
+            follow_redirects=True
+        )
+        self.db.session.commit()
+
+        # check current status
+        c1_actual = CoprsLogic.get(None, username, coprname).one()
+        assert not c1_actual.auto_createrepo
+        # no actions issued before
+        assert len(ActionsLogic.get_many().all()) == 0
+
+        # 2. enabling ACR
+        self.test_client.post(
+            "/coprs/{0}/{1}/update/".format(username, coprname),
+            data={"name": coprname, chroot: "y", "id": copr_id,
+                  "disable_createrepo": "false"},
+            follow_redirects=True
+        )
+        self.db.session.commit()
+
+        c1_actual = CoprsLogic.get(None, username, coprname).one()
+
+        # ACR enabled
+        assert c1_actual.auto_createrepo
+        # added action
+        assert len(ActionsLogic.get_many().all()) > 0
+        action = ActionsLogic.get_many(action_type=ActionTypeEnum("createrepo")).one()
+
+        data_dict = json.loads(action.data)
+        assert data_dict["username"] == username
+        assert data_dict["projectname"] == coprname
 
 
 class TestCoprApplyForPermissions(CoprsTestCase):

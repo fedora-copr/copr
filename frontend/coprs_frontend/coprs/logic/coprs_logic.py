@@ -1,5 +1,8 @@
 import time
+
 from sqlalchemy import and_
+from sqlalchemy.event import listen
+from sqlalchemy.orm.attributes import NEVER_SET
 
 from coprs import db
 from coprs import exceptions
@@ -7,6 +10,8 @@ from coprs import helpers
 from coprs import models
 from coprs import signals
 from coprs.logic import users_logic
+
+from coprs.logic.actions_logic import ActionsLogic
 
 
 class CoprsLogic(object):
@@ -317,6 +322,24 @@ class CoprPermissionsLogic(object):
     @classmethod
     def delete(cls, user, copr_permission):
         db.session.delete(copr_permission)
+
+
+def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
+    """ Emit createrepo action when auto_createrepo re-enabled"""
+    if old_value_acr == NEVER_SET:
+        #  created new copr, not interesting
+        return
+    if not old_value_acr and value_acr:
+        #  re-enabled
+        ActionsLogic.send_createrepo(
+            target_copr.owner.name,
+            target_copr.name,
+            " ".join(map(str, target_copr.active_chroots))
+        )
+
+
+listen(models.Copr.auto_createrepo, 'set', on_auto_createrepo_change,
+       active_history=True, retval=False)
 
 
 class CoprChrootsLogic(object):

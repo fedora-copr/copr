@@ -17,6 +17,18 @@ class ActionsLogic(object):
         return query
 
     @classmethod
+    def get_many(cls, action_type=None, result=None):
+        query = models.Action.query
+        if action_type is not None:
+            query = query.filter(models.Action.action_type ==
+                                 int(action_type))
+        if result is not None:
+            query = query.filter(models.Action.result ==
+                                 int(result))
+
+        return query
+
+    @classmethod
     def get_waiting(cls):
         """
         Return actions that aren't finished
