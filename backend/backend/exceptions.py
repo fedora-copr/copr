@@ -65,9 +65,9 @@ class CoprKeygenRequestError(MockRemoteError):
 
     def __str__(self):
         out = super(CoprKeygenRequestError, self).__str__()
-        out += "\nrequest to copr-keygen: {0}\n".format(self.request)
+        out += "\nrequest to copr-keygen: {}\n".format(self.request)
         if self.response:
-            out += "status code: {1}\n" "response content: {2}\n" \
+            out += "status code: {}\n" "response content: {}\n" \
                 .format(self.response.status_code, self.response.content)
         return out
 

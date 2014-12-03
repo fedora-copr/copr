@@ -86,8 +86,10 @@ class TestSign(object):
         mc_handle.returncode = 1
         mc_popen.return_value = mc_handle
 
-        with pytest.raises(CoprSignNoKeyError):
+        with pytest.raises(CoprSignNoKeyError) as err:
             get_pubkey(self.username, self.projectname)
+
+        assert "There are no gpg keys for user foo in keyring" in str(err)
 
     @mock.patch("backend.sign.Popen")
     def test_get_pubkey_unknown_error(self, mc_popen):
@@ -96,8 +98,10 @@ class TestSign(object):
         mc_handle.returncode = 1
         mc_popen.return_value = mc_handle
 
-        with pytest.raises(CoprSignError):
+        with pytest.raises(CoprSignError) as err:
             get_pubkey(self.username, self.projectname)
+
+        assert "Failed to get user pubkey" in str(err)
 
     @mock.patch("backend.sign.Popen")
     def test_get_pubkey_outfile(self, mc_popen, tmp_dir):
@@ -177,18 +181,22 @@ class TestSign(object):
     @mock.patch("backend.sign.request")
     def test_create_user_keys_error_1(self, mc_request):
         mc_request.side_effect = IOError()
-        with pytest.raises(CoprKeygenRequestError):
+        with pytest.raises(CoprKeygenRequestError) as err:
             create_user_keys(self.username, self.projectname, self.opts)
+
+        assert "Failed to create key-pair" in str(err)
 
 
     @mock.patch("backend.sign.request")
     def test_create_user_keys(self, mc_request):
         for code in [400, 401, 404, 500, 599]:
             mc_request.return_value.status_code = code
+            mc_request.return_value.content = "error: {}".format(code)
 
-            with pytest.raises(CoprKeygenRequestError):
+            with pytest.raises(CoprKeygenRequestError) as err:
                 create_user_keys(self.username, self.projectname, self.opts)
 
+            print(str(err))
 
     @mock.patch("backend.sign._sign_one")
     @mock.patch("backend.sign.create_user_keys")
