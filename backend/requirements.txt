@@ -6,3 +6,6 @@ retask
 python-daemon
 bunch
 IPy
+# documentation
+sphinx
+sphinx-argparse

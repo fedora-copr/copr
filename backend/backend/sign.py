@@ -34,7 +34,8 @@ def get_pubkey(username, projectname, outfile=None):
     :param outfile: [optional] file to write obtained key
     :return: public keys
 
-    :raises: CoprSignError or CoprSignNoKeyError
+    :raises CoprSignError: failed to retrieve key, see error message
+    :raises CoprSignNoKeyError: if there are no such user in keyring
     """
     usermail = create_gpg_email(username, projectname)
     cmd = ["sudo", SIGN_BINARY, "-u", usermail, "-p"]
@@ -107,8 +108,10 @@ def sign_rpms_in_dir(username, projectname, path, opts, callback=None):
     :param path: directory with rpms to be signed
     :param Bunch opts: backend config
 
-    :param .mockremote.DefaultCallBack callback: object to log progress,
+    :param callback: :py:class:`backend.mockremote.DefaultCallBack`  object to log progress,
         two methods are utilised: ``log`` and ``error``
+
+    :raises: :py:class:`backend.exceptions.CoprSignError` failed to sign at least one package
     """
     rpm_list = [
         os.path.join(path, filename)

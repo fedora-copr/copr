@@ -28,10 +28,15 @@ from . import CoprJobGrab, CoprBackendLog
 class CoprBackend(object):
 
     """
-    Core process - starts/stops/initializes workers
+    Core process - starts/stops/initializes workers and other backend components
     """
 
     def __init__(self, config_file=None, ext_opts=None):
+        """
+
+        :param config_file: path to the backend configuration file
+        :param ext_opts: additional options for backend
+        """
         # read in config file
         # put all the config items into a single self.opts bunch
 
@@ -80,9 +85,16 @@ class CoprBackend(object):
             os.makedirs(self.opts.worker_logdir, mode=0o750)
 
     def event(self, what):
+        """
+        Put a new event into the queue
+        :param what: Event content
+        """
         self.events.put({"when": time.time(), "who": "main", "what": what})
 
     def update_conf(self):
+        """
+        Update backend config from config file
+        """
         self.opts = self.config_reader.read()
 
     def clean_task_queues(self):
@@ -114,9 +126,10 @@ class CoprBackend(object):
         """ Removes dead workers from the pool
 
         :return list: alive workers
+
         :raises:
-            :CoprBackendError: when got dead worker and
-                has option "exit_on_worker" enabled
+            :py:class:`~backend.exceptions.CoprBackendError` when got dead worker and
+                option "exit_on_worker" is enabled
         """
         group_id = group["id"]
         preserved_workers = []
@@ -174,6 +187,17 @@ class CoprBackend(object):
 
 
 def run_backend(opts):
+    """
+    Start main backend daemon
+
+    :param opts: Bunch object with command line options
+
+    Expected **opts** fields:
+        - `config_file` - path to the backend config file
+        - `daemonize` - boolean flag to enable daemon mode
+        - `pidfile` - path to the backend pidfile
+
+    """
     try:
         context = daemon.DaemonContext(
             pidfile=lockfile.FileLock(opts.pidfile),
