@@ -242,3 +242,15 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
+
+# ---
+# enabling __init__ for automodule
+
+autodoc_member_order = "bysource"
+autodoc_default_flags = [
+    'members',
+    'undoc-members',
+    'private-members',
+    'special-members',
+    # 'inherited-members'
+]

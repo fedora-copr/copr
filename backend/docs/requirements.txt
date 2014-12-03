@@ -1,12 +1,13 @@
-setproctitle
 PyYAML
-# ansible
+ansible
 setproctitle
 redis
 retask
 python-daemon
 bunch
 IPy
+
+
 # documentation
 sphinx
 sphinx-argparse
