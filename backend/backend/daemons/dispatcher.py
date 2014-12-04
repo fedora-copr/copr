@@ -17,14 +17,15 @@ from ansible.errors import AnsibleError
 from setproctitle import setproctitle
 from IPy import IP
 from retask.queue import Queue
-from backend.mockremote.callback import CliLogCallBack
 
-from .exceptions import MockRemoteError, CoprWorkerError, CoprWorkerSpawnFailError
-from .job import BuildJob
+from ..mockremote.callback import CliLogCallBack
 
-from .mockremote import MockRemote
-from .frontend import FrontendClient
-from .constants import BuildStatus
+from ..exceptions import MockRemoteError, CoprWorkerError, CoprWorkerSpawnFailError
+from ..job import BuildJob
+
+from ..mockremote import MockRemote
+from ..frontend import FrontendClient
+from ..constants import BuildStatus
 
 ansible_playbook = "ansible-playbook"
 

@@ -20,9 +20,10 @@ from retask.queue import Queue
 from retask import ConnectionError
 
 from ..exceptions import CoprBackendError
-from ..dispatcher import Worker
 from ..helpers import BackendConfigReader
-from . import CoprJobGrab, CoprBackendLog
+from .job_grab import CoprJobGrab
+from .log import CoprBackendLog
+from .dispatcher import Worker
 
 
 class CoprBackend(object):

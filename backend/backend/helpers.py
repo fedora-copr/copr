@@ -13,10 +13,11 @@ import time
 
 from bunch import Bunch
 import datetime
-from backend.constants import DEF_BUILD_USER
+
 from copr.client import CoprClient
 
-from .exceptions import CoprBackendError
+from backend.constants import DEF_BUILD_USER
+from backend.exceptions import CoprBackendError
 
 
 class SortedOptParser(optparse.OptionParser):

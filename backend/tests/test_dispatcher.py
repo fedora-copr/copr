@@ -30,7 +30,7 @@ else:
     from mock import MagicMock
 
 
-from backend.dispatcher import Worker, WorkerCallback
+from backend.daemons.dispatcher import Worker, WorkerCallback
 
 STDOUT = "stdout"
 STDERR = "stderr"
@@ -269,7 +269,7 @@ class TestDispatcher(object):
             with pytest.raises(CoprWorkerSpawnFailError):
                 self.worker.try_spawn(self.try_spawn_args)
 
-    @mock.patch("backend.dispatcher.ansible.runner.Runner")
+    @mock.patch("backend.daemons.dispatcher.ansible.runner.Runner")
     def test_validate_new_vm(self, mc_runner, init_worker):
         mc_ans_conn = MagicMock()
         mc_ans_conn.run.return_value = {"contacted": {self.vm_ip: "ok"}}
@@ -278,7 +278,7 @@ class TestDispatcher(object):
         self.worker.validate_new_vm(self.vm_ip)
         assert mc_ans_conn.run.called
 
-    @mock.patch("backend.dispatcher.ansible.runner.Runner")
+    @mock.patch("backend.daemons.dispatcher.ansible.runner.Runner")
     def test_validate_new_vm_ans_error(self, mc_runner, init_worker):
         mc_ans_conn = MagicMock()
         mc_ans_conn.run.side_effect = IOError()
@@ -289,7 +289,7 @@ class TestDispatcher(object):
         assert mc_ans_conn.run.called
 
 
-    @mock.patch("backend.dispatcher.ansible.runner.Runner")
+    @mock.patch("backend.daemons.dispatcher.ansible.runner.Runner")
     def test_validate_new_vm_bad_response(self, mc_runner, init_worker):
         mc_ans_conn = MagicMock()
         mc_ans_conn.run.return_value = {"contacted": {}}
@@ -351,7 +351,7 @@ class TestDispatcher(object):
             self.worker.terminate_instance(self.vm_ip)
         assert not mc_run_ans.called
 
-    @mock.patch("backend.dispatcher.fedmsg")
+    @mock.patch("backend.daemons.dispatcher.fedmsg")
     def test_event(self, mc_fedmsg, init_worker):
         template = "foo: {foo}, bar: {bar}"
         content = {"foo": "foo", "bar": "bar"}
@@ -364,7 +364,7 @@ class TestDispatcher(object):
         assert el["who"] == "worker-2"
         assert el["what"] == "foo: foo, bar: bar"
 
-    @mock.patch("backend.dispatcher.fedmsg")
+    @mock.patch("backend.daemons.dispatcher.fedmsg")
     def test_event_error(self, mc_fedmsg, init_worker):
         template = "foo: {foo}, bar: {bar}"
         content = {"foo": "foo", "bar": "bar"}
@@ -378,7 +378,7 @@ class TestDispatcher(object):
         assert el["who"] == "worker-2"
         assert el["what"] == "foo: foo, bar: bar"
 
-    @mock.patch("backend.dispatcher.fedmsg")
+    @mock.patch("backend.daemons.dispatcher.fedmsg")
     def test_event_disable_fedmsg(self, mc_fedmsg, init_worker):
         template = "foo: {foo}, bar: {bar}"
         content = {"foo": "foo", "bar": "bar"}
@@ -388,7 +388,7 @@ class TestDispatcher(object):
         self.worker.event(topic, template, content)
         assert not mc_fedmsg.publish.called
 
-    @mock.patch("backend.dispatcher.subprocess")
+    @mock.patch("backend.daemons.dispatcher.subprocess")
     def test_run_ansible_playbook_first_try_ok(self, mc_subprocess, init_worker):
         exptected_result = "ok"
         mc_subprocess.check_output.return_value = exptected_result
@@ -403,8 +403,8 @@ class TestDispatcher(object):
 
 
 
-    @mock.patch("backend.dispatcher.time")
-    @mock.patch("backend.dispatcher.subprocess")
+    @mock.patch("backend.daemons.dispatcher.time")
+    @mock.patch("backend.daemons.dispatcher.subprocess")
     def test_run_ansible_playbook_first_second_ok(self, mc_subprocess,
                                                   mc_time, init_worker, capsys):
         expected_result = "ok"
@@ -417,8 +417,8 @@ class TestDispatcher(object):
         stdout, stderr = capsys.readouterr()
         assert len(mc_subprocess.check_output.call_args_list) == 2
 
-    @mock.patch("backend.dispatcher.time")
-    @mock.patch("backend.dispatcher.subprocess")
+    @mock.patch("backend.daemons.dispatcher.time")
+    @mock.patch("backend.daemons.dispatcher.subprocess")
     def test_run_ansible_playbook_all_attempts_failed(self, mc_subprocess,
                                                       mc_time, init_worker, capsys):
         expected_result = "ok"
@@ -443,7 +443,7 @@ class TestDispatcher(object):
             obtained = handle.read()
             assert msg in obtained
 
-    @mock.patch("backend.dispatcher.open", create=True)
+    @mock.patch("backend.daemons.dispatcher.open", create=True)
     def test_worker_callback_error(self, mc_open, capsys):
         wc = WorkerCallback(self.logfile_path)
         mc_open.side_effect = IOError()
@@ -528,8 +528,8 @@ class TestDispatcher(object):
         with pytest.raises(CoprWorkerError):
             self.worker.starting_build(self.job)
 
-    @mock.patch("backend.dispatcher.MockRemote")
-    @mock.patch("backend.dispatcher.os")
+    @mock.patch("backend.daemons.dispatcher.MockRemote")
+    @mock.patch("backend.daemons.dispatcher.os")
     def test_do_job_failure_on_mkdirs(self, mc_os, mc_mr, init_worker):
         mc_os.path.exists.return_value = False
         mc_os.makedirs.side_effect = IOError()
@@ -539,7 +539,7 @@ class TestDispatcher(object):
         assert self.job.status == BuildStatus.FAILURE
         assert not mc_mr.called
 
-    @mock.patch("backend.dispatcher.MockRemote")
+    @mock.patch("backend.daemons.dispatcher.MockRemote")
     def test_do_job(self, mc_mr_class, init_worker):
         assert not os.path.exists(self.DESTDIR_CHROOT)
 
@@ -548,7 +548,7 @@ class TestDispatcher(object):
         assert self.job.status == BuildStatus.SUCCEEDED
         assert os.path.exists(self.DESTDIR_CHROOT)
 
-    @mock.patch("backend.dispatcher.MockRemote")
+    @mock.patch("backend.daemons.dispatcher.MockRemote")
     def test_do_job_updates_details(self, mc_mr_class, init_worker):
         assert not os.path.exists(self.DESTDIR_CHROOT)
         mc_mr_class.return_value.build_pkg.return_value = {
@@ -561,7 +561,7 @@ class TestDispatcher(object):
         assert self.job.results == self.test_time
         assert os.path.exists(self.DESTDIR_CHROOT)
 
-    @mock.patch("backend.dispatcher.MockRemote")
+    @mock.patch("backend.daemons.dispatcher.MockRemote")
     def test_do_job_mr_error(self, mc_mr_class, init_worker):
         mc_mr_class.return_value.build_pkg.side_effect = MockRemoteError("foobar")
 
@@ -569,7 +569,7 @@ class TestDispatcher(object):
         self.worker.do_job(self.vm_ip, self.job)
         assert self.job.status == BuildStatus.FAILURE
 
-    @mock.patch("backend.dispatcher.fedmsg")
+    @mock.patch("backend.daemons.dispatcher.fedmsg")
     def test_init_fedmsg(self, mc_fedmsg, init_worker):
         self.worker.init_fedmsg()
         assert not mc_fedmsg.init.called
@@ -641,7 +641,7 @@ class TestDispatcher(object):
         assert self.worker.obtain_job() is None
         assert not self.worker.pkg_built_before.called
 
-    @mock.patch("backend.dispatcher.time")
+    @mock.patch("backend.daemons.dispatcher.time")
     def test_run(self, mc_time, init_worker):
         self.worker.init_fedmsg = MagicMock()
         self.worker.obtain_job = MagicMock()
@@ -664,7 +664,7 @@ class TestDispatcher(object):
         assert self.worker.obtain_job.called
         assert self.worker.terminate_instance.called
 
-    @mock.patch("backend.dispatcher.time")
+    @mock.patch("backend.daemons.dispatcher.time")
     def test_run_finalize(self, mc_time, init_worker):
         self.worker.init_fedmsg = MagicMock()
         self.worker.obtain_job = MagicMock()
@@ -690,7 +690,7 @@ class TestDispatcher(object):
         assert self.worker.obtain_job.called
         assert self.worker.terminate_instance.called
 
-    @mock.patch("backend.dispatcher.time")
+    @mock.patch("backend.daemons.dispatcher.time")
     def test_run_no_job(self, mc_time, init_worker):
         self.worker.init_fedmsg = MagicMock()
         self.worker.obtain_job = MagicMock()
