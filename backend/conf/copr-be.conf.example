@@ -28,6 +28,7 @@ build_groups=1
 #   max_workers - maximum number of workers in this group
 #
 #   Use prefix groupX where X is number of group starting from zero.
+#   Warning: any arch should be used once, so no two groups to build the same arch
 # 
 # Example: (and also default values)
 #   group0_name=PC

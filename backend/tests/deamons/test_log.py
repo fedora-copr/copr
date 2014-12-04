@@ -27,16 +27,17 @@ import backend.daemons.log as log_module
 from backend.daemons.log import CoprBackendLog
 
 
-
 @pytest.yield_fixture
 def mc_logging():
     with mock.patch("backend.daemons.log.logging") as mc_logging:
         yield mc_logging
 
+
 @pytest.yield_fixture
 def mc_setproctitle():
     with mock.patch("backend.daemons.log.setproctitle") as mc_spt:
         yield mc_spt
+
 
 class TestLog(object):
 

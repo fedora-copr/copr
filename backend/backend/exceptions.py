@@ -81,6 +81,10 @@ class CoprBackendError(Exception):
         return self.msg
 
 
+class CoprJobGrabError(CoprBackendError):
+    pass
+
+
 class CoprWorkerError(CoprBackendError):
     pass
 

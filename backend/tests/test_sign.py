@@ -195,8 +195,7 @@ class TestSign(object):
 
             with pytest.raises(CoprKeygenRequestError) as err:
                 create_user_keys(self.username, self.projectname, self.opts)
-
-            print(str(err))
+            assert "Failed to create key-pair for user: foo, project:bar" in str(err)
 
     @mock.patch("backend.sign._sign_one")
     @mock.patch("backend.sign.create_user_keys")
