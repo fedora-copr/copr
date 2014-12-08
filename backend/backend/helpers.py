@@ -152,7 +152,6 @@ class BackendConfigReader(object):
             cp, "backend", "verbose", False, mode="bool")
         opts.worker_logdir = _get_conf(
             cp, "backend", "worker_logdir", "/var/log/copr/workers/")
-        opts.spawn_vars = _get_conf(cp, "backend", "spawn_vars", "").split(",")
         opts.terminate_vars = _get_conf(cp, "backend", "terminate_vars", "").split(",")
 
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")

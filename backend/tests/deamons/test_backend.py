@@ -322,8 +322,6 @@ class TestBackend(object):
         self.pwd.getpwnam.return_value.pw_uid = 9
 
         run_backend(self.run_opts)
-
-        print()
         ddc = mc_daemon_context.call_args[1]
 
         assert ddc["signal_map"] == {1: u'terminate', 15: u'terminate'}

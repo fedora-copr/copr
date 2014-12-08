@@ -88,7 +88,6 @@ class TestDispatcher(object):
                     "name": "3"
                 }
             },
-            spawn_vars=["chroot"],
             terminate_vars=[],
 
             fedmsg_enabled=False,
@@ -101,10 +100,7 @@ class TestDispatcher(object):
         )
         self.job = BuildJob(self.task, self.opts)
 
-        self.try_spawn_args = (
-            '-c ssh {} '
-            '--extra-vars=\'{{"copr_task": {{"chroot": "{}"}}}}\''
-        ).format(self.spawn_pb, self.CHROOT)
+        self.try_spawn_args = '-c ssh {}'.format(self.spawn_pb)
 
         self.worker_num = 2
         self.group_id = "3"
@@ -155,7 +151,7 @@ class TestDispatcher(object):
         self.worker.spawn_instance = MagicMock()
         self.worker.spawn_instance.return_value = self.vm_ip
 
-        assert self.vm_ip == self.worker.spawn_instance_with_check(self.job)
+        assert self.vm_ip == self.worker.spawn_instance_with_check()
 
     def test_spawn_instance_with_check_no_ip(self, init_worker):
         self.worker.spawn_instance = MagicMock()
@@ -163,7 +159,7 @@ class TestDispatcher(object):
 
         # with pytest.raises(ansible.errors.AnsibleError):
         with pytest.raises(CoprWorkerError):
-            self.worker.spawn_instance_with_check(self.job)
+            self.worker.spawn_instance_with_check()
 
     def test_spawn_instance_with_check_ansible_error_reraised(self, init_worker):
         self.worker.spawn_instance = MagicMock()
@@ -171,14 +167,14 @@ class TestDispatcher(object):
 
         # with pytest.raises():
         with pytest.raises(AnsibleError):
-            self.worker.spawn_instance_with_check(self.job)
+            self.worker.spawn_instance_with_check()
 
     def test_spawn_instance_missing_playbook_for_group_id(self, init_worker):
         self.worker.try_spawn = MagicMock()
         self.worker.validate_new_vm = MagicMock()
         self.worker.group_id = "175"
 
-        assert self.worker.spawn_instance(self.job) is None
+        assert self.worker.spawn_instance() is None
         assert not self.worker.try_spawn.called
         assert not self.worker.validate_new_vm.called
 
@@ -187,7 +183,7 @@ class TestDispatcher(object):
         self.worker.try_spawn.return_value = self.vm_ip
         self.worker.validate_new_vm = MagicMock()
 
-        assert self.worker.spawn_instance(self.job) == self.vm_ip
+        assert self.worker.spawn_instance() == self.vm_ip
         assert self.worker.try_spawn.called
         assert self.worker.validate_new_vm.called
 
@@ -199,7 +195,7 @@ class TestDispatcher(object):
         ]
         self.worker.validate_new_vm = MagicMock()
 
-        assert self.worker.spawn_instance(self.job) == self.vm_ip
+        assert self.worker.spawn_instance() == self.vm_ip
 
         assert len(self.worker.try_spawn.call_args_list) == 2
         assert len(self.worker.validate_new_vm.call_args_list) == 1
@@ -214,7 +210,7 @@ class TestDispatcher(object):
             None,
         ]
 
-        assert self.worker.spawn_instance(self.job) == self.vm_ip
+        assert self.worker.spawn_instance() == self.vm_ip
 
         assert len(self.worker.try_spawn.call_args_list) == 2
         assert len(self.worker.validate_new_vm.call_args_list) == 2
@@ -225,16 +221,11 @@ class TestDispatcher(object):
         self.worker.try_spawn.return_value = self.vm_ip
         self.worker.validate_new_vm = MagicMock()
 
-        assert self.worker.spawn_instance(self.job) == self.vm_ip
+        assert self.worker.spawn_instance() == self.vm_ip
         assert self.worker.try_spawn.called
         assert self.worker.validate_new_vm.called
 
         assert self.worker.try_spawn.call_args == mock.call(self.try_spawn_args)
-
-        self.worker.try_spawn.reset_mock()
-        self.worker.opts.spawn_vars = []
-        assert self.worker.spawn_instance(self.job) == self.vm_ip
-        assert self.worker.try_spawn.call_args == mock.call('-c ssh /spawn.yml ')
 
     def test_try_spawn_ansible_error_no_result(self, init_worker):
         mc_run_ans = MagicMock()
@@ -397,9 +388,7 @@ class TestDispatcher(object):
 
         assert mc_subprocess.check_output.called_once
         assert mc_subprocess.check_output.call_args == mock.call(
-            'ansible-playbook -c ssh /spawn.yml '
-            '--extra-vars=\'{"copr_task": {"chroot": "fedora-20-x86_64"}}\'',
-            shell=True)
+            'ansible-playbook -c ssh /spawn.yml', shell=True)
 
 
 

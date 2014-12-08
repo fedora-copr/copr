@@ -288,7 +288,7 @@ class Worker(multiprocessing.Process):
 
         return ipaddr
 
-    def spawn_instance(self, job):
+    def spawn_instance(self):
         """
         Spawn new VM, executing the following steps:
 
@@ -306,18 +306,12 @@ class Worker(multiprocessing.Process):
         # Ansible playbook python API does not work here, dunno why.  See:
         # https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
 
-        extra_vars = {}
-        for var in self.opts.spawn_vars:
-            if hasattr(job, var):
-                extra_vars[var] = getattr(job, var)
-
         try:
             spawn_playbook = self.opts.build_groups[self.group_id]["spawn_playbook"]
         except KeyError:
             return None
 
-        spawn_args = "-c ssh {0} {1}".format(
-            spawn_playbook, ans_extra_vars_encode(extra_vars, "copr_task"))
+        spawn_args = "-c ssh {}".format(spawn_playbook)
 
         # TODO: replace with for i in range(MAX_SPAWN_TRIES): ... else raise FatalError
         i = 0
@@ -431,7 +425,7 @@ class Worker(multiprocessing.Process):
             return True
         return False
 
-    def spawn_instance_with_check(self, job):
+    def spawn_instance_with_check(self):
         """
         Wrapper around self.spawn_instance() with exception checking
 
@@ -444,7 +438,7 @@ class Worker(multiprocessing.Process):
             - :py:class:`AnsibleError`: failure during anible command execution
         """
         try:
-            ip = self.spawn_instance(job)
+            ip = self.spawn_instance()
             if not ip:
                 # TODO: maybe add specific exception?
                 raise CoprWorkerError(
@@ -615,6 +609,8 @@ class Worker(multiprocessing.Process):
 
         vm_ip = None
         while not self.kill_received:
+            if self.opts.spawn_in_advance:
+                vm_ip = self.spawn_instance_with_check()
 
             job = self.obtain_job()
             if not job:
@@ -622,7 +618,7 @@ class Worker(multiprocessing.Process):
                 continue
 
             if not vm_ip:
-                vm_ip = self.spawn_instance_with_check(job)
+                vm_ip = self.spawn_instance_with_check()
 
             try:
                 self.do_job(vm_ip, job)

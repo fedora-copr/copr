@@ -43,18 +43,7 @@ group0_terminate_playbook=/srv/copr-work/provision/terminatepb-PC.yml
 group0_max_workers=8
 
 
-# What variables will be send to spawn_playbook.  Expects comma separated list
-# of keywords.  For example 'spawn_vars=chroot' will create
-# 'copr_task["chroot"]' variable accessible from spawn_playbook.
-# Currently supported parameters
-# - chroot
-#       string representation of expect chroot to be alloced, e.g.
-#       fedora-rawhide-ppc64
-#
-# default is None (empty)
-#spawn_vars=chroot
-
-# The same option as 'spawn_vars' above, except that variables will be send to
+# That variables will be send to
 # terminate_playbook ansible script.
 # Currently supported parameters:
 # - ip
