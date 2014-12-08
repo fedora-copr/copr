@@ -78,7 +78,7 @@ class TestDispatcher(object):
         self.spawn_pb = "/spawn.yml"
         self.terminate_pb = "/terminate.yml"
         self.opts = Bunch(
-            spawn_in_advance=True,
+            spawn_in_advance=False,
             frontend_url="http://example.com/",
             frontend_auth="12345678",
             build_groups={
@@ -633,10 +633,17 @@ class TestDispatcher(object):
     @mock.patch("backend.daemons.dispatcher.time")
     def test_run(self, mc_time, init_worker):
         self.worker.init_fedmsg = MagicMock()
-        self.worker.obtain_job = MagicMock()
-        self.worker.obtain_job.return_value = self.job
         self.worker.spawn_instance_with_check = MagicMock()
         self.worker.spawn_instance_with_check.return_value = self.vm_ip
+
+        self.worker.obtain_job = MagicMock()
+        self.worker.obtain_job.return_value = self.job
+
+        def validate_not_spawn():
+            assert not self.worker.spawn_instance_with_check.called
+            return mock.DEFAULT
+
+        self.worker.obtain_job.side_effect = validate_not_spawn
         self.worker.terminate_instance = MagicMock()
 
         mc_do_job = MagicMock()
@@ -652,6 +659,36 @@ class TestDispatcher(object):
         assert self.worker.init_fedmsg.called
         assert self.worker.obtain_job.called
         assert self.worker.terminate_instance.called
+
+    @mock.patch("backend.daemons.dispatcher.time")
+    def test_run_spawn_in_advance(self, mc_time, init_worker):
+        self.worker.opts.spawn_in_advance = True
+        self.worker.init_fedmsg = MagicMock()
+        self.worker.spawn_instance_with_check = MagicMock()
+        self.worker.spawn_instance_with_check.return_value = self.vm_ip
+
+        self.worker.obtain_job = MagicMock()
+        self.worker.obtain_job.return_value = self.job
+
+        def validate_spawn():
+            assert self.worker.spawn_instance_with_check.called
+            self.worker.spawn_instance_with_check.reset_mock()
+            return mock.DEFAULT
+
+        self.worker.obtain_job.side_effect = validate_spawn
+        self.worker.terminate_instance = MagicMock()
+
+        mc_do_job = MagicMock()
+        self.worker.do_job = mc_do_job
+
+        def stop_loop(*args, **kwargs):
+            assert not self.worker.spawn_instance_with_check.called
+            self.worker.kill_received = True
+
+        mc_do_job.side_effect = stop_loop
+
+        self.worker.run()
+
 
     @mock.patch("backend.daemons.dispatcher.time")
     def test_run_finalize(self, mc_time, init_worker):
