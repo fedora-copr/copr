@@ -15,7 +15,7 @@ import time
 from collections import defaultdict
 
 import lockfile
-import daemon
+from daemon import DaemonContext
 from retask.queue import Queue
 from retask import ConnectionError
 
@@ -60,7 +60,6 @@ class CoprBackend(object):
         # what:str}
 
         self.abort = False
-
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0o750)
 
@@ -144,7 +143,7 @@ class CoprBackend(object):
                 self.workers_by_group_id[group_id].append(w)
                 w.start()
 
-    def prune_dead_workers_by_group(self, group):
+    def prune_dead_workers_by_group_id(self, group_id):
         """ Removes dead workers from the pool
 
         :return list: alive workers
@@ -153,19 +152,31 @@ class CoprBackend(object):
             :py:class:`~backend.exceptions.CoprBackendError` when got dead worker and
                 option "exit_on_worker" is enabled
         """
-        group_id = group["id"]
         preserved_workers = []
         for w in self.workers_by_group_id[group_id]:
             if not w.is_alive():
                 self.event("Worker {0} died unexpectedly".format(w.worker_num))
+                w.terminate()  # kill it with a fire
                 if self.opts.exit_on_worker:
                     raise CoprBackendError(
                         "Worker died unexpectedly, exiting")
-                else:
-                    w.terminate()  # kill it with a fire
             else:
                 preserved_workers.append(w)
         return preserved_workers
+
+    def terminate(self):
+        """
+        Cleanup backend processes (just workers for now)
+        And also clean all task queues as they would survive copr restart
+        """
+
+        self.abort = True
+        for group in self.opts.build_groups:
+            group_id = group["id"]
+            for w in self.workers_by_group_id[group_id][:]:
+                self.workers_by_group_id[group_id].remove(w)
+                w.terminate()
+        self.clean_task_queues()
 
     def run(self):
         """
@@ -194,24 +205,10 @@ class CoprBackend(object):
                 # FIXME - if a worker bombs out - we need to check them
                 # and startup a new one if it happens
                 # check for dead workers and abort
-                preserved_workers = self.prune_dead_workers_by_group(group)
+                preserved_workers = self.prune_dead_workers_by_group_id(group_id)
                 self.workers_by_group_id[group_id] = preserved_workers
 
             time.sleep(self.opts.sleeptime)
-
-    def terminate(self):
-        """
-        Cleanup backend processes (just workers for now)
-        And also clean all task queues as they would survive copr restart
-        """
-
-        self.abort = True
-        for group in self.opts.build_groups:
-            group_id = group["id"]
-            for w in self.workers_by_group_id[group_id]:
-                self.workers_by_group_id[group_id].remove(w)
-                w.terminate()
-        self.clean_task_queues()
 
 
 def run_backend(opts):
@@ -226,8 +223,9 @@ def run_backend(opts):
         - `pidfile` - path to the backend pidfile
 
     """
+    cbe = None
     try:
-        context = daemon.DaemonContext(
+        context = DaemonContext(
             pidfile=lockfile.FileLock(opts.pidfile),
             gid=grp.getgrnam("copr").gr_gid,
             uid=pwd.getpwnam("copr").pw_uid,
@@ -244,6 +242,6 @@ def run_backend(opts):
             cbe.run()
     except (Exception, KeyboardInterrupt):
         sys.stderr.write("Killing/Dying\n")
-        if "cbe" in locals():
+        if cbe is not None:
             cbe.terminate()
         raise
