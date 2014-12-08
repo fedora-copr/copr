@@ -44,11 +44,21 @@ def ans_extra_vars_encode(extra_vars, name):
 
 
 class WorkerCallback(object):
+    """
+    Callback class for worker. Now used only for message logging
+
+    :param logfile: path to the log file
+    """
 
     def __init__(self, logfile=None):
         self.logfile = logfile
 
     def log(self, msg):
+        """
+        Safely writes msg to the logfile
+
+        :param str msg: message to be logged
+        """
         if self.logfile:
             now = time.strftime("%F %T")
             try:
@@ -62,6 +72,21 @@ class WorkerCallback(object):
 
 
 class Worker(multiprocessing.Process):
+
+    """
+    Worker process dispatches building tasks. Backend spin-up multiple workers, each
+    worker associated to one group_id and process one task at the each moment.
+
+    Worker listens for the new tasks from :py:class:`retask.Queueu` associated with its group_id
+
+    :param Bunch opts: backend config
+    :param queue: (:py:class:`multiprocessing.Queue`) queue to announce new events
+    :param int worker_num: worker number
+    :param int group_id: group_id from the set of groups defined in config
+    :param callback: callback object to handle internal workers events. Should implement method ``log(msg)``.
+    :param lock: (:py:class:`multiprocessing.Lock`) global backend lock
+
+    """
 
     def __init__(self, opts, events, worker_num, group_id,
                  callback=None, lock=None):
@@ -168,7 +193,8 @@ class Worker(multiprocessing.Process):
 
     def run_ansible_playbook(self, args, name="running playbook", attempts=9):
         """
-        call ansible playbook
+        Call ansible playbook:
+
             - well mostly we run out of space in OpenStack so we rather try
               multiple times (attempts param)
             - dump any attempt failure
@@ -198,6 +224,12 @@ class Worker(multiprocessing.Process):
         return result
 
     def validate_new_vm(self, ipaddr):
+        """
+        Test connectivity to the VM
+
+        :param ipaddr: ip address to the newly created VM
+        :raises: :py:class:`~backend.exceptions.CoprWorkerSpawnFailError`: validation fails
+        """
         # we were getting some dead instances
         # that's why I'm testing the connectivity here
         connection = ansible.runner.Runner(
@@ -258,14 +290,15 @@ class Worker(multiprocessing.Process):
 
     def spawn_instance(self, job):
         """
-        call the spawn playbook to startup/provision a building instance
-        get an IP and test if the builder responds
-        repeat this until you get an IP of working builder
+        Spawn new VM, executing the following steps:
+
+            - call the spawn playbook to startup/provision a building instance
+            - get an IP and test if the builder responds
+            - repeat this until you get an IP of working builder
 
         :param BuildJob job:
-        :return:
-            :ip of created VM
-            :None couldn't find playbook to spin ip VM
+        :return ip: of created VM
+        :return None: if couldn't find playbook to spin ip VM
         """
 
         start = time.time()
@@ -309,7 +342,9 @@ class Worker(multiprocessing.Process):
                                   .format(exception.msg))
 
     def terminate_instance(self, instance_ip):
-        """call the terminate playbook to destroy the building instance"""
+        """
+        Call the terminate playbook to destroy the building instance
+        """
 
         term_args = {}
         if "ip" in self.opts.terminate_vars:
@@ -368,8 +403,9 @@ class Worker(multiprocessing.Process):
     def starting_build(self, job):
         """
         Announce to the frontend that a build is starting.
-        Return: True if the build can start
-                False if the build can not start (build is cancelled)
+
+        :return True: if the build can start
+        :return False: if the build can not start (build is cancelled)
         """
 
         try:
@@ -396,13 +432,16 @@ class Worker(multiprocessing.Process):
         return False
 
     def spawn_instance_with_check(self, job):
-        """ Wrapper around self.spawn_instance() with exception checking
-            :param BuildJob job:
+        """
+        Wrapper around self.spawn_instance() with exception checking
 
-            :return str: ip of spawned vm
-            :raises:
-                CoprWorkError: spawn function doesn't return ip
-                AnsibleError: failure during anible command execution
+        :param BuildJob job:
+
+        :return str: ip of spawned vm
+        :raises:
+
+            - :py:class:`~backend.exceptions.CoprWorkerError`: spawn function doesn't return ip
+            - :py:class:`AnsibleError`: failure during anible command execution
         """
         try:
             ip = self.spawn_instance(job)
@@ -416,8 +455,11 @@ class Worker(multiprocessing.Process):
         return ip
 
     def init_fedmsg(self):
-        # Initialize Fedmsg
-        # (this assumes there are certs and a fedmsg config on disk)
+        """
+        Initialize Fedmsg
+        (this assumes there are certs and a fedmsg config on disk)
+        """
+
         if not (self.opts.fedmsg_enabled and fedmsg):
             return
 
@@ -428,6 +470,9 @@ class Worker(multiprocessing.Process):
                 "failed to initialize fedmsg: {0}".format(e))
 
     def on_pkg_skip(self, job):
+        """
+        Handle package skip
+        """
         self._announce_start(job)
         self.callback.log(
             "Skipping: package {0} has been already built before."
@@ -436,6 +481,10 @@ class Worker(multiprocessing.Process):
         self._announce_end(job)
 
     def obtain_job(self):
+        """
+        Retrieves new build task from queue.
+        Checks if the new job can be started and not skipped.
+        """
         setproctitle("worker-{0} {1}  No task".format(
             self.opts.build_groups[self.group_id]["name"],
             self.worker_num))
@@ -474,6 +523,12 @@ class Worker(multiprocessing.Process):
         return job
 
     def do_job(self, ip, job):
+        """
+        Executes new job.
+
+        :param ip: ip address of the builder VM
+        :param job: :py:class:`~backend.job.BuildJob`
+        """
         self._announce_start(job, ip)
         status = BuildStatus.SUCCEEDED
         chroot_destdir = os.path.normpath(job.destdir + '/' + job.chroot)

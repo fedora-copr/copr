@@ -6,7 +6,6 @@ backend.
 Root backend modules
 
 .. toctree::
-   package/dispatcher
    package/actions
    package/job
    package/frontend
@@ -23,6 +22,7 @@ Backend daemons, started by copr-be.py
 
 .. toctree::
    package/daemons/backend.rst
+   package/daemons/dispatcher.rst
    package/daemons/job_grab.rst
    package/daemons/log.rst
 

@@ -25,17 +25,17 @@ class CoprJobGrab(Process):
 
     """
     Fetch jobs from the Frontend
-    - submit them to the jobs queue for workers
+
+        - submit build task to the jobs queue for workers
+        - run Action handler for action tasks
+
+
+    :param Bunch opts: backend config
+    :param events: :py:class:`multiprocessing.Queue` to listen
+        for events from other backend components
+    :param lock: :py:class:`multiprocessing.Lock` global backend lock
+
     """
-
-    def connect_queues(self):
-        # TODO: better extract connection into the dedicated method
-        for group in self.opts.build_groups:
-            queue = Queue("copr-be-{0}".format(group["id"]))
-            queue.connect()
-
-            for arch in group["archs"]:
-                self.task_queues_by_arch[arch] = queue
 
     def __init__(self, opts, events, lock):
         # base class initialization
@@ -48,14 +48,40 @@ class CoprJobGrab(Process):
         self.added_jobs = set()
         self.lock = lock
 
+    def connect_queues(self):
+        """
+        Connects to the retask queues. One queue per builders group.
+        """
+        for group in self.opts.build_groups:
+            queue = Queue("copr-be-{0}".format(group["id"]))
+            queue.connect()
+
+            for arch in group["archs"]:
+                self.task_queues_by_arch[arch] = queue
+
     def event(self, what):
+        """
+        Put new event into the event queue
+
+        :param what: message to put into the queue
+        """
         self.events.put({"when": time.time(), "who": "jobgrab", "what": what})
 
     def process_build_task(self, task):
+        """
+        Route build task to the appropriate queue.
+        :param task: dict-like object which represent build task
+
+        Utilized **task** keys:
+
+            - ``task_id``
+            - ``chroot``
+            - ``arch``
+
+        :return int: Count of the successfully routed tasks
+        """
         count = 0
         if "task_id" in task and task["task_id"] not in self.added_jobs:
-            # this will ignore and throw away unconfigured architectures
-            # FIXME: don't do ^
 
             # TODO: produces memory leak!
             self.added_jobs.add(task["task_id"])
@@ -70,6 +96,11 @@ class CoprJobGrab(Process):
         return count
 
     def process_action(self, action):
+        """
+        Run action task handler, see :py:class:`~backend.action.Action`
+
+        :param action: dict-like object with action task
+        """
         ao = Action(self.events, action, self.lock, destdir=self.opts.destdir,
                     frontend_callback=FrontendClient(self.opts, self.events),
                     front_url=self.opts.frontend_base_url,
@@ -77,6 +108,9 @@ class CoprJobGrab(Process):
         ao.run()
 
     def load_tasks(self):
+        """
+        Retrieve tasks from frontend and runs appropriate handlers
+        """
         try:
             r = get("{0}/waiting/".format(self.opts.frontend_url),
                     auth=("user", self.opts.frontend_auth))
@@ -111,6 +145,9 @@ class CoprJobGrab(Process):
                 self.process_action(action)
 
     def run(self):
+        """
+        Starts job grabber process
+        """
         setproctitle("CoprJobGrab")
         self.connect_queues()
         try:

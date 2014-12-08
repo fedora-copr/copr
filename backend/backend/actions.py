@@ -18,7 +18,10 @@ class Action(object):
 
     :param str destdir: filepath with build results
 
-    :param dict action: action job, fields:
+    :param dict action: dict-like object with action task
+
+    Expected **action** keys:
+
         - action_type: main field determining what action to apply
         # TODO: describe actions
 

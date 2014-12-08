@@ -15,16 +15,16 @@ from setproctitle import setproctitle
 
 class CoprBackendLog(Process):
 
-    """Log mechanism where items from the events queue get recorded"""
+    """Log mechanism where items from the events queue get recorded
+
+    :param Bunch opts: backend config
+    :param events: multiprocessing.Queue to listen
+        for events from other backend components
+
+    """
 
     def __init__(self, opts, events):
-        """
 
-        :param Bunch opts: backend config
-        :param events: multiprocessing.Queue to listen
-            for events from other backend components
-
-        """
         # base class initialization
         Process.__init__(self, name="logger")
 

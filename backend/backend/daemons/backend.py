@@ -30,14 +30,13 @@ class CoprBackend(object):
 
     """
     Core process - starts/stops/initializes workers and other backend components
+
+
+    :param config_file: path to the backend configuration file
+    :param ext_opts: additional options for backend
     """
 
     def __init__(self, config_file=None, ext_opts=None):
-        """
-
-        :param config_file: path to the backend configuration file
-        :param ext_opts: additional options for backend
-        """
         # read in config file
         # put all the config items into a single self.opts bunch
 
@@ -55,35 +54,56 @@ class CoprBackend(object):
 
         self.lock = multiprocessing.Lock()
 
-        self.task_queues = []
-        try:
-            for group in self.opts.build_groups:
-                group_id = group["id"]
-                self.task_queues.append(Queue("copr-be-{0}".format(group_id)))
-                self.task_queues[group_id].connect()
-        except ConnectionError:
-            raise CoprBackendError(
-                "Could not connect to a task queue. Is Redis running?")
-
-        # make sure there is nothing in our task queues
-        self.clean_task_queues()
-
+        self.task_queues = {}
         self.events = multiprocessing.Queue()
         # event format is a dict {when:time, who:[worker|logger|job|main],
         # what:str}
 
-        # create logger
-        self._logger = CoprBackendLog(self.opts, self.events)
-        self._logger.start()
-
-        self.event("Starting up Job Grabber")
-        # create job grabber
-        self._jobgrab = CoprJobGrab(self.opts, self.events, self.lock)
-        self._jobgrab.start()
         self.abort = False
 
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0o750)
+
+    def clean_task_queues(self):
+        """
+        Make sure there is nothing in our task queues
+        """
+        try:
+            for queue in self.task_queues.values():
+                while queue.length:
+                    queue.dequeue()
+        except ConnectionError:
+            raise CoprBackendError(
+                "Could not connect to a task queue. Is Redis running?")
+
+    def init_task_queues(self):
+        """
+        Connect to the retask.Queue for each group_id. Remove old tasks from queues.
+        """
+        try:
+            for group in self.opts.build_groups:
+                group_id = group["id"]
+                queue = Queue("copr-be-{0}".format(group_id))
+                queue.connect()
+                self.task_queues[group_id] = queue
+        except ConnectionError:
+            raise CoprBackendError(
+                "Could not connect to a task queue. Is Redis running?")
+
+        self.clean_task_queues()
+
+    def init_sub_process(self):
+        """
+        - Create backend logger
+        - Create job grabber
+        """
+        self._logger = CoprBackendLog(self.opts, self.events)
+        self._logger.start()
+
+        self.event("Starting up Job Grabber")
+
+        self._jobgrab = CoprJobGrab(self.opts, self.events, self.lock)
+        self._jobgrab.start()
 
     def event(self, what):
         """
@@ -98,18 +118,19 @@ class CoprBackend(object):
         """
         self.opts = self.config_reader.read()
 
-    def clean_task_queues(self):
-        try:
-            for queue in self.task_queues:
-                while queue.length:
-                    queue.dequeue()
-        except ConnectionError:
-            raise CoprBackendError(
-                "Could not connect to a task queue. Is Redis running?")
-
     def spin_up_workers_by_group(self, group):
+        """
+        Handles starting/growing the number of workers
+
+        :param dict group: Builders group
+
+        Utilized keys:
+            - **id**
+            - **max_workers**
+
+        """
         group_id = group["id"]
-        # this handles starting/growing the number of workers
+
         if len(self.workers_by_group_id[group_id]) < group["max_workers"]:
             self.event("Spinning up more workers")
             for _ in range(group["max_workers"] - len(self.workers_by_group_id[group_id])):
@@ -147,6 +168,12 @@ class CoprBackend(object):
         return preserved_workers
 
     def run(self):
+        """
+        Starts backend process. Control sub process start/stop.
+        """
+        self.init_sub_process()
+        self.init_task_queues()
+
         self.abort = False
         while not self.abort:
             # re-read config into opts
