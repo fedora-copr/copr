@@ -232,14 +232,15 @@ class Worker(multiprocessing.Process):
         """
         # we were getting some dead instances
         # that's why I'm testing the connectivity here
-        connection = ansible.runner.Runner(
+        runner_options = dict(
             remote_user="root",
             host_list="{},".format(ipaddr),
             pattern=ipaddr,
             forks=1,
-            transport="ssh",
+            transport=self.opts.ssh.transport,
             timeout=500
         )
+        connection = ansible.runner.Runner(**runner_options)
         connection.module_name = "shell"
         connection.module_args = "echo hello"
 
@@ -252,8 +253,9 @@ class Worker(multiprocessing.Process):
 
         if ipaddr not in res.get("contacted", {}):
             self.callback.log(
-                "Worker is not responding to"
-                "the testing playbook. Terminating it.")
+                "Worker is not responding to the testing playbook. Terminating it."
+                "Runner options: {}".format(runner_options) +
+                "Ansible raw response:\n{}".format(res))
             raise CoprWorkerSpawnFailError("Created VM ({}) was unresponsive "
                                            "and therefore terminated".format(ipaddr))
 
@@ -469,8 +471,7 @@ class Worker(multiprocessing.Process):
         """
         self._announce_start(job)
         self.callback.log(
-            "Skipping: package {0} has been already built before."
-            .format(' '.join(job.pkg)))
+            "Skipping: package {0} has been already built before.".format(job.pkg))
         job.status = BuildStatus.SKIPPED  # skipped
         self._announce_end(job)
 

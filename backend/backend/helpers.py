@@ -160,6 +160,12 @@ class BackendConfigReader(object):
         opts.spawn_in_advance = _get_conf(
             cp, "backend", "spawn_in_advance", False, mode="bool")
 
+        # ssh options
+        opts.ssh = Bunch()
+        # TODO: ansible Runner show some magic bugs with transport "ssh", using paramiko
+        opts.ssh.transport = _get_conf(
+            cp, "ssh", "transport", "paramiko")
+
         # thoughts for later
         # ssh key for connecting to builders?
         # cloud key stuff?

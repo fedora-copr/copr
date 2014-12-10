@@ -78,6 +78,7 @@ class TestDispatcher(object):
         self.spawn_pb = "/spawn.yml"
         self.terminate_pb = "/terminate.yml"
         self.opts = Bunch(
+            ssh=Bunch(transport="paramiko"),
             spawn_in_advance=False,
             frontend_url="http://example.com/",
             frontend_auth="12345678",

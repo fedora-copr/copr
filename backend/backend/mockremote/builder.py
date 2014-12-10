@@ -13,12 +13,14 @@ from ..constants import mockchain, rsync
 
 class Builder(object):
 
-    def __init__(self, hostname, username,
+    def __init__(self, opts, hostname, username,
                  timeout, chroot, buildroot_pkgs,
                  callback,
                  remote_basedir, remote_tempdir=None,
                  macros=None, repos=None):
 
+        # TODO: remove fields obtained from opts
+        self.opts = opts
         self.hostname = hostname
         self.username = username
         self.timeout = timeout
@@ -33,9 +35,8 @@ class Builder(object):
         self._remote_tempdir = remote_tempdir
         self._remote_basedir = remote_basedir
         # if we're at this point we've connected and done stuff on the host
-        self.conn = _create_ans_conn(
-            self.hostname, self.username, self.timeout)
-        self.root_conn = _create_ans_conn(self.hostname, "root", self.timeout)
+        self.conn = self._create_ans_conn()
+        self.root_conn = self._create_ans_conn(username="root")
 
         # self.callback.log("Created builder: {}".format(self.__dict__))
 
@@ -74,6 +75,15 @@ class Builder(object):
     @tempdir.setter
     def tempdir(self, value):
         self._remote_tempdir = value
+
+    def _create_ans_conn(self, username=None):
+        ans_conn = Runner(remote_user=username or self.username,
+                          host_list=self.hostname + ",",
+                          pattern=self.hostname,
+                          forks=1,
+                          transport=self.opts.ssh.transport,
+                          timeout=self.timeout)
+        return ans_conn
 
     def _run_ansible(self, cmd, module_name=None, as_root=False):
         """
@@ -356,14 +366,6 @@ class Builder(object):
             raise BuilderError(msg)
 
 
-def _create_ans_conn(hostname, username, timeout):
-    ans_conn = Runner(remote_user=username,
-                      host_list=hostname + ",",
-                      pattern=hostname,
-                      forks=1,
-                      transport="ssh",
-                      timeout=timeout)
-    return ans_conn
 
 
 def get_ans_results(results, hostname):

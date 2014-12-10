@@ -134,15 +134,17 @@ class MockRemote(object):
             self.callback = DefaultCallBack()
 
         self.callback.log("Setting up builder: {0}".format(builder_host))
-        self.builder = Builder(hostname=builder_host,
-                               username=self.opts.build_user,
-                               chroot=self.job.chroot,
-                               timeout=self.job.timeout or DEF_TIMEOUT,
-                               buildroot_pkgs=self.job.buildroot_pkgs,
-                               callback=self.callback,
-                               remote_basedir=self.opts.remote_basedir,
-                               remote_tempdir=self.opts.remote_tempdir,
-                               macros=self.macros, repos=self.repos)
+        self.builder = Builder(
+            opts=self.opts,
+            hostname=builder_host,
+            username=self.opts.build_user,
+            chroot=self.job.chroot,
+            timeout=self.job.timeout or DEF_TIMEOUT,
+            buildroot_pkgs=self.job.buildroot_pkgs,
+            callback=self.callback,
+            remote_basedir=self.opts.remote_basedir,
+            remote_tempdir=self.opts.remote_tempdir,
+            macros=self.macros, repos=self.repos)
         self.builder.check()
 
         if not self.job.chroot:

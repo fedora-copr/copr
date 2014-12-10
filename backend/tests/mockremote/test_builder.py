@@ -3,6 +3,7 @@ import copy
 
 from collections import defaultdict
 from pprint import pprint
+from bunch import Bunch
 from backend.exceptions import BuilderError, BuilderTimeOutError
 
 import tempfile
@@ -57,8 +58,15 @@ class TestBuilder(object):
     STDOUT = "stdout"
     STDERR = "stderr"
 
+    opts = Bunch(
+        ssh=Bunch(
+            transport="paramiko"
+        )
+    )
+
     def get_test_builder(self):
         builder = Builder(
+            opts=self.opts,
             hostname=self.BUILDER_HOSTNAME,
             username=self.BUILDER_USER,
             timeout=self.BUILDER_TIMEOUT,

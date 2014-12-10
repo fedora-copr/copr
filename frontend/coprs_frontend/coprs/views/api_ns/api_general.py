@@ -84,13 +84,16 @@ def api_new_copr(username):
         infos = []
 
         auto_createrepo = True
-        dct = json.loads(flask.request.data)
-        if "auto_createrepo" in dct:
-            val = dct["auto_createrepo"]
-            if isinstance(val, bool):
-                auto_createrepo = val
-            elif str(val).lower() in ["false", "no"]:
-                auto_createrepo = False
+        try:
+            dct = json.loads(flask.request.data)
+            if "auto_createrepo" in dct:
+                val = dct["auto_createrepo"]
+                if isinstance(val, bool):
+                    auto_createrepo = val
+                elif str(val).lower() in ["false", "no"]:
+                    auto_createrepo = False
+        except Exception:
+            pass
 
         try:
             copr = coprs_logic.CoprsLogic.add(
