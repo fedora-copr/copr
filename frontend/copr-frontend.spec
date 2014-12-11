@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.49
+Version:    1.50
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -168,6 +168,9 @@ service httpd condrestart
 %doc documentation/python-doc
 
 %changelog
+* Thu Dec 11 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.50-1
+- fix unittest
+
 * Thu Dec 11 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.49-1
 - api workaround: removed auto_createrepo option
 - show copr-frontend version;
