@@ -106,6 +106,8 @@ popd
 
 %install
 
+
+
 install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_datadir}/copr/coprs_frontend
 install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store
@@ -115,7 +117,10 @@ install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/temp
 install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee
 install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 
+
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
+sed -i "s/__RPM_BUILD_VERSION/%{version}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
+
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
