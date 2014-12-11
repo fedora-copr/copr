@@ -73,8 +73,7 @@ class TestCreateCopr(CoprsTestCase):
             "repos": self.repos,
             "initial_pkgs": self.initial_pkgs,
             "description": self.description,
-            "instructions": self.instructions,
-            "auto_createrepo": False
+            "instructions": self.instructions
         }
         content_encoded = json.dumps(content)
 
@@ -95,5 +94,3 @@ class TestCreateCopr(CoprsTestCase):
         assert copr.owner.id == self.u1.id
         assert copr.description == self.description
         assert copr.instructions == self.instructions
-
-        assert not copr.auto_createrepo
