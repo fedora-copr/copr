@@ -31,6 +31,9 @@ BuildRequires: python-argparse
 #for doc package
 BuildRequires: epydoc
 BuildRequires: graphviz
+BuildRequires: pytest
+BuildRequires: python-mock
+BuildRequires: python-six
 
 Requires:   obs-signd
 Requires:   ansible >= 1.2
@@ -48,6 +51,7 @@ Requires:   python-requests
 Requires:   python-setproctitle
 Requires:   python-retask
 Requires:   python-copr
+Requires:   python-six
 Requires:   redis
 Requires:   logrotate
 Requires:   fedmsg
@@ -128,6 +132,12 @@ install -m 0644 conf/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
 #doc
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
+
+%check
+
+PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
+  -s --cov-report term-missing --cov ./backend --cov ./run ./tests/
+
 
 %pre
 getent group copr >/dev/null || groupadd -r copr
