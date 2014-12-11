@@ -16,7 +16,7 @@ class Action(object):
     :param backend.callback.FrontendCallback frontent_callback:
         object to post data back to frontend
 
-    :param str destdir: filepath with build results
+    :param destdir: filepath with build results
 
     :param dict action: dict-like object with action task
 
