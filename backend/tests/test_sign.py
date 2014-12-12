@@ -34,7 +34,7 @@ class TestSign(object):
         self.username = "foo"
         self.projectname = "bar"
 
-        self.usermail = "foo_bar@copr.fedorahosted.org"
+        self.usermail = "foo#bar@copr.fedorahosted.org"
         self.test_time = time.time()
         self.tmp_dir_path = None
 
