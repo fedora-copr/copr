@@ -1,27 +1,20 @@
 # coding: utf-8
-import copy
 
-from collections import defaultdict
-import json
 import multiprocessing
-from pprint import pprint
+
 from bunch import Bunch
 from requests import RequestException
-from backend.exceptions import BuilderError, BuilderTimeOutError, MockRemoteError, CoprSignError
-
-import tempfile
-import shutil
-import os
-
 import six
+
 from backend.frontend import FrontendClient
+
 
 if six.PY3:
     from unittest import mock
     from unittest.mock import patch, MagicMock
 else:
     import mock
-    from mock import patch, MagicMock
+    from mock import MagicMock
 
 import pytest
 

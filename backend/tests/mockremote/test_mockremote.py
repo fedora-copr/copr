@@ -2,9 +2,8 @@
 import copy
 
 from collections import defaultdict
-from pprint import pprint
 from bunch import Bunch
-from backend.exceptions import BuilderError, BuilderTimeOutError, MockRemoteError, CoprSignError
+from backend.exceptions import MockRemoteError, CoprSignError
 
 import tempfile
 import shutil
@@ -21,8 +20,6 @@ else:
 
 import pytest
 
-import backend.mockremote.builder as builder_module
-from backend.mockremote.builder import Builder
 from backend.mockremote import MockRemote, get_target_dir
 from backend.mockremote.callback import DefaultCallBack
 from backend.job import BuildJob

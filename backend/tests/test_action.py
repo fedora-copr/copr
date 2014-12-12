@@ -1,15 +1,12 @@
 import os
-import argparse
-from collections import defaultdict
 import json
-from pprint import pprint
-from _pytest.capture import capsys
-import pytest
 import tempfile
 import shutil
-
-import six
 import time
+
+import pytest
+import six
+
 
 if six.PY3:
     from unittest import mock
@@ -17,8 +14,6 @@ if six.PY3:
 else:
     import mock
     from mock import MagicMock
-
-import logging
 
 # logging.basicConfig(
 #     level=logging.INFO,
@@ -31,7 +26,6 @@ import logging
 
 from backend.actions import Action, ActionType, ActionResult
 
-import multiprocessing
 if six.PY3:
     import queue
     from queue import Empty as EmptyQueue

@@ -1,12 +1,8 @@
 # coding: utf-8
-import copy
 
-from collections import defaultdict
 import logging
-from pprint import pprint
 from bunch import Bunch
 import time
-from backend.exceptions import BuilderError, BuilderTimeOutError
 
 import tempfile
 import shutil

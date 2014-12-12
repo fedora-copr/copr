@@ -1,17 +1,12 @@
 import os
-
-from collections import defaultdict
-import json
-from pprint import pprint
-from _pytest.capture import capsys
-from bunch import Bunch
-import pytest
-import copy
 import tempfile
 import shutil
-
-import six
 import time
+
+from bunch import Bunch
+import pytest
+import six
+
 from backend.exceptions import CoprSignError, CoprSignNoKeyError, CoprKeygenRequestError
 
 if six.PY3:

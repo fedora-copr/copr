@@ -32,8 +32,19 @@ BuildRequires: python-argparse
 BuildRequires: epydoc
 BuildRequires: graphviz
 BuildRequires: pytest
+BuildRequires: python-pytest-cov
 BuildRequires: python-mock
 BuildRequires: python-six
+BuildRequires: python-bunch
+BuildRequires: python-daemon
+BuildRequires: python-lockfile
+BuildRequires: python-requests
+BuildRequires: python-setproctitle
+BuildRequires: python-retask
+BuildRequires: python-copr
+BuildRequires: python-six
+BuildRequires: ansible >= 1.2
+BuildRequires: python-IPy
 
 Requires:   obs-signd
 Requires:   ansible >= 1.2
@@ -52,6 +63,7 @@ Requires:   python-setproctitle
 Requires:   python-retask
 Requires:   python-copr
 Requires:   python-six
+Requires:   python-IPy
 Requires:   redis
 Requires:   logrotate
 Requires:   fedmsg

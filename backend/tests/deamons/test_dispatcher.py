@@ -1,22 +1,16 @@
 import multiprocessing
 import os
 
-from collections import defaultdict
-import json
-from pprint import pprint
 from subprocess import CalledProcessError
-from _pytest.capture import capsys
-import ansible
+
 from ansible.errors import AnsibleError
 from bunch import Bunch
 import pytest
-import copy
 import tempfile
 import shutil
 import time
 
 import six
-from retask.task import Task
 
 from backend.constants import BuildStatus
 from backend.exceptions import CoprWorkerError, CoprWorkerSpawnFailError, MockRemoteError

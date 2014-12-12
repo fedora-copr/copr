@@ -1,14 +1,12 @@
 # coding: utf-8
 import copy
 
-from collections import defaultdict
 import logging
-from pprint import pprint
 from bunch import Bunch
 import time
 import requests
 
-from backend.exceptions import BuilderError, BuilderTimeOutError, CoprJobGrabError
+from backend.exceptions import CoprJobGrabError
 
 from retask.queue import Queue
 
@@ -27,7 +25,6 @@ else:
 
 import pytest
 
-import backend.daemons.log as log_module
 from backend.daemons.job_grab import CoprJobGrab
 import backend.actions
 
