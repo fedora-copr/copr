@@ -24,7 +24,8 @@ def create_gpg_email(username, projectname):
     """
     Creates canonical name_email to identify gpg key
     """
-    return "{}_{}@copr.{}".format(username, projectname, DOMAIN)
+
+    return "{}#{}@copr.{}".format(username, projectname, DOMAIN)
 
 
 def get_pubkey(username, projectname, outfile=None):
