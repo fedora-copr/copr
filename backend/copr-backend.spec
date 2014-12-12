@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.50
+Version:    1.51
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -202,6 +202,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Dec 12 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.51-1
+- updated BuildRequires; cleanup imports
+- package sign: generate gpg usermail with special symbol
+- bugfix: when dispatcher has vm_ip it shouldn't start new VM;
+- run tests during rpm build
+- minor docstring fix
+
 * Wed Dec 10 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.50-1
 - [backend] added option to control ansible ssh transport, changed by default
   to `paramiko` [frontend] bugfix api create new
