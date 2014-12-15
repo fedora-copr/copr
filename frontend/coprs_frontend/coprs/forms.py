@@ -319,6 +319,8 @@ class CoprModifyForm(wtf.Form):
                                               wtforms.validators.Optional()],
                                   filters=[StringListFilter()])
 
+    disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
+
 
 class ModifyChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')

@@ -175,6 +175,19 @@ class Commands(object):
         print(result.message)
 
     @requires_api_auth
+    def action_modify_project(self, args):
+        """ Method called when the 'modify' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+        """
+
+        result = self.client.modify_project(
+            projectname=args.name,
+            description=args.description, instructions=args.instructions,
+            repos=args.repos, disable_createrepo=args.disable_createrepo)
+
+    @requires_api_auth
     def action_delete(self, args):
         """ Method called when the 'delete' action has been selected by the
         user.
@@ -289,6 +302,20 @@ def setup_parser():
     parser_create.add_argument("--instructions",
                                help="Instructions for the copr")
     parser_create.set_defaults(func="action_create")
+
+    # create the parser for the "modify_project" command
+    parser_modify = subparsers.add_parser("modify", help="Modify existing copr")
+
+    parser_modify.add_argument("name", help="The name of the copr to modify")
+    parser_modify.add_argument("--description",
+                               help="Description of the copr")
+    parser_modify.add_argument("--instructions",
+                               help="Instructions for the copr")
+    parser_modify.add_argument("--repo", dest="repos", action="append",
+                               help="Repository to add to this copr")
+    parser_modify.add_argument("--disable_createrepo",
+                               help="Disable metadata auto generation")
+    parser_modify.set_defaults(func="action_modify_project")
 
     # create the parser for the "delete" command
     parser_delete = subparsers.add_parser("delete",

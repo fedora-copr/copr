@@ -414,6 +414,8 @@ def copr_modify(username, coprname):
             copr.instructions = form.instructions.data
         if form.repos.raw_data and len(form.repos.raw_data):
             copr.repos = form.repos.data
+        if form.disable_createrepo.raw_data and len(form.disable_createrepo.raw_data):
+            copr.disable_createrepo = form.disable_createrepo.data
 
         try:
             coprs_logic.CoprsLogic.update(flask.g.user, copr)
@@ -425,10 +427,12 @@ def copr_modify(username, coprname):
         else:
             db.session.commit()
 
-            output = {'output': 'ok',
-                      'description': copr.description,
-                      'instructions': copr.instructions,
-                      'repos': copr.repos}
+            output = {
+                'output': 'ok',
+                'description': copr.description,
+                'instructions': copr.instructions,
+                'repos': copr.repos,
+            }
             httpcode = 200
 
     jsonout = flask.jsonify(output)

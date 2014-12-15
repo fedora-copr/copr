@@ -94,3 +94,10 @@ class TestCreateCopr(CoprsTestCase):
         assert copr.owner.id == self.u1.id
         assert copr.description == self.description
         assert copr.instructions == self.instructions
+
+    #
+    # @TransactionDecorator("u1")
+    # def test_copr_modify(self, f_users, f_mock_chroots, f_db):
+    #     self.db.session.add_all([self.u1, self.mc1])
+    #
+    #

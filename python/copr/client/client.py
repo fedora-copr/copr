@@ -203,7 +203,8 @@ class CoprClient(object):
             output = json.loads(response.text)
         except ValueError:
             raise CoprUnknownResponseException(
-                "Unknown response from the server.")
+                "Unknown response from the server. Code: {}, raw response:"
+                " \n {}".format(response.status_code, response.text))
         if response.status_code != 200:
             raise CoprRequestException(output["error"])
 
@@ -481,7 +482,8 @@ class CoprClient(object):
         return response
 
     def modify_project(self, projectname, username=None,
-                       description=None, instructions=None, repos=None):
+                       description=None, instructions=None,
+                       repos=None, disable_createrepo=None):
         """ Modifies main project configuration.
             Auth required.
 
@@ -512,6 +514,8 @@ class CoprClient(object):
             data["instructions"] = instructions
         if repos:
             data["repos"] = repos
+        if disable_createrepo:
+            data["disable_createrepo"] = disable_createrepo
 
         result_data = self._fetch(url, data=data, method="post")
 
