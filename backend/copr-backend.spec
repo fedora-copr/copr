@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.51
+Version:    1.52
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -202,6 +202,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Dec 15 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.52-1
+- fixed config option `results_baseurl` usage, in mockremote
+
 * Fri Dec 12 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.51-1
 - updated BuildRequires; cleanup imports
 - package sign: generate gpg usermail with special symbol
