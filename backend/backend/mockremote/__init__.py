@@ -97,7 +97,7 @@ class MockRemote(object):
             :ivar do_sign: enable package signing, require configured
                 signer host and correct /etc/sign.conf
             :ivar frontend_base_url: url to the copr frontend
-            :ivar results_base_url: base url for the built results
+            :ivar results_baseurl: base url for the built results
             :ivar remote_basedir: basedir on builder
             :ivar remote_tempdir: tempdir on builder
 
@@ -109,7 +109,7 @@ class MockRemote(object):
         self.opts = Bunch(
             do_sign=False,
             frontend_base_url=None,
-            results_base_url=u"",
+            results_baseurl=u"",
             build_user=DEF_BUILD_USER,
             remote_basedir=DEF_REMOTE_BASEDIR,
             remote_tempdir=None,
@@ -240,7 +240,7 @@ class MockRemote(object):
         r_log.close()
 
     def do_createrepo(self):
-        base_url = "/".join([self.opts.results_base_url, self.job.project_owner,
+        base_url = "/".join([self.opts.results_baseurl, self.job.project_owner,
                              self.job.project_name, self.job.chroot])
         self.callback.log("Createrepo:: owner:  {}; project: {}; "
                           "front url: {}; path: {}; base_url: {}"

@@ -61,7 +61,7 @@ def parse_args(args):
                       help="output very little to the terminal")
     parser.add_option("-f", "--front_url", dest="front_url",
                       help="copr frontend url")
-    parser.add_option("--results_url", dest="results_base_url",
+    parser.add_option("--results_url", dest="results_baseurl",
                       help="backend base url for built packages")
 
     opts, args = parser.parse_args(args)
@@ -135,7 +135,7 @@ def main(args):
             do_sign=opts.do_sign,
             callback=callback,
             front_url=opts.front_url,
-            results_base_url=opts.results_base_url,
+            results_base_url=opts.results_baseurl,
         )
 
         # FIXMES

@@ -108,7 +108,7 @@ class TestMockRemote(object):
         }
         self.OPTS = Bunch({
             "do_sign": False,
-            "results_base_url": self.BASE_URL,
+            "results_baseurl": self.BASE_URL,
             "frontend_base_url": self.FRONT_URL,
         })
 
