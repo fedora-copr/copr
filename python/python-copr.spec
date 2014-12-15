@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.55
+Version:    1.56
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -165,6 +165,9 @@ popd
 %endif
 
 %changelog
+* Mon Dec 15 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.56-1
+- control auto_createrepo property of project through API
+
 * Thu Nov 20 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.55-1
 - [python] support python 2.6
 
