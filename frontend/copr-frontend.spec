@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.50
+Version:    1.51
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -168,6 +168,10 @@ service httpd condrestart
 %doc documentation/python-doc
 
 %changelog
+* Mon Dec 15 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.51-1
+- bugfix: send correct chroots in on_auto_createrepo_change()
+- control auto_createrepo property of project through API
+
 * Thu Dec 11 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.50-1
 - fix unittest
 
