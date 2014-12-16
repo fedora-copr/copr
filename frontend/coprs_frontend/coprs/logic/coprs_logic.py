@@ -130,13 +130,13 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def add(cls, user, name, repos, selected_chroots, description,
-            instructions, check_for_duplicates=False, **kwargs):
+    def add(cls, user, name, repos, selected_chroots, description=None,
+            instructions=None, check_for_duplicates=False, **kwargs):
         copr = models.Copr(name=name,
                            repos=repos,
                            owner_id=user.id,
-                           description=description,
-                           instructions=instructions,
+                           description=description or u"",
+                           instructions=instructions or u"",
                            created_on=int(time.time()),
                            **kwargs)
 
@@ -188,7 +188,10 @@ class CoprsLogic(object):
         db.session.add(copr)
 
     @classmethod
-    def delete(cls, user, copr, check_for_duplicates=True):
+    def delete_unsafe(cls, user, copr):
+        """
+        Deletes copr without termination of ongoing builds.
+        """
         cls.raise_if_cant_delete(user, copr)
         # TODO: do we want to dump the information somewhere, so that we can
         # search it in future?
@@ -339,7 +342,9 @@ listen(models.Copr.auto_createrepo, 'set', on_auto_createrepo_change,
 
 class CoprChrootsLogic(object):
     @classmethod
+
     def mock_chroots_from_names(cls, names):
+
         db_chroots = models.MockChroot.query.all()
         mock_chroots = []
         for ch in db_chroots:

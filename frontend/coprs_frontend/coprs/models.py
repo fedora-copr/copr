@@ -1,3 +1,4 @@
+import copy
 import datetime
 import json
 import os
@@ -170,6 +171,19 @@ class Copr(db.Model, helpers.Serializer):
     }
 
     @property
+    def yum_repos(self):
+        return {}
+        # todo: add config option to set backen results base url
+        # release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
+        # result = {}
+        # for chroot in repo.active_chroots:
+        #     release = release_tmpl.format(chroot=chroot)
+        #     url = fix_protocol_for_backend(urlparse.urljoin(
+        #         app.config["BACKEND_RESULTS_BASE_URL"], release + '/'))
+        #     result[release] = url
+        # return result
+
+    @property
     def repos_list(self):
         """
         Return repos of this copr as a list of strings
@@ -243,6 +257,13 @@ class Copr(db.Model, helpers.Serializer):
     @property
     def full_name(self):
         return "{}/{}".format(self.owner.username, self.name)
+
+    def to_dict(self, private=False, show_builds=True, show_chroots=True):
+        result = {}
+        for key in ["id", "name", "description", "instructions"]:
+            result[key] = str(copy.copy(getattr(self, key)))
+        result["owner"] = self.owner.name
+        return result
 
 
 class CoprPermission(db.Model, helpers.Serializer):
@@ -353,6 +374,13 @@ class Build(db.Model, helpers.Serializer):
         # we have changed result directory naming together with transition to dist-git
         # that's why we use so strange criterion
         return self.build_chroots[0].git_hash is None
+
+    @property
+    def repos_list(self):
+        if self.repos is None:
+            return list()
+        else:
+            return self.repos.split()
 
     @property
     def result_dir_name(self):
@@ -512,6 +540,15 @@ class Build(db.Model, helpers.Serializer):
         else:
             return src_rpm_name
 
+    def to_dict(self, options=None):
+        result = super(Build, self).to_dict(options)
+        result["src_pkg"] = result["pkgs"]
+        del result["pkgs"]
+        del result["copr_id"]
+
+        result["state"] = self.state
+        return result
+
 
 class MockChroot(db.Model, helpers.Serializer):
 
@@ -555,6 +592,12 @@ class MockChroot(db.Model, helpers.Serializer):
         Textual representation of the operating system name
         """
         return "{0} {1}".format(self.os_release, self.os_version)
+
+    @property
+    def serializable_attributes(self):
+        attr_list = super(MockChroot, self).serializable_attributes
+        attr_list.extend(["name", "os"])
+        return attr_list
 
 
 class CoprChroot(db.Model, helpers.Serializer):

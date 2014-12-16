@@ -39,7 +39,7 @@ class TestMonitor(CoprsTestCase):
         res = self.tc.get("/coprs/{}/{}/monitor/".format(self.u1.name, copr_name))
         assert res.status_code == 200
 
-        self.db.session.add(CoprsLogic.delete(self.u1, tmp_copr))
+        self.db.session.add(CoprsLogic.delete_unsafe(self.u1, tmp_copr))
         self.db.session.commit()
 
         res = self.tc.get("/coprs/{}/{}/monitor/".format(self.u1.name, copr_name))

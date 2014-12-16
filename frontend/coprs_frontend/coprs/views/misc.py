@@ -51,6 +51,11 @@ def krb_strip_realm(fullname):
 
 
 @app.before_request
+def set_empty_user():
+    flask.g.user = None
+
+
+@app.before_request
 def lookup_current_user():
     flask.g.user = username = None
     if "openid" in flask.session:
@@ -220,6 +225,7 @@ def api_login_required(f):
             return jsonout
         return f(*args, **kwargs)
     return decorated_function
+
 
 
 def login_required(role=helpers.RoleEnum("user")):
