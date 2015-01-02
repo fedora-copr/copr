@@ -231,13 +231,12 @@ class TestBuilder(object):
                             "rc": 2,
                             "stdout": "stdout",
                             "stderr": "stderr",
-                            "stdother": "stdother",
                         }}
                     }, self.BUILDER_HOSTNAME
                 ],
-                "kwargs": {"err_codes": [2, 3], "return_on_error": ["stdother"]},
+                "kwargs": {"err_codes": [2, 3]},
                 "expected_return": (True, {"rc": 2, "msg": "rc 2 matched err_codes",
-                                           "stdother": "stdother"}),
+                                           "stdout": "stdout", "stderr": "stderr"}),
                 "expected_exception": None
             },
             {

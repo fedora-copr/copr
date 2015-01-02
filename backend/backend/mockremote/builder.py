@@ -6,7 +6,7 @@ import time
 
 from ansible.runner import Runner
 
-from ..exceptions import BuilderError, BuilderTimeOutError
+from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError
 
 from ..constants import mockchain, rsync
 
@@ -85,6 +85,22 @@ class Builder(object):
                           timeout=self.timeout)
         return ans_conn
 
+    def run_ansible_with_check(self, cmd, module_name=None, as_root=False,
+                               err_codes=None, success_codes=None):
+
+        results = self._run_ansible(cmd, module_name, as_root)
+        error, err_results = check_for_ans_error(
+            results, self.hostname, err_codes, success_codes)
+
+        if error:
+            raise AnsibleCallError(
+                msg="Failed to execute ansible command",
+                ansible_errors=err_results,
+                cmd=cmd, module_name=module_name, as_root=as_root
+            )
+
+        return results
+
     def _run_ansible(self, cmd, module_name=None, as_root=False):
         """
             Executes single ansible module
@@ -138,9 +154,7 @@ class Builder(object):
             .format(self.chroot, self.buildroot_pkgs),
             module_name="lineinfile", as_root=True)
 
-        is_err, err_results = check_for_ans_error(
-            results, self.hostname, success_codes=[0],
-            return_on_error=["stdout", "stderr"])
+        is_err, err_results = check_for_ans_error(results, self.hostname)
 
         if is_err:
             self.callback.log("Error: {0}".format(err_results))
@@ -167,8 +181,7 @@ class Builder(object):
         err = myresults.get("stderr", "")
         successfile = os.path.join(self._get_remote_pkg_dir(pkg), "success")
         results = self._run_ansible("/usr/bin/test -f {0}".format(successfile))
-        is_err, err_results = check_for_ans_error(
-            results, self.hostname, success_codes=[0])
+        is_err, err_results = check_for_ans_error(results, self.hostname)
         return err, is_err, out
 
     def check_if_pkg_local_or_http(self, pkg):
@@ -269,9 +282,7 @@ class Builder(object):
         except BuilderTimeOutError:
             return False, "", "Timeout expired", build_details
 
-        is_err, err_results = check_for_ans_error(
-            results, self.hostname, success_codes=[0],
-            return_on_error=["stdout", "stderr"])
+        is_err, err_results = check_for_ans_error(results, self.hostname)
 
         if is_err:
             return (False, err_results.get("stdout", ""),
@@ -329,8 +340,7 @@ class Builder(object):
 
         res = self._run_ansible("/bin/rpm -q mock rsync")
         # check for mock/rsync from results
-        is_err, err_results = check_for_ans_error(
-            res, self.hostname, success_codes=[0])
+        is_err, err_results = check_for_ans_error(res, self.hostname)
 
         if is_err:
             if "rc" in err_results:
@@ -348,8 +358,7 @@ class Builder(object):
             " && /usr/bin/test -f /etc/mock/{1}.cfg"
             .format(mockchain, self.chroot))
 
-        is_err, err_results = check_for_ans_error(
-            res, self.hostname, success_codes=[0])
+        is_err, err_results = check_for_ans_error(res, self.hostname)
 
         if is_err:
             if "rc" in err_results:
@@ -366,8 +375,6 @@ class Builder(object):
             raise BuilderError(msg)
 
 
-
-
 def get_ans_results(results, hostname):
     if hostname in results["dark"]:
         return results["dark"][hostname]
@@ -377,8 +384,7 @@ def get_ans_results(results, hostname):
     return {}
 
 
-def check_for_ans_error(results, hostname, err_codes=None, success_codes=None,
-                        return_on_error=None):
+def check_for_ans_error(results, hostname, err_codes=None, success_codes=None):
     """
     dict includes 'msg'
     may include 'rc', 'stderr', 'stdout' and any other requested result codes
@@ -390,8 +396,7 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None,
         err_codes = []
     if success_codes is None:
         success_codes = [0]
-    if return_on_error is None:
-        return_on_error = ["stdout", "stderr"]
+
     err_results = {}
 
     if "dark" in results and hostname in results["dark"]:
@@ -422,7 +427,7 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None,
                 err_results["msg"] = "results included failed as true"
 
         if error:
-            for item in return_on_error:
+            for item in ["stdout", "stderr"]:
                 if item in results["contacted"][hostname]:
                     err_results[item] = results["contacted"][hostname][item]
 
