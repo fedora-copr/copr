@@ -52,7 +52,7 @@ def localized_time(time_in, timezone):
     """
     if not time_in:
         return "Not yet"
-    format_tz = "%y-%m-%d %H:%M %Z"
+    format_tz = "%Y-%m-%d %H:%M %Z"
     utc_tz = pytz.timezone('UTC')
     if timezone:
         user_tz = pytz.timezone(timezone)
