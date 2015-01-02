@@ -13,7 +13,7 @@ from ..constants import mockchain, rsync
 
 class Builder(object):
 
-    def __init__(self, opts, hostname, username,
+    def __init__(self, opts, hostname, username, job,
                  timeout, chroot, buildroot_pkgs,
                  callback,
                  remote_basedir, remote_tempdir=None,
@@ -23,6 +23,7 @@ class Builder(object):
         self.opts = opts
         self.hostname = hostname
         self.username = username
+        self.job = job
         self.timeout = timeout
         self.chroot = chroot
         self.repos = repos or []
@@ -130,7 +131,7 @@ class Builder(object):
 
         return remote_pkg_dir
 
-    def modify_base_buildroot(self):
+    def modify_mock_chroot_config(self):
         """
         Modify mock config for current chroot.
 
@@ -147,19 +148,44 @@ class Builder(object):
         self.callback.log("putting {0} into minimal buildroot of {1}"
                           .format(self.buildroot_pkgs, self.chroot))
 
-        results = self._run_ansible(
-            "dest=/etc/mock/{0}.cfg"
-            " line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {1}'\""
+        kwargs = {
+            "chroot": self.chroot,
+            "pkgs": self.buildroot_pkgs
+        }
+        buildroot_cmd = (
+            "dest=/etc/mock/{chroot}.cfg"
+            " line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {pkgs}'\""
             " regexp=\"^.*chroot_setup_cmd.*$\""
-            .format(self.chroot, self.buildroot_pkgs),
-            module_name="lineinfile", as_root=True)
+        )
 
-        is_err, err_results = check_for_ans_error(results, self.hostname)
+        disable_networking_cmd = (
+            "dest=/etc/mock/{chroot}.cfg"
+            " line=\"config_opts['use_host_resolv'] = False\""
+            " regexp=\"^.*user_host_resolv.*$\""
+        )
+        try:
+            self.run_ansible_with_check(buildroot_cmd.format(**kwargs),
+                                        module_name="lineinfile", as_root=True)
+            # TODO: do it conditionally
+            self.run_ansible_with_check(disable_networking_cmd.format(**kwargs),
+                                        module_name="lineinfile", as_root=True)
+        except BuilderError as err:
+            self.callback.log(str(err))
 
-        if is_err:
-            self.callback.log("Error: {0}".format(err_results))
-            myresults = get_ans_results(results, self.hostname)
-            self.callback.log("{0}".format(myresults))
+
+        # results = self._run_ansible(
+        #     "dest=/etc/mock/{0}.cfg"
+        #     " line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {1}'\""
+        #     " regexp=\"^.*chroot_setup_cmd.*$\""
+        #     .format(self.chroot, self.buildroot_pkgs),
+        #     module_name="lineinfile", as_root=True)
+        #
+        # is_err, err_results = check_for_ans_error(results, self.hostname)
+        #
+        # if is_err:
+        #     self.callback.log("Error: {0}".format(err_results))
+        #     myresults = get_ans_results(results, self.hostname)
+        #     self.callback.log("{0}".format(myresults))
 
     def collect_built_packages(self, build_details, pkg):
         self.callback.log("Listing built binary packages")
@@ -262,7 +288,7 @@ class Builder(object):
         # returns success_bool, out, err
 
         build_details = {}
-        self.modify_base_buildroot()
+        self.modify_mock_chroot_config()
 
         # check if pkg is local or http
         dest = self.check_if_pkg_local_or_http(pkg)

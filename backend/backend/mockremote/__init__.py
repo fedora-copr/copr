@@ -138,6 +138,7 @@ class MockRemote(object):
             opts=self.opts,
             hostname=builder_host,
             username=self.opts.build_user,
+            job=self.job,
             chroot=self.job.chroot,
             timeout=self.job.timeout or DEF_BUILD_TIMEOUT,
             buildroot_pkgs=self.job.buildroot_pkgs,

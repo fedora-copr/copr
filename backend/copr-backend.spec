@@ -45,6 +45,9 @@ BuildRequires: python-copr
 BuildRequires: python-six
 BuildRequires: ansible >= 1.2
 BuildRequires: python-IPy
+BuildRequires: python-paramiko
+BuildRequires: python-plumbum
+BuildRequires: wget
 
 Requires:   obs-signd
 Requires:   ansible >= 1.2
@@ -69,6 +72,8 @@ Requires:   logrotate
 Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
+Requires:   python-paramiko
+Requires:   python-plumbum
 
 Requires(post): systemd
 Requires(preun): systemd
@@ -98,6 +103,10 @@ only.
 # build documentation
 pushd documentation
 make %{?_smp_mflags} python
+popd
+
+pushd /tmp
+wget http://people.redhat.com/~vgologuz/permanent/hello_beaker_test_2-0.0.1-1.fc20.src.rpm
 popd
 
 %install

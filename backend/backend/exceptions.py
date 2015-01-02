@@ -13,7 +13,10 @@ class BuilderError(MockRemoteError):
 
 class AnsibleCallError(BuilderError):
     def __init__(self, msg, ansible_errors, cmd, module_name, as_root):
-        super(AnsibleCallError, self).__init__(msg)
+        self.msg = "{}\nError: {}\nCall cmd: `{}`, module: `{}`, as root: {}".format(
+            msg, ansible_errors, cmd, module_name, as_root
+        )
+        super(AnsibleCallError, self).__init__(self.msg)
         self.call_args = dict(
             cmd=cmd,
             module_name=module_name,
