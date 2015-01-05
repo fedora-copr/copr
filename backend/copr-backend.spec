@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.52
+Version:    1.53
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -202,6 +202,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Jan 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.53-1
+- [backend, frontend] [RHBZ:#1176364] Wrong value for the build timeout.
+
 * Mon Dec 15 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.52-1
 - fixed config option `results_baseurl` usage, in mockremote
 
