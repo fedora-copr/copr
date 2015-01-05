@@ -16,7 +16,7 @@ import datetime
 
 from copr.client import CoprClient
 
-from backend.constants import DEF_BUILD_USER
+from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT
 from backend.exceptions import CoprBackendError
 
 
@@ -145,7 +145,7 @@ class BackendConfigReader(object):
         opts.sleeptime = _get_conf(
             cp, "backend", "sleeptime", 10, mode="int")
         opts.timeout = _get_conf(
-            cp, "builder", "timeout", 1800, mode="int")
+            cp, "builder", "timeout", DEF_BUILD_TIMEOUT, mode="int")
         opts.logfile = _get_conf(
             cp, "backend", "logfile", "/var/log/copr/backend.log")
         opts.verbose = _get_conf(

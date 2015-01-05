@@ -37,7 +37,7 @@ import urllib
 import os
 from bunch import Bunch
 
-from ..constants import DEF_REMOTE_BASEDIR, DEF_TIMEOUT, DEF_REPOS, \
+from ..constants import DEF_REMOTE_BASEDIR, DEF_BUILD_TIMEOUT, DEF_REPOS, \
     DEF_BUILD_USER, DEF_MACROS
 from ..exceptions import MockRemoteError
 
@@ -139,7 +139,7 @@ class MockRemote(object):
             hostname=builder_host,
             username=self.opts.build_user,
             chroot=self.job.chroot,
-            timeout=self.job.timeout or DEF_TIMEOUT,
+            timeout=self.job.timeout or DEF_BUILD_TIMEOUT,
             buildroot_pkgs=self.job.buildroot_pkgs,
             callback=self.callback,
             remote_basedir=self.opts.remote_basedir,

@@ -7,7 +7,7 @@ import sys
 import os
 
 from backend.exceptions import MockRemoteError
-from backend.mockremote import MockRemote, DEF_CHROOT, DEF_BUILD_USER, DEF_REPOS, DEF_TIMEOUT, DEF_DESTDIR
+from backend.mockremote import MockRemote, DEF_CHROOT, DEF_BUILD_USER, DEF_REPOS, DEF_BUILD_TIMEOUT, DEF_DESTDIR
 from backend.helpers import SortedOptParser
 from backend.mockremote.callback import CliLogCallBack
 
@@ -48,7 +48,7 @@ def parse_args(args):
     parser.add_option("-u", dest="user", default=DEF_BUILD_USER,
                       help="user to run as/connect as on builder systems")
     parser.add_option("-t", "--timeout", dest="timeout", type="int",
-                      default=DEF_TIMEOUT,
+                      default=DEF_BUILD_TIMEOUT,
                       help="maximum time in seconds a build can take to run")
     parser.add_option("--destdir", dest="destdir", default=DEF_DESTDIR,
                       help="place to download all the results/packages")
