@@ -13,11 +13,17 @@ import datetime
 import time
 from collections import defaultdict
 
-
 import logging
 
+if sys.version_info < (2, 7):
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+else:
+    from logging import NullHandler
+
 log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
+log.addHandler(NullHandler())
 
 from copr import CoprClient
 import copr.client.exceptions as copr_exceptions
