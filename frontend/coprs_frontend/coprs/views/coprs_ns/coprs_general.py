@@ -258,6 +258,8 @@ def copr_update(username, coprname):
         copr.description = form.description.data
         copr.instructions = form.instructions.data
         copr.disable_createrepo = form.disable_createrepo.data
+        copr.build_enable_net = form.build_enable_net.data
+
         coprs_logic.CoprChrootsLogic.update_from_names(
             flask.g.user, copr, form.selected_chroots)
 

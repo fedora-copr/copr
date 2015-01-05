@@ -93,6 +93,11 @@
                 <dd>
                     {{ build.started_on|time_ago(build.ended_on) }}
                 </dd>
+
+            <dt class="oneline"> Networking enabled: </dt>
+                <dd>
+                    {{ build.enable_net }}
+                </dd>
         </div>
         <div>
             <dt> Source: </dt>

@@ -126,6 +126,7 @@ class CoprFormFactory(object):
                 filters=[StringListFilter()])
 
             disable_createrepo = wtforms.BooleanField(default=False)
+            build_enable_net = wtforms.BooleanField(default=True)
 
             @property
             def selected_chroots(self):
@@ -219,6 +220,8 @@ class BuildFormFactory(object):
                         min=constants.MIN_BUILD_TIMEOUT,
                         max=constants.MAX_BUILD_TIMEOUT)],
                 default=constants.DEFAULT_BUILD_TIMEOUT)
+
+            enable_net = wtforms.BooleanField()
 
         F.chroots_list = map(lambda x: x.name, active_chroots)
         F.chroots_list.sort()

@@ -26,22 +26,39 @@
           {% endfor %}
         </table>
       {% endfor %}
-        {{ form.csrf_token }}
-        {{ render_field(form.pkgs, label='URLs of packages to build', rows = 10, cols = 50) }}
-        {% if g.user.proven %}
-          {{ render_field(form.memory_reqs) }}
-          {{ render_field(form.timeout) }}
-        {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #}
-          {{ render_field(form.memory_reqs, hidden = True) }}
-          {{ render_field(form.timeout, hidden = True) }}
-        {% endif %}
-        <dd>
-          <p>
-            You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr. 
-            Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
-          </p>
-        </dd>
-        <dd><input type="submit" value="Build"></dd>
+
+      {{ form.csrf_token }}
+      {{ render_field(form.pkgs, label='URLs of packages to build', rows = 10, cols = 50) }}
+      {% if g.user.proven %}
+        {{ render_field(form.memory_reqs) }}
+        {{ render_field(form.timeout) }}
+      {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #}
+        {{ render_field(form.memory_reqs, hidden = True) }}
+        {{ render_field(form.timeout, hidden = True) }}
+      {% endif %}
+
+      <dt class="field-label">Build options</dt>
+      <dd class="field-label-help">
+          For reproducible builds it's recommended to disable networking.
+      </dd>
+      <dd>
+        Enable networking
+        {{ form.enable_net(checked=copr.build_enable_net) }}
+      </dd>
+      <!---->
+      <!--<dd>-->
+        <!--Build timeout (in seconds)-->
+        <!--{{ form.timeout }}-->
+      <!--</dd>-->
+
+      <hr />
+      <dd>
+        <p>
+          You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr.
+          Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
+        </p>
+      </dd>
+      <dd><input type="submit" value="Build"></dd>
       </dl>
     </form>
 {% endmacro %}

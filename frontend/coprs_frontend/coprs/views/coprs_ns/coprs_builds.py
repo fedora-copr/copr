@@ -121,7 +121,8 @@ def copr_new_build(username, coprname):
                         user=flask.g.user,
                         pkgs=pkg,
                         copr=copr,
-                        chroots=chroots)
+                        chroots=chroots,
+                        enable_net=form.enable_net.data)
 
                     if flask.g.user.proven:
                         build.memory_reqs = form.memory_reqs.data

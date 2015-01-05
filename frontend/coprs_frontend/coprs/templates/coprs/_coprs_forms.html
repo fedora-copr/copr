@@ -71,6 +71,13 @@
         {{ form.disable_createrepo }}
       </dd>
 
+      <dt><b>Default build options</b></dt>
+      <dd>
+        Enable network access during the build
+        {{ form.build_enable_net }}
+      </dd>
+
+
       <dt><input type="submit" value="{% if copr %}Update{% else %}Create{% endif %}"></dt>
     </dl>
   </form>

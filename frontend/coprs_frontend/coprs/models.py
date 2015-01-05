@@ -152,6 +152,10 @@ class Copr(db.Model, helpers.Serializer):
     owner = db.relationship("User", backref=db.backref("coprs"))
     mock_chroots = association_proxy("copr_chroots", "mock_chroot")
 
+    # enable networking for the builds by default
+    build_enable_net = db.Column(db.Boolean, default=True,
+                                 server_default="1", nullable=False)
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
@@ -275,6 +279,9 @@ class Build(db.Model, helpers.Serializer):
     memory_reqs = db.Column(db.Integer, default=constants.DEFAULT_BUILD_MEMORY)
     # maximum allowed time of build, build will fail if exceeded
     timeout = db.Column(db.Integer, default=constants.DEFAULT_BUILD_TIMEOUT)
+    # enable networking during a build process
+    enable_net = db.Column(db.Boolean, default=False,
+                           server_default="0", nullable=False)
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))

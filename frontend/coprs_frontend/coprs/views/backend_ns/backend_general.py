@@ -39,7 +39,8 @@ def waiting():
             "buildroot_pkgs": task.build.copr.buildroot_pkgs(task.mock_chroot),
             "repos": task.build.repos,
             "memory_reqs": task.build.memory_reqs,
-            "timeout": task.build.timeout
+            "timeout": task.build.timeout,
+            "enable_net": task.build.enable_net,
         }
         for task in builds_logic.BuildsLogic.get_build_task_queue()
     ]

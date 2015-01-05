@@ -115,7 +115,8 @@ class BuildsLogic(object):
 
     @classmethod
     def add(cls, user, pkgs, copr,
-            repos=None, memory_reqs=None, timeout=None, chroots=None):
+            repos=None, chroots=None,
+            memory_reqs=None, timeout=None, enable_net=True):
         if chroots is None:
             chroots = []
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
@@ -133,7 +134,9 @@ class BuildsLogic(object):
             pkgs=pkgs,
             copr=copr,
             repos=repos,
-            submitted_on=int(time.time()))
+            submitted_on=int(time.time()),
+            enable_net=bool(enable_net),
+        )
 
         if memory_reqs:
             build.memory_reqs = memory_reqs
