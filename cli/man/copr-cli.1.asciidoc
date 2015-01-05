@@ -53,6 +53,9 @@ Cancel a build of given id.
 download-build::
 Download a build to local directory.
 
+modify::
+Modify existing copr
+
 
 `copr-cli create [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,10 +85,10 @@ Instructions for the project.
 `copr-cli build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-usage: copr-cli build [-h] [-r CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+usage: copr-cli build [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       project pkg_url [pkg_url ...]
 
--r --chroot::
+-r, --chroot::
 If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.
 
 --memory::
@@ -106,6 +109,48 @@ permissions to do so.
 pkg_url::
 URL of the package to build. The package must be placed on a public web or
 ftp server.
+
+
+`copr-cli download-build [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli download-build [-h] [-d, --dest DESTINATION]
+                               [-r, --chroot CHROOT]
+                               build_id
+
+build_id::
+Download built packages for build identified by build_id.
+
+-d, --dest::
+Base directory to fetch files. Using `pwd` by default
+
+-r, --chroot::
+Fetch only selected chroots. Can be specified multiple times.\
+
+
+`copr-cli modify [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli modify [-h] [--repo REPOS]
+                       [--description DESCRIPTION]
+                       [--instructions INSTRUCTIONS]
+                       [--disable_createrepo DISABLE_CREATEREPO]
+                       name
+
+Alters only specified project property.
+
+--repo::
+Repository to add to this project. Can be specified multiple times.
+
+--description::
+Description of the project.
+
+--instructions::
+Instructions for the project.
+
+--disable_createrepo::
+Disables automatic repository metadata generation. Accepted values for DISABLE_CREATEREPO: true/false.
+
 
 EXIT STATUS
 -----------

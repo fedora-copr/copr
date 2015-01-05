@@ -354,32 +354,32 @@ def setup_parser():
     parser_build.set_defaults(func="action_build")
 
     # create the parser for the "status" command
-    parser_build = subparsers.add_parser("status",
+    parser_status = subparsers.add_parser("status",
                                          help="Get build status of build"
                                               " specified by its ID")
-    parser_build.add_argument("build_id",
+    parser_status.add_argument("build_id",
                               help="Build ID")
-    parser_build.set_defaults(func="action_status")
+    parser_status.set_defaults(func="action_status")
 
     # create the parser for the "download-build" command
-    parser_build = subparsers.add_parser("download-build", help="Fetches built packages")
-    parser_build.add_argument("build_id",
+    parser_download_build = subparsers.add_parser("download-build", help="Fetches built packages")
+    parser_download_build.add_argument("build_id",
                               help="Build ID")
-    parser_build.add_argument(
+    parser_download_build.add_argument(
         "-r", "--chroot", dest="chroots", action="append",
         help="Select chroots to fetch"
     )
-    parser_build.add_argument("--dest", "-d", dest="dest",
+    parser_download_build.add_argument("--dest", "-d", dest="dest",
                               help="Base directory to store packages", default=".")
 
-    parser_build.set_defaults(func="action_download_build")
+    parser_download_build.set_defaults(func="action_download_build")
 
     # create the parser for the "cancel" command
-    parser_build = subparsers.add_parser("cancel",
+    parser_cancel = subparsers.add_parser("cancel",
                                          help="Cancel build specified by its ID")
-    parser_build.add_argument("build_id",
+    parser_cancel.add_argument("build_id",
                               help="Build ID")
-    parser_build.set_defaults(func="action_cancel")
+    parser_cancel.set_defaults(func="action_cancel")
 
     return parser
 
