@@ -84,7 +84,7 @@ def main():
             prune_project(opts, project_path, username, projectname)
 
             counter += 1
-            print("Pruned {} projects".format(counter))
+            print("Pruned {}. projects".format(counter))
 
     print("Pruning finished")
 
