@@ -16,8 +16,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 DEF_DAYS = 14
-DEF_PRUNE_SCRIPT = "copr_prune_old_builds.sh"
-DEF_PRUNE_SCRIPT = "/usr/sbin/copr_prune_old_builds.sh"
+DEF_PRUNE_SCRIPT = "/usr/share/copr/copr_prune_old_builds.sh"
 
 
 def list_subdir(path):
