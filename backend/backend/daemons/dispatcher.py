@@ -558,9 +558,8 @@ class Worker(multiprocessing.Process):
             self.callback.log("Building pkgs: {0}".format(job.pkg))
 
             chroot_repos = list(job.repos)
-            chroot_repos.append(job.results + '/' + job.chroot)
-            # for RHBZ: #1150954
-            chroot_repos.append(job.results + '/' + job.chroot + '/devel')
+            chroot_repos.append(job.results + job.chroot + '/')
+            chroot_repos.append(job.results + job.chroot + '/devel/')
 
             chroot_logfile = "{0}/build-{1}.log".format(
                 chroot_destdir, job.build_id)
