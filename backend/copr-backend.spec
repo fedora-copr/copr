@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.53
+Version:    1.54
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -202,6 +202,12 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Jan 07 2015 Miroslav Suchý <msuchy@redhat.com> 1.54-1
+- 1179713 - workaround for 1179806
+- run script unbufferred otherwise log is written after full block
+- express that it is n-th projects
+- fix permissions on prune script
+
 * Mon Jan 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.53-1
 - [backend, frontend] [RHBZ:#1176364] Wrong value for the build timeout.
 
