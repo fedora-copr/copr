@@ -118,9 +118,10 @@ install -d %{buildroot}/%{_tmpfilesdir}
 install -d %{buildroot}/%{_sbindir}
 install -d %{buildroot}%{_sysconfdir}/cron.daily
 install -d %{buildroot}%{_sysconfdir}/sudoers.d
+install -d %{buildroot}%{_bindir}/
 
 cp -a backend/* %{buildroot}%{_datadir}/copr/backend
-cp -a run/* %{buildroot}%{_datadir}/copr/
+cp -a run/* %{buildroot}%{_bindir}/
 cp -a conf/copr-be.conf.example %{buildroot}%{_sysconfdir}/copr/copr-be.conf
 
 install -p -m 755 conf/crontab/copr-backend %{buildroot}%{_sysconfdir}/cron.daily/copr-backend
@@ -190,6 +191,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/copr-backend.service
 %{_tmpfilesdir}/copr-backend.conf
+%{_bindir}/
 
 %config(noreplace) %{_sysconfdir}/cron.daily/copr-backend
 

@@ -8,7 +8,7 @@ PIDFile=/var/run/copr-backend/copr-be.pid
 EnvironmentFile=/home/copr/cloud/ec2rc.variable
 User=copr
 Group=copr
-ExecStart=/usr/share/copr/copr-be.py
+ExecStart=/usr/bin/copr_be.py
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
