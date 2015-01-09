@@ -34,18 +34,18 @@ ansible playbook:
 
 FEDORA PLAYBOOK:
 1. spawn instance playbook - 
-   http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/builderpb.yml
+   http://infrastructure.fedoraproject.org/infra/ansible/roles/copr/backend/templates/provision/builderpb.yml
    - just an ansible playbook which sets up and provisions an instance
      in our case it is using eucalyptus but it doesn't have to be
      any cloud provider - it just needs to be able to get an ip an
      ssh into it - cloud providers or private clouds just make more 
      sense
 2. provisioning dir [TODO - this playbook is old and need to be updated]
-   http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/files/
+   http://infrastructure.fedoraproject.org/infra/ansible/roles/copr/backend/files/
    - what gets pushed to the other side - ssh keys, users, mock
      configs, etc
 3. terminate instance playbook -
-   http://infrastructure.fedoraproject.org/infra/ansible/files/copr/provision/terminatepb.yml
+   http://infrastructure.fedoraproject.org/infra/ansible/roles/copr/backend/templates/provision/terminatepb.yml
 4. create ~copr/.ssh/id_rsa with ssh key to VM guests
 
 
