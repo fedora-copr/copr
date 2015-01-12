@@ -46,7 +46,7 @@ BuildRequires: python-six
 BuildRequires: ansible >= 1.2
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
-BuildRequires: python-plumbum
+# BuildRequires: python-plumbum
 BuildRequires: wget
 
 Requires:   obs-signd
@@ -73,7 +73,7 @@ Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
 Requires:   python-paramiko
-Requires:   python-plumbum
+# Requires:   python-plumbum
 
 Requires(post): systemd
 Requires(preun): systemd

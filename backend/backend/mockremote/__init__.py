@@ -39,7 +39,7 @@ from bunch import Bunch
 
 from ..constants import DEF_REMOTE_BASEDIR, DEF_BUILD_TIMEOUT, DEF_REPOS, \
     DEF_BUILD_USER, DEF_MACROS
-from ..exceptions import MockRemoteError
+from ..exceptions import MockRemoteError, BuilderError
 
 
 # TODO: replace sign & createrepo with dependency injection
@@ -106,6 +106,8 @@ class MockRemote(object):
         # :param bool recurse: if more than one pkg and it fails to build,
         #                      try to build the rest and come back to it
         """
+
+
         self.opts = Bunch(
             do_sign=False,
             frontend_base_url=None,
@@ -146,15 +148,23 @@ class MockRemote(object):
             remote_basedir=self.opts.remote_basedir,
             remote_tempdir=self.opts.remote_tempdir,
             macros=self.macros, repos=self.repos)
-        self.builder.check()
-
-        if not self.job.chroot:
-            raise MockRemoteError("No chroot specified!")
 
         self.failed = []
         self.finished = []
 
-        # self.callback.log("self dict: {}".format(self.__dict__))
+        # self.callback.log("MockRemote: {}".format(self.__dict__))
+
+    def check(self):
+        """
+        Checks that MockRemote configuration and environment are correct.
+
+        :raises MockRemoteError: when configuration is wrong or
+            some expected resource is unavailable
+        """
+        if not self.job.chroot:
+            raise MockRemoteError("No chroot specified!")
+
+        self.builder.check()
 
     @property
     def chroot_dir(self):
@@ -236,7 +246,7 @@ class MockRemote(object):
         if to_err_list:
             r_log.write("\nstderr\n")
             for to_err in to_err_list:
-                r_log.write(to_err)
+                r_log.write(str(to_err))
         fcntl.flock(r_log, fcntl.LOCK_UN)
         r_log.close()
 
@@ -285,34 +295,48 @@ class MockRemote(object):
         if not os.path.exists(self.chroot_dir):
             os.makedirs(self.chroot_dir)
 
+        self.mark_dir_with_build_id()
+
     def build_pkg_and_process_results(self):
         self.prepare_build_dir()
-        self.mark_dir_with_build_id()
 
         # building
         self.callback.start_build(self.pkg)
-        b_status, b_out, b_err, build_details = self.builder.build(self.pkg)
-        self.callback.log("builder.build output: {}".format((b_status, b_out, b_err, build_details)))
+        # b_status, b_out, b_err, build_details = self.builder.build(self.pkg)
+        build_stdout = ""
+        build_error = build_details = None
+        try:
+            build_details, build_stdout = self.builder.build(self.pkg)
+            self.callback.log("builder.build finished; details: {}\n stdout: {}".format(build_details, build_stdout))
+        except BuilderError as error:
+            self.callback.log("builder.build error building pkg `{}`: {}".format(self.pkg, error))
+            build_error = error
+
+        # TODO: try to use
+        # finally:
+
         self.callback.end_build(self.pkg)
 
         # downloading
         self.callback.start_download(self.pkg)
-        d_success, d_out, d_err = self.builder.download(self.pkg, self.chroot_dir)
-        self.callback.log("builder.download output {}".format((d_success, d_out, d_err)))
-        if not d_success:
-            raise MockRemoteError(
-                "Failure to download {0}: {1}".format(self.pkg, d_out + d_err))
-
+        download_stdout = self.builder.download(self.pkg, self.chroot_dir)
+        self.callback.log("builder.download output {}".format(download_stdout))
         self.callback.end_download(self.pkg)
-        self.log_to_file_safe(os.path.join(self.chroot_dir, "mockchain.log"),
-                              ["\n\n{0}\n\n".format(self.pkg), b_out], [b_err])
 
-        if b_status:
-            self.on_success_build()
-            return build_details
+        # add record to mockchain.log # TODO:
+        if build_error is not None:
+            stderr_to_log = build_error.stderr
         else:
-            raise MockRemoteError("Error occurred during build{0}"
-                                  .format(os.path.basename(self.pkg)))
+            stderr_to_log = ""
+        self.log_to_file_safe(os.path.join(self.chroot_dir, "mockchain.log"),
+                              ["\n\n{0}\n\n".format(self.pkg), build_stdout], [stderr_to_log])
+
+        if build_error:
+            raise MockRemoteError("Error occurred during build {}: {}"
+                            .format(os.path.basename(self.pkg), build_error))
+
+        self.on_success_build()
+        return build_details
 
     def build_pkg(self):
         """Build pkg defined in self.job

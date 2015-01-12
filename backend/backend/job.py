@@ -27,6 +27,7 @@ class BuildJob(object):
 
         self.timeout = worker_opts.timeout
         self.memory_reqs = None
+        self.enable_net = True
 
         self.project_owner = None
         self.project_name = None

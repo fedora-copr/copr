@@ -584,6 +584,8 @@ class Worker(multiprocessing.Process):
                     macros=macros, opts=self.opts, lock=self.lock,
                     callback=CliLogCallBack(quiet=True, logfn=chroot_logfile),
                 )
+                mr.check()
+
                 build_details = mr.build_pkg()
                 job.update(build_details)
 

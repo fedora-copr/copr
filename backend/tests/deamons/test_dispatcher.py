@@ -472,7 +472,7 @@ class TestDispatcher(object):
              'started_on': None, 'submitted_on': None, 'chroot': 'fedora-20-x86_64',
              'ended_on': None, 'built_packages': '', 'timeout': 1800, 'pkg_version': '',
              'memory_reqs': None, 'buildroot_pkgs': None, 'id': self.job_build_id,
-             'pkg': self.SRC_PKG_URL}
+             'pkg': self.SRC_PKG_URL, "enable_net": True}
         ]})
 
         assert expected_call == self.worker_fe_callback.update.call_args
@@ -500,7 +500,7 @@ class TestDispatcher(object):
              'started_on': self.job.started_on, 'submitted_on': None, 'chroot': 'fedora-20-x86_64',
              'ended_on': self.job.ended_on, 'built_packages': '', 'timeout': 1800, 'pkg_version': '',
              'memory_reqs': None, 'buildroot_pkgs': None, 'id': self.job_build_id,
-             'pkg': self.SRC_PKG_URL}
+             'pkg': self.SRC_PKG_URL, "enable_net": True}
         ]})
 
         assert expected_call == self.worker_fe_callback.update.call_args
