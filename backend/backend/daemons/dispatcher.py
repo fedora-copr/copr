@@ -366,9 +366,12 @@ class Worker(multiprocessing.Process):
                 .format(self.group_id))
             sys.exit(255)
 
-        args = "-c ssh -i '{0},' {1} {2}".format(
-            self.vm_ip, playbook,
+        # args = "-c ssh -i '{0},' {1} {2}".format(
+        args = "-c ssh {} {}".format(
+            # self.vm_ip,
+            playbook,
             ans_extra_vars_encode(term_args, "copr_task"))
+
         self.run_ansible_playbook(args, "terminate instance")
         # TODO: should we check that machine was destroyed?
         self.vm_ip = None

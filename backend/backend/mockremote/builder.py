@@ -6,9 +6,11 @@ import time
 
 from ansible.runner import Runner
 
-from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError
+# from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError
+from backend.exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError
 
-from ..constants import mockchain, rsync
+# from ..constants import mockchain, rsync
+from backend.constants import mockchain, rsync
 
 
 class Builder(object):
@@ -327,27 +329,37 @@ class Builder(object):
         # return success, out, err, build_details
 
     def download(self, pkg, destdir):
-        # download the pkg to destdir using rsync + ssh
+            # download the pkg to destdir using rsync + ssh
 
         rpd = self._get_remote_pkg_dir(pkg)
         # make spaces work w/our rsync command below :(
         destdir = "'" + destdir.replace("'", "'\\''") + "'"
+
         # build rsync command line from the above
         remote_src = "{0}@{1}:{2}".format(self.username, self.hostname, rpd)
         ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
-        command = "{0} -avH -e {1} {2} {3}/".format(
-            rsync, ssh_opts, remote_src, destdir)
 
-        cmd = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
+        stdout_filepath = os.path.join(destdir, "build-{}.rsync_out.log".format(self.job.build_id))
+        stderr_filepath = os.path.join(destdir, "build-{}.rsync_err.log".format(self.job.build_id))
 
-        # rsync results into opts.destdir
-        stdout, stderr = cmd.communicate()
-        if cmd.returncode == 0:
-            return stdout
-        else:
-            raise BuilderError(
-                msg="Failed to download files from builder",
-                return_code=cmd.returncode, stdout=stdout, stderr=stderr)
+        command = "{} -avH -e {} {} {}/ > {} 2> {}".format(
+            rsync, ssh_opts, remote_src, destdir,
+            stdout_filepath, stderr_filepath)
+
+
+        # dirty magic with Popen due to IO buffering
+        # see http://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
+        # alternative: use tempfile.Tempfile as Popen stdout/stderr
+
+        try:
+            cmd = Popen(command, shell=True)
+            cmd.wait()
+        except Exception as error:
+            raise BuilderError(msg="Failed to download from builder due to rsync error, "
+                                   "see logs dir. Original error: {}".format(error))
+        if cmd.returncode != 0:
+            raise BuilderError(msg="Failed to download from builder due to rsync error, "
+                                   "see logs dir. Rsync return_code={}".format(cmd.returncode))
 
     def check(self):
         # do check of host

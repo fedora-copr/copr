@@ -106,8 +106,6 @@ class MockRemote(object):
         # :param bool recurse: if more than one pkg and it fails to build,
         #                      try to build the rest and come back to it
         """
-
-
         self.opts = Bunch(
             do_sign=False,
             frontend_base_url=None,

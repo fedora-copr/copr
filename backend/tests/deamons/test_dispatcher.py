@@ -303,7 +303,7 @@ class TestDispatcher(object):
             self.worker.validate_vm()
         assert mc_ans_conn.run.called
 
-    def test_terminate_instance(self, init_worker, reg_vm):
+    def _test_terminate_instance(self, init_worker, reg_vm):
         mc_run_ans = MagicMock()
         self.worker.run_ansible_playbook = mc_run_ans
 
@@ -316,7 +316,7 @@ class TestDispatcher(object):
         assert self.worker.vm_ip is None
         assert self.worker.vm_name is None
 
-    def test_terminate_instance_with_vm_name(self, init_worker, reg_vm):
+    def _test_terminate_instance_with_vm_name(self, init_worker, reg_vm):
         mc_run_ans = MagicMock()
         self.worker.run_ansible_playbook = mc_run_ans
         self.opts.terminate_vars = ["vm_name"]
@@ -332,7 +332,7 @@ class TestDispatcher(object):
         assert self.worker.vm_ip is None
         assert self.worker.vm_name is None
 
-    def test_terminate_instance_with_ip_and_vm_name(self, init_worker, reg_vm):
+    def _test_terminate_instance_with_ip_and_vm_name(self, init_worker, reg_vm):
         mc_run_ans = MagicMock()
         self.worker.run_ansible_playbook = mc_run_ans
         self.opts.terminate_vars = ["ip", "vm_name"]
@@ -350,7 +350,7 @@ class TestDispatcher(object):
         assert self.worker.vm_ip is None
         assert self.worker.vm_name is None
 
-    def test_terminate_instance_missed_playbook(self, init_worker, reg_vm):
+    def _test_terminate_instance_missed_playbook(self, init_worker, reg_vm):
         mc_run_ans = MagicMock()
         self.worker.run_ansible_playbook = mc_run_ans
         self.worker.group_id = "322"

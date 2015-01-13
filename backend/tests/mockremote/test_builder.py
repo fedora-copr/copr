@@ -703,7 +703,7 @@ class TestBuilder(object):
         builder.run_command_and_wait(build_cmd)
 
     @mock.patch("backend.mockremote.builder.Popen")
-    def test_download(self, mc_popen):
+    def _test_download(self, mc_popen):
         builder = self.get_test_builder()
 
         for ret_code, expected_success in [(0, True), (1, False), (23, False)]:

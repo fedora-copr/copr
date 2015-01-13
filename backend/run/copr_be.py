@@ -1,4 +1,5 @@
-#!/usr/bin/python -ttu
+#!/usr/bin/python
+# | -ttu
 
 from __future__ import print_function
 from __future__ import unicode_literals
