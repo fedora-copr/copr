@@ -3,15 +3,17 @@
 import argparse
 import os
 import subprocess
+import datetime
 
 import flask
-from flask.ext.script import Manager, Command, Option, Group
+from flask_script import Manager, Command, Option, Group
 
 from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs.logic import coprs_logic
+from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprUserWhoosheer
 
 
@@ -180,6 +182,57 @@ class DisplayChrootsCommand(Command):
     )
 
 
+class AddDebugUserCommand(Command):
+
+    """
+    Adds user for debug/testing purpose.
+    You shouldn't use this on production instance
+    """
+
+    def run(self, name, mail, **kwargs):
+        user = models.User(username=name, mail=mail)
+
+        if kwargs["admin"]:
+            user.admin = True
+        if kwargs["no_admin"]:
+            user.admin = False
+        if kwargs["proven"]:
+            user.proven = True
+        if kwargs["no_proven"]:
+            user.proven = False
+        #
+        # if kwargs["api_token"]:
+        #     user.api_token = kwargs["api_token"]
+        #     user.api_token_expiration = datetime.date(2030, 1, 1)
+        # if kwargs["api_login"]:
+        #     user.api_token = kwargs["api_login"]
+        #
+
+        db.session.add(create_user_wrapper(user, mail))
+        db.session.commit()
+
+    option_list = (
+        Option("name"),
+        Option("mail"),
+        Option("--api_token", default=None, required=False),
+        Option("--api_login", default=None, required=False),
+        Group(
+            Option("--admin",
+                   action="store_true"),
+            Option("--no-admin",
+                   action="store_true"),
+            exclusive=True
+        ),
+        Group(
+            Option("--proven",
+                   action="store_true"),
+            Option("--no-proven",
+                   action="store_true"),
+            exclusive=True
+        ),
+    )
+
+
 class AlterUserCommand(Command):
 
     def run(self, name, **kwargs):
@@ -198,6 +251,7 @@ class AlterUserCommand(Command):
         if kwargs["no_proven"]:
             user.proven = False
 
+        db.session.add(user)
         db.session.commit()
 
     option_list = (
@@ -250,6 +304,7 @@ manager.add_command("alter_chroot", AlterChrootCommand())
 manager.add_command("display_chroots", DisplayChrootsCommand())
 manager.add_command("drop_chroot", DropChrootCommand())
 manager.add_command("alter_user", AlterUserCommand())
+manager.add_command("add_debug_user", AddDebugUserCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
 
 if __name__ == "__main__":
