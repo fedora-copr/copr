@@ -142,7 +142,11 @@ class CoprJobGrab(Process):
             self.event("{0} actions returned".format(len(r_json["actions"])))
 
             for action in r_json["actions"]:
-                self.process_action(action)
+                try:
+                    self.process_action(action)
+                except Exception as error:
+                    self.event("Error during processing action `{}`: {}"
+                               .format(action, error))
 
     def run(self):
         """

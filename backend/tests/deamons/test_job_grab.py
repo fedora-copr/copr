@@ -265,6 +265,33 @@ class TestJobGrab(object):
         expected_calls = [call(action_1), call(action_2)]
         assert self.jg.process_action.call_args_list == expected_calls
 
+    @mock.patch("backend.daemons.job_grab.get")
+    def test_regression_load_tasks_actions_(self, mc_get, init_jg):
+        """
+        https://bugzilla.redhat.com/show_bug.cgi?id=1182106
+        """
+        action_1 = MagicMock()
+        action_2 = MagicMock()
+        mc_get.return_value.json.return_value = {
+            "actions": [
+                action_1,
+                action_2,
+            ],
+            "builds": [],
+        }
+
+        self.jg.process_build_task = MagicMock()
+        self.jg.event = MagicMock()
+        self.jg.process_action = MagicMock()
+
+        # load_tasks should suppress this error
+        self.jg.process_action.side_effect = IOError()
+
+        self.jg.load_tasks()
+
+        expected_calls = [call(action_1), call(action_2)]
+        assert self.jg.process_action.call_args_list == expected_calls
+
     def test_run(self, mc_time, mc_setproctitle, init_jg):
         self.jg.connect_queues = MagicMock()
         self.jg.load_tasks = MagicMock()
