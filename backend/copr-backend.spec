@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.54
+Version:    1.55
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -204,6 +204,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Jan 14 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.55-1
+- [backend] [bugfix] set pythonpath in systemd unit to run /usr/bin/copr_be.py
+- [backend] [RHBZ:#1182106] JobGrabber dies when action raises an exception.
+- [backend] Moved scripts into /usr/bin/ Renamed copr{-,_}be.py.
+
 * Wed Jan 07 2015 Miroslav Suchý <msuchy@redhat.com> 1.54-1
 - 1179713 - workaround for 1179806
 - run script unbufferred otherwise log is written after full block
