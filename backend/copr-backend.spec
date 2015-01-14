@@ -191,7 +191,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
 %{_unitdir}/copr-backend.service
 %{_tmpfilesdir}/copr-backend.conf
-%{_bindir}/
+%{_bindir}/*
 
 %config(noreplace) %{_sysconfdir}/cron.daily/copr-backend
 
