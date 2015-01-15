@@ -372,7 +372,12 @@ class Worker(multiprocessing.Process):
             playbook,
             ans_extra_vars_encode(term_args, "copr_task"))
 
-        self.run_ansible_playbook(args, "terminate instance")
+        try:
+            self.run_ansible_playbook(args, "terminate instance")
+        except Exception as error:
+            self.callback.log("Failed to terminate an instance: vm_name={}, vm_ip={}. Original error: {}"
+                              .format(self.vm_name, self.vm_ip, error))
+
         # TODO: should we check that machine was destroyed?
         self.vm_ip = None
         self.vm_name = None
