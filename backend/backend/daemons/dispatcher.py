@@ -11,7 +11,7 @@ import multiprocessing
 import ansible
 import ansible.runner
 import ansible.utils
-from ansible import callbacks
+
 from ansible.errors import AnsibleError
 
 from setproctitle import setproctitle

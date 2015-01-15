@@ -6,11 +6,9 @@ import time
 
 from ansible.runner import Runner
 
-# from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError
-from backend.exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError
+from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError
 
-# from ..constants import mockchain, rsync
-from backend.constants import mockchain, rsync
+from ..constants import mockchain, rsync
 
 
 class Builder(object):
@@ -176,21 +174,6 @@ class Builder(object):
             self.callback.log(str(err))
             raise
 
-
-        # results = self._run_ansible(
-        #     "dest=/etc/mock/{0}.cfg"
-        #     " line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {1}'\""
-        #     " regexp=\"^.*chroot_setup_cmd.*$\""
-        #     .format(self.chroot, self.buildroot_pkgs),
-        #     module_name="lineinfile", as_root=True)
-        #
-        # is_err, err_results = check_for_ans_error(results, self.hostname)
-        #
-        # if is_err:
-        #     self.callback.log("Error: {0}".format(err_results))
-        #     myresults = get_ans_results(results, self.hostname)
-        #     self.callback.log("{0}".format(myresults))
-
     def collect_built_packages(self, build_details, pkg):
         self.callback.log("Listing built binary packages")
         # self.conn.module_name = "shell"
@@ -208,10 +191,7 @@ class Builder(object):
     def check_build_success(self, pkg):
         successfile = os.path.join(self._get_remote_pkg_dir(pkg), "success")
         ansible_test_results = self._run_ansible("/usr/bin/test -f {0}".format(successfile))
-        # is_err, err_results = check_for_ans_error(ansible_test_results, self.hostname)
         check_for_ans_error(ansible_test_results, self.hostname)
-        # return err, is_err, out
-        #return out
 
     def check_if_pkg_local_or_http(self, pkg):
         """
@@ -307,26 +287,15 @@ class Builder(object):
 
         # run the mockchain command async
         ansible_build_results = self.run_command_and_wait(buildcmd)  # now raises BuildTimeoutError
-        # try:
-        # except BuilderTimeOutError:
-        #     return False, "", "Timeout expired", build_details
         check_for_ans_error(ansible_build_results, self.hostname)  # on error raises AnsibleResponseError
-        # is_err, err_results = check_for_ans_error(ansible_build_results, self.hostname)
-        # if is_err:
-        #     return (False, err_results.get("stdout", ""),
-        #             err_results.get("stderr", ""), build_details)
 
         # we know the command ended successfully but not if the pkg built
         # successfully
         self.check_build_success(pkg)
         build_out = get_ans_results(ansible_build_results, self.hostname).get("stdout", "")
 
-        # success = False
-        # if not is_err:
-        #     success = True
         self.collect_built_packages(build_details, pkg)
         return build_details, build_out
-        # return success, out, err, build_details
 
     def download(self, pkg, destdir):
             # download the pkg to destdir using rsync + ssh
@@ -346,11 +315,9 @@ class Builder(object):
             rsync, ssh_opts, remote_src, destdir,
             stdout_filepath, stderr_filepath)
 
-
         # dirty magic with Popen due to IO buffering
         # see http://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
         # alternative: use tempfile.Tempfile as Popen stdout/stderr
-
         try:
             cmd = Popen(command, shell=True)
             cmd.wait()
@@ -363,26 +330,12 @@ class Builder(object):
 
     def check(self):
         # do check of host
-
-        # errors = []
-
         try:
             socket.gethostbyname(self.hostname)
         except socket.gaierror:
             raise BuilderError("{0} could not be resolved".format(
                 self.hostname))
 
-        # res = self._run_ansible("/bin/rpm -q mock rsync")
-        # check for mock/rsync from results
-        # is_err, err_results = check_for_ans_error(res, self.hostname)
-        #
-        # if is_err:
-        #     if "rc" in err_results:
-        #         errors.append(
-        #             "Warning: {0} does not have mock or rsync installed"
-        #             .format(self.hostname))
-        #     else:
-        #         errors.append(err_results["msg"])
         try:
             # check_for_ans_error(res, self.hostname)
             self.run_ansible_with_check("/bin/rpm -q mock rsync")
@@ -390,14 +343,7 @@ class Builder(object):
             raise BuilderError(msg="Build host `{0}` does not have mock or rsync installed"
                                .format(self.hostname))
 
-        # test for path existence for mockchain and chroot config for this
-        # chroot
-
-        # res = self._run_ansible(
-        #     "/usr/bin/test -f {}"
-        #     " && /usr/bin/test -f /etc/mock/{}.cfg"
-        #     .format(mockchain, self.chroot))
-        #
+        # test for path existence for mockchain and chroot config for this chroot
         try:
             self.run_ansible_with_check("/usr/bin/test -f {0}".format(mockchain))
         except AnsibleCallError:
@@ -410,23 +356,6 @@ class Builder(object):
         except AnsibleCallError:
             raise BuilderError(msg="Build host `{}` missing mock config for chroot `{}`"
                                .format(self.hostname, self.chroot))
-
-
-        # is_err, err_results = check_for_ans_error(res, self.hostname)
-        #
-        # if is_err:
-        #     if "rc" in err_results:
-        #         errors.append(
-        #             "Warning: {0} lacks mockchain binary or mock config for chroot {1}".format(
-        #                 self.hostname, self.chroot))
-        #     else:
-        #         errors.append(err_results["msg"])
-        #
-        # if not errors:
-        #     self.checked = True
-        # else:
-        #     msg = "\n".join(errors)
-        #     raise BuilderError(msg)
 
 
 def get_ans_results(results, hostname):
@@ -452,10 +381,6 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None):
         success_codes = [0]
 
     if "dark" in results and hostname in results["dark"]:
-        # err_results["msg"] = "Error: Could not contact/connect" \
-        #     " to {0}.".format(hostname)
-        #
-        # return True, err_results
         raise AnsibleResponseError(
             msg="Error: Could not contact/connect to {}.".format(hostname))
 
@@ -487,4 +412,3 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None):
 
     if error:
         raise AnsibleResponseError(**err_results)
-    # return error, err_results
