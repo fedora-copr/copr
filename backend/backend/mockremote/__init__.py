@@ -317,8 +317,7 @@ class MockRemote(object):
 
         # downloading
         self.callback.start_download(self.pkg)
-        download_stdout = self.builder.download(self.pkg, self.chroot_dir)
-        self.callback.log("builder.download output {}".format(download_stdout))
+        self.builder.download(self.pkg, self.chroot_dir)
         self.callback.end_download(self.pkg)
 
         # add record to mockchain.log # TODO:
@@ -331,7 +330,7 @@ class MockRemote(object):
 
         if build_error:
             raise MockRemoteError("Error occurred during build {}: {}"
-                            .format(os.path.basename(self.pkg), build_error))
+                                  .format(os.path.basename(self.pkg), build_error))
 
         self.on_success_build()
         return build_details

@@ -308,12 +308,10 @@ class Builder(object):
         remote_src = "{0}@{1}:{2}".format(self.username, self.hostname, rpd)
         ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
 
-        stdout_filepath = os.path.join(destdir, "build-{}.rsync_out.log".format(self.job.build_id))
-        stderr_filepath = os.path.join(destdir, "build-{}.rsync_err.log".format(self.job.build_id))
-
-        command = "{} -avH -e {} {} {}/ > {} 2> {}".format(
+        rsync_log_filepath = os.path.join(destdir, "build-{}.rsync.log".format(self.job.build_id))
+        command = "{} -avH -e {} {} {}/ &> {}".format(
             rsync, ssh_opts, remote_src, destdir,
-            stdout_filepath, stderr_filepath)
+            rsync_log_filepath)
 
         # dirty magic with Popen due to IO buffering
         # see http://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
