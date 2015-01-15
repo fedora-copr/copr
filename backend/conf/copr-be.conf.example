@@ -63,9 +63,6 @@ destdir=/var/lib/copr/public_html/results
 # default is 10
 sleeptime=30
 
-# default is 8
-num_workers=5
-
 # path to log file
 # default is /var/log/copr/backend.log
 logfile=/var/log/copr/backend.log
