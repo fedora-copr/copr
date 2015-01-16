@@ -111,7 +111,7 @@ class Worker(multiprocessing.Process):
         self.callback = callback
         if not self.callback:
             log_name = "worker-{0}-{1}.log".format(
-                self.opts.build_groups[self.group_id]["name"],
+                self.group_name,
                 self.worker_num)
 
             self.logfile = os.path.join(self.opts.worker_logdir, log_name)
@@ -120,6 +120,15 @@ class Worker(multiprocessing.Process):
         self.vm_name = None
         self.vm_ip = None
         self.callback.log("creating worker: dynamic ip")
+
+    @property
+    def group_name(self):
+        try:
+            return self.opts.build_groups[self.group_id]["name"]
+        except Exception as error:
+            self.callback.log("Failed to get builder group name from config, using group_id as name."
+                              "Original error: {}".format(error))
+            return self.group_id
 
     def event(self, topic, template, content=None):
         """ Multi-purpose logging method.
@@ -610,7 +619,7 @@ class Worker(multiprocessing.Process):
                 self.terminate_instance()
 
     def update_process_title(self, suffix=None):
-        title = "worker-{} {} ".format(self.opts.build_groups[self.group_id]["name"], self.worker_num)
+        title = "worker-{} {} ".format(self.group_name, self.worker_num)
         if self.vm_ip:
             title += "VM_IP={} ".format(self.vm_ip)
         if self.vm_name:
