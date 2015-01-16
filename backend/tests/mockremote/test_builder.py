@@ -21,6 +21,7 @@ else:
     from mock import patch, MagicMock
 
 import pytest
+from types import MethodType
 
 import backend.mockremote.builder as builder_module
 from backend.mockremote.builder import Builder
@@ -439,57 +440,76 @@ class TestBuilder(object):
                 builder.modify_mock_chroot_config()
 
     def test_modify_base_buildroot_on_error(self, ):
+        storage = []
+
+        def fake_run_ansible(self, cmd, *args, **kwargs):
+            storage.append(cmd)
+            raise AnsibleCallError("", "", "", True)
+
         builder = self.get_test_builder()
+        builder.run_ansible_with_check = MethodType(fake_run_ansible, builder)
         br_pkgs = "foo bar"
         builder.buildroot_pkgs = br_pkgs
-        builder.root_conn.run.return_value = {
-            "contacted": {self.BUILDER_HOSTNAME: {"rc": 1, "stdout": None}},
-            "dark": {}
-        }
 
         with pytest.raises(BuilderError) as err:
             builder.modify_mock_chroot_config()
 
-
         assert_in_log("putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs),
                       self._cb_log)
-
-        assert not builder.conn.run.called
-        assert builder.root_conn.run.called
 
         expected = (
             "dest=/etc/mock/{}.cfg "
             "line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {}'\" "
             "regexp=\"^.*chroot_setup_cmd.*$\""
         ).format(self.BUILDER_CHROOT, br_pkgs)
-        assert builder.root_conn.module_args == expected
 
+        assert any([expected in r for r in storage])
         assert_in_log("Error: ", self._cb_log[1:])
 
     def test_modify_base_buildroot(self, ):
+        storage = []
+
+        def fake_run_ansible(self, cmd, *args, **kwargs):
+            storage.append(cmd)
+
         builder = self.get_test_builder()
-        # TODO: rewrite test to use builder.run_ansible_with_check
+        builder.run_ansible_with_check = MethodType(fake_run_ansible, builder)
         br_pkgs = "foo bar"
         builder.buildroot_pkgs = br_pkgs
+        builder.modify_mock_chroot_config()
+        assert_in_log("putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs),
+                      self._cb_log)
+
+        expected = (
+            "dest=/etc/mock/{}.cfg "
+            "line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {}'\" "
+            "regexp=\"^.*chroot_setup_cmd.*$\""
+        ).format(self.BUILDER_CHROOT, br_pkgs)
+
+        assert any([expected in r for r in storage])
+
+    def test_modify_chroot_disable_networking(self):
+        storage = []
+
+        def fake_run_ansible(self, cmd, *args, **kwargs):
+            storage.append(cmd)
+
+        builder = self.get_test_builder()
+        builder.run_ansible_with_check = MethodType(fake_run_ansible, builder)
         builder.root_conn.run.return_value = {
             "contacted": {self.BUILDER_HOSTNAME: {"rc": 0, "stdout": None}},
             "dark": {}
         }
 
+        self.job.enable_net = False
+        # net should be disabled
         builder.modify_mock_chroot_config()
 
-        assert_in_log("putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs),
-                      self._cb_log)
-
-        assert not builder.conn.run.called
-        assert builder.root_conn.run.called
-        #
-        # expected = (
-        #     "dest=/etc/mock/{}.cfg "
-        #     "line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {}'\" "
-        #     "regexp=\"^.*chroot_setup_cmd.*$\""
-        # ).format(self.BUILDER_CHROOT, br_pkgs)
-        # assert builder.root_conn.module_args == expected
+        expected = (
+            'dest=/etc/mock/fedora-20-i386.cfg '
+            'line="config_opts[\'use_host_resolv\'] = False" '
+            'regexp="^.*user_host_resolv.*$"')
+        assert any([expected in r for r in storage])
 
     def test_collect_build_packages(self):
         builder = self.get_test_builder()
@@ -703,7 +723,7 @@ class TestBuilder(object):
         builder.run_command_and_wait(build_cmd)
 
     @mock.patch("backend.mockremote.builder.Popen")
-    def _test_download(self, mc_popen):
+    def test_download(self, mc_popen):
         builder = self.get_test_builder()
 
         for ret_code, expected_success in [(0, True), (1, False), (23, False)]:
@@ -712,20 +732,28 @@ class TestBuilder(object):
             mc_cmd.returncode = ret_code
             mc_popen.return_value = mc_cmd
             if expected_success:
-                assert builder.download(self.BUILDER_PKG, self.BUILDER_REMOTE_BASEDIR) == self.STDOUT
+                builder.download(self.BUILDER_PKG, self.BUILDER_REMOTE_BASEDIR)
             else:
                 with pytest.raises(BuilderError) as err:
                     builder.download(self.BUILDER_PKG, self.BUILDER_REMOTE_BASEDIR)
                 assert err.value.return_code == ret_code
-                assert err.value.stderr == self.STDERR
-                assert err.value.stdout == self.STDOUT
+                # assert err.value.stderr == self.STDERR
+                # assert err.value.stdout == self.STDOUT
 
+            #import ipdb; ipdb.set_trace()
             expected_arg = (
                 "/usr/bin/rsync -avH -e 'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
                 " copr_builder@example.com:/tmp/copr-backend-test-tmp/build/results/fedora-20-i386/foovar-2.41.f21 "
-                "'/tmp/copr-backend-test'/")
+                "'/tmp/copr-backend-test'/ &> '/tmp/copr-backend-test'/build-12345.rsync.log")
 
             assert mc_popen.call_args[0][0] == expected_arg
+
+    @mock.patch("backend.mockremote.builder.Popen")
+    def test_download_popen_error(self, mc_popen):
+        builder = self.get_test_builder()
+        mc_popen.side_effect = IOError()
+        with pytest.raises(BuilderError):
+            builder.download(self.BUILDER_PKG, self.BUILDER_REMOTE_BASEDIR)
 
     def test_build(self):
         builder = self.get_test_builder()

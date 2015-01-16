@@ -324,7 +324,7 @@ class Builder(object):
                                    "see logs dir. Original error: {}".format(error))
         if cmd.returncode != 0:
             raise BuilderError(msg="Failed to download from builder due to rsync error, "
-                                   "see logs dir. Rsync return_code={}".format(cmd.returncode))
+                                   "see logs dir.", return_code=cmd.returncode)
 
     def check(self):
         # do check of host

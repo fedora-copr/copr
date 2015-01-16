@@ -303,20 +303,20 @@ class TestDispatcher(object):
             self.worker.validate_vm()
         assert mc_ans_conn.run.called
 
-    def _test_terminate_instance(self, init_worker, reg_vm):
+    def test_terminate_instance(self, init_worker, reg_vm):
         mc_run_ans = MagicMock()
         self.worker.run_ansible_playbook = mc_run_ans
 
         self.worker.terminate_instance()
         assert mc_run_ans.called
         expected_call = mock.call(
-            "-c ssh -i '{},' {} ".format(self.vm_ip, self.terminate_pb),
+            "-c ssh {} ".format(self.terminate_pb),
             'terminate instance')
         assert expected_call == mc_run_ans.call_args
         assert self.worker.vm_ip is None
         assert self.worker.vm_name is None
 
-    def _test_terminate_instance_with_vm_name(self, init_worker, reg_vm):
+    def test_terminate_instance_with_vm_name(self, init_worker, reg_vm):
         mc_run_ans = MagicMock()
         self.worker.run_ansible_playbook = mc_run_ans
         self.opts.terminate_vars = ["vm_name"]
@@ -324,15 +324,15 @@ class TestDispatcher(object):
         self.worker.terminate_instance()
         assert mc_run_ans.called
         expected_call = mock.call(
-            '-c ssh -i \'{},\' {} --extra-vars=\'{{"copr_task": {{"vm_name": "{}"}}}}\''
-            .format(self.vm_ip, self.terminate_pb, self.vm_name),
+            '-c ssh {} --extra-vars=\'{{"copr_task": {{"vm_name": "{}"}}}}\''
+            .format(self.terminate_pb, self.vm_name),
             'terminate instance')
 
         assert expected_call == mc_run_ans.call_args
         assert self.worker.vm_ip is None
         assert self.worker.vm_name is None
 
-    def _test_terminate_instance_with_ip_and_vm_name(self, init_worker, reg_vm):
+    def test_terminate_instance_with_ip_and_vm_name(self, init_worker, reg_vm):
         mc_run_ans = MagicMock()
         self.worker.run_ansible_playbook = mc_run_ans
         self.opts.terminate_vars = ["ip", "vm_name"]
@@ -341,16 +341,16 @@ class TestDispatcher(object):
         assert mc_run_ans.called
 
         expected_call = mock.call(
-            '-c ssh -i \'{},\' {} --extra-vars=\''
+            '-c ssh {} --extra-vars=\''
             '{{"copr_task": {{"vm_name": "{}", "ip": "{}"}}}}\''
-            .format(self.vm_ip, self.terminate_pb, self.vm_name, self.vm_ip),
+            .format(self.terminate_pb, self.vm_name, self.vm_ip),
             'terminate instance')
 
         assert expected_call == mc_run_ans.call_args
         assert self.worker.vm_ip is None
         assert self.worker.vm_name is None
 
-    def _test_terminate_instance_missed_playbook(self, init_worker, reg_vm):
+    def test_terminate_instance_missed_playbook(self, init_worker, reg_vm):
         mc_run_ans = MagicMock()
         self.worker.run_ansible_playbook = mc_run_ans
         self.worker.group_id = "322"
