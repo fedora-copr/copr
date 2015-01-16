@@ -324,6 +324,7 @@ class Worker(multiprocessing.Process):
                 self.callback.log("Spawning a builder. Try No. {0}".format(i))
 
                 self.vm_ip = self.try_spawn(spawn_args)
+                self.update_process_title()
                 try:
                     self.validate_vm()
                 except CoprWorkerSpawnFailError:
@@ -334,14 +335,14 @@ class Worker(multiprocessing.Process):
                                   .format(time.time() - start))
 
             except CoprWorkerSpawnFailError as exception:
-                self.callback.log("VM Spawn attemp failed with message: {}"
+                self.callback.log("VM Spawn attempt failed with message: {}"
                                   .format(exception.msg))
 
     def terminate_instance(self):
         """
         Call the terminate playbook to destroy the building instance
         """
-
+        self.update_process_title(suffix="Terminating VM")
         term_args = {}
         if "ip" in self.opts.terminate_vars:
             term_args["ip"] = self.vm_ip
@@ -363,6 +364,7 @@ class Worker(multiprocessing.Process):
         # TODO: should we check that machine was destroyed?
         self.vm_ip = None
         self.vm_name = None
+        self.update_process_title()
 
     def mark_started(self, job):
         """
@@ -442,6 +444,7 @@ class Worker(multiprocessing.Process):
             - :py:class:`~backend.exceptions.CoprWorkerError`: spawn function doesn't return ip
             - :py:class:`AnsibleError`: failure during anible command execution
         """
+        self.update_process_title(suffix="Spawning a new VM")
         try:
             self.spawn_instance()
             if not self.vm_ip:
@@ -482,9 +485,7 @@ class Worker(multiprocessing.Process):
         Retrieves new build task from queue.
         Checks if the new job can be started and not skipped.
         """
-        setproctitle("worker-{0} {1}  No task".format(
-            self.opts.build_groups[self.group_id]["name"],
-            self.worker_num))
+        self.update_process_title(suffix="No task")
 
         # this sometimes caused TypeError in random worker
         # when another one  picekd up a task to build
@@ -499,10 +500,7 @@ class Worker(multiprocessing.Process):
         # import ipdb; ipdb.set_trace()
         job = BuildJob(task.data, self.opts)
 
-        setproctitle("worker-{0} {1}  Task: {2}".format(
-            self.opts.build_groups[self.group_id]["name"],
-            self.worker_num, job.build_id
-        ))
+        self.update_process_title(suffix="Task: {} chroot: {}".format(job.build_id, job.chroot))
 
         # Checking whether the build is not cancelled
         if not self.starting_build(job):
@@ -596,6 +594,8 @@ class Worker(multiprocessing.Process):
 
         job.status = status
         self._announce_end(job)
+        self.update_process_title(suffix="Task: {} chroot: {} done"
+                                  .format(job.build_id, job.chroot))
 
     def check_vm_still_alive(self):
         """
@@ -609,6 +609,17 @@ class Worker(multiprocessing.Process):
             except CoprWorkerSpawnFailError:
                 self.terminate_instance()
 
+    def update_process_title(self, suffix=None):
+        title = "worker-{} {} ".format(self.opts.build_groups[self.group_id]["name"], self.worker_num)
+        if self.vm_ip:
+            title += "VM_IP={} ".format(self.vm_ip)
+        if self.vm_name:
+            title += "VM_NAME={} ".format(self.vm_name)
+        if suffix:
+            title += str(suffix)
+
+        setproctitle(title)
+
     def run(self):
         """
         Worker should startup and check if it can function
@@ -621,6 +632,7 @@ class Worker(multiprocessing.Process):
         self.init_fedmsg()
 
         while not self.kill_received:
+            self.update_process_title()
             self.check_vm_still_alive()
 
             if self.opts.spawn_in_advance and not self.vm_ip:
