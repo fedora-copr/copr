@@ -227,7 +227,10 @@ class TestMockRemote(object):
 
     def test_prepare_build_dir_creates_dirs(self, f_mock_remote):
         self.mr.prepare_build_dir()
-        assert os.path.exists(self.DESTDIR_CHROOT)
+        target_dir = os.path.join(
+            self.DESTDIR, self.CHROOT,
+            "{}-{}".format(self.PKG_NAME, self.PKG_VERSION))
+        assert os.path.exists(target_dir)
 
     def test_build_pkg_and_process_results(self, f_mock_remote):
         self.mr.on_success_build = MagicMock()
@@ -282,7 +285,18 @@ class TestMockRemote(object):
 
     def test_mark_dir_with_build_id(self, f_mock_remote):
         # TODO: create real test
+        os.makedirs(os.path.join(self.DESTDIR_CHROOT,
+                                 "{}-{}".format(self.PKG_NAME, self.PKG_VERSION)))
+
+        info_file_path = os.path.join(self.DESTDIR_CHROOT,
+                                      "{}-{}".format(self.PKG_NAME, self.PKG_VERSION),
+                                      "build.info")
+        assert not os.path.exists(info_file_path)
         self.mr.mark_dir_with_build_id()
+
+        assert os.path.exists(info_file_path)
+        with open(info_file_path) as handle:
+            assert str(self.JOB.build_id) in handle.read()
 
     def test_build_pkgs_ignore_error_once(self, f_mock_remote):
         err_msg = "error message"

@@ -290,8 +290,8 @@ class MockRemote(object):
             os.unlink(os.path.join(p_path, "fail"))
 
         # mkdir to download results
-        if not os.path.exists(self.chroot_dir):
-            os.makedirs(self.chroot_dir)
+        if not os.path.exists(p_path):
+            os.makedirs(p_path)
 
         self.mark_dir_with_build_id()
 
@@ -362,13 +362,18 @@ class MockRemote(object):
         return build_details
 
     def mark_dir_with_build_id(self):
-        pass
-        # # adding info file with
-        # TODO: add self.build_id
-        #
-        # try:
-        # with open(os.path.join(get_target_dir(self.chroot_dir, pkg), "build.info"), 'w') as info_file:
-        #         info_file.write("build_id={}\n".format(self.build_id))
-        # except IOError:
-        #     pass
-        # checking where to stick stuff
+        """
+            Places "build.info" which contains job build_id
+                into the directory with downloaded files.
+
+        """
+        info_file_path = os.path.join(self._get_pkg_destpath(self.job.pkg),
+                                      "build.info")
+        self.callback.log("mark build dir with build_id, ")
+        try:
+            with open(info_file_path, 'w') as info_file:
+                info_file.writelines(["build_id={}".format(self.job.build_id),])
+
+        except Exception as error:
+            msg = "Failed to mark build {} with build_id".format(error)
+            self.callback.log(msg)
