@@ -49,7 +49,12 @@
             <dt> Chroots:</dt>
                 {% for chroot in build.build_chroots %} <tr>
                     <dd>
-                        {{ chroot.name }}: 
+                        {% if build.results %}
+                          <a href="{{ build.results }}/{{ chroot.name }}/{{ build.src_pkg_name }}">{{ chroot.name }}</a>
+                        {% else %}
+                          {{ chroot.name }}
+                        {% endif %}
+                        :
                         <span class="build-{{chroot.state}}" 
                               alt="{{chroot.state|build_state_description}}">
                             {{ chroot.state }}

@@ -371,6 +371,17 @@ class Build(db.Model, helpers.Serializer):
 
         return self.state in ["succeeded", "canceled", "skipped"]
 
+    @property
+    def src_pkg_name(self):
+        """
+        Extract source package name from URL
+        """
+        src_rpm_name = self.pkgs.split("/")[-1]
+        if src_rpm_name.endswith(".src.rpm"):
+            return src_rpm_name[:-8]
+        else:
+            return src_rpm_name
+
 
 class MockChroot(db.Model, helpers.Serializer):
 
