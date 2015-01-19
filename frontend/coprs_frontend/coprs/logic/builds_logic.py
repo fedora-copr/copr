@@ -9,6 +9,7 @@ from coprs import exceptions
 from coprs import models
 from coprs import helpers
 from coprs import signals
+from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
@@ -54,8 +55,8 @@ class BuildsLogic(object):
             models.BuildChroot.status == helpers.StatusEnum("starting"),
             and_(
                 models.BuildChroot.status == helpers.StatusEnum("running"),
-                models.Build.started_on < int(time.time() - 7200),
-                models.Build.ended_on is None
+                models.Build.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
+                models.Build.ended_on.is_(None)
             )
         ))
         query = query.order_by(models.BuildChroot.build_id.asc())
@@ -142,7 +143,7 @@ class BuildsLogic(object):
             build.memory_reqs = memory_reqs
 
         if timeout:
-            build.timeout = timeout
+            build.timeout = timeout or DEFAULT_BUILD_TIMEOUT
 
         db.session.add(build)
 

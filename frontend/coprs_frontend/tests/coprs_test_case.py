@@ -166,8 +166,15 @@ class CoprsTestCase(object):
         self.b4 = models.Build(
             copr=self.c2, user=self.u2, submitted_on=100)
 
-        for build in [self.b1, self.b2, self.b3, self.b4]:
-            self.db.session.add(build)
+        self.b1_bc = []
+        self.b2_bc = []
+        self.b3_bc = []
+        self.b4_bc = []
+
+        for build, build_chroots in zip(
+                [self.b1, self.b2, self.b3, self.b4],
+                [self.b1_bc, self.b2_bc, self.b3_bc, self.b4_bc]):
+
 
             status = None
             if build is self.b1:  # this build is going to be deleted
@@ -178,6 +185,7 @@ class CoprsTestCase(object):
                     mock_chroot=chroot,
                     status=status)
 
+                build_chroots.append(buildchroot)
                 self.db.session.add(buildchroot)
 
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])

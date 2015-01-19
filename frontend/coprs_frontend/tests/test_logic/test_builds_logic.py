@@ -1,4 +1,7 @@
+# -*- encoding: utf-8 -*-
+
 import pytest
+import time
 from coprs import helpers
 
 from coprs.exceptions import ActionInProgressException
@@ -49,3 +52,37 @@ class TestBuildsLogic(CoprsTestCase):
 
         for chr, res in zip(mchroots, results):
             assert helpers.StatusEnum(self.status_by_chroot[chr]) == res[1]
+
+    def test_build_queue_1(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.db.session.commit()
+        data = BuildsLogic.get_build_task_queue().all()
+        assert len(data) == 5
+
+    def test_build_queue_2(self, f_users, f_coprs, f_mock_chroots, f_db):
+        self.db.session.commit()
+        data = BuildsLogic.get_build_task_queue().all()
+        assert len(data) == 0
+
+    def test_build_queue_3(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        for build_chroots in [self.b1_bc, self.b2_bc, self.b3_bc, self.b4_bc]:
+            for build_chroot in build_chroots:
+                build_chroot.status = 0
+        self.db.session.commit()
+        data = BuildsLogic.get_build_task_queue().all()
+        assert len(data) == 0
+
+    def test_build_queue_4(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        for build_chroots in [self.b1_bc, self.b2_bc]:
+            for build_chroot in build_chroots:
+                build_chroot.status = 3
+        for build_chroots in [self.b3_bc, self.b4_bc]:
+            for build_chroot in build_chroots:
+                build_chroot.status = 0
+
+        time_now = int(time.time())
+
+        self.b1.started_on = time_now - 100000
+
+        self.db.session.commit()
+        data = BuildsLogic.get_build_task_queue().all()
+        assert len(data) == 1  #

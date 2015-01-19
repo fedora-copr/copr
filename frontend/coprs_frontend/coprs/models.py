@@ -465,6 +465,9 @@ class BuildChroot(db.Model, helpers.Serializer):
 
         return "unknown"
 
+    def __str__(self):
+        return "<BuildChroot: {}>".format(self.to_dict())
+
 
 class LegalFlag(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
