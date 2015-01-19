@@ -596,7 +596,6 @@ class TestBuilder(object):
         ).format(self.BUILDER_CHROOT, self.BUILDER_PKG_BASE)
         assert expected_ans_args == builder.conn.module_args
 
-
     def test_check_if_pkg_local_or_http_local(self):
         pkg_path = os.path.join(self.test_root_path, "{}.src.rpm".format(self.BUILDER_PKG_BASE))
         with open(pkg_path, "w") as handle:
@@ -614,29 +613,6 @@ class TestBuilder(object):
         dest = builder.check_if_pkg_local_or_http(self.BUILDER_PKG)
 
         assert dest == self.BUILDER_PKG
-
-    def test_get_package_version(self):
-        # TODO: pathc run_ansible with local cmd execution and put a real .src.rpm
-        builder = self.get_test_builder()
-
-        builder.conn.run.return_value = {
-            "contacted": {self.BUILDER_HOSTNAME: {"rc": 0,
-                                                  "stdout": "stdout",
-                                                  "stderr": "stderr"}},
-            "dark": {}
-        }
-
-        assert "stdout" == builder.get_package_version(self.BUILDER_PKG_BASE + ".src.rpm")
-        assert builder.conn.module_args == "rpm -qp --qf \"%{{VERSION}}\" {}.src.rpm".format(self.BUILDER_PKG_BASE)
-
-    def test_get_package_version_not_contacted(self):
-        # TODO: pathc run_ansible with local cmd execution and put a real .src.rpm
-        builder = self.get_test_builder()
-
-        builder.conn.run.return_value = {}
-
-        assert builder.get_package_version(self.BUILDER_PKG_BASE + ".src.rpm") is None
-        assert builder.conn.module_args == "rpm -qp --qf \"%{{VERSION}}\" {}.src.rpm".format(self.BUILDER_PKG_BASE)
 
     def test_get_mockchain_command(self):
         builder = self.get_test_builder()
@@ -755,14 +731,48 @@ class TestBuilder(object):
         with pytest.raises(BuilderError):
             builder.download(self.BUILDER_PKG, self.BUILDER_REMOTE_BASEDIR)
 
+    def test_update_package_version(self):
+        builder = self.get_test_builder()
+
+        # (response, expected)
+        test_plan = [
+            ("$$1.34$$", "1.34"),
+            ("$$1.34$$(none)", "1.34"),
+            ("(none)$$1.34$$(none)", "1.34"),
+            ("(none)$$1.34$$", "1.34"),
+            ("(none)$$1.34$$435", "1.34-435"),
+            ("2$$1.34$$435", "2:1.34-435"),
+            ("2$$1.34$$", "2:1.34"),
+        ]
+
+        self._response = ""
+
+        def fake_run_ansible(self_, pkg):
+            return {
+                "contacted": {
+                    self.BUILDER_HOSTNAME: {
+                        "rc": "0", "stdout": self._response
+                    }
+                }
+            }
+
+        builder._run_ansible = MethodType(fake_run_ansible, builder)
+        builder.update_job_pkg_version(self.BUILDER_PKG)
+
+        assert builder.job.pkg_version == ""
+
+        for resp, expected in test_plan:
+            self._response = resp
+            builder.update_job_pkg_version(self.BUILDER_PKG)
+            assert builder.job.pkg_version == expected
+
     def test_build(self):
         builder = self.get_test_builder()
         builder.modify_mock_chroot_config = MagicMock()
         builder.check_if_pkg_local_or_http = MagicMock()
         builder.check_if_pkg_local_or_http.return_value = self.BUILDER_PKG
 
-        builder.get_package_version = MagicMock()
-        builder.get_package_version.return_value = None
+        builder.update_job_pkg_version = MagicMock()
 
         builder.run_command_and_wait = MagicMock()
         successful_wait_result = {
@@ -786,14 +796,9 @@ class TestBuilder(object):
         assert builder.run_command_and_wait.called
         assert builder.check_build_success.called
         assert builder.collect_built_packages
-        assert build_details == {}
 
-        # test providing version
-        builder.get_package_version.return_value = "srpm_version"
-        build_details, stdout = builder.build(self.BUILDER_PKG)
-
-        assert "pkg_version" in build_details
-        assert build_details["pkg_version"] == "srpm_version"
+        # test providing version / obsolete
+        builder.build(self.BUILDER_PKG)
 
         # test timeout handle
         builder.run_command_and_wait.side_effect = BuilderTimeOutError("msg")
@@ -802,11 +807,10 @@ class TestBuilder(object):
             builder.build(self.BUILDER_PKG)
 
         assert error.value.msg == "msg"
-        # assert build_details["pkg_version"] == "srpm_version"
 
         # remove timeout
         builder.run_command_and_wait.side_effect = None
-        build_details, stdout = builder.build(self.BUILDER_PKG)
+        builder.build(self.BUILDER_PKG)
 
         # error inside wait result
         unsuccessful_wait_result = {

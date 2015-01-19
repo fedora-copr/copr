@@ -81,18 +81,24 @@ class CoprJobGrab(Process):
         :return int: Count of the successfully routed tasks
         """
         count = 0
-        if "task_id" in task and task["task_id"] not in self.added_jobs:
+        if "task_id" in task:
+            if task["task_id"] not in self.added_jobs:
 
-            # TODO: produces memory leak!
-            self.added_jobs.add(task["task_id"])
-            arch = task["chroot"].split("-")[2]
-            if arch not in self.task_queues_by_arch:
-                raise CoprJobGrabError("No builder group for architecture: {}, task: {}"
-                                       .format(arch, task))
+                # TODO: produces memory leak!
+                self.added_jobs.add(task["task_id"])
+                arch = task["chroot"].split("-")[2]
+                if arch not in self.task_queues_by_arch:
+                    raise CoprJobGrabError("No builder group for architecture: {}, task: {}"
+                                           .format(arch, task))
 
-            task_obj = Task(task)
-            self.task_queues_by_arch[arch].enqueue(task_obj)
-            count += 1
+                task_obj = Task(task)
+                self.task_queues_by_arch[arch].enqueue(task_obj)
+                count += 1
+            # else:
+                # self.event("Task `{}` was already sent builder, ignoring".format(task["task_id"]))
+
+        else:
+            self.event("Task missing field `task_id`, raw task: {}".format(task))
         return count
 
     def process_action(self, action):

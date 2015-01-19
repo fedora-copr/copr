@@ -471,6 +471,7 @@ class TestDispatcher(object):
              'destdir': self.DESTDIR,
              'started_on': None, 'submitted_on': None, 'chroot': 'fedora-20-x86_64',
              'ended_on': None, 'built_packages': '', 'timeout': 1800, 'pkg_version': '',
+             'pkg_epoch': None, 'pkg_main_version': '', 'pkg_release': None,
              'memory_reqs': None, 'buildroot_pkgs': None, 'id': self.job_build_id,
              'pkg': self.SRC_PKG_URL, "enable_net": True}
         ]})
@@ -499,6 +500,7 @@ class TestDispatcher(object):
              'destdir': self.DESTDIR,
              'started_on': self.job.started_on, 'submitted_on': None, 'chroot': 'fedora-20-x86_64',
              'ended_on': self.job.ended_on, 'built_packages': '', 'timeout': 1800, 'pkg_version': '',
+             'pkg_epoch': None, 'pkg_main_version': '', 'pkg_release': None,
              'memory_reqs': None, 'buildroot_pkgs': None, 'id': self.job_build_id,
              'pkg': self.SRC_PKG_URL, "enable_net": True}
         ]})

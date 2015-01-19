@@ -216,14 +216,25 @@ class Builder(object):
 
         return dest
 
-    def get_package_version(self, pkg):
+    def update_job_pkg_version(self, pkg):
         self.callback.log("Getting package information: version")
-        results = self._run_ansible("rpm -qp --qf \"%{{VERSION}}\" {}".format(pkg))
+        results = self._run_ansible("rpm -qp --qf \"%{{EPOCH}}\$\$%{{VERSION}}\$\$%{{RELEASE}}\" {}".format(pkg))
         if "contacted" in results:
             # TODO:  do more sane
-            return list(results["contacted"].values())[0][u"stdout"]
-        else:
-            return None
+            raw = list(results["contacted"].values())[0][u"stdout"]
+            try:
+                epoch, version, release = raw.split("$$")
+
+                if epoch == "(none)" or epoch == "0":
+                    epoch = None
+                if release == "(none)":
+                    release = None
+
+                self.job.pkg_main_version = version
+                self.job.pkg_epoch = epoch
+                self.job.pkg_release = release
+            except ValueError:
+                pass
 
     def gen_mockchain_command(self, dest):
         buildcmd = "{0} -r {1} -l {2} ".format(
@@ -270,17 +281,14 @@ class Builder(object):
         # add pkg to various lists
         # check for success/failure of build
 
-        build_details = {}
+        # build_details = {}
         self.modify_mock_chroot_config()
 
         # check if pkg is local or http
         dest = self.check_if_pkg_local_or_http(pkg)
 
         # srpm version
-        srpm_version = self.get_package_version(pkg)
-        if srpm_version:
-            # TODO: do we really need this check? maybe := None is also OK?
-            build_details["pkg_version"] = srpm_version
+        self.update_job_pkg_version(pkg)
 
         # construct the mockchain command
         buildcmd = self.gen_mockchain_command(dest)
@@ -294,6 +302,7 @@ class Builder(object):
         self.check_build_success(pkg)
         build_out = get_ans_results(ansible_build_results, self.hostname).get("stdout", "")
 
+        build_details = {"pkg_version": self.job.pkg_version}
         self.collect_built_packages(build_details, pkg)
         return build_details, build_out
 

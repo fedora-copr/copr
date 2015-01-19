@@ -182,8 +182,8 @@ class CoprBackend(object):
         """
         Starts backend process. Control sub process start/stop.
         """
-        self.init_sub_process()
         self.init_task_queues()
+        self.init_sub_process()
 
         self.abort = False
         while not self.abort:

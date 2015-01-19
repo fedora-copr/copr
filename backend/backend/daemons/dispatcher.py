@@ -667,6 +667,9 @@ class Worker(multiprocessing.Process):
 
             try:
                 self.do_job(job)
+            except Exception as error:
+                from celery.contrib import rdb; rdb.set_trace()
+                x = 2
             finally:
                 # clean up the instance
                 self.terminate_instance()

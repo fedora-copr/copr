@@ -65,7 +65,10 @@ class BuildJob(object):
             task_data["project_name"] + "/"
         ])
 
-        self.pkg_version = ""
+        self.pkg_main_version = ""
+        self.pkg_epoch = None
+        self.pkg_release = None
+
         self.built_packages = ""
 
     def update(self, data_dict):
@@ -83,8 +86,26 @@ class BuildJob(object):
         """
         result = copy.deepcopy(self.__dict__)
         result["id"] = self.build_id
+        result["pkg_version"] = self.pkg_version
 
         return result
+
+    @property
+    def pkg_version(self):
+        """
+        Canonical version presentation release and epoch
+        "{epoch}:{version}-{release}"
+        """
+        if self.pkg_main_version is None:
+            return None
+        if self.pkg_epoch:
+            full_version = "{}:{}".format(self.pkg_epoch, self.pkg_main_version)
+        else:
+            full_version = "{}".format(self.pkg_main_version)
+
+        if self.pkg_release:
+            full_version += "-{}".format(self.pkg_release)
+        return full_version
 
     def __str__(self):
         return str(self.__unicode__())
