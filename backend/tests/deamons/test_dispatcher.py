@@ -789,8 +789,7 @@ class TestDispatcher(object):
 
         mc_do_job.side_effect = stop_loop
 
-        with pytest.raises(Exception):
-            self.worker.run()
+        self.worker.run()
 
         assert mc_do_job.called
         assert self.worker.init_fedmsg.called
