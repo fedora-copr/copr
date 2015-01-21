@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import os
+import re
 import subprocess
 
 __version__ = "0.3.0"
@@ -151,9 +152,17 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
+        copr = args.copr
+        m = re.match(r"(\w+)/(\w+)", copr)
+        if m:
+            username = m.group(1)
+            copr = m.group(2)
+        else:
+            username = None
         result = self.client.create_new_build(
-            projectname=args.copr, chroots=args.chroots, pkgs=args.pkgs,
-            memory=args.memory, timeout=args.timeout)
+            projectname=copr, chroots=args.chroots, pkgs=args.pkgs,
+            memory=args.memory, timeout=args.timeout,
+            username=username)
         if result.output != "ok":
             print(result.error)
             return
