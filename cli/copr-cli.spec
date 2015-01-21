@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.42
+Version:    1.43
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -90,6 +90,9 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Wed Jan 21 2015 Miroslav Suchý <msuchy@redhat.com> 1.43-1
+- regression: enable again copr-cli build username/project
+
 * Mon Jan 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.42-1
 - updated man page
 - compatibility with Python 2.6 ( due to Epel 6)
