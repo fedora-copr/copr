@@ -175,7 +175,7 @@ class CoprBackend(object):
             group_id = group["id"]
             for w in self.workers_by_group_id[group_id][:]:
                 self.workers_by_group_id[group_id].remove(w)
-                w.terminate()
+                w.terminate_instance()
         self.clean_task_queues()
 
     def run(self):

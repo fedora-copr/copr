@@ -282,8 +282,8 @@ class TestBackend(object):
 
         assert self.be.clean_task_queues.called
         assert self.be.abort
-        assert worker_alive.terminate.called
-        assert worker_dead.terminate.called
+        assert worker_alive.terminate_instance.called
+        assert worker_dead.terminate_instance.called
 
     def test_run(self, mc_time, mc_rt_queue, init_be):
         worker_alive = MagicMock()
