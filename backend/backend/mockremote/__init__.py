@@ -187,7 +187,7 @@ class MockRemote(object):
         # TODO: sign repodata as well ?
         user = self.job.project_owner
         project = self.job.project_name
-        pubkey_path = os.path.join(self.chroot_dir, "pubkey.gpg")
+        pubkey_path = os.path.join(self.job.destdir, "pubkey.gpg")
         try:
             # TODO: uncomment this when key revoke/change will be implemented
             # if os.path.exists(pubkey_path):

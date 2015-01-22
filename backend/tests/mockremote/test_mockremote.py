@@ -140,7 +140,7 @@ class TestMockRemote(object):
     def test_add_pubkey(self, mc_get_pubkey, f_mock_remote):
         self.mr.add_pubkey()
         assert mc_get_pubkey.called
-        expected_path = os.path.join(self.DESTDIR, self.CHROOT, "pubkey.gpg")
+        expected_path = os.path.join(self.DESTDIR, "pubkey.gpg")
         assert mc_get_pubkey.call_args == mock.call(
             COPR_OWNER, COPR_NAME, expected_path)
 
