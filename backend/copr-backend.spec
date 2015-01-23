@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.56
+Version:    1.57
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -211,6 +211,30 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Jan 23 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.57-1
+- call correct Worker method on backend termination
+- put gpg pubkey to the project results root dir (one level up from
+  the chroot dir)
+- don't kill Worker from errors during job build
+- [rhbz:#1169782] RFE - Show package "version-release" instead of
+  just "version"
+- [rhbz:#1117446] add a build id tagfile into the package directory
+- Updated unittests to reflect latest changes.
+- builder: use only one log file for rsync per build
+- dispatcher: run terminate_instance safely
+- cleanup example config
+- cleanup mockremote.builder
+- Builder.download don't use Popen+PIPE.communicate with rsync,
+  output redirected to the files.
+- disable networking only when required; python style exception
+  handling in mockremote*; removed run/copr_mockremote
+- test build with disabled networking
+- simplified  mockremote.builder.Builder.check_for_ans_error; new
+  method mockremote.builder.Builder.run_ansible_with_check
+- daemons.dispatched.Worker: don't fail when wrong group_id was
+  provided
+- add vm_ip to worker process title (rhbz: 1182637)
+
 * Wed Jan 14 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.56-1
 - [backend] [.spec] fix %files section
 
