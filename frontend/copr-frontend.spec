@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.51
+Version:    1.52
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -168,6 +168,19 @@ service httpd condrestart
 %doc documentation/python-doc
 
 %changelog
+* Fri Jan 23 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.52-1
+- add url to gpg pubkey in .repo files
+- [rhbz:#1183702]  Interrupted builds aren't re-added to the
+  builder queue, and stuck forever in RUNNING state.
+- [rhbz:#1133650] RFE: copr frontend on page of build details,
+  results section should show multiple links that link directly for every
+  chroot directory
+- UI to control `enable_net` option, DB schema changes
+- new command AddDebugUser for manage script
+- [RHBZ:#1176364] Wrong value for the build timeout.
+- [RHBZ:#1177179] Display the timezone with a format more similar to
+  ISO 8601
+
 * Mon Dec 15 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.51-1
 - bugfix: send correct chroots in on_auto_createrepo_change()
 - control auto_createrepo property of project through API
