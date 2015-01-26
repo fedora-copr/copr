@@ -112,4 +112,4 @@ class BuildJob(object):
 
     def __unicode__(self):
         return u"BuildJob<id: {build_id}, owner: {project_owner}, " \
-               u"project: {project_name}, source pkg : {pkg} >".format(self.__dict__)
+               u"project: {project_name}, source pkg : {pkg} >".format(**self.__dict__)
