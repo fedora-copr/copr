@@ -1,5 +1,6 @@
 import time
 import re
+import urlparse
 
 import flask
 from flask import render_template
@@ -545,8 +546,9 @@ def generate_repo_file(username, coprname, chroot, repofile):
             .format(username, coprname))
 
     repo_url = generate_repo_url(mock_chroot, url)
+    pubkey_url = urlparse.urljoin(url, "pubkey.gpg")
     response = flask.make_response(
-        flask.render_template("coprs/copr.repo", copr=copr, url=repo_url))
+        flask.render_template("coprs/copr.repo", copr=copr, url=repo_url, pubkey_url=pubkey_url))
 
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
