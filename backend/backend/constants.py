@@ -14,6 +14,10 @@ DEF_MACROS = {}
 DEF_BUILDROOT_PKGS = ""
 
 
+DEF_CONSECUTIVE_FAILURE_THRESHOLD = 10
+CONSECUTIVE_FAILURE_REDIS_KEY = "copr:sys:consecutive_build_fails"
+
+
 class BuildStatus(object):
     FAILURE = 0
     SUCCEEDED = 1

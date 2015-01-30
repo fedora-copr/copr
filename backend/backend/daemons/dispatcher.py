@@ -18,6 +18,8 @@ from setproctitle import setproctitle
 from IPy import IP
 from retask.queue import Queue
 
+
+
 from ..mockremote.callback import CliLogCallBack
 
 from ..exceptions import MockRemoteError, CoprWorkerError, CoprWorkerSpawnFailError
@@ -26,6 +28,7 @@ from ..job import BuildJob
 from ..mockremote import MockRemote
 from ..frontend import FrontendClient
 from ..constants import BuildStatus
+from ..helpers import register_build_result
 
 ansible_playbook = "ansible-playbook"
 
@@ -469,6 +472,8 @@ class Worker(multiprocessing.Process):
                 raise CoprWorkerError(
                     "No IP found from creating instance")
         except AnsibleError as e:
+            register_build_result(self.opts, failed=True)
+
             self.callback.log("failure to setup instance: {0}".format(e))
             raise
 
@@ -600,10 +605,13 @@ class Worker(multiprocessing.Process):
                 if self.opts.do_sign:
                     mr.add_pubkey()
 
+                register_build_result(self.opts)
+
             except MockRemoteError as e:
                 # record and break
                 self.callback.log("{0} - {1}".format(self.vm_ip, e))
                 status = BuildStatus.FAILURE
+                register_build_result(self.opts, failed=True)
 
             self.callback.log(
                 "Finished build: id={0} builder={1} timeout={2} destdir={3}"

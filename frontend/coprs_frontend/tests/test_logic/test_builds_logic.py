@@ -74,7 +74,7 @@ class TestBuildsLogic(CoprsTestCase):
     def test_build_queue_4(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         for build_chroots in [self.b1_bc, self.b2_bc]:
             for build_chroot in build_chroots:
-                build_chroot.status = 3
+                build_chroot.status = 3  # running
         for build_chroots in [self.b3_bc, self.b4_bc]:
             for build_chroot in build_chroots:
                 build_chroot.status = 0
@@ -85,4 +85,6 @@ class TestBuildsLogic(CoprsTestCase):
 
         self.db.session.commit()
         data = BuildsLogic.get_build_task_queue().all()
-        assert len(data) == 1  #
+
+        assert len(data) == 1
+        assert data[0] == self.b1_bc[0]

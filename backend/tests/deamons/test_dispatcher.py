@@ -92,6 +92,8 @@ class TestDispatcher(object):
             timeout=1800,
             destdir=self.tmp_dir_path,
             results_baseurl="/tmp",
+
+            consecutive_failure_threshold=10,
         )
         self.job = BuildJob(self.task, self.opts)
 
