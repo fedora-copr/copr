@@ -39,6 +39,9 @@ class Action(object):
         self.front_url = front_url
         self.results_root_url = results_root_url
 
+    def __str__(self):
+        return "<Action: {}>".format(self.data)
+
     def add_event(self, what):
         self.events.put({"when": time.time(), "who": "action", "what": what})
 
@@ -101,6 +104,7 @@ class Action(object):
         ext_data = json.loads(self.data["data"])
         username = ext_data["username"]
         projectname = ext_data["projectname"]
+        chroots_requested = set(ext_data["chroots"])
 
         packages = [os.path.basename(x).replace(".src.rpm", "")
                     for x in ext_data["pkgs"].split()]
@@ -111,34 +115,31 @@ class Action(object):
         self.add_event("Copr path {0}".format(path))
 
         try:
-            chroot_list = os.listdir(path)
+            chroot_list = set(os.listdir(path))
         except OSError:
             # already deleted
-            chroot_list = []
+            chroot_list = set()
 
-        for chroot in chroot_list:
+        chroots_to_do = chroot_list.intersection(chroots_requested)
+        if not chroots_to_do:
+            self.add_event("Nothing to delete for delete action: packages {}, {}"
+                           .format(packages, ext_data))
+            return
+
+        for chroot in chroots_to_do:
             self.add_event("In chroot {0}".format(chroot))
             altered = False
 
-            # We need to delete the files only if they belong
-            # to the build. For example if my build fails and I send
-            # fixed pkg with the same version again, it succeeds and
-            # than I delete the failed, it would delete the succeeded
-            # files as well - that would be wrong.
             for pkg in packages:
-                if self.data["object_type"] == "build-succeeded" or (
-                        self.data["object_type"] == "build-failed" and
-                        os.path.exists(os.path.join(path, chroot, pkg, "fail"))):
-
-                    pkg_path = os.path.join(path, chroot, pkg)
-                    if os.path.isdir(pkg_path):
-                        self.add_event("Removing build {0}".format(pkg_path))
-                        shutil.rmtree(pkg_path)
-                        altered = True
-                    else:
-                        self.add_event(
-                            "Package {0} dir not found in chroot {1}"
-                            .format(pkg, chroot))
+                pkg_path = os.path.join(path, chroot, pkg)
+                if os.path.isdir(pkg_path):
+                    self.add_event("Removing build {0}".format(pkg_path))
+                    shutil.rmtree(pkg_path)
+                    altered = True
+                else:
+                    self.add_event(
+                        "Package {0} dir not found in chroot {1}"
+                        .format(pkg, chroot))
 
             if altered:
                 self.add_event("Running createrepo")
@@ -154,13 +155,14 @@ class Action(object):
                     self.add_event(
                         "Error making local repo: {0}".format(err))
 
-            log_path = os.path.join(
-                path, chroot,
-                'build-{0}.log'.format(self.data['object_id']))
-
-            if os.path.isfile(log_path):
-                self.add_event("Removing log {0}".format(log_path))
-                os.unlink(log_path)
+            logs_to_remove = [
+                os.path.join(path, chroot, template.format(self.data['object_id']))
+                for template in ['build-{}.log', 'build-{}.rsync.log']
+            ]
+            for log_path in logs_to_remove:
+                if os.path.isfile(log_path):
+                    self.add_event("Removing log {0}".format(log_path))
+                    os.remove(log_path)
 
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
@@ -172,8 +174,7 @@ class Action(object):
         if action_type == ActionType.DELETE:
             if self.data["object_type"] == "copr":
                 self.handle_delete_copr_project()
-            elif self.data["object_type"] in \
-                    ["build-succeeded", "build-skipped", "build-failed"]:
+            elif self.data["object_type"] == "build":
                 self.handle_delete_build()
 
             result.result = ActionResult.SUCCESS

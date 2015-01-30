@@ -3,6 +3,7 @@ import json
 import tempfile
 import shutil
 import time
+import tarfile
 
 import pytest
 import six
@@ -60,7 +61,8 @@ class TestAction(object):
         self.ext_data_for_delete_build = json.dumps({
             "pkgs": " ".join(self.pkgs),
             "username": "foo",
-            "projectname": "bar"
+            "projectname": "bar",
+            "chroots": ["fedora20", "epel7"]
         })
 
     def teardown_method(self, method):
@@ -82,6 +84,16 @@ class TestAction(object):
         self.test_content = "time: {}\n".format(self.test_time)
 
         return self.tmp_dir_name
+
+    def unpack_resource(self, resource_name):
+        if self.tmp_dir_name is None:
+            self.make_temp_dir()
+
+        src_path = os.path.join(os.path.dirname(__file__),
+                                "_resources", resource_name)
+
+        with tarfile.open(src_path, "r:gz") as tfile:
+            tfile.extractall(os.path.join(self.tmp_dir_name, "old_dir"))
 
     def test_action_event(self, mc_time):
         test_action = Action(
@@ -308,40 +320,23 @@ class TestAction(object):
 
         tmp_dir = self.make_temp_dir()
 
-        for obj_type in ["build-succeeded", "build-skipped", "build-failed"]:
-            test_action = Action(
-                action={
-                    "action_type": ActionType.DELETE,
-                    "object_type": obj_type,
-                    "id": 7,
-                    "old_value": "not-existing-project",
-                    "data": self.ext_data_for_delete_build,
-                },
-                events=self.test_q, lock=None,
-                frontend_callback=mc_front_cb,
-                destdir=tmp_dir,
-                front_url=None,
-                results_root_url=RESULTS_ROOT_URL
-            )
-            with mock.patch("backend.actions.shutil") as mc_shutil:
-                test_action.run()
-                assert not mc_shutil.rmtree.called
-
-            ev_1 = self.test_q.get_nowait()
-            assert "Action delete build" == ev_1["what"]
-            assert ev_1["who"] == "action"
-
-            ev_2 = self.test_q.get_nowait()
-            assert "Packages to delete" in ev_2["what"]
-            assert " ".join(self.pkgs_stripped) in ev_2["what"]
-            assert ev_2["who"] == "action"
-
-            ev_3 = self.test_q.get_nowait()
-            assert "Copr path" in ev_3["what"]
-            assert ev_3["who"] == "action"
-
-            with pytest.raises(EmptyQueue):
-                self.test_q.get_nowait()
+        test_action = Action(
+            action={
+                "action_type": ActionType.DELETE,
+                "object_type": "build",
+                "id": 7,
+                "old_value": "not-existing-project",
+                "data": self.ext_data_for_delete_build,
+            },
+            events=self.test_q, lock=None,
+            frontend_callback=mc_front_cb,
+            destdir=tmp_dir,
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
+        )
+        with mock.patch("backend.actions.shutil") as mc_shutil:
+            test_action.run()
+            assert not mc_shutil.rmtree.called
 
     @mock.patch("backend.actions.createrepo")
     def test_delete_build_succeeded(self, mc_createrepo, mc_time):
@@ -370,7 +365,7 @@ class TestAction(object):
         test_action = Action(
             action={
                 "action_type": ActionType.DELETE,
-                "object_type": "build-succeeded",
+                "object_type": "build",
                 "id": 7,
                 "old_value": "old_dir",
                 "data": self.ext_data_for_delete_build,
@@ -458,11 +453,11 @@ class TestAction(object):
         test_action = Action(
             action={
                 "action_type": ActionType.DELETE,
-                "object_type": "build-succeeded",
+                "object_type": "build",
                 "id": 7,
                 "old_value": "old_dir",
                 "data": self.ext_data_for_delete_build,
-                "object_id": 42
+                "object_id": 42,
             },
             events=self.test_q, lock=None,
             frontend_callback=mc_front_cb,
@@ -481,11 +476,147 @@ class TestAction(object):
 
         assert error_event_recorded
 
+    @mock.patch("backend.actions.createrepo")
+    def test_delete_two_chroots(self, mc_createrepo_unsafe, mc_time):
+        """
+        Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
+
+        """
+        mc_createrepo_unsafe.return_value = 0, STDOUT, ""
+
+        resource_name = "1171796.tar.gz"
+        self.unpack_resource(resource_name)
+
+        chroot_20_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-20-x86_64")
+        chroot_21_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-21-x86_64")
+
+        assert os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
+        assert os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
+
+        assert os.path.exists(os.path.join(chroot_20_path, "build-15.rsync.log"))
+        assert os.path.exists(os.path.join(chroot_21_path, "build-15.rsync.log"))
+
+        assert os.path.isdir(os.path.join(chroot_20_path, "rubygem-log4r-1.1.10-2.fc21"))
+        assert os.path.isdir(os.path.join(chroot_21_path, "rubygem-log4r-1.1.10-2.fc21"))
+
+        mc_time.time.return_value = self.test_time
+        mc_front_cb = MagicMock()
+
+        test_action = Action(
+            action={
+                "action_type": ActionType.DELETE,
+                "object_type": "build",
+                "object_id": 15,
+                "id": 15,
+                "old_value": "old_dir",
+                "data": json.dumps({
+                    "pkgs": "rubygem-log4r-1.1.10-2.fc21.src.rpm",
+                    "username": "foo",
+                    "projectname": "bar",
+                    "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
+                }),
+            },
+            events=self.test_q, lock=None,
+            frontend_callback=mc_front_cb,
+            destdir=self.tmp_dir_name,
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
+        )
+        test_action.run()
+
+        assert not os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
+        assert not os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
+
+        assert not os.path.exists(os.path.join(chroot_20_path, "build-15.rsync.log"))
+        assert not os.path.exists(os.path.join(chroot_21_path, "build-15.rsync.log"))
+
+        assert not os.path.isdir(os.path.join(chroot_20_path, "rubygem-log4r-1.1.10-2.fc21"))
+        assert not os.path.isdir(os.path.join(chroot_21_path, "rubygem-log4r-1.1.10-2.fc21"))
+
+    @mock.patch("backend.actions.createrepo")
+    def test_delete_two_chroots_two_remains(self, mc_createrepo_unsafe, mc_time):
+        """
+        Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
+        extended: we also put two more chroots, which should be unaffected
+        """
+        mc_createrepo_unsafe.return_value = 0, STDOUT, ""
+
+        resource_name = "1171796_doubled.tar.gz"
+        self.unpack_resource(resource_name)
+
+        chroot_20_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-20-x86_64")
+        chroot_21_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-21-x86_64")
+        chroot_20_i386_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-20-i386")
+        chroot_21_i386_path = os.path.join(self.tmp_dir_name, "old_dir", "fedora-21-i386")
+
+        assert os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
+        assert os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
+        assert os.path.exists(os.path.join(chroot_20_i386_path, "build-15.log"))
+        assert os.path.exists(os.path.join(chroot_21_i386_path, "build-15.log"))
+
+        assert os.path.exists(os.path.join(chroot_20_path, "build-15.rsync.log"))
+        assert os.path.exists(os.path.join(chroot_21_path, "build-15.rsync.log"))
+        assert os.path.exists(os.path.join(chroot_20_i386_path, "build-15.rsync.log"))
+        assert os.path.exists(os.path.join(chroot_21_i386_path, "build-15.rsync.log"))
+
+        assert os.path.isdir(os.path.join(chroot_20_path, "rubygem-log4r-1.1.10-2.fc21"))
+        assert os.path.isdir(os.path.join(chroot_21_path, "rubygem-log4r-1.1.10-2.fc21"))
+        assert os.path.isdir(os.path.join(chroot_20_i386_path, "rubygem-log4r-1.1.10-2.fc21"))
+        assert os.path.isdir(os.path.join(chroot_21_i386_path, "rubygem-log4r-1.1.10-2.fc21"))
+
+        mc_time.time.return_value = self.test_time
+        mc_front_cb = MagicMock()
+
+        test_action = Action(
+            action={
+                "action_type": ActionType.DELETE,
+                "object_type": "build",
+                "object_id": 15,
+                "id": 15,
+                "old_value": "old_dir",
+                "data": json.dumps({
+                    "pkgs": "rubygem-log4r-1.1.10-2.fc21.src.rpm",
+                    "username": "foo",
+                    "projectname": "bar",
+                    "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
+                }),
+            },
+            events=self.test_q, lock=None,
+            frontend_callback=mc_front_cb,
+            destdir=self.tmp_dir_name,
+            front_url=None,
+            results_root_url=RESULTS_ROOT_URL
+        )
+        test_action.run()
+
+        assert not os.path.exists(os.path.join(chroot_20_path, "build-15.log"))
+        assert not os.path.exists(os.path.join(chroot_21_path, "build-15.log"))
+        assert os.path.exists(os.path.join(chroot_20_i386_path, "build-15.log"))
+        assert os.path.exists(os.path.join(chroot_21_i386_path, "build-15.log"))
+
+        assert not os.path.exists(os.path.join(chroot_20_path, "build-15.rsync.log"))
+        assert not os.path.exists(os.path.join(chroot_21_path, "build-15.rsync.log"))
+        assert os.path.exists(os.path.join(chroot_20_i386_path, "build-15.rsync.log"))
+        assert os.path.exists(os.path.join(chroot_21_i386_path, "build-15.rsync.log"))
+
+        assert not os.path.isdir(os.path.join(chroot_20_path, "rubygem-log4r-1.1.10-2.fc21"))
+        assert not os.path.isdir(os.path.join(chroot_21_path, "rubygem-log4r-1.1.10-2.fc21"))
+        assert os.path.isdir(os.path.join(chroot_20_i386_path, "rubygem-log4r-1.1.10-2.fc21"))
+        assert os.path.isdir(os.path.join(chroot_21_i386_path, "rubygem-log4r-1.1.10-2.fc21"))
+
     @mock.patch("backend.actions.createrepo_unsafe")
-    def test_handle_createrepo_ok(self, mc_createrepo_unsfe, mc_time):
+    def test_delete_two_chroots_two_builds_stay_untouched(self, mc_createrepo_unsafe, mc_time):
+        # TODO: prepare archive
+        """
+        Before: 2 builds of the same package-version, all using different chroot
+        """
+        pass
+
+    @mock.patch("backend.actions.createrepo_unsafe")
+    def test_handle_createrepo_ok(self, mc_createrepo_unsafe, mc_time):
         mc_front_cb = MagicMock()
         tmp_dir = self.make_temp_dir()
-        mc_createrepo_unsfe.return_value = 0, STDOUT, ""
+        mc_createrepo_unsafe.return_value = 0, STDOUT, ""
 
         action_data = json.dumps({
             "chroots": ["epel-6-i386", "fedora-20-x86_64"],
@@ -513,9 +644,9 @@ class TestAction(object):
 
         exp_call_1 = mock.call(lock=None, path=tmp_dir + u'/foo/bar/epel-6-i386')
         exp_call_2 = mock.call(lock=None, path=tmp_dir + u'/foo/bar/fedora-20-x86_64')
-        assert exp_call_1 in mc_createrepo_unsfe.call_args_list
-        assert exp_call_2 in mc_createrepo_unsfe.call_args_list
-        assert len(mc_createrepo_unsfe.call_args_list) == 2
+        assert exp_call_1 in mc_createrepo_unsafe.call_args_list
+        assert exp_call_2 in mc_createrepo_unsafe.call_args_list
+        assert len(mc_createrepo_unsafe.call_args_list) == 2
 
 
     @mock.patch("backend.actions.createrepo_unsafe")
