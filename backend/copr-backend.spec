@@ -103,10 +103,6 @@ pushd documentation
 make %{?_smp_mflags} python
 popd
 
-pushd /tmp
-wget http://people.redhat.com/~vgologuz/permanent/hello_beaker_test_2-0.0.1-1.fc20.src.rpm
-popd
-
 %install
 
 install -d %{buildroot}%{_sharedstatedir}/copr
