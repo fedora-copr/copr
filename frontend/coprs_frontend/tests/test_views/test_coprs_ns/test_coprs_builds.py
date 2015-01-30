@@ -118,7 +118,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
             .first())
         assert b is None
         act = self.models.Action.query.first()
-        assert act.object_type == "build-succeeded"
+        assert act.object_type == "build"
         assert act.old_value == "user1/foocopr"
         assert json.loads(act.data)["pkgs"] == pkgs
 

@@ -212,23 +212,30 @@ class BuildsLogic(object):
                 "You can not delete build which is not finished.",
                 "Unfinished build")
 
-        # Only failed (and finished), succeeded, skipped and cancelled get here.
-        if build.state != "cancelled":  # has nothing in backend to delete
-            object_type = "build-{0}".format(build.state)
-            data_dict = {"pkgs": build.pkgs,
-                         "username": build.copr.owner.name,
-                         "projectname": build.copr.name}
+        # Only failed, finished, succeeded  get here.
+        if build.state not in ["cancelled"]: # has nothing in backend to delete
+            # don't delete skipped chroots
+            chroots_to_delete = [
+                chroot.name for chroot in build.build_chroots
+                if chroot.state not in ["skipped"]
+            ]
 
-            action = models.Action(
-                action_type=helpers.ActionTypeEnum("delete"),
-                object_type=object_type,
-                object_id=build.id,
-                old_value="{0}/{1}".format(build.copr.owner.name,
-                                           build.copr.name),
-                data=json.dumps(data_dict),
-                created_on=int(time.time())
-            )
-            db.session.add(action)
+            if chroots_to_delete:
+                data_dict = {"pkgs": build.pkgs,
+                             "username": build.copr.owner.name,
+                             "projectname": build.copr.name,
+                             "chroots": chroots_to_delete}
+
+                action = models.Action(
+                    action_type=helpers.ActionTypeEnum("delete"),
+                    object_type="build",
+                    object_id=build.id,
+                    old_value="{0}/{1}".format(build.copr.owner.name,
+                                               build.copr.name),
+                    data=json.dumps(data_dict),
+                    created_on=int(time.time())
+                )
+                db.session.add(action)
 
         for build_chroot in build.build_chroots:
             db.session.delete(build_chroot)
