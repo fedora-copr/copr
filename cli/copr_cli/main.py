@@ -153,7 +153,7 @@ class Commands(object):
 
         """
         copr = args.copr
-        m = re.match(r"(\w+)/(\w+)", copr)
+        m = re.match(r"(\w+)/(.*)", copr)
         if m:
             username = m.group(1)
             copr = m.group(2)
