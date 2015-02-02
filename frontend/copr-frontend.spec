@@ -119,7 +119,7 @@ install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
-sed -i "s/__RPM_BUILD_VERSION/%{version}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
+sed -i "s/__RPM_BUILD_VERSION/%{version}-%{release}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
 
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
