@@ -35,10 +35,12 @@ This package provides %{summary}.
 %mvn_install
 
 %files -f .mfiles
-%doc LICENSE NOTICE
+%license LICENSE
+%doc NOTICE
 
 %files javadoc -f .mfiles-javadoc
-%doc LICENSE NOTICE
+%license LICENSE
+%doc NOTICE
 
 %changelog
 * Tue Sep 16 2014 Mikolaj Izdebski <mizdebsk@redhat.com>

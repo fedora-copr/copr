@@ -149,18 +149,20 @@ popd
 %endif # with_python3
 
 %files
-%doc LICENSE README.rst
+%license LICENSE
+%doc README.rst
 %{python_sitelib}/*
 
 %if 0%{?with_python3}
 %files -n python3-copr
-%doc LICENSE README.rst
+%license LICENSE
+%doc README.rst
 %{python3_sitelib}/*
 %endif # with_python3
 
 %if 0%{?fedora}
 %files -n python-copr-doc
-%doc LICENSE
+%license LICENSE
 %doc %{_pkgdocdir}
 %endif
 

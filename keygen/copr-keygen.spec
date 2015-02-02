@@ -156,7 +156,8 @@ service httpd condrestart
 service httpd condrestart
 
 %files
-%doc LICENSE docs/INSTALL.rst docs/README.rst
+%license LICENSE
+%doc docs/INSTALL.rst docs/README.rst
 %doc configs/local_settings.py.example
 
 %{_datadir}/copr-keygen/*

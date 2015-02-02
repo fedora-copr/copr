@@ -144,7 +144,8 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 service httpd condrestart
 
 %files
-%doc LICENSE coprs.conf.example
+%license LICENSE
+%doc coprs.conf.example
 %dir %{_datadir}/copr
 %dir %{_sysconfdir}/copr
 %dir %{_sharedstatedir}/copr

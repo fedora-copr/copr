@@ -100,7 +100,7 @@ fi
 %{_sbindir}/restorecon -rvvi %{_sharedstatedir}/copr
 
 %files
-%doc LICENSE
+%license LICENSE
 %{_datadir}/selinux/*/%{modulename}.pp.bz2
 # empty, do not distribute it for now
 %exclude %{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if

@@ -171,7 +171,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %systemd_postun_with_restart copr-backend.service
 
 %files
-%doc LICENSE
+%license LICENSE
 
 %{_datadir}/copr/*
 %dir %{_sharedstatedir}/copr
@@ -201,7 +201,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %config(noreplace) %attr(0600, root, root)  %{_sysconfdir}/sudoers.d/copr
 
 %files doc
-%doc LICENSE
+%license LICENSE
 %doc %{_pkgdocdir}/python-doc
 %exclude %{_pkgdocdir}/lighttpd
 %exclude %{_pkgdocdir}/playbooks
