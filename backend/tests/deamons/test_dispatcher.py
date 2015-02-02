@@ -33,6 +33,14 @@ COPR_NAME = "copr_name"
 COPR_VENDOR = "vendor"
 
 
+@pytest.yield_fixture
+def mc_register_build_result(*args, **kwargs):
+    patcher = mock.patch("backend.daemons.dispatcher.register_build_result")
+    obj = patcher.start()
+    yield obj
+    patcher.stop()
+
+
 class TestDispatcher(object):
 
     def setup_method(self, method):
@@ -172,7 +180,7 @@ class TestDispatcher(object):
         with pytest.raises(CoprWorkerError):
             self.worker.spawn_instance_with_check()
 
-    def test_spawn_instance_with_check_ansible_error_reraised(self, init_worker):
+    def test_spawn_instance_with_check_ansible_error_reraised(self, init_worker, mc_register_build_result):
         self.worker.spawn_instance = MagicMock()
         self.worker.spawn_instance.side_effect = AnsibleError("foobar")
 
@@ -549,7 +557,7 @@ class TestDispatcher(object):
         assert not mc_mr.called
 
     @mock.patch("backend.daemons.dispatcher.MockRemote")
-    def test_do_job(self, mc_mr_class, init_worker, reg_vm):
+    def test_do_job(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
         assert not os.path.exists(self.DESTDIR_CHROOT)
 
         self.worker.frontend_callback = self.worker_fe_callback
@@ -558,7 +566,7 @@ class TestDispatcher(object):
         assert os.path.exists(self.DESTDIR_CHROOT)
 
     @mock.patch("backend.daemons.dispatcher.MockRemote")
-    def test_do_job_updates_details(self, mc_mr_class, init_worker, reg_vm):
+    def test_do_job_updates_details(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
         assert not os.path.exists(self.DESTDIR_CHROOT)
         mc_mr_class.return_value.build_pkg.return_value = {
             "results": self.test_time,
@@ -571,7 +579,8 @@ class TestDispatcher(object):
         assert os.path.exists(self.DESTDIR_CHROOT)
 
     @mock.patch("backend.daemons.dispatcher.MockRemote")
-    def test_do_job_mr_error(self, mc_mr_class, init_worker, reg_vm):
+    def test_do_job_mr_error(self, mc_mr_class, init_worker,
+                             reg_vm, mc_register_build_result):
         mc_mr_class.return_value.build_pkg.side_effect = MockRemoteError("foobar")
 
         self.worker.frontend_callback = self.worker_fe_callback
