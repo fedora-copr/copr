@@ -145,7 +145,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
 
 class TestCoprRepeatBuild(CoprsTestCase):
     @TransactionDecorator("u1")
-    def test_copr_build_chroots_subset_preserved_on_build_repeat(
+    def test_copr_build_basic_build_repeat(
             self, f_users, f_coprs, f_mock_chroots_many, f_db):
         self.b_few_chroots = models.Build(
             id=2345,
@@ -181,15 +181,19 @@ class TestCoprRepeatBuild(CoprsTestCase):
             data={},
             follow_redirects=True)
 
-        assert "Build was resubmitted" in r.data
+        assert r.status_code == 200
+        assert self.b_few_chroots.pkgs in r.data
+        assert "Adding Build for user1/foocopr" in r.data
 
-        new_build = self.models.Build.query.filter(
-            self.models.Build.id != 2345).first()
+        # TODO: maybe test, that only failed chroots are selected
 
-        expected_build_chroots_name_set = set(self.status_by_chroot.keys())
-        result_build_chroots_name_set = set([c.name for c in new_build.chroots])
-
-        assert result_build_chroots_name_set == expected_build_chroots_name_set
+        # new_build = self.models.Build.query.filter(
+        #     self.models.Build.id != 2345).first()
+        #
+        # expected_build_chroots_name_set = set(self.status_by_chroot.keys())
+        # result_build_chroots_name_set = set([c.name for c in new_build.chroots])
+        #
+        # assert result_build_chroots_name_set == expected_build_chroots_name_set
 
     @TransactionDecorator("u1")
     def test_copr_build_submitter_can_repeat_build(self, f_users,
@@ -207,10 +211,12 @@ class TestCoprRepeatBuild(CoprsTestCase):
             data={},
             follow_redirects=True)
 
-        assert "Build was resubmitted" in r.data
-        assert len(self.models.Build.query
-                   .filter(self.models.Build.pkgs == pkgs)
-                   .all()) == 2
+        assert "Adding Build for user1/foocopr" in r.data
+        assert r.status_code == 200
+        # assert "Build was resubmitted" in r.data
+        # assert len(self.models.Build.query
+        #            .filter(self.models.Build.pkgs == pkgs)
+        #            .all()) == 2
 
     @TransactionDecorator("u2")
     def test_copr_build_non_submitter_cannot_repeat_build(self, f_users,
@@ -225,4 +231,6 @@ class TestCoprRepeatBuild(CoprsTestCase):
             data={},
             follow_redirects=True)
 
-        assert "t have permissions to build" in r.data
+        # import ipdb; ipdb.set_trace()
+        assert "You are not allowed to repeat this build." in r.data
+

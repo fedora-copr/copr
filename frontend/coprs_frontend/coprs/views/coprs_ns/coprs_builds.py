@@ -189,6 +189,9 @@ def copr_repeat_build(username, coprname, build_id, page=1):
         return page_not_found(
             "Copr {0}/{1} does not exist.".format(username, coprname))
 
+    if not flask.g.user.can_build_in(build.copr):
+        flask.flash("You are not allowed to repeat this build.")
+
     form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)(
         pkgs=build.pkgs, enable_net=build.enable_net,
     )

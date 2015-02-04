@@ -1,5 +1,7 @@
+from collections import defaultdict
 import json
 import os
+import pprint
 import time
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -14,6 +16,8 @@ from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
+
+log = app.logger
 
 
 class BuildsLogic(object):
@@ -264,7 +268,7 @@ class BuildsLogic(object):
 
     @classmethod
     def get_multiply_by_copr(cls, copr):
-        """ Get collection of builds in copr
+        """ Get collection of builds in copr sorted by build_id descending
 
         :arg copr: object of copr
         """
@@ -278,50 +282,55 @@ class BuildsMonitorLogic(object):
 
     @classmethod
     def get_monitor_data(cls, copr):
+        # builds are sorted by build id descending
         builds = BuildsLogic.get_multiply_by_copr(copr).all()
 
-        # please don"t waste time trying to decipher this
-        # the only reason why this is necessary is non-existent
-        # database design
-        #
-        # loop goes through builds trying to approximate
-        # per-package results based on previous builds
-        # - it can"t determine build results if build contains
-        # more than one package as this data is not available
-
         chroots = set(chroot.name for chroot in copr.active_chroots)
-        latest_build = None
         if builds:
             latest_build = builds[0]
-            chroots.union([chroot.name for chroot
-                           in latest_build.build_chroots])
+            chroots.union([chroot.name for chroot in latest_build.build_chroots])
+        else:
+            latest_build = None
 
         chroots = sorted(chroots)
-        out = []
-        packages = []
+
+        # { pkg_name -> { chroot -> (build_id, pkg_version, status) }}
+        build_result_by_pkg_chroot = defaultdict(lambda: defaultdict(lambda: None))
+
+        # collect information about pkg version and build states
         for build in builds:
-            chroot_results = dict(
-                [(chroot.name, chroot.state) for chroot in build.build_chroots])
-
-            build_results = []
-            for chroot_name in chroots:
-                if chroot_name in chroot_results:
-                    results = chroot_results[chroot_name]
-                else:
-                    results = None
-
-                build_results.append((build.id, results, chroot_name))
+            chroot_results = {chroot.name: chroot.state for chroot in build.build_chroots}
 
             for pkg_url in build.pkgs.split():
                 pkg = os.path.basename(pkg_url)
                 pkg_name = helpers.parse_package_name(pkg)
 
-                if pkg_name in out:
-                    continue
+                for chroot_name, state in chroot_results.items():
+                    # set only latest version/state
+                    if build_result_by_pkg_chroot[pkg_name][chroot_name] is None:
+                        build_result_by_pkg_chroot[pkg_name][chroot_name] = (build.id, build.pkg_version, state)
 
-                packages.append((pkg_name, build.pkg_version, build_results))
-                out.append(pkg_name)
-            packages.sort()
+        # "transpose" data to present build status per package
+        packages = []
+        for pkg_name, chroot_dict in build_result_by_pkg_chroot.items():
+            br = []
+            try:
+                latest_build_id = max([build_id for build_id, pkg_version, state
+                                       in chroot_dict.values()])
+            except ValueError:
+                latest_build_id = None
+
+            for chroot_name in chroots:
+                chroot_result = chroot_dict.get(chroot_name)
+                if chroot_result:
+                    build_id, pkg_version, state = chroot_result
+                    br.append((build_id, state, pkg_version, chroot_name))
+                else:
+                    br.append((latest_build_id, None, None, chroot_name))
+
+            packages.append((pkg_name, br))
+
+        packages.sort()
 
         result = {
             "builds": builds,
@@ -329,4 +338,5 @@ class BuildsMonitorLogic(object):
             "packages": packages,
             "latest_build": latest_build,
         }
+        app.logger.debug("Monitor data: \n{}".format(pprint.pformat(result)))
         return result

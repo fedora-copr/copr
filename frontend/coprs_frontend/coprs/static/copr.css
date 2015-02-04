@@ -394,31 +394,31 @@ tr.build-row-skipped {
   color: black;
 }
 
-.build-pending {
+.build-pending,.build-pending>a {
   color: #55b;
 }
 
-.build-starting {
+.build-starting,.build-starting>a {
   color: #c84;
 }
 
-.build-running {
+.build-running,.build-running>a {
   color: #c84;
 }
 
-.build-succeeded {
+.build-succeeded,.build-succeeded>a {
   color: #272;
 }
 
-.build-skipped {
+.build-skipped,.build-skipped>a {
   color: #272;
 }
 
-.build-failed {
+.build-failed,.build-failed>a {
   color: #c44;
 }
 
-.build-cancelled {
+.build-cancelled,.build-cancelled>a {
   color: #666;
 }
 

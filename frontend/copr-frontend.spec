@@ -167,6 +167,7 @@ service httpd condrestart
 %ghost %{_sharedstatedir}/copr/data/copr.db
 
 %defattr(644, copr-fe, copr-fe, 755)
+%dir %{_var}/log/copr
 %ghost %{_var}/log/copr/*.log
 
 %defattr(600, copr-fe, copr-fe, 700)

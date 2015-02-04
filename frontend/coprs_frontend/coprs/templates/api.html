@@ -240,11 +240,11 @@ copr_url = {{ ('https://' + config['PUBLIC_COPR_HOSTNAME'])| fix_url_https_front
   "packages":  [
     {
       "pkg_name": "python-copr-client",
-      "pkg_version": "1.43",
+      "pkg_version": null,   # not used anymore
       "results": {
-        "epel-5-x86_64": [9578, "failed"],
-        "epel-7-x86_64": [9578, "failed"],
-        "fedora-20-x86_64": [9578, "skipped"]
+        "epel-5-x86_64": {"build_id": 9578, "status": "failed", "pkg_version": "1.2-1.fc20"],
+        "epel-7-x86_64": {"build_id": 9578, "status": "failed", "pkg_version": "1.2-1.fc20"],
+        "fedora-20-x86_64": null  # this chroot was never build,
       }
     }
   ]

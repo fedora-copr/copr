@@ -49,12 +49,33 @@ class MonitorWrapper(object):
             BuildWrapper(build).to_dict()
             for build in self.monitor_data["builds"]
         ]
-        out["packages"] = [
-            {
-                "pkg_name": pkg[0],
-                "pkg_version": pkg[1],
-                "results": dict(zip(chroots, pkg[2]))
-            }
-            for pkg in self.monitor_data["packages"]
-        ]
+
+        packages_fixed = []
+        for (pkg_name, results_by_chroot) in self.monitor_data["packages"]:
+            results = {}
+            for chroot_name, (build_id, status, pkg_version, _) in zip(chroots, results_by_chroot):
+                if status is None or pkg_version is None:
+                    results[chroot_name] = None
+                else:
+                    results[chroot_name] = dict(build_id=build_id,
+                                                status=status,
+                                                pkg_version=pkg_version)
+
+            packages_fixed.append({
+                "pkg_name": pkg_name,
+                "pkg_version": None,  # legacy
+                "results": results
+            })
+
+        out["packages"] = packages_fixed
+        #
+        # [
+        #     {
+        #         "pkg_name": pkg_name,
+        #         "pkg_version": None,  # legacy
+        #         "results": dict(zip(chroots, results_by_chroot))
+        #     }
+        #     for (pkg_name, results_by_chroot)
+        #     in self.monitor_data["packages"]
+        # ]
         return out
