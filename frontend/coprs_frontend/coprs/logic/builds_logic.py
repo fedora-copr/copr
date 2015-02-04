@@ -4,6 +4,7 @@ import time
 from sqlalchemy import or_
 from sqlalchemy import and_
 
+from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
@@ -309,7 +310,7 @@ class BuildsMonitorLogic(object):
                 else:
                     results = None
 
-                build_results.append((build.id, results))
+                build_results.append((build.id, results, chroot_name))
 
             for pkg_url in build.pkgs.split():
                 pkg = os.path.basename(pkg_url)
@@ -322,9 +323,10 @@ class BuildsMonitorLogic(object):
                 out.append(pkg_name)
             packages.sort()
 
-        return {
+        result = {
             "builds": builds,
             "chroots": chroots,
             "packages": packages,
             "latest_build": latest_build,
         }
+        return result

@@ -28,7 +28,7 @@ class Config(object):
 
     # logging options
     SEND_LOGS_TO = ["root@localhost"]
-    LOGGING_LEVEL = logging.INFO
+    LOGGING_LEVEL = logging.DEBUG
 
     SEND_LEGAL_TO = ["root@localhost"]
 

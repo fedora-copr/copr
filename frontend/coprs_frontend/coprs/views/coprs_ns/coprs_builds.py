@@ -1,6 +1,8 @@
 import flask
+from flask import request
 import re
 
+from coprs import app
 from coprs import db
 from coprs import forms
 from coprs import helpers
@@ -12,7 +14,7 @@ from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.exceptions import (ActionInProgressException,
-                              InsufficientRightsException)
+                              InsufficientRightsException, MalformedArgumentException)
 
 
 @coprs_ns.route("/build/<int:build_id>/")
@@ -187,28 +189,33 @@ def copr_repeat_build(username, coprname, build_id, page=1):
         return page_not_found(
             "Copr {0}/{1} does not exist.".format(username, coprname))
 
-    try:
-        builds_logic.BuildsLogic.add(
-            user=flask.g.user,
-            pkgs=build.pkgs,
-            copr=copr,
-            repos=copr.repos,
-            memory_reqs=build.memory_reqs,
-            timeout=build.timeout,
-            chroots=build.chroots,
-        )
+    form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)(
+        pkgs=build.pkgs, enable_net=build.enable_net,
+    )
 
-    except (ActionInProgressException, InsufficientRightsException) as e:
-        db.session.rollback()
-        flask.flash(str(e))
+    # remove all checkboxes by default
+    for ch in copr.active_chroots:
+        field = getattr(form, ch.name)
+        field.data = False
+
+    chroot_to_build = request.args.get("chroot")
+    app.logger.debug("got param chroot: {}".format(chroot_to_build))
+    if chroot_to_build:
+        # set single checkbox if chroot query arg was provided
+        if hasattr(form, chroot_to_build):
+            getattr(form, chroot_to_build).data = True
     else:
-        db.session.commit()
-        flask.flash("Build was resubmitted")
+        # set checkbox on the failed chroots
+        chroots_to_select = set(ch.name for ch in build.get_chroots_by_status([
+            helpers.StatusEnum('failed'), helpers.StatusEnum('canceled'),
+        ]))
 
-    return flask.redirect(flask.url_for("coprs_ns.copr_builds",
-                                        username=username,
-                                        coprname=coprname,
-                                        page=page))
+        for ch in build.chroots:
+            if ch.name in chroots_to_select:
+                getattr(form, ch.name).data = True
+
+    return flask.render_template("coprs/detail/add_build.html",
+                                 copr=copr, form=form)
 
 
 @coprs_ns.route("/<username>/<coprname>/delete_build/<int:build_id>/",

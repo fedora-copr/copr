@@ -37,7 +37,7 @@
                     - 
                 {% endif %}
             </td>
-            {% for build_id, state in states %}
+            {% for build_id, state, chroot in states %}
               <td class="centered build-{{ state }}">
                 {% if state %}
                   {{ state }}
@@ -45,7 +45,8 @@
                   <a href="{{ url_for('coprs_ns.copr_repeat_build',
                     username=copr.owner.name,
                     coprname=copr.name,
-                    build_id=build_id) }}">resubmit</a>
+                    build_id=build_id,
+                    chroot=chroot) }}">resubmit</a>
                 {% endif %}
               </td>
             {% endfor %}

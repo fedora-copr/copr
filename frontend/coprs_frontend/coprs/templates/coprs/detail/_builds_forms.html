@@ -76,7 +76,7 @@
   {% if build.repeatable %}
     <form action="{{ url_for('coprs_ns.copr_repeat_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post">
       <input type="hidden" value="page" value="{{ page }}">
-      <input type="submit" value="Repeat">
+      <input type="submit" value="Resubmit">
     </form>
   {% endif %}
 {% endmacro %}

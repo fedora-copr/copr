@@ -295,6 +295,23 @@ class Build(db.Model, helpers.Serializer):
     def chroot_states(self):
         return map(lambda chroot: chroot.status, self.build_chroots)
 
+    def get_chroots_by_status(self, statuses=None):
+        """
+        Get build chroots with states which present in `states` list
+        If states == None, function returns build_chroots
+        """
+        chroot_states_map = dict(zip(self.build_chroots, self.chroot_states))
+        if statuses is not None:
+            statuses = set(statuses)
+        else:
+            return self.build_chroots
+
+        return [
+            chroot for chroot, status in chroot_states_map.items()
+            if status in statuses
+        ]
+
+
     @property
     def has_pending_chroot(self):
         # FIXME bad name
