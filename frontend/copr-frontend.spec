@@ -126,6 +126,11 @@ mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdi
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
 touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 
+install -d %{buildroot}%{_var}/log/copr
+install -d %{buildroot}%{_sysconfdir}/logrotate.d
+cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+touch %{buildroot}%{_var}/log/copr/frontend.log
+
 %check
 %if %{with_test} && "%{_arch}" == "x86_64"
     pushd coprs_frontend
@@ -151,6 +156,8 @@ service httpd condrestart
 %dir %{_sharedstatedir}/copr
 %{_datadir}/copr/coprs_frontend
 
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
+
 %defattr(-, copr-fe, copr-fe, -)
 %dir %{_sharedstatedir}/copr/data
 %dir %{_sharedstatedir}/copr/data/openid_store
@@ -158,6 +165,9 @@ service httpd condrestart
 %dir %{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 
 %ghost %{_sharedstatedir}/copr/data/copr.db
+
+%defattr(644, copr-fe, copr-fe, 755)
+%ghost %{_var}/log/copr/*.log
 
 %defattr(600, copr-fe, copr-fe, 700)
 %config(noreplace)  %{_sysconfdir}/copr/copr.conf

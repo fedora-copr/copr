@@ -27,6 +27,7 @@ whooshee = Whooshee(app)
 
 import coprs.filters
 import coprs.log
+from coprs.log import setup_log
 import coprs.models
 import coprs.whoosheers
 
@@ -47,6 +48,8 @@ from coprs.views import recent_ns
 from coprs.views.recent_ns import recent_general
 
 from .context_processors import include_banner
+
+setup_log()
 
 app.register_blueprint(api_ns.api_ns)
 app.register_blueprint(admin_ns.admin_ns)
