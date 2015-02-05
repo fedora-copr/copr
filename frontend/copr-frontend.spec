@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.52
+Version:    1.53
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -180,6 +180,10 @@ service httpd condrestart
 %doc documentation/python-doc
 
 %changelog
+* Thu Feb 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.53-1
+- [frontend] enabled `gpgcheck=1` in .repo template
+- [frontend] correct url for pubkey in .repo
+
 * Fri Jan 23 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.52-1
 - add url to gpg pubkey in .repo files
 - [rhbz:#1183702]  Interrupted builds aren't re-added to the
