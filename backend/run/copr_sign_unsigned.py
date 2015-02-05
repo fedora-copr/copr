@@ -27,9 +27,10 @@ sys.path.append("/usr/share/copr/")
 from backend.helpers import BackendConfigReader
 from backend.sign import get_pubkey, sign_rpms_in_dir, create_user_keys
 from backend.exceptions import CoprSignNoKeyError
+from backend.createrepo import createrepo
 
 
-def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, opts):
+def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir,  opts):
     success = True
 
     class LogCb(object):
@@ -46,6 +47,18 @@ def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, opts):
 
     try:
         sign_rpms_in_dir(user, project, pkg_dir, opts, callback=cb)
+
+        log.info("running createrepo for {}".format(pkg_dir))
+        base_url = "/".join([opts.results_baseurl, user,
+                             project, chroot])
+        createrepo(
+            path=chroot_dir,
+            front_url=opts.frontend_base_url,
+            base_url=base_url,
+            username=user,
+            projectname=project,
+        )
+
     except Exception as err:
         success = False
         log.error(">>> Failed to check/sign rpm in dir pkg_dir")
@@ -78,7 +91,7 @@ def check_signed_rpms(project_dir, user, project, opts):
 
             log.debug(">> Stepping into package: {}".format(mb_pkg_path))
 
-            if not check_signed_rpms_in_pkg_dir(mb_pkg_path, user, project, opts):
+            if not check_signed_rpms_in_pkg_dir(mb_pkg_path, user, project, chroot, chroot_path, opts):
                 success = False
 
     return success
