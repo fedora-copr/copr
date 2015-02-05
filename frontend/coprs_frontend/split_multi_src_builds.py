@@ -5,33 +5,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
-from flask_sqlalchemy import SQLAlchemy
 
 
 """
 This script splits all builds which contains multiply src_packages
 into the more builds, each of them containing exactly one src_pkg.
-Script modifies only db records, now actual rpms are touched.
+Script modifies only db records, actual rpms are not touched.
 """
 
-
-import argparse
-import os
-import subprocess
-import datetime
-
-import flask
-from flask_script import Manager, Command, Option, Group
-
-
-
-
-import shutil
-
-import sys
-import os
 import logging
-import pwd
 
 
 logging.basicConfig(
