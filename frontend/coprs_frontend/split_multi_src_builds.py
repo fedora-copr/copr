@@ -52,6 +52,14 @@ def split_one(orig_build_id):
         )
         return other
 
+    def set_src_pkg(build_, src_pkg_):
+        db.session.rollback()  # some dirty state in SQLalchemy, no idea how to do correctly
+        build.pkgs = src_pkg_
+        db.session.add(build_)
+        db.session.commit()
+        log.info("Fixed spaces for build id={}, src_pkg={}".format(build.id, src_pkg_))
+
+
     build = BuildsLogic.get(orig_build_id).one()
     log.info("Start splitting build: {}, pkgs: {}".format(build.id, build.pkgs))
 
@@ -63,7 +71,8 @@ def split_one(orig_build_id):
         log.error("> Got build with empty pkgs: id={}".format(build.id))
         return
     if len(src_pkg_list) == 1:
-        log.debug("> Got build with one pkg in pkgs,  id={}, pkgs={}".format(build.id, build.pkgs))
+        log.info("> Got build with one pkg in pkgs,  id={}, pkgs={}".format(build.id, build.pkgs))
+        set_src_pkg(build, src_pkg_list[0])
         return
 
     new_builds = []
