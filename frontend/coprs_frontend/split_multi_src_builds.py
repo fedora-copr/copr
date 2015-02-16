@@ -57,7 +57,6 @@ def split_one(orig_build_id):
 
     src_pkg_list = []
     for mb_pkg in build.pkgs.strip().split(" "):
-        #if mb_pkg.endswith(".src.rpm"):
         src_pkg_list.append(mb_pkg)
 
     if len(src_pkg_list) == 0:
@@ -87,25 +86,20 @@ def split_one(orig_build_id):
         new_builds.append(new_build)
 
     log.info("> Finished build split for id: {}. Doing commit".format(build.id))
-
     db.session.rollback()  # some dirty state in SQLalchemy, no idea how to do correctly
     db.session.add_all(new_build_chroots)
     db.session.add_all(new_builds)
-    db.session.commit()
-    log.info("> New build objects were created ")
     for bc in build.build_chroots:
         db.session.delete(bc)
     db.session.delete(build)
     db.session.commit()
-
+    log.info("> New build objects were created ")
     log.info("> Build {} deleted ".format(build.id))
 
 
 def main():
-
     from coprs import models
-
-    query = models.Build.query.filter(models.Build.pkgs.contains(" "))
+    query = models.Build.query.filter(models.Build.pkgs.contains(" ")).limit(3)
     for build_id in [build.id for build in query.all()]:
         split_one(build_id)
 
