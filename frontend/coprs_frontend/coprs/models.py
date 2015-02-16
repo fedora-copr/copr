@@ -258,7 +258,7 @@ class Build(db.Model, helpers.Serializer):
     """
 
     id = db.Column(db.Integer, primary_key=True)
-    # list of space separated urls of packages to build
+    # single url to the source rpm, should not contain " ", "\n", "\t"
     pkgs = db.Column(db.Text)
     # built packages
     built_packages = db.Column(db.Text)

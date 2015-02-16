@@ -55,8 +55,8 @@ class TestAction(object):
 
         self.test_time = time.time()
 
-        self.pkgs = ["foo.src.rpm", "bar.src.rpm"]
-        self.pkgs_stripped = ["foo", "bar"]
+        self.pkgs = ["foo.src.rpm"]
+        self.pkgs_stripped = ["foo"]
 
         self.ext_data_for_delete_build = json.dumps({
             "pkgs": " ".join(self.pkgs),
@@ -385,20 +385,18 @@ class TestAction(object):
 
         assert_what_from_queue(self.test_q, msg_list=[
             "Action delete build",
-            "Packages to delete " + " ".join(self.pkgs_stripped),
+            "Deleting package " + " ".join(self.pkgs_stripped),
             "Copr path",
         ])
 
         def assert_epel7():
             assert_what_from_queue(self.test_q, msg_list=[
                 "Package foo dir not found in chroot epel7",
-                "Package bar dir not found in chroot epel7",
             ])
 
         def assert_fedora20():
             assert_what_from_queue(self.test_q, msg_list=[
                 "Removing build ",
-                "Package bar dir not found in chroot fedora20",
                 "Running createrepo",
             ])
 

@@ -135,6 +135,10 @@ class BuildsLogic(object):
         if not repos:
             repos = copr.repos
 
+        if " " in pkgs or "\n" in pkgs or "\t" in pkgs or pkgs.strip() != pkgs:
+            raise exceptions.MalformedArgumentException("Trying to create a build using src_pkg "
+                                                        "with bad characters. Forgot to split?")
+
         build = models.Build(
             user=user,
             pkgs=pkgs,
@@ -301,14 +305,13 @@ class BuildsMonitorLogic(object):
         for build in builds:
             chroot_results = {chroot.name: chroot.state for chroot in build.build_chroots}
 
-            for pkg_url in build.pkgs.split():
-                pkg = os.path.basename(pkg_url)
-                pkg_name = helpers.parse_package_name(pkg)
+            pkg = os.path.basename(build.pkgs)
+            pkg_name = helpers.parse_package_name(pkg)
 
-                for chroot_name, state in chroot_results.items():
-                    # set only latest version/state
-                    if build_result_by_pkg_chroot[pkg_name][chroot_name] is None:
-                        build_result_by_pkg_chroot[pkg_name][chroot_name] = (build.id, build.pkg_version, state)
+            for chroot_name, state in chroot_results.items():
+                # set only latest version/state
+                if build_result_by_pkg_chroot[pkg_name][chroot_name] is None:
+                    build_result_by_pkg_chroot[pkg_name][chroot_name] = (build.id, build.pkg_version, state)
 
         # "transpose" data to present build status per package
         packages = []

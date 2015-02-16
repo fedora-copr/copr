@@ -106,12 +106,10 @@ class Action(object):
         projectname = ext_data["projectname"]
         chroots_requested = set(ext_data["chroots"])
 
-        packages = [os.path.basename(x).replace(".src.rpm", "")
-                    for x in ext_data["pkgs"].split()]
-
+        package_name = os.path.basename(ext_data["pkgs"]).replace(".src.rpm", "")
         path = os.path.join(self.destdir, project)
 
-        self.add_event("Packages to delete {0}".format(' '.join(packages)))
+        self.add_event("Deleting package {0}".format(package_name))
         self.add_event("Copr path {0}".format(path))
 
         try:
@@ -122,24 +120,21 @@ class Action(object):
 
         chroots_to_do = chroot_list.intersection(chroots_requested)
         if not chroots_to_do:
-            self.add_event("Nothing to delete for delete action: packages {}, {}"
-                           .format(packages, ext_data))
+            self.add_event("Nothing to delete for delete action: package {}, {}"
+                           .format(package_name, ext_data))
             return
 
         for chroot in chroots_to_do:
             self.add_event("In chroot {0}".format(chroot))
             altered = False
 
-            for pkg in packages:
-                pkg_path = os.path.join(path, chroot, pkg)
-                if os.path.isdir(pkg_path):
-                    self.add_event("Removing build {0}".format(pkg_path))
-                    shutil.rmtree(pkg_path)
-                    altered = True
-                else:
-                    self.add_event(
-                        "Package {0} dir not found in chroot {1}"
-                        .format(pkg, chroot))
+            pkg_path = os.path.join(path, chroot, package_name)
+            if os.path.isdir(pkg_path):
+                self.add_event("Removing build {0}".format(pkg_path))
+                shutil.rmtree(pkg_path)
+                altered = True
+            else:
+                self.add_event("Package {0} dir not found in chroot {1}".format(package_name, chroot))
 
             if altered:
                 self.add_event("Running createrepo")

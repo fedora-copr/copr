@@ -108,9 +108,7 @@
             <dt> Source: </dt>
                 <dd>
                     {% if build.pkgs is not none %}
-                        {% for pkg in build.pkgs.split() %}
-                            <dd> <a href="{{ pkg }}">{{ pkg }}</a></dd>
-                        {% endfor %}
+                        <dd> <a href="{{ pkg }}">{{ build.pkgs }}</a></dd>
                     {% endif %}
                 </dd>
         </div>

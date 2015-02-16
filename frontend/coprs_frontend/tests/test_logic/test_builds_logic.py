@@ -6,7 +6,7 @@ import time
 from sqlalchemy.orm.exc import NoResultFound
 from coprs import helpers
 
-from coprs.exceptions import ActionInProgressException, InsufficientRightsException
+from coprs.exceptions import ActionInProgressException, InsufficientRightsException, MalformedArgumentException
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.builds_logic import BuildsMonitorLogic
@@ -21,7 +21,7 @@ class TestBuildsLogic(CoprsTestCase):
 
         self.mc2.is_active = False
         self.db.session.commit()
-        b = BuildsLogic.add(self.u2, "blah blah", self.c2)
+        b = BuildsLogic.add(self.u2, "blah", self.c2)
         self.db.session.commit()
         assert b.chroots[0].name == self.mc3.name
 
@@ -29,10 +29,25 @@ class TestBuildsLogic(CoprsTestCase):
                                                        f_actions, f_db):
 
         with pytest.raises(ActionInProgressException):
-            b = BuildsLogic.add(self.u1, "blah blah", self.c1)
+            b = BuildsLogic.add(self.u1, "blah", self.c1)
         self.db.session.rollback()
 
     def test_add_assigns_params_correctly(self, f_users, f_coprs,
+                                          f_mock_chroots, f_db):
+
+        params = dict(
+            user=self.u1,
+            pkgs="blah",
+            copr=self.c1,
+            repos="repos",
+            memory_reqs=3000,
+            timeout=5000)
+
+        b = BuildsLogic.add(**params)
+        for k, v in params.items():
+            assert getattr(b, k) == v
+
+    def test_add_error_on_multiply_src(self, f_users, f_coprs,
                                           f_mock_chroots, f_db):
 
         params = dict(
@@ -43,9 +58,8 @@ class TestBuildsLogic(CoprsTestCase):
             memory_reqs=3000,
             timeout=5000)
 
-        b = BuildsLogic.add(**params)
-        for k, v in params.items():
-            assert getattr(b, k) == v
+        with pytest.raises(MalformedArgumentException):
+            BuildsLogic.add(**params)
 
     def test_monitor_logic(self, f_users, f_coprs, f_mock_chroots_many, f_build_many_chroots, f_db):
         copr = self.c1
