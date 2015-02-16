@@ -97,4 +97,5 @@
     - fedora-20-i386.cfg
     - epel-7-x86_64.cfg
 
-  - lineinfile: dest=/root/.bashrc line="ulimit -n 10240" insertafter=EOF
+  - lineinfile: dest=/etc/security/limits.conf line="* soft nofile 10240" insertafter=EOF
+  - lineinfile: dest=/etc/security/limits.conf line="* hard nofile 10240" insertafter=EOF
