@@ -115,14 +115,26 @@ def check_pubkey(pubkey_path, user, project, opts):
 
 
 def main():
-    shutil.rmtree("/tmp/users_failed.txt", ignore_errors=True)
-    shutil.rmtree("/tmp/users_done.txt", ignore_errors=True)
+    # shutil.rmtree("/tmp/users_failed.txt", ignore_errors=True)
+    # shutil.rmtree("/tmp/users_done.txt", ignore_errors=True)
+    users_done_old = set()
+    try:
+        with open("/tmp/users_done.txt") as handle:
+            for line in handle:
+                users_done_old.add(line.strip())
+    except Exception as err:
+        log.exception(err)
+        log.debug("error during read old users done")
 
     opts = BackendConfigReader().read()
     log.info("Starting pubkey fill, destdir: {}".format(opts.destdir))
 
     log.debug("list dir: {}".format(os.listdir(opts.destdir)))
     for user_name in os.listdir(opts.destdir):
+        if user_name in users_done_old:
+            log.info("skipping user: {}".format(user_name))
+            continue
+
         failed = False
         log.info("Started processing user dir: {}".format(user_name))
         user_dir = os.path.join(opts.destdir, user_name)

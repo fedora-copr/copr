@@ -1,13 +1,18 @@
+#!/usr/bin/python
+
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
 import os
+import sys
 import logging
 from subprocess import Popen, PIPE
 
 from copr.client.exceptions import CoprException, CoprRequestException
+
+sys.path.append("/usr/share/copr/")
 
 from backend.helpers import BackendConfigReader, get_auto_createrepo_status
 from backend.createrepo import createrepo_unsafe
@@ -16,7 +21,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 DEF_DAYS = 14
-DEF_PRUNE_SCRIPT = "/usr/share/copr/copr_prune_old_builds.sh"
+DEF_PRUNE_SCRIPT = "/usr/bin/copr_prune_old_builds.sh"
 
 
 def list_subdir(path):
@@ -39,9 +44,8 @@ def prune_project(opts, path, username, projectname):
 
     # run prune project sh
     days = getattr(opts, "prune_days", DEF_DAYS)
-    prune_script = getattr(opts, "prune_script", DEF_PRUNE_SCRIPT)
 
-    cmd = map(str, [prune_script, path, days])
+    cmd = map(str, [DEF_PRUNE_SCRIPT, path, days])
 
     handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
     stdout, stderr = handle.communicate()
