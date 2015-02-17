@@ -195,8 +195,8 @@ class MockRemote(object):
 
             get_pubkey(user, project, pubkey_path)
             self.callback.log(
-                "Added pubkey for user {} project {} into the directory: {}".
-                format(user, project, self.chroot_dir))
+                "Added pubkey for user {} project {} into: {}".
+                format(user, project, pubkey_path))
 
         except Exception as e:
             self.callback.error(
