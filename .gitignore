@@ -15,3 +15,5 @@ _report/
 _tmp/
 
 backend/docs/build
+
+frontend/coprs_frontend/copr_frontend.log
