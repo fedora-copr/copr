@@ -3,6 +3,7 @@ import pipes
 import socket
 from subprocess import Popen, PIPE
 import time
+from urlparse import urlparse
 
 from ansible.runner import Runner
 
@@ -236,15 +237,37 @@ class Builder(object):
             except ValueError:
                 pass
 
+    def pre_process_repo_url(self, repo_url):
+        """
+            Expands variables and sanitize repo url to be used for mock config
+            maybe more sophisticated approach, see https://bugzilla.redhat.com/attachment.cgi?id=971075&action=diff
+        """
+        try:
+            parsed_url = urlparse(repo_url)
+            if parsed_url.scheme == "copr":
+                user = parsed_url.netloc
+                prj = parsed_url.path.split("/")[1]
+                repo_url = "{}/{}/{}/{}".format(
+                    self.opts.results_baseurl, user, prj, self.chroot)
+
+            else:
+                if "rawhide" in self.chroot:
+                    repo_url = repo_url.replace("$releasever", "rawhide")
+
+            return pipes.quote(repo_url)
+        except Exception as err:
+            self.callback.log("Failed not pre-process repo url: {}".format(err))
+            return None
+
     def gen_mockchain_command(self, dest):
         buildcmd = "{0} -r {1} -l {2} ".format(
             mockchain, pipes.quote(self.chroot),
             pipes.quote(self.remote_build_dir))
-        for r in self.repos:
-            if "rawhide" in self.chroot:
-                r = r.replace("$releasever", "rawhide")
+        for repo in self.repos:
+            repo = self.pre_process_repo_url(repo)
+            if repo is not None:
+                buildcmd += "-a {0} ".format(repo)
 
-            buildcmd += "-a {0} ".format(pipes.quote(r))
         for k, v in self.macros.items():
             mock_opt = "--define={0} {1}".format(k, v)
             buildcmd += "-m {0} ".format(pipes.quote(mock_opt))

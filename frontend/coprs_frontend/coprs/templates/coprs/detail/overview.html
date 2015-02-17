@@ -78,7 +78,7 @@
     <h2>Repository List</h2>
     <ul class=repos-list>
       {% for repo in copr.repos_list %}
-        <li><a href="{{ repo }}">{{ repo }}</a></li>
+        <li><a href="{{ repo|repo_url }}">{{ repo }}</a></li>
       {% endfor %}
     </ul>
   {% endif %}
