@@ -240,19 +240,20 @@ class Builder(object):
     def pre_process_repo_url(self, repo_url):
         """
             Expands variables and sanitize repo url to be used for mock config
-            maybe more sophisticated approach, see https://bugzilla.redhat.com/attachment.cgi?id=971075&action=diff
         """
         try:
             parsed_url = urlparse(repo_url)
             if parsed_url.scheme == "copr":
                 user = parsed_url.netloc
                 prj = parsed_url.path.split("/")[1]
-                repo_url = "{}/{}/{}/{}".format(
-                    self.opts.results_baseurl, user, prj, self.chroot)
+                repo_url = "/".join([self.opts.results_baseurl, user, prj, self.chroot])
 
             else:
                 if "rawhide" in self.chroot:
                     repo_url = repo_url.replace("$releasever", "rawhide")
+                # custom expand variables
+                repo_url = repo_url.replace("$chroot", self.chroot)
+                repo_url = repo_url.replace("$distname", self.chroot.split("-")[0])
 
             return pipes.quote(repo_url)
         except Exception as err:
