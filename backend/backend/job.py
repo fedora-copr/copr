@@ -71,6 +71,15 @@ class BuildJob(object):
 
         self.built_packages = ""
 
+    @property
+    def pkg_name(self):
+        mb_name = self.pkg.split("/")[-1]
+        if mb_name:
+            mb_name = mb_name.replace(".src.rpm", "")
+            return mb_name
+        else:
+            return self.pkg
+
     def update(self, data_dict):
         """
 

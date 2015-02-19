@@ -170,18 +170,18 @@ class Worker(multiprocessing.Process):
         self.mark_started(job)
 
         template = "build start: user:{user} copr:{copr}" \
-            " build:{build} ip:{ip}  pid:{pid}"
+            "pkg: {pkg} build:{build} ip:{ip}  pid:{pid}"
 
         content = dict(user=job.submitter, copr=job.project_name,
-                       owner=job.project_owner,
+                       owner=job.project_owner, pkg=job.pkg_name,
                        build=job.build_id, ip=self.vm_ip, pid=self.pid)
         self.event("build.start", template, content)
 
         template = "chroot start: chroot:{chroot} user:{user}" \
-            "copr:{copr} build:{build} ip:{ip}  pid:{pid}"
+            "copr:{copr} pkg: {pkg} build:{build} ip:{ip}  pid:{pid}"
 
         content = dict(chroot=job.chroot, user=job.submitter,
-                       owner=job.project_owner,
+                       owner=job.project_owner, pkg=job.pkg_name,
                        copr=job.project_name, build=job.build_id,
                        ip=self.vm_ip, pid=self.pid)
 
@@ -196,10 +196,11 @@ class Worker(multiprocessing.Process):
         self.return_results(job)
         self.callback.log("worker finished build: {0}".format(self.vm_ip))
         template = "build end: user:{user} copr:{copr} build:{build}" \
-            " ip:{ip}  pid:{pid} status:{status}"
+            "  pkg: {pkg}  version: {version} ip:{ip}  pid:{pid} status:{status}"
 
         content = dict(user=job.submitter, copr=job.project_name,
                        owner=job.project_owner,
+                       pkg=job.pkg_name, version=job.pkg_version,
                        build=job.build_id, ip=self.vm_ip, pid=self.pid,
                        status=job.status, chroot=job.chroot)
         self.event("build.end", template, content)
