@@ -16,6 +16,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
+from coprs.logic.stat_logic import CounterStatLogic
 
 from coprs.views.misc import login_required, page_not_found
 
@@ -183,10 +184,13 @@ def copr_detail(username, coprname):
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))
-
+    from collections import  defaultdict
+    repo_dl_stat = CounterStatLogic.get_copr_repo_dl_stat(copr)
     return flask.render_template("coprs/detail/overview.html",
                                  copr=copr,
-                                 form=form)
+                                 form=form,
+                                 repo_dl_stat=repo_dl_stat
+                                 )
 
 
 @coprs_ns.route("/<username>/<coprname>/permissions/")

@@ -22,8 +22,10 @@
     <tr>
       <th class="leftmost">Release</th>
       <th>Architecture</th>
-      <th class="rightmost">Yum Repo</th>
+
+      <th class="rightmost">Yum Repo <small>[Downloads]</small></th>
     </tr>
+    <!-- TODO: remove complex logic from html, group by os-release in the python view -->
     {% for mock_chroot in copr.active_chroots %}
       {% if loop.index < copr.active_chroots|length %}
         {% if mock_chroot.os_release != copr.active_chroots[loop.index].os_release or
@@ -67,8 +69,10 @@
               )|fix_url_https_frontend}}">
             {{ copr.owner.name }}-{{ copr.name }}-{{mock_chroot.os_release+"-"+mock_chroot.os_version}}.repo
             </a>
+        &nbsp;&nbsp;&nbsp;<small>[ {{ repo_dl_stat[mock_chroot.name_release] }} ]</small>
         {% endif %}
       </td>
+
       </tr>
     {% else %}
       <tr colspan="2"><td>No active releases</td></tr>

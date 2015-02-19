@@ -423,6 +423,13 @@ class MockChroot(db.Model, helpers.Serializer):
         return "{0}-{1}-{2}".format(self.os_release, self.os_version, self.arch)
 
     @property
+    def name_release(self):
+        """
+        Textual representation of name of this or release
+        """
+        return "{}-{}".format(self.os_release, self.os_version)
+
+    @property
     def os(self):
         """
         Textual representation of the operating system name
@@ -578,3 +585,15 @@ class Krb5Login(db.Model, helpers.Serializer):
     primary = db.Column(db.String(80), nullable=False, primary_key=True)
 
     user = db.relationship("User", backref=db.backref("krb5_logins"))
+
+
+class CounterStat(db.Model, helpers.Serializer):
+    """
+    Generic store for simple statistics.
+    """
+
+    name = db.Column(db.String(127), primary_key=True)
+    counter_type = db.Column(db.String(30))
+
+    counter = db.Column(db.Integer, default=0, server_default="0")
+

@@ -46,6 +46,7 @@ from coprs.views import status_ns
 from coprs.views.status_ns import status_general
 from coprs.views import recent_ns
 from coprs.views.recent_ns import recent_general
+from coprs.views.stats_ns import stats_receiver
 
 from .context_processors import include_banner
 
@@ -58,5 +59,6 @@ app.register_blueprint(misc.misc)
 app.register_blueprint(backend_ns.backend_ns)
 app.register_blueprint(status_ns.status_ns)
 app.register_blueprint(recent_ns.recent_ns)
+app.register_blueprint(stats_receiver.stats_rcv_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)

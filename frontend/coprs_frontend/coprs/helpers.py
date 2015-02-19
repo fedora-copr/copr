@@ -21,6 +21,13 @@ def generate_api_token(size=30):
     return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
 
 
+REPO_DL_STAT_FMT = "{user}@{copr}:{name_release}"
+
+
+class CounterStatType(object):
+    REPO_DL = "repo_dl"
+
+
 class EnumType(type):
 
     def __call__(self, attr):

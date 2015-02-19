@@ -249,7 +249,23 @@ def backend_authenticated(f):
     def decorated_function(*args, **kwargs):
         auth = flask.request.authorization
         if not auth or auth.password != app.config["BACKEND_PASSWORD"]:
-            return "You have to provide the correct password", 401
+            return "You have to provide the correct password\n", 401
+
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def intranet_required(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        # app.logger.debug("MY: {}".format(flask.request.remote_addr))
+        # Use,
+        # >>> import ipaddress
+        # >>> ipaddress.ip_address('192.168.0.1') in ipaddress.ip_network('192.168.0.0/24')
+        if not app.config["DEBUG"]:
+            if flask.request.remote_addr not in app.config["INTRANET_IPS"]:
+                return ("Stats can be update only from intranet hosts, "
+                        "not {}, check config\n".format(flask.request.remote_addr)), 403
 
         return f(*args, **kwargs)
     return decorated_function
