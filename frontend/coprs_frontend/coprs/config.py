@@ -42,8 +42,9 @@ class Config(object):
 
     # primary log file
     LOG_FILENAME = "/var/log/copr/frontend.log"
-    INTRANET_IPS = ["127.0.0.1"]
 
+    INTRANET_IPS = ["127.0.0.1"]
+    DEBUG = True
 
 class ProductionConfig(Config):
     DEBUG = False

@@ -45,4 +45,4 @@ def setup_log():
     handler.setLevel(log_level)
     app.logger.addHandler(handler)
 
-    app.logger.info("logging configuration finished")
+    app.logger.info("logging configuration finished, config: {}".format(app.config))

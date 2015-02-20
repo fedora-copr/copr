@@ -23,7 +23,7 @@ def increment(counter_type, name):
     return "", 201
 
 @stats_rcv_ns.route("/from_logstash", methods=['POST'])
-#@intranet_required
+@intranet_required  # ?
 def logstash_handler():
     # import ipdb; ipdb.set_trace()
     json = flask.request.json

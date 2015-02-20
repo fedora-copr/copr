@@ -18,66 +18,42 @@
   </div>
   <div class="dnf-enable-field"> # <input onClick="this.select();"type="text" value="dnf copr enable {{copr.owner.name}}/{{    copr.name}}" readonly="readonly">
     More info about <a target="_blank" href="https://fedorahosted.org/copr/wiki/HowToEnableRepo">how to enable a repo on the wiki page.</a></div>
+
   <table class="releases">
     <tr>
       <th class="leftmost">Release</th>
       <th>Architecture</th>
-
-      <th class="rightmost">Yum Repo <small>[Downloads]</small></th>
+      <th>#Downloads</th>
+      <th class="rightmost">Yum Repo </th>
     </tr>
-    <!-- TODO: remove complex logic from html, group by os-release in the python view -->
-    {% for mock_chroot in copr.active_chroots %}
-      {% if loop.index < copr.active_chroots|length %}
-        {% if mock_chroot.os_release != copr.active_chroots[loop.index].os_release or
-              mock_chroot.os_version != copr.active_chroots[loop.index].os_version %}
-          {# next release is different => release-end #}
-          <tr class="release-end">
-        {% else %}
-          <tr>
-        {% endif %}
-      {% else %}{# last line => release-end for sure #}
-        <tr class="release-end">
-      {% endif %}
-        {% if mock_chroot.os_release != copr.active_chroots[loop.index0 - 1].os_release or
-	      mock_chroot.os_version != copr.active_chroots[loop.index0 - 1].os_version or
-	      loop.index0 == 0 %}
-          {# previous os_release-os_version were different or this is the first one #}
-          <td>{{ mock_chroot.os_release|capitalize }} {{ mock_chroot.os_version }}</td>
-        {% else %}
-          <td></td>
-        {% endif %}
-      <td>
-        {{ mock_chroot.arch }}
-        {% if copr.buildroot_pkgs(mock_chroot): %}
-            <a id="modified-chroot-{{mock_chroot.name}}">[modified]</a>
-        {% endif %}
+    {% for repo in repos_info_list %}
+    <tr class="release-end">
+      <td class="leftmost">
+        {{ repo.name_release_human|capitalize }}
       </td>
       <td>
-        {% if mock_chroot.os_release != copr.active_chroots[loop.index0 - 1].os_release or
-        mock_chroot.os_version != copr.active_chroots[loop.index0 - 1].os_version or
-        loop.index0 == 0 %}
-          {# previous os_release-os_version were different or this is the first one #}
-
-            <a href="{{
-                url_for(
-                'coprs_ns.generate_repo_file',
-                username=copr.owner.name,
-                coprname=copr.name,
-                chroot=mock_chroot.os_release+"-"+mock_chroot.os_version,
-                repofile=copr.owner.name+'-'+copr.name+'-'+mock_chroot.os_release+"-"+mock_chroot.os_version+'.repo',
-                _external=True
-              )|fix_url_https_frontend}}">
-            {{ copr.owner.name }}-{{ copr.name }}-{{mock_chroot.os_release+"-"+mock_chroot.os_version}}.repo
-            </a>
-        &nbsp;&nbsp;&nbsp;<small>[ {{ repo_dl_stat[mock_chroot.name_release] }} ]</small>
-        {% endif %}
+        {{ repo.arch_list|join(", ") }}
       </td>
-
-      </tr>
-    {% else %}
-      <tr colspan="2"><td>No active releases</td></tr>
+      <td>
+        <center> {{ repo.dl_stat }} </center>
+      </td>
+      <td class="rightmost">
+          <a href="{{
+              url_for(
+              'coprs_ns.generate_repo_file',
+              username=copr.owner.name,
+              coprname=copr.name,
+              name_release=repo.name_release,
+              repofile=repo.repo_file,
+              _external=True
+            )|fix_url_https_frontend}}">
+            {{ repo.repo_file }}
+          </a>
+      </td>
+    </tr>
     {% endfor %}
   </table>
+
   {% if copr.repos_list %}
     <h2>Repository List</h2>
     <ul class=repos-list>
@@ -86,6 +62,7 @@
       {% endfor %}
     </ul>
   {% endif %}
+
 
   {% if g.user and g.user.can_edit(copr) and copr and copr.owner and not copr.auto_createrepo %}
   <dt>
