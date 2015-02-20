@@ -2,6 +2,7 @@ import base64
 import datetime
 import functools
 
+from netaddr import IPAddress, IPNetwork
 import re
 import flask
 
@@ -258,14 +259,11 @@ def backend_authenticated(f):
 def intranet_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        # app.logger.debug("MY: {}".format(flask.request.remote_addr))
-        # Use,
-        # >>> import ipaddress
-        # >>> ipaddress.ip_address('192.168.0.1') in ipaddress.ip_network('192.168.0.0/24')
-        if not app.config["DEBUG"]:
-            if flask.request.remote_addr not in app.config["INTRANET_IPS"]:
-                return ("Stats can be update only from intranet hosts, "
-                        "not {}, check config\n".format(flask.request.remote_addr)), 403
+        ip_addr = IPAddress(flask.request.remote_addr)
+        if not any(ip_addr in IPNetwork(addr_or_net)
+                   for addr_or_net in app.config.get(["INTRANET_IPS"], "127.0.0.1")):
+            return ("Stats can be update only from intranet hosts, "
+                    "not {}, check config\n".format(flask.request.remote_addr)), 403
 
         return f(*args, **kwargs)
     return decorated_function

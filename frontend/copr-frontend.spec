@@ -51,6 +51,7 @@ Requires:   python-pylibravatar
 Requires:   python-whoosh >= 2.5.3
 Requires:   pytz
 Requires:   python-six
+Requires:   python-netaddr
 # for tests:
 Requires:   pytest
 Requires:   python-flexmock
@@ -70,6 +71,7 @@ BuildRequires: python-flask-openid
 BuildRequires: python-flask-whooshee
 BuildRequires: python-pylibravatar
 BuildRequires: python-flask-wtf
+BuildRequires: python-netaddr
 BuildRequires: pytest
 BuildRequires: yum
 BuildRequires: python-flexmock
