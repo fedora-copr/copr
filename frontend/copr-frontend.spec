@@ -57,6 +57,7 @@ Requires:   python-flexmock
 Requires:   python-mock
 Requires:   python-decorator
 Requires:   yum
+Requires:   logstash
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -128,7 +129,9 @@ touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 
 install -d %{buildroot}%{_var}/log/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d
+install -d %{buildroot}%{_sysconfdir}/logstash.d
 cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+cp -a conf/logstash.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_frontend.conf
 touch %{buildroot}%{_var}/log/copr/frontend.log
 
 %check
@@ -147,6 +150,7 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 
 %post
 service httpd condrestart
+service logstash condrestart
 
 %files
 %license LICENSE
@@ -157,6 +161,7 @@ service httpd condrestart
 %{_datadir}/copr/coprs_frontend
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
+%config(noreplace) %{_sysconfdir}/logstash.d/copr_frontend.conf
 
 %defattr(-, copr-fe, copr-fe, -)
 %dir %{_sharedstatedir}/copr/data
