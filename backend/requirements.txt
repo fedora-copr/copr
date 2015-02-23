@@ -1,7 +1,6 @@
 setproctitle
 PyYAML
 # ansible
-setproctitle
 redis
 retask
 python-daemon
