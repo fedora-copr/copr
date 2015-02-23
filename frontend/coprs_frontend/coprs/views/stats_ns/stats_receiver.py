@@ -22,25 +22,28 @@ def increment(counter_type, name):
     db.session.commit()
     return "", 201
 
-@stats_rcv_ns.route("/from_logstash", methods=['POST'])
-@intranet_required  # ?
-def logstash_handler():
-    # import ipdb; ipdb.set_trace()
-    json = flask.request.json
-    if "request" in json:
-        #             0 1     2   3    4    5
-        # "request": "/coprs/bob/foox/repo/epel-5/bob-foox-epel-5.repo",
-        req_split = json["request"].split("/")
-        kwargs = dict(
-            user=req_split[2],
-            copr=req_split[3],
-            name_release=req_split[5]
-        )
-        name = REPO_DL_STAT_FMT.format(**kwargs)
-        app.logger.debug("kwargs: {}; name: {}".format(kwargs, name))
 
-        CounterStatLogic.incr(name=name,
-                              counter_type=CounterStatType.REPO_DL)
-        db.session.commit()
+@stats_rcv_ns.route("/from_logstash", methods=['POST'])
+@intranet_required
+def logstash_handler():
+    try:
+        json = flask.request.json
+        if "request" in json:
+            #             0 1     2   3    4    5
+            # "request": "/coprs/bob/foox/repo/epel-5/bob-foox-epel-5.repo",
+            req_split = json["request"].split("/")
+            kwargs = dict(
+                user=req_split[2],
+                copr=req_split[3],
+                name_release=req_split[5]
+            )
+            name = REPO_DL_STAT_FMT.format(**kwargs)
+            app.logger.debug("kwargs: {}; name: {}".format(kwargs, name))
+
+            CounterStatLogic.incr(name=name,
+                                  counter_type=CounterStatType.REPO_DL)
+            db.session.commit()
+    except Exception as err:
+        app.logger.exception(err)
 
     return "", 201
