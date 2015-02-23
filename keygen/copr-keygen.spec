@@ -150,6 +150,9 @@ getent passwd copr-signer >/dev/null || \
 
 
 %post
+semanage fcontext -a -t httpd_log_t '/var/log/copr-keygen(/.*)?'
+restorecon -rv /var/log/copr-keygen/
+
 service httpd condrestart
 
 %postun
