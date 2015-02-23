@@ -10,3 +10,4 @@ IPy
 # documentation
 sphinx
 sphinx-argparse
+netaddr
