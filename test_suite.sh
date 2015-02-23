@@ -8,7 +8,7 @@ source _venv/bin/activate
 
 
 # sphinx flask flask-script SQLAlchemy==0.8.7 flask-whooshee Flask-OpenID Flask-SQLAlchemy==1.0  Flask-WTF blinker pytz markdown pyLibravatar pydns  flexmock whoosh decorator
-pip install  pytest mock pytest-cov  ipdb redis bunch PyYAML
+pip install  pytest mock pytest-cov  ipdb redis bunch PyYAML setproctitle ansible
 
 
 cp -rv /usr/lib/python2.7/site-packages/rpmUtils _venv/lib/python2.7/site-packages/
