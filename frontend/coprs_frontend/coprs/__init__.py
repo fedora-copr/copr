@@ -3,9 +3,9 @@ from __future__ import with_statement
 import os
 import flask
 
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.openid import OpenID
-from flask.ext.whooshee import Whooshee
+from flask_sqlalchemy import SQLAlchemy
+from flask_openid import OpenID
+from flask_whooshee import Whooshee
 
 app = flask.Flask(__name__)
 
@@ -25,11 +25,15 @@ oid = OpenID(app, app.config["OPENID_STORE"], safe_roots=[])
 db = SQLAlchemy(app)
 whooshee = Whooshee(app)
 
+
 import coprs.filters
 import coprs.log
 from coprs.log import setup_log
 import coprs.models
 import coprs.whoosheers
+
+from coprs.helpers import RedisConnectionProvider
+rcp = RedisConnectionProvider(config=app.config)
 
 from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general

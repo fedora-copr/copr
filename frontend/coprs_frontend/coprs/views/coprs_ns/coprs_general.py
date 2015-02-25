@@ -12,18 +12,20 @@ from itertools import groupby
 
 from coprs import app
 from coprs import db
+from coprs import rcp
 from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
 from coprs.logic.stat_logic import CounterStatLogic
+from coprs.rmodels import TimedStatEvents
 
 from coprs.views.misc import login_required, page_not_found
 
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic
-from coprs.helpers import parse_package_name, generate_repo_url
+from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT
 
 
 @coprs_ns.route("/", defaults={"page": 1})
@@ -189,16 +191,31 @@ def copr_detail(username, coprname):
 
     repos_info = {}
     for chroot in copr.active_chroots:
+        chroot_rpms_dl_stat_key = CHROOT_REPO_MD_DL_STAT_FMT.format(
+            copr_user=copr.owner.name,
+            copr_project_name=copr.name,
+            copr_chroot=chroot.name,
+        )
+        chroot_rpms_dl_stat = TimedStatEvents.get_count(
+            rconnect=rcp.get_connection(),
+            name=chroot_rpms_dl_stat_key,
+        )
+
         if chroot.name_release not in repos_info:
             repos_info[chroot.name_release] = {
                 "name_release": chroot.name_release,
                 "name_release_human": chroot.name_release_human,
                 "arch_list": [chroot.arch],
                 "repo_file": "{}-{}-{}.repo".format(copr.owner.name, copr.name, chroot.name_release),
-                "dl_stat": repo_dl_stat[chroot.name_release]
+                "dl_stat": repo_dl_stat[chroot.name_release],
+                "rpm_dl_stat": {
+                    chroot.arch: chroot_rpms_dl_stat
+                }
             }
         else:
             repos_info[chroot.name_release]["arch_list"].append(chroot.arch)
+            repos_info[chroot.name_release]["rpm_dl_stat"][chroot.arch] = chroot_rpms_dl_stat
+
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
 
     return flask.render_template("coprs/detail/overview.html",

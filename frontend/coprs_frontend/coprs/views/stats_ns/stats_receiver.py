@@ -1,12 +1,14 @@
 # coding: utf-8
 
 import flask
+from coprs import rcp
 from coprs import app
 from coprs import db
 from coprs.helpers import REPO_DL_STAT_FMT, CounterStatType
 from ..misc import intranet_required
 from . import stats_rcv_ns
-from ...logic.stat_logic import CounterStatLogic
+from ...logic.stat_logic import CounterStatLogic, handle_logstash
+
 
 @stats_rcv_ns.route("/")
 def ping():
@@ -27,22 +29,7 @@ def increment(counter_type, name):
 @intranet_required
 def logstash_handler():
     try:
-        json = flask.request.json
-        if "request" in json:
-            #             0 1     2   3    4    5
-            # "request": "/coprs/bob/foox/repo/epel-5/bob-foox-epel-5.repo",
-            req_split = json["request"].split("/")
-            kwargs = dict(
-                user=req_split[2],
-                copr=req_split[3],
-                name_release=req_split[5]
-            )
-            name = REPO_DL_STAT_FMT.format(**kwargs)
-            app.logger.debug("kwargs: {}; name: {}".format(kwargs, name))
-
-            CounterStatLogic.incr(name=name,
-                                  counter_type=CounterStatType.REPO_DL)
-            db.session.commit()
+        handle_logstash(rcp.get_connection(), flask.request.json)
     except Exception as err:
         app.logger.exception(err)
 

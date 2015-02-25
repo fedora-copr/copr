@@ -4,6 +4,10 @@ import string
 import urlparse
 import flask
 
+from dateutil import parser as dt_parser
+
+from redis import StrictRedis
+
 from coprs import constants
 from coprs import app
 
@@ -21,7 +25,10 @@ def generate_api_token(size=30):
     return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
 
 
-REPO_DL_STAT_FMT = "{user}@{copr}:{name_release}"
+REPO_DL_STAT_FMT = "repo_dl_stat::{copr_user}@{copr_project_name}:{copr_name_release}"
+CHROOT_REPO_MD_DL_STAT_FMT = "chroot_repo_metadata_dl_stat:hset::{copr_user}@{copr_project_name}:{copr_chroot}"
+CHROOT_RPMS_DL_STAT_FMT = "chroot_rpms_dl_stat:hset::{copr_user}@{copr_project_name}:{copr_chroot}"
+PROJECT_RPMS_DL_STAT_FMT = "project_rpms_dl_stat:hset::{copr_user}@{copr_project_name}"
 
 
 class CounterStatType(object):
@@ -268,3 +275,37 @@ class Serializer(object):
     @property
     def serializable_attributes(self):
         return map(lambda x: x.name, self.__table__.columns)
+
+
+class RedisConnectionProvider(object):
+    def __init__(self, config):
+        self.host = config.get("redis_host", "127.0.0.1")
+        self.port = int(config.get("redis_port", "6379"))
+
+    def get_connection(self):
+        return StrictRedis(host=self.host, port=self.port)
+
+
+def get_redis_connection():
+    """
+    Creates connection to redis, now we use default instance at localhost, no config needed
+    """
+    return StrictRedis()
+
+
+def dt_to_unixtime(dt):
+    """
+    Converts datetime to unixtime
+    :param dt: DateTime instance
+    :rtype: float
+    """
+    return float(dt.strftime('%s'))
+
+
+def string_dt_to_unixtime(dt_string):
+    """
+    Converts datetime to unixtime from string
+    :param dt_string: datetime string
+    :rtype: str
+    """
+    return dt_to_unixtime(dt_parser.parse(dt_string))

@@ -72,6 +72,7 @@ Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
 Requires:   python-paramiko
+Requires:   logstash
 
 Requires(post): systemd
 Requires(preun): systemd
@@ -145,6 +146,13 @@ touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 install -m 0644 copr-backend.service %{buildroot}/%{_unitdir}/
 install -m 0644 conf/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
 
+
+install -d %{buildroot}%{_sysconfdir}/logstash.d
+cp -a conf/logstash/copr_backend.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_backend.conf
+install -d %{buildroot}%{_datadir}/logstash/patterns/
+cp -a conf/logstash/lighttpd.pattern %{buildroot}%{_datadir}/logstash/patterns/lighttpd.pattern
+
+
 #doc
 cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
@@ -163,6 +171,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 
 %post
 %systemd_post copr-backend.service
+%systemd_post logstash.service
 
 %preun
 %systemd_preun copr-backend.service
@@ -197,6 +206,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %{_bindir}/*
 
 %config(noreplace) %{_sysconfdir}/cron.daily/copr-backend
+%config(noreplace) %{_sysconfdir}/logstash.d/copr_backend.conf
+%{_datadir}/logstash/patterns/lighttpd.pattern
+
 
 %config(noreplace) %attr(0600, root, root)  %{_sysconfdir}/sudoers.d/copr
 

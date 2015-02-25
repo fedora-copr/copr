@@ -35,7 +35,15 @@
         {{ repo.arch_list|join(", ") }}
       </td>
       <td>
-        <center> {{ repo.dl_stat }} </center>
+        <center> {{ repo.dl_stat }} </center> <br />
+        <!--  --->
+        # of repo dl last week<br />
+        {% for arch in repo.arch_list %}
+
+          {{arch}}: {{ repo.rpm_dl_stat[arch] }} <br />
+
+        {% endfor %}
+        <!-- -->
       </td>
       <td class="rightmost">
           <a href="{{

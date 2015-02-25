@@ -261,7 +261,7 @@ def intranet_required(f):
     def decorated_function(*args, **kwargs):
         ip_addr = IPAddress(flask.request.remote_addr)
         if not any(ip_addr in IPNetwork(addr_or_net)
-                   for addr_or_net in app.config.get(["INTRANET_IPS"], "127.0.0.1")):
+                   for addr_or_net in app.config.get("INTRANET_IPS", ["127.0.0.1",])):
             return ("Stats can be update only from intranet hosts, "
                     "not {}, check config\n".format(flask.request.remote_addr)), 403
 

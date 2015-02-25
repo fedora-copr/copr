@@ -59,6 +59,9 @@ Requires:   python-mock
 Requires:   python-decorator
 Requires:   yum
 Requires:   logstash
+Requires:   redis
+Requires:   python-redis
+Requires:   python-dateutil
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -72,6 +75,8 @@ BuildRequires: python-flask-whooshee
 BuildRequires: python-pylibravatar
 BuildRequires: python-flask-wtf
 BuildRequires: python-netaddr
+BuildRequires: python-redis
+BuildRequires: python-dateutil
 BuildRequires: pytest
 BuildRequires: yum
 BuildRequires: python-flexmock
