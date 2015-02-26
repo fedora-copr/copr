@@ -3,24 +3,21 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 import fcntl
-
 from operator import methodcaller
 import optparse
 import ConfigParser
 import os
 import sys
-import time
+import datetime
+import traceback
 
 from bunch import Bunch
-import datetime
+from redis import StrictRedis
 
 from copr.client import CoprClient
-
 from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
     CONSECUTIVE_FAILURE_REDIS_KEY
 from backend.exceptions import CoprBackendError
-
-from redis import StrictRedis
 
 try:
     import fedmsg
@@ -124,7 +121,7 @@ class BackendConfigReader(object):
             cp, "backend", "build_groups", 1, mode="int")
 
         opts.build_groups = []
-        for group_id in range(int(opts.build_groups_count)):
+        for group_id in range(opts.build_groups_count):
             archs = _get_conf(cp, "backend",
                               "group{0}_archs".format(group_id),
                               default="i386,x86_64").split(",")
@@ -140,7 +137,18 @@ class BackendConfigReader(object):
                     default="/srv/copr-work/provision/terminatepb-PC.yml"),
                 "max_workers": _get_conf(
                     cp, "backend", "group{0}_max_workers".format(group_id),
-                    default=8, mode="int")
+                    default=32, mode="int"),
+                "max_vm_total": _get_conf(
+                    cp, "backend", "group{}_max_vm_total".format(group_id),
+                    # default=16, mode="int"),
+                    default=2, mode="int"),
+                "max_vm_per_user": _get_conf(
+                    cp, "backend", "group{}_max_vm_total".format(group_id),
+                    default=2, mode="int"),
+                "max_spawn_processes": _get_conf(
+                    cp, "backend", "group{}_max_spawn_processes".format(group_id),
+                    default=2, mode="int"),
+
             }
             opts.build_groups.append(group)
 
@@ -232,3 +240,15 @@ def register_build_result(opts=None, failed=False):
     else:
         conn.incr(key)
 
+
+def get_redis_connection(opts):
+    # TODO: use host/port from opts
+    kwargs = {}
+    if hasattr(opts, "redis_db"):
+        kwargs["db"] = opts.redis_db
+    return StrictRedis(**kwargs)
+
+
+def format_tb(ex, ex_traceback):
+    tb_lines = traceback.format_exception(ex.__class__, ex, ex_traceback)
+    return ''.join(tb_lines)

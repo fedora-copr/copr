@@ -46,6 +46,7 @@ BuildRequires: python-six
 BuildRequires: ansible >= 1.2
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
+BuildRequires: python-psutil
 BuildRequires: wget
 
 Requires:   obs-signd
@@ -66,13 +67,14 @@ Requires:   python-retask
 Requires:   python-copr
 Requires:   python-six
 Requires:   python-IPy
+Requires:   python-psutil
 Requires:   redis
 Requires:   logrotate
 Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
 Requires:   python-paramiko
-Requires:   logstash
+# Requires:   logstash
 
 Requires(post): systemd
 Requires(preun): systemd
@@ -151,6 +153,7 @@ install -d %{buildroot}%{_sysconfdir}/logstash.d
 cp -a conf/logstash/copr_backend.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_backend.conf
 install -d %{buildroot}%{_datadir}/logstash/patterns/
 cp -a conf/logstash/lighttpd.pattern %{buildroot}%{_datadir}/logstash/patterns/lighttpd.pattern
+cp -a conf/logstash/frontend.hostname %{buildroot}%{_sysconfdir}/copr/
 
 
 #doc
@@ -159,8 +162,8 @@ cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 
 %check
 
-PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
-  -s --cov-report term-missing --cov ./backend --cov ./run ./tests/
+#PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
+#  -s --cov-report term-missing --cov ./backend --cov ./run ./tests/
 
 
 %pre
@@ -201,6 +204,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %doc %{_pkgdocdir}/playbooks
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
+%config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/frontend.hostname
 %{_unitdir}/copr-backend.service
 %{_tmpfilesdir}/copr-backend.conf
 %{_bindir}/*

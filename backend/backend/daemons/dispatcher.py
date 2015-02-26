@@ -1,49 +1,30 @@
-import re
+from datetime import datetime
+import json
 import os
 import sys
 import time
 import fcntl
-import json
-import subprocess
-from subprocess import CalledProcessError
 import multiprocessing
-
-import ansible
-import ansible.runner
-import ansible.utils
-
-from ansible.errors import AnsibleError
-
 from setproctitle import setproctitle
-from IPy import IP
+
 from retask.queue import Queue
 
-
-
+from ..vm_manage.manager import VmManager
 from ..mockremote.callback import CliLogCallBack
-
-from ..exceptions import MockRemoteError, CoprWorkerError, CoprWorkerSpawnFailError
+from ..exceptions import MockRemoteError, CoprWorkerError, VmError, NoVmAvailable
 from ..job import BuildJob
-
 from ..mockremote import MockRemote
-from ..frontend import FrontendClient
-from ..constants import BuildStatus
-from ..helpers import register_build_result
+from ..constants import BuildStatus, JOB_GRAB_TASK_END_PUBSUB
+from ..helpers import register_build_result, format_tb, get_redis_connection
 
-ansible_playbook = "ansible-playbook"
+
+# ansible_playbook = "ansible-playbook"
 
 try:
     import fedmsg
 except ImportError:
     # fedmsg is optional
     fedmsg = None
-
-
-def ans_extra_vars_encode(extra_vars, name):
-    """ transform dict into --extra-vars="json string" """
-    if not extra_vars:
-        return ""
-    return "--extra-vars='{{\"{0}\": {1}}}'".format(name, json.dumps(extra_vars))
 
 
 class WorkerCallback(object):
@@ -74,14 +55,12 @@ class WorkerCallback(object):
                                  .format(self.logfile, str(e)))
 
 
-# TODO: Extract VmManager class
 class Worker(multiprocessing.Process):
-
     """
     Worker process dispatches building tasks. Backend spin-up multiple workers, each
     worker associated to one group_id and process one task at the each moment.
 
-    Worker listens for the new tasks from :py:class:`retask.Queueu` associated with its group_id
+    Worker listens for the new tasks from :py:class:`retask.Queue` associated with its group_id
 
     :param Bunch opts: backend config
     :param queue: (:py:class:`multiprocessing.Queue`) queue to announce new events
@@ -92,7 +71,7 @@ class Worker(multiprocessing.Process):
 
     """
 
-    def __init__(self, opts, events, worker_num, group_id,
+    def __init__(self, opts, events, frontend_client, worker_num, group_id,
                  callback=None, lock=None):
 
         # base class initialization
@@ -110,7 +89,8 @@ class Worker(multiprocessing.Process):
 
         self.kill_received = False
         self.lock = lock
-        self.frontend_callback = FrontendClient(opts, events)
+        # self.frontend_client = FrontendClient(opts, events)
+        self.frontend_client = frontend_client
         self.callback = callback
         if not self.callback:
             log_name = "worker-{0}-{1}.log".format(
@@ -124,6 +104,9 @@ class Worker(multiprocessing.Process):
         self.vm_ip = None
         self.callback.log("creating worker: dynamic ip")
 
+        self.rc = None
+        self.vmm = VmManager(self.opts, self.events)
+
     @property
     def group_name(self):
         try:
@@ -131,7 +114,7 @@ class Worker(multiprocessing.Process):
         except Exception as error:
             self.callback.log("Failed to get builder group name from config, using group_id as name."
                               "Original error: {}".format(error))
-            return self.group_id
+            return str(self.group_id)
 
     def event(self, topic, template, content=None):
         """ Multi-purpose logging method.
@@ -205,200 +188,19 @@ class Worker(multiprocessing.Process):
                        status=job.status, chroot=job.chroot)
         self.event("build.end", template, content)
 
-    def run_ansible_playbook(self, args, name="running playbook", attempts=9):
-        """
-        Call ansible playbook:
-
-            - well mostly we run out of space in OpenStack so we rather try
-              multiple times (attempts param)
-            - dump any attempt failure
-        """
-
-        # Ansible playbook python API does not work here, dunno why.  See:
-        # https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
-
-        command = "{0} {1}".format(ansible_playbook, args)
-
-        result = None
-        for i in range(0, attempts):
-            try:
-                attempt_desc = ": retry: " if i > 0 else ": begin: "
-                self.callback.log(name + attempt_desc + command)
-                result = subprocess.check_output(command, shell=True)
-                self.callback.log("Raw playbook output:\n{0}\n".format(result))
-                break
-
-            except CalledProcessError as e:
-                self.callback.log("CalledProcessError: \n{0}\n".format(e.output))
-                sys.stderr.write("{0}\n".format(e.output))
-                # FIXME: this is not purpose of opts.sleeptime
-                time.sleep(self.opts.sleeptime)
-
-        self.callback.log(name + ": end")
-        return result
-
-    def validate_vm(self):
-        """
-        Test connectivity to the VM
-
-        :param ipaddr: ip address to the newly created VM
-        :raises: :py:class:`~backend.exceptions.CoprWorkerSpawnFailError`: validation fails
-        """
-        # we were getting some dead instances
-        # that's why I'm testing the connectivity here
-        runner_options = dict(
-            remote_user="root",
-            host_list="{},".format(self.vm_ip),
-            pattern=self.vm_ip,
-            forks=1,
-            transport=self.opts.ssh.transport,
-            timeout=500
-        )
-        connection = ansible.runner.Runner(**runner_options)
-        connection.module_name = "shell"
-        connection.module_args = "echo hello"
-
-        try:
-            res = connection.run()
-        except Exception as exception:
-            raise CoprWorkerSpawnFailError(
-                "Failed to check created VM ({})"
-                "due to ansible error: {}".format(self.vm_ip, exception))
-
-        if self.vm_ip not in res.get("contacted", {}):
-            self.callback.log(
-                "Worker is not responding to the testing playbook. Terminating it."
-                "Runner options: {}".format(runner_options) +
-                "Ansible raw response:\n{}".format(res))
-            raise CoprWorkerSpawnFailError("Created VM ({}) was unresponsive "
-                                           "and therefore terminated".format(self.vm_ip))
-
-    def try_spawn(self, args):
-        """
-        Tries to spawn new vm using ansible
-
-        :param args: ansible for ansible command which spawns VM
-        :return str: valid ip address of new machine (nobody guarantee machine availability)
-        """
-        result = self.run_ansible_playbook(args, "spawning instance")
-        if not result:
-            raise CoprWorkerSpawnFailError("No result, trying again")
-        match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
-
-        if not match:
-            raise CoprWorkerSpawnFailError("No ip in the result, trying again")
-        ipaddr = match.group(1)
-        match = re.search(r'vm_name=([^\{\}"]+)', result, re.MULTILINE)
-
-        if match:
-            self.vm_name = match.group(1)
-        self.callback.log("got instance ip: {0}".format(ipaddr))
-
-        try:
-            IP(ipaddr)
-        except ValueError:
-            # if we get here we"re in trouble
-            msg = "Invalid IP back from spawn_instance - dumping cache output\n"
-            msg += str(result)
-            raise CoprWorkerSpawnFailError(msg)
-
-        return ipaddr
-
-    def spawn_instance(self):
-        """
-        Spawn new VM, executing the following steps:
-
-            - call the spawn playbook to startup/provision a building instance
-            - get an IP and test if the builder responds
-            - repeat this until you get an IP of working builder
-
-        :param BuildJob job:
-        :return ip: of created VM
-        :return None: if couldn't find playbook to spin ip VM
-        """
-
-        start = time.time()
-
-        # Ansible playbook python API does not work here, dunno why.  See:
-        # https://groups.google.com/forum/#!topic/ansible-project/DNBD2oHv5k8
-
-        try:
-            spawn_playbook = self.opts.build_groups[self.group_id]["spawn_playbook"]
-        except KeyError:
-            return
-
-        spawn_args = "-c ssh {}".format(spawn_playbook)
-
-        # TODO: replace with for i in range(MAX_SPAWN_TRIES): ... else raise FatalError
-        i = 0
-        while self.vm_ip is None:
-            i += 1
-            try:
-                self.callback.log("Spawning a builder. Try No. {0}".format(i))
-
-                self.vm_ip = self.try_spawn(spawn_args)
-                self.update_process_title()
-                try:
-                    self.validate_vm()
-                except CoprWorkerSpawnFailError:
-                    self.terminate_instance()
-                    raise
-
-                self.callback.log("Instance spawn/provision took {0} sec"
-                                  .format(time.time() - start))
-
-            except CoprWorkerSpawnFailError as exception:
-                self.callback.log("VM Spawn attempt failed with message: {}"
-                                  .format(exception.msg))
-
-    def terminate_instance(self):
-        """
-        Call the terminate playbook to destroy the building instance
-        """
-        self.update_process_title(suffix="Terminating VM")
-        term_args = {}
-        if "ip" in self.opts.terminate_vars:
-            term_args["ip"] = self.vm_ip
-        if "vm_name" in self.opts.terminate_vars:
-            term_args["vm_name"] = self.vm_name
-
-        try:
-            playbook = self.opts.build_groups[self.group_id]["terminate_playbook"]
-        except KeyError:
-            self.callback.log(
-                "Fatal error: no terminate playbook for group_id: {}; exiting"
-                .format(self.group_id))
-            sys.exit(255)
-
-        # args = "-c ssh -i '{0},' {1} {2}".format(
-        args = "-c ssh {} {}".format(
-            # self.vm_ip,
-            playbook,
-            ans_extra_vars_encode(term_args, "copr_task"))
-
-        try:
-            self.run_ansible_playbook(args, "terminate instance")
-        except Exception as error:
-            self.callback.log("Failed to terminate an instance: vm_name={}, vm_ip={}. Original error: {}"
-                              .format(self.vm_name, self.vm_ip, error))
-
-        # TODO: should we check that machine was destroyed?
-        self.vm_ip = None
-        self.vm_name = None
-        self.update_process_title()
-
     def mark_started(self, job):
         """
         Send data about started build to the frontend
         """
 
-        job.status = 3  # running
+        job.status = BuildStatus.RUNNING
         build = job.to_dict()
         self.callback.log("build: {}".format(build))
 
         data = {"builds": [build]}
+        # import ipdb; ipdb.set_trace()
         try:
-            self.frontend_callback.update(data)
+            self.frontend_client.update(data)
         except:
             raise CoprWorkerError(
                 "Could not communicate to front end to submit status info")
@@ -415,7 +217,7 @@ class Worker(multiprocessing.Process):
         data = {"builds": [job.to_dict()]}
 
         try:
-            self.frontend_callback.update(data)
+            self.frontend_client.update(data)
         except Exception as err:
             raise CoprWorkerError(
                 "Could not communicate to front end to submit results: {}"
@@ -431,7 +233,7 @@ class Worker(multiprocessing.Process):
         """
 
         try:
-            can_start = self.frontend_callback.starting_build(job.build_id, job.chroot)
+            can_start = self.frontend_client.starting_build(job.build_id, job.chroot)
         except Exception as err:
             raise CoprWorkerError(
                 "Could not communicate to front end to submit results: {}"
@@ -452,31 +254,6 @@ class Worker(multiprocessing.Process):
         if os.path.exists(resdir) and os.path.exists(os.path.join(resdir, "success")):
             return True
         return False
-
-    def spawn_instance_with_check(self):
-        """
-        Wrapper around self.spawn_instance() with exception checking
-
-        :param BuildJob job:
-
-        :return str: ip of spawned vm
-        :raises:
-
-            - :py:class:`~backend.exceptions.CoprWorkerError`: spawn function doesn't return ip
-            - :py:class:`AnsibleError`: failure during anible command execution
-        """
-        self.update_process_title(suffix="Spawning a new VM")
-        try:
-            self.spawn_instance()
-            if not self.vm_ip:
-                # TODO: maybe add specific exception?
-                raise CoprWorkerError(
-                    "No IP found from creating instance")
-        except AnsibleError as e:
-            register_build_result(self.opts, failed=True)
-
-            self.callback.log("failure to setup instance: {0}".format(e))
-            raise
 
     def init_fedmsg(self):
         """
@@ -501,6 +278,7 @@ class Worker(multiprocessing.Process):
         self.callback.log(
             "Skipping: package {0} has been already built before.".format(job.pkg))
         job.status = BuildStatus.SKIPPED  # skipped
+        self.notify_job_grab_about_task_end(job)
         self._announce_end(job)
 
     def obtain_job(self):
@@ -520,10 +298,9 @@ class Worker(multiprocessing.Process):
         if not task:
             return
 
-        # import ipdb; ipdb.set_trace()
         job = BuildJob(task.data, self.opts)
-
-        self.update_process_title(suffix="Task: {} chroot: {}".format(job.build_id, job.chroot))
+        self.update_process_title(suffix="Task: {} chroot: {}, obtained at {}"
+                                  .format(job.build_id, job.chroot, str(datetime.now())))
 
         # Checking whether the build is not cancelled
         if not self.starting_build(job):
@@ -546,9 +323,11 @@ class Worker(multiprocessing.Process):
 
         :param job: :py:class:`~backend.job.BuildJob`
         """
+
         self._announce_start(job)
+        self.update_process_title(suffix="Task: {} chroot: {} build started".format(job.build_id, job.chroot))
         status = BuildStatus.SUCCEEDED
-        chroot_destdir = os.path.normpath(job.destdir + '/' + job.chroot)
+        chroot_destdir = os.path.normpath("{}/{}".format(job.destdir, job.chroot))
 
         # setup our target dir locally
         if not os.path.exists(chroot_destdir):
@@ -585,22 +364,15 @@ class Worker(multiprocessing.Process):
             chroot_logfile = "{0}/build-{1}.log".format(
                 chroot_destdir, job.build_id)
 
-            macros = {
-                "copr_username": job.project_owner,
-                "copr_projectname": job.project_name,
-                "vendor": "Fedora Project COPR ({0}/{1})".format(
-                    job.project_owner, job.project_name)
-            }
-
             try:
                 mr = MockRemote(
                     builder_host=self.vm_ip, job=job, repos=chroot_repos,
-                    macros=macros, opts=self.opts, lock=self.lock,
+                    opts=self.opts, lock=self.lock,
                     callback=CliLogCallBack(quiet=True, logfn=chroot_logfile),
                 )
                 mr.check()
 
-                build_details = mr.build_pkg()
+                build_details = mr.build_pkg_and_process_results()
                 job.update(build_details)
 
                 if self.opts.do_sign:
@@ -608,6 +380,9 @@ class Worker(multiprocessing.Process):
 
                 register_build_result(self.opts)
 
+            #except VmError as e:
+            #    pass
+            # don't catch VmError
             except MockRemoteError as e:
                 # record and break
                 self.callback.log("{0} - {1}".format(self.vm_ip, e))
@@ -625,18 +400,6 @@ class Worker(multiprocessing.Process):
         self.update_process_title(suffix="Task: {} chroot: {} done"
                                   .format(job.build_id, job.chroot))
 
-    def check_vm_still_alive(self):
-        """
-        Ensure that if we have vm_ip it is alive.
-        Terminates unresponsive instance.
-        """
-        if self.vm_ip:
-            # TODO: extract method: check_vm_still_alive
-            try:
-                self.validate_vm()
-            except CoprWorkerSpawnFailError:
-                self.terminate_instance()
-
     def update_process_title(self, suffix=None):
         title = "worker-{} {} ".format(self.group_name, self.worker_num)
         if self.vm_ip:
@@ -648,36 +411,71 @@ class Worker(multiprocessing.Process):
 
         setproctitle(title)
 
-    def run(self):
-        """
-        Worker should startup and check if it can function
-        for each job it takes from the jobs queue
-        run opts.setup_playbook to create the instance
-        do the build (mockremote)
-        terminate the instance.
+    def notify_job_grab_about_task_end(self, job, do_reschedule=False):
+        request = {
+            "action": "reschedule" if do_reschedule else "remove",
+            "build_id": job.build_id,
+            "task_id": job.task_id,
+            "chroot": job.chroot,
+        }
 
-        """
-        self.init_fedmsg()
+        self.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
 
-        while not self.kill_received:
-            self.update_process_title()
-            self.check_vm_still_alive()
+    def run_cycle(self):
+        self.update_process_title(suffix="trying to acquire job")
 
-            if self.opts.spawn_in_advance and not self.vm_ip:
-                self.spawn_instance_with_check()
+        # self.callback.log("Trying to obtain a job ")
+        job = self.obtain_job()
+        if not job:
+            time.sleep(self.opts.sleeptime)
+            return
 
-            job = self.obtain_job()
-            if not job:
+        start_vm_wait_time = time.time()
+        vmd = None
+        while vmd is None:
+            try:
+                self.update_process_title(suffix="trying to acquire VM for job {} for {}s"
+                                          .format(job.task_id, time.time() - start_vm_wait_time))
+                vmd = self.vmm.acquire_vm(self.group_id, job.project_owner, os.getpid(),
+                                          job.task_id, job.build_id, job.chroot)
+            except NoVmAvailable as error:
+                self.callback.log("No VM yet: {}".format(error))
                 time.sleep(self.opts.sleeptime)
                 continue
-
-            if not self.vm_ip:
-                self.spawn_instance_with_check()
-
-            try:
-                self.do_job(job)
             except Exception as error:
-                self.callback.log("Unhandled build error: {}".format(error))
-            finally:
-                # clean up the instance
-                self.terminate_instance()
+                _, _, ex_tb = sys.exc_info()
+                self.callback.log("Unhandled exception during VM acquire :{}, {}".format(error, format_tb(error, ex_tb)))
+                self.notify_job_grab_about_task_end(job, do_reschedule=True)
+                time.sleep(self.opts.sleeptime)
+                return
+
+        try:
+            # got vmd
+            # TODO: store self.vmd = vmd and use it
+            self.vm_name = vmd.vm_name
+            self.vm_ip = vmd.vm_ip
+
+            self.do_job(job)
+            self.notify_job_grab_about_task_end(job)
+        except VmError as error:
+            _, _, ex_tb = sys.exc_info()
+            self.callback.log("Builder error, re-scheduling task: {}, {}".format(error, format_tb(error, ex_tb)))
+            self.notify_job_grab_about_task_end(job, do_reschedule=True)
+        except Exception as error:
+            _, _, ex_tb = sys.exc_info()
+            self.callback.log("Unhandled build error: {}, {}".format(error, format_tb(error, ex_tb)))
+            self.notify_job_grab_about_task_end(job, do_reschedule=True)
+        finally:
+            # clean up the instance
+            self.vmm.release_vm(vmd.vm_name)
+            self.vm_ip = None
+            self.vm_name = None
+
+    def run(self):
+        self.init_fedmsg()
+        self.vmm.post_init()
+
+        self.rc = get_redis_connection(self.opts)
+        self.update_process_title(suffix="trying to acquire job")
+        while not self.kill_received:
+            self.run_cycle()

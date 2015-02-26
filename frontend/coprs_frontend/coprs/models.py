@@ -311,6 +311,9 @@ class Build(db.Model, helpers.Serializer):
             if status in statuses
         ]
 
+    @property
+    def chroots_dict_by_name(self):
+        return {b.name: b for b in self.build_chroots}
 
     @property
     def has_pending_chroot(self):

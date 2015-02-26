@@ -3,6 +3,7 @@ import sys
 import time
 
 from coprs import db
+from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
 from coprs.logic import builds_logic
 
@@ -107,8 +108,46 @@ def starting_build():
     if build and not build.canceled:
         builds_logic.BuildsLogic.update_state_from_dict(build, {
             "chroot": flask.request.json["chroot"],
-            "status": 6})  # starting
+            "status": StatusEnum("starting")
+        })
         db.session.commit()
         result["can_start"] = True
 
     return flask.jsonify(result)
+
+
+@backend_ns.route("/reschedule_build_chroot/", methods=["POST", "PUT"])
+@misc.backend_authenticated
+def reschedule_build_chroot():
+    response = {}
+    if "build_id" in flask.request.json and "chroot" in flask.request.json:
+        build = builds_logic.BuildsLogic.get_by_id(flask.request.json["build_id"])
+    else:
+        response["result"] = "bad request"
+        response["msg"] = "Request missing  `build_id` and/or `chroot`"
+        return flask.jsonify(response)
+
+    if build:
+        if build.canceled:
+            response["result"] = "noop"
+            response["msg"] = "build was cancelled, ignoring"
+        else:
+            chroot = flask.request.json["chroot"]
+            build_chroot = build.chroots_dict_by_name.get(chroot)
+            run_statuses = set([StatusEnum("starting"), StatusEnum("running")])
+            if build_chroot and build_chroot.status in run_statuses:
+                builds_logic.BuildsLogic.update_state_from_dict(build, {
+                    "chroot": chroot,
+                    "status": StatusEnum("pending")
+                })
+                db.session.commit()
+                response["result"] = "done"
+            else:
+                response["result"] = "noop"
+                response["msg"] = "build is not in running states, ignoring"
+
+    else:
+        response["result"] = "noop"
+        response["msg"] = "Build {} wasn't found".format(flask.request.json["build_id"])
+
+    return flask.jsonify(response)

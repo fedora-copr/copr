@@ -1,6 +1,7 @@
+import json
 import multiprocessing
 import os
-
+import pprint
 from subprocess import CalledProcessError
 
 from ansible.errors import AnsibleError
@@ -12,9 +13,10 @@ import time
 
 import six
 
-from backend.constants import BuildStatus
-from backend.exceptions import CoprWorkerError, CoprWorkerSpawnFailError, MockRemoteError
+from backend.constants import BuildStatus, JOB_GRAB_TASK_END_PUBSUB
+from backend.exceptions import CoprWorkerError, CoprSpawnFailError, MockRemoteError, NoVmAvailable, VmError
 from backend.job import BuildJob
+from backend.vm_manage.models import VmDescriptor
 
 if six.PY3:
     from unittest import mock
@@ -32,13 +34,44 @@ COPR_OWNER = "copr_owner"
 COPR_NAME = "copr_name"
 COPR_VENDOR = "vendor"
 
+MODULE_REF = "backend.daemons.dispatcher"
 
 @pytest.yield_fixture
 def mc_register_build_result(*args, **kwargs):
-    patcher = mock.patch("backend.daemons.dispatcher.register_build_result")
+    patcher = mock.patch("{}.register_build_result".format(MODULE_REF))
     obj = patcher.start()
     yield obj
     patcher.stop()
+
+
+@pytest.yield_fixture
+def mc_run_ans():
+    with mock.patch("{}.run_ansible_playbook".format(MODULE_REF)) as handle:
+        yield handle
+
+
+@pytest.yield_fixture
+def mc_mr_class():
+    with mock.patch("{}.MockRemote".format(MODULE_REF)) as handle:
+        yield handle
+
+
+@pytest.yield_fixture
+def mc_time():
+    with mock.patch("{}.time".format(MODULE_REF)) as handle:
+        yield handle
+
+
+@pytest.yield_fixture
+def mc_grc():
+    with mock.patch("{}.get_redis_connection".format(MODULE_REF)) as handle:
+        yield handle
+
+
+@pytest.yield_fixture
+def mc_setproctitle():
+    with mock.patch("{}.setproctitle".format(MODULE_REF)) as handle:
+        yield handle
 
 
 class TestDispatcher(object):
@@ -75,6 +108,7 @@ class TestDispatcher(object):
             "repos": "",
             "build_id": self.job_build_id,
             "chroot": self.CHROOT,
+            "task_id": "{}-{}".format(self.job_build_id, self.CHROOT)
         }
 
         self.spawn_pb = "/spawn.yml"
@@ -112,19 +146,31 @@ class TestDispatcher(object):
         self.events = multiprocessing.Queue()
         self.ip = "192.168.1.1"
         self.worker_callback = MagicMock()
-        self.worker_fe_callback = MagicMock()
         self.events = multiprocessing.Queue()
         self.logfile_path = os.path.join(self.tmp_dir_path, "test.log")
+
+        self.frontend_client = MagicMock()
+
+    @pytest.yield_fixture
+    def mc_vmm(self):
+        with mock.patch("{}.VmManager".format(MODULE_REF)) as handle:
+            self.vmm = MagicMock()
+            handle.return_value = self.vmm
+            yield self.vmm
 
     @pytest.fixture
     def init_worker(self):
         self.worker = Worker(
             opts=self.opts,
             events=self.events,
+            frontend_client=self.frontend_client,
             worker_num=self.worker_num,
             group_id=self.group_id,
             callback=self.worker_callback,
         )
+
+        self.worker.vmm = MagicMock()
+
 
         def set_ip(*args, **kwargs):
             self.worker.vm_ip = self.vm_ip
@@ -133,6 +179,7 @@ class TestDispatcher(object):
             self.worker.vm_ip = None
 
         self.set_ip = set_ip
+        self.erase_ip = erase_ip
 
     @pytest.fixture
     def reg_vm(self):
@@ -148,9 +195,11 @@ class TestDispatcher(object):
         worker = Worker(
             opts=self.opts,
             events=self.events,
+            frontend_client=self.frontend_client,
             worker_num=self.worker_num,
             group_id=self.group_id,
         )
+        worker.vmm = MagicMock()
         assert worker.callback
 
     def test_pkg_built_before(self):
@@ -165,209 +214,6 @@ class TestDispatcher(object):
         with open(os.path.join(target_dir, "success"), "w") as handle:
             handle.write("done")
         assert Worker.pkg_built_before(self.pkg_path, self.CHROOT, self.tmp_dir_path)
-
-    def test_spawn_instance_with_check(self, init_worker):
-        self.worker.spawn_instance = MagicMock()
-
-        self.worker.spawn_instance.side_effect = self.set_ip
-
-        self.worker.spawn_instance_with_check()
-        assert self.vm_ip == self.worker.vm_ip
-
-    def test_spawn_instance_with_check_no_ip(self, init_worker):
-        self.worker.spawn_instance = MagicMock()
-
-        with pytest.raises(CoprWorkerError):
-            self.worker.spawn_instance_with_check()
-
-    def test_spawn_instance_with_check_ansible_error_reraised(self, init_worker, mc_register_build_result):
-        self.worker.spawn_instance = MagicMock()
-        self.worker.spawn_instance.side_effect = AnsibleError("foobar")
-
-        # with pytest.raises():
-        with pytest.raises(AnsibleError):
-            self.worker.spawn_instance_with_check()
-
-    def test_spawn_instance_missing_playbook_for_group_id(self, init_worker):
-        self.worker.try_spawn = MagicMock()
-        self.worker.validate_vm = MagicMock()
-        self.worker.group_id = "175"
-
-        self.worker.spawn_instance()
-        assert self.worker.vm_ip is None
-        assert not self.worker.try_spawn.called
-        assert not self.worker.validate_vm.called
-
-    def test_spawn_instance_ok_immediately(self, init_worker):
-        self.worker.try_spawn = MagicMock()
-        self.worker.try_spawn.return_value = self.vm_ip
-        self.worker.validate_vm = MagicMock()
-
-        self.worker.spawn_instance()
-        assert self.worker.vm_ip == self.vm_ip
-        assert self.worker.try_spawn.called
-        assert self.worker.validate_vm.called
-
-    def test_spawn_instance_error_once_try_spawn(self, init_worker):
-        self.worker.try_spawn = MagicMock()
-        self.worker.try_spawn.side_effect = [
-            CoprWorkerSpawnFailError("foobar"),
-            self.vm_ip
-        ]
-        self.worker.validate_vm = MagicMock()
-
-        self.worker.spawn_instance()
-        assert self.worker.vm_ip == self.vm_ip
-
-        assert len(self.worker.try_spawn.call_args_list) == 2
-        assert len(self.worker.validate_vm.call_args_list) == 1
-
-    def test_spawn_instance_error_once_validate_new_vm(self, init_worker):
-        self.worker.run_ansible_playbook = MagicMock()
-
-        self.worker.try_spawn = MagicMock()
-        self.worker.try_spawn.return_value = self.vm_ip
-        self.worker.validate_vm = MagicMock()
-        self.worker.validate_vm.side_effect = [
-            CoprWorkerSpawnFailError("foobar"),
-            None,
-        ]
-
-        self.worker.spawn_instance()
-        assert self.worker.vm_ip == self.vm_ip
-
-        assert len(self.worker.try_spawn.call_args_list) == 2
-        assert len(self.worker.validate_vm.call_args_list) == 2
-
-    def test_spawn_instance_ok_immediately_passed_args(self, init_worker):
-        self.worker.try_spawn = MagicMock()
-        self.worker.try_spawn.return_value = self.vm_ip
-        self.worker.validate_vm = MagicMock()
-
-        self.worker.spawn_instance()
-
-        assert self.worker.try_spawn.called
-        assert self.worker.validate_vm.called
-
-        assert self.worker.try_spawn.call_args == mock.call(self.try_spawn_args)
-
-    def test_try_spawn_ansible_error_no_result(self, init_worker):
-        mc_run_ans = MagicMock()
-        self.worker.run_ansible_playbook = mc_run_ans
-        mc_run_ans.return_value = None
-
-        with pytest.raises(CoprWorkerSpawnFailError):
-            self.worker.try_spawn(self.try_spawn_args)
-
-    def test_try_spawn_ansible_ok_no_vm_name(self, init_worker):
-        mc_run_ans = MagicMock()
-        self.worker.run_ansible_playbook = mc_run_ans
-        mc_run_ans.return_value = "foobar IP={}".format(self.vm_ip)
-
-        assert self.worker.try_spawn(self.try_spawn_args) == self.vm_ip
-
-    def test_try_spawn_ansible_ok_with_vm_name(self, init_worker):
-        mc_run_ans = MagicMock()
-        self.worker.run_ansible_playbook = mc_run_ans
-        mc_run_ans.return_value = "foobar \"IP={}\" adsf \"vm_name={}\"".format(
-            self.vm_ip, self.vm_name)
-
-        assert self.worker.try_spawn(self.try_spawn_args) == self.vm_ip
-        assert self.worker.vm_name == self.vm_name
-
-    def test_try_spawn_ansible_bad_ip_no_vm_name(self, init_worker):
-        mc_run_ans = MagicMock()
-        self.worker.run_ansible_playbook = mc_run_ans
-        for bad_ip in ["256.0.0.2", "not-an-ip", "example.com", ""]:
-            mc_run_ans.return_value = "foobar IP={}".format(bad_ip)
-
-            with pytest.raises(CoprWorkerSpawnFailError):
-                self.worker.try_spawn(self.try_spawn_args)
-
-    @mock.patch("backend.daemons.dispatcher.ansible.runner.Runner")
-    def test_validate_new_vm(self, mc_runner, init_worker, reg_vm):
-        mc_ans_conn = MagicMock()
-        mc_ans_conn.run.return_value = {"contacted": {self.vm_ip: "ok"}}
-        mc_runner.return_value = mc_ans_conn
-
-        self.worker.validate_vm()
-        assert mc_ans_conn.run.called
-
-    @mock.patch("backend.daemons.dispatcher.ansible.runner.Runner")
-    def test_validate_new_vm_ans_error(self, mc_runner, init_worker, reg_vm):
-        mc_ans_conn = MagicMock()
-        mc_ans_conn.run.side_effect = IOError()
-        mc_runner.return_value = mc_ans_conn
-
-        with pytest.raises(CoprWorkerSpawnFailError):
-            self.worker.validate_vm()
-        assert mc_ans_conn.run.called
-
-    @mock.patch("backend.daemons.dispatcher.ansible.runner.Runner")
-    def test_validate_new_vm_bad_response(self, mc_runner, init_worker, reg_vm):
-        mc_ans_conn = MagicMock()
-        mc_ans_conn.run.return_value = {"contacted": {}}
-        mc_runner.return_value = mc_ans_conn
-
-        with pytest.raises(CoprWorkerSpawnFailError):
-            self.worker.validate_vm()
-        assert mc_ans_conn.run.called
-
-    def test_terminate_instance(self, init_worker, reg_vm):
-        mc_run_ans = MagicMock()
-        self.worker.run_ansible_playbook = mc_run_ans
-
-        self.worker.terminate_instance()
-        assert mc_run_ans.called
-        expected_call = mock.call(
-            "-c ssh {} ".format(self.terminate_pb),
-            'terminate instance')
-        assert expected_call == mc_run_ans.call_args
-        assert self.worker.vm_ip is None
-        assert self.worker.vm_name is None
-
-    def test_terminate_instance_with_vm_name(self, init_worker, reg_vm):
-        mc_run_ans = MagicMock()
-        self.worker.run_ansible_playbook = mc_run_ans
-        self.opts.terminate_vars = ["vm_name"]
-
-        self.worker.terminate_instance()
-        assert mc_run_ans.called
-        expected_call = mock.call(
-            '-c ssh {} --extra-vars=\'{{"copr_task": {{"vm_name": "{}"}}}}\''
-            .format(self.terminate_pb, self.vm_name),
-            'terminate instance')
-
-        assert expected_call == mc_run_ans.call_args
-        assert self.worker.vm_ip is None
-        assert self.worker.vm_name is None
-
-    def test_terminate_instance_with_ip_and_vm_name(self, init_worker, reg_vm):
-        mc_run_ans = MagicMock()
-        self.worker.run_ansible_playbook = mc_run_ans
-        self.opts.terminate_vars = ["ip", "vm_name"]
-
-        self.worker.terminate_instance()
-        assert mc_run_ans.called
-
-        expected_call = mock.call(
-            '-c ssh {} --extra-vars=\''
-            '{{"copr_task": {{"vm_name": "{}", "ip": "{}"}}}}\''
-            .format(self.terminate_pb, self.vm_name, self.vm_ip),
-            'terminate instance')
-
-        assert expected_call == mc_run_ans.call_args
-        assert self.worker.vm_ip is None
-        assert self.worker.vm_name is None
-
-    def test_terminate_instance_missed_playbook(self, init_worker, reg_vm):
-        mc_run_ans = MagicMock()
-        self.worker.run_ansible_playbook = mc_run_ans
-        self.worker.group_id = "322"
-
-        with pytest.raises(SystemExit):
-            self.worker.terminate_instance()
-        assert not mc_run_ans.called
 
     @mock.patch("backend.daemons.dispatcher.fedmsg")
     def test_event(self, mc_fedmsg, init_worker):
@@ -406,46 +252,6 @@ class TestDispatcher(object):
         self.worker.event(topic, template, content)
         assert not mc_fedmsg.publish.called
 
-    @mock.patch("backend.daemons.dispatcher.subprocess")
-    def test_run_ansible_playbook_first_try_ok(self, mc_subprocess, init_worker):
-        exptected_result = "ok"
-        mc_subprocess.check_output.return_value = exptected_result
-
-        assert self.worker.run_ansible_playbook(self.try_spawn_args) == exptected_result
-
-        assert mc_subprocess.check_output.called_once
-        assert mc_subprocess.check_output.call_args == mock.call(
-            'ansible-playbook -c ssh /spawn.yml', shell=True)
-
-    @mock.patch("backend.daemons.dispatcher.time")
-    @mock.patch("backend.daemons.dispatcher.subprocess")
-    def test_run_ansible_playbook_first_second_ok(self, mc_subprocess,
-                                                  mc_time, init_worker, capsys):
-        expected_result = "ok"
-        mc_subprocess.check_output.side_effect = [
-            CalledProcessError(1, ""),
-            expected_result,
-        ]
-
-        self.worker.run_ansible_playbook(self.try_spawn_args)
-        stdout, stderr = capsys.readouterr()
-        assert len(mc_subprocess.check_output.call_args_list) == 2
-
-    @mock.patch("backend.daemons.dispatcher.time")
-    @mock.patch("backend.daemons.dispatcher.subprocess")
-    def test_run_ansible_playbook_all_attempts_failed(self, mc_subprocess,
-                                                      mc_time, init_worker, capsys):
-        expected_result = "ok"
-        mc_subprocess.check_output.side_effect = [
-            CalledProcessError(1, ""),
-            CalledProcessError(1, ""),
-            expected_result,
-        ]
-
-        assert self.worker.run_ansible_playbook(self.try_spawn_args, attempts=2) is None
-        assert len(mc_subprocess.check_output.call_args_list) == 2
-        stdout, stderr = capsys.readouterr()
-
     def test_worker_callback(self):
         wc = WorkerCallback(self.logfile_path)
 
@@ -470,7 +276,6 @@ class TestDispatcher(object):
         assert not os.path.exists(self.logfile_path)
 
     def test_mark_started(self, init_worker):
-        self.worker.frontend_callback = self.worker_fe_callback
         self.worker.mark_started(self.job)
 
         expected_call = mock.call({'builds': [
@@ -483,14 +288,17 @@ class TestDispatcher(object):
              'ended_on': None, 'built_packages': '', 'timeout': 1800, 'pkg_version': '',
              'pkg_epoch': None, 'pkg_main_version': '', 'pkg_release': None,
              'memory_reqs': None, 'buildroot_pkgs': None, 'id': self.job_build_id,
-             'pkg': self.SRC_PKG_URL, "enable_net": True}
+             'pkg': self.SRC_PKG_URL, "enable_net": True,
+             'task_id': self.job.task_id, 'mockchain_macros': {
+                'copr_username': 'copr_owner',
+                'copr_projectname': 'copr_name',
+                'vendor': 'Fedora Project COPR (copr_owner/copr_name)'}
+             }
         ]})
-
-        assert expected_call == self.worker_fe_callback.update.call_args
+        assert expected_call == self.frontend_client.update.call_args
 
     def test_mark_started_error(self, init_worker):
-        self.worker.frontend_callback = self.worker_fe_callback
-        self.worker_fe_callback.update.side_effect = IOError()
+        self.frontend_client.update.side_effect = IOError()
 
         with pytest.raises(CoprWorkerError):
             self.worker.mark_started(self.job)
@@ -499,7 +307,6 @@ class TestDispatcher(object):
         self.job.started_on = self.test_time
         self.job.ended_on = self.test_time + 10
 
-        self.worker.frontend_callback = self.worker_fe_callback
         self.worker.mark_started(self.job)
 
         expected_call = mock.call({'builds': [
@@ -512,17 +319,20 @@ class TestDispatcher(object):
              'ended_on': self.job.ended_on, 'built_packages': '', 'timeout': 1800, 'pkg_version': '',
              'pkg_epoch': None, 'pkg_main_version': '', 'pkg_release': None,
              'memory_reqs': None, 'buildroot_pkgs': None, 'id': self.job_build_id,
-             'pkg': self.SRC_PKG_URL, "enable_net": True}
+             'pkg': self.SRC_PKG_URL, "enable_net": True,
+             'task_id': self.job.task_id, 'mockchain_macros': {
+                'copr_username': 'copr_owner',
+                'copr_projectname': 'copr_name',
+                'vendor': 'Fedora Project COPR (copr_owner/copr_name)'}
+             }
         ]})
 
-        assert expected_call == self.worker_fe_callback.update.call_args
+        assert expected_call == self.frontend_client.update.call_args
 
     def test_return_results_error(self, init_worker):
         self.job.started_on = self.test_time
         self.job.ended_on = self.test_time + 10
-
-        self.worker.frontend_callback = self.worker_fe_callback
-        self.worker_fe_callback.update.side_effect = IOError()
+        self.frontend_client.update.side_effect = IOError()
 
         with pytest.raises(CoprWorkerError):
             self.worker.return_results(self.job)
@@ -531,15 +341,13 @@ class TestDispatcher(object):
         self.job.started_on = self.test_time
         self.job.ended_on = self.test_time + 10
 
-        self.worker.frontend_callback = self.worker_fe_callback
         self.worker.starting_build(self.job)
 
         expected_call = mock.call(self.job_build_id, self.CHROOT)
-        assert expected_call == self.worker_fe_callback.starting_build.call_args
+        assert expected_call == self.frontend_client.starting_build.call_args
 
     def test_starting_build_error(self, init_worker):
-        self.worker.frontend_callback = self.worker_fe_callback
-        self.worker_fe_callback.starting_build.side_effect = IOError()
+        self.frontend_client.starting_build.side_effect = IOError()
 
         with pytest.raises(CoprWorkerError):
             self.worker.starting_build(self.job)
@@ -550,40 +358,32 @@ class TestDispatcher(object):
         mc_os.path.exists.return_value = False
         mc_os.makedirs.side_effect = IOError()
 
-        self.worker.frontend_callback = self.worker_fe_callback
-
         self.worker.do_job(self.job)
         assert self.job.status == BuildStatus.FAILURE
         assert not mc_mr.called
 
-    @mock.patch("backend.daemons.dispatcher.MockRemote")
     def test_do_job(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
         assert not os.path.exists(self.DESTDIR_CHROOT)
 
-        self.worker.frontend_callback = self.worker_fe_callback
         self.worker.do_job(self.job)
         assert self.job.status == BuildStatus.SUCCEEDED
         assert os.path.exists(self.DESTDIR_CHROOT)
 
-    @mock.patch("backend.daemons.dispatcher.MockRemote")
     def test_do_job_updates_details(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
         assert not os.path.exists(self.DESTDIR_CHROOT)
-        mc_mr_class.return_value.build_pkg.return_value = {
+        mc_mr_class.return_value.build_pkg_and_process_results.return_value = {
             "results": self.test_time,
         }
 
-        self.worker.frontend_callback = self.worker_fe_callback
         self.worker.do_job(self.job)
         assert self.job.status == BuildStatus.SUCCEEDED
         assert self.job.results == self.test_time
         assert os.path.exists(self.DESTDIR_CHROOT)
 
-    @mock.patch("backend.daemons.dispatcher.MockRemote")
     def test_do_job_mr_error(self, mc_mr_class, init_worker,
                              reg_vm, mc_register_build_result):
-        mc_mr_class.return_value.build_pkg.side_effect = MockRemoteError("foobar")
+        mc_mr_class.return_value.build_pkg_and_process_results.side_effect = MockRemoteError("foobar")
 
-        self.worker.frontend_callback = self.worker_fe_callback
         self.worker.do_job(self.job)
         assert self.job.status == BuildStatus.FAILURE
 
@@ -619,9 +419,12 @@ class TestDispatcher(object):
         self.worker.mark_started = MagicMock()
         self.worker.return_results = MagicMock()
 
+        self.worker.notify_job_grab_about_task_end = MagicMock()
+
         mc_tq.dequeue.return_value = MagicMock(data=self.task)
         assert self.worker.obtain_job() is None
         assert self.worker.pkg_built_before.called
+        assert self.worker.notify_job_grab_about_task_end.called
 
     def test_obtain_job_dequeue_type_error(self, init_worker):
         mc_tq = MagicMock()
@@ -659,174 +462,127 @@ class TestDispatcher(object):
         assert self.worker.obtain_job() is None
         assert not self.worker.pkg_built_before.called
 
-    @mock.patch("backend.daemons.dispatcher.time")
-    def test_run(self, mc_time, init_worker):
+    def test_dummy_run(self, init_worker, mc_time, mc_grc):
         self.worker.init_fedmsg = MagicMock()
-        self.worker.spawn_instance_with_check = MagicMock()
-        self.worker.spawn_instance_with_check.return_value = self.vm_ip
+        self.worker.run_cycle = MagicMock()
+        self.worker.update_process_title = MagicMock()
 
-        self.worker.obtain_job = MagicMock()
-        self.worker.obtain_job.return_value = self.job
-
-        def validate_not_spawn():
-            assert not self.worker.spawn_instance_with_check.called
-            return mock.DEFAULT
-
-        self.worker.obtain_job.side_effect = validate_not_spawn
-        self.worker.terminate_instance = MagicMock()
-
-        mc_do_job = MagicMock()
-        self.worker.do_job = mc_do_job
-
-        def stop_loop(*args, **kwargs):
+        def on_run_cycle(*args, **kwargs):
             self.worker.kill_received = True
 
-        mc_do_job.side_effect = stop_loop
-
+        self.worker.run_cycle.side_effect = on_run_cycle
         self.worker.run()
-        assert mc_do_job.called
+
         assert self.worker.init_fedmsg.called
+        assert self.worker.vmm.post_init.called
+
+        assert mc_grc.called
+        assert self.worker.run_cycle.called
+
+    def test_group_name_error(self, init_worker):
+        self.opts.build_groups[self.group_id].pop("name")
+        assert self.worker.group_name == str(self.group_id)
+
+    def test_update_process_title(self, init_worker, mc_setproctitle):
+        self.worker.update_process_title()
+        base_title = 'worker-{} {} '.format(self.group_id, self.worker_num)
+        assert mc_setproctitle.call_args[0][0] == base_title
+
+        #mc_setproctitle.reset_mock()
+        self.worker.vm_ip = self.vm_ip
+        self.worker.update_process_title()
+        title_with_ip = base_title + "VM_IP={} ".format(self.vm_ip)
+        assert mc_setproctitle.call_args[0][0] == title_with_ip
+
+        self.worker.vm_name = self.vm_name
+        self.worker.update_process_title()
+        title_with_name = title_with_ip + "VM_NAME={} ".format(self.vm_name)
+        assert mc_setproctitle.call_args[0][0] == title_with_name
+
+        self.worker.update_process_title("foobar")
+        assert mc_setproctitle.call_args[0][0] == title_with_name + "foobar"
+
+    def test_dummy_notify_job_grab_about_task_end(self, init_worker):
+        self.worker.rc = MagicMock()
+        self.worker.notify_job_grab_about_task_end(self.job)
+        expected = json.dumps({
+            "action": "remove",
+            "build_id": 12345,
+            "chroot": "fedora-20-x86_64",
+            "task_id": "12345-fedora-20-x86_64"
+        })
+        assert self.worker.rc.publish.call_args == mock.call(JOB_GRAB_TASK_END_PUBSUB, expected)
+
+        self.worker.notify_job_grab_about_task_end(self.job, True)
+        expected2 = json.dumps({
+            "action": "reschedule",
+            "build_id": 12345,
+            "chroot": "fedora-20-x86_64",
+            "task_id": "12345-fedora-20-x86_64"
+        })
+        assert self.worker.rc.publish.call_args == mock.call(JOB_GRAB_TASK_END_PUBSUB, expected2)
+
+    def test_run_cycle(self, init_worker, mc_time):
+        self.worker.update_process_title = MagicMock()
+        self.worker.obtain_job = MagicMock()
+        self.worker.do_job = MagicMock()
+        self.worker.notify_job_grab_about_task_end = MagicMock()
+
+        self.worker.obtain_job.return_value = None
+        self.worker.run_cycle()
         assert self.worker.obtain_job.called
-        assert self.worker.terminate_instance.called
+        assert mc_time.sleep.called
+        assert not mc_time.time.called
 
-    @mock.patch("backend.daemons.dispatcher.time")
-    def test_run_spawn_in_advance(self, mc_time, init_worker):
-        self.worker.opts.spawn_in_advance = True
-        self.worker.init_fedmsg = MagicMock()
-        self.worker.spawn_instance_with_check = MagicMock()
-        self.worker.spawn_instance_with_check.side_effect = self.set_ip
+        vmd = VmDescriptor(self.vm_ip, self.vm_name, 0, "ready")
+        vmd.vm_ip = self.vm_ip
+        vmd.vm_name = self.vm_name
 
-        self.worker.obtain_job = MagicMock()
         self.worker.obtain_job.return_value = self.job
-
-        def validate_spawn():
-            assert self.worker.spawn_instance_with_check.called
-            self.worker.spawn_instance_with_check.reset_mock()
-            return mock.DEFAULT
-
-        self.worker.obtain_job.side_effect = validate_spawn
-        self.worker.terminate_instance = MagicMock()
-
-        mc_do_job = MagicMock()
-        self.worker.do_job = mc_do_job
-
-        def stop_loop(*args, **kwargs):
-            assert not self.worker.spawn_instance_with_check.called
-            self.worker.kill_received = True
-
-        mc_do_job.side_effect = stop_loop
-
-        self.worker.run()
-
-    @mock.patch("backend.daemons.dispatcher.time")
-    def test_run_spawn_in_advance_with_existing_vm(self, mc_time, init_worker):
-        self.worker.opts.spawn_in_advance = True
-        self.worker.init_fedmsg = MagicMock()
-        self.worker.spawn_instance_with_check = MagicMock()
-        self.worker.spawn_instance_with_check.side_effect = self.set_ip
-
-        self.worker.check_vm_still_alive = MagicMock()
-
-        self.worker.obtain_job = MagicMock()
-        self.worker.obtain_job.side_effect = [
+        self.worker.vmm.acquire_vm.side_effect = [
+            IOError(),
             None,
-            self.job,
+            NoVmAvailable("foobar"),
+            vmd,
         ]
 
-        def validate_spawn():
-            assert self.worker.spawn_instance_with_check.called
-            self.worker.spawn_instance_with_check.reset_mock()
-            return mock.DEFAULT
+        self.worker.run_cycle()
+        assert not self.worker.do_job.called
+        assert self.worker.notify_job_grab_about_task_end.called_once
+        assert self.worker.notify_job_grab_about_task_end.call_args[1]["do_reschedule"]
+        self.worker.notify_job_grab_about_task_end.reset_mock()
 
-        self.worker.obtain_job.side_effect = validate_spawn
-        self.worker.terminate_instance = MagicMock()
+        ###  normal work
+        def on_release_vm(*args, **kwargs):
+            assert self.worker.vm_ip == self.vm_ip
+            assert self.worker.vm_name == self.vm_name
 
-        mc_do_job = MagicMock()
-        self.worker.do_job = mc_do_job
+        self.worker.vmm.release_vm.side_effect = on_release_vm
+        self.worker.run_cycle()
+        assert self.worker.do_job.called_once
+        assert self.worker.notify_job_grab_about_task_end.called_once
+        assert not self.worker.notify_job_grab_about_task_end.call_args[1].get("do_reschedule")
 
-        def stop_loop(*args, **kwargs):
-            assert not self.worker.spawn_instance_with_check.called
-            self.worker.kill_received = True
+        assert self.worker.vmm.release_vm.called
 
-        mc_do_job.side_effect = stop_loop
+        self.worker.vmm.acquire_vm = MagicMock()
+        self.worker.vmm.acquire_vm.return_value = vmd
 
-        self.worker.run()
-        assert self.worker.check_vm_still_alive.called
-        assert self.worker.spawn_instance_with_check.called_once
+        ### handle VmError
+        self.worker.notify_job_grab_about_task_end.reset_mock()
+        self.worker.vmm.release_vm.reset_mock()
+        self.worker.do_job.side_effect = VmError("foobar")
+        self.worker.run_cycle()
 
-    def test_check_vm_still_alive(self, init_worker):
-        self.worker.validate_vm = MagicMock()
-        self.worker.terminate_instance = MagicMock()
+        assert self.worker.notify_job_grab_about_task_end.call_args[1]["do_reschedule"]
+        assert self.worker.vmm.release_vm.called
 
-        self.worker.check_vm_still_alive()
 
-        assert not self.worker.validate_vm.called
-        assert not self.worker.terminate_instance.called
+        ### handle other errors
+        self.worker.notify_job_grab_about_task_end.reset_mock()
+        self.worker.vmm.release_vm.reset_mock()
+        self.worker.do_job.side_effect = IOError()
+        self.worker.run_cycle()
 
-    def test_check_vm_still_alive_ok(self, init_worker, reg_vm):
-        self.worker.validate_vm = MagicMock()
-        self.worker.terminate_instance = MagicMock()
-
-        self.worker.check_vm_still_alive()
-
-        assert self.worker.validate_vm.called
-        assert not self.worker.terminate_instance.called
-
-    def test_check_vm_still_alive_not_ok(self, init_worker, reg_vm):
-        self.worker.validate_vm = MagicMock()
-        self.worker.validate_vm.side_effect = CoprWorkerSpawnFailError("foobar")
-        self.worker.terminate_instance = MagicMock()
-
-        self.worker.check_vm_still_alive()
-
-        assert self.worker.validate_vm.called
-        assert self.worker.terminate_instance.called
-
-    @mock.patch("backend.daemons.dispatcher.time")
-    def test_run_finalize(self, mc_time, init_worker):
-        self.worker.init_fedmsg = MagicMock()
-        self.worker.obtain_job = MagicMock()
-        self.worker.obtain_job.return_value = self.job
-        self.worker.spawn_instance_with_check = MagicMock()
-        self.worker.spawn_instance_with_check.return_value = self.vm_ip
-        self.worker.terminate_instance = MagicMock()
-
-        mc_do_job = MagicMock()
-        self.worker.do_job = mc_do_job
-
-        def stop_loop(*args, **kwargs):
-            self.worker.kill_received = True
-            raise IOError()
-
-        mc_do_job.side_effect = stop_loop
-
-        self.worker.run()
-
-        assert mc_do_job.called
-        assert self.worker.init_fedmsg.called
-        assert self.worker.obtain_job.called
-        assert self.worker.terminate_instance.called
-
-    @mock.patch("backend.daemons.dispatcher.time")
-    def test_run_no_job(self, mc_time, init_worker):
-        self.worker.init_fedmsg = MagicMock()
-        self.worker.obtain_job = MagicMock()
-        self.worker.obtain_job.return_value = None
-        self.worker.spawn_instance_with_check = MagicMock()
-        self.worker.spawn_instance_with_check.return_value = self.vm_ip
-        self.worker.terminate_instance = MagicMock()
-
-        mc_do_job = MagicMock()
-        self.worker.do_job = mc_do_job
-
-        def stop_loop(*args, **kwargs):
-            self.worker.kill_received = True
-
-        mc_time.sleep.side_effect = stop_loop
-
-        self.worker.run()
-
-        assert not mc_do_job.called
-        assert self.worker.init_fedmsg.called
-        assert self.worker.obtain_job.called
-        assert not self.worker.terminate_instance.called
+        assert self.worker.notify_job_grab_about_task_end.call_args[1]["do_reschedule"]
+        assert self.worker.vmm.release_vm.called

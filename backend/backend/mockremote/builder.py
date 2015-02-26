@@ -1,48 +1,37 @@
 import os
 import pipes
 import socket
-from subprocess import Popen, PIPE
+from subprocess import Popen
 import time
 from urlparse import urlparse
 
 from ansible.runner import Runner
+from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
+from ..helpers import get_redis_connection
 
-from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError
+from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError, VmError
 
-from ..constants import mockchain, rsync
+from ..constants import mockchain, rsync, DEF_BUILD_TIMEOUT
 
 
 class Builder(object):
 
-    def __init__(self, opts, hostname, username, job,
-                 timeout, chroot, buildroot_pkgs,
-                 callback,
-                 remote_basedir, remote_tempdir=None,
-                 macros=None, repos=None):
+    def __init__(self, opts, hostname, job, callback, repos=None):
 
-        # TODO: remove fields obtained from opts
         self.opts = opts
         self.hostname = hostname
-        self.username = username
         self.job = job
-        self.timeout = timeout
-        self.chroot = chroot
+        self.timeout = self.job.timeout or DEF_BUILD_TIMEOUT
         self.repos = repos or []
-        self.macros = macros or {}  # rename macros to mock_ext_options
         self.callback = callback
+        self.buildroot_pkgs = self.job.buildroot_pkgs or ""
+        self._remote_tempdir = self.opts.remote_tempdir
+        self._remote_basedir = self.opts.remote_basedir
 
-        self.buildroot_pkgs = buildroot_pkgs or ""
-
-        self._remote_tempdir = remote_tempdir
-        self._remote_basedir = remote_basedir
         # if we're at this point we've connected and done stuff on the host
         self.conn = self._create_ans_conn()
         self.root_conn = self._create_ans_conn(username="root")
-
         # self.callback.log("Created builder: {}".format(self.__dict__))
-
-        # Before use: check out the host - make sure it can build/be contacted/etc
-        # self.check()
 
     @property
     def remote_build_dir(self):
@@ -78,7 +67,7 @@ class Builder(object):
         self._remote_tempdir = value
 
     def _create_ans_conn(self, username=None):
-        ans_conn = Runner(remote_user=username or self.username,
+        ans_conn = Runner(remote_user=username or self.opts.build_user,
                           host_list=self.hostname + ",",
                           pattern=self.hostname,
                           forks=1,
@@ -129,7 +118,7 @@ class Builder(object):
         pdn = s_pkg.replace(".src.rpm", "")
         remote_pkg_dir = os.path.normpath(
             os.path.join(self.remote_build_dir, "results",
-                         self.chroot, pdn))
+                         self.job.chroot, pdn))
 
         return remote_pkg_dir
 
@@ -148,10 +137,10 @@ class Builder(object):
             raise BuilderError("Do not try this kind of attack on me")
 
         self.callback.log("putting {0} into minimal buildroot of {1}"
-                          .format(self.buildroot_pkgs, self.chroot))
+                          .format(self.buildroot_pkgs, self.job.chroot))
 
         kwargs = {
-            "chroot": self.chroot,
+            "chroot": self.job.chroot,
             "pkgs": self.buildroot_pkgs
         }
         buildroot_cmd = (
@@ -194,29 +183,6 @@ class Builder(object):
         ansible_test_results = self._run_ansible("/usr/bin/test -f {0}".format(successfile))
         check_for_ans_error(ansible_test_results, self.hostname)
 
-    def check_if_pkg_local_or_http(self, pkg):
-        """
-            Local file will be sent into the build chroot,
-            if pkg is a url, it will be returned as is.
-
-            :param str pkg: path to the local file or URL
-            :return str: fixed pkg location
-        """
-        if os.path.exists(pkg):
-            dest = os.path.normpath(
-                os.path.join(self.tempdir, os.path.basename(pkg)))
-
-            self.callback.log(
-                "Sending {0} to {1} to build".format(
-                    os.path.basename(pkg), self.hostname))
-
-            # FIXME should probably check this but <shrug>
-            self._run_ansible("src={0} dest={1}".format(pkg, dest), module_name="copy")
-        else:
-            dest = pkg
-
-        return dest
-
     def update_job_pkg_version(self, pkg):
         self.callback.log("Getting package information: version")
         results = self._run_ansible("rpm -qp --qf \"%{{EPOCH}}\$\$%{{VERSION}}\$\$%{{RELEASE}}\" {}".format(pkg))
@@ -246,45 +212,47 @@ class Builder(object):
             if parsed_url.scheme == "copr":
                 user = parsed_url.netloc
                 prj = parsed_url.path.split("/")[1]
-                repo_url = "/".join([self.opts.results_baseurl, user, prj, self.chroot])
+                repo_url = "/".join([self.opts.results_baseurl, user, prj, self.job.chroot])
 
             else:
-                if "rawhide" in self.chroot:
+                if "rawhide" in self.job.chroot:
                     repo_url = repo_url.replace("$releasever", "rawhide")
                 # custom expand variables
-                repo_url = repo_url.replace("$chroot", self.chroot)
-                repo_url = repo_url.replace("$distname", self.chroot.split("-")[0])
+                repo_url = repo_url.replace("$chroot", self.job.chroot)
+                repo_url = repo_url.replace("$distname", self.job.chroot.split("-")[0])
 
             return pipes.quote(repo_url)
         except Exception as err:
             self.callback.log("Failed not pre-process repo url: {}".format(err))
             return None
 
-    def gen_mockchain_command(self, dest):
-        buildcmd = "{0} -r {1} -l {2} ".format(
-            mockchain, pipes.quote(self.chroot),
+    def gen_mockchain_command(self, build_target):
+        buildcmd = "{} -r {} -l {} ".format(
+            mockchain, pipes.quote(self.job.chroot),
             pipes.quote(self.remote_build_dir))
         for repo in self.repos:
             repo = self.pre_process_repo_url(repo)
             if repo is not None:
                 buildcmd += "-a {0} ".format(repo)
 
-        for k, v in self.macros.items():
-            mock_opt = "--define={0} {1}".format(k, v)
-            buildcmd += "-m {0} ".format(pipes.quote(mock_opt))
-        buildcmd += dest
+        for k, v in self.job.mockchain_macros.items():
+            mock_opt = "--define={} {}".format(k, v)
+            buildcmd += "-m {} ".format(pipes.quote(mock_opt))
+        buildcmd += build_target
         return buildcmd
 
-    def run_command_and_wait(self, buildcmd):
+    def run_build_and_wait(self, buildcmd):
         self.callback.log("executing: {0}".format(buildcmd))
         self.conn.module_name = "shell"
         self.conn.module_args = buildcmd
         _, poller = self.conn.run_async(self.timeout)
         waited = 0
         results = None
+
+        self.setup_pubsub_handler()
         while True:
-            # TODO: try replace with ``while waited < self.timeout``
-            # extract method and return waited time, raise timeout error in `else`
+            # TODO rework Builder and extrace check_pubsub, add method to interrupt build process from dispatcher
+            self.check_pubsub()
             results = poller.poll()
 
             if results["contacted"] or results["dark"]:
@@ -300,25 +268,48 @@ class Builder(object):
             waited += 10
         return results
 
+    def setup_pubsub_handler(self):
+        self.rc = get_redis_connection(self.opts)
+        self.ps = self.rc.pubsub(ignore_subscribe_messages=True)
+        channel_name = PUBSUB_INTERRUPT_BUILDER.format(self.hostname)
+        self.ps.subscribe(channel_name)
+
+        self.callback.log("Subscribed to {}".format(channel_name))
+
+    def check_pubsub(self):
+        self.callback.log("Checking pubsub channel")
+        msg = self.ps.get_message()
+        if msg is not None and msg.get("type") == "message":
+            raise VmError("Build interrupted by msg: {}".format(msg["data"]))
+
+    # def start_build(self, pkg):
+    #     # build the pkg passed in
+    #     # add pkg to various lists
+    #     # check for success/failure of build
+    #
+    #     # build_details = {}
+    #     self.modify_mock_chroot_config()
+    #
+    #     # check if pkg is local or http
+    #     dest = self.check_if_pkg_local_or_http(pkg)
+    #
+    #     # srpm version
+    #     self.update_job_pkg_version(pkg)
+    #
+    #     # construct the mockchain command
+    #     buildcmd = self.gen_mockchain_command(dest)
+    #
+
     def build(self, pkg):
-        # build the pkg passed in
-        # add pkg to various lists
-        # check for success/failure of build
-
-        # build_details = {}
         self.modify_mock_chroot_config()
-
-        # check if pkg is local or http
-        dest = self.check_if_pkg_local_or_http(pkg)
 
         # srpm version
         self.update_job_pkg_version(pkg)
 
         # construct the mockchain command
-        buildcmd = self.gen_mockchain_command(dest)
-
+        buildcmd = self.gen_mockchain_command(pkg)
         # run the mockchain command async
-        ansible_build_results = self.run_command_and_wait(buildcmd)  # now raises BuildTimeoutError
+        ansible_build_results = self.run_build_and_wait(buildcmd)  # now raises BuildTimeoutError
         check_for_ans_error(ansible_build_results, self.hostname)  # on error raises AnsibleResponseError
 
         # we know the command ended successfully but not if the pkg built
@@ -338,7 +329,7 @@ class Builder(object):
         destdir = "'" + destdir.replace("'", "'\\''") + "'"
 
         # build rsync command line from the above
-        remote_src = "{0}@{1}:{2}".format(self.username, self.hostname, rpd)
+        remote_src = "{0}@{1}:{2}".format(self.opts.build_user, self.hostname, rpd)
         ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
 
         rsync_log_filepath = os.path.join(destdir, "build-{}.rsync.log".format(self.job.build_id))
@@ -383,10 +374,10 @@ class Builder(object):
 
         try:
             self.run_ansible_with_check("/usr/bin/test -f /etc/mock/{}.cfg"
-                                        .format(self.chroot))
+                                        .format(self.job.chroot))
         except AnsibleCallError:
             raise BuilderError(msg="Build host `{}` missing mock config for chroot `{}`"
-                               .format(self.hostname, self.chroot))
+                               .format(self.hostname, self.job.chroot))
 
 
 def get_ans_results(results, hostname):
@@ -411,9 +402,10 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None):
     if success_codes is None:
         success_codes = [0]
 
-    if "dark" in results and hostname in results["dark"]:
-        raise AnsibleResponseError(
-            msg="Error: Could not contact/connect to {}.".format(hostname))
+    if ("dark" in results and hostname in results["dark"]) or \
+            "contacted" not in results or hostname not in results["contacted"]:
+
+        raise VmError(msg="Error: Could not contact/connect to {}. raw results: {}".format(hostname, results))
 
     error = False
     err_results = {}

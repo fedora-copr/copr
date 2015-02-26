@@ -127,3 +127,11 @@ class TestFrontendClient(object):
 
         with pytest.raises(RequestException):
             self.fc.starting_build(self.build_id, self.chroot_name)
+
+    def test_reschedule_build(self):
+        ptfr = MagicMock()
+        self.fc._post_to_frontend_repeatedly = ptfr
+        self.fc.reschedule_build(self.build_id, self.chroot_name)
+        expected = mock.call({'build_id': self.build_id, 'chroot': self.chroot_name},
+                             'reschedule_build_chroot')
+        assert ptfr.call_args == expected

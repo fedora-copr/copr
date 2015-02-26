@@ -21,4 +21,9 @@ CONSECUTIVE_FAILURE_REDIS_KEY = "copr:sys:consecutive_build_fails"
 class BuildStatus(object):
     FAILURE = 0
     SUCCEEDED = 1
+    RUNNING = 3
+    PENDING = 4
     SKIPPED = 5
+
+
+JOB_GRAB_TASK_END_PUBSUB = "copr:backend:daemons:job_grab:task_end:pubsub::"

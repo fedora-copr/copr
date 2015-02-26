@@ -12,7 +12,7 @@ import sys
 
 from bunch import Bunch
 
-from backend.daemons import run_backend
+from backend.daemons.backend import run_backend
 
 
 def parse_args(args):

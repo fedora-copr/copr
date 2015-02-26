@@ -66,3 +66,10 @@ class FrontendClient(object):
         if "can_start" not in response.json():
             raise RequestException("Bad respond from the frontend")
         return response.json()["can_start"]
+
+    def reschedule_build(self, build_id, chroot_name):
+        """
+        Announce to the frontend that a build should be rescheduled (set pending state).
+        """
+        data = {"build_id": build_id, "chroot": chroot_name}
+        self._post_to_frontend_repeatedly(data, "reschedule_build_chroot")

@@ -4,7 +4,7 @@ import copy
 from collections import defaultdict
 from pprint import pprint
 from bunch import Bunch
-from backend.exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError
+from backend.exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError, VmError
 
 import tempfile
 import shutil
@@ -32,6 +32,8 @@ from backend.mockremote.builder import Builder
 # yield patcher.start()
 # patcher.stop()
 
+
+MODULE_REF = "backend.mockremote.builder"
 
 def noop(*args, **kwargs):
     pass
@@ -70,7 +72,12 @@ class TestBuilder(object):
     opts = Bunch(
         ssh=Bunch(
             transport="paramiko"
-        )
+        ),
+        build_user=BUILDER_USER,
+        timeout=BUILDER_TIMEOUT,
+        remote_basedir=BUILDER_REMOTE_BASEDIR,
+        remote_tempdir=BUILDER_REMOTE_TMPDIR,
+        results_baseurl="http://example.com"
     )
 
     def get_test_builder(self):
@@ -81,6 +88,7 @@ class TestBuilder(object):
             "repos": "",
             "build_id": 12345,
             "chroot": self.BUILDER_CHROOT,
+            "buildroot_pkgs": self.BUILDER_BUILDROOT_PKGS,
         }, Bunch({
             "timeout": 1800,
             "destdir": self.test_root_path,
@@ -89,14 +97,9 @@ class TestBuilder(object):
         builder = Builder(
             opts=self.opts,
             hostname=self.BUILDER_HOSTNAME,
-            username=self.BUILDER_USER,
             job=self.job,
-            timeout=self.BUILDER_TIMEOUT,
-            chroot=self.BUILDER_CHROOT,
-            buildroot_pkgs=self.BUILDER_BUILDROOT_PKGS,
-            remote_basedir=self.BUILDER_REMOTE_BASEDIR,
-            remote_tempdir=self.BUILDER_REMOTE_TMPDIR,
             callback=self.mc_callback,
+
         )
         builder.checked = True
         return builder
@@ -174,7 +177,7 @@ class TestBuilder(object):
                 ],
                 "kwargs": {},
                 "expected_return": None,
-                "expected_exception": None
+                "expected_exception": VmError
             },
             {
                 "args": [
@@ -185,7 +188,7 @@ class TestBuilder(object):
                 ],
                 "kwargs": {},
                 "expected_return": None,
-                "expected_exception": AnsibleResponseError
+                "expected_exception": VmError
             },
             {
                 "args": [
@@ -294,12 +297,6 @@ class TestBuilder(object):
 
         results = {"contacted": {}, "dark": {}}
         assert {} == builder_module.get_ans_results(results, self.BUILDER_HOSTNAME)
-
-    def test_check_not_repeated(self):
-        builder = self.get_test_builder()
-        builder.check()
-        assert not builder.conn.called
-        assert not builder.root_conn.called
 
     def test_check_hostname_check(self):
         builder = self.get_test_builder()
@@ -596,24 +593,6 @@ class TestBuilder(object):
         ).format(self.BUILDER_CHROOT, self.BUILDER_PKG_BASE)
         assert expected_ans_args == builder.conn.module_args
 
-    def test_check_if_pkg_local_or_http_local(self):
-        pkg_path = os.path.join(self.test_root_path, "{}.src.rpm".format(self.BUILDER_PKG_BASE))
-        with open(pkg_path, "w") as handle:
-            handle.write("1")
-
-        builder = self.get_test_builder()
-        dest = builder.check_if_pkg_local_or_http(pkg_path)
-        dest_expected = os.path.join(self.BUILDER_REMOTE_TMPDIR, "{}.src.rpm".format(self.BUILDER_PKG_BASE))
-        assert dest == dest_expected
-        assert builder.conn.module_args == "src={} dest={}".format(pkg_path, dest_expected)
-        assert builder.conn.module_name == "copy"
-
-    def test_check_if_pkg_local_or_http_remote(self):
-        builder = self.get_test_builder()
-        dest = builder.check_if_pkg_local_or_http(self.BUILDER_PKG)
-
-        assert dest == self.BUILDER_PKG
-
     def test_get_mockchain_command(self):
         builder = self.get_test_builder()
 
@@ -623,40 +602,40 @@ class TestBuilder(object):
             "http://example.com/fedora-$releasever",
             "http://example.com/fedora-rawhide",
         ]
-        builder.macros = {
-            "foo": "bar",
-            "foo; rm -rf": "bar",
-            "foo2": "bar; rm -rf"
-        }
         result_cmd = builder.gen_mockchain_command(self.BUILDER_PKG)
         expected = (
-            "/usr/bin/mockchain -r fedora-20-i386 -l /tmp/copr-backend-test-tmp/build/"
+            "/usr/bin/mockchain -r {chroot} -l /tmp/copr-backend-test-tmp/build/"
             " -a http://example.com/rhel7 -a 'http://example.com/fedora-20; rm -rf' "
             "-a 'http://example.com/fedora-$releasever' -a http://example.com/fedora-rawhide "
-            "-m '--define=foo bar' -m '--define=foo; rm -rf bar' -m '--define=foo2 bar; rm -rf'"
-            " http://example.com/foovar-2.41.f21.src.rpm")
+            "-m '--define=copr_username {owner}' -m '--define=copr_projectname {copr}'"
+            " -m '--define=vendor Fedora Project COPR ({owner}/{copr})'"
+            " http://example.com/foovar-2.41.f21.src.rpm").format(
+                owner=self.job.project_owner,
+                copr=self.job.project_name,
+                chroot=self.job.chroot,
+        )
         assert result_cmd == expected
 
-        builder.chroot = "fedora-rawhide"
-        builder.repos = [
-            "http://example.com/rhel7",
-            "http://example.com/fedora-20; rm -rf",
-            "http://example.com/fedora-$releasever",
-            "http://example.com/fedora-rawhide",
-        ]
-        builder.macros = {
-            "foo": "bar",
-            "foo; rm -rf": "bar",
-            "foo2": "bar; rm -rf"
-        }
-        result_cmd = builder.gen_mockchain_command(self.BUILDER_PKG)
-        expected = (
-            "/usr/bin/mockchain -r fedora-rawhide -l /tmp/copr-backend-test-tmp/build/"
-            " -a http://example.com/rhel7 -a 'http://example.com/fedora-20; rm -rf' "
-            "-a http://example.com/fedora-rawhide -a http://example.com/fedora-rawhide "
-            "-m '--define=foo bar' -m '--define=foo; rm -rf bar' -m '--define=foo2 bar; rm -rf'"
-            " http://example.com/foovar-2.41.f21.src.rpm")
-        assert result_cmd == expected
+        # builder.chroot = "fedora-rawhide"
+        # builder.repos = [
+        #     "http://example.com/rhel7",
+        #     "http://example.com/fedora-20; rm -rf",
+        #     "http://example.com/fedora-$releasever",
+        #     "http://example.com/fedora-rawhide",
+        # ]
+        # builder.macros = {
+        #     "foo": "bar",
+        #     "foo; rm -rf": "bar",
+        #     "foo2": "bar; rm -rf"
+        # }
+        # result_cmd = builder.gen_mockchain_command(self.BUILDER_PKG)
+        # expected = (
+        #     "/usr/bin/mockchain -r fedora-rawhide -l /tmp/copr-backend-test-tmp/build/"
+        #     " -a http://example.com/rhel7 -a 'http://example.com/fedora-20; rm -rf' "
+        #     "-a http://example.com/fedora-rawhide -a http://example.com/fedora-rawhide "
+        #     "-m '--define=foo bar' -m '--define=foo; rm -rf bar' -m '--define=foo2 bar; rm -rf'"
+        #     " http://example.com/foovar-2.41.f21.src.rpm")
+        # assert result_cmd == expected
 
     @mock.patch("backend.mockremote.builder.time")
     def test_run_command_and_wait_timeout(self, mc_time):
@@ -671,7 +650,7 @@ class TestBuilder(object):
         mc_time.return_value = None
 
         with pytest.raises(BuilderTimeOutError) as error:
-            builder.run_command_and_wait(build_cmd)
+            builder.run_build_and_wait(build_cmd)
 
     @mock.patch("backend.mockremote.builder.time")
     def test_run_command_and_wait(self, mc_time):
@@ -696,7 +675,7 @@ class TestBuilder(object):
             self.stage += 1
 
         mc_time.sleep.side_effect = incr_stage
-        builder.run_command_and_wait(build_cmd)
+        builder.run_build_and_wait(build_cmd)
 
     @mock.patch("backend.mockremote.builder.Popen")
     def test_download(self, mc_popen):
@@ -774,14 +753,14 @@ class TestBuilder(object):
 
         builder.update_job_pkg_version = MagicMock()
 
-        builder.run_command_and_wait = MagicMock()
+        builder.run_build_and_wait = MagicMock()
         successful_wait_result = {
             "contacted": {self.BUILDER_HOSTNAME: {
                 "rc": 0, "stdout": self.STDOUT, "stderr": self.STDERR
             }},
             "dark": {}
         }
-        builder.run_command_and_wait.return_value = successful_wait_result
+        builder.run_build_and_wait.return_value = successful_wait_result
 
         builder.check_build_success = MagicMock()
         builder.check_build_success.return_value = (self.STDERR, False, self.STDOUT)
@@ -792,8 +771,7 @@ class TestBuilder(object):
         assert stdout == self.STDOUT
 
         assert builder.modify_mock_chroot_config.called
-        assert builder.check_if_pkg_local_or_http.called
-        assert builder.run_command_and_wait.called
+        assert builder.run_build_and_wait.called
         assert builder.check_build_success.called
         assert builder.collect_built_packages
 
@@ -801,7 +779,7 @@ class TestBuilder(object):
         builder.build(self.BUILDER_PKG)
 
         # test timeout handle
-        builder.run_command_and_wait.side_effect = BuilderTimeOutError("msg")
+        builder.run_build_and_wait.side_effect = BuilderTimeOutError("msg")
 
         with pytest.raises(BuilderError) as error:
             builder.build(self.BUILDER_PKG)
@@ -809,7 +787,7 @@ class TestBuilder(object):
         assert error.value.msg == "msg"
 
         # remove timeout
-        builder.run_command_and_wait.side_effect = None
+        builder.run_build_and_wait.side_effect = None
         builder.build(self.BUILDER_PKG)
 
         # error inside wait result
@@ -819,12 +797,12 @@ class TestBuilder(object):
             }},
             "dark": {}
         }
-        builder.run_command_and_wait.return_value = unsuccessful_wait_result
+        builder.run_build_and_wait.return_value = unsuccessful_wait_result
         with pytest.raises(BuilderError):
             builder.build(self.BUILDER_PKG)
 
         # make wait result successful again
-        builder.run_command_and_wait.return_value = successful_wait_result
+        builder.run_build_and_wait.return_value = successful_wait_result
         # # error during build check
         # builder.check_build_success.return_value = (self.STDERR, True, self.STDOUT)
         # assert not success
@@ -841,3 +819,52 @@ class TestBuilder(object):
         builder.collect_built_packages.side_effect = upd
         build_details, stdout = builder.build(self.BUILDER_PKG)
         assert build_details["foo"] == "bar"
+
+    def test_pre_process_repo_url(self):
+        builder = self.get_test_builder()
+
+        cases = [
+            ("", "''"),
+            ("http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/",
+             "'http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/'"),
+            ("http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/$chroot/",
+             "http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/{}/".format(self.job.chroot)),
+            ("http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/$distname-$releasever-$basearch/",
+             "'http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/'"),
+            ("copr://foo/bar",
+             "{}/foo/bar/fedora-20-i386".format(self.opts.results_baseurl)),
+        ]
+
+        for input_url, expected in cases:
+            assert builder.pre_process_repo_url(input_url) == expected
+
+        self.job.chroot = "fedora-20-rawhide"
+        cases = [
+            ("http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/",
+             "'http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/'"),
+            ("http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/$chroot/",
+             "http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/{}/".format(self.job.chroot)),
+            ("http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/$distname-$releasever-$basearch/",
+             "'http://copr-be.c.fp.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/'"),
+        ]
+        for input_url, expected in cases:
+            expected = expected.replace("$releasever", "rawhide")
+            assert builder.pre_process_repo_url(input_url) == expected
+
+        with mock.patch("{}.urlparse".format(MODULE_REF)) as handle:
+            handle.side_effect = IOError
+            for input_url, _ in cases:
+                assert builder.pre_process_repo_url(input_url) is None
+
+    def test_check_pubsub_build_interruption(self):
+        builder = self.get_test_builder()
+        builder.callback = MagicMock()
+        builder.ps = MagicMock()
+        for val in [None, {}, {"foo": "bar"}, {"type": "subscribe"}]:
+            builder.ps.get_message.return_value = val
+            builder.check_pubsub()
+
+        builder.ps.get_message.return_value = {"type": "message", "data": ""}
+        with pytest.raises(VmError):
+            builder.check_pubsub()
+

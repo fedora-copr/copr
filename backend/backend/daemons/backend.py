@@ -18,12 +18,20 @@ import lockfile
 from daemon import DaemonContext
 from retask.queue import Queue
 from retask import ConnectionError
+from backend.frontend import FrontendClient
 
 from ..exceptions import CoprBackendError
 from ..helpers import BackendConfigReader
 from .job_grab import CoprJobGrab
 from .log import CoprBackendLog
 from .dispatcher import Worker
+
+from .vm_master import VmMaster
+
+from ..vm_manage.manager import VmManager
+from ..vm_manage.spawn import Spawner
+from ..vm_manage.check import HealthChecker
+from ..vm_manage.terminate import Terminator
 
 
 class CoprBackend(object):
@@ -58,7 +66,7 @@ class CoprBackend(object):
         self.events = multiprocessing.Queue()
         # event format is a dict {when:time, who:[worker|logger|job|main],
         # what:str}
-
+        self.frontend_client = FrontendClient(self.opts, self.events)
         self.abort = False
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0o750)
@@ -101,8 +109,23 @@ class CoprBackend(object):
 
         self.event("Starting up Job Grabber")
 
-        self._jobgrab = CoprJobGrab(self.opts, self.events, self.lock)
+        self._jobgrab = CoprJobGrab(opts=self.opts,
+                                    events=self.events,
+                                    frontend_client=self.frontend_client,
+                                    lock=self.lock)
         self._jobgrab.start()
+
+        self.spawner = Spawner(self.opts, self.events)
+        self.checker = HealthChecker(self.opts, self.events)
+        self.terminator = Terminator(self.opts, self.events)
+
+        self.vm_manager = VmManager(self.opts, self.events,
+                                    checker=self.checker,
+                                    spawner=self.spawner,
+                                    terminator=self.terminator)
+        self.vm_manager.post_init()
+        self.vmm_daemon = VmMaster(self.vm_manager)
+        self.vmm_daemon.start()
 
     def event(self, what):
         """
@@ -135,9 +158,12 @@ class CoprBackend(object):
             for _ in range(group["max_workers"] - len(self.workers_by_group_id[group_id])):
                 self.max_worker_num_by_group_id[group_id] += 1
                 w = Worker(
-                    self.opts, self.events,
-                    self.max_worker_num_by_group_id[group_id],
-                    group_id, lock=self.lock
+                    opts=self.opts,
+                    events=self.events,
+                    frontend_client=self.frontend_client,
+                    worker_num=self.max_worker_num_by_group_id[group_id],
+                    group_id=group_id,
+                    lock=self.lock
                 )
 
                 self.workers_by_group_id[group_id].append(w)
