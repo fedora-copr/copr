@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.53
+Version:    1.54
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,21 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Mon Mar 02 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.54-1
+- [backend] [rhbz:#1091640] RFE: Release specific additional repos
+- [frontend][backend] [rhbz:#1119300]  [RFE] allow easy add copr repos in using
+  repository lis
+- [frontend] enabled `gpgcheck=1` in .repo template
+- [copr] monitor page redone: show version for each chroot
+- [frontend] [rhbz:#1160370, #1173165] sub-page on resubmit action, where user
+  could change preselected build chroots.
+- [frontend] added filelog for frontend
+- [frontend] Added "-%%{release}" to the build version on the copr pages.
+- mark license as license in spec
+- [rhbz:#1171796] copr sometimes doesn't delete build from repository
+- [backend] [rhbz:#1073333] Record consecutive builds fails to redis. Added
+  script to produce warnings for nagios check from failures recorded to redis.
+
 * Thu Feb 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.53-1
 - [frontend] enabled `gpgcheck=1` in .repo template
 - [frontend] correct url for pubkey in .repo
