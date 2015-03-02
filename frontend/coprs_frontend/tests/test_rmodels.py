@@ -3,7 +3,7 @@
 import time
 import pytest
 
-from redis import StrictRedis
+from redis import StrictRedis, ConnectionError
 
 from coprs.rmodels import TimedStatEvents
 
@@ -12,19 +12,27 @@ class TestRModels(object):
 
     def setup_method(self, method):
         self.rc = StrictRedis()
+        self.disabled = False
+        try:
+            self.rc.ping()
+        except ConnectionError:
+            self.disabled = True
         self.prefix = "copr:test:r_models"
 
         self.time_now = time.time()
 
     def teardown_method(self, method):
+        if self.disabled:
+            return
+
         keys = self.rc.keys('{}*'.format(self.prefix))
         if keys:
             self.rc.delete(*keys)
 
-    def test_nop(self):
-        pass
-
     def test_timed_stats_events(self):
+        if self.disabled:
+            return
+
         TimedStatEvents.add_event(self.rc, name="foobar", prefix=self.prefix,
                                   timestamp=self.time_now, )
 

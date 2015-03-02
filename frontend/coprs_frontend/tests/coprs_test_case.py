@@ -14,6 +14,14 @@ import coprs
 from coprs import helpers
 from coprs import models
 
+import six
+if six.PY3:
+    from unittest import mock
+    from unittest.mock import MagicMock
+else:
+    import mock
+    from mock import MagicMock
+
 
 class CoprsTestCase(object):
 
@@ -48,11 +56,18 @@ class CoprsTestCase(object):
         #    os.makedirs(datadir)
         coprs.db.create_all()
         self.db.session.commit()
+        #coprs/views/coprs_ns/coprs_general.py
+        self.rmodel_TSE_coprs_general_patcher = mock.patch("coprs.views.coprs_ns.coprs_general.TimedStatEvents")
+        self.rmodel_TSE_coprs_general_mc = self.rmodel_TSE_coprs_general_patcher.start()
+        self.rmodel_TSE_coprs_general_mc.return_value.get_count.return_value = 0
+        self.rmodel_TSE_coprs_general_mc.return_value.add_event.return_value = None
 
     def teardown_method(self, method):
         # delete just data, not the tables
         for tbl in reversed(self.db.metadata.sorted_tables):
             self.db.engine.execute(tbl.delete())
+
+        self.rmodel_TSE_coprs_general_patcher.start()
 
     @property
     def auth_header(self):
