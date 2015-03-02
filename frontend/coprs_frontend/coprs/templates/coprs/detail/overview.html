@@ -23,7 +23,7 @@
     <tr>
       <th class="leftmost">Release</th>
       <th>Architecture</th>
-      <th>#Downloads</th>
+      <!-- <th>#Downloads</th> -->
       <th class="rightmost">Yum Repo </th>
     </tr>
     {% for repo in repos_info_list %}
@@ -34,17 +34,18 @@
       <td>
         {{ repo.arch_list|join(", ") }}
       </td>
-      <td>
+     <!--  <td>
         <center> {{ repo.dl_stat }} </center> <br />
-        <!--  --->
+
         # of repo dl last week<br />
         {% for arch in repo.arch_list %}
 
           {{arch}}: {{ repo.rpm_dl_stat[arch] }} <br />
 
         {% endfor %}
-        <!-- -->
+
       </td>
+       -->
       <td class="rightmost">
           <a href="{{
               url_for(

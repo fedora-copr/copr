@@ -46,6 +46,7 @@ class Config(object):
     INTRANET_IPS = ["127.0.0.1"]
     DEBUG = True
 
+
 class ProductionConfig(Config):
     DEBUG = False
     # SECRET_KEY = "put_some_secret_here"
