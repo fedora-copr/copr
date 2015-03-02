@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.54
+Version:    1.55
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,9 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Mon Mar 02 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.55-1
+- [frontend] fix tests to be runnable without redis-server.
+
 * Mon Mar 02 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.54-1
 - [backend] [rhbz:#1091640] RFE: Release specific additional repos
 - [frontend][backend] [rhbz:#1119300]  [RFE] allow easy add copr repos in using
