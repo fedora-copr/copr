@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.57
+Version:    1.58
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -219,6 +219,24 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Mar 02 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.58-1
+- [rhbz:#1185959] - RFE: Present statistics about project
+  popularity. A few more counters for downloads from backend's result
+  directory.
+- [backend] [rhbz:#1191037] RFE: Include package name and version in fedmsg
+  notification
+- [rhbz:#1091640] RFE: Release specific additional repos
+- [rhbz:#1119300]  [RFE] allow easy add copr repos in using
+  repository lis
+- [backend][frontend] removing code related to multiply source rpms in build.
+  Build.pkgs now expected to have exactly one src.rpm.
+- [copr] backend: script fixes, dropped create_repo cli script
+- more file descriptors on builder
+- [rhbz:#1171796] copr sometimes doesn't delete build from repository
+- [rhbz:#1073333] Record consecutive builds fails to redis. Added
+  script to produce warnings for nagios check from failures recorded to redis.
+- correctly print job representation
+
 * Fri Jan 23 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.57-1
 - call correct Worker method on backend termination
 - put gpg pubkey to the project results root dir (one level up from
