@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.55
+Version:    1.56
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,9 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Fri Mar 06 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.56-1
+- hotfix:#1199258]  Link to Source RPM on build detail page points to a wrong URL
+
 * Mon Mar 02 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.55-1
 - [frontend] fix tests to be runnable without redis-server.
 
