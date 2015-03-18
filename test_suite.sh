@@ -2,6 +2,10 @@
 find . -path '*/__pycache__' | xargs rm -rfv
 
 #pip install --user virtualenv
+REDIS_PORT=7777
+
+redis-server --port $REDIS_PORT &> _redis.log &
+
 
 virtualenv _venv
 source _venv/bin/activate
@@ -22,6 +26,8 @@ pip install -r keygen/requirements.txt
 
 
 mkdir -p _report
+
+
 
 python -m pytest python/copr/test  --junitxml=_report/python-copr.junit.xml --cov-report xml --cov python/copr/client $@
 mv {,_report/python-copr.}coverage.xml
@@ -48,3 +54,5 @@ pep8 --max-line-length=120 keygen/src keygen/tests > _report/keygen_pep8.txt  ||
 
 deactivate
 rm -rf _tmp/*
+
+kill %1
