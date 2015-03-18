@@ -25,7 +25,7 @@ def check_health(opts, events, vm_name, vm_ip):
         events.put({"when": time.time(), "who": "checker", "what": msg})
 
     runner_options = dict(
-        remote_user="root",
+        remote_user=opts.build_user or "root",
         host_list="{},".format(vm_ip),
         pattern=vm_ip,
         forks=1,

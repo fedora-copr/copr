@@ -77,7 +77,10 @@ class TestBuilder(object):
         timeout=BUILDER_TIMEOUT,
         remote_basedir=BUILDER_REMOTE_BASEDIR,
         remote_tempdir=BUILDER_REMOTE_TMPDIR,
-        results_baseurl="http://example.com"
+        results_baseurl="http://example.com",
+
+        redis_db=9,
+        redis_port=7777,
     )
 
     def get_test_builder(self):

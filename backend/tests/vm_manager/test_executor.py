@@ -37,6 +37,7 @@ class TestExecutor(object):
     def setup_method(self, method):
         self.opts = Bunch(
             redis_db=9,
+            redis_port=7777,
             ssh=Bunch(
                 transport="ssh"
             ),

@@ -269,6 +269,7 @@ class Builder(object):
         return results
 
     def setup_pubsub_handler(self):
+
         self.rc = get_redis_connection(self.opts)
         self.ps = self.rc.pubsub(ignore_subscribe_messages=True)
         channel_name = PUBSUB_INTERRUPT_BUILDER.format(self.hostname)

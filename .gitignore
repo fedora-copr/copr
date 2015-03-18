@@ -17,3 +17,5 @@ _tmp/
 backend/docs/build
 
 frontend/coprs_frontend/copr_frontend.log
+
+_redis.log

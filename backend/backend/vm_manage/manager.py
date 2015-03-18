@@ -192,6 +192,8 @@ class VmManager(object):
         clean_list = [vmd for vmd in ready_vmd_list if vmd.bound_to_user is None]
         all_vms = list(chain(dirtied_by_user, clean_list))
 
+        # TODO: reject if last_health_check < last_copr_backend_startup_time
+        # TODO: record last_copr_backend_startup_time at startup
         for vmd in all_vms:
             vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
             if self.lua_scripts["acquire_vm"](keys=[vm_key], args=[username, pid, time.time(),

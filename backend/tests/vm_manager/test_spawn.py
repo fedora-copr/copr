@@ -72,6 +72,7 @@ class TestSpawner(object):
         self.spawn_pb_path = "{}/spawn.yml".format(self.test_root_path)
         self.opts = Bunch(
             redis_db=9,
+            redis_port=7777,
             ssh=Bunch(
                 transport="ssh"
             ),

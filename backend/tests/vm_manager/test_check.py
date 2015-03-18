@@ -75,6 +75,7 @@ class TestChecker(object):
         self.terminate_pb_path = "{}/terminate.yml".format(self.test_root_path)
         self.opts = Bunch(
             redis_db=9,
+            redis_port=7777,
             ssh=Bunch(
                 transport="ssh"
             ),
@@ -87,6 +88,7 @@ class TestChecker(object):
                 }
             },
 
+            build_user="mockbuilder",
             fedmsg_enabled=False,
             sleeptime=0.1,
             do_sign=True,
