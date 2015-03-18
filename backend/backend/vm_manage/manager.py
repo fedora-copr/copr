@@ -132,6 +132,15 @@ class VmManager(object):
         return range(self.opts.build_groups_count)
 
     def add_vm_to_pool(self, vm_ip, vm_name, group):
+        """
+        Adds newly spawned VM into the pool of available builders
+
+        :param vm_ip: IP
+        :param vm_name: VM name
+        :param group: builder group
+        :type group: int
+        :rtype: VmDescriptor
+        """
         # print("\n ADD VM TO POOL")
         if self.rc.sismember(KEY_VM_POOL.format(group=group), vm_name):
             raise VmError("Can't add VM `{}` to the pool, such name already used".format(vm_name))
@@ -186,6 +195,14 @@ class VmManager(object):
         """
         # TODO: reject request if user acquired #machines > threshold_vm_per_user
         vmd_list = self.get_all_vm_in_group(group)
+        vm_count_used_by_user = len([
+            vmd for vmd in vmd_list if
+            vmd.bound_to_user==username and vmd.state==VmStates.IN_USE
+        ])
+        if vm_count_used_by_user >= self.opts.build_groups[group]["max_vm_per_user"]:
+            raise NoVmAvailable("No VM are available, user `{}` already acquired #{} VMs"
+                                .format(username, vm_count_used_by_user))
+
         ready_vmd_list = [vmd for vmd in vmd_list if vmd.state == VmStates.READY]
         # trying to find VM used by this user
         dirtied_by_user = [vmd for vmd in ready_vmd_list if vmd.bound_to_user == username]

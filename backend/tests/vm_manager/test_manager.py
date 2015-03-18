@@ -56,7 +56,8 @@ class TestManager(object):
             build_groups={
                 0: {
                     "name": "base",
-                    "archs": ["i386", "x86_64"]
+                    "archs": ["i386", "x86_64"],
+                    "max_vm_per_user": 3,
                 }
             },
 
@@ -218,6 +219,23 @@ class TestManager(object):
 
         with pytest.raises(NoVmAvailable):
             self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
+
+    def test_acquire_vm_per_user_limit(self):
+        max_vm_per_user = self.opts.build_groups[0]["max_vm_per_user"]
+        acquired_vmd_list = []
+        for idx in range(max_vm_per_user + 1):
+            vmd = self.vmm.add_vm_to_pool("127.0.{}.1".format(idx), "vm_{}".format(idx), self.group)
+            vmd.store_field(self.rc, "state", VmStates.READY)
+            acquired_vmd_list.append(vmd)
+
+        for idx in range(max_vm_per_user):
+            vmd = self.vmm.acquire_vm(0, self.username, idx)
+
+        with pytest.raises(NoVmAvailable):
+            self.vmm.acquire_vm(0, self.username, 42)
+
+        acquired_vmd_list[-1].store_field(self.rc, "state", VmStates.READY)
+        self.vmm.acquire_vm(0, self.username, 42)
 
     def test_acquire_only_ready_state(self):
         vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
