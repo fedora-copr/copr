@@ -25,16 +25,17 @@ PUBSUB_INTERRUPT_BUILDER = "copr:backend:interrupt_build:pubsub::{}"
 PUBSUB_VM_TERMINATION = "copr:backend:vm_termination:pubsub::{vm_name}"
 # message should contain string "terminating"
 
-KEY_VM_GROUPS = "copr:backend:vm_groups:set::"
-# set of available groups,
-# TODO: remove it, use opts.build_groups_count
-
 KEY_VM_POOL = "copr:backend:vm_pool:set::{group}"
 # set of vm_names of vm available for `group`
 
 KEY_VM_POOL_INFO = "copr:backend:vm_pool_info:hset::{group}"
-# hashset with additional information for `group`, used fields:
+# hset with additional information for `group`, used fields:
 # - "last_vm_spawn_start": latest time when VM spawn was initiated for this `group`
+
+KEY_SERVER_INFO = "copr:backend:server_info:hset::"
+# common shared info about server, not stritly related to VMM, maybe move it to helpers later
+# used fields:
+#   "server_start_timestamp" -> unixtime string
 
 KEY_VM_INSTANCE = "copr:backend:vm_instance:hset::{vm_name}"
 # hset to store VmDescriptor

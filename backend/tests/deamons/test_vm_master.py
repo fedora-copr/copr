@@ -355,6 +355,7 @@ class TestVmMaster(object):
             None
         ]
         self.vm_master.do_cycle = types.MethodType(mc_do_cycle, self.vm_master)
+        self.vmm.mark_server_start = MagicMock()
 
         self.stage = 0
         def on_sleep(*args, **kwargs):
@@ -370,6 +371,8 @@ class TestVmMaster(object):
 
             assert mc_event_handler.called
             assert mc_event_handler.return_value.start.called
+
+            assert self.vmm.mark_server_start.called
 
         err_log = self.queue.get(timeout=1)
         assert err_log is not None

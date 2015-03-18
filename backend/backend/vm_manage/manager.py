@@ -14,7 +14,7 @@ from backend.exceptions import VmError, NoVmAvailable
 
 from backend.helpers import get_redis_connection
 from .models import VmDescriptor
-from . import VmStates, KEY_VM_INSTANCE, KEY_VM_POOL, EventTopics, PUBSUB_MB
+from . import VmStates, KEY_VM_INSTANCE, KEY_VM_POOL, EventTopics, PUBSUB_MB, KEY_SERVER_INFO
 
 # KEYS[1]: VMD key
 # ARGV[1] current timestamp for `last_health_check`
@@ -43,10 +43,16 @@ local old_state = redis.call("HGET", KEYS[1], "state")
 if old_state ~= "ready"  then
     return nil
 else
-    redis.call("HMSET", KEYS[1], "state", "in_use", "bound_to_user", ARGV[1],
-               "used_by_pid", ARGV[2], "in_use_since", ARGV[3],
-               "task_id",  ARGV[4], "build_id", ARGV[5], "chroot", ARGV[6])
-    return "OK"
+    local last_health_check = tonumber(redis.call("HGET", KEYS[1], "last_health_check"))
+    local server_restart_time = tonumber(redis.call("HGET", KEYS[2], "server_start_timestamp"))
+    if last_health_check and server_restart_time and last_health_check > server_restart_time  then
+        redis.call("HMSET", KEYS[1], "state", "in_use", "bound_to_user", ARGV[1],
+                   "used_by_pid", ARGV[2], "in_use_since", ARGV[3],
+                   "task_id",  ARGV[4], "build_id", ARGV[5], "chroot", ARGV[6])
+        return "OK"
+    else
+        return nil
+    end
 end
 """
 
@@ -185,19 +191,25 @@ class VmManager(object):
         vm_key = KEY_VM_INSTANCE.format(vm_name=vm_name)
         self.lua_scripts["mark_vm_check_failed"](keys=[vm_key])
 
+    def mark_server_start(self):
+        self.rc.hset(KEY_SERVER_INFO, "server_start_timestamp", time.time())
+
     def acquire_vm(self, group, username, pid, task_id=None, build_id=None, chroot=None):
         """
         Try to acquire VM from pool
+
         :param group: builder group id, as defined in config
         :type group: int
         :param username: build owner username, VMM prefer to reuse an existing VM which was use by the same user
         :param pid: builder pid to release VM after build process unhandled death
+
+        :rtype: VmDescriptor
+        :raises: NoVmAvailable  when manager couldn't find suitable VM for the given group and user
         """
-        # TODO: reject request if user acquired #machines > threshold_vm_per_user
         vmd_list = self.get_all_vm_in_group(group)
         vm_count_used_by_user = len([
             vmd for vmd in vmd_list if
-            vmd.bound_to_user==username and vmd.state==VmStates.IN_USE
+            vmd.bound_to_user == username and vmd.state == VmStates.IN_USE
         ])
         if vm_count_used_by_user >= self.opts.build_groups[group]["max_vm_per_user"]:
             raise NoVmAvailable("No VM are available, user `{}` already acquired #{} VMs"
@@ -213,8 +225,9 @@ class VmManager(object):
         # TODO: record last_copr_backend_startup_time at startup
         for vmd in all_vms:
             vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
-            if self.lua_scripts["acquire_vm"](keys=[vm_key], args=[username, pid, time.time(),
-                                                                   task_id, build_id, chroot]) == "OK":
+            if self.lua_scripts["acquire_vm"](keys=[vm_key, KEY_SERVER_INFO],
+                                              args=[username, pid, time.time(),
+                                                    task_id, build_id, chroot]) == "OK":
                 return vmd
         else:
             raise NoVmAvailable("No VM are available, please wait in queue. Group: {}".format(group))

@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import random
 
 import types
 import time
@@ -10,7 +11,7 @@ import six
 
 from backend import exceptions
 from backend.exceptions import VmError, NoVmAvailable
-from backend.vm_manage import VmStates, KEY_VM_POOL, PUBSUB_VM_TERMINATION, PUBSUB_MB, EventTopics
+from backend.vm_manage import VmStates, KEY_VM_POOL, PUBSUB_VM_TERMINATION, PUBSUB_MB, EventTopics, KEY_SERVER_INFO
 from backend.vm_manage.manager import VmManager
 from backend.daemons.vm_master import VmMaster
 from backend.helpers import get_redis_connection
@@ -191,9 +192,42 @@ class TestManager(object):
             self.checker.run_check_health.reset_mock()
             assert vmd.get_field(self.rc, "state") == state
 
-    def test_acquire_vm_extra_kwargs(self):
+    def test_acquire_vm_no_vm_after_server_restart(self, mc_time):
         vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
         vmd.store_field(self.rc, "state", VmStates.READY)
+
+        # undefined both last_health_check and server_start_timestamp
+        with pytest.raises(NoVmAvailable):
+            self.vmm.acquire_vm(0, self.username, 42)
+
+        # only server start timestamp is defined
+        mc_time.time.return_value = 1
+        self.vmm.mark_server_start()
+        with pytest.raises(NoVmAvailable):
+            self.vmm.acquire_vm(0, self.username, 42)
+
+        # only last_health_check defined
+        self.rc.delete(KEY_SERVER_INFO)
+        vmd.store_field(self.rc, "last_health_check", 0)
+        with pytest.raises(NoVmAvailable):
+            self.vmm.acquire_vm(0, self.username, 42)
+
+        # both defined but last_health_check < server_start_time
+        self.vmm.mark_server_start()
+        with pytest.raises(NoVmAvailable):
+            self.vmm.acquire_vm(0, self.username, 42)
+
+        # and finally last_health_check > server_start_time
+        vmd.store_field(self.rc, "last_health_check", 2)
+        vmd_res = self.vmm.acquire_vm(0, self.username, 42)
+        assert vmd.vm_name == vmd_res.vm_name
+
+    def test_acquire_vm_extra_kwargs(self, mc_time):
+        mc_time.time.return_value = 0
+        self.vmm.mark_server_start()
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd.store_field(self.rc, "state", VmStates.READY)
+        vmd.store_field(self.rc, "last_health_check", 2)
 
         kwargs = {
             "task_id": "20-fedora-20-x86_64",
@@ -204,13 +238,18 @@ class TestManager(object):
         for k, v in kwargs.items():
             assert vmd_got.get_field(self.rc, k) == v
 
-    def test_acquire_vm(self):
+    def test_acquire_vm(self, mc_time):
+        mc_time.time.return_value = 0
+        self.vmm.mark_server_start()
+
         vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
         vmd_alt = self.vmm.add_vm_to_pool(self.vm_ip, "alternative", self.group)
 
         vmd_main.store_field(self.rc, "state", VmStates.READY)
         vmd_alt.store_field(self.rc, "state", VmStates.READY)
         vmd_alt.store_field(self.vmm.rc, "bound_to_user", self.username)
+        vmd_main.store_field(self.rc, "last_health_check", 2)
+        vmd_alt.store_field(self.rc, "last_health_check", 2)
 
         vmd_got_first = self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
         assert vmd_got_first.vm_name == "alternative"
@@ -220,12 +259,16 @@ class TestManager(object):
         with pytest.raises(NoVmAvailable):
             self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
 
-    def test_acquire_vm_per_user_limit(self):
+    def test_acquire_vm_per_user_limit(self, mc_time):
+        mc_time.time.return_value = 0
+        self.vmm.mark_server_start()
+
         max_vm_per_user = self.opts.build_groups[0]["max_vm_per_user"]
         acquired_vmd_list = []
         for idx in range(max_vm_per_user + 1):
             vmd = self.vmm.add_vm_to_pool("127.0.{}.1".format(idx), "vm_{}".format(idx), self.group)
             vmd.store_field(self.rc, "state", VmStates.READY)
+            vmd.store_field(self.rc, "last_health_check", 2)
             acquired_vmd_list.append(vmd)
 
         for idx in range(max_vm_per_user):
@@ -237,8 +280,12 @@ class TestManager(object):
         acquired_vmd_list[-1].store_field(self.rc, "state", VmStates.READY)
         self.vmm.acquire_vm(0, self.username, 42)
 
-    def test_acquire_only_ready_state(self):
+    def test_acquire_only_ready_state(self, mc_time):
+        mc_time.time.return_value = 0
+        self.vmm.mark_server_start()
+
         vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd_main.store_field(self.rc, "last_health_check", 2)
 
         for state in [VmStates.IN_USE, VmStates.GOT_IP, VmStates.CHECK_HEALTH,
                       VmStates.TERMINATING, VmStates.CHECK_HEALTH_FAILED]:
@@ -246,13 +293,19 @@ class TestManager(object):
             with pytest.raises(NoVmAvailable):
                 self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
 
-    def test_acquire_and_release_vm(self):
+    def test_acquire_and_release_vm(self, mc_time):
+        mc_time.time.return_value = 0
+        self.vmm.mark_server_start()
+
+
         vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
         vmd_alt = self.vmm.add_vm_to_pool(self.vm_ip, "alternative", self.group)
 
         vmd_main.store_field(self.rc, "state", VmStates.READY)
         vmd_alt.store_field(self.rc, "state", VmStates.READY)
         vmd_alt.store_field(self.vmm.rc, "bound_to_user", self.username)
+        vmd_main.store_field(self.rc, "last_health_check", 2)
+        vmd_alt.store_field(self.rc, "last_health_check", 2)
 
         vmd_got_first = self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
         assert vmd_got_first.vm_name == "alternative"
@@ -394,3 +447,11 @@ class TestManager(object):
         r3 = sorted(r3, key=lambda vmd: vmd.vm_name)
         assert r3[0].vm_name == "a1"
         assert r3[1].vm_name == "a2"
+
+    def test_mark_server_start(self, mc_time):
+        assert self.rc.hget(KEY_SERVER_INFO, "server_start_timestamp") is None
+        for i in range(100):
+            val = 100 * i + 0.12345
+            mc_time.time.return_value = val
+            self.vmm.mark_server_start()
+            assert self.rc.hget(KEY_SERVER_INFO, "server_start_timestamp") == "{}".format(val)

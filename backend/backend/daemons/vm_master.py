@@ -149,7 +149,7 @@ class VmMaster(Process):
             raise RuntimeError("provide Spawner and Terminator to run VmManager daemon")
 
         setproctitle("VM master")
-
+        self.vmm.mark_server_start()
         self.kill_received = False
 
         self.event_handler = EventHandler(self.vmm)
