@@ -96,16 +96,7 @@ def copr_new_build(username, coprname):
     form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
 
     if form.validate_on_submit():
-        pkgs = form.pkgs.data.replace("\n", " ").split(" ")
-
-        # validate (and skip bad) urls
-        bad_urls = []
-        for pkg in pkgs:
-            if not re.match("^.*\.src\.rpm$", pkg):
-                bad_urls.append(pkg)
-                flask.flash("Bad url: {0} (skipped)".format(pkg))
-        for bad_url in bad_urls:
-            pkgs.remove(bad_url)
+        pkgs = form.pkgs.data.split("\n")
 
         if not pkgs:
             flask.flash("No builds submitted")
@@ -134,7 +125,9 @@ def copr_new_build(username, coprname):
                 flask.flash(str(e))
                 db.session.rollback()
             else:
-                flask.flash("Build was added")
+                for pkg in pkgs:
+                    flask.flash("New build was created: {}".format(pkg))
+
                 db.session.commit()
 
         return flask.redirect(flask.url_for("coprs_ns.copr_builds",

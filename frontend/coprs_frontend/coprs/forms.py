@@ -97,6 +97,13 @@ class StringListFilter(object):
         return regex.sub(lambda x: '\n', result)
 
 
+class SrpmUrlListFilter(object):
+
+    def __call__(self, value):
+        return "\n".join(pkg for pkg in value.replace("\n", " ").split(" ")
+                         if pkg.endswith(".src.rpm"))
+
+
 class ValueToPermissionNumberFilter(object):
 
     def __call__(self, value):
@@ -217,9 +224,10 @@ class BuildFormFactory(object):
             pkgs = wtforms.TextAreaField(
                 "Pkgs",
                 validators=[
-                    wtforms.validators.Required(),
+                    wtforms.validators.DataRequired(),
                     UrlListValidator()],
-                filters=[StringListFilter()])
+                filters=[StringListFilter(),
+                         SrpmUrlListFilter()])
 
             memory_reqs = wtforms.IntegerField(
                 "Memory requirements",
