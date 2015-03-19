@@ -126,11 +126,18 @@ def parse_package_name(pkg):
 
 @app.template_filter("build_state_description")
 def build_state_decoration(state):
-    description = ""
-    if state == "skipped":
-        description = "This package has already been built previously"
 
-    return description
+    description_map = {
+        "failed": "Build failed. See logs for more details.",
+        "succeeded": "Successfully built.",
+        "canceled": "The build has been cancelled manually.",
+        "running": "Build in progress.",
+        "pending": "Your build is waiting for a builder.",
+        "skipped": "This package has already been built previously.",
+        "starting": "Trying to acquire and configure builder for task."
+    }
+
+    return description_map.get(state, "")
 
 
 @app.template_filter("fix_url_https_backend")

@@ -5,6 +5,26 @@
 {% block overview_selected %}selected{% endblock %}
 
 {% block detail_body %}
+  <br />
+  <div class="latest_build">
+    {% if latest_build %}
+
+      <a href="{{url_for("coprs_ns.copr_build",
+                         username = copr.owner.name,
+                         coprname = copr.name,
+                         build_id = latest_build.id)}}">
+        Latest build
+        #{{ latest_build.id }}:
+
+      </a>
+      <abbr class="build-{{latest_build.state}}" title="{{latest_build.state|build_state_description}}">{{ latest_build.state }}</abbr>,
+      submitted {{ latest_build.submitted_on|time_ago }} ago
+    {% else %}
+      No build submitted yet
+    {% endif %}
+
+  </div>
+
   <h2>Description</h2>
   <div class="shift-right">{{ copr.description|markdown|default('Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.', true) }}</div>
   <h2>Installation Instructions</h2>

@@ -218,12 +218,17 @@ def copr_detail(username, coprname):
 
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
 
-    return flask.render_template("coprs/detail/overview.html",
-                                 copr=copr,
-                                 form=form,
-                                 repo_dl_stat=repo_dl_stat,
-                                 repos_info_list=repos_info_list,
-                                 )
+    builds = builds_logic.BuildsLogic.get_multiple(
+        flask.g.user, copr=copr).limit(1).all()
+
+    return flask.render_template(
+        "coprs/detail/overview.html",
+        copr=copr,
+        form=form,
+        repo_dl_stat=repo_dl_stat,
+        repos_info_list=repos_info_list,
+        latest_build=builds[0] if len(builds) == 1 else None,
+    )
 
 
 @coprs_ns.route("/<username>/<coprname>/permissions/")

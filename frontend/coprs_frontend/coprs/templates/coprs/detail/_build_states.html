@@ -2,34 +2,22 @@
     <dl class="aligned">
         <div>
             <dt> Possible build states: </dt>
+            {% for state in [
+              "pending",
+              "starting",
+              "running",
+              "succeeded",
+              "canceled",
+              "skipped",
+              "failed",
+              "canceled",
+            ]%}
             <dd>
-                <span class="build-pending"> Pending </span>
-                - Your build is waiting for a builder.
+                <span class="build-{{state}}"> {{state|capitalize}} </span>
+                - {{state|build_state_description}}
             </dd>
-            <dd>
-                <span class="build-starting"> Starting </span>
-                - A builder is being spawned.
-            </dd>
-            <dd>
-                <span class="build-running"> Running </span>
-                - Build in progress.
-            </dd>
-            <dd>
-                <span class="build-succeeded"> Succeeded </span>
-                - Succesfully built.
-            </dd>
-            <dd>
-                <span class="build-skipped"> Skipped </span>
-                - Package has been skipped because it has been successfully built before.
-            </dd>
-            <dd>
-                <span class="build-failed"> Failed </span>
-                - Build failed. The reason could be timeout or the package itself. See logs for more details.
-            </dd>
-            <dd>
-                <span class="build-cancelled"> Cancelled </span>
-                - The build has been cancelled manually.
-            </dd>
+
+            {% endfor %}
         </div>
     </dl>
 {% endmacro %}
