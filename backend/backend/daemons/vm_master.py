@@ -89,7 +89,6 @@ class VmMaster(Process):
             group, [VmStates.GOT_IP, VmStates.READY, VmStates.IN_USE, VmStates.CHECK_HEALTH])
 
         # self.log("Spawner proc count: {}".format(self.vmm.spawner.children_number))
-        #self.log("active VM#: {}".format(map(lambda x: (x.vm_name, x.state), active_vmd_list)))
         total_vm_estimation = len(active_vmd_list) + self.vmm.spawner.children_number
         if total_vm_estimation >= max_vm_total:
             self.log("Skip spawn: max total vm reached for group {}: vm count: {}, spawn process: {}"
@@ -130,18 +129,16 @@ class VmMaster(Process):
         self.log("starting do_cycle")
 
         # TODO: each check should be executed in threads ... and finish with join?
-        # self.terminate_abandoned_vms()
+
         self.remove_old_dirty_vms()
         self.check_vms_health()
         self.start_spawn_if_required()
 
         self.finalize_long_health_checks()
         self.terminate_again()
-
         self.vmm.spawner.recycle()
 
         # todo: self.terminate_excessive_vms() -- for case when config changed during runtime
-
         # todo: self.terminate_old_unchecked_vms()
 
     def run(self):
@@ -186,7 +183,6 @@ class VmMaster(Process):
         Non-terminated instance detected as vm in the `terminating` state with time.time() - `terminating since` > Threshold
         It's possible, that VM was terminated but termination process doesn't receive confirmation from VM provider,
         but we have already got a new VM with the same IP => it's safe to remove old vm from pool
-        :return:
         """
 
         for vmd in self.vmm.get_vm_by_group_and_state_list(None, [VmStates.TERMINATING]):
