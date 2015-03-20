@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.58
+Version:    1.59
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -219,6 +219,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Mar 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.59-1
+- [backend][hotfix] 1203753 : don't process delete action if src_pkg is
+  mallformed
+
 * Mon Mar 02 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.58-1
 - [rhbz:#1185959] - RFE: Present statistics about project
   popularity. A few more counters for downloads from backend's result
