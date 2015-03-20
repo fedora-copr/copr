@@ -7,7 +7,7 @@ DAYS=$2
 pushd $REPOPATH >/dev/null
 
 
-for CHROOT in $(ls $REPOPATH); do
+for CHROOT in $(ls -d $REPOPATH/*/); do
     pushd $CHROOT >/dev/null
 
     # remove old failed builds
