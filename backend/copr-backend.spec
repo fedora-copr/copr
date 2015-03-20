@@ -25,6 +25,7 @@ BuildRequires: python-requests
 BuildRequires: python2-devel
 BuildRequires: python-copr
 BuildRequires: systemd
+BuildRequires: redis
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -159,9 +160,12 @@ cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 
 %check
 
+redis-server --port 7777 &> /dev/null &
+
 PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
   -s --cov-report term-missing --cov ./backend --cov ./run ./tests/
 
+kill %1
 
 %pre
 getent group copr >/dev/null || groupadd -r copr
