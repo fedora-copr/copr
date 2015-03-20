@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.59
+Version:    1.60
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -223,6 +223,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Mar 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.60-1
+- [backend][spec] start/stop redis server during package build tests
+
 * Fri Mar 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.59-1
 - [backend][hotfix] 1203753 : don't process delete action if src_pkg is
   mallformed
