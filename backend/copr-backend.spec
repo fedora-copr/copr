@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.58
+Version:    1.60
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -25,6 +25,7 @@ BuildRequires: python-requests
 BuildRequires: python2-devel
 BuildRequires: python-copr
 BuildRequires: systemd
+BuildRequires: redis
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -162,9 +163,12 @@ cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 
 %check
 
-#PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
-#  -s --cov-report term-missing --cov ./backend --cov ./run ./tests/
+redis-server --port 7777 &> /dev/null &
 
+PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
+  -s --cov-report term-missing --cov ./backend --cov ./run ./tests/
+
+kill %1
 
 %pre
 getent group copr >/dev/null || groupadd -r copr
@@ -223,6 +227,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Mar 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.60-1
+- [backend][spec] start/stop redis server during package build tests
+
+* Fri Mar 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.59-1
+- [backend][hotfix] 1203753 : don't process delete action if src_pkg is
+  mallformed
+
 * Mon Mar 02 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.58-1
 - [rhbz:#1185959] - RFE: Present statistics about project
   popularity. A few more counters for downloads from backend's result

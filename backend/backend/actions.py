@@ -107,6 +107,11 @@ class Action(object):
         chroots_requested = set(ext_data["chroots"])
 
         package_name = os.path.basename(ext_data["pkgs"]).replace(".src.rpm", "")
+        # TODO: replace with explicit pkg_name, send cleaned string into the action
+        if not package_name:
+            self.add_event("Bad package name {}, action data: {} ".format(package_name, ext_data))
+            return
+
         path = os.path.join(self.destdir, project)
 
         self.add_event("Deleting package {0}".format(package_name))
