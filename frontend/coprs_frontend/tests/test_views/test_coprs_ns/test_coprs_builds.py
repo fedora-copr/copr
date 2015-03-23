@@ -104,9 +104,11 @@ class TestCoprDeleteBuild(CoprsTestCase):
                                                    f_coprs, f_mock_chroots,
                                                    f_builds, f_db):
 
-        self.db.session.add_all([self.u1, self.c1, self.b1])
-        pkgs = "one two three"
+        pkgs = "http://example.com/one.src.rpm"
         self.b1.pkgs = pkgs
+        self.db.session.add_all([self.u1, self.c1, self.b1])
+        self.db.session.commit()
+
         r = self.test_client.post(
             "/coprs/{0}/{1}/delete_build/{2}/"
             .format(self.u1.name, self.c1.name, self.b1.id),
@@ -120,7 +122,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
         act = self.models.Action.query.first()
         assert act.object_type == "build"
         assert act.old_value == "user1/foocopr"
-        assert json.loads(act.data)["pkgs"] == pkgs
+        assert json.loads(act.data)["src_pkg_name"] == self.b1.src_pkg_name
 
     @TransactionDecorator("u2")
     def test_copr_build_non_submitter_cannot_delete_build(self, f_users,

@@ -106,12 +106,12 @@ class Action(object):
         projectname = ext_data["projectname"]
         chroots_requested = set(ext_data["chroots"])
 
-        package_name = os.path.basename(ext_data["pkgs"]).replace(".src.rpm", "")
-        # TODO: replace with explicit pkg_name, send cleaned string into the action
-        if not package_name:
-            self.add_event("Bad package name {}, action data: {} ".format(package_name, ext_data))
+        if not ext_data.get("src_pkg_name"):
+            self.add_event("Delete build action missing `src_pkg_name` field, check frontend version. Raw ext_data: {}"
+                           .format(ext_data))
             return
 
+        package_name = ext_data["src_pkg_name"]
         path = os.path.join(self.destdir, project)
 
         self.add_event("Deleting package {0}".format(package_name))

@@ -212,6 +212,10 @@ class BuildsLogic(object):
 
     @classmethod
     def delete_build(cls, user, build):
+        """
+        :type user: models.User
+        :type build: models.Build
+        """
         if not user.can_build_in(build.copr):
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to delete this build.")
@@ -229,8 +233,8 @@ class BuildsLogic(object):
                 if chroot.state not in ["skipped"]
             ]
 
-            if chroots_to_delete:
-                data_dict = {"pkgs": build.pkgs,
+            if chroots_to_delete and build.src_pkg_name:
+                data_dict = {"src_pkg_name": build.src_pkg_name,
                              "username": build.copr.owner.name,
                              "projectname": build.copr.name,
                              "chroots": chroots_to_delete}

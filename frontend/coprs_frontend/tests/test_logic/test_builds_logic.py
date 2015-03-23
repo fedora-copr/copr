@@ -120,6 +120,9 @@ class TestBuildsLogic(CoprsTestCase):
 
     def test_delete_build_basic(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+
+        self.b1.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
+        self.db.session.add(self.b1)
         self.db.session.commit()
 
         expected_chroots_to_delete = set()
@@ -134,7 +137,28 @@ class TestBuildsLogic(CoprsTestCase):
         action = ActionsLogic.get_many().one()
         delete_data = json.loads(action.data)
         assert "chroots" in delete_data
+        assert "copr-keygen-1.58-1.fc20" == delete_data["src_pkg_name"]
         assert expected_chroots_to_delete == set(delete_data["chroots"])
+
+        with pytest.raises(NoResultFound):
+            BuildsLogic.get(self.b1.id).one()
+
+    def test_delete_build_bad_src_pkg(
+            self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+
+        self.b1.pkgs = "http://example.com/"
+        self.db.session.add(self.b1)
+        self.db.session.commit()
+
+        expected_chroots_to_delete = set()
+        for bchroot in self.b1_bc:
+            expected_chroots_to_delete.add(bchroot.name)
+
+        assert len(ActionsLogic.get_many().all()) == 0
+        BuildsLogic.delete_build(self.u1, self.b1)
+        self.db.session.commit()
+
+        assert len(ActionsLogic.get_many().all()) == 0
 
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b1.id).one()
@@ -159,6 +183,8 @@ class TestBuildsLogic(CoprsTestCase):
         for bchroot in self.b1_bc[1:-1]:
             bchroot.status = helpers.StatusEnum("skipped")
 
+        self.b1.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
+        self.db.session.add(self.b1)
         self.db.session.commit()
 
         assert len(ActionsLogic.get_many().all()) == 0

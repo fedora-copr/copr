@@ -59,7 +59,7 @@ class TestAction(object):
         self.pkgs_stripped = ["foo"]
 
         self.ext_data_for_delete_build = json.dumps({
-            "pkgs": " ".join(self.pkgs),
+            "src_pkg_name": self.pkgs_stripped[0],
             "username": "foo",
             "projectname": "bar",
             "chroots": ["fedora20", "epel7"]
@@ -514,7 +514,7 @@ class TestAction(object):
                 "id": 15,
                 "old_value": "old_dir",
                 "data": json.dumps({
-                    "pkgs": "rubygem-log4r-1.1.10-2.fc21.src.rpm",
+                    "src_pkg_name": "rubygem-log4r-1.1.10-2.fc21",
                     "username": "foo",
                     "projectname": "bar",
                     "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
@@ -583,7 +583,7 @@ class TestAction(object):
                 "id": 15,
                 "old_value": "old_dir",
                 "data": json.dumps({
-                    "pkgs": "rubygem-log4r-1.1.10-2.fc21.src.rpm",
+                    "src_pkg_name": "rubygem-log4r-1.1.10-2.fc21",
                     "username": "foo",
                     "projectname": "bar",
                     "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
@@ -636,7 +636,7 @@ class TestAction(object):
                 "id": 15,
                 "old_value": "old_dir",
                 "data": json.dumps({
-                    "pkgs": "http://example.com/",
+                    "src_pkg_name": "",
                     "username": "foo",
                     "projectname": "bar",
                     "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
