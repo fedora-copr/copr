@@ -47,6 +47,8 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
         cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = cmd.communicate()
 
+    # TODO: rewrite with raise CreateRepoException on  returncode != 0
+    #  and return only stdout on success
     return cmd.returncode, out, err
 
 

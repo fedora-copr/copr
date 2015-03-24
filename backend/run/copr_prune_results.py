@@ -58,20 +58,19 @@ class Pruner(object):
                     log.info("Removing failed build: {}".format(build_path))
                     shutil.rmtree(build_path)
 
-    def prune_obsolete_success_builds(self, chroot_path, username, projectname):
+    def prune_obsolete_success_builds(self, chroot_path):
         """
         Uses bash script which invokes repoquery to find obsolete build_dirs
 
         :param chroot_path: path to the chroot directory
-        :return:
         """
         # import ipdb; ipdb.set_trace()
         cmd = map(str, [self.prune_sh_script, chroot_path, self.days])
         handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = handle.communicate()
         if handle.returncode != 0:
-            log.error("Failed to prune old builds for copr {}/{}\n STDOUT: \n{}\n STDERR: \n{}\n"
-                      .format(username, projectname, stdout.decode(), stderr.decode()))
+            log.error("Failed to prune old builds at: {} \n STDOUT: \n{}\n STDERR: \n{}\n"
+                      .format(chroot_path, stdout.decode(), stderr.decode()))
             return
         # log.debug("find obsolete returned:\n {}\n stderr: \n {}".format(stdout, stderr))
         for line in stdout.split("\n"):
@@ -121,31 +120,32 @@ class Pruner(object):
 
         # run prune project sh
         for sub_dir_name in os.listdir(project_path):
-            if sub_dir_name == "repodata":
-                continue
             chroot_path = os.path.join(project_path, sub_dir_name)
             if not os.path.isdir(chroot_path):
                 continue
 
             try:
                 self.prune_failed_builds(chroot_path)
-                self.prune_obsolete_success_builds(chroot_path, username, projectname)
+                self.prune_obsolete_success_builds(chroot_path)
             except Exception as err:
                 log.exception(err)
-                log.error("Error during prune copr {}/{}".format(username, projectname))
+                log.error("Error during prune copr {}/{}:{}".format(username, projectname, sub_dir_name))
 
-            log.debug("Prune done for {}/{}".format(username, projectname))
+            log.debug("Prune done for {}/{}:{}".format(username, projectname, sub_dir_name))
             # run createrepo
 
             try:
-                retcode, stdout, stderr = createrepo_unsafe(project_path)
+                retcode, stdout, stderr = createrepo_unsafe(chroot_path)
                 if retcode != 0:
                     log.error(
-                        "Createrepo for copr {}/{}\n STDOUT: \n{}\n STDERR: \n{}\n"
-                        .format(username, projectname, stdout.decode(), stderr.decode()))
+                        "Failed to createrepo for copr {}/{}:{}\n STDOUT: \n{}\n STDERR: \n{}\n"
+                        .format(username, projectname, sub_dir_name, stdout.decode(), stderr.decode()))
+                else:
+                    log.info("Createrepo done for copr {}/{}:{}"
+                             .format(username, projectname, sub_dir_name))
             except Exception as exception:
-                log.exception("Createrepo for copr {}/{} failed with error: {}"
-                              .format(username, projectname, exception))
+                log.exception("Createrepo for copr {}/{}:{} failed with error: {}"
+                              .format(username, projectname, sub_dir_name, exception))
 
         log.info("Prune finished for copr {}/{}".format(username, projectname))
 
