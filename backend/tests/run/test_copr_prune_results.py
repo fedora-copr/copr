@@ -78,7 +78,7 @@ class TestPruneResults(object):
         self.prj = "foox"
         self.chroots = ["fedora-20-i386", "fedora-20-x86_64"]
         self.opts = Bunch(
-            days=14,
+            prune_days=14,
 
             find_obsolete_script=os.path.abspath(
                 os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
@@ -113,7 +113,7 @@ class TestPruneResults(object):
 
     def make_temp_dir(self):
         root_tmp_dir = tempfile.gettempdir()
-        subdir = "test_action_{}".format(self.test_time)
+        subdir = "test_prune_old_{}".format(self.test_time)
         self.tmp_dir_name = os.path.join(root_tmp_dir, subdir)
 
         os.mkdir(self.tmp_dir_name)
@@ -300,7 +300,6 @@ class TestPruneResults(object):
 
         assert mc_cru.called
 
-
     def test_prune_project_skip_when_acr_disabled(self, test_pruner, mc_cru, mc_gacs):
         self.pruner.prune_failed_builds = MagicMock()
         self.pruner.prune_obsolete_success_builds = MagicMock()
@@ -317,7 +316,6 @@ class TestPruneResults(object):
         self.pruner.prune_project = MagicMock()
 
         self.pruner.run()
-
 
     def test_main(self, mc_pruner, mc_bcr):
         prune_main()

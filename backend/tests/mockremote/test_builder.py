@@ -3,6 +3,7 @@ import copy
 
 from collections import defaultdict
 from pprint import pprint
+import socket
 from bunch import Bunch
 from backend.exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError, VmError
 
@@ -34,6 +35,13 @@ from backend.mockremote.builder import Builder
 
 
 MODULE_REF = "backend.mockremote.builder"
+
+
+@pytest.yield_fixture
+def mc_socket():
+    with mock.patch("{}.socket".format(MODULE_REF)) as handle:
+        yield handle
+
 
 def noop(*args, **kwargs):
     pass
@@ -301,7 +309,8 @@ class TestBuilder(object):
         results = {"contacted": {}, "dark": {}}
         assert {} == builder_module.get_ans_results(results, self.BUILDER_HOSTNAME)
 
-    def test_check_hostname_check(self):
+    def test_check_hostname_check(self, mc_socket):
+        mc_socket.gethostbyname.side_effect = socket.gaierror()
         builder = self.get_test_builder()
         for name in ["*", "256.0.0.1"]:
             with pytest.raises(BuilderError):
@@ -309,8 +318,9 @@ class TestBuilder(object):
                 builder.hostname = name
                 builder.check()
 
-    def test_check_missing_required_binaries(self):
+    def test_check_missing_required_binaries(self, mc_socket):
         builder = self.get_test_builder()
+        self.stage = 0
 
         def ans_run():
             self.stage_ctx[self.stage]["conn"] = copy.deepcopy(builder.conn)
@@ -326,11 +336,12 @@ class TestBuilder(object):
             builder.check()
 
         # import ipdb; ipdb.set_trace()
+        # pprint(self.stage_ctx)
         assert "/bin/rpm -q mock rsync" in self.stage_ctx[0]["conn"].module_args
 
         assert "does not have mock or rsync installed" in err.value.msg
 
-    def test_check_missing_mockchain_or_mock_config(self):
+    def test_check_missing_mockchain_or_mock_config(self, mc_socket):
         builder = self.get_test_builder()
 
         def ans_run():
@@ -346,13 +357,14 @@ class TestBuilder(object):
         with pytest.raises(BuilderError) as err:
             builder.check()
 
+        # pprint(self.stage_ctx)
         assert "/usr/bin/test -f /usr/bin/mockchain" in self.stage_ctx[1]["conn"].module_args
         # assert "/usr/bin/test -f /etc/mock/{}.cfg".format(self.BUILDER_CHROOT) in \
         #        self.stage_ctx[1]["conn"].module_args
 
         assert "missing mockchain binary" in err.value.msg
 
-    def test_check_missing_mock_config(self):
+    def test_check_missing_mock_config(self, mc_socket):
         builder = self.get_test_builder()
 
         ret_map = {
@@ -370,6 +382,7 @@ class TestBuilder(object):
         with pytest.raises(BuilderError) as err:
             builder.check()
 
+        # pprint(self.stage_ctx)
         assert "/usr/bin/test -f /usr/bin/mockchain" in self.stage_ctx[1]["conn"].module_args
         assert "/usr/bin/test -f /etc/mock/{}.cfg".format(self.BUILDER_CHROOT) in \
                self.stage_ctx[2]["conn"].module_args

@@ -84,6 +84,8 @@ class VmMaster(Process):
                 self.vmm.start_vm_check(vmd.vm_name)
 
     def try_spawn_one(self, group):
+        # TODO: add setting "max_vm_in_ready_state", when this number reached, do not spawn more VMS, min value = 1
+
         max_vm_total = self.opts.build_groups[group]["max_vm_total"]
         active_vmd_list = self.vmm.get_vm_by_group_and_state_list(
             group, [VmStates.GOT_IP, VmStates.READY, VmStates.IN_USE, VmStates.CHECK_HEALTH])
@@ -92,7 +94,7 @@ class VmMaster(Process):
         total_vm_estimation = len(active_vmd_list) + self.vmm.spawner.children_number
         if total_vm_estimation >= max_vm_total:
             self.log("Skip spawn: max total vm reached for group {}: vm count: {}, spawn process: {}"
-                     .format(group, len(active_vmd_list), self.opts.build_groups[group]["max_vm_total"]))
+                     .format(group, len(active_vmd_list), self.vmm.spawner.children_number))
             return
         last_vm_spawn_start = self.vmm.rc.hget(KEY_VM_POOL_INFO.format(group=group), "last_vm_spawn_start")
         if last_vm_spawn_start:

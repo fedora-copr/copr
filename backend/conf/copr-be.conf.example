@@ -41,7 +41,7 @@ group0_archs=i386,x86_64
 group0_spawn_playbook=/srv/copr-work/provision/builderpb-PC.yml
 group0_terminate_playbook=/srv/copr-work/provision/terminatepb-PC.yml
 group0_max_workers=8
-
+group0_max_vm_total=2
 
 # That variables will be send to
 # terminate_playbook ansible script.

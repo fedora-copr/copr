@@ -20,15 +20,14 @@ BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
+BuildRequires: yum-utils
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python2-devel
 BuildRequires: python-copr
 BuildRequires: systemd
 BuildRequires: redis
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-BuildRequires: python-argparse
-%endif
+
 #for doc package
 BuildRequires: epydoc
 BuildRequires: graphviz
@@ -48,6 +47,7 @@ BuildRequires: ansible >= 1.2
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
 BuildRequires: python-psutil
+# BuildRequires: python-ipdb
 BuildRequires: wget
 
 Requires:   obs-signd
@@ -75,6 +75,7 @@ Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
 Requires:   python-paramiko
+# Requires:   python-ipdb
 # Requires:   logstash
 
 Requires(post): systemd
@@ -166,7 +167,7 @@ cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 redis-server --port 7777 &> /dev/null &
 
 PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
-  -s --cov-report term-missing --cov ./backend --cov ./run ./tests/
+  -s -v --cov-report term-missing --cov ./backend --cov ./run ./tests/
 
 kill %1
 

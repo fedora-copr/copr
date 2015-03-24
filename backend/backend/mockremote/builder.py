@@ -354,10 +354,10 @@ class Builder(object):
     def check(self):
         # do check of host
         try:
+            # requires name resolve facility
             socket.gethostbyname(self.hostname)
-        except socket.gaierror:
-            raise BuilderError("{0} could not be resolved".format(
-                self.hostname))
+        except IOError:
+            raise BuilderError("{0} could not be resolved".format(self.hostname))
 
         try:
             # check_for_ans_error(res, self.hostname)

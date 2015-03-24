@@ -143,7 +143,7 @@ class Spawner(Executor):
 
     def start_spawn(self, group):
         self.recycle()
-        spawn_playbook = None
+        # spawn_playbook = None
         try:
             spawn_playbook = self.opts.build_groups[group]["spawn_playbook"]
         except KeyError:
