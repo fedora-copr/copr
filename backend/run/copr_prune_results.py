@@ -6,9 +6,15 @@ from __future__ import division
 from __future__ import absolute_import
 
 import os
+import shutil
 import sys
 import logging
 from subprocess import Popen, PIPE
+import time
+
+
+log = logging.getLogger(__name__)
+
 
 from copr.client.exceptions import CoprException, CoprRequestException
 
@@ -17,11 +23,9 @@ sys.path.append("/usr/share/copr/")
 from backend.helpers import BackendConfigReader, get_auto_createrepo_status
 from backend.createrepo import createrepo_unsafe
 
-log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
 
 DEF_DAYS = 14
-DEF_PRUNE_SCRIPT = "/usr/bin/copr_prune_old_builds.sh"
+DEF_FIND_OBSOLETE_SCRIPT = "/usr/bin/copr_find_obsolete_builds.sh"
 
 
 def list_subdir(path):
@@ -29,74 +33,131 @@ def list_subdir(path):
     return dir_names, map(lambda x: os.path.join(path, x), dir_names)
 
 
-def prune_project(opts, path, username, projectname):
-    log.debug("Going to prune {}/{}".format(username, projectname))
-    # get ACR
-    try:
-        if not get_auto_createrepo_status(opts.frontend_base_url, username, projectname):
-            log.debug("Skipped {}/{} since auto createrepo option is disabled"
-                      .format(username, projectname))
+class Pruner(object):
+    def __init__(self, opts):
+        self.opts = opts
+        self.days = getattr(self.opts, "prune_days", DEF_DAYS)
+        self.prune_sh_script = getattr(self.opts, "find_obsolete_script", DEF_FIND_OBSOLETE_SCRIPT)
+
+    def prune_failed_builds(self, chroot_path):
+        """
+        Deletes subdirs (project directories) which contains file `fail`
+            with mtime older then self.days
+
+        :param chroot_path: path to the chroot directory
+        """
+        for sub_dir_name in os.listdir(chroot_path):
+            build_path = os.path.join(chroot_path, sub_dir_name)
+            if not os.path.isdir(build_path):
+                # log.debug("Not a project directory, skipping: {}".format(build_path))
+                continue
+
+            fail_file_path = os.path.join(build_path, "fail")
+            if os.path.exists(fail_file_path) and not os.path.exists(os.path.join(build_path, "success")):
+                if time.time() - os.path.getmtime(fail_file_path) > self.days:
+                    log.info("Removing failed build: {}".format(build_path))
+                    shutil.rmtree(build_path)
+
+    def prune_obsolete_success_builds(self, chroot_path, username, projectname):
+        """
+        Uses bash script which invokes repoquery to find obsolete build_dirs
+
+        :param chroot_path: path to the chroot directory
+        :return:
+        """
+        # import ipdb; ipdb.set_trace()
+        cmd = map(str, [self.prune_sh_script, chroot_path, self.days])
+        handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = handle.communicate()
+        if handle.returncode != 0:
+            log.error("Failed to prune old builds for copr {}/{}\n STDOUT: \n{}\n STDERR: \n{}\n"
+                      .format(username, projectname, stdout.decode(), stderr.decode()))
             return
-    except (CoprException, CoprRequestException) as exception:
-        log.debug("Failed to get project details for {}/{} with error: {}".format(
-            username, projectname, exception))
-        return
+        # log.debug("find obsolete returned:\n {}\n stderr: \n {}".format(stdout, stderr))
+        for line in stdout.split("\n"):
+            if not line.strip() or (len(line) > 0 and line[0] == "#"):
+                continue
+            to_delete = line.strip()
+            log.debug("Obsolete path, check for remove: {}".format(to_delete))
 
-    # run prune project sh
-    days = getattr(opts, "prune_days", DEF_DAYS)
+            if to_delete in os.listdir(chroot_path):
+                to_delete_path = os.path.join(chroot_path, to_delete)
+                if os.path.isdir(to_delete_path):
+                    log.info("Removing obsolete build: {}".format(to_delete_path))
+                    shutil.rmtree(to_delete_path)
 
-    cmd = map(str, [DEF_PRUNE_SCRIPT, path, days])
+    def run(self):
+        results_dir = self.opts.destdir
+        log.info("Pruning results dir: {} ".format(results_dir))
+        user_dir_names, user_dirs = list_subdir(results_dir)
 
-    handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    stdout, stderr = handle.communicate()
+        log.info("Going to process total number: {} of user's directories".format(len(user_dir_names)))
+        log.info("Going to process user's directories: {}".format(user_dir_names))
 
-    if handle.returncode != 0:
-        print("Failed to prune old builds for copr {}/{}".format(username, projectname))
-        print("STDOUT: \n{}".format(stdout.decode()))
-        print("STDERR: \n{}".format(stderr.decode()))
-        return
+        counter = 0
+        for username, subpath in zip(user_dir_names, user_dirs):
+            log.debug("For user `{}` exploring path: {}".format(username, subpath))
+            for projectname, project_path in zip(*list_subdir(subpath)):
+                log.debug("Exploring project `{}` with path: {}".format(projectname, project_path))
+                self.prune_project(project_path, username, projectname)
 
-    # run createrepo
-    log.debug("Prune done for {}/{}".format(username, projectname))
-    try:
-        retcode, stdout, stderr = createrepo_unsafe(path)
-        if retcode != 0:
-            print("Createrepo for {}/{} failed".format(username, projectname))
-            print("STDOUT: \n{}".format(stdout.decode()))
-            print("STDERR: \n{}".format(stderr.decode()))
-    except Exception as exception:
-        print("Createrepo for {}/{} failed with error: {}"
-              .format(username, projectname, exception))
+                counter += 1
+                log.info("Pruned {}. projects".format(counter))
+
+        log.info("Pruning finished")
+
+    def prune_project(self, project_path, username, projectname):
+        log.info("Going to prune {}/{}".format(username, projectname))
+        # get ACR
+        try:
+            if not get_auto_createrepo_status(self.opts.frontend_base_url, username, projectname):
+                log.debug("Skipped {}/{} since auto createrepo option is disabled"
+                          .format(username, projectname))
+                return
+        except (CoprException, CoprRequestException) as exception:
+            log.debug("Failed to get project details for {}/{} with error: {}".format(
+                username, projectname, exception))
+            return
+
+        # run prune project sh
+        for sub_dir_name in os.listdir(project_path):
+            if sub_dir_name == "repodata":
+                continue
+            chroot_path = os.path.join(project_path, sub_dir_name)
+            if not os.path.isdir(chroot_path):
+                continue
+
+            try:
+                self.prune_failed_builds(chroot_path)
+                self.prune_obsolete_success_builds(chroot_path, username, projectname)
+            except Exception as err:
+                log.exception(err)
+                log.error("Error during prune copr {}/{}".format(username, projectname))
+
+            log.debug("Prune done for {}/{}".format(username, projectname))
+            # run createrepo
+
+            try:
+                retcode, stdout, stderr = createrepo_unsafe(project_path)
+                if retcode != 0:
+                    log.error(
+                        "Createrepo for copr {}/{}\n STDOUT: \n{}\n STDERR: \n{}\n"
+                        .format(username, projectname, stdout.decode(), stderr.decode()))
+            except Exception as exception:
+                log.exception("Createrepo for copr {}/{} failed with error: {}"
+                              .format(username, projectname, exception))
+
+        log.info("Prune finished for copr {}/{}".format(username, projectname))
 
 
 def main():
     config_file = os.environ.get("BACKEND_CONFIG", "/etc/copr/copr-be.conf")
-    opts = BackendConfigReader(config_file).read()
-
-    results_dir = opts.destdir
-    log.info("Pruning results dir: {} ".format(results_dir))
-    user_dir_names, user_dirs = list_subdir(results_dir)
-
-    print("Going to process total number: {} of user's directories".format(len(user_dir_names)))
-    log.info("Going to process user's directories: {}".format(user_dir_names))
-
-    counter = 0
-    for username, subpath in zip(user_dir_names, user_dirs):
-        log.debug("For user `{}` exploring path: {}".format(username, subpath))
-        for projectname, project_path in zip(*list_subdir(subpath)):
-            log.debug("Exploring project `{}` with path: {}".format(projectname, project_path))
-            prune_project(opts, project_path, username, projectname)
-
-            counter += 1
-            print("Pruned {}. projects".format(counter))
-
-    print("Pruning finished")
-
+    pruner = Pruner(BackendConfigReader(config_file).read())
+    pruner.run()
 
 if __name__ == "__main__":
-    # logging.basicConfig(
-    #     level=logging.DEBUG,
-    #     format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
-    #     datefmt='%H:%M:%S'
-    # )
+    logging.basicConfig(
+        filename="/var/log/copr/prune_old.log",
+        format='[%(asctime)s][%(levelname)6s]: %(message)s',
+        level=logging.INFO)
     main()
