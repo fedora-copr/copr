@@ -6,7 +6,7 @@ DAYS=$2
 echo "# looking for obsolete files in: " $CHROOT_PATH
 if [ -d $CHROOT_PATH ]
 then
-    pushd $CHROOT_PATH >/dev/null
+    cd $CHROOT_PATH
 
     # query latest (sucessfull) packages
     LATEST_PKGS=$(mktemp)
@@ -33,5 +33,4 @@ then
     done
 
     rm -f $LATEST_PKGS $ERR_LOG
-    popd >/dev/null
 fi

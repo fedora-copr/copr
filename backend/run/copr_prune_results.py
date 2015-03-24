@@ -11,6 +11,7 @@ import sys
 import logging
 from subprocess import Popen, PIPE
 import time
+import pwd
 
 
 log = logging.getLogger(__name__)
@@ -156,8 +157,12 @@ def main():
     pruner.run()
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        filename="/var/log/copr/prune_old.log",
-        format='[%(asctime)s][%(levelname)6s]: %(message)s',
-        level=logging.INFO)
-    main()
+    if pwd.getpwuid(os.getuid())[0] != "copr":
+        print("This script should be executed under the `copr` user")
+        sys.exit(1)
+    else:
+        logging.basicConfig(
+            filename="/var/log/copr/prune_old.log",
+            format='[%(asctime)s][%(levelname)6s]: %(message)s',
+            level=logging.INFO)
+        main()
