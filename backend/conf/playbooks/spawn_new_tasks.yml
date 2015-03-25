@@ -1,0 +1,22 @@
+- name: spin UP VM using nova_compute
+  sudo: False
+  local_action:
+      module: nova_compute
+      insecure: True
+      auth_url: "{{os_auth_url}}"
+      login_username: "admin"
+      login_password: "{{ADMIN_PASS}}"
+      login_tenant_name: "{{inventory_tenant}}"
+      name: "{{inventory_instance_name}}"
+      image_id: "{{ image }}"
+      wait_for: 300
+      flavor_id: "{{ flavor_id }}"
+      security_groups: "{{security_group}}"
+      key_name: "{{ keypair }}"
+      nics: "{{ cloud_networks }}"
+      # floating_ip_pools: "{{ floating_ip_pools }}"
+      floating_ips:
+        - "{{public_ip}}"
+  register: nova_result
+
+- debug: msg="{{ nova_result.info }}"

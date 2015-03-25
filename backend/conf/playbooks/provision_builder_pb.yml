@@ -1,0 +1,16 @@
+- hosts: localhost
+  gather_facts: False
+  tasks:
+  - local_action: add_host hostname={{ vm_ip }} groupname=builder_temp_group
+
+- hosts: builder_temp_group
+  user: fedora
+  sudo: true
+  gather_facts: True
+  #vars:
+  #- files: files/
+
+  tasks:
+  # - debug: msg="test"
+  - include: "provision_builder_tasks.yml"
+
