@@ -33,6 +33,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import fcntl
+import logging
 import os
 
 from bunch import Bunch
@@ -48,7 +49,6 @@ from ..sign import sign_rpms_in_dir, get_pubkey
 from ..createrepo import createrepo
 
 from .builder import Builder
-from .callback import DefaultCallBack
 
 
 def get_target_dir(chroot_dir, pkg_name):
@@ -84,11 +84,8 @@ class MockRemote(object):
     #   mock remote now do too much things
     #   idea: send events according to the build progress to handler
 
-    def __init__(self, builder_host=None, job=None,
-                 repos=None,
-                 callback=None,
-                 opts=None,
-                 lock=None):
+    def __init__(self, builder_host, job, logger,
+                 repos=None, opts=None, lock=None,):
 
         """
         :param builder_host: builder hostname or ip
@@ -105,15 +102,12 @@ class MockRemote(object):
 
 
         :param repos: additional repositories for mock
-        :param backend.mockremote.callback.DefaultCallBack callback: object with hooks for notifications
-                                         about build progress
 
         :param macros: {    "copr_username": ...,
                             "copr_projectname": ...,
                             "vendor": ...}
         :param multiprocessing.Lock lock: instance of Lock shared between
             Copr backend process
-        :param DefaultCallback callback: build progress handler
 
         :param Bunch opts: builder options, used keys::
             :ivar build_user: user to run as/connect as on builder systems
@@ -140,6 +134,8 @@ class MockRemote(object):
         if opts:
             self.opts.update(opts)
 
+        self.log = logger
+
         self.job = job
         self.repos = repos or DEF_REPOS
 
@@ -147,26 +143,22 @@ class MockRemote(object):
         # self.cont = cont    # unused since we build only one pkg at time
         # self.recurse = recurse
 
-        self.callback = callback
         self.lock = lock
 
-        if not self.callback:
-            self.callback = DefaultCallBack()
+        self.log.info("Setting up builder: {0}".format(builder_host))
+        # TODO: add option "builder_log_level" to backend config
+        self.log.setLevel(logging.INFO)
 
-        self.callback.log("Setting up builder: {0}".format(builder_host))
         self.builder = Builder(
             opts=self.opts,
             hostname=builder_host,
             job=self.job,
-            callback=self.callback,
+            logger=logger,
             repos=self.repos
         )
 
         self.failed = []
         self.finished = []
-
-
-        # self.callback.log("MockRemote: {}".format(self.__dict__))
 
     def check(self):
         """
@@ -199,7 +191,7 @@ class MockRemote(object):
             Adds pubkey.gpg with public key to ``chroot_dir``
             using `copr_username` and `copr_projectname` from self.job.
         """
-        self.callback.log("Retrieving pubkey ")
+        self.log.info("Retrieving pubkey ")
         # TODO: sign repodata as well ?
         user = self.job.project_owner
         project = self.job.project_name
@@ -210,12 +202,12 @@ class MockRemote(object):
             #    return
 
             get_pubkey(user, project, pubkey_path)
-            self.callback.log(
+            self.log.info(
                 "Added pubkey for user {} project {} into: {}".
                 format(user, project, pubkey_path))
 
         except Exception as e:
-            self.callback.error(
+            self.log.exception(
                 "failed to retrieve pubkey for user {} project {} due to: \n"
                 "{}".format(user, project, e))
 
@@ -231,46 +223,32 @@ class MockRemote(object):
 
         """
 
-        self.callback.log("Going to sign pkgs from source: {} in chroot: {}".
+        self.log.info("Going to sign pkgs from source: {} in chroot: {}".
                           format(self.pkg, self.chroot_dir))
 
         try:
-            sign_rpms_in_dir(self.job.project_owner,
-                             self.job.project_name,
-                             get_target_dir(self.chroot_dir, self.pkg),
-                             opts=self.opts,
-                             callback=self.callback,)
-        except Exception as e:
-            self.callback.error(
-                "failed to sign packages "
-                "built from `{}` with error: \n"
-                "{}".format(self.pkg, e)
+            sign_rpms_in_dir(
+                self.job.project_owner,
+                self.job.project_name,
+                get_target_dir(self.chroot_dir, self.pkg),
+                opts=self.opts,
+                log=self.log
             )
+        except Exception as e:
+            self.log.exception(
+                "failed to sign packages built from `{}` with error: \n{}".format(self.pkg, e))
             if isinstance(e, MockRemoteError):
-                raise e
+                raise
 
-        self.callback.log("Sign done")
-
-    @staticmethod
-    def log_to_file_safe(filepath, to_out_list, to_err_list):
-        r_log = open(filepath, 'a')
-        fcntl.flock(r_log, fcntl.LOCK_EX)
-        for to_out in to_out_list:
-            r_log.write(to_out)
-        if to_err_list:
-            r_log.write("\nstderr\n")
-            for to_err in to_err_list:
-                r_log.write(str(to_err))
-        fcntl.flock(r_log, fcntl.LOCK_UN)
-        r_log.close()
+        self.log.info("Sign done")
 
     def do_createrepo(self):
         base_url = "/".join([self.opts.results_baseurl, self.job.project_owner,
                              self.job.project_name, self.job.chroot])
-        self.callback.log("Createrepo:: owner:  {}; project: {}; "
-                          "front url: {}; path: {}; base_url: {}"
-                          .format(self.job.project_owner, self.job.project_name,
-                                  self.opts.frontend_base_url, self.chroot_dir, base_url))
+        self.log.debug("Createrepo:: owner:  {}; project: {}; "
+                       "front url: {}; path: {}; base_url: {}"
+                       .format(self.job.project_owner, self.job.project_name,
+                               self.opts.frontend_base_url, self.chroot_dir, base_url))
 
         _, _, err = createrepo(
             path=self.chroot_dir,
@@ -281,15 +259,14 @@ class MockRemote(object):
             lock=self.lock,
         )
         if err.strip():
-            self.callback.error(
-                "Error making local repo: {0}".format(self.chroot_dir))
+            self.log.error(
+                "Error making local repo: {}: {}".format(self.chroot_dir, err))
 
-            self.callback.error(str(err))
             # FIXME - maybe clean up .repodata and .olddata
             # here?
 
     def on_success_build(self):
-        self.callback.log("Success building {0}".format(os.path.basename(self.pkg)))
+        self.log.info("Success building {0}".format(os.path.basename(self.pkg)))
 
         if self.opts.do_sign:
             self.sign_built_packages()
@@ -317,34 +294,25 @@ class MockRemote(object):
         self.prepare_build_dir()
 
         # building
-        self.callback.start_build(self.pkg)
+        self.log.info("Start build: {0}".format(self.pkg))
 
-        build_stdout = ""
         build_error = build_details = None
         try:
             build_details, build_stdout = self.builder.build(self.pkg)
-            self.callback.log("builder.build finished; details: {}\n stdout: {}".format(build_details, build_stdout))
+            self.log.info("builder.build finished; details: {}\n stdout: {}".format(build_details, build_stdout))
         except BuilderError as error:
-            self.callback.log("builder.build error building pkg `{}`: {}".format(self.pkg, error))
+            self.log.exception("builder.build error building pkg `{}`: {}".format(self.pkg, error))
             build_error = error
 
         # TODO: try to use
         # finally:
 
-        self.callback.end_build(self.pkg)
+        self.log.info("End Build: {0}".format(self.pkg))
 
         # downloading
-        self.callback.start_download(self.pkg)
+        self.log.info("Start retrieve results for: {0}".format(self.pkg))
         self.builder.download(self.pkg, self.chroot_dir)
-        self.callback.end_download(self.pkg)
-
-        # add record to mockchain.log # TODO:
-        if build_error is not None:
-            stderr_to_log = build_error.stderr
-        else:
-            stderr_to_log = ""
-        self.log_to_file_safe(os.path.join(self.chroot_dir, "mockchain.log"),
-                              ["\n\n{0}\n\n".format(self.pkg), build_stdout], [stderr_to_log])
+        self.log.info("End retrieve results for: {0}".format(self.pkg))
 
         if build_error:
             raise MockRemoteError("Error occurred during build {}: {}"
@@ -359,13 +327,11 @@ class MockRemote(object):
                 into the directory with downloaded files.
 
         """
-        info_file_path = os.path.join(self._get_pkg_destpath(self.job.pkg),
-                                      "build.info")
-        self.callback.log("mark build dir with build_id, ")
+        info_file_path = os.path.join(self._get_pkg_destpath(self.job.pkg),"build.info")
+        self.log.info("marking build dir with build_id, ")
         try:
             with open(info_file_path, 'w') as info_file:
                 info_file.writelines(["build_id={}".format(self.job.build_id),])
 
         except Exception as error:
-            msg = "Failed to mark build {} with build_id".format(error)
-            self.callback.log(msg)
+            self.log.exception("Failed to mark build {} with build_id".format(error))

@@ -27,3 +27,10 @@ class BuildStatus(object):
 
 
 JOB_GRAB_TASK_END_PUBSUB = "copr:backend:daemons:job_grab:task_end:pubsub::"
+LOG_PUB_SUB = "copr:backend:log:pubsub::"
+
+from logging import Formatter
+default_log_format = Formatter(
+    '[%(asctime)s][%(levelname)6s][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s')
+build_log_format = Formatter(
+    '[%(asctime)s][%(levelname)6s][PID:%(process)d] %(message)s')

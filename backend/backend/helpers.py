@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 import fcntl
+import json
+import logging
+import logging.handlers
 from operator import methodcaller
 import optparse
 import ConfigParser
@@ -13,10 +16,11 @@ import traceback
 
 from bunch import Bunch
 from redis import StrictRedis
+from . import constants
 
 from copr.client import CoprClient
 from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
-    CONSECUTIVE_FAILURE_REDIS_KEY
+    CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
 from backend.exceptions import CoprBackendError
 
 try:
@@ -94,6 +98,7 @@ class BackendConfigReader(object):
         cp.read(self.config_file)
 
         opts = Bunch()
+
         opts.results_baseurl = _get_conf(
             cp, "backend", "results_baseurl", "http://copr")
 
@@ -143,11 +148,14 @@ class BackendConfigReader(object):
                     # default=16, mode="int"),
                     default=8, mode="int"),
                 "max_vm_per_user": _get_conf(
-                    cp, "backend", "group{}_max_vm_total".format(group_id),
+                    cp, "backend", "group{}_max_vm_per_user".format(group_id),
                     default=4, mode="int"),
                 "max_spawn_processes": _get_conf(
                     cp, "backend", "group{}_max_spawn_processes".format(group_id),
                     default=2, mode="int"),
+                "vm_spawn_min_interval": _get_conf(
+                    cp, "backend", "group{}_vm_spawn_min_interval".format(group_id),
+                    default=30, mode="int"),
 
             }
             opts.build_groups.append(group)
@@ -165,6 +173,10 @@ class BackendConfigReader(object):
         opts.consecutive_failure_threshold = _get_conf(
             cp, "builder", "consecutive_failure_threshold",
             DEF_CONSECUTIVE_FAILURE_THRESHOLD, mode="int")
+        opts.log_dir = _get_conf(
+            cp, "backend", "log_dir", "/var/log/copr/")
+        opts.log_level = _get_conf(
+            cp, "backend", "log_level", "info")
         opts.logfile = _get_conf(
             cp, "backend", "logfile", "/var/log/copr/backend.log")
         opts.error_logfile = _get_conf(
@@ -204,20 +216,20 @@ def get_auto_createrepo_status(front_url, username, projectname):
         return True
 
 
-def log(lf, msg, quiet=None):
-    if lf:
-        now = datetime.datetime.utcnow().isoformat()
-        try:
-            with open(lf, "a") as lfh:
-                fcntl.flock(lfh, fcntl.LOCK_EX)
-                lfh.write(str(now) + ":" + msg + "\n")
-                fcntl.flock(lfh, fcntl.LOCK_UN)
-        except (IOError, OSError) as e:
-            sys.stderr.write(
-                "Could not write to logfile {0} - {1}\n".format(lf, str(e)))
-    if not quiet:
-        print(msg)
-
+# def log(lf, msg, quiet=None):
+#     if lf:
+#         now = datetime.datetime.utcnow().isoformat()
+#         try:
+#             with open(lf, "a") as lfh:
+#                 fcntl.flock(lfh, fcntl.LOCK_EX)
+#                 lfh.write(str(now) + ":" + msg + "\n")
+#                 fcntl.flock(lfh, fcntl.LOCK_UN)
+#         except (IOError, OSError) as e:
+#             sys.stderr.write(
+#                 "Could not write to logfile {0} - {1}\n".format(lf, str(e)))
+#     if not quiet:
+#         print(msg)
+#
 
 def register_build_result(opts=None, failed=False):
     """
@@ -242,6 +254,11 @@ def register_build_result(opts=None, failed=False):
 
 
 def get_redis_connection(opts):
+    """
+    Creates redis client object using backend config
+
+    :rtype: StrictRedis
+    """
     # TODO: use host/port from opts
     kwargs = {}
     if hasattr(opts, "redis_db"):
@@ -257,3 +274,53 @@ def get_redis_connection(opts):
 def format_tb(ex, ex_traceback):
     tb_lines = traceback.format_exception(ex.__class__, ex, ex_traceback)
     return ''.join(tb_lines)
+
+
+class RedisPublishHandler(logging.Handler):
+    """
+    :type rc: StrictRedis
+    """
+    def __init__(self, rc, who, level=logging.NOTSET,):
+        super(RedisPublishHandler, self).__init__(level)
+
+        self.rc = rc
+        self.who = who
+
+    def emit(self, record):
+        try:
+            msg = record.__dict__
+            msg["who"] = self.who
+
+            if msg.get("exc_info"):
+                # from celery.contrib import rdb; rdb.set_trace()
+                err_class, error, tb = msg.pop("exc_info")
+                msg["traceback"] = format_tb(error, tb)
+
+            self.rc.publish(constants.LOG_PUB_SUB, json.dumps(msg))
+        except Exception as error:
+            _, _, ex_tb = sys.exc_info()
+            sys.stderr.write("Failed to publish log record to redis, {}"
+                             .format(format_tb(error, ex_tb)))
+
+
+def get_redis_logger(opts, name, who):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    if not logger.handlers:
+        rc = get_redis_connection(opts)
+        handler = RedisPublishHandler(rc, who, level=logging.DEBUG)
+        logger.addHandler(handler)
+
+    return logger
+
+
+def create_file_logger(name, filepath, fmt=None):
+    logger = logging.getLogger(name)
+
+    if not logger.handlers:
+        handler = logging.handlers.WatchedFileHandler(filename=filepath)
+        handler.setFormatter(fmt if fmt is not None else default_log_format)
+        logger.addHandler(handler)
+
+    return logger

@@ -21,9 +21,9 @@ from retask import ConnectionError
 from backend.frontend import FrontendClient
 
 from ..exceptions import CoprBackendError
-from ..helpers import BackendConfigReader
+from ..helpers import BackendConfigReader, get_redis_logger
 from .job_grab import CoprJobGrab
-from .log import CoprBackendLog
+from .log import RedisLogHandler
 from .dispatcher import Worker
 
 from .vm_master import VmMaster
@@ -63,13 +63,15 @@ class CoprBackend(object):
         self.lock = multiprocessing.Lock()
 
         self.task_queues = {}
-        self.events = multiprocessing.Queue()
+
         # event format is a dict {when:time, who:[worker|logger|job|main],
         # what:str}
-        self.frontend_client = FrontendClient(self.opts, self.events)
+        self.frontend_client = FrontendClient(self.opts)
         self.abort = False
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0o750)
+
+        self.log = get_redis_logger(self.opts, "backend.main", "backend")
 
     def clean_task_queues(self):
         """
@@ -104,22 +106,27 @@ class CoprBackend(object):
         - Create backend logger
         - Create job grabber
         """
-        self._logger = CoprBackendLog(self.opts, self.events)
-        self._logger.start()
 
-        self.event("Starting up Job Grabber")
+        self.redis_log_handler = RedisLogHandler(self.opts)
+        self.redis_log_handler.start()
+        time.sleep(1)
 
+        self.log.info("Starting up Job Grabber")
         self._jobgrab = CoprJobGrab(opts=self.opts,
-                                    events=self.events,
                                     frontend_client=self.frontend_client,
                                     lock=self.lock)
         self._jobgrab.start()
 
-        self.spawner = Spawner(self.opts, self.events)
-        self.checker = HealthChecker(self.opts, self.events)
-        self.terminator = Terminator(self.opts, self.events)
+        self.log.info("Starting up VM Spawner")
+        self.spawner = Spawner(self.opts)
+        self.log.info("Starting up VM Health checker")
+        self.checker = HealthChecker(self.opts)
+        self.log.info("Starting up VM Terminator")
+        self.terminator = Terminator(self.opts)
 
-        self.vm_manager = VmManager(self.opts, self.events,
+        self.log.info("Starting up VM Master")
+        self.vm_manager = VmManager(opts=self.opts,
+                                    logger=self.log,
                                     checker=self.checker,
                                     spawner=self.spawner,
                                     terminator=self.terminator)
@@ -154,20 +161,26 @@ class CoprBackend(object):
         group_id = group["id"]
 
         if len(self.workers_by_group_id[group_id]) < group["max_workers"]:
-            self.event("Spinning up more workers")
+            self.log.info("Spinning up more workers")
             for _ in range(group["max_workers"] - len(self.workers_by_group_id[group_id])):
                 self.max_worker_num_by_group_id[group_id] += 1
-                w = Worker(
-                    opts=self.opts,
-                    events=self.events,
-                    frontend_client=self.frontend_client,
-                    worker_num=self.max_worker_num_by_group_id[group_id],
-                    group_id=group_id,
-                    lock=self.lock
-                )
+                try:
+                    w = Worker(
+                        opts=self.opts,
+                        frontend_client=self.frontend_client,
+                        worker_num=self.max_worker_num_by_group_id[group_id],
+                        group_id=group_id,
+                        lock=self.lock
+                    )
 
-                self.workers_by_group_id[group_id].append(w)
-                w.start()
+                    self.workers_by_group_id[group_id].append(w)
+                    w.start()
+                    time.sleep(0.3)
+                    self.log.info("Started worker: {} for group: {}".format(w.worker_num, group_id))
+                except Exception as error:
+                    self.log.exception("Failed to start new Worker: {}".format(error))
+
+            self.log.info("Finished starting worker processes")
 
     def prune_dead_workers_by_group_id(self, group_id):
         """ Removes dead workers from the pool
@@ -181,7 +194,7 @@ class CoprBackend(object):
         preserved_workers = []
         for w in self.workers_by_group_id[group_id]:
             if not w.is_alive():
-                self.event("Worker {0} died unexpectedly".format(w.worker_num))
+                self.log.warn("Worker {} died unexpectedly".format(w.worker_num))
                 w.terminate()  # kill it with a fire
                 if self.opts.exit_on_worker:
                     raise CoprBackendError(
@@ -208,9 +221,14 @@ class CoprBackend(object):
         """
         Starts backend process. Control sub process start/stop.
         """
+        self.update_conf()
+
         self.init_task_queues()
         self.init_sub_process()
+        time.sleep(1)
 
+        self.log.info("Initial config: {}".format(self.opts))
+        self.log.info("Sub processes was started")
         self.abort = False
         while not self.abort:
             # re-read config into opts
@@ -218,11 +236,8 @@ class CoprBackend(object):
 
             for group in self.opts.build_groups:
                 group_id = group["id"]
-                self.event("# jobs in {0} queue: {1}"
-                           .format(group["name"], self.task_queues[group_id].length))
-                self.spin_up_workers_by_group(group)
-                self.event("Finished starting worker processes")
 
+                self.spin_up_workers_by_group(group)
                 # FIXME - prune out workers
                 # if len(self.workers) > self.opts.num_workers:
                 #    killnum = len(self.workers) - self.opts.num_workers
@@ -248,13 +263,17 @@ def run_backend(opts):
         - `daemonize` - boolean flag to enable daemon mode
         - `pidfile` - path to the backend pidfile
 
+        - `daemon_user`
+        - `daemon_group`
     """
     cbe = None
     try:
         context = DaemonContext(
             pidfile=lockfile.FileLock(opts.pidfile),
-            gid=grp.getgrnam("copr").gr_gid,
-            uid=pwd.getpwnam("copr").pw_uid,
+            # gid=grp.getgrnam("copr").gr_gid,
+            # uid=pwd.getpwnam("copr").pw_uid,
+            gid=grp.getgrnam(opts.daemon_user).gr_gid,
+            uid=pwd.getpwnam(opts.daemon_group).pw_uid,
             detach_process=opts.daemonize,
             umask=0o22,
             stderr=sys.stderr,

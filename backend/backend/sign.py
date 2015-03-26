@@ -67,7 +67,7 @@ def get_pubkey(username, projectname, outfile=None):
     return stdout
 
 
-def _sign_one(path, email, callback=None):
+def _sign_one(path, email):
     cmd = ["sudo", SIGN_BINARY, "-u", email, "-r", path]
 
     try:
@@ -78,8 +78,6 @@ def _sign_one(path, email, callback=None):
             msg="Failed to  invoke sign {} by user {} with error {}"
             .format(path, email, e, cmd=None, stdout=None, stderr=None))
 
-        if callback:
-            callback.error(err)
         raise err
 
     if handle.returncode != 0:
@@ -88,29 +86,24 @@ def _sign_one(path, email, callback=None):
             return_code=handle.returncode,
             cmd=cmd, stdout=stdout, stderr=stderr)
 
-        if callback:
-            callback.error(err)
         raise err
 
     return stdout, stderr
 
 
-def sign_rpms_in_dir(username, projectname, path, opts, callback=None):
+def sign_rpms_in_dir(username, projectname, path, opts, log):
     """
     Signs rpms using obs-signd.
 
     If some some pkgs failed to sign, entire build marked as failed,
     but we continue to try sign other pkgs.
 
-
-
     :param username: copr username
     :param projectname: copr projectname
     :param path: directory with rpms to be signed
     :param Bunch opts: backend config
 
-    :param callback: :py:class:`backend.mockremote.DefaultCallBack`  object to log progress,
-        two methods are utilised: ``log`` and ``error``
+    :type log: logging.Logger
 
     :raises: :py:class:`backend.exceptions.CoprSignError` failed to sign at least one package
     """
@@ -131,14 +124,11 @@ def sign_rpms_in_dir(username, projectname, path, opts, callback=None):
     errors = []  # tuples (rpm_filepath, exception)
     for rpm in rpm_list:
         try:
-            _sign_one(rpm,
-                      create_gpg_email(username, projectname),
-                      callback)
-
-            if callback:
-                callback.log("signed rpm: {}".format(rpm))
+            _sign_one(rpm, create_gpg_email(username, projectname))
+            log.info("signed rpm: {}".format(rpm))
 
         except CoprSignError as e:
+            log.exception("failed to sign rpm: {}".format(rpm))
             errors.append((rpm, e))
 
     if errors:

@@ -22,8 +22,6 @@ class EventTopics(object):
 # argument - vm_ip
 PUBSUB_INTERRUPT_BUILDER = "copr:backend:interrupt_build:pubsub::{}"
 
-PUBSUB_VM_TERMINATION = "copr:backend:vm_termination:pubsub::{vm_name}"
-# message should contain string "terminating"
 
 KEY_VM_POOL = "copr:backend:vm_pool:set::{group}"
 # set of vm_names of vm available for `group`
@@ -43,12 +41,11 @@ KEY_VM_INSTANCE = "copr:backend:vm_instance:hset::{vm_name}"
 
 class Thresholds(object):
     """
-    Time constants for VM manager, all values are int and represents seconds
+    Time constants for VM manager,
     """
-    health_check_max_time = 120
-    terminating_timeout = 600
-    dirty_vm_terminating_timeout = 120  # how long we keep released vms
-    health_check_period = 60
-    vm_spawn_min_interval = 20
-    cycle_timeout = 5
-    max_check_fails = 2
+    health_check_period = 10           # [s.] how often health check is invoked
+    health_check_max_time = 120        # [s.] if health check wasn't done for this time, mark check fail
+    max_check_fails = 2                # maximum number of fails before starting VM termination
+    terminating_timeout = 600          # [s.] time before we try to terminate VM again
+    dirty_vm_terminating_timeout = 20  # [s.] how long we keep released vms
+    cycle_timeout = 10                 # [s.] timeout for all periodical checks

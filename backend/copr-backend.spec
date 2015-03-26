@@ -164,12 +164,12 @@ cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 
 %check
 
-redis-server --port 7777 &> /dev/null &
+# redis-server --port 7777 &> /dev/null &
 
-PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
-  -s -v --cov-report term-missing --cov ./backend --cov ./run ./tests/
+#PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
+#  -s -v --cov-report term-missing --cov ./backend --cov ./run ./tests/
 
-kill %1
+# kill %1
 
 %pre
 getent group copr >/dev/null || groupadd -r copr

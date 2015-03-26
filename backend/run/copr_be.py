@@ -31,6 +31,11 @@ def parse_args(args):
     parser.add_option("-v", "--verbose", default=False, dest="verbose",
                       action="store_true", help="be more verbose")
 
+    parser.add_option("-u", "--user", default="copr", dest="daemon_user",
+                      help="under which user run backend daemon")
+    parser.add_option("-g", "--group", default="copr", dest="daemon_group",
+                      help="under which group run backend daemon")
+
     opts, args = parser.parse_args(args)
     if not os.path.exists(opts.config_file):
         sys.stderr.write("No config file found at: {0}\n".format(
@@ -39,7 +44,8 @@ def parse_args(args):
     opts.config_file = os.path.abspath(opts.config_file)
 
     ret_opts = Bunch()
-    for o in ("daemonize", "exit_on_worker", "pidfile", "config_file"):
+    for o in ("daemonize", "exit_on_worker", "pidfile",
+              "config_file", "daemon_user", "daemon_group"):
         setattr(ret_opts, o, getattr(opts, o))
 
     return ret_opts

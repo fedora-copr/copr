@@ -99,7 +99,7 @@ class TestAction(object):
         test_action = Action(
             events=self.test_q,
             action={}, lock=None,
-            frontend_callback=None,
+            frontend_client=None,
             destdir=None,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -126,7 +126,7 @@ class TestAction(object):
                 "id": 1
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=None,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -158,7 +158,7 @@ class TestAction(object):
                 "new_value": "new_dir"
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -190,7 +190,7 @@ class TestAction(object):
                 "new_value": "new_dir"
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=os.path.join(tmp_dir, "dir-not-exists"),
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -221,7 +221,7 @@ class TestAction(object):
                 "new_value": "new_dir"
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -252,7 +252,7 @@ class TestAction(object):
                 "old_value": "old_dir",
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=os.path.join(tmp_dir, "dir-not-exists"),
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -288,7 +288,7 @@ class TestAction(object):
                 "old_value": "old_dir",
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -329,7 +329,7 @@ class TestAction(object):
                 "data": self.ext_data_for_delete_build,
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -372,7 +372,7 @@ class TestAction(object):
                 "object_id": 42
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -464,7 +464,7 @@ class TestAction(object):
                 "object_id": 42,
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -521,7 +521,7 @@ class TestAction(object):
                 }),
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=self.tmp_dir_name,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -590,7 +590,7 @@ class TestAction(object):
                 }),
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=self.tmp_dir_name,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -643,7 +643,7 @@ class TestAction(object):
                 }),
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=self.tmp_dir_name,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -683,7 +683,7 @@ class TestAction(object):
                 "id": 8
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -720,7 +720,7 @@ class TestAction(object):
                 "id": 9
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -750,7 +750,7 @@ class TestAction(object):
                 "id": 10
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL
@@ -784,7 +784,7 @@ class TestAction(object):
                 "id": 10
             },
             events=self.test_q, lock=None,
-            frontend_callback=mc_front_cb,
+            frontend_client=mc_front_cb,
             destdir=tmp_dir,
             front_url=None,
             results_root_url=RESULTS_ROOT_URL

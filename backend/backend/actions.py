@@ -6,12 +6,12 @@ import time
 from bunch import Bunch
 
 from .createrepo import createrepo, createrepo_unsafe
+from .helpers import get_redis_logger
 
 
 class Action(object):
     """ Object to send data back to fronted
 
-    :param multiprocessing.Queue events: collects events for logging
     :param multiprocessing.Lock lock: Global lock for backend
     :param backend.callback.FrontendCallback frontent_callback:
         object to post data back to frontend
@@ -26,30 +26,30 @@ class Action(object):
         # TODO: describe actions
 
     """
-
-    def __init__(self, events, action, lock,
-                 frontend_callback, destdir,
+    # TODO: get more form opts, decrease number of parameters
+    def __init__(self, opts, action, lock,
+                 frontend_client, destdir,
                  front_url, results_root_url):
-        super(Action, self).__init__()
-        self.frontend_callback = frontend_callback
+
+        self.opts = opts
+        self.frontend_client = frontend_client
         self.destdir = destdir
         self.data = action
-        self.events = events
+
         self.lock = lock
         self.front_url = front_url
         self.results_root_url = results_root_url
 
+        self.log = get_redis_logger(self.opts, "backend.actions", "actions")
+
     def __str__(self):
         return "<Action: {}>".format(self.data)
 
-    def add_event(self, what):
-        self.events.put({"when": time.time(), "who": "action", "what": what})
-
     def handle_legal_flag(self):
-        self.add_event("Action legal-flag: ignoring")
+        self.log.debug("Action legal-flag: ignoring")
 
     def handle_createrepo(self, result):
-        self.add_event("Action create repo")
+        self.log.debug("Action create repo")
         data = json.loads(self.data["data"])
         username = data["username"]
         projectname = data["projectname"]
@@ -57,13 +57,14 @@ class Action(object):
 
         failure = False
         for chroot in chroots:
-            self.add_event("Creating repo for: {}/{}/{}".format(username, projectname, chroot))
+            self.log.info("Creating repo for: {}/{}/{}".format(username, projectname, chroot))
 
             path = os.path.join(self.destdir, username, projectname, chroot)
 
             errcode, _, err = createrepo_unsafe(path=path, lock=self.lock)
             if errcode != 0 or err.strip():
-                self.add_event("Error making local repo: {0}".format(err))
+                # TODO: createrepo should raise error on errors, handle it
+                self.log.error("Error making local repo: {0}".format(err))
                 failure = True
 
         if failure:
@@ -72,7 +73,7 @@ class Action(object):
             result.result = ActionResult.SUCCESS
 
     def handle_rename(self, result):
-        self.add_event("Action rename")
+        self.log.debug("Action rename")
         old_path = os.path.normpath(os.path.join(
             self.destdir, self.data["old_value"]))
         new_path = os.path.normpath(os.path.join(
@@ -90,15 +91,15 @@ class Action(object):
         result.job_ended_on = time.time()
 
     def handle_delete_copr_project(self):
-        self.add_event("Action delete copr")
+        self.log.debug("Action delete copr")
         project = self.data["old_value"]
         path = os.path.normpath(self.destdir + '/' + project)
         if os.path.exists(path):
-            self.add_event("Removing copr {0}".format(path))
+            self.log.info("Removing copr {0}".format(path))
             shutil.rmtree(path)
 
     def handle_delete_build(self):
-        self.add_event("Action delete build")
+        self.log.debug("Action delete build")
         project = self.data["old_value"]
 
         ext_data = json.loads(self.data["data"])
@@ -107,15 +108,15 @@ class Action(object):
         chroots_requested = set(ext_data["chroots"])
 
         if not ext_data.get("src_pkg_name"):
-            self.add_event("Delete build action missing `src_pkg_name` field, check frontend version. Raw ext_data: {}"
+            self.log.error("Delete build action missing `src_pkg_name` field, check frontend version. Raw ext_data: {}"
                            .format(ext_data))
             return
 
         package_name = ext_data["src_pkg_name"]
         path = os.path.join(self.destdir, project)
 
-        self.add_event("Deleting package {0}".format(package_name))
-        self.add_event("Copr path {0}".format(path))
+        self.log.info("Deleting package {0}".format(package_name))
+        self.log.info("Copr path {0}".format(path))
 
         try:
             chroot_list = set(os.listdir(path))
@@ -125,24 +126,24 @@ class Action(object):
 
         chroots_to_do = chroot_list.intersection(chroots_requested)
         if not chroots_to_do:
-            self.add_event("Nothing to delete for delete action: package {}, {}"
-                           .format(package_name, ext_data))
+            self.log.info("Nothing to delete for delete action: package {}, {}"
+                          .format(package_name, ext_data))
             return
 
         for chroot in chroots_to_do:
-            self.add_event("In chroot {0}".format(chroot))
+            self.log.debug("In chroot {0}".format(chroot))
             altered = False
 
             pkg_path = os.path.join(path, chroot, package_name)
             if os.path.isdir(pkg_path):
-                self.add_event("Removing build {0}".format(pkg_path))
+                self.log.info("Removing build {0}".format(pkg_path))
                 shutil.rmtree(pkg_path)
                 altered = True
             else:
-                self.add_event("Package {0} dir not found in chroot {1}".format(package_name, chroot))
+                self.log.debug("Package {0} dir not found in chroot {1}".format(package_name, chroot))
 
             if altered:
-                self.add_event("Running createrepo")
+                self.log.debug("Running createrepo")
 
                 result_base_url = "/".join(
                     [self.results_root_url, username, projectname, chroot])
@@ -152,8 +153,8 @@ class Action(object):
                     username=username, projectname=projectname
                 )
                 if err.strip():
-                    self.add_event(
-                        "Error making local repo: {0}".format(err))
+                    # TODO: createrepo should raise exception, handle it
+                    self.log.error("Error making local repo: {0}".format(err))
 
             logs_to_remove = [
                 os.path.join(path, chroot, template.format(self.data['object_id']))
@@ -161,7 +162,7 @@ class Action(object):
             ]
             for log_path in logs_to_remove:
                 if os.path.isfile(log_path):
-                    self.add_event("Removing log {0}".format(log_path))
+                    self.log.info("Removing log {0}".format(log_path))
                     os.remove(log_path)
 
     def run(self):
@@ -193,7 +194,7 @@ class Action(object):
                     not getattr(result, "job_ended_on", None):
                 result.job_ended_on = time.time()
 
-            self.frontend_callback.update({"actions": [result]})
+            self.frontend_client.update({"actions": [result]})
 
 
 class ActionType(object):

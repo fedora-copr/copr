@@ -14,21 +14,24 @@ def ans_extra_vars_encode(extra_vars, name):
     return "--extra-vars='{{\"{0}\": {1}}}'".format(name, json.dumps(extra_vars))
 
 
-def run_ansible_playbook_cli(args, name="running playbook", log_fn=None):
-    if log_fn is None:
-        log = lambda x: sys.stderr.write("{}\n".format(x))
-    else:
-        log = log_fn
+def run_ansible_playbook_cli(args, comment, log):
+    """
+    :param args:
+    :param comment:
+    :type log: logging.Logger
+    :return: ansible output
+    """
+    if comment is None:
+        comment = "running playbook"
 
     command = "{} {}".format(ansible_playbook_bin, args)
     try:
-        log("{}: begin: {}".format(name, command))
+        log.debug("{}: begin: {}".format(comment, command))
         result = subprocess.check_output(command, shell=True)
-        log("Raw playbook output: {0}".format(result))
+        log.debug("Raw playbook output: {0}".format(result))
     except CalledProcessError as e:
-        log("CalledProcessError: {}".format(e.output))
-        # FIXME: this is not purpose of opts.sleeptime
+        log.debug("CalledProcessError: {}".format(e.output))
         raise
 
-    log(name + ": end")
+    log.debug(comment + ": end")
     return result

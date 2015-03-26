@@ -11,7 +11,7 @@ import six
 
 from backend import exceptions
 from backend.exceptions import VmError, NoVmAvailable
-from backend.vm_manage import VmStates, KEY_VM_POOL, PUBSUB_VM_TERMINATION, PUBSUB_MB, EventTopics, KEY_SERVER_INFO
+from backend.vm_manage import VmStates, KEY_VM_POOL, PUBSUB_MB, EventTopics, KEY_SERVER_INFO
 from backend.vm_manage.manager import VmManager
 from backend.daemons.vm_master import VmMaster
 from backend.helpers import get_redis_connection

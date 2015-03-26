@@ -8,7 +8,7 @@ class FrontendClient(object):
     Object to send data back to fronted
     """
 
-    def __init__(self, opts, events):
+    def __init__(self, opts):
         super(FrontendClient, self).__init__()
         self.frontend_url = opts.frontend_url
         self.frontend_auth = opts.frontend_auth

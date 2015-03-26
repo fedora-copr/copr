@@ -24,29 +24,19 @@ log = logging.getLogger(__name__)
 
 
 sys.path.append("/usr/share/copr/")
-from backend.helpers import BackendConfigReader
+from backend.helpers import BackendConfigReader, create_file_logger
 from backend.sign import get_pubkey, sign_rpms_in_dir, create_user_keys
 from backend.exceptions import CoprSignNoKeyError
 from backend.createrepo import createrepo
 
 
-def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir,  opts):
+def check_signed_rpms_in_pkg_dir(pkg_dir, user, project, chroot, chroot_dir, opts):
     success = True
 
-    class LogCb(object):
-        def __init__(self, logger):
-            self.logger = logger
-
-        def log(self, msg):
-            self.logger.info(">>> {}".format(msg))
-
-        def error(self, msg):
-            self.logger.error(">>> {}".format(msg))
-
-    cb = LogCb(log)
-
+    logger = create_file_logger("run.check_signed_rpms_in_pkg_dir",
+                                "/tmp/copr_check_signed_rpms.log")
     try:
-        sign_rpms_in_dir(user, project, pkg_dir, opts, callback=cb)
+        sign_rpms_in_dir(user, project, pkg_dir, opts, log=logger)
 
         log.info("running createrepo for {}".format(pkg_dir))
         base_url = "/".join([opts.results_baseurl, user,

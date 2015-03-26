@@ -10,11 +10,13 @@ import json
 import time
 import weakref
 from cStringIO import StringIO
+import datetime
 from backend.exceptions import VmError, NoVmAvailable
 
 from backend.helpers import get_redis_connection
 from .models import VmDescriptor
-from . import VmStates, KEY_VM_INSTANCE, KEY_VM_POOL, EventTopics, PUBSUB_MB, KEY_SERVER_INFO
+from . import VmStates, KEY_VM_INSTANCE, KEY_VM_POOL, EventTopics, PUBSUB_MB, KEY_SERVER_INFO, PUBSUB_INTERRUPT_BUILDER
+from ..helpers import get_redis_logger
 
 # KEYS[1]: VMD key
 # ARGV[1] current timestamp for `last_health_check`
@@ -65,6 +67,13 @@ if old_state ~= "in_use" then
 else
     redis.call("HMSET", KEYS[1], "state", "ready", "last_release", ARGV[1])
     redis.call("HDEL", KEYS[1], "in_use_since", "used_by_pid", "task_id", "build_id", "chroot")
+
+
+    local check_fails = tonumber(redis.call("HGET", KEYS[1], "check_fails"))
+    if check_fails > 0 then
+        redis.call("HSET", KEYS[1], "state", "check_health_failed")
+    end
+
     return "OK"
 end
 """
@@ -108,10 +117,9 @@ class VmManager(object):
     :param spawner: object with method `spawn() -> IP or raise exception`
     :param terminator: object with safe method `terminate(ip, vm_name)`
     """
-    def __init__(self, opts, events, checker=None, spawner=None, terminator=None):
+    def __init__(self, opts, logger=None, checker=None, spawner=None, terminator=None):
 
         self.opts = weakref.proxy(opts)
-        self.events = events
 
         self.checker = checker
         self.spawner = spawner
@@ -120,18 +128,18 @@ class VmManager(object):
         self.lua_scripts = {}
 
         self.rc = None
-
-    def log(self, msg, who=None):
-        self.events.put({"when": time.time(), "who": who or"vm_manager", "what": msg})
+        self.log = logger or get_redis_logger(self.opts, "vmm.lib", "vmm")
 
     def post_init(self):
-        # TODO: read redis host/post from opts
         self.rc = get_redis_connection(self.opts)
         self.lua_scripts["set_checking_state"] = self.rc.register_script(set_checking_state_lua)
         self.lua_scripts["acquire_vm"] = self.rc.register_script(acquire_vm_lua)
         self.lua_scripts["release_vm"] = self.rc.register_script(release_vm_lua)
         self.lua_scripts["terminate_vm"] = self.rc.register_script(terminate_vm_lua)
         self.lua_scripts["mark_vm_check_failed"] = self.rc.register_script(mark_vm_check_failed_lua)
+
+    def set_logger(self, logger):
+        self.log = logger
 
     @property
     def vm_groups(self):
@@ -157,7 +165,7 @@ class VmManager(object):
         pipe.sadd(KEY_VM_POOL.format(group=group), vm_name)
         pipe.hmset(KEY_VM_INSTANCE.format(vm_name=vm_name), vmd.to_dict())
         pipe.execute()
-        self.log("registered new VM: {}".format(vmd))
+        self.log.info("registered new VM: {} {}".format(vmd.vm_name, vmd.vm_ip))
         return vmd
 
     def lookup_vms_by_ip(self, vm_ip):
@@ -179,12 +187,12 @@ class VmManager(object):
             try:
                 self.checker.run_check_health(vmd.vm_name, vmd.vm_ip)
             except Exception as err:
-                self.log("failed to start health check: {}, reverting state".format(err))
+                self.log.exception("Failed to start health check: {}".format(err))
                 if orig_state != VmStates.IN_USE:
                     vmd.store_field(self.rc, "state", orig_state)
 
         else:
-            self.log("failed to start vm check, wrong state")
+            self.log.debug("Failed to start vm check, wrong state")
             return False
 
     def mark_vm_check_failed(self, vm_name):
@@ -211,7 +219,14 @@ class VmManager(object):
             vmd for vmd in vmd_list if
             vmd.bound_to_user == username and vmd.state == VmStates.IN_USE
         ])
+        self.log.debug("# vm by user: {}, limit:{} ".format(
+            vm_count_used_by_user, self.opts.build_groups[group]["max_vm_per_user"]
+        ))
+
         if vm_count_used_by_user >= self.opts.build_groups[group]["max_vm_per_user"]:
+            # TODO: this check isn't reliable, if two (or more) processes check VM list
+            #  at the +- same time, they could acquire more VMs
+            #  proper solution: do this check inside lua script
             raise NoVmAvailable("No VM are available, user `{}` already acquired #{} VMs"
                                 .format(username, vm_count_used_by_user))
 
@@ -221,13 +236,14 @@ class VmManager(object):
         clean_list = [vmd for vmd in ready_vmd_list if vmd.bound_to_user is None]
         all_vms = list(chain(dirtied_by_user, clean_list))
 
-        # TODO: reject if last_health_check < last_copr_backend_startup_time
-        # TODO: record last_copr_backend_startup_time at startup
         for vmd in all_vms:
+            if vmd.get_field(self.rc, "check_fails") != "0":
+                self.log.debug("VM {} has check fails, skip acquire".format(vmd.vm_name))
             vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
             if self.lua_scripts["acquire_vm"](keys=[vm_key, KEY_SERVER_INFO],
                                               args=[username, pid, time.time(),
                                                     task_id, build_id, chroot]) == "OK":
+                self.log.info("Acquired VM :{} {} for pid: {}".format(vmd.vm_name, vmd.vm_ip, pid))
                 return vmd
         else:
             raise NoVmAvailable("No VM are available, please wait in queue. Group: {}".format(group))
@@ -239,8 +255,11 @@ class VmManager(object):
         :rtype: bool
         """
         # in_use -> ready
+        self.log.info("Releasing VM {}".format(vm_name))
         vm_key = KEY_VM_INSTANCE.format(vm_name=vm_name)
-        return self.lua_scripts["release_vm"](keys=[vm_key], args=[time.time()]) == "OK"
+        lua_result = self.lua_scripts["release_vm"](keys=[vm_key], args=[time.time()])
+        self.log.debug("release vm result `{}`".format(lua_result))
+        return lua_result == "OK"
 
     def start_vm_termination(self, vm_name, allowed_pre_state=None):
         """
@@ -259,10 +278,12 @@ class VmManager(object):
                 "topic": EventTopics.VM_TERMINATION_REQUEST
             }
             self.rc.publish(PUBSUB_MB, json.dumps(msg))
-            self.log("VM {} queued for termination".format(vmd.vm_name))
-            # TODO: Inform builder process if vmd has field `builder_pid` (or should it listen PUBSUB_TERMINATION ? )
+            self.log.info("VM {} queued for termination".format(vmd.vm_name))
+
+            # TODO: remove when refactored build management
+            # self.rc.publish(PUBSUB_INTERRUPT_BUILDER.format(vmd.vm_ip), "vm died")
         else:
-            self.log("VM  termination `{}` skipped due to: {} ".format(vm_name, lua_result))
+            self.log.debug("VM  termination `{}` skipped due to: {} ".format(vm_name, lua_result))
 
     def remove_vm_from_pool(self, vm_name):
         """
@@ -275,7 +296,7 @@ class VmManager(object):
         pipe.srem(KEY_VM_POOL.format(group=vmd.group), vm_name)
         pipe.delete(KEY_VM_INSTANCE.format(vm_name=vm_name))
         pipe.execute()
-        self.log("removed vm `{}` from pool".format(vm_name))
+        self.log.info("removed vm `{}` from pool".format(vm_name))
 
     def get_all_vm_in_group(self, group):
         vm_name_list = self.rc.smembers(KEY_VM_POOL.format(group=group))
@@ -306,6 +327,11 @@ class VmManager(object):
         Present information about all managed VMs in human readable form.
         :return:
         """
+        dt_fields = {
+            "last_health_check",
+            "in_use_since",
+        }
+
         buf = StringIO()
         for group_id in self.vm_groups:
             bg = self.opts.build_groups[group_id]
@@ -318,6 +344,8 @@ class VmManager(object):
                 for k, v in vmd.to_dict().items():
                     if k in ["vm_name", "vm_ip", "group"]:
                         continue
+                    if k in dt_fields:
+                        v = str(datetime.datetime.fromtimestamp(float(v)))
                     buf.write("\t\t{}: {}\n".format(k, v))
                 buf.write("\n")
 

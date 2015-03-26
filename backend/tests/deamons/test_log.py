@@ -20,7 +20,7 @@ else:
 import pytest
 
 import backend.daemons.log as log_module
-from backend.daemons.log import CoprBackendLog
+from backend.daemons.log import CoprBackendLog, RedisLogHandler
 
 
 @pytest.yield_fixture
@@ -44,22 +44,26 @@ class TestLog(object):
 
         self.test_time = time.time()
         subdir = "test_createrepo_{}".format(time.time())
-        self.tmp_dir_path = os.path.join(tempfile.gettempdir(), subdir)
-        os.mkdir(self.tmp_dir_path)
+        # self.tmp_dir_path = os.path.join(tempfile.gettempdir(), subdir)
+        self.tmp_dir_path = "/tmp/redis_log"
+        if not os.path.exists(self.tmp_dir_path):
+            os.mkdir(self.tmp_dir_path)
 
         self.log_dir = os.path.join(self.tmp_dir_path, "copr")
         self.log_file = os.path.join(self.log_dir, "copr.log")
         self.opts = Bunch(
             logfile=self.log_file,
             verbose=False,
-        )
 
+            log_dir=self.log_dir
+        )
+        print("\n log dir: {}".format(self.log_dir))
         self.queue = MagicMock()
 
     def teardown_method(self, method):
         self.mc_mpp_patcher.stop()
 
-        shutil.rmtree(self.tmp_dir_path)
+        # shutil.rmtree(self.tmp_dir_path)
         if hasattr(self, "cbl"):
             del self.cbl
 
@@ -165,3 +169,10 @@ class TestLog(object):
             mock.call({'what': 'foobar', 'who': 'main', 'when': self.test_time + 1})
         ]
         assert expected == mc_log.call_args_list
+
+    # def test_dummy_redis_log_handler(self):
+    #     rlh = RedisLogHandler(self.opts)
+    #     rlh.run()
+    #     # import ipdb; ipdb.set_trace()
+    #
+    #     x = 2

@@ -16,14 +16,15 @@ from ..constants import mockchain, rsync, DEF_BUILD_TIMEOUT
 
 class Builder(object):
 
-    def __init__(self, opts, hostname, job, callback, repos=None):
+    def __init__(self, opts, hostname, job, logger, repos=None):
 
         self.opts = opts
         self.hostname = hostname
         self.job = job
         self.timeout = self.job.timeout or DEF_BUILD_TIMEOUT
         self.repos = repos or []
-        self.callback = callback
+        self.log = logger
+
         self.buildroot_pkgs = self.job.buildroot_pkgs or ""
         self._remote_tempdir = self.opts.remote_tempdir
         self._remote_basedir = self.opts.remote_basedir
@@ -31,7 +32,6 @@ class Builder(object):
         # if we're at this point we've connected and done stuff on the host
         self.conn = self._create_ans_conn()
         self.root_conn = self._create_ans_conn(username="root")
-        # self.callback.log("Created builder: {}".format(self.__dict__))
 
     @property
     def remote_build_dir(self):
@@ -136,8 +136,8 @@ class Builder(object):
             # allowed in packages name
             raise BuilderError("Do not try this kind of attack on me")
 
-        self.callback.log("putting {0} into minimal buildroot of {1}"
-                          .format(self.buildroot_pkgs, self.job.chroot))
+        self.log.info("putting {0} into minimal buildroot of {1}"
+                      .format(self.buildroot_pkgs, self.job.chroot))
 
         kwargs = {
             "chroot": self.job.chroot,
@@ -161,11 +161,11 @@ class Builder(object):
                 self.run_ansible_with_check(disable_networking_cmd.format(**kwargs),
                                             module_name="lineinfile", as_root=True)
         except BuilderError as err:
-            self.callback.log(str(err))
+            self.log.exception(err)
             raise
 
     def collect_built_packages(self, build_details, pkg):
-        self.callback.log("Listing built binary packages")
+        self.log.info("Listing built binary packages")
         # self.conn.module_name = "shell"
 
         results = self._run_ansible(
@@ -176,7 +176,7 @@ class Builder(object):
         )
 
         build_details["built_packages"] = list(results["contacted"].values())[0][u"stdout"]
-        self.callback.log("Packages:\n{}".format(build_details["built_packages"]))
+        self.log.info("Packages:\n{}".format(build_details["built_packages"]))
 
     def check_build_success(self, pkg):
         successfile = os.path.join(self._get_remote_pkg_dir(pkg), "success")
@@ -184,7 +184,7 @@ class Builder(object):
         check_for_ans_error(ansible_test_results, self.hostname)
 
     def update_job_pkg_version(self, pkg):
-        self.callback.log("Getting package information: version")
+        self.log.info("Getting package information: version")
         results = self._run_ansible("rpm -qp --qf \"%{{EPOCH}}\$\$%{{VERSION}}\$\$%{{RELEASE}}\" {}".format(pkg))
         if "contacted" in results:
             # TODO:  do more sane
@@ -223,7 +223,7 @@ class Builder(object):
 
             return pipes.quote(repo_url)
         except Exception as err:
-            self.callback.log("Failed not pre-process repo url: {}".format(err))
+            self.log.exception("Failed to pre-process repo url: {}".format(err))
             return None
 
     def gen_mockchain_command(self, build_target):
@@ -242,27 +242,25 @@ class Builder(object):
         return buildcmd
 
     def run_build_and_wait(self, buildcmd):
-        self.callback.log("executing: {0}".format(buildcmd))
+        self.log.info("executing: {0}".format(buildcmd))
         self.conn.module_name = "shell"
         self.conn.module_args = buildcmd
         _, poller = self.conn.run_async(self.timeout)
         waited = 0
         results = None
 
-        self.setup_pubsub_handler()
+        # self.setup_pubsub_handler()
         while True:
             # TODO rework Builder and extrace check_pubsub, add method to interrupt build process from dispatcher
-            self.check_pubsub()
+            # self.check_pubsub()
             results = poller.poll()
 
             if results["contacted"] or results["dark"]:
                 break
 
             if waited >= self.timeout:
-                msg = "Build timeout expired. Time limit: {}s, time spent: {}s".format(
-                    self.timeout, waited)
-                self.callback.log(msg)
-                raise BuilderTimeOutError(msg)
+                raise BuilderTimeOutError("Build timeout expired. Time limit: {}s, time spent: {}s"
+                                          .format(self.timeout, waited))
 
             time.sleep(10)
             waited += 10
@@ -275,10 +273,10 @@ class Builder(object):
         channel_name = PUBSUB_INTERRUPT_BUILDER.format(self.hostname)
         self.ps.subscribe(channel_name)
 
-        self.callback.log("Subscribed to {}".format(channel_name))
+        self.log.info("Subscribed to vm interruptions channel {}".format(channel_name))
 
     def check_pubsub(self):
-        self.callback.log("Checking pubsub channel")
+        # self.log.info("Checking pubsub channel")
         msg = self.ps.get_message()
         if msg is not None and msg.get("type") == "message":
             raise VmError("Build interrupted by msg: {}".format(msg["data"]))
