@@ -59,7 +59,8 @@ class BuildsLogic(object):
             models.BuildChroot.status == helpers.StatusEnum("pending"),
             models.BuildChroot.status == helpers.StatusEnum("starting"),
             and_(
-                models.BuildChroot.status == helpers.StatusEnum("running"),
+                models.BuildChroot.status.in_([
+                    helpers.StatusEnum("running"), helpers.StatusEnum("failed")]),
                 models.Build.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
                 models.Build.ended_on.is_(None)
             )
@@ -218,11 +219,12 @@ class BuildsLogic(object):
         """
         if not user.can_build_in(build.copr):
             raise exceptions.InsufficientRightsException(
-                "You are not allowed to delete this build.")
+                "You are not allowed to delete build `{}`.".format(build.id))
 
         if not build.deletable:
+            # from celery.contrib import rdb; rdb.set_trace()
             raise exceptions.ActionInProgressException(
-                "You can not delete build which is not finished.",
+                "You can not delete build `{}` which is not finished.".format(build.id),
                 "Unfinished build")
 
         # Only failed, finished, succeeded  get here.
