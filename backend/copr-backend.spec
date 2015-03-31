@@ -103,10 +103,11 @@ only.
 
 
 %build
+# TODO: remove when sphinx docs added
 # build documentation
-pushd documentation
-make %{?_smp_mflags} python
-popd
+# pushd documentation
+# make %{?_smp_mflags} python
+# popd
 
 %install
 
@@ -114,7 +115,6 @@ install -d %{buildroot}%{_sharedstatedir}/copr
 install -d %{buildroot}%{_sharedstatedir}/copr/jobs
 install -d %{buildroot}%{_sharedstatedir}/copr/public_html/results
 install -d %{buildroot}%{_var}/log/copr
-install -d %{buildroot}%{_var}/log/copr/workers/
 install -d %{buildroot}%{_pkgdocdir}/lighttpd/
 install -d %{buildroot}%{_datadir}/copr/backend
 install -d %{buildroot}%{_sysconfdir}/copr
@@ -142,9 +142,6 @@ cp -a conf/tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 touch %{buildroot}%{_var}/log/copr/copr.log
 touch %{buildroot}%{_var}/log/copr/prune_old.log
 
-for i in `seq 7`; do
-    touch %{buildroot}%{_var}/log/copr/workers/worker-$i.log
-done
 touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 
 install -m 0644 copr-backend.service %{buildroot}/%{_unitdir}/
@@ -152,15 +149,17 @@ install -m 0644 conf/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
 
 
 install -d %{buildroot}%{_sysconfdir}/logstash.d
-cp -a conf/logstash/copr_backend.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_backend.conf
+
 install -d %{buildroot}%{_datadir}/logstash/patterns/
 cp -a conf/logstash/lighttpd.pattern %{buildroot}%{_datadir}/logstash/patterns/lighttpd.pattern
-cp -a conf/logstash/frontend.hostname %{buildroot}%{_sysconfdir}/copr/
 
 
 #doc
-cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
+# cp -a documentation/python-doc %{buildroot}%{_pkgdocdir}/
 cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
+
+install -d %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d
+cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d/copr_backend.conf
 
 %check
 
@@ -196,11 +195,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/results
 %dir %attr(0755, copr, copr) %{_var}/log/copr
-%dir %attr(0755, copr, copr) %{_var}/log/copr/workers
 %dir %attr(0755, copr, copr) %{_var}/run/copr-backend
 
 %ghost %{_var}/log/copr/*.log
-%ghost %{_var}/log/copr/workers/worker-*.log
 %ghost %{_var}/run/copr-backend/copr-be.pid
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
@@ -209,13 +206,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %doc %{_pkgdocdir}/playbooks
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-be.conf
-%config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/frontend.hostname
 %{_unitdir}/copr-backend.service
 %{_tmpfilesdir}/copr-backend.conf
 %{_bindir}/*
 
 %config(noreplace) %{_sysconfdir}/cron.daily/copr-backend
-%config(noreplace) %{_sysconfdir}/logstash.d/copr_backend.conf
 %{_datadir}/logstash/patterns/lighttpd.pattern
 
 
@@ -223,7 +218,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 
 %files doc
 %license LICENSE
-%doc %{_pkgdocdir}/python-doc
+%doc
+# %{_pkgdocdir}/python-doc
+%{_pkgdocdir}/
 %exclude %{_pkgdocdir}/lighttpd
 %exclude %{_pkgdocdir}/playbooks
 
