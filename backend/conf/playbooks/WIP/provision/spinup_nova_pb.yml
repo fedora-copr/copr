@@ -1,0 +1,86 @@
+- name: check/create instance
+  hosts: 127.0.0.1
+  #hosts: copr-back-stg
+  gather_facts: False
+
+  vars:
+    OS_AUTH_URL: "https://fed-cloud09.cloud.fedoraproject.org:5000/v2.0"
+    image_id: "e71dd9f6-ec73-44dd-946c-25b09fce332d"
+    # With the addition of Keystone we have standardized on the term **tenant**
+    # # as the entity that owns the resources.
+    OS_TENANT_ID: "566a072fb1694950998ad191fee3833b"
+    OS_TENANT_NAME: "coprdev"
+    #
+    # # In addition to the owning entity (tenant), openstack stores the entity
+    # # performing the action as the **user**.
+    OS_USERNAME: "FILLME"
+    #
+    # # With Keystone you pass the keystone password.
+    # echo "Please enter your OpenStack Password: "
+    # read -sr OS_PASSWORD_INPUT
+    OS_PASSWORD: "FILLME"
+    #
+    # _OS_AUTH_OPTS: "--os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}} "
+    # VM_NAME_OR_ID: "vm_from_nova_cli_001"
+
+    network_name: "copr-net"
+    cloud_networks: 
+        #- net-id: "53fb02fd-6e97-4cfc-b298-a2ff867daa52"
+        - net-id: "6797b4e3-28a0-4a14-9689-e506d0cca90d"
+        #- net-id: "dcb11bd5-47df-43ed-bb2f-5d9c39bfedcd"
+    keypair: buildsys
+    max_spawn_time: 600
+
+    #prepare_base_image: True
+
+  #vars_prompt:
+  #  - name: "OS_PASSWORD"
+  #    prompt: "Enter OS password"
+  #    private: yes
+  tasks:
+    - name: generate builder name
+      # local_action: command echo "Copr_builder_{{ 999999999 | random }}"
+      #ocal_action: command echo "Copr_builder_138954194"
+      local_action: set_fact vm_name="Copr_builder_{{ 999999999 | random }}"
+      #register: vm_name
+    - debug: msg="VM_NAME={{ vm_name }}"
+
+    - include: "spinup_nova_task.yml"
+
+
+    # - set_fact: builder_ip="{{ nova.info|nova_result_to_builder_ip }}"
+
+    - debug: msg="VM_IP={{ builder_ip }}"
+
+    - name: wait for he host to be hot
+      local_action: wait_for host={{ builder_ip }} port=22 delay=1 timeout=600
+   
+    #- name: sleep
+    #  local_action: command sleep 20
+  
+
+   
+    - name: wait until ssh is available
+      local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o PasswordAuthentication=no fedora@{{ builder_ip }} 'echo foobar' 2>/dev/null; done
+      async: 600
+      poll: 2
+
+
+      #egister: echo_result
+      #ommand: echo foobar
+      #ntil: echo_result.stdout == "foobar"
+      #etries: 15
+      #elay: 5
+      #gnore_errors: True
+      
+
+- name: provision builder
+  hosts: builder_temp_group
+  gather_facts: False
+  sudo: True
+  user: fedora
+
+  tasks:
+  #- debug: msg="hello"
+  # # include: "provision_task.yml"
+  - include: "provision_builder_tasks.yml"
