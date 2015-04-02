@@ -237,7 +237,7 @@ class AlterUserCommand(Command):
 
     def run(self, name, **kwargs):
         user = models.User.query.filter(
-            models.User.openid_name == models.User.openidize_name(name)).first()
+            models.User.username == name).first()
         if not user:
             print("No user named {0}.".format(name))
             return
