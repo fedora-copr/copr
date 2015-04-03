@@ -6,14 +6,15 @@
 Welcome to copr-backend's documentation!
 ========================================
 
-Contents:
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    README
    INSTALL
+   Backend_design
+   VmManagement
    Configuration
+   Statistics
    Autodoc
    run_scripts
 

@@ -21,10 +21,11 @@ backend.daemons.
 Backend daemons, started by copr-be.py
 
 .. toctree::
-   package/daemons/backend.rst
-   package/daemons/dispatcher.rst
-   package/daemons/job_grab.rst
-   package/daemons/log.rst
+   package/daemons/backend
+   package/daemons/dispatcher
+   package/daemons/job_grab
+   package/daemons/log
+   package/daemons/vm_master
 
 backend.mockremote.
 -------------------
@@ -33,6 +34,11 @@ Package dedicated to executing job builds on remote VMs.
 .. toctree::
    package/mockremote/__init__
    package/mockremote/builder
-   package/mockremote/callback
 
 
+backend.vm_manage.
+------------------
+Package for VM management only.
+
+.. toctree::
+   package/vm_manage/manager

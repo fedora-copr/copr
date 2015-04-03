@@ -105,14 +105,17 @@ end
 
 class VmManager(object):
     """
-    VM manager, can be used in two modes:
+    VM manager, it is used for two purposes:
     - Daemon which control VMs lifecycle, requires params `spawner,terminator`
     - Client to acquire and release VM in builder process
 
     :param opts: Global backend configuration
     :type opts: Bunch
 
-    :param callback: object with method `log(msg)`
+    :type logger: logging.Logger
+    :param logger: Logger instance to use inside of manager, if None manager would create
+        new logger using helpers.get_redis_logger
+
     :param checker: object with method `check_health(ip) -> None or raise exception`
     :param spawner: object with method `spawn() -> IP or raise exception`
     :param terminator: object with safe method `terminate(ip, vm_name)`
@@ -131,6 +134,10 @@ class VmManager(object):
         self.log = logger or get_redis_logger(self.opts, "vmm.lib", "vmm")
 
     def post_init(self):
+        """
+        Self configuration. Should be called before usage of some methods.
+        """
+
         self.rc = get_redis_connection(self.opts)
         self.lua_scripts["set_checking_state"] = self.rc.register_script(set_checking_state_lua)
         self.lua_scripts["acquire_vm"] = self.rc.register_script(acquire_vm_lua)
@@ -139,18 +146,26 @@ class VmManager(object):
         self.lua_scripts["mark_vm_check_failed"] = self.rc.register_script(mark_vm_check_failed_lua)
 
     def set_logger(self, logger):
+        """
+        :param logger: Logger to be used by manager
+        :type logger: logging.Logger
+        """
         self.log = logger
 
     @property
     def vm_groups(self):
+        """
+        :return: VM build groups
+        :rtype: list of int
+        """
         return range(self.opts.build_groups_count)
 
     def add_vm_to_pool(self, vm_ip, vm_name, group):
         """
         Adds newly spawned VM into the pool of available builders
 
-        :param vm_ip: IP
-        :param vm_name: VM name
+        :param str vm_ip: IP
+        :param str vm_name: VM name
         :param group: builder group
         :type group: int
         :rtype: VmDescriptor
@@ -169,6 +184,11 @@ class VmManager(object):
         return vmd
 
     def lookup_vms_by_ip(self, vm_ip):
+        """
+        :param vm_ip:
+        :return: List of found VMD with the give ip
+        :rtype: list of VmDescriptor
+        """
         return [
             vmd for vmd in self.get_all_vm()
             if vmd.vm_ip == vm_ip
@@ -208,7 +228,7 @@ class VmManager(object):
 
         :param group: builder group id, as defined in config
         :type group: int
-        :param username: build owner username, VMM prefer to reuse an existing VM which was use by the same user
+        :param username: build owner username, VMM prefer to reuse an existing VM which was used by the same user
         :param pid: builder pid to release VM after build process unhandled death
 
         :rtype: VmDescriptor
@@ -288,6 +308,8 @@ class VmManager(object):
     def remove_vm_from_pool(self, vm_name):
         """
         Backend forgets about VM after this method
+
+        :raises VmError: if VM has wrong state
         """
         vmd = self.get_vm_by_name(vm_name)
         if vmd.get_field(self.rc, "state") != VmStates.TERMINATING:
@@ -299,10 +321,16 @@ class VmManager(object):
         self.log.info("removed vm `{}` from pool".format(vm_name))
 
     def get_all_vm_in_group(self, group):
+        """
+        :rtype: list of VmDescriptor
+        """
         vm_name_list = self.rc.smembers(KEY_VM_POOL.format(group=group))
         return [VmDescriptor.load(self.rc, vm_name) for vm_name in vm_name_list]
 
     def get_all_vm(self):
+        """
+        :rtype: list of VmDescriptor
+        """
         vm_name_list = []
         for group in self.vm_groups:
             vm_name_list.extend(self.rc.smembers(KEY_VM_POOL.format(group=group)))
@@ -315,6 +343,15 @@ class VmManager(object):
         return VmDescriptor.load(self.rc, vm_name)
 
     def get_vm_by_group_and_state_list(self, group, state_list):
+        """
+        Select VM-s for the given group and allowed states
+
+        :param group: filter VM-s by the build group. If ``group is None`` select VM-s from the all groups
+        :param state_list: VM state should be in the ``state_list``.
+
+        :return: Filtered VM-s
+        :rtype: list of VmDescriptor
+        """
         states = set(state_list)
         if group is None:
             vmd_list = self.get_all_vm()
@@ -324,8 +361,9 @@ class VmManager(object):
 
     def info(self):
         """
-        Present information about all managed VMs in human readable form.
-        :return:
+        Present information about all managed VMs in a human readable form.
+
+        :rtype: str
         """
         dt_fields = {
             "last_health_check",
