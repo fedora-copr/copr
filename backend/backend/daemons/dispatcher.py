@@ -27,34 +27,6 @@ except ImportError:
     fedmsg = None
 
 
-class WorkerCallback(object):
-    """
-    Callback class for worker. Now used only for message logging
-
-    :param logfile: path to the log file
-    """
-
-    def __init__(self, logfile=None):
-        self.logfile = logfile
-
-    def log(self, msg):
-        """
-        Safely writes msg to the logfile
-
-        :param str msg: message to be logged
-        """
-        if self.logfile:
-            now = time.strftime("%F %T")
-            try:
-                with open(self.logfile, 'a') as lf:
-                    fcntl.flock(lf, fcntl.LOCK_EX)
-                    lf.write(str(now) + ': ' + msg + '\n')
-                    fcntl.flock(lf, fcntl.LOCK_UN)
-            except (IOError, OSError) as e:
-                sys.stderr.write("Could not write to logfile {0} - {1}\n"
-                                 .format(self.logfile, str(e)))
-
-
 class Worker(multiprocessing.Process):
     """
     Worker process dispatches building tasks. Backend spin-up multiple workers, each
@@ -65,7 +37,6 @@ class Worker(multiprocessing.Process):
     :param Bunch opts: backend config
     :param int worker_num: worker number
     :param int group_id: group_id from the set of groups defined in config
-    :param callback: callback object to handle internal workers events. Should implement method ``log(msg)``.
     :param lock: (:py:class:`multiprocessing.Lock`) global backend lock
 
     """
