@@ -7,10 +7,10 @@
   user: fedora
   sudo: true
   gather_facts: True
-  #vars:
-  #- files: files/
+  vars:
+  - files: files/
+  - prepare_base_image: True
 
   tasks:
-  # - debug: msg="test"
   - include: "provision_builder_tasks.yml"
 

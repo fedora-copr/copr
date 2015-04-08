@@ -1,0 +1,15 @@
+---
+# fill with actual values or use as ansible template
+OS_AUTH_URL: "{{ copr_nova_auth_url }}"
+
+OS_TENANT_ID: "{{ copr_nova_tenant_id }}"
+OS_TENANT_NAME: "{{ copr_nova_tenant_name }}"
+
+OS_USERNAME: "{{ copr_nova_username }}"
+OS_PASSWORD: "{{ copr_password }}"
+
+
+image_name: "{{ copr_builder_image_name }}"
+flavor_name: "{{ copr_builder_flavor_name }}"
+network_name: "{{ copr_builder_network_name }}"
+key_name: "{{ copr_builder_key_name }}"

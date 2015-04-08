@@ -1,0 +1,44 @@
+- name: check/create instance
+  hosts: 127.0.0.1
+  gather_facts: False
+
+  vars_files:
+    - nova_cloud_vars.yml
+
+  vars:
+    # _OS_AUTH_OPTS: "--os-auth-url {{OS_AUTH_URL}} --os-username {{OS_USERNAME}} --os-password {{OS_PASSWORD}} --os-tenant-name {{OS_TENANT_NAME}} --os-tenant-id {{OS_TENANT_ID}} "
+
+    keypair: buildsys
+    max_spawn_time: 600
+    spawning_vm_user: "fedora"
+
+    # pass this options if you need to create new base image from snapshot
+    #prepare_base_image: True
+
+  tasks:
+    - name: generate builder name
+      local_action: set_fact vm_name="Copr_builder_{{ 999999999 | random }}"
+    
+    - debug: msg="vm_name={{ vm_name }}"
+    - include: "spinup_nova_task.yml"
+
+    - debug: msg="VM_IP={{ builder_ip }}"
+
+    - name: wait for he host to be hot
+      local_action: wait_for host={{ builder_ip }} port=22 delay=1 timeout=600
+   
+    - name: wait until ssh is available
+      local_action:  shell false; until [ "$?" -eq "0" ]; do sleep 2; ssh -o PasswordAuthentication=no {{ spawning_vm_user|default('fedora') }}@{{ builder_ip }} 'echo foobar' 2>/dev/null; done
+      async: 600
+      poll: 2
+
+
+- name: provision builder
+  hosts: builder_temp_group
+  gather_facts: False
+  sudo: True
+  user: fedora 
+
+  tasks:
+  - include: "provision_builder_tasks.yml"
+

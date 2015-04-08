@@ -1,0 +1,17 @@
+- name: terminate instance
+  hosts: 127.0.0.1
+  gather_facts: False
+
+  vars_files:
+    - nova_cloud_vars.yml
+
+  tasks:
+  - name: terminate  nova_compute
+    local_action:
+      module: nova_compute
+      auth_url: "{{OS_AUTH_URL}}"
+      login_username: "{{OS_USERNAME}}"
+      login_password: "{{OS_PASSWORD}}"
+      login_tenant_name: "{{OS_TENANT_NAME}}"
+      name: "{{ copr_task.vm_name }}"
+      state: absent
