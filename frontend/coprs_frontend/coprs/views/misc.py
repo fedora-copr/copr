@@ -175,7 +175,10 @@ def create_or_login(resp):
                                                 username=user.name))
         return flask.redirect(oid.get_next_url())
     else:
-        flask.flash("User '{0}' is not allowed".format(user.name))
+        # TODO: auto-fix, original line here. Check logic
+        #flask.flash("User '{0}' is not allowed".format(user.name))
+
+        flask.flash("User '{0}' is not allowed".format(fasusername.name))
         return flask.redirect(oid.get_next_url())
 
 

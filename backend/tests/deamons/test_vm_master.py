@@ -24,11 +24,9 @@ import os
 
 import six
 from backend.helpers import get_redis_connection
-from backend.vm_manage import VmStates, Thresholds, KEY_VM_POOL, PUBSUB_VM_TERMINATION
-from backend.vm_manage.check import HealthChecker
+from backend.vm_manage import VmStates, Thresholds
 from backend.vm_manage.manager import VmManager
 from backend.daemons.vm_master import VmMaster
-from backend.vm_manage.models import VmDescriptor
 
 if six.PY3:
     from unittest import mock
@@ -38,10 +36,6 @@ else:
     from mock import patch, MagicMock
 
 import pytest
-
-from backend.mockremote import MockRemote, get_target_dir
-from backend.mockremote.callback import DefaultCallBack
-from backend.job import BuildJob
 
 
 """
@@ -81,6 +75,8 @@ class TestCallback(object):
 class TestVmMaster(object):
 
     def setup_method(self, method):
+        self.vm_spawn_min_interval = 30
+
         self.opts = Bunch(
             redis_db=9,
             redis_port=7777,
@@ -94,16 +90,22 @@ class TestVmMaster(object):
                     "archs": ["i386", "x86_64"],
                     "max_vm_total": 5,
                     "max_spawn_processes": 3,
+                    "vm_spawn_min_interval": self.vm_spawn_min_interval,
                 },
                 1: {
                     "name": "arm",
-                    "archs": ["armV7"]
+                    "archs": ["armV7"],
+                    "vm_spawn_min_interval": self.vm_spawn_min_interval,
                 }
             },
 
             fedmsg_enabled=False,
             sleeptime=0.1,
+
+
         )
+
+
         self.queue = Queue()
 
         self.vm_ip = "127.0.0.1"
@@ -121,8 +123,8 @@ class TestVmMaster(object):
         self.spawner = MagicMock()
         self.terminator = MagicMock()
 
-        self.queue = Queue()
-        self.vmm = VmManager(self.opts, self.queue,
+        self.mc_logger = MagicMock()
+        self.vmm = VmManager(self.opts, logger=self.mc_logger,
                              checker=self.checker,
                              spawner=self.spawner,
                              terminator=self.terminator)
@@ -194,6 +196,8 @@ class TestVmMaster(object):
         assert set(["a1", "b1"]) == terminated_names
 
     def test_remove_vm_with_dead_builder(self, mc_time, add_vmd, mc_psutil):
+        mc_time.time.return_value = time.time()
+
         self.vmm.release_vm = types.MethodType(MagicMock(), self.vmm)
 
         for idx, vmd in enumerate([self.vmd_a1, self.vmd_a2,
@@ -202,6 +206,7 @@ class TestVmMaster(object):
             vmd.store_field(self.rc, "chroot", "fedora-20-x86_64")
             vmd.store_field(self.rc, "task_id", "{}-fedora-20-x86_64".format(idx + 1))
             vmd.store_field(self.rc, "build_id", idx + 1)
+            vmd.store_field(self.rc, "in_use_since", 0)
 
         self.rc.hdel(self.vmd_b3.vm_key, "chroot")
 
@@ -220,7 +225,7 @@ class TestVmMaster(object):
                 "4": "None",
                 "5": "None",
             }
-            p.name = "builder vm_name={} suffix".format(mapping.get(str(pid)))
+            p.cmdline = ["builder vm_name={} suffix".format(mapping.get(str(pid))),]
             return p
 
         def mc_psutil_pid_exists(pid):
@@ -358,12 +363,14 @@ class TestVmMaster(object):
         self.vmm.mark_server_start = MagicMock()
 
         self.stage = 0
+
         def on_sleep(*args, **kwargs):
             self.stage += 1
             if self.stage == 1:
                 pass
             elif self.stage >= 2:
                 self.vm_master.kill_received = True
+
         mc_time.sleep.side_effect = on_sleep
         with mock.patch("{}.EventHandler".format(MODULE_REF)) as mc_event_handler:
 
@@ -373,10 +380,6 @@ class TestVmMaster(object):
             assert mc_event_handler.return_value.start.called
 
             assert self.vmm.mark_server_start.called
-
-        err_log = self.queue.get(timeout=1)
-        assert err_log is not None
-        assert "Unhandled error:" in err_log["what"]
 
     def test_dummy_terminate(self):
         self.vm_master.terminate()
@@ -424,8 +427,6 @@ class TestVmMaster(object):
             self.vmm.spawner.children_number = spawn_procs_number
 
             self.vm_master.try_spawn_one(0)
-            assert any("Skip spawn: max total vm reached " in call[0][0]
-                       for call in self.vm_master.log.call_args_list)
             assert not self.vmm.spawner.start_spawn.called
             self.vm_master.log.reset_mock()
 
@@ -433,7 +434,7 @@ class TestVmMaster(object):
             self.clean_redis()
 
     def test_try_spawn_one_last_spawn_time(self, mc_time):
-        # don't start new spawn if last_spawn_time was in less Threshold.vm_spawn_min_interval ago
+        # don't start new spawn if last_spawn_time was in less self.vm_spawn_min_interval ago
         mc_time.time.return_value = 0
         self.vm_master.try_spawn_one(0)
         assert self.vmm.spawner.start_spawn.called_once
@@ -441,7 +442,7 @@ class TestVmMaster(object):
 
         self.vm_master.try_spawn_one(0)
         assert not self.vmm.spawner.start_spawn.called
-        mc_time.time.return_value = 1 + Thresholds.vm_spawn_min_interval
+        mc_time.time.return_value = 1 + self.vm_spawn_min_interval
         self.vm_master.try_spawn_one(0)
         assert self.vmm.spawner.start_spawn.called_once
 
@@ -453,7 +454,7 @@ class TestVmMaster(object):
         self.vmm.spawner.start_spawn.reset_mock()
 
         self.vmm.log.reset_mock()
-        mc_time.time.return_value = 1 + Thresholds.vm_spawn_min_interval
+        mc_time.time.return_value = 1 + self.vm_spawn_min_interval
 
         self.vmm.spawner.children_number = self.opts.build_groups[0]["max_spawn_processes"] + 1
 
@@ -478,5 +479,3 @@ class TestVmMaster(object):
 
         self.vm_master.try_spawn_one(0)
         assert self.vmm.spawner.start_spawn.called
-        assert any("Error during spawn" in call[0][0]
-                   for call in self.vm_master.log.call_args_list)

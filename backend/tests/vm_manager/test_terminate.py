@@ -94,15 +94,15 @@ class TestTerminate(object):
             # destdir=self.tmp_dir_path,
             results_baseurl="/tmp",
         )
+        self.grl_patcher = mock.patch("{}.get_redis_logger".format(MODULE_REF))
+        self.grl_patcher.start()
         # self.try_spawn_args = '-c ssh {}'.format(self.spawn_pb_path)
 
         # self.callback = TestCallback()
         self.checker = MagicMock()
         self.terminator = MagicMock()
 
-        self.queue = Queue()
-
-        self.terminator = Terminator(self.opts, self.queue)
+        self.terminator = Terminator(self.opts)
         self.terminator.recycle = types.MethodType(mock.MagicMock, self.terminator)
         self.vm_ip = "127.0.0.1"
         self.vm_name = "localhost"
@@ -112,8 +112,7 @@ class TestTerminate(object):
         self.rc = get_redis_connection(self.opts)
         self.log_msg_list = []
 
-    def log_fn(self, msg):
-        self.log_msg_list.append(msg)
+        self.logger = MagicMock()
 
     def teardown_method(self, method):
         shutil.rmtree(self.test_root_path)
@@ -121,18 +120,7 @@ class TestTerminate(object):
         if keys:
             self.rc.delete(*keys)
 
-        self.log_msg_list = []
-
-    def _get_all_from_queue(self):
-        res = []
-        while True:
-            try:
-                time.sleep(0.02)
-                value = self.queue.get_nowait()
-                res.append(value)
-            except Empty:
-                break
-        return res
+        self.grl_patcher.stop()
 
     def touch_pb(self):
         with open(self.terminate_pb_path, "w") as handle:
@@ -168,28 +156,21 @@ class TestTerminate(object):
     def test_terminate_vm_on_error(self, mc_run_ans):
         mc_run_ans.side_effect = CalledProcessError(0, cmd=["ls"])
 
-        terminate_vm(self.opts, self.queue,
-                     self.terminate_pb_path, 0, self.vm_name, self.vm_ip)
-
-        assert any("Failed to terminate" in ev["what"] for ev in self._get_all_from_queue())
+        # doesn't raise an error
+        terminate_vm(self.opts, self.terminate_pb_path, 0, self.vm_name, self.vm_ip)
 
     def test_do_spawn_and_publish_ok(self, mc_run_ans, mc_grc):
         mc_rc = mock.MagicMock()
         mc_grc.return_value = mc_rc
 
-        terminate_vm(self.opts, self.queue,
-                     self.terminate_pb_path, 0, self.vm_name, self.vm_ip)
+        terminate_vm(self.opts, self.terminate_pb_path, 0, self.vm_name, self.vm_ip)
 
         assert mc_run_ans.called
-        expected_call = mock.call(
-            '-c ssh {} --extra-vars=\'{{"copr_task": {{"vm_name": "{}", "ip": "{}"}}}}\''
-            .format(self.terminate_pb_path, self.vm_name, self.vm_ip),
-            'terminate instance')
-        assert expected_call == mc_run_ans.call_args[:-1]
+        expected_cmd = '-c ssh {} --extra-vars=\'{{"copr_task": {{"vm_name": "{}", "ip": "{}"}}}}\''.format(
+            self.terminate_pb_path, self.vm_name, self.vm_ip)
 
-        msg_list = self._get_all_from_queue()
+        assert expected_cmd == mc_run_ans.call_args[:-1][0][0]
 
-        assert any("VM terminated" in ev["what"] for ev in msg_list)
         assert mc_grc.called
         assert mc_rc.publish.called
 
@@ -202,18 +183,11 @@ class TestTerminate(object):
     def test_do_spawn_and_publish_error(self, mc_run_ans, mc_grc):
         mc_grc.side_effect = ConnectionError()
 
-        terminate_vm(self.opts, self.queue,
-                     self.terminate_pb_path, 0, self.vm_name, self.vm_ip)
+        terminate_vm(self.opts, self.terminate_pb_path, 0, self.vm_name, self.vm_ip)
 
         assert mc_run_ans.called
-        expected_call = mock.call(
-            '-c ssh {} --extra-vars=\'{{"copr_task": {{"vm_name": "{}", "ip": "{}"}}}}\''
-            .format(self.terminate_pb_path, self.vm_name, self.vm_ip),
-            'terminate instance')
-        assert expected_call == mc_run_ans.call_args[:-1]
+        expected_cmd = '-c ssh {} --extra-vars=\'{{"copr_task": {{"vm_name": "{}", "ip": "{}"}}}}\''.format(
+            self.terminate_pb_path, self.vm_name, self.vm_ip)
 
-        msg_list = self._get_all_from_queue()
-
-        assert any("VM terminated" in ev["what"] for ev in msg_list)
-        assert any("Failed to publish" in ev["what"] for ev in msg_list)
+        assert expected_cmd == mc_run_ans.call_args[:-1][0][0]
         assert mc_grc.called

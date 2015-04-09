@@ -21,7 +21,6 @@ else:
 import pytest
 
 from backend.mockremote import MockRemote, get_target_dir
-from backend.mockremote.callback import DefaultCallBack
 from backend.job import BuildJob
 
 
@@ -43,37 +42,14 @@ COPR_NAME = "copr_name"
 COPR_VENDOR = "vendor"
 
 
-class CallbackTest(DefaultCallBack):
-    def __init__(self, log_dict, **kwargs):
-        """
-        :param log_dict: defaultdict(list)
-        :return:
-        """
-        super(CallbackTest, self).__init__(**kwargs)
-        self.log_dict = log_dict
-
-    def __getattribute__(self, item):
-        if item in ["log", "error", "start_build", "end_build",
-                    "start_download", "end_download"]:
-            def fn(msg):
-                self.log_dict[item].append(msg)
-            return fn
-        else:
-            return super(CallbackTest, self).__getattribute__(item)
-
-
 class TestMockRemote(object):
-
-    def get_callback(self):
-        self._cb_log = defaultdict(list)
-        return CallbackTest(log_dict=self._cb_log)
 
     @pytest.yield_fixture
     def f_mock_remote(self):
-        self.mr_cb = self.get_callback()
         patcher = mock.patch("backend.mockremote.Builder")
         self.mc_builder = patcher.start()
-        self.mr = MockRemote(self.HOST, self.JOB, callback=self.mr_cb, opts=self.OPTS)
+        self.mc_logger = MagicMock()
+        self.mr = MockRemote(self.HOST, self.JOB, opts=self.OPTS, logger=self.mc_logger)
         self.mr.check()
         yield
         patcher.stop()
@@ -116,18 +92,10 @@ class TestMockRemote(object):
     def test_dummy(self, f_mock_remote):
         pass
 
-    def test_default_callback(self, f_mock_remote, capsys):
-        mr_2 = MockRemote(self.HOST, self.JOB, opts=self.OPTS)
-        mr_2.check()
-        out, err = capsys.readouterr()
-
-        assert isinstance(mr_2.callback, DefaultCallBack)
-        assert out
-
     def test_no_job_chroot(self, f_mock_remote, capsys):
         job_2 = copy.deepcopy(self.JOB)
         job_2.chroot = None
-        mr_2 = MockRemote(self.HOST, job_2, opts=self.OPTS)
+        mr_2 = MockRemote(self.HOST, job_2, opts=self.OPTS, logger=self.mc_logger)
         with pytest.raises(MockRemoteError):
             mr_2.check()
 
@@ -144,9 +112,8 @@ class TestMockRemote(object):
     @mock.patch("backend.mockremote.get_pubkey")
     def test_add_pubkey_on_exception(self, mc_get_pubkey, f_mock_remote):
         mc_get_pubkey.side_effect = CoprSignError("foobar")
+        # doesn't raise an error
         self.mr.add_pubkey()
-        assert self._cb_log["error"][-1]
-        assert "failed to retrieve" in self._cb_log["error"][-1]
 
     @mock.patch("backend.mockremote.sign_rpms_in_dir")
     def test_sign_built_packages(self, mc_sign_rpms_in_dir, f_mock_remote):
@@ -156,9 +123,8 @@ class TestMockRemote(object):
     @mock.patch("backend.mockremote.sign_rpms_in_dir")
     def test_sign_built_packages_exception(self, mc_sign_rpms_in_dir, f_mock_remote):
         mc_sign_rpms_in_dir.side_effect = IOError()
+        # doesn't raise an error
         self.mr.sign_built_packages()
-        assert self._cb_log["error"][-1]
-        assert "failed to sign packages" in self._cb_log["error"][-1]
 
     @mock.patch("backend.mockremote.sign_rpms_in_dir")
     def test_sign_built_packages_exception_reraise(self, mc_sign_rpms_in_dir, f_mock_remote):
@@ -185,10 +151,8 @@ class TestMockRemote(object):
     def test_do_createrepo_on_error(self, mc_createrepo, f_mock_remote):
         err_msg = "error occured"
         mc_createrepo.return_value = ("", "", err_msg)
+        # doesn't raise an error
         self.mr.do_createrepo()
-        assert len(self._cb_log["error"]) > 0
-        assert "Error making local repo" in self._cb_log["error"][0]
-        assert err_msg in self._cb_log["error"][1]
 
     def test_on_success_build(self, f_mock_remote):
         self.mr.sign_built_packages = MagicMock()
@@ -264,8 +228,6 @@ class TestMockRemote(object):
         assert self.mr.mark_dir_with_build_id.called
         assert self.mr.on_success_build.called
 
-        assert os.path.exists(os.path.join(self.DESTDIR_CHROOT, "mockchain.log"))
-
     def test_build_pkg_and_process_results_error_on_download(self, f_mock_remote):
         self.mr.builder.build.return_value = ({}, STDOUT)
         self.mr.builder.download.side_effect = BuilderError(msg="STDERR")
@@ -277,7 +239,6 @@ class TestMockRemote(object):
 
         assert not self.mr.on_success_build.called
         assert self.mr.mark_dir_with_build_id.called
-        assert not os.path.exists(os.path.join(self.DESTDIR_CHROOT, "mockchain.log"))
 
     def test_build_pkg_and_process_results_error_on_build(self, f_mock_remote):
         # self.mr.builder.build.return_value = ({}, STDOUT)
@@ -291,8 +252,6 @@ class TestMockRemote(object):
 
         assert not self.mr.on_success_build.called
         assert self.mr.mark_dir_with_build_id.called
-
-        assert os.path.exists(os.path.join(self.DESTDIR_CHROOT, "mockchain.log"))
 
     def test_mark_dir_with_build_id(self, f_mock_remote):
         # TODO: create real test

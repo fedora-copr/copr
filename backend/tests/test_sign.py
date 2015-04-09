@@ -134,13 +134,7 @@ class TestSign(object):
 
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
-             _sign_one(fake_path, self.usermail)
-
-        mc_cb = MagicMock()
-
-        with pytest.raises(CoprSignError):
-             _sign_one(fake_path, self.usermail, mc_cb)
-        assert isinstance(mc_cb.error.call_args[0][0], CoprSignError)
+            _sign_one(fake_path, self.usermail)
 
     @mock.patch("backend.sign.Popen")
     def test_sign_one_cmd_erro(self, mc_popen):
@@ -149,16 +143,9 @@ class TestSign(object):
         mc_handle.returncode = 1
         mc_popen.return_value = mc_handle
 
-
         fake_path = "/tmp/pkg.rpm"
         with pytest.raises(CoprSignError):
-             _sign_one(fake_path, self.usermail)
-
-        mc_cb = MagicMock()
-
-        with pytest.raises(CoprSignError):
-             _sign_one(fake_path, self.usermail, mc_cb)
-        assert isinstance(mc_cb.error.call_args[0][0], CoprSignError)
+            _sign_one(fake_path, self.usermail)
 
     @mock.patch("backend.sign.request")
     def test_create_user_keys(self, mc_request):
@@ -199,7 +186,7 @@ class TestSign(object):
                                       tmp_dir):
         # empty target dir doesn't produce error
         sign_rpms_in_dir(self.username, self.projectname,
-                         self.tmp_dir_path, self.opts)
+                         self.tmp_dir_path, self.opts, log=MagicMock())
 
         assert not mc_gp.called
         assert not mc_cuk.called
@@ -210,9 +197,9 @@ class TestSign(object):
     @mock.patch("backend.sign.get_pubkey")
     def test_sign_rpms_id_dir_ok(self, mc_gp, mc_cuk, mc_so,
                                       tmp_dir, tmp_files):
-        mc_cb = MagicMock()
+
         sign_rpms_in_dir(self.username, self.projectname,
-                         self.tmp_dir_path, self.opts, callback=mc_cb)
+                         self.tmp_dir_path, self.opts, log=MagicMock())
 
         assert mc_gp.called
         assert not mc_cuk.called
@@ -233,10 +220,9 @@ class TestSign(object):
             self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
 
         mc_gp.side_effect = CoprSignError("foobar")
-        mc_cb = MagicMock()
         with pytest.raises(CoprSignError):
             sign_rpms_in_dir(self.username, self.projectname,
-                             self.tmp_dir_path, self.opts, callback=mc_cb)
+                             self.tmp_dir_path, self.opts, log=MagicMock())
 
         assert mc_gp.called
         assert not mc_cuk.called
@@ -249,10 +235,9 @@ class TestSign(object):
             self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
 
         mc_gp.side_effect = CoprSignNoKeyError("foobar")
-        mc_cb = MagicMock()
 
         sign_rpms_in_dir(self.username, self.projectname,
-                         self.tmp_dir_path, self.opts, callback=mc_cb)
+                         self.tmp_dir_path, self.opts, log=MagicMock())
 
         assert mc_gp.called
         assert mc_cuk.called
@@ -264,14 +249,12 @@ class TestSign(object):
     def test_sign_rpms_id_dir_sign_error_one(
             self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
 
-        mc_cb = MagicMock()
-
         mc_so.side_effect = [
             None, CoprSignError("foobar"), None
         ]
         with pytest.raises(CoprSignError):
             sign_rpms_in_dir(self.username, self.projectname,
-                             self.tmp_dir_path, self.opts, callback=mc_cb)
+                             self.tmp_dir_path, self.opts, log=MagicMock())
 
         assert mc_gp.called
         assert not mc_cuk.called
@@ -284,12 +267,10 @@ class TestSign(object):
     def test_sign_rpms_id_dir_sign_error_all(
             self, mc_gp, mc_cuk, mc_so, tmp_dir, tmp_files):
 
-        mc_cb = MagicMock()
-
         mc_so.side_effect = CoprSignError("foobar")
         with pytest.raises(CoprSignError):
             sign_rpms_in_dir(self.username, self.projectname,
-                             self.tmp_dir_path, self.opts, callback=mc_cb)
+                             self.tmp_dir_path, self.opts, log=MagicMock())
 
         assert mc_gp.called
         assert not mc_cuk.called

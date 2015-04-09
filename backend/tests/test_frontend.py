@@ -30,6 +30,7 @@ def mc_time():
     with mock.patch("backend.frontend.time") as obj:
         yield obj
 
+
 class TestFrontendClient(object):
 
     def setup_method(self, method):
@@ -37,8 +38,7 @@ class TestFrontendClient(object):
             frontend_url="http://example.com/",
             frontend_auth="12345678",
         )
-        self.events = multiprocessing.Queue()
-        self.fc = FrontendClient(self.opts, self.events)
+        self.fc = FrontendClient(self.opts)
 
         self.data = {
             "foo": "bar",

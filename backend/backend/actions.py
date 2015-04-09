@@ -27,18 +27,17 @@ class Action(object):
 
     """
     # TODO: get more form opts, decrease number of parameters
-    def __init__(self, opts, action, lock,
-                 frontend_client, destdir,
-                 front_url, results_root_url):
+    def __init__(self, opts, action, lock, frontend_client):
 
         self.opts = opts
         self.frontend_client = frontend_client
-        self.destdir = destdir
         self.data = action
 
         self.lock = lock
-        self.front_url = front_url
-        self.results_root_url = results_root_url
+
+        self.destdir = self.opts.destdir
+        self.front_url = self.opts.frontend_base_url
+        self.results_root_url = self.opts.results_baseurl
 
         self.log = get_redis_logger(self.opts, "backend.actions", "actions")
 

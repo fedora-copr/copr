@@ -26,7 +26,7 @@ else:
     from mock import MagicMock
 
 
-from backend.daemons.dispatcher import Worker, WorkerCallback
+from backend.daemons.dispatcher import Worker
 
 STDOUT = "stdout"
 STDERR = "stderr"
@@ -143,10 +143,10 @@ class TestDispatcher(object):
 
         self.worker_num = 2
         self.group_id = "3"
-        self.events = multiprocessing.Queue()
+
         self.ip = "192.168.1.1"
         self.worker_callback = MagicMock()
-        self.events = multiprocessing.Queue()
+
         self.logfile_path = os.path.join(self.tmp_dir_path, "test.log")
 
         self.frontend_client = MagicMock()
@@ -162,11 +162,9 @@ class TestDispatcher(object):
     def init_worker(self):
         self.worker = Worker(
             opts=self.opts,
-            events=self.events,
             frontend_client=self.frontend_client,
             worker_num=self.worker_num,
             group_id=self.group_id,
-            callback=self.worker_callback,
         )
 
         self.worker.vmm = MagicMock()
@@ -194,13 +192,11 @@ class TestDispatcher(object):
     def test_init_worker_wo_callback(self):
         worker = Worker(
             opts=self.opts,
-            events=self.events,
             frontend_client=self.frontend_client,
             worker_num=self.worker_num,
             group_id=self.group_id,
         )
         worker.vmm = MagicMock()
-        assert worker.callback
 
     def test_pkg_built_before(self):
         assert not Worker.pkg_built_before(self.pkg_path, self.CHROOT, self.tmp_dir_path)
@@ -214,66 +210,6 @@ class TestDispatcher(object):
         with open(os.path.join(target_dir, "success"), "w") as handle:
             handle.write("done")
         assert Worker.pkg_built_before(self.pkg_path, self.CHROOT, self.tmp_dir_path)
-
-    @mock.patch("backend.daemons.dispatcher.fedmsg")
-    def test_event(self, mc_fedmsg, init_worker):
-        template = "foo: {foo}, bar: {bar}"
-        content = {"foo": "foo", "bar": "bar"}
-        topic = "copr_test"
-
-        self.worker.opts.fedmsg_enabled = True
-        self.worker.event(topic, template, content)
-        el = self.worker.events.get()
-
-        assert el["who"] == "worker-2"
-        assert el["what"] == "foo: foo, bar: bar"
-
-    @mock.patch("backend.daemons.dispatcher.fedmsg")
-    def test_event_error(self, mc_fedmsg, init_worker):
-        template = "foo: {foo}, bar: {bar}"
-        content = {"foo": "foo", "bar": "bar"}
-        topic = "copr_test"
-        mc_fedmsg.publish.side_effect = IOError()
-
-        self.worker.opts.fedmsg_enabled = True
-        self.worker.event(topic, template, content)
-        el = self.worker.events.get()
-
-        assert el["who"] == "worker-2"
-        assert el["what"] == "foo: foo, bar: bar"
-
-    @mock.patch("backend.daemons.dispatcher.fedmsg")
-    def test_event_disable_fedmsg(self, mc_fedmsg, init_worker):
-        template = "foo: {foo}, bar: {bar}"
-        content = {"foo": "foo", "bar": "bar"}
-        topic = "copr_test"
-        mc_fedmsg.publish.side_effect = IOError()
-
-        self.worker.event(topic, template, content)
-        assert not mc_fedmsg.publish.called
-
-    def test_worker_callback(self):
-        wc = WorkerCallback(self.logfile_path)
-
-        assert not os.path.exists(self.logfile_path)
-        msg = "foobar"
-        wc.log(msg)
-
-        with open(self.logfile_path) as handle:
-            obtained = handle.read()
-            assert msg in obtained
-
-    @mock.patch("backend.daemons.dispatcher.open", create=True)
-    def test_worker_callback_error(self, mc_open, capsys):
-        wc = WorkerCallback(self.logfile_path)
-        mc_open.side_effect = IOError()
-
-        wc.log("foobar")
-        stdout, stderr = capsys.readouterr()
-
-        assert "Could not write to logfile" in stderr
-
-        assert not os.path.exists(self.logfile_path)
 
     def test_mark_started(self, init_worker):
         self.worker.mark_started(self.job)

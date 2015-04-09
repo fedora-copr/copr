@@ -4,6 +4,7 @@ import shutil
 import time
 
 from bunch import Bunch
+import pwd
 import pytest
 import retask
 from retask import ConnectionError
@@ -100,7 +101,8 @@ class TestBackend(object):
             frontend_base_url="http://example.com",
             frontend_auth="foobar",
 
-
+            log_dir=self.tmp_dir_path,
+            log_level="info",
         )
         self.bc_obj.read.return_value = self.opts
         self.bc.return_value = self.bc_obj
@@ -116,6 +118,10 @@ class TestBackend(object):
             daemonize=True,
             pidfile=self.pidfile_path,
             config_file=self.config_file,
+
+            daemon_user="foo",
+            daemon_group="bar",
+
         )
 
 
@@ -195,33 +201,22 @@ class TestBackend(object):
         with pytest.raises(CoprBackendError):
             self.be.init_task_queues()
 
-    @mock.patch("backend.daemons.backend.CoprBackendLog")
+    @mock.patch("backend.daemons.backend.RedisLogHandler")
     @mock.patch("backend.daemons.backend.CoprJobGrab")
-    def test_dummy_init_sub_process(self, mc_jobgrab, mc_logger, init_be, mc_vmm_stuff):
+    def test_dummy_init_sub_process(self, mc_jobgrab, mc_rlh, init_be, mc_vmm_stuff):
 
         self.be.init_sub_process()
-        assert mc_logger.called
-        assert mc_logger.call_args == mock.call(self.be.opts, self.be.events)
-        assert mc_logger.return_value.start.called
         assert mc_jobgrab.called
         assert mc_jobgrab.call_args == mock.call(opts=self.be.opts,
-                                                 events=self.be.events,
                                                  frontend_client=self.be.frontend_client,
                                                  lock=self.be.lock)
         assert mc_jobgrab.return_value.start.called
 
+        assert mc_rlh.called
+        assert mc_rlh.return_value.start.called
+
         assert self.VmMaster.called
         assert self.VmMaster.return_value.start.called
-
-    def test_event(self, mc_time, init_be):
-        mc_time.time.return_value = self.test_time
-
-        self.be.events = MagicMock()
-        self.be.event("foobar")
-
-        self.be.events.put.call_args == mock.call({
-            "what": "foobar", "when": self.test_time, "who": "main"
-        })
 
     def test_update_conf(self, init_be):
         test_obj = MagicMock()

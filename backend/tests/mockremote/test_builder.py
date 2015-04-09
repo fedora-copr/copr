@@ -52,10 +52,6 @@ def print_all(*args, **kwargs):
     pprint(kwargs)
 
 
-def assert_in_log(msg, log_list):
-    assert any(msg in record for record in log_list)
-
-
 STDOUT = "stdout"
 STDERR = "stderr"
 COPR_OWNER = "copr_owner"
@@ -105,12 +101,13 @@ class TestBuilder(object):
             "destdir": self.test_root_path,
             "results_baseurl": "/tmp/",
         }))
+
+        self.mc_logger = MagicMock()
         builder = Builder(
             opts=self.opts,
             hostname=self.BUILDER_HOSTNAME,
             job=self.job,
-            callback=self.mc_callback,
-
+            logger=self.mc_logger
         )
         builder.checked = True
         return builder
@@ -121,10 +118,6 @@ class TestBuilder(object):
         self.mc_ansible_runner.side_effect = lambda **kwargs: mock.MagicMock(**kwargs)
 
         self.test_root_path = tempfile.mkdtemp()
-
-        self.mc_callback = mock.MagicMock()
-        self._cb_log = []
-        self.mc_callback.log.side_effect = lambda msg: self._cb_log.append(msg)
 
         self.stage = 0
         self.stage_ctx = defaultdict(dict)
@@ -467,9 +460,6 @@ class TestBuilder(object):
         with pytest.raises(BuilderError) as err:
             builder.modify_mock_chroot_config()
 
-        assert_in_log("putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs),
-                      self._cb_log)
-
         expected = (
             "dest=/etc/mock/{}.cfg "
             "line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {}'\" "
@@ -477,7 +467,6 @@ class TestBuilder(object):
         ).format(self.BUILDER_CHROOT, br_pkgs)
 
         assert any([expected in r for r in storage])
-        assert_in_log("Error: ", self._cb_log[1:])
 
     def test_modify_base_buildroot(self, ):
         storage = []
@@ -490,8 +479,6 @@ class TestBuilder(object):
         br_pkgs = "foo bar"
         builder.buildroot_pkgs = br_pkgs
         builder.modify_mock_chroot_config()
-        assert_in_log("putting {} into minimal buildroot of fedora-20-i386".format(br_pkgs),
-                      self._cb_log)
 
         expected = (
             "dest=/etc/mock/{}.cfg "

@@ -134,13 +134,13 @@ class TestJobGrab(object):
 
     @pytest.fixture
     def init_jg(self, mc_retask_queue, mc_grc):
-        self.jg = CoprJobGrab(self.opts, self.queue, self.frontend_client, self.lock)
+        self.jg = CoprJobGrab(self.opts, self.frontend_client, self.lock)
         self.jg.connect_queues()
 
     def test_connect_queues(self, mc_retask_queue, mc_grc):
         mc_rc = MagicMock()
         mc_grc.return_value = mc_rc
-        self.jg = CoprJobGrab(self.opts, self.queue, self.frontend_client, self.lock)
+        self.jg = CoprJobGrab(self.opts, self.frontend_client, self.lock)
 
         assert len(self.jg.task_queues_by_arch) == 0
         self.jg.connect_queues()
@@ -151,17 +151,19 @@ class TestJobGrab(object):
         for obj in self.jg.task_queues_by_arch.values():
             assert obj.connect.called
 
-        assert mc_grc.called
+        assert not mc_rc.pubsub.called
+
+    def test_listen_to_pubsub(self, mc_retask_queue, mc_grc):
+        mc_rc = MagicMock()
+        mc_grc.return_value = mc_rc
+        self.jg = CoprJobGrab(self.opts, self.frontend_client, self.lock)
+
+        assert not mc_rc.pubsub.called
+        self.jg.listen_to_pubsub()
+
+
         assert mc_rc.pubsub.called
         assert mc_rc.pubsub.return_value.subscribe.called
-
-    def test_event(self, init_jg, mc_time):
-        # adds an event with current time into the queue
-        content = "foobar"
-        self.jg.event(content)
-
-        assert self.queue.put.call_args == call({
-            u'what': 'foobar', u'who': u'jobgrab', u'when': self.test_time})
 
     def test_route_build_task_skip_added(self, init_jg):
         self.jg.added_jobs.add(12345)
@@ -204,13 +206,7 @@ class TestJobGrab(object):
 
         self.jg.process_action(test_action)
 
-        expected_call = call(
-            self.queue, test_action, self.lock,
-            destdir=self.opts.destdir,
-            frontend_callback=mc_fe_c(self.opts, self.queue),
-            front_url=self.opts.frontend_base_url,
-            results_root_url=self.opts.results_baseurl
-        )
+        expected_call = call(self.opts, test_action, self.lock, frontend_client=self.jg.frontend_client)
         assert expected_call == mc_action.call_args
         assert mc_action.return_value.run.called
 
@@ -227,8 +223,6 @@ class TestJobGrab(object):
         assert not self.jg.route_build_task.called
         assert not self.jg.process_action.called
 
-        assert "Error retrieving jobs from" in self.jg.event.call_args[0][0]
-
     @mock.patch("backend.daemons.job_grab.get")
     def test_load_tasks_error_request_json(self, mc_get, init_jg):
         mc_get.return_value.json.side_effect = ValueError()
@@ -241,8 +235,6 @@ class TestJobGrab(object):
 
         assert not self.jg.route_build_task.called
         assert not self.jg.process_action.called
-
-        assert "Error getting JSON" in self.jg.event.call_args[0][0]
 
     @mock.patch("backend.daemons.job_grab.get")
     def test_load_tasks_builds(self, mc_get, init_jg):
@@ -267,9 +259,6 @@ class TestJobGrab(object):
 
         assert len(self.jg.route_build_task.call_args_list) == 3
         assert not self.jg.process_action.called
-
-        assert any(["New jobs: 2" in cl[0][0] for cl in self.jg.event.call_args_list])
-        assert any(["Failed to enqueue" in cl[0][0] for cl in self.jg.event.call_args_list])
 
     @mock.patch("backend.daemons.job_grab.get")
     def test_load_tasks_actions(self, mc_get, init_jg):
@@ -319,64 +308,65 @@ class TestJobGrab(object):
         expected_calls = [call(action_1), call(action_2)]
         assert self.jg.process_action.call_args_list == expected_calls
 
-    def test_process_task_end_pubsub(self, init_jg, mc_grc):
-        self.jg.added_jobs = MagicMock()
-        self.jg.frontend_client = MagicMock()
-        mc_rc = MagicMock()
-        mc_grc.return_value = mc_rc
-        mc_ch = MagicMock()
-        mc_rc.pubsub.return_value = mc_ch
-        self.jg.channel = mc_ch
-        self.stage = 0
-
-        def on_get_message():
-            self.stage += 1
-
-            if self.stage == 1:
-                return {}
-            elif self.stage == 2:
-                assert not self.jg.added_jobs.remove.called
-                return {"type": "subscribe"}  # wrong type
-            elif self.stage == 3:
-                assert not self.jg.added_jobs.remove.called
-                return {"type": "message", "data": "{{{"}  # mall-formed json
-            elif self.stage == 4:
-                assert not self.jg.added_jobs.remove.called
-                return {"type": "message", "data": json.dumps({})}  # missing action
-            elif self.stage == 5:
-                assert not self.jg.added_jobs.remove.called
-                return {"type": "message", "data": json.dumps({"action": "foobar"})}  # unsupported action
-            elif self.stage == 6:
-                assert not self.jg.added_jobs.remove.called
-                msg = {"action": "remove"}
-                return {"type": "message", "data": json.dumps(msg)}  # missing "task_id"
-            elif self.stage == 7:
-                assert not self.jg.added_jobs.remove.called
-                msg = {"action": "remove", "task_id": "123-fedora"}
-                self.jg.added_jobs.__contains__.return_value = False
-                return {"type": "message", "data": json.dumps(msg)}  # task "id" not in self.added_jobs
-            elif self.stage == 8:
-                assert not self.jg.added_jobs.remove.called
-                # import ipdb; ipdb.set_trace()
-                self.jg.added_jobs.__contains__.return_value = True
-                msg = {"action": "remove", "task_id": "123-fedora"}         # should be removed from added job,
-                return {"type": "message", "data": json.dumps(msg)}  # reschedule build not called
-            elif self.stage == 9:
-                assert self.jg.added_jobs.remove.call_args == mock.call("123-fedora")
-                msg = {"action": "reschedule", "task_id": "123-fedora"}
-                return {"type": "message", "data": json.dumps(msg)}  # reschedule build not called
-            elif self.stage == 10:
-                assert self.jg.added_jobs.remove.call_args == mock.call("123-fedora")
-                msg = {"action": "reschedule", "task_id": "123-fedora", "build_id": 123, "chroot": "fedora"}
-                return {"type": "message", "data": json.dumps(msg)}  # reschedule called
-            else:
-                assert self.jg.added_jobs.remove.call_args == mock.call("123-fedora")
-                assert self.jg.frontend_client.reschedule_build.called
-
-            return None
-
-        mc_ch.get_message.side_effect = on_get_message
-        self.jg.process_task_end_pubsub()
+    # todo: replace with test for method on_pubsub_event
+    # def test_process_task_end_pubsub(self, init_jg, mc_grc):
+    #     self.jg.added_jobs = MagicMock()
+    #     self.jg.frontend_client = MagicMock()
+    #     mc_rc = MagicMock()
+    #     mc_grc.return_value = mc_rc
+    #     mc_ch = MagicMock()
+    #     mc_rc.pubsub.return_value = mc_ch
+    #     self.jg.channel = mc_ch
+    #     self.stage = 0
+    #
+    #     def on_get_message():
+    #         self.stage += 1
+    #
+    #         if self.stage == 1:
+    #             return {}
+    #         elif self.stage == 2:
+    #             assert not self.jg.added_jobs.remove.called
+    #             return {"type": "subscribe"}  # wrong type
+    #         elif self.stage == 3:
+    #             assert not self.jg.added_jobs.remove.called
+    #             return {"type": "message", "data": "{{{"}  # mall-formed json
+    #         elif self.stage == 4:
+    #             assert not self.jg.added_jobs.remove.called
+    #             return {"type": "message", "data": json.dumps({})}  # missing action
+    #         elif self.stage == 5:
+    #             assert not self.jg.added_jobs.remove.called
+    #             return {"type": "message", "data": json.dumps({"action": "foobar"})}  # unsupported action
+    #         elif self.stage == 6:
+    #             assert not self.jg.added_jobs.remove.called
+    #             msg = {"action": "remove"}
+    #             return {"type": "message", "data": json.dumps(msg)}  # missing "task_id"
+    #         elif self.stage == 7:
+    #             assert not self.jg.added_jobs.remove.called
+    #             msg = {"action": "remove", "task_id": "123-fedora"}
+    #             self.jg.added_jobs.__contains__.return_value = False
+    #             return {"type": "message", "data": json.dumps(msg)}  # task "id" not in self.added_jobs
+    #         elif self.stage == 8:
+    #             assert not self.jg.added_jobs.remove.called
+    #             # import ipdb; ipdb.set_trace()
+    #             self.jg.added_jobs.__contains__.return_value = True
+    #             msg = {"action": "remove", "task_id": "123-fedora"}         # should be removed from added job,
+    #             return {"type": "message", "data": json.dumps(msg)}  # reschedule build not called
+    #         elif self.stage == 9:
+    #             assert self.jg.added_jobs.remove.call_args == mock.call("123-fedora")
+    #             msg = {"action": "reschedule", "task_id": "123-fedora"}
+    #             return {"type": "message", "data": json.dumps(msg)}  # reschedule build not called
+    #         elif self.stage == 10:
+    #             assert self.jg.added_jobs.remove.call_args == mock.call("123-fedora")
+    #             msg = {"action": "reschedule", "task_id": "123-fedora", "build_id": 123, "chroot": "fedora"}
+    #             return {"type": "message", "data": json.dumps(msg)}  # reschedule called
+    #         else:
+    #             assert self.jg.added_jobs.remove.call_args == mock.call("123-fedora")
+    #             assert self.jg.frontend_client.reschedule_build.called
+    #
+    #         return None
+    #
+    #     mc_ch.get_message.side_effect = on_get_message
+    #     self.jg.process_task_end_pubsub()
 
     def test_run(self, mc_time, mc_setproctitle, init_jg, mc_grc):
         self.jg.connect_queues = MagicMock()

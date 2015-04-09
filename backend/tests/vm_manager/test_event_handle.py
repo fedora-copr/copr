@@ -66,6 +66,11 @@ def mc_grc():
     with mock.patch("{}.get_redis_connection".format(MODULE_REF)) as handle:
         yield handle
 
+@pytest.yield_fixture
+def mc_grl():
+    with mock.patch("{}.get_redis_logger".format(MODULE_REF)) as handle:
+        yield handle
+
 
 class TestEventHandle(object):
 
@@ -105,6 +110,9 @@ class TestEventHandle(object):
         self.vmm = MagicMock()
         self.vmm.rc = self.rc
 
+        self.grl_patcher = mock.patch("{}.get_redis_logger".format(MODULE_REF))
+        self.grl_patcher.start()
+
         self.eh = EventHandler(self.vmm)
         self.eh.post_init()
 
@@ -113,13 +121,8 @@ class TestEventHandle(object):
         self.group = 0
         self.username = "bob"
 
-        self.log_msg_list = []
-
         self.msg = {"vm_ip": self.vm_ip, "vm_name": self.vm_name, "group": self.group}
         self.stage = 0
-
-    def log_fn(self, msg):
-        self.log_msg_list.append(msg)
 
     def erase_redis(self):
         keys = self.rc.keys("*")
@@ -127,21 +130,9 @@ class TestEventHandle(object):
             self.rc.delete(*keys)
 
     def teardown_method(self, method):
+        self.grl_patcher.stop()
         shutil.rmtree(self.test_root_path)
         self.erase_redis()
-
-        self.log_msg_list = []
-
-    def _get_all_from_queue(self):
-        res = []
-        while True:
-            try:
-                time.sleep(0.02)
-                value = self.queue.get_nowait()
-                res.append(value)
-            except Empty:
-                break
-        return res
 
     def test_post_init(self):
         test_eh = EventHandler(self.vmm)
@@ -181,7 +172,6 @@ class TestEventHandle(object):
 
         self.eh.on_health_check_result(self.msg)
         assert not self.eh.lua_scripts["on_health_check_success"].called
-        assert "VM record disappeared" in self.vmm.log.call_args[0][0]
 
     def test_health_check_result_on_ok(self):
         # on success should change state from "check_health" to "ready"
@@ -195,7 +185,6 @@ class TestEventHandle(object):
         msg["result"] = "OK"
 
         self.eh.on_health_check_result(msg)
-        assert "recording success for ip" in self.vmm.log.call_args[0][0]
         assert self.vmd.get_field(self.rc, "state") == VmStates.READY
         assert int(self.vmd.get_field(self.rc, "check_fails")) == 0
 
@@ -228,7 +217,6 @@ class TestEventHandle(object):
 
         assert self.vmd.get_field(self.rc, "state") == VmStates.CHECK_HEALTH
         self.eh.on_health_check_result(msg)
-        assert "recording check fail" in self.vmm.log.call_args[0][0]
         assert self.vmd.get_field(self.rc, "state") == VmStates.CHECK_HEALTH_FAILED
         assert int(self.vmd.get_field(self.rc, "check_fails")) == 1
         self.eh.on_health_check_result(msg)
@@ -236,7 +224,6 @@ class TestEventHandle(object):
 
         # when threshold exceeded request termination
         self.eh.on_health_check_result(msg)
-        assert "check fail threshold reached" in self.vmm.log.call_args_list[-1][0][0]
         assert self.vmm.start_vm_termination.called
 
     def test_health_check_result_on_fail_from_in_use(self):
@@ -250,7 +237,6 @@ class TestEventHandle(object):
 
         assert self.vmd.get_field(self.rc, "state") == VmStates.IN_USE
         self.eh.on_health_check_result(msg)
-        assert "recording check fail" in self.vmm.log.call_args[0][0]
         assert self.vmd.get_field(self.rc, "state") == VmStates.IN_USE
         assert int(self.vmd.get_field(self.rc, "check_fails")) == 1
         self.eh.on_health_check_result(msg)
@@ -261,7 +247,6 @@ class TestEventHandle(object):
         self.eh.on_health_check_result(msg)
         assert self.vmd.get_field(self.rc, "state") == VmStates.IN_USE
 
-        assert "check fail threshold reached" in self.vmm.log.call_args_list[-1][0][0]
         assert self.vmm.start_vm_termination.called
 
     def test_health_check_result_on_wrong_states(self):
@@ -328,37 +313,24 @@ class TestEventHandle(object):
 
         def on_listen():
             if self.stage == 1:
-                assert self.vmm.log.called
-                assert "Spawned pubsub handler" in self.vmm.log.call_args[0][0]
-                self.vmm.log.reset_mock()
                 return None
             elif self.stage == 2:
                 assert not self.eh.handlers_map.__getitem__.called
-                assert not self.vmm.log.called
                 return {}
             elif self.stage == 3:
                 assert not self.eh.handlers_map.__getitem__.called
-                assert not self.vmm.log.called
                 return {"type": "subscribe"}
             elif self.stage == 4:
                 assert not self.eh.handlers_map.__getitem__.called
-                assert not self.vmm.log.called
                 return {"type": "message"}
             elif self.stage == 5:
                 assert not self.eh.handlers_map.__getitem__.called
-                assert not self.vmm.log.called
                 return {"type": "message", "data": "{{"}
             elif self.stage == 6:
                 assert not self.eh.handlers_map.__getitem__.called
-                assert self.vmm.log.called
-                assert "Handler error" in self.vmm.log.call_args[0][0]
-                self.vmm.log.reset_mock()
                 return {"type": "message", "data": json.dumps({})}  # no topic
             elif self.stage == 7:
                 assert not self.eh.handlers_map.__getitem__.called
-                assert self.vmm.log.called
-                assert "Handler error" in self.vmm.log.call_args[0][0]
-                self.vmm.log.reset_mock()
                 self.eh.handlers_map.__contains__.return_value = False               #
                 self.eh.handlers_map.__getitem__.side_effect = KeyError()            #
                 return {"type": "message", "data": json.dumps({"topic": "foobar"})}  # no handler for topic
@@ -366,9 +338,6 @@ class TestEventHandle(object):
                 # import ipdb; ipdb.set_trace()
                 assert not self.eh.handlers_map.__getitem__.called
                 assert self.eh.handlers_map.__contains__.called
-                assert self.vmm.log.called
-                assert "Handler error" in self.vmm.log.call_args[0][0]
-                self.vmm.log.reset_mock()
 
                 self.eh.handlers_map.__contains__.return_value = True
                 self.eh.handlers_map.__contains__.reset_mock()
@@ -378,9 +347,6 @@ class TestEventHandle(object):
             elif self.stage == 9:
                 assert self.eh.handlers_map.__getitem__.called
                 assert self.eh.handlers_map.__contains__.called
-                assert self.vmm.log.called
-                assert "Handler error" in self.vmm.log.call_args[0][0]
-                self.vmm.log.reset_mock()
 
                 self.eh.handlers_map.__contains__.return_value = True
                 self.eh.handlers_map.__getitem__.reset_mock()
@@ -388,7 +354,6 @@ class TestEventHandle(object):
                 return {"type": "message", "data": json.dumps({"topic": "foobar"})}    # handler invoked ok
 
             else:
-                assert not any("Handler error" in call for call in self.vmm.log.call_args_list)
                 self.eh.kill_received = True
 
         def my_gen():

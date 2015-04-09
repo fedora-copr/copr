@@ -54,6 +54,40 @@ class VmMaster(Process):
                               .format(vmd.vm_name, not_re_acquired_in))
                 self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.READY)
 
+    def check_one_vm_for_dead_builder(self, vmd):
+
+        in_use_since = vmd.get_field(self.vmm.rc, "in_use_since")
+        pid = vmd.get_field(self.vmm.rc, "used_by_pid")
+
+        if not in_use_since or not pid:
+            return
+        in_use_time_elapsed = time.time() - float(in_use_since)
+
+        # give a minute for worker to set correct title
+        if in_use_time_elapsed < 60 and str(pid) == "None":
+            return
+
+        pid = int(pid)
+        if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
+            return
+
+        self.log.info("Process `{}` not exists anymore, releasing VM: {} ".format(pid, vmd.vm_name))
+        # from celery.contrib import rdb; rdb.set_trace()
+        if self.vmm.release_vm(vmd.vm_name):
+            self.log.info("trying to publish reschedule")
+            vmd_dict = vmd.to_dict()
+            if all(x in vmd_dict for x in ["build_id", "task_id", "chroot"]):
+                request = {
+                    "action": "reschedule",
+                    "build_id": vmd.build_id,
+                    "task_id": vmd.task_id,
+                    "chroot": vmd.chroot,
+                }
+                self.log.info("trying to publish reschedule: {}".format(request))
+                self.vmm.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
+        else:
+            self.log.info("Failed to  release VM: {}".format(vmd.vm_name))
+
     def remove_vm_with_dead_builder(self):
         # TODO: rewrite build manage at backend and move functionality there
         # VMM shouldn't do this
@@ -61,30 +95,8 @@ class VmMaster(Process):
         # check that process who acquired VMD still exists, otherwise release VM
         # TODO: fix 4 nested `if`. Ugly!
         for vmd in self.vmm.get_vm_by_group_and_state_list(None, [VmStates.IN_USE]):
+            self.check_one_vm_for_dead_builder(vmd)
 
-            # give a minute for worker to set correct title
-            in_use_time_elapsed = time.time() - float(vmd.get_field(self.vmm.rc, "in_use_since"))
-
-            pid = vmd.get_field(self.vmm.rc, "used_by_pid")
-            if in_use_time_elapsed > 60 and str(pid) != "None":
-                pid = int(pid)
-                if not psutil.pid_exists(pid) or vmd.vm_name not in psutil.Process(pid).cmdline[0]:
-                    self.log.info("Process `{}` not exists anymore, releasing VM: {} ".format(pid, vmd.vm_name))
-                    # from celery.contrib import rdb; rdb.set_trace()
-                    if self.vmm.release_vm(vmd.vm_name):
-                        self.log.info("trying to publish reschedule")
-                        vmd_dict = vmd.to_dict()
-                        if all(x in vmd_dict for x in ["build_id", "task_id", "chroot"]):
-                            request = {
-                                "action": "reschedule",
-                                "build_id": vmd.build_id,
-                                "task_id": vmd.task_id,
-                                "chroot": vmd.chroot,
-                            }
-                            self.log.info("trying to publish reschedule: {}".format(request))
-                            self.vmm.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
-                    else:
-                        self.log.info("Failed to  release VM: {}".format(vmd.vm_name))
 
     def check_vms_health(self):
         # for machines in state ready and time.time() - vm.last_health_check > threshold_health_check_period

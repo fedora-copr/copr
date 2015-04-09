@@ -50,32 +50,13 @@ class TestExecutor(object):
             }
         )
 
-        self.queue = Queue()
-
-        self.executor = Executor(self.opts, self.queue)
-
+        self.executor = Executor(self.opts)
         self.rc = get_redis_connection(self.opts)
 
     def teardown_method(self, method):
         keys = self.rc.keys("*")
         if keys:
             self.rc.delete(*keys)
-
-    def test_log(self, mc_time):
-        mc_time.time.return_value = 1
-        self.executor.log("foobar")
-        mc_time.time.return_value = 2
-        self.executor.log("barfoo", "bob")
-
-        msg = self.queue.get()
-        assert msg["what"] == "foobar"
-        assert msg["when"] == 1
-        assert msg["who"] == Executor.__name_for_log__
-
-        msg = self.queue.get()
-        assert msg["what"] == "barfoo"
-        assert msg["when"] == 2
-        assert msg["who"] == "bob"
 
     def test_recycle(self, mc_time):
         self.executor.last_recycle = 0

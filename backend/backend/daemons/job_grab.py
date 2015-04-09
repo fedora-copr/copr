@@ -122,10 +122,7 @@ class CoprJobGrab(Process):
 
         :param action: dict-like object with action task
         """
-        ao = Action(self.opts, action, self.lock, destdir=self.opts.destdir,
-                    frontend_client=self.frontend_client,
-                    front_url=self.opts.frontend_base_url,
-                    results_root_url=self.opts.results_baseurl)
+        ao = Action(self.opts, action, self.lock, frontend_client=self.frontend_client)
         ao.run()
 
     def load_tasks(self):

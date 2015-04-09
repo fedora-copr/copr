@@ -94,13 +94,13 @@ class TestSpawner(object):
         )
         self.try_spawn_args = '-c ssh {}'.format(self.spawn_pb_path)
 
-        # self.callback = TestCallback()
+        self.grl_patcher = mock.patch("{}.get_redis_logger".format(MODULE_REF))
+        self.grl_patcher.start()
+
         self.checker = MagicMock()
         self.terminator = MagicMock()
 
-        self.queue = Queue()
-
-        self.spawner = Spawner(self.opts, self.queue)
+        self.spawner = Spawner(self.opts)
         self.spawner.recycle = types.MethodType(mock.MagicMock, self.spawner)
         self.vm_ip = "127.0.0.1"
         self.vm_name = "localhost"
@@ -108,29 +108,15 @@ class TestSpawner(object):
         self.username = "bob"
 
         self.rc = get_redis_connection(self.opts)
-        self.log_msg_list = []
 
-    def log_fn(self, msg):
-        self.log_msg_list.append(msg)
+        self.logger = MagicMock()
 
     def teardown_method(self, method):
+        self.grl_patcher.stop()
         shutil.rmtree(self.test_root_path)
         keys = self.rc.keys("*")
         if keys:
             self.rc.delete(*keys)
-
-        self.log_msg_list = []
-
-    def _get_all_from_queue(self):
-        res = []
-        while True:
-            try:
-                time.sleep(0.01)
-                value = self.queue.get_nowait()
-                res.append(value)
-            except Empty:
-                break
-        return res
 
     def touch_pb(self):
         with open(self.spawn_pb_path, "w") as handle:
@@ -167,22 +153,21 @@ class TestSpawner(object):
         self.touch_pb()
         mc_run_ans.return_value = None
         with pytest.raises(CoprSpawnFailError):
-            spawn_instance(self.spawn_pb_path, self.log_fn)
-        assert self.log_msg_list[0] == "Spawning a builder"
+            spawn_instance(self.spawn_pb_path, self.logger)
 
     def test_spawn_ansible_call_error(self, mc_run_ans):
         self.touch_pb()
         mc_run_ans.side_effect = Exception("foobar")
         with pytest.raises(CoprSpawnFailError) as err:
-            spawn_instance(self.spawn_pb_path, self.log_fn)
-        assert self.log_msg_list[0] == "Spawning a builder"
+            spawn_instance(self.spawn_pb_path, self.logger)
+
         assert "Error during ansible invocation" in err.value.msg
 
     def test_spawn_no_ip_in_result(self, mc_run_ans):
         self.touch_pb()
         mc_run_ans.return_value = "foobar"
         with pytest.raises(CoprSpawnFailError) as err:
-            spawn_instance(self.spawn_pb_path, self.log_fn)
+            spawn_instance(self.spawn_pb_path, self.logger)
 
         assert "No ip in the result" in err.value.msg
 
@@ -190,20 +175,20 @@ class TestSpawner(object):
         self.touch_pb()
         mc_run_ans.return_value = "\"IP=foobar\"  \"vm_name=foobar\""
         with pytest.raises(CoprSpawnFailError) as err:
-            spawn_instance(self.spawn_pb_path, self.log_fn)
+            spawn_instance(self.spawn_pb_path, self.logger)
 
         assert "Invalid IP" in err.value.msg
 
         for bad_ip in ["256.0.0.2", "not-an-ip", "example.com", ""]:
             mc_run_ans.return_value = "\"IP={}\" \"vm_name=foobar\"".format(bad_ip)
             with pytest.raises(CoprSpawnFailError) as err:
-                spawn_instance(self.spawn_pb_path, self.log_fn)
+                spawn_instance(self.spawn_pb_path, self.logger)
 
     def test_spawn_no_vm_name(self, mc_run_ans):
         self.touch_pb()
         mc_run_ans.return_value = "\"IP=foobar\""
         with pytest.raises(CoprSpawnFailError) as err:
-            spawn_instance(self.spawn_pb_path, self.log_fn)
+            spawn_instance(self.spawn_pb_path, self.logger)
 
         assert "No vm_name" in err.value.msg
 
@@ -211,37 +196,27 @@ class TestSpawner(object):
         self.touch_pb()
         mc_run_ans.return_value = " \"IP=127.0.0.1\" \"vm_name=foobar\""
 
-        result = spawn_instance(self.spawn_pb_path, self.log_fn)
+        result = spawn_instance(self.spawn_pb_path, self.logger)
         assert result == {'vm_ip': '127.0.0.1', 'vm_name': 'foobar'}
 
     def test_do_spawn_and_publish_copr_spawn_error(self, mc_spawn_instance, mc_grc):
         mc_spawn_instance.side_effect = CoprSpawnFailError("foobar")
-        result = do_spawn_and_publish(self.opts, self.queue, self.spawn_pb_path, self.group)
+        result = do_spawn_and_publish(self.opts, self.spawn_pb_path, self.group)
         assert result is None
         assert not mc_grc.called
-
-        # print(self._get_all_from_queue())
-        assert any("Failed to spawn" in ev["what"] for ev in self._get_all_from_queue())
 
     def test_do_spawn_and_publish_any_spawn_error(self, mc_spawn_instance, mc_grc):
         mc_spawn_instance.side_effect = OSError("foobar")
-        result = do_spawn_and_publish(self.opts, self.queue, self.spawn_pb_path, self.group)
+        result = do_spawn_and_publish(self.opts, self.spawn_pb_path, self.group)
         assert result is None
         assert not mc_grc.called
-
-        # print(self._get_all_from_queue())
-        msg_list = self._get_all_from_queue()
-        assert any("Failed to spawn" in ev["what"] for ev in msg_list)
-        assert any("Unexpected" in ev["what"] for ev in msg_list)
 
     def test_do_spawn_and_publish_ok(self, mc_spawn_instance, mc_grc):
         mc_rc = mock.MagicMock()
         mc_grc.return_value = mc_rc
         mc_spawn_instance.return_value = {"result": "foobar"}
 
-        do_spawn_and_publish(self.opts, self.queue, self.spawn_pb_path, self.group)
-        msg_list = self._get_all_from_queue()
-        assert any("Spawn finished" in ev["what"] for ev in msg_list)
+        do_spawn_and_publish(self.opts, self.spawn_pb_path, self.group)
         assert mc_grc.called
         assert mc_rc.publish.called
         assert mc_rc.publish.call_args == mock.call(
@@ -252,7 +227,5 @@ class TestSpawner(object):
         mc_spawn_instance.return_value = {"result": "foobar"}
         mc_grc.side_effect = ConnectionError()
 
-        do_spawn_and_publish(self.opts, self.queue, self.spawn_pb_path, self.group)
-        msg_list = self._get_all_from_queue()
-        assert any("Failed to publish" in ev["what"] for ev in msg_list)
+        do_spawn_and_publish(self.opts, self.spawn_pb_path, self.group)
         assert mc_grc.called
