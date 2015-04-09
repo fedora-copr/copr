@@ -1,6 +1,6 @@
 #!/bin/sh
 
-REDIS_PORT = 7777
+REDIS_PORT=7777
 
 redis-server --port $REDIS_PORT &> _redis.log &
 
