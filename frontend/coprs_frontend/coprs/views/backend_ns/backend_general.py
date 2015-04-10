@@ -43,7 +43,7 @@ def waiting():
             "timeout": task.build.timeout,
             "enable_net": task.build.enable_net,
         }
-        for task in builds_logic.BuildsLogic.get_build_task_queue()
+        for task in builds_logic.BuildsLogic.get_build_task_queue().limit(200)
     ]
 
     return flask.jsonify({"actions": actions_list, "builds": builds_list})
