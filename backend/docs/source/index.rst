@@ -6,10 +6,12 @@
 Welcome to copr-backend's documentation!
 ========================================
 
+
+.. include:: README.rst
+
 .. toctree::
    :maxdepth: 1
 
-   README
    INSTALL
    Backend_design
    VmManagement

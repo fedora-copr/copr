@@ -41,4 +41,11 @@ backend.vm_manage.
 Package for VM management only.
 
 .. toctree::
+   package/vm_manage/__init__
+   package/vm_manage/models
    package/vm_manage/manager
+   package/vm_manage/event_handle
+   package/vm_manage/executor
+   package/vm_manage/spawn
+   package/vm_manage/terminate
+   package/vm_manage/check

@@ -38,7 +38,7 @@ class Pruner(object):
     def __init__(self, opts):
         self.opts = opts
         self.days = getattr(self.opts, "prune_days", DEF_DAYS)
-        self.prune_sh_script = getattr(self.opts, "find_obsolete_script", DEF_FIND_OBSOLETE_SCRIPT)
+        self.find_obsolete_script = getattr(self.opts, "find_obsolete_script", DEF_FIND_OBSOLETE_SCRIPT)
 
     def prune_failed_builds(self, chroot_path):
         """
@@ -66,7 +66,7 @@ class Pruner(object):
         :param chroot_path: path to the chroot directory
         """
         # import ipdb; ipdb.set_trace()
-        cmd = map(str, [self.prune_sh_script, chroot_path, self.days])
+        cmd = map(str, [self.find_obsolete_script, chroot_path, self.days])
         handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = handle.communicate()
         if handle.returncode != 0:

@@ -28,9 +28,8 @@ BuildRequires: python-copr
 BuildRequires: systemd
 BuildRequires: redis
 
-#for doc package
-BuildRequires: epydoc
-BuildRequires: graphviz
+
+
 BuildRequires: pytest
 BuildRequires: python-pytest-cov
 BuildRequires: python-mock
@@ -47,8 +46,10 @@ BuildRequires: ansible >= 1.2
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
 BuildRequires: python-psutil
-# BuildRequires: python-ipdb
-BuildRequires: wget
+# BuildRequires: wget -- ???
+
+#for doc package
+BuildRequires: sphinx
 
 Requires:   obs-signd
 Requires:   ansible >= 1.2
@@ -76,7 +77,7 @@ Requires:   gawk
 Requires:   crontabs
 Requires:   python-paramiko
 # Requires:   python-ipdb
-# Requires:   logstash
+Requires:   logstash
 
 Requires(post): systemd
 Requires(preun): systemd
@@ -103,11 +104,14 @@ only.
 
 
 %build
-# TODO: remove when sphinx docs added
+
+%if 0%{?fedora}
 # build documentation
-# pushd documentation
-# make %{?_smp_mflags} python
-# popd
+pushd docs
+    make %{?_smp_mflags} html
+    rm build/html/.buildinfo
+popd
+%endif # ?fedora
 
 %install
 
@@ -160,6 +164,10 @@ cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 
 install -d %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d
 cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d/copr_backend.conf
+
+%if 0%{?fedora}
+    cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
+%endif
 
 %check
 
