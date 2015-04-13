@@ -11,8 +11,12 @@ import optparse
 import ConfigParser
 import os
 import sys
-import datetime
+
 import traceback
+
+from datetime import datetime
+import pytz
+# from dateutil.parser import parse as dt_parse
 
 from bunch import Bunch
 from redis import StrictRedis
@@ -324,3 +328,12 @@ def create_file_logger(name, filepath, fmt=None):
         logger.addHandler(handler)
 
     return logger
+
+
+def utc_now():
+    """
+    :return datetime.datetime: Current utc datetime with specified timezone
+    """
+    u = datetime.utcnow()
+    u = u.replace(tzinfo=pytz.utc)
+    return u

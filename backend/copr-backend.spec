@@ -46,6 +46,9 @@ BuildRequires: ansible >= 1.2
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
 BuildRequires: python-psutil
+BuildRequires: python-futures
+BuildRequires: python-dateutil
+BuildRequires: pytz
 # BuildRequires: wget -- ???
 
 #for doc package
@@ -70,6 +73,9 @@ Requires:   python-copr
 Requires:   python-six
 Requires:   python-IPy
 Requires:   python-psutil
+Requires:   python-futures
+Requires:   python-dateutil
+Requires:   pytz
 Requires:   redis
 Requires:   logrotate
 Requires:   fedmsg
