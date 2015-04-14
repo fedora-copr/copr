@@ -347,7 +347,7 @@ class TestAction(object):
         with open(os.path.join(chroot_1_dir, "foo", "foo.src.rpm"), "w") as fh:
             fh.write("foo\n")
 
-        self.opts.destdir=tmp_dir
+        self.opts.destdir = tmp_dir
         test_action = Action(
             opts=self.opts,
             action={

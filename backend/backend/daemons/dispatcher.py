@@ -72,7 +72,7 @@ class Worker(multiprocessing.Process):
 
     @property
     def logger_name(self):
-        return  "backend.worker-{}-{}".format(self.group_name, self.worker_num)
+        return "backend.worker-{}-{}".format(self.group_name, self.worker_num)
 
     @property
     def group_name(self):
@@ -313,8 +313,7 @@ class Worker(multiprocessing.Process):
             chroot_repos.append(job.results + job.chroot + '/')
             chroot_repos.append(job.results + job.chroot + '/devel/')
 
-            chroot_logfile = "{0}/build-{1}.log".format(
-                chroot_destdir, job.build_id)
+            chroot_logfile = "{}/build-{:08d}.log".format(chroot_destdir, job.build_id)
 
             try:
                 mr = MockRemote(
@@ -334,9 +333,6 @@ class Worker(multiprocessing.Process):
 
                 register_build_result(self.opts)
 
-            #except VmError as e:
-            #    pass
-            # don't catch VmError
             except MockRemoteError as e:
                 # record and break
                 self.log.exception(

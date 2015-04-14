@@ -394,6 +394,7 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None):
     may include 'rc', 'stderr', 'stdout' and any other requested result codes
 
     :raises AnsibleResponseError:
+    :raises VmError:
     """
 
     if err_codes is None:

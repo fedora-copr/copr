@@ -180,11 +180,13 @@ class MockRemote(object):
     def pkg(self):
         return self.job.pkg
 
-    def _get_pkg_destpath(self, pkg):
-        s_pkg = os.path.basename(pkg)
-        pdn = s_pkg.replace(".src.rpm", "")
+    def _get_pkg_destpath(self):
+        # s_pkg = os.path.basename(self.pkg)
+        # s_pkg =
+        # pdn = s_pkg.replace(".src.rpm", "")
         return os.path.normpath(
-            "{0}/{1}/{2}".format(self.job.destdir, self.job.chroot, pdn))
+            # "{0}/{1}/{2}".format(self.job.destdir, self.job.chroot, pdn))
+            "{0}/{1}/{2}".format(self.job.destdir, self.job.chroot, self.job.pkg_name))
 
     def add_pubkey(self):
         """
@@ -276,7 +278,7 @@ class MockRemote(object):
 
     def prepare_build_dir(self):
         # TODO: remove old logs (build.log*, root.log*)
-        p_path = self._get_pkg_destpath(self.pkg)
+        p_path = self._get_pkg_destpath()
         # if it's marked as fail, nuke the failure and try to rebuild it
         if os.path.exists(os.path.join(p_path, "fail")):
             os.unlink(os.path.join(p_path, "fail"))
@@ -290,7 +292,25 @@ class MockRemote(object):
 
         self.mark_dir_with_build_id()
 
+    def add_log_symlinks(self):
+        # adding symlinks foo.log.gz -> foo.log for web server auto index
+        try:
+            base = self._get_pkg_destpath()
+            for name in os.listdir(base):
+                if not name.endswith(".log.gz"):
+                    continue
+                full_path = os.path.join(base, name)
+                if os.path.isfile(full_path):
+                    os.symlink(full_path, full_path.replace(".log.gz", ".log"))
+        except Exception as err:
+            self.log.exception(err)
+
     def build_pkg_and_process_results(self):
+        """
+        :return: dict with build_details
+        :raises MockRemoteError: Something happened with build itself
+        :raises VmError: Something happened with builder VM
+        """
         self.prepare_build_dir()
 
         # building
@@ -312,6 +332,7 @@ class MockRemote(object):
         # downloading
         self.log.info("Start retrieve results for: {0}".format(self.pkg))
         self.builder.download(self.pkg, self.chroot_dir)
+        self.add_log_symlinks()
         self.log.info("End retrieve results for: {0}".format(self.pkg))
 
         if build_error:
@@ -327,11 +348,13 @@ class MockRemote(object):
                 into the directory with downloaded files.
 
         """
-        info_file_path = os.path.join(self._get_pkg_destpath(self.job.pkg),"build.info")
+        info_file_path = os.path.join(self._get_pkg_destpath(), "build.info")
         self.log.info("marking build dir with build_id, ")
         try:
             with open(info_file_path, 'w') as info_file:
-                info_file.writelines(["build_id={}".format(self.job.build_id),])
+                info_file.writelines([
+                    "build_id={}".format(self.job.build_id),
+                    "builder_ip={}".format(self.builder.hostname)])
 
         except Exception as error:
             self.log.exception("Failed to mark build {} with build_id".format(error))
