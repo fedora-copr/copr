@@ -47,5 +47,4 @@ class Thresholds(object):
     health_check_max_time = 120        # [s.] if health check wasn't done for this time, mark check fail
     max_check_fails = 2                # maximum number of fails before starting VM termination
     terminating_timeout = 600          # [s.] time before we try to terminate VM again
-    dirty_vm_terminating_timeout = 20  # [s.] how long we keep released vms
     cycle_timeout = 10                 # [s.] timeout for all periodical checks

@@ -10,7 +10,7 @@ class VmDescriptor(object):
         self.vm_ip = vm_ip
         self.vm_name = vm_name
         self.state = state
-        self.group = group
+        self.group = int(group)
 
         self.check_fails = 0
 
@@ -34,7 +34,7 @@ class VmDescriptor(object):
 
     @classmethod
     def from_dict(cls, raw):
-        vmd = cls(raw["vm_ip"], raw["vm_name"], raw["group"], raw["state"])
+        vmd = cls(raw.pop("vm_ip"), raw.pop("vm_name"), raw.pop("group"), raw.pop("state"))
         vmd.__dict__.update(raw)
         return vmd
 

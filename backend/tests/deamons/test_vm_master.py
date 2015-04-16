@@ -91,11 +91,13 @@ class TestVmMaster(object):
                     "max_vm_total": 5,
                     "max_spawn_processes": 3,
                     "vm_spawn_min_interval": self.vm_spawn_min_interval,
+                    "vm_dirty_terminating_timeout": 120,
                 },
                 1: {
                     "name": "arm",
                     "archs": ["armV7"],
                     "vm_spawn_min_interval": self.vm_spawn_min_interval,
+                    "vm_dirty_terminating_timeout": 120,
                 }
             },
 
@@ -187,7 +189,8 @@ class TestVmMaster(object):
         self.vm_master.remove_old_dirty_vms()
         assert not self.vmm.start_vm_termination.called
 
-        mc_time.time.return_value = Thresholds.dirty_vm_terminating_timeout + 1
+        mc_time.time.return_value = self.opts.build_groups[0]["vm_dirty_terminating_timeout"] + 1
+
         # only "a1" and "b1" should be terminated
         self.vm_master.remove_old_dirty_vms()
         assert self.vmm.start_vm_termination.called

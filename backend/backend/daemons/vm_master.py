@@ -49,7 +49,7 @@ class VmMaster(Process):
             if last_release is None:
                 continue
             not_re_acquired_in = time.time() - float(last_release)
-            if not_re_acquired_in > Thresholds.dirty_vm_terminating_timeout:
+            if not_re_acquired_in > self.opts.build_groups[vmd.group]["vm_dirty_terminating_timeout"]:
                 self.log.info("dirty VM `{}` not re-acquired in {}, terminating it"
                               .format(vmd.vm_name, not_re_acquired_in))
                 self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.READY)

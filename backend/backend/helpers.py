@@ -163,7 +163,9 @@ class BackendConfigReader(object):
                 "vm_spawn_min_interval": _get_conf(
                     cp, "backend", "group{}_vm_spawn_min_interval".format(group_id),
                     default=30, mode="int"),
-
+                "vm_dirty_terminating_timeout": _get_conf(
+                    cp, "backend", "group{}_vm_dirty_terminating_timeout".format(group_id),
+                    default=120, mode="int"),
             }
             opts.build_groups.append(group)
 
