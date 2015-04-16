@@ -127,7 +127,7 @@ class EventHandler(Process):
                            .format(msg.get("vm_ip"), msg.get("vm_name"), msg.get("msg")))
 
     def run(self):
-        setproctitle("Event Handler")
+        # setproctitle("Event Handler")
 
         self.post_init()
 

@@ -35,7 +35,6 @@ class Executor(object):
         proc.start()
         # self.log.debug("Spawn process started: {}".format(proc.pid))
 
-
     def recycle(self, force=False):
         """
         Cleanup unused process, should be invoked periodically
@@ -54,7 +53,8 @@ class Executor(object):
                 still_alive.append(proc)
             else:
                 proc.join()
-                self.log.debug("Child process finished: {}".format(proc.pid))
+                # self.log.debug("Child process finished: {}".format(proc.pid))
+                self.log.debug("Child process finished: {}".format(proc))
         self.child_processes = still_alive
 
     def terminate(self):

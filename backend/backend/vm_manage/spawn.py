@@ -69,7 +69,7 @@ def spawn_instance(spawn_playbook, log):
 
 
 def do_spawn_and_publish(opts, spawn_playbook, group):
-    setproctitle("do_spawn_and_publish")
+    # setproctitle("do_spawn_and_publish")
 
     log = get_redis_logger(opts, "spawner.detached", "spawner")
 

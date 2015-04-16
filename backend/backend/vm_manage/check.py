@@ -23,7 +23,7 @@ def check_health(opts, vm_name, vm_ip):
     :param vm_ip: ip address to the newly created VM
     :raises: :py:class:`~backend.exceptions.CoprWorkerSpawnFailError`: validation fails
     """
-    setproctitle("check VM: {}".format(vm_ip))
+    # setproctitle("check VM: {}".format(vm_ip))
 
     log = get_redis_logger(opts, "vmm.check_health.detached", "vmm")
 

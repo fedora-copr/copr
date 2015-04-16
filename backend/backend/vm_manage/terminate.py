@@ -19,7 +19,7 @@ def terminate_vm(opts, terminate_playbook, group, vm_name, vm_ip):
     """
     Call the terminate playbook to destroy the instance
     """
-    setproctitle("Terminating VM")
+    # setproctitle("Terminating VM")
 
     log = get_redis_logger(opts, "terminator.detached", "terminator")
 
