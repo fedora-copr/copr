@@ -67,7 +67,7 @@ if old_state ~= "in_use" then
 else
     redis.call("HMSET", KEYS[1], "state", "ready", "last_release", ARGV[1])
     redis.call("HDEL", KEYS[1], "in_use_since", "used_by_pid", "task_id", "build_id", "chroot")
-
+    redis.call("HINCRBY", KEYS[1], "builds_count", 1)
 
     local check_fails = tonumber(redis.call("HGET", KEYS[1], "check_fails"))
     if check_fails > 0 then

@@ -16,6 +16,8 @@ from novaclient.v1_1.client import Client
 
 sys.path.append("/usr/share/copr/")
 
+
+from backend.helpers import BackendConfigReader
 try:
     from backend.helpers import utc_now
 except ImportError:
@@ -29,7 +31,10 @@ except ImportError:
         u = datetime.utcnow()
         u = u.replace(tzinfo=pytz.utc)
         return u
-
+try:
+    from backend.vm_manage.manager import VmManager
+except ImportError:
+    VmManager = None
 
 logging.getLogger("requests").setLevel(logging.ERROR)
 
@@ -51,6 +56,17 @@ def get_client(conf):
                   insecure=True)
 
 
+def get_managed_vms_names():
+    result = []
+    if VmManager:
+        opts = BackendConfigReader().read()
+        vmm = VmManager(opts, log)
+        vmm.post_init()
+        result.extend(vmd.vm_name for vmd in vmm.get_all_vm())
+
+    return result
+
+
 class Cleaner(object):
     def __init__(self, conf):
         self.conf = conf
@@ -58,10 +74,13 @@ class Cleaner(object):
         self.ps_set = None
 
     def post_init(self):
-        self.nt = get_client(self.conf)
-        # TODO: use VM management after release
+        # TODO: use only VM management after release
         self.ps_set = "\n".join(p.name + " ".join(p.cmdline) for p in psutil.process_iter())
-        # log.debug("ps_set: \n{}".format(self.ps_set))
+        self.ps_set += "\n".join(get_managed_vms_names())
+        log.info("ps_set: \n{}".format(self.ps_set))
+
+        self.nt = get_client(self.conf)
+
 
     @staticmethod
     def terminate(srv):

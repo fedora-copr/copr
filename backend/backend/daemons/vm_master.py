@@ -97,7 +97,6 @@ class VmMaster(Process):
         for vmd in self.vmm.get_vm_by_group_and_state_list(None, [VmStates.IN_USE]):
             self.check_one_vm_for_dead_builder(vmd)
 
-
     def check_vms_health(self):
         # for machines in state ready and time.time() - vm.last_health_check > threshold_health_check_period
         states_to_check = [VmStates.CHECK_HEALTH_FAILED, VmStates.READY,
