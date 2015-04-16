@@ -2,7 +2,9 @@
 import json
 from setproctitle import setproctitle
 import time
-from multiprocessing import Process
+# from multiprocessing import Process
+from threading import Thread
+
 import sys
 
 from ansible.runner import Runner
@@ -75,8 +77,9 @@ class HealthChecker(Executor):
 
     def run_check_health(self, vm_name, vm_ip):
         self.recycle()
-
-        proc = Process(target=check_health, args=(self.opts, vm_name, vm_ip))
-        self.child_processes.append(proc)
-        proc.start()
-        self.log.debug("Check health process started: {}".format(proc.pid))
+        self.run_detached(check_health, args=(self.opts, vm_name, vm_ip))
+        # proc = Process(target=check_health, args=(self.opts, vm_name, vm_ip))
+        # proc = Thread(target=check_health, args=(self.opts, vm_name, vm_ip))
+        # self.child_processes.append(proc)
+        # proc.start()
+        # self.log.debug("Check health process started: {}".format(proc.pid))

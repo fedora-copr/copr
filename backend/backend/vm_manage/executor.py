@@ -24,6 +24,18 @@ class Executor(object):
 
         self.log = get_redis_logger(self.opts, "vmm.{}".format(self.__name_for_log__), self.__who_for_log__)
 
+    def run_detached(self, func, args):
+        """
+        Abstaction to spawn Thread or Process
+        :return:
+        """
+        # proc = Process(target=func, args=(args))
+        proc = threading.Thread(target=func, args=args)
+        self.child_processes.append(proc)
+        proc.start()
+        # self.log.debug("Spawn process started: {}".format(proc.pid))
+
+
     def recycle(self, force=False):
         """
         Cleanup unused process, should be invoked periodically

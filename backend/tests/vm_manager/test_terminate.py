@@ -126,32 +126,32 @@ class TestTerminate(object):
         with open(self.terminate_pb_path, "w") as handle:
             handle.write("foobar")
 
-    def test_start_terminate(self, mc_process):
-        # mc_spawn_instance.return_value = {"vm_name": self.vm_name, "ip": self.vm_ip}
-
-        # undefined group
-        with pytest.raises(CoprSpawnFailError):
-            self.terminator.terminate_vm(group=1, vm_name=self.vm_name, vm_ip=self.vm_ip)
-
-        # missing playbook
-        with pytest.raises(CoprSpawnFailError):
-            self.terminator.terminate_vm(group=0, vm_name=self.vm_name, vm_ip=self.vm_ip)
-
-        # None playbook
-        self.opts.build_groups[0]["terminate_playbook"] = None
-        with pytest.raises(CoprSpawnFailError):
-            self.terminator.terminate_vm(group=0, vm_name=self.vm_name, vm_ip=self.vm_ip)
-
-        self.opts.build_groups[0]["terminate_playbook"] = self.terminate_pb_path
-        self.touch_pb()
-
-        p1 = mock.MagicMock()
-        mc_process.return_value = p1
-
-        self.terminator.terminate_vm(group=0, vm_name=self.vm_name, vm_ip=self.vm_ip)
-        assert mc_process.called
-        assert self.terminator.child_processes == [p1]
-        assert p1.start.called
+    # def test_start_terminate(self, mc_process):
+    #     # mc_spawn_instance.return_value = {"vm_name": self.vm_name, "ip": self.vm_ip}
+    #
+    #     # undefined group
+    #     with pytest.raises(CoprSpawnFailError):
+    #         self.terminator.terminate_vm(group=1, vm_name=self.vm_name, vm_ip=self.vm_ip)
+    #
+    #     # missing playbook
+    #     with pytest.raises(CoprSpawnFailError):
+    #         self.terminator.terminate_vm(group=0, vm_name=self.vm_name, vm_ip=self.vm_ip)
+    #
+    #     # None playbook
+    #     self.opts.build_groups[0]["terminate_playbook"] = None
+    #     with pytest.raises(CoprSpawnFailError):
+    #         self.terminator.terminate_vm(group=0, vm_name=self.vm_name, vm_ip=self.vm_ip)
+    #
+    #     self.opts.build_groups[0]["terminate_playbook"] = self.terminate_pb_path
+    #     self.touch_pb()
+    #
+    #     p1 = mock.MagicMock()
+    #     mc_process.return_value = p1
+    #
+    #     self.terminator.terminate_vm(group=0, vm_name=self.vm_name, vm_ip=self.vm_ip)
+    #     assert mc_process.called
+    #     assert self.terminator.child_processes == [p1]
+    #     assert p1.start.called
 
     def test_terminate_vm_on_error(self, mc_run_ans):
         mc_run_ans.side_effect = CalledProcessError(0, cmd=["ls"])

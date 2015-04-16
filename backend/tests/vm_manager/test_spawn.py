@@ -122,32 +122,32 @@ class TestSpawner(object):
         with open(self.spawn_pb_path, "w") as handle:
             handle.write("foobar")
 
-    def test_start_spawn(self, mc_spawn_instance, mc_process):
-        mc_spawn_instance.return_value = {"vm_name": self.vm_name, "ip": self.vm_ip}
-
-        # undefined group
-        with pytest.raises(CoprSpawnFailError):
-            self.spawner.start_spawn(1)
-
-        # missing playbook
-        with pytest.raises(CoprSpawnFailError):
-            self.spawner.start_spawn(0)
-
-        # None playbook
-        self.opts.build_groups[0]["spawn_playbook"] = None
-        with pytest.raises(CoprSpawnFailError):
-            self.spawner.start_spawn(0)
-
-        self.opts.build_groups[0]["spawn_playbook"] = self.spawn_pb_path
-        self.touch_pb()
-
-        p1 = mock.MagicMock()
-        mc_process.return_value = p1
-
-        self.spawner.start_spawn(0)
-        assert mc_process.called
-        assert self.spawner.child_processes == [p1]
-        assert p1.start.called
+    # def test_start_spawn(self, mc_spawn_instance, mc_process):
+    #     mc_spawn_instance.return_value = {"vm_name": self.vm_name, "ip": self.vm_ip}
+    #
+    #     # undefined group
+    #     with pytest.raises(CoprSpawnFailError):
+    #         self.spawner.start_spawn(1)
+    #
+    #     # missing playbook
+    #     with pytest.raises(CoprSpawnFailError):
+    #         self.spawner.start_spawn(0)
+    #
+    #     # None playbook
+    #     self.opts.build_groups[0]["spawn_playbook"] = None
+    #     with pytest.raises(CoprSpawnFailError):
+    #         self.spawner.start_spawn(0)
+    #
+    #     self.opts.build_groups[0]["spawn_playbook"] = self.spawn_pb_path
+    #     self.touch_pb()
+    #
+    #     p1 = mock.MagicMock()
+    #     mc_process.return_value = p1
+    #
+    #     self.spawner.start_spawn(0)
+    #     assert mc_process.called
+    #     assert self.spawner.child_processes == [p1]
+    #     assert p1.start.called
 
     def test_spawn_no_result(self, mc_run_ans):
         self.touch_pb()
