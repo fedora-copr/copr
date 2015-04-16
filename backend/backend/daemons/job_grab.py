@@ -26,6 +26,9 @@ from ..frontend import FrontendClient
 
 # TODO: Replace entire model with asynchronous queue, so that frontend push task,
 # and workers listen for them
+from ..vm_manage.manager import VmManager
+
+
 class CoprJobGrab(Process):
 
     """
@@ -46,6 +49,11 @@ class CoprJobGrab(Process):
         super(CoprJobGrab, self).__init__(name="jobgrab")
 
         self.opts = opts
+        self.arch_to_group_id_map = dict()
+        for group in self.opts.build_groups:
+            for arch in group["archs"]:
+                self.arch_to_group_id_map[arch] = group["id"]
+
         self.task_queues_by_arch = {}
         self.task_queues_by_group = {}
 
@@ -59,6 +67,8 @@ class CoprJobGrab(Process):
         self.ps_thread = None
 
         self.log = get_redis_logger(self.opts, "backend.job_grab", "job_grab")
+
+        self.vm_manager = VmManager(opts=self.opts, logger=self.log)
 
     def connect_queues(self):
         """
@@ -100,13 +110,18 @@ class CoprJobGrab(Process):
         count = 0
         if "task_id" in task:
             if task["task_id"] not in self.added_jobs:
-
-                # TODO: produces memory leak!
-                self.added_jobs.add(task["task_id"])
                 arch = task["chroot"].split("-")[2]
                 if arch not in self.task_queues_by_arch:
                     raise CoprJobGrabError("No builder group for architecture: {}, task: {}"
                                            .format(arch, task))
+
+                username = task["project_owner"]
+                group_id = int(self.arch_to_group_id_map[arch])
+                if not self.vm_manager.can_user_acquire_more_vm(username, group_id):
+                    self.log.debug("User can not acquire more VM, don't schedule more tasks")
+                    return 0
+
+                self.added_jobs.add(task["task_id"])
 
                 task_obj = Task(task)
                 self.task_queues_by_arch[arch].enqueue(task_obj)
@@ -172,7 +187,7 @@ class CoprJobGrab(Process):
             return
         try:
             msg = json.loads(raw["data"])
-            # msg: {"action": ["remove"|"reschedule"], "task_id": ..., "build_id"..., "chroot": ...}
+            # msg: {"action": ("remove"|"reschedule"), "task_id": ..., "build_id"..., "chroot": ...}
             # Actions: "remove" simply remove `task_id` from self.added_job
             #          "reschedule" additionally call frontend and set pending state before removal
             if "action" not in msg:
@@ -221,6 +236,7 @@ class CoprJobGrab(Process):
         setproctitle("CoprJobGrab")
         self.connect_queues()
         self.listen_to_pubsub()
+        self.vm_manager.post_init()
 
         self.log.info("JobGrub started.")
         try:

@@ -106,14 +106,17 @@ class TestJobGrab(object):
         self.task_dict_1 = dict(
             task_id=12345,
             chroot="fedora-20-x86_64",
+            project_owner="foobar",
         )
         self.task_dict_2 = dict(
             task_id=12346,
             chroot="fedora-20-armv7",
+            project_owner="foobar",
         )
         self.task_dict_bad_arch = dict(
             task_id=12346,
             chroot="fedora-20-s390x",
+            project_owner="foobar",
         )
 
     def teardown_method(self, method):
@@ -136,6 +139,7 @@ class TestJobGrab(object):
     def init_jg(self, mc_retask_queue, mc_grc):
         self.jg = CoprJobGrab(self.opts, self.frontend_client, self.lock)
         self.jg.connect_queues()
+        self.jg.vm_manager = MagicMock()
 
     def test_connect_queues(self, mc_retask_queue, mc_grc):
         mc_rc = MagicMock()
@@ -179,13 +183,13 @@ class TestJobGrab(object):
         for obj in self.jg.task_queues_by_arch.values():
             assert not obj.enqueue.called
 
-    def test_route_build_task_correct_group_1(self, init_jg):
+    def test_route_build_task_correct_group_1(self, init_jg,):
 
         assert self.jg.route_build_task(self.task_dict_1) == 1
         assert self.jg.task_queues_by_arch["x86_64"].enqueue.called
         assert not self.jg.task_queues_by_arch["armv7"].enqueue.called
 
-    def test_route_build_task_correct_group_2(self, init_jg):
+    def test_route_build_task_correct_group_2(self, init_jg, ):
 
         assert self.jg.route_build_task(self.task_dict_2) == 1
         assert not self.jg.task_queues_by_arch["x86_64"].enqueue.called

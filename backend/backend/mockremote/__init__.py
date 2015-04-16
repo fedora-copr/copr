@@ -354,7 +354,7 @@ class MockRemote(object):
             with open(info_file_path, 'w') as info_file:
                 info_file.writelines([
                     "build_id={}".format(self.job.build_id),
-                    "builder_ip={}".format(self.builder.hostname)])
+                    "\nbuilder_ip={}".format(self.builder.hostname)])
 
         except Exception as error:
             self.log.exception("Failed to mark build {} with build_id".format(error))

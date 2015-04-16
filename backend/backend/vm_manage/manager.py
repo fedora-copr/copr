@@ -222,6 +222,28 @@ class VmManager(object):
     def mark_server_start(self):
         self.rc.hset(KEY_SERVER_INFO, "server_start_timestamp", time.time())
 
+    def can_user_acquire_more_vm(self, username, group):
+        """
+        :return bool: True when user are allowed to acquire more VM
+        """
+        vmd_list = self.get_all_vm_in_group(group)
+        vm_count_used_by_user = len([
+            vmd for vmd in vmd_list if
+            vmd.bound_to_user == username and vmd.state == VmStates.IN_USE
+        ])
+        self.log.debug("# vm by user: {}, limit:{} ".format(
+            vm_count_used_by_user, self.opts.build_groups[group]["max_vm_per_user"]
+        ))
+        if vm_count_used_by_user >= self.opts.build_groups[group]["max_vm_per_user"]:
+            # TODO: this check isn't reliable, if two (or more) processes check VM list
+            # at the +- same time, they could acquire more VMs
+            #  proper solution: do this check inside lua script
+            self.log.debug("No VM are available, user `{}` already acquired #{} VMs"
+                           .format(username, vm_count_used_by_user))
+            return False
+        else:
+            return True
+
     def acquire_vm(self, group, username, pid, task_id=None, build_id=None, chroot=None):
         """
         Try to acquire VM from pool
@@ -235,20 +257,9 @@ class VmManager(object):
         :raises: NoVmAvailable  when manager couldn't find suitable VM for the given group and user
         """
         vmd_list = self.get_all_vm_in_group(group)
-        vm_count_used_by_user = len([
-            vmd for vmd in vmd_list if
-            vmd.bound_to_user == username and vmd.state == VmStates.IN_USE
-        ])
-        self.log.debug("# vm by user: {}, limit:{} ".format(
-            vm_count_used_by_user, self.opts.build_groups[group]["max_vm_per_user"]
-        ))
-
-        if vm_count_used_by_user >= self.opts.build_groups[group]["max_vm_per_user"]:
-            # TODO: this check isn't reliable, if two (or more) processes check VM list
-            #  at the +- same time, they could acquire more VMs
-            #  proper solution: do this check inside lua script
-            raise NoVmAvailable("No VM are available, user `{}` already acquired #{} VMs"
-                                .format(username, vm_count_used_by_user))
+        if not self.can_user_acquire_more_vm(username, group):
+            raise NoVmAvailable("No VM are available, user `{}` already acquired too much VMs"
+                                .format(username))
 
         ready_vmd_list = [vmd for vmd in vmd_list if vmd.state == VmStates.READY]
         # trying to find VM used by this user
