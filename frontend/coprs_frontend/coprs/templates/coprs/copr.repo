@@ -2,7 +2,7 @@
 name=Copr repo for {{ copr.name }} owned by {{ copr.owner.name }}
 baseurl={{ url | fix_url_https_backend }}
 skip_if_unavailable=True
-gpgcheck=1
+gpgcheck={{ config.REPO_GPGCHECK | default("1")}}
 gpgkey={{ pubkey_url | fix_url_https_backend  }}
 enabled=1
 

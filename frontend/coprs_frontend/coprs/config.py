@@ -46,6 +46,8 @@ class Config(object):
     INTRANET_IPS = ["127.0.0.1"]
     DEBUG = True
 
+    REPO_GPGCHECK = 1
+
 
 class ProductionConfig(Config):
     DEBUG = False
