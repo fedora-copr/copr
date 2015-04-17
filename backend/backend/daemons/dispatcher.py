@@ -315,11 +315,12 @@ class Worker(multiprocessing.Process):
 
             chroot_logfile = "{}/build-{:08d}.log".format(chroot_destdir, job.build_id)
 
+            build_logger = create_file_logger("{}.builder.mr".format(self.logger_name),
+                                              chroot_logfile, fmt=build_log_format)
             try:
                 mr = MockRemote(
                     builder_host=self.vm_ip, job=job,
-                    logger=create_file_logger("{}.builder.mr".format(self.logger_name),
-                                              chroot_logfile, fmt=build_log_format),
+                    logger=build_logger,
                     repos=chroot_repos,
                     opts=self.opts, lock=self.lock,
                 )
@@ -341,6 +342,12 @@ class Worker(multiprocessing.Process):
                 )
                 status = BuildStatus.FAILURE
                 register_build_result(self.opts, failed=True)
+            finally:
+                # TODO: kind of ugly solution
+                # we should remove handler from build loger, otherwise we would write
+                # to the previous project
+                for h in build_logger.handlers[:]:
+                    build_logger.removeHandler(h)
 
             self.log.info(
                 "Finished build: id={} builder={} timeout={} destdir={}"
