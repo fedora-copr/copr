@@ -258,6 +258,7 @@ class Worker(multiprocessing.Process):
 
         # Checking whether the build is not cancelled
         if not self.starting_build(job):
+            self.log.info("Couldn't start job: {}".format(job))
             return
 
         # Checking whether to build or skip
@@ -386,6 +387,7 @@ class Worker(multiprocessing.Process):
 
         job = self.obtain_job()
         if not job:
+            self.update_process_title(suffix="trying to acquire job")
             time.sleep(self.opts.sleeptime)
             return
 

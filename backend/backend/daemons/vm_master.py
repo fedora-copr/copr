@@ -54,8 +54,22 @@ class VmMaster(Process):
                               .format(vmd.vm_name, not_re_acquired_in))
                 self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.READY)
 
-    def check_one_vm_for_dead_builder(self, vmd):
+    def request_build_reschedule(self, vmd):
+        self.log.info("trying to publish reschedule")
+        vmd_dict = vmd.to_dict()
+        if all(x in vmd_dict for x in ["build_id", "task_id", "chroot"]):
+            request = {
+                "action": "reschedule",
+                "build_id": vmd.build_id,
+                "task_id": vmd.task_id,
+                "chroot": vmd.chroot,
+            }
+            self.log.info("trying to publish reschedule: {}".format(request))
+            self.vmm.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
+            # else:
+            # self.log.info("Failed to  release VM: {}".format(vmd.vm_name))
 
+    def check_one_vm_for_dead_builder(self, vmd):
         in_use_since = vmd.get_field(self.vmm.rc, "in_use_since")
         pid = vmd.get_field(self.vmm.rc, "used_by_pid")
 
@@ -71,22 +85,9 @@ class VmMaster(Process):
         if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
             return
 
-        self.log.info("Process `{}` not exists anymore, releasing VM: {} ".format(pid, vmd.vm_name))
-        # from celery.contrib import rdb; rdb.set_trace()
-        if self.vmm.release_vm(vmd.vm_name):
-            self.log.info("trying to publish reschedule")
-            vmd_dict = vmd.to_dict()
-            if all(x in vmd_dict for x in ["build_id", "task_id", "chroot"]):
-                request = {
-                    "action": "reschedule",
-                    "build_id": vmd.build_id,
-                    "task_id": vmd.task_id,
-                    "chroot": vmd.chroot,
-                }
-                self.log.info("trying to publish reschedule: {}".format(request))
-                self.vmm.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
-        else:
-            self.log.info("Failed to  release VM: {}".format(vmd.vm_name))
+        self.log.info("Process `{}` not exists anymore, terminating VM: {} ".format(pid, vmd.vm_name))
+        self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.IN_USE)
+        self.request_build_reschedule(vmd)
 
     def remove_vm_with_dead_builder(self):
         # TODO: rewrite build manage at backend and move functionality there

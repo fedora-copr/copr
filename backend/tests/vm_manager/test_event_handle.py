@@ -243,11 +243,10 @@ class TestEventHandle(object):
         assert self.vmd.get_field(self.rc, "state") == VmStates.IN_USE
         assert int(self.vmd.get_field(self.rc, "check_fails")) == 2
 
-        # when threshold exceeded request termination
+        # when threshold exceeded request termination do NOT terminate it
         self.eh.on_health_check_result(msg)
         assert self.vmd.get_field(self.rc, "state") == VmStates.IN_USE
-
-        assert self.vmm.start_vm_termination.called
+        assert not self.vmm.start_vm_termination.called
 
     def test_health_check_result_on_wrong_states(self):
         self.vmd = VmDescriptor(self.vm_ip, self.vm_name, self.group, VmStates.GOT_IP)

@@ -200,8 +200,10 @@ class TestVmMaster(object):
 
     def test_remove_vm_with_dead_builder(self, mc_time, add_vmd, mc_psutil):
         mc_time.time.return_value = time.time()
+        self.vm_master.log = MagicMock()
 
-        self.vmm.release_vm = types.MethodType(MagicMock(), self.vmm)
+        self.vmm.start_vm_termination = MagicMock()
+        self.vmm.start_vm_termination.return_value = "OK"
 
         for idx, vmd in enumerate([self.vmd_a1, self.vmd_a2,
                                    self.vmd_b1, self.vmd_b2, self.vmd_b3]):
@@ -245,7 +247,7 @@ class TestVmMaster(object):
         self.vm_master.remove_vm_with_dead_builder()
 
         msg_list = self.rcv_from_ps_message_bus()
-
+        print(self.vm_master.log.call_args_list)
         assert set(["2", "4"]) == set([json.loads(m["data"])["build_id"] for m in msg_list])
 
     def test_check_vms_health(self, mc_time, add_vmd):

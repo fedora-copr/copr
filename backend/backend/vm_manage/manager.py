@@ -84,6 +84,10 @@ end
 terminate_vm_lua = """
 local old_state = redis.call("HGET", KEYS[1], "state")
 
+if old_state == "in_use" and ARGV[1] ~= "in_use" then
+    return "Termination of VM in in_use state are forbidden"
+end
+
 if ARGV[1] and ARGV[1] ~= "None" and old_state ~= ARGV[1] then
     return "Old state != `allowed_pre_state`"
 elseif old_state == "terminating" and ARGV[1] ~= "terminating" then
