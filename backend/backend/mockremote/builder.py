@@ -331,7 +331,7 @@ class Builder(object):
         remote_src = "{0}@{1}:{2}".format(self.opts.build_user, self.hostname, rpd)
         ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
 
-        rsync_log_filepath = os.path.join(destdir, "build-{}.rsync.log".format(self.job.build_id))
+        rsync_log_filepath = os.path.join(destdir, "build-{:08d}.rsync.log".format(self.job.build_id))
         command = "{} -avH -e {} {} {}/ &> {}".format(
             rsync, ssh_opts, remote_src, destdir,
             rsync_log_filepath)

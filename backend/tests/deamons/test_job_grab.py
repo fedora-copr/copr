@@ -88,8 +88,11 @@ class TestJobGrab(object):
             logfile=self.log_file,
             verbose=False,
             build_groups=[
-                {"id": 0, "name": "x86", "archs": ["i386", "i686", "x86_64"]},
-                {"id": 1, "name": "arm", "archs": ["armv7"]},
+                {"id": 0, "name": "x86",
+                 "archs": ["i386", "i686", "x86_64"],
+                 "max_vm_per_user": 5},
+                {"id": 1, "name": "arm", "archs": ["armv7"],
+                 "max_vm_per_user": 5},
             ],
             destdir="/dev/null",
             frontend_base_url="http://example.com/",
@@ -165,16 +168,25 @@ class TestJobGrab(object):
         assert not mc_rc.pubsub.called
         self.jg.listen_to_pubsub()
 
-
         assert mc_rc.pubsub.called
         assert mc_rc.pubsub.return_value.subscribe.called
 
     def test_route_build_task_skip_added(self, init_jg):
-        self.jg.added_jobs.add(12345)
-        self.jg.added_jobs.add(12346)
+        for d in [self.task_dict_1, self.task_dict_2]:
+            self.jg.added_jobs_dict[d["task_id"]] = d
 
         assert self.jg.route_build_task(self.task_dict_1) == 0
         assert self.jg.route_build_task(self.task_dict_2) == 0
+        for obj in self.jg.task_queues_by_arch.values():
+            assert not obj.enqueue.called
+
+    def test_route_build_task_skip_too_much_added(self, init_jg):
+        for i in range(10):
+            task = dict(self.task_dict_1)
+            task["task_id"] = 1000 + i
+            self.jg.added_jobs_dict[task["task_id"]] = task
+
+        assert self.jg.route_build_task(self.task_dict_1) == 0
         for obj in self.jg.task_queues_by_arch.values():
             assert not obj.enqueue.called
 

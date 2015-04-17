@@ -702,7 +702,7 @@ class TestBuilder(object):
             expected_arg = (
                 "/usr/bin/rsync -avH -e 'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
                 " copr_builder@example.com:/tmp/copr-backend-test-tmp/build/results/fedora-20-i386/foovar-2.41.f21 "
-                "'/tmp/copr-backend-test'/ &> '/tmp/copr-backend-test'/build-12345.rsync.log")
+                "'/tmp/copr-backend-test'/ &> '/tmp/copr-backend-test'/build-00012345.rsync.log")
 
             assert mc_popen.call_args[0][0] == expected_arg
 

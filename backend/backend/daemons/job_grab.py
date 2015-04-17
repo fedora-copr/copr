@@ -57,7 +57,7 @@ class CoprJobGrab(Process):
         self.task_queues_by_arch = {}
         self.task_queues_by_group = {}
 
-        self.added_jobs = set()
+        self.added_jobs_dict = dict()  # task_id -> task dict
         self.lock = lock
 
         self.frontend_client = frontend_client
@@ -67,8 +67,6 @@ class CoprJobGrab(Process):
         self.ps_thread = None
 
         self.log = get_redis_logger(self.opts, "backend.job_grab", "job_grab")
-
-        self.vm_manager = VmManager(opts=self.opts, logger=self.log)
 
     def connect_queues(self):
         """
@@ -109,7 +107,7 @@ class CoprJobGrab(Process):
         """
         count = 0
         if "task_id" in task:
-            if task["task_id"] not in self.added_jobs:
+            if task["task_id"] not in self.added_jobs_dict:
                 arch = task["chroot"].split("-")[2]
                 if arch not in self.task_queues_by_arch:
                     raise CoprJobGrabError("No builder group for architecture: {}, task: {}"
@@ -117,11 +115,15 @@ class CoprJobGrab(Process):
 
                 username = task["project_owner"]
                 group_id = int(self.arch_to_group_id_map[arch])
-                if not self.vm_manager.can_user_acquire_more_vm(username, group_id):
-                    self.log.debug("User can not acquire more VM, don't schedule more tasks")
+                active_jobs_count = len([t for t_id, t in self.added_jobs_dict.items()
+                                         if t["project_owner"] == username])
+
+                if active_jobs_count > self.opts.build_groups[group_id]["max_vm_per_user"]:
+                    self.log.debug("User can not acquire more VM (active builds #{}), "
+                                   "don't schedule more tasks".format(active_jobs_count))
                     return 0
 
-                self.added_jobs.add(task["task_id"])
+                self.added_jobs_dict[task["task_id"]] = task
 
                 task_obj = Task(task)
                 self.task_queues_by_arch[arch].enqueue(task_obj)
@@ -208,12 +210,12 @@ class CoprJobGrab(Process):
                 self.log.info("Rescheduling task `{}`".format(task_id))
                 self.frontend_client.reschedule_build(msg["build_id"], msg["chroot"])
 
-            if task_id not in self.added_jobs:
+            if task_id not in self.added_jobs_dict:
                 self.log.debug("Task `{}` not present in added jobs,  msg ignored: {}".format(task_id, msg))
                 return
 
             if action in ["remove", "reschedule"]:
-                    self.added_jobs.remove(task_id)
+                    self.added_jobs_dict.pop(task_id)
                     self.log.info("Removed task `{}` from added_jobs".format(task_id))
 
         except Exception as err:
@@ -221,9 +223,9 @@ class CoprJobGrab(Process):
                                .format(raw, err))
 
     def log_queue_info(self):
-        if self.added_jobs:
-            self.log.debug("Added jobs after remove and load: {}".format(self.added_jobs))
-            self.log.debug("# of executed jobs: {}".format(len(self.added_jobs)))
+        if self.added_jobs_dict:
+            self.log.debug("Added jobs after remove and load: {}".format(self.added_jobs_dict))
+            self.log.debug("# of executed jobs: {}".format(len(self.added_jobs_dict)))
 
         for group, queue in self.task_queues_by_group.items():
             if queue.length > 0:
@@ -236,7 +238,6 @@ class CoprJobGrab(Process):
         setproctitle("CoprJobGrab")
         self.connect_queues()
         self.listen_to_pubsub()
-        self.vm_manager.post_init()
 
         self.log.info("JobGrub started.")
         try:
