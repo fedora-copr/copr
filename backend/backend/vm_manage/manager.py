@@ -11,7 +11,7 @@ import time
 import weakref
 from cStringIO import StringIO
 import datetime
-from backend.exceptions import VmError, NoVmAvailable
+from backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound
 
 from backend.helpers import get_redis_connection
 from .models import VmDescriptor
@@ -331,21 +331,31 @@ class VmManager(object):
         pipe.execute()
         self.log.info("removed vm `{}` from pool".format(vm_name))
 
+    def _load_multi_safe(self, vm_name_list):
+        result = []
+        for vm_name in vm_name_list:
+            try:
+                result.append(VmDescriptor.load(self.rc, vm_name))
+            except VmDescriptorNotFound:
+                self.log.debug("Failed to load VMD: {}".format(vm_name))
+                pass
+        return result
+
     def get_all_vm_in_group(self, group):
         """
         :rtype: list of VmDescriptor
         """
         vm_name_list = self.rc.smembers(KEY_VM_POOL.format(group=group))
-        return [VmDescriptor.load(self.rc, vm_name) for vm_name in vm_name_list]
+        return self._load_multi_safe(vm_name_list)
 
     def get_all_vm(self):
         """
         :rtype: list of VmDescriptor
         """
-        vm_name_list = []
+        vmd_list = []
         for group in self.vm_groups:
-            vm_name_list.extend(self.rc.smembers(KEY_VM_POOL.format(group=group)))
-        return [VmDescriptor.load(self.rc, vm_name) for vm_name in vm_name_list]
+            vmd_list.extend(self.get_all_vm_in_group(group))
+        return vmd_list
 
     def get_vm_by_name(self, vm_name):
         """

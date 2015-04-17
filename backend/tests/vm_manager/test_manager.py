@@ -428,19 +428,19 @@ class TestManager(object):
         self.vmm.info()
 
     def test_look_up_vms_by_ip(self, f_second_group, capsys):
-        vmd_1 = self.vmm.add_vm_to_pool(self.vm_ip, "a1", self.group)
+        self.vmm.add_vm_to_pool(self.vm_ip, "a1", self.group)
         r1 = self.vmm.lookup_vms_by_ip(self.vm_ip)
         assert len(r1) == 1
         assert r1[0].vm_name == "a1"
 
-        vmd_2 = self.vmm.add_vm_to_pool(self.vm_ip, "a2", self.group)
+        self.vmm.add_vm_to_pool(self.vm_ip, "a2", self.group)
         r2 = self.vmm.lookup_vms_by_ip(self.vm_ip)
         assert len(r2) == 2
         r2 = sorted(r2, key=lambda vmd: vmd.vm_name)
         assert r2[0].vm_name == "a1"
         assert r2[1].vm_name == "a2"
 
-        vmd_3 = self.vmm.add_vm_to_pool("127.1.1.111", "b1", 1)
+        self.vmm.add_vm_to_pool("127.1.1.111", "b1", 1)
 
         r3 = self.vmm.lookup_vms_by_ip(self.vm_ip)
         assert len(r3) == 2

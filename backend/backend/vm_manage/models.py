@@ -40,6 +40,13 @@ class VmDescriptor(object):
 
     @classmethod
     def load(cls, rc, vm_name):
+        """
+
+        :param rc:
+        :param vm_name:
+        :rtype: VmDescriptor
+        :raises VmDescriptorNotFound:
+        """
         raw = rc.hgetall(KEY_VM_INSTANCE.format(vm_name=vm_name))
         if not raw:
             raise VmDescriptorNotFound("VmDescriptor for `{}` not found".format(vm_name))
