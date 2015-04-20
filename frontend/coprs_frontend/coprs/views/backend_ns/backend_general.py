@@ -14,6 +14,7 @@ from whoosh.index import LockError
 import logging
 log = logging.getLogger(__name__)
 
+
 @backend_ns.route("/waiting/")
 @misc.backend_authenticated
 def waiting():
