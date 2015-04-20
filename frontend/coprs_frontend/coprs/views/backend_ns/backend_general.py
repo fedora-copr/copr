@@ -11,6 +11,8 @@ from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 from whoosh.index import LockError
 
+import logging
+log = logging.getLogger(__name__)
 
 @backend_ns.route("/waiting/")
 @misc.backend_authenticated
@@ -45,8 +47,8 @@ def waiting():
         }
         for task in builds_logic.BuildsLogic.get_build_task_queue().limit(200)
     ]
-
-    return flask.jsonify({"actions": actions_list, "builds": builds_list})
+    response_dict = {"actions": actions_list, "builds": builds_list}
+    return flask.jsonify(response_dict)
 
 
 @backend_ns.route("/update/", methods=["POST", "PUT"])
@@ -54,14 +56,15 @@ def waiting():
 def update():
     result = {}
 
+    request_data = flask.request.json
     for typ, logic_cls in [("actions", actions_logic.ActionsLogic),
                            ("builds", builds_logic.BuildsLogic)]:
 
-        if typ not in flask.request.json:
+        if typ not in request_data:
             continue
 
         to_update = {}
-        for obj in flask.request.json[typ]:
+        for obj in request_data[typ]:
             to_update[obj["id"]] = obj
 
         existing = {}

@@ -5,6 +5,7 @@ import pprint
 import time
 from sqlalchemy import or_
 from sqlalchemy import and_
+from sqlalchemy.sql import false
 
 from coprs import app
 from coprs import db
@@ -21,14 +22,13 @@ log = app.logger
 
 
 class BuildsLogic(object):
-
     @classmethod
     def get(cls, build_id):
         return models.Build.query.filter(models.Build.id == build_id)
 
     @classmethod
     def get_build_tasks(cls, status):
-        return models.BuildChroot.query.filter(models.BuildChroot.status == status)\
+        return models.BuildChroot.query.filter(models.BuildChroot.status == status) \
             .order_by(models.BuildChroot.build_id.desc())
 
     @classmethod
@@ -55,15 +55,17 @@ class BuildsLogic(object):
         Returns BuildChroots which are - waiting to be built or
                                        - older than 2 hours and unfinished
         """
-        query = models.BuildChroot.query.join(models.Build).filter(or_(
-            models.BuildChroot.status == helpers.StatusEnum("pending"),
-            models.BuildChroot.status == helpers.StatusEnum("starting"),
-            and_(
-                models.BuildChroot.status.in_([
-                    helpers.StatusEnum("running"), helpers.StatusEnum("failed")]),
-                models.Build.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
-                models.Build.ended_on.is_(None)
-            )
+        query = (models.BuildChroot.query.join(models.Build)
+                 .filter(models.Build.canceled == false())
+                 .filter(or_(
+                     models.BuildChroot.status == helpers.StatusEnum("pending"),
+                     models.BuildChroot.status == helpers.StatusEnum("starting"),
+                     and_(
+                         models.BuildChroot.status.in_([
+                             helpers.StatusEnum("running"), helpers.StatusEnum("failed")]),
+                         models.Build.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
+                         models.Build.ended_on.is_(None)
+                     ))
         ))
         query = query.order_by(models.BuildChroot.build_id.asc())
         return query
@@ -192,7 +194,7 @@ class BuildsLogic(object):
                 # update ended_on when everything really ends
                 # update results when there is repo initialized for every chroot
                 if (attr == "ended_on" and build.has_unfinished_chroot) or \
-                   (attr == "results" and build.has_pending_chroot):
+                        (attr == "results" and build.has_pending_chroot):
                     continue
 
                 if attr == "ended_on":
@@ -228,7 +230,7 @@ class BuildsLogic(object):
                 "Unfinished build")
 
         # Only failed, finished, succeeded  get here.
-        if build.state not in ["cancelled"]: # has nothing in backend to delete
+        if build.state not in ["cancelled"]:  # has nothing in backend to delete
             # don't delete skipped chroots
             chroots_to_delete = [
                 chroot.name for chroot in build.build_chroots
@@ -289,7 +291,6 @@ class BuildsLogic(object):
 
 
 class BuildsMonitorLogic(object):
-
     @classmethod
     def get_monitor_data(cls, copr):
         # builds are sorted by build id descending
