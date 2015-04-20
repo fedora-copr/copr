@@ -338,29 +338,34 @@ class TestDispatcher(object):
         mc_tq = MagicMock()
         self.worker.task_queue = mc_tq
         self.worker.starting_build = MagicMock()
-        self.worker.pkg_built_before = MagicMock()
-        self.worker.pkg_built_before.return_value = False
 
         mc_tq.dequeue.return_value = MagicMock(data=self.task)
         obtained_job = self.worker.obtain_job()
         assert obtained_job.__dict__ == self.job.__dict__
-        assert self.worker.pkg_built_before.called
 
-    def test_obtain_job_skip_pkg(self, init_worker):
-        mc_tq = MagicMock()
-        self.worker.task_queue = mc_tq
+    def test_can_start_job_skip_pkg(self, init_worker):
         self.worker.starting_build = MagicMock()
+        self.worker.starting_build.return_value = False
         self.worker.pkg_built_before = MagicMock()
         self.worker.pkg_built_before.return_value = True
-        self.worker.mark_started = MagicMock()
-        self.worker.return_results = MagicMock()
 
-        self.worker.notify_job_grab_about_task_end = MagicMock()
+        assert self.worker.can_start_job(self.job) is False
 
-        mc_tq.dequeue.return_value = MagicMock(data=self.task)
-        assert self.worker.obtain_job() is None
-        assert self.worker.pkg_built_before.called
-        assert self.worker.notify_job_grab_about_task_end.called
+    def test_can_start_job_not_starting(self, init_worker):
+        self.worker.starting_build = MagicMock()
+        self.worker.starting_build.return_value = False
+        self.worker.pkg_built_before = MagicMock()
+        self.worker.pkg_built_before.return_value = False
+
+        assert self.worker.can_start_job(self.job) is False
+
+    def test_can_start_job(self, init_worker):
+        self.worker.starting_build = MagicMock()
+        self.worker.starting_build.return_value = True
+        self.worker.pkg_built_before = MagicMock()
+        self.worker.pkg_built_before.return_value = False
+
+        assert self.worker.can_start_job(self.job) is True
 
     def test_obtain_job_dequeue_type_error(self, init_worker):
         mc_tq = MagicMock()
@@ -384,18 +389,6 @@ class TestDispatcher(object):
         mc_tq.dequeue.return_value = None
         assert self.worker.obtain_job() is None
         assert not self.worker.starting_build.called
-        assert not self.worker.pkg_built_before.called
-
-    def test_obtain_job_on_starting_build(self, init_worker):
-        mc_tq = MagicMock()
-        self.worker.task_queue = mc_tq
-        self.worker.starting_build = MagicMock()
-        self.worker.starting_build.return_value = False
-        self.worker.pkg_built_before = MagicMock()
-        self.worker.pkg_built_before.return_value = False
-
-        mc_tq.dequeue.return_value = MagicMock(data=self.task)
-        assert self.worker.obtain_job() is None
         assert not self.worker.pkg_built_before.called
 
     def test_dummy_run(self, init_worker, mc_time, mc_grc):
@@ -423,7 +416,6 @@ class TestDispatcher(object):
         self.worker.update_process_title()
         base_title = 'worker-{} {} '.format(self.group_id, self.worker_num)
         assert mc_setproctitle.call_args[0][0] == base_title
-
         #mc_setproctitle.reset_mock()
         self.worker.vm_ip = self.vm_ip
         self.worker.update_process_title()
@@ -513,7 +505,6 @@ class TestDispatcher(object):
         assert self.worker.notify_job_grab_about_task_end.call_args[1]["do_reschedule"]
         assert self.worker.vmm.release_vm.called
 
-
         ### handle other errors
         self.worker.notify_job_grab_about_task_end.reset_mock()
         self.worker.vmm.release_vm.reset_mock()
@@ -522,3 +513,15 @@ class TestDispatcher(object):
 
         assert self.worker.notify_job_grab_about_task_end.call_args[1]["do_reschedule"]
         assert self.worker.vmm.release_vm.called
+
+    def test_run_cycle_halt_on_can_start_job_false(self, init_worker):
+        self.worker.notify_job_grab_about_task_end = MagicMock()
+        self.worker.obtain_job = MagicMock()
+        self.worker.obtain_job.return_value = self.job
+        self.worker.can_start_job = MagicMock()
+        self.worker.can_start_job.return_value = False
+        self.worker.acquire_vm_for_job = MagicMock()
+
+        self.worker.run_cycle()
+        assert self.worker.can_start_job.called
+        assert not self.worker.acquire_vm_for_job.called

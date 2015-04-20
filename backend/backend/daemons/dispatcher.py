@@ -235,13 +235,30 @@ class Worker(multiprocessing.Process):
         self.notify_job_grab_about_task_end(job)
         self._announce_end(job)
 
+    def can_start_job(self, job):
+        """
+        Checks if we can and/or should start job
+        :type job: BuildJob
+        :rtype: bool
+        """
+        # Checking whether the build is not cancelled
+        if not self.starting_build(job):
+            self.log.info("Couldn't start job: {}".format(job))
+            return False
+
+        # Checking whether to build or skip
+        if self.pkg_built_before(job.pkg, job.chroot, job.destdir):
+            self.on_pkg_skip(job)
+            return False
+
+        return True
+
     def obtain_job(self):
         """
         Retrieves new build task from queue.
         Checks if the new job can be started and not skipped.
         """
-        self.update_process_title(suffix="No task")
-
+        # ToDo: remove retask, use redis lua fsm logic similiar to VMM
         # this sometimes caused TypeError in random worker
         # when another one  picekd up a task to build
         # why?
@@ -255,20 +272,6 @@ class Worker(multiprocessing.Process):
         job = BuildJob(task.data, self.opts)
         self.update_process_title(suffix="Task: {} chroot: {}, obtained at {}"
                                   .format(job.build_id, job.chroot, str(datetime.now())))
-
-        # Checking whether the build is not cancelled
-        if not self.starting_build(job):
-            self.log.info("Couldn't start job: {}".format(job))
-            return
-
-        # Checking whether to build or skip
-        if self.pkg_built_before(job.pkg, job.chroot, job.destdir):
-            self.on_pkg_skip(job)
-            return
-
-        # FIXME
-        # this is our best place to sanity check the job before starting
-        # up any longer process
 
         return job
 
@@ -382,15 +385,7 @@ class Worker(multiprocessing.Process):
 
         self.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
 
-    def run_cycle(self):
-        self.update_process_title(suffix="trying to acquire job")
-
-        job = self.obtain_job()
-        if not job:
-            self.update_process_title(suffix="trying to acquire job")
-            time.sleep(self.opts.sleeptime)
-            return
-
+    def acquire_vm_for_job(self, job):
         self.log.info("got job: {}, acquiring VM for build".format(str(job)))
         start_vm_wait_time = time.time()
         vmd = None
@@ -408,27 +403,43 @@ class Worker(multiprocessing.Process):
                 self.log.exception("Unhandled exception during VM acquire :{}".format(error))
                 self.notify_job_grab_about_task_end(job, do_reschedule=True)
                 time.sleep(self.opts.sleeptime)
-                return
+                break
+        return vmd
 
-        try:
+    def run_cycle(self):
+        self.update_process_title(suffix="trying to acquire job")
+
+        time.sleep(self.opts.sleeptime)
+        job = self.obtain_job()
+        if not job:
+            return
+
+        if not self.can_start_job(job):
+            self.notify_job_grab_about_task_end(job)
+            return
+
+        vmd = self.acquire_vm_for_job(job)
+
+        if vmd is not None:
             self.log.info("acquired VM: {} ip: {} for build {}".format(vmd.vm_name, vmd.vm_ip, job.task_id))
             # TODO: store self.vmd = vmd and use it
             self.vm_name = vmd.vm_name
             self.vm_ip = vmd.vm_ip
 
-            self.do_job(job)
-            self.notify_job_grab_about_task_end(job)
-        except VmError as error:
-            self.log.exception("Builder error, re-scheduling task: {}".format(error))
-            self.notify_job_grab_about_task_end(job, do_reschedule=True)
-        except Exception as error:
-            self.log.exception("Unhandled build error: {}".format(error))
-            self.notify_job_grab_about_task_end(job, do_reschedule=True)
-        finally:
-            # clean up the instance
-            self.vmm.release_vm(vmd.vm_name)
-            self.vm_ip = None
-            self.vm_name = None
+            try:
+                self.do_job(job)
+                self.notify_job_grab_about_task_end(job)
+            except VmError as error:
+                self.log.exception("Builder error, re-scheduling task: {}".format(error))
+                self.notify_job_grab_about_task_end(job, do_reschedule=True)
+            except Exception as error:
+                self.log.exception("Unhandled build error: {}".format(error))
+                self.notify_job_grab_about_task_end(job, do_reschedule=True)
+            finally:
+                # clean up the instance
+                self.vmm.release_vm(vmd.vm_name)
+                self.vm_ip = None
+                self.vm_name = None
 
     def run(self):
         self.log.info("Starting worker")
