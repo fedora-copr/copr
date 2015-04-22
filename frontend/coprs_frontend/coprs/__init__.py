@@ -52,7 +52,7 @@ from coprs.views import recent_ns
 from coprs.views.recent_ns import recent_general
 from coprs.views.stats_ns import stats_receiver
 
-from .context_processors import include_banner
+from .context_processors import include_banner, inject_fedmenu
 
 setup_log()
 

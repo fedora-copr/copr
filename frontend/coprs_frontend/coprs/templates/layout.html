@@ -58,5 +58,21 @@
   </small>
 </p>
 </div>
+
+{% if fedmenu_url is defined %}
+<script src="{{fedmenu_url}}/js/fedora-libravatar.js"></script>
+<script src="{{fedmenu_url}}/js/fedmenu.js"></script>
+<script>
+  fedmenu({
+      'url': '{{fedmenu_data_url}}',
+      'mimeType': 'application/javascript',
+      'position': 'bottom-right',
+      {% if copr is defined %}
+      'user': '{{copr.owner.name}}',
+      {% endif %}
+  });
+</script>
+{% endif %}
+
 </body>
 </html>
