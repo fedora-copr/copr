@@ -103,8 +103,8 @@ class EventHandler(Process):
         else:
             self.log.debug("recording check fail: {}".format(msg))
             self.lua_scripts["record_failure"](keys=[vmd.vm_key])
-            too_much_fails = int(vmd.get_field(self.vmm.rc, "check_fails") or 0) > Thresholds.max_check_fails
-            if too_much_fails and vmd.state != VmStates.IN_USE:
+            fails_count = int(vmd.get_field(self.vmm.rc, "check_fails") or 0)
+            if fails_count > Thresholds.max_check_fails and vmd.state != VmStates.IN_USE:
                 self.log.info("check fail threshold reached: {}, terminating: {}"
                               .format(check_fails_count, msg))
                 self.vmm.start_vm_termination(vmd.vm_name)

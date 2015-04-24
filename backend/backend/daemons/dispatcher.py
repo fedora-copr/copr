@@ -386,6 +386,8 @@ class Worker(multiprocessing.Process):
         self.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
 
     def acquire_vm_for_job(self, job):
+        # TODO: replace acquire/release with context manager
+
         self.log.info("got job: {}, acquiring VM for build".format(str(job)))
         start_vm_wait_time = time.time()
         vmd = None
@@ -401,8 +403,6 @@ class Worker(multiprocessing.Process):
                 continue
             except Exception as error:
                 self.log.exception("Unhandled exception during VM acquire :{}".format(error))
-                self.notify_job_grab_about_task_end(job, do_reschedule=True)
-                time.sleep(self.opts.sleeptime)
                 break
         return vmd
 
@@ -420,7 +420,9 @@ class Worker(multiprocessing.Process):
 
         vmd = self.acquire_vm_for_job(job)
 
-        if vmd is not None:
+        if vmd is None:
+            self.notify_job_grab_about_task_end(job, do_reschedule=True)
+        else:
             self.log.info("acquired VM: {} ip: {} for build {}".format(vmd.vm_name, vmd.vm_ip, job.task_id))
             # TODO: store self.vmd = vmd and use it
             self.vm_name = vmd.vm_name
