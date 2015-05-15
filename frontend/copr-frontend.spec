@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.56
+Version:    1.57
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,28 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Fri May 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.57-1
+- Add optional fedmenu resources to every page.
+- more specific error message in UrlListValidator
+- /backend/waiting: filter out cancelled builds
+- make option gpgcheck in copr.repo configurable
+- show at most 200 builds at /status pages
+- /backend/waiting returns at most 200 builds
+- tests fix
+- [backend] repaired unittests
+- 1206562 - Cannot delete Copr because it incorrectly thinks
+  there are unfinished builds. Solution: `failed` but unfinished (ended_on is
+  null) builds should be rescheduled.
+- [backend][frontend] Send for delete action only `src_pkg_name` instead of
+  original URL.
+- [api] Bug 1194592 - User is able to submit directory
+- [rhbz:#1188784] RFE: Include a "last build" item on the overview
+  page
+- New python dependencies
+- run tmp redis-server for tests
+- Dedicated and more complex management for builder machines.
+  Now builds failed due to VM errors reschedulted faster.
+
 * Fri Mar 06 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.56-1
 - hotfix:#1199258]  Link to Source RPM on build detail page points to a wrong URL
 
