@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.61
+Version:    1.62
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -239,6 +239,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri May 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.62-1
+- [backend] small cleanup, need more tests
+
 * Fri May 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.61-1
 - [backend] notify job_grab to remove job from added when start_job failed
 - [backend] [vmm] terminate VM with state IN_USE only when builder process is
