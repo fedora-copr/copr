@@ -53,6 +53,7 @@ BuildRequires: pytz
 
 #for doc package
 BuildRequires: sphinx
+BuildRequires: python-sphinx
 
 Requires:   obs-signd
 Requires:   ansible >= 1.2
