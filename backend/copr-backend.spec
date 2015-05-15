@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.60
+Version:    1.61
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -239,6 +239,49 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri May 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.61-1
+- [backend] notify job_grab to remove job from added when start_job failed
+- [backend] [vmm] terminate VM with state IN_USE only when builder process is
+  missed
+- [backend] bugfix VMM.get_all_vm_in_group : VM could be removed before load
+  occures
+- [backend] job_grab: postpone build is we already serving more builds
+  than`max_vm_per_user` option
+- [backend] fix build logging
+- [backend] defer sending job to worker if job owner acquired too much VMs
+- [backend] replaced Thresholds.dirty_vm_terminating_timeout with config option
+  vm_dirty_terminating_timeout
+- [backend] Thread's doesn't have a pid
+- [backend] vm manage: user threading instead of multiprocessing
+- [backend] VMM aware cleunup_vm_nova
+- [backend] moving to nginx to serve results. lighttpd couldnt server pre-
+  compressed properly
+- [backend] script to clean up erred and forgotten VM's using python-novaclient
+- [backend] new documentation
+- [backend] repaired unittests
+- [backend] updated builder playbooks
+- [backend] updated example spawn playbook
+- [backend] don't provide logstash config directly, add only example to
+  documentation
+- [backend] do logging from multiply processes through redis pubsub; some fixes
+  to VM-management
+- [image_builder] initial release, due to OS bug, we cannot create snapshot
+  after provision through API, need to do it manually in the WebUI.
+- [backend] tests cleanup
+- [backend] ensure that prune script running under the copr user; simpler
+  `copr_find_obsolete_builds`
+- [backend] safer copr_prune_results script,  unittests
+- [backend][frontend] Send for delete action only `src_pkg_name` instead of
+  original URL.
+- [backend] returned script to call createrepo from cli
+- [copr] don't allow acquire VMs that was last checked before server restart.
+- [backend] Added limit to acquire_vm based on VMs used by the same username at
+  the current moment.
+- New python dependencies
+- [backend] run tmp redis-server for tests
+- [backend] Dedicated and more complex management for builder machines.
+  [frontend] Now builds failed due to VM errors reschedulted faster.
+
 * Fri Mar 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.60-1
 - [backend][spec] start/stop redis server during package build tests
 
