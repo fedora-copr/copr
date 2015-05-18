@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.63
+Version:    1.64
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue May 19 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.64-1
+- [backend] check for aux process state and restart if needed
+
 * Fri May 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.63-1
 - BR python-sphinx
 
