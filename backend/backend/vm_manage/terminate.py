@@ -37,9 +37,9 @@ def terminate_vm(opts, terminate_playbook, group, vm_name, vm_ip):
         "topic": EventTopics.VM_TERMINATED,
         "result": "OK"
     }
+    start_time = time.time()
     try:
         log.info("starting terminate vm with args: {}".format(term_args))
-        start_time = time.time()
         run_ansible_playbook_cli(args, "terminate instance", log)
         result["result"] = "OK"
     except Exception as error:

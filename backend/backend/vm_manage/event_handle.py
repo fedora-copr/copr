@@ -118,7 +118,7 @@ class EventHandler(Process):
     def on_vm_termination_result(self, msg):
         if msg["result"] == "OK" and "vm_name" in msg:
             self.log.debug("Vm terminated, removing from pool ip: {}, name: {}, msg: {}"
-                          .format(msg.get("vm_ip"), msg.get("vm_name"), msg.get("msg")))
+                           .format(msg.get("vm_ip"), msg.get("vm_name"), msg.get("msg")))
             self.vmm.remove_vm_from_pool(msg["vm_name"])
         elif "vm_name" not in msg:
             self.log.debug("Vm termination event missing vm name, msg: {}".format(msg))

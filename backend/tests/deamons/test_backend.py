@@ -302,7 +302,7 @@ class TestBackend(object):
         self.be.terminate()
 
         assert self.be.clean_task_queues.called
-        assert self.be.abort
+        assert not self.be.is_running
         assert worker_alive.terminate_instance.called
         assert worker_dead.terminate_instance.called
 
@@ -314,6 +314,7 @@ class TestBackend(object):
 
         self.be.clean_task_queues = MagicMock()
         self.be.init_sub_process = MagicMock()
+        self.be.ensure_sub_processes_alive = MagicMock()
         # self.be.init_task_queues = MagicMock()
         self.be.update_conf = MagicMock()
         self.be.spin_up_workers_by_group = MagicMock()
@@ -334,7 +335,8 @@ class TestBackend(object):
             mock.call(self.opts.build_groups[1]),
         ]
         assert self.be.update_conf.called
-        assert self.be.abort
+        assert self.be.ensure_sub_processes_alive.called
+        assert not self.be.is_running
         assert not self.be.workers_by_group_id[0]
         assert not self.be.workers_by_group_id[1]
 

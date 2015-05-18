@@ -193,6 +193,7 @@ class VmMaster(Process):
         self.event_handler = EventHandler(self.vmm)
         self.event_handler.start()
 
+        self.log.info("VM master process started")
         while not self.kill_received:
             time.sleep(Thresholds.cycle_timeout)
             try:

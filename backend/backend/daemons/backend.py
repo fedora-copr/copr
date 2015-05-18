@@ -67,7 +67,7 @@ class CoprBackend(object):
         # event format is a dict {when:time, who:[worker|logger|job|main],
         # what:str}
         self.frontend_client = FrontendClient(self.opts)
-        self.abort = False
+        self.is_running = False
         if not os.path.exists(self.opts.worker_logdir):
             os.makedirs(self.opts.worker_logdir, mode=0o750)
 
@@ -101,38 +101,59 @@ class CoprBackend(object):
 
         self.clean_task_queues()
 
-    def init_sub_process(self):
-        """
-        - Create backend logger
-        - Create job grabber
-        """
-
+    def _start_log_handler(self):
         self.redis_log_handler = RedisLogHandler(self.opts)
         self.redis_log_handler.start()
         time.sleep(1)
 
+    def _start_job_grab(self):
         self.log.info("Starting up Job Grabber")
         self._jobgrab = CoprJobGrab(opts=self.opts,
                                     frontend_client=self.frontend_client,
                                     lock=self.lock)
         self._jobgrab.start()
 
-        self.log.info("Starting up VM Spawner")
+    def _start_vm_master(self):
+        self.log.info("Starting up VM Master")
+        self.vmm_daemon = VmMaster(self.vm_manager)
+        self.vmm_daemon.start()
+
+    def init_sub_process(self):
+        """
+        - Create backend logger
+        - Create job grabber
+        """
+
+        self._start_log_handler()
+        self._start_job_grab()
+
+        self.log.info("Creating up VM Spawner")
         self.spawner = Spawner(self.opts)
-        self.log.info("Starting up VM Health checker")
+        self.log.info("Creating up VM Health checker")
         self.checker = HealthChecker(self.opts)
-        self.log.info("Starting up VM Terminator")
+        self.log.info("Creating up VM Terminator")
         self.terminator = Terminator(self.opts)
 
-        self.log.info("Starting up VM Master")
         self.vm_manager = VmManager(opts=self.opts,
                                     logger=self.log,
                                     checker=self.checker,
                                     spawner=self.spawner,
                                     terminator=self.terminator)
         self.vm_manager.post_init()
-        self.vmm_daemon = VmMaster(self.vm_manager)
-        self.vmm_daemon.start()
+        self._start_vm_master()
+
+    def ensure_sub_processes_alive(self):
+        if self.is_running:
+            for proc, start_method in [
+                (self.redis_log_handler, self._start_log_handler),
+                (self._jobgrab, self._start_job_grab),
+
+            ]:
+                if not proc.is_alive():
+                    self.log.error("Process `{}` died unexpectedly, restarting".format(proc))
+                    proc.terminate()
+                    proc.join()
+                    start_method()
 
     def event(self, what):
         """
@@ -209,7 +230,7 @@ class CoprBackend(object):
         And also clean all task queues as they would survive copr restart
         """
 
-        self.abort = True
+        self.is_running = False
         for group in self.opts.build_groups:
             group_id = group["id"]
             for w in self.workers_by_group_id[group_id][:]:
@@ -229,10 +250,12 @@ class CoprBackend(object):
 
         self.log.info("Initial config: {}".format(self.opts))
         self.log.info("Sub processes was started")
-        self.abort = False
-        while not self.abort:
+        self.is_running = True
+        while self.is_running:
             # re-read config into opts
             self.update_conf()
+
+            self.ensure_sub_processes_alive()
 
             for group in self.opts.build_groups:
                 group_id = group["id"]

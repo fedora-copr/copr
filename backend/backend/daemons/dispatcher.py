@@ -376,6 +376,8 @@ class Worker(multiprocessing.Process):
         setproctitle(title)
 
     def notify_job_grab_about_task_end(self, job, do_reschedule=False):
+        # TODO: Current notification method is unreliable,
+        # we should retask and use redis + lua for atomic acquire/release tasks
         request = {
             "action": "reschedule" if do_reschedule else "remove",
             "build_id": job.build_id,
