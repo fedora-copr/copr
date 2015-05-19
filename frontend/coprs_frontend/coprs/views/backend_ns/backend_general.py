@@ -5,7 +5,7 @@ import time
 from coprs import db
 from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
-from coprs.logic import builds_logic
+from coprs.logic.builds_logic import BuildsLogic
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
@@ -46,7 +46,7 @@ def waiting():
             "timeout": task.build.timeout,
             "enable_net": task.build.enable_net,
         }
-        for task in builds_logic.BuildsLogic.get_build_task_queue().limit(200)
+        for task in BuildsLogic.get_build_task_queue().limit(200)
     ]
     response_dict = {"actions": actions_list, "builds": builds_list}
     return flask.jsonify(response_dict)
@@ -59,7 +59,7 @@ def update():
 
     request_data = flask.request.json
     for typ, logic_cls in [("actions", actions_logic.ActionsLogic),
-                           ("builds", builds_logic.BuildsLogic)]:
+                           ("builds", BuildsLogic)]:
 
         if typ not in request_data:
             continue
@@ -107,10 +107,10 @@ def starting_build():
     result = {"can_start": False}
 
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build = builds_logic.BuildsLogic.get_by_id(flask.request.json["build_id"])
+        build = BuildsLogic.get_by_id(flask.request.json["build_id"])
 
     if build and not build.canceled:
-        builds_logic.BuildsLogic.update_state_from_dict(build, {
+        BuildsLogic.update_state_from_dict(build, {
             "chroot": flask.request.json["chroot"],
             "status": StatusEnum("starting")
         })
@@ -120,12 +120,32 @@ def starting_build():
     return flask.jsonify(result)
 
 
+@backend_ns.route("/reschedule_all_running/", methods=["POST"])
+@misc.backend_authenticated
+def reschedule_all_running():
+    """
+    Add-hoc handle. Remove after implementation of persistent task handling in copr-backend
+    """
+    to_reschedule = \
+        BuildsLogic.get_build_tasks(StatusEnum("starting")).all() + \
+        BuildsLogic.get_build_tasks(StatusEnum("running")).all()
+
+    if to_reschedule:
+        for build_chroot in to_reschedule:
+            build_chroot.status = StatusEnum("pending")
+            db.session.add(build_chroot)
+
+        db.session.commit()
+
+    return "OK", 200
+
+
 @backend_ns.route("/reschedule_build_chroot/", methods=["POST", "PUT"])
 @misc.backend_authenticated
 def reschedule_build_chroot():
     response = {}
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build = builds_logic.BuildsLogic.get_by_id(flask.request.json["build_id"])
+        build = BuildsLogic.get_by_id(flask.request.json["build_id"])
     else:
         response["result"] = "bad request"
         response["msg"] = "Request missing  `build_id` and/or `chroot`"
@@ -140,7 +160,7 @@ def reschedule_build_chroot():
             build_chroot = build.chroots_dict_by_name.get(chroot)
             run_statuses = set([StatusEnum("starting"), StatusEnum("running")])
             if build_chroot and build_chroot.status in run_statuses:
-                builds_logic.BuildsLogic.update_state_from_dict(build, {
+                BuildsLogic.update_state_from_dict(build, {
                     "chroot": chroot,
                     "status": StatusEnum("pending")
                 })
