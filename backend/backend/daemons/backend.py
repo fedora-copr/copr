@@ -16,6 +16,7 @@ from collections import defaultdict
 
 import lockfile
 from daemon import DaemonContext
+from requests import RequestException
 from retask.queue import Queue
 from retask import ConnectionError
 from backend.frontend import FrontendClient
@@ -250,6 +251,14 @@ class CoprBackend(object):
 
         self.log.info("Initial config: {}".format(self.opts))
         self.log.info("Sub processes was started")
+
+        try:
+            self.log.info("Rescheduling old unfinished builds")
+            self.frontend_client.reschedule_all_running()
+        except RequestException as err:
+            self.log.exception(err)
+            return
+
         self.is_running = True
         while self.is_running:
             # re-read config into opts

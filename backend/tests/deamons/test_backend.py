@@ -318,6 +318,7 @@ class TestBackend(object):
         # self.be.init_task_queues = MagicMock()
         self.be.update_conf = MagicMock()
         self.be.spin_up_workers_by_group = MagicMock()
+        self.be.frontend_client = MagicMock()
 
         def spin_up():
             self.be.workers_by_group_id[0].append(worker_alive)
