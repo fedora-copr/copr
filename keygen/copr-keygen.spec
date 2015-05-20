@@ -7,7 +7,7 @@
 # this package doesn't support rhel7- since it doesn't have python3* packages
 
 Name:       copr-keygen
-Version:    1.61
+Version:    1.62
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -187,6 +187,9 @@ service httpd condrestart
 
 
 %changelog
+* Wed May 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.62-1
+- [keygen] set selinux context httpd_var_lib_t to /var/lib/copr-keygen
+
 * Fri May 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.61-1
 - [keygen] fix SELinux context for /var/log/copr-keygen/ to be accessable by
   httpd process
