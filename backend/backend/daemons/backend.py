@@ -239,6 +239,13 @@ class CoprBackend(object):
                 w.terminate_instance()
         self.clean_task_queues()
 
+        try:
+            self.log.info("Rescheduling unfinished builds before stop")
+            self.frontend_client.reschedule_all_running()
+        except RequestException as err:
+            self.log.exception(err)
+            return
+
     def run(self):
         """
         Starts backend process. Control sub process start/stop.

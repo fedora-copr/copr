@@ -298,6 +298,7 @@ class TestBackend(object):
         self.be.workers_by_group_id[0].append(worker_dead)
 
         self.be.clean_task_queues = MagicMock()
+        self.be.frontend_client = MagicMock()
 
         self.be.terminate()
 
