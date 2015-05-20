@@ -151,7 +151,7 @@ class BackendConfigReader(object):
                     cp, "backend", "group{}_max_vm_total".format(group_id),
                     # default=16, mode="int"),
                     default=8, mode="int"),
-                    "max_vm_per_user": _get_conf(
+                "max_vm_per_user": _get_conf(
                     cp, "backend", "group{}_max_vm_per_user".format(group_id),
                     default=4, mode="int"),
                 "max_builds_per_vm": _get_conf(
