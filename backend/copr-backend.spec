@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.64
+Version:    1.65
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed May 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.65-1
+- [backend] Rescheduling unfinished builds before stop
+- fix indentation
+- [backend] request frontend to reschedule old unfinished builds at startup
+- [backend] update sytemd unit: removed obsolete
+  EnviromentFile=/home/copr/cloud/ec2rc.variable directive
+
 * Tue May 19 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.64-1
 - [backend] check for aux process state and restart if needed
 
