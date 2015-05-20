@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.57
+Version:    1.58
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,10 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Wed May 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.58-1
+- backend api: handle to mark all running/starting builds as pending
+- add to example url to Fedora instance of FedMenu
+
 * Fri May 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.57-1
 - Add optional fedmenu resources to every page.
 - more specific error message in UrlListValidator
