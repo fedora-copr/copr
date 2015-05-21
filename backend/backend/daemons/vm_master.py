@@ -70,6 +70,8 @@ class VmMaster(Process):
             # self.log.info("Failed to  release VM: {}".format(vmd.vm_name))
 
     def check_one_vm_for_dead_builder(self, vmd):
+        # TODO: builder should renew lease periodically
+        # and we should use that time instead of in_use_since and pid checks
         in_use_since = vmd.get_field(self.vmm.rc, "in_use_since")
         pid = vmd.get_field(self.vmm.rc, "used_by_pid")
 
@@ -82,12 +84,21 @@ class VmMaster(Process):
             return
 
         pid = int(pid)
+        # here we can catch race condition: worker acquired VM but haven't set process title yet
+        if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
+            return
+
+        self.log.info("Process `{}` not exists anymore, doing second try. VM data: {}"
+                      .format(pid, vmd))
+        # dirty hack: sleep and check again
+        time.sleep(5)
         if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
             return
 
         self.log.info("Process `{}` not exists anymore, terminating VM: {} ".format(pid, vmd.vm_name))
         self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.IN_USE)
-        self.request_build_reschedule(vmd)
+        # cause race condition
+        #  self.request_build_reschedule(vmd)
 
     def remove_vm_with_dead_builder(self):
         # TODO: rewrite build manage at backend and move functionality there

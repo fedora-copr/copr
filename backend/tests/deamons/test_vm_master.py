@@ -247,8 +247,13 @@ class TestVmMaster(object):
         self.vm_master.remove_vm_with_dead_builder()
 
         msg_list = self.rcv_from_ps_message_bus()
-        print(self.vm_master.log.call_args_list)
-        assert set(["2", "4"]) == set([json.loads(m["data"])["build_id"] for m in msg_list])
+        assert self.vmm.start_vm_termination.call_args_list == [
+            mock.call('a2', allowed_pre_state='in_use'),
+            mock.call('b2', allowed_pre_state='in_use'),
+            mock.call('b3', allowed_pre_state='in_use')
+        ]
+        # changed logic for the moment
+        # assert set(["2", "4"]) == set([json.loads(m["data"])["build_id"] for m in msg_list])
 
     def test_check_vms_health(self, mc_time, add_vmd):
         self.vmm.start_vm_check = types.MethodType(MagicMock(), self.vmm)
