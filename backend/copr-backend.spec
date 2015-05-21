@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.65
+Version:    1.66
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu May 21 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.66-1
+- [backend] fix race condition in check for dead worker
+
 * Wed May 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.65-1
 - [backend] Rescheduling unfinished builds before stop
 - fix indentation
