@@ -84,16 +84,20 @@ class VmMaster(Process):
             return
 
         pid = int(pid)
-        # here we can catch race condition: worker acquired VM but haven't set process title yet
-        if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
-            return
+        try:
+            # here we can catch race condition: worker acquired VM but haven't set process title yet
+            if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
+                return
 
-        self.log.info("Process `{}` not exists anymore, doing second try. VM data: {}"
-                      .format(pid, vmd))
-        # dirty hack: sleep and check again
-        time.sleep(5)
-        if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
-            return
+            self.log.info("Process `{}` not exists anymore, doing second try. VM data: {}"
+                          .format(pid, vmd))
+            # dirty hack: sleep and check again
+            time.sleep(5)
+            if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
+                return
+        except Exception:
+            self.log.exception("Failed do determine if process `{}` still alive for VM: {}, assuming dead"
+                               .format(pid, vmd))
 
         self.log.info("Process `{}` not exists anymore, terminating VM: {} ".format(pid, vmd.vm_name))
         self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.IN_USE)
