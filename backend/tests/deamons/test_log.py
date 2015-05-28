@@ -20,7 +20,7 @@ else:
 import pytest
 
 import backend.daemons.log as log_module
-from backend.daemons.log import CoprBackendLog, RedisLogHandler
+from backend.daemons.log import RedisLogHandler
 
 
 @pytest.yield_fixture
@@ -52,9 +52,7 @@ class TestLog(object):
         self.log_dir = os.path.join(self.tmp_dir_path, "copr")
         self.log_file = os.path.join(self.log_dir, "copr.log")
         self.opts = Bunch(
-            logfile=self.log_file,
             verbose=False,
-
             log_dir=self.log_dir
         )
         print("\n log dir: {}".format(self.log_dir))
@@ -72,7 +70,7 @@ class TestLog(object):
 
     @pytest.fixture
     def init_log(self):
-        self.cbl = CoprBackendLog(self.opts, self.queue)
+        pass
 
     # todo: replace with RedisLogHandler + helpers.get_redis_logger
     # def test_constructor(self):

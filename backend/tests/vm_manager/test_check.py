@@ -84,7 +84,6 @@ class TestChecker(object):
                     "terminate_playbook": self.terminate_pb_path,
                     "name": "base",
                     "archs": ["i386", "x86_64"],
-                    # "terminate_vars": ["vm_name", "ip"],
                 }
             },
 

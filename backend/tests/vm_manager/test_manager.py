@@ -65,7 +65,6 @@ class TestManager(object):
             fedmsg_enabled=False,
             sleeptime=0.1,
             do_sign=True,
-            # worker_logdir=self.,
             timeout=1800,
             # destdir=self.tmp_dir_path,
             results_baseurl="/tmp",

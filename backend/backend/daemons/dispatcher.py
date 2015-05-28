@@ -47,28 +47,25 @@ class Worker(multiprocessing.Process):
         multiprocessing.Process.__init__(self, name="worker-builder")
 
         self.opts = opts
+        self.worker_num = worker_num
+        self.group_id = group_id
+
+        self.log = get_redis_logger(self.opts, self.logger_name, "worker")
 
         # job management stuff
         self.task_queue = Queue("copr-be-{0}".format(str(group_id)))
         self.task_queue.connect()
         # event queue for communicating back to dispatcher
 
-        self.worker_num = worker_num
-        self.group_id = group_id
-
         self.kill_received = False
         self.lock = lock
 
         self.frontend_client = frontend_client
-
-        self.log = get_redis_logger(self.opts, self.logger_name, "worker")
-
         self.vm_name = None
         self.vm_ip = None
 
         self.rc = None
         self.vmm = VmManager(self.opts)
-
 
     @property
     def logger_name(self):

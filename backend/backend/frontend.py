@@ -10,7 +10,7 @@ class FrontendClient(object):
 
     def __init__(self, opts):
         super(FrontendClient, self).__init__()
-        self.frontend_url = opts.frontend_url
+        self.frontend_url = "{}/backend".format(opts.frontend_base_url)
         self.frontend_auth = opts.frontend_auth
 
         self.msg = None
@@ -21,7 +21,7 @@ class FrontendClient(object):
         """
 
         headers = {"content-type": "application/json"}
-        url = "{0}/{1}/".format(self.frontend_url, url_path)
+        url = "{}/{}/".format(self.frontend_url, url_path)
         auth = ("user", self.frontend_auth)
 
         self.msg = None

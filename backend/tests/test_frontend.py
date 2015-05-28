@@ -35,7 +35,7 @@ class TestFrontendClient(object):
 
     def setup_method(self, method):
         self.opts = Bunch(
-            frontend_url="http://example.com/",
+            frontend_base_url="http://example.com/",
             frontend_auth="12345678",
         )
         self.fc = FrontendClient(self.opts)

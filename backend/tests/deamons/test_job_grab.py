@@ -85,7 +85,6 @@ class TestJobGrab(object):
         self.log_file = os.path.join(self.log_dir, "copr.log")
 
         self.opts = Bunch(
-            logfile=self.log_file,
             verbose=False,
             build_groups=[
                 {"id": 0, "name": "x86",
@@ -95,8 +94,7 @@ class TestJobGrab(object):
                  "max_vm_per_user": 5},
             ],
             destdir="/dev/null",
-            frontend_base_url="http://example.com/",
-            frontend_url="http://example.com/backend",
+            frontend_base_url="http://example.com",
             frontend_auth="foobar",
             results_baseurl="http://example.com/results/",
             sleeptime=1,

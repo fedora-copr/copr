@@ -72,7 +72,6 @@ class TestBackend(object):
         self.mp_patcher = mock.patch("backend.daemons.backend.multiprocessing")
         self.mc_mp = self.mp_patcher.start()
 
-        self.worker_logdir = os.path.join(self.tmp_dir_path, "workers")
         self.config_file = "/dev/null/copr.conf"
         self.ext_opts = {}
 
@@ -80,7 +79,6 @@ class TestBackend(object):
         self.bc_obj = MagicMock()
 
         self.opts = Bunch(
-            worker_logdir=self.worker_logdir,
             build_groups=[
                 {
                     "id": 0,
@@ -97,7 +95,6 @@ class TestBackend(object):
             ],
             exit_on_worker=False,
             sleeptime=1,
-            frontend_url="http://example.com/backend",
             frontend_base_url="http://example.com",
             frontend_auth="foobar",
 
@@ -154,12 +151,7 @@ class TestBackend(object):
             self.be = CoprBackend(None, self.ext_opts)
 
     def test_constructor(self):
-
-        assert not os.path.exists(self.worker_logdir)
         self.init_be()
-        assert os.path.exists(self.worker_logdir)
-        # import  ipdb; ipdb.set_trace()
-
         assert self.be.config_reader == self.bc_obj
         assert self.bc_obj.read.called
 
@@ -173,6 +165,7 @@ class TestBackend(object):
 
     def test_clean_task_queue_ok(self, init_be):
         mc_queue = MagicMock(length=5)
+
         def decr():
             mc_queue.length -= 1
 

@@ -69,8 +69,6 @@ class CoprBackend(object):
         # what:str}
         self.frontend_client = FrontendClient(self.opts)
         self.is_running = False
-        if not os.path.exists(self.opts.worker_logdir):
-            os.makedirs(self.opts.worker_logdir, mode=0o750)
 
         self.log = get_redis_logger(self.opts, "backend.main", "backend")
 

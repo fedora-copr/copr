@@ -115,22 +115,19 @@ class TestDispatcher(object):
         self.terminate_pb = "/terminate.yml"
         self.opts = Bunch(
             ssh=Bunch(transport="paramiko"),
-            spawn_in_advance=False,
-            frontend_url="http://example.com/",
+            frontend_base_url="http://example.com",
             frontend_auth="12345678",
             build_groups={
-                "3": {
+                3: {
                     "spawn_playbook": self.spawn_pb,
                     "terminate_playbook": self.terminate_pb,
                     "name": "3"
                 }
             },
-            terminate_vars=[],
 
             fedmsg_enabled=False,
             sleeptime=0.1,
             do_sign=True,
-            worker_logdir=self.tmp_dir_path,
             timeout=1800,
             destdir=self.tmp_dir_path,
             results_baseurl="/tmp",
@@ -142,7 +139,7 @@ class TestDispatcher(object):
         self.try_spawn_args = '-c ssh {}'.format(self.spawn_pb)
 
         self.worker_num = 2
-        self.group_id = "3"
+        self.group_id = 3
 
         self.ip = "192.168.1.1"
         self.worker_callback = MagicMock()
@@ -168,7 +165,6 @@ class TestDispatcher(object):
         )
 
         self.worker.vmm = MagicMock()
-
 
         def set_ip(*args, **kwargs):
             self.worker.vm_ip = self.vm_ip

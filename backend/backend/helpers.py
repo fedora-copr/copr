@@ -104,15 +104,10 @@ class BackendConfigReader(object):
         opts = Bunch()
 
         opts.results_baseurl = _get_conf(
-            cp, "backend", "results_baseurl", "http://copr")
+            cp, "backend", "results_baseurl", "http://copr-be")
 
-        # TODO: this should be built from frontend_base_url + '/backend'
-        opts.frontend_url = _get_conf(
-            cp, "backend", "frontend_url", "http://coprs/rest/api")
-
-        # We need this to access public api
         opts.frontend_base_url = _get_conf(
-            cp, "backend", "frontend_base_url", "http://coprs/")
+            cp, "backend", "frontend_base_url", "http://copr-fe")
 
         opts.frontend_auth = _get_conf(
             cp, "backend", "frontend_auth", "PASSWORDHERE")
@@ -205,21 +200,10 @@ class BackendConfigReader(object):
             cp, "backend", "log_dir", "/var/log/copr/")
         opts.log_level = _get_conf(
             cp, "backend", "log_level", "info")
-        opts.logfile = _get_conf(
-            cp, "backend", "logfile", "/var/log/copr/backend.log")
-        opts.error_logfile = _get_conf(
-            cp, "backend", "error_logfile", "/var/log/copr/backend_error.log")
         opts.verbose = _get_conf(
             cp, "backend", "verbose", False, mode="bool")
-        opts.worker_logdir = _get_conf(
-            cp, "backend", "worker_logdir", "/var/log/copr/workers/")
-        opts.terminate_vars = _get_conf(cp, "backend", "terminate_vars", "").split(",")
 
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
-        opts.prune_script = _get_conf(cp, "backend", "prune_script", None, mode="path")
-
-        opts.spawn_in_advance = _get_conf(
-            cp, "backend", "spawn_in_advance", False, mode="bool")
 
         # ssh options
         opts.ssh = Bunch()

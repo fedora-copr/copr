@@ -147,10 +147,11 @@ class CoprJobGrab(Process):
         Retrieve tasks from frontend and runs appropriate handlers
         """
         try:
-            r = get("{0}/waiting/".format(self.opts.frontend_url),
+            r = get("{0}/backend/waiting/".format(self.opts.frontend_base_url),
                     auth=("user", self.opts.frontend_auth))
         except RequestException as e:
-            self.log.exception("Error retrieving jobs from {}: {}".format(self.opts.frontend_url, e))
+            self.log.exception("Error retrieving jobs from {}: {}"
+                               .format(self.opts.frontend_base_url, e))
             return
 
         try:

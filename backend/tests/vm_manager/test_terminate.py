@@ -82,14 +82,12 @@ class TestTerminate(object):
                     "terminate_playbook": self.terminate_pb_path,
                     "name": "base",
                     "archs": ["i386", "x86_64"],
-                    # "terminate_vars": ["vm_name", "ip"],
                 }
             },
 
             fedmsg_enabled=False,
             sleeptime=0.1,
             do_sign=True,
-            # worker_logdir=self.,
             timeout=1800,
             # destdir=self.tmp_dir_path,
             results_baseurl="/tmp",

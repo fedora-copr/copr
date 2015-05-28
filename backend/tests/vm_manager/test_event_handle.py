@@ -89,14 +89,12 @@ class TestEventHandle(object):
                     "name": "base",
                     "archs": ["i386", "x86_64"],
                     "vm_max_check_fails": 2,
-                    # "terminate_vars": ["vm_name", "ip"],
                 }
             },
 
             fedmsg_enabled=False,
             sleeptime=0.1,
             do_sign=True,
-            # worker_logdir=self.,
             timeout=1800,
             # destdir=self.tmp_dir_path,
             results_baseurl="/tmp",
