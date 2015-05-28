@@ -108,7 +108,7 @@ def starting_build():
 
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
         build = BuildsLogic.get_by_id(flask.request.json["build_id"])
-        chroot = flask.request.get("chroot")
+        chroot = flask.request.json.get("chroot")
         if build and chroot and not build.canceled:
             log.info("mark build {} chroot {} as starting".format(build.id, chroot))
             BuildsLogic.update_state_from_dict(build, {
