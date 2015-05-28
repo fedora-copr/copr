@@ -108,14 +108,15 @@ def starting_build():
 
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
         build = BuildsLogic.get_by_id(flask.request.json["build_id"])
-
-    if build and not build.canceled:
-        BuildsLogic.update_state_from_dict(build, {
-            "chroot": flask.request.json["chroot"],
-            "status": StatusEnum("starting")
-        })
-        db.session.commit()
-        result["can_start"] = True
+        chroot = flask.request.get("chroot")
+        if build and chroot and not build.canceled:
+            log.info("mark build {} chroot {} as starting".format(build.id, chroot))
+            BuildsLogic.update_state_from_dict(build, {
+                "chroot": chroot,
+                "status": StatusEnum("starting")
+            })
+            db.session.commit()
+            result["can_start"] = True
 
     return flask.jsonify(result)
 
@@ -160,6 +161,7 @@ def reschedule_build_chroot():
             build_chroot = build.chroots_dict_by_name.get(chroot)
             run_statuses = set([StatusEnum("starting"), StatusEnum("running")])
             if build_chroot and build_chroot.status in run_statuses:
+                log.info("rescheduling build {} chroot: {}".format(build.id, build_chroot.name))
                 BuildsLogic.update_state_from_dict(build, {
                     "chroot": chroot,
                     "status": StatusEnum("pending")

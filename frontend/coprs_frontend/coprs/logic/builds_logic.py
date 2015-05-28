@@ -14,6 +14,7 @@ from coprs import models
 from coprs import helpers
 from coprs import signals
 from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
+from coprs.helpers import StatusEnum
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
@@ -175,11 +176,16 @@ class BuildsLogic(object):
 
     @classmethod
     def update_state_from_dict(cls, build, upd_dict):
+        log.info("Updating build: {} by: {}".format(build.id, upd_dict))
         if "chroot" in upd_dict:
             # update respective chroot status
             for build_chroot in build.build_chroots:
                 if build_chroot.name == upd_dict["chroot"]:
-                    if "status" in upd_dict:
+
+                    if "status" in upd_dict and build_chroot.status not in [
+                        # this states is terminal
+                        StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")
+                    ]:
                         build_chroot.status = upd_dict["status"]
 
                     db.session.add(build_chroot)
