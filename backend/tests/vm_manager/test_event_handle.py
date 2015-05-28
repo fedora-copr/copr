@@ -88,6 +88,7 @@ class TestEventHandle(object):
                     "terminate_playbook": self.terminate_pb_path,
                     "name": "base",
                     "archs": ["i386", "x86_64"],
+                    "vm_max_check_fails": 2,
                     # "terminate_vars": ["vm_name", "ip"],
                 }
             },
@@ -113,7 +114,7 @@ class TestEventHandle(object):
         self.grl_patcher = mock.patch("{}.get_redis_logger".format(MODULE_REF))
         self.grl_patcher.start()
 
-        self.eh = EventHandler(self.vmm)
+        self.eh = EventHandler(self.opts, self.vmm)
         self.eh.post_init()
 
         self.vm_ip = "127.0.0.1"
@@ -135,7 +136,7 @@ class TestEventHandle(object):
         self.erase_redis()
 
     def test_post_init(self):
-        test_eh = EventHandler(self.vmm)
+        test_eh = EventHandler(self.opts, self.vmm)
         assert "on_health_check_success" not in test_eh.lua_scripts
         test_eh.post_init()
         assert test_eh.lua_scripts["on_health_check_success"]

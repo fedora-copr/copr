@@ -16,7 +16,7 @@ import time
 from multiprocessing import Queue
 from backend import exceptions
 from backend.constants import JOB_GRAB_TASK_END_PUBSUB
-from backend.exceptions import MockRemoteError, CoprSignError, BuilderError, VmError
+from backend.exceptions import VmError
 
 import tempfile
 import shutil
@@ -24,7 +24,7 @@ import os
 
 import six
 from backend.helpers import get_redis_connection
-from backend.vm_manage import VmStates, Thresholds
+from backend.vm_manage import VmStates
 from backend.vm_manage.manager import VmManager
 from backend.daemons.vm_master import VmMaster
 
@@ -92,21 +92,27 @@ class TestVmMaster(object):
                     "max_spawn_processes": 3,
                     "vm_spawn_min_interval": self.vm_spawn_min_interval,
                     "vm_dirty_terminating_timeout": 120,
+                    "vm_health_check_period": 10,
+                    "vm_health_check_max_time": 60,
+                    "vm_terminating_timeout": 300,
                 },
                 1: {
                     "name": "arm",
                     "archs": ["armV7"],
                     "vm_spawn_min_interval": self.vm_spawn_min_interval,
                     "vm_dirty_terminating_timeout": 120,
+                    "vm_health_check_period": 10,
+                    "vm_health_check_max_time": 60,
+                    "vm_terminating_timeout": 300,
                 }
             },
 
             fedmsg_enabled=False,
             sleeptime=0.1,
+            vm_cycle_timeout=10,
 
 
         )
-
 
         self.queue = Queue()
 
@@ -271,7 +277,7 @@ class TestVmMaster(object):
         self.vm_master.check_vms_health()
         assert not self.vmm.start_vm_check.called
 
-        mc_time.time.return_value = 1 + Thresholds.health_check_period
+        mc_time.time.return_value = 1 + self.opts.build_groups[0]["vm_health_check_period"]
         self.vm_master.check_vms_health()
         to_check = set(call[0][1] for call in self.vmm.start_vm_check.call_args_list)
         assert set(['a1', 'a3', 'b1', 'b2']) == to_check
@@ -291,9 +297,10 @@ class TestVmMaster(object):
         self.vmd_a3.store_field(self.rc, "state", VmStates.CHECK_HEALTH)
 
         self.vmd_a2.store_field(self.rc, "last_health_check", 0)
-        self.vmd_a3.store_field(self.rc, "last_health_check", Thresholds.health_check_max_time + 10 )
+        self.vmd_a3.store_field(self.rc, "last_health_check",
+                                self.opts.build_groups[0]["vm_health_check_max_time"] + 10)
 
-        mc_time.time.return_value = Thresholds.health_check_max_time + 11
+        mc_time.time.return_value = self.opts.build_groups[0]["vm_health_check_max_time"] + 11
 
         self.vmm.mark_vm_check_failed = MagicMock()
         self.vm_master.finalize_long_health_checks()
@@ -327,7 +334,7 @@ class TestVmMaster(object):
 
         # case 3: one VM in terminating state with unique ip, time_elapsed > threshold
         #   start_vm_termination called, no remove_vm_from_pool
-        mc_time.time.return_value = 1 + Thresholds.terminating_timeout
+        mc_time.time.return_value = 1 + self.opts.build_groups[0]["vm_terminating_timeout"]
 
         self.vm_master.terminate_again()
         assert not self.vmm.remove_vm_from_pool.called
@@ -347,7 +354,7 @@ class TestVmMaster(object):
 
         # case 4: two VM with the same IP, one in terminating states, , time_elapsed > threshold
         #   no start_vm_termination, remove_vm_from_pool
-        mc_time.time.return_value = 1 + Thresholds.terminating_timeout
+        mc_time.time.return_value = 1 + self.opts.build_groups[0]["vm_terminating_timeout"]
         self.vm_master.terminate_again()
         assert self.vmm.remove_vm_from_pool.called
         assert self.vmm.remove_vm_from_pool.call_args[0][0] == self.vmd_a1.vm_name

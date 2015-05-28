@@ -37,14 +37,3 @@ KEY_SERVER_INFO = "copr:backend:server_info:hset::"
 
 KEY_VM_INSTANCE = "copr:backend:vm_instance:hset::{vm_name}"
 # hset to store VmDescriptor
-
-
-class Thresholds(object):
-    """
-    Time constants for VM manager,
-    """
-    health_check_period = 10           # [s.] how often health check is invoked
-    health_check_max_time = 120        # [s.] if health check wasn't done for this time, mark check fail
-    max_check_fails = 2                # maximum number of fails before starting VM termination
-    terminating_timeout = 600          # [s.] time before we try to terminate VM again
-    cycle_timeout = 10                 # [s.] timeout for all periodical checks

@@ -8,7 +8,7 @@ import sys
 
 from backend.exceptions import VmDescriptorNotFound
 from backend.helpers import format_tb, get_redis_logger
-from backend.vm_manage import Thresholds, VmStates, PUBSUB_MB, EventTopics, KEY_VM_INSTANCE
+from backend.vm_manage import VmStates, PUBSUB_MB, EventTopics
 
 
 class Recycle(Thread):
@@ -66,8 +66,9 @@ class EventHandler(Process):
     """
     :type vmm: VmManager
     """
-    def __init__(self, vmm):
+    def __init__(self, opts, vmm):
         super(EventHandler, self).__init__(name="EventHandler")
+        self.opts = opts
         self.vmm = vmm
         self.kill_received = False
 
@@ -104,7 +105,8 @@ class EventHandler(Process):
             self.log.debug("recording check fail: {}".format(msg))
             self.lua_scripts["record_failure"](keys=[vmd.vm_key])
             fails_count = int(vmd.get_field(self.vmm.rc, "check_fails") or 0)
-            if fails_count > Thresholds.max_check_fails and vmd.state != VmStates.IN_USE:
+            max_check_fails = self.opts.build_groups[vmd.group]["vm_max_check_fails"]
+            if fails_count > max_check_fails and vmd.state != VmStates.IN_USE:
                 self.log.info("check fail threshold reached: {}, terminating: {}"
                               .format(check_fails_count, msg))
                 self.vmm.start_vm_termination(vmd.vm_name)

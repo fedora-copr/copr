@@ -166,8 +166,24 @@ class BackendConfigReader(object):
                 "vm_dirty_terminating_timeout": _get_conf(
                     cp, "backend", "group{}_vm_dirty_terminating_timeout".format(group_id),
                     default=120, mode="int"),
+                "vm_health_check_period": _get_conf(
+                    cp, "backend", "group{}_vm_health_check_period".format(group_id),
+                    default=120, mode="int"),
+                "vm_health_check_max_time": _get_conf(
+                    cp, "backend", "group{}_vm_health_check_max_time".format(group_id),
+                    default=300, mode="int"),
+                "vm_max_check_fails": _get_conf(
+                    cp, "backend", "group{}_vm_max_check_fails".format(group_id),
+                    default=2, mode="int"),
+                "vm_terminating_timeout": _get_conf(
+                    cp, "backend", "group{}_vm_terminating_timeout".format(group_id),
+                    default=600, mode="int"),
             }
             opts.build_groups.append(group)
+
+        opts.vm_cycle_timeout = _get_conf(
+            cp, "backend", "vm_cycle_timeout",
+            default=10, mode="int")
 
         opts.destdir = _get_conf(cp, "backend", "destdir", None, mode="path")
 

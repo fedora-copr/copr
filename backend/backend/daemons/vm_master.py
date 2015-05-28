@@ -13,8 +13,8 @@ import traceback
 import sys
 import psutil
 
-from backend.constants import DEF_BUILD_TIMEOUT, JOB_GRAB_TASK_END_PUBSUB
-from backend.vm_manage import VmStates, Thresholds, KEY_VM_POOL_INFO
+from backend.constants import JOB_GRAB_TASK_END_PUBSUB
+from backend.vm_manage import VmStates, KEY_VM_POOL_INFO
 from backend.vm_manage.event_handle import EventHandler
 
 from ..helpers import get_redis_logger
@@ -109,7 +109,6 @@ class VmMaster(Process):
         # VMM shouldn't do this
 
         # check that process who acquired VMD still exists, otherwise release VM
-        # TODO: fix 4 nested `if`. Ugly!
         for vmd in self.vmm.get_vm_by_group_and_state_list(None, [VmStates.IN_USE]):
             self.check_one_vm_for_dead_builder(vmd)
 
@@ -120,7 +119,8 @@ class VmMaster(Process):
 
         for vmd in self.vmm.get_vm_by_group_and_state_list(None, states_to_check):
             last_health_check = vmd.get_field(self.vmm.rc, "last_health_check")
-            if not last_health_check or time.time() - float(last_health_check) > Thresholds.health_check_period:
+            check_period = self.opts.build_groups[vmd.group]["vm_health_check_period"]
+            if not last_health_check or time.time() - float(last_health_check) > check_period:
                 self.vmm.start_vm_check(vmd.vm_name)
 
     def try_spawn_one(self, group):
@@ -205,12 +205,12 @@ class VmMaster(Process):
         self.vmm.mark_server_start()
         self.kill_received = False
 
-        self.event_handler = EventHandler(self.vmm)
+        self.event_handler = EventHandler(self.opts, self.vmm)
         self.event_handler.start()
 
         self.log.info("VM master process started")
         while not self.kill_received:
-            time.sleep(Thresholds.cycle_timeout)
+            time.sleep(self.opts.vm_cycle_timeout)
             try:
                 self.do_cycle()
             except Exception as err:
@@ -230,7 +230,7 @@ class VmMaster(Process):
         for vmd in self.vmm.get_vm_by_group_and_state_list(None, [VmStates.CHECK_HEALTH]):
 
             time_elapsed = time.time() - float(vmd.get_field(self.vmm.rc, "last_health_check") or 0)
-            if time_elapsed > Thresholds.health_check_max_time:
+            if time_elapsed > self.opts.build_groups[vmd.group]["vm_health_check_max_time"]:
                 self.log.info("VM marked with check fail state, "
                               "VM stayed too long in health check state, elapsed: {} VM: {}"
                               .format(time_elapsed, str(vmd)))
@@ -247,7 +247,7 @@ class VmMaster(Process):
 
         for vmd in self.vmm.get_vm_by_group_and_state_list(None, [VmStates.TERMINATING]):
             time_elapsed = time.time() - float(vmd.get_field(self.vmm.rc, "terminating_since") or 0)
-            if time_elapsed > Thresholds.terminating_timeout:
+            if time_elapsed > self.opts.build_groups[vmd.group]["vm_terminating_timeout"]:
                 if len(self.vmm.lookup_vms_by_ip(vmd.vm_ip)) > 1:
                     self.log.info(
                         "Removing VM record: {}. There are more VM with the same ip, "
