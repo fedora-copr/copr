@@ -184,6 +184,9 @@ class BackendConfigReader(object):
         opts.vm_cycle_timeout = _get_conf(
             cp, "backend", "vm_cycle_timeout",
             default=10, mode="int")
+        opts.vm_ssh_check_timeout = _get_conf(
+            cp, "backend", "vm_ssh_check_timeout",
+            default=5, mode="int")
 
         opts.destdir = _get_conf(cp, "backend", "destdir", None, mode="path")
 

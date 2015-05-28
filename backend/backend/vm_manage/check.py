@@ -33,7 +33,7 @@ def check_health(opts, vm_name, vm_ip):
         pattern=vm_ip,
         forks=1,
         transport=opts.ssh.transport,
-        timeout=2
+        timeout=opts.vm_ssh_check_timeout
     )
     connection = Runner(**runner_options)
     connection.module_name = "shell"

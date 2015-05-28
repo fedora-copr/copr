@@ -94,6 +94,7 @@ class TestChecker(object):
             do_sign=True,
             timeout=1800,
             results_baseurl="/tmp",
+            vm_ssh_check_timeout=2,
         )
         # self.try_spawn_args = '-c ssh {}'.format(self.spawn_pb_path)
 
