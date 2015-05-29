@@ -38,7 +38,9 @@ def coprs_show(page=1):
     coprs = paginator.sliced_query
 
     # flask.g.user is none when no user is logged - showing builds from everyone
-    users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
+    # TODO: builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5) takes too much time, optimize sql
+    # users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
+    users_builds = builds_logic.BuildsLogic.get_recent_tasks(None, 5)
 
     waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
     running_tasks = len(list(builds_logic.BuildsLogic

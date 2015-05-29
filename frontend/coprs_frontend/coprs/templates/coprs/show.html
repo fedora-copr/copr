@@ -44,7 +44,8 @@
         </div>
         <div>
             <a class="menu" href="{{url_for('recent_ns.recent')}}">
-                {% if g.user: %} My recent builds {% else %} Recent builds {% endif %}
+              Recent builds
+              <!--{% if g.user: %} My recent builds {% else %} Recent builds {% endif %}-->
             </a>
             {% if users_builds: %}
                 {% for build in users_builds: %}
