@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.58
+Version:    1.59
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,15 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Sat May 30 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.59-1
+- Front page rendering takes too much time due to a long sql query.
+  Simplified until issue is resolved.
+- fix regression: show again additional buildroot packages for
+  modified chroots at overview page
+- reject build_chroot status update for `failed`, `cancelled` and
+  `succeded` states; added some logs
+- new logo
+
 * Wed May 20 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.58-1
 - backend api: handle to mark all running/starting builds as pending
 - add to example url to Fedora instance of FedMenu
