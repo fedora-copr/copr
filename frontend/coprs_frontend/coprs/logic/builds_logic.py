@@ -63,6 +63,10 @@ class BuildsLogic(object):
                      models.BuildChroot.status == helpers.StatusEnum("starting"),
                      and_(
                          models.BuildChroot.status.in_([
+                             # Bug 1206562 - Cannot delete Copr because it incorrectly thinks
+                             # there are unfinished builds. Solution: `failed` but unfinished
+                             # (ended_on is null) builds should be rescheduled.
+                             # todo: we need to be sure that correct `failed` set is set together wtih `ended_on`
                              helpers.StatusEnum("running"), helpers.StatusEnum("failed")]),
                          models.Build.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
                          models.Build.ended_on.is_(None)
