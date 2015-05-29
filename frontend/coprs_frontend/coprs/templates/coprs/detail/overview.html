@@ -52,7 +52,14 @@
         {{ repo.name_release_human|capitalize }}
       </td>
       <td>
-        {{ repo.arch_list|join(", ") }}
+        {% for arch in repo.arch_list %}
+          {{ arch }}
+            {% if copr.is_release_arch_modified(repo.name_release, arch) %}
+              <a id="modified-chroot-{{repo.name_release}}-{{arch}}">[modified]</a>
+            {% endif %}
+          <br />
+        {% endfor %}
+
       </td>
      <!--  <td>
         <center> {{ repo.dl_stat }} </center> <br />

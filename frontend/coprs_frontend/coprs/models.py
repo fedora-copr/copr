@@ -231,6 +231,10 @@ class Copr(db.Model, helpers.Serializer):
                 modified_chroots.append(chroot)
         return modified_chroots
 
+    def is_release_arch_modified(self, name_release, arch):
+        if "{}-{}".format(name_release, arch) in [chroot.name for chroot in self.modified_chroots]:
+            return True
+        return False
 
 class CoprPermission(db.Model, helpers.Serializer):
 
