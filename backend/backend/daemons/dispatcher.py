@@ -413,7 +413,12 @@ class Worker(multiprocessing.Process):
         if not job:
             return
 
-        if not self.can_start_job(job):
+        try:
+            if not self.can_start_job(job):
+                self.notify_job_grab_about_task_end(job)
+                return
+        except Exception:
+            self.log.exception("Failed to check if job can be started")
             self.notify_job_grab_about_task_end(job)
             return
 
