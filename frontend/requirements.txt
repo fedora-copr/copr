@@ -15,3 +15,4 @@ pydns
 flexmock
 decorator
 python-dateutil
+netaddr
