@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.68
+Version:    1.69
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -240,6 +240,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Jun 01 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.69-1
+- removed creation of symlinks for log.gz
+- catch exception during Worker.can_start_job
+- config cleanup
+
 * Thu May 28 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.68-1
 - [backend] add config option for VM health check timeout
 - [backend] moved config parameters from Threshold class into the backend
