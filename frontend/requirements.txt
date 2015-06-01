@@ -16,3 +16,4 @@ flexmock
 decorator
 python-dateutil
 netaddr
+alembic
