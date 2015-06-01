@@ -292,18 +292,18 @@ class MockRemote(object):
 
         self.mark_dir_with_build_id()
 
-    def add_log_symlinks(self):
-        # adding symlinks foo.log.gz -> foo.log for web server auto index
-        try:
-            base = self._get_pkg_destpath()
-            for name in os.listdir(base):
-                if not name.endswith(".log.gz"):
-                    continue
-                full_path = os.path.join(base, name)
-                if os.path.isfile(full_path):
-                    os.symlink(full_path, full_path.replace(".log.gz", ".log"))
-        except Exception as err:
-            self.log.exception(err)
+    # def add_log_symlinks(self):
+    #     # adding symlinks foo.log.gz -> foo.log for nginx web server auto index
+    #     try:
+    #         base = self._get_pkg_destpath()
+    #         for name in os.listdir(base):
+    #             if not name.endswith(".log.gz"):
+    #                 continue
+    #             full_path = os.path.join(base, name)
+    #             if os.path.isfile(full_path):
+    #                 os.symlink(full_path, full_path.replace(".log.gz", ".log"))
+    #     except Exception as err:
+    #         self.log.exception(err)
 
     def build_pkg_and_process_results(self):
         """
@@ -332,7 +332,7 @@ class MockRemote(object):
         # downloading
         self.log.info("Start retrieve results for: {0}".format(self.pkg))
         self.builder.download(self.pkg, self.chroot_dir)
-        self.add_log_symlinks()
+        # self.add_log_symlinks()  # todo: add config option, need this for nginx
         self.log.info("End retrieve results for: {0}".format(self.pkg))
 
         if build_error:

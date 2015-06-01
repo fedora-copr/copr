@@ -273,24 +273,24 @@ class TestMockRemote(object):
             # do not raise an error
             self.mr.mark_dir_with_build_id()
 
-    def test_add_log_symlinks(self, f_mock_remote):
-        base = os.path.join(self.DESTDIR_CHROOT,
-                            "{}-{}".format(self.PKG_NAME, self.PKG_VERSION))
-        os.makedirs(base)
-
-        names = ["build.log", "root.log"]
-        for name in names:
-            open(os.path.join(base, name + ".gz"), "a").close()
-            assert not os.path.exists(os.path.join(base, name))
-
-        dir_name = "i_am_a_dir.log"
-        os.mkdir(os.path.join(base, dir_name + ".gz"))
-        assert not os.path.exists(os.path.join(base, dir_name))
-
-        self.mr.add_log_symlinks()
-        assert not os.path.exists(os.path.join(base, dir_name))
-        for name in names:
-            assert os.path.exists(os.path.join(base, name))
+    # def test_add_log_symlinks(self, f_mock_remote):
+    #     base = os.path.join(self.DESTDIR_CHROOT,
+    #                         "{}-{}".format(self.PKG_NAME, self.PKG_VERSION))
+    #     os.makedirs(base)
+    #
+    #     names = ["build.log", "root.log"]
+    #     for name in names:
+    #         open(os.path.join(base, name + ".gz"), "a").close()
+    #         assert not os.path.exists(os.path.join(base, name))
+    #
+    #     dir_name = "i_am_a_dir.log"
+    #     os.mkdir(os.path.join(base, dir_name + ".gz"))
+    #     assert not os.path.exists(os.path.join(base, dir_name))
+    #
+    #     self.mr.add_log_symlinks()
+    #     assert not os.path.exists(os.path.join(base, dir_name))
+    #     for name in names:
+    #         assert os.path.exists(os.path.join(base, name))
 
 
 
