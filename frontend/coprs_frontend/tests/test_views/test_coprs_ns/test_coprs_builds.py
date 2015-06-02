@@ -66,6 +66,21 @@ class TestCoprAddBuild(CoprsTestCase):
 
         assert not self.models.Build.query.first()
 
+    @TransactionDecorator("u1")
+    def test_copr_default_options(self, f_users, f_mock_chroots, f_db):
+        self.test_client.post(
+            "/coprs/{0}/new/".format(self.u1.name),
+            data={"name": "foo",
+                  "fedora-rawhide-i386": "y",  # Needed?
+                  "arches": ["i386"],  # Needed?
+                  "build_enable_net": None,
+                  },
+            follow_redirects=True)
+
+        r = self.tc.get(
+            "/coprs/{0}/{1}/add_build/".format(self.u1.name, "foo"))
+        assert '<input checked id="enable_net" name="enable_net"' not in r.data
+
 
 class TestCoprCancelBuild(CoprsTestCase):
 

@@ -140,6 +140,7 @@ def copr_new(username):
             description=form.description.data,
             instructions=form.instructions.data,
             disable_createrepo=form.disable_createrepo.data,
+            build_enable_net=form.build_enable_net.data,
         )
 
         db.session.commit()
