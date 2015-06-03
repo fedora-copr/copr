@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.59
+Version:    1.60
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,10 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Wed Jun 03 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.60-1
+- [rhbz:#1227190] hotfix: restore old route to the repo_file handler
+- Fix default networking option (RhBug:1215157)
+
 * Sat May 30 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.59-1
 - Front page rendering takes too much time due to a long sql query.
   Simplified until issue is resolved.
