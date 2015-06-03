@@ -43,7 +43,7 @@
     <tr>
       <th class="leftmost">Release</th>
       <th>Architecture</th>
-      <!-- <th>#Downloads</th> -->
+       <th>#Downloads</th>
       <th class="rightmost">Yum Repo </th>
     </tr>
     {% for repo in repos_info_list %}
@@ -61,18 +61,20 @@
         {% endfor %}
 
       </td>
-     <!--  <td>
-        <center> {{ repo.dl_stat }} </center> <br />
+      <td>
+        <abbr title="Total number of repo installation">repo installed</abbr>:
+        {{ repo.dl_stat }}
+        <br />
 
-        # of repo dl last week<br />
         {% for arch in repo.arch_list %}
-
-          {{arch}}: {{ repo.rpm_dl_stat[arch] }} <br />
+          <abbr title="number of dowloaded packages for {{repo.name_release_human}} {{arch}} in the last 7 days">
+            {{arch}} packages</abbr>:
+          {{ repo.rpm_dl_stat[arch] }}
+          <br />
 
         {% endfor %}
 
       </td>
-       -->
       <td class="rightmost">
           <a href="{{
               url_for(
