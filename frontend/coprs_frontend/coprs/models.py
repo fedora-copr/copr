@@ -196,6 +196,8 @@ class Copr(db.Model, helpers.Serializer):
     def check_copr_chroot(self, chroot):
         """
         Return object of chroot, if is related to our copr or None
+
+        :type chroot: CoprChroot
         """
 
         result = None

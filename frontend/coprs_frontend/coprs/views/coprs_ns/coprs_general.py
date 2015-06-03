@@ -559,21 +559,27 @@ def generate_repo_file(username, coprname, name_release, repofile):
     # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
     # FAS usernames may not contain dashes, so this construction is safe.
 
-    reponame = "{0}-{1}".format(username, coprname)
+    reponame = "{}-{}".format(username, coprname)
+
+    try:
+        # query.one() is used since it fetches all builds, unlike
+        # query.first().
+        copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds=True).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found(
+            "Project {0}/{1} does not exist".format(username, coprname))
+
+    # we need to check if we really got name release or it's a full chroot (caused by old dnf plugin)
+    if name_release in [c.name for c in copr.active_chroots]:
+        chroot = [c for c in copr.active_chroots if c.name == name_release][0]
+        return flask.redirect(flask.url_for(
+            "coprs_ns.generate_repo_file", username=username, coprname=coprname,
+            name_release=chroot.name_release))
 
     if repofile is not None and repofile != username + '-' + coprname + '-' + name_release + '.repo':
         return page_not_found(
             "Repository filename does not match expected: {0}"
             .format(repofile))
-
-    try:
-        # query.one() is used since it fetches all builds, unlike
-        # query.first().
-        copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname,
-                                          with_builds=True).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Project {0}/{1} does not exist".format(username, coprname))
 
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
     if not mock_chroot:
@@ -587,7 +593,7 @@ def generate_repo_file(username, coprname, name_release, repofile):
 
     if not url:
         return page_not_found(
-            "Repository not initialized: No finished builds in {0}/{1}."
+            "Repository not initialized: No finished builds in {}/{}."
             .format(username, coprname))
 
     repo_url = generate_repo_url(mock_chroot, url)

@@ -699,23 +699,23 @@ class TestCoprRepoGeneration(CoprsTestCase):
         assert r.status_code == 404
         assert "does not exist" in r.data
 
-    def test_fail_on_no_finished_builds(self, f_users, f_coprs,
+    def test_fail_on_no_finished_builds(self, f_users, f_coprs, f_mock_chroots,
                                         f_not_finished_builds, f_db):
 
         r = self.tc.get(
-            "/coprs/{0}/{1}/repo/fedora-18-x86_64/"
+            "/coprs/{0}/{1}/repo/fedora-18/"
             .format(self.u1.name, self.c1.name))
 
         assert r.status_code == 404
         assert "Repository not initialized" in r.data
 
-    def test_works_on_older_builds(self, f_users, f_coprs,
+    def test_works_on_older_builds(self, f_users, f_coprs, f_mock_chroots,
                                    f_custom_builds, f_db):
         from coprs import app
         orig = app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"]
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = "https"
         r = self.tc.get(
-            "/coprs/{0}/{1}/repo/fedora-18-x86_64/"
+            "/coprs/{0}/{1}/repo/fedora-18/"
             .format(self.u1.name, self.c1.name))
 
         assert r.status_code == 200
