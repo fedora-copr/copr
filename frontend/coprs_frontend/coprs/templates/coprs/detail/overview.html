@@ -67,7 +67,7 @@
         <br />
 
         {% for arch in repo.arch_list %}
-          <abbr title="number of dowloaded packages for {{repo.name_release_human}} {{arch}} in the last 7 days">
+          <abbr title="Number of downloaded packages for {{repo.name_release_human}} {{arch}} in the last 7 days">
             {{arch}} packages</abbr>:
           {{ repo.rpm_dl_stat[arch] }}
           <br />
