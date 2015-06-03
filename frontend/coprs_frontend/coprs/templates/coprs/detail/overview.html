@@ -62,12 +62,12 @@
 
       </td>
       <td>
-        <abbr title="Total number of repo installation">repo installed</abbr>:
+        <abbr class="dl-stat" title="Total number of repo installation">repo installed</abbr>:
         {{ repo.dl_stat }}
         <br />
 
         {% for arch in repo.arch_list %}
-          <abbr title="Number of downloaded packages for {{repo.name_release_human}} {{arch}} in the last 7 days">
+          <abbr class="dl-stat" title="Number of downloaded packages for {{repo.name_release_human}} {{arch}} in the last 7 days">
             {{arch}} packages</abbr>:
           {{ repo.rpm_dl_stat[arch] }}
           <br />

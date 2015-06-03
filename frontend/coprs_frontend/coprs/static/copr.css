@@ -576,3 +576,10 @@ textarea {
   -webkit-border-radius: 4px;
   text-align: right;
 }
+
+.dl-stat
+{
+	//text-decoration: none;
+	// text-decoration: dotted underline;
+	border-bottom: 0.1em dotted black;
+}

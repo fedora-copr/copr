@@ -194,7 +194,12 @@ def copr_detail(username, coprname):
 
     repos_info = {}
     for chroot in copr.active_chroots:
-        chroot_rpms_dl_stat_key = CHROOT_REPO_MD_DL_STAT_FMT.format(
+        # chroot_rpms_dl_stat_key = CHROOT_REPO_MD_DL_STAT_FMT.format(
+        #     copr_user=copr.owner.name,
+        #     copr_project_name=copr.name,
+        #     copr_chroot=chroot.name,
+        # )
+        chroot_rpms_dl_stat_key = CHROOT_RPMS_DL_STAT_FMT.format(
             copr_user=copr.owner.name,
             copr_project_name=copr.name,
             copr_chroot=chroot.name,
