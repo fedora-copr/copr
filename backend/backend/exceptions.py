@@ -138,3 +138,26 @@ class VmDescriptorNotFound(VmError):
 
 class NoVmAvailable(VmError):
     pass
+
+class CmdError(CoprBackendError):
+    def __init__(self, msg, cmd, exit_code=None, stdout=None, stderr=None):
+        super(CmdError, self).__init__(msg)
+
+        self.cmd = cmd
+        self.exit_code = exit_code
+        self.stdout = stdout
+        self.stderr = stderr
+
+    def __str__(self):
+        out = super(CmdError, self).__str__()
+        if self.cmd:
+            out += ("\n"
+                    "return code {} after invocation of: {} \n"
+                    "stderr: {}\n"
+                    "stdout: {}\n").format(
+                        self.exit_code, self.cmd, self.stdout, self.stderr)
+        return out
+
+
+class CreateRepoError(CmdError):
+    pass

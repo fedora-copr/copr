@@ -6,6 +6,7 @@ import time
 from bunch import Bunch
 
 from .createrepo import createrepo, createrepo_unsafe
+from exceptions import CreateRepoError
 from .helpers import get_redis_logger
 
 
@@ -54,22 +55,22 @@ class Action(object):
         projectname = data["projectname"]
         chroots = data["chroots"]
 
-        failure = False
+        done_count = 0
         for chroot in chroots:
             self.log.info("Creating repo for: {}/{}/{}".format(username, projectname, chroot))
 
             path = os.path.join(self.destdir, username, projectname, chroot)
 
-            errcode, _, err = createrepo_unsafe(path=path, lock=self.lock)
-            if errcode != 0 or err.strip():
-                # TODO: createrepo should raise error on errors, handle it
-                self.log.error("Error making local repo: {0}".format(err))
-                failure = True
+            try:
+                createrepo_unsafe(path=path, lock=self.lock)
+                done_count += 1
+            except CreateRepoError:
+                self.log.exception("Error making local repo")
 
-        if failure:
-            result.result = ActionResult.FAILURE
-        else:
+        if done_count == len(chroots):
             result.result = ActionResult.SUCCESS
+        else:
+            result.result = ActionResult.FAILURE
 
     def handle_rename(self, result):
         self.log.debug("Action rename")
@@ -146,14 +147,15 @@ class Action(object):
 
                 result_base_url = "/".join(
                     [self.results_root_url, username, projectname, chroot])
-                _, _, err = createrepo(
-                    path=os.path.join(path, chroot), lock=self.lock,
-                    front_url=self.front_url, base_url=result_base_url,
-                    username=username, projectname=projectname
-                )
-                if err.strip():
-                    # TODO: createrepo should raise exception, handle it
-                    self.log.error("Error making local repo: {0}".format(err))
+                createrepo_target = os.path.join(path, chroot)
+                try:
+                    createrepo(
+                        path=createrepo_target, lock=self.lock,
+                        front_url=self.front_url, base_url=result_base_url,
+                        username=username, projectname=projectname
+                    )
+                except CreateRepoError:
+                    self.log.exception("Error making local repo: {}".format(createrepo_target))
 
             logs_to_remove = [
                 os.path.join(path, chroot, template.format(self.data['object_id']))

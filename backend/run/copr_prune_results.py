@@ -23,6 +23,7 @@ sys.path.append("/usr/share/copr/")
 
 from backend.helpers import BackendConfigReader, get_auto_createrepo_status
 from backend.createrepo import createrepo_unsafe
+from backend.exceptions import CreateRepoError
 
 
 DEF_DAYS = 14
@@ -133,18 +134,12 @@ class Pruner(object):
                 log.error("Error during prune copr {}/{}:{}".format(username, projectname, sub_dir_name))
 
             log.debug("Prune done for {}/{}:{}".format(username, projectname, sub_dir_name))
-            # run createrepo
 
             try:
-                retcode, stdout, stderr = createrepo_unsafe(chroot_path)
-                if retcode != 0:
-                    log.error(
-                        "Failed to createrepo for copr {}/{}:{}\n STDOUT: \n{}\n STDERR: \n{}\n"
-                        .format(username, projectname, sub_dir_name, stdout.decode(), stderr.decode()))
-                else:
-                    log.info("Createrepo done for copr {}/{}:{}"
-                             .format(username, projectname, sub_dir_name))
-            except Exception as exception:
+                createrepo_unsafe(chroot_path)
+                log.info("Createrepo done for copr {}/{}:{}"
+                         .format(username, projectname, sub_dir_name))
+            except CreateRepoError as exception:
                 log.exception("Createrepo for copr {}/{}:{} failed with error: {}"
                               .format(username, projectname, sub_dir_name, exception))
 

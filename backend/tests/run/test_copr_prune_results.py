@@ -23,6 +23,7 @@ else:
 
 sys.path.append("../../run")
 
+from backend.exceptions import CreateRepoError
 
 MODULE_REF = "copr_prune_results"
 
@@ -232,7 +233,6 @@ class TestPruneResults(object):
             mc_cru.call_args_list
         ]) == expected_path_set
 
-
     def test_prune_project_handle_gacs_error(self, test_pruner, mc_cru, mc_gacs):
         self.pruner.prune_failed_builds = MagicMock()
         self.pruner.prune_obsolete_success_builds = MagicMock()
@@ -250,22 +250,8 @@ class TestPruneResults(object):
         self.pruner.prune_obsolete_success_builds = MagicMock()
         mc_gacs.return_value = True
 
-
         #  0. createrepo_unsafe failure
-        mc_cru.return_value = (1, "stdout", "stderr")
-
-        self.pruner.prune_project(os.path.join(self.tmp_dir_name, self.prj),
-                                  self.username, self.coprname)
-
-        assert self.pruner.prune_failed_builds.called
-        assert self.pruner.prune_obsolete_success_builds.called
-
-        self.pruner.prune_failed_builds.reset_mock()
-        self.pruner.prune_obsolete_success_builds.reset_mock()
-
-        mc_cru.return_value = (0, "", "")
-        #  1. createrepo_unsafe raises error
-        mc_cru.side_effect = IOError()
+        mc_cru.side_effect = CreateRepoError("test exception", ["foo", "bar"], 1)
 
         self.pruner.prune_project(os.path.join(self.tmp_dir_name, self.prj),
                                   self.username, self.coprname)

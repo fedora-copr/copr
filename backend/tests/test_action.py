@@ -19,7 +19,7 @@ else:
 
 
 from backend.actions import Action, ActionType, ActionResult
-
+from backend.exceptions import CreateRepoError
 
 
 RESULTS_ROOT_URL = "http://example.com/results"
@@ -220,7 +220,6 @@ class TestAction(object):
         assert result_dict["result"] == ActionResult.SUCCESS
         assert result_dict["job_ended_on"] == self.test_time
 
-
         assert os.path.exists(os.path.join(tmp_dir, "old_dir"))
 
     def test_action_run_delete_copr_remove_folders(self, mc_time):
@@ -364,7 +363,6 @@ class TestAction(object):
 
         test_action.run()
 
-
     @mock.patch("backend.actions.createrepo")
     def test_delete_two_chroots(self, mc_createrepo_unsafe, mc_time):
         """
@@ -423,7 +421,6 @@ class TestAction(object):
 
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
-
 
     @mock.patch("backend.actions.createrepo")
     def test_delete_two_chroots_two_remains(self, mc_createrepo_unsafe, mc_time):
@@ -582,12 +579,12 @@ class TestAction(object):
         assert exp_call_2 in mc_createrepo_unsafe.call_args_list
         assert len(mc_createrepo_unsafe.call_args_list) == 2
 
-
     @mock.patch("backend.actions.createrepo_unsafe")
     def test_handle_createrepo_failure_1(self, mc_createrepo_unsfe, mc_time):
         mc_front_cb = MagicMock()
         tmp_dir = self.make_temp_dir()
-        mc_createrepo_unsfe.return_value = 1, STDOUT, ""
+        mc_createrepo_unsfe.side_effect = CreateRepoError("test exception", ["foo", "bar"], 1)
+        # return_value = 1, STDOUT, ""
 
         action_data = json.dumps({
             "chroots": ["epel-6-i386", "fedora-20-x86_64"],
@@ -613,43 +610,13 @@ class TestAction(object):
         assert result_dict["result"] == ActionResult.FAILURE
 
     @mock.patch("backend.actions.createrepo_unsafe")
-    def test_handle_createrepo_failure_2(self, mc_createrepo_unsfe, mc_time):
-        mc_front_cb = MagicMock()
-        tmp_dir = self.make_temp_dir()
-        mc_createrepo_unsfe.return_value = 0, STDOUT, STDERR
-
-        action_data = json.dumps({
-            "chroots": ["epel-6-i386", "fedora-20-x86_64"],
-            "username": "foo",
-            "projectname": "bar"
-        })
-        self.opts.destdir = tmp_dir
-        test_action = Action(
-            opts=self.opts,
-            action={
-                "action_type": ActionType.CREATEREPO,
-                "data": action_data,
-                "id": 10
-            },
-            lock=None,
-            frontend_client=mc_front_cb,
-        )
-        test_action.run()
-
-        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
-
-        assert result_dict["id"] == 10
-        assert result_dict["result"] == ActionResult.FAILURE
-
-    @mock.patch("backend.actions.createrepo_unsafe")
     def test_handle_createrepo_failure_3(self, mc_createrepo_unsfe, mc_time):
         mc_front_cb = MagicMock()
         tmp_dir = self.make_temp_dir()
         mc_createrepo_unsfe.side_effect = [
-            (0, STDOUT, ""),
-            (1, STDOUT, STDERR),
+            STDOUT,
+            CreateRepoError("test exception", ["foo", "bar"], 1),
         ]
-
 
         action_data = json.dumps({
             "chroots": ["epel-6-i386", "fedora-20-x86_64"],

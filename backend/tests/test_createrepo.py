@@ -90,6 +90,7 @@ class TestCreaterepoUnsafe(object):
 
         mc_popen.side_effect = popen_side_effect
         mc_popen.return_value.communicate.return_value = ("", "")
+        mc_popen.return_value.returncode = 0
 
         createrepo_unsafe(self.tmp_dir_name, lock=mocked_lock)
         assert self.shared_state["lock_status"]
@@ -100,6 +101,7 @@ class TestCreaterepoUnsafe(object):
 
     def test_createrepo_generated_commands_existing_repodata(self, mc_popen):
         mc_popen.return_value.communicate.return_value = ("", "")
+        mc_popen.return_value.returncode = 0
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
         expected_epel_5 = ['/usr/bin/createrepo_c', '--database',
                            '--ignore-lock', '--update', '-s', 'sha', '--checksum', 'md5', path_epel_5]
@@ -120,6 +122,7 @@ class TestCreaterepoUnsafe(object):
     def test_createrepo_devel_generated_commands_existing_repodata(self, mc_popen):
 
         mc_popen.return_value.communicate.return_value = ("", "")
+        mc_popen.return_value.returncode = 0
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
         expected_epel_5 = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                            '-s', 'sha', '--checksum', 'md5',
@@ -143,6 +146,7 @@ class TestCreaterepoUnsafe(object):
     def test_createrepo_devel_generated_commands(self, mc_popen):
 
         mc_popen.return_value.communicate.return_value = ("", "")
+        mc_popen.return_value.returncode = 0
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
         expected_epel_5 = ['/usr/bin/createrepo_c', '--database', '--ignore-lock',
                            '-s', 'sha', '--checksum', 'md5',

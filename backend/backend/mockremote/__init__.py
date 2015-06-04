@@ -41,7 +41,7 @@ import time
 
 from ..constants import DEF_REMOTE_BASEDIR, DEF_BUILD_TIMEOUT, DEF_REPOS, \
     DEF_BUILD_USER, DEF_MACROS
-from ..exceptions import MockRemoteError, BuilderError
+from ..exceptions import MockRemoteError, BuilderError, CreateRepoError
 
 
 # TODO: replace sign & createrepo with dependency injection
@@ -252,17 +252,17 @@ class MockRemote(object):
                        .format(self.job.project_owner, self.job.project_name,
                                self.opts.frontend_base_url, self.chroot_dir, base_url))
 
-        _, _, err = createrepo(
-            path=self.chroot_dir,
-            front_url=self.opts.frontend_base_url,
-            base_url=base_url,
-            username=self.job.project_owner,
-            projectname=self.job.project_name,
-            lock=self.lock,
-        )
-        if err.strip():
-            self.log.error(
-                "Error making local repo: {}: {}".format(self.chroot_dir, err))
+        try:
+            createrepo(
+                path=self.chroot_dir,
+                front_url=self.opts.frontend_base_url,
+                base_url=base_url,
+                username=self.job.project_owner,
+                projectname=self.job.project_name,
+                lock=self.lock,
+            )
+        except CreateRepoError:
+            self.log.exception("Error making local repo: {}: {}".format(self.chroot_dir))
 
             # FIXME - maybe clean up .repodata and .olddata
             # here?

@@ -1,6 +1,7 @@
 import os
 import subprocess
 from subprocess import Popen
+from exceptions import CreateRepoError
 
 from .helpers import get_auto_createrepo_status
 
@@ -39,17 +40,23 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
 
     comm.append(path)
 
-    if lock:
-        with lock:
+    try:
+        # todo: replace with file lock on target dir
+        if lock:
+            with lock:
+                cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = cmd.communicate()
+        else:
             cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = cmd.communicate()
-    else:
-        cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = cmd.communicate()
+    except Exception as err:
+        raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm)
 
-    # TODO: rewrite with raise CreateRepoException on  returncode != 0
-    #  and return only stdout on success
-    return cmd.returncode, out, err
+    if cmd.returncode != 0:
+        raise CreateRepoError(msg="createrepo exit code != 0",
+                              cmd=comm, exit_code=cmd.returncode,
+                              stdout=out, stderr=err)
+    return out
 
 
 def createrepo(path, front_url, username, projectname, base_url=None, lock=None):
