@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.60
+Version:    1.61
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,13 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Fri Jun 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.61-1
+- added enabled_metadata=1 to .repo files
+  metadata
+- decorator intranet_required should always accept requests from
+  localhost
+- showing download stats
+
 * Wed Jun 03 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.60-1
 - [rhbz:#1227190] hotfix: restore old route to the repo_file handler
 - Fix default networking option (RhBug:1215157)
