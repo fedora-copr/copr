@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.61
+Version:    1.62
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -192,6 +192,9 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Fri Jun 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.62-1
+- [frontend] remove exessive log in logstash.conf
+
 * Fri Jun 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.61-1
 - added enabled_metadata=1 to .repo files
   metadata
