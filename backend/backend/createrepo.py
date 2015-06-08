@@ -6,6 +6,26 @@ from exceptions import CreateRepoError
 from .helpers import get_auto_createrepo_status
 
 
+def run_cmd_unsafe(comm, lock=None):
+    try:
+        # todo: replace with file lock on target dir
+        if lock:
+            with lock:
+                cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = cmd.communicate()
+        else:
+            cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = cmd.communicate()
+    except Exception as err:
+        raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm)
+
+    if cmd.returncode != 0:
+        raise CreateRepoError(msg="exit code != 0",
+                              cmd=comm, exit_code=cmd.returncode,
+                              stdout=out, stderr=err)
+    return out
+
+
 def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
     """
         Run createrepo_c on the given path
@@ -40,23 +60,43 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
 
     comm.append(path)
 
-    try:
-        # todo: replace with file lock on target dir
-        if lock:
-            with lock:
-                cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out, err = cmd.communicate()
-        else:
-            cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err = cmd.communicate()
-    except Exception as err:
-        raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm)
+    return run_cmd_unsafe(comm, lock)
 
-    if cmd.returncode != 0:
-        raise CreateRepoError(msg="createrepo exit code != 0",
-                              cmd=comm, exit_code=cmd.returncode,
-                              stdout=out, stderr=err)
-    return out
+
+APPDATA_CMD_TEMPLATE = \
+    """/usr/bin/appstream-builder             \
+    --api-version=0.8                         \
+    --verbose                                 \
+    --add-cache-id                            \
+    --min-icon-size=48                        \
+    --enable-hidpi                            \
+    --include-failed                          \
+    --max-threads=4                           \
+    --temp-dir={packages_dir}/tmp             \
+    --cache-dir={packages_dir}/cache          \
+    --packages-dir={packages_dir}             \
+    --output-dir={packages_dir}/appdata       \
+    --basename=appstream                      \
+    --origin={username}\/{projectname}
+"""
+
+MODIFYREPO_TEMPLATE = \
+    """/usr/bin/modifyrepo_c \
+    --no-compress \
+    {packages_dir}/appdata/appstream.xml.gz \
+    {packages_dir}/repodata
+"""
+
+
+def add_appdata(path, username, projectname, lock=None):
+    kwargs = {
+        "packages_dir": path,
+        "username": username,
+        "projectname": projectname
+    }
+    out_1 = run_cmd_unsafe(APPDATA_CMD_TEMPLATE.format(**kwargs), lock)
+    out_2 = run_cmd_unsafe(MODIFYREPO_TEMPLATE.format(**kwargs), lock)
+    return "\n".join([out_1, out_2])
 
 
 def createrepo(path, front_url, username, projectname, base_url=None, lock=None):
