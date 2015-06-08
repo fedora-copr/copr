@@ -18,9 +18,12 @@ from backend.createrepo import createrepo, createrepo_unsafe
 
 
 @mock.patch('backend.createrepo.createrepo_unsafe')
+@mock.patch('backend.createrepo.add_appdata')
 @mock.patch('backend.helpers.CoprClient')
-def test_createrepo_conditional_true(mc_client, mc_create_unsafe):
+def test_createrepo_conditional_true(mc_client, mc_add_appdata, mc_create_unsafe):
     mc_client.return_value.get_project_details.return_value = MagicMock(data={"detail": {}})
+    mc_create_unsafe.return_value = ""
+    mc_add_appdata.return_value = ""
 
     createrepo(path="/tmp/", front_url="http://example.com/api",
                username="foo", projectname="bar", lock=None)
