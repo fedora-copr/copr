@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import os
+import re
 import sys
 import time
 import fcntl
@@ -295,6 +296,13 @@ class Worker(multiprocessing.Process):
                 self.log.exception(msg)
                 status = BuildStatus.FAILURE
 
+        pdn = os.path.basename(job.pkg).replace(".src.rpm", "")
+        resdir = os.path.join(chroot_destdir, pdn)
+        if os.path.exists(resdir) and os.listdir(resdir) != []:
+            # Target have already been attempted to build
+            # We should backup the results and clean the directory
+            self._clean_result_directory(resdir)
+
         if status == BuildStatus.SUCCEEDED:
             # FIXME
             # need a plugin hook or some mechanism to check random
@@ -360,6 +368,27 @@ class Worker(multiprocessing.Process):
         self._announce_end(job)
         self.update_process_title(suffix="Task: {} chroot: {} done"
                                   .format(job.build_id, job.chroot))
+
+    def _clean_result_directory(self, resdir):
+        """
+        Create backup directory and move there results from previous build.
+        Backup directory will be called ``build-<id>`` and located in result directory
+        """
+        with open(os.path.join(resdir, "build.info"), 'r') as build_info:
+            content = build_info.read()
+            prev_id = re.search("{}(.*){}".format("build_id=", "\n"), content).group(1)
+            prev_id = "0" * (8 - len(prev_id)) + prev_id
+
+        backupdir = os.path.join(resdir, "build-{}".format(prev_id))
+        self.log.info("Cleaning target directory, results from previous build storing in {}"
+                      .format(backupdir))
+
+        if not os.path.exists(backupdir):
+            os.makedirs(backupdir)
+
+        for filename in os.listdir(resdir):
+            if os.path.isfile(os.path.join(resdir, filename)):
+                os.rename(os.path.join(resdir, filename), os.path.join(backupdir, filename))
 
     def update_process_title(self, suffix=None):
         title = "worker-{} {} ".format(self.group_name, self.worker_num)
