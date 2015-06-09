@@ -2,11 +2,13 @@ import os
 import subprocess
 from subprocess import Popen
 from exceptions import CreateRepoError
+from shlex import split
 
 from .helpers import get_auto_createrepo_status
 
 
-def run_cmd_unsafe(comm, lock=None):
+def run_cmd_unsafe(comm_str, lock=None):
+    comm = split(comm_str)
     try:
         # todo: replace with file lock on target dir
         if lock:
@@ -60,7 +62,7 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
 
     comm.append(path)
 
-    return run_cmd_unsafe(comm, lock)
+    return run_cmd_unsafe(" ".join(map(str, comm)), lock)
 
 
 APPDATA_CMD_TEMPLATE = \

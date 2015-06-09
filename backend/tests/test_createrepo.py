@@ -1,5 +1,6 @@
 import os
 import copy
+import tarfile
 import tempfile
 import shutil
 import time
@@ -14,7 +15,7 @@ else:
     from mock import MagicMock
 
 
-from backend.createrepo import createrepo, createrepo_unsafe
+from backend.createrepo import createrepo, createrepo_unsafe, add_appdata
 
 
 @mock.patch('backend.createrepo.createrepo_unsafe')
@@ -51,11 +52,24 @@ def test_createrepo_conditional_false(mc_client, mc_create_unsafe):
 
 
 @mock.patch('backend.createrepo.Popen')
-class TestCreaterepoUnsafe(object):
+class TestCreaterepo(object):
     def setup_method(self, method):
         self.tmp_dir_name = self.make_temp_dir()
         self.test_time = time.time()
         self.base_url = "http://example.com/repo/"
+
+        self.username = "foo"
+        self.projectname = "bar"
+
+    # def unpack_resource(self, resource_name):
+    #     if self.tmp_dir_name is None:
+    #         self.make_temp_dir()
+    #
+    #     src_path = os.path.join(os.path.dirname(__file__),
+    #                             "_resources", resource_name)
+    #
+    #     with tarfile.open(src_path, "r:gz") as tfile:
+    #         tfile.extractall(os.path.join(self.tmp_dir_name, "old_dir"))
 
     def teardown_method(self, method):
         self.rm_tmp_dir()
@@ -73,6 +87,37 @@ class TestCreaterepoUnsafe(object):
         os.mkdir(self.tmp_dir_name)
 
         return self.tmp_dir_name
+
+    def test_run_cmd_unsafe(self, mc_popen):
+        # todo: implement & simplify createrepo_unsafe tests
+        pass
+
+    def test_add_appdata(self, mc_popen):
+        mc_popen.return_value.returncode = 0
+        mc_popen.return_value.communicate.return_value = "stdout", ""
+        add_appdata(self.tmp_dir_name, self.username, self.projectname)
+        expected = [
+            mock.call([
+                '/usr/bin/appstream-builder',
+                '--api-version=0.8',
+                '--verbose',
+                '--add-cache-id',
+                '--min-icon-size=48',
+                '--enable-hidpi',
+                '--include-failed',
+                '--max-threads=4',
+                '--temp-dir={}/tmp'.format(self.tmp_dir_name),
+                '--cache-dir={}/cache'.format(self.tmp_dir_name),
+                '--packages-dir={}'.format(self.tmp_dir_name),
+                '--output-dir={}/appdata'.format(self.tmp_dir_name),
+                '--basename=appstream',
+                '--origin={}/{}'.format(self.username, self.projectname)], stderr=-1, stdout=-1),
+            mock.call([
+                '/usr/bin/modifyrepo_c',
+                '--no-compress',
+                '{}/appdata/appstream.xml.gz'.format(self.tmp_dir_name),
+                '{}/repodata'.format(self.tmp_dir_name)], stderr=-1, stdout=-1)]
+        assert expected == mc_popen.call_args_list
 
     def test_createrepo_unsafe_lock_usage(self, mc_popen):
         mocked_lock = MagicMock()
