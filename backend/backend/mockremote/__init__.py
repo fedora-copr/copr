@@ -262,7 +262,7 @@ class MockRemote(object):
                 lock=self.lock,
             )
         except CreateRepoError:
-            self.log.exception("Error making local repo: {}: {}".format(self.chroot_dir))
+            self.log.exception("Error making local repo: {}".format(self.chroot_dir))
 
             # FIXME - maybe clean up .repodata and .olddata
             # here?
