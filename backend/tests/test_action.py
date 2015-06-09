@@ -544,11 +544,11 @@ class TestAction(object):
         """
         pass
 
-    @mock.patch("backend.actions.createrepo_unsafe")
-    def test_handle_createrepo_ok(self, mc_createrepo_unsafe, mc_time):
+    @mock.patch("backend.actions.createrepo")
+    def test_handle_createrepo_ok(self, mc_createrepo, mc_time):
         mc_front_cb = MagicMock()
         tmp_dir = self.make_temp_dir()
-        mc_createrepo_unsafe.return_value = 0, STDOUT, ""
+        mc_createrepo.return_value = 0, STDOUT, ""
 
         action_data = json.dumps({
             "chroots": ["epel-6-i386", "fedora-20-x86_64"],
@@ -573,17 +573,21 @@ class TestAction(object):
         assert result_dict["id"] == 8
         assert result_dict["result"] == ActionResult.SUCCESS
 
-        exp_call_1 = mock.call(lock=None, path=tmp_dir + u'/foo/bar/epel-6-i386')
-        exp_call_2 = mock.call(lock=None, path=tmp_dir + u'/foo/bar/fedora-20-x86_64')
-        assert exp_call_1 in mc_createrepo_unsafe.call_args_list
-        assert exp_call_2 in mc_createrepo_unsafe.call_args_list
-        assert len(mc_createrepo_unsafe.call_args_list) == 2
+        exp_call_1 = mock.call(path=tmp_dir + u'/foo/bar/epel-6-i386',
+                               front_url=self.opts.frontend_base_url, override_acr_flag=True,
+                               username=u"foo", projectname=u"bar", lock=None)
+        exp_call_2 = mock.call(path=tmp_dir + u'/foo/bar/fedora-20-x86_64',
+                               front_url=self.opts.frontend_base_url, override_acr_flag=True,
+                               username=u"foo", projectname=u"bar", lock=None)
+        assert exp_call_1 in mc_createrepo.call_args_list
+        assert exp_call_2 in mc_createrepo.call_args_list
+        assert len(mc_createrepo.call_args_list) == 2
 
-    @mock.patch("backend.actions.createrepo_unsafe")
-    def test_handle_createrepo_failure_1(self, mc_createrepo_unsfe, mc_time):
+    @mock.patch("backend.actions.createrepo")
+    def test_handle_createrepo_failure_1(self, mc_createrepo, mc_time):
         mc_front_cb = MagicMock()
         tmp_dir = self.make_temp_dir()
-        mc_createrepo_unsfe.side_effect = CreateRepoError("test exception", ["foo", "bar"], 1)
+        mc_createrepo.side_effect = CreateRepoError("test exception", ["foo", "bar"], 1)
         # return_value = 1, STDOUT, ""
 
         action_data = json.dumps({
@@ -609,11 +613,11 @@ class TestAction(object):
         assert result_dict["id"] == 9
         assert result_dict["result"] == ActionResult.FAILURE
 
-    @mock.patch("backend.actions.createrepo_unsafe")
-    def test_handle_createrepo_failure_3(self, mc_createrepo_unsfe, mc_time):
+    @mock.patch("backend.actions.createrepo")
+    def test_handle_createrepo_failure_3(self, mc_createrepo, mc_time):
         mc_front_cb = MagicMock()
         tmp_dir = self.make_temp_dir()
-        mc_createrepo_unsfe.side_effect = [
+        mc_createrepo.side_effect = [
             STDOUT,
             CreateRepoError("test exception", ["foo", "bar"], 1),
         ]

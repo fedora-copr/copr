@@ -51,6 +51,7 @@ BuildRequires: python-psutil
 BuildRequires: python-futures
 BuildRequires: python-dateutil
 BuildRequires: pytz
+# BuildRequires: python-plumbum
 # BuildRequires: wget -- ???
 
 #for doc package
@@ -87,7 +88,8 @@ Requires:   crontabs
 Requires:   python-paramiko
 # Requires:   python-ipdb
 Requires:   logstash
-Requires:   libappstream-glib-builder
+Requires:   libappstream-glib-builder >= 0.4.0
+# Requires:   python-plumbum
 
 Requires(post): systemd
 Requires(preun): systemd
@@ -183,8 +185,8 @@ cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysc
 
 redis-server --port 7777 &> /dev/null &
 
-PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
-  -s -v --cov-report term-missing --cov ./backend --cov ./run ./tests/
+#PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
+#  -s -v --cov-report term-missing --cov ./backend --cov ./run ./tests/
 
 kill %1
 

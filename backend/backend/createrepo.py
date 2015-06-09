@@ -1,16 +1,24 @@
 import os
 import subprocess
-from subprocess import Popen
+from subprocess import Popen, PIPE
+
 from exceptions import CreateRepoError
 from shlex import split
 
+from backend.helpers import BackendConfigReader, get_redis_logger
+opts = BackendConfigReader().read()
+
+log = get_redis_logger(opts, "createrepo", "actions")
+
 from .helpers import get_auto_createrepo_status
 
+# todo: add logging here
 
 def run_cmd_unsafe(comm_str, lock=None):
+    log.info("Running command: {}".format(comm_str))
     comm = split(comm_str)
     try:
-        # todo: replace with file lock on target dir
+        # # todo: replace with file lock on target dir
         if lock:
             with lock:
                 cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -19,11 +27,11 @@ def run_cmd_unsafe(comm_str, lock=None):
             cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = cmd.communicate()
     except Exception as err:
-        raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm)
+        raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm_str)
 
     if cmd.returncode != 0:
         raise CreateRepoError(msg="exit code != 0",
-                              cmd=comm, exit_code=cmd.returncode,
+                              cmd=comm_str, exit_code=cmd.returncode,
                               stdout=out, stderr=err)
     return out
 
@@ -66,27 +74,26 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
 
 
 APPDATA_CMD_TEMPLATE = \
-    """/usr/bin/appstream-builder             \
-    --api-version=0.8                         \
-    --verbose                                 \
-    --add-cache-id                            \
-    --min-icon-size=48                        \
-    --enable-hidpi                            \
-    --include-failed                          \
-    --max-threads=4                           \
-    --temp-dir={packages_dir}/tmp             \
-    --cache-dir={packages_dir}/cache          \
-    --packages-dir={packages_dir}             \
-    --output-dir={packages_dir}/appdata       \
-    --basename=appstream                      \
-    --origin={username}\/{projectname}
+    """/usr/bin/appstream-builder \
+--api-version=0.8 \
+--verbose \
+--add-cache-id \
+--max-threads=4 \
+--temp-dir={packages_dir}/tmp \
+--cache-dir={packages_dir}/cache \
+--packages-dir={packages_dir} \
+--output-dir={packages_dir}/appdata \
+--basename=appstream \
+--include-failed \
+--min-icon-size=48 \
+--enable-hidpi \
+--origin={username}/{projectname}
 """
-
 MODIFYREPO_TEMPLATE = \
     """/usr/bin/modifyrepo_c \
-    --no-compress \
-    {packages_dir}/appdata/appstream.xml.gz \
-    {packages_dir}/repodata
+--no-compress \
+{packages_dir}/appdata/appstream.xml.gz \
+{packages_dir}/repodata
 """
 
 
@@ -101,7 +108,8 @@ def add_appdata(path, username, projectname, lock=None):
     return "\n".join([out_1, out_2])
 
 
-def createrepo(path, front_url, username, projectname, base_url=None, lock=None):
+def createrepo(path, front_url, username, projectname,
+               override_acr_flag=False, base_url=None, lock=None):
     """
         Creates repo depending on the project setting "auto_createrepo".
         When enabled creates `repodata` at the provided path, otherwise
@@ -119,10 +127,10 @@ def createrepo(path, front_url, username, projectname, base_url=None, lock=None)
 
     base_url = base_url or ""
 
-    if get_auto_createrepo_status(front_url, username, projectname):
-        #out_cr = createrepo_unsafe(path, lock)
-        #out_ad = add_appdata(path, username, projectname, lock)
-        #return "\n".join([out_cr, out_ad])
-        return createrepo_unsafe(path, lock)
+    acr_flag = get_auto_createrepo_status(front_url, username, projectname)
+    if override_acr_flag or acr_flag:
+        out_cr = createrepo_unsafe(path, lock)
+        out_ad = add_appdata(path, username, projectname, lock)
+        return "\n".join([out_cr, out_ad])
     else:
         return createrepo_unsafe(path, lock, base_url=base_url, dest_dir="devel")

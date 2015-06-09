@@ -57,15 +57,20 @@ class Action(object):
 
         done_count = 0
         for chroot in chroots:
-            self.log.info("Creating repo for: {}/{}/{}".format(username, projectname, chroot))
+            self.log.info("Creating repo for: {}/{}/{}"
+                          .format(username, projectname, chroot))
 
             path = os.path.join(self.destdir, username, projectname, chroot)
 
             try:
-                createrepo_unsafe(path=path, lock=self.lock)
+                createrepo(path=path, front_url=self.front_url,
+                           username=username, projectname=projectname,
+                           override_acr_flag=True,
+                           lock=self.lock)
                 done_count += 1
             except CreateRepoError:
-                self.log.exception("Error making local repo")
+                self.log.exception("Error making local repo for: {}/{}/{}"
+                                   .format(username, projectname, chroot))
 
         if done_count == len(chroots):
             result.result = ActionResult.SUCCESS
