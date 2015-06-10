@@ -2,7 +2,6 @@ from datetime import datetime
 import json
 import logging
 import os
-import re
 import sys
 import time
 import fcntl
@@ -374,12 +373,7 @@ class Worker(multiprocessing.Process):
         Create backup directory and move there results from previous build.
         Backup directory will be called ``build-<id>`` and located in result directory
         """
-        with open(os.path.join(resdir, "build.info"), 'r') as build_info:
-            content = build_info.read()
-            prev_id = re.search("{}(.*){}".format("build_id=", "\n"), content).group(1)
-            prev_id = "0" * (8 - len(prev_id)) + prev_id
-
-        backupdir = os.path.join(resdir, "build-{}".format(prev_id))
+        backupdir = os.path.join(resdir, "prev_build_backup")
         self.log.info("Cleaning target directory, results from previous build storing in {}"
                       .format(backupdir))
 
