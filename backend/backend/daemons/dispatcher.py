@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import fcntl
+import shutil
 import multiprocessing
 from setproctitle import setproctitle
 
@@ -380,9 +381,13 @@ class Worker(multiprocessing.Process):
         if not os.path.exists(backupdir):
             os.makedirs(backupdir)
 
-        for filename in os.listdir(resdir):
-            if os.path.isfile(os.path.join(resdir, filename)):
-                os.rename(os.path.join(resdir, filename), os.path.join(backupdir, filename))
+        files = filter(lambda x: x != os.path.basename(backupdir), os.listdir(resdir))
+        for filename in files:
+            file_path = os.path.join(resdir, filename)
+            if os.path.isfile(file_path) and file_path.endswith((".info", ".log", ".log.gz")):
+                os.rename(file_path, os.path.join(backupdir, filename))
+            else:
+                os.remove(file_path) if os.path.isfile(file_path) else shutil.rmtree(file_path)
 
     def update_process_title(self, suffix=None):
         title = "worker-{} {} ".format(self.group_name, self.worker_num)
