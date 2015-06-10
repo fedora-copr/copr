@@ -251,6 +251,9 @@ class ProjectWrapper(object):
                                     username=username, response=None)
 
     def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
         out = list()
         out.append("Name: {0}".format(self.projectname))
         out.append("  Description: {0}".format(self.description))
