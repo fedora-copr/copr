@@ -118,8 +118,9 @@ def createrepo(path, front_url, username, projectname, base_url=None, lock=None)
     base_url = base_url or ""
 
     if get_auto_createrepo_status(front_url, username, projectname):
-        out_cr = createrepo_unsafe(path, lock)
-        out_ad = add_appdata(path, username, projectname, lock)
-        return "\n".join([out_cr, out_ad])
+        #out_cr = createrepo_unsafe(path, lock)
+        #out_ad = add_appdata(path, username, projectname, lock)
+        #return "\n".join([out_cr, out_ad])
+        return createrepo_unsafe(path, lock)
     else:
         return createrepo_unsafe(path, lock, base_url=base_url, dest_dir="devel")
