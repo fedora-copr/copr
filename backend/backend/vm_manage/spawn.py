@@ -48,7 +48,7 @@ def spawn_instance(spawn_playbook, log):
     if not match:
         raise CoprSpawnFailError("No ip in the result, trying again")
     ipaddr = match.group(1)
-    match = re.search(r'vm_name=([^\{\}"]+)', result, re.MULTILINE)
+    match = re.search(r'vm_name=([^\{\}"\n]+)', result, re.MULTILINE)
 
     if match:
         vm_name = match.group(1)
