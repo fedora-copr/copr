@@ -43,7 +43,7 @@ def spawn_instance(spawn_playbook, log):
 
     if not result:
         raise CoprSpawnFailError("No result, trying again")
-    match = re.search(r'IP=([^\{\}"]+)', result, re.MULTILINE)
+    match = re.search(r'IP=([^\{\}"\n]+)', result, re.MULTILINE)
 
     if not match:
         raise CoprSpawnFailError("No ip in the result, trying again")
