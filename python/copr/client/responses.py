@@ -15,9 +15,10 @@ import weakref
 # TODO:  Add Response for collections?
 # TODO:  what about copr_project-> chroot_list, build_list, repos_list
 #
+from .util import UnicodeMixin
 
 
-class CoprResponse(object):
+class CoprResponse(UnicodeMixin):
     """
         Wrapper for Copr api responses
 
@@ -60,11 +61,8 @@ class CoprResponse(object):
                     return value
             raise KeyError(str(item))
 
-    def __str__(self):
-        return str(self.data)
-
     def __unicode__(self):
-        return unicode(self.data)
+        return self.data
 
 
 class BaseHandle(object):
@@ -225,7 +223,7 @@ class ProjectChrootHandle(BaseHandle):
             self.projectname, self.chrootname, pkgs=pkgs)
 
 
-class ProjectWrapper(object):
+class ProjectWrapper(UnicodeMixin):
     """
         Helper class to represent project objects
 
@@ -250,25 +248,22 @@ class ProjectWrapper(object):
         self.handle = ProjectHandle(client=client, projectname=projectname,
                                     username=username, response=None)
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
-
     def __unicode__(self):
         out = list()
-        out.append("Name: {0}".format(self.projectname))
-        out.append("  Description: {0}".format(self.description))
+        out.append(u"Name: {}".format(self.projectname))
+        out.append(u"  Description: {}".format(self.description))
 
         if self.yum_repos:
-            out.append("  Yum repo(s):")
+            out.append(u"  Yum repo(s):")
             for k in sorted(self.yum_repos.keys()):
-                out.append("    {0}: {1}".format(k, self.yum_repos[k]))
+                out.append(u"    {}: {}".format(k, self.yum_repos[k]))
         if self.additional_repos:
-            out.append("  Additional repo: {0}".format(self.additional_repos))
+            out.append(u"  Additional repo: {0}".format(self.additional_repos))
         if self.instructions:
-            out.append("  Instructions: {0}".format(self.instructions))
+            out.append(u"  Instructions: {0}".format(self.instructions))
 
-        out.append("")
-        return "\n".join(out)
+        out.append(u"")
+        return u"\n".join(out)
 
 
 class BuildWrapper(object):

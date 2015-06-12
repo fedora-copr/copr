@@ -37,6 +37,7 @@ from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     CommonMsgErrorOutParser, NewBuildListParser, ProjectChrootsParser, \
     ProjectDetailsFieldsParser
 
+from .util import UnicodeMixin
 
 # TODO: add deco to check that login/token are provided
 # and  raise correct error
@@ -50,7 +51,7 @@ from .parsers import fabric_simple_fields_parser, ProjectListParser, \
 # """
 
 
-class CoprClient(object):
+class CoprClient(UnicodeMixin):
     """ Main interface to the copr service
 
     :ivar unicode username: username used by default for all requests
@@ -81,11 +82,11 @@ class CoprClient(object):
 
         self.no_config = no_config
 
-    def __str__(self):
+    def __unicode__(self):
         return (
-            "<Copr client. username: {0}, api url: {1}, "
-            "login presents: {2}, token presents: {3}>"
-        ).format(self.username, self.api_url, bool(self.login), bool(self.token))
+            u"<Copr client. username: {}, api url: {}, login presents: {}, token presents: {}>"
+            .format(self.username, self.api_url, bool(self.login), bool(self.token))
+        )
 
     @property
     def api_url(self):
