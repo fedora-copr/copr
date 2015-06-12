@@ -281,27 +281,20 @@ class Worker(multiprocessing.Process):
         """
 
         self._announce_start(job)
-        self.update_process_title(suffix="Task: {} chroot: {} build started".format(job.build_id, job.chroot))
+        self.update_process_title(suffix="Task: {} chroot: {} build started"
+                                  .format(job.build_id, job.chroot))
         status = BuildStatus.SUCCEEDED
-        chroot_destdir = os.path.normpath("{}/{}".format(job.destdir, job.chroot))
 
         # setup our target dir locally
-        if not os.path.exists(chroot_destdir):
+        if not os.path.exists(job.chroot_dir):
             try:
-                os.makedirs(chroot_destdir)
-            except (OSError, IOError) as e:
-                msg = "Could not make results dir" \
-                      " for job: {0} - {1}".format(chroot_destdir, str(e))
-
-                self.log.exception(msg)
+                os.makedirs(job.chroot_dir)
+            except (OSError, IOError):
+                self.log.exception("Could not make results dir for job: {}"
+                                   .format(job.chroot_dir))
                 status = BuildStatus.FAILURE
 
-        pdn = os.path.basename(job.pkg).replace(".src.rpm", "")
-        resdir = os.path.join(chroot_destdir, pdn)
-        if os.path.exists(resdir) and os.listdir(resdir) != []:
-            # Target have already been attempted to build
-            # We should backup the results and clean the directory
-            self._clean_result_directory(resdir)
+        self.clean_result_directory(job)
 
         if status == BuildStatus.SUCCEEDED:
             # FIXME
@@ -322,7 +315,7 @@ class Worker(multiprocessing.Process):
             chroot_repos.append(job.results + job.chroot + '/')
             chroot_repos.append(job.results + job.chroot + '/devel/')
 
-            chroot_logfile = "{}/build-{:08d}.log".format(chroot_destdir, job.build_id)
+            chroot_logfile = "{}/build-{:08d}.log".format(job.chroot_dir, job.build_id)
 
             build_logger = create_file_logger("{}.builder.mr".format(self.logger_name),
                                               chroot_logfile, fmt=build_log_format)
@@ -369,25 +362,31 @@ class Worker(multiprocessing.Process):
         self.update_process_title(suffix="Task: {} chroot: {} done"
                                   .format(job.build_id, job.chroot))
 
-    def _clean_result_directory(self, resdir):
+    def clean_result_directory(self, job):
         """
         Create backup directory and move there results from previous build.
-        Backup directory will be called ``build-<id>`` and located in result directory
         """
-        backupdir = os.path.join(resdir, "prev_build_backup")
+        if not os.path.exists(job.results_dir) or os.listdir(job.results_dir) != []:
+            return
+
+        backup_dir_name = "prev_build_backup"
+        backup_dir = os.path.join(job.results_dir, backup_dir_name)
         self.log.info("Cleaning target directory, results from previous build storing in {}"
-                      .format(backupdir))
+                      .format(backup_dir))
 
-        if not os.path.exists(backupdir):
-            os.makedirs(backupdir)
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
 
-        files = filter(lambda x: x != os.path.basename(backupdir), os.listdir(resdir))
+        files = (x for x in os.listdir(job.results_dir) if x != backup_dir_name)
         for filename in files:
-            file_path = os.path.join(resdir, filename)
-            if os.path.isfile(file_path) and file_path.endswith((".info", ".log", ".log.gz")):
-                os.rename(file_path, os.path.join(backupdir, filename))
+            file_path = os.path.join(job.results_dir, filename)
+            if os.path.isfile(file_path):
+                if file_path.endswith((".info", ".log", ".log.gz")):
+                    os.rename(file_path, os.path.join(backup_dir, filename))
+                else:
+                    os.remove(file_path)
             else:
-                os.remove(file_path) if os.path.isfile(file_path) else shutil.rmtree(file_path)
+                shutil.rmtree(file_path)
 
     def update_process_title(self, suffix=None):
         title = "worker-{} {} ".format(self.group_name, self.worker_num)

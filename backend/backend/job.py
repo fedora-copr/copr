@@ -82,6 +82,14 @@ class BuildJob(object):
         else:
             return self.pkg
 
+    @property
+    def chroot_dir(self):
+        return os.path.normpath("{}/{}".format(self.destdir, self.chroot))
+
+    @property
+    def results_dir(self):
+        return os.path.join(self.chroot_dir, self.pkg_name)
+
     def update(self, data_dict):
         """
 
