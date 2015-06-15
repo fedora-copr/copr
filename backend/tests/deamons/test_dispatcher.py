@@ -319,6 +319,22 @@ class TestDispatcher(object):
         self.worker.do_job(self.job)
         assert self.job.status == BuildStatus.FAILURE
 
+    def test_clean_previous_build_results(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
+        os.makedirs(self.job.results_dir)
+
+        files = ["fail", "foo.rpm", "build.log.gz", "root.log.gz", "state.log.gz"]
+        for filename in files:
+            open(os.path.join(self.job.results_dir, filename), "w")
+
+        with open(os.path.join(self.job.results_dir, "build.info"), "w") as build_info:
+            build_info.writelines(["build_id=123\n", "builder_ip=<bar>"])
+
+        self.worker.clean_result_directory(self.job)
+        backup_dir = os.path.join(os.path.join(self.job.results_dir, "prev_build_backup"))
+        assert os.path.isdir(backup_dir)
+        assert set(os.listdir(backup_dir)) == set(files[2:] + ["build.info"])
+        assert "foo.rpm" in os.listdir(self.job.results_dir)
+
     @mock.patch("backend.daemons.dispatcher.fedmsg")
     def test_init_fedmsg(self, mc_fedmsg, init_worker):
         self.worker.init_fedmsg()

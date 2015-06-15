@@ -366,7 +366,7 @@ class Worker(multiprocessing.Process):
         """
         Create backup directory and move there results from previous build.
         """
-        if not os.path.exists(job.results_dir) or os.listdir(job.results_dir) != []:
+        if not os.path.exists(job.results_dir) or os.listdir(job.results_dir) == []:
             return
 
         backup_dir_name = "prev_build_backup"
@@ -383,7 +383,8 @@ class Worker(multiprocessing.Process):
             if os.path.isfile(file_path):
                 if file_path.endswith((".info", ".log", ".log.gz")):
                     os.rename(file_path, os.path.join(backup_dir, filename))
-                else:
+
+                elif not file_path.endswith(".rpm"):
                     os.remove(file_path)
             else:
                 shutil.rmtree(file_path)
