@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.69
+Version:    1.70
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -241,6 +241,22 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Jun 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.70-1
+- alter vm_name= regexp
+- polishing Bug 1195867 - Move or delete logs when rebuilding failed
+  build.
+- backup only info and log files
+- have just one backup directory per results directory
+- clean results from previous build
+- alter IP= regexp
+- disabled appdata until fixed
+- unable appdata in createrepo
+- more safe VmMaster.check_one_vm_for_dead_builder function
+- adding support for AppData
+- new requirement form AppData support
+- createrepo_unsafe now returns only STDOUT and raise exception on
+  errors
+
 * Mon Jun 01 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.69-1
 - removed creation of symlinks for log.gz
 - catch exception during Worker.can_start_job
