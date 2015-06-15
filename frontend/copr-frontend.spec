@@ -38,6 +38,7 @@ Requires:   mod_wsgi
 Requires:   passwd
 Requires:   python-alembic
 Requires:   python-flask
+# missing python3
 Requires:   python-flask-openid
 Requires:   python-flask-wtf
 Requires:   python-flask-sqlalchemy

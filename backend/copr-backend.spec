@@ -34,14 +34,16 @@ BuildRequires: pytest
 BuildRequires: python-pytest-cov
 BuildRequires: python-mock
 BuildRequires: python-six
+# missing python3 - migrate to python3-munch?
 BuildRequires: python-bunch
+# missing python3
 BuildRequires: python-daemon
 BuildRequires: python-lockfile
 BuildRequires: python-requests
 BuildRequires: python-setproctitle
+# missing python3
 BuildRequires: python-retask
 BuildRequires: python-copr
-BuildRequires: python-six
 BuildRequires: ansible >= 1.2
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
