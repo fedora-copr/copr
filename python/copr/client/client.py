@@ -170,12 +170,15 @@ class CoprClient(UnicodeMixin):
         if method not in ["get", "post", "head", "delete", "put"]:
             raise Exception("Method {0} not allowed".format(method))
 
-        response = requests.request(
-            method=method.upper(),
-            url=url,
-            **kwargs
-        )
-        log.debug("raw response: {0}".format(response.text))
+        try:
+            response = requests.request(
+                method=method.upper(),
+                url=url,
+                **kwargs
+            )
+            log.debug("raw response: {0}".format(response.text))
+        except requests.ConnectionError as e:
+            raise CoprRequestException(e)
 
         if "<title>Sign in Copr</title>" in response.text:
             raise CoprRequestException("Invalid API token\n")
