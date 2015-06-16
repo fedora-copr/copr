@@ -28,14 +28,6 @@
 
     <dl class="aligned" >
         <div>
-            <dt> Results:</dt>
-                {% if build.results %}
-                    <dd><a href="{{ build.results }}">{{ build.results }}</a></dd>
-                {% else %}
-                    <dd>No results yet</dd>
-                {% endif %}
-        </div>
-        <div>
             <dt> Built packages:</dt>
                 {% if build.built_packages %}
                     {% for pkg in build.built_packages.split("\n"): %}
@@ -46,7 +38,7 @@
                 {% endif %}
         </div>
         <div>
-            <dt> Chroots:</dt>
+            <dt> Results:</dt>
                 {% for chroot in build.build_chroots %} <tr>
                     <dd>
                         {% if build.results %}
