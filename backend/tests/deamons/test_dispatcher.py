@@ -319,6 +319,14 @@ class TestDispatcher(object):
         self.worker.do_job(self.job)
         assert self.job.status == BuildStatus.FAILURE
 
+    def test_copy_mock_logs(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
+        os.makedirs(self.job.results_dir)
+        for filename in ["build-00012345.log", "build-00012345.rsync.log"]:
+            open(os.path.join(self.job.chroot_dir, filename), "w")
+
+        self.worker.copy_mock_logs(self.job)
+        assert set(os.listdir(self.job.results_dir)) == set(["rsync.log.gz", "mockchain.log.gz"])
+
     def test_clean_previous_build_results(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
         os.makedirs(self.job.results_dir)
 

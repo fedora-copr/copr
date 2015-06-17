@@ -90,6 +90,14 @@ class BuildJob(object):
     def results_dir(self):
         return os.path.join(self.chroot_dir, self.pkg_name)
 
+    @property
+    def chroot_log_name(self):
+        return "build-{:08d}.log".format(self.build_id)
+
+    @property
+    def rsync_log_name(self):
+        return "build-{:08d}.rsync.log".format(self.build_id)
+
     def update(self, data_dict):
         """
 

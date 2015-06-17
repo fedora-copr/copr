@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import fcntl
+import gzip
 import shutil
 import multiprocessing
 from setproctitle import setproctitle
@@ -315,7 +316,7 @@ class Worker(multiprocessing.Process):
             chroot_repos.append(job.results + job.chroot + '/')
             chroot_repos.append(job.results + job.chroot + '/devel/')
 
-            chroot_logfile = "{}/build-{:08d}.log".format(job.chroot_dir, job.build_id)
+            chroot_logfile = os.path.join(job.chroot_dir, job.chroot_log_name)
 
             build_logger = create_file_logger("{}.builder.mr".format(self.logger_name),
                                               chroot_logfile, fmt=build_log_format)
@@ -357,10 +358,25 @@ class Worker(multiprocessing.Process):
                 .format(job.build_id, self.vm_ip, job.timeout, job.destdir,
                         job.chroot, str(job.repos)))
 
+            self.copy_mock_logs(job)
+
         job.status = status
         self._announce_end(job)
         self.update_process_title(suffix="Task: {} chroot: {} done"
                                   .format(job.build_id, job.chroot))
+
+    def copy_mock_logs(self, job):
+        if not os.path.isdir(job.results_dir):
+            return
+
+        logs = [(job.chroot_log_name, "mockchain.log.gz"),
+                (job.rsync_log_name, "rsync.log.gz")]
+
+        for log in logs:
+            src = os.path.join(job.chroot_dir, log[0])
+            dst = os.path.join(job.results_dir, log[1])
+            with open(src, "rb") as f_src, gzip.open(dst, "wb") as f_dst:
+                f_dst.writelines(f_src)
 
     def clean_result_directory(self, job):
         """
