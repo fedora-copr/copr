@@ -95,6 +95,12 @@ MODIFYREPO_TEMPLATE = \
 {packages_dir}/appdata/appstream.xml.gz \
 {packages_dir}/repodata
 """
+MODIFYREPO_2_TEMPLATE = \
+    """/usr/bin/modifyrepo_c \
+--no-compress \
+{packages_dir}/appdata/appstream-icons.tar.gz \
+{packages_dir}/repodata
+"""
 
 
 def add_appdata(path, username, projectname, lock=None):
@@ -105,7 +111,9 @@ def add_appdata(path, username, projectname, lock=None):
     }
     out_1 = run_cmd_unsafe(APPDATA_CMD_TEMPLATE.format(**kwargs), lock)
     out_2 = run_cmd_unsafe(MODIFYREPO_TEMPLATE.format(**kwargs), lock)
-    return "\n".join([out_1, out_2])
+    out_3 = run_cmd_unsafe(MODIFYREPO_2_TEMPLATE.format(**kwargs), lock)
+    out_4 = run_cmd_unsafe("chmod -R +rX {packages_dir}".format(**kwargs), lock)
+    return "\n".join([out_1, out_2, out_3, out_4])
 
 
 def createrepo(path, front_url, username, projectname,
