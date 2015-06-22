@@ -7,6 +7,20 @@ html, body {
   padding: 0px;
 }
 
+.btn-margin {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  background-color: #eee;
+}
+
+small.downloads {
+  color: #777;
+}
+
+div.login input {
+  line-height: 20px;
+}
+
 a {
   color: #3d69a8;
   text-decoration: none;

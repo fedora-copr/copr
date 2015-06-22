@@ -42,9 +42,8 @@
   <table class="releases">
     <tr>
       <th class="leftmost">Release</th>
-      <th>Architecture</th>
-       <th>#Downloads</th>
-      <th class="rightmost">Yum Repo </th>
+      <th>Architectures</th>
+      <th class="rightmost">Repo Download </th>
     </tr>
     {% for repo in repos_info_list %}
     <tr class="release-end">
@@ -57,26 +56,13 @@
             {% if copr.is_release_arch_modified(repo.name_release, arch) %}
               <a id="modified-chroot-{{repo.name_release}}-{{arch}}">[modified]</a>
             {% endif %}
+          <small class="downloads"> ({{ repo.rpm_dl_stat[arch] }})* </small>
           <br />
-        {% endfor %}
-
-      </td>
-      <td>
-        <abbr class="dl-stat" title="Total number of repo installation">repo installed</abbr>:
-        {{ repo.dl_stat }}
-        <br />
-
-        {% for arch in repo.arch_list %}
-          <abbr class="dl-stat" title="Number of downloaded packages for {{repo.name_release_human}} {{arch}} in the last 7 days">
-            {{arch}} packages</abbr>:
-          {{ repo.rpm_dl_stat[arch] }}
-          <br />
-
         {% endfor %}
 
       </td>
       <td class="rightmost">
-          <a href="{{
+          <a class="btn btn-default btn-margin" href="{{
               url_for(
               'coprs_ns.generate_repo_file',
               username=copr.owner.name,
@@ -85,12 +71,14 @@
               repofile=repo.repo_file,
               _external=True
             )|fix_url_https_frontend}}">
-            {{ repo.repo_file }}
+            <span class="glyphicon glyphicon-download-alt"> {{ repo.name_release_human|capitalize }}</span>
           </a>
+          <small class="downloads"> ({{ repo.dl_stat }} downloads) </small>
       </td>
     </tr>
     {% endfor %}
   </table>
+  <small class="downloads"> * Total number of packages downloaded in the last seven days.</small>
 
   {% if copr.repos_list %}
     <h2>Repository List</h2>
