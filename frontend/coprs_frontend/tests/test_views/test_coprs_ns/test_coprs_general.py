@@ -373,9 +373,8 @@ class TestCoprUpdate(CoprsTestCase):
         # https://fedorahosted.org/copr/ticket/42
         self.db.session.add_all([self.u2, self.c2, self.mc1])
         # add one more mock_chroot, so that we can remove two
-        cc = self.models.CoprChroot()
-        cc.mock_chroot = self.mc1
-        self.c2.copr_chroots.append(cc)
+        self.db.session.add(self.models.CoprChroot(copr_id=self.c2.id, mock_chroot=self.mc1))
+        self.db.session.commit()
 
         r = self.test_client.post("/coprs/{0}/{1}/update/"
                                   .format(self.u2.name, self.c2.name),
