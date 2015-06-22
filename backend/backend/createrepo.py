@@ -5,17 +5,17 @@ from subprocess import Popen, PIPE
 from exceptions import CreateRepoError
 from shlex import split
 
-from backend.helpers import BackendConfigReader, get_redis_logger
-opts = BackendConfigReader().read()
-
-log = get_redis_logger(opts, "createrepo", "actions")
+# todo: add logging here
+# from backend.helpers import BackendConfigReader, get_redis_logger
+# opts = BackendConfigReader().read()
+# log = get_redis_logger(opts, "createrepo", "actions")
 
 from .helpers import get_auto_createrepo_status
 
-# todo: add logging here
+
 
 def run_cmd_unsafe(comm_str, lock=None):
-    log.info("Running command: {}".format(comm_str))
+    # log.info("Running command: {}".format(comm_str))
     comm = split(comm_str)
     try:
         # # todo: replace with file lock on target dir
@@ -89,13 +89,13 @@ APPDATA_CMD_TEMPLATE = \
 --enable-hidpi \
 --origin={username}/{projectname}
 """
-MODIFYREPO_TEMPLATE = \
+INCLUDE_APPSTREAM = \
     """/usr/bin/modifyrepo_c \
 --no-compress \
 {packages_dir}/appdata/appstream.xml.gz \
 {packages_dir}/repodata
 """
-MODIFYREPO_2_TEMPLATE = \
+INCLUDE_ICONS = \
     """/usr/bin/modifyrepo_c \
 --no-compress \
 {packages_dir}/appdata/appstream-icons.tar.gz \
@@ -104,16 +104,32 @@ MODIFYREPO_2_TEMPLATE = \
 
 
 def add_appdata(path, username, projectname, lock=None):
+    out = ""
     kwargs = {
         "packages_dir": path,
         "username": username,
         "projectname": projectname
     }
-    out_1 = run_cmd_unsafe(APPDATA_CMD_TEMPLATE.format(**kwargs), lock)
-    out_2 = run_cmd_unsafe(MODIFYREPO_TEMPLATE.format(**kwargs), lock)
-    out_3 = run_cmd_unsafe(MODIFYREPO_2_TEMPLATE.format(**kwargs), lock)
-    out_4 = run_cmd_unsafe("chmod -R +rX {packages_dir}".format(**kwargs), lock)
-    return "\n".join([out_1, out_2, out_3, out_4])
+    try:
+        out += "\n" + run_cmd_unsafe(
+            APPDATA_CMD_TEMPLATE.format(**kwargs), lock)
+
+        if os.path.exists(os.path.join(path, "appdata", "appstream.xml.gz")):
+            out += "\n" + run_cmd_unsafe(
+                INCLUDE_APPSTREAM.format(**kwargs), lock)
+
+        if os.path.exists(os.path.join(path, "appdata", "appstream-icons.tar.gz")):
+            out += "\n" + run_cmd_unsafe(
+                INCLUDE_ICONS.format(**kwargs), lock)
+
+        # appstream builder provide strange access rights to result dir
+        # fix them, so that lighttpd could serve appdata dir
+        out += "\n" + run_cmd_unsafe("chmod -R +rX {packages_dir}"
+                                     .format(**kwargs), lock)
+    except CreateRepoError as err:
+        err.stdout = out + "\nLast command\n" + err.stdout
+        raise
+    return out
 
 
 def createrepo(path, front_url, username, projectname,
