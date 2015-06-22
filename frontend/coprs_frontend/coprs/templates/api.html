@@ -297,12 +297,14 @@ copr_url = {{ ('https://' + config['PUBLIC_COPR_HOSTNAME'])| fix_url_https_front
     <ul>
         <li><b>status</b> &ndash; Status of the build, one of
           <ul>
+            <li>canceled</li>
+            <li>failed</li>
             <li>pending</li>
             <li>running</li>
-            <li>failed</li>
-            <li>succeeded</li>
             <li>skipped</li>
-            <li>canceled</li>
+            <li>starting</li>
+            <li>succeeded</li>
+            <li>uploading</li>
           </ul>
         </li>
     </ul>
@@ -330,12 +332,14 @@ copr_url = {{ ('https://' + config['PUBLIC_COPR_HOSTNAME'])| fix_url_https_front
     <ul>
         <li><b>status</b> &ndash; Status of the build, one of
           <ul>
+            <li>canceled</li>
+            <li>failed</li>
             <li>pending</li>
             <li>running</li>
-            <li>failed</li>
-            <li>succeeded</li>
             <li>skipped (This package has already been built previously)</li>
-            <li>canceled</li>
+            <li>starting</li>
+            <li>succeeded</li>
+            <li>uploading</li>
           </ul>
         </li>
         <li><b>project</b> &ndash; Name of the project.</li>

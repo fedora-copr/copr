@@ -417,6 +417,10 @@ tr.build-row-skipped {
   color: #c84;
 }
 
+.build-uploading,.build-uploading>a {
+  color: #c84;
+}
+
 .build-running,.build-running>a {
   color: #c84;
 }

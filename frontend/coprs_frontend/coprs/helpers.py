@@ -84,7 +84,8 @@ class StatusEnum(object):
             "running": 3,
             "pending": 4,
             "skipped": 5,  # if there was this package built already
-            "starting": 6}  # build picked by worker but no VM initialized
+            "starting": 6,  # build picked by worker but no VM initialized
+            "uploading": 7} # SRPM is being uploaded to dist-git
 
 
 class Paginator(object):

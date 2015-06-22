@@ -134,7 +134,8 @@ def build_state_decoration(state):
         "running": "Build in progress.",
         "pending": "Your build is waiting for a builder.",
         "skipped": "This package has already been built previously.",
-        "starting": "Trying to acquire and configure builder for task."
+        "starting": "Trying to acquire and configure builder for task.",
+        "uploading": "The SRPM is being uploaded to dist-git."
     }
 
     return description_map.get(state, "")
