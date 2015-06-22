@@ -125,6 +125,7 @@ install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/nonces
 install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/temp
 install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee
 install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
+install -d %{buildroot}%{_sharedstatedir}/copr/data/srpm_storage
 
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
@@ -176,6 +177,7 @@ service logstash condrestart
 %dir %{_sharedstatedir}/copr/data/openid_store
 %dir %{_sharedstatedir}/copr/data/whooshee
 %dir %{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
+%dir %{_sharedstatedir}/copr/data/srpm_storage
 
 %ghost %{_sharedstatedir}/copr/data/copr.db
 

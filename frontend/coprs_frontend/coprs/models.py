@@ -287,6 +287,8 @@ class Build(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     # single url to the source rpm, should not contain " ", "\n", "\t"
     pkgs = db.Column(db.Text)
+    # name that helps user to identify the srpm name
+    source_name = db.Column(db.Text)
     # built packages
     built_packages = db.Column(db.Text)
     # version of the srpm package got by rpm

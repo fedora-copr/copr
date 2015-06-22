@@ -104,6 +104,22 @@ class BuildsLogic(object):
         return query
 
     @classmethod
+    def get_uploading(cls):
+        """
+        Return builds that are waiting for dist git to import the sources.
+        """
+        query = (models.Build.query.join(models.Build.copr)
+                 .join(models.User)
+                 .options(db.contains_eager(models.Build.copr))
+                 .options(db.contains_eager("copr.owner"))
+                 .filter((models.Build.started_on == None)
+                         | (models.Build.started_on < int(time.time() - 7200)))
+                 .filter(models.Build.ended_on == None)
+                 .filter(models.Build.canceled == False)
+                 .order_by(models.Build.submitted_on.asc()))
+        return query
+
+    @classmethod
     def get_waiting(cls):
         """
         Return builds that aren't both started and finished
@@ -134,7 +150,8 @@ class BuildsLogic(object):
     @classmethod
     def add(cls, user, pkgs, copr,
             repos=None, chroots=None,
-            memory_reqs=None, timeout=None, enable_net=True):
+            memory_reqs=None, timeout=None, enable_net=True,
+            git_hashes=None, source_name=None):
         if chroots is None:
             chroots = []
 
@@ -152,11 +169,15 @@ class BuildsLogic(object):
             raise exceptions.MalformedArgumentException("Trying to create a build using src_pkg "
                                                         "with bad characters. Forgot to split?")
 
+        if not source_name:
+            source_name = os.path.basename(pkgs)
+
         build = models.Build(
             user=user,
             pkgs=pkgs,
             copr=copr,
             repos=repos,
+            source_name=source_name,
             submitted_on=int(time.time()),
             enable_net=bool(enable_net),
         )
@@ -175,9 +196,13 @@ class BuildsLogic(object):
             chroots = copr.active_chroots
 
         for chroot in chroots:
+            git_hash = None
+            if git_hashes:
+                git_hash = git_hashes.get(chroot.name)
             buildchroot = models.BuildChroot(
                 build=build,
-                mock_chroot=chroot)
+                mock_chroot=chroot,
+                git_hash=git_hash)
 
             db.session.add(buildchroot)
 

@@ -1,8 +1,10 @@
 import flask
 import sys
 import time
+import os
 
 from coprs import db
+from coprs import helpers
 from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
@@ -14,6 +16,29 @@ from whoosh.index import LockError
 import logging
 log = logging.getLogger(__name__)
 
+
+
+@backend_ns.route("/uploading/")
+#@misc.backend_authenticated
+def dist_git_uploading_queue():
+    """
+    Return list of builds that are waiting for dist git to import the sources.
+    """
+    builds_list = [
+        {
+            "task_id": "{}-{}".format(task.build.id, task.mock_chroot.name),
+            "project_owner": task.build.copr.owner.name,
+            "project_name": task.build.copr.name,
+            "package_name": helpers.parse_package_name(os.path.basename(task.build.pkgs)),
+            "pkgs": task.build.pkgs,
+            "chroot": task.mock_chroot.name,
+        }
+        for task in BuildsLogic.get_build_task_queue().limit(200)
+    ]
+
+    response_dict = {"builds": builds_list}
+
+    return flask.jsonify(response_dict)
 
 @backend_ns.route("/waiting/")
 @misc.backend_authenticated

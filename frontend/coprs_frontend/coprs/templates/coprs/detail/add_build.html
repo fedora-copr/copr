@@ -1,7 +1,6 @@
 {% extends "coprs/detail.html" %}
 {% block title %}Adding Build for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 {% block new_build_selected %}selected{% endblock %}
-{% from "coprs/detail/_builds_forms.html" import copr_build_form with context %}
 
 {% block detail_body %}
 
