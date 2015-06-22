@@ -64,6 +64,7 @@ class CoprsTestCase(object):
 
     def teardown_method(self, method):
         # delete just data, not the tables
+        self.db.session.rollback()
         for tbl in reversed(self.db.metadata.sorted_tables):
             self.db.engine.execute(tbl.delete())
 
