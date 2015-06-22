@@ -67,7 +67,7 @@ class CoprsTestCase(object):
         for tbl in reversed(self.db.metadata.sorted_tables):
             self.db.engine.execute(tbl.delete())
 
-        self.rmodel_TSE_coprs_general_patcher.start()
+        self.rmodel_TSE_coprs_general_patcher.stop()
 
     @property
     def auth_header(self):
