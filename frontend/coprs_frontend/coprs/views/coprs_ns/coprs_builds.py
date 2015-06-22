@@ -1,6 +1,11 @@
 import flask
 from flask import request
 import re
+import os
+import shutil
+import tempfile
+
+from werkzeug import secure_filename
 
 from coprs import app
 from coprs import db
@@ -9,6 +14,7 @@ from coprs import helpers
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
+from coprs.logic import dist_git_logic
 
 from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
@@ -80,10 +86,99 @@ def copr_add_build(username, coprname, form=None):
     if not form:
         form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
 
-    return flask.render_template("coprs/detail/add_build.html",
+    return flask.render_template("coprs/detail/add_build_url.html",
                                  copr=copr,
                                  form=form)
 
+
+@coprs_ns.route("/<username>/<coprname>/add_build_upload/")
+@login_required
+def copr_add_build_upload(username, coprname, form=None):
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+
+    if not copr:
+        return page_not_found(
+            "Copr with name {0} does not exist.".format(coprname))
+
+    if not form:
+        form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
+
+    return flask.render_template("coprs/detail/add_build_upload.html",
+                                 copr=copr,
+                                 form=form)
+
+@coprs_ns.route("/<username>/<coprname>/new_build_upload/", methods=["POST"])
+@login_required
+def copr_new_build_upload(username, coprname):
+    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    if not copr:
+        return page_not_found(
+            "Project {0}/{1} does not exist.".format(username, coprname))
+
+    form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
+
+    if form.validate_on_submit():
+        tmp = tempfile.mkdtemp()
+        try:
+            filename = secure_filename(form.pkgs.data.filename)
+            file_path = os.path.join(tmp, filename)
+            form.pkgs.data.save(file_path)
+
+            # get the package name vithout version and release
+            pkgname = helpers.parse_package_name(filename)
+
+            if not filename:
+                flask.flash("No builds submitted")
+            else:
+                # check which chroots we need
+                chroots = []
+                for chroot in copr.active_chroots:
+                    if chroot.name in form.selected_chroots:
+                        chroots.append(chroot)
+
+                # upload to dist git + get git hash
+                dist_git_logic.create_repo(username, coprname,
+                                            pkgname, map(lambda x: x.name, chroots))
+
+                # import package to every branch and get hashes
+                git_hashes = {}
+                for chroot in chroots:
+                    git_hash = dist_git_logic.import_pkg(username, coprname, pkgname,
+                                              chroot.name, file_path)
+                    git_hashes[chroot.name] = git_hash
+
+                dist_git_url = "dist-git://{user}/{copr}/{pkg}".format(
+                                      user=username, copr=coprname, pkg=pkgname)
+
+                try:
+                    build = builds_logic.BuildsLogic.add(
+                        user=flask.g.user,
+                        pkgs=dist_git_url,
+                        copr=copr,
+                        chroots=chroots,
+                        git_hashes=git_hashes,
+                        source_name=filename,
+                        enable_net=form.enable_net.data)
+
+                    if flask.g.user.proven:
+                        build.memory_reqs = form.memory_reqs.data
+                        build.timeout = form.timeout.data
+
+                except (ActionInProgressException, InsufficientRightsException) as e:
+                    flask.flash(str(e))
+                    db.session.rollback()
+                else:
+                    flask.flash("New build was created")
+                db.session.commit()
+        finally:
+            shutil.rmtree(tmp)
+
+
+        return flask.redirect(flask.url_for("coprs_ns.copr_builds",
+                                            username=username,
+                                            coprname=copr.name))
+    else:
+        return copr_add_build_upload(username=username, coprname=coprname, form=form)
 
 @coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
 @login_required

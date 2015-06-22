@@ -1,0 +1,12 @@
+{% extends "coprs/detail/add_build.html" %}
+{% block title %}Adding Build for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+{% block new_build_selected %}selected{% endblock %}
+{% from "coprs/detail/_builds_forms.html" import copr_build_upload_form with context %}
+
+{% block new_build_upload_selected %}selected{% endblock %}
+
+{% block build_form %}
+
+  {{ copr_build_upload_form(form, 'coprs_ns.copr_new_build_upload', copr) }}
+
+{% endblock %}

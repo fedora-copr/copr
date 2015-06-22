@@ -13,7 +13,7 @@
     <h2 class="build-detail" alt="{{build.state|build_state_description}}"> 
         <b>Build {{ build.id }}:</b>
         <span class="build-{{build.state}}"> {{ build.state }} </span>
-         - {{build.pkgs|basename}}
+         - {{build.source_name}}
     </h2>
 
     <div class="build-buttons" >
