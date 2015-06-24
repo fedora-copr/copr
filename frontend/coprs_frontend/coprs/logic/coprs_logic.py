@@ -136,7 +136,7 @@ class CoprsLogic(object):
             instructions, check_for_duplicates=False, **kwargs):
         copr = models.Copr(name=name,
                            repos=repos,
-                           owner=user,
+                           owner_id=user.id,
                            description=description,
                            instructions=instructions,
                            created_on=int(time.time()),
