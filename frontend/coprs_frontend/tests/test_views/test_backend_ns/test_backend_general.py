@@ -12,6 +12,11 @@ class TestWaitingBuilds(CoprsTestCase):
     def test_waiting_build_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
+        for build_chroots in [self.b2_bc, self.b3_bc, self.b4_bc]:
+            for build_chroot in build_chroots:
+                build_chroot.status = 4 # pending
+        self.db.session.commit()
+
         r = self.tc.get("/backend/waiting/", headers=self.auth_header)
         assert len(json.loads(r.data)["builds"]) == 5
 
