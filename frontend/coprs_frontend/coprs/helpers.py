@@ -156,6 +156,17 @@ def chroot_to_branch(chroot):
         os = "el"
     return "{}{}".format(os, version)
 
+def branch_to_os_version(branch):
+    os = None
+    version = None
+    if branch[0] == "f":
+        os = "fedora"
+        version = branch[1:]
+    elif branch[:4] == "epel":
+        os = "epel"
+        version = branch[4:]
+    return os, version
+
 
 def parse_package_name(pkg):
     """

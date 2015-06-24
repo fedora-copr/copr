@@ -63,12 +63,14 @@ def dist_git_upload_completed():
             ch.git_hash = git_hash
 
         build = build_chroots[0].build
-        if not build.has_uploading_chroot():
+        if not build.has_uploading_chroot:
             BuildsLogic.delete_local_srpm(build)
 
-        result["updated"] = True
+        db.session.commit()
 
-    return result
+        result.update({"updated": True})
+
+    return flask.jsonify(result)
 
 @backend_ns.route("/waiting/")
 @misc.backend_authenticated

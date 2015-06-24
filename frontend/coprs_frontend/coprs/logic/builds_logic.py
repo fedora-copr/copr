@@ -1,4 +1,6 @@
 from collections import defaultdict
+import urlparse
+import shutil
 import json
 import os
 import pprint
@@ -220,6 +222,36 @@ class BuildsLogic(object):
         return build
 
     terminal_states = {StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")}
+
+    @classmethod
+    def get_chroots_from_dist_git_task_id(cls, task_id):
+        """
+        Returns a list of BuildChroots identified with task_id
+        task_id consists of a name of git branch + build id
+        Example: 42-f22 -> build id 42, chroots fedora-22-*
+        """
+        build_id, branch = task_id.split("-")
+        build = cls.get_by_id(build_id)
+        build_chroots = build.build_chroots
+        os, version = helpers.branch_to_os_version(branch)
+        chroot_halfname = "{}-{}".format(os, version)
+        matching = [ch for ch in build_chroots if chroot_halfname in ch.name]
+        return matching
+
+
+    @classmethod
+    def delete_local_srpm(cls, build):
+        """
+        Deletes the source rpm locally stored for upload (if exists)
+        """
+        data = urlparse.urlparse(build.pkgs)
+        service = data.netloc
+
+        # is it hosted on the copr frontend?
+        if service == app.config["PUBLIC_COPR_HOSTNAME"]:
+            tmp = data.path.split("/")[-2]
+            storage_path = app.config["SRPM_STORAGE_DIR"]
+            shutil.rmtree(os.path.join(storage_path, tmp))
 
     @classmethod
     def update_state_from_dict(cls, build, upd_dict):
