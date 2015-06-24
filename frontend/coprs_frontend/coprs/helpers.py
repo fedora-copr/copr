@@ -145,6 +145,18 @@ class Paginator(object):
         return flask.url_for(request.endpoint, **args)
 
 
+def chroot_to_branch(chroot):
+    """
+    Get a git branch name from chroot. Follow the fedora naming standard.
+    """
+    os, version, arch = chroot.split("-")
+    if os == "fedora":
+        os = "f"
+    elif os == "epel" and int(version) <= 6:
+        os = "el"
+    return "{}{}".format(os, version)
+
+
 def parse_package_name(pkg):
     """
     Parse package name from possibly incomplete nvra string.
