@@ -50,6 +50,17 @@ class BuildsLogic(object):
         return query
 
     @classmethod
+    def get_build_uploading_queue(cls):
+        """
+        Returns BuildChroots which are waiting to be uploaded to dist git
+        """
+        query = (models.BuildChroot.query.join(models.Build)
+                 .filter(models.Build.canceled == false())
+                 .filter(models.BuildChroot.status == helpers.StatusEnum("uploading")))
+        query = query.order_by(models.BuildChroot.build_id.asc())
+        return query
+
+    @classmethod
     def get_build_task_queue(cls):
         """
         Returns BuildChroots which are - waiting to be built or
