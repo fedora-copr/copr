@@ -537,8 +537,8 @@ class BuildChroot(db.Model, helpers.Serializer):
     build_id = db.Column(db.Integer, db.ForeignKey("build.id"),
                          primary_key=True)
     build = db.relationship("Build", backref=db.backref("build_chroots"))
-    status = db.Column(db.Integer, default=helpers.StatusEnum("pending"))
     git_hash = db.Column(db.String(40))
+    status = db.Column(db.Integer, default=helpers.StatusEnum("uploading"))
 
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer)
