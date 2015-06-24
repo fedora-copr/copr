@@ -419,7 +419,8 @@ class Build(db.Model, helpers.Serializer):
         Build is cancelabel only when it's pending (not started)
         """
 
-        return self.status == helpers.StatusEnum("pending")
+        return self.status == helpers.StatusEnum("pending") or \
+               self.status == helpers.StatusEnum("uploading")
 
     @property
     def repeatable(self):

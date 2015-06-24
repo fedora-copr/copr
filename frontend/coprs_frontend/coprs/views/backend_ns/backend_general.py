@@ -24,17 +24,18 @@ def dist_git_uploading_queue():
     """
     Return list of builds that are waiting for dist git to import the sources.
     """
-    builds_list = [
-        {
-            "task_id": "{}-{}".format(task.build.id, task.mock_chroot.name),
-            "project_owner": task.build.copr.owner.name,
-            "project_name": task.build.copr.name,
-            "package_name": helpers.parse_package_name(os.path.basename(task.build.pkgs)),
-            "pkgs": task.build.pkgs,
-            "chroot": task.mock_chroot.name,
+    builds_list = []
+    for task in BuildsLogic.get_build_uploading_queue().limit(200):
+        task_dict = {
+            "task_id": "{}-{}".format(task.build.id, helpers.chroot_to_branch(task.mock_chroot.name)),
+            "user": task.build.copr.owner.name,
+            "project": task.build.copr.name,
+            "package": helpers.parse_package_name(os.path.basename(task.build.pkgs)),
+            "package_url": task.build.pkgs,
+            "branch": helpers.chroot_to_branch(task.mock_chroot.name),
         }
-        for task in BuildsLogic.get_build_task_queue().limit(200)
-    ]
+        if task_dict not in builds_list:
+            builds_list.append(task_dict)
 
     response_dict = {"builds": builds_list}
 
