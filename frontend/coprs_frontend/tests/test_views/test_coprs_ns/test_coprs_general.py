@@ -21,6 +21,8 @@ class TestMonitor(CoprsTestCase):
     def test_regression_monitor_no_copr_returned(self, f_db, f_users, f_mock_chroots):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1165284
 
+        # commit users to the database
+        self.db.session.commit()
         copr_name = u"temp"
 
         # trying to get monitor page for non-existing project
