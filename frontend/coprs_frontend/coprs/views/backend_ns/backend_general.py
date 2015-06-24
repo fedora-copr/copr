@@ -41,6 +41,35 @@ def dist_git_uploading_queue():
 
     return flask.jsonify(response_dict)
 
+@backend_ns.route("/upload-completed/", methods=["POST", "PUT"])
+@misc.backend_authenticated
+def dist_git_upload_completed():
+    """
+    Mark BuildChroot in a Build as uploaded, which means:
+        - set it to pending state
+        - set BuildChroot.git_hash
+        - if it's the last BuildChroot in a Build, delete local srpm
+    BuildChroot is identified with task_id which is build id + git branch name
+        - For example: 56-f22 -> build 55, chroots fedora-22-*
+    """
+    result = {"updated": False}
+
+    if "task_id" in flask.request.json and "git_hash" in flask.request.json:
+        task_id = flask.request.json["task_id"]
+        git_hash = flask.request.json["git_hash"]
+        build_chroots = BuildsLogic.get_chroots_from_dist_git_task_id(task_id)
+        for ch in build_chroots:
+            ch.status = helpers.StatusEnum("pending")
+            ch.git_hash = git_hash
+
+        build = build_chroots[0].build
+        if not build.has_uploading_chroot():
+            BuildsLogic.delete_local_srpm(build)
+
+        result["updated"] = True
+
+    return result
+
 @backend_ns.route("/waiting/")
 @misc.backend_authenticated
 def waiting():

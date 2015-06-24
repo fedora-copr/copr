@@ -388,6 +388,10 @@ class Build(db.Model, helpers.Serializer):
             helpers.StatusEnum("running") in self.chroot_states
 
     @property
+    def has_uploading_chroot(self):
+        return helpers.StatusEnum("uploading") in self.chroot_states
+
+    @property
     def status(self):
         """
         Return build status according to build status of its chroots
