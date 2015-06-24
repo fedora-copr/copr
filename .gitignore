@@ -19,3 +19,6 @@ backend/docs/build
 frontend/coprs_frontend/copr_frontend.log
 
 _redis.log
+
+# IDE
+.idea
