@@ -1,9 +1,17 @@
 import os
+import json
+import time
 import types
+import urllib
 import shutil
 import tempfile
+from requests import get
+from requests import post
 from pyrpkg import Commands
+from subprocess import call
 from pyrpkg.errors import rpkgError
+
+from helpers import DistGitConfigReader
 
 # Example usage:
 #
@@ -38,7 +46,7 @@ def import_srpm(user, project, pkg, branch, filepath):
     # I need to use git via SSH because of gitolite as it manages
     # permissions with it's hook that relies on gitolite console
     # which is a default shell on SSH
-    gitbaseurl = "ssh://frank@localhost/%(module)s"
+    gitbaseurl = "ssh://copr-dist-git@localhost/%(module)s"
     tmp = tempfile.mkdtemp()
     try:
         repo_dir = os.path.join(tmp, pkg)
@@ -86,6 +94,69 @@ def import_srpm(user, project, pkg, branch, filepath):
             commands.push()
         except rpkgError:
             pass
+        git_hash = commands.commithash
     finally:
         shutil.rmtree(tmp)
-    return commands.commithash
+    return git_hash
+
+
+class DistGitImporter():
+    def __init__(self):
+        self.config_reader = DistGitConfigReader()
+        self.opts = self.config_reader.read()
+
+    def run(self):
+        get_url = "{}/backend/uploading/".format(self.opts.frontend_base_url)
+        upload_url = "{}/backend/upload-completed/".format(self.opts.frontend_base_url)
+        auth = ("user",self.opts.frontend_auth)
+        headers = {"content-type": "application/json"}
+
+        tmp = tempfile.mkdtemp()
+        try:
+            while(True):
+                # get the data
+                r = get(get_url)
+                try:
+                    task = r.json()["builds"][0]
+
+                    task_id = task["task_id"]
+                    user = task["user"]
+                    project = task["project"]
+                    package = task["package"]
+                    branch = task["branch"]
+                    package_url = task["package_url"]
+                except:
+                    time.sleep(10)
+                    continue
+
+                # make sure repos exist
+                reponame = "{}/{}/{}".format(user, project, package)
+                call(["/usr/share/dist-git/git_package.sh", reponame])
+                call(["/usr/share/dist-git/git_branch.sh", branch, reponame])
+                
+                # download the package
+                filepath = os.path.join(tmp, os.path.basename(package_url))
+                urllib.urlretrieve(package_url, filepath)
+
+                # import it and delete the srpm
+                git_hash = import_srpm(user, project, package, branch, filepath)
+                os.remove(filepath)
+
+                # send a response
+                data = {"task_id": task_id,
+                        "repo_name": reponame,
+                        "git_hash": git_hash}
+                post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
+        finally:
+            shutil.rmtree(tmp)
+
+def main():
+    importer = DistGitImporter()
+    try:
+        importer.run()
+    except KeyboardInterrupt:
+        return
+
+if __name__ == "__main__":
+    main()
+
