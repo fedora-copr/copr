@@ -100,7 +100,11 @@
             <dt> Source: </dt>
                 <dd>
                     {% if build.pkgs is not none %}
-                        <dd> <a href="{{ build.pkgs }}">{{ build.pkgs }}</a></dd>
+                        {% if build.pkgs[:11] == "dist-git://" %}
+                            <dd> {{ build.pkgs }} </dd>
+                        {% else %}
+                            <dd> <a href="{{ build.pkgs }}">{{ build.pkgs }}</a></dd>
+                        {% endif %}
                     {% endif %}
                 </dd>
         </div>
