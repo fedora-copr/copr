@@ -11,6 +11,8 @@ frontend_base_url=http://copr-fe-dev.cloud.fedoraproject.org
 # default is PASSWORDHERE but you really should change it. really.
 frontend_auth=backend_password_from_fe_config
 
+dist_git_url=distgitvm.example.com
+
 # comma-separated architectures 
 # default is i386,x86_64
 #architectures=i386,x86_64

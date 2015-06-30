@@ -72,6 +72,16 @@ def _get_conf(cp, section, option, default, mode=None):
             return path
     return default
 
+def chroot_to_branch(chroot):
+    """
+    Get a git branch name from chroot. Follow the fedora naming standard.
+    """
+    os, version, arch = chroot.split("-")
+    if os == "fedora":
+        os = "f"
+    elif os == "epel" and int(version) <= 6:
+        os = "el"
+    return "{}{}".format(os, version)
 
 class BackendConfigReader(object):
     def __init__(self, config_file=None, ext_opts=None):

@@ -8,6 +8,7 @@ from urlparse import urlparse
 from ansible.runner import Runner
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
 from ..helpers import get_redis_connection
+from ..helpers import chroot_to_branch
 
 from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError, VmError
 
@@ -183,6 +184,22 @@ class Builder(object):
         ansible_test_results = self._run_ansible("/usr/bin/test -f {0}".format(successfile))
         check_for_ans_error(ansible_test_results, self.hostname)
 
+    def download_job_pkg(self, pkg):
+        branch = chroot_to_branch(self.job.chroot)
+        repo_name = pkg.split("dist-git://")[1]
+        pkg_name = repo_name.split("/")[2]
+        repo_url = "{}/{}".format(self.opts.dist_git_url, repo_name)
+        self.log.info("Cloning Dist Git repo {}, branch {}".format(repo_url, branch))
+        results = self._run_ansible("cd /tmp && "
+                                    "git clone -b {branch} {repo}.git && "
+                                    "cd {pkg} && "
+                                    "fedpkg-copr srpm".format(
+                                        branch=branch, repo=repo_url, pkg=pkg_name))
+
+        local_pkg = list(results["contacted"].values())[0][u"stdout"].split("Wrote: ")[1]
+        self.log.info("Done: {}".format(local_pkg))
+        return local_pkg
+
     def update_job_pkg_version(self, pkg):
         self.log.info("Getting package information: version")
         results = self._run_ansible("rpm -qp --qf \"%{{EPOCH}}\$\$%{{VERSION}}\$\$%{{RELEASE}}\" {}".format(pkg))
@@ -302,22 +319,25 @@ class Builder(object):
     def build(self, pkg):
         self.modify_mock_chroot_config()
 
+        # download the package to the builder
+        local_pkg = self.download_job_pkg(pkg)
+
         # srpm version
-        self.update_job_pkg_version(pkg)
+        self.update_job_pkg_version(local_pkg)
 
         # construct the mockchain command
-        buildcmd = self.gen_mockchain_command(pkg)
+        buildcmd = self.gen_mockchain_command(local_pkg)
         # run the mockchain command async
         ansible_build_results = self.run_build_and_wait(buildcmd)  # now raises BuildTimeoutError
         check_for_ans_error(ansible_build_results, self.hostname)  # on error raises AnsibleResponseError
 
         # we know the command ended successfully but not if the pkg built
         # successfully
-        self.check_build_success(pkg)
+        self.check_build_success(local_pkg)
         build_out = get_ans_results(ansible_build_results, self.hostname).get("stdout", "")
 
         build_details = {"pkg_version": self.job.pkg_version}
-        self.collect_built_packages(build_details, pkg)
+        self.collect_built_packages(build_details, local_pkg)
         return build_details, build_out
 
     def download(self, pkg, destdir):
