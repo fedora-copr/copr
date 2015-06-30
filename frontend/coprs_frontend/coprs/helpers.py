@@ -162,7 +162,7 @@ def branch_to_os_version(branch):
     if branch[0] == "f":
         os = "fedora"
         version = branch[1:]
-    elif branch[:4] == "epel":
+    elif branch[:4] == "epel" or branch[:2] == "el":
         os = "epel"
         version = branch[4:]
     return os, version
