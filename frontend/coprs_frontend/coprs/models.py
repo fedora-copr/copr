@@ -457,9 +457,12 @@ class Build(db.Model, helpers.Serializer):
     @property
     def src_pkg_name(self):
         """
-        Extract source package name from source name
+        Extract source package name from source name or url
         """
-        src_rpm_name = self.source_name
+        if self.source_name:
+            src_rpm_name = self.source_name
+        else:
+            src_rpm_name =  self.pkgs.split("/")[-1]
         if src_rpm_name.endswith(".src.rpm"):
             return src_rpm_name[:-8]
         else:
