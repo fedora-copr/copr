@@ -188,10 +188,10 @@ class Builder(object):
         branch = chroot_to_branch(self.job.chroot)
         repo_name = pkg.split("dist-git://")[1]
         pkg_name = repo_name.split("/")[2]
-        repo_url = "{}/{}".format(self.opts.dist_git_url, repo_name)
+        repo_url = "{}/{}.git".format(self.opts.dist_git_url, repo_name)
         self.log.info("Cloning Dist Git repo {}, branch {}".format(repo_url, branch))
         results = self._run_ansible("cd /tmp && "
-                                    "git clone -b {branch} {repo}.git && "
+                                    "git clone -b {branch} {repo} && "
                                     "cd {pkg} && "
                                     "fedpkg-copr srpm".format(
                                         branch=branch, repo=repo_url, pkg=pkg_name))
@@ -321,6 +321,7 @@ class Builder(object):
 
         # download the package to the builder
         local_pkg = self.download_job_pkg(pkg)
+        self.local_pkg = local_pkg
 
         # srpm version
         self.update_job_pkg_version(local_pkg)

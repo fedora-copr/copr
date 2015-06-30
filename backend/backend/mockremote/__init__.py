@@ -331,7 +331,7 @@ class MockRemote(object):
 
         # downloading
         self.log.info("Start retrieve results for: {0}".format(self.pkg))
-        self.builder.download(self.pkg, self.chroot_dir)
+        self.builder.download(self.builder.local_pkg, self.chroot_dir)
         # self.add_log_symlinks()  # todo: add config option, need this for nginx
         self.log.info("End retrieve results for: {0}".format(self.pkg))
 

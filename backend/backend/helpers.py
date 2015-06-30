@@ -119,6 +119,9 @@ class BackendConfigReader(object):
         opts.frontend_base_url = _get_conf(
             cp, "backend", "frontend_base_url", "http://copr-fe")
 
+        opts.dist_git_url = _get_conf(
+            cp, "backend", "dist_git_url", "http://dist-git")
+
         opts.frontend_auth = _get_conf(
             cp, "backend", "frontend_auth", "PASSWORDHERE")
 
