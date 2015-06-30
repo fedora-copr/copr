@@ -59,7 +59,7 @@ def dist_git_upload_completed():
     if "task_id" in flask.request.json and "git_hash" in flask.request.json and \
                                            "repo_name" in flask.request.json:
         task_id = flask.request.json["task_id"]
-        git_hash = flask.request.json["git_hash"]
+        git_hash = flask.request.json["git_hash"][:7]
         repo_name = flask.request.json["repo_name"]
         build_chroots = BuildsLogic.get_chroots_from_dist_git_task_id(task_id)
         for ch in build_chroots:
