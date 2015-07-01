@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.70
+Version:    1.71
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -245,6 +245,12 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Jul 01 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.71-1
+- add small script to print queues
+- AppData supproted
+- copy mockchain and rsync logs to resdir (RhBug:1221519)
+- note which modules still stops us from migrating to python3
+
 * Mon Jun 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.70-1
 - alter vm_name= regexp
 - polishing Bug 1195867 - Move or delete logs when rebuilding failed
