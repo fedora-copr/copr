@@ -49,7 +49,13 @@ class BuildJob(object):
             key = str(key)
             setattr(self, key, val)
 
-        self.pkg = task_data["pkgs"]
+        if task_data["pkgs"].startswith("dist-git://"):
+            self.pkg = task_data["source_name"]
+        else:
+            self.pkg = task_data["pkgs"]
+        self.pkg_path = task_data["pkgs"]
+        self.git_hash = task_data["git_hash"]
+
         del self.pkgs  # better to produce error, than use it blindly
 
         self.repos = [r for r in task_data["repos"].split(" ") if r.strip()]

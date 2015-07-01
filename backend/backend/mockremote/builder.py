@@ -316,7 +316,7 @@ class Builder(object):
     #     buildcmd = self.gen_mockchain_command(dest)
     #
 
-    def build(self, pkg):
+    def build(self, pkg, git_hash):
         self.modify_mock_chroot_config()
 
         # download the package to the builder
@@ -345,11 +345,13 @@ class Builder(object):
             # download the pkg to destdir using rsync + ssh
 
         rpd = self._get_remote_pkg_dir(pkg)
+        dirname = os.path.basename(pkg.replace(".src.rpm", ""))
+        destdir = "{}/{}".format(destdir, dirname)
         # make spaces work w/our rsync command below :(
         destdir = "'" + destdir.replace("'", "'\\''") + "'"
 
         # build rsync command line from the above
-        remote_src = "{0}@{1}:{2}".format(self.opts.build_user, self.hostname, rpd)
+        remote_src = "{0}@{1}:{2}/*".format(self.opts.build_user, self.hostname, rpd)
         ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
 
         rsync_log_filepath = os.path.join(destdir, self.job.rsync_log_name)
