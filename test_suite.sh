@@ -7,7 +7,7 @@ REDIS_PORT=7777
 redis-server --port $REDIS_PORT &> _redis.log &
 
 
-virtualenv _venv
+virtualenv _venv -p /usr/bin/python2.7
 source _venv/bin/activate
 
 

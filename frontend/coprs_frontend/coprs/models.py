@@ -69,9 +69,8 @@ class User(db.Model, helpers.Serializer):
         """
         Determine if this user can build in the given copr.
         """
-
         can_build = False
-        if copr.owner == self:
+        if copr.owner_id == self.id:
             can_build = True
         if (self.permissions_for_copr(copr) and
                 self.permissions_for_copr(copr).copr_builder ==

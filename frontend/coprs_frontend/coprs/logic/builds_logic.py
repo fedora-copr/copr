@@ -133,6 +133,7 @@ class BuildsLogic(object):
             memory_reqs=None, timeout=None, enable_net=True):
         if chroots is None:
             chroots = []
+
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
             user, copr,
             "Can't build while there is an operation in progress: {action}")
