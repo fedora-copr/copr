@@ -10,9 +10,9 @@
               "canceled",
               "skipped",
               "failed",
-              "canceled",
-              "uploading",
             ]%}
+            <!-- return to list, when dist-git support are done
+                 "uploading",-->
             <dd>
                 <span class="build-{{state}}"> {{state|capitalize}} </span>
                 - {{state|build_state_description}}
