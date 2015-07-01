@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.63
+Version:    1.64
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -193,6 +193,9 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Wed Jul 01 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.64-1
+- [frontend] fix help text on builds pages
+
 * Wed Jul 01 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.63-1
 - fix tests for old f20
 - assign owner by user id instead of the whole object When assigning
