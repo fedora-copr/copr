@@ -108,7 +108,7 @@ def waiting():
             "memory_reqs": task.build.memory_reqs,
             "timeout": task.build.timeout,
             "enable_net": task.build.enable_net,
-            "git_hash": task.mock_chroot.git_hash,
+            "git_hash": task.git_hash,
             "source_name": task.build.source_name,
         }
         for task in BuildsLogic.get_build_task_queue().limit(200)
