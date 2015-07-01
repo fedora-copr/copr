@@ -581,6 +581,10 @@ textarea {
   -webkit-border-radius: 4px;
 }
 
+.dnf-enable-field input {
+  width: 42%;
+}
+
 
 .latest_build {
   font-size: 80%;
