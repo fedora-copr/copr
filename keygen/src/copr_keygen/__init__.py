@@ -13,6 +13,7 @@ from flask import Flask, request, Response
 import os
 from copr_keygen.exceptions import BadRequestException, \
     KeygenServiceBaseException
+from copr_keygen.util import file_lock
 
 app = Flask(__name__)
 app.config.from_object("copr_keygen.default_settings")
@@ -37,7 +38,7 @@ if not app.config["DEBUG"] or app.config["DEBUG_WITH_LOG"]:
 # end setup logger
 
 
-from .logic import create_new_key, user_exists
+from .logic import create_new_key, user_exists, get_passphrase_location
 
 log = logging.getLogger(__name__)
 
@@ -101,23 +102,24 @@ def gen_key():
 
     name_email = query["name_email"]
 
-    if user_exists(app, name_email):
+    with file_lock(get_passphrase_location(app, name_email) + ".lock"):
+        if user_exists(app, name_email):
+            response = Response("", content_type="text/plain;charset=UTF-8")
+            response.status_code = 200
+            return response
+
+        create_new_key(
+            app,
+            name_real=query["name_real"],
+            name_email=name_email,
+            name_comment=query.get("name_comment", None),
+            key_length=query.get("key_length", app.config["GPG_KEY_LENGTH"]),
+            expire=query.get("expire", app.config["GPG_EXPIRE"]),
+        )
+
         response = Response("", content_type="text/plain;charset=UTF-8")
-        response.status_code = 200
+        response.status_code = 201
         return response
-
-    create_new_key(
-        app,
-        name_real=query["name_real"],
-        name_email=name_email,
-        name_comment=query.get("name_comment", None),
-        key_length=query.get("key_length", app.config["GPG_KEY_LENGTH"]),
-        expire=query.get("expire", app.config["GPG_EXPIRE"]),
-    )
-
-    response = Response("", content_type="text/plain;charset=UTF-8")
-    response.status_code = 201
-    return response
 
 
 @app.errorhandler(KeygenServiceBaseException)

@@ -11,6 +11,10 @@ from .exceptions import GpgErrorException, KeygenServiceBaseException
 log = logging.getLogger(__name__)
 
 
+def get_passphrase_location(app, name_email):
+    return os.path.join(app.config["PHRASES_DIR"], name_email)
+
+
 def ensure_passphrase_exist(app, name_email):
     """ Need this to tell signd server that `name_email` available in keyring
     Key not protected by passphrase, so we write *something* to passphrase file.
@@ -22,7 +26,7 @@ def ensure_passphrase_exist(app, name_email):
             handle.write(os.linesep)
             log.debug("created passphrase file for {}".format(name_email))
 
-    location = os.path.join(app.config["PHRASES_DIR"], name_email)
+    location = get_passphrase_location(app, name_email)
     try:
         with open(location) as handle:
             content = handle.read()
@@ -83,6 +87,8 @@ def create_new_key(
         name_real, name_email, key_length,
         expire=None, name_comment=None):
     """
+    Creates new key for user.
+    WARNING! This method doesn't check for the key duplicity.
     :param app: Flask application object
 
     :param name_real: name for key identification
@@ -92,11 +98,6 @@ def create_new_key(
     :param name_comment: [optional] comment for key
     :return: (stdout, stderr) from `gpg` invocation
     """
-
-    # TODO with file lock based on usermail !!!
-
-    if user_exists(app, name_email):
-        return
 
     try:
         # ! Don't use context manager with delete=True

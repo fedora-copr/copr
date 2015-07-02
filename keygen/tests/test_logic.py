@@ -127,15 +127,9 @@ class TestGenKey(TestCase):
     def test_simple_create(self, popen, user_exists):
         """
         Check correct key generation.
-        At first user not exist, but after popen call,
-        it exists
         """
 
         with mock.patch("tempfile.NamedTemporaryFile") as tmpfile:
-            user_exists_returns = [False, True]
-            user_exists.side_effect = \
-                lambda *args, **kwargs: user_exists_returns.pop(0)
-
             def check_gpg_genkey_file_exists(*args, **kwargs):
                 assert tmpfile.called
                 return MockPopenHandle(0)
@@ -156,13 +150,6 @@ class TestGenKey(TestCase):
 
         with pytest.raises(GpgErrorException):
             logic.create_new_key(app, TEST_NAME, TEST_EMAIL, TEST_KEYLENGTH)
-
-    def test_skip_creation_for_existing_user(self, popen, user_exists):
-        user_exists.return_value = True
-        logic.create_new_key(app, TEST_NAME, TEST_EMAIL, TEST_KEYLENGTH)
-
-        user_exists.assert_called_once()
-        assert not popen.called
 
     def test_error_popen(self, popen, user_exists):
         user_exists.return_value = False
