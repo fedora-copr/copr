@@ -16,8 +16,8 @@ class UrlListValidator(object):
 
     def __init__(self, message=None):
         if not message:
-            message = "A list of http[s] URLs separated by whitespace characters"
-            " is needed ('{0}' doesn't seem to be a valid URL)."
+            message = ("A list of http[s] URLs separated by whitespace characters"
+                       " is needed ('{0}' doesn't seem to be a valid URL).")
         self.message = message
 
     def __call__(self, form, field):
