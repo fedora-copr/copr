@@ -14,7 +14,7 @@ class TestCreateCopr(CoprsTestCase):
     instructions = "1234"
     description = "567890"
     repos = "http://example.com/repo"  # TODO: better response on on http:// entries
-    initial_pkgs = "http://example.com/pkg"
+    initial_pkgs = "http://example.com/pkg.src.rpm"
 
     def post_api_with_auth(self, url, content):
         userstring = "{}:{}".format(self.u1.api_login, self.u1.api_token)

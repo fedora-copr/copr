@@ -54,6 +54,20 @@ class UrlRepoListValidator(UrlListValidator):
         return True
 
 
+class UrlSrpmListValidator(UrlListValidator):
+    def __init__(self, message=None):
+        if not message:
+            message = ("URLs must end with .src.rpm"
+                       " ('{0}' doesn't seem to be a valid SRPM URL).")
+        super(UrlSrpmListValidator, self).__init__(message)
+
+    def is_url(self, url):
+        parsed = urlparse.urlparse(url)
+        if not parsed.path.endswith((".src.rpm", ".nosrc.rpm")):
+            return False
+        return True
+
+
 class CoprUniqueNameValidator(object):
 
     def __init__(self, message=None, owner=None):
@@ -97,13 +111,6 @@ class StringListFilter(object):
         return regex.sub(lambda x: '\n', result)
 
 
-class SrpmUrlListFilter(object):
-
-    def __call__(self, value):
-        return "\n".join(pkg for pkg in value.replace("\n", " ").split(" ")
-                         if pkg.endswith(".src.rpm"))
-
-
 class ValueToPermissionNumberFilter(object):
 
     def __call__(self, value):
@@ -145,7 +152,9 @@ class CoprFormFactory(object):
 
             initial_pkgs = wtforms.TextAreaField(
                 "Initial packages to build",
-                validators=[UrlListValidator()],
+                validators=[
+                    UrlListValidator(),
+                    UrlSrpmListValidator()],
                 filters=[StringListFilter()])
 
             disable_createrepo = wtforms.BooleanField(default=False)
@@ -225,9 +234,9 @@ class BuildFormFactory(object):
                 "Pkgs",
                 validators=[
                     wtforms.validators.DataRequired(),
-                    UrlListValidator()],
-                filters=[StringListFilter(),
-                         SrpmUrlListFilter()])
+                    UrlListValidator(),
+                    UrlSrpmListValidator()],
+                filters=[StringListFilter()])
 
             memory_reqs = wtforms.IntegerField(
                 "Memory requirements",

@@ -250,3 +250,24 @@ class TestCoprRepeatBuild(CoprsTestCase):
         # import ipdb; ipdb.set_trace()
         assert "You are not allowed to repeat this build." in r.data
 
+    @TransactionDecorator("u1")
+    def test_copr_build_package_urls(self, f_users,
+                                     f_coprs,
+                                     f_mock_chroots,
+                                     f_builds, f_db):
+
+        self.db.session.add_all([self.u1, self.c1])
+
+        urls = [
+            "http://example.com/foo.src.rpm",
+            "foo://example.com/foo.src.rpm",
+            "http://example.com/foo",
+        ]
+        r = []
+        route = "/coprs/{0}/{1}/new_build/".format(self.u1.name, self.c1.name)
+        for i, url in enumerate(urls):
+            r.insert(i, self.test_client.post(route, data={"pkgs": url}, follow_redirects=True))
+
+        assert "New build was created" in r[0].data
+        assert "doesn&#39;t seem to be a valid URL" in r[1].data
+        assert "doesn&#39;t seem to be a valid SRPM URL" in r[2].data
