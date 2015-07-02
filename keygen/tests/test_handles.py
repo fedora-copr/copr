@@ -11,10 +11,13 @@ from copr_keygen import app
 from copr_keygen.exceptions import KeygenServiceBaseException
 
 
+app.config["PHRASES_DIR"] = "/tmp"
+
 def test_ping():
     """ Simple check for simple handle
     """
     with app.test_client() as c:
+
         rv = c.get('/ping')
         assert rv.status_code == 200
         assert rv.data == b"pong\n"
