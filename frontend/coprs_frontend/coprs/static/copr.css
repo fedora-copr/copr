@@ -21,6 +21,7 @@ div.login input {
   line-height: 20px;
 }
 
+
 a {
   color: #3d69a8;
   text-decoration: none;
@@ -141,6 +142,11 @@ div.login, div.login a {
 
 div.login {
   float: right;
+}
+
+div.login input.rounded {
+  color: black;
+  font-weight: normal;
 }
 
 div.login .text {
