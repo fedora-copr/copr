@@ -158,10 +158,10 @@ class BuildHandle(BaseHandle):
             Shortcut for :py:class:`.responses.ProjectHandle`
         """
         if not self.projectname:
-            raise Exception("Project name for build {} is unknown".
+            raise Exception("Project name for build {0} is unknown".
                             format(self.build_id))
         if not self.username:
-            raise Exception("Project owner for build {} is unknown".
+            raise Exception("Project owner for build {0} is unknown".
                             format(self.build_id))
 
         return ProjectHandle(client=self.client,
@@ -200,7 +200,7 @@ class ProjectChrootHandle(BaseHandle):
         if not self.projectname:
             raise Exception("Project name  is unknown")
         if not self.username:
-            raise Exception("Project owner for build {} is unknown")
+            raise Exception("Project owner for build {0} is unknown")
 
         return ProjectHandle(client=self.client,
                              username=self.username,
@@ -250,13 +250,13 @@ class ProjectWrapper(UnicodeMixin):
 
     def __unicode__(self):
         out = list()
-        out.append(u"Name: {}".format(self.projectname))
-        out.append(u"  Description: {}".format(self.description))
+        out.append(u"Name: {0}".format(self.projectname))
+        out.append(u"  Description: {0}".format(self.description))
 
         if self.yum_repos:
             out.append(u"  Yum repo(s):")
             for k in sorted(self.yum_repos.keys()):
-                out.append(u"    {}: {}".format(k, self.yum_repos[k]))
+                out.append(u"    {0}: {1}".format(k, self.yum_repos[k]))
         if self.additional_repos:
             out.append(u"  Additional repo: {0}".format(self.additional_repos))
         if self.instructions:
