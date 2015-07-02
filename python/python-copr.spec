@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.56
+Version:    1.57
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -167,6 +167,13 @@ popd
 %endif
 
 %changelog
+* Thu Jul 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.57-1
+- [cli] wrap requests exception (RhBug:1194522)
+- [python] Bug 1188874 - better unicode handling
+- [cli] test unicode representation of ProjectWrapper (RhBug:1188874)
+- [cli] fix unicode representation of ProjectWrapper (RhBug:1188874)
+- mark license as license in spec
+
 * Mon Dec 15 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.56-1
 - control auto_createrepo property of project through API
 
