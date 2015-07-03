@@ -148,6 +148,9 @@ pushd %{py3dir}
 popd
 %endif # with_python3
 
+# compatibility for RHEL <= 6
+%{!?_licensedir:%global license %%doc}
+
 %files
 %license LICENSE
 %doc README.rst
