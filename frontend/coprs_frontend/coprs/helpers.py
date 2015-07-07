@@ -88,6 +88,11 @@ class StatusEnum(object):
             "uploading": 7} # SRPM is being uploaded to dist-git
 
 
+class BuildSourceEnum(object):
+    __metaclass__ = EnumType
+    vals = {"srpm_link": 0, # url
+            "srpm_upload": 1} # pkg_name, tmp_dir
+
 class Paginator(object):
 
     def __init__(self, query, total_count, page=1,

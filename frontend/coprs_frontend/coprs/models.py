@@ -256,6 +256,26 @@ class CoprPermission(db.Model, helpers.Serializer):
     copr = db.relationship("Copr", backref=db.backref("copr_permissions"))
 
 
+class Package(db.Model, helpers.Serializer):
+    """
+    Represents a single package in a project.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    # Source of the build: type identifier
+    source_type = db.Column(db.Integer, default=helpers.BuildSourceEnum("srpm_link"))
+    # Source of the build: description in json, example: git link, srpm url, etc.
+    source_json = db.Column(db.Text)
+
+    # relations
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
+    copr = db.relationship("Copr", backref=db.backref("packages"))
+
+    @property
+    def gist_git_repo(self):
+        pass
+
+
 class Build(db.Model, helpers.Serializer):
 
     """
@@ -287,12 +307,18 @@ class Build(db.Model, helpers.Serializer):
     # enable networking during a build process
     enable_net = db.Column(db.Boolean, default=False,
                            server_default="0", nullable=False)
+    # Source of the build: type identifier
+    source_type = db.Column(db.Integer, default=helpers.BuildSourceEnum("srpm_link"))
+    # Source of the build: description in json, example: git link, srpm url, etc.
+    source_json = db.Column(db.Text)
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User", backref=db.backref("builds"))
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
     copr = db.relationship("Copr", backref=db.backref("builds"))
+    package_id = db.Column(db.Integer, db.ForeignKey("package.id"))
+    package = db.relationship("Package", backref=db.backref("builds"))
 
     chroots = association_proxy("build_chroots", "mock_chroot")
 
@@ -485,6 +511,7 @@ class BuildChroot(db.Model, helpers.Serializer):
                          primary_key=True)
     build = db.relationship("Build", backref=db.backref("build_chroots"))
     status = db.Column(db.Integer, default=helpers.StatusEnum("pending"))
+    git_hash = db.Column(db.String(40))
 
     @property
     def name(self):
