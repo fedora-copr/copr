@@ -1,6 +1,5 @@
 import json
 
-from coprs.signals import build_finished
 from tests.coprs_test_case import CoprsTestCase
 
 
@@ -139,21 +138,6 @@ class TestUpdateBuilds(CoprsTestCase):
         assert ended.status == 0
         assert ended.results == "http://server/results/foo/bar/"
         assert ended.ended_on == 139086644000
-
-    def test_build_ended_emmits_signal(self, f_users, f_coprs, f_builds, f_db):
-        # TODO: this should probably be mocked...
-        signals_received = []
-
-        def test_receiver(sender, **kwargs):
-            signals_received.append(kwargs["build"])
-        build_finished.connect(test_receiver)
-        self.tc.post("/backend/update/",
-                     content_type="application/json",
-                     headers=self.auth_header,
-                     data=self.data3)
-        assert len(signals_received) == 1
-        self.db.session.add(self.b2)
-        assert signals_received[0].id == 2
 
 
 class TestWaitingActions(CoprsTestCase):

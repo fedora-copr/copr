@@ -17,7 +17,6 @@ from coprs.models import CounterStat
 from coprs import helpers
 from coprs.helpers import REPO_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, dt_to_unixtime, string_dt_to_unixtime, \
     CHROOT_RPMS_DL_STAT_FMT, PROJECT_RPMS_DL_STAT_FMT
-from coprs import signals
 from coprs.helpers import CounterStatType
 from coprs.rmodels import TimedStatEvents
 

@@ -8,7 +8,6 @@ import time
 
 from coprs import models
 from coprs.helpers import ActionTypeEnum
-from coprs.signals import copr_created
 
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.actions_logic import ActionsLogic
@@ -105,24 +104,6 @@ class TestCoprNew(CoprsTestCase):
 
         # make sure no initial build was submitted
         assert self.models.Build.query.first() is None
-
-    @TransactionDecorator("u1")
-    def test_copr_new_emits_signal(self, f_users, f_mock_chroots, f_db):
-        # TODO: this should probably be mocked...
-        signals_received = []
-
-        def test_receiver(sender, **kwargs):
-            signals_received.append(kwargs["copr"])
-        copr_created.connect(test_receiver)
-        self.test_client.post(
-            "/coprs/{0}/new/".format(self.u1.name),
-            data={"name": "foo",
-                  "fedora-rawhide-i386": "y",
-                  "arches": ["i386"]},
-            follow_redirects=True)
-
-        assert len(signals_received) == 1
-        assert signals_received[0].name == "foo"
 
     @TransactionDecorator("u3")
     def test_copr_new_exists_for_another_user(self, f_users, f_coprs,

@@ -12,7 +12,6 @@ from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs import helpers
-from coprs import signals
 from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
 from coprs.helpers import StatusEnum
 
@@ -213,10 +212,6 @@ class BuildsLogic(object):
                 #if (attr == "ended_on" and build.has_unfinished_chroot) or \
                 #        (attr == "results" and build.has_pending_chroot):
                 #    continue
-
-                # todo: I couldn't find if signals is used anywhere
-                #if attr == "ended_on":
-                #    signals.build_finished.send(cls, build=build)
 
                 setattr(build, attr, value)
 
