@@ -161,7 +161,7 @@ class BuildsLogic(object):
         return models.Build.query.get(build_id)
 
     @classmethod
-    def add(cls, user, pkgs, copr,
+    def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None,
             memory_reqs=None, timeout=None, enable_net=True,
             git_hashes=None):
@@ -182,11 +182,19 @@ class BuildsLogic(object):
             raise exceptions.MalformedArgumentException("Trying to create a build using src_pkg "
                                                         "with bad characters. Forgot to split?")
 
+        # just temporary to keep compatibility
+        if not source_type or not source_json:
+            source_type = 1; # link
+            source_json = json.dumps({"url":pkgs})
+
+
         build = models.Build(
             user=user,
             pkgs=pkgs,
             copr=copr,
             repos=repos,
+            source_type=source_type,
+            source_json=source_json,
             submitted_on=int(time.time()),
             enable_net=bool(enable_net),
         )

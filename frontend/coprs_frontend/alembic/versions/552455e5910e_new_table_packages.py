@@ -14,6 +14,7 @@ from alembic import op
 import sqlalchemy as sa
 from rpmUtils.miscutils import splitFilename
 import os
+import json
 
 def parse_package_name(pkg):
     if pkg.count(".") >= 3 and pkg.count("-") >= 2:
@@ -84,13 +85,13 @@ def upgrade():
                         name = pkg_name,
                         copr_id = build.copr_id,
                         source_type = 0,
-                        source_json = str({})))
+                        source_json = json.dumps({})))
             package = connection.execute(package_table.select().where(
                         package_table.c.name == pkg_name and package_table.c.copr_id == build.copr_id)).first()
         connection.execute(build_table.update().where(build_table.c.id == build.id).values(
                     package_id = package.id,
                     source_type = 0,
-                    source_json = str({"url": build.pkgs})))
+                    source_json = json.dumps({"url": build.pkgs})))
 
 
 def downgrade():
