@@ -91,8 +91,9 @@ class StatusEnum(object):
 
 class BuildSourceEnum(object):
     __metaclass__ = EnumType
-    vals = {"srpm_link": 0, # url
-            "srpm_upload": 1} # pkg_name, tmp_dir
+    vals = {"unset": 0,
+            "srpm_link": 1, # url
+            "srpm_upload": 2} # pkg_name, tmp_dir
 
 class Paginator(object):
 

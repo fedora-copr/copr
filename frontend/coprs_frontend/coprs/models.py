@@ -265,7 +265,7 @@ class Package(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     # Source of the build: type identifier
-    source_type = db.Column(db.Integer, default=helpers.BuildSourceEnum("srpm_link"))
+    source_type = db.Column(db.Integer, default=helpers.BuildSourceEnum("unset"))
     # Source of the build: description in json, example: git link, srpm url, etc.
     source_json = db.Column(db.Text)
 
@@ -312,7 +312,7 @@ class Build(db.Model, helpers.Serializer):
     enable_net = db.Column(db.Boolean, default=False,
                            server_default="0", nullable=False)
     # Source of the build: type identifier
-    source_type = db.Column(db.Integer, default=helpers.BuildSourceEnum("srpm_link"))
+    source_type = db.Column(db.Integer, default=helpers.BuildSourceEnum("unset"))
     # Source of the build: description in json, example: git link, srpm url, etc.
     source_json = db.Column(db.Text)
 

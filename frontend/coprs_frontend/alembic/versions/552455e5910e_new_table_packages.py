@@ -71,6 +71,8 @@ def upgrade():
         sa.Column("pkgs", sa.Text),
         sa.Column("copr_id", sa.Integer),
         sa.Column("package_id", sa.Integer),
+        sa.Column("source_type", sa.Integer, default=0),
+        sa.Column("source_json", sa.Text),
     )
 
     for build in connection.execute(build_table.select()):
@@ -82,7 +84,7 @@ def upgrade():
                         name = pkg_name,
                         copr_id = build.copr_id,
                         source_type = 0,
-                        source_json = str({"url": build.pkgs})))
+                        source_json = str({})))
             package = connection.execute(package_table.select().where(
                         package_table.c.name == pkg_name and package_table.c.copr_id == build.copr_id)).first()
         connection.execute(build_table.update().where(build_table.c.id == build.id).values(
