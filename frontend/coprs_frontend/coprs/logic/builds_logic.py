@@ -164,7 +164,7 @@ class BuildsLogic(object):
     def add(cls, user, pkgs, copr,
             repos=None, chroots=None,
             memory_reqs=None, timeout=None, enable_net=True,
-            git_hashes=None)
+            git_hashes=None):
         if chroots is None:
             chroots = []
 
