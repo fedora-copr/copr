@@ -4,6 +4,7 @@ import re
 import os
 import shutil
 import tempfile
+import json
 
 from werkzeug import secure_filename
 
@@ -138,6 +139,11 @@ def copr_new_build_upload(username, coprname):
             if chroot.name in form.selected_chroots:
                 chroots.append(chroot)
 
+        # create json describing the build source
+        source_type = helpers.BuildSourceEnum("srpm_upload")
+        source_json = json.dumps({"tmp": tmp_name,
+                                  "pkg": filename})
+
         # create a new build
         try:
             build = builds_logic.BuildsLogic.add(
@@ -145,6 +151,8 @@ def copr_new_build_upload(username, coprname):
                 pkgs=pkg_url,
                 copr=copr,
                 chroots=chroots,
+                source_type=source_type,
+                source_json=source_json,
                 enable_net=form.enable_net.data)
 
             if flask.g.user.proven:
