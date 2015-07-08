@@ -51,7 +51,6 @@ def dist_git_upload_completed():
         - set BuildChroot.git_hash
         - if it's the last BuildChroot in a Build:
             - delete local srpm
-            - set the url to dist-git://user/project/package
     BuildChroot is identified with task_id which is build id + git branch name
         - For example: 56-f22 -> build 55, chroots fedora-22-*
     """
@@ -60,7 +59,7 @@ def dist_git_upload_completed():
     if "task_id" in flask.request.json and "git_hash" in flask.request.json and \
                                            "repo_name" in flask.request.json:
         task_id = flask.request.json["task_id"]
-        git_hash = flask.request.json["git_hash"][:7]
+        git_hash = flask.request.json["git_hash"]
         repo_name = flask.request.json["repo_name"]
         build_chroots = BuildsLogic.get_chroots_from_dist_git_task_id(task_id)
         for ch in build_chroots:
@@ -71,7 +70,6 @@ def dist_git_upload_completed():
         # is it the last chroot?
         if not build.has_importing_chroot:
             BuildsLogic.delete_local_srpm(build)
-            build.pkgs = "dist-git://{}".format(repo_name)
 
         db.session.commit()
 

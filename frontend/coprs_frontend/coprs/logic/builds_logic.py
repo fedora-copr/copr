@@ -258,14 +258,13 @@ class BuildsLogic(object):
         """
         Deletes the source rpm locally stored for upload (if exists)
         """
-        data = urlparse.urlparse(build.pkgs)
-        service = data.netloc
-
         # is it hosted on the copr frontend?
-        if service == app.config["PUBLIC_COPR_HOSTNAME"]:
-            tmp = data.path.split("/")[-2]
+        if build.source_type == helpers.BuildSourceEnum("srpm_upload"):
+            data = json.loads(build.source_json)
+            tmp = data["tmp"]
             storage_path = app.config["SRPM_STORAGE_DIR"]
             shutil.rmtree(os.path.join(storage_path, tmp))
+
 
     @classmethod
     def update_state_from_dict(cls, build, upd_dict):
