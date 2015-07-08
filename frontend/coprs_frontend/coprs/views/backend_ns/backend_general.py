@@ -42,7 +42,7 @@ def dist_git_importing_queue():
 
     return flask.jsonify(response_dict)
 
-@backend_ns.route("/upload-completed/", methods=["POST", "PUT"])
+@backend_ns.route("/import-completed/", methods=["POST", "PUT"])
 @misc.backend_authenticated
 def dist_git_upload_completed():
     """

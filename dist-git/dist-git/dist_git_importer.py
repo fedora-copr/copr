@@ -106,8 +106,8 @@ class DistGitImporter():
         self.opts = self.config_reader.read()
 
     def run(self):
-        get_url = "{}/backend/uploading/".format(self.opts.frontend_base_url)
-        upload_url = "{}/backend/upload-completed/".format(self.opts.frontend_base_url)
+        get_url = "{}/backend/importing/".format(self.opts.frontend_base_url)
+        upload_url = "{}/backend/import-completed/".format(self.opts.frontend_base_url)
         auth = ("user",self.opts.frontend_auth)
         headers = {"content-type": "application/json"}
 
@@ -117,14 +117,27 @@ class DistGitImporter():
                 # get the data
                 r = get(get_url)
                 try:
+                    # take the first task
                     task = r.json()["builds"][0]
 
+                    # extract data from it
                     task_id = task["task_id"]
                     user = task["user"]
                     project = task["project"]
                     package = task["package"]
                     branch = task["branch"]
-                    package_url = task["package_url"]
+                    source_type = task["source_type"]
+                    source_json = task["source_json"]
+
+                    if source_type == 1: # SRPM link
+                        package_url = json.loads(source_json)["url"]
+                    elif source_type == 2: # SRPM upload
+                        json_tmp = json.loads(source_json)["tmp"]
+                        json_pkg = json.loads(source_json)["pkg"]
+                        package_url = "{}/tmp/{}/{}".format(
+                                        self.opts.frontend_base_url, json_tmp, json_pkg)
+                    else:
+                        raise Exception
                 except:
                     time.sleep(10)
                     continue
