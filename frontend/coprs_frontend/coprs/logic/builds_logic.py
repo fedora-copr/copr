@@ -19,6 +19,7 @@ from coprs.helpers import StatusEnum
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
+from coprs.logic import packages_logic
 
 log = app.logger
 
@@ -52,13 +53,13 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_build_uploading_queue(cls):
+    def get_build_importing_queue(cls):
         """
         Returns BuildChroots which are waiting to be uploaded to dist git
         """
         query = (models.BuildChroot.query.join(models.Build)
                  .filter(models.Build.canceled == false())
-                 .filter(models.BuildChroot.status == helpers.StatusEnum("uploading")))
+                 .filter(models.BuildChroot.status == helpers.StatusEnum("importing")))
         query = query.order_by(models.BuildChroot.build_id.asc())
         return query
 
@@ -117,7 +118,7 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_uploading(cls):
+    def get_importing(cls):
         """
         Return builds that are waiting for dist git to import the sources.
         """
@@ -184,9 +185,17 @@ class BuildsLogic(object):
 
         # just temporary to keep compatibility
         if not source_type or not source_json:
-            source_type = 1; # link
+            source_type = helpers.BuildSourceEnum("srpm_link")
             source_json = json.dumps({"url":pkgs})
 
+        package_name = helpers.parse_package_name(os.path.basename(pkgs))
+
+        package = packages_logic.PackagesLogic.get(copr.id, package_name).first()
+
+        if not package:
+            package = packages_logic.PackagesLogic.add(user, copr, package_name)
+            db.session.add(package)
+            db.session.flush()
 
         build = models.Build(
             user=user,
@@ -195,6 +204,7 @@ class BuildsLogic(object):
             repos=repos,
             source_type=source_type,
             source_json=source_json,
+            package_id=package.id,
             submitted_on=int(time.time()),
             enable_net=bool(enable_net),
         )

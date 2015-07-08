@@ -18,21 +18,22 @@ log = logging.getLogger(__name__)
 
 
 
-@backend_ns.route("/uploading/")
+@backend_ns.route("/importing/")
 #@misc.backend_authenticated
-def dist_git_uploading_queue():
+def dist_git_importing_queue():
     """
     Return list of builds that are waiting for dist git to import the sources.
     """
     builds_list = []
-    for task in BuildsLogic.get_build_uploading_queue().limit(200):
+    for task in BuildsLogic.get_build_importing_queue().limit(200):
         task_dict = {
             "task_id": "{}-{}".format(task.build.id, helpers.chroot_to_branch(task.mock_chroot.name)),
             "user": task.build.copr.owner.name,
             "project": task.build.copr.name,
-            "package": helpers.parse_package_name(os.path.basename(task.build.pkgs)),
-            "package_url": task.build.pkgs,
+            "package": task.build.package.name,
             "branch": helpers.chroot_to_branch(task.mock_chroot.name),
+            "source_type": task.build.source_type,
+            "source_json": task.build.source_json,
         }
         if task_dict not in builds_list:
             builds_list.append(task_dict)
@@ -68,7 +69,7 @@ def dist_git_upload_completed():
 
         build = build_chroots[0].build
         # is it the last chroot?
-        if not build.has_uploading_chroot:
+        if not build.has_importing_chroot:
             BuildsLogic.delete_local_srpm(build)
             build.pkgs = "dist-git://{}".format(repo_name)
 

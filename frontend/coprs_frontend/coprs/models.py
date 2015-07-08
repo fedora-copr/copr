@@ -392,8 +392,8 @@ class Build(db.Model, helpers.Serializer):
             helpers.StatusEnum("running") in self.chroot_states
 
     @property
-    def has_uploading_chroot(self):
-        return helpers.StatusEnum("uploading") in self.chroot_states
+    def has_importing_chroot(self):
+        return helpers.StatusEnum("importing") in self.chroot_states
 
     @property
     def status(self):
@@ -404,7 +404,7 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return helpers.StatusEnum("canceled")
 
-        for state in ["failed", "running", "starting", "uploading", "pending", "succeeded", "skipped"]:
+        for state in ["failed", "running", "starting", "importing", "pending", "succeeded", "skipped"]:
             if helpers.StatusEnum(state) in self.chroot_states:
                 return helpers.StatusEnum(state)
 
@@ -428,7 +428,7 @@ class Build(db.Model, helpers.Serializer):
         """
 
         return self.status == helpers.StatusEnum("pending") or \
-               self.status == helpers.StatusEnum("uploading")
+               self.status == helpers.StatusEnum("importing")
 
     @property
     def repeatable(self):
@@ -547,7 +547,7 @@ class BuildChroot(db.Model, helpers.Serializer):
                          primary_key=True)
     build = db.relationship("Build", backref=db.backref("build_chroots"))
     git_hash = db.Column(db.String(40))
-    status = db.Column(db.Integer, default=helpers.StatusEnum("uploading"))
+    status = db.Column(db.Integer, default=helpers.StatusEnum("importing"))
 
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer)

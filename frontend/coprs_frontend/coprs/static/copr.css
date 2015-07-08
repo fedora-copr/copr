@@ -419,11 +419,11 @@ tr.build-row-skipped {
   color: #55b;
 }
 
-.build-starting,.build-starting>a {
-  color: #c84;
+.build-importing,.build-importing>a {
+  color: #55b;
 }
 
-.build-uploading,.build-uploading>a {
+.build-starting,.build-starting>a {
   color: #c84;
 }
 

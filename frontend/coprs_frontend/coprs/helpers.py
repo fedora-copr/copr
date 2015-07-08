@@ -86,7 +86,7 @@ class StatusEnum(object):
             "pending": 4,
             "skipped": 5,  # if there was this package built already
             "starting": 6,  # build picked by worker but no VM initialized
-            "uploading": 7} # SRPM is being uploaded to dist-git
+            "importing": 7} # SRPM is being imported to dist-git
 
 
 class BuildSourceEnum(object):
