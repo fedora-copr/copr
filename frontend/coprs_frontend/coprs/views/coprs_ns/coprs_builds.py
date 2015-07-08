@@ -145,7 +145,6 @@ def copr_new_build_upload(username, coprname):
                 pkgs=pkg_url,
                 copr=copr,
                 chroots=chroots,
-                source_name=filename,
                 enable_net=form.enable_net.data)
 
             if flask.g.user.proven:

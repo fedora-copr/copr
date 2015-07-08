@@ -164,7 +164,7 @@ class BuildsLogic(object):
     def add(cls, user, pkgs, copr,
             repos=None, chroots=None,
             memory_reqs=None, timeout=None, enable_net=True,
-            git_hashes=None, source_name=None):
+            git_hashes=None)
         if chroots is None:
             chroots = []
 
@@ -182,15 +182,11 @@ class BuildsLogic(object):
             raise exceptions.MalformedArgumentException("Trying to create a build using src_pkg "
                                                         "with bad characters. Forgot to split?")
 
-        if not source_name:
-            source_name = os.path.basename(pkgs)
-
         build = models.Build(
             user=user,
             pkgs=pkgs,
             copr=copr,
             repos=repos,
-            source_name=source_name,
             submitted_on=int(time.time()),
             enable_net=bool(enable_net),
         )

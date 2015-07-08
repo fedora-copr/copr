@@ -287,8 +287,6 @@ class Build(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     # single url to the source rpm, should not contain " ", "\n", "\t"
     pkgs = db.Column(db.Text)
-    # name that helps user to identify the srpm name
-    source_name = db.Column(db.Text)
     # built packages
     built_packages = db.Column(db.Text)
     # version of the srpm package got by rpm
@@ -459,10 +457,7 @@ class Build(db.Model, helpers.Serializer):
         """
         Extract source package name from source name or url
         """
-        if self.source_name:
-            src_rpm_name = self.source_name
-        else:
-            src_rpm_name =  self.pkgs.split("/")[-1]
+        src_rpm_name =  self.pkgs.split("/")[-1]
         if src_rpm_name.endswith(".src.rpm"):
             return src_rpm_name[:-8]
         else:
