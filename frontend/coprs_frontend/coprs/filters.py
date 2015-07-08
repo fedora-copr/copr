@@ -141,6 +141,18 @@ def build_state_decoration(state):
     return description_map.get(state, "")
 
 
+@app.template_filter("build_source_description")
+def build_state_decoration(state):
+
+    description_map = {
+        "unset": "No default source",
+        "srpm_link": "External link with SRPM",
+        "srpm_upload": "SRPM file upload",
+    }
+
+    return description_map.get(state, "")
+
+
 @app.template_filter("fix_url_https_backend")
 def fix_url_https_backend(url):
     return helpers.fix_protocol_for_backend(url)

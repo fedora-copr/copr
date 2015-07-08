@@ -275,7 +275,9 @@ class Package(db.Model, helpers.Serializer):
 
     @property
     def gist_git_repo(self):
-        pass
+        return "{}/{}/{}".format(self.copr.owner.name,
+                                 self.copr.name,
+                                 self.name)
 
 
 class Build(db.Model, helpers.Serializer):
@@ -346,6 +348,10 @@ class Build(db.Model, helpers.Serializer):
     @property
     def chroots_ended_on(self):
         return {chroot.name: chroot.ended_on for chroot in self.build_chroots}
+
+    @property
+    def source_type_text(self):
+        return helpers.BuildSourceEnum(self.source_type)
 
     @property
     def chroot_states(self):

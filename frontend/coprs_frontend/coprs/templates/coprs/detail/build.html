@@ -13,7 +13,6 @@
     <h2 class="build-detail" alt="{{build.state|build_state_description}}"> 
         <b>Build {{ build.id }}:</b>
         <span class="build-{{build.state}}"> {{ build.state }} </span>
-         - {{build.pkgs}}
     </h2>
 
     <div class="build-buttons" >
@@ -28,7 +27,15 @@
 
     <dl class="aligned" >
         <div>
-            <dt> Built packages:</dt>
+            <dt> Source Package:</dt>
+            <dd> {{ build.package.name }}</dd>
+        </div>
+        <div>
+            <dt> Dist Git Repo:</dt>
+            <dd> <a href="#"> {{ build.package.gist_git_repo }}</a> </dd>
+        </div>
+        <div>
+            <dt> Built Packages:</dt>
                 {% if build.built_packages %}
                     {% for pkg in build.built_packages.split("\n"): %}
                         <dd>{{ pkg }}</dd>
@@ -51,6 +58,7 @@
                               alt="{{chroot.state|build_state_description}}">
                             {{ chroot.state }}
                         </span>
+                         - {{ chroot.git_hash }} <span style="color:#888">(git hash)</span>
                     </dd>
                 {% endfor %}
         </div>
@@ -98,6 +106,9 @@
         </div>
         <div>
             <dt> Source: </dt>
+                <dd> Type: {{ build.source_type_text | build_source_description }} </dd>
+                <dd> Json:  <span style="color:#888"> {{ build.source_json }} </span></dd>
+                </dd>
                 <dd>
                     {% if build.pkgs is not none %}
                         {% if build.pkgs[:11] == "dist-git://" %}
