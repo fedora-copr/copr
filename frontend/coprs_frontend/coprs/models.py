@@ -331,6 +331,8 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def max_ended_on(self):
+        if not self.build_chroots:
+            return None
         if any(chroot.ended_on is None for chroot in self.build_chroots):
             return None
         return max(chroot.ended_on for chroot in self.build_chroots)
@@ -341,7 +343,7 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def chroots_ended_on(self):
-        return {chroot.name: chroot.started_on for chroot in self.build_chroots}
+        return {chroot.name: chroot.ended_on for chroot in self.build_chroots}
 
     @property
     def chroot_states(self):

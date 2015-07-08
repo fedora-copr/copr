@@ -15,6 +15,8 @@ from coprs import helpers
 from coprs import models
 
 import six
+from coprs.helpers import StatusEnum
+
 if six.PY3:
     from unittest import mock
     from unittest.mock import MagicMock
@@ -174,9 +176,9 @@ class CoprsTestCase(object):
     @pytest.fixture
     def f_builds(self):
         self.b1 = models.Build(
-            copr=self.c1, user=self.u1, submitted_on=50, started_on=139086644000)
+            copr=self.c1, user=self.u1, submitted_on=50)
         self.b2 = models.Build(
-            copr=self.c1, user=self.u2, submitted_on=10, ended_on=139086644000)
+            copr=self.c1, user=self.u2, submitted_on=10)
         self.b3 = models.Build(
             copr=self.c2, user=self.u2, submitted_on=10)
         self.b4 = models.Build(
@@ -191,15 +193,20 @@ class CoprsTestCase(object):
                 [self.b1, self.b2, self.b3, self.b4],
                 [self.b1_bc, self.b2_bc, self.b3_bc, self.b4_bc]):
 
-
             status = None
             if build is self.b1:  # this build is going to be deleted
-                status = 1  # succeeded
+                status = StatusEnum("succeeded")
             for chroot in build.copr.active_chroots:
                 buildchroot = models.BuildChroot(
                     build=build,
                     mock_chroot=chroot,
                     status=status)
+
+                if build is self.b1:
+                    buildchroot.started_on = 139086644000
+                if build is self.b2:
+                    buildchroot.started_on = 139086644000
+                    buildchroot.ended_on = 149086644000
 
                 build_chroots.append(buildchroot)
                 self.db.session.add(buildchroot)

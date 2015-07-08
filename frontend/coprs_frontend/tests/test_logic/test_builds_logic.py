@@ -5,8 +5,10 @@ import pytest
 import time
 from sqlalchemy.orm.exc import NoResultFound
 from coprs import helpers
+from coprs.constants import MAX_BUILD_TIMEOUT
 
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, MalformedArgumentException
+from coprs.helpers import StatusEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.builds_logic import BuildsMonitorLogic
@@ -89,22 +91,23 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(data) == 0
 
     def test_build_queue_4(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        time_now = int(time.time())
         for build_chroots in [self.b1_bc, self.b2_bc]:
             for build_chroot in build_chroots:
-                build_chroot.status = 3  # running
+                build_chroot.status = StatusEnum("running")
+                build_chroot.started_on = time_now - 2 * MAX_BUILD_TIMEOUT
+                build_chroot.ended_on = None
         for build_chroots in [self.b3_bc, self.b4_bc]:
             for build_chroot in build_chroots:
-                build_chroot.status = 0
-
-        time_now = int(time.time())
-
-        self.b1.started_on = time_now - 100000
+                build_chroot.status = StatusEnum("failed")
+                build_chroot.started_on = time_now - 2 * MAX_BUILD_TIMEOUT
+                build_chroot.ended_on = None
 
         self.db.session.commit()
         data = BuildsLogic.get_build_task_queue().all()
 
-        assert len(data) == 1
-        assert data[0] == self.b1_bc[0]
+        assert len(data) == 2
+        assert set([data[0], data[1]]) == set([self.b1_bc[0], self.b2_bc[0]])
 
     def test_delete_build_exceptions(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):

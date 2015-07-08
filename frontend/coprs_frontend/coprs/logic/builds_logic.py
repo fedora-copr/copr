@@ -37,7 +37,7 @@ class BuildsLogic(object):
             limit = 100
 
         query = models.Build.query \
-            .filter(models.Build.ended_on.is_not(None)) \
+            .filter(models.Build.ended_on.isnot(None)) \
             .order_by(models.Build.ended_on.desc())
 
         if user is not None:
@@ -61,12 +61,17 @@ class BuildsLogic(object):
                      models.BuildChroot.status == helpers.StatusEnum("pending"),
                      models.BuildChroot.status == helpers.StatusEnum("starting"),
                      and_(
-                         models.BuildChroot.status.in_([
-                             # Bug 1206562 - Cannot delete Copr because it incorrectly thinks
-                             # there are unfinished builds. Solution: `failed` but unfinished
-                             # (ended_on is null) builds should be rescheduled.
-                             # todo: we need to be sure that correct `failed` set is set together wtih `ended_on`
-                             helpers.StatusEnum("running"), helpers.StatusEnum("failed")]),
+                         # We are moving ended_on to the BuildChroot, now it should be reliable,
+                         # so we don't want to reschedule failed chroots
+                         # models.BuildChroot.status.in_([
+                         # # Bug 1206562 - Cannot delete Copr because it incorrectly thinks
+                         # # there are unfinished builds. Solution: `failed` but unfinished
+                         # # (ended_on is null) builds should be rescheduled.
+                         # # todo: we need to be sure that correct `failed` set is set together wtih `ended_on`
+                         # helpers.StatusEnum("running"),
+                         # helpers.StatusEnum("failed")
+                         #]),
+                         models.BuildChroot.status == helpers.StatusEnum("running"),
                          models.BuildChroot.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
                          models.BuildChroot.ended_on.is_(None)
                      ))
@@ -178,22 +183,43 @@ class BuildsLogic(object):
 
         return build
 
+    terminal_states = {StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")}
+
     @classmethod
     def update_state_from_dict(cls, build, upd_dict):
+        """
+        :param build:
+        :param upd_dict:
+            example:
+            {
+              "builds":[
+               {
+                 "id": 1,
+                 "copr_id": 2,
+                 "started_on": 139086644000
+               },
+               {
+                 "id": 2,
+                 "copr_id": 1,
+                 "status": 0,
+                 "chroot": "fedora-18-x86_64",
+                 "results": "http://server/results/foo/bar/",
+                 "ended_on": 139086644000
+               }]
+            }
+        """
         log.info("Updating build: {} by: {}".format(build.id, upd_dict))
         if "chroot" in upd_dict:
             # update respective chroot status
             for build_chroot in build.build_chroots:
                 if build_chroot.name == upd_dict["chroot"]:
 
-                    if "status" in upd_dict and build_chroot.status not in [
-                        # this states is terminal
-                        StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")
-                    ]:
+                    if "status" in upd_dict and build_chroot.status not in BuildsLogic.terminal_states:
                         build_chroot.status = upd_dict["status"]
-                    if upd_dict.get("status") in [
-                            StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")]:
+
+                    if upd_dict.get("status") in BuildsLogic.terminal_states:
                         build_chroot.ended_on = upd_dict.get("ended_on") or time.time()
+
                     if upd_dict.get("status") == StatusEnum("starting"):
                         build_chroot.started_on = upd_dict.get("started_on") or time.time()
 
@@ -202,17 +228,6 @@ class BuildsLogic(object):
         for attr in ["results", "pkg_version", "built_packages"]:
             value = upd_dict.get(attr, None)
             if value:
-                # only update started_on once
-                # if attr == "started_on" and build.started_on:
-                #    continue
-
-                # VV I don't see why we need to wait for all chroots
-                # update ended_on when everything really ends
-                # update results when there is repo initialized for every chroot
-                #if (attr == "ended_on" and build.has_unfinished_chroot) or \
-                #        (attr == "results" and build.has_pending_chroot):
-                #    continue
-
                 setattr(build, attr, value)
 
         if build.max_ended_on is not None:
