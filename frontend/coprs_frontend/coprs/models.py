@@ -296,7 +296,9 @@ class Build(db.Model, helpers.Serializer):
     # the three below represent time of important events for this build
     # as returned by int(time.time())
     submitted_on = db.Column(db.Integer, nullable=False)
+    # obsolete, see started_on property of each build_chroot
     started_on = db.Column(db.Integer)
+    # means that ALL chroots are finished
     ended_on = db.Column(db.Integer)
     # url of the build results
     results = db.Column(db.Text)
@@ -321,6 +323,25 @@ class Build(db.Model, helpers.Serializer):
     package = db.relationship("Package", backref=db.backref("builds"))
 
     chroots = association_proxy("build_chroots", "mock_chroot")
+
+    @property
+    def min_started_on(self):
+        return min(chroot.started_on for chroot in
+                   self.build_chroots if chroot.started_on)
+
+    @property
+    def max_ended_on(self):
+        if any(chroot.ended_on is None for chroot in self.build_chroots):
+            return None
+        return max(chroot.ended_on for chroot in self.build_chroots)
+
+    @property
+    def chroots_started_on(self):
+        return {chroot.name: chroot.started_on for chroot in self.build_chroots}
+
+    @property
+    def chroots_ended_on(self):
+        return {chroot.name: chroot.started_on for chroot in self.build_chroots}
 
     @property
     def chroot_states(self):
@@ -512,6 +533,9 @@ class BuildChroot(db.Model, helpers.Serializer):
     build = db.relationship("Build", backref=db.backref("build_chroots"))
     status = db.Column(db.Integer, default=helpers.StatusEnum("pending"))
     git_hash = db.Column(db.String(40))
+
+    started_on = db.Column(db.Integer)
+    ended_on = db.Column(db.Integer)
 
     @property
     def name(self):

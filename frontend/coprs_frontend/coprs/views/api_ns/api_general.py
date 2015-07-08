@@ -354,7 +354,7 @@ def build_detail(build_id):
                   "src_version": build.pkg_version,
                   "chroots": chroots,
                   "submitted_on": build.submitted_on,
-                  "started_on": build.started_on,
+                  "started_on": build.min_started_on,
                   "ended_on": build.ended_on,
                   "src_pkg": build.pkgs,
                   "submitted_by": build.user.name}

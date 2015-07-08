@@ -38,7 +38,7 @@ class BuildsLogic(object):
             limit = 100
 
         query = models.Build.query \
-            .filter(models.Build.ended_on != None) \
+            .filter(models.Build.ended_on.is_not(None)) \
             .order_by(models.Build.ended_on.desc())
 
         if user is not None:
@@ -68,8 +68,8 @@ class BuildsLogic(object):
                              # (ended_on is null) builds should be rescheduled.
                              # todo: we need to be sure that correct `failed` set is set together wtih `ended_on`
                              helpers.StatusEnum("running"), helpers.StatusEnum("failed")]),
-                         models.Build.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
-                         models.Build.ended_on.is_(None)
+                         models.BuildChroot.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
+                         models.BuildChroot.ended_on.is_(None)
                      ))
         ))
         query = query.order_by(models.BuildChroot.build_id.asc())
@@ -109,13 +109,13 @@ class BuildsLogic(object):
         """
 
         query = (models.Build.query.join(models.Build.copr)
-                 .join(models.User)
+                 .join(models.User).join(models.BuildChroot)
                  .options(db.contains_eager(models.Build.copr))
                  .options(db.contains_eager("copr.owner"))
-                 .filter((models.Build.started_on == None)
-                         | (models.Build.started_on < int(time.time() - 7200)))
-                 .filter(models.Build.ended_on == None)
-                 .filter(models.Build.canceled == False)
+                 .filter((models.BuildChroot.started_on.is_(None))
+                         | (models.BuildChroot.started_on < int(time.time() - 7200)))
+                 .filter(models.BuildChroot.ended_on.is_(None))
+                 .filter(models.Build.canceled == false())
                  .order_by(models.Build.submitted_on.asc()))
         return query
 
@@ -192,26 +192,36 @@ class BuildsLogic(object):
                         StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")
                     ]:
                         build_chroot.status = upd_dict["status"]
+                    if upd_dict.get("status") in [
+                            StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")]:
+                        build_chroot.ended_on = upd_dict.get("ended_on") or time.time()
+                    if upd_dict.get("status") == StatusEnum("starting"):
+                        build_chroot.started_on = upd_dict.get("started_on") or time.time()
 
                     db.session.add(build_chroot)
 
-        for attr in ["results", "started_on", "ended_on", "pkg_version", "built_packages"]:
+        for attr in ["results", "pkg_version", "built_packages"]:
             value = upd_dict.get(attr, None)
             if value:
                 # only update started_on once
-                if attr == "started_on" and build.started_on:
-                    continue
+                # if attr == "started_on" and build.started_on:
+                #    continue
 
+                # VV I don't see why we need to wait for all chroots
                 # update ended_on when everything really ends
                 # update results when there is repo initialized for every chroot
-                if (attr == "ended_on" and build.has_unfinished_chroot) or \
-                        (attr == "results" and build.has_pending_chroot):
-                    continue
+                #if (attr == "ended_on" and build.has_unfinished_chroot) or \
+                #        (attr == "results" and build.has_pending_chroot):
+                #    continue
 
-                if attr == "ended_on":
-                    signals.build_finished.send(cls, build=build)
+                # todo: I couldn't find if signals is used anywhere
+                #if attr == "ended_on":
+                #    signals.build_finished.send(cls, build=build)
 
                 setattr(build, attr, value)
+
+        if build.max_ended_on is not None:
+            build.ended_on = build.max_ended_on
 
         db.session.add(build)
 
@@ -223,6 +233,8 @@ class BuildsLogic(object):
         build.canceled = True
         for chroot in build.build_chroots:
             chroot.status = 2  # canceled
+            if chroot.ended_on is not None:
+                chroot.ended_on = time.time()
 
     @classmethod
     def delete_build(cls, user, build):
@@ -271,7 +283,7 @@ class BuildsLogic(object):
 
     @classmethod
     def last_modified(cls, copr):
-        """ Get build datetime (as epoch) of last successfull build
+        """ Get build datetime (as epoch) of last successful build
 
         :arg copr: object of copr
         """
@@ -281,7 +293,7 @@ class BuildsLogic(object):
             builds.join(models.BuildChroot)
             .filter((models.BuildChroot.status == helpers.StatusEnum("succeeded"))
                     | (models.BuildChroot.status == helpers.StatusEnum("skipped")))
-            .filter(models.Build.ended_on != None)
+            .filter(models.Build.ended_on.is_not(None))
             .order_by(models.Build.ended_on.desc())
         ).first()
         if last_build:
