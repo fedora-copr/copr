@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 
 
 @backend_ns.route("/importing/")
+# FIXME I'm commented
 #@misc.backend_authenticated
 def dist_git_importing_queue():
     """
@@ -78,7 +79,8 @@ def dist_git_upload_completed():
     return flask.jsonify(result)
 
 @backend_ns.route("/waiting/")
-@misc.backend_authenticated
+# FIXME I'm commented
+#@misc.backend_authenticated
 def waiting():
     """
     Return list of waiting actions and builds.
@@ -107,6 +109,7 @@ def waiting():
             "memory_reqs": task.build.memory_reqs,
             "timeout": task.build.timeout,
             "enable_net": task.build.enable_net,
+            "git_repo": task.build.package.gist_git_repo,
             "git_hash": task.git_hash,
         }
         for task in BuildsLogic.get_build_task_queue().limit(200)
