@@ -184,17 +184,20 @@ class Builder(object):
         ansible_test_results = self._run_ansible("/usr/bin/test -f {0}".format(successfile))
         check_for_ans_error(ansible_test_results, self.hostname)
 
-    def download_job_pkg(self, pkg):
-        branch = chroot_to_branch(self.job.chroot)
-        repo_name = pkg.split("dist-git://")[1]
-        pkg_name = repo_name.split("/")[2]
-        repo_url = "{}/{}.git".format(self.opts.dist_git_url, repo_name)
+    def download_job_pkg(self, git_repo, git_hash):
+        pkg_name = git_repo.split("/")[2]
+        repo_url = "{}/{}.git".format(self.opts.dist_git_url, git_repo)
         self.log.info("Cloning Dist Git repo {}, branch {}".format(repo_url, branch))
-        results = self._run_ansible("cd /tmp && "
-                                    "git clone -b {branch} {repo} && "
-                                    "cd {pkg} && "
+        results = self._run_ansible("rm -rf /tmp/build_package_repo && "
+                                    "mkdir /tmp/build_package_repo && "
+                                    "cd /tmp/build_package_repo && "
+                                    "git clone {repo_url} && "
+                                    "cd {pkg_name} && "
+                                    "git checkout {git_hash} && "
                                     "fedpkg-copr srpm".format(
-                                        branch=branch, repo=repo_url, pkg=pkg_name))
+                                                        repo_url=repo_url,
+                                                        pkg_name=pkg_name,
+                                                        git_hash=git_hash))
 
         local_pkg = list(results["contacted"].values())[0][u"stdout"].split("Wrote: ")[1]
         self.log.info("Done: {}".format(local_pkg))
@@ -316,11 +319,11 @@ class Builder(object):
     #     buildcmd = self.gen_mockchain_command(dest)
     #
 
-    def build(self, pkg, git_hash):
+    def build(self, git_repo, git_hash):
         self.modify_mock_chroot_config()
 
         # download the package to the builder
-        local_pkg = self.download_job_pkg(pkg)
+        local_pkg = self.download_job_pkg(git_repo, git_hash)
         self.local_pkg = local_pkg
 
         # srpm version
@@ -341,12 +344,11 @@ class Builder(object):
         self.collect_built_packages(build_details, local_pkg)
         return build_details, build_out
 
-    def download(self, pkg, destdir):
+    def download(self, pkg, destdir, result_dir):
             # download the pkg to destdir using rsync + ssh
 
         rpd = self._get_remote_pkg_dir(pkg)
-        dirname = os.path.basename(pkg.replace(".src.rpm", ""))
-        destdir = "{}/{}".format(destdir, dirname)
+        destdir = "{}/{}".format(destdir, result_dir)
         # make spaces work w/our rsync command below :(
         destdir = "'" + destdir.replace("'", "'\\''") + "'"
 

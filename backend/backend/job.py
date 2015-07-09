@@ -49,12 +49,11 @@ class BuildJob(object):
             key = str(key)
             setattr(self, key, val)
 
-        if task_data["pkgs"].startswith("dist-git://"):
-            self.pkg = task_data["source_name"]
-        else:
-            self.pkg = task_data["pkgs"]
-        self.pkg_path = task_data["pkgs"]
+        self.pkg_path = task_data["git_repo"]
         self.git_hash = task_data["git_hash"]
+        package_name = task_data["git_repo"].split("/")[2]
+        # pkg will serve as a build dir name from now
+        self.pkg = "{}-{}".format(task_data["build_id"], package_name)
 
         del self.pkgs  # better to produce error, than use it blindly
 
