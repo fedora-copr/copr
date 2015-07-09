@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import os
 import json
 import time
@@ -22,6 +24,13 @@ from helpers import DistGitConfigReader
 # filepath = "/tmp/rh-php56-php-5.6.5-5.el7.src.rpm"
 #
 # git_hash = import_srpm(user, project, pkg_name, branch, filepath)
+
+
+class PackageImportException(Exception):
+    pass
+
+class PackageDownloadException(Exception):
+    pass
 
 
 def _my_upload(repo_dir, reponame, filename, filehash):
@@ -80,7 +89,10 @@ def import_srpm(user, project, pkg, branch, filepath):
         commands.clone(module, tmp, branch)
 
         # import the source rpm into git and save filenames of sources
-        uploadfiles = commands.import_srpm(filepath)
+        try:
+            uploadfiles = commands.import_srpm(filepath)
+        except:
+            raise PackageImportException
 
         # save the source files into lookaside cache
         commands.upload(uploadfiles, replace=True)
@@ -114,9 +126,11 @@ class DistGitImporter():
         tmp = tempfile.mkdtemp()
         try:
             while(True):
-                # get the data
-                r = get(get_url)
+                # 1. Try to get task data
                 try:
+                    # get the data
+                    r = get(get_url)
+
                     # take the first task
                     task = r.json()["builds"][0]
 
@@ -138,28 +152,48 @@ class DistGitImporter():
                                         self.opts.frontend_base_url, json_tmp, json_pkg)
                     else:
                         raise Exception
+
+                except KeyboardInterrupt:
+                    exit()
+
                 except:
-                    time.sleep(10)
+                    time.sleep(30)
                     continue
 
-                # make sure repos exist
-                reponame = "{}/{}/{}".format(user, project, package)
-                call(["/usr/share/dist-git/git_package.sh", reponame])
-                call(["/usr/share/dist-git/git_branch.sh", branch, reponame])
-                
-                # download the package
-                filepath = os.path.join(tmp, os.path.basename(package_url))
-                urllib.urlretrieve(package_url, filepath)
+                # 2. Import the package
+                try:
+                    # download the package
+                    filepath = os.path.join(tmp, os.path.basename(package_url))
+                    try:
+                        urllib.urlretrieve(package_url, filepath)
+                    except IOError:
+                        raise PackageDownloadException
 
-                # import it and delete the srpm
-                git_hash = import_srpm(user, project, package, branch, filepath)
-                os.remove(filepath)
+                    # make sure repos exist
+                    reponame = "{}/{}/{}".format(user, project, package)
+                    call(["/usr/share/dist-git/git_package.sh", reponame])
+                    call(["/usr/share/dist-git/git_branch.sh", branch, reponame])
 
-                # send a response
-                data = {"task_id": task_id,
-                        "repo_name": reponame,
-                        "git_hash": git_hash}
-                post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
+                    # import it and delete the srpm
+                    git_hash = import_srpm(user, project, package, branch, filepath)
+
+                    # send a response - success
+                    data = {"task_id": task_id,
+                            "repo_name": reponame,
+                            "git_hash": git_hash}
+                    post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
+
+                except (PackageImportException, PackageDownloadException):
+                    # send a response - failure
+                    data = {"task_id": task_id,
+                            "error": "error"}
+                    post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
+
+                finally:
+                    try:
+                        os.remove(filepath)
+                    except:
+                        pass
         finally:
             shutil.rmtree(tmp)
 

@@ -57,17 +57,24 @@ def dist_git_upload_completed():
     """
     result = {"updated": False}
 
-    if "task_id" in flask.request.json and "git_hash" in flask.request.json and \
-                                           "repo_name" in flask.request.json:
+    if "task_id" in flask.request.json: 
         task_id = flask.request.json["task_id"]
-        git_hash = flask.request.json["git_hash"]
-        repo_name = flask.request.json["repo_name"]
         build_chroots = BuildsLogic.get_chroots_from_dist_git_task_id(task_id)
-        for ch in build_chroots:
-            ch.status = helpers.StatusEnum("pending")
-            ch.git_hash = git_hash
-
         build = build_chroots[0].build
+
+        # Is it OK?
+        if "git_hash" in flask.request.json and "repo_name" in flask.request.json:
+            git_hash = flask.request.json["git_hash"]
+            repo_name = flask.request.json["repo_name"]
+            for ch in build_chroots:
+                ch.status = helpers.StatusEnum("pending")
+                ch.git_hash = git_hash
+
+        # Failed?
+        elif "error" in flask.request.json:
+            for ch in build_chroots:
+                ch.status = helpers.StatusEnum("failed")
+
         # is it the last chroot?
         if not build.has_importing_chroot:
             BuildsLogic.delete_local_srpm(build)
@@ -75,6 +82,7 @@ def dist_git_upload_completed():
         db.session.commit()
 
         result.update({"updated": True})
+        
 
     return flask.jsonify(result)
 

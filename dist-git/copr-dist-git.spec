@@ -14,6 +14,8 @@ Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
 
+BuildRequires:  systemd
+
 Requires:   dist-git
 Requires:   python-bunch
 Requires:   python-requests
@@ -36,9 +38,11 @@ This package contains Copr services for Dist Git server
 
 install -d %{buildroot}%{_datadir}/copr/dist-git
 install -d %{buildroot}%{_sysconfdir}/copr
+mkdir -p   %{buildroot}%{_unitdir}
 
 cp -a dist-git/* %{buildroot}%{_datadir}/copr/dist-git
 cp -a conf/copr-dist-git.conf.example %{buildroot}%{_sysconfdir}/copr/copr-dist-git.conf
+cp -a copr-dist-git.service %{buildroot}%{_unitdir}/
 
 
 %check
@@ -50,6 +54,8 @@ cp -a conf/copr-dist-git.conf.example %{buildroot}%{_sysconfdir}/copr/copr-dist-
 %{_datadir}/copr/*
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr) %{_sysconfdir}/copr/copr-dist-git.conf
+
+%{_unitdir}/copr-dist-git.service
 
 
 %changelog
