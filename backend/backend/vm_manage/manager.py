@@ -15,7 +15,8 @@ from backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound
 
 from backend.helpers import get_redis_connection
 from .models import VmDescriptor
-from . import VmStates, KEY_VM_INSTANCE, KEY_VM_POOL, EventTopics, PUBSUB_MB, KEY_SERVER_INFO, PUBSUB_INTERRUPT_BUILDER
+from . import VmStates, KEY_VM_INSTANCE, KEY_VM_POOL, EventTopics, PUBSUB_MB, KEY_SERVER_INFO, PUBSUB_INTERRUPT_BUILDER, \
+    KEY_VM_POOL_INFO
 from ..helpers import get_redis_logger
 
 # KEYS[1]: VMD key
@@ -414,3 +415,9 @@ class VmManager(object):
 
             buf.write("\n")
         return buf.getvalue()
+
+    def write_vm_pool_info(self, group, key, value):
+        self.rc.hset(KEY_VM_POOL_INFO.format(group=group), key, value)
+
+    def read_vm_pool_info(self, group, key):
+        return self.rc.hget(KEY_VM_POOL_INFO.format(group=group), key)

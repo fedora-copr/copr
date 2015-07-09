@@ -139,6 +139,12 @@ class VmDescriptorNotFound(VmError):
 class NoVmAvailable(VmError):
     pass
 
+class VmSpawnLimitReached(VmError):
+    """
+    Couldn't spawn more VM due to the given limits
+    """
+    pass
+
 class CmdError(CoprBackendError):
     def __init__(self, msg, cmd, exit_code=None, stdout=None, stderr=None):
         super(CmdError, self).__init__(msg)

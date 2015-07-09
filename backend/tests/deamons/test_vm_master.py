@@ -14,9 +14,7 @@ import types
 from bunch import Bunch
 import time
 from multiprocessing import Queue
-from backend import exceptions
-from backend.constants import JOB_GRAB_TASK_END_PUBSUB
-from backend.exceptions import VmError
+
 
 import tempfile
 import shutil
@@ -27,6 +25,9 @@ from backend.helpers import get_redis_connection
 from backend.vm_manage import VmStates
 from backend.vm_manage.manager import VmManager
 from backend.daemons.vm_master import VmMaster
+from backend.constants import JOB_GRAB_TASK_END_PUBSUB
+from backend.exceptions import VmError, VmSpawnLimitReached
+
 
 if six.PY3:
     from unittest import mock
@@ -425,15 +426,14 @@ class TestVmMaster(object):
             mock.call(group) for group in range(self.opts.build_groups_count)
         ]
 
-    def test_try_spawn_one_max_total_vm(self):
+    def test__check_total_running_vm_limit_raises(self):
         self.vm_master.log = MagicMock()
         active_vm_states = [VmStates.GOT_IP, VmStates.READY, VmStates.IN_USE, VmStates.CHECK_HEALTH]
         cases = [
             # active_vms_number , spawn_procs_number
             (x, 11 - x) for x in range(12)
         ]
-        # print(cases)
-        self.opts.build_groups[0]["max_vm_total"] = 10
+        self.opts.build_groups[0]["max_vm_total"] = 11
         for active_vms_number, spawn_procs_number in cases:
             vmd_list = [
                 self.vmm.add_vm_to_pool("127.0.0.{}".format(idx + 1), "a{}".format(idx), 0)
@@ -442,52 +442,85 @@ class TestVmMaster(object):
             for idx in range(active_vms_number):
                 state = choice(active_vm_states)
                 vmd_list[idx].store_field(self.rc, "state", state)
-            self.vmm.spawner.children_number = spawn_procs_number
 
-            self.vm_master.try_spawn_one(0)
-            assert not self.vmm.spawner.start_spawn.called
+            self.vmm.spawner.get_proc_num_per_group.return_value = spawn_procs_number
+            with pytest.raises(VmSpawnLimitReached):
+                self.vm_master._check_total_running_vm_limit(0)
             self.vm_master.log.reset_mock()
 
             # teardown
             self.clean_redis()
 
-    def test_try_spawn_one_last_spawn_time(self, mc_time):
+    def test__check_total_running_vm_limit_ok(self):
+        self.vm_master.log = MagicMock()
+        active_vm_states = [VmStates.GOT_IP, VmStates.READY, VmStates.IN_USE, VmStates.CHECK_HEALTH]
+        cases = [
+            # active_vms_number , spawn_procs_number
+            (x, 11 - x) for x in range(12)
+        ]
+        self.opts.build_groups[0]["max_vm_total"] = 12
+        for active_vms_number, spawn_procs_number in cases:
+            vmd_list = [
+                self.vmm.add_vm_to_pool("127.0.0.{}".format(idx + 1), "a{}".format(idx), 0)
+                for idx in range(active_vms_number)
+            ]
+            for idx in range(active_vms_number):
+                state = choice(active_vm_states)
+                vmd_list[idx].store_field(self.rc, "state", state)
+            # self.vmm.spawner.children_number = spawn_procs_number
+            self.vmm.spawner.get_proc_num_per_group.return_value = spawn_procs_number
+
+            # doesn't raise exception
+            self.vm_master._check_total_running_vm_limit(0)
+            self.vm_master.log.reset_mock()
+
+            # teardown
+            self.clean_redis()
+
+    def test__check_elapsed_time_after_spawn(self, mc_time):
         # don't start new spawn if last_spawn_time was in less self.vm_spawn_min_interval ago
         mc_time.time.return_value = 0
-        self.vm_master.try_spawn_one(0)
-        assert self.vmm.spawner.start_spawn.called_once
-        self.vmm.spawner.start_spawn.reset_mock()
+        self.vm_master._check_elapsed_time_after_spawn(0)
 
-        self.vm_master.try_spawn_one(0)
-        assert not self.vmm.spawner.start_spawn.called
+        self.vm_master.vmm.write_vm_pool_info(0, "last_vm_spawn_start", 0)
+        with pytest.raises(VmSpawnLimitReached):
+            self.vm_master._check_elapsed_time_after_spawn(0)
+
+        mc_time.time.return_value = -1 + self.vm_spawn_min_interval
+        with pytest.raises(VmSpawnLimitReached):
+            self.vm_master._check_elapsed_time_after_spawn(0)
+
         mc_time.time.return_value = 1 + self.vm_spawn_min_interval
-        self.vm_master.try_spawn_one(0)
-        assert self.vmm.spawner.start_spawn.called_once
+        self.vm_master._check_elapsed_time_after_spawn(0)
+        # we don't care about other group
+        self.vm_master.vmm.write_vm_pool_info(1, "last_vm_spawn_start", mc_time.time.return_value)
+        self.vm_master._check_elapsed_time_after_spawn(0)
+        with pytest.raises(VmSpawnLimitReached):
+            self.vm_master._check_elapsed_time_after_spawn(1)
 
-    def test_try_spawn_max_spawn_processes(self, mc_time):
-        mc_time.time.return_value = 0
-        self.vmm.log = MagicMock()
-        self.vm_master.try_spawn_one(0)
-        assert self.vmm.spawner.start_spawn.called_once
-        self.vmm.spawner.start_spawn.reset_mock()
+    def test__check_number_of_running_spawn_processes(self):
+        for i in range(self.opts.build_groups[0]["max_spawn_processes"]):
+            self.vmm.spawner.get_proc_num_per_group.return_value = i
+            self.vm_master._check_number_of_running_spawn_processes(0)
 
-        self.vmm.log.reset_mock()
-        mc_time.time.return_value = 1 + self.vm_spawn_min_interval
+        for i in [0, 1, 2, 5, 100]:
+            self.vmm.spawner.get_proc_num_per_group.return_value = \
+                self.opts.build_groups[0]["max_spawn_processes"] + i
 
-        self.vmm.spawner.children_number = self.opts.build_groups[0]["max_spawn_processes"] + 1
+            with pytest.raises(VmSpawnLimitReached):
+                self.vm_master._check_number_of_running_spawn_processes(0)
 
-        self.vm_master.try_spawn_one(0)
-        assert not self.vmm.spawner.start_spawn.called
+    def test__check_total_vm_limit(self):
+        self.vm_master.vmm = MagicMock()
+        for i in range(2 * self.opts.build_groups[0]["max_vm_total"]):
+            self.vm_master.vmm.get_all_vm_in_group.return_value = [1 for _ in range(i)]
+            self.vm_master._check_total_vm_limit(0)
 
-    def test_try_spawn_all_vm_failsafe(self, mc_time):
-        mc_time.time.return_value = 0
-        self.vmm.log = MagicMock()
-        self.opts.build_groups[0]["max_vm_total"] = 2
-        for idx in range(4):
-            vmd = self.vmm.add_vm_to_pool("127.0.0.{}".format(idx + 1), "a{}".format(idx), 0)
-            vmd.store_field(self.rc, "state", VmStates.TERMINATING)
-        self.vm_master.try_spawn_one(0)
-        assert not self.vmm.spawner.start_spawn.called
+        for i in range(2 * self.opts.build_groups[0]["max_vm_total"],
+                       2 * self.opts.build_groups[0]["max_vm_total"] + 10):
+            self.vm_master.vmm.get_all_vm_in_group.return_value = [1 for _ in range(i)]
+            with pytest.raises(VmSpawnLimitReached):
+                self.vm_master._check_total_vm_limit(0)
 
     def test_try_spawn_error_handling(self, mc_time):
         mc_time.time.return_value = 0
@@ -497,3 +530,32 @@ class TestVmMaster(object):
 
         self.vm_master.try_spawn_one(0)
         assert self.vmm.spawner.start_spawn.called
+
+    def test_try_spawn_exit_on_check_fail(self):
+        check_mocks = []
+        for check_name in [
+            "_check_total_running_vm_limit",
+            "_check_elapsed_time_after_spawn",
+            "_check_number_of_running_spawn_processes",
+            "_check_total_vm_limit",
+        ]:
+            mc_check_func = MagicMock()
+            check_mocks.append(mc_check_func)
+            setattr(self.vm_master, check_name, mc_check_func)
+
+        self.vm_master.vmm = MagicMock()
+        for idx in range(len(check_mocks)):
+            for cm in check_mocks:
+                cm.side_effect = None
+            check_mocks[idx].side_effect = VmSpawnLimitReached("test")
+
+            self.vm_master.try_spawn_one(0)
+            assert not self.vm_master.vmm.write_vm_pool_info.called
+            self.vm_master.vmm.write_vm_pool_info.reset_mock()
+
+        for cm in check_mocks:
+            cm.side_effect = None
+
+        self.vm_master.try_spawn_one(0)
+        assert self.vm_master.vmm.write_vm_pool_info.called
+        assert self.vm_master.vmm.spawner.start_spawn.called

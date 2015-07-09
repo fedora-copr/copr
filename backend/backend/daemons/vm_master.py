@@ -13,9 +13,10 @@ import traceback
 import sys
 import psutil
 
-from backend.constants import JOB_GRAB_TASK_END_PUBSUB
-from backend.vm_manage import VmStates, KEY_VM_POOL_INFO
-from backend.vm_manage.event_handle import EventHandler
+from ..constants import JOB_GRAB_TASK_END_PUBSUB
+from ..vm_manage import VmStates
+from ..vm_manage.event_handle import EventHandler
+from ..exceptions import VmSpawnLimitReached
 
 from ..helpers import get_redis_logger
 
@@ -143,54 +144,69 @@ class VmMaster(Process):
             if not last_health_check or time.time() - float(last_health_check) > check_period:
                 self.vmm.start_vm_check(vmd.vm_name)
 
-    def try_spawn_one(self, group):
+    def _check_total_running_vm_limit(self, group):
+        """ Checks that number of VM in any state excluding Terminating plus
+        number of running spawn processes is less than
+        threshold defined by BackendConfig.build_group[group]["max_vm_total"]
         """
-        Starts spawning process if all conditions are satisfied
-
-        Each condition has form f(...) < some threshold:
-        1. Total number of VM's in any state excluding Terminating + of running spawn processes.
-            Threshold defined by BackendConfig.build_group[]["max_vm_total"]
-        1b. [Fail safe] Total number of VM's in any state.
-            Threshold defined by BackendConfig.build_group[]["max_vm_total"] * 2
-        2. Time elapsed since latest VM spawn attempt.
-            Threshold defined by BackendConfig.build_group[]["vm_spawn_min_interval"]
-        3. Number of running spawn processes
-            Threshold defined by BackendConfig.build_group[]["max_spawn_processes"]
-        4. todo
-        """
-        # TODO: add setting "max_vm_in_ready_state", when this number reached, do not spawn more VMS, min value = 1
-
-        max_vm_total = self.opts.build_groups[group]["max_vm_total"]
         active_vmd_list = self.vmm.get_vm_by_group_and_state_list(
             group, [VmStates.GOT_IP, VmStates.READY, VmStates.IN_USE,
                     VmStates.CHECK_HEALTH, VmStates.CHECK_HEALTH_FAILED])
+        total_vm_estimation = len(active_vmd_list) + self.vmm.spawner.get_proc_num_per_group(group)
+        if total_vm_estimation >= self.opts.build_groups[group]["max_vm_total"]:
+            raise VmSpawnLimitReached(
+                "Skip spawn for group {}: max total vm reached: vm count: {}, spawn process: {}"
+                .format(group, len(active_vmd_list), self.vmm.spawner.get_proc_num_per_group(group)))
 
-        total_vm_estimation = len(active_vmd_list) + self.vmm.spawner.children_number
-        if total_vm_estimation >= max_vm_total:
-            self.log.debug("Skip spawn: max total vm reached for group {}: vm count: {}, spawn process: {}"
-                           .format(group, len(active_vmd_list), self.vmm.spawner.children_number))
-            return
-        last_vm_spawn_start = self.vmm.rc.hget(KEY_VM_POOL_INFO.format(group=group), "last_vm_spawn_start")
+    def _check_elapsed_time_after_spawn(self, group):
+        """ Checks that time elapsed since latest VM spawn attempt is greater than
+        threshold defined by BackendConfig.build_group[group]["vm_spawn_min_interval"]
+        """
+        last_vm_spawn_start = self.vmm.read_vm_pool_info(group, "last_vm_spawn_start")
         if last_vm_spawn_start:
             time_elapsed = time.time() - float(last_vm_spawn_start)
             if time_elapsed < self.opts.build_groups[group]["vm_spawn_min_interval"]:
-                self.log.debug("Skip spawn: time after previous spawn attempt < vm_spawn_min_interval: {}<{}"
-                               .format(time_elapsed, self.opts.build_groups[group]["vm_spawn_min_interval"]))
-                return
+                raise VmSpawnLimitReached(
+                    "Skip spawn for group {}: time after previous spawn attempt "
+                    "< vm_spawn_min_interval: {}<{}"
+                    .format(group, time_elapsed, self.opts.build_groups[group]["vm_spawn_min_interval"]))
 
-        if self.vmm.spawner.children_number >= self.opts.build_groups[group]["max_spawn_processes"]:
-            self.log.debug("Skip spawn: reached maximum number of spawning processes: {}"
-                           .format(self.vmm.spawner.children_number))
-            return
+    def _check_number_of_running_spawn_processes(self, group):
+        """ Check that number of running spawn processes is less than
+        threshold defined by BackendConfig.build_group[]["max_spawn_processes"]
+        """
+        if self.vmm.spawner.get_proc_num_per_group(group) >= self.opts.build_groups[group]["max_spawn_processes"]:
+            raise VmSpawnLimitReached(
+                "Skip spawn for group {}: reached maximum number of spawning processes: {}"
+                .format(group, self.vmm.spawner.get_proc_num_per_group(group)))
 
+    def _check_total_vm_limit(self, group):
+        """ Check that number of running spawn processes is less than
+        threshold defined by BackendConfig.build_group[]["max_spawn_processes"]
+        """
         count_all_vm = len(self.vmm.get_all_vm_in_group(group))
         if count_all_vm >= 2 * self.opts.build_groups[group]["max_vm_total"]:
-            self.log.debug("Skip spawn: #(ALL VM) >= 2 * max_vm_total reached: {}"
-                           .format(count_all_vm))
+            raise VmSpawnLimitReached(
+                "Skip spawn for group {}: #(ALL VM) >= 2 * max_vm_total reached: {}"
+                .format(group, count_all_vm))
+
+    def try_spawn_one(self, group):
+        """
+        Starts spawning process if all conditions are satisfied
+        """
+        # TODO: add setting "max_vm_in_ready_state", when this number reached, do not spawn more VMS, min value = 1
+
+        try:
+            self._check_total_running_vm_limit(group)
+            self._check_elapsed_time_after_spawn(group)
+            self._check_number_of_running_spawn_processes(group)
+            self._check_total_vm_limit(group)
+        except VmSpawnLimitReached as err:
+            self.log.debug(err.msg)
             return
 
-        self.log.info("start spawning new VM for group: {}".format(self.opts.build_groups[group]["name"]))
-        self.vmm.rc.hset(KEY_VM_POOL_INFO.format(group=group), "last_vm_spawn_start", time.time())
+        self.log.info("Start spawning new VM for group: {}".format(self.opts.build_groups[group]["name"]))
+        self.vmm.write_vm_pool_info(group, "last_vm_spawn_start", time.time())
         try:
             self.vmm.spawner.start_spawn(group)
         except Exception as error:

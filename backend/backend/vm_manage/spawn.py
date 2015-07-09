@@ -1,4 +1,5 @@
 # coding: utf-8
+
 import json
 import os
 import re
@@ -6,6 +7,7 @@ from setproctitle import setproctitle
 from threading import Thread
 import time
 from multiprocessing import Process
+from collections import defaultdict
 
 from IPy import IP
 
@@ -29,7 +31,7 @@ def spawn_instance(spawn_playbook, log):
     :return: dict with ip and name of created VM
     :raises CoprSpawnFailError:
     """
-    log.info("Spawning a builder")
+    log.info("Spawning a builder with pb: {}".format(spawn_playbook))
 
     start = time.time()
     # Ansible playbook python API does not work here, dunno why.  See:
@@ -69,7 +71,6 @@ def spawn_instance(spawn_playbook, log):
 
 
 def do_spawn_and_publish(opts, spawn_playbook, group):
-    # setproctitle("do_spawn_and_publish")
 
     log = get_redis_logger(opts, "spawner.detached", "spawner")
 
@@ -98,6 +99,18 @@ class Spawner(Executor):
     __name_for_log__ = "spawner"
     __who_for_log__ = "spawner"
 
+    def __init__(self, *args, **kwargs):
+        super(Spawner, self).__init__(*args, **kwargs)
+
+        # self.proc_num_by_group = defaultdict(int)
+        self.proc_to_group = {}  # {proc: Thread -> group: int}
+
+    def after_proc_finished(self, proc):
+        self.proc_to_group.pop(proc)
+
+    def get_proc_num_per_group(self, group):
+        return sum(1 for _, gr in self.proc_to_group.items() if gr == group)
+
     def start_spawn(self, group):
         try:
             spawn_playbook = self.opts.build_groups[group]["spawn_playbook"]
@@ -113,10 +126,13 @@ class Spawner(Executor):
             msg = "Spawn playbook {} is missing".format(spawn_playbook)
             raise CoprSpawnFailError(msg)
 
-        self.run_detached(do_spawn_and_publish, args=(self.opts, spawn_playbook, group))
+        proc = self.run_detached(do_spawn_and_publish, args=(self.opts, spawn_playbook, group))
+        self.proc_to_group[proc] = group
 
         # proc = Process(target=do_spawn_and_publish, args=(self.opts, spawn_playbook, group))
         # proc = Thread(target=do_spawn_and_publish, args=(self.opts, spawn_playbook, group))
         # self.child_processes.append(proc)
         # proc.start()
         # self.log.debug("Spawn process started: {}".format(proc.pid))
+
+

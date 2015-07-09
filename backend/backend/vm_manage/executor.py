@@ -34,6 +34,11 @@ class Executor(object):
         self.child_processes.append(proc)
         proc.start()
         # self.log.debug("Spawn process started: {}".format(proc.pid))
+        return proc
+
+    def after_proc_finished(self, proc):
+        # hook for subclasses
+        pass
 
     def recycle(self, force=False):
         """
@@ -55,6 +60,8 @@ class Executor(object):
                 proc.join()
                 # self.log.debug("Child process finished: {}".format(proc.pid))
                 self.log.debug("Child process finished: {}".format(proc))
+                self.after_proc_finished(proc)
+
         self.child_processes = still_alive
 
     def terminate(self):
