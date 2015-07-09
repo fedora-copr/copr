@@ -74,12 +74,12 @@ class TestBuildsLogic(CoprsTestCase):
 
     def test_build_queue_1(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         self.db.session.commit()
-        data = BuildsLogic.get_build_uploading_queue().all()
+        data = BuildsLogic.get_build_importing_queue().all()
         assert len(data) == 5
 
     def test_build_queue_2(self, f_users, f_coprs, f_mock_chroots, f_db):
         self.db.session.commit()
-        data = BuildsLogic.get_build_uploading_queue().all()
+        data = BuildsLogic.get_build_importing_queue().all()
         assert len(data) == 0
 
     def test_build_queue_3(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):

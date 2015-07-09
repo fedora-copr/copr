@@ -274,7 +274,7 @@ class Package(db.Model, helpers.Serializer):
     copr = db.relationship("Copr", backref=db.backref("packages"))
 
     @property
-    def gist_git_repo(self):
+    def dist_git_repo(self):
         return "{}/{}/{}".format(self.copr.owner.name,
                                  self.copr.name,
                                  self.name)

@@ -175,14 +175,19 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_builds(self):
+        self.p1 = models.Package(
+            copr=self.c1, name="hello-world", source_type=0)
+        self.p2 = models.Package(
+            copr=self.c2, name="hello-world", source_type=0)
+
         self.b1 = models.Build(
-            copr=self.c1, user=self.u1, submitted_on=50)
+            copr=self.c1, package=self.p1, user=self.u1, submitted_on=50)
         self.b2 = models.Build(
-            copr=self.c1, user=self.u2, submitted_on=10)
+            copr=self.c1, package=self.p1, user=self.u2, submitted_on=10)
         self.b3 = models.Build(
-            copr=self.c2, user=self.u2, submitted_on=10)
+            copr=self.c2, package=self.p2, user=self.u2, submitted_on=10)
         self.b4 = models.Build(
-            copr=self.c2, user=self.u2, submitted_on=100)
+            copr=self.c2, package=self.p2, user=self.u2, submitted_on=100)
 
         self.b1_bc = []
         self.b2_bc = []
