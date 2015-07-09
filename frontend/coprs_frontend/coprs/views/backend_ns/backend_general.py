@@ -111,6 +111,7 @@ def waiting():
             "enable_net": task.build.enable_net,
             "git_repo": task.build.package.gist_git_repo,
             "git_hash": task.git_hash,
+            "git_branch": helpers.chroot_to_branch(task.mock_chroot.name),
         }
         for task in BuildsLogic.get_build_task_queue().limit(200)
     ]
