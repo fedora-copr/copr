@@ -23,32 +23,34 @@ def upgrade():
 
     m_build_table = sa.Table(
         u"build",
+        sa.MetaData(),
         sa.Column("id", sa.Integer, nullable=False),
         sa.Column('ended_on', sa.Integer(), nullable=True),
         sa.Column('started_on', sa.Integer(), nullable=True),
     )
     m_build_chroot_table = sa.Table(
         u"build_chroot",
-        sa.Column("id", sa.Integer, nullable=False),
+        sa.MetaData(),
+        sa.Column("mock_chroot_id", sa.Integer, nullable=False),
         sa.Column("build_id", sa.Integer),
         sa.Column('ended_on', sa.Integer(), nullable=True),
         sa.Column('started_on', sa.Integer(), nullable=True)
     )
 
+    counter = 0
     for build in connection.execute(m_build_table.select()):
-        build_chroots = connection.execute(
-            m_build_chroot_table.select()
-            .where(m_build_chroot_table.build_id == build.id)
-        )
-        for bc in build_chroots:
-            connection.execute(
-                m_build_chroot_table.update()
-                .where(m_build_chroot_table.id == bc.id)
-                .values(
-                    started_on=build.started_on,
-                    ended_on=build.ended_on,
-                )
+        connection.execute(
+            m_build_chroot_table.update()
+            .where(m_build_chroot_table.c.build_id == build.id)
+            .values(
+                started_on=build.started_on,
+                ended_on=build.ended_on,
             )
+        )
+        counter += 1
+        if counter % 1000 == 0:
+            print("Processed: {} builds".format(counter))
+
 
 def downgrade():
     op.drop_column(u'build_chroot', 'started_on')
