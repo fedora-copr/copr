@@ -51,6 +51,7 @@ class BuildJob(object):
 
         self.pkg_path = task_data["git_repo"]
         self.git_hash = task_data["git_hash"]
+        self.git_branch = task_data["git_branch"]
         package_name = task_data["git_repo"].split("/")[2]
         # pkg will serve as a build dir name from now
         self.pkg = "{}-{}".format(task_data["build_id"], package_name)

@@ -318,7 +318,9 @@ class MockRemote(object):
 
         build_error = build_details = None
         try:
-            build_details, build_stdout = self.builder.build(self.git_repo, self.git_hash)
+            build_details, build_stdout = self.builder.build(self.job.git_repo,
+                                                             self.job.git_hash,
+                                                             self.job.git_branch)
             self.log.info("builder.build finished; details: {}\n stdout: {}".format(build_details, build_stdout))
         except BuilderError as error:
             self.log.exception("builder.build error building pkg `{}`: {}".format(self.pkg, error))

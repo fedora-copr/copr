@@ -184,7 +184,7 @@ class Builder(object):
         ansible_test_results = self._run_ansible("/usr/bin/test -f {0}".format(successfile))
         check_for_ans_error(ansible_test_results, self.hostname)
 
-    def download_job_pkg(self, git_repo, git_hash):
+    def download_job_pkg(self, git_repo, git_hash, git_branch):
         pkg_name = git_repo.split("/")[2]
         repo_url = "{}/{}.git".format(self.opts.dist_git_url, git_repo)
         self.log.info("Cloning Dist Git repo {}, branch {}".format(repo_url, branch))
@@ -194,10 +194,11 @@ class Builder(object):
                                     "git clone {repo_url} && "
                                     "cd {pkg_name} && "
                                     "git checkout {git_hash} && "
-                                    "fedpkg-copr srpm".format(
+                                    "fedpkg-copr --dist {branch} srpm".format(
                                                         repo_url=repo_url,
                                                         pkg_name=pkg_name,
-                                                        git_hash=git_hash))
+                                                        git_hash=git_hash,
+                                                        branch=git_branch))
 
         local_pkg = list(results["contacted"].values())[0][u"stdout"].split("Wrote: ")[1]
         self.log.info("Done: {}".format(local_pkg))
@@ -319,11 +320,11 @@ class Builder(object):
     #     buildcmd = self.gen_mockchain_command(dest)
     #
 
-    def build(self, git_repo, git_hash):
+    def build(self, git_repo, git_hash, git_branch):
         self.modify_mock_chroot_config()
 
         # download the package to the builder
-        local_pkg = self.download_job_pkg(git_repo, git_hash)
+        local_pkg = self.download_job_pkg(git_repo, git_hash, git_branch)
         self.local_pkg = local_pkg
 
         # srpm version
