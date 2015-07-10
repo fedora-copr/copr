@@ -8,7 +8,6 @@ from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs import helpers
-from coprs import signals
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
