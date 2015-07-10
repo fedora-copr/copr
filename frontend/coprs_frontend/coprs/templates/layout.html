@@ -7,73 +7,112 @@
   <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css" />
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/vnd.microsoft.icon">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='copr.css') }}">
+  <link href="{{ url_for('static', filename='css/patternfly.min.css') }}" rel="stylesheet" media="screen, print">
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+  <script src="../components/html5shiv/dist/html5shiv.min.js"></script>
+  <script src="../components/respond/dest/respond.min.js"></script>
+  <![endif]-->
+  <!-- IE8 requires jQuery and Bootstrap JS to load in head to prevent rendering bugs -->
+  <!-- IE8 requires jQuery v1.x -->
+  <script src="{{ url_for('static', filename='components/jquery/dist/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='components/datatables/media/js/jquery.dataTables.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/patternfly.min.js') }}"></script>
+
   <script src="{{ url_for('static', filename='copr.js') }}"></script>
+  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='copr.css') }}">
 </head>
+
 <body>
+  <!-- BANNER -->
+  {% if copr_banner %}
+      {{ copr_banner | safe }}
+  {% endif  %}
 
-{% if copr_banner %}
-    {{ copr_banner | safe }}
-{% endif  %}
-
-<div class="menu">
-  <div class="menu-inner">
-    <a href="{{ url_for('coprs_ns.coprs_show') }}"><img id="logo" src="{{ url_for('static', filename='copr_logo.png') }}" alt="Copr Build System"></a>
-    <div class="login">
-      {% if g.user %}
-        <div><span class="text">logged in as </span><a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a></div>
-      {% else %}
-        <div>
-            <a href="{{ url_for('misc.login') }}">log in</a> |
-            {% for key,val in config.KRB5_LOGIN.iteritems() %}
-            <a href="{{ config.KRB5_LOGIN_BASEURI }}{{ val.URI }}/">{{ val.log_text }}</a> |
-            {% endfor %}
-            <a href="https://admin.fedoraproject.org/accounts/user/new">sign up</a></div>
-      {% endif %}
-      <form method="get" action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
-        <input class="rounded" type="text" name="fulltext">
-	<input class="fulltext-submit" type="submit" value="search">
-      </form>
+  <!-- MAIN MENU -->
+  <nav class="navbar navbar-default navbar-static-top" id="main-bar">
+    <div class="container">
+      <div class="col-md-8 col-sm-7 col-xs-6">
+        <a href="{{ url_for('coprs_ns.coprs_show') }}">
+          <img id="logo" src="{{ url_for('static', filename='copr_logo.png') }}" alt="Copr Build System">
+        </a>
+      </div>
+      <div class="col-md-4 col-sm-5 col-xs-6">
+        <div class="row">
+          {% if g.user %}
+            <span id="login-menu" class="pull-right"><span class="text">logged in as </span><a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a></span>
+          {% else %}
+            <span id="login-menu" class="pull-right">
+                <a href="{{ url_for('misc.login') }}">log in</a> |
+                {% for key,val in config.KRB5_LOGIN.iteritems() %}
+                <a href="{{ config.KRB5_LOGIN_BASEURI }}{{ val.URI }}/">{{ val.log_text }}</a> |
+                {% endfor %}
+                <a href="https://admin.fedoraproject.org/accounts/user/new">sign up</a></span>
+          {% endif %}
+        </div>
+        <div class="row">
+          <form role="search" method="get" action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
+            <div class="input-group menu-search">
+              <input name="fulltext" type="text" class="form-control" placeholder="Search projects" value="">
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-default">
+                <span class="glyphicon glyphicon-search"></span>
+                </button>
+              </span>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-<div class="page">
-  {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-  {% endfor %}  
-  <div class="page-inner">
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="container">
+
+    <!-- Flash messages -->
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-info">
+      <span class="pficon pficon-info"></span>
+      {{ message }}
+    </div>
+    {% endfor %}  
+
+    <!-- the actual content -->
     {% block body %}{% endblock %}
+
   </div>
-</div>
-<div class="footer">
-<p>
-  <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
-  <a href="https://fedorahosted.org/copr/">Copr Project</a>
-  <a href="https://fedorahosted.org/copr/wiki/UserDocs#FAQ">FAQ</a>
-  <a class="last" href="{{ url_for('api_ns.api_home') }}">API</a>
-</p>
-<p>
-  <small>
-    Copr frontend build version: __RPM_BUILD_VERSION
-  </small>
-</p>
-</div>
+  <footer class="footer">
+    <hr></hr>
+    <div class="container">
+      <div class="text-center">
+        <ul class="list-inline">
+          <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li>
+          <li> <a href="https://fedorahosted.org/copr/">Copr Project</a> </li>
+          <li> <a href="https://fedorahosted.org/copr/wiki/UserDocs#FAQ">FAQ</a> </li>
+          <li> <a href="{{ url_for('api_ns.api_home') }}">API</a> </li>
+        </ul>
+        <small>
+          Copr frontend build version: __RPM_BUILD_VERSION
+        </small>
+      </div>
+    </div>
+  </footer>
 
-{% if fedmenu_url is defined %}
-<script src="{{fedmenu_url}}/js/fedora-libravatar.js"></script>
-<script src="{{fedmenu_url}}/js/fedmenu.js"></script>
-<script>
-  fedmenu({
-      'url': '{{fedmenu_data_url}}',
-      'mimeType': 'application/javascript',
-      'position': 'bottom-right',
-      {% if copr is defined %}
-      'user': '{{copr.owner.name}}',
-      {% endif %}
-  });
-</script>
-{% endif %}
-
+  <!-- FEDORA MENU -->
+  {% if fedmenu_url is defined %}
+  <script src="{{fedmenu_url}}/js/fedora-libravatar.js"></script>
+  <script src="{{fedmenu_url}}/js/fedmenu.js"></script>
+  <script>
+    fedmenu({
+        'url': '{{fedmenu_data_url}}',
+        'mimeType': 'application/javascript',
+        'position': 'bottom-right',
+        {% if copr is defined %}
+        'user': '{{copr.owner.name}}',
+        {% endif %}
+    });
+  </script>
+  {% endif %}
 </body>
 </html>

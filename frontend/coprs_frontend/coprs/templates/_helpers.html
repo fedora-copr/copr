@@ -1,14 +1,22 @@
 {% macro render_field(field, label=None, class='') %}
   {% if not kwargs['hidden'] %}
-    <dt class="field-label {{ class }}">{{ label or field.label }}</dt>
-    <dd>
-      {% if field.errors %}
-        {% for error in field.errors %}
-          <p class="form-error">{{ error }}</p>
-        {% endfor %}
-      {% endif %}
-      {{ field(**kwargs)|safe }}
-    </dd>
+    {% if field.errors %}
+    <div class="form-group has-error">
+    {% else %}
+    <div class="form-group">
+    {% endif %}
+      <label class="col-sm-2 control-label">
+        {{ label or field.label }}
+      </label>
+      <div class="col-sm-10">
+        {{ field(**kwargs)|safe }}
+        {% if field.errors %}
+          {% for error in field.errors %}
+            <span class="help-block">{{ error }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
   {% else %}
     {{ field(**kwargs)|safe }}
   {% endif %}
@@ -16,18 +24,30 @@
 
 {% macro render_pagination(request, paginator) %}
   {% if paginator.pages > 1 %}
-    {% if paginator.border_url(request, True) %}
-      <a href="{{ paginator.border_url(request, True)[0] }}">{{ paginator.border_url(request, True)[1] }}</a> ...
-    {% endif %}
-    {% for page in paginator.get_urls(request) %}
-      {% if page[1] != paginator.page %} {# no url for current page #}
-        <a href="{{ page[0] }}">{{ page[1] }}</a>
-      {% else %}
-        {{ page[1] }}
+  <div class="text-center">
+    <ul class="pagination">
+      {% if paginator.border_url(request, True) %}
+      <li>
+        <a href="{{ paginator.border_url(request, True)[0] }}">{{ paginator.border_url(request, True)[1] }} ...</a>
+      </li>
       {% endif %}
-    {% endfor %}
-    {% if paginator.border_url(request, False) %}
-      ... <a href="{{ paginator.border_url(request, False)[0] }}">{{ paginator.border_url(request, False)[1] }}</a>
-    {% endif %}
+      {% for page in paginator.get_urls(request) %}
+        {% if page[1] != paginator.page %} {# no url for current page #}
+        <li>
+          <a href="{{ page[0] }}">{{ page[1] }}</a>
+        </li>
+        {% else %}
+        <li class="active">
+          <span>{{ page[1] }}</span>
+        </li>
+        {% endif %}
+      {% endfor %}
+      {% if paginator.border_url(request, False) %}
+        <li>
+          <a href="{{ paginator.border_url(request, False)[0] }}">... {{ paginator.border_url(request, False)[1] }}</a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
   {% endif %}
 {% endmacro %}
