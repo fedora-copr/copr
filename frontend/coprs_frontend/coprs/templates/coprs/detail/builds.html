@@ -6,6 +6,8 @@
 {% from "coprs/detail/_build_states.html" import build_states %}
 
 {% block detail_body %}
+<h2>Project Builds</h2>
+<p>This view shows all builds in the project</p>
   {{ builds_table(builds, paginator.page) }}
   {{ render_pagination(request, paginator) }}
   {{ build_states() }}
