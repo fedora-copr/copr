@@ -2,112 +2,144 @@
 
 {% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
 
-{% block overview_selected %}selected{% endblock %}
+{% block overview_selected %}active{% endblock %}
 
 {% block detail_body %}
-  <br />
-  <div class="latest_build">
-    {% if latest_build %}
+<div class="row">
+  <div class="col-sm-8 col-md-9">
+    <h3>Description</h3>
+    <p>{{ copr.description|markdown|default('Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.', true) }}</p>
 
-      <a href="{{url_for("coprs_ns.copr_build",
-                         username = copr.owner.name,
-                         coprname = copr.name,
-                         build_id = latest_build.id)}}">
-        Latest build
-        #{{ latest_build.id }}:
+    <h3>Installation Instructions</h3>
+    <p>{{ copr.instructions|markdown|default('Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo.', true) }}</p>
 
-      </a>
-      <abbr class="build-{{latest_build.state}}" title="{{latest_build.state|build_state_description}}">{{ latest_build.state }}</abbr>,
-      submitted {{ latest_build.submitted_on|time_ago }} ago
-    {% else %}
-      No build submitted yet
-    {% endif %}
-
-  </div>
-
-  <h2>Description</h2>
-  <div class="shift-right">{{ copr.description|markdown|default('Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.', true) }}</div>
-  <h2>Installation Instructions</h2>
-  <div class="shift-right">{{ copr.instructions|markdown|default('Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo.', true) }}</div>
-  <h2>Active Releases</h2>
-  <div class="disclaimer">
+    <h3>Active Releases</h3>
     <p>
-      The following unofficial repositories are provided as-is by owner of this project.
-      Contact the owner directly for bugs or issues (IE: not bugzilla).
+        The following unofficial repositories are provided as-is by owner of this project.
+        Contact the owner directly for bugs or issues (IE: not bugzilla).
     </p>
-  </div>
-  <div class="dnf-enable-field"> # <input onClick="this.select();"type="text" value="dnf copr enable {{copr.owner.name}}/{{    copr.name}}" readonly="readonly">
-    More info about <a target="_blank" href="https://fedorahosted.org/copr/wiki/HowToEnableRepo">how to enable a repo on the wiki page.</a></div>
-
-  <table class="releases">
-    <tr>
-      <th class="leftmost">Release</th>
-      <th>Architectures</th>
-      <th class="rightmost">Repo Download </th>
-    </tr>
-    {% for repo in repos_info_list %}
-    <tr class="release-end">
-      <td class="leftmost">
-        {{ repo.name_release_human|capitalize }}
-      </td>
-      <td>
-        {% for arch in repo.arch_list %}
-          {{ arch }}
-            {% if copr.is_release_arch_modified(repo.name_release, arch) %}
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Release</th>
+          <th>Architectures</th>
+          <th>Repo Download </th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for repo in repos_info_list %}
+        <tr>
+          <td>
+            {{ repo.name_release_human|capitalize }}
+          </td>
+          <td>
+            {% for arch in repo.arch_list %}
+              {{ arch }}
+              {% if copr.is_release_arch_modified(repo.name_release, arch) %}
               <a id="modified-chroot-{{repo.name_release}}-{{arch}}">[modified]</a>
-            {% endif %}
-          <small class="downloads"> ({{ repo.rpm_dl_stat[arch] }})* </small>
-          <br />
-        {% endfor %}
+              {% endif %}
+              <small class="text-muted"> ({{ repo.rpm_dl_stat[arch] }})*</small>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+          <td class="rightmost">
+            <a class="btn btn-default btn-margin" href="{{
+                url_for(
+                'coprs_ns.generate_repo_file',
+                username=copr.owner.name,
+                coprname=copr.name,
+                name_release=repo.name_release,
+                repofile=repo.repo_file,
+                _external=True
+              )|fix_url_https_frontend}}">
+              <span class="pficon pficon-save"> {{ repo.name_release_human|capitalize }}</span>
+            </a>
+            <small class="text-muted"> ({{ repo.dl_stat }} downloads) </small>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p> * Total number of packages downloaded in the last seven days.</p>
 
-      </td>
-      <td class="rightmost">
-          <a class="btn btn-default btn-margin" href="{{
-              url_for(
-              'coprs_ns.generate_repo_file',
-              username=copr.owner.name,
-              coprname=copr.name,
-              name_release=repo.name_release,
-              repofile=repo.repo_file,
-              _external=True
-            )|fix_url_https_frontend}}">
-            <span class="glyphicon glyphicon-download-alt"> {{ repo.name_release_human|capitalize }}</span>
-          </a>
-          <small class="downloads"> ({{ repo.dl_stat }} downloads) </small>
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
-  <small class="downloads"> * Total number of packages downloaded in the last seven days.</small>
+    <hr></hr>
 
-  {% if copr.repos_list %}
-    <h2>Repository List</h2>
+    {% if copr.repos_list %}
+    <h3>External Repository List</h3>
+    <p> The following repositories are accessible during builds </p>
     <ul class=repos-list>
       {% for repo in copr.repos_list %}
         <li><a href="{{ repo|repo_url }}">{{ repo }}</a></li>
       {% endfor %}
     </ul>
-  {% endif %}
+    <hr></hr>
+    {% endif %}
 
+    {{ copr_legal_flag_form(form, copr) }}
+  </div>
+  <div class="col-sm-4 col-md-3">
+    <br>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"> Last Build </h3>
+      </div>
+    {% if latest_build %}
+      <div class="list-group">
+        <a href="{{url_for("coprs_ns.copr_build",
+                         username = copr.owner.name,
+                         coprname = copr.name,
+                         build_id = latest_build.id)}}" class="list-group-item">
+          <h4 class="list-group-item-heading">{{latest_build.pkgs | pkg_name}}</h4>
+          <p class="list-group-item-text">
+            <small> Build: </small>
+            {{ latest_build.id }}
+          </p>
+          <p class="list-group-item-text">
+            <small> State: </small>
+            <span class="build-{{latest_build.state}}">
+              {{ latest_build.state }}
+            </span>
+          </p>
+          <p class="list-group-item-text">
+            <small> Finished: </small>
+            {{latest_build.ended_on|time_ago()}} ago
+          </p>
+        </a>
+      </div>
+    {% else %}
+      <div class="panel-body">
+        <p> No builds... </p>
+      </div>
+    {% endif %}
+    </div>
+    {% if g.user and g.user.can_edit(copr) and copr and copr.owner and not copr.auto_createrepo %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"> Regenerate Repos </h3>
+      </div>
+      <div class="panel-body">
+        <form action="{{url_for('coprs_ns.copr_createrepo', username=copr.owner.name, coprname=copr.name)}}" method="post" >
+          <button class="btn btn-default" type="submit">
+            <span class="pficon pficon-restart"> Regenerate repositories</span></button>
+        </form>
+        <p class="text-muted"> Package repositories are not generated automatically. You can change this setting on the Edit page</p> 
+      </div>
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"> Quick Enable </h3>
+      </div>
+      <div class="panel-body">
+        <div class="well well-sm">
+          dnf copr enable {{copr.owner.name}}/{{copr.name}}
+        </div>
+        <a href="https://fedorahosted.org/copr/wiki/HowToEnableRepo" target="_blank">
+          <span class="pficon pficon-info"> More info about enabling repos</span></a>
+      </div>
+    </div>
+  </div>
+</div>
 
-  {% if g.user and g.user.can_edit(copr) and copr and copr.owner and not copr.auto_createrepo %}
-  <dt>
-    <!--<h2>Release options</h2>-->
-  </dt>
-  <dd>
-    <form action="{{
-      url_for(
-        'coprs_ns.copr_createrepo',
-        username=copr.owner.name,
-        coprname=copr.name
-      ) }}" method="post" >
-
-      Automatic repository meta data generation is disabled.
-      You can regenerate it manually or enable the automatic refresh on the edit page.
-      <button type="submit">Regenerate repositories</button>
-    </form>
-  </dd>
-  {% endif %}
 
 {% for chroot in copr.modified_chroots %}
 <div id="dialog-{{chroot.name}}" class="hidden" title="{{chroot.name}} minimal buildroot">
@@ -124,7 +156,4 @@
 </script>
 {% endfor %}
 
-
-  <hr>
-  {{ copr_legal_flag_form(form, copr) }}
 {% endblock %}
