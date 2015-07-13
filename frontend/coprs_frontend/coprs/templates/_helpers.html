@@ -9,7 +9,7 @@
         {{ label or field.label }}
       </label>
       <div class="col-sm-10">
-        {{ field(**kwargs)|safe }}
+        {{ field(class="form-control", **kwargs)|safe }}
         {% if field.errors %}
           {% for error in field.errors %}
             <span class="help-block">{{ error }}</span>

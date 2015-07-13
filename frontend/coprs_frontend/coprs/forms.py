@@ -177,7 +177,7 @@ class CoprFormFactory(object):
             instructions = wtforms.TextAreaField("Instructions")
 
             repos = wtforms.TextAreaField(
-                "Repos",
+                "External Repositories",
                 validators=[UrlRepoListValidator()],
                 filters=[StringListFilter()])
 

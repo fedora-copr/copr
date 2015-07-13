@@ -4,6 +4,7 @@
 {% from "coprs/_coprs_forms.html" import copr_form, copr_permissions_form with context %}
 
 {% block detail_body %}
+  <h2> Edit Project Details</h2>
 
   {{ copr_form(form, view = 'coprs_ns.copr_update', copr = copr) }}
 

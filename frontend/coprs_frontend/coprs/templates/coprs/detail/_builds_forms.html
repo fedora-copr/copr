@@ -40,8 +40,10 @@
         <div class="col-sm-10">
         {% for group_set, chs in form.chroots_sets.items() %}{% for ch in chs %}
           <div class="checkbox">
-            {{ form|attr(ch) }}
-            {{ form|attr(ch)|attr('label') }}
+            <label>
+              {{ form|attr(ch) }}
+              {{ form|attr(ch)|attr('label') }}
+            </label>
           </div>
         {% endfor %}{% endfor %}
         </div>
@@ -63,7 +65,7 @@
         Build Options
         </label>
         <div class="col-sm-10">
-        {{ form.enable_net(checked=copr.build_enable_net) }} Enable internet access during build
+        {{ form.enable_net(checked=copr.build_enable_net) }} Enable internet access during this build
         </div>
       </div>
 
@@ -91,7 +93,14 @@
 {% macro copr_build_form_upload(form, view, copr) %}
   {{ copr_build_form_begin(form, 'coprs_ns.copr_new_build', copr) }}
 
-      {{ render_field(form.pkgs, label='Package to upload and build')}}
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="textInput-markup">
+        Package File
+        </label>
+        <div class="col-sm-10">
+          {{ form.pkgs }}
+        </div>
+      </div>
 
   {{ copr_build_form_end(form, 'coprs_ns.copr_new_build', copr) }}
 {% endmacro %}

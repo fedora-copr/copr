@@ -1,9 +1,10 @@
 {% extends "coprs/detail.html" %}
 {% block title %}Delete {{ copr.owner.name }}/{{ copr.name }}?{% endblock %}
-{% block delete_selected %}selected{% endblock %}
+{% block delete_selected %}active{% endblock %}
 {% from "coprs/_coprs_forms.html" import copr_delete_form %}
 
 {% block detail_body %}
+<h2> Delete Project </h2>
   <p>If you really want to delete this Project, you'll have to answer this riddle:</p>
   <p>{{ range(5)|random }}.{{ range(10)|random }} hens lay {{ range(5)|random }}.{{ range(10)|random }} eggs in
   {{ range(5)|random }}.{{ range(10)|random }} days. How many eggs do {{ range(5)|random }}.{{ range(10)|random }}

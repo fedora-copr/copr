@@ -2,116 +2,148 @@
 
 {% macro copr_form(form, view, copr = None, username = None) %}
   {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
+  {% if form._mock_chroots_error %}
+  <div class="alert alert-danger" role="alert">
+    {{ form._mock_chroots_error }}
+  </div>
+  {% endif %}
   <form action="{% if copr %}
         {{ url_for(view, username = copr.owner.name, coprname = copr.name) }}
     {% elif username %}
         {{ url_for(view, username = username) }}
     {% else %}
         {{ url_for(view) }}
-    {% endif %}" method=post class=add-entry>
-    <dl>
-      {{ form.csrf_token }}
-      {{ render_field(form.id, hidden = True) }}
-      {% if copr is none %}
-        {{ render_field(form.name, label='Project Name', required = True, class="required") }}
-      {% else %}
-        {{ render_field(form.name, hidden = True) }}
-        {{ render_field(form.name, label='Project Name', disabled = True) }}
-      {% endif %}
-      {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}
-      {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url') }}
-      {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.') }}
-      {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.') }}
-
-      <dd>You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden..</dd>
-      <dt class="field-label required">Chroots</dt>
+    {% endif %}" method="post" class="form-horizontal">
+    {{ form.csrf_token }}
+    {{ render_field(form.id, hidden = True) }}
+    {% if copr is none %}
+      {{ render_field(form.name, label='Project Name', required = True, class="required") }}
+    {% else %}
+      {{ render_field(form.name, hidden = True) }}
+      {{ render_field(form.name, label='Project Name', disabled = True) }}
+    {% endif %}
+    {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.') }}
+    {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.') }}
+    {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}
+    {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url') }}
 
 
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="textInput-markup">
+      </label>
+      <div class="col-sm-10">
+        <small class="text-muted pficon pficon-info">
+          You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden.
+        </small>
+      </div>
+    </div>
+
+    {% if form._mock_chroots_error %}
+    <div class="form-group has-error">
+    {% else %}
+    <div class="form-group">
+    {% endif %}
+      <label class="col-sm-2 control-label" for="textInput-markup">
+        Chroots
+      </label>
+      <div class="col-sm-10">
+      {% for group_set, chs in form.chroots_sets.items() %}{% for ch in chs %}
+        <div class="checkbox">
+          <label>
+            {{ form|attr(ch) }}
+            {{ form|attr(ch)|attr('label') }}
+            {% if copr and form|attr(ch)|attr('data') %}
+            <a href="{{ url_for('coprs_ns.chroot_edit', username = copr.owner.name, coprname = copr.name, chrootname = form|attr(ch)|attr('label')|attr('text'))}}">[Edit]</a>
+            {% endif %}
+          </label>
+        </div>
+      {% endfor %}{% endfor %}
       {% if form._mock_chroots_error %}
-        <p class="form-error">{{ form._mock_chroots_error }}</p>
+        <span class=" help-block"> {{ form._mock_chroots_error }}</span>
       {% endif %}
-      {% for group_set, chs in form.chroots_sets.items() %}
-        <table class="chroots-set">
-          {% for ch in chs %}
-            <tr>
-              <td>
-                {{ form|attr(ch)|attr('label') }}
-                {% if form|attr(ch)|attr('label') %}
-                  {% else %}
-                  {{ form|attr(ch)|attr('label') }}
-                {% endif %}
-              </td>
-              <td>
-                {{ form|attr(ch) }}
-              </td>
-              {% if copr and form|attr(ch)|attr('data') %}
-                <td>
-                  <a href="{{ url_for('coprs_ns.chroot_edit', username = copr.owner.name, coprname = copr.name, chrootname = form|attr(ch)|attr('label')|attr('text'))}}">
-                    [Edit]
-                  </a>
+      </div>
+    </div>
 
-                </td>
-              {% endif %}
-            </tr>
-          {% endfor %}
-        </table>
-      {% endfor %}
+    {{ render_field(form.repos, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used during build. Space separated. This should be baseurl from .repo file. E.g.: http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/') }}
 
-      <!-- Repos section -->
-      {{ render_field(form.repos, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used during build. Space separated. This should be baseurl from .repo file. E.g.: http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/') }}
-      <dd class="field-label-help">
-        Available variables to expand (variable: example value):
-        <ul>
-          <li><b>$chroot</b> fedora-21-x86_64 </li>
-          <li><b>$releasever</b> 21 </li>
-          <li><b>$basearch</b> x86-64</li>
-          <li><b>$distname</b> fedora </li>
-        </ul>
-        To reference another Copr use format: <code>"copr://{project owner}/{project name}"</code>
-      </dd>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="textInput-markup">
+      </label>
+      <div class="col-sm-10">
+        <small class="text-muted pficon pficon-info">
+          Available variables to expand (with example value):
+          <dd>
+            <ul>
+              <li><strong>$chroot</strong> (fedora-21-x86_64) </li>
+              <li><strong>$releasever</strong> (21) </li>
+              <li><strong>$basearch</strong> (x86-64)</li>
+              <li><strong>$distname</strong> (fedora) </li>
+            </ul>
+          </dd>
+        </small>
+        <br>
+        <small class="text-muted pficon pficon-info">
+          To reference another Copr use:
+          <ul>
+            <li><strong>copr://user/project</strong></li>
+          </ul>
+        </small>
+      </div>
+    </div>
 
-      {% if copr is none %}{# we're creating the copr, so display initial builds area #}
-        {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submitted later.') }}
-      {% endif %}
+    {% if copr is none %}{# we're creating the copr, so display initial builds area #}
+      {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submitted later.') }}
+    {% endif %}
 
-      <dt><b>Package repositories</b></dt>
-      <dd class="field-label-help">
-        Repository meta data is refreshed after each build. <br />
-        You can disable it with the option below. <br />
-        You will be still able to regenerate your repositories manually on the overview page.
-      </dd>
-      <dd>
-        <!-- Create repository metadata automatically: -->
-        Disable automatic repository meta data generation
-        {{ form.disable_createrepo }}
-      </dd>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="textInput-markup">
+        Other Options
+      </label>
+      <div class="col-sm-10">
+        <div class="checkbox">
+          {{ form.disable_createrepo }} Create repositories manually
+          <br>
+          <small class="text-muted pficon pficon-info">
+            Repository meta data is refreshed after each build. If you want to do this manually, check the option above. 
+          </small>
+        </div>
+        <div class="checkbox">
+          {{ form.build_enable_net }} Enable internet access during builds
+        </div>
+      </div>
+    </div>
 
-      <dt><b>Default build options</b></dt>
-      <dd>
-        Enable network access during the build
-        {{ form.build_enable_net }}
-      </dd>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="textInput-markup">
+      </label>
+      <div class="col-sm-10">
+      </div>
+    </div>
 
-
-      <dt><input type="submit" value="{% if copr %}Update{% else %}Create{% endif %}"></dt>
-    </dl>
+    <input class="btn btn-primary" type="submit" value="{% if copr %}Update{% else %}Create{% endif %}">
   </form>
 {% endmacro %}
 
 {% macro copr_delete_form(form, copr) %}
-  <form action="{{ url_for('coprs_ns.copr_delete', username=copr.owner.name, coprname=copr.name) }}" method="post">
-    <dl>
+  <form class="form-horizontal" action="{{ url_for('coprs_ns.copr_delete', username=copr.owner.name, coprname=copr.name) }}" method="post">
       {{ form.csrf_token }}
-      <dd>
-        {% if form.verify.errors %}
-          {% for error in form.verify.errors %}
-            <p class="form-error">{{ error }}</p>
-          {% endfor %}
-        {% endif %}
+      {% if form.verify.errors %}
+        {% for error in form.verify.errors %}
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+        {% endfor %}
+      {% endif %}
       </dd>
-      {{ form.verify }}
-      <dt><input type="submit" value="Delete"></dt>
-    </dl>
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="textInput-markup">
+        Answer
+      </label>
+      <div class="col-sm-10">
+        {{ form.verify(class="form-control") }}
+      </div>
+    </div>
+    <input class="btn btn-danger" type="submit" value="Delete the Project Forever">
   </form>
 {% endmacro %}
 
