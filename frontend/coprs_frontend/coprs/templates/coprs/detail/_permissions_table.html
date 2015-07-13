@@ -1,15 +1,22 @@
 {% macro permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, permissions_form) %}
   {% if permissions or g.user != copr.owner %} {# display the whole table if there are permissions or user can ask for them #}
     {% if permissions_applier_form and g.user %}
-      <form action="{{ url_for('coprs_ns.copr_permissions_applier_change', username=copr.owner.name, coprname=copr.name)}}" method=post>
+  <form action="{{ url_for('coprs_ns.copr_permissions_applier_change', username=copr.owner.name, coprname=copr.name)}}" method=post>
       {{ permissions_applier_form.csrf_token }}
     {% endif %}
     {% if permissions_form and g.user %}
-      <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.owner.name, coprname=copr.name)}}" method=post>
+  <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.owner.name, coprname=copr.name)}}" method=post>
       {{ permissions_form.csrf_token }}
     {% endif %}
-    <table class="permissions-table">
-      <tr><th>Username</th><th>Is Builder</th><th>Is Admin</th></tr>
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Is Builder</th>
+          <th>Is Admin</th>
+        </tr>
+      </thead>
+      <tbody>
       {% for perm in permissions %}
         {% if perm.user_id != g.user.id %} {# if user is logged in, only display his form below, not a row #}
           {{ permissions_table_row_other_user(perm, permissions_applier_form, permissions_form) }}
@@ -18,8 +25,8 @@
       {{ permissions_table_row_current_user(current_user_permissions, permissions_applier_form, permissions_form) }}
     </table>
     {% if g.user and (permissions_applier_form or permissions_form) %} {# TODO: when to display? #}
-      <input type="submit" value="Update">
-      </form>
+    <input class="btn btn-primary" type="submit" value="Update">
+  </form>
     {% endif %}
   {% else %}
     No permissions for other users for this Copr.

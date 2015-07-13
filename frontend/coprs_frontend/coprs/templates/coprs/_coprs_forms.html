@@ -119,8 +119,15 @@
   {% if permissions %}
     <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.owner.name, coprname=copr.name) }}" method=post>
       {{ form.csrf_token }}
-      <table class="permissions-table">
-        <tr><th>Username</th><th>Is Builder</th><th>Is Admin</th></tr>
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Is Builder</th>
+            <th>Is Admin</th>
+          </tr>
+        </thead>
+        <tbody>
         {% for perm in permissions %}
           <tr>
             <td>{{ perm.user.name }}</td>
@@ -138,6 +145,7 @@
             </td>
           </tr>
         {% endfor %}
+        </tbody>
       </table>
       <dd><input type="submit" value="Save"></dd>
     </form>

@@ -1,25 +1,23 @@
 {% extends "coprs/detail.html" %}
 {% block title %}Adding Build for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-{% block new_build_selected %}selected{% endblock %}
+{% block new_build_selected %}active{% endblock %}
 
 {% block detail_body %}
+<h2> Submit a New Build </h2>
 
-  <div class="horizontal-menu">
-    <ul>
-      <li class="{% block new_build_url_selected %}unselected{% endblock %}">
-        <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">
-            From URLs
-        </a>
-      </li>
-      <li class="{% block new_build_upload_selected %}unselected{% endblock %}">
-        <a href="{{ url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name) }}">
-            Upload SRPM
-        </a>
-      </li>
-    </ul>
-    </ul>
-  </div>
+<ul class="nav nav-tabs nav-tabs-pf">
+  <li class="{% block new_build_url_selected %}{% endblock %}">
+    <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">
+        From URLs
+    </a>
+  </li>
+  <li class="{% block new_build_upload_selected %}{% endblock %}">
+    <a href="{{ url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name) }}">
+        Upload SRPM
+    </a>
+  </li>
+</ul>
 
-  {% block build_form %}{% endblock %}
+{% block build_form %}{% endblock %}
 
 {% endblock %}

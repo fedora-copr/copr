@@ -1,34 +1,56 @@
 {% from "_helpers.html" import render_field %}
 
-{% macro copr_build_form(form, view, copr) %}
-    <form action="{{ url_for(view, username=copr.owner.name, coprname=copr.name) }}" method="post">
-      <dl>
-      <dt class="field-label">Build for all project's chroots?</dt>
-      <dd class="field-label-help">Applies just to these builds and will not cause any changes to your project. </dd>
+{# This file contains forms for the "New Build" action
 
-      {% if form._mock_chroots_error %}
-        <p class="form-error">{{ form._mock_chroots_error }}</p>
-      {% endif %}
-      
-      {% for group_set, chs in form.chroots_sets.items() %}
-        <table class="chroots-set">
-          {% for ch in chs %}
-            <tr>
-              <td>
-              {{ form|attr(ch)|attr('label') }}
-              {% if form|attr(ch)|attr('label') %}
-              {% else %}
-              {{ form|attr(ch)|attr('label') }}
-              {% endif %}
-              </td><td>{{ form|attr(ch) }}
-              </td>
-            </tr>
-          {% endfor %}
-        </table>
-      {% endfor %}
+  General Form Helpers: (contain everything except build source)
+    - copr_build_form_begin
+    - copr_build_form_end
 
+  Specific Forms: (contain only build source)
+    - copr_build_form_url
+    - copr_build_form_upload
+
+  One Button Forms:
+    - copr_build_repeat_form
+    - copr_build_cancel_form
+    - copr_build_delete_form
+
+
+  How to create a Specific Form:
+    1. include copr_build_form_begin
+    2. render all the fields that specify the build source
+    3. include copr_build_form_end
+#}
+
+
+
+{#####  GENERAL FORM HELPERS  #####}
+
+{% macro copr_build_form_begin(form, view, copr) %}
+    {% if form._mock_chroots_error %}
+    <div class="alert alert-danger" role="alert">
+      {{ form._mock_chroots_error }}
+    </div>
+    {% endif %}
+    <form class="form-horizontal" action="{{ url_for(view, username=copr.owner.name, coprname=copr.name) }}" method="post">
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="textInput-markup">
+          Chroots
+        </label>
+        <div class="col-sm-10">
+        {% for group_set, chs in form.chroots_sets.items() %}{% for ch in chs %}
+          <div class="checkbox">
+            {{ form|attr(ch) }}
+            {{ form|attr(ch)|attr('label') }}
+          </div>
+        {% endfor %}{% endfor %}
+        </div>
+      </div>
+{% endmacro %}
+
+
+{% macro copr_build_form_end(form, view, copr) %}
       {{ form.csrf_token }}
-      {{ render_field(form.pkgs, label='URLs of packages to build', rows = 10, cols = 50) }}
       {% if g.user.proven %}
         {{ render_field(form.memory_reqs) }}
         {{ render_field(form.timeout) }}
@@ -36,95 +58,46 @@
         {{ render_field(form.memory_reqs, hidden = True) }}
         {{ render_field(form.timeout, hidden = True) }}
       {% endif %}
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="textInput-markup">
+        Build Options
+        </label>
+        <div class="col-sm-10">
+        {{ form.enable_net(checked=copr.build_enable_net) }} Enable internet access during build
+        </div>
+      </div>
 
-      <dt class="field-label">Build options</dt>
-      <dd class="field-label-help">
-          For reproducible builds it's recommended to disable networking.
-      </dd>
-      <dd>
-        Enable networking
-        {{ form.enable_net(checked=copr.build_enable_net) }}
-      </dd>
-      <!---->
-      <!--<dd>-->
-        <!--Build timeout (in seconds)-->
-        <!--{{ form.timeout }}-->
-      <!--</dd>-->
+      <p> 
+        You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr.
+        Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
+      </p>
 
-      <hr />
-      <dd>
-        <p>
-          You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr.
-          Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
-        </p>
-      </dd>
-      <dd><input type="submit" value="Build"></dd>
-      </dl>
+      <input class="btn btn-primary" type="submit" value="Build">
     </form>
 {% endmacro %}
 
-{% macro copr_build_upload_form(form, view, copr) %}
-    <form action="{{ url_for(view, username=copr.owner.name, coprname=copr.name) }}" method="post" enctype="multipart/form-data">
-      <dl>
-      <dt class="field-label">Build for all project's chroots?</dt>
-      <dd class="field-label-help">Applies just to this build and will not cause any changes to your project. </dd>
 
-      {% if form._mock_chroots_error %}
-        <p class="form-error">{{ form._mock_chroots_error }}</p>
-      {% endif %}
-      
-      {% for group_set, chs in form.chroots_sets.items() %}
-        <table class="chroots-set">
-          {% for ch in chs %}
-            <tr>
-              <td>
-              {{ form|attr(ch)|attr('label') }}
-              {% if form|attr(ch)|attr('label') %}
-              {% else %}
-              {{ form|attr(ch)|attr('label') }}
-              {% endif %}
-              </td><td>{{ form|attr(ch) }}
-              </td>
-            </tr>
-          {% endfor %}
-        </table>
-      {% endfor %}
+{#####  SPECIFIC FORMS  #####}
 
-      {{ form.csrf_token }}
+{% macro copr_build_form_url(form, view, copr) %}
+  {{ copr_build_form_begin(form, 'coprs_ns.copr_new_build', copr) }}
+
+    {{ render_field(form.pkgs, label='URLs of packages to build', rows = 10, cols = 50) }}
+
+  {{ copr_build_form_end(form, 'coprs_ns.copr_new_build', copr) }}
+{% endmacro %}
+
+
+{% macro copr_build_form_upload(form, view, copr) %}
+  {{ copr_build_form_begin(form, 'coprs_ns.copr_new_build', copr) }}
+
       {{ render_field(form.pkgs, label='Package to upload and build')}}
-      {% if g.user.proven %}
-        {{ render_field(form.memory_reqs) }}
-        {{ render_field(form.timeout) }}
-      {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #}
-        {{ render_field(form.memory_reqs, hidden = True) }}
-        {{ render_field(form.timeout, hidden = True) }}
-      {% endif %}
 
-      <dt class="field-label">Build options</dt>
-      <dd class="field-label-help">
-          For reproducible builds it's recommended to disable networking.
-      </dd>
-      <dd>
-        Enable networking
-        {{ form.enable_net(checked=copr.build_enable_net) }}
-      </dd>
-      <!---->
-      <!--<dd>-->
-        <!--Build timeout (in seconds)-->
-        <!--{{ form.timeout }}-->
-      <!--</dd>-->
-
-      <hr />
-      <dd>
-        <p>
-          You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr.
-          Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
-        </p>
-      </dd>
-      <dd><input type="submit" value="Build"></dd>
-      </dl>
-    </form>
+  {{ copr_build_form_end(form, 'coprs_ns.copr_new_build', copr) }}
 {% endmacro %}
+
+
+
 {% macro copr_build_cancel_form(build, page) %}
   {% if build.cancelable %}
     <form action="{{ url_for('coprs_ns.copr_cancel_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post">

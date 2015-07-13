@@ -1,9 +1,11 @@
 {% extends "coprs/detail.html" %}
 {% block title %}Permissions for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-{% block permissions_selected %}selected{% endblock %}
+{% block permissions_selected %}active{% endblock %}
 {% from "coprs/detail/_permissions_table.html" import permissions_table with context%}
 
 {% block detail_body %}
+  <h2> Project Permissions </h2>
+  <p>This view shows permissions of other users to build or manage this project.</p>
   {% if (g.user and g.user != copr.owner) or permissions %}
     {# the table is displayed only if there are some permissions or a non-owner is viewing the page (then display at least his applier form #}
     {{ permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, permissions_form) }}

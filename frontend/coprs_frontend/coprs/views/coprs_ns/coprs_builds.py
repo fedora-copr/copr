@@ -87,7 +87,7 @@ def copr_add_build(username, coprname, form=None):
     if not form:
         form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
 
-    return flask.render_template("coprs/detail/add_build_url.html",
+    return flask.render_template("coprs/detail/add_build/url.html",
                                  copr=copr,
                                  form=form)
 
@@ -104,7 +104,7 @@ def copr_add_build_upload(username, coprname, form=None):
     if not form:
         form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
 
-    return flask.render_template("coprs/detail/add_build_upload.html",
+    return flask.render_template("coprs/detail/add_build/upload.html",
                                  copr=copr,
                                  form=form)
 
@@ -299,7 +299,7 @@ def copr_repeat_build(username, coprname, build_id, page=1):
             if ch.name in chroots_to_select:
                 getattr(form, ch.name).data = True
 
-    return flask.render_template("coprs/detail/add_build_url.html",
+    return flask.render_template("coprs/detail/add_build/url.html",
                                  copr=copr, form=form)
 
 
