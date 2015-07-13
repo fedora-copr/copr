@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
@@ -295,6 +296,10 @@ class Package(db.Model, helpers.Serializer):
                                  self.copr.name,
                                  self.name)
 
+    @property
+    def source_json_dict(self):
+        return json.loads(self.source_json)
+
 
 class Build(db.Model, helpers.Serializer):
 
@@ -343,6 +348,10 @@ class Build(db.Model, helpers.Serializer):
     package = db.relationship("Package", backref=db.backref("builds"))
 
     chroots = association_proxy("build_chroots", "mock_chroot")
+
+    @property
+    def source_json_dict(self):
+        return json.loads(self.source_json)
 
     @property
     def min_started_on(self):

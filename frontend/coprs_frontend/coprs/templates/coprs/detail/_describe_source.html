@@ -1,0 +1,19 @@
+{% macro describe_source(build) %}
+<dl class="dl-horizontal">
+  <dt>Source Type:</dt>
+  <dd>{{ build.source_type_text | build_source_description }} </dd>
+
+  {% if build.source_type_text == "srpm_link" %}
+  <dt>Package URL:</dt>
+  <dd>
+    <a href="{{ build.source_json_dict["url"] }}">{{ build.source_json_dict["url"] }}</a>
+  </dd>
+
+  {% elif build.source_type_text == "srpm_upload" %}
+  <dt>File Name:</dt>
+  <dd>{{ build.source_json_dict["pkg"] }}</dd>
+
+  {% endif %}
+
+</dl>
+{% endmacro %}
