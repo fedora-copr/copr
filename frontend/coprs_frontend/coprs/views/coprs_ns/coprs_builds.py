@@ -70,7 +70,8 @@ def copr_builds(username, coprname, page=1):
 
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,
-                                 builds=paginator.sliced_query,
+                                 builds=builds_query,
+                                 #builds=paginator.sliced_query,
                                  paginator=paginator)
 
 

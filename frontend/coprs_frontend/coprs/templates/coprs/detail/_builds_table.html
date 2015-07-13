@@ -1,8 +1,9 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 
 {% macro builds_table(builds, page) %}
-  {% if builds %}
-    <table class="status-table">
+{% if builds %}
+  <table class="datatable table table-striped table-bordered">
+    <thead>
       <tr>
         <th>Id</th>
         <th>Package</th>
@@ -11,6 +12,8 @@
         <th>Build time</th>
         <th>Status</th>
       </tr>
+    </thead>
+    <tbody>
     {% for build in builds %}
       <tr class="build-row build-row-{{ build.state }}" >
         <td><a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{ build.id }}</a></td>
@@ -33,8 +36,17 @@
         <td class="build-{{build.state}}" abbr="{{build.state|build_state_description}}">{{ build.state }}</td>
       </tr>
     {% endfor %}
-    </table>
-  {% else %}
-    <h3>No builds so far</h3>
-  {% endif %}
+    </tbody>
+  </table>
+{% else %}
+  <h3>No builds so far</h3>
+{% endif %}
+
+<script>
+  // Initialize Datatables
+  $(document).ready(function() {
+    $('.datatable').dataTable();
+  });
+</script>
+
 {% endmacro %}

@@ -1,18 +1,12 @@
 {% extends "coprs/detail.html" %}
 {% block title %}Builds for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-{% block builds_selected %}selected{% endblock %}
+{% block builds_selected %}active{% endblock %}
 {% from "_helpers.html" import render_pagination %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 
 {% block detail_body %}
-  {% if builds %}
-    {{ builds_table(builds, paginator.page) }}
-    <div class="pagination">
-      {{ render_pagination(request, paginator) }}
-    </div>
-  {% else %}
-    <h2>No builds so far.</h2>
-  {% endif %}
+  {{ builds_table(builds, paginator.page) }}
+  {{ render_pagination(request, paginator) }}
   {{ build_states() }}
 {% endblock %}
