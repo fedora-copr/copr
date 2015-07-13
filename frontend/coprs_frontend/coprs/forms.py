@@ -353,7 +353,7 @@ class ChrootForm(wtf.Form):
     """
 
     buildroot_pkgs = wtforms.TextField(
-        "Additional packages to be always present in minimal buildroot")
+        "Packages")
 
 
 class CoprLegalFlagForm(wtf.Form):
