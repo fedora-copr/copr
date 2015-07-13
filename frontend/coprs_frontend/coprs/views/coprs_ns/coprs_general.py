@@ -181,6 +181,24 @@ def copr_new(username):
         return flask.render_template("coprs/add.html", form=form)
 
 
+@coprs_ns.route("/<username>/<coprname>/report-abuse")
+def copr_report_abuse(username, coprname):
+    query = coprs_logic.CoprsLogic.get(
+        flask.g.user, username, coprname, with_mock_chroots=True)
+    form = forms.CoprLegalFlagForm()
+    try:
+        copr = query.one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found(
+            "Copr with name {0} does not exist.".format(coprname))
+
+
+    return flask.render_template(
+        "coprs/report_abuse.html",
+        copr=copr,
+        form=form)
+
+
 @coprs_ns.route("/<username>/<coprname>/")
 def copr_detail(username, coprname):
     query = coprs_logic.CoprsLogic.get(

@@ -152,7 +152,8 @@
   <dl>
     {{ render_field(form.comment, rows=5, cols=50) }}
     <dt>
-      <input type="submit" value="Raise Legal Flag">
+      <input class="btn btn-danger" type="submit" value="Raise Legal Flag">
+      <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}" class="btn btn-default">Cancel</a>
     </dt>
   </dl>
   </form>

@@ -59,9 +59,7 @@
       {% endfor %}
       </tbody>
     </table>
-    <p> * Total number of packages downloaded in the last seven days.</p>
-
-    <hr></hr>
+    <p class="text-muted"><small> * Total number of packages downloaded in the last seven days.</small></p>
 
     {% if copr.repos_list %}
     <h3>External Repository List</h3>
@@ -71,10 +69,7 @@
         <li><a href="{{ repo|repo_url }}">{{ repo }}</a></li>
       {% endfor %}
     </ul>
-    <hr></hr>
     {% endif %}
-
-    {{ copr_legal_flag_form(form, copr) }}
   </div>
   <div class="col-sm-4 col-md-3">
     <br>
@@ -111,20 +106,6 @@
       </div>
     {% endif %}
     </div>
-    {% if g.user and g.user.can_edit(copr) and copr and copr.owner and not copr.auto_createrepo %}
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title"> Regenerate Repos </h3>
-      </div>
-      <div class="panel-body">
-        <form action="{{url_for('coprs_ns.copr_createrepo', username=copr.owner.name, coprname=copr.name)}}" method="post" >
-          <button class="btn btn-default" type="submit">
-            <span class="pficon pficon-restart"> Regenerate repositories</span></button>
-        </form>
-        <p class="text-muted"> Package repositories are not generated automatically. You can change this setting on the Edit page</p> 
-      </div>
-    </div>
-    {% endif %}
     <div class="panel panel-default">
       <div class="panel-heading">
         <h3 class="panel-title"> Quick Enable </h3>
@@ -134,7 +115,31 @@
           dnf copr enable {{copr.owner.name}}/{{copr.name}}
         </div>
         <a href="https://fedorahosted.org/copr/wiki/HowToEnableRepo" target="_blank">
-          <span class="pficon pficon-info"> More info about enabling repos</span></a>
+          <small class="pficon pficon-info"> More info about enabling Copr repositories</small></a>
+      </div>
+    </div>
+    {% if g.user and g.user.can_edit(copr) and copr and copr.owner and not copr.auto_createrepo %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"> Regenerate Repositories </h3>
+      </div>
+      <div class="panel-body">
+        <form action="{{url_for('coprs_ns.copr_createrepo', username=copr.owner.name, coprname=copr.name)}}" method="post" >
+          <button class="btn btn-default" type="submit">
+            <span class="pficon pficon-refresh"> Regenerate</span></button>
+        </form>
+        <br>
+        <small class="pficon pficon-info text-muted"> Package repositories are not generated automatically after each build. You can change this setting on the Edit page</small>
+      </div>
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"> Other Actions </h3>
+      </div>
+      <div class="panel-body">
+        <a href="{{ url_for('coprs_ns.copr_report_abuse', username = copr.owner.name, coprname = copr.name) }}">
+          <small class="pficon pficon-warning-triangle-o"> Report Abuse </small></a>
       </div>
     </div>
   </div>
