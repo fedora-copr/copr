@@ -116,7 +116,7 @@ def coprs_fulltext_search(page=1):
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
-    return render_template("coprs/show.html", coprs=coprs,
+    return render_template("coprs/show/fulltext.html", coprs=coprs,
                            paginator=paginator, fulltext=fulltext)
 
 

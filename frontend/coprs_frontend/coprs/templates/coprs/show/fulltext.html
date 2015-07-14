@@ -1,0 +1,16 @@
+{% extends "coprs/show.html" %}
+{% block title %}Project List{% endblock %}
+{% block header %}Project List{% endblock %}
+{% from "_helpers.html" import render_pagination %}
+{% block search_box %}{{fulltext}}{% endblock %}
+{% block show_top %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li class="active">
+    Searching: {{fulltext}}
+  </li>
+</ol>
+<h1> Search Results <small> {{fulltext}} </small></h1>
+{% endblock %}
