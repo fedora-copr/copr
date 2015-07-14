@@ -53,7 +53,7 @@ class TestCoprsShow(CoprsTestCase):
 
     def test_show_more_entries(self, f_users, f_coprs, f_db):
         r = self.tc.get("/")
-        assert r.data.count('<div class="copr">') == 3
+        assert r.data.count('<!--copr-project-->') == 3
 
 
 class TestCoprsOwned(CoprsTestCase):

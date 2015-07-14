@@ -8,7 +8,9 @@
   <div class="col-md-9 col-sm-8">
     {% block show_top %}
     {% endblock %}
+    <div class="list-group">
     {% for copr in coprs %}
+      <!--copr-project-->
       <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}" class="list-group-item">
         <h3 class="list-group-item-heading">{{ copr.owner.name }}/{{ copr.name }}</h3>
         <span class="list-group-item-text">
@@ -30,6 +32,7 @@
     {% else %}
       <p>No projects...</p>
     {% endfor %}
+    </div>
     {{ render_pagination(request, paginator) }}
   </div>
   <div class="col-md-3 col-sm-4">
