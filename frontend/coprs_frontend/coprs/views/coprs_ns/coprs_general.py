@@ -135,6 +135,8 @@ def copr_new(username):
         copr = coprs_logic.CoprsLogic.add(
             flask.g.user,
             name=form.name.data,
+            homepage=form.homepage.data,
+            contact=form.contact.data,
             repos=form.repos.data.replace("\n", " "),
             selected_chroots=form.selected_chroots,
             description=form.description.data,
@@ -305,6 +307,8 @@ def copr_update(username, coprname):
     if form.validate_on_submit():
         # we don"t change owner (yet)
         copr.name = form.name.data
+        copr.homepage = form.homepage.data
+        copr.contact = form.contact.data
         copr.repos = form.repos.data.replace("\n", " ")
         copr.description = form.description.data
         copr.instructions = form.instructions.data

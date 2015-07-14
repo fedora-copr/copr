@@ -132,6 +132,8 @@ class Copr(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     # name of the copr, no fancy chars (checked by forms)
     name = db.Column(db.String(100), nullable=False)
+    homepage = db.Column(db.Text)
+    contact = db.Column(db.Text)
     # string containing urls of additional repos (separated by space)
     # that this copr will pull dependencies from
     repos = db.Column(db.Text)

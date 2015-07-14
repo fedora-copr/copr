@@ -98,6 +98,23 @@ class NameNotNumberValidator(object):
             raise wtforms.ValidationError(self.message.format(field.data))
 
 
+class EmailOrURL(object):
+
+    def __init__(self, message=None, owner=None):
+        if not message:
+            message = "{} must be email address or URL"
+        self.message = message
+
+    def __call__(self, form, field):
+        for validator in [wtforms.validators.Email(), wtforms.validators.URL()]:
+            try:
+                validator(form, field)
+                return True
+            except wtforms.ValidationError:
+                pass
+        raise wtforms.ValidationError(self.message.format(field.name.capitalize()))
+
+
 class StringListFilter(object):
 
     def __call__(self, value):
@@ -140,6 +157,19 @@ class CoprFormFactory(object):
                     CoprUniqueNameValidator(owner=owner),
                     NameNotNumberValidator()
                 ])
+
+            homepage = wtforms.StringField(
+                "Homepage",
+                validators=[
+                    wtforms.validators.Optional(),
+                    wtforms.validators.URL()])
+
+            contact = wtforms.StringField(
+                "Contact",
+                default=flask.g.user.mail,
+                validators=[
+                    wtforms.validators.Optional(),
+                    EmailOrURL()])
 
             description = wtforms.TextAreaField("Description")
 

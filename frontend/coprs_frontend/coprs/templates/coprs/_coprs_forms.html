@@ -18,6 +18,8 @@
         {{ render_field(form.name, hidden = True) }}
         {{ render_field(form.name, label='Project Name', disabled = True) }}
       {% endif %}
+      {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}
+      {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url') }}
       {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.') }}
       {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.') }}
 
