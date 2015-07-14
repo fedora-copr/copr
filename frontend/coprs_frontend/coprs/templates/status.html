@@ -3,15 +3,13 @@
 {% block header %} Task queue - Copr {% endblock %}
 {% block body %}
 <h1> Task queue </h1>
-<div class="horizontal-menu">
-  <ul>
-    <li class="{% block waiting_selected %}unselected{% endblock %}">
+<ul class="nav nav-tabs">
+  <li class="{% block waiting_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.waiting') }}">Waiting</a>
-    </li>
-    <li class="{% block running_selected %}unselected{% endblock %}">
+  </li>
+  <li class="{% block running_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.running') }}">Running</a>
-    </li>
-  </ul>
-</div>
+  </li>
+</ul>
 {% block status_body %}{% endblock %}
 {% endblock %}
