@@ -5,12 +5,21 @@ import time
 import markdown
 
 import os
+import re
 
 from flask import Markup, url_for
 
 from coprs import app
 from coprs import helpers
 
+
+@app.template_filter("remove_anchor")
+def remove_anchor(data):
+    if data:
+        data = re.sub("<.*?>", "", data)
+        data = re.sub("</a>", "", data)
+        return data
+    return None
 
 @app.template_filter("date_from_secs")
 def date_from_secs(secs):

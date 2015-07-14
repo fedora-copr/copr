@@ -2,6 +2,11 @@
 {% from "coprs/detail/_build_states.html" import build_states %}
 {% block title %}Monitor {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 {% block monitor_selected %}active{% endblock %}
+{%block project_breadcrumb %}
+<li class="active">
+  Monitor
+</li>
+{%endblock%}
 
 {% block detail_body %}
 <table class="table table-striped table-bordered">

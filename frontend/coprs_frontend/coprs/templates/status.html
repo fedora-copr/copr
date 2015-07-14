@@ -2,6 +2,15 @@
 {% block title %} Task queue - Copr {% endblock %}
 {% block header %} Task queue - Copr {% endblock %}
 {% block body %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    <a href="{{ url_for('status_ns.waiting') }}">Status</a>
+  </li>
+  {%block status_breadcrumb %}{%endblock%}
+</ol>
 <h1> Task queue </h1>
 <ul class="nav nav-tabs">
   <li class="{% block waiting_selected %}{% endblock %}">

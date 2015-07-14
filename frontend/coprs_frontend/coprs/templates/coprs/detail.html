@@ -2,6 +2,19 @@
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
 
 {% block body %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=copr.owner.name) }}">{{ copr.owner.name }}</a>
+  </li>
+  <li class="active">
+    <a href="{{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}">{{ copr.name }}</a>
+  </li>
+  {%block project_breadcrumb %}
+  {%endblock%}
+</ol>
 
 <!-- PROJECT NAME -->
 <h1>

@@ -2,6 +2,11 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_form_url with context %}
 
 {% block new_build_url_selected %}active{% endblock %}
+{%block project_breadcrumb_new_build %}
+<li>
+  From URLs
+</li>
+{%endblock%}
 
 {% block build_form %}
 <h3> Build From URL of a SRPM Package</h3>

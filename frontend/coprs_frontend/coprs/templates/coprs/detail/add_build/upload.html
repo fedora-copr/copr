@@ -2,6 +2,11 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_form_upload with context %}
 
 {% block new_build_upload_selected %}active{% endblock %}
+{%block project_breadcrumb_new_build %}
+<li>
+  Upload SRPM
+</li>
+{%endblock%}
 
 {% block build_form %}
 <h3> Build From an Uploaded SRPM Package </h3>

@@ -4,6 +4,11 @@
 {% from "_helpers.html" import render_pagination %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 {% from "coprs/detail/_build_states.html" import build_states %}
+{%block project_breadcrumb %}
+<li class="active">
+  Builds
+</li>
+{%endblock%}
 
 {% block detail_body %}
 <h2>Project Builds</h2>

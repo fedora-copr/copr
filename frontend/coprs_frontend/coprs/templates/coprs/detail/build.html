@@ -2,6 +2,17 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 {% block title %}Build {{ build.id }} in {{ build.copr.owner.name }}/{{ build.copr.name }}{% endblock %}
+{%block project_breadcrumb %}
+<li>
+  <a href="{{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}">{{ copr.name }}</a>
+</li>
+<li>
+  <a href="{{ url_for('coprs_ns.copr_builds', username=copr.owner.name, coprname=copr.name) }}">Builds</a>
+</li>
+<li class="active">
+  {{build.id}}
+</li>
+{%endblock%}
 
 {% block detail_body %}
 

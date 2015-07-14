@@ -2,6 +2,11 @@
 {% block title %}Delete {{ copr.owner.name }}/{{ copr.name }}?{% endblock %}
 {% block delete_selected %}active{% endblock %}
 {% from "coprs/_coprs_forms.html" import copr_delete_form %}
+{%block project_breadcrumb %}
+<li class="active">
+  Delete
+</li>
+{%endblock%}
 
 {% block detail_body %}
 <h2> Delete Project </h2>
