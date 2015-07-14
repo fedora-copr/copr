@@ -68,7 +68,7 @@ class TestCoprsOwned(CoprsTestCase):
     def test_owned_one(self, f_users, f_coprs, f_db):
         self.db.session.add(self.u1)
         r = self.test_client.get("/coprs/{0}/".format(self.u1.name))
-        assert r.data.count('<div class="copr">') == 1
+        assert r.data.count('<!--copr-project-->') == 1
 
 
 class TestCoprsAllowed(CoprsTestCase):
@@ -83,7 +83,7 @@ class TestCoprsAllowed(CoprsTestCase):
     def test_allowed_one(self, f_users, f_coprs, f_copr_permissions, f_db):
         self.db.session.add(self.u1)
         r = self.test_client.get("/coprs/{0}/allowed/".format(self.u1.name))
-        assert r.data.count('<div class="copr">') == 1
+        assert r.data.count('<!--copr-project-->') == 1
 
 
 class TestCoprNew(CoprsTestCase):
