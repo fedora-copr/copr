@@ -4,8 +4,19 @@
 {% from "coprs/_coprs_forms.html" import copr_form %}
 
 {% block body %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}">{{ g.user.name }}</a>
+  </li>
+  <li class="active">
+    New Project
+  </li>
+</ol>
 
-  <h1>Add a new Project</h1>
+  <h1>Create a New Project</h1>
 
 <p>
 You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr. Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.

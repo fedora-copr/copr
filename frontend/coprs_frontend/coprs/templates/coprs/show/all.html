@@ -1,0 +1,21 @@
+{% extends "coprs/show.html" %}
+{% block title %}Project List{% endblock %}
+{% block header %}Project List{% endblock %}
+{% block show_top %}
+
+{% if not g.user and not fulltext%}
+<div class="panel panel-default">
+  <div class="panel-body">
+    <p> Copr is an easy-to-use automatic build system providing a package repository as its output. </p>
+    <p> Start with making your own repository in these three steps: </p>
+    <ol>
+      <li> choose an architecture and system you want to build for </li>
+      <li> provide Copr with src.rpm packages available online </li>
+      <li> let Copr do all the work and wait for your new repo </li>
+    </ol>
+  </div>
+</div>
+{% endif %}
+
+<h1> Projects </h1>
+{% endblock %}

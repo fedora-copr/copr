@@ -24,7 +24,7 @@ from coprs.views.misc import login_required, page_not_found
 
 from coprs.views.coprs_ns import coprs_ns
 
-from coprs.logic import builds_logic, coprs_logic, actions_logic
+from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
 from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT
 
 
@@ -46,7 +46,7 @@ def coprs_show(page=1):
     running_tasks = len(list(builds_logic.BuildsLogic
                              .get_build_tasks(helpers.StatusEnum("running"))))
 
-    return flask.render_template("coprs/show.html",
+    return flask.render_template("coprs/show/all.html",
                                  coprs=coprs,
                                  paginator=paginator,
                                  waiting_tasks=waiting_tasks,
@@ -57,6 +57,11 @@ def coprs_show(page=1):
 @coprs_ns.route("/<username>/", defaults={"page": 1})
 @coprs_ns.route("/<username>/<int:page>/")
 def coprs_by_owner(username=None, page=1):
+    user = users_logic.UsersLogic.get(username).first()
+    if not user:
+        return page_not_found(
+            "User {0} does not exist.".format(username))
+
     query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
                                                 user_relation="owned",
                                                 username=username,
@@ -73,7 +78,8 @@ def coprs_by_owner(username=None, page=1):
     running_tasks = len(list(builds_logic.BuildsLogic
                              .get_build_tasks(helpers.StatusEnum("running"))))
 
-    return flask.render_template("coprs/show.html",
+    return flask.render_template("coprs/show/user.html",
+                                 user=user,
                                  coprs=coprs,
                                  paginator=paginator,
                                  waiting_tasks=waiting_tasks,
