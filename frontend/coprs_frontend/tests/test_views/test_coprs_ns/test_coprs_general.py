@@ -210,14 +210,14 @@ class TestCoprDetail(CoprsTestCase):
 
         r = self.tc.get(
             "/coprs/{0}/{1}/permissions/".format(self.u1.name, self.c1.name))
-        assert '<table class="permissions"' not in r.data
+        assert '<!--permissions-table-->' not in r.data
 
     def test_copr_detail_contains_permissions_table(self, f_users, f_coprs,
                                                     f_copr_permissions, f_db):
 
         r = self.tc.get(
             "/coprs/{0}/{1}/permissions/".format(self.u2.name, self.c3.name))
-        assert '<table class="permissions-table"' in r.data
+        assert '<!--permissions-table-->' in r.data
         assert '<td>{0}'.format(self.u3.name) in r.data
         assert '<td>{0}'.format(self.u1.name) in r.data
 
