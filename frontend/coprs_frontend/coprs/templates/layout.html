@@ -41,7 +41,7 @@
       <div class="col-md-4 col-sm-5 col-xs-6">
         <div class="row">
           {% if g.user %}
-            <span id="login-menu" class="pull-right"><span class="text">logged in as </span><a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a></span>
+            <span id="login-menu" class="pull-right"><span class="text"></span><a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a></span>
           {% else %}
             <span id="login-menu" class="pull-right">
                 <a href="{{ url_for('misc.login') }}">log in</a> |
@@ -66,6 +66,7 @@
       </div>
     </div>
   </nav>
+  {#
   <nav class="navbar navbar-sm navbar-default navbar-static-top">
     <div class="container">
       <ul class="nav navbar-nav">
@@ -81,6 +82,7 @@
       </ul>
     </div>
   </nav>
+  #}
 
   <!-- CONTENT -->
   <div class="container">
