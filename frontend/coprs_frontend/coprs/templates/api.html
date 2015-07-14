@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}API for Copr{% endblock %}
 {% block header %}API for the Copr Build System{% endblock %}
+{%block main_menu_api %}active{% endblock %}
 {% block body %}
   {% if error %}<p class="error"><strong>Error:</strong> {{ error }}</p>{% endif %}
 
