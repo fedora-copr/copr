@@ -1,22 +1,13 @@
 from collections import defaultdict
-import json
-import os
-import pprint
-import time
-
-
-from sqlalchemy import or_
-from sqlalchemy import and_
 
 from sqlalchemy.orm.exc import NoResultFound
 
 from coprs import app
 from coprs import db
-from coprs import exceptions
 from coprs.models import CounterStat
 from coprs import helpers
-from coprs.helpers import REPO_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, dt_to_unixtime, string_dt_to_unixtime, \
-    CHROOT_RPMS_DL_STAT_FMT, PROJECT_RPMS_DL_STAT_FMT
+from coprs.helpers import REPO_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, string_dt_to_unixtime, \
+    CHROOT_RPMS_DL_STAT_FMT, PROJECT_RPMS_DL_STAT_FMT, is_ip_from_builder_net
 from coprs.helpers import CounterStatType
 from coprs.rmodels import TimedStatEvents
 
@@ -95,19 +86,26 @@ def handle_logstash(rc, ls_data):
     dt_unixtime = string_dt_to_unixtime(ls_data["@timestamp"])
     app.logger.debug("got ls_data: {}".format(ls_data))
 
-    if "tags" in ls_data:
-        tags = set(ls_data["tags"])
-        if "frontend" in tags and "repo_dl":
-            name = REPO_DL_STAT_FMT.format(**ls_data)
-            CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
-            db.session.commit()
+    # don't count statistics from builders
+    if "clientip" in ls_data:
+        if is_ip_from_builder_net(ls_data["clientip"]):
+            return
 
-        if "backend" in tags and "repomdxml" in tags:
-            key = CHROOT_REPO_MD_DL_STAT_FMT.format(**ls_data)
-            TimedStatEvents.add_event(rc, key, timestamp=dt_unixtime)
+    if "tags" not in ls_data:
+        return
 
-        if "backend" in tags and "rpm" in tags:
-            key_chroot = CHROOT_RPMS_DL_STAT_FMT.format(**ls_data)
-            key_project = PROJECT_RPMS_DL_STAT_FMT.format(**ls_data)
-            TimedStatEvents.add_event(rc, key_chroot, timestamp=dt_unixtime)
-            TimedStatEvents.add_event(rc, key_project, timestamp=dt_unixtime)
+    tags = set(ls_data["tags"])
+    if "frontend" in tags and "repo_dl":
+        name = REPO_DL_STAT_FMT.format(**ls_data)
+        CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
+        db.session.commit()
+
+    if "backend" in tags and "repomdxml" in tags:
+        key = CHROOT_REPO_MD_DL_STAT_FMT.format(**ls_data)
+        TimedStatEvents.add_event(rc, key, timestamp=dt_unixtime)
+
+    if "backend" in tags and "rpm" in tags:
+        key_chroot = CHROOT_RPMS_DL_STAT_FMT.format(**ls_data)
+        key_project = PROJECT_RPMS_DL_STAT_FMT.format(**ls_data)
+        TimedStatEvents.add_event(rc, key_chroot, timestamp=dt_unixtime)
+        TimedStatEvents.add_event(rc, key_project, timestamp=dt_unixtime)

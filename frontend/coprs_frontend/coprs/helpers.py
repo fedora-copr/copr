@@ -5,10 +5,11 @@ import urlparse
 import flask
 
 from dateutil import parser as dt_parser
+from netaddr import IPAddress, IPNetwork
 
 from redis import StrictRedis
 
-from coprs import constants
+from coprs import constants, app
 from coprs import app
 
 from rpmUtils.miscutils import splitFilename
@@ -315,3 +316,17 @@ def string_dt_to_unixtime(dt_string):
     :rtype: str
     """
     return dt_to_unixtime(dt_parser.parse(dt_string))
+
+
+def is_ip_from_builder_net(ip):
+    """
+    Checks is ip is owned by the builders network
+    :param str ip: IPv4 address
+    :return bool: True
+    """
+    ip_addr = IPAddress(ip)
+    for subnet in app.config.get("BUILDER_IPS", ["127.0.0.1/24"]):
+        if ip_addr in IPNetwork(subnet):
+            return True
+
+    return False
