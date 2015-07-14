@@ -524,7 +524,6 @@ class MockChroot(db.Model, helpers.Serializer):
         """
         return "{}-{}".format(self.os_release, self.os_version)
 
-
     @property
     def name_release_human(self):
         """

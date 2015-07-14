@@ -233,6 +233,8 @@ def copr_detail(username, coprname):
             repos_info[chroot.name_release] = {
                 "name_release": chroot.name_release,
                 "name_release_human": chroot.name_release_human,
+                "os_release": chroot.os_release,
+                "os_version": chroot.os_version,
                 "arch_list": [chroot.arch],
                 "repo_file": "{}-{}-{}.repo".format(copr.owner.name, copr.name, chroot.name_release),
                 "dl_stat": repo_dl_stat[chroot.name_release],

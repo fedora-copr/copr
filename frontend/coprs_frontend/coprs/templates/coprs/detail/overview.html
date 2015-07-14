@@ -1,6 +1,7 @@
 {% extends "coprs/detail.html" %}
 
 {% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
+{% from "_helpers.html" import chroot_to_os_logo %}
 
 {% block overview_selected %}active{% endblock %}
 
@@ -30,7 +31,7 @@
       {% for repo in repos_info_list %}
         <tr>
           <td>
-            {{ repo.name_release_human|capitalize }}
+            {{ chroot_to_os_logo(repo) }}
           </td>
           <td>
             {% for arch in repo.arch_list %}

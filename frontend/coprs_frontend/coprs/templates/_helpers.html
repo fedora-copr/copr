@@ -51,3 +51,11 @@
   </div>
   {% endif %}
 {% endmacro %}
+
+{% macro chroot_to_os_logo(chroot) %}
+  {% if chroot.os_release == "fedora" %}
+    <img style="height:1.8em" src="{{ url_for('static', filename='fedora_logo.png') }}"> Fedora {{chroot.os_version}}
+  {% elif chroot.os_release == "epel" %}
+    Epel for <img style="height:1.8em" src="{{ url_for('static', filename='centos_logo.png') }}"> CentOS {{chroot.os_version}}
+  {% endif %}
+{% endmacro %}
