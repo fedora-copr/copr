@@ -152,6 +152,8 @@ def chroot_to_branch(chroot):
     """
     os, version, arch = chroot.split("-")
     if os == "fedora":
+        if version == "rawhide":
+            return "master"
         os = "f"
     elif os == "epel" and int(version) <= 6:
         os = "el"
@@ -160,7 +162,10 @@ def chroot_to_branch(chroot):
 def branch_to_os_version(branch):
     os = None
     version = None
-    if branch[0] == "f":
+    if branch == "master":
+        os = "fedora"
+        version = "rawhide"
+    elif branch[0] == "f":
         os = "fedora"
         version = branch[1:]
     elif branch[:4] == "epel" or branch[:2] == "el":
