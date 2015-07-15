@@ -19,8 +19,7 @@ class PackagesLogic(object):
     @classmethod
     def get_all(cls, copr_id):
         return (models.Package.query
-                    .filter(models.Package.copr_id == copr_id)
-                    .filter(models.Package.name == package_name))
+                    .filter(models.Package.copr_id == copr_id))
 
     @classmethod
     def get(cls, copr_id, package_name):
