@@ -54,7 +54,7 @@ class BuildJob(object):
         self.git_branch = task_data["git_branch"]
         package_name = task_data["git_repo"].split("/")[2]
         # pkg will serve as a build dir name from now
-        self.pkg = "{}-{}".format(task_data["build_id"], package_name)
+        self.pkg = "{:08d}-{}".format(task_data["build_id"], package_name)
 
         del self.pkgs  # better to produce error, than use it blindly
 

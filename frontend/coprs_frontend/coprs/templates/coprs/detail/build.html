@@ -86,7 +86,7 @@
         <tr>
           <td>
             {% if build.results %}
-            <a href="{{ build.results }}/{{ chroot.name }}/{{ build.src_pkg_name }}">{{ chroot.name }}</a>
+            <a href="{{ build.results }}/{{ chroot.name }}/{{build.result_dir_name}}">{{ chroot.name }}</a>
             {% else %}
             {{ chroot.name }}
             {% endif %}

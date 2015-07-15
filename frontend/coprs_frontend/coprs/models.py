@@ -350,6 +350,10 @@ class Build(db.Model, helpers.Serializer):
     chroots = association_proxy("build_chroots", "mock_chroot")
 
     @property
+    def result_dir_name(self):
+        return "{:08d}-{}".format(self.id, self.package.name)
+
+    @property
     def source_json_dict(self):
         return json.loads(self.source_json)
 
