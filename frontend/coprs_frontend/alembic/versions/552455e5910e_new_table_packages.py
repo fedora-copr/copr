@@ -12,6 +12,7 @@ down_revision = '450fe5f7942d'
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import and_
 from rpmUtils.miscutils import splitFilename
 import os
 import json
@@ -78,16 +79,16 @@ def upgrade():
 
     for build in connection.execute(build_table.select()):
         pkg_name = parse_package_name(os.path.basename(build.pkgs))
-        package = connection.execute(package_table.select().where(
-                    package_table.c.name == pkg_name and package_table.c.copr_id == build.copr_id)).first()
+        package = connection.execute(package_table.select().where(and_(
+                    package_table.c.name == pkg_name, package_table.c.copr_id == build.copr_id))).first()
         if not package:
             connection.execute(package_table.insert().values(
                         name = pkg_name,
                         copr_id = build.copr_id,
                         source_type = 0,
                         source_json = json.dumps({})))
-            package = connection.execute(package_table.select().where(
-                        package_table.c.name == pkg_name and package_table.c.copr_id == build.copr_id)).first()
+            package = connection.execute(package_table.select().where(and_(
+                        package_table.c.name == pkg_name, package_table.c.copr_id == build.copr_id))).first()
         connection.execute(build_table.update().where(build_table.c.id == build.id).values(
                     package_id = package.id,
                     source_type = 0,
