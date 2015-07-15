@@ -358,7 +358,8 @@ class Worker(multiprocessing.Process):
                 .format(job.build_id, self.vm_ip, job.timeout, job.destdir,
                         job.chroot, str(job.repos)))
 
-            self.copy_mock_logs(job)
+            # FIXME! I'm supposed to happen, but I'm not working :(
+            #self.copy_mock_logs(job)
 
         job.status = status
         self._announce_end(job)
