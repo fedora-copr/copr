@@ -85,13 +85,13 @@ def upgrade():
             connection.execute(package_table.insert().values(
                         name = pkg_name,
                         copr_id = build.copr_id,
-                        source_type = 0,
+                        source_type = 0, # no default source
                         source_json = json.dumps({})))
             package = connection.execute(package_table.select().where(and_(
                         package_table.c.name == pkg_name, package_table.c.copr_id == build.copr_id))).first()
         connection.execute(build_table.update().where(build_table.c.id == build.id).values(
                     package_id = package.id,
-                    source_type = 0,
+                    source_type = 1, # srpm url
                     source_json = json.dumps({"url": build.pkgs})))
 
 
