@@ -165,7 +165,7 @@ def branch_to_os_version(branch):
         version = branch[1:]
     elif branch[:4] == "epel" or branch[:2] == "el":
         os = "epel"
-        version = branch[4:]
+        version = branch[-1:]
     return os, version
 
 
