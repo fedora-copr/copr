@@ -359,8 +359,12 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def min_started_on(self):
-        return min(chroot.started_on for chroot in
-                   self.build_chroots if chroot.started_on)
+        mb_list = [chroot.started_on for chroot in
+                   self.build_chroots if chroot.started_on]
+        if len(mb_list) > 0:
+            return min(mb_list)
+        else:
+            return None
 
     @property
     def max_ended_on(self):
