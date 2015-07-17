@@ -31,7 +31,7 @@ from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_
 @coprs_ns.route("/", defaults={"page": 1})
 @coprs_ns.route("/<int:page>/")
 def coprs_show(page=1):
-    query = coprs_logic.CoprsLogic.get_multiple(with_mock_chroots=False)
+    query = coprs_logic.CoprsLogic.get_multiple()
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
@@ -61,8 +61,7 @@ def coprs_by_owner(username=None, page=1):
         return page_not_found(
             "User {0} does not exist.".format(username))
 
-    query = coprs_logic.CoprsLogic.get_multiple(
-        user_relation="owned", username=username, with_mock_chroots=False)
+    query = coprs_logic.CoprsLogic.get_multiple_owned_by_username(username)
 
     paginator = helpers.Paginator(query, query.count(), page)
 
@@ -87,8 +86,7 @@ def coprs_by_owner(username=None, page=1):
 @coprs_ns.route("/<username>/allowed/", defaults={"page": 1})
 @coprs_ns.route("/<username>/allowed/<int:page>/")
 def coprs_by_allowed(username=None, page=1):
-    query = coprs_logic.CoprsLogic.get_multiple(
-        user_relation="allowed", username=username, with_mock_chroots=False)
+    query = coprs_logic.CoprsLogic.get_multiple_allowed_to_username(username)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
@@ -247,7 +245,7 @@ def copr_detail(username, coprname):
 
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
 
-    builds = builds_logic.BuildsLogic.get_multiple(copr=copr).limit(1).all()
+    builds = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr).limit(1).all()
 
     return flask.render_template(
         "coprs/detail/overview.html",
@@ -499,7 +497,7 @@ def copr_delete(username, coprname):
     copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     if form.validate_on_submit() and copr:
-        builds_query = builds_logic.BuildsLogic.get_multiple(copr=copr)
+        builds_query = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr)
 
         try:
             for build in builds_query:

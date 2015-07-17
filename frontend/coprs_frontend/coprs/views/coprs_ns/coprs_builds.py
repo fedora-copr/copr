@@ -62,7 +62,7 @@ def copr_builds(username, coprname, page=1):
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))
 
-    builds_query = builds_logic.BuildsLogic.get_multiple(copr=copr)
+    builds_query = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr)
 
     paginator = helpers.Paginator(
         builds_query, copr.build_count, page, per_page_override=20)

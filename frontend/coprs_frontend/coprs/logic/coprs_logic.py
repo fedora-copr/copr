@@ -56,51 +56,43 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def get_multiple(cls, **kwargs):
-        user_relation = kwargs.get("user_relation", None)
-        username = kwargs.get("username", None)
-        with_mock_chroots = kwargs.get("with_mock_chroots", None)
-        with_builds = kwargs.get("with_builds", None)
-        incl_deleted = kwargs.get("incl_deleted", None)
-        ids = kwargs.get("ids", None)
+    def get_multiple(cls):
+        return (db.session.query(models.Copr)
+                .join(models.Copr.owner)
+                .options(db.contains_eager(models.Copr.owner))
+                .order_by(models.Copr.id.desc()))
 
-        query = (db.session.query(models.Copr)
-                 .join(models.Copr.owner)
-                 .options(db.contains_eager(models.Copr.owner))
-                 .order_by(models.Copr.id.desc()))
+    # user_relation="owned", username=username, with_mock_chroots=False
+    @classmethod
+    def get_multiple_owned_by_username(cls, username):
+        query = cls.get_multiple()
+        return query.filter(models.User.username == username)
 
-        if not incl_deleted:
-            query = query.filter(models.Copr.deleted == False)
+    # user_relation="allowed", username=username, with_mock_chroots=False)
+    @classmethod
+    def get_multiple_allowed_to_username(cls, username):
+        query = cls.get_multiple()
+        aliased_user = db.aliased(models.User)
 
-        if isinstance(ids, list):  # can be an empty list
-            query = query.filter(models.Copr.id.in_(ids))
+        return (query.join(models.CoprPermission, models.Copr.copr_permissions)
+                .filter(models.CoprPermission.copr_builder ==
+                        helpers.PermissionEnum('approved'))
+                .join(aliased_user, models.CoprPermission.user)
+                .filter(aliased_user.username == username))
 
-        if user_relation == "owned":
-            query = query.filter(
-                models.User.username == username)
-        elif user_relation == "allowed":
-            aliased_user = db.aliased(models.User)
+    @classmethod
+    def join_builds(cls, query):
+        return (query.outerjoin(models.Copr.builds)
+                .options(db.contains_eager(models.Copr.builds))
+                .order_by(models.Build.submitted_on.desc()))
 
-            query = (query.join(models.CoprPermission,
-                                models.Copr.copr_permissions)
-                     .filter(models.CoprPermission.copr_builder ==
-                             helpers.PermissionEnum('approved'))
-                     .join(aliased_user, models.CoprPermission.user)
-                     .filter(aliased_user.username == username))
-
-        if with_mock_chroots:
-            query = (query.outerjoin(*models.Copr.mock_chroots.attr)
-                     .options(db.contains_eager(*models.Copr.mock_chroots.attr))
-                     .order_by(models.MockChroot.os_release.asc())
-                     .order_by(models.MockChroot.os_version.asc())
-                     .order_by(models.MockChroot.arch.asc()))
-
-        if with_builds:
-            query = (query.outerjoin(models.Copr.builds)
-                     .options(db.contains_eager(models.Copr.builds))
-                     .order_by(models.Build.submitted_on.desc()))
-
-        return query
+    @classmethod
+    def join_mock_chroots(cls, query):
+        return (query.outerjoin(*models.Copr.mock_chroots.attr)
+                .options(db.contains_eager(*models.Copr.mock_chroots.attr))
+                .order_by(models.MockChroot.os_release.asc())
+                .order_by(models.MockChroot.os_version.asc())
+                .order_by(models.MockChroot.arch.asc()))
 
     @classmethod
     def get_playground(cls):

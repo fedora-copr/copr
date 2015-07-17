@@ -94,28 +94,23 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_multiple(cls, **kwargs):
-        copr = kwargs.get("copr", None)
-        username = kwargs.get("username", None)
-        coprname = kwargs.get("coprname", None)
+    def get_multiple(cls):
+        return models.Build.query.order_by(models.Build.id.desc())
 
-        query = models.Build.query.order_by(models.Build.id.desc())
+    @classmethod
+    def get_multiple_by_copr(cls, copr):
+        """ Get collection of builds in copr sorted by build_id descending
+        """
+        return cls.get_multiple().filter(models.Build.copr == copr)
 
-        # if we get copr, query by its id
-        if copr:
-            query = query.filter(models.Build.copr == copr)
-        elif username and coprname:
-            query = (query.join(models.Build.copr)
-                     .options(db.contains_eager(models.Build.copr))
-                     .join(models.Copr.owner)
-                     .filter(models.Copr.name == coprname)
-                     .filter(models.User.username == username)
-                     .order_by(models.Build.submitted_on.desc()))
-        else:
-            raise exceptions.ArgumentMissingException(
-                "Must pass either copr or both coprname and username")
-
-        return query
+    @classmethod
+    def get_multiple_by_name(cls, username, coprname):
+        query = cls.get_multiple()
+        return (query.join(models.Build.copr)
+                .options(db.contains_eager(models.Build.copr))
+                .join(models.Copr.owner)
+                .filter(models.Copr.name == coprname)
+                .filter(models.User.username == username))
 
     @classmethod
     def get_importing(cls):
@@ -377,7 +372,7 @@ class BuildsLogic(object):
 
         :arg copr: object of copr
         """
-        builds = cls.get_multiple(copr=copr)
+        builds = cls.get_multiple_by_copr(copr)
 
         last_build = (
             builds.join(models.BuildChroot)
@@ -391,23 +386,12 @@ class BuildsLogic(object):
         else:
             return None
 
-    @classmethod
-    def get_multiply_by_copr(cls, copr):
-        """ Get collection of builds in copr sorted by build_id descending
-
-        :arg copr: object of copr
-        """
-        query = models.Build.query.filter(models.Build.copr == copr) \
-            .order_by(models.Build.id.desc())
-
-        return query
-
 
 class BuildsMonitorLogic(object):
     @classmethod
     def get_monitor_data(cls, copr):
         # builds are sorted by build id descending
-        builds = BuildsLogic.get_multiply_by_copr(copr).all()
+        builds = BuildsLogic.get_multiple_by_copr(copr).all()
 
         chroots = set(chroot.name for chroot in copr.active_chroots)
         if builds:

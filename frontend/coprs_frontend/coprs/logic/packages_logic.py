@@ -19,7 +19,7 @@ class PackagesLogic(object):
     @classmethod
     def get_all(cls, copr_id):
         return (models.Package.query
-                    .filter(models.Package.copr_id == copr_id))
+                .filter(models.Package.copr_id == copr_id))
 
     @classmethod
     def get(cls, copr_id, package_name):
@@ -34,10 +34,8 @@ class PackagesLogic(object):
 
         if cls.exists(copr.id, package_name).all():
             raise exceptions.DuplicateException(
-                "Project {}/{} already has a package '{}'".format(
-                                                            copr.owner.name,
-                                                            copr.name,
-                                                            package_name))
+                "Project {}/{} already has a package '{}'"
+                .format(copr.owner.name, copr.name, package_name))
 
         source_type = helpers.BuildSourceEnum("unset")
         source_json = json.dumps({})
@@ -55,8 +53,6 @@ class PackagesLogic(object):
 
     @classmethod
     def exists(cls, copr_id, package_name):
-        existing = (models.Package.query
-                    .filter(models.Package.copr_id == copr_id)
-                    .filter(models.Package.name == package_name))
-
-        return existing
+        return (models.Package.query
+                .filter(models.Package.copr_id == copr_id)
+                .filter(models.Package.name == package_name))
