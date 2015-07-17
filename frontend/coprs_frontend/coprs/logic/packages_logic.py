@@ -53,7 +53,6 @@ class PackagesLogic(object):
 
         return package
 
-
     @classmethod
     def exists(cls, copr_id, package_name):
         existing = (models.Package.query

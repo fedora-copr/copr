@@ -12,7 +12,7 @@ from coprs.views.coprs_ns import coprs_ns
 @coprs_ns.route("/<username>/<coprname>/edit_chroot/<chrootname>/")
 @login_required
 def chroot_edit(username, coprname, chrootname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     if not copr:
         return page_not_found(
             "Project with name {0} does not exist.".format(coprname))
@@ -43,7 +43,7 @@ def chroot_edit(username, coprname, chrootname):
 @login_required
 def chroot_update(username, coprname, chrootname):
     form = forms.ChrootForm()
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     if not copr:
         return page_not_found(
             "Projec with name {0} does not exist.".format(coprname))

@@ -39,7 +39,7 @@ def copr_build_redirect(build_id):
 @coprs_ns.route("/<username>/<coprname>/build/<int:build_id>/")
 def copr_build(username, coprname, build_id):
     build = builds_logic.BuildsLogic.get_by_id(build_id)
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     if not build:
         return page_not_found(
@@ -56,14 +56,13 @@ def copr_build(username, coprname, build_id):
 @coprs_ns.route("/<username>/<coprname>/builds/", defaults={"page": 1})
 @coprs_ns.route("/<username>/<coprname>/builds/<int:page>/")
 def copr_builds(username, coprname, page=1):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     if not copr:
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))
 
-    builds_query = builds_logic.BuildsLogic.get_multiple(
-        flask.g.user, copr=copr)
+    builds_query = builds_logic.BuildsLogic.get_multiple(copr=copr)
 
     paginator = helpers.Paginator(
         builds_query, copr.build_count, page, per_page_override=20)
@@ -78,7 +77,7 @@ def copr_builds(username, coprname, page=1):
 @coprs_ns.route("/<username>/<coprname>/add_build/")
 @login_required
 def copr_add_build(username, coprname, form=None):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     if not copr:
         return page_not_found(
@@ -95,7 +94,7 @@ def copr_add_build(username, coprname, form=None):
 @coprs_ns.route("/<username>/<coprname>/add_build_upload/")
 @login_required
 def copr_add_build_upload(username, coprname, form=None):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     if not copr:
         return page_not_found(
@@ -111,7 +110,7 @@ def copr_add_build_upload(username, coprname, form=None):
 @coprs_ns.route("/<username>/<coprname>/new_build_upload/", methods=["POST"])
 @login_required
 def copr_new_build_upload(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     if not copr:
         return page_not_found(
             "Project {0}/{1} does not exist.".format(username, coprname))
@@ -177,7 +176,7 @@ def copr_new_build_upload(username, coprname):
 @coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
 @login_required
 def copr_new_build(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     if not copr:
         return page_not_found(
             "Project {0}/{1} does not exist.".format(username, coprname))
@@ -260,8 +259,7 @@ def copr_cancel_build(username, coprname, build_id, page=1):
 @login_required
 def copr_repeat_build(username, coprname, build_id, page=1):
     build = builds_logic.BuildsLogic.get(build_id).first()
-    copr = coprs_logic.CoprsLogic.get(
-        flask.g.user, username=username, coprname=coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username=username, coprname=coprname).first()
 
     if not build:
         return page_not_found(

@@ -4,9 +4,6 @@ This file contains some "should" rules, that are good to follow.
 -- The *Logic objects should be named after the primary object that they
    work with, but pluralized. E.g. CoprChroot->CoprChrootsLogic
 -- The methods of *Logic objects should generally be @classmethod.
--- The methods of *Logic objects should accept "user" as a second argument
-   (after the "cls" argument). This argument should contain object of user
-   who is performing the action.
 -- The methods of *Logic objects shouldn't call db.session.commit(). This
    should be called in views that use the methods.
 -- The usual names of methods are (each of the methods can perform certain

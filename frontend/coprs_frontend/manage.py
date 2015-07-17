@@ -112,7 +112,7 @@ class CreateChrootCommand(ChrootCommand):
     def run(self, chroot_names):
         for chroot_name in chroot_names:
             try:
-                coprs_logic.MockChrootsLogic.add(None, chroot_name)
+                coprs_logic.MockChrootsLogic.add(chroot_name)
                 db.session.commit()
             except exceptions.MalformedArgumentException:
                 self.print_invalid_format(chroot_name)
@@ -129,7 +129,7 @@ class AlterChrootCommand(ChrootCommand):
         for chroot_name in chroot_names:
             try:
                 coprs_logic.MockChrootsLogic.edit_by_name(
-                    None, chroot_name, activate)
+                    chroot_name, activate)
                 db.session.commit()
             except exceptions.MalformedArgumentException:
                 self.print_invalid_format(chroot_name)
@@ -153,7 +153,7 @@ class DropChrootCommand(ChrootCommand):
     def run(self, chroot_names):
         for chroot_name in chroot_names:
             try:
-                coprs_logic.MockChrootsLogic.delete_by_name(None, chroot_name)
+                coprs_logic.MockChrootsLogic.delete_by_name(chroot_name)
                 db.session.commit()
             except exceptions.MalformedArgumentException:
                 self.print_invalid_format(chroot_name)
@@ -167,7 +167,7 @@ class DisplayChrootsCommand(Command):
 
     def run(self, active_only):
         for ch in coprs_logic.MockChrootsLogic.get_multiple(
-                None, active_only=active_only).all():
+                active_only=active_only).all():
 
             print(ch.name)
 

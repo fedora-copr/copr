@@ -31,8 +31,7 @@ from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_
 @coprs_ns.route("/", defaults={"page": 1})
 @coprs_ns.route("/<int:page>/")
 def coprs_show(page=1):
-    query = coprs_logic.CoprsLogic.get_multiple(
-        flask.g.user, with_mock_chroots=False)
+    query = coprs_logic.CoprsLogic.get_multiple(with_mock_chroots=False)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
@@ -62,10 +61,8 @@ def coprs_by_owner(username=None, page=1):
         return page_not_found(
             "User {0} does not exist.".format(username))
 
-    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
-                                                user_relation="owned",
-                                                username=username,
-                                                with_mock_chroots=False)
+    query = coprs_logic.CoprsLogic.get_multiple(
+        user_relation="owned", username=username, with_mock_chroots=False)
 
     paginator = helpers.Paginator(query, query.count(), page)
 
@@ -90,10 +87,8 @@ def coprs_by_owner(username=None, page=1):
 @coprs_ns.route("/<username>/allowed/", defaults={"page": 1})
 @coprs_ns.route("/<username>/allowed/<int:page>/")
 def coprs_by_allowed(username=None, page=1):
-    query = coprs_logic.CoprsLogic.get_multiple(flask.g.user,
-                                                user_relation="allowed",
-                                                username=username,
-                                                with_mock_chroots=False)
+    query = coprs_logic.CoprsLogic.get_multiple(
+        user_relation="allowed", username=username, with_mock_chroots=False)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
@@ -189,8 +184,7 @@ def copr_new(username):
 
 @coprs_ns.route("/<username>/<coprname>/report-abuse")
 def copr_report_abuse(username, coprname):
-    query = coprs_logic.CoprsLogic.get(
-        flask.g.user, username, coprname, with_mock_chroots=True)
+    query = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True)
     form = forms.CoprLegalFlagForm()
     try:
         copr = query.one()
@@ -207,8 +201,7 @@ def copr_report_abuse(username, coprname):
 
 @coprs_ns.route("/<username>/<coprname>/")
 def copr_detail(username, coprname):
-    query = coprs_logic.CoprsLogic.get(
-        flask.g.user, username, coprname, with_mock_chroots=True)
+    query = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True)
     form = forms.CoprLegalFlagForm()
     try:
         copr = query.one()
@@ -254,8 +247,7 @@ def copr_detail(username, coprname):
 
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
 
-    builds = builds_logic.BuildsLogic.get_multiple(
-        flask.g.user, copr=copr).limit(1).all()
+    builds = builds_logic.BuildsLogic.get_multiple(copr=copr).limit(1).all()
 
     return flask.render_template(
         "coprs/detail/overview.html",
@@ -269,14 +261,13 @@ def copr_detail(username, coprname):
 
 @coprs_ns.route("/<username>/<coprname>/permissions/")
 def copr_permissions(username, coprname):
-    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
+    query = coprs_logic.CoprsLogic.get(username, coprname)
     copr = query.first()
     if not copr:
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))
 
-    permissions = coprs_logic.CoprPermissionsLogic.get_for_copr(
-        flask.g.user, copr).all()
+    permissions = coprs_logic.CoprPermissionsLogic.get_for_copr(copr).all()
     if flask.g.user:
         user_perm = flask.g.user.permissions_for_copr(copr)
     else:
@@ -308,7 +299,7 @@ def copr_permissions(username, coprname):
 @coprs_ns.route("/<username>/<coprname>/edit/")
 @login_required
 def copr_edit(username, coprname, form=None):
-    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
+    query = coprs_logic.CoprsLogic.get(username, coprname)
     copr = query.first()
 
     if not copr:
@@ -327,7 +318,7 @@ def copr_edit(username, coprname, form=None):
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
 @login_required
 def copr_update(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     form = forms.CoprFormFactory.create_form_cls(owner=copr.owner)()
 
     if form.validate_on_submit():
@@ -341,8 +332,7 @@ def copr_update(username, coprname):
         copr.disable_createrepo = form.disable_createrepo.data
         copr.build_enable_net = form.build_enable_net.data
 
-        coprs_logic.CoprChrootsLogic.update_from_names(
-            flask.g.user, copr, form.selected_chroots)
+        coprs_logic.CoprChrootsLogic.update_from_names(copr, form.selected_chroots)
 
         try:
             # form validation checks for duplicates
@@ -368,9 +358,8 @@ def copr_update(username, coprname):
                 methods=["POST"])
 @login_required
 def copr_permissions_applier_change(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
-    permission = coprs_logic.CoprPermissionsLogic.get(
-        flask.g.user, copr, flask.g.user).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+    permission = coprs_logic.CoprPermissionsLogic.get(copr, flask.g.user).first()
     applier_permissions_form = \
         forms.PermissionsApplierFormFactory.create_form_cls(permission)()
 
@@ -430,7 +419,7 @@ def copr_permissions_applier_change(username, coprname):
 @coprs_ns.route("/<username>/<coprname>/update_permissions/", methods=["POST"])
 @login_required
 def copr_update_permissions(username, coprname):
-    query = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname)
+    query = coprs_logic.CoprsLogic.get(username, coprname)
     copr = query.first()
     permissions = copr.copr_permissions
     permissions_form = forms.PermissionsFormFactory.create_form_cls(
@@ -489,7 +478,7 @@ def copr_update_permissions(username, coprname):
 @login_required
 def copr_createrepo(username, coprname):
 
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     chroots = [c.name for c in copr.active_chroots]
     actions_logic.ActionsLogic.send_createrepo(
@@ -507,11 +496,10 @@ def copr_createrepo(username, coprname):
 @login_required
 def copr_delete(username, coprname):
     form = forms.CoprDeleteForm()
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     if form.validate_on_submit() and copr:
-        builds_query = builds_logic.BuildsLogic.get_multiple(
-            flask.g.user, copr=copr)
+        builds_query = builds_logic.BuildsLogic.get_multiple(copr=copr)
 
         try:
             for build in builds_query:
@@ -543,7 +531,7 @@ def copr_delete(username, coprname):
 @login_required
 def copr_legal_flag(username, coprname):
     form = forms.CoprLegalFlagForm()
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     legal_flag = models.LegalFlag(raise_message=form.comment.data,
                                   raised_on=int(time.time()),
@@ -599,7 +587,7 @@ def generate_repo_file(username, coprname, name_release, repofile):
     try:
         # query.one() is used since it fetches all builds, unlike
         # query.first().
-        copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname, with_builds=True).one()
+        copr = coprs_logic.CoprsLogic.get(username, coprname, with_builds=True).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
             "Project {0}/{1} does not exist".format(username, coprname))
@@ -646,8 +634,7 @@ def generate_repo_file(username, coprname, name_release, repofile):
 @coprs_ns.route("/<username>/<coprname>/monitor/")
 def copr_build_monitor(username, coprname):
     try:
-        copr = coprs_logic.CoprsLogic.get(
-            flask.g.user, username, coprname, with_mock_chroots=True).one()
+        copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))

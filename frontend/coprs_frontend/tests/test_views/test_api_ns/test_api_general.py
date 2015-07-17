@@ -46,7 +46,7 @@ class TestCreateCopr(CoprsTestCase):
         content_encoded = json.dumps(content)
 
         with pytest.raises(sqlalchemy.orm.exc.NoResultFound):
-            CoprsLogic.get(None, self.u1.name, self.copr_name).one()
+            CoprsLogic.get(self.u1.name, self.copr_name).one()
 
         r = self.post_api_with_auth(
             "/api/coprs/{}/new/".format(self.u1.name),
@@ -78,7 +78,7 @@ class TestCreateCopr(CoprsTestCase):
         content_encoded = json.dumps(content)
 
         with pytest.raises(sqlalchemy.orm.exc.NoResultFound):
-            CoprsLogic.get(None, self.u1.name, self.copr_name).one()
+            CoprsLogic.get(self.u1.name, self.copr_name).one()
 
         r = self.post_api_with_auth(
             "/api/coprs/{}/new/".format(self.u1.name),

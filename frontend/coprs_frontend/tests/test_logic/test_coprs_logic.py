@@ -27,8 +27,7 @@ class TestCoprsLogic(CoprsTestCase):
 
         self.db.session.commit()
         # test will fail if this raises exception
-        CoprsLogic.raise_if_unfinished_blocking_action(
-            None, self.c1, "ha, failed")
+        CoprsLogic.raise_if_unfinished_blocking_action(self.c1, "ha, failed")
 
     def test_fulltext_whooshee_return_all_hits(self, f_users, f_db):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1153039

@@ -392,7 +392,7 @@ class TestCoprUpdate(CoprsTestCase):
         # 1.ensure ACR enabled
 
         self.db.session.commit()
-        c1_actual = CoprsLogic.get(None, self.u1.name, self.c1.name).one()
+        c1_actual = CoprsLogic.get(self.u1.name, self.c1.name).one()
         assert c1_actual.auto_createrepo
         # 1. disabling ACR
         self.test_client.post(
@@ -404,7 +404,7 @@ class TestCoprUpdate(CoprsTestCase):
         self.db.session.commit()
 
         # check current status
-        c1_actual = CoprsLogic.get(None, username, coprname).one()
+        c1_actual = CoprsLogic.get(username, coprname).one()
         assert not c1_actual.auto_createrepo
         # no actions issued before
         assert len(ActionsLogic.get_many().all()) == 0
@@ -418,7 +418,7 @@ class TestCoprUpdate(CoprsTestCase):
         )
         self.db.session.commit()
 
-        c1_actual = CoprsLogic.get(None, username, coprname).one()
+        c1_actual = CoprsLogic.get(username, coprname).one()
 
         # ACR enabled
         assert c1_actual.auto_createrepo

@@ -64,7 +64,7 @@ def playground():
             username = m.group(1)
             coprname = m.group(2)
 
-            copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+            copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
             if copr:
                 return flask.redirect(flask.url_for(
@@ -80,7 +80,7 @@ def playground():
 @admin_ns.route("/playground/<username>/<coprname>/")
 @login_required(role=helpers.RoleEnum("admin"))
 def playground_project(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     if not copr:
         flask.flash("Project {0} does not exist".format(copr))
         return flask.render_template("admin/playground.html")
@@ -93,7 +93,7 @@ def playground_project(username, coprname):
 @admin_ns.route("/playground/<username>/<coprname>/set/", methods=["POST"])
 @login_required(role=helpers.RoleEnum("admin"))
 def playground_set(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     if copr:
         form = forms.AdminPlaygroundForm()
 

@@ -94,7 +94,7 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_multiple(cls, user, **kwargs):
+    def get_multiple(cls, **kwargs):
         copr = kwargs.get("copr", None)
         username = kwargs.get("username", None)
         coprname = kwargs.get("coprname", None)
@@ -170,8 +170,7 @@ class BuildsLogic(object):
             chroots = []
 
         coprs_logic.CoprsLogic.raise_if_unfinished_blocking_action(
-            user, copr,
-            "Can't build while there is an operation in progress: {action}")
+            copr, "Can't build while there is an operation in progress: {action}")
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
             user, copr,
             "You don't have permissions to build in this copr.")
@@ -378,7 +377,7 @@ class BuildsLogic(object):
 
         :arg copr: object of copr
         """
-        builds = cls.get_multiple(None, copr=copr)
+        builds = cls.get_multiple(copr=copr)
 
         last_build = (
             builds.join(models.BuildChroot)

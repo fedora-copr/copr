@@ -135,11 +135,11 @@ def api_copr_delete(username, coprname):
     """ Deletes selected user's project
     """
     form = forms.CoprDeleteForm(csrf_enabled=False)
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     httpcode = 200
 
     if form.validate_on_submit() and copr:
-        builds_query = builds_logic.BuildsLogic.get_multiple(flask.g.user, copr=copr)
+        builds_query = builds_logic.BuildsLogic.get_multiple(copr=copr)
         try:
             for build in builds_query:
                 builds_logic.BuildsLogic.delete_build(flask.g.user, build)
@@ -178,8 +178,7 @@ def api_coprs_by_owner(username=None):
     httpcode = 200
     if username:
         query = coprs_logic.CoprsLogic.get_multiple(
-            flask.g.user, user_relation="owned",
-            username=username, with_builds=True)
+            user_relation="owned", username=username, with_builds=True)
 
         repos = query.all()
         output = {"output": "ok", "repos": []}
@@ -216,8 +215,7 @@ def api_coprs_by_owner_detail(username, coprname):
     :arg coprname: the name of project.
 
     """
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username,
-                                      coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
     httpcode = 200
     if username and copr:
@@ -251,8 +249,7 @@ def api_coprs_by_owner_detail(username, coprname):
 @api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
 @api_login_required
 def copr_new_build(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username,
-                                      coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     httpcode = 200
     if not copr:
         output = {"output": "notok", "error":
@@ -397,7 +394,7 @@ def cancel_build(build_id):
 @api_login_required
 def copr_modify(username, coprname):
     form = forms.CoprModifyForm(csrf_enabled=False)
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     if copr is None:
         output = {'output': 'notok', 'error': 'Invalid copr name or username'}
@@ -444,7 +441,7 @@ def copr_modify(username, coprname):
 @api_login_required
 def copr_modify_chroot(username, coprname, chrootname):
     form = forms.ModifyChrootForm(csrf_enabled=False)
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
 
     if copr is None:
@@ -471,7 +468,7 @@ def copr_modify_chroot(username, coprname, chrootname):
 
 @api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["GET"])
 def copr_chroot_details(username, coprname, chrootname):
-    copr = coprs_logic.CoprsLogic.get(flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
 
     if copr is None:
@@ -546,8 +543,7 @@ def playground_list():
 
 @api_ns.route("/coprs/<username>/<coprname>/monitor/", methods=["GET"])
 def monitor(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(
-        flask.g.user, username, coprname).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
 
     monitor_data = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
     output = MonitorWrapper(monitor_data).to_dict()
