@@ -188,7 +188,7 @@ class Worker(multiprocessing.Process):
         """
 
         try:
-            can_start = self.frontend_client.starting_build(job.build_id, job.chroot)
+            can_start = self.frontend_client.starting_build(job.build_id, job.chroot, job.pkg_version)
         except Exception as err:
             raise CoprWorkerError(
                 "Could not communicate to front end to submit results: {}"
@@ -224,15 +224,16 @@ class Worker(multiprocessing.Process):
         except Exception as e:
             self.log.exception("Failed to initialize fedmsg: {}".format(e))
 
-    def on_pkg_skip(self, job):
-        """
-        Handle package skip
-        """
-        self._announce_start(job)
-        self.log.info("Skipping: package {} has been already built before.".format(job.pkg))
-        job.status = BuildStatus.SKIPPED
-        self.notify_job_grab_about_task_end(job)
-        self._announce_end(job)
+    # TODO: doing skip logic on fronted during @start_build query
+    # def on_pkg_skip(self, job):
+    #     """
+    #     Handle package skip
+    #     """
+    #     self._announce_start(job)
+    #     self.log.info("Skipping: package {} has been already built before.".format(job.pkg))
+    #     job.status = BuildStatus.SKIPPED
+    #     self.notify_job_grab_about_task_end(job)
+    #     self._announce_end(job)
 
     def can_start_job(self, job):
         """
@@ -246,9 +247,9 @@ class Worker(multiprocessing.Process):
             return False
 
         # Checking whether to build or skip
-        if self.pkg_built_before(job.pkg, job.chroot, job.destdir):
-            self.on_pkg_skip(job)
-            return False
+        # if self.pkg_built_before(job.pkg, job.chroot, job.destdir):
+        #     self.on_pkg_skip(job)
+        #     return False
 
         return True
 

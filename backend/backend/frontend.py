@@ -55,13 +55,13 @@ class FrontendClient(object):
         """
         self._post_to_frontend_repeatedly(data, "update")
 
-    def starting_build(self, build_id, chroot_name):
+    def starting_build(self, build_id, chroot_name, version=None):
         """
         Announce to the frontend that a build is starting.
         Return: True if the build can start
                 False if the build can not start (can be cancelled or deleted)
         """
-        data = {"build_id": build_id, "chroot": chroot_name}
+        data = {"build_id": build_id, "chroot": chroot_name, "version": version or None}
         response = self._post_to_frontend_repeatedly(data, "starting_build")
         if "can_start" not in response.json():
             raise RequestException("Bad respond from the frontend")
