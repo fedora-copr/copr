@@ -201,6 +201,11 @@ class DistGitImporter():
                     git_hash = import_srpm(user, project, package, branch, fetched_srpm_path)
 
                     log.debug("send a response - success")
+
+                    # refresh cgit
+                    call(["/usr/share/dist-git/cgit_pkg_list.sh"])
+
+                    # send a response - success
                     data = {"task_id": task_id,
                             "repo_name": reponame,
                             "git_hash": git_hash}
