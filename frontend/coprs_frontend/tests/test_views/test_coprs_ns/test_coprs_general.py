@@ -151,7 +151,9 @@ class TestCoprNew(CoprsTestCase):
                                   data={"name": "foo",
                                         "fedora-rawhide-i386": "y",
                                         "initial_pkgs": ["http://a/f.src.rpm",
-                                                         "http://a/b.src.rpm"]},
+                                                         "http://a/b.src.rpm"],
+                                        "build_enable_net": True,
+                                        },
                                   follow_redirects=True)
 
         copr = self.models.Copr.query.filter(
@@ -160,6 +162,29 @@ class TestCoprNew(CoprsTestCase):
         assert self.success_string in r.data
 
         assert self.models.Build.query.first().copr == copr
+        assert self.models.Build.query.first().enable_net is True
+        assert copr.build_count == 1
+        assert "Initial packages were successfully submitted" in r.data
+
+
+    @TransactionDecorator("u1")
+    def test_copr_new_with_initial_pkgs_disabled_net(self, f_users, f_mock_chroots, f_db):
+        r = self.test_client.post("/coprs/{0}/new/".format(self.u1.name),
+                                  data={"name": "foo",
+                                        "fedora-rawhide-i386": "y",
+                                        "initial_pkgs": ["http://a/f.src.rpm",
+                                                         "http://a/b.src.rpm"],
+                                        "build_enable_net": None
+                                        },
+                                  follow_redirects=True)
+
+        copr = self.models.Copr.query.filter(
+            self.models.Copr.name == "foo").first()
+        assert copr
+        assert self.success_string in r.data
+
+        assert self.models.Build.query.first().copr == copr
+        assert self.models.Build.query.first().enable_net is False
         assert copr.build_count == 1
         assert "Initial packages were successfully submitted" in r.data
 

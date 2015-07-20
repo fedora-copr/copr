@@ -167,7 +167,9 @@ def copr_new(username):
                     builds_logic.BuildsLogic.add(
                         flask.g.user,
                         pkgs=pkg,
-                        copr=copr)
+                        copr=copr,
+                        enable_net=form.build_enable_net.data
+                    )
 
                 db.session.commit()
                 flask.flash("Initial packages were successfully submitted "
