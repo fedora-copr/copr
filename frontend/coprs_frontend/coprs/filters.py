@@ -181,3 +181,7 @@ def repo_url(url):
         url = url_for("coprs_ns.copr_detail", username=user, coprname=prj)
 
     return helpers.fix_protocol_for_frontend(url)
+
+@app.template_filter("mailto")
+def mailto(url):
+    return url if urlparse(url).scheme else "mailto:{}".format(url)

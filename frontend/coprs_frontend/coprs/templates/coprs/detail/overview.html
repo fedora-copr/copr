@@ -16,6 +16,18 @@
     <h3>Description</h3>
     <p>{{ copr.description|markdown|default('Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.', true) }}</p>
 
+    {% if copr.homepage %}
+    <a class="btn btn-default" href="{{ copr.homepage }}" title="{{ copr.homepage }}">
+      <span class="fa fa-home"></span> Homepage
+    </a>
+    {% endif %}
+
+    {% if copr.contact %}
+    <a class="btn btn-default" href="{{ copr.contact|mailto }}" title="{{ copr.contact }}">
+      <span class="fa fa-user"></span> Contact
+    </a>
+    {% endif %}
+
     <h3>Installation Instructions</h3>
     <p>{{ copr.instructions|markdown|default('Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo.', true) }}</p>
 
