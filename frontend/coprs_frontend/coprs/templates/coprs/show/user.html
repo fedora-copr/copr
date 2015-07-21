@@ -11,5 +11,18 @@
     {{user.name}}
   </li>
 </ol>
-<h1> {{user.name|capitalize}}'s Projects </h1>
+
+<div id="profile">
+  <img src="{{ user.gravatar_url }}" alt="User Image" class="avatar">
+  <h1>{{user.name|capitalize}}'s Profile</h1>
+  <p>
+      {% if g.user %}
+        <a href="mailto:{{ user.mail }}" title="{{ user.mail }}">{{ user.mail }}</a> |
+      {% endif %}
+      <a href="https://admin.fedoraproject.org/accounts/user/view/{{ user.name }}" title="{{ user.name}}'s FAS profile" target="_blank">FAS account</a> |
+      <a href="https://badges.fedoraproject.org/user/{{ user.name }}" title="{{ user.name }}'s badges" target="_blank">Fedora badges</a>
+  </p>
+</div>
+
+<h2>Projects</h2>
 {% endblock %}

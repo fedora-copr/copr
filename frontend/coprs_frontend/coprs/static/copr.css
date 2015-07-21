@@ -80,3 +80,27 @@
 .build-cancelled,.build-cancelled>a {
   color: #666;
 }
+
+#profile {
+  min-height: 88px;
+  margin-bottom: 20px;
+}
+
+#profile h1 {
+  padding-top: 15px;
+}
+
+#profile p {
+  color: #ddd;
+}
+
+#profile img {
+  float: left;
+  margin-right: 20px;
+}
+
+img.avatar {
+  padding: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
