@@ -108,7 +108,9 @@ class TestDispatcher(object):
             "repos": "",
             "build_id": self.job_build_id,
             "chroot": self.CHROOT,
-            "task_id": "{}-{}".format(self.job_build_id, self.CHROOT)
+            "task_id": "{}-{}".format(self.job_build_id, self.CHROOT),
+            "git_repo": "foobar",
+            "git_hash": "1234r",
         }
 
         self.spawn_pb = "/spawn.yml"

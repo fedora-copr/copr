@@ -13,4 +13,6 @@ Alias /lookaside        /var/lib/dist-git/cache/lookaside
 6. do steps 4 and 5 from https://github.com/release-engineering/dist-git
 7. run /usr/share/copr/dist-git/dist_git_importer.py
 8. edit /etc/copr/copr-dist-git.conf for frontend password
-
+9. configure git variables:
+    git config --global user.email "copr-devel@lists.fedorahosted.org"
+    git config --global user.name "Copr dist git"
