@@ -9,6 +9,13 @@ import shutil
 import tempfile
 from requests import get
 from requests import post
+
+# pyrpkg uses os.getlogin(). It requires tty which is unavailable when we run this script as a daemon
+# very dirty solution for now
+import pwd
+os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
+# monkey patch end
+
 from pyrpkg import Commands
 from subprocess import call
 from pyrpkg.errors import rpkgError
@@ -29,6 +36,7 @@ from helpers import DistGitConfigReader
 class PackageImportException(Exception):
     pass
 
+
 class PackageDownloadException(Exception):
     pass
 
@@ -45,6 +53,7 @@ def _my_upload(repo_dir, reponame, filename, filehash):
     if not os.path.exists(destination):
         os.makedirs(os.path.dirname(destination))
         shutil.copyfile(source, destination)
+
 
 def import_srpm(user, project, pkg, branch, filepath):
     """
