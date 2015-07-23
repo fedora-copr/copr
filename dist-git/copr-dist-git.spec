@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.1
+Version:    0.2
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -71,5 +71,8 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Thu Jul 23 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.2-1
+- new package built with tito
+
 * Thu Jun 25 2015 Adam Samalik <asamalik@redhat.com> 0.1
 - basic package
