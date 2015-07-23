@@ -6,3 +6,5 @@ frontend_base_url=http://copr-fe-dev.cloud.fedoraproject.org
 # must have same value as BACKEND_PASSWORD from have frontend in /etc/copr/copr.conf
 # default is PASSWORDHERE but you really should change it. really.
 frontend_auth=backend_password_from_fe_config
+
+log_dir=/tmp/copr-dist-git

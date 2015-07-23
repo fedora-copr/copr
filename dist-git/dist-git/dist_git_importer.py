@@ -7,12 +7,16 @@ import types
 import urllib
 import shutil
 import tempfile
+import logging
+
 from requests import get
 from requests import post
 
 # pyrpkg uses os.getlogin(). It requires tty which is unavailable when we run this script as a daemon
 # very dirty solution for now
 import pwd
+import sys
+
 os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 # monkey patch end
 
@@ -21,6 +25,9 @@ from subprocess import call
 from pyrpkg.errors import rpkgError
 
 from helpers import DistGitConfigReader
+
+log = logging.getLogger(__name__)
+
 
 # Example usage:
 #
@@ -68,17 +75,17 @@ def import_srpm(user, project, pkg, branch, filepath):
     tmp = tempfile.mkdtemp()
     try:
         repo_dir = os.path.join(tmp, pkg)
-
+        log.debug("repo_dir: {}".format(repo_dir))
         # use rpkg for importing the source rpm
-        commands = Commands(path          =repo_dir,
-                            lookaside     ="",
-                            lookasidehash ="md5",
-                            lookaside_cgi ="",
-                            gitbaseurl    =gitbaseurl,
-                            anongiturl    ="",
-                            branchre      ="",
-                            kojiconfig    ="",
-                            build_client  ="")
+        commands = Commands(path=repo_dir,
+                            lookaside="",
+                            lookasidehash="md5",
+                            lookaside_cgi="",
+                            gitbaseurl=gitbaseurl,
+                            anongiturl="",
+                            branchre="",
+                            kojiconfig="",
+                            build_client="")
 
         # rpkg gets module_name as a basename of git url
         # we use module_name as "username/projectname/packagename"
@@ -90,29 +97,30 @@ def import_srpm(user, project, pkg, branch, filepath):
         # I also add one parameter "repo_dir" to that function with this hack
         commands.lookasidecache.upload = types.MethodType(_my_upload, repo_dir)
 
-        # clone the pkg repository into tmp directory
-        #module = "{}/{}/{}.git".format(user, project, pkg)
-        #giturl = gitbaseurl % {'module': module}
-        #cmd = ['git', 'clone', "-b", "f20",  giturl]
-        #call(cmd, cwd=tmp)
+        log.debug("clone the pkg repository into tmp directory")
+        # module = "{}/{}/{}.git".format(user, project, pkg)
+        # giturl = gitbaseurl % {'module': module}
+        # cmd = ['git', 'clone', "-b", "f20",  giturl]
+        # call(cmd, cwd=tmp)
         commands.clone(module, tmp, branch)
 
-        # import the source rpm into git and save filenames of sources
+        log.debug("import the source rpm into git and save filenames of sources")
         try:
             uploadfiles = commands.import_srpm(filepath)
         except:
             raise PackageImportException
 
-        # save the source files into lookaside cache
+        log.info("save the source files into lookaside cache")
         commands.upload(uploadfiles, replace=True)
 
-        # git push
+        log.debug("git push")
         message = "Import of {}".format(os.path.basename(filepath))
-        #call(["git", "commit", "-m", message], cwd=repo_dir)
-        #call(["git", "push"], cwd=repo_dir)
+        # call(["git", "commit", "-m", message], cwd=repo_dir)
+        # call(["git", "push"], cwd=repo_dir)
         try:
             commands.commit(message)
             commands.push()
+            log.debug("commit and push done")
         except rpkgError:
             pass
         git_hash = commands.commithash
@@ -122,26 +130,31 @@ def import_srpm(user, project, pkg, branch, filepath):
 
 
 class DistGitImporter():
-    def __init__(self):
-        self.config_reader = DistGitConfigReader()
-        self.opts = self.config_reader.read()
+    def __init__(self, opts):
+        self.opts = opts
 
     def run(self):
         get_url = "{}/backend/importing/".format(self.opts.frontend_base_url)
         upload_url = "{}/backend/import-completed/".format(self.opts.frontend_base_url)
-        auth = ("user",self.opts.frontend_auth)
+        auth = ("user", self.opts.frontend_auth)
         headers = {"content-type": "application/json"}
 
         tmp = tempfile.mkdtemp()
+        log.info("DistGitImported initialized")
         try:
-            while(True):
-                # 1. Try to get task data
+            while True:
+                log.info("1. Try to get task data")
                 try:
                     # get the data
                     r = get(get_url)
 
                     # take the first task
-                    task = r.json()["builds"][0]
+                    builds_list = r.json()["builds"]
+                    if len(builds_list) == 0:
+                        log.debug("No new tasks to process")
+                        time.sleep(30)
+                        continue
+                    task = builds_list[0]
 
                     # extract data from it
                     task_id = task["task_id"]
@@ -152,67 +165,99 @@ class DistGitImporter():
                     source_type = task["source_type"]
                     source_json = task["source_json"]
 
-                    if source_type == 1: # SRPM link
+                    if source_type == 1:  # SRPM link
                         package_url = json.loads(source_json)["url"]
-                    elif source_type == 2: # SRPM upload
+                    elif source_type == 2:  # SRPM upload
                         json_tmp = json.loads(source_json)["tmp"]
                         json_pkg = json.loads(source_json)["pkg"]
                         package_url = "{}/tmp/{}/{}".format(
-                                        self.opts.frontend_base_url, json_tmp, json_pkg)
+                            self.opts.frontend_base_url, json_tmp, json_pkg)
                     else:
                         raise Exception
 
                 except KeyboardInterrupt:
-                    exit()
+                    sys.exit(0)
 
-                except:
+                except Exception:
+                    log.exception("Failed acquire new packages for import")
                     time.sleep(30)
                     continue
 
-                # 2. Import the package
+                log.info("2. Importing the package: {}".format(package_url))
                 try:
-                    # download the package
-                    filepath = os.path.join(tmp, os.path.basename(package_url))
+                    log.debug("download the package")
+                    fetched_srpm_path = os.path.join(tmp, os.path.basename(package_url))
                     try:
-                        urllib.urlretrieve(package_url, filepath)
+                        urllib.urlretrieve(package_url, fetched_srpm_path)
                     except IOError:
                         raise PackageDownloadException
 
-                    # make sure repos exist
                     reponame = "{}/{}/{}".format(user, project, package)
+                    log.debug("make sure repos exist: {}".format(reponame))
                     call(["/usr/share/dist-git/git_package.sh", reponame])
                     call(["/usr/share/dist-git/git_branch.sh", branch, reponame])
 
-                    # import it and delete the srpm
-                    git_hash = import_srpm(user, project, package, branch, filepath)
+                    log.debug("import it and delete the srpm")
+                    git_hash = import_srpm(user, project, package, branch, fetched_srpm_path)
 
-                    # send a response - success
+                    log.debug("send a response - success")
                     data = {"task_id": task_id,
                             "repo_name": reponame,
                             "git_hash": git_hash}
                     post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
 
                 except (PackageImportException, PackageDownloadException):
-                    # send a response - failure
-                    data = {"task_id": task_id,
-                            "error": "error"}
+                    log.info("send a response - failure during import of: {}".format(package_url))
+                    data = {"task_id": task_id, "error": "error"}
                     post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
+
+                except Exception:
+                    log.exception("error during package import")
 
                 finally:
                     try:
-                        os.remove(filepath)
-                    except:
+                        os.remove(fetched_srpm_path)
+                    except Exception:
+                        log.exception()
                         pass
         finally:
             shutil.rmtree(tmp)
 
+
 def main():
-    importer = DistGitImporter()
+    config_file = None
+
+    if len(sys.argv) > 1:
+        config_file = sys.argv[1]
+
+    config_reader = DistGitConfigReader(config_file)
+    try:
+        opts = config_reader.read()
+    except Exception as e:
+        print("Failed to read config file, used file location: `{}`"
+              .format(config_file))
+        # sys.exit(1)
+        sys.exit(1)
+
+    logging.basicConfig(
+        filename=os.path.join(opts.log_dir, "main.log"),
+        level=logging.DEBUG,
+        format='[%(asctime)s][%(levelname)s][%(name)s][%(module)s:%(lineno)d] %(message)s',
+        datefmt='%H:%M:%S'
+    )
+
+    logging.getLogger('requests.packages.urllib3').setLevel(logging.WARN)
+    logging.getLogger('urllib3').setLevel(logging.WARN)
+
+    log.info("Logging configuration done")
+    log.info("Using configuration: \n"
+             "{}".format(opts))
+    importer = DistGitImporter(opts)
     try:
         importer.run()
     except KeyboardInterrupt:
         return
 
+
 if __name__ == "__main__":
     main()
-

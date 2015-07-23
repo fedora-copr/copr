@@ -1,6 +1,15 @@
-from bunch import Bunch
 import os
+import logging
 import ConfigParser
+
+from bunch import Bunch
+
+log = logging.getLogger(__name__)
+
+
+class ConfigReaderError(Exception):
+    pass
+
 
 def _get_conf(cp, section, option, default, mode=None):
     """
@@ -43,7 +52,7 @@ class DistGitConfigReader(object):
             return opts
 
         except ConfigParser.Error as e:
-            raise CoprBackendError(
+            raise ConfigReaderError(
                 "Error parsing config file: {0}: {1}".format(
                     self.config_file, e))
 
@@ -58,4 +67,8 @@ class DistGitConfigReader(object):
 
         opts.frontend_auth = _get_conf(
             cp, "dist-git", "frontend_auth", "PASSWORDHERE")
+
+        opts.log_dir = _get_conf(
+            cp, "dist-git", "log_dir", "/var/log/copr-dist-git"
+        )
         return opts
