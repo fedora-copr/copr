@@ -203,7 +203,7 @@ class DistGitImporter():
                     log.debug("send a response - success")
 
                     # refresh cgit
-                    call(["/usr/share/dist-git/cgit_pkg_list.sh"])
+                    call(["/usr/share/dist-git/cgit_pkg_list.sh", self.opts.cgit_pkg_list_location])
 
                     # send a response - success
                     data = {"task_id": task_id,

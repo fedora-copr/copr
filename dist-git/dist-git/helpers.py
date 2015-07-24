@@ -71,4 +71,8 @@ class DistGitConfigReader(object):
         opts.log_dir = _get_conf(
             cp, "dist-git", "log_dir", "/var/log/copr-dist-git"
         )
+
+        opts.cgit_pkg_list_location = _get_conf(
+            cp, "cgit_pkg_list_location", "log_dir", "/var/lib/copr-dist-git/cgit_pkg_list"
+        )
         return opts

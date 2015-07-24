@@ -43,6 +43,7 @@ install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 install -d %{buildroot}%{_unitdir}
 install -d %{buildroot}%{_var}/log/copr-dist-git
+install -d %{buildroot}%{_sharedstatedir}/copr-dist-git
 
 cp -a dist-git/* %{buildroot}%{_datadir}/copr/dist-git
 cp -a conf/copr-dist-git.conf.example %{buildroot}%{_sysconfdir}/copr/copr-dist-git.conf
@@ -62,6 +63,8 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 %{_datadir}/copr/*
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr-service) %{_sysconfdir}/copr/copr-dist-git.conf
+
+%dir %attr(0755, copr-service, copr-service) %{_sharedstatedir}/copr-dist-git/
 
 %{_unitdir}/copr-dist-git.service
 
