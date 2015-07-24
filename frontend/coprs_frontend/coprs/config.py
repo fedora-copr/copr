@@ -48,6 +48,8 @@ class Config(object):
 
     REPO_GPGCHECK = 1
 
+    SRPM_STORAGE_DIR = "/var/lib/copr/data/srpm_storage/"
+
 
 class ProductionConfig(Config):
     DEBUG = False
