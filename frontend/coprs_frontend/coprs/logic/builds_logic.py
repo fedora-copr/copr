@@ -257,7 +257,10 @@ class BuildsLogic(object):
             data = json.loads(build.source_json)
             tmp = data["tmp"]
             storage_path = app.config["SRPM_STORAGE_DIR"]
-            shutil.rmtree(os.path.join(storage_path, tmp))
+            try:
+                shutil.rmtree(os.path.join(storage_path, tmp))
+            except:
+                pass
 
 
     @classmethod
