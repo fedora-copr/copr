@@ -330,7 +330,7 @@ class BuildsLogic(object):
         :type user: models.User
         :type build: models.Build
         """
-        if not user.can_build_in(build.copr):
+        if not user.can_edit(build.copr):
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to delete build `{}`.".format(build.id))
 

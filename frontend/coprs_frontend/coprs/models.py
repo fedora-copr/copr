@@ -90,7 +90,7 @@ class User(db.Model, helpers.Serializer):
         """
 
         can_edit = False
-        if copr.owner == self:
+        if copr.owner == self or self.admin:
             can_edit = True
         if (self.permissions_for_copr(copr) and
                 self.permissions_for_copr(copr).copr_admin ==
