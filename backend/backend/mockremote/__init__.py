@@ -51,11 +51,6 @@ from ..createrepo import createrepo
 from .builder import Builder
 
 
-def get_target_dir(chroot_dir, pkg_name):
-    source_basename = os.path.basename(pkg_name).replace(".src.rpm", "")
-    return os.path.normpath(os.path.join(chroot_dir, source_basename))
-
-
 # class BuilderThread(object):
 #     def __init__(self, builder_obj):
 #         self.builder = builder_obj
@@ -180,13 +175,10 @@ class MockRemote(object):
     def pkg(self):
         return self.job.pkg
 
-    def _get_pkg_destpath(self):
-        # s_pkg = os.path.basename(self.pkg)
-        # s_pkg =
-        # pdn = s_pkg.replace(".src.rpm", "")
-        return os.path.normpath(
-            # "{0}/{1}/{2}".format(self.job.destdir, self.job.chroot, pdn))
-            "{0}/{1}/{2}".format(self.job.destdir, self.job.chroot, self.job.pkg_name))
+    @property
+    def pkg_dest_path(self):
+        return os.path.normpath("{}/{}/{}".format(
+            self.job.destdir, self.job.chroot, self.job.target_dir_name))
 
     def add_pubkey(self):
         """
@@ -225,20 +217,20 @@ class MockRemote(object):
 
         """
 
-        self.log.info("Going to sign pkgs from source: {} in chroot: {}".
-                          format(self.pkg, self.chroot_dir))
+        self.log.info("Going to sign pkgs from source: {} in chroot: {}"
+                      .format(self.job, self.chroot_dir))
 
         try:
             sign_rpms_in_dir(
                 self.job.project_owner,
                 self.job.project_name,
-                get_target_dir(self.chroot_dir, self.pkg),
+                os.path.join(self.chroot_dir, self.job.target_dir_name),
                 opts=self.opts,
                 log=self.log
             )
         except Exception as e:
             self.log.exception(
-                "failed to sign packages built from `{}` with error: \n{}".format(self.pkg, e))
+                "failed to sign packages built from `{}` with error".format(self.job))
             if isinstance(e, MockRemoteError):
                 raise
 
@@ -268,7 +260,7 @@ class MockRemote(object):
             # here?
 
     def on_success_build(self):
-        self.log.info("Success building {0}".format(os.path.basename(self.pkg)))
+        self.log.info("Success building {0}".format(self.job.package_name))
 
         if self.opts.do_sign:
             self.sign_built_packages()
@@ -277,8 +269,7 @@ class MockRemote(object):
         self.do_createrepo()
 
     def prepare_build_dir(self):
-        # TODO: remove old logs (build.log*, root.log*)
-        p_path = self._get_pkg_destpath()
+        p_path = self.pkg_dest_path
         # if it's marked as fail, nuke the failure and try to rebuild it
         if os.path.exists(os.path.join(p_path, "fail")):
             os.unlink(os.path.join(p_path, "fail"))
@@ -314,7 +305,7 @@ class MockRemote(object):
         self.prepare_build_dir()
 
         # building
-        self.log.info("Start build: {0}".format(self.pkg))
+        self.log.info("Start build: {}".format(self.job))
 
         build_error = build_details = None
         try:
@@ -323,23 +314,24 @@ class MockRemote(object):
                                                              self.job.git_branch)
             self.log.info("builder.build finished; details: {}\n stdout: {}".format(build_details, build_stdout))
         except BuilderError as error:
-            self.log.exception("builder.build error building pkg `{}`: {}".format(self.pkg, error))
+            self.log.exception("builder.build error building pkg `{}`: {}"
+                               .format(self.job.package_name, error))
             build_error = error
 
         # TODO: try to use
         # finally:
 
-        self.log.info("End Build: {0}".format(self.pkg))
+        self.log.info("End Build: {0}".format(self.job))
 
         # downloading
-        self.log.info("Start retrieve results for: {0}".format(self.pkg))
-        self.builder.download(self.builder.local_pkg, self.chroot_dir, self.pkg)
+        self.log.info("Start retrieve results for: {0}".format(self.job))
+        self.builder.download(self.pkg_dest_path)
         # self.add_log_symlinks()  # todo: add config option, need this for nginx
-        self.log.info("End retrieve results for: {0}".format(self.pkg))
+        self.log.info("End retrieve results for: {0}".format(self.job))
 
         if build_error:
             raise MockRemoteError("Error occurred during build {}: {}"
-                                  .format(os.path.basename(self.pkg), build_error))
+                                  .format(self.job, build_error))
 
         self.on_success_build()
         return build_details
@@ -350,7 +342,7 @@ class MockRemote(object):
                 into the directory with downloaded files.
 
         """
-        info_file_path = os.path.join(self._get_pkg_destpath(), "build.info")
+        info_file_path = os.path.join(self.pkg_dest_path, "build.info")
         self.log.info("marking build dir with build_id, ")
         try:
             with open(info_file_path, 'w') as info_file:

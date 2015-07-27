@@ -70,9 +70,12 @@ class TestBuilder(object):
     BUILDER_PKG_BASE = "foovar-2.41.f21"
     BUILDER_PKG = "http://example.com/foovar-2.41.f21.src.rpm"
 
+    BUILD_REMOTE_TARGET = "/tmp/copr-backend-test/foovar-2.41.f21.src.rpm"
+
     STDOUT = "stdout"
     STDERR = "stderr"
 
+    RESULT_DIR = "/tmp"
     opts = Bunch(
         ssh=Bunch(
             transport="paramiko"
@@ -87,6 +90,10 @@ class TestBuilder(object):
         redis_port=7777,
     )
 
+    GIT_HASH = "1234r"
+    GIT_BRANCH = "f20"
+    GIT_REPO = "foo/bar/xyz"
+
     def get_test_builder(self):
         self.job = BuildJob({
             "project_owner": COPR_OWNER,
@@ -96,6 +103,10 @@ class TestBuilder(object):
             "build_id": 12345,
             "chroot": self.BUILDER_CHROOT,
             "buildroot_pkgs": self.BUILDER_BUILDROOT_PKGS,
+
+            "git_repo": self.GIT_REPO,
+            "git_hash": self.GIT_HASH,
+            "git_branch": self.GIT_BRANCH,
         }, Bunch({
             "timeout": 1800,
             "destdir": self.test_root_path,
@@ -110,6 +121,10 @@ class TestBuilder(object):
             logger=self.mc_logger
         )
         builder.checked = True
+
+        builder.remote_pkg_name = self.BUILDER_PKG_BASE
+        builder.remote_pkg_path = os.path.join(self.BUILDER_REMOTE_BASEDIR, self.BUILDER_PKG_BASE + ".src.rpm")
+
         return builder
 
     def setup_method(self, method):
@@ -143,13 +158,9 @@ class TestBuilder(object):
 
     def test_get_remote_pkg_dir(self):
         builder = self.get_test_builder()
-        for pkg_name, pkg_fixed in [
-            ("copr-backend-1.46-1.git.33.5733924.fc20.src.rpm", "copr-backend-1.46-1.git.33.5733924.fc20"),
-            ("/tmp/kf5-baloo-5.1.0.1-1.fc20.src.rpm", "kf5-baloo-5.1.0.1-1.fc20")
-        ]:
-            expected = "/".join([self.BUILDER_REMOTE_TMPDIR, "build", "results",
-                                 self.BUILDER_CHROOT, pkg_fixed])
-            assert builder._get_remote_pkg_dir(pkg_name) == expected
+        expected = "/".join([self.BUILDER_REMOTE_TMPDIR, "build", "results",
+                             self.BUILDER_CHROOT, builder.remote_pkg_name])
+        assert builder._get_remote_results_dir() == expected
 
     def test_run_ansible(self):
         builder = self.get_test_builder()
@@ -521,12 +532,12 @@ class TestBuilder(object):
             "contacted": {self.BUILDER_HOSTNAME: {"rc": 0, "stdout": stdout}},
             "dark": {}
         }
-        builder.collect_built_packages(bd, self.BUILDER_PKG)
+        builder.collect_built_packages(bd)
         expected = (
             "cd {} && "
             "for f in `ls *.rpm |grep -v \"src.rpm$\"`; do"
             "   rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
-            "done".format(builder._get_remote_pkg_dir(self.BUILDER_PKG_BASE))
+            "done".format(builder._get_remote_results_dir())
         )
         assert builder.conn.module_args == expected
 
@@ -571,7 +582,7 @@ class TestBuilder(object):
     def test_check_build_success(self, mc_check_for_ans_errror):
         builder = self.get_test_builder()
 
-        builder.check_build_success(self.BUILDER_PKG)
+        builder.check_build_success()
 
         expected_ans_args = (
             "/usr/bin/test -f "
@@ -587,7 +598,7 @@ class TestBuilder(object):
         mc_check_for_ans_errror.side_effect = AnsibleResponseError(msg="err msg")
 
         with pytest.raises(BuilderError):
-            builder.check_build_success(self.BUILDER_PKG)
+            builder.check_build_success()
 
         expected_ans_args = (
             "/usr/bin/test -f "
@@ -605,17 +616,18 @@ class TestBuilder(object):
             "http://example.com/fedora-$releasever",
             "http://example.com/fedora-rawhide",
         ]
-        result_cmd = builder.gen_mockchain_command(self.BUILDER_PKG)
+        result_cmd = builder.gen_mockchain_command()
         expected = (
             "/usr/bin/mockchain -r {chroot} -l /tmp/copr-backend-test-tmp/build/"
             " -a http://example.com/rhel7 -a 'http://example.com/fedora-20; rm -rf' "
             "-a 'http://example.com/fedora-$releasever' -a http://example.com/fedora-rawhide "
             "-m '--define=copr_username {owner}' -m '--define=copr_projectname {copr}'"
             " -m '--define=vendor Fedora Project COPR ({owner}/{copr})'"
-            " http://example.com/foovar-2.41.f21.src.rpm").format(
+            " {build_target}").format(
                 owner=self.job.project_owner,
                 copr=self.job.project_name,
                 chroot=self.job.chroot,
+                build_target=self.BUILD_REMOTE_TARGET
         )
         assert result_cmd == expected
 
@@ -690,28 +702,27 @@ class TestBuilder(object):
             mc_cmd.returncode = ret_code
             mc_popen.return_value = mc_cmd
             if expected_success:
-                builder.download(self.BUILDER_PKG, self.BUILDER_REMOTE_BASEDIR)
+                builder.download("target_dir")
             else:
                 with pytest.raises(BuilderError) as err:
-                    builder.download(self.BUILDER_PKG, self.BUILDER_REMOTE_BASEDIR)
+                    builder.download("target_dir")
                 assert err.value.return_code == ret_code
                 # assert err.value.stderr == self.STDERR
                 # assert err.value.stdout == self.STDOUT
-
-            #import ipdb; ipdb.set_trace()
-            expected_arg = (
-                "/usr/bin/rsync -avH -e 'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
-                " copr_builder@example.com:/tmp/copr-backend-test-tmp/build/results/fedora-20-i386/foovar-2.41.f21 "
-                "'/tmp/copr-backend-test'/ &> '/tmp/copr-backend-test'/build-00012345.rsync.log")
-
-            assert mc_popen.call_args[0][0] == expected_arg
+            #
+            # expected_arg = (
+            #     "/usr/bin/rsync -avH -e 'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
+            #     " copr_builder@example.com:/tmp/copr-backend-test-tmp/build/results/fedora-20-i386/foovar-2.41.f21 "
+            #     "'/tmp/copr-backend-test'/ &> '/tmp/copr-backend-test'/build-00012345.rsync.log")
+            #
+            # assert mc_popen.call_args[0][0] == expected_arg
 
     @mock.patch("backend.mockremote.builder.Popen")
     def test_download_popen_error(self, mc_popen):
         builder = self.get_test_builder()
         mc_popen.side_effect = IOError()
         with pytest.raises(BuilderError):
-            builder.download(self.BUILDER_PKG, self.BUILDER_REMOTE_BASEDIR)
+            builder.download(self.RESULT_DIR)
 
     def test_update_package_version(self):
         builder = self.get_test_builder()
@@ -739,19 +750,21 @@ class TestBuilder(object):
             }
 
         builder._run_ansible = MethodType(fake_run_ansible, builder)
-        builder.update_job_pkg_version(self.BUILDER_PKG)
+        builder.update_job_pkg_version()
 
         assert builder.job.pkg_version == ""
 
         for resp, expected in test_plan:
             self._response = resp
-            builder.update_job_pkg_version(self.BUILDER_PKG)
+            builder.update_job_pkg_version()
             assert builder.job.pkg_version == expected
 
     def test_build(self):
         builder = self.get_test_builder()
         builder.modify_mock_chroot_config = MagicMock()
         builder.check_if_pkg_local_or_http = MagicMock()
+        builder.download_job_pkg_to_builder = MagicMock()
+        builder.download_job_pkg_to_builder.return_value = "foobar"
         builder.check_if_pkg_local_or_http.return_value = self.BUILDER_PKG
 
         builder.update_job_pkg_version = MagicMock()
@@ -770,7 +783,7 @@ class TestBuilder(object):
 
         builder.collect_built_packages = MagicMock()
 
-        build_details, stdout = builder.build(self.BUILDER_PKG)
+        build_details, stdout = builder.build(self.GIT_REPO, self.GIT_HASH, self.GIT_BRANCH)
         assert stdout == self.STDOUT
 
         assert builder.modify_mock_chroot_config.called
@@ -779,19 +792,19 @@ class TestBuilder(object):
         assert builder.collect_built_packages
 
         # test providing version / obsolete
-        builder.build(self.BUILDER_PKG)
+        builder.build(self.GIT_REPO, self.GIT_HASH, self.GIT_BRANCH)
 
         # test timeout handle
         builder.run_build_and_wait.side_effect = BuilderTimeOutError("msg")
 
         with pytest.raises(BuilderError) as error:
-            builder.build(self.BUILDER_PKG)
+            builder.build(self.GIT_REPO, self.GIT_HASH, self.GIT_BRANCH)
 
         assert error.value.msg == "msg"
 
         # remove timeout
         builder.run_build_and_wait.side_effect = None
-        builder.build(self.BUILDER_PKG)
+        builder.build(self.GIT_REPO, self.GIT_HASH, self.GIT_BRANCH)
 
         # error inside wait result
         unsuccessful_wait_result = {
@@ -802,7 +815,7 @@ class TestBuilder(object):
         }
         builder.run_build_and_wait.return_value = unsuccessful_wait_result
         with pytest.raises(BuilderError):
-            builder.build(self.BUILDER_PKG)
+            builder.build(self.GIT_REPO, self.GIT_HASH, self.GIT_BRANCH)
 
         # make wait result successful again
         builder.run_build_and_wait.return_value = successful_wait_result
@@ -816,11 +829,11 @@ class TestBuilder(object):
         # builder.check_build_success.return_value = (self.STDERR, False, self.STDOUT)
 
         # check update build details
-        def upd(bd, pkg):
+        def upd(bd):
             bd["foo"] = "bar"
 
         builder.collect_built_packages.side_effect = upd
-        build_details, stdout = builder.build(self.BUILDER_PKG)
+        build_details, stdout = builder.build(self.GIT_REPO, self.GIT_HASH, self.GIT_BRANCH)
         assert build_details["foo"] == "bar"
 
     def test_pre_process_repo_url(self):

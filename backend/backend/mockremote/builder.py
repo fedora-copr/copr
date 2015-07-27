@@ -30,6 +30,9 @@ class Builder(object):
         self._remote_tempdir = self.opts.remote_tempdir
         self._remote_basedir = self.opts.remote_basedir
 
+        self.remote_pkg_path = None
+        self.remote_pkg_name = None
+
         # if we're at this point we've connected and done stuff on the host
         self.conn = self._create_ans_conn()
         self.root_conn = self._create_ans_conn(username="root")
@@ -112,16 +115,11 @@ class Builder(object):
         conn.module_args = str(cmd)
         return conn.run()
 
-    def _get_remote_pkg_dir(self, pkg):
+    def _get_remote_results_dir(self):
         # the pkg will build into a dir by mockchain named:
         # $tempdir/build/results/$chroot/$packagename
-        s_pkg = os.path.basename(pkg)
-        pdn = s_pkg.replace(".src.rpm", "")
-        remote_pkg_dir = os.path.normpath(
-            os.path.join(self.remote_build_dir, "results",
-                         self.job.chroot, pdn))
-
-        return remote_pkg_dir
+        return os.path.normpath(os.path.join(
+            self.remote_build_dir, "results", self.job.chroot, self.remote_pkg_name))
 
     def modify_mock_chroot_config(self):
         """
@@ -165,7 +163,7 @@ class Builder(object):
             self.log.exception(err)
             raise
 
-    def collect_built_packages(self, build_details, pkg):
+    def collect_built_packages(self, build_details):
         self.log.info("Listing built binary packages")
         # self.conn.module_name = "shell"
 
@@ -173,40 +171,53 @@ class Builder(object):
             "cd {0} && "
             "for f in `ls *.rpm |grep -v \"src.rpm$\"`; do"
             "   rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
-            "done".format(pipes.quote(self._get_remote_pkg_dir(pkg)))
+            "done".format(pipes.quote(self._get_remote_results_dir()))
         )
 
         build_details["built_packages"] = list(results["contacted"].values())[0][u"stdout"]
         self.log.info("Packages:\n{}".format(build_details["built_packages"]))
 
-    def check_build_success(self, pkg):
-        successfile = os.path.join(self._get_remote_pkg_dir(pkg), "success")
+    def check_build_success(self):
+        successfile = os.path.join(self._get_remote_results_dir(), "success")
         ansible_test_results = self._run_ansible("/usr/bin/test -f {0}".format(successfile))
         check_for_ans_error(ansible_test_results, self.hostname)
 
-    def download_job_pkg(self, git_repo, git_hash, git_branch):
+    def download_job_pkg_to_builder(self, git_repo, git_hash, git_branch):
         pkg_name = git_repo.split("/")[2]
         repo_url = "{}/{}.git".format(self.opts.dist_git_url, git_repo)
         self.log.info("Cloning Dist Git repo {}, branch {}, hash {}".format(git_repo, git_hash, git_branch))
-        results = self._run_ansible("rm -rf /tmp/build_package_repo && "
-                                    "mkdir /tmp/build_package_repo && "
-                                    "cd /tmp/build_package_repo && "
-                                    "git clone {repo_url} && "
-                                    "cd {pkg_name} && "
-                                    "git checkout {git_hash} && "
-                                    "fedpkg-copr --dist {branch} srpm".format(
-                                                        repo_url=repo_url,
-                                                        pkg_name=pkg_name,
-                                                        git_hash=git_hash,
-                                                        branch=git_branch))
+        results = self._run_ansible(
+            "rm -rf /tmp/build_package_repo && "
+            "mkdir /tmp/build_package_repo && "
+            "cd /tmp/build_package_repo && "
+            "git clone {repo_url} && "
+            "cd {pkg_name} && "
+            "git checkout {git_hash} && "
+            "fedpkg-copr --dist {branch} srpm"
+            .format(repo_url=repo_url,
+                    pkg_name=pkg_name,
+                    git_hash=git_hash,
+                    branch=git_branch))
 
-        local_pkg = list(results["contacted"].values())[0][u"stdout"].split("Wrote: ")[1]
-        self.log.info("Done: {}".format(local_pkg))
-        return local_pkg
+        # expected output:
+        # ...
+        # Wrote: /tmp/.../copr-ping/copr-ping-1-1.fc21.src.rpm
 
-    def update_job_pkg_version(self, pkg):
+        try:
+            self.remote_pkg_path = list(results["contacted"].values())[0][u"stdout"].split("Wrote: ")[1]
+            self.remote_pkg_name = os.path.basename(self.remote_pkg_path).replace(".src.rpm", "")
+        except Exception:
+            self.log.exception("Failed to obtain srpm from dist-git")
+            raise BuilderError("Failed to obtain srpm from dist-git: ansible results {}".format(results))
+
+        self.log.info("Gor srpm to build: {}".format(self.remote_pkg_path))
+
+    def update_job_pkg_version(self):
         self.log.info("Getting package information: version")
-        results = self._run_ansible("rpm -qp --qf \"%{{EPOCH}}\$\$%{{VERSION}}\$\$%{{RELEASE}}\" {}".format(pkg))
+        results = self._run_ansible(
+            "rpm -qp --qf \"%{{EPOCH}}\$\$%{{VERSION}}\$\$%{{RELEASE}}\" {}"
+            .format(self.remote_pkg_path))
+
         if "contacted" in results:
             # TODO:  do more sane
             raw = list(results["contacted"].values())[0][u"stdout"]
@@ -247,7 +258,7 @@ class Builder(object):
             self.log.exception("Failed to pre-process repo url: {}".format(err))
             return None
 
-    def gen_mockchain_command(self, build_target):
+    def gen_mockchain_command(self):
         buildcmd = "{} -r {} -l {} ".format(
             mockchain, pipes.quote(self.job.chroot),
             pipes.quote(self.remote_build_dir))
@@ -259,7 +270,7 @@ class Builder(object):
         for k, v in self.job.mockchain_macros.items():
             mock_opt = "--define={} {}".format(k, v)
             buildcmd += "-m {} ".format(pipes.quote(mock_opt))
-        buildcmd += build_target
+        buildcmd += self.remote_pkg_path
         return buildcmd
 
     def run_build_and_wait(self, buildcmd):
@@ -324,37 +335,37 @@ class Builder(object):
         self.modify_mock_chroot_config()
 
         # download the package to the builder
-        local_pkg = self.download_job_pkg(git_repo, git_hash, git_branch)
-        self.local_pkg = local_pkg
+        self.download_job_pkg_to_builder(git_repo, git_hash, git_branch)
 
         # srpm version
-        self.update_job_pkg_version(local_pkg)
+        self.update_job_pkg_version()
 
         # construct the mockchain command
-        buildcmd = self.gen_mockchain_command(local_pkg)
+        buildcmd = self.gen_mockchain_command()
         # run the mockchain command async
         ansible_build_results = self.run_build_and_wait(buildcmd)  # now raises BuildTimeoutError
         check_for_ans_error(ansible_build_results, self.hostname)  # on error raises AnsibleResponseError
 
         # we know the command ended successfully but not if the pkg built
         # successfully
-        self.check_build_success(local_pkg)
+        self.check_build_success()
         build_out = get_ans_results(ansible_build_results, self.hostname).get("stdout", "")
 
         build_details = {"pkg_version": self.job.pkg_version}
-        self.collect_built_packages(build_details, local_pkg)
+        self.collect_built_packages(build_details)
+
         return build_details, build_out
 
-    def download(self, pkg, destdir, result_dir):
-            # download the pkg to destdir using rsync + ssh
+    def download(self, target_dir):
+        # download the pkg to destdir using rsync + ssh
 
-        rpd = self._get_remote_pkg_dir(pkg)
-        destdir = "{}/{}".format(destdir, result_dir)
-        # make spaces work w/our rsync command below :(
-        destdir = "'" + destdir.replace("'", "'\\''") + "'"
+        # # make spaces work w/our rsync command below :(
+        destdir = "'" + target_dir.replace("'", "'\\''") + "'"
 
         # build rsync command line from the above
-        remote_src = "{0}@{1}:{2}/*".format(self.opts.build_user, self.hostname, rpd)
+        remote_src = "{}@{}:{}/*".format(self.opts.build_user,
+                                         self.hostname,
+                                         self._get_remote_results_dir())
         ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
 
         rsync_log_filepath = os.path.join(destdir, self.job.rsync_log_name)

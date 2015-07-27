@@ -20,20 +20,11 @@ else:
 
 import pytest
 
-from backend.mockremote import MockRemote, get_target_dir
+from backend.mockremote import MockRemote
 from backend.job import BuildJob
 
 
 MODULE_REF = "backend.mockremote"
-
-def test_get_target_dir():
-    for ch_dir, pkg_name, expected in [
-        ("/tmp/", "copr-backend-1.46-1.git.35.8ba18d1.fc20.src.rpm",
-            "/tmp/copr-backend-1.46-1.git.35.8ba18d1.fc20"),
-        ("/tmp/foo/../bar", "copr-backend-1.46-1.git.35.8ba18d1.fc20.src.rpm",
-            "/tmp/bar/copr-backend-1.46-1.git.35.8ba18d1.fc20"),
-    ]:
-        assert get_target_dir(ch_dir, pkg_name) == expected
 
 STDOUT = "stdout"
 STDERR = "stderr"
@@ -67,6 +58,11 @@ class TestMockRemote(object):
 
         self.HOST = "127.0.0.1"
         self.SRC_PKG_URL = "http://example.com/{}-{}.src.rpm".format(self.PKG_NAME, self.PKG_VERSION)
+
+        self.GIT_HASH = "1234r"
+        self.GIT_BRANCH = "f20"
+        self.GIT_REPO = "foo/bar/xyz"
+
         self.JOB = BuildJob({
             "project_owner": COPR_OWNER,
             "project_name": COPR_NAME,
@@ -74,6 +70,10 @@ class TestMockRemote(object):
             "repos": "",
             "build_id": 12345,
             "chroot": self.CHROOT,
+
+            "git_repo": self.GIT_REPO,
+            "git_hash": self.GIT_HASH,
+            "git_branch": self.GIT_BRANCH,
         }, Bunch({
             "timeout": 1800,
             "destdir": self.test_root_path,
@@ -173,9 +173,7 @@ class TestMockRemote(object):
         assert self.mr.do_createrepo.called
 
     def test_prepare_build_dir_erase_fail_file(self, f_mock_remote):
-        target_dir = os.path.join(
-            self.DESTDIR, self.CHROOT,
-            "{}-{}".format(self.PKG_NAME, self.PKG_VERSION))
+        target_dir = self.mr.pkg_dest_path
         os.makedirs(target_dir)
         fail_path = os.path.join(target_dir, "fail")
         with open(fail_path, "w") as handle:
@@ -183,13 +181,10 @@ class TestMockRemote(object):
         assert os.path.exists(fail_path)
 
         self.mr.prepare_build_dir()
-
-        assert not os.path.exists(fail_path)
+        assert os.path.exists(fail_path) is False
 
     def test_prepare_build_dir_erase_success_file(self, f_mock_remote):
-        target_dir = os.path.join(
-            self.DESTDIR, self.CHROOT,
-            "{}-{}".format(self.PKG_NAME, self.PKG_VERSION))
+        target_dir = self.mr.pkg_dest_path
         os.makedirs(target_dir)
         fail_path = os.path.join(target_dir, "success")
         with open(fail_path, "w") as handle:
@@ -198,14 +193,11 @@ class TestMockRemote(object):
 
         self.mr.prepare_build_dir()
 
-        assert not os.path.exists(fail_path)
+        assert os.path.exists(fail_path) is False
 
     def test_prepare_build_dir_creates_dirs(self, f_mock_remote):
         self.mr.prepare_build_dir()
-        target_dir = os.path.join(
-            self.DESTDIR, self.CHROOT,
-            "{}-{}".format(self.PKG_NAME, self.PKG_VERSION))
-        assert os.path.exists(target_dir)
+        assert os.path.exists(self.mr.pkg_dest_path)
 
     def test_build_pkg_and_process_results(self, f_mock_remote):
         self.mr.on_success_build = MagicMock()
@@ -219,11 +211,12 @@ class TestMockRemote(object):
         assert id(result) == id(build_details)
 
         assert self.mr.builder.build.called
-        assert self.mr.builder.build.call_args == mock.call(self.SRC_PKG_URL)
+        assert self.mr.builder.build.call_args == mock.call(
+            self.GIT_REPO, self.GIT_HASH, self.GIT_BRANCH)
 
         assert self.mr.builder.download.called
         assert self.mr.builder.download.call_args == \
-            mock.call(self.SRC_PKG_URL, self.DESTDIR_CHROOT)
+            mock.call(self.mr.pkg_dest_path)
 
         assert self.mr.mark_dir_with_build_id.called
         assert self.mr.on_success_build.called
@@ -255,12 +248,10 @@ class TestMockRemote(object):
 
     def test_mark_dir_with_build_id(self, f_mock_remote):
         # TODO: create real test
-        os.makedirs(os.path.join(self.DESTDIR_CHROOT,
-                                 "{}-{}".format(self.PKG_NAME, self.PKG_VERSION)))
+        target_dir = self.mr.pkg_dest_path
+        os.makedirs(target_dir)
 
-        info_file_path = os.path.join(self.DESTDIR_CHROOT,
-                                      "{}-{}".format(self.PKG_NAME, self.PKG_VERSION),
-                                      "build.info")
+        info_file_path = os.path.join(target_dir, "build.info")
         assert not os.path.exists(info_file_path)
         self.mr.mark_dir_with_build_id()
 

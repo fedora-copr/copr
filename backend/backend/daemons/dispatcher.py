@@ -114,7 +114,7 @@ class Worker(multiprocessing.Process):
             "pkg: {pkg} build:{build} ip:{ip}  pid:{pid}"
 
         content = dict(user=job.submitter, copr=job.project_name,
-                       owner=job.project_owner, pkg=job.pkg_name,
+                       owner=job.project_owner, pkg=job.package_name,
                        build=job.build_id, ip=self.vm_ip, pid=self.pid)
         self.fedmsg_notify("build.start", template, content)
 
@@ -122,7 +122,7 @@ class Worker(multiprocessing.Process):
             "copr:{copr} pkg: {pkg} build:{build} ip:{ip}  pid:{pid}"
 
         content = dict(chroot=job.chroot, user=job.submitter,
-                       owner=job.project_owner, pkg=job.pkg_name,
+                       owner=job.project_owner, pkg=job.package_name,
                        copr=job.project_name, build=job.build_id,
                        ip=self.vm_ip, pid=self.pid)
 
@@ -141,7 +141,7 @@ class Worker(multiprocessing.Process):
 
         content = dict(user=job.submitter, copr=job.project_name,
                        owner=job.project_owner,
-                       pkg=job.pkg_name, version=job.pkg_version,
+                       pkg=job.package_name, version=job.pkg_version,
                        build=job.build_id, ip=self.vm_ip, pid=self.pid,
                        status=job.status, chroot=job.chroot)
         self.fedmsg_notify("build.end", template, content)
@@ -308,10 +308,8 @@ class Worker(multiprocessing.Process):
             # start the build - most importantly license checks.
 
             self.log.info(
-                "Starting build: id={} builder={} timeout={} destdir={}"
-                " chroot={} repos={} pkg={}"
-                .format(job.build_id, self.vm_ip, job.timeout, job.destdir,
-                        job.chroot, str(job.repos), job.pkg))
+                "Starting build: id={} builder={} job: {}"
+                .format(job.build_id, self.vm_ip, job))
 
             chroot_repos = list(job.repos)
             chroot_repos.append(job.results + job.chroot + '/')

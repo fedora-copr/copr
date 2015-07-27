@@ -52,9 +52,10 @@ class BuildJob(object):
         self.pkg_path = task_data["git_repo"]
         self.git_hash = task_data["git_hash"]
         self.git_branch = task_data["git_branch"]
-        package_name = task_data["git_repo"].split("/")[2]
-        # pkg will serve as a build dir name from now
-        self.pkg = "{:08d}-{}".format(task_data["build_id"], package_name)
+        self.package_name = task_data["git_repo"].split("/")[2]
+
+        # self.pkg = "{:08d}-{}".format(task_data["build_id"], package_name)
+        self.target_dir_name = "{:08d}-{}".format(task_data["build_id"], self.package_name)
 
         del self.pkgs  # better to produce error, than use it blindly
 
@@ -80,21 +81,12 @@ class BuildJob(object):
         self.built_packages = ""
 
     @property
-    def pkg_name(self):
-        mb_name = self.pkg.split("/")[-1]
-        if mb_name:
-            mb_name = mb_name.replace(".src.rpm", "")
-            return mb_name
-        else:
-            return self.pkg
-
-    @property
     def chroot_dir(self):
         return os.path.normpath("{}/{}".format(self.destdir, self.chroot))
 
     @property
     def results_dir(self):
-        return os.path.join(self.chroot_dir, self.pkg_name)
+        return os.path.join(self.chroot_dir, self.package_name)
 
     @property
     def chroot_log_name(self):
@@ -154,4 +146,4 @@ class BuildJob(object):
 
     def __unicode__(self):
         return u"BuildJob<id: {build_id}, owner: {project_owner}, " \
-               u"project: {project_name}, source pkg : {pkg} >".format(**self.__dict__)
+               u"project: {project_name}, git branch: {git_branch}, git_hash: {git_hash} >".format(**self.__dict__)
