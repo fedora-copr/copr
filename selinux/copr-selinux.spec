@@ -29,7 +29,7 @@ BuildRequires: libxslt
 BuildRequires:  checkpolicy, selinux-policy-devel
 BuildRequires:  policycoreutils
 Requires(post): policycoreutils, libselinux-utils
-Requires(post): policycoreutils-python
+Requires(post): policycoreutils-python-utils
 Requires(post): selinux-policy-targeted
 Requires(postun): policycoreutils
 %if "%{_selinux_policy_version}" != ""
