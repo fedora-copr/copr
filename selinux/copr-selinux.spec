@@ -8,7 +8,7 @@
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
-Version:    1.36
+Version:    1.37
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -111,6 +111,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Mon Jul 27 2015 Miroslav Suchý <msuchy@redhat.com> 1.37-1
+- 1246610 - depend on policycoreutils-python-utils
+
 * Thu Mar 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.36-1
 - [selinux] allow httpd_t to write into /var/log/copr/
 
