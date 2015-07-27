@@ -246,25 +246,6 @@ class TestCoprDetail(CoprsTestCase):
         assert '<td>{0}'.format(self.u3.name) in r.data
         assert '<td>{0}'.format(self.u1.name) in r.data
 
-    @TransactionDecorator("u1")
-    def test_copr_detail_allows_asking_for_permissions(self, f_users, f_coprs,
-                                                       f_copr_permissions, f_db):
-
-        self.db.session.add_all([self.u2, self.c2])
-        r = self.test_client.get(
-            "/coprs/{0}/{1}/permissions/".format(self.u2.name, self.c2.name))
-        # u1 is approved builder, check for that
-        assert "/permissions_applier_change/" in r.data
-
-    @TransactionDecorator("u2")
-    def test_copr_detail_doesnt_allow_owner_to_ask_for_permissions(
-            self, f_users, f_coprs, f_db):
-
-        self.db.session.add_all([self.u2, self.c2])
-        r = self.test_client.get(
-            "/coprs/{0}/{1}/permissions/".format(self.u2.name, self.c2.name))
-        assert "/permissions_applier_change/" not in r.data
-
     @TransactionDecorator("u2")
     def test_detail_has_correct_permissions_form(self, f_users, f_coprs,
                                                  f_copr_permissions, f_db):

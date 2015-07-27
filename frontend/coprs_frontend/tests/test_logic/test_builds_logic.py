@@ -122,18 +122,60 @@ class TestBuildsLogic(CoprsTestCase):
         data = BuildsLogic.get_build_task_queue().all()
         assert len(data) == 0
 
-
     def test_delete_build_exceptions(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        for bc in self.b4_bc:
+            bc.status = StatusEnum("succeeded")
+            bc.ended_on = time.time()
+        self.b4.ended_on = time.time()
+        self.u1.admin = False
+
+        self.db.session.add_all(self.b4_bc)
+        self.db.session.add(self.b4)
+        self.db.session.add(self.u1)
         self.db.session.commit()
         with pytest.raises(InsufficientRightsException):
             BuildsLogic.delete_build(self.u1, self.b4)
 
-        self.b1_bc[0].status = "running"
+        self.b1_bc[0].status = StatusEnum("running")
         self.db.session.add(self.b1_bc[0])
         self.db.session.commit()
         with pytest.raises(ActionInProgressException):
             BuildsLogic.delete_build(self.u1, self.b1)
+
+    def test_delete_build_as_admin(
+            self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+
+        self.b4.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
+        self.b4.ended_on = time.time()
+        for bc in self.b4_bc:
+            bc.status = StatusEnum("succeeded")
+            bc.ended_on = time.time()
+
+        self.u1.admin = True
+
+        self.db.session.add_all(self.b4_bc)
+        self.db.session.add(self.b4)
+        self.db.session.add(self.u1)
+        self.db.session.commit()
+
+        expected_chroots_to_delete = set()
+        for bchroot in self.b4_bc:
+            expected_chroots_to_delete.add(bchroot.name)
+
+        assert len(ActionsLogic.get_many().all()) == 0
+        BuildsLogic.delete_build(self.u1, self.b4)
+        self.db.session.commit()
+
+        assert len(ActionsLogic.get_many().all()) == 1
+        action = ActionsLogic.get_many().one()
+        delete_data = json.loads(action.data)
+        assert "chroots" in delete_data
+        assert "copr-keygen-1.58-1.fc20" == delete_data["src_pkg_name"]
+        assert expected_chroots_to_delete == set(delete_data["chroots"])
+
+        with pytest.raises(NoResultFound):
+            BuildsLogic.get(self.b4.id).one()
 
     def test_delete_build_basic(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):

@@ -433,7 +433,6 @@ class Build(db.Model, helpers.Serializer):
         """
         Return build status according to build status of its chroots
         """
-
         if self.canceled:
             return helpers.StatusEnum("canceled")
 
@@ -461,7 +460,7 @@ class Build(db.Model, helpers.Serializer):
         """
 
         return self.status == helpers.StatusEnum("pending") or \
-               self.status == helpers.StatusEnum("importing")
+            self.status == helpers.StatusEnum("importing")
 
     @property
     def repeatable(self):
@@ -496,7 +495,7 @@ class Build(db.Model, helpers.Serializer):
         """
         Extract source package name from source name or url
         """
-        src_rpm_name =  self.pkgs.split("/")[-1]
+        src_rpm_name = self.pkgs.split("/")[-1]
         if src_rpm_name.endswith(".src.rpm"):
             return src_rpm_name[:-8]
         else:
