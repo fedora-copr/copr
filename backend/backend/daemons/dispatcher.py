@@ -357,8 +357,7 @@ class Worker(multiprocessing.Process):
                 .format(job.build_id, self.vm_ip, job.timeout, job.destdir,
                         job.chroot, str(job.repos)))
 
-            # FIXME! I'm supposed to happen, but I'm not working :(
-            #self.copy_mock_logs(job)
+            self.copy_mock_logs(job)
 
         job.status = status
         self._announce_end(job)
@@ -375,8 +374,11 @@ class Worker(multiprocessing.Process):
         for log in logs:
             src = os.path.join(job.chroot_dir, log[0])
             dst = os.path.join(job.results_dir, log[1])
-            with open(src, "rb") as f_src, gzip.open(dst, "wb") as f_dst:
-                f_dst.writelines(f_src)
+            try:
+                with open(src, "rb") as f_src, gzip.open(dst, "wb") as f_dst:
+                    f_dst.writelines(f_src)
+            except IOError:
+                self.log.info("File {} not found".format(src))
 
     def clean_result_directory(self, job):
         """

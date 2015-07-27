@@ -318,6 +318,11 @@ class TestDispatcher(object):
         self.worker.copy_mock_logs(self.job)
         assert set(os.listdir(self.job.results_dir)) == set(["rsync.log.gz", "mockchain.log.gz"])
 
+    def test_copy_mock_logs_missing_files(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
+        os.makedirs(self.job.results_dir)
+        self.worker.copy_mock_logs(self.job)
+        assert set(os.listdir(self.job.results_dir)) == set()
+
     def test_clean_previous_build_results(self, mc_mr_class, init_worker, reg_vm, mc_register_build_result):
         os.makedirs(self.job.results_dir)
 
