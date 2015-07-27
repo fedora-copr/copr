@@ -56,11 +56,17 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def get_multiple(cls):
-        return (db.session.query(models.Copr)
-                .join(models.Copr.owner)
-                .options(db.contains_eager(models.Copr.owner))
-                .order_by(models.Copr.id.desc()))
+    def get_multiple(cls, include_deleted=False):
+        query = (
+            db.session.query(models.Copr)
+            .join(models.Copr.owner)
+            .options(db.contains_eager(models.Copr.owner))
+            .order_by(models.Copr.id.desc()))
+
+        if not include_deleted:
+            query = query.filter(models.Copr.deleted.is_(False))
+
+        return query
 
     # user_relation="owned", username=username, with_mock_chroots=False
     @classmethod
