@@ -98,16 +98,13 @@ def import_srpm(user, project, pkg, branch, filepath):
         commands.lookasidecache.upload = types.MethodType(_my_upload, repo_dir)
 
         log.debug("clone the pkg repository into tmp directory")
-        # module = "{}/{}/{}.git".format(user, project, pkg)
-        # giturl = gitbaseurl % {'module': module}
-        # cmd = ['git', 'clone', "-b", "f20",  giturl]
-        # call(cmd, cwd=tmp)
         commands.clone(module, tmp, branch)
 
         log.debug("import the source rpm into git and save filenames of sources")
         try:
             uploadfiles = commands.import_srpm(filepath)
-        except:
+        except Exception:
+            log.exception("Failed to import the source rpm: {}".format(filepath))
             raise PackageImportException
 
         log.info("save the source files into lookaside cache")
@@ -115,8 +112,6 @@ def import_srpm(user, project, pkg, branch, filepath):
 
         log.debug("git push")
         message = "Import of {}".format(os.path.basename(filepath))
-        # call(["git", "commit", "-m", message], cwd=repo_dir)
-        # call(["git", "push"], cwd=repo_dir)
         try:
             commands.commit(message)
             commands.push()
@@ -173,7 +168,8 @@ class DistGitImporter():
                         package_url = "{}/tmp/{}/{}".format(
                             self.opts.frontend_base_url, json_tmp, json_pkg)
                     else:
-                        raise Exception
+                        log.error("Got unknown source type: {}".format(source_type))
+                        raise Exception("Got unknown source type: {}".format(source_type))
 
                 except KeyboardInterrupt:
                     sys.exit(0)
@@ -191,6 +187,10 @@ class DistGitImporter():
                         urllib.urlretrieve(package_url, fetched_srpm_path)
                     except IOError:
                         raise PackageDownloadException
+
+                    # todo: check that obtained file is a REAL srpm
+                    # todo  query package name & version and ise real name instead of task["package"]
+                    # if fetched file is not a proper srpm set error state
 
                     reponame = "{}/{}/{}".format(user, project, package)
                     log.debug("make sure repos exist: {}".format(reponame))
