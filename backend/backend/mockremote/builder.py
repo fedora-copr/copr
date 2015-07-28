@@ -212,7 +212,7 @@ class Builder(object):
             self.remote_pkg_name = os.path.basename(self.remote_pkg_path).replace(".src.rpm", "")
         except Exception:
             self.log.exception("Failed to obtain srpm from dist-git")
-            raise DistGitError("Failed to obtain srpm from dist-git: ansible results {}".format(results))
+            raise BuilderError("Failed to obtain srpm from dist-git: ansible results {}".format(results))
 
         self.log.info("Gor srpm to build: {}".format(self.remote_pkg_path))
 
