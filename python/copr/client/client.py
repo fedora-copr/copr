@@ -186,17 +186,10 @@ class CoprClient(UnicodeMixin):
         if response.status_code > 299 and on_error_response is not None:
             return on_error_response(response)
 
-        # TODO: better status code handling
         if response.status_code == 404:
-            if projectname is None:
-                raise CoprRequestException(
-                    "User {0} is unknown.\n".format(username))
-            else:
-                raise CoprRequestException(
-                    "Project {0}/{1} not found.\n".format(
-                        username, projectname))
-
-        if 400 <= response.status_code < 500:
+            log.error("Bad request, URL not found: {0}".
+                      format(url))
+        elif 400 <= response.status_code < 500:
             log.error("Bad request, raw response body: {0}".
                       format(response.text))
         elif response.status_code >= 500:
