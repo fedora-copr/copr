@@ -56,7 +56,7 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 %check
 
-% post
+%post
 # change context to be readable by cgit
 semanage fcontext -a -t httpd_sys_content_t '/var/lib/copr-dist-git(/.*)?'
 restorecon -rv /var/lib/copr-dist-git
