@@ -223,8 +223,8 @@ class DistGitImporter():
                     try:
                         os.remove(fetched_srpm_path)
                     except Exception:
-                        log.exception()
-                        pass
+                        log.exception("Failed to remove fetched srpm")
+
         finally:
             shutil.rmtree(tmp)
 
