@@ -116,6 +116,10 @@ class Builder(object):
         return conn.run()
 
     def _get_remote_results_dir(self):
+        if any(x is None for x in [self.remote_build_dir,
+                                   self.remote_pkg_name,
+                                   self.job.chroot]):
+            return None
         # the pkg will build into a dir by mockchain named:
         # $tempdir/build/results/$chroot/$packagename
         return os.path.normpath(os.path.join(
@@ -208,7 +212,7 @@ class Builder(object):
             self.remote_pkg_name = os.path.basename(self.remote_pkg_path).replace(".src.rpm", "")
         except Exception:
             self.log.exception("Failed to obtain srpm from dist-git")
-            raise BuilderError("Failed to obtain srpm from dist-git: ansible results {}".format(results))
+            raise DistGitError("Failed to obtain srpm from dist-git: ansible results {}".format(results))
 
         self.log.info("Gor srpm to build: {}".format(self.remote_pkg_path))
 
@@ -357,34 +361,37 @@ class Builder(object):
         return build_details, build_out
 
     def download(self, target_dir):
-        # download the pkg to destdir using rsync + ssh
+        if self._get_remote_results_dir():
+            self.log.info("Start retrieve results for: {0}".format(self.job))
+            # download the pkg to destdir using rsync + ssh
 
-        # # make spaces work w/our rsync command below :(
-        destdir = "'" + target_dir.replace("'", "'\\''") + "'"
+            # # make spaces work w/our rsync command below :(
+            destdir = "'" + target_dir.replace("'", "'\\''") + "'"
 
-        # build rsync command line from the above
-        remote_src = "{}@{}:{}/*".format(self.opts.build_user,
-                                         self.hostname,
-                                         self._get_remote_results_dir())
-        ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
+            # build rsync command line from the above
+            remote_src = "{}@{}:{}/*".format(self.opts.build_user,
+                                             self.hostname,
+                                             self._get_remote_results_dir())
+            ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
 
-        rsync_log_filepath = os.path.join(destdir, self.job.rsync_log_name)
-        command = "{} -avH -e {} {} {}/ &> {}".format(
-            rsync, ssh_opts, remote_src, destdir,
-            rsync_log_filepath)
+            rsync_log_filepath = os.path.join(destdir, self.job.rsync_log_name)
+            command = "{} -avH -e {} {} {}/ &> {}".format(
+                rsync, ssh_opts, remote_src, destdir,
+                rsync_log_filepath)
 
-        # dirty magic with Popen due to IO buffering
-        # see http://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
-        # alternative: use tempfile.Tempfile as Popen stdout/stderr
-        try:
-            cmd = Popen(command, shell=True)
-            cmd.wait()
-        except Exception as error:
-            raise BuilderError(msg="Failed to download from builder due to rsync error, "
-                                   "see logs dir. Original error: {}".format(error))
-        if cmd.returncode != 0:
-            raise BuilderError(msg="Failed to download from builder due to rsync error, "
-                                   "see logs dir.", return_code=cmd.returncode)
+            # dirty magic with Popen due to IO buffering
+            # see http://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
+            # alternative: use tempfile.Tempfile as Popen stdout/stderr
+            try:
+                cmd = Popen(command, shell=True)
+                cmd.wait()
+                self.log.info("End retrieve results for: {0}".format(self.job))
+            except Exception as error:
+                raise BuilderError(msg="Failed to download from builder due to rsync error, "
+                                       "see logs dir. Original error: {}".format(error))
+            if cmd.returncode != 0:
+                raise BuilderError(msg="Failed to download from builder due to rsync error, "
+                                       "see logs dir.", return_code=cmd.returncode)
 
     def check(self):
         # do check of host

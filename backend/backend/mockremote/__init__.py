@@ -307,7 +307,6 @@ class MockRemote(object):
         # building
         self.log.info("Start build: {}".format(self.job))
 
-        build_error = build_details = None
         try:
             build_details, build_stdout = self.builder.build(self.job.git_repo,
                                                              self.job.git_hash,
@@ -317,21 +316,12 @@ class MockRemote(object):
             self.log.exception("builder.build error building pkg `{}`: {}"
                                .format(self.job.package_name, error))
             build_error = error
-
-        # TODO: try to use
-        # finally:
-
-        self.log.info("End Build: {0}".format(self.job))
-
-        # downloading
-        self.log.info("Start retrieve results for: {0}".format(self.job))
-        self.builder.download(self.pkg_dest_path)
-        # self.add_log_symlinks()  # todo: add config option, need this for nginx
-        self.log.info("End retrieve results for: {0}".format(self.job))
-
-        if build_error:
             raise MockRemoteError("Error occurred during build {}: {}"
                                   .format(self.job, build_error))
+        finally:
+            self.builder.download(self.pkg_dest_path)
+            # self.add_log_symlinks()  # todo: add config option, need this for nginx
+            self.log.info("End Build: {0}".format(self.job))
 
         self.on_success_build()
         return build_details
