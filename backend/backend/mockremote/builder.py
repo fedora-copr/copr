@@ -213,7 +213,7 @@ class Builder(object):
             self.log.exception("Failed to obtain srpm from dist-git")
             raise BuilderError("Failed to obtain srpm from dist-git: ansible results {}".format(results))
 
-        self.log.info("Gor srpm to build: {}".format(self.remote_pkg_path))
+        self.log.info("Got srpm to build: {}".format(self.remote_pkg_path))
 
     def pre_process_repo_url(self, repo_url):
         """
