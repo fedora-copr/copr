@@ -17,7 +17,13 @@
     {% for build in builds %}
       <tr class="build-row build-row-{{ build.state }}" >
         <td><a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{ build.id }}</a></td>
-        <td>{{ build.pkgs|pkg_name }}</td> 
+        <td>
+            {% if build.package %} 
+                {{ build.package.name }}
+            {% else %}
+                 - 
+            {% endif %}
+        </td> 
         <td>
             {% if build.pkg_version %} 
                 {{ build.pkg_version}}
@@ -25,13 +31,7 @@
                  - 
             {% endif %}
         </td> 
-        <td>
-            {% if g.user %}
-                {{ build.submitted_on|localized_time(g.user.timezone) }}
-            {% else %}
-                {{ build.submitted_on|localized_time("UTC") }}
-            {% endif %}
-        </td>
+        <td> {{ build.submitted_on|time_ago(build.ended_on) }} ago </td>
         <td> {{ build.started_on|time_ago(build.ended_on) }} </td>
         <td class="build-{{build.state}}" abbr="{{build.state|build_state_description}}">{{ build.state }}</td>
       </tr>
