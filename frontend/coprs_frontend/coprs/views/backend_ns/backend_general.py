@@ -84,9 +84,9 @@ def dist_git_upload_completed():
         db.session.commit()
 
         result.update({"updated": True})
-        
 
     return flask.jsonify(result)
+
 
 @backend_ns.route("/waiting/")
 @misc.backend_authenticated
