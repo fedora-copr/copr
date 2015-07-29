@@ -18,14 +18,26 @@
 <p> You can go to <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}"> {{ build.copr.owner.name }}/{{ build.copr.name }}/build/{{build.id}} </a>to see this build. </p>
 {% else %}
 
-<h2> Build {{ build.id }} of {{build.package.name}}: <span class="build-{{build.state}}"> {{ build.state }} </span> </h2>
+<h2> Build {{ build.id }}: <span class="build-{{build.state}}"> {{ build.state }} </span> </h2>
 
 <div class="row">
   <div class="col-sm-8 col-md-9">
     <dl class="dl-horizontal">
-      <dt> Package:</dt>
+      <dt> Package Name:</dt>
       <dd>
-        <a href="#">{{ build.package.name }}</a>
+        {% if build.package %} 
+            {{ build.package.name }}
+        {% else %}
+             - 
+        {% endif %}
+      </dd>
+      <dt> Package Version:</dt>
+      <dd>
+        {% if build.pkg_version %} 
+            {{ build.pkg_version}}
+        {% else %}
+             - 
+        {% endif %}
       </dd>
       <dt> Built by: </dt>
       <dd>
