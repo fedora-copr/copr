@@ -31,7 +31,7 @@
                  - 
             {% endif %}
         </td> 
-        <td> {{ build.submitted_on|time_ago(build.ended_on) }} ago </td>
+        <td> {{ build.submitted_on|time_ago() }} ago </td>
         <td> {{ build.started_on|time_ago(build.ended_on) }} </td>
         <td class="build-{{build.state}}" abbr="{{build.state|build_state_description}}">{{ build.state }}</td>
       </tr>
