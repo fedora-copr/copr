@@ -124,7 +124,7 @@ def waiting():
             "project_owner": task.build.copr.owner.name,
             "project_name": task.build.copr.name,
             "submitter": task.build.user.name,
-            "pkgs": task.build.pkgs,
+            "pkgs": task.build.pkgs, # TODO to be removed
             "chroot": task.mock_chroot.name,
             "buildroot_pkgs": task.build.copr.buildroot_pkgs(task.mock_chroot),
             "repos": task.build.repos,
@@ -134,6 +134,8 @@ def waiting():
             "git_repo": task.build.package.dist_git_repo,
             "git_hash": task.git_hash,
             "git_branch": helpers.chroot_to_branch(task.mock_chroot.name),
+            "package_name": task.build.package.name,
+            "package_version": task.build.pkg_version
         }
         for task in BuildsLogic.get_build_task_queue().limit(200)
     ]

@@ -306,7 +306,7 @@ class BuildsLogic(object):
 
                     db.session.add(build_chroot)
 
-        for attr in ["results", "pkg_version", "built_packages"]:
+        for attr in ["results", "built_packages"]:
             value = upd_dict.get(attr, None)
             if value:
                 setattr(build, attr, value)
