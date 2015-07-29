@@ -141,7 +141,7 @@ class Worker(multiprocessing.Process):
 
         content = dict(user=job.submitter, copr=job.project_name,
                        owner=job.project_owner,
-                       pkg=job.package_name, version=job.pkg_version,
+                       pkg=job.package_name, version=job.package_version,
                        build=job.build_id, ip=self.vm_ip, pid=self.pid,
                        status=job.status, chroot=job.chroot)
         self.fedmsg_notify("build.end", template, content)
@@ -182,20 +182,18 @@ class Worker(multiprocessing.Process):
     def starting_build(self, job):
         """
         Announce to the frontend that a build is starting.
+        Checks if we can and/or should start job
 
         :return True: if the build can start
         :return False: if the build can not start (build is cancelled)
         """
 
         try:
-            can_start = self.frontend_client.starting_build(job.build_id, job.chroot, job.pkg_version)
+            return self.frontend_client.starting_build(job.build_id, job.chroot)
         except Exception as err:
-            raise CoprWorkerError(
-                "Could not communicate to front end to submit results: {}"
-                .format(err)
-            )
-
-        return can_start
+            msg = "Could not communicate to front end to confirm build start"
+            self.log.exception(msg)
+            raise CoprWorkerError(msg)
 
     @classmethod
     def pkg_built_before(cls, pkg, chroot, destdir):
@@ -234,24 +232,6 @@ class Worker(multiprocessing.Process):
     #     job.status = BuildStatus.SKIPPED
     #     self.notify_job_grab_about_task_end(job)
     #     self._announce_end(job)
-
-    def can_start_job(self, job):
-        """
-        Checks if we can and/or should start job
-        :type job: BuildJob
-        :rtype: bool
-        """
-        # Checking whether the build is not cancelled
-        if not self.starting_build(job):
-            self.log.info("Couldn't start job: {}".format(job))
-            return False
-
-        # Checking whether to build or skip
-        # if self.pkg_built_before(job.pkg, job.chroot, job.destdir):
-        #     self.on_pkg_skip(job)
-        #     return False
-
-        return True
 
     def obtain_job(self):
         """
@@ -307,24 +287,20 @@ class Worker(multiprocessing.Process):
             # and run a series of checks on the package before we
             # start the build - most importantly license checks.
 
-            self.log.info(
-                "Starting build: id={} builder={} job: {}"
-                .format(job.build_id, self.vm_ip, job))
+            self.log.info("Starting build: id={} builder={} job: {}"
+                          .format(job.build_id, self.vm_ip, job))
 
-            chroot_repos = list(job.repos)
-            chroot_repos.append(job.results + job.chroot + '/')
-            chroot_repos.append(job.results + job.chroot + '/devel/')
+            build_logger = create_file_logger(
+                "{}.builder.mr".format(self.logger_name),
+                job.chroot_log_path, fmt=build_log_format)
 
-            chroot_logfile = os.path.join(job.chroot_dir, job.chroot_log_name)
-
-            build_logger = create_file_logger("{}.builder.mr".format(self.logger_name),
-                                              chroot_logfile, fmt=build_log_format)
             try:
                 mr = MockRemote(
-                    builder_host=self.vm_ip, job=job,
+                    builder_host=self.vm_ip,
+                    job=job,
                     logger=build_logger,
-                    repos=chroot_repos,
-                    opts=self.opts, lock=self.lock,
+                    opts=self.opts,
+                    lock=self.lock,
                 )
                 mr.check()
 
@@ -368,12 +344,12 @@ class Worker(multiprocessing.Process):
         if not os.path.isdir(job.results_dir):
             return
 
-        logs = [(job.chroot_log_name, "mockchain.log.gz"),
-                (job.rsync_log_name, "rsync.log.gz")]
+        log_names = [(job.chroot_log_name, "mockchain.log.gz"),
+                     (job.rsync_log_name, "rsync.log.gz")]
 
-        for log in logs:
-            src = os.path.join(job.chroot_dir, log[0])
-            dst = os.path.join(job.results_dir, log[1])
+        for src_name, dst_name in log_names:
+            src = os.path.join(job.chroot_dir, src_name)
+            dst = os.path.join(job.results_dir, dst_name)
             try:
                 with open(src, "rb") as f_src, gzip.open(dst, "wb") as f_dst:
                     f_dst.writelines(f_src)
@@ -460,7 +436,7 @@ class Worker(multiprocessing.Process):
             return
 
         try:
-            if not self.can_start_job(job):
+            if not self.starting_build(job):
                 self.notify_job_grab_about_task_end(job)
                 return
         except Exception:

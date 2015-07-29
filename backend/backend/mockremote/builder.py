@@ -17,13 +17,13 @@ from ..constants import mockchain, rsync, DEF_BUILD_TIMEOUT
 
 class Builder(object):
 
-    def __init__(self, opts, hostname, job, logger, repos=None):
+    def __init__(self, opts, hostname, job, logger):
 
         self.opts = opts
         self.hostname = hostname
         self.job = job
         self.timeout = self.job.timeout or DEF_BUILD_TIMEOUT
-        self.repos = repos or []
+        self.repos =  []
         self.log = logger
 
         self.buildroot_pkgs = self.job.buildroot_pkgs or ""
@@ -167,10 +167,8 @@ class Builder(object):
             self.log.exception(err)
             raise
 
-    def collect_built_packages(self, build_details):
+    def collect_built_packages(self):
         self.log.info("Listing built binary packages")
-        # self.conn.module_name = "shell"
-
         results = self._run_ansible(
             "cd {0} && "
             "for f in `ls *.rpm |grep -v \"src.rpm$\"`; do"
@@ -178,18 +176,19 @@ class Builder(object):
             "done".format(pipes.quote(self._get_remote_results_dir()))
         )
 
-        build_details["built_packages"] = list(results["contacted"].values())[0][u"stdout"]
-        self.log.info("Packages:\n{}".format(build_details["built_packages"]))
+        built_packages = list(results["contacted"].values())[0][u"stdout"]
+        self.log.info("Built packages:\n{}".format(built_packages))
+        return built_packages
 
     def check_build_success(self):
         successfile = os.path.join(self._get_remote_results_dir(), "success")
         ansible_test_results = self._run_ansible("/usr/bin/test -f {0}".format(successfile))
         check_for_ans_error(ansible_test_results, self.hostname)
 
-    def download_job_pkg_to_builder(self, git_repo, git_hash, git_branch):
-        pkg_name = git_repo.split("/")[2]
-        repo_url = "{}/{}.git".format(self.opts.dist_git_url, git_repo)
-        self.log.info("Cloning Dist Git repo {}, branch {}, hash {}".format(git_repo, git_hash, git_branch))
+    def download_job_pkg_to_builder(self):
+        repo_url = "{}/{}.git".format(self.opts.dist_git_url, self.job.git_repo)
+        self.log.info("Cloning Dist Git repo {}, branch {}, hash {}".format(
+            self.job.git_repo, self.job.git_hash, self.job.git_branch))
         results = self._run_ansible(
             "rm -rf /tmp/build_package_repo && "
             "mkdir /tmp/build_package_repo && "
@@ -199,9 +198,9 @@ class Builder(object):
             "git checkout {git_hash} && "
             "fedpkg-copr --dist {branch} srpm"
             .format(repo_url=repo_url,
-                    pkg_name=pkg_name,
-                    git_hash=git_hash,
-                    branch=git_branch))
+                    pkg_name=self.job.package_name,
+                    git_hash=self.job.git_hash,
+                    branch=self.job.git_branch))
 
         # expected output:
         # ...
@@ -215,29 +214,6 @@ class Builder(object):
             raise BuilderError("Failed to obtain srpm from dist-git: ansible results {}".format(results))
 
         self.log.info("Gor srpm to build: {}".format(self.remote_pkg_path))
-
-    def update_job_pkg_version(self):
-        self.log.info("Getting package information: version")
-        results = self._run_ansible(
-            "rpm -qp --qf \"%{{EPOCH}}\$\$%{{VERSION}}\$\$%{{RELEASE}}\" {}"
-            .format(self.remote_pkg_path))
-
-        if "contacted" in results:
-            # TODO:  do more sane
-            raw = list(results["contacted"].values())[0][u"stdout"]
-            try:
-                epoch, version, release = raw.split("$$")
-
-                if epoch == "(none)" or epoch == "0":
-                    epoch = None
-                if release == "(none)":
-                    release = None
-
-                self.job.pkg_main_version = version
-                self.job.pkg_epoch = epoch
-                self.job.pkg_release = release
-            except ValueError:
-                pass
 
     def pre_process_repo_url(self, repo_url):
         """
@@ -266,7 +242,7 @@ class Builder(object):
         buildcmd = "{} -r {} -l {} ".format(
             mockchain, pipes.quote(self.job.chroot),
             pipes.quote(self.remote_build_dir))
-        for repo in self.repos:
+        for repo in self.job.chroot_repos_extended:
             repo = self.pre_process_repo_url(repo)
             if repo is not None:
                 buildcmd += "-a {0} ".format(repo)
@@ -335,14 +311,11 @@ class Builder(object):
     #     buildcmd = self.gen_mockchain_command(dest)
     #
 
-    def build(self, git_repo, git_hash, git_branch):
+    def build(self):
         self.modify_mock_chroot_config()
 
         # download the package to the builder
-        self.download_job_pkg_to_builder(git_repo, git_hash, git_branch)
-
-        # srpm version
-        self.update_job_pkg_version()
+        self.download_job_pkg_to_builder()
 
         # construct the mockchain command
         buildcmd = self.gen_mockchain_command()
@@ -353,12 +326,7 @@ class Builder(object):
         # we know the command ended successfully but not if the pkg built
         # successfully
         self.check_build_success()
-        build_out = get_ans_results(ansible_build_results, self.hostname).get("stdout", "")
-
-        build_details = {"pkg_version": self.job.pkg_version}
-        self.collect_built_packages(build_details)
-
-        return build_details, build_out
+        return get_ans_results(ansible_build_results, self.hostname).get("stdout", "")
 
     def download(self, target_dir):
         if self._get_remote_results_dir():

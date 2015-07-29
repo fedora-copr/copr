@@ -74,6 +74,9 @@ class TestMockRemote(object):
             "git_repo": self.GIT_REPO,
             "git_hash": self.GIT_HASH,
             "git_branch": self.GIT_BRANCH,
+
+            "package_name": self.PKG_NAME,
+            "package_version": self.PKG_VERSION
         }, Bunch({
             "timeout": 1800,
             "destdir": self.test_root_path,
@@ -204,20 +207,15 @@ class TestMockRemote(object):
         self.mr.mark_dir_with_build_id = MagicMock()
 
         build_details = MagicMock()
-        self.mr.builder.build.return_value = (build_details, STDOUT)
+        self.mr.builder.build.return_value = STDOUT
+        self.mr.builder.collect_built_packages.return_value = "foo bar"
 
         result = self.mr.build_pkg_and_process_results()
 
-        assert id(result) == id(build_details)
+        assert result["built_packages"] == "foo bar"
 
         assert self.mr.builder.build.called
-        assert self.mr.builder.build.call_args == mock.call(
-            self.GIT_REPO, self.GIT_HASH, self.GIT_BRANCH)
-
         assert self.mr.builder.download.called
-        assert self.mr.builder.download.call_args == \
-            mock.call(self.mr.pkg_dest_path)
-
         assert self.mr.mark_dir_with_build_id.called
         assert self.mr.on_success_build.called
 

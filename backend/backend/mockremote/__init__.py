@@ -130,9 +130,7 @@ class MockRemote(object):
             self.opts.update(opts)
 
         self.log = logger
-
         self.job = job
-        self.repos = repos or DEF_REPOS
 
         # TODO: remove or re-implement
         # self.cont = cont    # unused since we build only one pkg at time
@@ -149,7 +147,6 @@ class MockRemote(object):
             hostname=builder_host,
             job=self.job,
             logger=logger,
-            repos=self.repos
         )
 
         self.failed = []
@@ -308,16 +305,16 @@ class MockRemote(object):
         self.log.info("Start build: {}".format(self.job))
 
         try:
-            build_details, build_stdout = self.builder.build(self.job.git_repo,
-                                                             self.job.git_hash,
-                                                             self.job.git_branch)
-            self.log.info("builder.build finished; details: {}\n stdout: {}".format(build_details, build_stdout))
+            build_stdout = self.builder.build()
+            build_details = {"built_packages": self.builder.collect_built_packages()}
+
+            self.log.info("builder.build finished; details: {}\n stdout: {}"
+                          .format(build_details, build_stdout))
         except BuilderError as error:
             self.log.exception("builder.build error building pkg `{}`: {}"
                                .format(self.job.package_name, error))
-            build_error = error
             raise MockRemoteError("Error occurred during build {}: {}"
-                                  .format(self.job, build_error))
+                                  .format(self.job, error))
         finally:
             self.builder.download(self.pkg_dest_path)
             # self.add_log_symlinks()  # todo: add config option, need this for nginx

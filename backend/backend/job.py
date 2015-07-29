@@ -43,24 +43,21 @@ class BuildJob(object):
         self.buildroot_pkgs = None
 
         self.task_id = None
+        self.build_id = None
 
-        # TODO: validate update data
+        self.package_name = None
+        self.package_version = None
+
+        self.git_repo = None
+        self.git_hash = None
+        self.git_branch = None
+
+        # TODO: validate update data, user marshmallow
         for key, val in task_data.items():
             key = str(key)
             setattr(self, key, val)
 
-        self.pkg_path = task_data["git_repo"]
-        self.git_hash = task_data["git_hash"]
-        self.git_branch = task_data["git_branch"]
-        self.package_name = task_data["git_repo"].split("/")[2]
-
-        # self.pkg = "{:08d}-{}".format(task_data["build_id"], package_name)
-        self.target_dir_name = "{:08d}-{}".format(task_data["build_id"], self.package_name)
-
-        del self.pkgs  # better to produce error, than use it blindly
-
         self.repos = [r for r in task_data["repos"].split(" ") if r.strip()]
-        self.build_id = task_data["build_id"]
 
         self.destdir = os.path.normpath(os.path.join(
             worker_opts.destdir,
@@ -71,14 +68,18 @@ class BuildJob(object):
         self.results = u"/".join([
             worker_opts.results_baseurl,
             task_data["project_owner"],
-            task_data["project_name"] + "/"
+            task_data["project_name"]
         ])
-
-        self.pkg_main_version = ""
-        self.pkg_epoch = None
-        self.pkg_release = None
+        self.results_repo_url = self.results
 
         self.built_packages = ""
+
+    @property
+    def chroot_repos_extended(self):
+        repos = list(self.repos)
+        repos.append("{}/{}".format(self.results_repo_url, self.chroot))
+        repos.append("{}/{}/devel".format(self.results_repo_url, self.chroot))
+        return repos
 
     @property
     def chroot_dir(self):
@@ -89,8 +90,16 @@ class BuildJob(object):
         return os.path.join(self.chroot_dir, self.package_name)
 
     @property
+    def target_dir_name(self):
+        return "{:08d}-{}".format(self.build_id, self.package_name)
+
+    @property
     def chroot_log_name(self):
         return "build-{:08d}.log".format(self.build_id)
+
+    @property
+    def chroot_log_path(self):
+        return os.path.join(self.chroot_dir, self.chroot_log_name)
 
     @property
     def rsync_log_name(self):
@@ -111,7 +120,6 @@ class BuildJob(object):
         """
         result = copy.deepcopy(self.__dict__)
         result["id"] = self.build_id
-        result["pkg_version"] = self.pkg_version
         result["mockchain_macros"] = self.mockchain_macros
         return result
 
