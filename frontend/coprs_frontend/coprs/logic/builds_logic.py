@@ -182,14 +182,17 @@ class BuildsLogic(object):
             source_type = helpers.BuildSourceEnum("srpm_link")
             source_json = json.dumps({"url":pkgs})
 
-        package_name = helpers.parse_package_name(os.path.basename(pkgs))
+        # We no longer guess package name just from the filename
+        #package_name = helpers.parse_package_name(os.path.basename(pkgs))
 
-        package = packages_logic.PackagesLogic.get(copr.id, package_name).first()
+        # And we no longer assign a package to the build (we don't know the package name, right...)
+        # This is done after package is imported.
+        #package = packages_logic.PackagesLogic.get(copr.id, package_name).first()
 
-        if not package:
-            package = packages_logic.PackagesLogic.add(user, copr, package_name)
-            db.session.add(package)
-            db.session.flush()
+        #if not package:
+        #    package = packages_logic.PackagesLogic.add(user, copr, package_name)
+        #    db.session.add(package)
+        #    db.session.flush()
 
         build = models.Build(
             user=user,
@@ -198,7 +201,7 @@ class BuildsLogic(object):
             repos=repos,
             source_type=source_type,
             source_json=source_json,
-            package_id=package.id,
+            #package_id=package.id,
             submitted_on=int(time.time()),
             enable_net=bool(enable_net),
         )

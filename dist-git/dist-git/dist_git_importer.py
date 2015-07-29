@@ -8,6 +8,7 @@ import urllib
 import shutil
 import tempfile
 import logging
+import subprocess
 
 from requests import get
 from requests import post
@@ -45,6 +46,10 @@ class PackageImportException(Exception):
 
 
 class PackageDownloadException(Exception):
+    pass
+
+
+class PackageQueryException(Exception):
     pass
 
 
@@ -124,6 +129,35 @@ def import_srpm(user, project, pkg, branch, filepath):
     return git_hash
 
 
+def pkg_name_evr(pkg):
+    """
+    Queries a package for its name and evr (epoch:version-release)
+    """
+    log.debug("Verifying packagage, getting  name and version.")
+    cmd = ['rpm', '-qp', '--nosignature', '--qf', '%{NAME} %{EPOCH} %{VERSION} %{RELEASE}', pkg]
+    try:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        output, error = proc.communicate()
+    except OSError as e:
+        raise PackageQueryException(e)
+    if error:
+        raise PackageQueryException('Error querying srpm: %s' % error)
+
+    try:
+        name, epoch, version, release = output.split(" ")
+    except ValueError as e:
+        raise PackageQueryException(e)
+
+    # Epoch is an integer or '(none)' if not set
+    if epoch.isdigit():
+        evr = "{}:{}-{}".format(epoch, version, release)
+    else:
+        evr = "{}-{}".format(version, release)
+
+    return name, evr
+
+
 class DistGitImporter():
     def __init__(self, opts):
         self.opts = opts
@@ -155,7 +189,7 @@ class DistGitImporter():
                     task_id = task["task_id"]
                     user = task["user"]
                     project = task["project"]
-                    package = task["package"]
+                    #package = task["package"]
                     branch = task["branch"]
                     source_type = task["source_type"]
                     source_json = task["source_json"]
@@ -191,14 +225,15 @@ class DistGitImporter():
                     # todo: check that obtained file is a REAL srpm
                     # todo  query package name & version and ise real name instead of task["package"]
                     # if fetched file is not a proper srpm set error state
+                    name, version = pkg_name_evr(fetched_srpm_path)
 
-                    reponame = "{}/{}/{}".format(user, project, package)
+                    reponame = "{}/{}/{}".format(user, project, name)
                     log.debug("make sure repos exist: {}".format(reponame))
                     call(["/usr/share/dist-git/git_package.sh", reponame])
                     call(["/usr/share/dist-git/git_branch.sh", branch, reponame])
 
                     log.debug("import it and delete the srpm")
-                    git_hash = import_srpm(user, project, package, branch, fetched_srpm_path)
+                    git_hash = import_srpm(user, project, name, branch, fetched_srpm_path)
 
                     log.debug("send a response - success")
 
@@ -207,6 +242,8 @@ class DistGitImporter():
 
                     # send a response - success
                     data = {"task_id": task_id,
+                            "pkg_name": name,
+                            "pkg_version": version,
                             "repo_name": reponame,
                             "git_hash": git_hash}
                     post(upload_url, auth=auth, data=json.dumps(data), headers=headers)

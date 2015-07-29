@@ -33,7 +33,7 @@ def dist_git_importing_queue():
             "task_id": "{}-{}".format(task.build.id, helpers.chroot_to_branch(task.mock_chroot.name)),
             "user": task.build.copr.owner.name,
             "project": task.build.copr.name,
-            "package": task.build.package.name,
+            #"package": task.build.package.name,
             "branch": helpers.chroot_to_branch(task.mock_chroot.name),
             "source_type": task.build.source_type,
             "source_json": task.build.source_json,
@@ -68,6 +68,19 @@ def dist_git_upload_completed():
         if "git_hash" in flask.request.json and "repo_name" in flask.request.json:
             git_hash = flask.request.json["git_hash"]
             repo_name = flask.request.json["repo_name"]
+            pkg_name = flask.request.json["pkg_name"]
+            pkg_version = flask.request.json["pkg_version"]
+
+            # Now I need to assign a package to this build
+            package = PackagesLogic.get(build.copr.id, pkg_name).first()
+            if not package:
+                package = PackagesLogic.add(build.copr.owner, build.copr, pkg_name)
+                db.session.add(package)
+                db.session.flush()
+
+            build.package_id = package.id
+            build.pkg_version = pkg_version
+
             for ch in build_chroots:
                 ch.status = helpers.StatusEnum("pending")
                 ch.git_hash = git_hash
