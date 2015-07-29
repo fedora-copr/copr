@@ -200,22 +200,15 @@ def starting_build():
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
         build = BuildsLogic.get_by_id(flask.request.json["build_id"])
         chroot = flask.request.json.get("chroot")
-        version = flask.request.json.get("version")
-        if build and chroot:
-            if version and BackendLogic.build_version_already_done(build, chroot, version):
-                log.info("mark build {} chroot {} as skipped".format(build.id, chroot))
-                BuildsLogic.update_state_from_dict(build, {
-                    "chroot": chroot,
-                    "status": StatusEnum("skipped")
-                })
-            elif not build.canceled:
-                log.info("mark build {} chroot {} as starting".format(build.id, chroot))
-                BuildsLogic.update_state_from_dict(build, {
-                    "chroot": chroot,
-                    "status": StatusEnum("starting")
-                })
-                db.session.commit()
-                result["can_start"] = True
+
+        if build and chroot and not build.canceled:
+            log.info("mark build {} chroot {} as starting".format(build.id, chroot))
+            BuildsLogic.update_state_from_dict(build, {
+                "chroot": chroot,
+                "status": StatusEnum("starting")
+            })
+            db.session.commit()
+            result["can_start"] = True
 
     return flask.jsonify(result)
 
