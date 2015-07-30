@@ -61,6 +61,10 @@
         <h3 class="panel-title"> Task Queue </h3>
       </div>
       <div class="list-group">
+        <a href="{{url_for('status_ns.importing')}}" class="list-group-item">
+          <span class="badge">{{importing_tasks}}</span>
+          Importing
+        </a>
         <a href="{{url_for('status_ns.waiting')}}" class="list-group-item">
           <span class="badge">{{waiting_tasks}}</span>
           Waiting

@@ -14,6 +14,9 @@
 </ol>
 <h1> Task queue </h1>
 <ul class="nav nav-tabs">
+  <li class="{% block importing_selected %}{% endblock %}">
+      <a href="{{ url_for('status_ns.importing') }}">Importing</a>
+  </li>
   <li class="{% block waiting_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.waiting') }}">Waiting</a>
   </li>

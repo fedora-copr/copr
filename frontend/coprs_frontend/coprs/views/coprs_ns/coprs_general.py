@@ -44,12 +44,15 @@ def coprs_show(page=1):
     waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
     running_tasks = len(list(builds_logic.BuildsLogic
                              .get_build_tasks(helpers.StatusEnum("running"))))
+    importing_tasks = len(list(builds_logic.BuildsLogic
+                             .get_build_tasks(helpers.StatusEnum("importing"))))
 
     return flask.render_template("coprs/show/all.html",
                                  coprs=coprs,
                                  paginator=paginator,
                                  waiting_tasks=waiting_tasks,
                                  running_tasks=running_tasks,
+                                 importing_tasks=importing_tasks,
                                  users_builds=users_builds)
 
 
@@ -73,6 +76,8 @@ def coprs_by_owner(username=None, page=1):
     waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
     running_tasks = len(list(builds_logic.BuildsLogic
                              .get_build_tasks(helpers.StatusEnum("running"))))
+    importing_tasks = len(list(builds_logic.BuildsLogic
+                             .get_build_tasks(helpers.StatusEnum("importing"))))
 
     return flask.render_template("coprs/show/user.html",
                                  user=user,
@@ -80,6 +85,7 @@ def coprs_by_owner(username=None, page=1):
                                  paginator=paginator,
                                  waiting_tasks=waiting_tasks,
                                  running_tasks=running_tasks,
+                                 importing_tasks=importing_tasks,
                                  users_builds=users_builds)
 
 

@@ -1,0 +1,44 @@
+{% extends "status.html" %}
+{% block importing_selected %}active{% endblock %}
+{%block status_breadcrumb %}
+<li class="active">
+  Importing
+</li>
+{%endblock%}
+{% block status_body %}
+<h2>{%if number == 0:%}
+        No tasks
+    {%elif number == 1:%}
+        {{number}} task
+    {%else%}
+        {{number}} tasks
+    {%endif%}
+    are being imported
+</h2>
+
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>Waiting</th>
+      <th>Project</th>
+      <th>Build</th>
+      <th>Packages</th>
+      <th>Chroot</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for task in tasks %}
+    <tr>
+      <td>
+        {{ task.build.submitted_on | time_ago }}
+      </td>
+      <td><a href="{{ url_for('coprs_ns.copr_detail', username = task.build.copr.owner.name, coprname = task.build.copr.name) }}">{{task.build.copr.owner.name}}/{{task.build.copr.name}}</a></td>
+      <td><a href="{{ url_for('coprs_ns.copr_build', username = task.build.copr.owner.name, coprname = task.build.copr.name, build_id = task.build_id) }}">{{task.build_id}}</a></td>
+      <td>{{ task.build.pkgs | pkg_name }} </td>
+      <td>{{ task.mock_chroot.name }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
