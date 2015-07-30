@@ -176,7 +176,7 @@ class TestMockRemote(object):
         assert self.mr.do_createrepo.called
 
     def test_prepare_build_dir_erase_fail_file(self, f_mock_remote):
-        target_dir = self.mr.pkg_dest_path
+        target_dir = self.mr.job.results_dir
         os.makedirs(target_dir)
         fail_path = os.path.join(target_dir, "fail")
         with open(fail_path, "w") as handle:
@@ -187,7 +187,7 @@ class TestMockRemote(object):
         assert os.path.exists(fail_path) is False
 
     def test_prepare_build_dir_erase_success_file(self, f_mock_remote):
-        target_dir = self.mr.pkg_dest_path
+        target_dir = self.mr.job.results_dir
         os.makedirs(target_dir)
         fail_path = os.path.join(target_dir, "success")
         with open(fail_path, "w") as handle:
@@ -200,7 +200,7 @@ class TestMockRemote(object):
 
     def test_prepare_build_dir_creates_dirs(self, f_mock_remote):
         self.mr.prepare_build_dir()
-        assert os.path.exists(self.mr.pkg_dest_path)
+        assert os.path.exists(self.mr.job.results_dir)
 
     def test_build_pkg_and_process_results(self, f_mock_remote):
         self.mr.on_success_build = MagicMock()
@@ -246,7 +246,7 @@ class TestMockRemote(object):
 
     def test_mark_dir_with_build_id(self, f_mock_remote):
         # TODO: create real test
-        target_dir = self.mr.pkg_dest_path
+        target_dir = self.mr.job.results_dir
         os.makedirs(target_dir)
 
         info_file_path = os.path.join(target_dir, "build.info")

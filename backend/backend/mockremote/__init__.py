@@ -172,11 +172,6 @@ class MockRemote(object):
     def pkg(self):
         return self.job.pkg
 
-    @property
-    def pkg_dest_path(self):
-        return os.path.normpath("{}/{}/{}".format(
-            self.job.destdir, self.job.chroot, self.job.target_dir_name))
-
     def add_pubkey(self):
         """
             Adds pubkey.gpg with public key to ``chroot_dir``
@@ -266,7 +261,7 @@ class MockRemote(object):
         self.do_createrepo()
 
     def prepare_build_dir(self):
-        p_path = self.pkg_dest_path
+        p_path = self.job.results_dir
         # if it's marked as fail, nuke the failure and try to rebuild it
         if os.path.exists(os.path.join(p_path, "fail")):
             os.unlink(os.path.join(p_path, "fail"))
@@ -316,7 +311,7 @@ class MockRemote(object):
             raise MockRemoteError("Error occurred during build {}: {}"
                                   .format(self.job, error))
         finally:
-            self.builder.download(self.pkg_dest_path)
+            self.builder.download(self.job.results_dir)
             # self.add_log_symlinks()  # todo: add config option, need this for nginx
             self.log.info("End Build: {0}".format(self.job))
 
@@ -329,7 +324,7 @@ class MockRemote(object):
                 into the directory with downloaded files.
 
         """
-        info_file_path = os.path.join(self.pkg_dest_path, "build.info")
+        info_file_path = os.path.join(self.job.results_dir, "build.info")
         self.log.info("marking build dir with build_id, ")
         try:
             with open(info_file_path, 'w') as info_file:

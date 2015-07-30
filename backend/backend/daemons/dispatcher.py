@@ -342,6 +342,8 @@ class Worker(multiprocessing.Process):
 
     def copy_mock_logs(self, job):
         if not os.path.isdir(job.results_dir):
+            self.log.info("Job results dir doesn't exists, couldn't copy main log; path: {}"
+                          .format(job.results_dir))
             return
 
         log_names = [(job.chroot_log_name, "mockchain.log.gz"),

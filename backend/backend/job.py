@@ -87,7 +87,7 @@ class BuildJob(object):
 
     @property
     def results_dir(self):
-        return os.path.join(self.chroot_dir, self.package_name)
+        return os.path.join(self.chroot_dir, self.target_dir_name)
 
     @property
     def target_dir_name(self):
@@ -153,5 +153,5 @@ class BuildJob(object):
         return str(self.__unicode__())
 
     def __unicode__(self):
-        return u"BuildJob<id: {build_id}, owner: {project_owner}, " \
-               u"project: {project_name}, git branch: {git_branch}, git_hash: {git_hash} >".format(**self.__dict__)
+        return u"BuildJob<id: {build_id}, owner: {project_owner}, project: {project_name}, " \
+               u"git branch: {git_branch}, git_hash: {git_hash}, status: {status} >".format(**self.__dict__)
