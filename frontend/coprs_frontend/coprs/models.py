@@ -10,6 +10,7 @@ from coprs import helpers
 
 import itertools
 import operator
+from coprs.helpers import BuildSourceEnum, StatusEnum, ActionTypeEnum
 
 
 class User(db.Model, helpers.Serializer):
@@ -415,18 +416,18 @@ class Build(db.Model, helpers.Serializer):
         # FIXME bad name
         # used when checking if the repo is initialized and results can be set
         # i think this is the only purpose - check
-        return helpers.StatusEnum("pending") in self.chroot_states or \
-            helpers.StatusEnum("starting") in self.chroot_states
+        return StatusEnum("pending") in self.chroot_states or \
+            StatusEnum("starting") in self.chroot_states
 
     @property
     def has_unfinished_chroot(self):
-        return helpers.StatusEnum("pending") in self.chroot_states or \
-            helpers.StatusEnum("starting") in self.chroot_states or \
-            helpers.StatusEnum("running") in self.chroot_states
+        return StatusEnum("pending") in self.chroot_states or \
+            StatusEnum("starting") in self.chroot_states or \
+            StatusEnum("running") in self.chroot_states
 
     @property
     def has_importing_chroot(self):
-        return helpers.StatusEnum("importing") in self.chroot_states
+        return StatusEnum("importing") in self.chroot_states
 
     @property
     def status(self):
@@ -434,11 +435,11 @@ class Build(db.Model, helpers.Serializer):
         Return build status according to build status of its chroots
         """
         if self.canceled:
-            return helpers.StatusEnum("canceled")
+            return StatusEnum("canceled")
 
         for state in ["failed", "running", "starting", "importing", "pending", "succeeded", "skipped"]:
-            if helpers.StatusEnum(state) in self.chroot_states:
-                return helpers.StatusEnum(state)
+            if StatusEnum(state) in self.chroot_states:
+                return StatusEnum(state)
 
     @property
     def state(self):
@@ -447,7 +448,7 @@ class Build(db.Model, helpers.Serializer):
         """
 
         if self.status is not None:
-            return helpers.StatusEnum(self.status)
+            return StatusEnum(self.status)
 
         return "unknown"
 
@@ -459,8 +460,8 @@ class Build(db.Model, helpers.Serializer):
         Build is cancelabel only when it's pending (not started)
         """
 
-        return self.status == helpers.StatusEnum("pending") or \
-            self.status == helpers.StatusEnum("importing")
+        return self.status == StatusEnum("pending") or \
+            self.status == StatusEnum("importing")
 
     @property
     def repeatable(self):
@@ -469,10 +470,11 @@ class Build(db.Model, helpers.Serializer):
 
         Build is repeatable only if it's not pending, starting or running
         """
-
-        return self.status not in [helpers.StatusEnum("pending"),
-                                   helpers.StatusEnum("starting"),
-                                   helpers.StatusEnum("running"), ]
+        if self.source_type == BuildSourceEnum("srpm_upload"):
+            return False
+        return self.status not in [StatusEnum("pending"),
+                                   StatusEnum("starting"),
+                                   StatusEnum("running"), ]
 
     @property
     def deletable(self):
@@ -578,7 +580,7 @@ class BuildChroot(db.Model, helpers.Serializer):
                          primary_key=True)
     build = db.relationship("Build", backref=db.backref("build_chroots"))
     git_hash = db.Column(db.String(40))
-    status = db.Column(db.Integer, default=helpers.StatusEnum("importing"))
+    status = db.Column(db.Integer, default=StatusEnum("importing"))
 
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer)
@@ -598,7 +600,7 @@ class BuildChroot(db.Model, helpers.Serializer):
         """
 
         if self.status is not None:
-            return helpers.StatusEnum(self.status)
+            return StatusEnum(self.status)
 
         return "unknown"
 
@@ -643,7 +645,7 @@ class Action(db.Model, helpers.Serializer):
     """
 
     id = db.Column(db.Integer, primary_key=True)
-    # delete, rename, ...; see helpers.ActionTypeEnum
+    # delete, rename, ...; see ActionTypeEnum
     action_type = db.Column(db.Integer, nullable=False)
     # copr, ...; downcase name of class of modified object
     object_type = db.Column(db.String(20))
@@ -668,13 +670,13 @@ class Action(db.Model, helpers.Serializer):
         return self.__unicode__()
 
     def __unicode__(self):
-        if self.action_type == helpers.ActionTypeEnum("delete"):
+        if self.action_type == ActionTypeEnum("delete"):
             return "Deleting {0} {1}".format(self.object_type, self.old_value)
-        elif self.action_type == helpers.ActionTypeEnum("rename"):
+        elif self.action_type == ActionTypeEnum("rename"):
             return "Renaming {0} from {1} to {2}.".format(self.object_type,
                                                           self.old_value,
                                                           self.new_value)
-        elif self.action_type == helpers.ActionTypeEnum("legal-flag"):
+        elif self.action_type == ActionTypeEnum("legal-flag"):
             return "Legal flag on copr {0}.".format(self.old_value)
 
         return "Action {0} on {1}, old value: {2}, new value: {3}.".format(
