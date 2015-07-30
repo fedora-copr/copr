@@ -251,7 +251,10 @@ class DistGitImporter():
                 except (PackageImportException, PackageDownloadException):
                     log.info("send a response - failure during import of: {}".format(package_url))
                     data = {"task_id": task_id, "error": "error"}
-                    post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
+                    try:
+                        post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
+                    except Exception:
+                        log.exception("Failed to inform frontend about failed import: {}".format(data))
 
                 except Exception:
                     log.exception("error during package import")
