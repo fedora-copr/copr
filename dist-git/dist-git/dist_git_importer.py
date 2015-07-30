@@ -162,11 +162,12 @@ class DistGitImporter():
     def __init__(self, opts):
         self.opts = opts
 
+        self.get_url = "{}/backend/importing/".format(self.opts.frontend_base_url)
+        self.upload_url = "{}/backend/import-completed/".format(self.opts.frontend_base_url)
+        self.auth = ("user", self.opts.frontend_auth)
+        self.headers = {"content-type": "application/json"}
+
     def run(self):
-        get_url = "{}/backend/importing/".format(self.opts.frontend_base_url)
-        upload_url = "{}/backend/import-completed/".format(self.opts.frontend_base_url)
-        auth = ("user", self.opts.frontend_auth)
-        headers = {"content-type": "application/json"}
 
         tmp = tempfile.mkdtemp()
         log.info("DistGitImported initialized")
@@ -175,7 +176,7 @@ class DistGitImporter():
                 log.info("1. Try to get task data")
                 try:
                     # get the data
-                    r = get(get_url)
+                    r = get(self.get_url)
 
                     # take the first task
                     builds_list = r.json()["builds"]
@@ -246,18 +247,15 @@ class DistGitImporter():
                             "pkg_version": version,
                             "repo_name": reponame,
                             "git_hash": git_hash}
-                    post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
+                    self.post_back(data)
 
-                except (PackageImportException, PackageDownloadException):
+                except (PackageImportException, PackageDownloadException, PackageQueryException):
                     log.info("send a response - failure during import of: {}".format(package_url))
-                    data = {"task_id": task_id, "error": "error"}
-                    try:
-                        post(upload_url, auth=auth, data=json.dumps(data), headers=headers)
-                    except Exception:
-                        log.exception("Failed to inform frontend about failed import: {}".format(data))
+                    self.post_back_safe({"task_id": task_id, "error": "error"})
 
                 except Exception:
-                    log.exception("error during package import")
+                    log.exception("Unexpected error during package import")
+                    self.post_back_safe({"task_id": task_id, "error": "error"})
 
                 finally:
                     try:
@@ -267,6 +265,21 @@ class DistGitImporter():
 
         finally:
             shutil.rmtree(tmp)
+
+    def post_back(self, data_dict):
+        """
+        Could raise error related to networkd connection
+        """
+        post(self.upload_url, auth=self.auth, data=json.dumps(data_dict), headers=self.headers)
+
+    def post_back_safe(self, data_dict):
+        """
+        Ignores any error
+        """
+        try:
+            self.post_back(data_dict)
+        except Exception:
+            log.exception("Failed to post back to frontend : {}".format(data_dict))
 
 
 def main():
