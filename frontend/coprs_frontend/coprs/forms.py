@@ -167,7 +167,6 @@ class CoprFormFactory(object):
 
             contact = wtforms.StringField(
                 "Contact",
-                default=flask.g.user.mail,
                 validators=[
                     wtforms.validators.Optional(),
                     EmailOrURL()])
