@@ -64,14 +64,9 @@ def copr_builds(username, coprname, page=1):
 
     builds_query = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr)
 
-    paginator = helpers.Paginator(
-        builds_query, copr.build_count, page, per_page_override=20)
-
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,
-                                 builds=builds_query,
-                                 #builds=paginator.sliced_query,
-                                 paginator=paginator)
+                                 builds=builds_query)
 
 
 @coprs_ns.route("/<username>/<coprname>/add_build/")
