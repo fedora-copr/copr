@@ -13,6 +13,6 @@
 {% block detail_body %}
 <h2>Project Builds</h2>
 <p>This view shows all builds in the project</p>
-  {{ builds_table(builds, paginator.page) }}
+  {{ builds_table(builds) }}
   {{ build_states() }}
 {% endblock %}

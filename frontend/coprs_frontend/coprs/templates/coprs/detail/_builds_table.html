@@ -1,6 +1,6 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 
-{% macro builds_table(builds, page) %}
+{% macro builds_table(builds) %}
 {% if builds %}
   <table class="datatable table table-striped table-bordered">
     <thead>

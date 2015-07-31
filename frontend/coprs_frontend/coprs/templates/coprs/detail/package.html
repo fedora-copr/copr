@@ -1,0 +1,27 @@
+{% extends "coprs/detail.html" %}
+{% from "coprs/detail/_describe_source.html" import describe_source %}
+
+{% block title %}Package {{ package.name }} in {{ package.copr.owner.name }}/{{ package.copr.name }}{% endblock %}
+{%block project_breadcrumb %}
+<li>
+  <a href="{{ url_for('coprs_ns.copr_builds', username=copr.owner.name, coprname=copr.name) }}">Packages</a>
+</li>
+<li class="active">
+  {{package.name}}
+</li>
+{%endblock%}
+
+{% block detail_body %}
+
+<h2> {{ package.name }} </h2>
+<div class="row">
+  <div class="col-sm-8 col-md-9">
+    <dl class="dl-horizontal">
+      <dt> Package Name:</dt>
+      <dd>
+        {{package.name}}
+      </dd>
+    </dl>
+  </div>
+</div>
+{% endblock %}

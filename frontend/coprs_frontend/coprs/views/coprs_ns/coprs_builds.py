@@ -15,6 +15,7 @@ from coprs import helpers
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
+from coprs.logic import packages_logic
 
 from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
@@ -67,6 +68,23 @@ def copr_builds(username, coprname, page=1):
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,
                                  builds=builds_query)
+
+
+@coprs_ns.route("/<username>/<coprname>/package/<package_name>/")
+def copr_package(username, coprname, package_name):
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+
+    if not copr:
+        return page_not_found(
+            "Project {0} does not exist.".format(coprname))
+
+    package = packages_logic.PackagesLogic.get(copr.id, package_name).first()
+
+    if not package:
+        return page_not_found(
+            "Package {0} does not exist in this project.".format(package_name))
+
+    return flask.render_template("coprs/detail/package.html", package=package, copr=copr)
 
 
 @coprs_ns.route("/<username>/<coprname>/add_build/")
