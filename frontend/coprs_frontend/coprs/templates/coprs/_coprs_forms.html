@@ -22,21 +22,13 @@
       {{ render_field(form.name, hidden = True) }}
       {{ render_field(form.name, label='Project Name', disabled = True) }}
     {% endif %}
-    {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.') }}
-    {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.') }}
+    {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.',
+          info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTMLis forbidden.') }}
+
+    {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.', info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTMLis forbidden.') }}
+
     {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}
-    {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url') }}
-
-
-    <div class="form-group">
-      <label class="col-sm-2 control-label" for="textInput-markup">
-      </label>
-      <div class="col-sm-10">
-        <small class="text-muted pficon pficon-info">
-          You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden.
-        </small>
-      </div>
-    </div>
+    {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url', info="Use e-mail address or a link to your issue tracker. This information will be shown publicly.") }}
 
     {% if form._mock_chroots_error %}
     <div class="form-group has-error">
@@ -59,7 +51,7 @@
         </div>
       {% endfor %}{% endfor %}
       {% if form._mock_chroots_error %}
-        <span class=" help-block"> {{ form._mock_chroots_error }}</span>
+        <span class="help-block pficon pficon-warning-triangle-o"> {{ form._mock_chroots_error }}</span>
       {% endif %}
       </div>
     </div>
