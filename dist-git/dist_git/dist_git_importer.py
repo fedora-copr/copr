@@ -109,6 +109,7 @@ class ImportTask(object):
 
 class DistGitImporter(object):
     def __init__(self, opts):
+        self.is_running = False
         self.opts = opts
 
         self.get_url = "{}/backend/importing/".format(self.opts.frontend_base_url)
@@ -136,29 +137,25 @@ class DistGitImporter(object):
     @staticmethod
     def fetch_srpm(task, fetched_srpm_path):
         log.debug("download the package")
-
         try:
             urlretrieve(task.package_url, fetched_srpm_path)
         except IOError:
             raise PackageDownloadException()
-        return fetched_srpm_path
 
-    @staticmethod
-    def my_upload(repo_dir, reponame, filename, filehash):
+    def my_upload(self, repo_dir, reponame, filename, filehash):
         """
         This is a replacement function for uploading sources.
         Rpkg uses upload.cgi for uploading which doesn't make sense
         on the local machine.
         """
-        lookaside = "/var/lib/dist-git/cache/lookaside/pkgs/"
         source = os.path.join(repo_dir, filename)
-        destination = os.path.join(lookaside, reponame, filename, filehash, filename)
+        destination = os.path.join(self.opts.lookaside_location, reponame,
+                                   filename, filehash, filename)
         if not os.path.exists(destination):
             os.makedirs(os.path.dirname(destination))
             shutil.copyfile(source, destination)
 
-    @classmethod
-    def git_import_srpm(cls, task, filepath):
+    def git_import_srpm(self, task, filepath):
         """
         Imports a source rpm file into local dist git.
         Repository name is in the Copr Style: user/project/package
@@ -195,7 +192,7 @@ class DistGitImporter(object):
             # rpkg calls upload.cgi script on the dist git server
             # here, I just copy the source files manually with custom function
             # I also add one parameter "repo_dir" to that function with this hack
-            commands.lookasidecache.upload = types.MethodType(cls.my_upload, repo_dir)
+            commands.lookasidecache.upload = types.MethodType(self.my_upload, repo_dir)
 
             log.debug("clone the pkg repository into tmp directory")
             commands.clone(module, tmp, task.branch)
@@ -219,10 +216,12 @@ class DistGitImporter(object):
             except rpkgError:
                 log.exception("error during commit and push, ignored")
 
-            git_hash = commands.commithash
+            return commands.commithash
+        except Exception:
+            log.exception("Unexpected")
+            raise PackageImportException()
         finally:
             shutil.rmtree(tmp)
-        return git_hash
 
     @staticmethod
     def pkg_name_evr(srpm_path):
@@ -310,7 +309,8 @@ class DistGitImporter(object):
     def run(self):
         log.info("DistGitImported initialized")
 
-        while True:
+        self.is_running = True
+        while self.is_running:
             mb_task = self.try_to_obtain_new_task()
             if mb_task is None:
                 time.sleep(self.opts.sleep_time)
@@ -347,10 +347,7 @@ def main():
     log.info("Using configuration: \n"
              "{}".format(opts))
     importer = DistGitImporter(opts)
-    try:
-        importer.run()
-    except KeyboardInterrupt:
-        return
+    importer.run()
 
 
 if __name__ == "__main__":

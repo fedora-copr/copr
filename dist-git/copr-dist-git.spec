@@ -14,13 +14,17 @@ Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
 
-BuildRequires:  systemd
+BuildRequires: systemd
+BuildRequires: dist-git
+BuildRequires: python-bunch
+BuildRequires: python-requests
+BuildRequires: pyrpkg
 
-Requires:   systemd
-Requires:   dist-git
-Requires:   python-bunch
-Requires:   python-requests
-Requires:   pyrpkg
+Requires: systemd
+Requires: dist-git
+Requires: python-bunch
+Requires: python-requests
+Requires: pyrpkg
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI
@@ -55,6 +59,8 @@ cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-dist-git
 touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 %check
+PYTHONPATH=.:$PYTHONPATH python -B -m pytest \
+  -v --cov-report term-missing --cov ./dist_git ./tests/
 
 %post
 # change context to be readable by cgit

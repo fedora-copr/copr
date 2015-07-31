@@ -77,6 +77,11 @@ class DistGitConfigReader(object):
         )
 
         opts.cgit_pkg_list_location = _get_conf(
-            cp, "cgit_pkg_list_location", "log_dir", "/var/lib/copr-dist-git/cgit_pkg_list"
+            cp, "dist-git", "cgit_pkg_list_location", "/var/lib/copr-dist-git/cgit_pkg_list"
         )
+
+        opts.lookaside_location = _get_conf(
+            cp, "dist-git", "lookaside_location", "/var/lib/dist-git/cache/lookaside/pkgs/"
+        )
+
         return opts

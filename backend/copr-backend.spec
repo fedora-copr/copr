@@ -185,8 +185,8 @@ cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysc
 
 redis-server --port 7777 &> /dev/null &
 
-#PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
-#  -s -v --cov-report term-missing --cov ./backend --cov ./run ./tests/
+PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
+  -s -v --cov-report term-missing --cov ./backend --cov ./run ./tests/
 
 kill %1
 
