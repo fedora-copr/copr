@@ -4,14 +4,13 @@ import os
 import json
 import time
 import types
-import urllib
+from urllib import urlretrieve
 import shutil
 import tempfile
 import logging
-import subprocess
+from subprocess import PIPE, Popen
 
-from requests import get
-from requests import post
+from requests import get, post
 
 # pyrpkg uses os.getlogin(). It requires tty which is unavailable when we run this script as a daemon
 # very dirty solution for now
@@ -30,17 +29,6 @@ from helpers import DistGitConfigReader
 log = logging.getLogger(__name__)
 
 
-# Example usage:
-#
-# user = "asamalik"
-# project = "project-for-dist-git"
-# pkg_name = "devtoolset-3"
-# branch = "f20"
-# filepath = "/tmp/rh-php56-php-5.6.5-5.el7.src.rpm"
-#
-# git_hash = import_srpm(user, project, pkg_name, branch, filepath)
-
-
 class PackageImportException(Exception):
     pass
 
@@ -51,22 +39,6 @@ class PackageDownloadException(Exception):
 
 class PackageQueryException(Exception):
     pass
-
-
-def _my_upload(repo_dir, reponame, filename, filehash):
-    """
-    This is a replacement function for uploading sources.
-    Rpkg uses upload.cgi for uploading which doesn't make sense
-    on the local machine.
-    """
-    lookaside = "/var/lib/dist-git/cache/lookaside/pkgs/"
-    source = os.path.join(repo_dir, filename)
-    destination = os.path.join(lookaside, reponame, filename, filehash, filename)
-    if not os.path.exists(destination):
-        os.makedirs(os.path.dirname(destination))
-        shutil.copyfile(source, destination)
-
-
 
 
 class SourceType:
@@ -166,13 +138,27 @@ class DistGitImporter(object):
         log.debug("download the package")
 
         try:
-            urllib.urlretrieve(task.package_url, fetched_srpm_path)
+            urlretrieve(task.package_url, fetched_srpm_path)
         except IOError:
             raise PackageDownloadException()
         return fetched_srpm_path
 
     @staticmethod
-    def git_import_srpm(task, filepath):
+    def my_upload(repo_dir, reponame, filename, filehash):
+        """
+        This is a replacement function for uploading sources.
+        Rpkg uses upload.cgi for uploading which doesn't make sense
+        on the local machine.
+        """
+        lookaside = "/var/lib/dist-git/cache/lookaside/pkgs/"
+        source = os.path.join(repo_dir, filename)
+        destination = os.path.join(lookaside, reponame, filename, filehash, filename)
+        if not os.path.exists(destination):
+            os.makedirs(os.path.dirname(destination))
+            shutil.copyfile(source, destination)
+
+    @classmethod
+    def git_import_srpm(cls, task, filepath):
         """
         Imports a source rpm file into local dist git.
         Repository name is in the Copr Style: user/project/package
@@ -180,12 +166,12 @@ class DistGitImporter(object):
 
         :type task: ImportTask
         """
-        log.debug("importing it and delete the srpm")
+        log.debug("importing srpm into the dist-git")
 
         # I need to use git via SSH because of gitolite as it manages
         # permissions with it's hook that relies on gitolite console
         # which is a default shell on SSH
-        git_bas_eurl = "ssh://copr-dist-git@localhost/%(module)s"
+        git_base_url = "ssh://copr-dist-git@localhost/%(module)s"
         tmp = tempfile.mkdtemp()
         try:
             repo_dir = os.path.join(tmp, task.package_name)
@@ -195,7 +181,7 @@ class DistGitImporter(object):
                                 lookaside="",
                                 lookasidehash="md5",
                                 lookaside_cgi="",
-                                gitbaseurl=git_bas_eurl,
+                                gitbaseurl=git_base_url,
                                 anongiturl="",
                                 branchre="",
                                 kojiconfig="",
@@ -209,7 +195,7 @@ class DistGitImporter(object):
             # rpkg calls upload.cgi script on the dist git server
             # here, I just copy the source files manually with custom function
             # I also add one parameter "repo_dir" to that function with this hack
-            commands.lookasidecache.upload = types.MethodType(_my_upload, repo_dir)
+            commands.lookasidecache.upload = types.MethodType(cls.my_upload, repo_dir)
 
             log.debug("clone the pkg repository into tmp directory")
             commands.clone(module, tmp, task.branch)
@@ -231,22 +217,22 @@ class DistGitImporter(object):
                 commands.push()
                 log.debug("commit and push done")
             except rpkgError:
-                pass
+                log.exception("error during commit and push, ignored")
+
             git_hash = commands.commithash
         finally:
             shutil.rmtree(tmp)
         return git_hash
 
     @staticmethod
-    def pkg_name_evr(pkg):
+    def pkg_name_evr(srpm_path):
         """
         Queries a package for its name and evr (epoch:version-release)
         """
         log.debug("Verifying packagage, getting  name and version.")
-        cmd = ['rpm', '-qp', '--nosignature', '--qf', '%{NAME} %{EPOCH} %{VERSION} %{RELEASE}', pkg]
+        cmd = ['rpm', '-qp', '--nosignature', '--qf', '%{NAME} %{EPOCH} %{VERSION} %{RELEASE}', srpm_path]
         try:
-            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
         except OSError as e:
             raise PackageQueryException(e)
@@ -280,14 +266,14 @@ class DistGitImporter(object):
         """
         Could raise error related to networkd connection
         """
-        post(self.upload_url, auth=self.auth, data=json.dumps(data_dict), headers=self.headers)
+        return post(self.upload_url, auth=self.auth, data=json.dumps(data_dict), headers=self.headers)
 
     def post_back_safe(self, data_dict):
         """
         Ignores any error
         """
         try:
-            self.post_back(data_dict)
+            return self.post_back(data_dict)
         except Exception:
             log.exception("Failed to post back to frontend : {}".format(data_dict))
 

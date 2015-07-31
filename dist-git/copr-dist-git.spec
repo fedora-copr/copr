@@ -38,14 +38,14 @@ This package contains Copr services for Dist Git server
 
 %install
 
-install -d %{buildroot}%{_datadir}/copr/dist-git
+install -d %{buildroot}%{_datadir}/copr/dist_git
 install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 install -d %{buildroot}%{_unitdir}
 install -d %{buildroot}%{_var}/log/copr-dist-git
 install -d %{buildroot}%{_sharedstatedir}/copr-dist-git
 
-cp -a dist-git/* %{buildroot}%{_datadir}/copr/dist-git
+cp -a dist_git/* %{buildroot}%{_datadir}/copr/dist_git
 cp -a conf/copr-dist-git.conf.example %{buildroot}%{_sysconfdir}/copr/copr-dist-git.conf
 cp -a copr-dist-git.service %{buildroot}%{_unitdir}/
 
