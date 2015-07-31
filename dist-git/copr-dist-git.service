@@ -1,0 +1,13 @@
+[Unit]
+Description=copr aux service to import srpm into dist-git
+Requires=dist-git.socket
+After=dist-git.socket
+
+
+[Service]
+User=copr-service
+Group=copr-service
+ExecStart=/usr/bin/python2.7 /usr/share/copr/dist_git/dist_git_importer.py
+
+[Install]
+WantedBy=multi-user.target
