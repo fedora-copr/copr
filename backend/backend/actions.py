@@ -125,7 +125,6 @@ class Action(object):
             return
         path = os.path.join(self.destdir, project)
 
-
         self.log.info("Deleting package {0}".format(target_dir))
         self.log.info("Copr path {0}".format(path))
 

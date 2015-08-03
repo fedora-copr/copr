@@ -20,6 +20,7 @@ from coprs.helpers import StatusEnum
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
 from coprs.logic import packages_logic
+from coprs.logic.actions_logic import ActionsLogic
 
 log = app.logger
 
@@ -345,28 +346,7 @@ class BuildsLogic(object):
 
         # Only failed, finished, succeeded  get here.
         if build.state not in ["cancelled"]:  # has nothing in backend to delete
-            # don't delete skipped chroots
-            chroots_to_delete = [
-                chroot.name for chroot in build.build_chroots
-                if chroot.state not in ["skipped"]
-            ]
-
-            if chroots_to_delete and build.src_pkg_name:
-                data_dict = {"src_pkg_name": build.src_pkg_name,
-                             "username": build.copr.owner.name,
-                             "projectname": build.copr.name,
-                             "chroots": chroots_to_delete}
-
-                action = models.Action(
-                    action_type=helpers.ActionTypeEnum("delete"),
-                    object_type="build",
-                    object_id=build.id,
-                    old_value="{0}/{1}".format(build.copr.owner.name,
-                                               build.copr.name),
-                    data=json.dumps(data_dict),
-                    created_on=int(time.time())
-                )
-                db.session.add(action)
+            ActionsLogic.send_delete_build(build)
 
         for build_chroot in build.build_chroots:
             db.session.delete(build_chroot)

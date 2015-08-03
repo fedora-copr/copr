@@ -82,3 +82,40 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+
+    @classmethod
+    def send_delete_build(cls, build):
+        """ Schedules build delete action
+        :type build: models.Build
+        """
+        # don't delete skipped chroots
+        chroots_to_delete = [
+            chroot.name for chroot in build.build_chroots
+            if chroot.state not in ["skipped"]
+        ]
+        if len(chroots_to_delete) == 0:
+            return
+
+        data_dict = {
+            "username": build.copr.owner.name,
+            "projectname": build.copr.name,
+            "chroots": chroots_to_delete
+        }
+        # import ipdb; ipdb.set_trace()
+        if build.is_older_results_naming_used:
+            if build.src_pkg_name is None or build.src_pkg_name == "":
+                return
+            data_dict["src_pkg_name"] = build.src_pkg_name
+        else:
+            data_dict["results_dir_name"] = build.result_dir_name
+
+        action = models.Action(
+            action_type=helpers.ActionTypeEnum("delete"),
+            object_type="build",
+            object_id=build.id,
+            old_value="{0}/{1}".format(build.copr.owner.name,
+                                       build.copr.name),
+            data=json.dumps(data_dict),
+            created_on=int(time.time())
+        )
+        db.session.add(action)

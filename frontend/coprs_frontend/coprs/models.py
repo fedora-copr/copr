@@ -364,6 +364,12 @@ class Build(db.Model, helpers.Serializer):
     chroots = association_proxy("build_chroots", "mock_chroot")
 
     @property
+    def is_older_results_naming_used(self):
+        # we have changed result directory naming together with transition to dist-git
+        # that's why we use so strange criterion
+        return self.build_chroots[0].git_hash is None
+
+    @property
     def result_dir_name(self):
         return "{:08d}-{}".format(self.id, self.package.name)
 

@@ -205,12 +205,15 @@ class TestBuildsLogic(CoprsTestCase):
     def test_delete_build_bad_src_pkg(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
+        # has meaning only for the builds with old result dir naming schema
+
         self.b1.pkgs = "http://example.com/"
         self.db.session.add(self.b1)
         self.db.session.commit()
 
         expected_chroots_to_delete = set()
         for bchroot in self.b1_bc:
+            bchroot.git_hash = None
             expected_chroots_to_delete.add(bchroot.name)
 
         assert len(ActionsLogic.get_many().all()) == 0
