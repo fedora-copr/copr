@@ -258,6 +258,7 @@ class Copr(db.Model, helpers.Serializer):
             return True
         return False
 
+
 class CoprPermission(db.Model, helpers.Serializer):
 
     """
@@ -311,6 +312,7 @@ class Package(db.Model, helpers.Serializer):
         if app.config["DIST_GIT_URL"]:
             return "{}/{}.git".format(app.config["DIST_GIT_URL"], self.dist_git_repo)
         return None
+
 
 class Build(db.Model, helpers.Serializer):
 
@@ -621,6 +623,29 @@ class BuildChroot(db.Model, helpers.Serializer):
                                                     self.build.package.dist_git_repo,
                                                     self.git_hash)
         return None
+
+    @property
+    def result_url(self):
+        # hide changes occurred after migration to dist-git
+        # if build has defined dist-git, it means that new schema should be used
+        # otherwise use older structure
+
+        # old: results/valtri/ruby/fedora-rawhide-x86_64/rubygem-aws-sdk-resources-2.1.11-1.fc24/
+        # new: results/asamalik/rh-perl520/epel-7-x86_64/00000187-rh-perl520/
+
+        kwargs = {
+            "backend_url": app.config["BACKEND_BASE_URL"],
+            "owner": self.build.copr.owner.username,
+            "copr": self.build.copr.name,
+            "chroot": self.name,
+            "result_dir_name": self.build.result_dir_name,
+            "src_pkg_name": self.build.src_pkg_name,
+        }
+        if self.git_hash is not None:
+            template = "{backend_url}/{owner}/{copr}/{chroot}/{package_name}"
+        else:
+            template = "{backend_url}/{owner}/{copr}/{chroot}/{src_pkg_name}"
+        return template.format(**kwargs)
 
     def __str__(self):
         return "<BuildChroot: {}>".format(self.to_dict())

@@ -147,7 +147,7 @@
         <tr>
           <td>
             {% if chroot.started_on %}
-            <a href="{{ build.results }}/{{ chroot.name }}/{{build.result_dir_name}}">
+            <a href="{{ chroot.result_url }}">
               <span class="pficon pficon-folder-open">
             {{ chroot.name }}
               </span>

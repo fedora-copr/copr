@@ -9,6 +9,7 @@ class Config(object):
     WHOOSHEE_DIR = os.path.join(DATA_DIR, "whooshee")
     SECRET_KEY = "THISISNOTASECRETATALL"
     BACKEND_PASSWORD = "thisisbackend"
+    BACKEND_BASE_URL = "http://copr-be-dev.cloud.fedoraproject.org"
 
     KRB5_LOGIN_BASEURI = "/krb5_login/"
     KRB5_LOGIN = {}
