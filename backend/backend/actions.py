@@ -112,15 +112,21 @@ class Action(object):
         projectname = ext_data["projectname"]
         chroots_requested = set(ext_data["chroots"])
 
-        if not ext_data.get("src_pkg_name"):
-            self.log.error("Delete build action missing `src_pkg_name` field, check frontend version. Raw ext_data: {}"
+        if "src_pkg_name" not in ext_data and "result_dir_name" not in ext_data:
+            self.log.error("Delete build action missing `src_pkg_name` or `result_dir_name` field,"
+                           " check frontend version. Raw ext_data: {}"
                            .format(ext_data))
             return
 
-        package_name = ext_data["src_pkg_name"]
+        target_dir = ext_data.get("results_dir_name") or ext_data.get("src_pkg_name")
+        if target_dir is None or target_dir == "":
+            self.log.error("Bad delete request, ignored. Raw ext_data: {}"
+                           .format(ext_data))
+            return
         path = os.path.join(self.destdir, project)
 
-        self.log.info("Deleting package {0}".format(package_name))
+
+        self.log.info("Deleting package {0}".format(target_dir))
         self.log.info("Copr path {0}".format(path))
 
         try:
@@ -132,20 +138,20 @@ class Action(object):
         chroots_to_do = chroot_list.intersection(chroots_requested)
         if not chroots_to_do:
             self.log.info("Nothing to delete for delete action: package {}, {}"
-                          .format(package_name, ext_data))
+                          .format(target_dir, ext_data))
             return
 
         for chroot in chroots_to_do:
             self.log.debug("In chroot {0}".format(chroot))
             altered = False
 
-            pkg_path = os.path.join(path, chroot, package_name)
+            pkg_path = os.path.join(path, chroot, target_dir)
             if os.path.isdir(pkg_path):
                 self.log.info("Removing build {0}".format(pkg_path))
                 shutil.rmtree(pkg_path)
                 altered = True
             else:
-                self.log.debug("Package {0} dir not found in chroot {1}".format(package_name, chroot))
+                self.log.debug("Package {0} dir not found in chroot {1}".format(target_dir, chroot))
 
             if altered:
                 self.log.debug("Running createrepo")
