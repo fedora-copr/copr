@@ -7,6 +7,7 @@ from libravatar import libravatar_url
 from coprs import constants
 from coprs import db
 from coprs import helpers
+from coprs import app
 
 import itertools
 import operator
@@ -301,6 +302,15 @@ class Package(db.Model, helpers.Serializer):
     def source_json_dict(self):
         return json.loads(self.source_json)
 
+    @property
+    def source_type_text(self):
+        return helpers.BuildSourceEnum(self.source_type)
+
+    @property
+    def dist_git_url(self):
+        if app.config["DIST_GIT_URL"]:
+            return "{}/{}.git".format(app.config["DIST_GIT_URL"], self.dist_git_repo)
+        return None
 
 class Build(db.Model, helpers.Serializer):
 

@@ -26,7 +26,9 @@
       <dt> Package Name:</dt>
       <dd>
         {% if build.package %} 
+          <a href="{{url_for('coprs_ns.copr_package', username=build.copr.owner.name, package_name=build.package.name, coprname=copr.name)}}">
             {{ build.package.name }}
+          </a>
         {% else %}
              - 
         {% endif %}

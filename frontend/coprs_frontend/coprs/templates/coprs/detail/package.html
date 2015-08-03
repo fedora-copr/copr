@@ -1,5 +1,6 @@
 {% extends "coprs/detail.html" %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
+{% from "coprs/detail/_builds_table.html" import builds_table with context %}
 
 {% block title %}Package {{ package.name }} in {{ package.copr.owner.name }}/{{ package.copr.name }}{% endblock %}
 {%block project_breadcrumb %}
@@ -13,15 +14,28 @@
 
 {% block detail_body %}
 
-<h2> {{ package.name }} </h2>
+<h2> Package: {{ package.name }} </h2>
 <div class="row">
   <div class="col-sm-8 col-md-9">
     <dl class="dl-horizontal">
-      <dt> Package Name:</dt>
+      {% if package.dist_git_url %}
+      <dt> Dist Git Repo:</dt>
       <dd>
-        {{package.name}}
+        <a href="{{package.dist_git_url}}">
+        {{package.dist_git_repo}}
+        </a>
       </dd>
+      {% endif %}
     </dl>
+    {#
+    <h3> Default Package Source </h3>
+    {{ describe_source(package) }}
+    #}
+  </div>
+  <div class="col-sm-12">
+    <h3> Recent Builds: </h3>
+    {{builds_table(package.builds)}}
   </div>
 </div>
+
 {% endblock %}
