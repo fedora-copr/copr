@@ -124,7 +124,6 @@
         <tr>
           <th>Chroot Name</th>
           <th>Dist Git Source</th>
-          <th>Results</th>
           <th>Build Time</th>
           <th>State</th>
         </tr>
@@ -133,7 +132,15 @@
       {% for chroot in build.build_chroots %}
         <tr>
           <td>
+            {% if chroot.started_on %}
+            <a href="{{ build.results }}/{{ chroot.name }}/{{build.result_dir_name}}">
+              <span class="pficon pficon-folder-open">
             {{ chroot.name }}
+              </span>
+            </a>
+            {% else %}
+            {{ chroot.name }}
+            {% endif %}
           </td>
           <td>
             {% if chroot.git_hash %}
@@ -146,17 +153,6 @@
               {% endif %}
             {% else %}
               -
-            {% endif %}
-          </td>
-          <td>
-            {% if build.results %}
-            <a href="{{ build.results }}/{{ chroot.name }}/{{build.result_dir_name}}">
-              <span class="pficon pficon-folder-open">
-                results
-              </span>
-            </a>
-            {% else %}
-             -
             {% endif %}
           </td>
           <td>
