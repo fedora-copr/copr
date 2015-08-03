@@ -1,10 +1,15 @@
 import base64
 import datetime
+import os
+import shutil
+import tempfile
 import json
 import urlparse
-
 import flask
 
+from werkzeug import secure_filename
+
+from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import forms
@@ -19,6 +24,9 @@ from coprs.views.api_ns import api_ns
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 from coprs.logic.coprs_logic import CoprsLogic
+
+from coprs.exceptions import (ActionInProgressException,
+                              InsufficientRightsException)
 
 
 @api_ns.route("/")
@@ -294,6 +302,88 @@ def copr_new_build(username, coprname):
 
             output = {"output": "ok",
                       "ids": ids,
+                      "message": "Build was added to {0}.".format(coprname)}
+        else:
+            output = {"output": "notok", "error": "Invalid request"}
+            httpcode = 500
+
+    jsonout = flask.jsonify(output)
+    jsonout.status_code = httpcode
+    return jsonout
+
+
+@api_ns.route("/coprs/<username>/<coprname>/new_build_upload/", methods=["POST"])
+@api_login_required
+def copr_new_build_upload(username, coprname):
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+    httpcode = 200
+    if not copr:
+        output = {"output": "notok", "error":
+            "Copr with name {0} does not exist.".format(coprname)}
+        httpcode = 500
+
+    else:
+        form = forms.BuildFormUploadFactory.create_form_cls(
+            copr.active_chroots)(csrf_enabled=False)
+
+        # are there any arguments in POST which our form doesn't know?
+        if any([post_key not in form.__dict__.keys()
+                for post_key in flask.request.form.keys()]):
+            output = {"output": "notok",
+                      "error": "Unknown arguments passed (non-existing chroot probably)"}
+            httpcode = 500
+
+        elif form.validate_on_submit():
+            tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
+            tmp_name = os.path.basename(tmp)
+            filename = secure_filename(form.pkgs.data.filename)
+            file_path = os.path.join(tmp, filename)
+            form.pkgs.data.save(file_path)
+
+            # get the package name vithout version and release
+            pkgname = helpers.parse_package_name(filename)
+
+            # make the pkg public
+            pkg_url = "https://{hostname}/tmp/{tmp_dir}/{srpm}".format(
+                hostname=app.config["PUBLIC_COPR_HOSTNAME"],
+                tmp_dir=tmp_name,
+                srpm=filename)
+
+            # check which chroots we need
+            chroots = []
+            for chroot in copr.active_chroots:
+                if chroot.name in form.selected_chroots:
+                    chroots.append(chroot)
+
+            # create json describing the build source
+            source_type = helpers.BuildSourceEnum("srpm_upload")
+            source_json = json.dumps({"tmp": tmp_name,
+                                      "pkg": filename})
+
+            # create a new build
+            try:
+                build = builds_logic.BuildsLogic.add(
+                    user=flask.g.user,
+                    pkgs=pkg_url,
+                    copr=copr,
+                    chroots=chroots,
+                    source_type=source_type,
+                    source_json=source_json,
+                    enable_net=form.enable_net.data)
+
+                if flask.g.user.proven:
+                    build.memory_reqs = form.memory_reqs.data
+                    build.timeout = form.timeout.data
+
+                db.session.commit()
+
+            except (ActionInProgressException, InsufficientRightsException) as e:
+                flask.flash(str(e))
+                db.session.rollback()
+                shutil.rmtree(tmp)
+
+            output = {"output": "ok",
+                      "ids": [build.id],
                       "message": "Build was added to {0}.".format(coprname)}
         else:
             output = {"output": "notok", "error": "Invalid request"}
