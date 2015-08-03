@@ -118,7 +118,7 @@ class Action(object):
                            .format(ext_data))
             return
 
-        target_dir = ext_data.get("results_dir_name") or ext_data.get("src_pkg_name")
+        target_dir = ext_data.get("result_dir_name") or ext_data.get("src_pkg_name")
         if target_dir is None or target_dir == "":
             self.log.error("Bad delete request, ignored. Raw ext_data: {}"
                            .format(ext_data))

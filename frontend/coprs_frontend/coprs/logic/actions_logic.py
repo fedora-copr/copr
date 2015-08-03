@@ -107,7 +107,7 @@ class ActionsLogic(object):
                 return
             data_dict["src_pkg_name"] = build.src_pkg_name
         else:
-            data_dict["results_dir_name"] = build.result_dir_name
+            data_dict["result_dir_name"] = build.result_dir_name
 
         action = models.Action(
             action_type=helpers.ActionTypeEnum("delete"),
