@@ -137,9 +137,13 @@
           </td>
           <td>
             {% if chroot.git_hash %}
-            <a href="{{chroot.dist_git_url}}">
-              {{ chroot.git_hash[:7] }}
-            </a>
+              {% if chroot.dist_git_url %}
+                <a href="{{chroot.dist_git_url}}">
+                  {{ chroot.git_hash[:7] }}
+                </a>
+              {% else %}
+                {{ chroot.git_hash[:7] }}
+              {% endif %}
             {% else %}
               -
             {% endif %}
