@@ -640,7 +640,7 @@ class BuildChroot(db.Model, helpers.Serializer):
             self.name,
         ]
         if self.git_hash is not None and self.build.package:
-            parts.append(self.build.package.name)
+            parts.append(self.build.result_dir_name)
         else:
             parts.append(self.build.src_pkg_name)
 
