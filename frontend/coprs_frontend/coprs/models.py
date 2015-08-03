@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
@@ -625,7 +626,7 @@ class BuildChroot(db.Model, helpers.Serializer):
         return None
 
     @property
-    def result_url(self):
+    def result_dir(self):
         # hide changes occurred after migration to dist-git
         # if build has defined dist-git, it means that new schema should be used
         # otherwise use older structure
@@ -633,19 +634,22 @@ class BuildChroot(db.Model, helpers.Serializer):
         # old: results/valtri/ruby/fedora-rawhide-x86_64/rubygem-aws-sdk-resources-2.1.11-1.fc24/
         # new: results/asamalik/rh-perl520/epel-7-x86_64/00000187-rh-perl520/
 
-        kwargs = {
-            "backend_url": app.config["BACKEND_BASE_URL"],
-            "owner": self.build.copr.owner.username,
-            "copr": self.build.copr.name,
-            "chroot": self.name,
-            "result_dir_name": self.build.result_dir_name,
-            "src_pkg_name": self.build.src_pkg_name,
-        }
-        if self.git_hash is not None:
-            template = "{backend_url}/{owner}/{copr}/{chroot}/{package_name}"
+        parts = [
+            self.build.copr.owner.username,
+            self.build.copr.name,
+            self.name,
+        ]
+        if self.git_hash is not None and self.build.package:
+            parts.append(self.build.package.name)
         else:
-            template = "{backend_url}/{owner}/{copr}/{chroot}/{src_pkg_name}"
-        return template.format(**kwargs)
+            parts.append(self.build.src_pkg_name)
+
+        return os.path.join(*parts)
+
+    @property
+    def result_url(self):
+
+        return "{}/results/{}".format(app.config["BACKEND_BASE_URL"], self.result_dir)
 
     def __str__(self):
         return "<BuildChroot: {}>".format(self.to_dict())
