@@ -24,30 +24,6 @@
 <div class="row">
   <div class="col-sm-8 col-md-9">
     <dl class="dl-horizontal">
-      <dt> Package Name:</dt>
-      <dd>
-        {% if build.package %} 
-          <a href="{{url_for('coprs_ns.copr_package', username=build.copr.owner.name, package_name=build.package.name, coprname=copr.name)}}">
-            {{ build.package.name }}
-          </a>
-        {% else %}
-             - 
-        {% endif %}
-      </dd>
-      <dt> Package Version:</dt>
-      <dd>
-        {% if build.pkg_version %} 
-            {{ build.pkg_version}}
-        {% else %}
-             - 
-        {% endif %}
-      </dd>
-      <dt> Built by: </dt>
-      <dd>
-        <a href="{{ url_for('coprs_ns.coprs_by_owner', username=build.user.name) }}">
-          {{ build.user.name }}
-        </a>
-      </dd>
       <dt> Submitted: </dt>
       <dd>
         {% if g.user %}
@@ -81,10 +57,48 @@
       <dd>
           {{ build.enable_net }}
       </dd>
+      <dt> Built by: </dt>
+      <dd>
+        <a href="{{ url_for('coprs_ns.coprs_by_owner', username=build.user.name) }}">
+          {{ build.user.name }}
+        </a>
+      </dd>
     </dl>
 
     <h3> Build Source </h3>
-    {{ describe_source(build) }}
+    <dl class="dl-horizontal">
+      <dt> Package:</dt>
+      <dd>
+        {% if build.package %} 
+          <a href="{{url_for('coprs_ns.copr_package', username=build.copr.owner.name, package_name=build.package.name, coprname=copr.name)}}">
+            {{ build.package.name }}
+          </a>
+        {% else %}
+             - 
+        {% endif %}
+      </dd>
+      <dt> Version:</dt>
+      <dd>
+        {% if build.pkg_version %} 
+            {{ build.pkg_version}}
+        {% else %}
+             - 
+        {% endif %}
+      </dd>
+      {{ describe_source(build) }}
+    </dl>
+
+    <h3> Build Results </h3>
+    <dl class="dl-horizontal">
+      <dt> Built Packages:</dt>
+    {% if build.built_packages %}
+      {% for pkg in build.built_packages.split("\n"): %}
+        <dd>{{ pkg }}</dd>
+      {% endfor %}
+    {% else %}
+      <dd> - </dd>
+    {% endif %}
+    </dl>
   </div>
   <div class="col-sm-4 col-md-3">
   {% if g.user and g.user.can_build_in(copr) %}
@@ -118,7 +132,7 @@
   </div>
 
   <div class="col-sm-12">
-    <h3> Chroot Details </h3>
+    <h4> Chroot Details </h4>
     <table class="table table-striped table-bordered">
       <thead>
         <tr>
