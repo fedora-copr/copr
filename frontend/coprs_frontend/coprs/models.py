@@ -614,6 +614,14 @@ class BuildChroot(db.Model, helpers.Serializer):
 
         return "unknown"
 
+    @property
+    def dist_git_url(self):
+        if app.config["DIST_GIT_URL"]:
+            return "{}/{}.git/commit/?id={}".format(app.config["DIST_GIT_URL"],
+                                                    self.build.package.dist_git_repo,
+                                                    self.git_hash)
+        return None
+
     def __str__(self):
         return "<BuildChroot: {}>".format(self.to_dict())
 

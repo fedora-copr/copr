@@ -1,6 +1,7 @@
 {% extends "coprs/detail.html" %}
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
+{% from "_helpers.html" import chroot_to_os_logo %}
 {% block title %}Build {{ build.id }} in {{ build.copr.owner.name }}/{{ build.copr.name }}{% endblock %}
 {%block project_breadcrumb %}
 <li>
@@ -85,12 +86,15 @@
     <h3> Build Source </h3>
     {{ describe_source(build) }}
 
+  </div>
+  <div class="col-sm-12">
     <h3> Chroot Details </h3>
     <table class="table table-striped table-bordered">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Source (Git Hash)</th>
+          <th>Chroot Name</th>
+          <th>Dist Git Source</th>
+          <th>Results</th>
           <th>Build Time</th>
           <th>State</th>
         </tr>
@@ -99,14 +103,27 @@
       {% for chroot in build.build_chroots %}
         <tr>
           <td>
-            {% if build.results %}
-            <a href="{{ build.results }}/{{ chroot.name }}/{{build.result_dir_name}}">{{ chroot.name }}</a>
-            {% else %}
             {{ chroot.name }}
+          </td>
+          <td>
+            {% if chroot.git_hash %}
+            <a href="{{chroot.dist_git_url}}">
+              {{ chroot.git_hash[:7] }}
+            </a>
+            {% else %}
+              -
             {% endif %}
           </td>
           <td>
-            {{ chroot.git_hash }}
+            {% if build.results %}
+            <a href="{{ build.results }}/{{ chroot.name }}/{{build.result_dir_name}}">
+              <span class="pficon pficon-folder-open">
+                results
+              </span>
+            </a>
+            {% else %}
+             -
+            {% endif %}
           </td>
           <td>
             {{ chroot.started_on|time_ago(chroot.ended_on) }}
