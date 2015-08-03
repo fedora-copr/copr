@@ -85,8 +85,38 @@
 
     <h3> Build Source </h3>
     {{ describe_source(build) }}
-
   </div>
+  <div class="col-sm-4 col-md-3">
+  {% if g.user and g.user.can_build_in(copr) %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"> Actions </h3>
+      </div>
+      <ul class="list-group">
+      {% if g.user and g.user.can_build_in(copr) and build.cancelable %}
+        <li class="list-group-item">
+          {{ copr_build_cancel_form(build, page) }}
+        </li>
+      {% endif %}
+
+      {% if g.user and g.user.can_build_in(copr) and build.repeatable %}
+        <li class="list-group-item">
+          {{ copr_build_repeat_form(build, page) }}
+        </li>
+      {% endif %}
+
+      {% if g.user and g.user.can_build_in(copr) and build.deletable %}
+      {% if g.user.can_edit(copr) or build.user == g.user %}
+        <li class="list-group-item">
+          {{ copr_build_delete_form(build, page) }}
+        </li>
+      {% endif %}
+      {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
   <div class="col-sm-12">
     <h3> Chroot Details </h3>
     <table class="table table-striped table-bordered">
@@ -140,37 +170,7 @@
 
 
   </div>
-  <div class="col-sm-4 col-md-3">
-  {% if g.user and g.user.can_build_in(copr) %}
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title"> Actions </h3>
-    </div>
-    <ul class="list-group">
-    {% if g.user and g.user.can_build_in(copr) and build.cancelable %}
-      <li class="list-group-item">
-        {{ copr_build_cancel_form(build, page) }}
-      </li>
-    {% endif %}
-
-    {% if g.user and g.user.can_build_in(copr) and build.repeatable %}
-      <li class="list-group-item">
-        {{ copr_build_repeat_form(build, page) }}
-      </li>
-    {% endif %}
-
-    {% if g.user and g.user.can_build_in(copr) and build.deletable %}
-    {% if g.user.can_edit(copr) or build.user == g.user %}
-      <li class="list-group-item">
-        {{ copr_build_delete_form(build, page) }}
-      </li>
-    {% endif %}
-    {% endif %}
-    </ul>
-  </div>
-  {% endif %}
-</div>
-    
+      
 
 {% endif %}
 {% endblock %}
