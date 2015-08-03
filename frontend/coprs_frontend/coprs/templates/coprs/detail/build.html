@@ -57,22 +57,22 @@
       <dt> Started: </dt>
       <dd>
         {% if g.user %}
-            {{ build.started_on|localized_time(g.user.timezone) }}
+            {{ build.min_started_on|localized_time(g.user.timezone) }}
         {% else %}
-            {{ build.started_on|localized_time("UTC") }}
+            {{ build.min_started_on|localized_time("UTC") }}
         {% endif %}
       </dd>
       <dt> Finished: </dt>
       <dd>
         {% if g.user %}
-            {{ build.ended_on|localized_time(g.user.timezone) }}
+            {{ build.max_ended_on|localized_time(g.user.timezone) }}
         {% else %}
-            {{ build.ended_on|localized_time("UTC") }}
+            {{ build.max_ended_on|localized_time("UTC") }}
         {% endif %}
       </dd>
       <dt> Build time: </dt>
       <dd>
-        {{ build.started_on|time_ago(build.ended_on) }}
+        {{ build.min_started_on|time_ago(build.max_ended_on) }}
       </dd>
       <dt> Networking enabled: </dt>
       <dd>
