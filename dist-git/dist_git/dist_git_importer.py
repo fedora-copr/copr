@@ -208,7 +208,7 @@ class DistGitImporter(object):
             commands.upload(upload_files, replace=True)
 
             log.debug("git push")
-            message = "Import of {}".format(os.path.basename(filepath))
+            message = "Import of {} {}".format(task.package_name, task.package_version)
             try:
                 commands.commit(message)
                 commands.push()
