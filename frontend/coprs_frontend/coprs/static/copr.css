@@ -1,17 +1,13 @@
-.navbar-sm { min-height:40px; height: 40px; }
-.navbar-sm .navbar-brand{ padding: 0px 12px;font-size: 16px;line-height: 40px; }
-.navbar-sm .navbar-nav > li > a {  padding-top: 0px; padding-bottom: 0px; line-height: 40px; }
-
 #main-bar {
   background-image: url('header_background.png');
   background-repeat: repeat-x;
   height: 75px;
   color: white;
-  //margin-bottom: 0px;
+  margin-bottom: 30px;
 }
 
 #main-bar .container {
-  margin-top: 4px;
+  padding-top: 4px;
 }
 
 #login-menu {
@@ -27,26 +23,6 @@
   position: relative;
   top: 6px;
   height: 58px;
-}
-
-#copr-docker-img {
-  width: 100%;
-}
-
-
-.large-banner {
-  margin-top: 20px;
-  margin-bottom: 30px;
-}
-
-.large-banner p {
-  margin-top: 36px;
-  margin-bottom: 36px;
-  font-size: 1.4em;
-}
-
-.btn-primary {
-  background-color: #1f4b89;
 }
 
 .build-pending,.build-pending>a {

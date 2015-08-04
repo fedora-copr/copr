@@ -31,27 +31,26 @@
   {% endif  %}
 
   <!-- MAIN MENU -->
-  <nav class="navbar navbar-default navbar-static-top" id="main-bar">
+  <nav class="" id="main-bar">
     <div class="container">
-      <div class="col-md-8 col-sm-7 col-xs-6">
-        <a href="{{ url_for('coprs_ns.coprs_show') }}">
-          <img id="logo" src="{{ url_for('static', filename='copr_logo.png') }}" alt="Copr Build System">
-        </a>
-      </div>
-      <div class="col-md-4 col-sm-5 col-xs-6">
-        <div class="row">
-          {% if g.user %}
-            <span id="login-menu" class="pull-right"><span class="text"></span><a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a></span>
-          {% else %}
-            <span id="login-menu" class="pull-right">
-                <a href="{{ url_for('misc.login') }}">log in</a> |
-                {% for key,val in config.KRB5_LOGIN.iteritems() %}
-                <a href="{{ config.KRB5_LOGIN_BASEURI }}{{ val.URI }}/">{{ val.log_text }}</a> |
-                {% endfor %}
-                <a href="https://admin.fedoraproject.org/accounts/user/new">sign up</a></span>
-          {% endif %}
+      <div class="row">
+        <div class="col-md-8 col-sm-7 col-xs-6">
+          <a href="{{ url_for('coprs_ns.coprs_show') }}">
+            <img id="logo" src="{{ url_for('static', filename='copr_logo.png') }}" alt="Copr Build System">
+          </a>
         </div>
-        <div class="row">
+        <div class="col-md-4 col-sm-5 col-xs-6">
+          <div id="login-menu" class="text-right">
+          {% if g.user %}
+            <a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a>
+          {% else %}
+            <a href="{{ url_for('misc.login') }}">log in</a> |
+            {% for key,val in config.KRB5_LOGIN.iteritems() %}
+            <a href="{{ config.KRB5_LOGIN_BASEURI }}{{ val.URI }}/">{{ val.log_text }}</a> |
+            {% endfor %}
+            <a href="https://admin.fedoraproject.org/accounts/user/new">sign up</a>
+          {% endif %}
+          </div>
           <form role="search" method="get" action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
             <div class="input-group menu-search">
               <input name="fulltext" type="text" class="form-control" placeholder="Search projects" value="{% block search_box %}{%endblock%}">
