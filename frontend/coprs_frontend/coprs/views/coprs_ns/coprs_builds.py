@@ -210,7 +210,7 @@ def copr_new_build(username, coprname):
 
             # create json describing the build source
             source_type = helpers.BuildSourceEnum("srpm_link")
-            source_json = json.dumps({"url": pkgs})
+            source_json = json.dumps({"url": pkgs[0]})
 
             # build each package as a separate build
             try:
