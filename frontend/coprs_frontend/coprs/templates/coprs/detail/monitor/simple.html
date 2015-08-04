@@ -1,0 +1,61 @@
+{% extends "coprs/detail/monitor.html" %}
+{% from "coprs/detail/_build_states.html" import build_states %}
+
+{% block project_breadcrumb_monitor %}
+<li class="active">
+  Simple
+</li>
+{% endblock %}
+
+{% block monitor_simple_selected %}active{% endblock %}
+
+{% block monitor_table %}
+<h2> Simple Build Monitor </h2>
+<p>States of last builds of every package in this project. One package can have more builds. </p>
+
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th rowspan="2">Package</th>
+      {% for i, chroot in oses %}
+      <th colspan="{{i}}"> {{ chroot|capitalize }}</th>
+      {% endfor %}
+    </tr>
+    <tr>
+      {% for chroot in archs %}
+      <th> {{ chroot }} </th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for package in monitor %}
+    <tr>
+      <td style="white-space:nowrap">
+        <a href="{{ url_for('coprs_ns.copr_package',
+                            username=copr.owner.name,
+                            coprname=copr.name,
+                            package_name=package["package"].name) }}">
+          {{ package["package"].name }}
+        </a>
+      </td>
+      {% for chroot in copr.active_chroots_sorted %}
+      <td>
+        {% if package["build_chroots"][chroot.name] %}
+        <a href="{{ url_for('coprs_ns.copr_build',
+                              username=copr.owner.name,
+                              coprname=copr.name,
+                              build_id=package["build_chroots"][chroot.name].build.id) }}">
+          <span class="build-{{ package["build_chroots"][chroot.name].state }}">
+            {{ package["build_chroots"][chroot.name].state }}
+          </span>
+        </a>
+        {% else %}
+          -
+        {% endif %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

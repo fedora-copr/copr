@@ -2,71 +2,32 @@
 {% from "coprs/detail/_build_states.html" import build_states %}
 {% block title %}Monitor {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 {% block monitor_selected %}active{% endblock %}
+
 {%block project_breadcrumb %}
-<li class="active">
-  Monitor
+<li>
+  <a href="{{ url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name) }}">
+    Monitor
+  </a>
+  {% block project_breadcrumb_monitor %}
+  {%endblock%}
 </li>
 {%endblock%}
 
 {% block detail_body %}
-<table class="table table-striped table-bordered">
-  <thead>
-    <h2> Build Monitor </h2>
-    <p>This view presents states of the last build for each package. Click on the state to see details.</p>
-    <tr>
-      <th rowspan="2">Package</th>
-      <!--<th rowspan="2">Version</th>-->
-      {% for i, chroot in oses %}
-      <th colspan="{{i}}">
-        {{ chroot|capitalize }}
-      </th>
-      {% endfor %}
-    </tr>
-    <tr>
-      {% for chroot in archs %}
-      <th>
-        {{ chroot }}
-      </th>
-      {% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-  {% if build %}
-  {% for package, states_by_chroot in packages %}
-    <tr>
-      <td>{{ package }}</td>
-      {% for build_id, state, pkg_version, chroot in states_by_chroot %}
-        <td class="centered">
-          {% if state %}
-            <a class="build-{{ state }}"
-                href="{{ url_for('coprs_ns.copr_build',
-                                username=copr.owner.name,
-                                coprname=copr.name,
-                                build_id=build_id) }}">
-              {{ state }}
-            </a> <br />
-            {% if pkg_version %}
-            <small class="text-muted"> {{ pkg_version }} </small>
-            {% endif %}
-          {% else %}
-            {% if build_id %}
-            <a href="{{ url_for('coprs_ns.copr_repeat_build',
-              username=copr.owner.name,
-              coprname=copr.name,
-              build_id=build_id,
-              chroot=chroot) }}">new build</a>
-            {% endif %}
-          {% endif %}
-        </td>
-      {% endfor %}
-    </tr>
-  {% endfor %}
-  {% else %}
-    <tr>
-      <td colspan="{{archs|length +1}}">No builds so far...</td>
-    </tr>
-  {% endif %}
-  </tbody>
-</table>
+<ul class="nav nav-tabs nav-tabs-pf">
+  <li class="{% block monitor_simple_selected %}{% endblock %}">
+    <a href="{{ url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name) }}">
+        Simple
+    </a>
+  </li>
+  <li class="{% block monitor_detailed_selected %}{% endblock %}">
+    <a href="{{ url_for('coprs_ns.copr_build_monitor_detailed', username = copr.owner.name, coprname = copr.name) }}">
+        Detailed
+    </a>
+  </li>
+</ul>
+
+{% block monitor_table %}{% endblock %}
+
 {{ build_states() }}
 {% endblock %}

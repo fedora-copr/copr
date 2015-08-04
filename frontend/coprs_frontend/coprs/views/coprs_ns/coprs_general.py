@@ -645,22 +645,35 @@ def copr_build_monitor(username, coprname):
         return page_not_found(
             "Copr with name {0} does not exist.".format(coprname))
 
-    form = forms.CoprLegalFlagForm()
+    monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
+
+    oses = [chroot.os for chroot in copr.active_chroots_sorted]
+    oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
+    archs = [chroot.arch for chroot in copr.active_chroots_sorted]
+
+    return flask.render_template("coprs/detail/monitor/simple.html",
+                                                copr=copr,
+                                                monitor=monitor,
+                                                oses=oses_grouped,
+                                                archs=archs)
+
+
+@coprs_ns.route("/<username>/<coprname>/monitor-detailed/")
+def copr_build_monitor_detailed(username, coprname):
+    try:
+        copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found(
+            "Copr with name {0} does not exist.".format(coprname))
 
     monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
 
-    md_chroots = monitor["chroots"]
-    active_chroots = sorted(
-        copr.active_chroots,
-        key=lambda chroot: md_chroots.index(chroot.name)
-    )
-    oses = [chroot.os for chroot in active_chroots]
+    oses = [chroot.os for chroot in copr.active_chroots_sorted]
     oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
-    archs = [chroot.arch for chroot in active_chroots]
+    archs = [chroot.arch for chroot in copr.active_chroots_sorted]
 
-    kwargs = dict(copr=copr, oses=oses_grouped, archs=archs,
-                  form=form)
-    kwargs.update(monitor)
-    kwargs["build"] = kwargs["latest_build"]
-    del kwargs["latest_build"]
-    return flask.render_template("coprs/detail/monitor.html", **kwargs)
+    return flask.render_template("coprs/detail/monitor/detailed.html",
+                                                copr=copr,
+                                                monitor=monitor,
+                                                oses=oses_grouped,
+                                                archs=archs)

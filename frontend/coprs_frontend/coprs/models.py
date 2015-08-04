@@ -184,12 +184,20 @@ class Copr(db.Model, helpers.Serializer):
         return filter(lambda x: x.is_active, self.mock_chroots)
 
     @property
+    def active_chroots_sorted(self):
+        """
+        Return list of active mock_chroots of this copr
+        """
+
+        return sorted(self.active_chroots, key=lambda ch: ch.name)
+
+    @property
     def active_chroots_grouped(self):
         """
         Return list of active mock_chroots of this copr
         """
 
-        chroots = [("{} {}".format(c.os_release, c.os_version), c.arch) for c in self.active_chroots]
+        chroots = [("{} {}".format(c.os_release, c.os_version), c.arch) for c in self.active_chroots_sorted]
         output = []
         for os, chs in itertools.groupby(chroots, operator.itemgetter(0)):
             output.append((os, [ch[1] for ch in chs]))

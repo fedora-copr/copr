@@ -376,60 +376,16 @@ class BuildsLogic(object):
 class BuildsMonitorLogic(object):
     @classmethod
     def get_monitor_data(cls, copr):
-        # builds are sorted by build id descending
-        builds = BuildsLogic.get_multiple_by_copr(copr).all()
-
-        chroots = set(chroot.name for chroot in copr.active_chroots)
-        if builds:
-            latest_build = builds[0]
-            chroots.union([chroot.name for chroot in latest_build.build_chroots])
-        else:
-            latest_build = None
-
-        chroots = sorted(chroots)
-
-        # { pkg_name -> { chroot -> (build_id, pkg_version, status) }}
-        build_result_by_pkg_chroot = defaultdict(lambda: defaultdict(lambda: None))
-
-        # collect information about pkg version and build states
-        for build in builds:
-            chroot_results = {chroot.name: chroot.state for chroot in build.build_chroots}
-
-            pkg = os.path.basename(build.pkgs)
-            pkg_name = helpers.parse_package_name(pkg)
-
-            for chroot_name, state in chroot_results.items():
-                # set only latest version/state
-                if build_result_by_pkg_chroot[pkg_name][chroot_name] is None:
-                    build_result_by_pkg_chroot[pkg_name][chroot_name] = (build.id, build.pkg_version, state)
-
-        # "transpose" data to present build status per package
+        copr_packages = sorted(copr.packages, key=lambda pkg: pkg.name)
         packages = []
-        for pkg_name, chroot_dict in build_result_by_pkg_chroot.items():
-            br = []
-            try:
-                latest_build_id = max([build_id for build_id, pkg_version, state
-                                       in chroot_dict.values()])
-            except ValueError:
-                latest_build_id = None
-
-            for chroot_name in chroots:
-                chroot_result = chroot_dict.get(chroot_name)
-                if chroot_result:
-                    build_id, pkg_version, state = chroot_result
-                    br.append((build_id, state, pkg_version, chroot_name))
-                else:
-                    br.append((latest_build_id, None, None, chroot_name))
-
-            packages.append((pkg_name, br))
-
-        packages.sort()
-
-        result = {
-            "builds": builds,
-            "chroots": chroots,
-            "packages": packages,
-            "latest_build": latest_build,
-        }
-        app.logger.debug("Monitor data: \n{}".format(pprint.pformat(result)))
-        return result
+        for pkg in copr_packages:
+            chroots = {}
+            for ch in copr.active_chroots:
+                query = (models.BuildChroot.query.join(models.Build)
+                    .filter(models.Build.package_id == pkg.id)
+                    .filter(models.BuildChroot.mock_chroot_id == ch.id)
+                    .filter(models.BuildChroot.status != helpers.StatusEnum("canceled")))
+                query = query.order_by(models.BuildChroot.build_id.desc()).first()
+                chroots[ch.name] = query
+            packages.append({"package": pkg, "build_chroots": chroots})
+        return packages
