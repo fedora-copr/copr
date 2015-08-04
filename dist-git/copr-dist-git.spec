@@ -19,6 +19,14 @@ BuildRequires: dist-git
 BuildRequires: python-bunch
 BuildRequires: python-requests
 BuildRequires: pyrpkg
+# check
+BuildRequires: python-six
+BuildRequires: python-netaddr
+BuildRequires: python-dateutil
+BuildRequires: pytest
+BuildRequires: python-pytest-cov
+BuildRequires: python-mock
+BuildRequires: pytz
 
 Requires: systemd
 Requires: dist-git
