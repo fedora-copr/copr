@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.2
+Version:    0.3
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -84,6 +84,15 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Tue Aug 04 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.3-1
+- fixed commit message to include package name and version
+- added initial tests; renamed folder with sources to use underscore instead of dash
+- mark build as failed for any error during import
+- don't break on the post failure to frontend
+- get pkg name + version during import
+- Use /var/lib/copr-dist-git/ to store pkg listing.
+- refresh cgit after import
+
 * Thu Jul 23 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.2-1
 - new package built with tito
 
