@@ -39,15 +39,18 @@
   <br>
   {% if g.user %}
     <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title"> My Details </h3>
-      </div>
       <div class="panel-body">
         <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn btn-primary">
           <span class="pficon pficon-add-circle-o"> New Project </span>
         </a>
-        <h4>{{ g.user.name }}</h4>
-        <img src="{{ g.user.gravatar_url }}" alt="User Image">
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"> {{ g.user.name | capitalize}} </h3>
+      </div>
+      <div class="panel-body">
+        <img class="avatar" src="{{ g.user.gravatar_url }}" alt="User Image">
       </div>
       <div class="list-group">
         <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" class="list-group-item">
