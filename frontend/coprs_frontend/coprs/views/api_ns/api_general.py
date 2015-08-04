@@ -637,7 +637,7 @@ def monitor(username, coprname):
     copr = CoprsLogic.get(username, coprname).first()
 
     monitor_data = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
-    output = MonitorWrapper(monitor_data).to_dict()
+    output = MonitorWrapper(copr, monitor_data).to_dict()
 
     jsonout = flask.jsonify(output)
     jsonout.status_code = 200

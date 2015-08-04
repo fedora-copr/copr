@@ -31,7 +31,7 @@ class BuildWrapper(object):
 
 
 class MonitorWrapper(object):
-    def __init__(self, monitor_data):
+    def __init__(self, copr, monitor_data):
         """
         :arg monitor_data: dict with fields:
             "builds": list of models.Build,
@@ -39,43 +39,36 @@ class MonitorWrapper(object):
             "packages": tuple (pkg_name, pkg_version, build_results),
             "latest_build": models.Build,
         """
+        self.copr = copr
         self.monitor_data = monitor_data
 
     def to_dict(self):
         out = {}
-        chroots = self.monitor_data["chroots"]
-        out["chroots"] = chroots
+        out["chroots"] = map(lambda x: x.name, self.copr.active_chroots_sorted)
         out["builds"] = [
             BuildWrapper(build).to_dict()
-            for build in self.monitor_data["builds"]
+            for build in self.copr.builds
         ]
 
-        packages_fixed = []
-        for (pkg_name, results_by_chroot) in self.monitor_data["packages"]:
+
+        packages = []
+
+        for pkg in self.monitor_data:
+            package = pkg["package"]
+            chroots = pkg["build_chroots"]
+
             results = {}
-            for chroot_name, (build_id, status, pkg_version, _) in zip(chroots, results_by_chroot):
-                if status is None or pkg_version is None:
-                    results[chroot_name] = None
+            for ch in self.copr.active_chroots:
+                if chroots[ch.name]:
+                    results[ch.name] = {"build_id": chroots[ch.name].build.id,
+                                        "status": chroots[ch.name].state,
+                                        "pkg_version": chroots[ch.name].build.pkg_version}
                 else:
-                    results[chroot_name] = dict(build_id=build_id,
-                                                status=status,
-                                                pkg_version=pkg_version)
+                    results[ch.name] = None
 
-            packages_fixed.append({
-                "pkg_name": pkg_name,
-                "pkg_version": None,  # legacy
-                "results": results
-            })
+            packages.append({"pkg_name": package.name,
+                             "pkg_version": None,
+                             "results": results})
 
-        out["packages"] = packages_fixed
-        #
-        # [
-        #     {
-        #         "pkg_name": pkg_name,
-        #         "pkg_version": None,  # legacy
-        #         "results": dict(zip(chroots, results_by_chroot))
-        #     }
-        #     for (pkg_name, results_by_chroot)
-        #     in self.monitor_data["packages"]
-        # ]
+        out["packages"] = packages
         return out
