@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.64
+Version:    1.65
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -195,6 +195,10 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Tue Aug 04 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.65-1
+- Dist-git support
+- Transition to Patternfly UI
+- and lot of fixes 
 * Wed Jul 01 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.64-1
 - [frontend] fix help text on builds pages
 
