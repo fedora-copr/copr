@@ -2,7 +2,7 @@
 {% block title %} Task queue - Copr {% endblock %}
 {% block header %} Task queue - Copr {% endblock %}
 {%block main_menu_status %}active{% endblock %}
-{% block body %}
+{% block breadcrumbs %}
 <ol class="breadcrumb">
   <li>
     <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
@@ -12,6 +12,8 @@
   </li>
   {%block status_breadcrumb %}{%endblock%}
 </ol>
+{% endblock %}
+{% block body %}
 <h1> Task queue </h1>
 <ul class="nav nav-tabs">
   <li class="{% block importing_selected %}{% endblock %}">

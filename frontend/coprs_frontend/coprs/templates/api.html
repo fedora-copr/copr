@@ -2,6 +2,16 @@
 {% block title %}API for Copr{% endblock %}
 {% block header %}API for the Copr Build System{% endblock %}
 {%block main_menu_api %}active{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li class="active">
+    API
+  </li>
+</ol>
+{% endblock %}
 {% block body %}
   {% if error %}<p class="error"><strong>Error:</strong> {{ error }}</p>{% endif %}
 

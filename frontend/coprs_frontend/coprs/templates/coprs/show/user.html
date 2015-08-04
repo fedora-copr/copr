@@ -2,7 +2,7 @@
 {% block title %}Project List{% endblock %}
 {% block header %}Project List{% endblock %}
 {% from "_helpers.html" import render_pagination %}
-{% block show_top %}
+{% block breadcrumbs %}
 <ol class="breadcrumb">
   <li>
     <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
@@ -11,6 +11,8 @@
     {{user.name}}
   </li>
 </ol>
+{% endblock %}
+{% block show_top %}
 
 <div id="profile">
   <img src="{{ user.gravatar_url }}" alt="User Image" class="avatar">

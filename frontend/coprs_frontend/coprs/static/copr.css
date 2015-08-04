@@ -1,9 +1,13 @@
+.navbar-sm { min-height:40px; height: 40px; }
+.navbar-sm .navbar-brand{ padding: 0px 12px;font-size: 16px;line-height: 40px; }
+.navbar-sm .navbar-nav > li > a {  padding-top: 0px; padding-bottom: 0px; line-height: 40px; }
+
 #main-bar {
   background-image: url('header_background.png');
   background-repeat: repeat-x;
   height: 75px;
   color: white;
-  margin-bottom: 30px;
+  //margin-bottom: 30px;
 }
 
 #main-bar .container {
@@ -23,6 +27,15 @@
   position: relative;
   top: 6px;
   height: 58px;
+}
+
+div.breadcrumb-panel {
+  background-color: #eee;
+  border-bottom: 1px solid #ccc;
+}
+
+div.breadcrumb-panel ol.breadcrumb {
+  margin-bottom: 0px;
 }
 
 .build-pending,.build-pending>a {
