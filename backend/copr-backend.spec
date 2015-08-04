@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.71
+Version:    1.72
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -245,6 +245,16 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue Aug 04 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.72-1
+- support new results naming in the build deletion action
+- fix BuildJob.results_dir; eliminated MockRemote.pkg_dest_path
+- using package name and versiong given in the build task; cleanup;
+- handle error's caused by failure to obtain srpm from dist-git
+- repairing test for newest changes
+- rsync update + several fixes
+- building from dist git
+- fix vm spawn check: spawner count child processes per build group;
+
 * Wed Jul 01 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.71-1
 - add small script to print queues
 - AppData supproted
