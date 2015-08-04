@@ -68,5 +68,8 @@
     <img style="height:1.8em" src="{{ url_for('static', filename='fedora_logo.png') }}"> Fedora {{chroot.os_version}}
   {% elif chroot.os_release == "epel" %}
     Epel for <img style="height:1.8em" src="{{ url_for('static', filename='centos_logo.png') }}"> CentOS {{chroot.os_version}}
+
+  {% else %}
+    {{ chroot.os_release | capitalize }} {{ chroot.os_version }}
   {% endif %}
 {% endmacro %}
