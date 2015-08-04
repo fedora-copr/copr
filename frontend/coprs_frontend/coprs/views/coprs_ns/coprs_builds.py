@@ -208,6 +208,10 @@ def copr_new_build(username, coprname):
                 if chroot.name in form.selected_chroots:
                     chroots.append(chroot)
 
+            # create json describing the build source
+            source_type = helpers.BuildSourceEnum("srpm_link")
+            source_json = json.dumps({"url": pkgs})
+
             # build each package as a separate build
             try:
                 for pkg in pkgs:
@@ -216,6 +220,8 @@ def copr_new_build(username, coprname):
                         pkgs=pkg,
                         copr=copr,
                         chroots=chroots,
+                        source_type=source_type,
+                        source_json=source_json,
                         enable_net=form.enable_net.data)
 
                     if flask.g.user.proven:
