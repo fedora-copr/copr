@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.3
+Version:    0.4
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -92,6 +92,9 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Wed Aug 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.4-1
+- additional BuildRequires to run tests
+
 * Tue Aug 04 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.3-1
 - fixed commit message to include package name and version
 - added initial tests; renamed folder with sources to use underscore instead of dash
