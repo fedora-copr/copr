@@ -67,8 +67,12 @@ cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-dist-git
 touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 %check
+
+%if 0%{?fedora} >= 21
+# too old `pytest` in epel repo
 PYTHONPATH=.:$PYTHONPATH python -B -m pytest \
   -v --cov-report term-missing --cov ./dist_git ./tests/
+%endif
 
 %post
 # change context to be readable by cgit
