@@ -2,6 +2,10 @@
 .navbar-sm .navbar-brand{ padding: 0px 12px;font-size: 16px;line-height: 40px; }
 .navbar-sm .navbar-nav > li > a {  padding-top: 0px; padding-bottom: 0px; line-height: 40px; }
 
+h1.project-name {
+  margin-bottom: 20px;
+}
+
 #main-bar {
   background-image: url('header_background.png');
   background-repeat: repeat-x;
