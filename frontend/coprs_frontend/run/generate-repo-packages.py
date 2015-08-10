@@ -61,7 +61,11 @@ class RepoRpmBuilder(object):
 
     @property
     def rpm_name(self):
-        return self.RPM_NAME_FORMAT.format(self.user, self.copr, self.chroot.os_release, self.chroot.os_version)
+        version = self.chroot.os_version
+        # All Fedora releases except for rawhide has same .repo file
+        if self.chroot.os_release == "fedora" and self.chroot.os_version.isdigit():
+            version = "all"
+        return self.RPM_NAME_FORMAT.format(self.user, self.copr, self.chroot.os_release, version)
 
     @property
     def repo_name(self):
