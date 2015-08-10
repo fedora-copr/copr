@@ -80,21 +80,23 @@
   </div>
   <div class="col-sm-4 col-md-3">
     <br>
-    <div class="panel panel-default">
-      <div class="panel-body">
-        {% if copr.homepage %}
-        <a class="btn btn-default" href="{{ copr.homepage }}" title="{{ copr.homepage }}">
-          <span class="fa fa-home"></span> Homepage
-        </a>
-        {% endif %}
+    {% if copr.homepage or copr.contact %}
+      <div class="panel panel-default">
+        <div class="panel-body">
+          {% if copr.homepage %}
+          <a class="btn btn-default" href="{{ copr.homepage }}" title="{{ copr.homepage }}">
+            <span class="fa fa-home"></span> Homepage
+          </a>
+          {% endif %}
 
-        {% if copr.contact %}
-        <a class="btn btn-default" href="{{ copr.contact|mailto }}" title="{{ copr.contact }}">
-          <span class="fa fa-user"></span> Contact
-        </a>
-        {% endif %}
+          {% if copr.contact %}
+          <a class="btn btn-default" href="{{ copr.contact|mailto }}" title="{{ copr.contact }}">
+            <span class="fa fa-user"></span> Contact
+          </a>
+          {% endif %}
+        </div>
       </div>
-    </div>
+    {% endif %}
     <div class="panel panel-default">
       <div class="panel-heading">
         <h3 class="panel-title"> Last Build </h3>
