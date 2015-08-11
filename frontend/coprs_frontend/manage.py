@@ -15,6 +15,7 @@ from coprs import models
 from coprs.logic import coprs_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprUserWhoosheer
+from run import generate_repo_packages
 
 
 class TestCommand(Command):
@@ -294,6 +295,16 @@ class UpdateIndexesCommand(Command):
         writer.commit(optimize=True)
 
 
+class GenerateRepoPackagesCommand(Command):
+    """
+    go through all coprs and create configuration rpm packages
+    for them, if they don't already have it
+    """
+
+    def run(self):
+        generate_repo_packages.main()
+
+
 manager = Manager(app)
 manager.add_command("test", TestCommand())
 manager.add_command("create_sqlite_file", CreateSqliteFileCommand())
@@ -306,6 +317,7 @@ manager.add_command("drop_chroot", DropChrootCommand())
 manager.add_command("alter_user", AlterUserCommand())
 manager.add_command("add_debug_user", AddDebugUserCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
+manager.add_command("generate_repo_packages", GenerateRepoPackagesCommand())
 
 if __name__ == "__main__":
     manager.run()
