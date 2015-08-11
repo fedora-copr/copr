@@ -1,5 +1,6 @@
 import os
 import time
+import os
 import re
 import urlparse
 
@@ -626,6 +627,8 @@ def generate_repo_file(username, coprname, name_release, repofile):
             "Repository not initialized: No finished builds in {}/{}."
             .format(username, coprname))
 
+    # add trainling slash
+    url = os.path.join(url, '')
     repo_url = generate_repo_url(mock_chroot, url)
     pubkey_url = urlparse.urljoin(url, "pubkey.gpg")
     response = flask.make_response(
