@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.57
+Version:    1.58
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -170,6 +170,12 @@ popd
 %endif
 
 %changelog
+* Tue Aug 11 2015 Miroslav Suchý <msuchy@redhat.com> 1.58-1
+- implement srpm upload functionality
+- better error handling (RhBug:1245105)
+- define %%license macro for el6
+- el6 needs field numbers
+
 * Thu Jul 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.57-1
 - [cli] wrap requests exception (RhBug:1194522)
 - [python] Bug 1188874 - better unicode handling
