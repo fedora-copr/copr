@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.65
+Version:    1.66
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -195,6 +195,14 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Tue Aug 11 2015 Miroslav Suchý <msuchy@redhat.com> 1.66-1
+- correctly join url fragments
+- create json for each package (RhBug:1252432)
+- add route providing repo RPM packages
+- show contact and homepage bubble only when its set
+- generate one package for all fedora releases
+- add experimental support for repo RPM packages (RhBug:1227696)
+
 * Tue Aug 04 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.65-1
 - Dist-git support
 - Transition to Patternfly UI
