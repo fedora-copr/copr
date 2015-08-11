@@ -1,3 +1,4 @@
+import os
 import time
 import re
 import urlparse
@@ -635,6 +636,20 @@ def generate_repo_file(username, coprname, name_release, repofile):
         "filename={0}.repo".format(reponame)
 
     return response
+
+
+@coprs_ns.route("/<username>/<coprname>/rpm/<name_release>/<rpmfile>")
+def copr_repo_rpm_file(username, coprname, name_release, rpmfile):
+    try:
+        PACKAGES_DIR = "/usr/share/copr/repo_rpm_storage"  # @TODO Move to the config file
+        with open(os.path.join(PACKAGES_DIR, rpmfile), "rb") as rpm:
+            response = flask.make_response(rpm.read())
+            response.mimetype = "application/x-rpm"
+            response.headers["Content-Disposition"] = \
+                "filename={0}".format(rpmfile)
+            return response
+    except IOError:
+        return flask.render_template("404.html")
 
 
 @coprs_ns.route("/<username>/<coprname>/monitor/")

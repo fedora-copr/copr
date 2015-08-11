@@ -35,7 +35,7 @@ FRONTEND_URL = "http://copr.fedoraproject.org/"
 FRONTEND_URL = "http://copr-fe-dev.cloud.fedoraproject.org/"
 
 PACKAGES_DIR = os.path.join(app.config["DATA_DIR"], "repo-rpm-packages")
-PACKAGES_DIR = "/tmp/repo-rpm-packages"  # @TODO Use frontend's directory containing structure of package's builds
+PACKAGES_DIR = "/usr/share/copr/repo_rpm_storage"  # @TODO Move to the config file
 
 RPMBUILD = os.path.join(os.path.expanduser("~"), "rpmbuild")
 RPMBUILD = "/tmp/rpmbuild"
