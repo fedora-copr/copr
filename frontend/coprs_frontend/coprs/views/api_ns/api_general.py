@@ -286,11 +286,11 @@ def copr_new_build(username, coprname):
                 if chroot.name in form.selected_chroots:
                     chroots.append(chroot)
 
-            # create json describing the build source
-            source_type = helpers.BuildSourceEnum("srpm_link")
-            source_json = json.dumps({"url": pkgs[0]})
-
             for pkg in pkgs:
+                # create json describing the build source
+                source_type = helpers.BuildSourceEnum("srpm_link")
+                source_json = json.dumps({"url": pkg})
+
                 build = builds_logic.BuildsLogic.add(
                     user=flask.g.user,
                     pkgs=pkg,
