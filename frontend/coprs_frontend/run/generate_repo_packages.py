@@ -3,7 +3,7 @@
 
 # RUN
 #     cd frontend/coprs_frontend
-#     COPR_CONFIG=../config/copr_devel.conf python run/generate-repo-packages.py
+#     COPR_CONFIG=../config/copr_devel.conf python run/generate_repo_packages.py
 
 
 from __future__ import print_function
