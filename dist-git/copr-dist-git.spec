@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.5
+Version:    0.6
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -99,6 +99,9 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Fri Aug 14 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.6-1
+- [dist-git][rhbz: #1253335] Running rpkg in the dedicated process.
+
 * Wed Aug 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.5-1
 - don't run tests during %check on epel
 
