@@ -21,8 +21,8 @@ else:
     import mock
     from mock import MagicMock
 
-from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask, PackageDownloadException, \
-    PackageImportException, PackageQueryException, main
+from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask
+from dist_git.exceptions import PackageImportException, PackageDownloadException, PackageQueryException
 
 MODULE_REF = 'dist_git.dist_git_importer'
 
@@ -32,10 +32,10 @@ def mc_dgcr():
     with mock.patch("{}.DistGitConfigReader".format(MODULE_REF)) as handle:
         yield handle
 
-@pytest.yield_fixture
-def mc_dgi():
-    with mock.patch("{}.DistGitImporter".format(MODULE_REF)) as handle:
-        yield handle
+# @pytest.yield_fixture
+# def mc_dgi():
+#     with mock.patch("{}.DistGitImporter".format(MODULE_REF)) as handle:
+#         yield handle
 
 @pytest.yield_fixture
 def mc_time():
@@ -185,46 +185,46 @@ class TestDistGitImporter(object):
         with pytest.raises(PackageDownloadException):
             self.dgi.fetch_srpm(self.task_1, self.fetched_srpm_path)
 
-    def test_my_upload(self):
-        filename = "source"
-        source_path = os.path.join(self.tmp_dir_name, filename)
-        with open(source_path, "w") as handle:
-            handle.write("1")
+    # def test_my_upload(self):
+    #     filename = "source"
+    #     source_path = os.path.join(self.tmp_dir_name, filename)
+    #     with open(source_path, "w") as handle:
+    #         handle.write("1")
+    #
+    #     reponame = self.PROJECT_NAME
+    #     target = "/".join([
+    #         self.lookaside_location, reponame, filename, self.FILE_HASH, filename
+    #     ])
+    #     assert not os.path.exists(target)
+    #     self.dgi.my_upload(self.tmp_dir_name, reponame, filename, self.FILE_HASH)
+    #     assert os.path.exists(target)
 
-        reponame = self.PROJECT_NAME
-        target = "/".join([
-            self.lookaside_location, reponame, filename, self.FILE_HASH, filename
-        ])
-        assert not os.path.exists(target)
-        self.dgi.my_upload(self.tmp_dir_name, reponame, filename, self.FILE_HASH)
-        assert os.path.exists(target)
-
-    def test_git_import_srpm(self, mc_pyrpkg_commands):
-        # stupid test, just for the coverage
-        mc_cmd = MagicMock()
-        mc_pyrpkg_commands.return_value = mc_cmd
-        mc_cmd.commithash = self.FILE_HASH
-
-        filename = "source"
-        source_path = os.path.join(self.tmp_dir_name, filename)
-
-        self.task_1.package_name = self.PACKAGE_NAME
-        assert self.dgi.git_import_srpm(self.task_1, source_path) == self.FILE_HASH
-
-        # check exception handling
-        for err in [IOError, OSError, ValueError]:
-            mc_cmd.import_srpm.side_effect = err
-            with pytest.raises(PackageImportException):
-                self.dgi.git_import_srpm(self.task_1, source_path)
-        mc_cmd.import_srpm.side_effect = None
-
-        mc_cmd.push.side_effect = rpkgError
-        assert self.dgi.git_import_srpm(self.task_1, source_path) == self.FILE_HASH
-
-        for err in [IOError, OSError, ValueError]:
-            mc_pyrpkg_commands.side_effect = err
-            with pytest.raises(PackageImportException):
-                self.dgi.git_import_srpm(self.task_1, source_path)
+    # def test_git_import_srpm(self, mc_pyrpkg_commands):
+    #     # stupid test, just for the coverage
+    #     mc_cmd = MagicMock()
+    #     mc_pyrpkg_commands.return_value = mc_cmd
+    #     mc_cmd.commithash = self.FILE_HASH
+    #
+    #     filename = "source"
+    #     source_path = os.path.join(self.tmp_dir_name, filename)
+    #
+    #     self.task_1.package_name = self.PACKAGE_NAME
+    #     assert self.dgi.git_import_srpm(self.task_1, source_path) == self.FILE_HASH
+    #
+    #     # check exception handling
+    #     for err in [IOError, OSError, ValueError]:
+    #         mc_cmd.import_srpm.side_effect = err
+    #         with pytest.raises(PackageImportException):
+    #             self.dgi.git_import_srpm(self.task_1, source_path)
+    #     mc_cmd.import_srpm.side_effect = None
+    #
+    #     mc_cmd.push.side_effect = rpkgError
+    #     assert self.dgi.git_import_srpm(self.task_1, source_path) == self.FILE_HASH
+    #
+    #     for err in [IOError, OSError, ValueError]:
+    #         mc_pyrpkg_commands.side_effect = err
+    #         with pytest.raises(PackageImportException):
+    #             self.dgi.git_import_srpm(self.task_1, source_path)
 
     def test_pkg_name_evr(self, mc_popen):
         mc_comm = MagicMock()
@@ -335,14 +335,14 @@ class TestDistGitImporter(object):
         self.dgi.run()
         assert self.dgi.do_import.call_args == mock.call(self.task_1)
 
-    def test_main(self, mc_dgi, mc_dgcr):
-        # dummy test, just for coverage
-        mc_dgcr.return_value.read.return_value = self.opts
-        main()
-
-        assert mc_dgi.called
-
-        mc_dgcr.return_value.read.side_effect = IOError()
-        with pytest.raises(SystemExit):
-            main()
+    # def test_main(self, mc_dgi, mc_dgcr):
+    #     # dummy test, just for coverage
+    #     mc_dgcr.return_value.read.return_value = self.opts
+    #     main()
+    #
+    #     assert mc_dgi.called
+    #
+    #     mc_dgcr.return_value.read.side_effect = IOError()
+    #     with pytest.raises(SystemExit):
+    #         main()
 
