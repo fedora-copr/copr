@@ -514,6 +514,11 @@ class Build(db.Model, helpers.Serializer):
         property has been set.
         """
 
+        # build failed due to import error
+        if self.state == "failed" and self.started_on is None:
+            return True
+
+        # build failed and all chroots are finished
         if self.state == "failed" and self.ended_on is not None:
             return True
 
