@@ -22,7 +22,8 @@
       <th>Waiting</th>
       <th>Project</th>
       <th>Build</th>
-      <th>Packages</th>
+      <th>Package Name</th>
+      <th>Package Version</th>
       <th>Chroot</th>
     </tr>
   </thead>
@@ -38,7 +39,8 @@
       </td>
       <td><a href="{{ url_for('coprs_ns.copr_detail', username = task.build.copr.owner.name, coprname = task.build.copr.name) }}">{{task.build.copr.owner.name}}/{{task.build.copr.name}}</a></td>
       <td><a href="{{ url_for('coprs_ns.copr_build', username = task.build.copr.owner.name, coprname = task.build.copr.name, build_id = task.build_id) }}">{{task.build_id}}</a></td>
-      <td>{{ task.build.pkgs | pkg_name }} </td>
+      <td>{{ task.build.package.name }} </td>
+      <td>{{ task.build.pkg_version }} </td>
       <td>{{ task.mock_chroot.name }}</td>
     </tr>
     {% endfor %}
