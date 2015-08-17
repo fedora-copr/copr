@@ -63,6 +63,25 @@
   {% endif %}
 {% endmacro %}
 
+{% macro render_form_errors(form=[], errors=[]) %}
+  {% set errors = (errors + form.errors.values() |sum(start=[]))
+      |reject('none')
+      |select('defined')
+      |list
+  %}
+  {% if errors %}
+    <div class="alert alert-danger" role="alert">
+      <ul>
+        {% for error in errors %}
+          {% if error %}
+            <li>{{ error }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endmacro %}
+
 {% macro chroot_to_os_logo(chroot) %}
   {% if chroot.os_release == "fedora" %}
     <img style="height:1.8em" src="{{ url_for('static', filename='fedora_logo.png') }}"> Fedora {{chroot.os_version}}

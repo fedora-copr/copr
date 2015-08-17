@@ -263,7 +263,7 @@ class BuildFormFactory(object):
             pkgs = wtforms.TextAreaField(
                 "Pkgs",
                 validators=[
-                    wtforms.validators.DataRequired(),
+                    wtforms.validators.DataRequired(message="URLs to packages are required"),
                     UrlListValidator(),
                     UrlSrpmListValidator()],
                 filters=[StringListFilter()])

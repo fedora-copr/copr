@@ -97,3 +97,8 @@ img.avatar {
   border: 1px solid #ddd;
   border-radius: 4px;
 }
+
+.alert ul {
+  margin-left: 0px;
+  padding-left: 0px;
+}

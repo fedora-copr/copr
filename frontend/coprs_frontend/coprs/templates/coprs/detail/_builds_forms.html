@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field %}
+{% from "_helpers.html" import render_field, render_form_errors %}
 
 {# This file contains forms for the "New Build" action
 
@@ -27,18 +27,7 @@
 {#####  GENERAL FORM HELPERS  #####}
 
 {% macro copr_build_form_begin(form, view, copr) %}
-    {% if form.errors %}
-      {% for error in form.errors %}
-      <div class="alert alert-danger" role="alert">
-        {{ error }}
-      </div>
-      {% endfor %}
-    {% endif %}
-    {% if form._mock_chroots_error %}
-    <div class="alert alert-danger" role="alert">
-      {{ form._mock_chroots_error }}
-    </div>
-    {% endif %}
+    {{ render_form_errors(form, [form._mock_chroots_error]) }}
     <form class="form-horizontal" action="{{ url_for(view, username=copr.owner.name, coprname=copr.name) }}" method="post" enctype="multipart/form-data">
       <div class="form-group">
         <label class="col-sm-2 control-label" for="textInput-markup">
