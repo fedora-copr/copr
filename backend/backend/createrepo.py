@@ -13,7 +13,6 @@ from shlex import split
 from .helpers import get_auto_createrepo_status
 
 
-
 def run_cmd_unsafe(comm_str, lock=None):
     # log.info("Running command: {}".format(comm_str))
     comm = split(comm_str)

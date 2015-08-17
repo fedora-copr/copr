@@ -202,7 +202,8 @@ class DistGitImporter(object):
         """
         :type task: ImportTask
         """
-        log.debug("2. Importing the package: {}".format(task.package_url))
+        log.info("2. Task: {}, importing the package: {}"
+                 .format(task.task_id, task.package_url))
         tmp_root = tempfile.mkdtemp()
         fetched_srpm_path = os.path.join(tmp_root, "package.src.rpm")
 

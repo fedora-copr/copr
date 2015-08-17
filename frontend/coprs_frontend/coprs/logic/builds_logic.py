@@ -70,6 +70,7 @@ class BuildsLogic(object):
         Returns BuildChroots which are - waiting to be built or
                                        - older than 2 hours and unfinished
         """
+        # todo: filter out build without package
         query = (models.BuildChroot.query.join(models.Build)
                  .filter(models.Build.canceled == false())
                  .filter(or_(

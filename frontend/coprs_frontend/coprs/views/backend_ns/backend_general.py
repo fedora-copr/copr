@@ -19,7 +19,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-
 @backend_ns.route("/importing/")
 # FIXME I'm commented
 #@misc.backend_authenticated
@@ -33,7 +32,7 @@ def dist_git_importing_queue():
             "task_id": "{}-{}".format(task.build.id, helpers.chroot_to_branch(task.mock_chroot.name)),
             "user": task.build.copr.owner.name,
             "project": task.build.copr.name,
-            #"package": task.build.package.name,
+
             "branch": helpers.chroot_to_branch(task.mock_chroot.name),
             "source_type": task.build.source_type,
             "source_json": task.build.source_json,
@@ -44,6 +43,7 @@ def dist_git_importing_queue():
     response_dict = {"builds": builds_list}
 
     return flask.jsonify(response_dict)
+
 
 @backend_ns.route("/import-completed/", methods=["POST", "PUT"])
 @misc.backend_authenticated
