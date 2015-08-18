@@ -354,6 +354,8 @@ class ChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField(
         "Packages")
 
+    comps = FileField("comps_xml")
+
 
 class CoprLegalFlagForm(wtf.Form):
     comment = wtforms.TextAreaField("Comment")

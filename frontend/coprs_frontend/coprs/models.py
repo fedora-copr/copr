@@ -4,6 +4,7 @@ import os
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
+import zlib
 
 from coprs import constants
 from coprs import db
@@ -597,6 +598,13 @@ class CoprChroot(db.Model, helpers.Serializer):
                                "copr_chroots",
                                single_parent=True,
                                cascade="all,delete,delete-orphan"))
+
+    comps_zlib = db.Column(db.VARBINARY, nullable=True)
+
+    @property
+    def comps(self):
+        if self.comps_zlib:
+            return zlib.decompress(self.comps_zlib)
 
 
 class BuildChroot(db.Model, helpers.Serializer):

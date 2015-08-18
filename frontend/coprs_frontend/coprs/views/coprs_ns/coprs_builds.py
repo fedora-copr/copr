@@ -120,6 +120,7 @@ def copr_add_build_upload(username, coprname, form=None):
                                  copr=copr,
                                  form=form)
 
+
 @coprs_ns.route("/<username>/<coprname>/new_build_upload/", methods=["POST"])
 @login_required
 def copr_new_build_upload(username, coprname):
@@ -137,14 +138,11 @@ def copr_new_build_upload(username, coprname):
         file_path = os.path.join(tmp, filename)
         form.pkgs.data.save(file_path)
 
-        # get the package name vithout version and release
-        pkgname = helpers.parse_package_name(filename)
-
         # make the pkg public
         pkg_url = "https://{hostname}/tmp/{tmp_dir}/{srpm}".format(
-                        hostname=app.config["PUBLIC_COPR_HOSTNAME"],
-                        tmp_dir=tmp_name,
-                        srpm=filename)
+            hostname=app.config["PUBLIC_COPR_HOSTNAME"],
+            tmp_dir=tmp_name,
+            srpm=filename)
 
         # check which chroots we need
         chroots = []
@@ -154,8 +152,7 @@ def copr_new_build_upload(username, coprname):
 
         # create json describing the build source
         source_type = helpers.BuildSourceEnum("srpm_upload")
-        source_json = json.dumps({"tmp": tmp_name,
-                                  "pkg": filename})
+        source_json = json.dumps({"tmp": tmp_name, "pkg": filename})
 
         # create a new build
         try:
@@ -185,6 +182,7 @@ def copr_new_build_upload(username, coprname):
                                             coprname=copr.name))
     else:
         return copr_add_build_upload(username=username, coprname=coprname, form=form)
+
 
 @coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
 @login_required

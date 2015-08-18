@@ -15,9 +15,31 @@
 {% block detail_body %}
   <h2>Edit chroot '{{ chroot.name }}'</h2>
   <p> You can add additional packages to the minimal buildroot of this chroot. These packages will be always present before the build starts. </p>
-  <form action="{{ url_for('coprs_ns.chroot_update', username = copr.owner.name, coprname = copr.name, chrootname = chroot.name) }}" method="post" class="form-horizontal">
+  <form action="{{ url_for('coprs_ns.chroot_update', username = copr.owner.name, coprname = copr.name, chrootname = chroot.name) }}"
+        method="post" class="form-horizontal"
+        enctype=multipart/form-data
+      >
     {{ form.csrf_token }}
     {{ render_field(form.buildroot_pkgs, size=80, placeholder='Space separated list of packages. E.g.: scl-utils-build ruby193-build') }}
+
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="textInput-markup">
+        comps.xml
+      </label>
+      <div class="col-sm-10">
+        {{ form.comps }}
+        <li class="help-block">
+        <small class="text-muted pficon pficon-info">
+          If you would like to provide grouping meta information, please upload your comps.xml here
+        </small>
+      </li>
+      </div>
+
+
+
+
+    </div>
+
     <input class="btn btn-primary" type="submit" value="Update">
     <a class="btn btn-default" href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Cancel</a>
   </form>

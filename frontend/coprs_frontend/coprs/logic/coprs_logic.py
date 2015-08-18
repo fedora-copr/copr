@@ -358,10 +358,11 @@ class CoprChrootsLogic(object):
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
     @classmethod
-    def update_buildroot_pkgs(cls, copr, chroot, buildroot_pkgs):
+    def update_buildroot_pkgs(cls, copr, chroot, buildroot_pkgs, comps):
         copr_chroot = copr.check_copr_chroot(chroot)
         if copr_chroot:
             copr_chroot.buildroot_pkgs = buildroot_pkgs
+            copr_chroot.comps_zlib = comps
             db.session.add(copr_chroot)
 
     @classmethod
