@@ -2,6 +2,7 @@ from io import BytesIO
 from zlib import compress, decompress
 
 import flask
+from flask import Response
 
 from coprs import db
 from coprs import forms
@@ -88,3 +89,19 @@ def chroot_update(username, coprname, chrootname):
             flask.flash("You are not allowed to modify chroots.")
         else:
             return chroot_edit(username, coprname, chrootname)
+
+
+@coprs_ns.route("/<username>/<coprname>/chroot/<chrootname>/comps/")
+def chroot_view_comps(username, coprname, chrootname):
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+    if not copr:
+        return page_not_found(
+            "Projec with name {0} does not exist.".format(coprname))
+
+    try:
+        chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
+    except ValueError as e:
+        return page_not_found(str(e))
+
+    result = chroot.comps or ""
+    return Response(result, mimetype="text/plain; charset=utf-8")
