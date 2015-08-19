@@ -23,7 +23,7 @@ from coprs.views.api_ns import api_ns
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic
 
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException)
@@ -539,7 +539,8 @@ def copr_modify(username, coprname):
 def copr_modify_chroot(username, coprname, chrootname):
     form = forms.ModifyChrootForm(csrf_enabled=False)
     copr = CoprsLogic.get(username, coprname).first()
-    chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
+    # chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
+    chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
 
     if copr is None:
         output = {'output': 'notok', 'error': 'Invalid copr name or username'}
@@ -551,11 +552,10 @@ def copr_modify_chroot(username, coprname, chrootname):
         output = {'output': 'notok', 'error': 'Invalid request'}
         httpcode = 500
     else:
-        coprs_logic.CoprChrootsLogic.update_buildroot_pkgs(copr, chroot, form.buildroot_pkgs.data)
+        coprs_logic.CoprChrootsLogic.update_buildroot_pkgs(chroot, form.buildroot_pkgs.data)
         db.session.commit()
 
-        ch = copr.check_copr_chroot(chroot)
-        output = {'output': 'ok', 'buildroot_pkgs': ch.buildroot_pkgs}
+        output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
         httpcode = 200
 
     jsonout = flask.jsonify(output)
@@ -566,18 +566,14 @@ def copr_modify_chroot(username, coprname, chrootname):
 @api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["GET"])
 def copr_chroot_details(username, coprname, chrootname):
     copr = CoprsLogic.get(username, coprname).first()
-    chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
 
     if copr is None:
         output = {'output': 'notok', 'error': 'Invalid copr name or username'}
         httpcode = 500
-    elif chroot is None:
-        output = {'output': 'notok', 'error': 'Invalid chroot name'}
-        httpcode = 500
     else:
-        ch = copr.check_copr_chroot(chroot)
-        if ch:
-            output = {'output': 'ok', 'buildroot_pkgs': ch.buildroot_pkgs}
+        chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
+        if chroot:
+            output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
             httpcode = 200
         else:
             output = {"output": "notok", "error": "Invalid chroot for this project."}

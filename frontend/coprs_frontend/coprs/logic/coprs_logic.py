@@ -3,6 +3,7 @@ import time
 from sqlalchemy import and_
 from sqlalchemy.event import listen
 from sqlalchemy.orm.attributes import NEVER_SET
+from sqlalchemy.orm.exc import NoResultFound
 
 from coprs import db
 from coprs import exceptions
@@ -348,6 +349,22 @@ class CoprChrootsLogic(object):
         return mock_chroots
 
     @classmethod
+    def get_by_name_safe(cls, copr, chroot_name):
+        """
+        :rtype: models.CoprChroot
+        """
+        try:
+            mc = MockChrootsLogic.get_from_name(chroot_name, active_only=True).one()
+            query = (
+                models.CoprChroot.query.join(models.MockChroot)
+                .filter(models.CoprChroot.copr_id == copr.id)
+                .filter(models.MockChroot.id == mc.id)
+            )
+            return query.one()
+        except NoResultFound:
+            return None
+
+    @classmethod
     def new(cls, mock_chroot):
         db.session.add(mock_chroot)
 
@@ -358,12 +375,12 @@ class CoprChrootsLogic(object):
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
     @classmethod
-    def update_buildroot_pkgs(cls, copr, chroot, buildroot_pkgs, comps):
-        copr_chroot = copr.check_copr_chroot(chroot)
-        if copr_chroot:
-            copr_chroot.buildroot_pkgs = buildroot_pkgs
+    def update_buildroot_pkgs(cls, copr_chroot, buildroot_pkgs, comps=None, comps_name=None):
+        copr_chroot.buildroot_pkgs = buildroot_pkgs
+        if comps_name is not None:
             copr_chroot.comps_zlib = comps
-            db.session.add(copr_chroot)
+            copr_chroot.comps_name = comps_name
+        db.session.add(copr_chroot)
 
     @classmethod
     def update_from_names(cls, copr, names):
@@ -385,6 +402,12 @@ class CoprChrootsLogic(object):
 
         for mc in to_remove:
             copr.mock_chroots.remove(mc)
+
+    @classmethod
+    def remove_comps(cls, copr_chroot):
+        copr_chroot.comps_name = None
+        copr_chroot.comps_zlib = None
+        db.session.add(copr_chroot)
 
 
 class MockChrootsLogic(object):

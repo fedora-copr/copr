@@ -223,50 +223,26 @@ class Copr(db.Model, helpers.Serializer):
 
         self.auto_createrepo = not bool(value)
 
-    def check_copr_chroot(self, chroot):
-        """
-        Return object of chroot, if is related to our copr or None
-
-        :type chroot: CoprChroot
-        """
-
-        result = None
-        # there will be max ~10 chroots per build, iteration will be probably
-        # faster than sql query
-        for copr_chroot in self.copr_chroots:
-            if copr_chroot.mock_chroot_id == chroot.id:
-                result = copr_chroot
-                break
-        return result
-
-    def buildroot_pkgs(self, chroot):
-        """
-        Return packages in minimal buildroot for given chroot.
-        """
-
-        result = ""
-        # this is ugly as user can remove chroot after he submit build, but
-        # lets call this feature
-        copr_chroot = self.check_copr_chroot(chroot)
-        if copr_chroot:
-            result = copr_chroot.buildroot_pkgs
-        return result
-
     @property
     def modified_chroots(self):
         """
         Return list of chroots which has been modified
         """
         modified_chroots = []
-        for chroot in self.active_chroots:
-            if self.buildroot_pkgs(chroot):
+        for chroot in self.copr_chroots:
+            if chroot.buildroot_pkgs and chroot.is_active:
                 modified_chroots.append(chroot)
         return modified_chroots
 
     def is_release_arch_modified(self, name_release, arch):
-        if "{}-{}".format(name_release, arch) in [chroot.name for chroot in self.modified_chroots]:
+        if "{}-{}".format(name_release, arch) in \
+                [chroot.name for chroot in self.modified_chroots]:
             return True
         return False
+
+    @property
+    def full_name(self):
+        return "{}/{}".format(self.owner.username, self.name)
 
 
 class CoprPermission(db.Model, helpers.Serializer):
@@ -600,11 +576,27 @@ class CoprChroot(db.Model, helpers.Serializer):
                                cascade="all,delete,delete-orphan"))
 
     comps_zlib = db.Column(db.VARBINARY, nullable=True)
+    comps_name = db.Column(db.String(127), nullable=True)
 
     @property
     def comps(self):
         if self.comps_zlib:
-            return zlib.decompress(self.comps_zlib)
+            return zlib.decompress(self.comps_zlib).decode("utf-8")
+
+    @property
+    def comps_len(self):
+        if self.comps_zlib:
+            return len(zlib.decompress(self.comps_zlib))
+        else:
+            return 0
+
+    @property
+    def name(self):
+        return self.mock_chroot.name
+
+    @property
+    def is_active(self):
+        return self.mock_chroot.is_active
 
 
 class BuildChroot(db.Model, helpers.Serializer):

@@ -7,6 +7,7 @@ from coprs import db
 from coprs import forms
 
 from coprs.logic import coprs_logic
+from coprs.logic.coprs_logic import CoprChrootsLogic
 
 from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
@@ -21,16 +22,17 @@ def chroot_edit(username, coprname, chrootname):
             "Project with name {0} does not exist.".format(coprname))
 
     try:
-        chroot = coprs_logic.MockChrootsLogic.get_from_name(
-            chrootname, active_only=True).first()
-    except ValueError as e:
+        chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
+    except (ValueError, KeyError, RuntimeError) as e:
         return page_not_found(str(e))
 
     if not chroot:
         return page_not_found(
             "Chroot name {0} does not exist.".format(chrootname))
 
-    form = forms.ChrootForm(buildroot_pkgs=copr.buildroot_pkgs(chroot))
+    # todo: get COPR_chroot, not mock chroot, WTF?!
+    # form = forms.ChrootForm(buildroot_pkgs=copr.buildroot_pkgs(chroot))
+    form = forms.ChrootForm(buildroot_pkgs=chroot.buildroot_pkgs)
     # FIXME - test if chroot belongs to copr
     if flask.g.user.can_build_in(copr):
         return flask.render_template("coprs/detail/edit_chroot.html",
@@ -51,34 +53,32 @@ def chroot_update(username, coprname, chrootname):
         return page_not_found(
             "Projec with name {0} does not exist.".format(coprname))
 
-    #import ipdb; ipdb.set_trace()
     try:
-        chroot = coprs_logic.MockChrootsLogic.get_from_name(
-            chrootname, active_only=True).first()
+        chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
     except ValueError as e:
         return page_not_found(str(e))
 
     if form.validate_on_submit() and flask.g.user.can_build_in(copr):
-        # reading comps file if present
-        if form.comps.has_file():
-            #buffer = form.comps.data.stream.read()
+        if "submit" in flask.request.form:
+            action = flask.request.form["submit"]
+            if action == "update":
+                comps_name = comps_blob = None
+                if form.comps.has_file():
+                    comps_blob = compress(form.comps.data.stream.read())
+                    comps_name = form.comps.data.filename
 
-            blob = compress(form.comps.data.stream.read())
+                coprs_logic.CoprChrootsLogic.update_buildroot_pkgs(
+                    chroot, form.buildroot_pkgs.data,
+                    comps=comps_blob, comps_name=comps_name)
 
-            print("LEN: {}".format(len(blob)))
-        else:
-            blob = None
+            elif action == "delete_comps":
+                CoprChrootsLogic.remove_comps(chroot)
 
-        coprs_logic.CoprChrootsLogic.update_buildroot_pkgs(
-            copr, chroot, form.buildroot_pkgs.data, comps=blob)
+            flask.flash(
+                "Buildroot {0} for project {1} was updated".format(
+                    chrootname, coprname))
 
-        flask.flash(
-            "Buildroot {0} for project {1} was updated".format(
-                chrootname, coprname))
-
-
-        db.session.commit()
-
+            db.session.commit()
         return flask.redirect(flask.url_for("coprs_ns.copr_edit",
                                             username=username,
                                             coprname=copr.name))

@@ -173,7 +173,7 @@
 {% for chroot in copr.modified_chroots %}
 <div id="dialog-{{chroot.name}}" class="hidden" title="{{chroot.name}} minimal buildroot">
     <ul>
-        {% for pkg in copr.buildroot_pkgs(chroot).split(" "): %}
+        {% for pkg in chroot.buildroot_pkgs.split(" "): %}
         <li>{{ pkg }}</li>
         {% endfor %}
     </ul>

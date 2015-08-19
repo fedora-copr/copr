@@ -9,6 +9,7 @@ from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
 from coprs.logic.backend_logic import BackendLogic
 from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
 
 from coprs.views import misc
@@ -102,7 +103,7 @@ def dist_git_upload_completed():
 
 
 @backend_ns.route("/waiting/")
-@misc.backend_authenticated
+#@misc.backend_authenticated
 def waiting():
     """
     Return list of waiting actions and builds.
@@ -117,16 +118,17 @@ def waiting():
     ]
 
     # tasks represented by models.BuildChroot with some other stuff
-    builds_list = [
-        {
+    builds_list = []
+    for task in BuildsLogic.get_build_task_queue().limit(200):
+        record = {
             "task_id": "{}-{}".format(task.build.id, task.mock_chroot.name),
             "build_id": task.build.id,
             "project_owner": task.build.copr.owner.name,
             "project_name": task.build.copr.name,
             "submitter": task.build.user.name,
-            "pkgs": task.build.pkgs, # TODO to be removed
+            "pkgs": task.build.pkgs,  # TODO to be removed
             "chroot": task.mock_chroot.name,
-            "buildroot_pkgs": task.build.copr.buildroot_pkgs(task.mock_chroot),
+
             "repos": task.build.repos,
             "memory_reqs": task.build.memory_reqs,
             "timeout": task.build.timeout,
@@ -137,8 +139,10 @@ def waiting():
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version
         }
-        for task in BuildsLogic.get_build_task_queue().limit(200)
-    ]
+        copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
+        record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
+        builds_list.append(record)
+
     response_dict = {"actions": actions_list, "builds": builds_list}
     return flask.jsonify(response_dict)
 
