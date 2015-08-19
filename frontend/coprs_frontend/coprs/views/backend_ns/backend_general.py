@@ -140,7 +140,11 @@ def waiting():
             "package_version": task.build.pkg_version
         }
         copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
-        record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
+        if copr_chroot:
+            record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
+        else:
+            record["buildroot_pkgs"] = ""
+
         builds_list.append(record)
 
     response_dict = {"actions": actions_list, "builds": builds_list}
