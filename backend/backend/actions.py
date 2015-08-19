@@ -2,12 +2,13 @@ import json
 import os.path
 import shutil
 import time
+from urllib import urlretrieve
 
 from bunch import Bunch
 
 from .createrepo import createrepo, createrepo_unsafe
 from exceptions import CreateRepoError
-from .helpers import get_redis_logger
+from .helpers import get_redis_logger, silent_remove
 
 
 class Action(object):
@@ -60,7 +61,7 @@ class Action(object):
             self.log.info("Creating repo for: {}/{}/{}"
                           .format(username, projectname, chroot))
 
-            path = os.path.join(self.destdir, username, projectname, chroot)
+            path = self.get_chroot_result_dir(chroot, projectname, username)
 
             try:
                 createrepo(path=path, front_url=self.front_url,
@@ -76,6 +77,9 @@ class Action(object):
             result.result = ActionResult.SUCCESS
         else:
             result.result = ActionResult.FAILURE
+
+    def get_chroot_result_dir(self, chroot, projectname, username):
+        return os.path.join(self.destdir, username, projectname, chroot)
 
     def handle_rename(self, result):
         self.log.debug("Action rename")
@@ -102,6 +106,31 @@ class Action(object):
         if os.path.exists(path):
             self.log.info("Removing copr {0}".format(path))
             shutil.rmtree(path)
+
+    def handle_comps_update(self):
+        self.log.debug("Action delete build")
+
+        ext_data = json.loads(self.data["data"])
+        username = ext_data["username"]
+        projectname = ext_data["projectname"]
+        chroot = set(ext_data["chroot"])
+
+        path = self.get_chroot_result_dir(chroot, projectname, username)
+        local_comps_path = os.path.join(path, "comps.xml")
+        if not ext_data.get("comps_present", True):
+            silent_remove(local_comps_path)
+        else:
+            try:
+                remote_comps_url = "{}/coprs/{}/{}/chroot/{}/comps/".format(
+                    self.opts.frontend_base_url,
+                    username,
+                    projectname,
+                    chroot
+                )
+                urlretrieve(remote_comps_url, local_comps_path)
+            except Exception:
+                self.log.exception("Failed to update comps from {} at location {}"
+                                   .format(remote_comps_url, local_comps_path))
 
     def handle_delete_build(self):
         self.log.debug("Action delete build")
@@ -200,6 +229,9 @@ class Action(object):
         elif action_type == ActionType.CREATEREPO:
             self.handle_createrepo(result)
 
+        elif action_type == ActionType.UPDATE_COMPS:
+            self.handle_comps_update()
+
         if "result" in result:
             if result.result == ActionResult.SUCCESS and \
                     not getattr(result, "job_ended_on", None):
@@ -213,6 +245,7 @@ class ActionType(object):
     RENAME = 1
     LEGAL_FLAG = 2
     CREATEREPO = 3
+    UPDATE_COMPS = 4
 
 
 class ActionResult(object):
