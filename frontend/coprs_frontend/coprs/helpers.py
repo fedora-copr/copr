@@ -64,6 +64,7 @@ class ActionTypeEnum(object):
         "rename": 1,
         "legal-flag": 2,
         "createrepo": 3,
+        "update_comps": 4,
     }
 
 

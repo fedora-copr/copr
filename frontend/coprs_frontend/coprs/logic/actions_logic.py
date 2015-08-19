@@ -101,7 +101,7 @@ class ActionsLogic(object):
             "projectname": build.copr.name,
             "chroots": chroots_to_delete
         }
-        # import ipdb; ipdb.set_trace()
+
         if build.is_older_results_naming_used:
             if build.src_pkg_name is None or build.src_pkg_name == "":
                 return
@@ -115,6 +115,28 @@ class ActionsLogic(object):
             object_id=build.id,
             old_value="{0}/{1}".format(build.copr.owner.name,
                                        build.copr.name),
+            data=json.dumps(data_dict),
+            created_on=int(time.time())
+        )
+        db.session.add(action)
+
+    @classmethod
+    def send_update_comps(cls, chroot):
+        """ Schedules update comps.xml action
+
+        :type copr_chroot: models.CoprChroot
+        """
+
+        data_dict = {
+            "username": chroot.copr.owner.name,
+            "projectname": chroot.copr.name,
+            "chroot": chroot.name,
+            "comps_present": chroot.comps_zlib is not None,
+        }
+
+        action = models.Action(
+            action_type=helpers.ActionTypeEnum("update_comps"),
+            object_type="copr_chroot",
             data=json.dumps(data_dict),
             created_on=int(time.time())
         )

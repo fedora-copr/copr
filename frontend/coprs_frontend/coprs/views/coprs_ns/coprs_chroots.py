@@ -68,7 +68,7 @@ def chroot_update(username, coprname, chrootname):
                     comps_blob = compress(form.comps.data.stream.read())
                     comps_name = form.comps.data.filename
 
-                coprs_logic.CoprChrootsLogic.update_buildroot_pkgs(
+                coprs_logic.CoprChrootsLogic.update_chroot(
                     chroot, form.buildroot_pkgs.data,
                     comps=comps_blob, comps_name=comps_name)
 

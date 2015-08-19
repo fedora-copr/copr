@@ -375,11 +375,12 @@ class CoprChrootsLogic(object):
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
     @classmethod
-    def update_buildroot_pkgs(cls, copr_chroot, buildroot_pkgs, comps=None, comps_name=None):
+    def update_chroot(cls, copr_chroot, buildroot_pkgs, comps=None, comps_name=None):
         copr_chroot.buildroot_pkgs = buildroot_pkgs
         if comps_name is not None:
             copr_chroot.comps_zlib = comps
             copr_chroot.comps_name = comps_name
+            ActionsLogic.send_update_comps(copr_chroot)
         db.session.add(copr_chroot)
 
     @classmethod
@@ -407,6 +408,7 @@ class CoprChrootsLogic(object):
     def remove_comps(cls, copr_chroot):
         copr_chroot.comps_name = None
         copr_chroot.comps_zlib = None
+        ActionsLogic.send_update_comps(copr_chroot)
         db.session.add(copr_chroot)
 
 
