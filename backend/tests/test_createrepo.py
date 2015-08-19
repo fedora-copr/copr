@@ -206,6 +206,32 @@ class TestCreaterepo(object):
             createrepo_unsafe(path, None)
             assert mc_run_cmd_unsafe.call_args[0][0] == expected
 
+    def test_createrepo_generated_commands_comps_xml(self, mc_run_cmd_unsafe):
+        path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
+        path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
+        for path in [path_epel_5, path_fedora]:
+            for add_comps in [True, False]:
+                os.makedirs(path)
+
+                comps_path = os.path.join(path, "comps.xml")
+                if add_comps:
+                    with open(comps_path, "w") as handle:
+                        handle.write("1")
+
+
+                repo_path = os.path.join(path, "repodata")
+                os.makedirs(repo_path)
+                with open(os.path.join(repo_path, "repomd.xml"), "w") as handle:
+                    handle.write("1")
+
+                createrepo_unsafe(path, None)
+                if add_comps:
+                    assert "--groupfile" in mc_run_cmd_unsafe.call_args[0][0]
+                else:
+                    assert "--groupfile" not in mc_run_cmd_unsafe.call_args[0][0]
+                mc_run_cmd_unsafe.mock_reset()
+                shutil.rmtree(path, ignore_errors=True)
+
     def test_createrepo_devel_generated_commands_existing_repodata(self, mc_run_cmd_unsafe):
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
         expected_epel_5 = ("/usr/bin/createrepo_c --database --ignore-lock "

@@ -67,6 +67,10 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
     if base_url:
         comm.extend(['--baseurl', base_url])
 
+    mb_comps_xml_path = os.path.join(path, "comps.xml")
+    if os.path.exists(mb_comps_xml_path):
+        comm.extend(['--groupfile', mb_comps_xml_path, '--keep-all-metadata'])
+
     comm.append(path)
 
     return run_cmd_unsafe(" ".join(map(str, comm)), lock)
