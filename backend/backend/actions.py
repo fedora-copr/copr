@@ -107,30 +107,35 @@ class Action(object):
             self.log.info("Removing copr {0}".format(path))
             shutil.rmtree(path)
 
-    def handle_comps_update(self):
+    def handle_comps_update(self, result):
         self.log.debug("Action delete build")
 
         ext_data = json.loads(self.data["data"])
         username = ext_data["username"]
         projectname = ext_data["projectname"]
-        chroot = set(ext_data["chroot"])
+        chroot = ext_data["chroot"]
 
         path = self.get_chroot_result_dir(chroot, projectname, username)
         local_comps_path = os.path.join(path, "comps.xml")
         if not ext_data.get("comps_present", True):
             silent_remove(local_comps_path)
         else:
+            remote_comps_url = "{}/coprs/{}/{}/chroot/{}/comps/".format(
+                self.opts.frontend_base_url,
+                username,
+                projectname,
+                chroot
+            )
             try:
-                remote_comps_url = "{}/coprs/{}/{}/chroot/{}/comps/".format(
-                    self.opts.frontend_base_url,
-                    username,
-                    projectname,
-                    chroot
-                )
+
                 urlretrieve(remote_comps_url, local_comps_path)
+                self.log.info("updated comps.xml for {}/{}/{} from {} "
+                              .format(username, projectname, chroot, remote_comps_url))
             except Exception:
                 self.log.exception("Failed to update comps from {} at location {}"
                                    .format(remote_comps_url, local_comps_path))
+
+        result.result = ActionResult.SUCCESS
 
     def handle_delete_build(self):
         self.log.debug("Action delete build")
@@ -230,7 +235,7 @@ class Action(object):
             self.handle_createrepo(result)
 
         elif action_type == ActionType.UPDATE_COMPS:
-            self.handle_comps_update()
+            self.handle_comps_update(result)
 
         if "result" in result:
             if result.result == ActionResult.SUCCESS and \
