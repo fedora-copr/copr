@@ -94,6 +94,32 @@ class ImportTask(object):
         }
 
 
+def do_srpm_fetch(task, target_path):
+    """
+    :param ImportTask task:
+    :param str target_path:
+    :raises PackageDownloadException:
+    """
+    log.debug("download the package")
+    try:
+        r = get(task.package_url, stream=True)
+    except Exception:
+        raise PackageDownloadException("Unexpected error during URL fetch: {}"
+                                       .format(task.package_url))
+
+    if 200 <= r.status_code < 400:
+        try:
+            with open(target_path, 'wb') as f:
+                for chunk in r.iter_content(1024):
+                    f.write(chunk)
+        except Exception:
+            raise PackageDownloadException("Unexpected error during URL retrieval: {}"
+                                           .format(task.package_url))
+    else:
+        raise PackageDownloadException("Failed to fetch: {} with HTTP status: {}"
+                                       .format(task.package_url, r.status_code))
+
+
 class DistGitImporter(object):
     def __init__(self, opts):
         self.is_running = False
@@ -120,14 +146,6 @@ class DistGitImporter(object):
         except Exception:
             log.exception("Failed acquire new packages for import")
         return
-
-    @staticmethod
-    def fetch_srpm(task, fetched_srpm_path):
-        log.debug("download the package")
-        try:
-            urlretrieve(task.package_url, fetched_srpm_path)
-        except IOError:
-            raise PackageDownloadException()
 
     def git_import_srpm(self, task, filepath):
         """
@@ -208,7 +226,7 @@ class DistGitImporter(object):
         fetched_srpm_path = os.path.join(tmp_root, "package.src.rpm")
 
         try:
-            self.fetch_srpm(task, fetched_srpm_path)
+            do_srpm_fetch(task, fetched_srpm_path)
             task.package_name, task.package_version = self.pkg_name_evr(fetched_srpm_path)
 
             self.before_git_import(task)

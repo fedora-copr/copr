@@ -32,20 +32,24 @@ def mc_dgcr():
     with mock.patch("{}.DistGitConfigReader".format(MODULE_REF)) as handle:
         yield handle
 
-# @pytest.yield_fixture
-# def mc_dgi():
-#     with mock.patch("{}.DistGitImporter".format(MODULE_REF)) as handle:
-#         yield handle
 
 @pytest.yield_fixture
 def mc_time():
     with mock.patch("{}.time".format(MODULE_REF)) as handle:
         yield handle
 
+
+@pytest.yield_fixture
+def mc_do_srpm_fetch():
+    with mock.patch("{}.do_srpm_fetch".format(MODULE_REF)) as handle:
+        yield handle
+
+
 @pytest.yield_fixture
 def mc_popen():
     with mock.patch("{}.Popen".format(MODULE_REF)) as handle:
         yield handle
+
 
 @pytest.yield_fixture
 def mc_call():
@@ -64,10 +68,12 @@ def mc_post():
     with mock.patch("{}.post".format(MODULE_REF)) as handle:
         yield handle
 
+
 @pytest.yield_fixture
 def mc_urlretrieve():
     with mock.patch("{}.urlretrieve".format(MODULE_REF)) as handle:
         yield handle
+
 
 @pytest.yield_fixture
 def mc_pyrpkg_commands():
@@ -177,14 +183,6 @@ class TestDistGitImporter(object):
         mc_get.return_value.json.return_value = {"builds": [task_data]}
         assert self.dgi.try_to_obtain_new_task() is None
 
-    def test_fetch_srpm_on(self, mc_urlretrieve):
-        self.dgi.fetch_srpm(self.task_1, self.fetched_srpm_path)
-        assert mc_urlretrieve.called
-
-        mc_urlretrieve.side_effect = IOError
-        with pytest.raises(PackageDownloadException):
-            self.dgi.fetch_srpm(self.task_1, self.fetched_srpm_path)
-
     # def test_my_upload(self):
     #     filename = "source"
     #     source_path = os.path.join(self.tmp_dir_name, filename)
@@ -288,9 +286,9 @@ class TestDistGitImporter(object):
         self.dgi.post_back_safe(dd)
         assert mc_post.called
 
-    def test_do_import(self):
+    def test_do_import(self, mc_do_srpm_fetch):
         internal_methods = [
-            "fetch_srpm",
+            # "fetch_srpm",
             "pkg_name_evr",
             "before_git_import",
             "git_import_srpm",
