@@ -131,9 +131,7 @@ class EventHandler(Process):
                            .format(msg.get("vm_ip"), msg.get("vm_name"), msg.get("msg")))
 
     def run(self):
-        # setproctitle("Event Handler")
-
-        self.post_init()
+        setproctitle("Event Handler")
 
         self.do_recycle_proc = Recycle(terminator=self.terminator, recycle_period=self.recycle_period)
         self.do_recycle_proc.start()

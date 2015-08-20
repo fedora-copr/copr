@@ -138,7 +138,9 @@ class CoprBackend(object):
         self.event_handler = EventHandler(self.opts,
                                           vmm=self.vm_manager,
                                           terminator=self.terminator)
+        self.event_handler.post_init()
         self.event_handler.start()
+        
         self.log.info("Starting up VM Master")
         self.vm_master = VmMaster(self.opts,
                                   vmm=self.vm_manager,

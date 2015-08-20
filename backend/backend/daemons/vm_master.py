@@ -255,8 +255,8 @@ class VmMaster(Process):
         # todo: self.terminate_excessive_vms() -- for case when config changed during runtime
 
     def run(self):
-        if any(x is None for x in [self.spawner, self.checker, self.event_handler]):
-            raise RuntimeError("provide Spawner, HealthChecker and EventHandler "
+        if any(x is None for x in [self.spawner, self.checker]):
+            raise RuntimeError("provide Spawner and HealthChecker "
                                "to run VmManager daemon")
 
         setproctitle("VM master")
