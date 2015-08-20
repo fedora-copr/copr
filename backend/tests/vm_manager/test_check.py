@@ -120,15 +120,6 @@ class TestChecker(object):
         if keys:
             self.rc.delete(*keys)
 
-    # def test_start_check(self, mc_process):
-    #     p1 = mock.MagicMock()
-    #     mc_process.return_value = p1
-    #
-    #     self.checker.run_check_health(self.vm_name, self.vm_ip)
-    #     assert mc_process.called
-    #     assert self.checker.child_processes == [p1]
-    #     assert p1.start.called
-
     def test_check_health_runner_no_response(self, mc_ans_runner, mc_grc):
         mc_runner = MagicMock()
         mc_ans_runner.return_value = mc_runner

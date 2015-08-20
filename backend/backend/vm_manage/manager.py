@@ -122,16 +122,11 @@ class VmManager(object):
         new logger using helpers.get_redis_logger
 
     :param checker: object with method `check_health(ip) -> None or raise exception`
-    :param spawner: object with method `spawn() -> IP or raise exception`
     :param terminator: object with safe method `terminate(ip, vm_name)`
     """
-    def __init__(self, opts, logger=None, checker=None, spawner=None, terminator=None):
+    def __init__(self, opts, logger=None):
 
         self.opts = weakref.proxy(opts)
-
-        self.checker = checker
-        self.spawner = spawner
-        self.terminator = terminator
 
         self.lua_scripts = {}
 
@@ -198,27 +193,6 @@ class VmManager(object):
             vmd for vmd in self.get_all_vm()
             if vmd.vm_ip == vm_ip
         ]
-
-    def start_vm_check(self, vm_name):
-        """
-        Start VM health check sub-process if current VM state allows it
-        """
-
-        vmd = self.get_vm_by_name(vm_name)
-        orig_state = vmd.state
-
-        if self.lua_scripts["set_checking_state"](keys=[vmd.vm_key], args=[time.time()]) == "OK":
-            # can start
-            try:
-                self.checker.run_check_health(vmd.vm_name, vmd.vm_ip)
-            except Exception as err:
-                self.log.exception("Failed to start health check: {}".format(err))
-                if orig_state != VmStates.IN_USE:
-                    vmd.store_field(self.rc, "state", orig_state)
-
-        else:
-            self.log.debug("Failed to start vm check, wrong state")
-            return False
 
     def mark_vm_check_failed(self, vm_name):
         vm_key = KEY_VM_INSTANCE.format(vm_name=vm_name)

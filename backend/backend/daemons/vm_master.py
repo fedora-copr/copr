@@ -27,15 +27,15 @@ class VmMaster(Process):
 
     :type vm_manager: backend.vm_manage.manager.VmManager
     """
-    def __init__(self, vm_manager):
+    def __init__(self, opts, vmm, spawner, checker):
         super(VmMaster, self).__init__(name="vm_master")
 
-        self.opts = vm_manager.opts
-        self.vmm = vm_manager
+        self.opts = opts
+        self.vmm = vmm
+        self.spawner = spawner
+        self.checker = checker
 
         self.kill_received = False
-
-        self.event_handler = None
 
         self.log = get_redis_logger(self.opts, "vmm.vm_master", "vmm")
         self.vmm.set_logger(self.log)
@@ -142,7 +142,28 @@ class VmMaster(Process):
             last_health_check = vmd.get_field(self.vmm.rc, "last_health_check")
             check_period = self.opts.build_groups[vmd.group]["vm_health_check_period"]
             if not last_health_check or time.time() - float(last_health_check) > check_period:
-                self.vmm.start_vm_check(vmd.vm_name)
+                self.start_vm_check(vmd.vm_name)
+
+    def start_vm_check(self, vm_name):
+        """
+        Start VM health check sub-process if current VM state allows it
+        """
+
+        vmd = self.vmm.get_vm_by_name(vm_name)
+        orig_state = vmd.state
+
+        if self.vmm.lua_scripts["set_checking_state"](keys=[vmd.vm_key], args=[time.time()]) == "OK":
+            # can start
+            try:
+                self.checker.run_check_health(vmd.vm_name, vmd.vm_ip)
+            except Exception as err:
+                self.log.exception("Failed to start health check: {}".format(err))
+                if orig_state != VmStates.IN_USE:
+                    vmd.store_field(self.vmm.rc, "state", orig_state)
+
+        else:
+            self.log.debug("Failed to start vm check, wrong state")
+            return False
 
     def _check_total_running_vm_limit(self, group):
         """ Checks that number of VM in any state excluding Terminating plus
@@ -152,11 +173,11 @@ class VmMaster(Process):
         active_vmd_list = self.vmm.get_vm_by_group_and_state_list(
             group, [VmStates.GOT_IP, VmStates.READY, VmStates.IN_USE,
                     VmStates.CHECK_HEALTH, VmStates.CHECK_HEALTH_FAILED])
-        total_vm_estimation = len(active_vmd_list) + self.vmm.spawner.get_proc_num_per_group(group)
+        total_vm_estimation = len(active_vmd_list) + self.spawner.get_proc_num_per_group(group)
         if total_vm_estimation >= self.opts.build_groups[group]["max_vm_total"]:
             raise VmSpawnLimitReached(
                 "Skip spawn for group {}: max total vm reached: vm count: {}, spawn process: {}"
-                .format(group, len(active_vmd_list), self.vmm.spawner.get_proc_num_per_group(group)))
+                .format(group, len(active_vmd_list), self.spawner.get_proc_num_per_group(group)))
 
     def _check_elapsed_time_after_spawn(self, group):
         """ Checks that time elapsed since latest VM spawn attempt is greater than
@@ -175,10 +196,10 @@ class VmMaster(Process):
         """ Check that number of running spawn processes is less than
         threshold defined by BackendConfig.build_group[]["max_spawn_processes"]
         """
-        if self.vmm.spawner.get_proc_num_per_group(group) >= self.opts.build_groups[group]["max_spawn_processes"]:
+        if self.spawner.get_proc_num_per_group(group) >= self.opts.build_groups[group]["max_spawn_processes"]:
             raise VmSpawnLimitReached(
                 "Skip spawn for group {}: reached maximum number of spawning processes: {}"
-                .format(group, self.vmm.spawner.get_proc_num_per_group(group)))
+                .format(group, self.spawner.get_proc_num_per_group(group)))
 
     def _check_total_vm_limit(self, group):
         """ Check that number of running spawn processes is less than
@@ -208,7 +229,7 @@ class VmMaster(Process):
         self.log.info("Start spawning new VM for group: {}".format(self.opts.build_groups[group]["name"]))
         self.vmm.write_vm_pool_info(group, "last_vm_spawn_start", time.time())
         try:
-            self.vmm.spawner.start_spawn(group)
+            self.spawner.start_spawn(group)
         except Exception as error:
             self.log.exception("Error during spawn attempt: {}".format(error))
 
@@ -229,20 +250,18 @@ class VmMaster(Process):
         self.finalize_long_health_checks()
         self.terminate_again()
 
-        self.vmm.spawner.recycle()
+        self.spawner.recycle()
 
         # todo: self.terminate_excessive_vms() -- for case when config changed during runtime
 
     def run(self):
-        if self.vmm.spawner is None or self.vmm.terminator is None or self.vmm.checker is None:
-            raise RuntimeError("provide Spawner and Terminator to run VmManager daemon")
+        if any(x is None for x in [self.spawner, self.checker, self.event_handler]):
+            raise RuntimeError("provide Spawner, HealthChecker and EventHandler "
+                               "to run VmManager daemon")
 
         setproctitle("VM master")
         self.vmm.mark_server_start()
         self.kill_received = False
-
-        self.event_handler = EventHandler(self.opts, self.vmm)
-        self.event_handler.start()
 
         self.log.info("VM master process started")
         while not self.kill_received:
@@ -254,9 +273,6 @@ class VmMaster(Process):
 
     def terminate(self):
         self.kill_received = True
-        if self.event_handler:
-            self.event_handler.terminate()
-            self.event_handler.join()
 
     def finalize_long_health_checks(self):
         """

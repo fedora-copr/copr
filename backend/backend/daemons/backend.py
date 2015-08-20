@@ -27,8 +27,10 @@ from .job_grab import CoprJobGrab
 from .log import RedisLogHandler
 from .dispatcher import Worker
 
+
 from .vm_master import VmMaster
 
+from ..vm_manage.event_handle import EventHandler
 from ..vm_manage.manager import VmManager
 from ..vm_manage.spawn import Spawner
 from ..vm_manage.check import HealthChecker
@@ -112,34 +114,37 @@ class CoprBackend(object):
                                     lock=self.lock)
         self._jobgrab.start()
 
-    def _start_vm_master(self):
-        self.log.info("Starting up VM Master")
-        self.vmm_daemon = VmMaster(self.vm_manager)
-        self.vmm_daemon.start()
-
     def init_sub_process(self):
         """
         - Create backend logger
         - Create job grabber
+        - Create VM management
         """
 
         self._start_log_handler()
         self._start_job_grab()
+        self._start_vmm()
 
-        self.log.info("Creating up VM Spawner")
+    def _start_vmm(self):
+        self.log.info("Creating VM Spawner, HealthChecker, Terminator")
         self.spawner = Spawner(self.opts)
-        self.log.info("Creating up VM Health checker")
         self.checker = HealthChecker(self.opts)
-        self.log.info("Creating up VM Terminator")
         self.terminator = Terminator(self.opts)
-
         self.vm_manager = VmManager(opts=self.opts,
                                     logger=self.log,
-                                    checker=self.checker,
-                                    spawner=self.spawner,
-                                    terminator=self.terminator)
+                                    )
         self.vm_manager.post_init()
-        self._start_vm_master()
+        self.log.info("Starting up VM EventHandler")
+        self.event_handler = EventHandler(self.opts,
+                                          vmm=self.vm_manager,
+                                          terminator=self.terminator)
+        self.event_handler.start()
+        self.log.info("Starting up VM Master")
+        self.vm_master = VmMaster(self.opts,
+                                  vmm=self.vm_manager,
+                                  spawner=self.spawner,
+                                  checker=self.checker)
+        self.vm_master.start()
 
     def ensure_sub_processes_alive(self):
         if self.is_running:
@@ -153,13 +158,6 @@ class CoprBackend(object):
                     proc.terminate()
                     proc.join()
                     start_method()
-
-    def event(self, what):
-        """
-        Put a new event into the queue
-        :param what: Event content
-        """
-        self.events.put({"when": time.time(), "who": "main", "what": what})
 
     def update_conf(self):
         """
@@ -243,6 +241,16 @@ class CoprBackend(object):
         except RequestException as err:
             self.log.exception(err)
             return
+
+        try:
+            self.vm_master.terminate()
+        except Exception:
+            self.log.exception("Failed to terminate vmm daemon")
+        try:
+            self.event_handler.terminate()
+            self.event_handler.join()
+        except Exception:
+            self.log.exception("Failed to terminate vm EventHandler")
 
     def run(self):
         """

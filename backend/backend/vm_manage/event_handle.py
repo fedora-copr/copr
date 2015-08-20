@@ -17,8 +17,8 @@ class Recycle(Thread):
     :param vmm:
     :return:
     """
-    def __init__(self, vmm, recycle_period, *args, **kwargs):
-        self.vmm = vmm
+    def __init__(self, terminator, recycle_period, *args, **kwargs):
+        self.terminator = terminator
         self.recycle_period = int(recycle_period)
         super(Recycle, self).__init__(*args, **kwargs)
         self._running = False
@@ -28,9 +28,7 @@ class Recycle(Thread):
         self._running = True
         while self._running:
             time.sleep(self.recycle_period)
-            # vmm.checker.recycle()
-            # vmm.spawner.recycle()
-            self.vmm.terminator.recycle()
+            self.terminator.recycle()
 
     def terminate(self):
         self._running = False
@@ -66,10 +64,13 @@ class EventHandler(Process):
     """
     :type vmm: VmManager
     """
-    def __init__(self, opts, vmm):
+    def __init__(self, opts, vmm, terminator):
         super(EventHandler, self).__init__(name="EventHandler")
         self.opts = opts
         self.vmm = vmm
+
+        self.terminator = terminator
+
         self.kill_received = False
 
         # self.do_recycle_proc = None
@@ -86,6 +87,7 @@ class EventHandler(Process):
         self.vmm.set_logger(self.log)
 
     def post_init(self):
+        # todo: move to manager.py, wrap call into VmManager methods
         self.lua_scripts["on_health_check_success"] = self.vmm.rc.register_script(on_health_check_success_lua)
         self.lua_scripts["record_failure"] = self.vmm.rc.register_script(record_failure_lua)
 
@@ -115,7 +117,7 @@ class EventHandler(Process):
         self.vmm.add_vm_to_pool(vm_ip=msg["vm_ip"], vm_name=msg["vm_name"], group=msg["group"])
 
     def on_vm_termination_request(self, msg):
-        self.vmm.terminator.terminate_vm(vm_ip=msg["vm_ip"], vm_name=msg["vm_name"], group=msg["group"])
+        self.terminator.terminate_vm(vm_ip=msg["vm_ip"], vm_name=msg["vm_name"], group=msg["group"])
 
     def on_vm_termination_result(self, msg):
         if msg["result"] == "OK" and "vm_name" in msg:
@@ -133,7 +135,7 @@ class EventHandler(Process):
 
         self.post_init()
 
-        self.do_recycle_proc = Recycle(vmm=self.vmm, recycle_period=self.recycle_period)
+        self.do_recycle_proc = Recycle(terminator=self.terminator, recycle_period=self.recycle_period)
         self.do_recycle_proc.start()
 
         self.start_listen()
