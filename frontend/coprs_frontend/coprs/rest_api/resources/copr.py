@@ -78,6 +78,7 @@ class CoprListR(Resource):
         parser.add_argument('owner', dest='username', type=str)
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
+
         # parser.add_argument('help', type=bool)
         req_args = parser.parse_args()
 
@@ -91,15 +92,12 @@ class CoprListR(Resource):
         else:
             query = CoprsLogic.get_multiple(flask.g.user)
 
-        # todo: also could be optional
-        query = CoprsLogic.join_builds(query)
-
-        if "limit" in req_args:
-            query = query.offset(req_args["offset"])
-
         # todo: add maximum allowed limit and also use as a default limit
         if req_args["limit"]:
             query = query.limit(req_args["limit"])
+
+        if req_args["offset"]:
+            query = query.offset(req_args["offset"])
 
         coprs_list = query.all()
 
@@ -168,7 +166,7 @@ class CoprR(Resource):
                 "self": {"href": url_for(".coprr", copr_id=copr.id)},
                 #"chroots": bp_url_for(ChrootListR.endpoint,
                 #                      )
-                "builds": {"href": url_for(".buildlistr", owner=copr.owner.name, project=copr.name)}
+                "builds": {"href": url_for(".buildlistr", copr_id=copr.id)}
             },
             # "allowed_methods": [
             #     render_allowed_method("GET", "Get single copr", require_auth=False),
