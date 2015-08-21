@@ -3,6 +3,7 @@ import datetime
 import functools
 
 import flask
+from flask import url_for
 from flask_restful import Resource, reqparse
 from marshmallow import pprint
 
@@ -13,9 +14,10 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException
 from .build import BuildListR
+# from .chroot import CoprChrootListR, CoprChrootR
 from coprs.rest_api.schemas import CoprSchema
 from ..exceptions import ObjectAlreadyExists, AuthFailed
-from ..util import get_one_safe, json_loads_safe, mm_deserialize, bp_url_for, render_allowed_method
+from ..util import get_one_safe, json_loads_safe, mm_deserialize, render_allowed_method
 
 
 def rest_api_auth_required(f):
@@ -55,7 +57,6 @@ class CoprListR(Resource):
         Creates new copr
         """
         owner = flask.g.user
-        # new_copr_dict = json_loads_safe(flask.request.data, "")
 
         result = mm_deserialize(CoprSchema(), flask.request.data)
         # todo check that chroots are available
@@ -77,6 +78,7 @@ class CoprListR(Resource):
         parser.add_argument('owner', dest='username', type=str)
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
+        # parser.add_argument('help', type=bool)
         req_args = parser.parse_args()
 
         kwargs = {}
@@ -92,7 +94,7 @@ class CoprListR(Resource):
         # todo: also could be optional
         query = CoprsLogic.join_builds(query)
 
-        if req_args["offset"]:
+        if "limit" in req_args:
             query = query.offset(req_args["offset"])
 
         # todo: add maximum allowed limit and also use as a default limit
@@ -101,40 +103,46 @@ class CoprListR(Resource):
 
         coprs_list = query.all()
 
-        return {
-            "links": {
-                "self": bp_url_for(CoprListR.endpoint, **req_args)
+        result_dict = {
+            "_links": {
+                "self": {"href": url_for(".coprlistr", **req_args)}
             },
             "coprs": [
                 {
                     "copr": CoprSchema().dump(copr)[0],
-                    "link": bp_url_for(
-                        CoprR.endpoint,
-                        owner=copr.owner.name,
-                        project=copr.name
-                    ),
+                    "_links": {
+                        "self": {"href": url_for(".coprr", copr_id=copr.id)}
+                    },
                 }
                 for copr in coprs_list
             ],
-            # TODO: show only if user provided ?help=true param
-            # "allowed_methods": [
-            #     render_allowed_method("GET", "Get list of coprs", require_auth=False,
-            #                           params=[
-            #                               "username: filter coprs owned by user",
-            #                               "limit: show only the given number of coprs",
-            #                               "offset: skip given number of coprs",
-            #                           ]),
-            #     render_allowed_method("POST", "Creates new copr, send dict with copr fields"),
-            # ]
+
         }
+
+        # TODO: show only if user provided ?help=true param
+        #
+        # if req_args.get("help"):
+        #     result_dict["allowed_methods"] = [
+        #         render_allowed_method("GET", "Get list of coprs", require_auth=False,
+        #                               params=[
+        #                                   "username: filter coprs owned by the user",
+        #                                   "limit: show only the given number of coprs",
+        #                                   "offset: skip given number of coprs",
+        #                               ]),
+        #         render_allowed_method("POST", "Creates new copr, send dict with copr fields"),
+        #     ]
+
+        return result_dict
 
 
 class CoprR(Resource):
 
     @rest_api_auth_required
-    def delete(self, owner, project):
-        copr = get_one_safe(CoprsLogic.get(flask.g.user, owner, project),
-                            "Copr {}/{} not found".format(owner, project))
+    def delete(self, copr_id):
+        copr = get_one_safe(CoprsLogic.get_by_id(int(copr_id)))
+
+        raise NotImplementedError()
+
         try:
             ComplexLogic.delete_copr(copr)
         except (ActionInProgressException,
@@ -146,24 +154,21 @@ class CoprR(Resource):
 
         return None, 204
 
-    def get(self, owner, project):
+    def get(self, copr_id):
         # parser = reqparse.RequestParser()
         # parser.add_argument('show_builds', type=bool, default=True)
         # parser.add_argument('show_chroots', type=bool, default=True)
         # req_args = parser.parse_args()
 
-        copr = get_one_safe(CoprsLogic.get(flask.g.user, owner, project),
-                            "Copr {}/{} not found".format(owner, project))
+        copr = get_one_safe(CoprsLogic.get_by_id(int(copr_id)))
+
         return {
             "copr": CoprSchema().dump(copr)[0],
-            "links": {
-                "self": bp_url_for(CoprR.endpoint,
-                                owner=owner,
-                                project=project),
-                # "chroots":
-                "builds": bp_url_for(BuildListR.endpoint,
-                                  owner=copr.owner.name,
-                                  project=copr.name)
+            "_links": {
+                "self": {"href": url_for(".coprr", copr_id=copr.id)},
+                #"chroots": bp_url_for(ChrootListR.endpoint,
+                #                      )
+                "builds": {"href": url_for(".buildlistr", owner=copr.owner.name, project=copr.name)}
             },
             # "allowed_methods": [
             #     render_allowed_method("GET", "Get single copr", require_auth=False),
@@ -172,7 +177,7 @@ class CoprR(Resource):
         }
 
     @rest_api_auth_required
-    def put(self, owner, project):
+    def put(self, copr_id):
         """
         Modifies project by replacment of provided fields
         """

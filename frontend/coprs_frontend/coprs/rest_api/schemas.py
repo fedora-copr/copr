@@ -9,8 +9,10 @@ class AllowedMethodSchema(Schema):
     params = fields.List(fields.Str())
 
 
-class MockChroot(Schema):
-    pass
+class MockChrootSchema(Schema):
+    class Meta:
+        fields = ("name", "os_release", "os_version", "arch", "is_active")
+        ordered = True
 
 
 class CoprSchema(Schema):

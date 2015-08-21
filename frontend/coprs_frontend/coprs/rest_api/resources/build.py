@@ -1,15 +1,17 @@
 # coding: utf-8
 
 import flask
+from flask import url_for
 
 # from flask_restful_swagger import swagger
 
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.users_logic import UsersLogic
 
 from coprs.rest_api.schemas import BuildSchema
 
-from coprs.rest_api.util import get_one_safe, bp_url_for
+from coprs.rest_api.util import get_one_safe
 
 from flask_restful import Resource, reqparse
 
@@ -21,21 +23,26 @@ class BuildListR(Resource):
         parser = reqparse.RequestParser()
 
         parser.add_argument('owner', type=str,)
-        parser.add_argument('project', type=str)
+        parser.add_argument('copr_id', type=int)
 
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
 
         req_args = parser.parse_args()
 
-        if "owner" and "project" in req_args:
-            query = BuildsLogic.get_multiple_by_name(
-                req_args["owner"], req_args["project"])
+        if req_args["copr_id"] is not None:
+            copr = get_one_safe(CoprsLogic.get_by_id(req_args["copr_id"]))
+            query = BuildsLogic.get_multiple_by_copr(copr)
+        elif req_args["owner" ] is not None:
+            user = get_one_safe(UsersLogic.get(req_args["owner"]))
+            query = BuildsLogic.get_multiple_by_owner(user)
         else:
             query = BuildsLogic.get_multiple()
 
         if "limit" in req_args:
             limit = req_args["limit"]
+            if limit <= 0 or limit > 100:
+                limit = 100
         else:
             limit = 100
 
@@ -50,19 +57,15 @@ class BuildListR(Resource):
             "builds": [
                 {
                     "build": BuildSchema().dump(build)[0],
-                    "link": bp_url_for(BuildR.endpoint, build_id=build.id),
+                    "_links": {
+                        "self": {"href": url_for(".buildr", build_id=build.id)},
+                    }
                 } for build in builds
             ],
-            "links": {
-                "self": bp_url_for(BuildListR.endpoint, **req_args),
+            "_links": {
+                "self": {"href": url_for(".buildlistr", **req_args)},
             },
         }
-
-
-# @swagger.model
-# class BuildItem(object):
-#     def __init__(self, build_id):
-#         pass
 
 
 class BuildR(Resource):
@@ -73,17 +76,27 @@ class BuildR(Resource):
         """
         build = get_one_safe(BuildsLogic.get(build_id),
                              "Not found build with id: {}".format(build_id))
+
         return {
             "build": BuildSchema().dump(build)[0],
-            "links": {
-                "self": bp_url_for(BuildR.endpoint, build_id=build_id),
-                # TODO: can't do this due to circular imports
-                # "parent_copr": url_for(CoprR.endpoint,
-                #                        owner=build.copr.owner.name,
-                #                        project=build.copr.name),
+            "_links": {
+                "self": url_for(".buildr", build_id=build_id),
+                "parent_copr": url_for(".coprr", copr_id=build.id),
             }
         }
 
 
-
+# to get build details and cancel individual build chroots
+# class BuildChrootR(Resource):
+#     def get(self, owner, project, name):
+#         copr = get_one_safe(CoprsLogic.get(flask.g.user, owner, project),
+#                            "Copr {}/{} not found".format(owner, project))
+#         chroot = get_one_safe(CoprChrootsLogic.get(copr, name))
+#
+#         return {
+#             "chroot": chroot.to_dict(),
+#             "links": {
+#                 "self": bp_url_for(BuildChrootR.endpoint, owner=owner, project=project, name=name)
+#             }
+#         }
 

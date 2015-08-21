@@ -32,6 +32,10 @@ class CoprsLogic(object):
         return query
 
     @classmethod
+    def get_by_id(cls, copr_id):
+        return cls.get_all().filter(models.Copr.id == copr_id)
+
+    @classmethod
     def get(cls, username, coprname, **kwargs):
         with_builds = kwargs.get("with_builds", False)
         with_mock_chroots = kwargs.get("with_mock_chroots", False)

@@ -6,49 +6,48 @@ from flask import url_for
 from flask_restful import Resource, reqparse
 
 from marshmallow import Schema, fields, pprint
+from coprs.rest_api.schemas import MockChrootSchema
 
 from coprs.views.misc import api_login_required
 from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLogic
 
-from ..util import get_one_safe, json_loads_safe, mm_deserialize, bp_url_for
+from ..util import get_one_safe, json_loads_safe, mm_deserialize
 
 
-class ChrootListR(Resource):
+class MockChrootListR(Resource):
     def get(self):
-        chroots = MockChrootsLogic.get_multiple(None).all()
+        # todo: add argument active_only
+        chroots = MockChrootsLogic.get_multiple(active_only=False).all()
         return {
-            "links": {
-                "self": bp_url_for(ChrootListR.endpoint),
+            "_links": {
+                "self": {"href": url_for(".mockchrootlistr")},
             },
             "chroots": [
                 {
-                    "chroot": chroot.to_dict(),
-                    "link": url_for(ChrootR.endpoint, name=chroot.name),
+                    "chroot": MockChrootSchema().dump(chroot)[0],
+                    "_links": {
+                        "self": {"href": url_for(".mockchrootr", name=chroot.name)},
+                    }
                 } for chroot in chroots
             ]
         }
 
 
-class ChrootR(Resource):
+class MockChrootR(Resource):
     def get(self, name):
         chroot = get_one_safe(MockChrootsLogic.get_from_name(name))
         return {
-            "chroot": chroot.to_dict(),
-            "links": {
-                "self": bp_url_for(ChrootR.endpoint, name=chroot.name)
+            "chroot": MockChrootSchema().dump(chroot)[0],
+            "_links": {
+                "self": {"href": url_for(".mockchrootr", name=chroot.name)},
+                "all_chroots": {"href": url_for(".mockchrootlistr")}
             },
         }
 
 
-class BuildChrootR(Resource):
-    def get(self, owner, project, name):
-        copr = get_one_safe(CoprsLogic.get(flask.g.user, owner, project),
-                           "Copr {}/{} not found".format(owner, project))
-        chroot = get_one_safe(CoprChrootsLogic.get(copr, name))
+class CoprChrootListR(Resource):
+    pass
 
-        return {
-            "chroot": chroot.to_dict(),
-            "links": {
-                "self": bp_url_for(BuildChrootR.endpoint, owner=owner, project=project, name=name)
-            }
-        }
+
+class CoprChrootR(Resource):
+    pass

@@ -19,18 +19,6 @@ def render_allowed_method(method, doc, require_auth=True, params=None):
     return AllowedMethodSchema().dump(AllowedMethod(method, doc, require_auth, params))[0]
 
 
-def bp_url_for(endpoint, *args, **kwargs):
-    """
-        Prepend endpoing with dot
-    :param endpoint:
-    :param args:
-    :param kwargs:
-    :return:
-    """
-
-    return url_for(".{}".format(endpoint), *args, **kwargs)
-
-
 def get_one_safe(query, data_on_error=None):
     try:
         return query.one()

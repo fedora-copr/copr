@@ -6,9 +6,8 @@ from flask_restful_swagger import swagger
 
 from coprs.rest_api.exceptions import ApiError
 from coprs.rest_api.resources.build import BuildListR, BuildR
-from coprs.rest_api.resources.chroot import ChrootListR, ChrootR
+from coprs.rest_api.resources.chroot import MockChrootListR, MockChrootR
 from coprs.rest_api.resources.copr import CoprListR, CoprR
-from coprs.rest_api.util import bp_url_for
 
 
 URL_PREFIX = "/api_2.0"
@@ -21,11 +20,11 @@ class RootR(Resource):
     )
     def get(self):
         return {
-            "links": {
-                "self": bp_url_for(RootR.endpoint),
-                "coprs": bp_url_for(CoprListR.endpoint),
-                "chroots": bp_url_for(ChrootListR.endpoint),
-                "builds": bp_url_for(BuildListR.endpoint),
+            "_links": {
+                "self": {"href": url_for(".rootr")},
+                "coprs": {"href": url_for(".coprlistr")},
+                "copr_chroots": {"href": url_for(".mockchrootlistr")},
+                "builds": {"href": url_for(".buildlistr")},
             }
         }
 
@@ -77,10 +76,10 @@ api = MyApi(
 
 api.add_resource(RootR, "/")
 api.add_resource(CoprListR, "/coprs")
-api.add_resource(CoprR, "/coprs/<owner>/<project>")
+api.add_resource(CoprR, "/coprs/<int:copr_id>")
 
-api.add_resource(ChrootListR, "/chroots")
-api.add_resource(ChrootR, "/chroots/<name>")
+api.add_resource(MockChrootListR, "/mock_chroots")
+api.add_resource(MockChrootR, "/mock_chroots/<name>")
 
 api.add_resource(BuildListR, "/builds")
 api.add_resource(BuildR, "/builds/<int:build_id>")

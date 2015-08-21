@@ -106,6 +106,14 @@ class BuildsLogic(object):
         return cls.get_multiple().filter(models.Build.copr == copr)
 
     @classmethod
+    def get_multiple_by_owner(cls, user):
+        """ Get collection of builds in copr sorted by build_id descending
+        form the copr owned by `user`
+        """
+        return cls.get_multiple().join(models.Build.copr).filter(
+            models.Copr.owner == user)
+
+    @classmethod
     def get_multiple_by_name(cls, username, coprname):
         query = cls.get_multiple()
         return (query.join(models.Build.copr)
