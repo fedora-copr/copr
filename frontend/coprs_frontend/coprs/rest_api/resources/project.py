@@ -10,14 +10,15 @@ from marshmallow import pprint
 from coprs import db
 from coprs.exceptions import DuplicateException
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.helpers import slice_query
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException
 from .build import BuildListR
 # from .chroot import CoprChrootListR, CoprChrootR
-from coprs.rest_api.schemas import CoprSchema
+from coprs.rest_api.schemas import ProjectSchema
 from ..exceptions import ObjectAlreadyExists, AuthFailed
-from ..util import get_one_safe, json_loads_safe, mm_deserialize, render_allowed_method
+from ..util import get_one_safe, json_loads_safe, mm_deserialize, render_allowed_method, mm_serialize_one
 
 
 def rest_api_auth_required(f):
@@ -49,7 +50,7 @@ def rest_api_auth_required(f):
     return decorated_function
 
 
-class CoprListR(Resource):
+class ProjectListR(Resource):
 
     @rest_api_auth_required
     def post(self):
@@ -58,7 +59,7 @@ class CoprListR(Resource):
         """
         owner = flask.g.user
 
-        result = mm_deserialize(CoprSchema(), flask.request.data)
+        result = mm_deserialize(ProjectSchema(), flask.request.data)
         # todo check that chroots are available
         pprint(result.data)
         try:
@@ -70,46 +71,43 @@ class CoprListR(Resource):
         return "New copr was created", 201
 
     def get(self):
-        """
-        Get coprs collection
-        :return:
-        """
         parser = reqparse.RequestParser()
         parser.add_argument('owner', dest='username', type=str)
+        parser.add_argument('name', dest='name', type=str)
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
 
         # parser.add_argument('help', type=bool)
         req_args = parser.parse_args()
 
-        kwargs = {}
-        for key in ["username"]:
-            if req_args[key]:
-                kwargs[key] = req_args[key]
-
-        if "username" in kwargs:
+        if req_args["username"]:
             query = CoprsLogic.get_multiple_owned_by_username(req_args["username"])
         else:
             query = CoprsLogic.get_multiple(flask.g.user)
 
+        if req_args["name"]:
+            query = CoprsLogic.filter_by_name(query, req_args["name"])
+
         # todo: add maximum allowed limit and also use as a default limit
+        limit = 100
+        offset = 0
         if req_args["limit"]:
-            query = query.limit(req_args["limit"])
-
+            limit = req_args["limit"]
         if req_args["offset"]:
-            query = query.offset(req_args["offset"])
+            offset = req_args["offset"]
 
+        query = slice_query(query, limit, offset)
         coprs_list = query.all()
 
         result_dict = {
             "_links": {
-                "self": {"href": url_for(".coprlistr", **req_args)}
+                "self": {"href": url_for(".projectlistr", **req_args)}
             },
             "coprs": [
                 {
-                    "copr": CoprSchema().dump(copr)[0],
+                    "copr": mm_serialize_one(ProjectSchema, copr),
                     "_links": {
-                        "self": {"href": url_for(".coprr", copr_id=copr.id)}
+                        "self": {"href": url_for(".projectr", project_id=copr.id)}
                     },
                 }
                 for copr in coprs_list
@@ -133,11 +131,11 @@ class CoprListR(Resource):
         return result_dict
 
 
-class CoprR(Resource):
+class ProjectR(Resource):
 
     @rest_api_auth_required
-    def delete(self, copr_id):
-        copr = get_one_safe(CoprsLogic.get_by_id(int(copr_id)))
+    def delete(self, project_id):
+        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
 
         raise NotImplementedError()
 
@@ -152,21 +150,21 @@ class CoprR(Resource):
 
         return None, 204
 
-    def get(self, copr_id):
+    def get(self, project_id):
         # parser = reqparse.RequestParser()
         # parser.add_argument('show_builds', type=bool, default=True)
         # parser.add_argument('show_chroots', type=bool, default=True)
         # req_args = parser.parse_args()
 
-        copr = get_one_safe(CoprsLogic.get_by_id(int(copr_id)))
+        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
 
         return {
-            "copr": CoprSchema().dump(copr)[0],
+            "copr": ProjectSchema().dump(copr)[0],
             "_links": {
-                "self": {"href": url_for(".coprr", copr_id=copr.id)},
+                "self": {"href": url_for(".projectr", project_id=copr.id)},
                 #"chroots": bp_url_for(ChrootListR.endpoint,
                 #                      )
-                "builds": {"href": url_for(".buildlistr", copr_id=copr.id)}
+                "builds": {"href": url_for(".buildlistr", project_id=copr.id)}
             },
             # "allowed_methods": [
             #     render_allowed_method("GET", "Get single copr", require_auth=False),
@@ -175,7 +173,7 @@ class CoprR(Resource):
         }
 
     @rest_api_auth_required
-    def put(self, copr_id):
+    def put(self, project_id):
         """
         Modifies project by replacment of provided fields
         """

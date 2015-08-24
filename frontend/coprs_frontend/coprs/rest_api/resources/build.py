@@ -23,15 +23,15 @@ class BuildListR(Resource):
         parser = reqparse.RequestParser()
 
         parser.add_argument('owner', type=str,)
-        parser.add_argument('copr_id', type=int)
+        parser.add_argument('project_id', type=int)
 
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
 
         req_args = parser.parse_args()
 
-        if req_args["copr_id"] is not None:
-            copr = get_one_safe(CoprsLogic.get_by_id(req_args["copr_id"]))
+        if req_args["project_id"] is not None:
+            copr = get_one_safe(CoprsLogic.get_by_id(req_args["project_id"]))
             query = BuildsLogic.get_multiple_by_copr(copr)
         elif req_args["owner" ] is not None:
             user = get_one_safe(UsersLogic.get(req_args["owner"]))
@@ -52,6 +52,9 @@ class BuildListR(Resource):
             query = query.offset(req_args["offset"])
 
         builds = query.all()
+
+        self_params = dict(req_args)
+        self_params["limit"] = limit
         return {
 
             "builds": [
@@ -63,7 +66,7 @@ class BuildListR(Resource):
                 } for build in builds
             ],
             "_links": {
-                "self": {"href": url_for(".buildlistr", **req_args)},
+                "self": {"href": url_for(".buildlistr", **self_params)},
             },
         }
 
@@ -71,9 +74,7 @@ class BuildListR(Resource):
 class BuildR(Resource):
 
     def get(self, build_id):
-        """
-        Get single build by id
-        """
+
         build = get_one_safe(BuildsLogic.get(build_id),
                              "Not found build with id: {}".format(build_id))
 
@@ -81,7 +82,7 @@ class BuildR(Resource):
             "build": BuildSchema().dump(build)[0],
             "_links": {
                 "self": url_for(".buildr", build_id=build_id),
-                "parent_copr": url_for(".coprr", copr_id=build.id),
+                "project": url_for(".projectr", project_id=build.copr_id),
             }
         }
 

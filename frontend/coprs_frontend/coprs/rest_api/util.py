@@ -38,5 +38,9 @@ def mm_deserialize(schema, obj_dict):
     result = schema.loads(obj_dict)
     if result.errors:
         raise MalformedRequest(data=result.errors)
-    # import ipdb; ipdb.set_trace()
+
     return result
+
+
+def mm_serialize_one(schema, obj):
+    return schema().dump(obj)[0]

@@ -44,10 +44,3 @@ class MockChrootR(Resource):
             },
         }
 
-
-class CoprChrootListR(Resource):
-    pass
-
-
-class CoprChrootR(Resource):
-    pass

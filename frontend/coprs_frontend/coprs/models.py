@@ -570,7 +570,7 @@ class MockChroot(db.Model, helpers.Serializer):
         """
         Textual representation of name of this chroot
         """
-        return "{0}-{1}-{2}".format(self.os_release, self.os_version, self.arch)
+        return "{}-{}-{}".format(self.os_release, self.os_version, self.arch)
 
     @property
     def name_release(self):

@@ -15,7 +15,7 @@ class MockChrootSchema(Schema):
         ordered = True
 
 
-class CoprSchema(Schema):
+class ProjectSchema(Schema):
     name = fields.Str(required=True)
     description = fields.Str()
     instructions = fields.Str()
@@ -74,7 +74,6 @@ class BuildSchema(Schema):
     ended_on = fields.Int()
 
     results = fields.Str()
-    memory_reqs = fields.Int()
     timeout = fields.Int()
 
     enable_net = fields.Bool()

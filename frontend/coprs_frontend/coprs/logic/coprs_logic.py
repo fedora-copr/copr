@@ -92,6 +92,10 @@ class CoprsLogic(object):
                 .filter(aliased_user.username == username))
 
     @classmethod
+    def filter_by_name(cls, query, name):
+        return query.filter(models.Copr.name == name)
+
+    @classmethod
     def join_builds(cls, query):
         return (query.outerjoin(models.Copr.builds)
                 .options(db.contains_eager(models.Copr.builds))
