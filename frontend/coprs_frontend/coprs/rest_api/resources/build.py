@@ -81,8 +81,9 @@ class BuildR(Resource):
         return {
             "build": BuildSchema().dump(build)[0],
             "_links": {
-                "self": url_for(".buildr", build_id=build_id),
-                "project": url_for(".projectr", project_id=build.copr_id),
+                "self": {"href": url_for(".buildr", build_id=build_id)},
+                "project": {"href": url_for(".projectr", project_id=build.copr_id)},
+                "chroots": {"href": url_for(".buildchrootlistr", build_id=build_id)}
             }
         }
 

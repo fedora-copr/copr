@@ -17,18 +17,22 @@ class MockChrootSchema(Schema):
 
 class ProjectSchema(Schema):
     name = fields.Str(required=True)
+
+    owner = fields.Str(attribute="owner_name", dump_only=True)
     description = fields.Str()
     instructions = fields.Str()
+    homepage = fields.Str()
+    contact = fields.Str()
 
     auto_createrepo = fields.Bool()
     build_enable_net = fields.Bool()
     last_modified = fields.DateTime()
 
-    additional_repos = fields.List(fields.Str, dump_only=True, attribute="repos_list")
-    # yum_repos  = fields.List()
+    additional_repos = fields.List(fields.Str(), dump_only=True, attribute="repos_list")
 
     # used only for creation
-    chroots_to_enable = fields.List(fields.Str, load_only=True)
+    chroots_to_enable = fields.List(fields.Str(), load_only=True)
+    additional_repos_input = fields.Str(name="additional_repos", load_only=True)
 
     _keys_to_make_object = [
         "description",
@@ -51,12 +55,22 @@ class ProjectSchema(Schema):
         return kwargs
 
 
+class CoprChrootSchema(Schema):
+
+    buildroot_pkgs = fields.List(fields.Str(), attribute="buildroot_pkgs_list")
+    name = fields.Str(dump_only=True)
+
+    comps = fields.Str(dump_only=True)
+    comps_name = fields.Str()
+    comps_len = fields.Int(dump_only=True)
+
+
 class BuildChrootSchema(Schema):
     # used only for presentation
     state = fields.Str()
-    started_on = fields.Int()
-    ended_on = fields.Int()
-    git_hash = fields.Str()
+    started_on = fields.Int(dump_only=True)
+    ended_on = fields.Int(dump_only=True)
+    git_hash = fields.Str(dump_only=True)
 
 
 class BuildSchema(Schema):

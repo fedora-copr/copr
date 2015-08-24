@@ -4,9 +4,10 @@ from flask_restful import Resource, Api
 
 from coprs.rest_api.exceptions import ApiError
 from coprs.rest_api.resources.build import BuildListR, BuildR
+from coprs.rest_api.resources.build_chroot import BuildChrootListR, BuildChrootR
 from coprs.rest_api.resources.mock_chroot import MockChrootListR, MockChrootR
 from coprs.rest_api.resources.project import ProjectListR, ProjectR
-
+from coprs.rest_api.resources.project_chroot import ProjectChrootListR, ProjectChrootR
 
 URL_PREFIX = "/api_2"
 
@@ -51,6 +52,13 @@ api.add_resource(MockChrootR, "/mock_chroots/<name>")
 
 api.add_resource(BuildListR, "/builds")
 api.add_resource(BuildR, "/builds/<int:build_id>")
+
+api.add_resource(ProjectChrootListR, "/projects/<int:project_id>/chroots")
+api.add_resource(ProjectChrootR, "/projects/<int:project_id>/chroots/<name>")
+
+api.add_resource(BuildChrootListR, "/builds/<int:build_id>/chroots")
+api.add_resource(BuildChrootR, "/builds/<int:build_id>/chroots/<name>")
+
 
 # app.register_blueprint(rest_api_bp, url_prefix=URL_PREFIX)
 

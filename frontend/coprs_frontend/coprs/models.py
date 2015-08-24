@@ -171,17 +171,8 @@ class Copr(db.Model, helpers.Serializer):
     }
 
     @property
-    def yum_repos(self):
-        return {}
-        # todo: add config option to set backen results base url
-        # release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
-        # result = {}
-        # for chroot in repo.active_chroots:
-        #     release = release_tmpl.format(chroot=chroot)
-        #     url = fix_protocol_for_backend(urlparse.urljoin(
-        #         app.config["BACKEND_RESULTS_BASE_URL"], release + '/'))
-        #     result[release] = url
-        # return result
+    def owner_name(self):
+        return self.owner.name
 
     @property
     def repos_list(self):
@@ -620,6 +611,10 @@ class CoprChroot(db.Model, helpers.Serializer):
 
     comps_zlib = db.Column(db.VARBINARY, nullable=True)
     comps_name = db.Column(db.String(127), nullable=True)
+
+    @property
+    def buildroot_pkgs_list(self):
+        return self.buildroot_pkgs.split()
 
     @property
     def comps(self):

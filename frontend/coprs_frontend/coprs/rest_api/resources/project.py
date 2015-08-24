@@ -162,9 +162,8 @@ class ProjectR(Resource):
             "copr": ProjectSchema().dump(copr)[0],
             "_links": {
                 "self": {"href": url_for(".projectr", project_id=copr.id)},
-                #"chroots": bp_url_for(ChrootListR.endpoint,
-                #                      )
-                "builds": {"href": url_for(".buildlistr", project_id=copr.id)}
+                "builds": {"href": url_for(".buildlistr", project_id=copr.id)},
+                "chroots": {"href": url_for(".projectchrootlistr", project_id=copr.id)}
             },
             # "allowed_methods": [
             #     render_allowed_method("GET", "Get single copr", require_auth=False),
