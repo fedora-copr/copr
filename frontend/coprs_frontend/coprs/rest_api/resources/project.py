@@ -50,6 +50,21 @@ def rest_api_auth_required(f):
     return decorated_function
 
 
+def render_project(copr):
+    return {
+        "copr": mm_serialize_one(ProjectSchema, copr),
+        "_links": {
+            "self": {"href": url_for(".projectr", project_id=copr.id)},
+            "builds": {"href": url_for(".buildlistr", project_id=copr.id)},
+            "chroots": {"href": url_for(".projectchrootlistr", project_id=copr.id)}
+        },
+        # "allowed_methods": [
+        #     render_allowed_method("GET", "Get single copr", require_auth=False),
+        #     render_allowed_method("DELETE", "Delete current copr", require_auth=True),
+        # ]
+    }
+
+
 class ProjectListR(Resource):
 
     @rest_api_auth_required
@@ -60,15 +75,38 @@ class ProjectListR(Resource):
         owner = flask.g.user
 
         result = mm_deserialize(ProjectSchema(), flask.request.data)
+        if result.errors:
+            return "Failed to parse request", 400
+
         # todo check that chroots are available
-        pprint(result.data)
+        req = result.data
+
+        extra = {
+            k: req[k]
+            for k in [
+                "description",
+                "instructions",
+                "contact",
+                "homepage",
+                "auto_createrepo",
+                "build_enable_net",
+            ] if k in req
+        }
+        if "repos_list" in req:
+            extra["repos"] = " ".join(req["repos_list"])
+
         try:
-            CoprsLogic.add(user=owner, check_for_duplicates=True, **result.data)
+            copr = CoprsLogic.add(
+                user=owner, check_for_duplicates=True,
+                name=req["name"],
+                selected_chroots=req["chroots"],
+                **extra
+            )
             db.session.commit()
         except DuplicateException as error:
             raise ObjectAlreadyExists(data=error)
 
-        return "New copr was created", 201
+        return render_project(copr), 201
 
     def get(self):
         parser = reqparse.RequestParser()
@@ -103,16 +141,7 @@ class ProjectListR(Resource):
             "_links": {
                 "self": {"href": url_for(".projectlistr", **req_args)}
             },
-            "coprs": [
-                {
-                    "copr": mm_serialize_one(ProjectSchema, copr),
-                    "_links": {
-                        "self": {"href": url_for(".projectr", project_id=copr.id)}
-                    },
-                }
-                for copr in coprs_list
-            ],
-
+            "coprs": [render_project(copr) for copr in coprs_list],
         }
 
         # TODO: show only if user provided ?help=true param
@@ -157,19 +186,7 @@ class ProjectR(Resource):
         # req_args = parser.parse_args()
 
         copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
-
-        return {
-            "copr": ProjectSchema().dump(copr)[0],
-            "_links": {
-                "self": {"href": url_for(".projectr", project_id=copr.id)},
-                "builds": {"href": url_for(".buildlistr", project_id=copr.id)},
-                "chroots": {"href": url_for(".projectchrootlistr", project_id=copr.id)}
-            },
-            # "allowed_methods": [
-            #     render_allowed_method("GET", "Get single copr", require_auth=False),
-            #     render_allowed_method("DELETE", "Delete current copr", require_auth=True),
-            # ]
-        }
+        return render_project(copr)
 
     @rest_api_auth_required
     def put(self, project_id):

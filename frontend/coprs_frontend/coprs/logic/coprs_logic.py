@@ -138,10 +138,10 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def add(cls, user, name, repos, selected_chroots, description=None,
+    def add(cls, user, name, selected_chroots, repos=None, description=None,
             instructions=None, check_for_duplicates=False, **kwargs):
         copr = models.Copr(name=name,
-                           repos=repos,
+                           repos=repos or u"",
                            owner_id=user.id,
                            description=description or u"",
                            instructions=instructions or u"",

@@ -16,6 +16,7 @@ class MockChrootSchema(Schema):
 
 
 class ProjectSchema(Schema):
+    id = fields.Int()
     name = fields.Str(required=True)
 
     owner = fields.Str(attribute="owner_name", dump_only=True)
@@ -28,31 +29,10 @@ class ProjectSchema(Schema):
     build_enable_net = fields.Bool()
     last_modified = fields.DateTime()
 
-    additional_repos = fields.List(fields.Str(), dump_only=True, attribute="repos_list")
+    additional_repos = fields.List(fields.Str(), attribute="repos_list")
 
     # used only for creation
-    chroots_to_enable = fields.List(fields.Str(), load_only=True)
-    additional_repos_input = fields.Str(name="additional_repos", load_only=True)
-
-    _keys_to_make_object = [
-        "description",
-        "instructions",
-        "auto_createrepo"
-    ]
-
-    def make_object(self, data):
-        """
-        Create kwargs for CoprsLogic.add
-        """
-        kwargs = dict(
-            name=data["name"].strip(),
-            repos=" ".join(data.get("repos", [])),
-            selected_chroots=data["chroots"],
-        )
-        for key in self._keys_to_make_object:
-            if key in data:
-                kwargs[key] = data[key]
-        return kwargs
+    chroots = fields.List(fields.Str(), load_only=True)
 
 
 class CoprChrootSchema(Schema):
@@ -94,9 +74,3 @@ class BuildSchema(Schema):
 
     source_type = fields.Int()
     source_json = fields.Str()
-
-    # chroots = fields.List(fields.Nested(BuildChrootSchema))
-
-
-
-

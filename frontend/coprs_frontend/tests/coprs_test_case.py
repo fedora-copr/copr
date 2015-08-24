@@ -4,6 +4,7 @@ import os
 import time
 import glob
 from functools import wraps
+import datetime
 
 import pytest
 import decorator
@@ -100,6 +101,17 @@ class CoprsTestCase(object):
             mail="baz@bar.bar")
 
         self.db.session.add_all([self.u1, self.u2, self.u3])
+
+    @pytest.fixture
+    def f_users_api(self):
+        """
+        Requires f_users
+        """
+        for u in [self.u1, self.u2, self.u3]:
+            u.api_login = "foo"
+            u.api_token = "bar"
+
+            u.api_token_expiration = datetime.date.today() + datetime.timedelta(days=1000)
 
     @pytest.fixture
     def f_coprs(self):
