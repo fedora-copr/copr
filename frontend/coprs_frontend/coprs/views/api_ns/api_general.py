@@ -550,7 +550,7 @@ def copr_modify_chroot(username, coprname, chrootname):
         output = {'output': 'notok', 'error': 'Invalid request'}
         httpcode = 500
     else:
-        coprs_logic.CoprChrootsLogic.update_chroot(chroot, form.buildroot_pkgs.data)
+        coprs_logic.CoprChrootsLogic.update_chroot(flask.g.user, chroot, form.buildroot_pkgs.data)
         db.session.commit()
 
         output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}

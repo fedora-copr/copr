@@ -22,12 +22,14 @@ class ApiError(Exception):
 class AuthFailed(ApiError):
     def __init__(self, data, **kwargs):
 
-        super(AuthFailed, self).__init__(
-            401, data,
-            # headers={"Authorization": "Basic"},
-            **kwargs)
-
+        super(AuthFailed, self).__init__(401, data, **kwargs)
         self.headers["Authorization"] = "Basic"
+
+
+class AccessForbidden(ApiError):
+    def __init__(self, data, **kwargs):
+
+        super(AccessForbidden, self).__init__(403, data, **kwargs)
 
 
 class ObjectNotFoundError(ApiError):

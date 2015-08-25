@@ -12,6 +12,7 @@ from coprs import models
 from coprs.logic import users_logic
 
 from coprs.logic.actions_logic import ActionsLogic
+from coprs.logic.users_logic import UsersLogic
 
 
 class CoprsLogic(object):
@@ -350,7 +351,6 @@ listen(models.Copr.auto_createrepo, 'set', on_auto_createrepo_change,
 
 class CoprChrootsLogic(object):
     @classmethod
-
     def mock_chroots_from_names(cls, names):
 
         db_chroots = models.MockChroot.query.all()
@@ -388,7 +388,11 @@ class CoprChrootsLogic(object):
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
     @classmethod
-    def update_chroot(cls, copr_chroot, buildroot_pkgs, comps=None, comps_name=None):
+    def update_chroot(cls, user, copr_chroot, buildroot_pkgs, comps=None, comps_name=None):
+        UsersLogic.raise_if_cant_update_copr(
+            user, copr_chroot.copr,
+            "Only owners and admins may update their projects.")
+
         copr_chroot.buildroot_pkgs = buildroot_pkgs
         if comps_name is not None:
             copr_chroot.comps_zlib = comps
@@ -397,7 +401,10 @@ class CoprChrootsLogic(object):
         db.session.add(copr_chroot)
 
     @classmethod
-    def update_from_names(cls, copr, names):
+    def update_from_names(cls, user, copr, names):
+        UsersLogic.raise_if_cant_update_copr(
+            user, copr,
+            "Only owners and admins may update their projects.")
         current_chroots = copr.mock_chroots
         new_chroots = cls.mock_chroots_from_names(names)
         # add non-existing
@@ -418,11 +425,26 @@ class CoprChrootsLogic(object):
             copr.mock_chroots.remove(mc)
 
     @classmethod
-    def remove_comps(cls, copr_chroot):
+    def remove_comps(cls, user, copr_chroot):
+        UsersLogic.raise_if_cant_update_copr(
+            user, copr_chroot.copr,
+            "Only owners and admins may update their projects.")
+
         copr_chroot.comps_name = None
         copr_chroot.comps_zlib = None
         ActionsLogic.send_update_comps(copr_chroot)
         db.session.add(copr_chroot)
+
+    @classmethod
+    def remove_copr_chroot(cls, user, copr_chroot):
+        """
+        :param models.CoprChroot chroot:
+        """
+        UsersLogic.raise_if_cant_update_copr(
+            user, copr_chroot.copr,
+            "Only owners and admins may update their projects.")
+
+        db.session.delete(copr_chroot)
 
 
 class MockChrootsLogic(object):

@@ -69,11 +69,11 @@ def chroot_update(username, coprname, chrootname):
                     comps_name = form.comps.data.filename
 
                 coprs_logic.CoprChrootsLogic.update_chroot(
-                    chroot, form.buildroot_pkgs.data,
+                    flask.g.user, chroot, form.buildroot_pkgs.data,
                     comps=comps_blob, comps_name=comps_name)
 
             elif action == "delete_comps":
-                CoprChrootsLogic.remove_comps(chroot)
+                CoprChrootsLogic.remove_comps(flask.g.user, chroot)
 
             flask.flash(
                 "Buildroot {0} in project {1} has been updated successfully.".format(

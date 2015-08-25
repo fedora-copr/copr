@@ -1,5 +1,6 @@
 import base64
 from collections import defaultdict
+import json
 import os
 import time
 import glob
@@ -107,9 +108,9 @@ class CoprsTestCase(object):
         """
         Requires f_users
         """
-        for u in [self.u1, self.u2, self.u3]:
-            u.api_login = "foo"
-            u.api_token = "bar"
+        for idx, u in enumerate([self.u1, self.u2, self.u3]):
+            u.api_login = "foo_{}".format(idx)
+            u.api_token = "bar_{}".format(idx)
 
             u.api_token_expiration = datetime.date.today() + datetime.timedelta(days=1000)
 
@@ -351,6 +352,32 @@ class CoprsTestCase(object):
                                 result=helpers.BackendResultEnum("success"),
                                 created_on=int(time.time()))
         self.db.session.add_all([self.a1, self.a2, self.a3])
+
+    def request_rest_api_with_auth(self, url, login=None, token=None, content=None, method="GET"):
+        """
+        :rtype: flask.wrappers.Response
+        """
+        if login is None:
+            login = self.u1.api_login
+        if token is None:
+            token = self.u1.api_token
+
+        userstring = "{}:{}".format(login, token)
+        base64string_user = base64.b64encode(userstring)
+        base64string = "Basic " + base64string_user
+
+        kwargs = dict(
+            method=method,
+            content_type="application/json",
+
+            headers={
+                "Authorization": base64string
+            }
+        )
+        if content:
+            kwargs["data"] = json.dumps(content)
+
+        return self.tc.open(url, **kwargs)
 
 
 class TransactionDecorator(object):

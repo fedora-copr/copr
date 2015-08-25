@@ -2,6 +2,8 @@
 from flask import Response, url_for, Blueprint
 from flask_restful import Resource, Api
 
+from coprs.exceptions import InsufficientRightsException
+
 from coprs.rest_api.exceptions import ApiError
 from coprs.rest_api.resources.build import BuildListR, BuildR
 from coprs.rest_api.resources.build_chroot import BuildChrootListR, BuildChrootR

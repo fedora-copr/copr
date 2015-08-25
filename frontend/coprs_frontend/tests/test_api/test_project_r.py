@@ -14,26 +14,6 @@ from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 class TestProjectResource(CoprsTestCase):
 
-    def request_api_with_auth(self, url, content, method="GET"):
-        """
-        :rtype: flask.wrappers.Response
-        """
-
-        userstring = "{}:{}".format(self.u1.api_login, self.u1.api_token)
-        base64string_user = base64.b64encode(userstring)
-        base64string = "Basic " + base64string_user
-
-        kwargs = dict(
-            method=method,
-            content_type="application/json",
-            data=json.dumps(content),
-            headers={
-                "Authorization": base64string
-            }
-        )
-
-        return self.tc.open(url, **kwargs)
-
     def test_self(self):
         href = "/api_2/projects"
         r = self.tc.get(href)
@@ -54,7 +34,7 @@ class TestProjectResource(CoprsTestCase):
             "additional_repos": ["copr://bar/zar", ]
         }
 
-        r = self.request_api_with_auth("/api_2/projects", body, method="post")
+        r = self.request_rest_api_with_auth("/api_2/projects", content=body, method="post")
         assert r.status_code == 201
         copr_dict = json.loads(r.data)
         assert copr_dict["copr"]["id"] == 1
@@ -62,6 +42,4 @@ class TestProjectResource(CoprsTestCase):
         copr_chroots_dict = json.loads(r2.data)
         assert len(copr_chroots_dict["chroots"]) == 1
         assert copr_chroots_dict["chroots"][0]["chroot"]["name"] == chroot_name
-    
-
 
