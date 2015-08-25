@@ -200,7 +200,7 @@ def copr_report_abuse(username, coprname):
         copr = query.one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
+            "Project {0} does not exist.".format(coprname))
 
 
     return flask.render_template(
@@ -217,7 +217,7 @@ def copr_detail(username, coprname):
         copr = query.one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
+            "Project {0} does not exist.".format(coprname))
 
     repo_dl_stat = CounterStatLogic.get_copr_repo_dl_stat(copr)
 
@@ -275,7 +275,7 @@ def copr_permissions(username, coprname):
     copr = query.first()
     if not copr:
         return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
+            "Project {0} does not exist.".format(coprname))
 
     permissions = coprs_logic.CoprPermissionsLogic.get_for_copr(copr).all()
     if flask.g.user:
@@ -314,7 +314,7 @@ def copr_edit(username, coprname, form=None):
 
     if not copr:
         return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
+            "Project {0} does not exist.".format(coprname))
 
     if not form:
         form = forms.CoprFormFactory.create_form_cls(
@@ -660,7 +660,7 @@ def copr_build_monitor(username, coprname):
         copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
+            "Project {0} does not exist.".format(coprname))
 
     monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
 
@@ -681,7 +681,7 @@ def copr_build_monitor_detailed(username, coprname):
         copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
+            "Project {0} does not exist.".format(coprname))
 
     monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
 
