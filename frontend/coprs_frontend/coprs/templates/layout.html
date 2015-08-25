@@ -93,7 +93,10 @@
 
     <!-- Flash messages -->
     {% for message in get_flashed_messages() %}
-    <div class="alert alert-info">
+    <div class="alert alert-info alert-dismissable">
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+        <span class="pficon pficon-close"></span>
+      </button>
       <span class="pficon pficon-info"></span>
       {{ message }}
     </div>
