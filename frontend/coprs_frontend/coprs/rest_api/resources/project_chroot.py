@@ -62,11 +62,12 @@ class ProjectChrootR(Resource):
         copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
         chroot = CoprChrootsLogic.get_by_name_safe(copr, name)
 
-        try:
-            CoprChrootsLogic.remove_copr_chroot(flask.g.user, chroot)
-        except InsufficientRightsException as err:
-            raise AccessForbidden("Failed to remove copr chroot: {}".format(err))
+        if chroot:
+            try:
+                CoprChrootsLogic.remove_copr_chroot(flask.g.user, chroot)
+            except InsufficientRightsException as err:
+                raise AccessForbidden("Failed to remove copr chroot: {}".format(err))
 
-        db.session.commit()
+            db.session.commit()
 
         return None, 204
