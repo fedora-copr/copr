@@ -9,6 +9,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import helpers
 from coprs import models
+from coprs.exceptions import MalformedArgumentException
 from coprs.logic import users_logic
 
 from coprs.logic.actions_logic import ActionsLogic
@@ -392,6 +393,21 @@ class CoprChrootsLogic(object):
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
     @classmethod
+    def create_chroot(cls, user, copr, mock_chroot,
+                      buildroot_pkgs, comps=None, comps_name=None):
+        """
+        :type user: models.User
+        :type mock_chroot: models.MockChroot
+        """
+        UsersLogic.raise_if_cant_update_copr(
+            user, copr,
+            "Only owners and admins may update their projects.")
+
+        chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
+        cls._update_chroot(buildroot_pkgs, comps, comps_name, chroot)
+        return chroot
+
+    @classmethod
     def update_chroot(cls, user, copr_chroot,
                       buildroot_pkgs, comps=None, comps_name=None):
         """
@@ -402,14 +418,18 @@ class CoprChrootsLogic(object):
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
+        cls._update_chroot(buildroot_pkgs, comps, comps_name, copr_chroot)
+        db.session.add(copr_chroot)
+
+        return copr_chroot
+
+    @classmethod
+    def _update_chroot(cls, buildroot_pkgs, comps, comps_name, copr_chroot):
         copr_chroot.buildroot_pkgs = buildroot_pkgs
         if comps_name is not None:
             copr_chroot.update_comps(comps)
             copr_chroot.comps_name = comps_name
             ActionsLogic.send_update_comps(copr_chroot)
-        db.session.add(copr_chroot)
-
-        return copr_chroot
 
     @classmethod
     def update_from_names(cls, user, copr, names):
@@ -554,7 +574,7 @@ class MockChrootsLogic(object):
             valid = True
 
         if not valid:
-            raise exceptions.MalformedArgumentException(
+            raise MalformedArgumentException(
                 "Chroot name is not valid")
 
         if noarch and len(split_name) == 2:

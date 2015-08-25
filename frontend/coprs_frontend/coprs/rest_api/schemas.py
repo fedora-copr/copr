@@ -61,6 +61,10 @@ class CoprChrootSchema(Schema):
     comps_len = fields.Int(dump_only=True)
 
 
+class CoprChrootCreateSchema(CoprChrootSchema):
+    name = fields.Str(required=True)
+
+
 class BuildChrootSchema(Schema):
     # used only for presentation
     state = fields.Str()

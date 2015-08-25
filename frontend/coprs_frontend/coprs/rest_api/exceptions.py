@@ -45,3 +45,8 @@ class ObjectAlreadyExists(ApiError):
 class MalformedRequest(ApiError):
     def __init__(self, data=None, **kwargs):
         super(MalformedRequest, self).__init__(400, data, **kwargs)
+
+
+class ServerError(ApiError):
+    def __init__(self, data=None, **kwargs):
+        super(ServerError, self).__init__(500, data, **kwargs)
