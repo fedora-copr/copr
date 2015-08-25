@@ -1,6 +1,8 @@
 import base64
 import datetime
 import functools
+from logging import getLogger
+log = getLogger(__name__)
 
 import flask
 from flask import url_for
@@ -25,15 +27,20 @@ def rest_api_auth_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
         token = None
-        apt_login = None
-        if "Authorization" in flask.request.headers:
-            base64string = flask.request.headers["Authorization"]
-            base64string = base64string.split()[1].strip()
-            userstring = base64.b64decode(base64string)
-            (apt_login, token) = userstring.split(":")
+        api_login = None
+        try:
+            if "Authorization" in flask.request.headers:
+                base64string = flask.request.headers["Authorization"]
+                base64string = base64string.split()[1].strip()
+                userstring = base64.b64decode(base64string)
+                (api_login, token) = userstring.split(":")
+        except Exception:
+            log.exception("Failed to get auth token from headers")
+            api_login = token = None
+
         token_auth = False
-        if token and apt_login:
-            user = UsersLogic.get_by_api_login(apt_login).first()
+        if token and api_login:
+            user = UsersLogic.get_by_api_login(api_login).first()
             if (user and user.api_token == token and
                     user.api_token_expiration >= datetime.date.today()):
 
