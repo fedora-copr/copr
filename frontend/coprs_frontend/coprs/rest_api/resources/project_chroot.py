@@ -121,7 +121,8 @@ class ProjectChrootR(Resource):
         chroot = self._get_chroot_safe(copr, name)
 
         chroot_data = mm_deserialize(CoprChrootSchema(), flask.request.data)
-        chroot_data.data.pop("name")  # todo: why it's here? bug in marshmallow? 
+        if "name" in chroot_data.data:
+            chroot_data.data.pop("name")  # todo: why it's here? bug in marshmallow?
         try:
             updated_chroot = CoprChrootsLogic.update_chroot(
                 user=flask.g.user,
