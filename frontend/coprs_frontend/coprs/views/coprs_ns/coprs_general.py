@@ -112,7 +112,7 @@ def coprs_fulltext_search(page=1):
     try:
         query = coprs_logic.CoprsLogic.get_multiple_fulltext(fulltext)
     except ValueError as e:
-        flask.flash(str(e))
+        flask.flash(str(e), "error")
         return flask.redirect(flask.request.referrer or
                               flask.url_for("coprs_ns.coprs_show"))
 
@@ -155,7 +155,7 @@ def copr_new(username):
         )
 
         db.session.commit()
-        flask.flash("New project was successfully created.")
+        flask.flash("New project was successfully created.", "success")
 
         if form.initial_pkgs.data:
             pkgs = form.initial_pkgs.data.replace("\n", " ").split(" ")
@@ -351,10 +351,10 @@ def copr_update(username, coprname):
         except (exceptions.ActionInProgressException,
                 exceptions.InsufficientRightsException) as e:
 
-            flask.flash(str(e))
+            flask.flash(str(e), "error")
             db.session.rollback()
         else:
-            flask.flash("Project was updated successfully.")
+            flask.flash("Project was updated successfully.", "success")
             db.session.commit()
 
         return flask.redirect(flask.url_for("coprs_ns.copr_detail",
@@ -378,7 +378,7 @@ def copr_permissions_applier_change(username, coprname):
             "Project with name {0} does not exist.".format(coprname))
 
     if copr.owner == flask.g.user:
-        flask.flash("Owner cannot request permissions for his own project.")
+        flask.flash("Owner cannot request permissions for his own project.", "error")
     elif applier_permissions_form.validate_on_submit():
         # we rely on these to be 0 or 1 from form. TODO: abstract from that
         if permission is not None:
@@ -474,10 +474,10 @@ def copr_update_permissions(username, coprname):
         # don't collide with any actions
         except exceptions.InsufficientRightsException as e:
             db.session.rollback()
-            flask.flash(str(e))
+            flask.flash(str(e), "error")
         else:
             db.session.commit()
-            flask.flash("Project permissions were updated successfully.")
+            flask.flash("Project permissions were updated successfully.", "success")
 
     return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                         username=copr.owner.name,
@@ -516,7 +516,7 @@ def copr_delete(username, coprname):
                 exceptions.InsufficientRightsException) as e:
 
             db.session.rollback()
-            flask.flash(str(e))
+            flask.flash(str(e), "error")
             return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                                 username=username,
                                                 coprname=coprname))

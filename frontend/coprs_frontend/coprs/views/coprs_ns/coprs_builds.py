@@ -170,7 +170,7 @@ def copr_new_build_upload(username, coprname):
                 build.timeout = form.timeout.data
 
         except (ActionInProgressException, InsufficientRightsException) as e:
-            flask.flash(str(e))
+            flask.flash(str(e), "error")
             db.session.rollback()
             shutil.rmtree(tmp)
         else:
@@ -227,7 +227,7 @@ def copr_new_build(username, coprname):
                         build.timeout = form.timeout.data
 
             except (ActionInProgressException, InsufficientRightsException) as e:
-                flask.flash(str(e))
+                flask.flash(str(e), "error")
                 db.session.rollback()
             else:
                 for pkg in pkgs:
@@ -257,7 +257,7 @@ def copr_cancel_build(username, coprname, build_id, page=1):
     try:
         builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
     except InsufficientRightsException as e:
-        flask.flash(str(e))
+        flask.flash(str(e), "error")
     else:
         db.session.commit()
         flask.flash("Build was canceled")
@@ -332,7 +332,7 @@ def copr_delete_build(username, coprname, build_id, page=1):
     try:
         builds_logic.BuildsLogic.delete_build(flask.g.user, build)
     except (InsufficientRightsException, ActionInProgressException) as e:
-        flask.flash(str(e))
+        flask.flash(str(e), "error")
     else:
         db.session.commit()
         flask.flash("Build was deleted")

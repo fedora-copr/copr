@@ -1,3 +1,4 @@
+{% from "_helpers.html" import alert %}
 <!doctype html>
 <html>
 <head>
@@ -92,15 +93,11 @@
   <div class="container">
 
     <!-- Flash messages -->
-    {% for message in get_flashed_messages() %}
-    <div class="alert alert-info alert-dismissable">
-      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-        <span class="pficon pficon-close"></span>
-      </button>
-      <span class="pficon pficon-info"></span>
-      {{ message }}
-    </div>
-    {% endfor %}  
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for type, message in messages %}
+        {{ alert(message, type) }}
+      {% endfor %}  
+    {% endwith %}
 
     <!-- the actual content -->
     {% block body %}{% endblock %}

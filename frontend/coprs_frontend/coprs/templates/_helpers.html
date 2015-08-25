@@ -92,3 +92,38 @@
     {{ chroot.os_release | capitalize }} {{ chroot.os_version }}
   {% endif %}
 {% endmacro %}
+
+
+{% macro alert(message, type=None) %}
+  {% if type == "error" %}
+  <div class="alert alert-danger alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+      <span class="pficon pficon-close"></span>
+    </button>
+    <span class="pficon pficon-error-circle-o"></span>
+
+  {% elif type == "warning" %}
+  <div class="alert alert-warning alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+      <span class="pficon pficon-close"></span>
+    </button>
+    <span class="pficon pficon-warning-triangle-o"></span>
+
+  {% elif type == "success" %}
+  <div class="alert alert-success alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+      <span class="pficon pficon-close"></span>
+    </button>
+    <span class="pficon pficon-ok"></span>
+
+  {% else %}
+  <div class="alert alert-info alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+      <span class="pficon pficon-close"></span>
+    </button>
+    <span class="pficon pficon-info"></span>
+  {% endif %}
+
+  {{ message }}
+  </div>
+{% endmacro %}
