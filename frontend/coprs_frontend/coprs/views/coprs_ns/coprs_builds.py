@@ -174,7 +174,7 @@ def copr_new_build_upload(username, coprname):
             db.session.rollback()
             shutil.rmtree(tmp)
         else:
-            flask.flash("New build was created")
+            flask.flash("New build has been created.")
         db.session.commit()
 
         return flask.redirect(flask.url_for("coprs_ns.copr_builds",
@@ -231,7 +231,7 @@ def copr_new_build(username, coprname):
                 db.session.rollback()
             else:
                 for pkg in pkgs:
-                    flask.flash("New build was created: {}".format(pkg))
+                    flask.flash("New build has been created: {}".format(pkg))
 
                 db.session.commit()
 
@@ -260,7 +260,7 @@ def copr_cancel_build(username, coprname, build_id, page=1):
         flask.flash(str(e), "error")
     else:
         db.session.commit()
-        flask.flash("Build was canceled")
+        flask.flash("Build {} has been canceled successfully.".format(build_id), "success")
 
     return flask.redirect(flask.url_for("coprs_ns.copr_builds",
                                         username=username,
@@ -335,7 +335,7 @@ def copr_delete_build(username, coprname, build_id, page=1):
         flask.flash(str(e), "error")
     else:
         db.session.commit()
-        flask.flash("Build was deleted")
+        flask.flash("Build has been deleted successfully.", "success")
 
     return flask.redirect(flask.url_for("coprs_ns.copr_builds",
                                         username=username, coprname=coprname,

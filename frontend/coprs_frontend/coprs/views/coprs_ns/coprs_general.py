@@ -155,7 +155,7 @@ def copr_new(username):
         )
 
         db.session.commit()
-        flask.flash("New project was successfully created.", "success")
+        flask.flash("New project has ben created successfully.", "success")
 
         if form.initial_pkgs.data:
             pkgs = form.initial_pkgs.data.replace("\n", " ").split(" ")
@@ -354,7 +354,7 @@ def copr_update(username, coprname):
             flask.flash(str(e), "error")
             db.session.rollback()
         else:
-            flask.flash("Project was updated successfully.", "success")
+            flask.flash("Project has been updated successfully.", "success")
             db.session.commit()
 
         return flask.redirect(flask.url_for("coprs_ns.copr_detail",
@@ -522,7 +522,7 @@ def copr_delete(username, coprname):
                                                 coprname=coprname))
         else:
             db.session.commit()
-            flask.flash("Project was deleted successfully.")
+            flask.flash("Project has been deleted successfully.")
             return flask.redirect(flask.url_for("coprs_ns.coprs_by_owner",
                                                 username=username))
     else:
@@ -572,7 +572,7 @@ def copr_legal_flag(username, coprname):
     s.sendmail("root@{0}".format(hostname), send_to, msg.as_string())
     s.quit()
 
-    flask.flash("Admin was noticed about your report"
+    flask.flash("Admin has been noticed about your report"
                 " and will investigate the project shortly.")
 
     return flask.redirect(flask.url_for("coprs_ns.copr_detail",

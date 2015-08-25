@@ -76,7 +76,7 @@ def chroot_update(username, coprname, chrootname):
                 CoprChrootsLogic.remove_comps(chroot)
 
             flask.flash(
-                "Buildroot {0} for project {1} was updated".format(
+                "Buildroot {0} in project {1} has been updated successfully.".format(
                     chrootname, coprname))
 
             db.session.commit()
