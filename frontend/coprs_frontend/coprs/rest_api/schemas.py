@@ -1,5 +1,20 @@
 # coding: utf-8
+
+from collections import Iterable
 from marshmallow import Schema, fields
+
+
+class SpaceSeparatedList(fields.Field):
+    def _serialize(self, value, attr, obj):
+        if value is None:
+            return []
+        return value.split()
+
+    def _deserialize(self, value):
+        if value is None or not isinstance(value, Iterable):
+            return ""
+        else:
+            return " ".join(value)
 
 
 class AllowedMethodSchema(Schema):
@@ -29,7 +44,8 @@ class ProjectSchema(Schema):
     build_enable_net = fields.Bool()
     last_modified = fields.DateTime()
 
-    additional_repos = fields.List(fields.Str(), attribute="repos_list")
+    #additional_repos = fields.List(fields.Str(), attribute="repos_list")
+    repos = SpaceSeparatedList()
 
     # used only for creation
     chroots = fields.List(fields.Str(), load_only=True)
@@ -37,11 +53,11 @@ class ProjectSchema(Schema):
 
 class CoprChrootSchema(Schema):
 
-    buildroot_pkgs = fields.List(fields.Str(), attribute="buildroot_pkgs_list")
+    buildroot_pkgs = SpaceSeparatedList()
     name = fields.Str(dump_only=True)
 
-    comps = fields.Str(dump_only=True)
-    comps_name = fields.Str()
+    comps = fields.Str(allow_none=True)
+    comps_name = fields.Str(allow_none=True)
     comps_len = fields.Int(dump_only=True)
 
 

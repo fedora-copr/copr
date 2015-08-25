@@ -362,18 +362,22 @@ class CoprChrootsLogic(object):
         return mock_chroots
 
     @classmethod
+    def get_by_name(cls, copr, chroot_name):
+        mc = MockChrootsLogic.get_from_name(chroot_name, active_only=True).one()
+        query = (
+            models.CoprChroot.query.join(models.MockChroot)
+            .filter(models.CoprChroot.copr_id == copr.id)
+            .filter(models.MockChroot.id == mc.id)
+        )
+        return query
+
+    @classmethod
     def get_by_name_safe(cls, copr, chroot_name):
         """
         :rtype: models.CoprChroot
         """
         try:
-            mc = MockChrootsLogic.get_from_name(chroot_name, active_only=True).one()
-            query = (
-                models.CoprChroot.query.join(models.MockChroot)
-                .filter(models.CoprChroot.copr_id == copr.id)
-                .filter(models.MockChroot.id == mc.id)
-            )
-            return query.one()
+            return cls.get_by_name(copr, chroot_name).one()
         except NoResultFound:
             return None
 
@@ -388,17 +392,24 @@ class CoprChrootsLogic(object):
                 models.CoprChroot(copr=copr, mock_chroot=mock_chroot))
 
     @classmethod
-    def update_chroot(cls, user, copr_chroot, buildroot_pkgs, comps=None, comps_name=None):
+    def update_chroot(cls, user, copr_chroot,
+                      buildroot_pkgs, comps=None, comps_name=None):
+        """
+        :type user: models.User
+        :type copr_chroot: models.CoprChroot
+        """
         UsersLogic.raise_if_cant_update_copr(
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
         copr_chroot.buildroot_pkgs = buildroot_pkgs
         if comps_name is not None:
-            copr_chroot.comps_zlib = comps
+            copr_chroot.update_comps(comps)
             copr_chroot.comps_name = comps_name
             ActionsLogic.send_update_comps(copr_chroot)
         db.session.add(copr_chroot)
+
+        return copr_chroot
 
     @classmethod
     def update_from_names(cls, user, copr, names):

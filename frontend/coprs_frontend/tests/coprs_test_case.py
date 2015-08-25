@@ -108,11 +108,13 @@ class CoprsTestCase(object):
         """
         Requires f_users
         """
+        self.user_api_creds = {}
         for idx, u in enumerate([self.u1, self.u2, self.u3]):
             u.api_login = "foo_{}".format(idx)
             u.api_token = "bar_{}".format(idx)
 
             u.api_token_expiration = datetime.date.today() + datetime.timedelta(days=1000)
+            self.user_api_creds[u.username] = {"login": u.api_login, "token": u.api_token}
 
     @pytest.fixture
     def f_coprs(self):
@@ -356,11 +358,12 @@ class CoprsTestCase(object):
     def request_rest_api_with_auth(self, url, login=None, token=None, content=None, method="GET"):
         """
         :rtype: flask.wrappers.Response
+        Requires f_users_api fixture
         """
         if login is None:
-            login = self.u1.api_login
+            login = self.user_api_creds["user1"]["login"]
         if token is None:
-            token = self.u1.api_token
+            token = self.user_api_creds["user1"]["token"]
 
         userstring = "{}:{}".format(login, token)
         base64string_user = base64.b64encode(userstring)
@@ -369,7 +372,6 @@ class CoprsTestCase(object):
         kwargs = dict(
             method=method,
             content_type="application/json",
-
             headers={
                 "Authorization": base64string
             }

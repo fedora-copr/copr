@@ -63,14 +63,14 @@ def chroot_update(username, coprname, chrootname):
         if "submit" in flask.request.form:
             action = flask.request.form["submit"]
             if action == "update":
-                comps_name = comps_blob = None
+                comps_name = comps_xml = None
                 if form.comps.has_file():
-                    comps_blob = compress(form.comps.data.stream.read())
+                    comps_xml = form.comps.data.stream.read()
                     comps_name = form.comps.data.filename
 
                 coprs_logic.CoprChrootsLogic.update_chroot(
                     flask.g.user, chroot, form.buildroot_pkgs.data,
-                    comps=comps_blob, comps_name=comps_name)
+                    comps=comps_xml, comps_name=comps_name)
 
             elif action == "delete_comps":
                 CoprChrootsLogic.remove_comps(flask.g.user, chroot)

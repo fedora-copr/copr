@@ -68,10 +68,12 @@ api.add_resource(BuildChrootR, "/builds/<int:build_id>/chroots/<name>")
 def register_api_error_handler(app):
     @app.errorhandler(ApiError)
     def handle_api_error(error):
-        response = Response(
-            response="{}\n".format(error.data),
+        kwargs = dict(
             status=error.code,
             mimetype="text/plain",
             headers=error.headers,
         )
-        return response
+        if error.data:
+            kwargs["response"] = "{}\n".format(error.data)
+
+        return Response(**kwargs)

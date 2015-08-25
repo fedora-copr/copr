@@ -97,10 +97,9 @@ class ProjectListR(Resource):
                 "homepage",
                 "auto_createrepo",
                 "build_enable_net",
+                "repos"
             ] if k in req
         }
-        if "repos_list" in req:
-            extra["repos"] = " ".join(req["repos_list"])
 
         try:
             copr = CoprsLogic.add(
