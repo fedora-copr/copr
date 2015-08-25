@@ -90,35 +90,68 @@
   #}
 
   <!-- CONTENT -->
-  <div class="container">
-
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for type, message in messages %}
-        {{ alert(message, type) }}
-      {% endfor %}  
-    {% endwith %}
-
-    <!-- the actual content -->
-    {% block body %}{% endblock %}
-
-  </div>
-  <footer class="footer">
-    <hr></hr>
+  <div id=content>
     <div class="container">
-      <div class="text-center">
-        <ul class="list-inline">
-          <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li>
-          <li> <a href="https://fedorahosted.org/copr/">Copr Project</a> </li>
-          <li> <a href="https://fedorahosted.org/copr/wiki/UserDocs#FAQ">FAQ</a> </li>
-          <li> <a href="{{ url_for('api_ns.api_home') }}">API</a> </li>
-        </ul>
-        <small>
-          Copr frontend build version: __RPM_BUILD_VERSION
-        </small>
-      </div>
+
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for type, message in messages %}
+          {{ alert(message, type) }}
+        {% endfor %}  
+      {% endwith %}
+
+      <!-- the actual content -->
+      {% block body %}{% endblock %}
+
     </div>
-  </footer>
+    <footer class="footer">
+      <div>
+        <div class="container text-muted">
+          <div class="text-center">
+            <div class="row">
+              <div class="col-sm-4">
+                <dl>
+                  <dt> Copr Project </dt>
+                  <dd>
+                    <ul class="list-unstyled">
+                      <li> <a href="https://fedorahosted.org/copr/">Project Homepage</a> </li>
+                      <li> <a href="https://fedorahosted.org/copr/wiki/UserDocs#FAQ">FAQ</a> </li>
+                    </ul>
+                  </dd>
+                </dl>
+              </div>
+              <div class="col-sm-4">
+                <dl>
+                  <dt> Site Navigation </dt>
+                  <dd>
+                    <ul class="list-unstyled">
+                      <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li>
+                      <li> <a href="{{url_for('status_ns.importing')}}">Task Queue</a> </li>
+                      <li> <a href="{{ url_for('api_ns.api_home') }}">API</a> </li>
+                    </ul>
+                  </dd>
+                </dl>
+              </div>
+              <div class="col-sm-4">
+                <dl>
+                  <dt> Powered by </dt>
+                  <dd>
+                    <ul class="list-unstyled">
+                      <li> <a href="https://www.patternfly.org">PatternFly </a> </li>
+                      <li> <a href="https://github.com/release-engineering/dist-git">Dist Git</a> </li>
+                    </ul>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+            <small class="text-muted">
+              Copr frontend build version: __RPM_BUILD_VERSION
+            </small>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
 
   <!-- FEDORA MENU -->
   {% if fedmenu_url is defined %}
