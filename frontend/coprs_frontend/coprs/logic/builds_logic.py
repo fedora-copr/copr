@@ -7,6 +7,7 @@ import pprint
 import time
 from sqlalchemy import or_
 from sqlalchemy import and_
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false
 
 from coprs import app
@@ -15,12 +16,15 @@ from coprs import exceptions
 from coprs import models
 from coprs import helpers
 from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
+from coprs.exceptions import MalformedArgumentException
 from coprs.helpers import StatusEnum
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
 from coprs.logic import packages_logic
 from coprs.logic.actions_logic import ActionsLogic
+from coprs.models import BuildChroot
+from .coprs_logic import MockChrootsLogic
 
 log = app.logger
 
@@ -382,6 +386,18 @@ class BuildsLogic(object):
             return None
 
 
+class BuildChrootsLogic(object):
+    @classmethod
+    def get_by_build_id_and_name(cls, build_id, name):
+        mc = MockChrootsLogic.get_from_name(name).one()
+
+        return (
+            BuildChroot.query
+            .filter(BuildChroot.build_id == build_id)
+            .filter(BuildChroot.mock_chroot_id == mc.id)
+        )
+
+
 class BuildsMonitorLogic(object):
     @classmethod
     def get_monitor_data(cls, copr):
@@ -390,7 +406,8 @@ class BuildsMonitorLogic(object):
         for pkg in copr_packages:
             chroots = {}
             for ch in copr.active_chroots:
-                query = (models.BuildChroot.query.join(models.Build)
+                query = (
+                    models.BuildChroot.query.join(models.Build)
                     .filter(models.Build.package_id == pkg.id)
                     .filter(models.BuildChroot.mock_chroot_id == ch.id)
                     .filter(models.BuildChroot.status != helpers.StatusEnum("canceled")))

@@ -36,17 +36,10 @@ class TestMockChrootResource(CoprsTestCase):
         assert len(obj["chroots"]) == expected_len
 
     def test_post_not_allowed(self, f_mock_chroots, f_db, f_users, f_users_api):
-        data = {
-            u'arch': u'i386',
-            u'is_active': True,
-            u'name': u'fedora-99-i386',
-            u'os_release': u'fedora',
-            u'os_version': u'99'
-        }
         r0 = self.request_rest_api_with_auth(
             "/api_2/mock_chroots",
             method="post",
-            content=data,
+            content={},
         )
         assert r0.status_code == 405
 

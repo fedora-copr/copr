@@ -205,6 +205,7 @@ class CoprsTestCase(object):
         self.b4 = models.Build(
             copr=self.c2, package=self.p2, user=self.u2, submitted_on=100)
 
+        self.basic_builds = [self.b1, self.b2, self.b3, self.b4]
         self.b1_bc = []
         self.b2_bc = []
         self.b3_bc = []

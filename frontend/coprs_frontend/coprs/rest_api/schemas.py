@@ -76,12 +76,14 @@ class BuildChrootSchema(Schema):
 class BuildSchema(Schema):
 
     id = fields.Int()
+    state = fields.Str()
+
     pkgs = fields.Str()
     build_packages = fields.Str()
     pkg_version = fields.Str()
 
     repos_list = fields.List(fields.Str())
-    repos = fields.Str()  # legacy
+    repos = fields.Str()  # todo: replace with SpaceSeparatedList
 
     submitted_on = fields.Int()
     started_on = fields.Int()
@@ -94,3 +96,5 @@ class BuildSchema(Schema):
 
     source_type = fields.Int()
     source_json = fields.Str()
+
+    # owner = fields.Function(lambda b: b.copr.owner.username, dump_only=True)
