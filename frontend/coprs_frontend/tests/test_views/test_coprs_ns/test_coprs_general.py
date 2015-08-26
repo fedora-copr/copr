@@ -87,7 +87,7 @@ class TestCoprsAllowed(CoprsTestCase):
 
 
 class TestCoprNew(CoprsTestCase):
-    success_string = "New project was successfully created"
+    success_string = "New project has been created successfully."
 
     @TransactionDecorator("u1")
     def test_copr_new_normal(self, f_users, f_mock_chroots, f_db):
@@ -308,7 +308,7 @@ class TestCoprUpdate(CoprsTestCase):
                                         "id": self.c1.id},
                                   follow_redirects=True)
 
-        assert "Project was updated successfully" in r.data
+        assert "Project has been updated successfully" in r.data
 
     @TransactionDecorator("u1")
     def test_copr_admin_can_update(self, f_users, f_coprs,
@@ -322,7 +322,7 @@ class TestCoprUpdate(CoprsTestCase):
                                         "id": self.c3.id},
                                   follow_redirects=True)
 
-        assert "Project was updated successfully" in r.data
+        assert "Project has been updated successfully" in r.data
 
     @TransactionDecorator("u1")
     def test_update_multiple_chroots(self, f_users, f_coprs,
@@ -338,7 +338,7 @@ class TestCoprUpdate(CoprsTestCase):
                                         "id": self.c1.id},
                                   follow_redirects=True)
 
-        assert "Project was updated successfully" in r.data
+        assert "Project has been updated successfully" in r.data
         self.c1 = self.db.session.merge(self.c1)
         self.mc1 = self.db.session.merge(self.mc1)
         self.mc2 = self.db.session.merge(self.mc2)
@@ -372,7 +372,7 @@ class TestCoprUpdate(CoprsTestCase):
                                         "id": self.c2.id},
                                   follow_redirects=True)
 
-        assert "Project was updated successfully" in r.data
+        assert "Project has been updated successfully" in r.data
         self.c2 = self.db.session.merge(self.c2)
         self.mc1 = self.db.session.merge(self.mc1)
         mock_chroots = (self.models.MockChroot.query
@@ -593,7 +593,7 @@ class TestCoprDelete(CoprsTestCase):
                                   data={"verify": "yes"},
                                   follow_redirects=True)
 
-        assert "Project was deleted successfully" in r.data
+        assert "Project has been deleted successfully" in r.data
         self.db.session.add(self.c1)
         assert self.models.Action.query.first().id == self.c1.id
         assert self.models.Copr.query.filter(
@@ -609,7 +609,7 @@ class TestCoprDelete(CoprsTestCase):
                                   data={"verify": "no"},
                                   follow_redirects=True)
 
-        assert "Project was deleted successfully" not in r.data
+        assert "Project has been deleted successfully" not in r.data
         assert not self.models.Action.query.first()
         assert self.models.Copr.query.filter(
             self.models.Copr.id == self.c1.id).first()
@@ -622,7 +622,7 @@ class TestCoprDelete(CoprsTestCase):
                                   data={"verify": "yes"},
                                   follow_redirects=True)
         self.c1 = self.db.session.merge(self.c1)
-        assert "Project was deleted successfully" not in r.data
+        assert "Project has been deleted successfully" not in r.data
         assert not self.models.Action.query.first()
         assert self.models.Copr.query.filter(
             self.models.Copr.id == self.c1.id).first()
@@ -679,7 +679,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
     def test_fail_on_missing_dash(self):
         r = self.tc.get("/coprs/reponamewithoutdash/repo/")
         assert r.status_code == 404
-        assert "Copr with name repo does not exist" in r.data
+        assert "Project repo does not exist" in r.data
 
     def test_fail_on_nonexistent_copr(self):
         r = self.tc.get(

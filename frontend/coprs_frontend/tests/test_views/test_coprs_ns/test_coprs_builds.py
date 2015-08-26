@@ -129,7 +129,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
             .format(self.u1.name, self.c1.name, self.b1.id),
             data={},
             follow_redirects=True)
-        assert "Build was deleted" in r.data
+        assert "Build has been deleted" in r.data
         b = (self.models.Build.query.filter(
             self.models.Build.id == self.b1.id)
             .first())
@@ -268,6 +268,6 @@ class TestCoprRepeatBuild(CoprsTestCase):
         for i, url in enumerate(urls):
             r.insert(i, self.test_client.post(route, data={"pkgs": url}, follow_redirects=True))
 
-        assert "New build was created" in r[0].data
+        assert "New build has been created" in r[0].data
         assert "doesn&#39;t seem to be a valid URL" in r[1].data
         assert "doesn&#39;t seem to be a valid SRPM URL" in r[2].data
