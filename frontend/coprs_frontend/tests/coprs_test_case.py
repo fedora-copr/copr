@@ -135,6 +135,7 @@ class CoprsTestCase(object):
         self.mc4 = models.MockChroot(
             os_release="fedora", os_version="rawhide", arch="i386", is_active=True)
 
+        self.mc_basic_list = [self.mc1, self.mc2, self.mc3, self.mc4]
         # only bind to coprs if the test has used the f_coprs fixture
         if hasattr(self, "c1"):
             cc1 = models.CoprChroot()

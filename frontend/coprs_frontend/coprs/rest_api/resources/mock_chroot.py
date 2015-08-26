@@ -14,21 +14,38 @@ from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLog
 from ..util import get_one_safe, json_loads_safe, mm_deserialize
 
 
+def render_mock_chroot(chroot):
+    return {
+        "chroot": MockChrootSchema().dump(chroot)[0],
+        "_links": {
+            "self": {"href": url_for(".mockchrootr", name=chroot.name)},
+            "all_chroots": {"href": url_for(".mockchrootlistr")}
+        },
+    }
+
+
 class MockChrootListR(Resource):
+
     def get(self):
-        # todo: add argument active_only
-        chroots = MockChrootsLogic.get_multiple(active_only=False).all()
+        parser = reqparse.RequestParser()
+        parser.add_argument('active_only', type=bool)
+        req_args = parser.parse_args()
+        active_only = False
+        if req_args["active_only"]:
+            active_only = True
+
+        chroots = MockChrootsLogic.get_multiple(active_only=active_only).all()
+
+        self_extra = {}
+        if active_only:
+            self_extra["active_only"] = active_only
         return {
             "_links": {
-                "self": {"href": url_for(".mockchrootlistr")},
+                "self": {"href": url_for(".mockchrootlistr", **self_extra)},
             },
             "chroots": [
-                {
-                    "chroot": MockChrootSchema().dump(chroot)[0],
-                    "_links": {
-                        "self": {"href": url_for(".mockchrootr", name=chroot.name)},
-                    }
-                } for chroot in chroots
+                render_mock_chroot(chroot)
+                for chroot in chroots
             ]
         }
 
@@ -36,11 +53,4 @@ class MockChrootListR(Resource):
 class MockChrootR(Resource):
     def get(self, name):
         chroot = get_one_safe(MockChrootsLogic.get_from_name(name))
-        return {
-            "chroot": MockChrootSchema().dump(chroot)[0],
-            "_links": {
-                "self": {"href": url_for(".mockchrootr", name=chroot.name)},
-                "all_chroots": {"href": url_for(".mockchrootlistr")}
-            },
-        }
-
+        return render_mock_chroot(chroot)
