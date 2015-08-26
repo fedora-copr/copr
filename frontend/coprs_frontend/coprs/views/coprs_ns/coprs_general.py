@@ -155,7 +155,7 @@ def copr_new(username):
         )
 
         db.session.commit()
-        flask.flash("New project has ben created successfully.", "success")
+        flask.flash("New project has been created successfully.", "success")
 
         if form.initial_pkgs.data:
             pkgs = form.initial_pkgs.data.replace("\n", " ").split(" ")
