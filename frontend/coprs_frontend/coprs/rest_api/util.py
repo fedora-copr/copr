@@ -34,8 +34,8 @@ def json_loads_safe(raw, data_on_error=None):
                                "Failed to deserialize json string")
 
 
-def mm_deserialize(schema, obj_dict):
-    result = schema.loads(obj_dict)
+def mm_deserialize(schema, json_string):
+    result = schema.loads(json_string)
     if result.errors:
         raise MalformedRequest(data="Failed to parse request: {}"
                                .format(result.errors))

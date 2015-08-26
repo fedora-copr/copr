@@ -54,7 +54,7 @@ Requires:   pytz
 Requires:   python-six
 Requires:   python-netaddr
 Requires:   python-flask-restful
-Requires:   python-marshmallow
+Requires:   python-marshmallow >= 2.0.0
 # for tests:
 Requires:   pytest
 Requires:   python-flexmock
@@ -88,7 +88,7 @@ BuildRequires: python-decorator
 BuildRequires: python-markdown
 BuildRequires: pytz
 BuildRequires: python-flask-restful
-BuildRequires: python-marshmallow
+BuildRequires: python-marshmallow >= 2.0.0
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,

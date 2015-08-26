@@ -103,6 +103,15 @@ class TestProjectChrootResource(CoprsTestCase):
         assert r3.status_code == 200
         assert_content(json.loads(r3.data)["chroot"])
 
+        # test put with excessive name field
+        data["name"] = chroot_name
+        r4 = self.request_rest_api_with_auth(
+            "/api_2/projects/1/chroots/{}".format(chroot_name),
+            method="put",
+            content=data
+        )
+        assert r4.status_code == 200
+
     def test_put_erasing(self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
         chroot_name = self.mc1.name
         self.db.session.commit()
