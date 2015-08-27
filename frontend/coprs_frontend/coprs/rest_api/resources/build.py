@@ -16,6 +16,17 @@ from coprs.rest_api.util import get_one_safe
 from flask_restful import Resource, reqparse
 
 
+def render_build(build):
+    return {
+        "build": BuildSchema().dump(build)[0],
+        "_links": {
+            "self": {"href": url_for(".buildr", build_id=build.id)},
+            "project": {"href": url_for(".projectr", project_id=build.copr_id)},
+            "chroots": {"href": url_for(".buildchrootlistr", build_id=build.id)}
+        }
+    }
+
+
 class BuildListR(Resource):
 
     def get(self):
@@ -33,7 +44,7 @@ class BuildListR(Resource):
         if req_args["project_id"] is not None:
             copr = get_one_safe(CoprsLogic.get_by_id(req_args["project_id"]))
             query = BuildsLogic.get_multiple_by_copr(copr)
-        elif req_args["owner" ] is not None:
+        elif req_args["owner"] is not None:
             user = get_one_safe(UsersLogic.get(req_args["owner"]))
             query = BuildsLogic.get_multiple_by_owner(user)
         else:
@@ -58,12 +69,7 @@ class BuildListR(Resource):
         return {
 
             "builds": [
-                {
-                    "build": BuildSchema().dump(build)[0],
-                    "_links": {
-                        "self": {"href": url_for(".buildr", build_id=build.id)},
-                    }
-                } for build in builds
+                render_build(build) for build in builds
             ],
             "_links": {
                 "self": {"href": url_for(".buildlistr", **self_params)},
@@ -78,14 +84,7 @@ class BuildR(Resource):
         build = get_one_safe(BuildsLogic.get(build_id),
                              "Not found build with id: {}".format(build_id))
 
-        return {
-            "build": BuildSchema().dump(build)[0],
-            "_links": {
-                "self": {"href": url_for(".buildr", build_id=build_id)},
-                "project": {"href": url_for(".projectr", project_id=build.copr_id)},
-                "chroots": {"href": url_for(".buildchrootlistr", build_id=build_id)}
-            }
-        }
+        return render_build(build)
 
 
 # to get build details and cancel individual build chroots

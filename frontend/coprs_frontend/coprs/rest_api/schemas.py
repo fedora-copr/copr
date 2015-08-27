@@ -75,7 +75,7 @@ class BuildChrootSchema(Schema):
 
 class BuildSchema(Schema):
 
-    id = fields.Int()
+    id = fields.Int(dump_only=True)
     state = fields.Str()
 
     pkgs = fields.Str()

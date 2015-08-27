@@ -2,35 +2,122 @@
 
 import json
 from marshmallow import pprint
+import math
 
 import pytest
 import sqlalchemy
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.builds_logic import BuildsLogic
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
 class TestBuildResource(CoprsTestCase):
 
+    @staticmethod
+    def extract_build_ids(response_object):
+        return set([
+            b_dict["build"]["id"]
+            for b_dict in response_object["builds"]
+        ])
+
     def test_collection_ok(self, f_users, f_coprs, f_builds, f_db,
                            f_users_api, f_mock_chroots):
 
-        # project_id = self.c1.id
-
-        href = "/api_2/builds/chroots"
-        expected_len = len(self.basic_builds)
+        href = "/api_2/builds"
         self.db.session.commit()
         r = self.tc.get(href)
+        assert r.status_code == 200
+        obj = json.loads(r.data)
 
-    def test_collection_ok_by_username(
-            self, f_users, f_coprs, f_builds, f_db,
-            f_users_api, f_mock_chroots):
+        # not a pure test, but we test API here
+        builds = BuildsLogic.get_multiple().all()
+        expected_ids = set([b.id for b in builds])
 
-        # project_id = self.c1.id
+        assert expected_ids == self.extract_build_ids(obj)
 
-        href = "/api_2/builds?owner={}".format(self.u1.username)
-        expected_len = 2
+    def test_collection_by_owner(self, f_users, f_coprs, f_builds, f_db,
+                           f_users_api, f_mock_chroots):
+
+        names_list = [user.username for user in self.basic_user_list]
+        for user_name in names_list:
+            href = "/api_2/builds?owner={}".format(user_name)
+            self.db.session.commit()
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+
+            # not a pure test, but we test API here
+            builds = [
+                b for b in BuildsLogic.get_multiple().all()
+                if b.copr.owner.username == user_name
+            ]
+            expected_ids = set([b.id for b in builds])
+            assert expected_ids == self.extract_build_ids(obj)
+
+    def test_collection_by_project_id(self, f_users, f_coprs, f_builds, f_db,
+                           f_users_api, f_mock_chroots):
+
+        project_id_list = [copr.id for copr in self.basic_coprs_list]
+        for id_ in project_id_list:
+            href = "/api_2/builds?project_id={}".format(id_)
+            self.db.session.commit()
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+
+            # not a pure test, but we test API here
+            builds = [
+                b for b in BuildsLogic.get_multiple().all()
+                if b.copr.id == id_
+            ]
+            expected_ids = set([b.id for b in builds])
+            assert expected_ids == self.extract_build_ids(obj)
+
+    def test_collection_limit_offset(self, f_users, f_coprs, f_builds, f_db,
+                           f_users_api, f_mock_chroots):
         self.db.session.commit()
-        r = self.tc.get(href)
+        builds = BuildsLogic.get_multiple().all()
+        total = len(builds)
+
+        # test limit
+        for lim in range(1, total + 1):
+            href = "/api_2/builds?limit={}".format(lim)
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+            builds = obj["builds"]
+            assert len(builds) == lim
+
+            if lim > 2:
+                delta = int(math.floor(lim / 2))
+                href1 = "/api_2/builds?limit={}".format(delta)
+                href2 = "/api_2/builds?limit={0}&offset={0}".format(delta)
+
+                r1 = self.tc.get(href1)
+                r2 = self.tc.get(href2)
+
+                assert r1.status_code == 200
+                assert r2.status_code == 200
+
+                obj1 = json.loads(r1.data)
+                obj2 = json.loads(r2.data)
+
+                assert builds[:delta] == obj1["builds"]
+                assert builds[delta:2 * delta] == obj2["builds"]
+
+    def test_get_one(self, f_users, f_coprs, f_builds, f_db,
+                           f_users_api, f_mock_chroots):
+
+        build_id_list = [b.id for b in self.basic_builds]
+        self.db.session.commit()
+
+        for b_id in build_id_list:
+            href = "/api_2/builds/{}".format(b_id)
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+            assert obj["build"]["id"] == b_id
+            assert obj["_links"]["self"]["href"] == href

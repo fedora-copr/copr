@@ -101,7 +101,9 @@ class CoprsTestCase(object):
             proven=False,
             mail="baz@bar.bar")
 
-        self.db.session.add_all([self.u1, self.u2, self.u3])
+        self.basic_user_list = [self.u1, self.u2, self.u3]
+
+        self.db.session.add_all(self.basic_user_list)
 
     @pytest.fixture
     def f_users_api(self):
@@ -122,7 +124,8 @@ class CoprsTestCase(object):
         self.c2 = models.Copr(name=u"foocopr", owner=self.u2)
         self.c3 = models.Copr(name=u"barcopr", owner=self.u2)
 
-        self.db.session.add_all([self.c1, self.c2, self.c3])
+        self.basic_coprs_list = [self.c1, self.c2, self.c3]
+        self.db.session.add_all(self.basic_coprs_list)
 
     @pytest.fixture
     def f_mock_chroots(self):
