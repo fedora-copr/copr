@@ -360,7 +360,11 @@ class CoprsTestCase(object):
                                 created_on=int(time.time()))
         self.db.session.add_all([self.a1, self.a2, self.a3])
 
-    def request_rest_api_with_auth(self, url, login=None, token=None, content=None, method="GET"):
+    def request_rest_api_with_auth(self, url,
+                                   login=None, token=None,
+                                   content=None, method="GET",
+                                   headers=None, data=None,
+                                   content_type="application/json"):
         """
         :rtype: flask.wrappers.Response
         Requires f_users_api fixture
@@ -370,21 +374,33 @@ class CoprsTestCase(object):
         if token is None:
             token = self.user_api_creds["user1"]["token"]
 
-        userstring = "{}:{}".format(login, token)
-        base64string_user = base64.b64encode(userstring)
-        base64string = "Basic " + base64string_user
+        req_headers = {
+            "Authorization": self._get_auth_string(login, token),
+        }
+        if headers:
+            req_headers.update(headers)
 
         kwargs = dict(
             method=method,
-            content_type="application/json",
-            headers={
-                "Authorization": base64string
-            }
+            content_type=content_type,
+            headers=req_headers,
+            buffered=True,
         )
+        if content is not None and data is not None:
+            raise RuntimeError("Don't specify content and data together")
+
         if content:
             kwargs["data"] = json.dumps(content)
+        if data:
+            kwargs["data"] = data
 
         return self.tc.open(url, **kwargs)
+
+    def _get_auth_string(self, login, token):
+        userstring = "{}:{}".format(login, token)
+        base64string_user = base64.b64encode(userstring)
+        base64string = "Basic " + base64string_user
+        return base64string
 
 
 class TransactionDecorator(object):

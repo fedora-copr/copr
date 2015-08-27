@@ -36,6 +36,7 @@ class TestProjectResource(CoprsTestCase):
 
         r = self.request_rest_api_with_auth("/api_2/projects", content=body, method="post")
         assert r.status_code == 201
+        # todo: test header Location
         copr_dict = json.loads(r.data)
         assert copr_dict["copr"]["id"] == 1
         r2 = self.tc.get("/api_2/projects/1/chroots")

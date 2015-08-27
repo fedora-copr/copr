@@ -1,14 +1,17 @@
 from collections import defaultdict
+import tempfile
 import urlparse
 import shutil
 import json
 import os
 import pprint
 import time
+import flask
 from sqlalchemy import or_
 from sqlalchemy import and_
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false
+from werkzeug.utils import secure_filename
 
 from coprs import app
 from coprs import db
@@ -16,7 +19,7 @@ from coprs import exceptions
 from coprs import models
 from coprs import helpers
 from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
-from coprs.exceptions import MalformedArgumentException
+from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException
 from coprs.helpers import StatusEnum
 
 from coprs.logic import coprs_logic
@@ -171,6 +174,60 @@ class BuildsLogic(object):
         return models.Build.query.get(build_id)
 
     @classmethod
+    def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
+                               chroot_names=None, **build_options):
+        """
+
+        :type user: models.User
+        :type copr: models.Copr
+        :param f_uploader(file_path): function which stores data at the given `file_path`
+        :return:
+        """
+        tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
+        tmp_name = os.path.basename(tmp)
+        filename = secure_filename(orig_filename)
+        file_path = os.path.join(tmp, filename)
+        f_uploader(file_path)
+
+        # make the pkg public
+        pkg_url = "https://{hostname}/tmp/{tmp_dir}/{srpm}".format(
+            hostname=app.config["PUBLIC_COPR_HOSTNAME"],
+            tmp_dir=tmp_name,
+            srpm=filename)
+
+        # import ipdb; ipdb.set_trace()
+        # check which chroots we need
+        chroots = []
+        for chroot in copr.active_chroots:
+            if chroot.name in chroot_names:
+                chroots.append(chroot)
+
+        # create json describing the build source
+        source_type = helpers.BuildSourceEnum("srpm_upload")
+        source_json = json.dumps({"tmp": tmp_name, "pkg": filename})
+        try:
+            build = cls.add(
+                user=user,
+                pkgs=pkg_url,
+                copr=copr,
+                chroots=chroots,
+                source_type=source_type,
+                source_json=source_json,
+                enable_net=build_options.get("enabled_net", True))
+
+            if user.proven:
+                if "timeout" in build_options:
+                    build.timeout = build_options["timeout"]
+        except (ActionInProgressException, InsufficientRightsException) as e:
+            db.session.rollback()
+            shutil.rmtree(tmp)
+            raise
+        else:
+            flask.flash("New build has been created.")
+
+        return build
+
+    @classmethod
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None,
             memory_reqs=None, timeout=None, enable_net=True,
@@ -187,6 +244,7 @@ class BuildsLogic(object):
         if not repos:
             repos = copr.repos
 
+        # todo: eliminate pkgs and this check
         if " " in pkgs or "\n" in pkgs or "\t" in pkgs or pkgs.strip() != pkgs:
             raise exceptions.MalformedArgumentException("Trying to create a build using src_pkg "
                                                         "with bad characters. Forgot to split?")
@@ -196,18 +254,6 @@ class BuildsLogic(object):
             source_type = helpers.BuildSourceEnum("srpm_link")
             source_json = json.dumps({"url":pkgs})
 
-        # We no longer guess package name just from the filename
-        #package_name = helpers.parse_package_name(os.path.basename(pkgs))
-
-        # And we no longer assign a package to the build (we don't know the package name, right...)
-        # This is done after package is imported.
-        #package = packages_logic.PackagesLogic.get(copr.id, package_name).first()
-
-        #if not package:
-        #    package = packages_logic.PackagesLogic.add(user, copr, package_name)
-        #    db.session.add(package)
-        #    db.session.flush()
-
         build = models.Build(
             user=user,
             pkgs=pkgs,
@@ -215,13 +261,9 @@ class BuildsLogic(object):
             repos=repos,
             source_type=source_type,
             source_json=source_json,
-            #package_id=package.id,
             submitted_on=int(time.time()),
             enable_net=bool(enable_net),
         )
-
-        if memory_reqs:
-            build.memory_reqs = memory_reqs
 
         if timeout:
             build.timeout = timeout or DEFAULT_BUILD_TIMEOUT

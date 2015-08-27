@@ -48,6 +48,7 @@ class TestBuildChrootResource(CoprsTestCase):
             "git_hash",
             "started_on",
             "ended_on",
+            "name"
         ]
         bc = self.b1_bc[0]
         expected_dict = {

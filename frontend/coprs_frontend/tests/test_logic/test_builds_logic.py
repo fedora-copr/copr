@@ -42,7 +42,6 @@ class TestBuildsLogic(CoprsTestCase):
             pkgs="blah",
             copr=self.c1,
             repos="repos",
-            memory_reqs=3000,
             timeout=5000)
 
         b = BuildsLogic.add(**params)
@@ -57,7 +56,6 @@ class TestBuildsLogic(CoprsTestCase):
             pkgs="blah blah",
             copr=self.c1,
             repos="repos",
-            memory_reqs=3000,
             timeout=5000)
 
         with pytest.raises(MalformedArgumentException):

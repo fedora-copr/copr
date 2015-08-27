@@ -1,17 +1,21 @@
 # coding: utf-8
 
 import flask
-from flask import url_for
+from flask import url_for, make_response
 
 # from flask_restful_swagger import swagger
 
+from coprs import db, models
+from coprs.exceptions import ActionInProgressException, InsufficientRightsException
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.rest_api.exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
+from coprs.rest_api.resources.project import rest_api_auth_required
 
-from coprs.rest_api.schemas import BuildSchema
+from coprs.rest_api.schemas import BuildSchema, BuildCreateSchema, BuildCreateFromUrlSchema
 
-from coprs.rest_api.util import get_one_safe
+from coprs.rest_api.util import get_one_safe, mm_deserialize
 
 from flask_restful import Resource, reqparse
 
@@ -75,6 +79,69 @@ class BuildListR(Resource):
                 "self": {"href": url_for(".buildlistr", **self_params)},
             },
         }
+
+    def handle_post_json(self, req):
+        """
+        :return: if of the created build or raise Exception
+        """
+        build_data = mm_deserialize(BuildCreateFromUrlSchema(), req.data)
+        raise NotImplementedError()
+
+
+    def handle_post_multipart(self, req):
+        """
+        :return: if of the created build or raise Exception
+        """
+        try:
+            metadata = req.form["metadata"]
+        except KeyError:
+            raise MalformedRequest("Missing build metadata in the request")
+
+        if "srpm" not in req.files:
+            raise MalformedRequest("Missing srpm file in the request")
+        srpm_handle = req.files["srpm"]
+
+        build_params = mm_deserialize(BuildCreateSchema(), metadata).data
+        project_id = build_params["project_id"]
+
+        project = get_one_safe(CoprsLogic.get_by_id(project_id))
+        """:type : models.Copr """
+
+        chroot_names = build_params.pop("chroots")
+        try:
+            build = BuildsLogic.create_new_from_upload(
+                flask.g.user, project,
+                f_uploader=lambda path: srpm_handle.save(path),
+                orig_filename=srpm_handle.filename,
+                chroot_names=chroot_names,
+                **build_params
+            )
+            db.session.commit()
+        except ActionInProgressException as err:
+            raise CannotProcessRequest("Cannot create new build due to: {}"
+                                       .format(err))
+        except InsufficientRightsException as err:
+            raise AccessForbidden("User {} cannon create build in project {}"
+                                  .format(flask.g.user.username,
+                                          project.full_name))
+
+        return build.id
+
+    @rest_api_auth_required
+    def post(self):
+
+        req = flask.request
+        if "application/json" in req.content_type:
+            build_id = self.handle_post_json(req)
+        elif "multipart/form-data" in req.content_type :
+            build_id = self.handle_post_multipart(req)
+        else:
+            raise MalformedRequest("Got unexpected content type: {}"
+                                   .format(req.content_type))
+        resp = make_response("", 201)
+        resp.headers["Location"] = url_for(".buildr", build_id=build_id)
+
+        return resp
 
 
 class BuildR(Resource):

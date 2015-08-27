@@ -47,6 +47,11 @@ class MalformedRequest(ApiError):
         super(MalformedRequest, self).__init__(400, data, **kwargs)
 
 
+class CannotProcessRequest(ApiError):
+    def __init__(self, data=None, **kwargs):
+        super(CannotProcessRequest, self).__init__(400, data, **kwargs)
+
+
 class ServerError(ApiError):
     def __init__(self, data=None, **kwargs):
         super(ServerError, self).__init__(500, data, **kwargs)

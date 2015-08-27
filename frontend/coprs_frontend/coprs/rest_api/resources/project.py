@@ -16,8 +16,6 @@ from coprs.logic.helpers import slice_query
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException
-from .build import BuildListR
-# from .chroot import CoprChrootListR, CoprChrootR
 from coprs.rest_api.schemas import ProjectSchema
 from ..exceptions import ObjectAlreadyExists, AuthFailed
 from ..util import get_one_safe, json_loads_safe, mm_deserialize, render_allowed_method, mm_serialize_one

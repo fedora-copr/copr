@@ -16,12 +16,13 @@ from coprs import helpers
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 from coprs.logic import packages_logic
+from coprs.logic.builds_logic import BuildsLogic
 
 from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.exceptions import (ActionInProgressException,
-                              InsufficientRightsException, MalformedArgumentException)
+                              InsufficientRightsException,)
 
 
 @coprs_ns.route("/build/<int:build_id>/")
@@ -132,50 +133,22 @@ def copr_new_build_upload(username, coprname):
     form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
 
     if form.validate_on_submit():
-        tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
-        tmp_name = os.path.basename(tmp)
-        filename = secure_filename(form.pkgs.data.filename)
-        file_path = os.path.join(tmp, filename)
-        form.pkgs.data.save(file_path)
+        build_options = {
+            "enable_net": form.enable_net.data,
+            "timeout": form.timeout.data,
+        }
 
-        # make the pkg public
-        pkg_url = "https://{hostname}/tmp/{tmp_dir}/{srpm}".format(
-            hostname=app.config["PUBLIC_COPR_HOSTNAME"],
-            tmp_dir=tmp_name,
-            srpm=filename)
-
-        # check which chroots we need
-        chroots = []
-        for chroot in copr.active_chroots:
-            if chroot.name in form.selected_chroots:
-                chroots.append(chroot)
-
-        # create json describing the build source
-        source_type = helpers.BuildSourceEnum("srpm_upload")
-        source_json = json.dumps({"tmp": tmp_name, "pkg": filename})
-
-        # create a new build
         try:
-            build = builds_logic.BuildsLogic.add(
-                user=flask.g.user,
-                pkgs=pkg_url,
-                copr=copr,
-                chroots=chroots,
-                source_type=source_type,
-                source_json=source_json,
-                enable_net=form.enable_net.data)
-
-            if flask.g.user.proven:
-                build.memory_reqs = form.memory_reqs.data
-                build.timeout = form.timeout.data
-
+            BuildsLogic.create_new_from_upload(
+                flask.g.user, copr,
+                f_uploader=lambda path: form.pkgs.data.save(path),
+                orig_filename=form.pkgs.data.filename,
+                chroot_names=form.selected_chroots,
+                **build_options
+            )
+            db.session.commit()
         except (ActionInProgressException, InsufficientRightsException) as e:
             flask.flash(str(e), "error")
-            db.session.rollback()
-            shutil.rmtree(tmp)
-        else:
-            flask.flash("New build has been created.")
-        db.session.commit()
 
         return flask.redirect(flask.url_for("coprs_ns.copr_builds",
                                             username=username,
@@ -213,7 +186,7 @@ def copr_new_build(username, coprname):
                     source_type = helpers.BuildSourceEnum("srpm_link")
                     source_json = json.dumps({"url": pkg})
 
-                    build = builds_logic.BuildsLogic.add(
+                    build = BuildsLogic.add(
                         user=flask.g.user,
                         pkgs=pkg,
                         copr=copr,

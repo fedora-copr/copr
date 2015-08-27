@@ -71,6 +71,7 @@ class BuildChrootSchema(Schema):
     started_on = fields.Int(dump_only=True)
     ended_on = fields.Int(dump_only=True)
     git_hash = fields.Str(dump_only=True)
+    name = fields.Str(dump_only=True)
 
 
 class BuildSchema(Schema):
@@ -78,23 +79,30 @@ class BuildSchema(Schema):
     id = fields.Int(dump_only=True)
     state = fields.Str()
 
-    pkgs = fields.Str()
-    build_packages = fields.Str()
-    pkg_version = fields.Str()
+    pkgs = fields.Str(dump_only=True)
+    build_packages = fields.Str(dump_only=True)
+    pkg_version = fields.Str(dump_only=True)
 
-    repos_list = fields.List(fields.Str())
-    repos = fields.Str()  # todo: replace with SpaceSeparatedList
+    repos = SpaceSeparatedList(dump_only=True)
 
-    submitted_on = fields.Int()
-    started_on = fields.Int()
-    ended_on = fields.Int()
+    submitted_on = fields.Int(dump_only=True)
+    started_on = fields.Int(dump_only=True)
+    ended_on = fields.Int(dump_only=True)
 
-    results = fields.Str()
-    timeout = fields.Int()
+    results = fields.Str(dump_only=True)
+    timeout = fields.Int(dump_only=True)
 
+    enable_net = fields.Bool(dump_only=True)
+
+    source_type = fields.Int(dump_only=True)
+    source_json = fields.Str(dump_only=True)
+
+
+class BuildCreateSchema(BuildSchema):
+    project_id = fields.Int(required=True)
+    chroots = fields.List(fields.Str())
     enable_net = fields.Bool()
 
-    source_type = fields.Int()
-    source_json = fields.Str()
 
-    # owner = fields.Function(lambda b: b.copr.owner.username, dump_only=True)
+class BuildCreateFromUrlSchema(BuildCreateSchema):
+    source_url = fields.Url()

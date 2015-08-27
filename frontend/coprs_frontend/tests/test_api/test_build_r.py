@@ -1,4 +1,5 @@
 # coding: utf-8
+from cStringIO import StringIO
 
 import json
 from marshmallow import pprint
@@ -6,6 +7,7 @@ import math
 
 import pytest
 import sqlalchemy
+from coprs.helpers import BuildSourceEnum
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
@@ -108,8 +110,99 @@ class TestBuildResource(CoprsTestCase):
                 assert builds[:delta] == obj1["builds"]
                 assert builds[delta:2 * delta] == obj2["builds"]
 
+    # todo: implement
+    def _test_post_json(
+            self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,
+            f_mock_chroots_many, f_build_many_chroots,
+            f_users_api):
+
+        chroot_name_list = [c.name for c in self.c1.active_chroots]
+        metadata = {
+            "project_id": 1,
+            "url": "http://example.com/mypkg.src.rpm",
+            "chroots": chroot_name_list
+        }
+        self.db.session.commit()
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            content=metadata
+        )
+        print(r0.data)
+        assert r0.status_code == 201
+
+    def test_post_multipart(
+            self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,
+            f_mock_chroots_many, f_build_many_chroots,
+            f_users_api):
+        chroot_name_list = [c.name for c in self.c1.active_chroots]
+        metadata = {
+            "project_id": 1,
+            "enable_net": True,
+            "chroots": chroot_name_list
+        }
+        data = {
+            "metadata": json.dumps(metadata),
+            "srpm": (StringIO(u'my file contents'), 'hello world.src.rpm')
+        }
+        self.db.session.commit()
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            content_type="multipart/form-data",
+            data=data
+        )
+        assert r0.status_code == 201
+        r1 = self.tc.get(r0.headers["Location"])
+        assert r1.status_code == 200
+        build_obj = json.loads(r1.data)
+
+        assert build_obj["build"]["source_type"] == BuildSourceEnum("srpm_upload")
+
+        chroots_href = build_obj["_links"]["chroots"]["href"]
+        r2 = self.tc.get(chroots_href)
+        build_chroots_obj = json.loads(r2.data)
+        build_chroots_names = set([bc["chroot"]["name"] for bc in
+                                   build_chroots_obj["chroots"]])
+        assert set(chroot_name_list) == build_chroots_names
+        assert len(chroot_name_list) == len(build_chroots_obj["chroots"])
+
+    def test_post_multipart_missing_file(
+            self,f_users, f_coprs, f_builds, f_db,
+            f_users_api, f_mock_chroots):
+
+        metadata = {
+            "enable_net": True
+        }
+        data = {
+            "metadata": json.dumps(metadata),
+        }
+        self.db.session.commit()
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            content_type="multipart/form-data",
+            data=data
+        )
+        assert r0.status_code == 400
+
+    def test_post_multipart_missing_metadata(
+            self,f_users, f_coprs, f_builds, f_db,
+            f_users_api, f_mock_chroots):
+        data = {
+            "srpm": (StringIO(u'my file contents'), 'hello world.src.rpm')
+        }
+        self.db.session.commit()
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            content_type="multipart/form-data",
+            data=data
+        )
+        assert r0.status_code == 400
+
     def test_get_one(self, f_users, f_coprs, f_builds, f_db,
-                           f_users_api, f_mock_chroots):
+                     f_users_api, f_mock_chroots):
 
         build_id_list = [b.id for b in self.basic_builds]
         self.db.session.commit()
