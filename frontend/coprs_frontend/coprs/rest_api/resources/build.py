@@ -54,7 +54,7 @@ class BuildListR(Resource):
         else:
             query = BuildsLogic.get_multiple()
 
-        if "limit" in req_args:
+        if req_args["limit"] is not None:
             limit = req_args["limit"]
             if limit <= 0 or limit > 100:
                 limit = 100
@@ -63,7 +63,7 @@ class BuildListR(Resource):
 
         query = query.limit(limit)
 
-        if "offset" in req_args:
+        if req_args["offset"] is not None:
             query = query.offset(req_args["offset"])
 
         builds = query.all()
@@ -84,11 +84,34 @@ class BuildListR(Resource):
         """
         :return: if of the created build or raise Exception
         """
-        build_data = mm_deserialize(BuildCreateFromUrlSchema(), req.data)
-        raise NotImplementedError()
+        build_params = mm_deserialize(BuildCreateFromUrlSchema(), req.data).data
+        project_id = build_params["project_id"]
 
+        project = get_one_safe(CoprsLogic.get_by_id(project_id))
+        """:type : models.Copr """
+        chroot_names = build_params.pop("chroots")
+        srpm_url = build_params.pop("srpm_url")
+        try:
+            build = BuildsLogic.create_new_from_url(
+                flask.g.user, project,
+                srpm_url=srpm_url,
+                chroot_names=chroot_names,
+                **build_params
+            )
+            db.session.commit()
+        except ActionInProgressException as err:
+            db.session.rollback()
+            raise CannotProcessRequest("Cannot create new build due to: {}"
+                                       .format(err))
+        except InsufficientRightsException as err:
+            db.session.rollback()
+            raise AccessForbidden("User {} cannon create build in project {}: {}"
+                                  .format(flask.g.user.username,
+                                          project.full_name, err))
+        return build.id
 
-    def handle_post_multipart(self, req):
+    @staticmethod
+    def handle_post_multipart(req):
         """
         :return: if of the created build or raise Exception
         """
@@ -118,12 +141,14 @@ class BuildListR(Resource):
             )
             db.session.commit()
         except ActionInProgressException as err:
+            db.session.rollback()
             raise CannotProcessRequest("Cannot create new build due to: {}"
                                        .format(err))
         except InsufficientRightsException as err:
-            raise AccessForbidden("User {} cannon create build in project {}"
+            db.session.rollback()
+            raise AccessForbidden("User {} cannon create build in project {}: {}"
                                   .format(flask.g.user.username,
-                                          project.full_name))
+                                          project.full_name, err))
 
         return build.id
 

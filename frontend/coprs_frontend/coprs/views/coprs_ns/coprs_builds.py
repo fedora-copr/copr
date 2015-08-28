@@ -148,7 +148,10 @@ def copr_new_build_upload(username, coprname):
             )
             db.session.commit()
         except (ActionInProgressException, InsufficientRightsException) as e:
+            db.session.rollback()
             flask.flash(str(e), "error")
+        else:
+            flask.flash("New build has been created.")
 
         return flask.redirect(flask.url_for("coprs_ns.copr_builds",
                                             username=username,
@@ -173,31 +176,43 @@ def copr_new_build(username, coprname):
         if not pkgs:
             flask.flash("No builds submitted")
         else:
-            # check which chroots we need
-            chroots = []
-            for chroot in copr.active_chroots:
-                if chroot.name in form.selected_chroots:
-                    chroots.append(chroot)
+            # # check which chroots we need
+            # chroots = []
+            # for chroot in copr.active_chroots:
+            #     if chroot.name in form.selected_chroots:
+            #         chroots.append(chroot)
 
             # build each package as a separate build
             try:
                 for pkg in pkgs:
-                    # create json describing the build source
-                    source_type = helpers.BuildSourceEnum("srpm_link")
-                    source_json = json.dumps({"url": pkg})
+                    build_options = {
+                        "enable_net": form.enable_net.data,
+                        "timeout": form.timeout.data,
+                    }
+                    BuildsLogic.create_new_from_url(
+                        flask.g.user, copr, pkg,
+                        chroot_names=form.selected_chroots,
+                        **build_options
+                    )
 
-                    build = BuildsLogic.add(
-                        user=flask.g.user,
-                        pkgs=pkg,
-                        copr=copr,
-                        chroots=chroots,
-                        source_type=source_type,
-                        source_json=source_json,
-                        enable_net=form.enable_net.data)
+                    # # create json describing the build source
+                    # source_type = helpers.BuildSourceEnum("srpm_link")
+                    # source_json = json.dumps({"url": pkg})
 
-                    if flask.g.user.proven:
-                        build.memory_reqs = form.memory_reqs.data
-                        build.timeout = form.timeout.data
+
+
+                    # build = BuildsLogic.add(
+                    #     user=flask.g.user,
+                    #     pkgs=pkg,
+                    #     copr=copr,
+                    #     chroots=chroots,
+                    #     source_type=source_type,
+                    #     source_json=source_json,
+                    #     enable_net=form.enable_net.data)
+                    #
+                    # if flask.g.user.proven:
+                    #     build.memory_reqs = form.memory_reqs.data
+                    #     build.timeout = form.timeout.data
 
             except (ActionInProgressException, InsufficientRightsException) as e:
                 flask.flash(str(e), "error")

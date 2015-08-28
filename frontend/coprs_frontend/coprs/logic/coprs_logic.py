@@ -209,6 +209,13 @@ class CoprsLogic(object):
             copr, "Can't delete this project,"
                   " another operation is in progress: {action}")
 
+        cls.create_delete_action(copr)
+        copr.deleted = True
+
+        return copr
+
+    @classmethod
+    def create_delete_action(cls, copr):
         action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type="copr",
                                object_id=copr.id,
@@ -216,11 +223,8 @@ class CoprsLogic(object):
                                                           copr.name),
                                new_value="",
                                created_on=int(time.time()))
-        copr.deleted = True
-
         db.session.add(action)
-
-        return copr
+        return action
 
     @classmethod
     def exists_for_user(cls, user, coprname, incl_deleted=False):

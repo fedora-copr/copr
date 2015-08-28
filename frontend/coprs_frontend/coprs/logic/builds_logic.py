@@ -174,10 +174,45 @@ class BuildsLogic(object):
         return models.Build.query.get(build_id)
 
     @classmethod
+    def create_new_from_url(cls, user, copr, srpm_url,
+                            chroot_names=None, **build_options):
+        """
+        :type user: models.User
+        :type copr: models.Copr
+
+        :type chroot_names: List[str]
+
+        :rtype: models.Build
+        """
+        # check which chroots we need
+        chroots = []
+        for chroot in copr.active_chroots:
+            if chroot.name in chroot_names:
+                chroots.append(chroot)
+
+        source_type = helpers.BuildSourceEnum("srpm_link")
+        source_json = json.dumps({"url": srpm_url})
+
+        # try:
+        build = cls.add(
+            user=user,
+            pkgs=srpm_url,
+            copr=copr,
+            chroots=chroots,
+            source_type=source_type,
+            source_json=source_json,
+            enable_net=build_options.get("enabled_net", True))
+
+        if user.proven:
+            if "timeout" in build_options:
+                build.timeout = build_options["timeout"]
+
+        return build
+
+    @classmethod
     def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
                                chroot_names=None, **build_options):
         """
-
         :type user: models.User
         :type copr: models.Copr
         :param f_uploader(file_path): function which stores data at the given `file_path`
@@ -195,7 +230,6 @@ class BuildsLogic(object):
             tmp_dir=tmp_name,
             srpm=filename)
 
-        # import ipdb; ipdb.set_trace()
         # check which chroots we need
         chroots = []
         for chroot in copr.active_chroots:
@@ -218,19 +252,16 @@ class BuildsLogic(object):
             if user.proven:
                 if "timeout" in build_options:
                     build.timeout = build_options["timeout"]
-        except (ActionInProgressException, InsufficientRightsException) as e:
-            db.session.rollback()
-            shutil.rmtree(tmp)
+
+        except Exception:
+            shutil.rmtree(tmp)  # todo: maybe we should delete in some cleanup procedure?
             raise
-        else:
-            flask.flash("New build has been created.")
 
         return build
 
     @classmethod
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
-            repos=None, chroots=None,
-            memory_reqs=None, timeout=None, enable_net=True,
+            repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None):
         if chroots is None:
             chroots = []

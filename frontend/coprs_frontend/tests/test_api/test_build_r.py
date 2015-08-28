@@ -7,6 +7,7 @@ import math
 
 import pytest
 import sqlalchemy
+from coprs import models
 from coprs.helpers import BuildSourceEnum
 
 from coprs.logic.users_logic import UsersLogic
@@ -110,16 +111,57 @@ class TestBuildResource(CoprsTestCase):
                 assert builds[:delta] == obj1["builds"]
                 assert builds[delta:2 * delta] == obj2["builds"]
 
-    # todo: implement
-    def _test_post_json(
-            self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,
+        # for coverage
+        href = "/api_2/builds?limit={}".format(1000000)
+        r = self.tc.get(href)
+        assert r.status_code == 200
+
+    def test_post_bad_content_type(
+            self, f_users, f_coprs, f_db, f_mock_chroots,
+            f_mock_chroots_many, f_build_many_chroots,
+            f_users_api):
+        chroot_name_list = [c.name for c in self.c1.active_chroots]
+        self.db.session.commit()
+        metadata = {
+            "project_id": 1,
+            "srpm_url": "http://example.com/mypkg.src.rpm",
+            "chroots": chroot_name_list
+        }
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            content_type="plain/test"
+        )
+        assert r0.status_code == 400
+
+    def test_post_json_bad_url(
+            self, f_users, f_coprs, f_db, f_mock_chroots,
+            f_mock_chroots_many, f_build_many_chroots,
+            f_users_api):
+        chroot_name_list = [c.name for c in self.c1.active_chroots]
+        for url in [None, "", "dsafasdga", "gopher://mp.src.rpm"]:
+            metadata = {
+                "project_id": 1,
+                "srpm_url": url,
+                "chroots": chroot_name_list
+            }
+            self.db.session.commit()
+            r0 = self.request_rest_api_with_auth(
+                "/api_2/builds",
+                method="post",
+                content=metadata
+            )
+            assert r0.status_code == 400
+
+    def test_post_json(
+            self, f_users, f_coprs, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
 
         chroot_name_list = [c.name for c in self.c1.active_chroots]
         metadata = {
             "project_id": 1,
-            "url": "http://example.com/mypkg.src.rpm",
+            "srpm_url": "http://example.com/mypkg.src.rpm",
             "chroots": chroot_name_list
         }
         self.db.session.commit()
@@ -128,8 +170,108 @@ class TestBuildResource(CoprsTestCase):
             method="post",
             content=metadata
         )
-        print(r0.data)
         assert r0.status_code == 201
+        r1 = self.tc.get(r0.headers["Location"])
+        assert r1.status_code == 200
+        build_obj = json.loads(r1.data)
+        build_dict = build_obj["build"]
+        assert json.loads(build_dict["source_json"])["url"] == \
+            metadata["srpm_url"]
+        assert build_dict["source_type"] == BuildSourceEnum("srpm_link")
+
+    def test_post_json_on_wrong_user(
+            self, f_users, f_coprs, f_db, f_mock_chroots,
+            f_mock_chroots_many, f_build_many_chroots,
+            f_users_api):
+
+        login = self.u2.api_login
+        token = self.u2.api_token
+
+        chroot_name_list = [c.name for c in self.c1.active_chroots]
+        metadata = {
+            "project_id": 1,
+            "srpm_url": "http://example.com/mypkg.src.rpm",
+            "chroots": chroot_name_list
+        }
+        self.db.session.commit()
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            login=login, token=token,
+            content=metadata,
+        )
+        assert r0.status_code == 403
+
+    def test_post_json_on_project_during_action(
+            self, f_users, f_coprs, f_db, f_mock_chroots,
+            f_mock_chroots_many, f_build_many_chroots,
+            f_users_api):
+
+        CoprsLogic.create_delete_action(self.c1)
+        chroot_name_list = [c.name for c in self.c1.active_chroots]
+        metadata = {
+            "project_id": 1,
+            "srpm_url": "http://example.com/mypkg.src.rpm",
+            "chroots": chroot_name_list
+        }
+        self.db.session.commit()
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            content=metadata,
+        )
+        assert r0.status_code == 400
+
+    def test_post_multipart_wrong_user(
+            self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,
+            f_mock_chroots_many, f_build_many_chroots,
+            f_users_api):
+        chroot_name_list = [c.name for c in self.c1.active_chroots]
+        metadata = {
+            "project_id": 1,
+            "enable_net": True,
+            "chroots": chroot_name_list
+        }
+        data = {
+            "metadata": json.dumps(metadata),
+            "srpm": (StringIO(u'my file contents'), 'hello world.src.rpm')
+        }
+        login = self.u2.api_login
+        token = self.u2.api_token
+        self.db.session.commit()
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            login=login, token=token,
+            content_type="multipart/form-data",
+            data=data
+        )
+        assert r0.status_code == 403
+
+    def test_post_multipart_on_project_during_action(
+            self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,
+            f_mock_chroots_many, f_build_many_chroots,
+            f_users_api):
+
+        CoprsLogic.create_delete_action(self.c1)
+        chroot_name_list = [c.name for c in self.c1.active_chroots]
+        metadata = {
+            "project_id": 1,
+            "enable_net": True,
+            "chroots": chroot_name_list
+        }
+        data = {
+            "metadata": json.dumps(metadata),
+            "srpm": (StringIO(u'my file contents'), 'hello world.src.rpm')
+        }
+        self.db.session.commit()
+        r0 = self.request_rest_api_with_auth(
+            "/api_2/builds",
+            method="post",
+            content_type="multipart/form-data",
+            data=data
+        )
+        assert r0.status_code == 400
 
     def test_post_multipart(
             self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,

@@ -105,4 +105,4 @@ class BuildCreateSchema(BuildSchema):
 
 
 class BuildCreateFromUrlSchema(BuildCreateSchema):
-    source_url = fields.Url()
+    srpm_url = fields.Url(required=True, validate=lambda u: u.startswith("http"))
