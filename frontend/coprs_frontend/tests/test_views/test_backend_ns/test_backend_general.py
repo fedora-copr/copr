@@ -55,6 +55,8 @@ class TestUpdateBuilds(CoprsTestCase):
    {
      "id": 1,
      "copr_id": 2,
+     "chroot": "fedora-18-x86_64",
+     "status": 6,
      "started_on": 139086644000
    },
    {
@@ -69,11 +71,13 @@ class TestUpdateBuilds(CoprsTestCase):
      "id": 123321,
      "copr_id": 1,
      "status": 0,
+     "chroot": "fedora-18-x86_64",
      "ended_on": 139086644000
    },
    {
      "id": 1234321,
      "copr_id": 2,
+     "chroot": "fedora-18-x86_64",
      "results": "http://server/results/foo/bar/",
      "started_on": 139086644000
    }
@@ -86,23 +90,7 @@ class TestUpdateBuilds(CoprsTestCase):
                          data="")
         assert "You have to provide the correct password" in r.data
 
-    def test_update_build_started(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-        self.b1.started_on = None
-        self.db.session.add(self.b1)
-        self.db.session.commit()
-
-        r = self.tc.post("/backend/update/",
-                         content_type="application/json",
-                         headers=self.auth_header,
-                         data=self.data1)
-        assert json.loads(r.data)["updated_builds_ids"] == [1]
-        assert json.loads(r.data)["non_existing_builds_ids"] == []
-
-        updated = self.models.Build.query.filter(
-            self.models.Build.id == 1).one()
-
-        assert updated.results == "http://server/results/foo/bar/"
-        assert updated.chroots_started_on == {'fedora-18-x86_64': 139086644000}
+    # todo: add test for `backend/starting_build/`
 
     def test_update_build_ended(self, f_users, f_coprs, f_mock_chroots,
                                 f_builds, f_db):
@@ -114,10 +102,9 @@ class TestUpdateBuilds(CoprsTestCase):
         assert json.loads(r.data)["updated_builds_ids"] == [1]
         assert json.loads(r.data)["non_existing_builds_ids"] == []
 
-        # import ipdb; ipdb.set_trace()
         updated = self.models.Build.query.filter(
             self.models.Build.id == 1).one()
-        # import ipdb; ipdb.set_trace()
+
         assert updated.status == 1
         assert updated.chroots_ended_on == {'fedora-18-x86_64': 149086644000}
 

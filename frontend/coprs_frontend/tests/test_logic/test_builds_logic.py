@@ -143,6 +143,7 @@ class TestBuildsLogic(CoprsTestCase):
 
         self.b4.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
         self.b4.ended_on = time.time()
+        expected_dir = self.b4.result_dir_name
         for bc in self.b4_bc:
             bc.status = StatusEnum("succeeded")
             bc.ended_on = time.time()
@@ -166,7 +167,7 @@ class TestBuildsLogic(CoprsTestCase):
         action = ActionsLogic.get_many().one()
         delete_data = json.loads(action.data)
         assert "chroots" in delete_data
-        assert "copr-keygen-1.58-1.fc20" == delete_data["src_pkg_name"]
+        assert delete_data["result_dir_name"] == expected_dir
         assert expected_chroots_to_delete == set(delete_data["chroots"])
 
         with pytest.raises(NoResultFound):
@@ -176,6 +177,7 @@ class TestBuildsLogic(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
         self.b1.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
+        expected_dir = self.b1.result_dir_name
         self.db.session.add(self.b1)
         self.db.session.commit()
 
@@ -191,7 +193,7 @@ class TestBuildsLogic(CoprsTestCase):
         action = ActionsLogic.get_many().one()
         delete_data = json.loads(action.data)
         assert "chroots" in delete_data
-        assert "copr-keygen-1.58-1.fc20" == delete_data["src_pkg_name"]
+        assert delete_data["result_dir_name"] == expected_dir
         assert expected_chroots_to_delete == set(delete_data["chroots"])
 
         with pytest.raises(NoResultFound):

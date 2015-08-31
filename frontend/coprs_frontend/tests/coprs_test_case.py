@@ -225,13 +225,14 @@ class CoprsTestCase(object):
                 buildchroot = models.BuildChroot(
                     build=build,
                     mock_chroot=chroot,
-                    status=status)
+                    status=status,
+                    git_hash="12345",
+                )
 
-                if build is self.b1:
-                    buildchroot.started_on = 139086644000
-                if build is self.b2:
+                if build is [self.b1, self.b2]:
                     buildchroot.started_on = 139086644000
                     buildchroot.ended_on = 149086644000
+                    build.ended_on = 149086644000
 
                 build_chroots.append(buildchroot)
                 self.db.session.add(buildchroot)
@@ -265,7 +266,9 @@ class CoprsTestCase(object):
                 buildchroot = models.BuildChroot(
                     build=self.b_few_chroots,
                     mock_chroot=chroot,
-                    status=self.status_by_chroot[chroot.name])
+                    status=self.status_by_chroot[chroot.name],
+                    git_hash="12345",
+                )
                 self.db.session.add(buildchroot)
 
         self.db.session.add(self.b_few_chroots)
@@ -303,7 +306,9 @@ class CoprsTestCase(object):
             buildchroot = models.BuildChroot(
                 build=self.b_many_chroots,
                 mock_chroot=chroot,
-                status=self.status_by_chroot[chroot.name])
+                status=self.status_by_chroot[chroot.name],
+                git_hash="12345",
+            )
             self.db.session.add(buildchroot)
 
         self.db.session.add(self.b_many_chroots)

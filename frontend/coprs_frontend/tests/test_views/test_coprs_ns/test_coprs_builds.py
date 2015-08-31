@@ -115,12 +115,15 @@ class TestCoprCancelBuild(CoprsTestCase):
 class TestCoprDeleteBuild(CoprsTestCase):
 
     @TransactionDecorator("u1")
-    def test_copr_build_submitter_can_delete_build(self, f_users,
+    def test_copr_build_submitter_can_delete_build_old(self, f_users,
                                                    f_coprs, f_mock_chroots,
-                                                   f_builds, f_db):
+                                                   f_builds):
 
         pkgs = "http://example.com/one.src.rpm"
         self.b1.pkgs = pkgs
+        for bc in self.b1_bc:
+            bc.git_hash = None
+        self.db.session.add_all(self.b1_bc)
         self.db.session.add_all([self.u1, self.c1, self.b1])
         self.db.session.commit()
 
@@ -138,6 +141,31 @@ class TestCoprDeleteBuild(CoprsTestCase):
         assert act.object_type == "build"
         assert act.old_value == "user1/foocopr"
         assert json.loads(act.data)["src_pkg_name"] == self.b1.src_pkg_name
+
+    @TransactionDecorator("u1")
+    def test_copr_build_submitter_can_delete_build(self, f_users,
+                                                   f_coprs, f_mock_chroots,
+                                                   f_builds):
+        self.db.session.add_all([self.u1, self.c1, self.b1])
+        self.db.session.commit()
+        expected_dir = self.b1.result_dir_name
+        b_id = self.b1.id
+        url = "/coprs/{0}/{1}/delete_build/{2}/".format(self.u1.name, self.c1.name, b_id)
+
+        r = self.test_client.post(
+            url, data={}, follow_redirects=True)
+        assert r.status_code == 200
+
+        b = (
+            self.models.Build.query
+            .filter(self.models.Build.id == b_id)
+            .first()
+        )
+        assert b is None
+        act = self.models.Action.query.first()
+        assert act.object_type == "build"
+        assert act.old_value == "user1/foocopr"
+        assert json.loads(act.data)["result_dir_name"] == expected_dir
 
     @TransactionDecorator("u2")
     def test_copr_build_non_submitter_cannot_delete_build(self, f_users,
