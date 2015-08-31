@@ -3,8 +3,9 @@ from cStringIO import StringIO
 import json
 import math
 import random
+from marshmallow import pprint
 
-from coprs.helpers import BuildSourceEnum
+from coprs.helpers import BuildSourceEnum, StatusEnum
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from tests.coprs_test_case import CoprsTestCase
@@ -366,7 +367,6 @@ class TestBuildResource(CoprsTestCase):
     def test_delete_build_ok(self, f_users, f_coprs,
                              f_mock_chroots, f_builds,f_users_api, ):
 
-
         self.db.session.commit()
         b_id = self.b1.id
         href = "/api_2/builds/{}".format(b_id)
@@ -408,10 +408,106 @@ class TestBuildResource(CoprsTestCase):
             login=login, token=token,
         )
         assert r.status_code == 400
-        print(r.data)
 
-    # test_put_build_wrong_user
-    # test_put_build_not_found
-    # test_put_cancel_build
-    # test_put_cancel_build_wrong_state
+    def test_put_build_wrong_user(
+            self, f_users, f_coprs,
+            f_mock_chroots, f_builds,f_users_api, ):
+
+        login = self.u2.api_login
+        token = self.u2.api_token
+
+        for bc in self.b1_bc:
+            bc.status = StatusEnum("pending")
+            bc.ended_on = None
+
+        self.b1.ended_on = None
+        self.db.session.add_all(self.b1_bc)
+        self.db.session.add(self.b1)
+
+        self.db.session.commit()
+
+        href = "/api_2/builds/{}".format(self.b1.id)
+        build_dict = {
+            "state": "canceled"
+        }
+        r = self.request_rest_api_with_auth(
+            href,
+            method="put",
+            login=login, token=token,
+            content=build_dict
+        )
+        assert r.status_code == 403
+
+    def test_put_build_not_found(
+            self, f_users, f_coprs,
+            f_mock_chroots, f_builds,f_users_api, ):
+
+        self.db.session.commit()
+        href = "/api_2/builds/{}".format(10005000)
+        build_dict = {
+            "state": "canceled"
+        }
+        r = self.request_rest_api_with_auth(
+            href,
+            method="put",
+            content=build_dict
+        )
+        assert r.status_code == 404
+
+    def test_put_cancel_build(
+            self, f_users, f_coprs,
+            f_mock_chroots, f_builds,f_users_api, ):
+
+        for bc in self.b1_bc:
+            bc.status = StatusEnum("pending")
+            bc.ended_on = None
+
+        self.b1.ended_on = None
+        self.db.session.add_all(self.b1_bc)
+        self.db.session.add(self.b1)
+
+        self.db.session.commit()
+
+        href = "/api_2/builds/{}".format(self.b1.id)
+        build_dict = {
+            "state": "canceled"
+        }
+        r = self.request_rest_api_with_auth(
+            href,
+            method="put",
+            content=build_dict
+        )
+        assert r.status_code == 201
+
+        r2 = self.tc.get(r.headers["Location"])
+        assert r2.status_code == 200
+        obj = json.loads(r2.data)
+        assert obj["build"]["state"] == "canceled"
+
+    def test_put_cancel_build_wrong_state(
+            self, f_users, f_coprs,
+            f_mock_chroots, f_builds,f_users_api, ):
+
+        self.b1.ended_on = None
+        old_state = self.b1.state
+        self.db.session.add_all(self.b1_bc)
+        self.db.session.add(self.b1)
+
+        self.db.session.commit()
+
+        href = "/api_2/builds/{}".format(self.b1.id)
+        build_dict = {
+            "state": "canceled"
+        }
+        r = self.request_rest_api_with_auth(
+            href,
+            method="put",
+            content=build_dict
+        )
+        assert r.status_code == 400
+
+        r2 = self.tc.get(href)
+        assert r2.status_code == 200
+        obj = json.loads(r2.data)
+        assert obj["build"]["state"] == old_state
 

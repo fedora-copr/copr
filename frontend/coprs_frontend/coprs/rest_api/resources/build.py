@@ -6,7 +6,7 @@ from flask import url_for, make_response
 # from flask_restful_swagger import swagger
 
 from coprs import db, models
-from coprs.exceptions import ActionInProgressException, InsufficientRightsException
+from coprs.exceptions import ActionInProgressException, InsufficientRightsException, RequestCannotBeExecuted
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.users_logic import UsersLogic
@@ -193,6 +193,24 @@ class BuildR(Resource):
 
         return "", 204
 
+    @rest_api_auth_required
+    def put(self, build_id):
+        build = get_one_safe(BuildsLogic.get(build_id),
+                             "Not found build with id: {}".format(build_id))
+        """:type : models.Build """
 
+        build_dict = mm_deserialize(BuildSchema(), flask.request.data).data
+        try:
+            if not build.canceled and build_dict["state"] == "canceled":
+                BuildsLogic.cancel_build(flask.g.user, build)
+                db.session.commit()
+        except (RequestCannotBeExecuted, ActionInProgressException) as err:
+            db.session.rollback()
+            raise CannotProcessRequest("Cannot update build due to: {}"
+                                       .format(err))
+        except InsufficientRightsException as err:
+            raise AccessForbidden("Failed to update build: {}".format(err))
 
-
+        resp = make_response("", 201)
+        resp.headers["Location"] = url_for(".buildr", build_id=build_id)
+        return resp

@@ -18,6 +18,10 @@ class InsufficientRightsException(BaseException):
     pass
 
 
+class RequestCannotBeExecuted(Exception):
+    pass
+
+
 class ActionInProgressException(BaseException):
 
     def __init__(self, msg, action):

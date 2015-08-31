@@ -161,6 +161,7 @@ def chroot_to_branch(chroot):
         os = "el"
     return "{}{}".format(os, version)
 
+
 def branch_to_os_version(branch):
     os = None
     version = None

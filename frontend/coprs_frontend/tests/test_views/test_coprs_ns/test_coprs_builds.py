@@ -1,5 +1,6 @@
 import json
 from coprs import models
+from coprs.helpers import StatusEnum
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
@@ -89,6 +90,10 @@ class TestCoprCancelBuild(CoprsTestCase):
                                                    f_mock_chroots,
                                                    f_builds, f_db):
 
+        for bc in self.b1_bc:
+            bc.status = StatusEnum("pending")
+            bc.ended_on = None
+        self.db.session.add_all(self.b1_bc)
         self.db.session.add_all([self.u1, self.c1, self.b1])
         self.test_client.post("/coprs/{0}/{1}/cancel_build/{2}/"
                               .format(self.u1.name, self.c1.name, self.b1.id),
@@ -102,7 +107,10 @@ class TestCoprCancelBuild(CoprsTestCase):
                                                           f_coprs,
                                                           f_mock_chroots,
                                                           f_builds, f_db):
-
+        for bc in self.b1_bc:
+            bc.status = StatusEnum("pending")
+            bc.ended_on = None
+        self.db.session.add_all(self.b1_bc)
         self.db.session.add_all([self.u1, self.c1, self.b1])
         self.test_client.post("/coprs/{0}/{1}/cancel_build/{2}/"
                               .format(self.u1.name, self.c1.name, self.b1.id),

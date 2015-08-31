@@ -408,6 +408,9 @@ class BuildsLogic(object):
         if not user.can_build_in(build.copr):
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to cancel this build.")
+        if not build.cancelable:
+            raise exceptions.RequestCannotBeExecuted(
+                "Cannot cancel build {}".format(build.id))
         build.canceled = True
         for chroot in build.build_chroots:
             chroot.status = 2  # canceled

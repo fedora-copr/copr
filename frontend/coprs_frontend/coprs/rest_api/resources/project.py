@@ -80,8 +80,6 @@ class ProjectListR(Resource):
         owner = flask.g.user
 
         result = mm_deserialize(ProjectSchema(), flask.request.data)
-        if result.errors:
-            return "Failed to parse request", 400
 
         # todo check that chroots are available
         req = result.data
