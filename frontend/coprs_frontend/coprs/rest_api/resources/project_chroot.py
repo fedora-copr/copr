@@ -1,38 +1,26 @@
 # coding: utf-8
 
-import json
 import logging
+
+from coprs.rest_api.resources.common import render_copr_chroot
+
 log = logging.getLogger(__name__)
 
 import flask
 from flask import url_for, make_response
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 
-from marshmallow import Schema, fields, pprint, ValidationError
 from sqlalchemy.exc import IntegrityError
 from coprs.exceptions import InsufficientRightsException, MalformedArgumentException
-from coprs.rest_api.exceptions import AccessForbidden, ObjectNotFoundError, MalformedRequest, ObjectAlreadyExists, \
+from coprs.rest_api.exceptions import AccessForbidden, MalformedRequest, ObjectAlreadyExists, \
     ServerError
 from coprs.rest_api.resources.project import rest_api_auth_required
-from coprs.rest_api.schemas import MockChrootSchema, CoprChrootSchema, CoprChrootCreateSchema
+from coprs.rest_api.schemas import CoprChrootSchema, CoprChrootCreateSchema
 
-from coprs.views.misc import api_login_required
 from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLogic
 
-from ..util import get_one_safe, json_loads_safe, mm_deserialize, mm_serialize_one
+from ..util import get_one_safe, mm_deserialize
 from ... import db
-
-
-def render_copr_chroot(chroot):
-    return {
-        "chroot": mm_serialize_one(CoprChrootSchema, chroot),
-        "_links": {
-            "project": {"href": url_for(".projectr", project_id=chroot.copr.id)},
-            "self": {"href": url_for(".projectchrootr",
-                                     project_id=chroot.copr.id,
-                                     name=chroot.name)},
-        }
-    }
 
 
 class ProjectChrootListR(Resource):

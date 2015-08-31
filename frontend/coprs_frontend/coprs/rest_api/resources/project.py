@@ -2,10 +2,13 @@ import base64
 import datetime
 import functools
 from logging import getLogger
+from coprs.logic.builds_logic import BuildsLogic
+from coprs.rest_api.resources.common import render_copr_chroot, render_build
+
 log = getLogger(__name__)
 
 import flask
-from flask import url_for
+from flask import url_for, make_response
 from flask_restful import Resource, reqparse
 from marshmallow import pprint
 
@@ -55,11 +58,14 @@ def rest_api_auth_required(f):
     return decorated_function
 
 
-def render_project(copr):
+def render_project(copr, self_params=None):
+    if self_params is None:
+        self_params = {}
+
     return {
-        "copr": mm_serialize_one(ProjectSchema, copr),
+        "project": mm_serialize_one(ProjectSchema, copr),
         "_links": {
-            "self": {"href": url_for(".projectr", project_id=copr.id)},
+            "self": {"href": url_for(".projectr", project_id=copr.id, **self_params)},
             "builds": {"href": url_for(".buildlistr", project_id=copr.id)},
             "chroots": {"href": url_for(".projectchrootlistr", project_id=copr.id)}
         },
@@ -98,7 +104,7 @@ class ProjectListR(Resource):
         }
 
         try:
-            copr = CoprsLogic.add(
+            project = CoprsLogic.add(
                 user=owner, check_for_duplicates=True,
                 name=req["name"],
                 selected_chroots=req["chroots"],
@@ -108,7 +114,9 @@ class ProjectListR(Resource):
         except DuplicateException as error:
             raise ObjectAlreadyExists(data=error)
 
-        return render_project(copr), 201
+        resp = make_response("", 201)
+        resp.headers["Location"] = url_for(".projectr", project_id=project.id)
+        return resp
 
     def get(self):
         parser = reqparse.RequestParser()
@@ -182,18 +190,38 @@ class ProjectR(Resource):
         return None, 204
 
     def get(self, project_id):
-        # parser = reqparse.RequestParser()
-        # parser.add_argument('show_builds', type=bool, default=True)
-        # parser.add_argument('show_chroots', type=bool, default=True)
-        # req_args = parser.parse_args()
+        parser = reqparse.RequestParser()
+        parser.add_argument('show_builds', type=bool, default=False)
+        parser.add_argument('show_chroots', type=bool, default=False)
+        req_args = parser.parse_args()
 
-        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
-        return render_project(copr)
+        project = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
+        self_params = {}
+        if req_args["show_builds"]:
+            self_params["show_builds"] = req_args["show_builds"]
+        if req_args["show_chroots"]:
+            self_params["show_chroots"] = req_args["show_chroots"]
+
+        answer = render_project(project, self_params)
+
+        if req_args["show_builds"]:
+            answer["project_builds"] = [
+                render_build(build)
+                for build in BuildsLogic.get_multiple_by_copr(project).all()
+            ]
+
+        if req_args["show_chroots"]:
+            answer["project_chroots"] = [
+                render_copr_chroot(chroot)
+                for chroot in project.copr_chroots
+            ]
+
+        return answer
 
     @rest_api_auth_required
     def put(self, project_id):
         """
-        Modifies project by replacment of provided fields
+        Modifies project by replacement of provided fields
         """
         pass
 

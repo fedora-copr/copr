@@ -2,9 +2,11 @@
 
 import base64
 import json
+from marshmallow import pprint
 
 import pytest
 import sqlalchemy
+from coprs.logic.builds_logic import BuildsLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
@@ -21,9 +23,9 @@ class TestProjectResource(CoprsTestCase):
         obj = json.loads(r.data)
         assert obj["_links"]["self"]["href"] == href
 
-    @TransactionDecorator("u1")
-    def test_create_new(self, f_users, f_mock_chroots, f_db, f_users_api):
+    def test_create_new(self, f_users, f_mock_chroots, f_users_api):
         self.db.session.add_all([self.u1, self.mc1])
+        self.db.session.commit()
 
         chroot_name = self.mc1.name
         body = {
@@ -34,13 +36,59 @@ class TestProjectResource(CoprsTestCase):
             "additional_repos": ["copr://bar/zar", ]
         }
 
-        r = self.request_rest_api_with_auth("/api_2/projects", content=body, method="post")
+        r = self.request_rest_api_with_auth(
+            "/api_2/projects",
+            content=body, method="post")
         assert r.status_code == 201
-        # todo: test header Location
-        copr_dict = json.loads(r.data)
-        assert copr_dict["copr"]["id"] == 1
+        assert r.headers["Location"].endswith("/api_2/projects/1")
+
         r2 = self.tc.get("/api_2/projects/1/chroots")
         copr_chroots_dict = json.loads(r2.data)
         assert len(copr_chroots_dict["chroots"]) == 1
         assert copr_chroots_dict["chroots"][0]["chroot"]["name"] == chroot_name
 
+    def test_get_one_not_found(self, f_users, f_mock_chroots, f_db):
+        r = self.tc.get("/api_2/projects/1")
+        assert r.status_code == 404
+
+    def test_get_one(self, f_users, f_mock_chroots, f_coprs, f_db):
+
+        p_id_list = [p.id for p in self.basic_coprs_list]
+        for p_id in p_id_list:
+            href = "/api_2/projects/{}".format(p_id)
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+
+            assert obj["project"]["id"] == p_id
+            assert obj["_links"]["self"]["href"] == href
+
+    def test_get_one_with_chroots(self, f_users, f_mock_chroots, f_coprs, f_db):
+
+        p_id_list = [p.id for p in self.basic_coprs_list]
+        for p_id in p_id_list:
+            href = "/api_2/projects/{}?show_chroots=True".format(p_id)
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+
+            assert obj["project"]["id"] == p_id
+            assert obj["_links"]["self"]["href"] == href
+            project = CoprsLogic.get_by_id(p_id).one()
+            assert len(obj["project_chroots"]) == len(project.copr_chroots)
+
+    def test_get_one_with_builds(self, f_users, f_mock_chroots,
+                                  f_coprs, f_builds, f_db):
+
+        p_id_list = [p.id for p in self.basic_coprs_list]
+        for p_id in p_id_list:
+            href = "/api_2/projects/{}?show_builds=True".format(p_id)
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+
+            assert obj["project"]["id"] == p_id
+            assert obj["_links"]["self"]["href"] == href
+            project = CoprsLogic.get_by_id(p_id).one()
+            builds = BuildsLogic.get_multiple_by_copr(project).all()
+            assert len(obj["project_builds"]) == len(builds)

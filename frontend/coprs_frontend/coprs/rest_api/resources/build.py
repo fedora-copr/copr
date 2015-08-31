@@ -5,12 +5,13 @@ from flask import url_for, make_response
 
 # from flask_restful_swagger import swagger
 
-from coprs import db, models
+from coprs import db
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, RequestCannotBeExecuted
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.rest_api.exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
+from coprs.rest_api.resources.common import render_build
 from coprs.rest_api.resources.project import rest_api_auth_required
 
 from coprs.rest_api.schemas import BuildSchema, BuildCreateSchema, BuildCreateFromUrlSchema
@@ -18,17 +19,6 @@ from coprs.rest_api.schemas import BuildSchema, BuildCreateSchema, BuildCreateFr
 from coprs.rest_api.util import get_one_safe, mm_deserialize
 
 from flask_restful import Resource, reqparse
-
-
-def render_build(build):
-    return {
-        "build": BuildSchema().dump(build)[0],
-        "_links": {
-            "self": {"href": url_for(".buildr", build_id=build.id)},
-            "project": {"href": url_for(".projectr", project_id=build.copr_id)},
-            "chroots": {"href": url_for(".buildchrootlistr", build_id=build.id)}
-        }
-    }
 
 
 class BuildListR(Resource):
@@ -42,6 +32,8 @@ class BuildListR(Resource):
 
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
+
+        # parser.add_argument('package', type=str)
 
         req_args = parser.parse_args()
 
