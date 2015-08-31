@@ -97,6 +97,16 @@ class BuildSourceEnum(object):
             "srpm_upload": 2}  # pkg, tmp
 
 
+class FailTypeEnum(object):
+    __metaclass__ = EnumType
+    vals = {"unset": 0,
+            "unknown_error": 1,
+            "build_error": 2,
+            "git_import_failed": 3,
+            "srpm_download_failed": 4,
+            "srpm_query_failed": 5}
+
+
 class Paginator(object):
 
     def __init__(self, query, total_count, page=1,

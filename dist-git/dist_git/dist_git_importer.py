@@ -236,13 +236,21 @@ class DistGitImporter(object):
             log.debug("sending a response - success")
             self.post_back(task.get_dict_for_frontend())
 
-        except (PackageImportException, PackageDownloadException, PackageQueryException):
+        except PackageImportException:
             log.exception("send a response - failure during import of: {}".format(task.package_url))
-            self.post_back_safe({"task_id": task.task_id, "error": "error"})
+            self.post_back_safe({"task_id": task.task_id, "error": "git_import_failed"})
+
+        except PackageDownloadException:
+            log.exception("send a response - failure during download of: {}".format(task.package_url))
+            self.post_back_safe({"task_id": task.task_id, "error": "srpm_download_failed"})
+
+        except PackageQueryException:
+            log.exception("send a response - failure during query of: {}".format(task.package_url))
+            self.post_back_safe({"task_id": task.task_id, "error": "srpm_query_failed"})
 
         except Exception:
             log.exception("Unexpected error during package import")
-            self.post_back_safe({"task_id": task.task_id, "error": "error"})
+            self.post_back_safe({"task_id": task.task_id, "error": "unknown_error"})
 
         finally:
             shutil.rmtree(tmp_root, ignore_errors=True)

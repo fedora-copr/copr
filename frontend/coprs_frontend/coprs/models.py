@@ -349,6 +349,8 @@ class Build(db.Model, helpers.Serializer):
     source_type = db.Column(db.Integer, default=helpers.BuildSourceEnum("unset"))
     # Source of the build: description in json, example: git link, srpm url, etc.
     source_json = db.Column(db.Text)
+    # Type of failure: type identifier
+    fail_type = db.Column(db.Integer, default=helpers.FailTypeEnum("unset"))
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
@@ -359,6 +361,10 @@ class Build(db.Model, helpers.Serializer):
     package = db.relationship("Package", backref=db.backref("builds"))
 
     chroots = association_proxy("build_chroots", "mock_chroot")
+
+    @property
+    def fail_type_test(self):
+        return helpers.FailTypeEnum(self.fail_type)
 
     @property
     def is_older_results_naming_used(self):

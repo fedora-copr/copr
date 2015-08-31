@@ -1,6 +1,7 @@
 {% extends "coprs/detail.html" %}
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
+{% from "coprs/detail/_describe_failure.html" import describe_failure %}
 {% from "_helpers.html" import chroot_to_os_logo %}
 {% block title %}Build {{ build.id }} in {{ build.copr.owner.name }}/{{ build.copr.name }}{% endblock %}
 {%block project_breadcrumb %}
@@ -90,7 +91,8 @@
 
     <h3> Build Results </h3>
     <dl class="dl-horizontal">
-      <dt> Built Packages:</dt>
+    {{ describe_failure(build) }}
+    <dt> Built Packages:</dt>
     {% if build.built_packages %}
       {% for pkg in build.built_packages.split("\n"): %}
         <dd>{{ pkg }}</dd>

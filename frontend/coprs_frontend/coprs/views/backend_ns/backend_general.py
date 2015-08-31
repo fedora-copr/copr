@@ -88,6 +88,13 @@ def dist_git_upload_completed():
 
         # Failed?
         elif "error" in flask.request.json:
+            error_type = flask.request.json["error"]
+
+            try:
+                build.fail_type = helpers.FailTypeEnum(error_type)
+            except KeyError:
+                build.fail_type = helpers.FailTypeEnum("unknown_error")
+
             for ch in build_chroots:
                 ch.status = helpers.StatusEnum("failed")
 

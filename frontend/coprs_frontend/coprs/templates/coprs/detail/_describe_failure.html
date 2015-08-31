@@ -1,0 +1,21 @@
+{% macro describe_failure(build) %}
+{% if build.fail_type %}
+  <dt>Build State:</dt>
+  <dd><span class="build-failed">failed</span></dd>
+
+  <dt>State Description:</dt>
+  <dd>
+  {% if build.fail_type_text == "unknown_error" %}
+    Unknown error.
+  {% elif build.fail_type_text == "build_error" %}
+    Build error. See logs of individual chroots for more information.
+  {% elif build.fail_type_text == "git_import_failed" %}
+    Importing SRPM into Dist Git failed.
+  {% elif build.fail_type_text == "srpm_download_failed" %}
+    Could not download the SRPM. Probably bad URL.
+  {% elif build.fail_type_text == "srpm_query_failed" %}
+    RPM query failed. The file is probably not a SRPM.
+  {% endif %}
+  </dd>
+{% endif %}
+{% endmacro %}
