@@ -172,24 +172,27 @@ class BuildListR(Resource):
 class BuildR(Resource):
 
     def get(self, build_id):
-
         build = get_one_safe(BuildsLogic.get(build_id),
                              "Not found build with id: {}".format(build_id))
 
         return render_build(build)
 
+    @rest_api_auth_required
+    def delete(self, build_id):
+        build = get_one_safe(BuildsLogic.get(build_id),
+                             "Not found build with id: {}".format(build_id))
+        try:
+            BuildsLogic.delete_build(flask.g.user, build)
+            db.session.commit()
+        except ActionInProgressException as err:
+            db.session.rollback()
+            raise CannotProcessRequest("Cannot delete build due to: {}"
+                                       .format(err))
+        except InsufficientRightsException as err:
+            raise AccessForbidden("Failed to delete build: {}".format(err))
 
-# to get build details and cancel individual build chroots
-# class BuildChrootR(Resource):
-#     def get(self, owner, project, name):
-#         copr = get_one_safe(CoprsLogic.get(flask.g.user, owner, project),
-#                            "Copr {}/{} not found".format(owner, project))
-#         chroot = get_one_safe(CoprChrootsLogic.get(copr, name))
-#
-#         return {
-#             "chroot": chroot.to_dict(),
-#             "links": {
-#                 "self": bp_url_for(BuildChrootR.endpoint, owner=owner, project=project, name=name)
-#             }
-#         }
+        return "", 204
+
+
+
 

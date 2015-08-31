@@ -1,20 +1,13 @@
 # coding: utf-8
 from cStringIO import StringIO
-
 import json
-from marshmallow import pprint
 import math
+import random
 
-import pytest
-import sqlalchemy
-from coprs import models
 from coprs.helpers import BuildSourceEnum
-
-from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
-
-from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
+from tests.coprs_test_case import CoprsTestCase
 
 
 class TestBuildResource(CoprsTestCase):
@@ -343,7 +336,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r0.status_code == 400
 
-    def test_get_one(self, f_users, f_coprs, f_builds, f_db,
+    def test_get_one_build(self, f_users, f_coprs, f_builds, f_db,
                      f_users_api, f_mock_chroots):
 
         build_id_list = [b.id for b in self.basic_builds]
@@ -356,3 +349,69 @@ class TestBuildResource(CoprsTestCase):
             obj = json.loads(r.data)
             assert obj["build"]["id"] == b_id
             assert obj["_links"]["self"]["href"] == href
+
+    def test_get_one_build_not_found(self, f_users, f_coprs, f_builds, f_db,
+                     f_users_api, f_mock_chroots):
+        build_id_list = [b.id for b in self.basic_builds]
+        max_id = max(build_id_list) + 1
+        self.db.session.commit()
+
+        for _ in range(10):
+            fake_id = random.randint(max_id, max_id * 10)
+            href = "/api_2/builds/{}".format(fake_id)
+
+            r = self.tc.get(href)
+            assert r.status_code == 404
+
+    def test_delete_build_ok(self, f_users, f_coprs,
+                             f_mock_chroots, f_builds,f_users_api, ):
+
+
+        self.db.session.commit()
+        b_id = self.b1.id
+        href = "/api_2/builds/{}".format(b_id)
+        r = self.request_rest_api_with_auth(
+            href,
+            method="delete",
+        )
+        assert r.status_code == 204
+
+        r2 = self.tc.get(href)
+        assert r2.status_code == 404
+
+    def test_delete_build_wrong_user(self, f_users, f_coprs,
+                             f_mock_chroots, f_builds,f_users_api, ):
+
+        login = self.u2.api_login
+        token = self.u2.api_token
+        self.db.session.commit()
+        b_id = self.b1.id
+        href = "/api_2/builds/{}".format(b_id)
+        r = self.request_rest_api_with_auth(
+            href,
+            method="delete",
+            login=login, token=token,
+        )
+        assert r.status_code == 403
+
+    def test_delete_build_in_progress(self, f_users, f_coprs,
+                             f_mock_chroots, f_builds,f_users_api, ):
+
+        login = self.u2.api_login
+        token = self.u2.api_token
+        self.db.session.commit()
+        b_id = self.b3.id
+        href = "/api_2/builds/{}".format(b_id)
+        r = self.request_rest_api_with_auth(
+            href,
+            method="delete",
+            login=login, token=token,
+        )
+        assert r.status_code == 400
+        print(r.data)
+
+    # test_put_build_wrong_user
+    # test_put_build_not_found
+    # test_put_cancel_build
+    # test_put_cancel_build_wrong_state
+
