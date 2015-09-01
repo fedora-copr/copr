@@ -347,8 +347,7 @@ def copr_update(username, coprname):
 
         try:
             # form validation checks for duplicates
-            coprs_logic.CoprsLogic.update(
-                flask.g.user, copr, check_for_duplicates=False)
+            coprs_logic.CoprsLogic.update(flask.g.user, copr)
         except (exceptions.ActionInProgressException,
                 exceptions.InsufficientRightsException) as e:
 

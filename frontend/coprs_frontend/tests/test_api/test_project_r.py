@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import base64
+import copy
 import json
 from marshmallow import pprint
 
@@ -15,6 +16,19 @@ from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
 class TestProjectResource(CoprsTestCase):
+    put_update_dict = {
+        "description": "foo bar",
+        "instructions": "cthulhu fhtagn",
+        "repos": [
+            "http://example.com/repo",
+            "copr://foo/bar"
+            "copr://g/foo/bar"
+        ],
+        "disable_createrepo": True,
+        "build_enable_net": False,
+        "homepage": "http://example.com/foobar",
+        "contact": "foo@example.com",
+    }
 
     def test_self(self):
         href = "/api_2/projects"
@@ -77,8 +91,9 @@ class TestProjectResource(CoprsTestCase):
             project = CoprsLogic.get_by_id(p_id).one()
             assert len(obj["project_chroots"]) == len(project.copr_chroots)
 
-    def test_get_one_with_builds(self, f_users, f_mock_chroots,
-                                  f_coprs, f_builds, f_db):
+    def test_get_one_with_builds(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_builds, f_db):
 
         p_id_list = [p.id for p in self.basic_coprs_list]
         for p_id in p_id_list:
@@ -93,8 +108,9 @@ class TestProjectResource(CoprsTestCase):
             builds = BuildsLogic.get_multiple_by_copr(project).all()
             assert len(obj["project_builds"]) == len(builds)
 
-    def test_delete_not_found(self, f_users, f_mock_chroots,
-                             f_users_api, f_db):
+    def test_delete_not_found(
+            self, f_users, f_mock_chroots,
+            f_users_api, f_db):
 
         href = "/api_2/projects/{}".format("1")
 
@@ -104,8 +120,9 @@ class TestProjectResource(CoprsTestCase):
         )
         assert r0.status_code == 404
 
-    def test_delete_ok(self, f_users, f_mock_chroots,
-                             f_coprs, f_users_api, f_db):
+    def test_delete_ok(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_users_api, f_db):
 
         href = "/api_2/projects/{}".format(self.c1.id)
 
@@ -116,8 +133,9 @@ class TestProjectResource(CoprsTestCase):
         assert r0.status_code == 204
         assert self.tc.get(href).status_code == 404
 
-    def test_delete_fail_unfinished_build(self, f_users, f_mock_chroots,
-                             f_coprs, f_builds, f_users_api, f_db):
+    def test_delete_fail_unfinished_build(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_builds, f_users_api, f_db):
 
         href = "/api_2/projects/{}".format(self.c1.id)
 
@@ -156,3 +174,97 @@ class TestProjectResource(CoprsTestCase):
         )
         assert r0.status_code == 403
 
+    def test_project_put_ok(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_users_api, f_db):
+
+        href = "/api_2/projects/{}".format(self.c1.id)
+        r0 = self.request_rest_api_with_auth(
+            href,
+            method="put",
+            content=self.put_update_dict
+        )
+        assert r0.status_code == 201
+
+        r1 = self.tc.get(r0.headers["Location"])
+        obj = json.loads(r1.data)
+        updated_project = obj["project"]
+        for k, v in self.put_update_dict.items():
+            assert updated_project[k] == v
+
+    def test_project_put_wrong_user(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_users_api, f_db):
+        login = self.u2.api_login
+        token = self.u2.api_token
+
+        href = "/api_2/projects/{}".format(self.c1.id)
+        r0 = self.request_rest_api_with_auth(
+            href,
+            method="put",
+            content=self.put_update_dict,
+            login=login, token=token,
+        )
+        assert r0.status_code == 403
+
+    def test_project_put_not_found(
+            self, f_users, f_mock_chroots, f_users_api, f_db):
+
+        href = "/api_2/projects/1"
+        r0 = self.request_rest_api_with_auth(
+            href,
+            method="put",
+            content=self.put_update_dict,
+        )
+        assert r0.status_code == 404
+
+    def test_project_put_bad_values(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_users_api, f_db):
+        href = "/api_2/projects/{}".format(self.c1.id)
+        cases = []
+
+        def add_case(field, value):
+            t = copy.deepcopy(self.put_update_dict)
+            t[field] = value
+            cases.append(t)
+
+        add_case("repos", "foobar")
+        add_case("repos", 1)
+        add_case("contact", "adsg")
+        add_case("contact", "1")
+        add_case("homepage", "sdg")
+
+        for test_case in cases:
+            r0 = self.request_rest_api_with_auth(
+                href,
+                method="put",
+                content=test_case
+            )
+            assert r0.status_code == 400
+
+    def test_project_put_ok_values(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_users_api, f_db):
+        href = "/api_2/projects/{}".format(self.c1.id)
+        cases = []
+
+        def add_case(field, value):
+            t = copy.deepcopy(self.put_update_dict)
+            t[field] = value
+            cases.append(t)
+
+        add_case("repos", [])
+        add_case("repos", None)
+        add_case("contact", "")
+        add_case("contact", None)
+        add_case("contact", "foo@bar.com")
+        add_case("homepage", "http://foo.org/bar/xdeeg?sdfg")
+
+        for test_case in cases:
+            r0 = self.request_rest_api_with_auth(
+                href,
+                method="put",
+                content=test_case
+            )
+            assert r0.status_code == 201

@@ -19,12 +19,13 @@ from coprs.logic.helpers import slice_query
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException
-from coprs.rest_api.schemas import ProjectSchema
+from coprs.rest_api.schemas import ProjectSchema, ProjectCreateSchema
 from ..exceptions import ObjectAlreadyExists, AuthFailed, CannotProcessRequest, AccessForbidden
 from ..util import get_one_safe, json_loads_safe, mm_deserialize, render_allowed_method, mm_serialize_one
 
 
 def rest_api_auth_required(f):
+    # todo: move to common.py and test this
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
         token = None
@@ -69,10 +70,6 @@ def render_project(copr, self_params=None):
             "builds": {"href": url_for(".buildlistr", project_id=copr.id)},
             "chroots": {"href": url_for(".projectchrootlistr", project_id=copr.id)}
         },
-        # "allowed_methods": [
-        #     render_allowed_method("GET", "Get single copr", require_auth=False),
-        #     render_allowed_method("DELETE", "Delete current copr", require_auth=True),
-        # ]
     }
 
 
@@ -85,30 +82,19 @@ class ProjectListR(Resource):
         """
         owner = flask.g.user
 
-        result = mm_deserialize(ProjectSchema(), flask.request.data)
+        result = mm_deserialize(ProjectCreateSchema(), flask.request.data)
 
         # todo check that chroots are available
         req = result.data
-
-        extra = {
-            k: req[k]
-            for k in [
-                "description",
-                "instructions",
-                "contact",
-                "homepage",
-                "auto_createrepo",
-                "build_enable_net",
-                "repos"
-            ] if k in req
-        }
+        name = req.pop("name")
+        selected_chroots = req.pop("chroots")
 
         try:
             project = CoprsLogic.add(
                 user=owner, check_for_duplicates=True,
-                name=req["name"],
-                selected_chroots=req["chroots"],
-                **extra
+                name=name,
+                selected_chroots=selected_chroots,
+                **req
             )
             db.session.commit()
         except DuplicateException as error:
@@ -153,19 +139,6 @@ class ProjectListR(Resource):
             },
             "coprs": [render_project(copr) for copr in coprs_list],
         }
-
-        # TODO: show only if user provided ?help=true param
-        #
-        # if req_args.get("help"):
-        #     result_dict["allowed_methods"] = [
-        #         render_allowed_method("GET", "Get list of coprs", require_auth=False,
-        #                               params=[
-        #                                   "username: filter coprs owned by the user",
-        #                                   "limit: show only the given number of coprs",
-        #                                   "offset: skip given number of coprs",
-        #                               ]),
-        #         render_allowed_method("POST", "Creates new copr, send dict with copr fields"),
-        #     ]
 
         return result_dict
 
@@ -220,5 +193,21 @@ class ProjectR(Resource):
         """
         Modifies project by replacement of provided fields
         """
-        pass
+        project = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
+
+        project_dict = mm_deserialize(ProjectSchema(), flask.request.data).data
+        # pprint(project_dict)
+
+        for k, v in project_dict.items():
+            setattr(project, k, v)
+
+        try:
+            CoprsLogic.update(flask.g.user, project)
+            db.session.commit()
+        except InsufficientRightsException as err:
+            raise AccessForbidden(str(err))
+
+        resp = make_response("", 201)
+        resp.headers["Location"] = url_for(".projectr", project_id=project.id)
+        return resp
 

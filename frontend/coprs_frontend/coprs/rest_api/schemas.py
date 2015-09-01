@@ -2,6 +2,30 @@
 
 from collections import Iterable
 from marshmallow import Schema, fields
+from marshmallow import Schema, fields, validates_schema, ValidationError, validate
+
+
+def validate_any(fn_list):
+    """
+    :param fn_list: list of callable functions, each takes one param
+    :return: None if at least one validation function exists without exceptions
+    :raises ValidationError: otherwise
+    """
+    def func(value):
+        # import ipdb; ipdb.set_trace()
+        errors = []
+        for fn in fn_list:
+            try:
+                fn(value)
+            except ValidationError as err:
+                errors.append(str(err))
+            else:
+                return
+        else:
+            errors.insert(0, u"At least one validator should accept given value:")
+            raise ValidationError(errors)
+
+    return func
 
 
 class SpaceSeparatedList(fields.Field):
@@ -11,8 +35,11 @@ class SpaceSeparatedList(fields.Field):
         return value.split()
 
     def _deserialize(self, value):
-        if value is None or not isinstance(value, Iterable):
+        if value is None:
             return ""
+        elif not isinstance(value, Iterable) or isinstance(value, basestring):
+            raise ValidationError("Value `{}` is not a list of strings"
+                                  .format(value))
         else:
             return " ".join(value)
 
@@ -31,23 +58,28 @@ class MockChrootSchema(Schema):
 
 
 class ProjectSchema(Schema):
-    id = fields.Int()
-    name = fields.Str(required=True)
+    id = fields.Int(dump_only=True)
+    name = fields.Str(dump_only=True)
 
     owner = fields.Str(attribute="owner_name", dump_only=True)
-    description = fields.Str()
-    instructions = fields.Str()
-    homepage = fields.Str()
-    contact = fields.Str()
+    description = fields.Str(allow_none=True)
+    instructions = fields.Str(allow_none=True)
+    homepage = fields.Url(allow_none=True)
+    contact = fields.Str(validate=validate_any([
+        validate.URL(),
+        validate.Email(),
+        validate.OneOf(["", None]),
+    ]), allow_none=True)
 
-    auto_createrepo = fields.Bool()
-    build_enable_net = fields.Bool()
-    last_modified = fields.DateTime()
+    disable_createrepo = fields.Bool(allow_none=True)
+    build_enable_net = fields.Bool(allow_none=True)
+    last_modified = fields.DateTime(dump_only=True)
 
-    #additional_repos = fields.List(fields.Str(), attribute="repos_list")
-    repos = SpaceSeparatedList()
+    repos = SpaceSeparatedList(allow_none=True)
 
-    # used only for creation
+
+class ProjectCreateSchema(ProjectSchema):
+    name = fields.Str(required=True)
     chroots = fields.List(fields.Str(), load_only=True)
 
 

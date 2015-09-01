@@ -4,6 +4,7 @@ from sqlalchemy import and_
 from sqlalchemy.event import listen
 from sqlalchemy.orm.attributes import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.attributes import get_history
 
 from coprs import db
 from coprs import exceptions
@@ -164,37 +165,15 @@ class CoprsLogic(object):
         db.session.add(copr)
 
     @classmethod
-    def update(cls, user, copr, check_for_duplicates=True):
-        cls.raise_if_unfinished_blocking_action(
-            copr, "Can't change this project name,"
-                  " another operation is in progress: {action}")
+    def update(cls, user, copr):
+        # we should call get_history before other requests, otherwise
+        # the changes would be forgotten
+        if get_history(copr, "name").has_changes():
+            raise MalformedArgumentException("Change name of the project is forbidden")
 
         users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr, "Only owners and admins may update their projects.")
 
-        existing = cls.exists_for_user(copr.owner, copr.name).first()
-        if existing:
-            if check_for_duplicates and existing.id != copr.id:
-                raise exceptions.DuplicateException(
-                    "Project: '{0}' already exists".format(copr.name))
-
-        else:  # we're renaming
-            # if we fire a models.Copr.query, it will use the modified copr in session
-            # -> workaround this by just getting the name
-            old_copr_name = (db.session.query(models.Copr.name)
-                             .filter(models.Copr.id == copr.id)
-                             .filter(models.Copr.deleted == False)
-                             .first()[0])
-
-            action = models.Action(action_type=helpers.ActionTypeEnum("rename"),
-                                   object_type="copr",
-                                   object_id=copr.id,
-                                   old_value="{0}/{1}".format(copr.owner.name,
-                                                              old_copr_name),
-                                   new_value="{0}/{1}".format(copr.owner.name,
-                                                              copr.name),
-                                   created_on=int(time.time()))
-            db.session.add(action)
         db.session.add(copr)
 
     @classmethod
