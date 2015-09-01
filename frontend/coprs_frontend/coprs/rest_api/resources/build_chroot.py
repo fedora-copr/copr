@@ -1,22 +1,15 @@
 # coding: utf-8
 
-import json
-import flask
 from flask import url_for
-from flask_restful import Resource, reqparse
-
-from marshmallow import Schema, fields, pprint
+from flask_restful import Resource
 
 from ... import models
-from coprs.exceptions import MalformedArgumentException
-from coprs.logic.builds_logic import BuildsLogic, BuildChrootsLogic
-from coprs.rest_api.exceptions import MalformedRequest
-from coprs.rest_api.schemas import MockChrootSchema, CoprChrootSchema, BuildChrootSchema
+from ...exceptions import MalformedArgumentException
+from ...logic.builds_logic import BuildsLogic, BuildChrootsLogic
 
-from coprs.views.misc import api_login_required
-from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLogic
-
-from ..util import get_one_safe, json_loads_safe, mm_deserialize, mm_serialize_one
+from ..exceptions import MalformedRequest
+from ..schemas import BuildChrootSchema
+from ..util import get_one_safe, mm_serialize_one
 
 
 def render_build_chroot(chroot):

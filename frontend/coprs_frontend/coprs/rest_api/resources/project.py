@@ -1,76 +1,24 @@
-import base64
-import datetime
-import functools
 from logging import getLogger
-from coprs.logic.builds_logic import BuildsLogic
-from coprs.rest_api.resources.common import render_copr_chroot, render_build
 
 log = getLogger(__name__)
 
 import flask
 from flask import url_for, make_response
 from flask_restful import Resource, reqparse
-from marshmallow import pprint
 
-from coprs import db
-from coprs.exceptions import DuplicateException
-from coprs.logic.complex_logic import ComplexLogic
-from coprs.logic.helpers import slice_query
-from coprs.logic.users_logic import UsersLogic
-from coprs.logic.coprs_logic import CoprsLogic
-from coprs.exceptions import ActionInProgressException, InsufficientRightsException
-from coprs.rest_api.schemas import ProjectSchema, ProjectCreateSchema
-from ..exceptions import ObjectAlreadyExists, AuthFailed, CannotProcessRequest, AccessForbidden
-from ..util import get_one_safe, json_loads_safe, mm_deserialize, render_allowed_method, mm_serialize_one
+from ... import db
+from ...logic.builds_logic import BuildsLogic
+from ...logic.complex_logic import ComplexLogic
+from ...logic.helpers import slice_query
+from ...logic.coprs_logic import CoprsLogic
+from ...exceptions import ActionInProgressException, InsufficientRightsException
 
+from ...exceptions import DuplicateException
 
-def rest_api_auth_required(f):
-    # todo: move to common.py and test this
-    @functools.wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = None
-        api_login = None
-        try:
-            if "Authorization" in flask.request.headers:
-                base64string = flask.request.headers["Authorization"]
-                base64string = base64string.split()[1].strip()
-                userstring = base64.b64decode(base64string)
-                (api_login, token) = userstring.split(":")
-        except Exception:
-            log.exception("Failed to get auth token from headers")
-            api_login = token = None
-
-        token_auth = False
-        if token and api_login:
-            user = UsersLogic.get_by_api_login(api_login).first()
-            if (user and user.api_token == token and
-                    user.api_token_expiration >= datetime.date.today()):
-
-                token_auth = True
-                flask.g.user = user
-        if not token_auth:
-            message = (
-                "Login invalid/expired. "
-                "Please visit https://copr.fedoraproject.org/api "
-                "get or renew your API token.")
-
-            raise AuthFailed(message)
-        return f(*args, **kwargs)
-    return decorated_function
-
-
-def render_project(copr, self_params=None):
-    if self_params is None:
-        self_params = {}
-
-    return {
-        "project": mm_serialize_one(ProjectSchema, copr),
-        "_links": {
-            "self": {"href": url_for(".projectr", project_id=copr.id, **self_params)},
-            "builds": {"href": url_for(".buildlistr", project_id=copr.id)},
-            "chroots": {"href": url_for(".projectchrootlistr", project_id=copr.id)}
-        },
-    }
+from ..common import rest_api_auth_required, render_copr_chroot, render_build, render_project
+from ..schemas import ProjectSchema, ProjectCreateSchema
+from ..exceptions import ObjectAlreadyExists, CannotProcessRequest, AccessForbidden
+from ..util import get_one_safe, mm_deserialize
 
 
 class ProjectListR(Resource):

@@ -11,8 +11,8 @@ from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.rest_api.exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
-from coprs.rest_api.resources.common import render_build
-from coprs.rest_api.resources.project import rest_api_auth_required
+from ..common import render_build, rest_api_auth_required
+
 
 from coprs.rest_api.schemas import BuildSchema, BuildCreateSchema, BuildCreateFromUrlSchema
 

@@ -2,8 +2,6 @@
 
 import logging
 
-from coprs.rest_api.resources.common import render_copr_chroot
-
 log = logging.getLogger(__name__)
 
 import flask
@@ -11,16 +9,16 @@ from flask import url_for, make_response
 from flask_restful import Resource
 
 from sqlalchemy.exc import IntegrityError
-from coprs.exceptions import InsufficientRightsException, MalformedArgumentException
-from coprs.rest_api.exceptions import AccessForbidden, MalformedRequest, ObjectAlreadyExists, \
-    ServerError
-from coprs.rest_api.resources.project import rest_api_auth_required
-from coprs.rest_api.schemas import CoprChrootSchema, CoprChrootCreateSchema
 
-from coprs.logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLogic
-
-from ..util import get_one_safe, mm_deserialize
 from ... import db
+from ...logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLogic
+from ...exceptions import InsufficientRightsException, MalformedArgumentException
+
+from ..exceptions import AccessForbidden, MalformedRequest, \
+    ObjectAlreadyExists, ServerError
+from ..common import rest_api_auth_required, render_copr_chroot
+from ..schemas import CoprChrootSchema, CoprChrootCreateSchema
+from ..util import get_one_safe, mm_deserialize
 
 
 class ProjectChrootListR(Resource):
