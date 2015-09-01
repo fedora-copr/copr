@@ -29,10 +29,8 @@ class ProjectListR(Resource):
         Creates new copr
         """
         owner = flask.g.user
-
         result = mm_deserialize(ProjectCreateSchema(), flask.request.data)
 
-        # todo check that chroots are available
         req = result.data
         name = req.pop("name")
         selected_chroots = req.pop("chroots")

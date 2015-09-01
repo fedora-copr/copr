@@ -79,8 +79,16 @@ class ProjectSchema(Schema):
 
 
 class ProjectCreateSchema(ProjectSchema):
-    name = fields.Str(required=True)
-    chroots = fields.List(fields.Str(), load_only=True)
+    name = fields.Str(
+        required=True,
+        validate=[
+            validate.Regexp(
+                r"^[a-zA-Z][\w.-]*$",
+                error="Name must contain only letters,"
+                      "digits, underscores, dashes and dots."
+                      "And starts with letter"),
+        ])
+    chroots = SpaceSeparatedList(load_only=True, default=list)
 
 
 class CoprChrootSchema(Schema):
