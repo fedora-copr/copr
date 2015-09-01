@@ -15,7 +15,7 @@ from ...logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLogic
 from ...exceptions import InsufficientRightsException, MalformedArgumentException
 
 from ..exceptions import AccessForbidden, MalformedRequest, \
-    ObjectAlreadyExists, ServerError
+    ObjectAlreadyExists, ServerError, ObjectNotFoundError
 from ..common import rest_api_auth_required, render_copr_chroot
 from ..schemas import CoprChrootSchema, CoprChrootCreateSchema
 from ..util import get_one_safe, mm_deserialize
@@ -48,8 +48,8 @@ class ProjectChrootListR(Resource):
 
         try:
             mock_chroot = get_one_safe(MockChrootsLogic.get_from_name(name))
-        except MalformedArgumentException as err:
-            raise MalformedRequest("Bad mock chroot name: {}".format(err))
+        except (MalformedArgumentException, ObjectNotFoundError) as err:
+            raise MalformedRequest("Bad mock chroot name: {}. Error: {}".format(name, err))
 
         if mock_chroot is None:
             raise MalformedRequest("Mock chroot `{}` doesn't exists"

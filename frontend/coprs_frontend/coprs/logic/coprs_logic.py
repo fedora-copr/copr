@@ -377,11 +377,13 @@ class CoprChrootsLogic(object):
 
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot,
-                      buildroot_pkgs, comps=None, comps_name=None):
+                      buildroot_pkgs=None, comps=None, comps_name=None):
         """
         :type user: models.User
         :type mock_chroot: models.MockChroot
         """
+        if buildroot_pkgs is None:
+            buildroot_pkgs = ""
         UsersLogic.raise_if_cant_update_copr(
             user, copr,
             "Only owners and admins may update their projects.")

@@ -215,6 +215,23 @@ class TestProjectChrootResource(CoprsTestCase):
 
         assert_content(json.loads(r3.data)["chroot"])
 
+    def test_create_chroot_build_no_buildchroot(self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
+        new_chroot_name = self.mc2.name
+
+        base_data = {
+            "comps": "<comps><group></group></comps>",
+            "comps_name": "test.xml",
+        }
+        data = {
+            "name": new_chroot_name,
+        }
+        data.update(base_data)
+        self.db.session.commit()
+
+        r0 = self.tc.get("/api_2/projects/1/chroots")
+        assert r0.status_code == 200
+        assert len(json.loads(r0.data)["chroots"]) == 1
+
     def test_create_chroot_missing_name(self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
         base_data = {
             "buildroot_pkgs": ["foo", "bar"],
@@ -240,7 +257,7 @@ class TestProjectChrootResource(CoprsTestCase):
     def test_create_chroot_non_existing_name(
             self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
 
-        new_chroot_name = "completely_fake_chroot"
+        new_chroot_name = "completely-fake-chroot"
         base_data = {
             "buildroot_pkgs": ["foo", "bar"],
             "comps": "<comps><group></group></comps>",
@@ -250,7 +267,6 @@ class TestProjectChrootResource(CoprsTestCase):
             "name": new_chroot_name,
         }
         data.update(base_data)
-        self.db.session.commit()
         self.db.session.commit()
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
