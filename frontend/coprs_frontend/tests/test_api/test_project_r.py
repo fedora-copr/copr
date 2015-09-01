@@ -92,3 +92,67 @@ class TestProjectResource(CoprsTestCase):
             project = CoprsLogic.get_by_id(p_id).one()
             builds = BuildsLogic.get_multiple_by_copr(project).all()
             assert len(obj["project_builds"]) == len(builds)
+
+    def test_delete_not_found(self, f_users, f_mock_chroots,
+                             f_users_api, f_db):
+
+        href = "/api_2/projects/{}".format("1")
+
+        r0 = self.request_rest_api_with_auth(
+            href,
+            method="delete"
+        )
+        assert r0.status_code == 404
+
+    def test_delete_ok(self, f_users, f_mock_chroots,
+                             f_coprs, f_users_api, f_db):
+
+        href = "/api_2/projects/{}".format(self.c1.id)
+
+        r0 = self.request_rest_api_with_auth(
+            href,
+            method="delete"
+        )
+        assert r0.status_code == 204
+        assert self.tc.get(href).status_code == 404
+
+    def test_delete_fail_unfinished_build(self, f_users, f_mock_chroots,
+                             f_coprs, f_builds, f_users_api, f_db):
+
+        href = "/api_2/projects/{}".format(self.c1.id)
+
+        r0 = self.request_rest_api_with_auth(
+            href,
+            method="delete"
+        )
+        assert r0.status_code == 400
+
+    def test_delete_fail_unfinished_project_action(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_users_api, f_db):
+
+        CoprsLogic.create_delete_action(self.c1)
+        self.db.session.commit()
+        href = "/api_2/projects/{}".format(self.c1.id)
+        r0 = self.request_rest_api_with_auth(
+            href,
+            method="delete"
+        )
+        assert r0.status_code == 400
+
+    def test_delete_wrong_user(
+            self, f_users, f_mock_chroots,
+            f_coprs, f_users_api, f_db):
+
+        login = self.u2.api_login
+        token = self.u2.api_token
+
+        href = "/api_2/projects/{}".format(self.c1.id)
+
+        r0 = self.request_rest_api_with_auth(
+            href,
+            method="delete",
+            login=login, token=token,
+        )
+        assert r0.status_code == 403
+

@@ -20,7 +20,7 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException
 from coprs.rest_api.schemas import ProjectSchema
-from ..exceptions import ObjectAlreadyExists, AuthFailed
+from ..exceptions import ObjectAlreadyExists, AuthFailed, CannotProcessRequest, AccessForbidden
 from ..util import get_one_safe, json_loads_safe, mm_deserialize, render_allowed_method, mm_serialize_one
 
 
@@ -174,18 +174,15 @@ class ProjectR(Resource):
 
     @rest_api_auth_required
     def delete(self, project_id):
-        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
-
-        raise NotImplementedError()
+        project = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
 
         try:
-            ComplexLogic.delete_copr(copr)
-        except (ActionInProgressException,
-                InsufficientRightsException) as err:
-            db.session.rollback()
-            raise
-        else:
+            ComplexLogic.delete_copr(project)
             db.session.commit()
+        except ActionInProgressException as err:
+            raise CannotProcessRequest(str(err))
+        except InsufficientRightsException as err:
+            raise AccessForbidden(str(err))
 
         return None, 204
 

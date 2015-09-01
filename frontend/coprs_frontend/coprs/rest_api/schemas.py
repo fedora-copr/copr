@@ -79,7 +79,6 @@ class BuildSchema(Schema):
     id = fields.Int(dump_only=True)
     state = fields.Str()
 
-    pkgs = fields.Str(dump_only=True)
     build_packages = fields.Str(dump_only=True)
     pkg_version = fields.Str(dump_only=True)
 
