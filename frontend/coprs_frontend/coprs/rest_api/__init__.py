@@ -19,8 +19,8 @@ class RootR(Resource):
         return {
             "_links": {
                 "self": {"href": url_for(".rootr")},
-                "coprs": {"href": url_for(".projectlistr")},
-                "copr_chroots": {"href": url_for(".mockchrootlistr")},
+                "projects": {"href": url_for(".projectlistr")},
+                "mock_chroots": {"href": url_for(".mockchrootlistr")},
                 "builds": {"href": url_for(".buildlistr")},
             }
         }

@@ -11,6 +11,7 @@ from coprs.logic.builds_logic import BuildsLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.models import Copr
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -37,9 +38,87 @@ class TestProjectResource(CoprsTestCase):
         obj = json.loads(r.data)
         assert obj["_links"]["self"]["href"] == href
 
-    # test_project_list_all
-    # test_project_list_by_name
-    # test_project_list_by_user
+    def test_project_list_all(self, f_users, f_mock_chroots, f_coprs, f_db):
+        expected_id_set = set(c.id for c in self.basic_coprs_list)
+        href = "/api_2/projects"
+        r = self.tc.get(href)
+        assert r.status_code == 200
+        obj = json.loads(r.data)
+        assert set(p["project"]["id"] for p in obj["projects"]) == \
+            expected_id_set
+
+    def test_project_list_by_user(self, f_users, f_mock_chroots, f_coprs, f_db):
+        expected_id_set = set(
+            c.id for c in self.basic_coprs_list
+            if c.owner == self.u1
+        )
+        href = "/api_2/projects?owner={}".format(self.u1.username)
+        r = self.tc.get(href)
+        assert r.status_code == 200
+        obj = json.loads(r.data)
+        assert set(p["project"]["id"] for p in obj["projects"]) == \
+            expected_id_set
+
+    def test_project_list_by_name(self, f_users, f_mock_chroots, f_coprs, f_db):
+        expected_id_set = set(
+            c.id for c in self.basic_coprs_list
+            if c.name == self.c1.name
+        )
+        href = "/api_2/projects?name={}".format(self.c1.name)
+        r = self.tc.get(href)
+        assert r.status_code == 200
+        obj = json.loads(r.data)
+        assert set(p["project"]["id"] for p in obj["projects"]) == \
+            expected_id_set
+
+    def test_project_list_limit_offset(self, f_users, f_mock_chroots, f_coprs, f_db):
+        # quite hardcoded test
+        s_1 = set(p.id for p in [self.c1, self.c2])
+        s_2 = set(p.id for p in [self.c2, self.c3])
+        s_3 = set(p.id for p in [self.c3])
+
+        href_list = [
+            "/api_2/projects?limit=2",
+            "/api_2/projects?limit=2&offset=1",
+            "/api_2/projects?limit=2&offset=2"
+        ]
+        for href, expected in zip(href_list, [s_1, s_2, s_3]):
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+            assert set(p["project"]["id"] for p in obj["projects"]) == \
+                expected
+
+    def test_project_list_search(self, f_users, f_mock_chroots, f_coprs, f_db):
+        self.prefix = u"prefix"
+        self.s_coprs = []
+        c1_username = self.c1.owner.username
+
+        k1 = 3
+        k2 = 5
+        for x in range(k1):
+            self.s_coprs.append(Copr(name=self.prefix + str(x), owner=self.u1))
+
+        for x in range(k2):
+            self.s_coprs.append(Copr(name=self.prefix + str(x), owner=self.u2))
+
+        self.db.session.add_all(self.s_coprs)
+        self.db.session.commit()
+
+        r0 = self.tc.get(u"/api_2/projects?search_query={}".format(self.prefix))
+        assert r0.status_code == 200
+        obj = json.loads(r0.data)
+        assert len(obj["projects"]) == k1 + k2
+        for p in obj["projects"]:
+            assert self.prefix in p["project"]["name"]
+
+        r1 = self.tc.get(u"/api_2/projects?search_query={}&owner={}"
+                         .format(self.prefix, c1_username))
+        assert r1.status_code == 200
+        obj = json.loads(r1.data)
+        assert len(obj["projects"]) == k1
+        for p in obj["projects"]:
+            assert self.prefix in p["project"]["name"]
 
     def test_project_create_new(self, f_users, f_mock_chroots, f_users_api):
         self.db.session.add_all([self.u1, self.mc1])

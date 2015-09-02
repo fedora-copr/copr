@@ -19,6 +19,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
+from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.rmodels import TimedStatEvents
 
@@ -35,7 +36,9 @@ from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_
 @coprs_ns.route("/", defaults={"page": 1})
 @coprs_ns.route("/<int:page>/")
 def coprs_show(page=1):
-    query = coprs_logic.CoprsLogic.get_multiple()
+    query = CoprsLogic.get_multiple()
+    query = CoprsLogic.set_query_order(query, desc=True)
+
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query
@@ -68,7 +71,8 @@ def coprs_by_owner(username=None, page=1):
         return page_not_found(
             "User {0} does not exist.".format(username))
 
-    query = coprs_logic.CoprsLogic.get_multiple_owned_by_username(username)
+    query = CoprsLogic.get_multiple_owned_by_username(username)
+    query = CoprsLogic.set_query_order(query, desc=True)
 
     paginator = helpers.Paginator(query, query.count(), page)
 
@@ -97,6 +101,7 @@ def coprs_by_owner(username=None, page=1):
 @coprs_ns.route("/<username>/allowed/<int:page>/")
 def coprs_by_allowed(username=None, page=1):
     query = coprs_logic.CoprsLogic.get_multiple_allowed_to_username(username)
+    query = CoprsLogic.set_query_order(query, desc=True)
     paginator = helpers.Paginator(query, query.count(), page)
 
     coprs = paginator.sliced_query

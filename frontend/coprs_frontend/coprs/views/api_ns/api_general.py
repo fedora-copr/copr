@@ -186,6 +186,7 @@ def api_coprs_by_owner(username=None):
     if username:
         query = CoprsLogic.join_builds(
             CoprsLogic.get_multiple_owned_by_username(username))
+        query = CoprsLogic.set_query_order(query)
 
         repos = query.all()
         output = {"output": "ok", "repos": []}

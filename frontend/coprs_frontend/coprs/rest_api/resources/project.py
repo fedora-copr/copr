@@ -1,4 +1,5 @@
 from logging import getLogger
+from coprs.rest_api.exceptions import MalformedRequest
 
 log = getLogger(__name__)
 
@@ -52,23 +53,27 @@ class ProjectListR(Resource):
 
     def get(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('owner', dest='username', type=str)
-        parser.add_argument('name', dest='name', type=str)
+        parser.add_argument('owner', type=str)
+        parser.add_argument('name', type=str)
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
+        parser.add_argument('search_query', type=str)
 
-        # parser.add_argument('help', type=bool)
         req_args = parser.parse_args()
 
-        if req_args["username"]:
-            query = CoprsLogic.get_multiple_owned_by_username(req_args["username"])
+        if req_args["search_query"]:
+            query = CoprsLogic.get_multiple_fulltext(req_args["search_query"])
         else:
             query = CoprsLogic.get_multiple(flask.g.user)
+
+        query = CoprsLogic.set_query_order(query)
+
+        if req_args["owner"]:
+            query = CoprsLogic.filter_by_owner_name(query, req_args["owner"])
 
         if req_args["name"]:
             query = CoprsLogic.filter_by_name(query, req_args["name"])
 
-        # todo: add maximum allowed limit and also use as a default limit
         limit = 100
         offset = 0
         if req_args["limit"]:
@@ -83,7 +88,7 @@ class ProjectListR(Resource):
             "_links": {
                 "self": {"href": url_for(".projectlistr", **req_args)}
             },
-            "coprs": [render_project(copr) for copr in coprs_list],
+            "projects": [render_project(copr) for copr in coprs_list],
         }
 
         return result_dict

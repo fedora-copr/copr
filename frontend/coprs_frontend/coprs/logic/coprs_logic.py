@@ -69,11 +69,19 @@ class CoprsLogic(object):
             db.session.query(models.Copr)
             .join(models.Copr.owner)
             .options(db.contains_eager(models.Copr.owner))
-            .order_by(models.Copr.id.desc()))
+        )
 
         if not include_deleted:
             query = query.filter(models.Copr.deleted.is_(False))
 
+        return query
+
+    @classmethod
+    def set_query_order(cls, query, desc=False):
+        if desc:
+            query = query.order_by(models.Copr.id.desc())
+        else:
+            query = query.order_by(models.Copr.id.asc())
         return query
 
     # user_relation="owned", username=username, with_mock_chroots=False
@@ -97,6 +105,11 @@ class CoprsLogic(object):
     @classmethod
     def filter_by_name(cls, query, name):
         return query.filter(models.Copr.name == name)
+
+    @classmethod
+    def filter_by_owner_name(cls, query, username):
+        # should be already joined with the User table
+        return query.filter(models.User.username == username)
 
     @classmethod
     def join_builds(cls, query):
