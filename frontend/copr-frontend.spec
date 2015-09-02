@@ -151,7 +151,7 @@ touch %{buildroot}%{_var}/log/copr/frontend.log
 %if %{with_test} && "%{_arch}" == "x86_64"
     pushd coprs_frontend
     rm -rf /tmp/copr.db /tmp/whooshee || :
-    #COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
+    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
     popd
 %endif
 
