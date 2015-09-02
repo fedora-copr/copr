@@ -43,11 +43,19 @@ disable_createrepo  bool                 yes       disables automatic repository
 build_enable_net    bool                 yes       set default value for new builds option `enable_net`
 ==================  ==================== ========= ===============
 
-List projects collection
-------------------------
+List projects
+-------------
 .. http:get:: /api_2/projects
 
     Returns a list of Copr projects according to the given query parameters
+
+    :query str search_query: filter project using full-text search
+    :query str owner: select only projects owned by this user
+    :query str name: select only projects with this name
+    :query int offset: offset number, default value is 0
+    :query int limit: limit number, default value is 100
+
+    :statuscode 200: no error
 
     **Example request**:
 
@@ -88,14 +96,6 @@ List projects collection
             },
           ]
         }
-
-    :query search_query: filter project using full-text search
-    :query owner: select only projects owned by this user
-    :query name: select only projects with this name
-    :query offset: offset number, default value is 0
-    :query limit: limit number, default value is 100
-
-    :statuscode 200: no error
 
 Create new project
 ------------------
@@ -232,6 +232,31 @@ Get project details
 
 Delete project
 --------------
+.. http:delete:: /api_2/projects/(int:project_id)
+
+    **REQUIRE AUTH**
+
+    Deletes copr project
+
+    :param project_id: a unique identifier of the Copr project.
+
+    :statuscode 204: project was removed
+    :statuscode 400: could not delete build right now, most probably due to unfinished builds
+    :statuscode 404: project not found
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        DELETE /api_2/projects HTTP/1.1
+        Host: copr.fedoraproject.org
+        Authorization: Basic base64=encoded=string
+
+    **Response**
+
+    .. sourcecode:: http
+
+        HTTP/1.1 204 NO CONTENT
 
 Modify project
 --------------

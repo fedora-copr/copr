@@ -38,6 +38,53 @@ Here is a short example with the content of API root:
        }
    }
 
+Response structure
+------------------
+
+The API operates two kinds of resources: collections and individuals.
+
+Each entity is enveloped into json dict and accompanied with set of HETEOAS references.
+GET requests would return the following structures:
+
+**Collection structure**:
+
+.. code-block:: javascript
+
+    {
+        "_links" {
+            "self": {
+                "href": "<url which was used to obtain current collection>"
+            },
+            "<relation name>": {
+                "href": "<relation url>"
+            }
+        },
+        "<collection name>": [
+            {<individual 1>},
+            {<individual 2>},
+            {
+                "_links": {...},
+                "<entity name>": {<entity structure>}
+            }
+        ]
+    }
+
+**Individual structure**:
+
+.. code-block:: javascript
+
+    {
+        "_links": {
+            "self": {
+                "href": "<url which was used to obtain current collection>"
+            },
+            "<relation name>": {
+                "href": "<relation url>"
+            }
+        },
+        "<entity name>": {<entity structure>}
+    }
+
 Errors
 ______
 todo:
@@ -45,19 +92,17 @@ todo:
 
 Resources
 ---------
-.. toctree::
-   :maxdepth: 1
 
-   Resources/project
-
-
-.. Indices and tables
-   ==================
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`
+================== ============
+Resource           Description
+================== ============
+Project_           represents copr projects and operations with them.
+`Project Chroot`_  allows to view and edit project settings specific for different chroots
+================== ============
 
 .. _BasicAuth: https://en.wikipedia.org/wiki/Basic_access_authentication
 .. _CoprAPI: https://copr.fedoraproject.org/api
 .. _HETEOAS: https://en.wikipedia.org/wiki/HATEOAS
 
+.. _Project: Resources/project.html
+.. _Project Chroot: Resources/project_chroot.html
