@@ -19,8 +19,8 @@ URL:        https://fedorahosted.org/copr/
 Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
-BuildRequires: asciidoc
-BuildRequires: libxslt
+#BuildRequires: asciidoc
+#BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
@@ -30,8 +30,8 @@ BuildRequires: systemd
 BuildRequires: python-argparse
 %endif
 #for doc package
-BuildRequires: epydoc
-BuildRequires: graphviz
+#BuildRequires: epydoc
+#BuildRequires: graphviz
 
 Requires:   httpd
 Requires:   mod_wsgi
@@ -113,9 +113,9 @@ only.
 
 %build
 # build documentation
-pushd documentation
-make %{?_smp_mflags} python
-popd
+#pushd documentation
+#make %{?_smp_mflags} python
+#popd
 
 %install
 
@@ -151,7 +151,7 @@ touch %{buildroot}%{_var}/log/copr/frontend.log
 %if %{with_test} && "%{_arch}" == "x86_64"
     pushd coprs_frontend
     rm -rf /tmp/copr.db /tmp/whooshee || :
-    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
+    #COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
     popd
 %endif
 
@@ -196,7 +196,7 @@ service logstash condrestart
 
 %files doc
 %license LICENSE
-%doc documentation/python-doc
+#%doc documentation/python-doc
 
 %changelog
 * Tue Aug 11 2015 Miroslav Suchý <msuchy@redhat.com> 1.66-1
