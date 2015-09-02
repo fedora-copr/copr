@@ -144,6 +144,14 @@ class TestProjectResource(CoprsTestCase):
         assert len(copr_chroots_dict["chroots"]) == 1
         assert copr_chroots_dict["chroots"][0]["chroot"]["name"] == chroot_name
 
+    def test_project_create_bad_json(self, f_users, f_mock_chroots, f_users_api, f_db):
+        r = self.request_rest_api_with_auth(
+            "/api_2/projects",
+            data="fdf{fsd",
+            method="post")
+
+        assert r.status_code == 400
+
     def test_project_create_bad_values(
             self, f_users, f_mock_chroots,
             f_users_api, f_db):

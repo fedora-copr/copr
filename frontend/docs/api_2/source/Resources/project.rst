@@ -236,12 +236,13 @@ Delete project
 
     **REQUIRE AUTH**
 
-    Deletes copr project
+    Deletes Copr project
 
     :param project_id: a unique identifier of the Copr project.
 
     :statuscode 204: project was removed
     :statuscode 400: could not delete build right now, most probably due to unfinished builds
+    :statuscode 403: authorization failed
     :statuscode 404: project not found
 
     **Example request**:
@@ -260,3 +261,39 @@ Delete project
 
 Modify project
 --------------
+.. http:put:: /api_2/projects/(int:project_id)
+
+    **REQUIRE AUTH**
+
+    Updates Copr project.
+
+    .. note:: You couldn't add or remove project chroots here, use ProjectChroots_ resource.
+
+    :param project_id: a unique identifier of the Copr project.
+
+    :statuscode 201: project was updated
+    :statuscode 400: malformed request, see response content for details
+    :statuscode 403: authorization failed
+    :statuscode 404: project not found
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        PUT /api_2/projects/1 HTTP/1.1
+        Host: copr.fedoraproject.org
+        Authorization: Basic base64=encoded=string
+        Accept: application/json
+
+        {
+            "disable_createrepo": true,
+            "build_enable_net": false,
+            "instructions": "foobar"
+        }
+
+    **Response**
+
+    .. sourcecode:: http
+
+        HTTP/1.1 201 NO CONTENT
+        Location: /api_2/projects/1
