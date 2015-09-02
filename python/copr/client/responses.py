@@ -62,7 +62,7 @@ class CoprResponse(UnicodeMixin):
             raise KeyError(str(item))
 
     def __unicode__(self):
-        return self.data
+        return str(self.data)
 
 
 class BaseHandle(object):
