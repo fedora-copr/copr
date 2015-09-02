@@ -40,10 +40,11 @@ instructions        string               yes       installation instructions
 homepage            string(URL)          yes       project homepage
 contact             string(URL or email) yes       contact with the project maintainer
 disable_createrepo  bool                 yes       disables automatic repository metadata generation
-build_enable_net    bool                 yes       set default value for new builds option ``enable_net``
+build_enable_net    bool                 yes       set default value for new builds option `enable_net`
 ==================  ==================== ========= ===============
 
-
+List projects collection
+------------------------
 .. http:get:: /api_2/projects
 
     Returns a list of Copr projects according to the given query parameters
@@ -96,14 +97,16 @@ build_enable_net    bool                 yes       set default value for new bui
 
     :statuscode 200: no error
 
+Create new project
+------------------
 .. http:post:: /api_2/projects
 
     **REQUIRE AUTH**
 
     Creates new Copr project.
 
-    Additionally to described before `Project fields`_ the user could specify field ``chroots`` which contains list of chroots to be enabled.
-    Available chroots could be obtained from MockChrootResource_
+    Additionally to described before `Project fields`_ the user could specify field `chroots` which contains list of chroots to be enabled.
+    Available `chroot` names could be obtained from MockChrootResource_
 
     **Example request**:
 
@@ -139,7 +142,8 @@ build_enable_net    bool                 yes       set default value for new bui
     :statuscode 401: the user already has project with the same name
     :statuscode 403: authorization failed
 
-
+Get project details
+-------------------
 .. http:get:: /api_2/projects/(int:project_id)
 
     Returns details about Copr project
@@ -163,6 +167,7 @@ build_enable_net    bool                 yes       set default value for new bui
     **Response**
 
     .. sourcecode:: http
+
         HTTP/1.1 200 OK
         Content-Type: application/json
 
@@ -225,6 +230,8 @@ build_enable_net    bool                 yes       set default value for new bui
             }
         }
 
+Delete project
+--------------
 
-
-
+Modify project
+--------------
