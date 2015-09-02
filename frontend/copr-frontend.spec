@@ -89,6 +89,8 @@ BuildRequires: python-markdown
 BuildRequires: pytz
 BuildRequires: python-flask-restful
 BuildRequires: python-marshmallow >= 2.0.0
+BuildRequires: python-sphinx
+BuildRequires: python-sphinxcontrib-httpdomain
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
