@@ -196,7 +196,7 @@ def api_coprs_by_owner(username=None):
                     for chroot in repo.active_chroots:
                         release = release_tmpl.format(chroot=chroot)
                         yum_repos[release] = fix_protocol_for_backend(
-                            urlparse.urljoin(build.results, release + '/'))
+                            os.path.join(build.results, release + '/'))
                     break
 
             output["repos"].append({"name": repo.name,
@@ -233,7 +233,7 @@ def api_coprs_by_owner_detail(username, coprname):
                 for chroot in copr.active_chroots:
                     release = release_tmpl.format(chroot=chroot)
                     yum_repos[release] = fix_protocol_for_backend(
-                        urlparse.urljoin(build.results, release + '/'))
+                        os.path.join(build.results, release + '/'))
                 break
         output["detail"] = {
             "name": copr.name,
