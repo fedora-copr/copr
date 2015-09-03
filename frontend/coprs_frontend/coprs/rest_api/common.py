@@ -71,7 +71,6 @@ def render_build_chroot(chroot):
     }
 
 
-
 def rest_api_auth_required(f):
     # todo: move to common.py and test this
     @functools.wraps(f)

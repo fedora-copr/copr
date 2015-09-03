@@ -14,6 +14,22 @@ Endpoint of the the API is ``/api_2``, public data is available without authoriz
 To create new projects, submit builds and do other modification requests you will need to provide API token using
 BasicAuth_ . Token can be obtained and renewed at the CoprAPI_ page.
 
+Resources
+---------
+.. toctree::
+   :maxdepth: 1
+
+   Resources/project
+   Resources/project_chroot
+   Resources/build
+   Resources/build_chroot
+   Resources/mock_chroot
+
+
+HETEOAS
+-------
+
+
 This API implements HETEOAS_ in the very simple form: each entity is accompanied with set of relative links
 to other related entities. HETEOAS makes API self discoverable, so you shouldn't learn how to access sub-resources.
 Here is a short example with the content of API root:
@@ -89,20 +105,6 @@ Errors
 ______
 todo:
 
-
-Resources
----------
-
-================== ============
-Resource           Description
-================== ============
-Project_           represents copr projects and operations with them.
-`Project Chroot`_  allows to view and edit project settings specific for different chroots
-================== ============
-
 .. _BasicAuth: https://en.wikipedia.org/wiki/Basic_access_authentication
 .. _CoprAPI: https://copr.fedoraproject.org/api
 .. _HETEOAS: https://en.wikipedia.org/wiki/HATEOAS
-
-.. _Project: Resources/project.html
-.. _Project Chroot: Resources/project_chroot.html

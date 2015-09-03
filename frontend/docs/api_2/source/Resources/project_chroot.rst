@@ -3,7 +3,7 @@ Project Chroot
 
 Projects Chroots allows to view and modify project settings dedicated for different chroots.
 
-Structure if the project chroot entity
+Structure of the project chroot entity
 --------------------------------------
 
 .. code-block:: javascript
@@ -205,7 +205,6 @@ Disable chroot for project
 Modify project chroot
 ---------------------
 .. http:put:: /api_2/projects/(int:project_id)/chroots/(str:chroot_name)
-
 
     **REQUIRE AUTH**
 

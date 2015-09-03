@@ -14,7 +14,6 @@ def render_mock_chroot(chroot):
         "chroot": MockChrootSchema().dump(chroot)[0],
         "_links": {
             "self": {"href": url_for(".mockchrootr", name=chroot.name)},
-            "all_chroots": {"href": url_for(".mockchrootlistr")}
         },
     }
 
