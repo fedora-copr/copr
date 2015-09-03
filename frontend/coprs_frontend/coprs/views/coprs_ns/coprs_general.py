@@ -161,6 +161,7 @@ def copr_new(username):
 
         db.session.commit()
         flask.flash("New project has been created successfully.", "success")
+        _check_rpmfusion(copr.repos)
 
         if form.initial_pkgs.data:
             pkgs = form.initial_pkgs.data.replace("\n", " ").split(" ")
@@ -330,6 +331,11 @@ def copr_edit(username, coprname, form=None):
                                  form=form)
 
 
+def _check_rpmfusion(repos):
+    if "rpmfusion" in repos:
+        message = flask.Markup('Using rpmfusion as dependency is nearly always wrong. Please see <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">What I can build in Copr</a>.')
+        flask.flash(message, "error")
+
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
 @login_required
 def copr_update(username, coprname):
@@ -361,6 +367,7 @@ def copr_update(username, coprname):
         else:
             flask.flash("Project has been updated successfully.", "success")
             db.session.commit()
+        _check_rpmfusion(copr.repos)
 
         return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                             username=username,
