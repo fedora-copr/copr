@@ -348,7 +348,7 @@ def setup_parser():
         help="The copr repo to build the package in. Can just name of project or even in format username/project."
     )
     parser_build.add_argument("pkgs", nargs="+",
-                              help="URL of packages to build")
+                              help="filename of SRPM or URL of packages to build")
     parser_build.add_argument(
         "-r", "--chroot", dest="chroots", action="append",
         help="If you don't need this build for all the project's chroots. You can use it several times for each"
