@@ -230,6 +230,49 @@ def copr_new_build(username, coprname):
         return copr_add_build(username=username, coprname=coprname, form=form)
 
 
+@coprs_ns.route("/<username>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
+@login_required
+def copr_new_build_rebuild(username, coprname, build_id):
+    source_build = builds_logic.BuildsLogic.get(build_id).first()
+    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+    if not copr:
+        return page_not_found(
+            "Project {0}/{1} does not exist.".format(username, coprname))
+
+    if not source_build:
+        return page_not_found(
+            "Build {} does not exist!".format(form.build_id.data))
+
+    form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)()
+
+    if form.validate_on_submit():
+        try:
+            build_options = {
+                "enable_net": form.enable_net.data,
+                "timeout": form.timeout.data,
+            }
+
+            BuildsLogic.create_new_from_other_build(
+                flask.g.user, copr, source_build,
+                chroot_names=form.selected_chroots,
+                **build_options
+            )
+
+        except (ActionInProgressException, InsufficientRightsException) as e:
+            flask.flash(str(e), "error")
+            db.session.rollback()
+        else:
+            flask.flash("New build has been created", "success")
+
+            db.session.commit()
+
+        return flask.redirect(flask.url_for("coprs_ns.copr_builds",
+                                            username=username,
+                                            coprname=copr.name))
+    else:
+        return copr_add_build(username=username, coprname=coprname, form=form)
+
+
 @coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/",
                 defaults={"page": 1},
                 methods=["POST"])
@@ -277,12 +320,12 @@ def copr_repeat_build(username, coprname, build_id, page=1):
     if not flask.g.user.can_build_in(build.copr):
         flask.flash("You are not allowed to repeat this build.")
 
-    form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)(
-        pkgs=build.pkgs, enable_net=build.enable_net,
+    form = forms.BuildFormRebuildFactory.create_form_cls(build.chroots)(
+        build_id=build_id, enable_net=build.enable_net,
     )
 
     # remove all checkboxes by default
-    for ch in copr.active_chroots:
+    for ch in build.chroots:
         field = getattr(form, ch.name)
         field.data = False
 
@@ -302,8 +345,8 @@ def copr_repeat_build(username, coprname, build_id, page=1):
             if ch.name in chroots_to_select:
                 getattr(form, ch.name).data = True
 
-    return flask.render_template("coprs/detail/add_build/url.html",
-                                 copr=copr, form=form)
+    return flask.render_template("coprs/detail/add_build/rebuild.html",
+                                 copr=copr, build=build, form=form)
 
 
 @coprs_ns.route("/<username>/<coprname>/delete_build/<int:build_id>/",

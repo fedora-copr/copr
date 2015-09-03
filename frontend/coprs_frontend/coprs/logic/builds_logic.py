@@ -174,6 +174,46 @@ class BuildsLogic(object):
         return models.Build.query.get(build_id)
 
     @classmethod
+    def create_new_from_other_build(cls, user, copr, source_build,
+                            chroot_names=None, **build_options):
+        # check which chroots we need
+        chroots = []
+        for chroot in copr.active_chroots:
+            if chroot.name in chroot_names:
+                chroots.append(chroot)
+
+        # I don't want to import anything, just rebuild what's in dist git
+        skip_import = True
+        git_hashes = {}
+        for chroot in source_build.build_chroots:
+            if not chroot.git_hash:
+                # I got an old build from time we didn't use dist git
+                # So I'll submit it as a new build using it's link
+                skip_import = False
+                git_hashes = None
+                flask.flash("This build is not in Dist Git. Trying to import the package again.")
+                break
+            git_hashes[chroot.name] = chroot.git_hash
+
+        # try:
+        build = cls.add(
+            user=user,
+            pkgs=source_build.pkgs,
+            copr=copr,
+            chroots=chroots,
+            source_type=source_build.source_type,
+            source_json=source_build.source_json,
+            enable_net=build_options.get("enabled_net", True),
+            git_hashes=git_hashes,
+            skip_import=skip_import)
+
+        if user.proven:
+            if "timeout" in build_options:
+                build.timeout = build_options["timeout"]
+
+        return build
+
+    @classmethod
     def create_new_from_url(cls, user, copr, srpm_url,
                             chroot_names=None, **build_options):
         """
@@ -264,7 +304,7 @@ class BuildsLogic(object):
     @classmethod
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
-            git_hashes=None):
+            git_hashes=None, skip_import=False):
         if chroots is None:
             chroots = []
 
@@ -308,12 +348,18 @@ class BuildsLogic(object):
         if not chroots:
             chroots = copr.active_chroots
 
+        status = helpers.StatusEnum("importing")
+
+        if skip_import:
+            status = StatusEnum("pending")
+
         for chroot in chroots:
             git_hash = None
             if git_hashes:
                 git_hash = git_hashes.get(chroot.name)
             buildchroot = models.BuildChroot(
                 build=build,
+                status=status,
                 mock_chroot=chroot,
                 git_hash=git_hash)
 

@@ -516,8 +516,6 @@ class Build(db.Model, helpers.Serializer):
 
         Build is repeatable only if it's not pending, starting or running
         """
-        if self.source_type == BuildSourceEnum("srpm_upload"):
-            return False
         return self.status not in [StatusEnum("pending"),
                                    StatusEnum("starting"),
                                    StatusEnum("running"), ]
