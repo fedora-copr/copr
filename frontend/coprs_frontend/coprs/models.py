@@ -692,6 +692,12 @@ class BuildChroot(db.Model, helpers.Serializer):
         return None
 
     @property
+    def result_dir_url(self):
+        return "/".join([app.config["BACKEND_BASE_URL"],
+                         u"results",
+                         self.result_dir])
+
+    @property
     def result_dir(self):
         # hide changes occurred after migration to dist-git
         # if build has defined dist-git, it means that new schema should be used

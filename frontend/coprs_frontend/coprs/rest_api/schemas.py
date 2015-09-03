@@ -113,6 +113,7 @@ class BuildChrootSchema(Schema):
     git_hash = fields.Str(dump_only=True)
     name = fields.Str(dump_only=True)
 
+    result_dir_url = fields.Str(dump_only=True)
 
 class BuildSchema(Schema):
 
@@ -129,6 +130,7 @@ class BuildSchema(Schema):
     ended_on = fields.Int(dump_only=True)
 
     results = fields.Str(dump_only=True)
+
     timeout = fields.Int(dump_only=True)
 
     enable_net = fields.Bool(dump_only=True)
