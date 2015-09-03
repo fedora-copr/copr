@@ -190,6 +190,13 @@ class Copr(db.Model, helpers.Serializer):
         return filter(lambda x: x.is_active, self.mock_chroots)
 
     @property
+    def active_copr_chroots(self):
+        """
+        :rtype: list of CoprChroot
+        """
+        return [c for c in self.copr_chroots if c.is_active]
+
+    @property
     def active_chroots_sorted(self):
         """
         Return list of active mock_chroots of this copr

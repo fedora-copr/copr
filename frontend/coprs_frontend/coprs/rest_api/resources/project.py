@@ -158,7 +158,5 @@ class ProjectR(Resource):
         except InsufficientRightsException as err:
             raise AccessForbidden(str(err))
 
-        resp = make_response("", 201)
-        resp.headers["Location"] = url_for(".projectr", project_id=project.id)
-        return resp
+        return "", 204
 

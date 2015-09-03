@@ -29,7 +29,7 @@ class ProjectChrootListR(Resource):
         return {
             "chroots": [
                 render_copr_chroot(chroot)
-                for chroot in copr.copr_chroots
+                for chroot in copr.active_copr_chroots
             ],
             "_links": {
                 "self": {"href": url_for(".projectchrootlistr", project_id=project_id)}

@@ -108,6 +108,13 @@ Create new project
     Additionally to described before `Project fields`_ the user could specify field `chroots` which contains list of chroots to be enabled.
     Available `chroot` names could be obtained from MockChrootResource_
 
+    :resheader Location: contains URL to the newly created project entity
+
+    :statuscode 201: project was successfully created
+    :statuscode 400: given data for project creation doesn't satisfy some requirements
+    :statuscode 401: the user already has project with the same name
+    :statuscode 403: authorization failed
+
     **Example request**:
 
     .. sourcecode:: http
@@ -135,12 +142,6 @@ Create new project
         HTTP/1.1 201 CREATED
         Location: /api_2/projects/<new project id>
 
-    :resheader Location: contains URL to the newly created project entity
-
-    :statuscode 201: project was successfully created
-    :statuscode 400: given data for project creation doesn't satisfy some requirements
-    :statuscode 401: the user already has project with the same name
-    :statuscode 403: authorization failed
 
 Get project details
 -------------------
@@ -148,7 +149,7 @@ Get project details
 
     Returns details about Copr project
 
-    :param project_id: a unique identifier of the Copr project.
+    :param int project_id: a unique identifier of the Copr project.
 
     :query bool show_builds: embed Build_ entities owned by this project into the result, default is False
     :query bool show_chroots: embed ProjectChroot_ sub-resources into the result, default is False
@@ -160,7 +161,7 @@ Get project details
 
     .. sourcecode:: http
 
-        GET /api_2/projects/2482 HTTP/1.1
+        GET /api_2/projects/2482?show_chroots=True&show_builds=True HTTP/1.1
         Host: copr.fedoraproject.org
         Accept: application/json
 
@@ -267,7 +268,7 @@ Modify project
 
     Updates Copr project.
 
-    .. note:: You couldn't add or remove project chroots here, use ProjectChroots_ resource.
+    .. note:: You couldn't enabled or disable project chroots here, use ProjectChroots_ resource.
 
     :param project_id: a unique identifier of the Copr project.
 
@@ -295,5 +296,4 @@ Modify project
 
     .. sourcecode:: http
 
-        HTTP/1.1 201 NO CONTENT
-        Location: /api_2/projects/1
+        HTTP/1.1 204 NO CONTENT
