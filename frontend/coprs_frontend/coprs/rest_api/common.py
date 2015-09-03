@@ -3,6 +3,8 @@ import base64
 import datetime
 import functools
 from logging import getLogger
+from coprs.rest_api.schemas import BuildChrootSchema
+from coprs.rest_api.util import mm_serialize_one
 
 log = getLogger(__name__)
 
@@ -27,11 +29,13 @@ def render_copr_chroot(chroot):
     }
 
 
-def render_build(build):
+def render_build(build, self_params=None):
+    if self_params is None:
+        self_params = {}
     return {
         "build": BuildSchema().dump(build)[0],
         "_links": {
-            "self": {"href": url_for(".buildr", build_id=build.id)},
+            "self": {"href": url_for(".buildr", build_id=build.id, **self_params)},
             "project": {"href": url_for(".projectr", project_id=build.copr_id)},
             "chroots": {"href": url_for(".buildchrootlistr", build_id=build.id)}
         }
@@ -50,6 +54,22 @@ def render_project(copr, self_params=None):
             "chroots": {"href": url_for(".projectchrootlistr", project_id=copr.id)}
         },
     }
+
+
+def render_build_chroot(chroot):
+    """
+    :type chroot: models.BuildChroot
+    """
+    return {
+        "chroot": mm_serialize_one(BuildChrootSchema, chroot),
+        "_links": {
+            "project": {"href": url_for(".projectr", project_id=chroot.build.copr_id)},
+            "self": {"href": url_for(".buildchrootr",
+                                     build_id=chroot.build.id,
+                                     name=chroot.name)},
+        }
+    }
+
 
 
 def rest_api_auth_required(f):
@@ -85,3 +105,4 @@ def rest_api_auth_required(f):
             raise AuthFailed(message)
         return f(*args, **kwargs)
     return decorated_function
+

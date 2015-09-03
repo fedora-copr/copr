@@ -61,7 +61,8 @@ class TestBuildChrootResource(CoprsTestCase):
         r0 = self.tc.get(href)
         assert r0.status_code == 200
         obj = json.loads(r0.data)
-        assert obj["chroot"] == expected_dict
+        for k in expected_fields:
+            assert obj["chroot"][k] == expected_dict[k]
 
     def test_get_one_bad_name(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,
                            f_users_api):

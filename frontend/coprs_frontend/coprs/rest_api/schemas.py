@@ -115,6 +115,7 @@ class BuildChrootSchema(Schema):
 
     result_dir_url = fields.Str(dump_only=True)
 
+
 class BuildSchema(Schema):
 
     id = fields.Int(dump_only=True)

@@ -351,6 +351,21 @@ class TestBuildResource(CoprsTestCase):
             assert obj["build"]["id"] == b_id
             assert obj["_links"]["self"]["href"] == href
 
+    def test_get_one_build_with_chroots(self, f_users, f_coprs, f_builds, f_db,
+                     f_users_api, f_mock_chroots):
+
+        build_id_list = [b.id for b in self.basic_builds]
+        self.db.session.commit()
+
+        for b_id in build_id_list:
+            href = "/api_2/builds/{}?show_chroots=True".format(b_id)
+            r = self.tc.get(href)
+            assert r.status_code == 200
+            obj = json.loads(r.data)
+            assert obj["build"]["id"] == b_id
+            assert obj["_links"]["self"]["href"] == href
+            assert "build_chroots" in obj
+
     def test_get_one_build_not_found(self, f_users, f_coprs, f_builds, f_db,
                      f_users_api, f_mock_chroots):
         build_id_list = [b.id for b in self.basic_builds]

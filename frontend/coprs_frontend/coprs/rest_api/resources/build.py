@@ -5,14 +5,13 @@ from flask import url_for, make_response
 
 # from flask_restful_swagger import swagger
 
-from coprs import db
+from coprs import db, models
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, RequestCannotBeExecuted
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.rest_api.exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
-from ..common import render_build, rest_api_auth_required
-
+from ..common import render_build, rest_api_auth_required, render_build_chroot
 
 from coprs.rest_api.schemas import BuildSchema, BuildCreateSchema, BuildCreateFromUrlSchema
 
@@ -164,10 +163,26 @@ class BuildListR(Resource):
 class BuildR(Resource):
 
     def get(self, build_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument('show_chroots', type=bool, default=False)
+        req_args = parser.parse_args()
+
         build = get_one_safe(BuildsLogic.get(build_id),
                              "Not found build with id: {}".format(build_id))
+        """:type : models.Build """
 
-        return render_build(build)
+        self_params = {}
+        if req_args["show_chroots"]:
+            self_params["show_chroots"] = req_args["show_chroots"]
+
+        result = render_build(build, self_params)
+        if req_args["show_chroots"]:
+            result["build_chroots"] = [
+                render_build_chroot(chroot)
+                for chroot in build.build_chroots
+            ]
+
+        return result
 
     @rest_api_auth_required
     def delete(self, build_id):

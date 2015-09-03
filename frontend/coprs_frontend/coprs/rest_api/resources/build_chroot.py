@@ -3,28 +3,11 @@
 from flask import url_for
 from flask_restful import Resource
 
-from ... import models
+from coprs.rest_api.common import render_build_chroot
 from ...exceptions import MalformedArgumentException
 from ...logic.builds_logic import BuildsLogic, BuildChrootsLogic
-
 from ..exceptions import MalformedRequest
-from ..schemas import BuildChrootSchema
-from ..util import get_one_safe, mm_serialize_one
-
-
-def render_build_chroot(chroot):
-    """
-    :type chroot: models.BuildChroot
-    """
-    return {
-        "chroot": mm_serialize_one(BuildChrootSchema, chroot),
-        "_links": {
-            "project": {"href": url_for(".projectr", project_id=chroot.build.copr_id)},
-            "self": {"href": url_for(".buildchrootr",
-                                     build_id=chroot.build.id,
-                                     name=chroot.name)},
-        }
-    }
+from ..util import get_one_safe
 
 
 class BuildChrootListR(Resource):
