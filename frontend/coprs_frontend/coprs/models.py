@@ -718,11 +718,6 @@ class BuildChroot(db.Model, helpers.Serializer):
 
         return os.path.join(*parts)
 
-    @property
-    def result_url(self):
-
-        return "{}/results/{}".format(app.config["BACKEND_BASE_URL"], self.result_dir)
-
     def __str__(self):
         return "<BuildChroot: {}>".format(self.to_dict())
 

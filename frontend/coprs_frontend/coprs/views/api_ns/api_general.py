@@ -431,26 +431,31 @@ def build_detail(build_id):
     if build:
         httpcode = 200
         chroots = {}
+        results_by_chroot = {}
         for chroot in build.build_chroots:
             chroots[chroot.name] = chroot.state
+            results_by_chroot[chroot.name] = chroot.result_dir_url
 
         built_packages = None
         if build.built_packages:
             built_packages = build.built_packages.split("\n")
 
-        output = {"output": "ok",
-                  "status": build.state,
-                  "project": build.copr.name,
-                  "owner": build.copr.owner.name,
-                  "results": build.results,
-                  "built_pkgs": built_packages,
-                  "src_version": build.pkg_version,
-                  "chroots": chroots,
-                  "submitted_on": build.submitted_on,
-                  "started_on": build.min_started_on,
-                  "ended_on": build.ended_on,
-                  "src_pkg": build.pkgs,
-                  "submitted_by": build.user.name}
+        output = {
+            "output": "ok",
+            "status": build.state,
+            "project": build.copr.name,
+            "owner": build.copr.owner.name,
+            "results": build.results,
+            "built_pkgs": built_packages,
+            "src_version": build.pkg_version,
+            "chroots": chroots,
+            "submitted_on": build.submitted_on,
+            "started_on": build.min_started_on,
+            "ended_on": build.ended_on,
+            "src_pkg": build.pkgs,
+            "submitted_by": build.user.name,
+            "results_by_chroot": results_by_chroot
+        }
     else:
         output = {"output": "notok", "error": "Invalid build"}
         httpcode = 404
