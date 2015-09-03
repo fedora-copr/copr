@@ -16,5 +16,9 @@
     {{ permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, permissions_form) }}
   {% else %}
     <h3>No permissions yet</h3>
+    <p>You could not grant permission directly. First the other user have to navigate to this project and open this
+       tab. Then he can apply for permission. You will then receive email. Once you return to this page you can either
+       approve or reject this request.
+    </p>
   {% endif %}
 {% endblock %}
