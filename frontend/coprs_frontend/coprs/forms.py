@@ -69,6 +69,18 @@ class UrlSrpmListValidator(UrlListValidator):
         return True
 
 
+class SrpmValidator(object):
+    def __init__(self, message=None):
+        if not message:
+            message = "You can upload only .src.rpm and .nosrc.rpm files"
+        self.message = message
+
+    def __call__(self, form, field):
+        filename = field.data.filename.lower()
+        if not filename.endswith((".src.rpm", ".nosrc.rpm")):
+            raise wtforms.ValidationError(self.message)
+
+
 class CoprUniqueNameValidator(object):
 
     def __init__(self, message=None, owner=None):
@@ -311,7 +323,9 @@ class BuildFormUploadFactory(object):
                         selected.append(ch)
                 return selected
 
-            pkgs = FileField('srpm', validators=[FileRequired()])
+            pkgs = FileField('srpm', validators=[
+                FileRequired(),
+                SrpmValidator()])
 
             memory_reqs = wtforms.IntegerField(
                 "Memory requirements",
