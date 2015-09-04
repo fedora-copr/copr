@@ -63,7 +63,6 @@ List projects
 
         GET /api_2/projects HTTP/1.1
         Host: copr.fedoraproject.org
-        Accept: application/json
 
     **Response**:
 
@@ -122,7 +121,7 @@ Create new project
         POST /api_2/projects HTTP/1.1
         Host: copr.fedoraproject.org
         Authorization: Basic base64=encoded=string
-        Accept: application/json
+        Content-Type: application/json
 
         {
             "disable_createrepo": false,
@@ -163,7 +162,6 @@ Get project details
 
         GET /api_2/projects/2482?show_chroots=True&show_builds=True HTTP/1.1
         Host: copr.fedoraproject.org
-        Accept: application/json
 
     **Response**
 
@@ -250,7 +248,7 @@ Delete project
 
     .. sourcecode:: http
 
-        DELETE /api_2/projects HTTP/1.1
+        DELETE /api_2/projects/1 HTTP/1.1
         Host: copr.fedoraproject.org
         Authorization: Basic base64=encoded=string
 
@@ -272,7 +270,7 @@ Modify project
 
     :param project_id: a unique identifier of the Copr project.
 
-    :statuscode 201: project was updated
+    :statuscode 204: project was updated
     :statuscode 400: malformed request, see response content for details
     :statuscode 403: authorization failed
     :statuscode 404: project not found
@@ -284,7 +282,7 @@ Modify project
         PUT /api_2/projects/1 HTTP/1.1
         Host: copr.fedoraproject.org
         Authorization: Basic base64=encoded=string
-        Accept: application/json
+        Content-Type: application/json
 
         {
             "disable_createrepo": true,

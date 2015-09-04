@@ -43,6 +43,29 @@ class SpaceSeparatedList(fields.Field):
         else:
             return " ".join(value)
 
+class BuiltPackages(fields.Field):
+    """ stored in db as a string:
+    "python3-marshmallow 2.0.0b5\npython-marshmallow 2.0.0b5"
+    we would represent them as
+    { name: "pkg", version: "pkg version" }
+    we implement only the serialization, since field is read-only
+    """
+    def _serialize(self, value, attr, obj):
+        if value is None:
+            return []
+        result = []
+        try:
+            for chunk in value.split("\n"):
+                pkg, version = chunk.split()
+                result.append({
+                    "name": pkg,
+                    "version": version
+                })
+        except:
+            pass
+
+        return result
+
 
 class AllowedMethodSchema(Schema):
     method = fields.Str()
@@ -121,8 +144,9 @@ class BuildSchema(Schema):
     id = fields.Int(dump_only=True)
     state = fields.Str()
 
-    build_packages = fields.Str(dump_only=True)
-    pkg_version = fields.Str(dump_only=True)
+    built_packages = BuiltPackages(dump_only=True)
+    package_version = fields.Str(dump_only=True, attribute="pkg_version")
+    package_name = fields.Str(dump_only=True)
 
     repos = SpaceSeparatedList(dump_only=True)
 
@@ -130,20 +154,19 @@ class BuildSchema(Schema):
     started_on = fields.Int(dump_only=True)
     ended_on = fields.Int(dump_only=True)
 
-    results = fields.Str(dump_only=True)
-
-    timeout = fields.Int(dump_only=True)
-
+    # timeout = fields.Int(dump_only=True)  # currently has no use
     enable_net = fields.Bool(dump_only=True)
 
-    source_type = fields.Int(dump_only=True)
-    source_json = fields.Str(dump_only=True)
+    source_type = fields.Str(dump_only=True, attribute="source_type_text")
+    source_metadata = fields.Raw(dump_only=True)
 
 
 class BuildCreateSchema(BuildSchema):
     project_id = fields.Int(required=True)
     chroots = fields.List(fields.Str())
     enable_net = fields.Bool()
+
+    state = fields.Str(dump_only=True)
 
 
 class BuildCreateFromUrlSchema(BuildCreateSchema):

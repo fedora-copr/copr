@@ -184,11 +184,13 @@ class BuildsLogic(object):
 
         :rtype: models.Build
         """
-        # check which chroots we need
-        chroots = []
-        for chroot in copr.active_chroots:
-            if chroot.name in chroot_names:
-                chroots.append(chroot)
+        if chroot_names is None:
+            chroots = [c for c in copr.active_chroots]
+        else:
+            chroots = []
+            for chroot in copr.active_chroots:
+                if chroot.name in chroot_names:
+                    chroots.append(chroot)
 
         source_type = helpers.BuildSourceEnum("srpm_link")
         source_json = json.dumps({"url": srpm_url})

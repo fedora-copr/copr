@@ -149,7 +149,7 @@ class BuildListR(Resource):
         req = flask.request
         if "application/json" in req.content_type:
             build_id = self.handle_post_json(req)
-        elif "multipart/form-data" in req.content_type :
+        elif "multipart/form-data" in req.content_type:
             build_id = self.handle_post_multipart(req)
         else:
             raise MalformedRequest("Got unexpected content type: {}"

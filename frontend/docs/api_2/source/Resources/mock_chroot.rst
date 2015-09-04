@@ -45,7 +45,6 @@ List mock chroots
 
         GET /api_2/mock_chroots?active_only=True HTTP/1.1
         Host: copr.fedoraproject.org
-        Accept: application/json
 
     **Response**:
 
@@ -97,7 +96,6 @@ Get mock chroot details
 
         GET /api_2/mock_chroots/fedora-rawhide-i386 HTTP/1.1
         Host: copr.fedoraproject.org
-        Accept: application/json
 
     **Response**
 
@@ -117,9 +115,6 @@ Get mock chroot details
           "_links": {
             "self": {
               "href": "/api_2/mock_chroots/fedora-rawhide-i386"
-            },
-            "all_chroots": {
-              "href": "/api_2/mock_chroots"
             }
           }
         }

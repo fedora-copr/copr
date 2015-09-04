@@ -17,7 +17,7 @@ BasicAuth_ . Token can be obtained and renewed at the CoprAPI_ page.
 Resources
 ---------
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    Resources/project
    Resources/project_chroot

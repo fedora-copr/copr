@@ -424,6 +424,13 @@ class Build(db.Model, helpers.Serializer):
         return helpers.BuildSourceEnum(self.source_type)
 
     @property
+    def source_metadata(self):
+        try:
+            return json.loads(self.source_json)
+        except ValueError:
+            return None
+
+    @property
     def chroot_states(self):
         return map(lambda chroot: chroot.status, self.build_chroots)
 
@@ -537,12 +544,20 @@ class Build(db.Model, helpers.Serializer):
     def src_pkg_name(self):
         """
         Extract source package name from source name or url
+        todo: obsolete
         """
         src_rpm_name = self.pkgs.split("/")[-1]
         if src_rpm_name.endswith(".src.rpm"):
             return src_rpm_name[:-8]
         else:
             return src_rpm_name
+
+    @property
+    def package_name(self):
+        try:
+            return self.package.name
+        except:
+            return None
 
     def to_dict(self, options=None):
         result = super(Build, self).to_dict(options)
