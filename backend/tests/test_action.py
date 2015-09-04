@@ -4,7 +4,7 @@ import tempfile
 import shutil
 import time
 import tarfile
-from bunch import Bunch
+from munch import Munch
 
 import pytest
 import six
@@ -45,7 +45,7 @@ class TestAction(object):
             "chroots": ["fedora20", "epel7"]
         })
 
-        self.opts = Bunch(
+        self.opts = Munch(
             redis_db=9,
             redis_port=7777,
 

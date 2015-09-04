@@ -4,7 +4,7 @@ import copy
 from collections import defaultdict
 from pprint import pprint
 import socket
-from bunch import Bunch
+from munch import Munch
 from backend.exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError, VmError
 
 import tempfile
@@ -78,8 +78,8 @@ class TestBuilder(object):
     STDERR = "stderr"
 
     RESULT_DIR = "/tmp"
-    opts = Bunch(
-        ssh=Bunch(
+    opts = Munch(
+        ssh=Munch(
             transport="paramiko"
         ),
         build_user=BUILDER_USER,
@@ -112,7 +112,7 @@ class TestBuilder(object):
 
             "package_name": self.BUILDER_PKG_NAME,
             "package_version": self.BUILDER_PKG_VERSION
-        }, Bunch({
+        }, Munch({
             "timeout": 1800,
             "destdir": self.test_root_path,
             "results_baseurl": "/tmp",

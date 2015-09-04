@@ -4,7 +4,7 @@ import shutil
 import time
 from urllib import urlretrieve
 
-from bunch import Bunch
+from munch import Munch
 
 from .createrepo import createrepo, createrepo_unsafe
 from exceptions import CreateRepoError
@@ -212,7 +212,7 @@ class Action(object):
 
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
-        result = Bunch()
+        result = Munch()
         result.id = self.data["id"]
 
         action_type = self.data["action_type"]

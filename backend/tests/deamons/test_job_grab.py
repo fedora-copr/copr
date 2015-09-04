@@ -9,7 +9,7 @@ import copy
 import json
 
 import logging
-from bunch import Bunch
+from munch import Munch
 import time
 import requests
 
@@ -84,7 +84,7 @@ class TestJobGrab(object):
         self.log_dir = os.path.join(self.tmp_dir_path, "copr")
         self.log_file = os.path.join(self.log_dir, "copr.log")
 
-        self.opts = Bunch(
+        self.opts = Munch(
             verbose=False,
             build_groups=[
                 {"id": 0, "name": "x86",

@@ -3,7 +3,7 @@ import tempfile
 import shutil
 import time
 
-from bunch import Bunch
+from munch import Munch
 import pytest
 import six
 
@@ -33,7 +33,7 @@ class TestSign(object):
         self.test_time = time.time()
         self.tmp_dir_path = None
 
-        self.opts = Bunch(keygen_host="example.com")
+        self.opts = Munch(keygen_host="example.com")
 
     def teardown_method(self, method):
         if self.tmp_dir_path:

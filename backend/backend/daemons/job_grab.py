@@ -38,7 +38,7 @@ class CoprJobGrab(Process):
         - run Action handler for action tasks
 
 
-    :param Bunch opts: backend config
+    :param Munch opts: backend config
     :type frontend_client: FrontendClient
     :param lock: :py:class:`multiprocessing.Lock` global backend lock
 

@@ -10,7 +10,7 @@ import time
 from multiprocessing import Queue
 import types
 
-from bunch import Bunch
+from munch import Munch
 from redis import ConnectionError
 import six
 from backend.exceptions import CoprSpawnFailError
@@ -39,7 +39,7 @@ MODULE_REF = "backend.helpers"
 class TestHelpers(object):
 
     def setup_method(self, method):
-        self.opts = Bunch(
+        self.opts = Munch(
             redis_db=9,
             redis_port=7777,
         )

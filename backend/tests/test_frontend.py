@@ -2,7 +2,7 @@
 
 import multiprocessing
 
-from bunch import Bunch
+from munch import Munch
 from requests import RequestException
 import six
 
@@ -34,7 +34,7 @@ def mc_time():
 class TestFrontendClient(object):
 
     def setup_method(self, method):
-        self.opts = Bunch(
+        self.opts = Munch(
             frontend_base_url="http://example.com/",
             frontend_auth="12345678",
         )

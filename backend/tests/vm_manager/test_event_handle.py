@@ -7,7 +7,7 @@ import time
 from multiprocessing import Queue
 import types
 
-from bunch import Bunch
+from munch import Munch
 from redis.client import Script
 import six
 
@@ -77,10 +77,10 @@ class TestEventHandle(object):
     def setup_method(self, method):
         self.test_root_path = tempfile.mkdtemp()
         self.terminate_pb_path = "{}/terminate.yml".format(self.test_root_path)
-        self.opts = Bunch(
+        self.opts = Munch(
             redis_db=9,
             redis_port=7777,
-            ssh=Bunch(
+            ssh=Munch(
                 transport="ssh"
             ),
             build_groups={

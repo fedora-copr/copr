@@ -19,7 +19,7 @@ from datetime import datetime
 import pytz
 # from dateutil.parser import parse as dt_parse
 
-from bunch import Bunch
+from munch import Munch
 from redis import StrictRedis
 from . import constants
 
@@ -112,7 +112,7 @@ class BackendConfigReader(object):
         cp = ConfigParser.ConfigParser()
         cp.read(self.config_file)
 
-        opts = Bunch()
+        opts = Munch()
 
         opts.results_baseurl = _get_conf(
             cp, "backend", "results_baseurl", "http://copr-be")
@@ -220,7 +220,7 @@ class BackendConfigReader(object):
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
 
         # ssh options
-        opts.ssh = Bunch()
+        opts.ssh = Munch()
         # TODO: ansible Runner show some magic bugs with transport "ssh", using paramiko
         opts.ssh.transport = _get_conf(
             cp, "ssh", "transport", "paramiko")

@@ -5,7 +5,7 @@ import pprint
 from subprocess import CalledProcessError
 
 from ansible.errors import AnsibleError
-from bunch import Bunch
+from munch import Munch
 import pytest
 import tempfile
 import shutil
@@ -125,8 +125,8 @@ class TestDispatcher(object):
 
         self.spawn_pb = "/spawn.yml"
         self.terminate_pb = "/terminate.yml"
-        self.opts = Bunch(
-            ssh=Bunch(transport="paramiko"),
+        self.opts = Munch(
+            ssh=Munch(transport="paramiko"),
             frontend_base_url="http://example.com",
             frontend_auth="12345678",
             build_groups={

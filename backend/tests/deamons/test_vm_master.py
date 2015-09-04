@@ -11,7 +11,7 @@ from collections import defaultdict
 import json
 from random import choice
 import types
-from bunch import Bunch
+from munch import Munch
 import time
 from multiprocessing import Queue
 
@@ -78,10 +78,10 @@ class TestVmMaster(object):
     def setup_method(self, method):
         self.vm_spawn_min_interval = 30
 
-        self.opts = Bunch(
+        self.opts = Munch(
             redis_db=9,
             redis_port=7777,
-            ssh=Bunch(
+            ssh=Munch(
                 transport="ssh"
             ),
             build_groups_count=2,

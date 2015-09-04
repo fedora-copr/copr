@@ -115,7 +115,7 @@ class VmManager(object):
     - Client to acquire and release VM in builder process
 
     :param opts: Global backend configuration
-    :type opts: Bunch
+    :type opts: Munch
 
     :type logger: logging.Logger
     :param logger: Logger instance to use inside of manager, if None manager would create

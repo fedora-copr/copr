@@ -36,7 +36,7 @@ import fcntl
 import logging
 import os
 
-from bunch import Bunch
+from munch import Munch
 import time
 
 from ..constants import DEF_REMOTE_BASEDIR, DEF_BUILD_TIMEOUT, DEF_REPOS, \
@@ -104,7 +104,7 @@ class MockRemote(object):
         :param multiprocessing.Lock lock: instance of Lock shared between
             Copr backend process
 
-        :param Bunch opts: builder options, used keys::
+        :param Munch opts: builder options, used keys::
             :ivar build_user: user to run as/connect as on builder systems
             :ivar do_sign: enable package signing, require configured
                 signer host and correct /etc/sign.conf
@@ -118,7 +118,7 @@ class MockRemote(object):
         # :param bool recurse: if more than one pkg and it fails to build,
         #                      try to build the rest and come back to it
         """
-        self.opts = Bunch(
+        self.opts = Munch(
             do_sign=False,
             frontend_base_url=None,
             results_baseurl=u"",

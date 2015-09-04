@@ -6,7 +6,7 @@ import types
 import time
 from multiprocessing import Queue
 
-from bunch import Bunch
+from munch import Munch
 import six
 
 from backend import exceptions
@@ -47,10 +47,10 @@ class TestCallback(object):
 class TestManager(object):
 
     def setup_method(self, method):
-        self.opts = Bunch(
+        self.opts = Munch(
             redis_db=9,
             redis_port=7777,
-            ssh=Bunch(
+            ssh=Munch(
                 transport="ssh"
             ),
             build_groups_count=1,

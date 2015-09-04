@@ -34,8 +34,7 @@ BuildRequires: pytest
 BuildRequires: python-pytest-cov
 BuildRequires: python-mock
 BuildRequires: python-six
-# missing python3 - migrate to python3-munch?
-BuildRequires: python-bunch
+BuildRequires: python-munch
 # missing python3
 BuildRequires: python-daemon
 BuildRequires: python-lockfile
@@ -67,7 +66,7 @@ Requires:   openssh-clients
 Requires:   mock
 Requires:   yum-utils
 Requires:   createrepo_c >= 0.2.1-3
-Requires:   python-bunch
+Requires:   python-munch
 Requires:   python-daemon
 Requires:   python-lockfile
 Requires:   python-requests
@@ -464,7 +463,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 - [backend] type fix
 
 * Thu Sep 18 2014 Valentin Gologuzov <vgologuz@redhat.com> 1.43-1
-- [backend] config parsing: convert fields to proper data type. 
+- [backend] config parsing: convert fields to proper data type.
 - [backend] added option to disable package signing.
 - [keygen] new component for copr: gpg key generation for package sign
 - [backend] broadcast both submitter and owner to fedmsg

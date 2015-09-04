@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import logging
-from bunch import Bunch
+from munch import Munch
 import time
 
 import tempfile
@@ -51,7 +51,7 @@ class TestLog(object):
 
         self.log_dir = os.path.join(self.tmp_dir_path, "copr")
         self.log_file = os.path.join(self.log_dir, "copr.log")
-        self.opts = Bunch(
+        self.opts = Munch(
             verbose=False,
             log_dir=self.log_dir
         )

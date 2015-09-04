@@ -36,7 +36,7 @@ class Worker(multiprocessing.Process):
 
     Worker listens for the new tasks from :py:class:`retask.Queue` associated with its group_id
 
-    :param Bunch opts: backend config
+    :param Munch opts: backend config
     :param int worker_num: worker number
     :param int group_id: group_id from the set of groups defined in config
     :param lock: (:py:class:`multiprocessing.Lock`) global backend lock

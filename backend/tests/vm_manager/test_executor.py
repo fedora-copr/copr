@@ -3,7 +3,7 @@
 from multiprocessing import Queue
 import types
 
-from bunch import Bunch
+from munch import Munch
 import six
 import time
 
@@ -35,10 +35,10 @@ def mc_time():
 class TestExecutor(object):
 
     def setup_method(self, method):
-        self.opts = Bunch(
+        self.opts = Munch(
             redis_db=9,
             redis_port=7777,
-            ssh=Bunch(
+            ssh=Munch(
                 transport="ssh"
             ),
             build_groups={

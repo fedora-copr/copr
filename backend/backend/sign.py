@@ -101,7 +101,7 @@ def sign_rpms_in_dir(username, projectname, path, opts, log):
     :param username: copr username
     :param projectname: copr projectname
     :param path: directory with rpms to be signed
-    :param Bunch opts: backend config
+    :param Munch opts: backend config
 
     :type log: logging.Logger
 

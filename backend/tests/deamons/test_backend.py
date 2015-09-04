@@ -3,7 +3,7 @@ import tempfile
 import shutil
 import time
 
-from bunch import Bunch
+from munch import Munch
 import pwd
 import pytest
 import retask
@@ -78,7 +78,7 @@ class TestBackend(object):
         # effective config options
         self.bc_obj = MagicMock()
 
-        self.opts = Bunch(
+        self.opts = Munch(
             build_groups=[
                 {
                     "id": 0,
@@ -111,7 +111,7 @@ class TestBackend(object):
         self.grp = self.grp_patcher.start()
         self.pwd = self.pwd_patcher.start()
 
-        self.run_opts = Bunch(
+        self.run_opts = Munch(
             daemonize=True,
             pidfile=self.pidfile_path,
             config_file=self.config_file,

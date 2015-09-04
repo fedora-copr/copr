@@ -2,7 +2,7 @@
 import copy
 
 from collections import defaultdict
-from bunch import Bunch
+from munch import Munch
 from backend.exceptions import MockRemoteError, CoprSignError, BuilderError
 
 import tempfile
@@ -77,13 +77,13 @@ class TestMockRemote(object):
 
             "package_name": self.PKG_NAME,
             "package_version": self.PKG_VERSION
-        }, Bunch({
+        }, Munch({
             "timeout": 1800,
             "destdir": self.test_root_path,
             "results_baseurl": "/tmp/",
         }))
 
-        self.OPTS = Bunch({
+        self.OPTS = Munch({
             "do_sign": False,
             "results_baseurl": self.BASE_URL,
             "frontend_base_url": self.FRONT_URL,

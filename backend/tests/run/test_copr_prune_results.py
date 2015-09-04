@@ -6,7 +6,7 @@ import shutil
 import tarfile
 import tempfile
 import time
-from bunch import Bunch
+from munch import Munch
 from subprocess import Popen, PIPE
 from copr.client.exceptions import CoprException
 
@@ -78,7 +78,7 @@ class TestPruneResults(object):
         self.pkg_2_obsolete = "hello-1.0.fc20"
         self.prj = "foox"
         self.chroots = ["fedora-20-i386", "fedora-20-x86_64"]
-        self.opts = Bunch(
+        self.opts = Munch(
             prune_days=14,
 
             find_obsolete_script=os.path.abspath(

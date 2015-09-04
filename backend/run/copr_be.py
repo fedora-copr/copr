@@ -10,7 +10,7 @@ import optparse
 import os
 import sys
 
-from bunch import Bunch
+from munch import Munch
 
 from backend.daemons.backend import run_backend
 
@@ -43,7 +43,7 @@ def parse_args(args):
         sys.exit(1)
     opts.config_file = os.path.abspath(opts.config_file)
 
-    ret_opts = Bunch()
+    ret_opts = Munch()
     for o in ("daemonize", "exit_on_worker", "pidfile",
               "config_file", "daemon_user", "daemon_group"):
         setattr(ret_opts, o, getattr(opts, o))

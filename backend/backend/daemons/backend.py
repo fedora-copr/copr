@@ -49,7 +49,7 @@ class CoprBackend(object):
 
     def __init__(self, config_file=None, ext_opts=None):
         # read in config file
-        # put all the config items into a single self.opts bunch
+        # put all the config items into a single self.opts munch
 
         if not config_file:
             raise CoprBackendError("Must specify config_file")
@@ -140,7 +140,7 @@ class CoprBackend(object):
                                           terminator=self.terminator)
         self.event_handler.post_init()
         self.event_handler.start()
-        
+
         self.log.info("Starting up VM Master")
         self.vm_master = VmMaster(self.opts,
                                   vmm=self.vm_manager,
@@ -303,7 +303,7 @@ def run_backend(opts):
     """
     Start main backend daemon
 
-    :param opts: Bunch object with command line options
+    :param opts: Munch object with command line options
 
     Expected **opts** fields:
         - `config_file` - path to the backend config file
