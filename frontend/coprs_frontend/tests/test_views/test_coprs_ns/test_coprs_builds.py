@@ -234,8 +234,9 @@ class TestCoprRepeatBuild(CoprsTestCase):
             follow_redirects=True)
 
         assert r.status_code == 200
-        assert self.b_few_chroots.pkgs in r.data
-        assert "Adding Build for user1/foocopr" in r.data
+        # no longer using URL
+        #assert self.b_few_chroots.pkgs in r.data
+        assert "Resubmit build {}".format(self.b_few_chroots.id) in r.data
 
         # TODO: maybe test, that only failed chroots are selected
 
@@ -263,7 +264,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
             data={},
             follow_redirects=True)
 
-        assert "Adding Build for user1/foocopr" in r.data
+        assert "Resubmit build {}".format(self.b1.id) in r.data
         assert r.status_code == 200
         # assert "Build was resubmitted" in r.data
         # assert len(self.models.Build.query
