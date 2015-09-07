@@ -1,7 +1,7 @@
 Project Chroot
 ==============
 
-Projects Chroots allows to view and modify project settings dedicated for different chroots.
+Projects Chroots allows to enable and disable target chroots and modify project settings dedicated for specific chroots.
 
 Structure of the project chroot entity
 --------------------------------------
@@ -92,7 +92,7 @@ Enable chroot for project
     **REQUIRE AUTH**
 
     Enables chroot for the Copr project.
-    Available `chroot` names could be obtained from MockChrootResource_
+    Available `chroot` names could be obtained from :doc:`./mock_chroot` resource.
 
     :param int project_id: a unique identifier of the Copr project.
 
@@ -184,7 +184,7 @@ Disable chroot for project
     :param int project_id: a unique identifier of the Copr project.
     :param str chroot_name: name of the project chroot
 
-    :statuscode 204: project was removed
+    :statuscode 204: chroot was disabled
     :statuscode 403: authorization failed
     :statuscode 404: project not found or chroot isn't enabled for the project
 

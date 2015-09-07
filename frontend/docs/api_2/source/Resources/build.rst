@@ -4,7 +4,7 @@ Build
 Build resources allows to submit new builds and access current build progress.
 
 Build in fact consists of the few tasks, one per chroot, and detail information
-is available through sub-resource BuildChroot_.
+is available through sub-resource :doc:`./build_chroot`.
 
 
 
@@ -47,7 +47,7 @@ Build fields
 Field               Type                 Description
 ==================  ==================== ===============
 id                  int                  unique build identifier
-state               string               current state of the build
+state               string               current state of the build, value is aggregated from build chroots
 submitted_on        int(unixtime UTC)    time of the build submission
 started_on          int(unixtime UTC)    time when the first build chroot started, otherwise ``null``
 ended_on            int(unixtime UTC)    time when the last build chroot ended, otherwise ``null``
@@ -268,8 +268,8 @@ Get build details
 
     Returns details about build
 
-    :param int project_id: a unique identifier of the build
-    :query bool show_chroots: embed BuildChroot_ sub-resources into the result, default is False
+    :param int build_id: a unique identifier of the build
+    :query bool show_chroots: embed :doc:`./build_chroot` sub-resources into the result, default is False
 
     :statuscode 200: no error
     :statuscode 404: build not found
@@ -278,7 +278,7 @@ Get build details
 
     .. sourcecode:: http
 
-        GET  HTTP/1.1
+        GET /api_2/builds/106897 HTTP/1.1
         Host: copr.fedoraproject.org
 
     **Response**
@@ -352,8 +352,7 @@ Build cancellation is done be setting build state to ``cancelled``.
 
     **REQUIRE AUTH**
 
-    :param int project_id: a unique identifier of the build
-    :query bool show_chroots: embed BuildChroot_ sub-resources into the result, default is False
+    :param int build_id: a unique identifier of the build
 
     :statuscode 204: build was updated
     :statuscode 400: malformed request, most probably build can't be canceled at the moment
@@ -386,7 +385,7 @@ Delete build
 
     Deletes build and schedules deletion of build result at Copr backend
 
-    :param int project_id: a unique identifier of the build
+    :param int build_id: a unique identifier of the build
 
     :statuscode 204: build was removed
     :statuscode 400: could not delete build right now, most probably due to unfinished build

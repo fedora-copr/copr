@@ -41,6 +41,7 @@ homepage            string(URL)          yes       project homepage
 contact             string(URL or email) yes       contact with the project maintainer
 disable_createrepo  bool                 yes       disables automatic repository metadata generation
 build_enable_net    bool                 yes       set default value for new builds option `enable_net`
+repos               list of string       yes       list of additional repositories to be enabled during the build
 ==================  ==================== ========= ===============
 
 List projects
@@ -105,7 +106,7 @@ Create new project
     Creates new Copr project.
 
     Additionally to described before `Project fields`_ the user could specify field `chroots` which contains list of chroots to be enabled.
-    Available `chroot` names could be obtained from MockChrootResource_
+    Available `chroot` names could be obtained from :doc:`./mock_chroot`
 
     :resheader Location: contains URL to the newly created project entity
 
@@ -150,8 +151,8 @@ Get project details
 
     :param int project_id: a unique identifier of the Copr project.
 
-    :query bool show_builds: embed Build_ entities owned by this project into the result, default is False
-    :query bool show_chroots: embed ProjectChroot_ sub-resources into the result, default is False
+    :query bool show_builds: embed :doc:`./build` entities owned by this project into the result, default is False
+    :query bool show_chroots: embed :doc:`./project_chroot` sub-resources into the result, default is False
 
     :statuscode 200: no error
     :statuscode 404: project not found
@@ -266,7 +267,7 @@ Modify project
 
     Updates Copr project.
 
-    .. note:: You couldn't enabled or disable project chroots here, use ProjectChroots_ resource.
+    .. note:: You couldn't enabled or disable project chroots here, use :doc:`./project_chroot` resource.
 
     :param project_id: a unique identifier of the Copr project.
 
