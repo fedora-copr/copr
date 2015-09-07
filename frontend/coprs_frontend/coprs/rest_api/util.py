@@ -19,11 +19,17 @@ def render_allowed_method(method, doc, require_auth=True, params=None):
     return AllowedMethodSchema().dump(AllowedMethod(method, doc, require_auth, params))[0]
 
 
-def get_one_safe(query, data_on_error=None):
+def get_one_safe(query, msg=None, data=None):
+    """
+    :type query:  sqlalchemy.Query
+    :param str msg: message used in error when object not found
+    :param Any data: any serializable data to include into error
+    :raises ObjectNotFoundError: when query failed to return anything
+    """
     try:
         return query.one()
     except sqlalchemy.orm.exc.NoResultFound:
-        raise ObjectNotFoundError(data_on_error)
+        raise ObjectNotFoundError(msg=msg, data=data)
 
 
 def json_loads_safe(raw, data_on_error=None):
@@ -38,12 +44,18 @@ def mm_deserialize(schema, json_string):
     try:
         result = schema.loads(json_string)
     except ValueError as err:
-        raise MalformedRequest(data="Failed to parse request: {}"
-                               .format(err))
+        raise MalformedRequest(
+            msg="Failed to parse request: {}".format(err),
+            data={"request_string": json_string}
+        )
 
     if result.errors:
-        raise MalformedRequest(data="Failed to parse request: {}"
-                               .format(result.errors))
+        raise MalformedRequest(
+            msg="Failed to parse request: Validation Error",
+            data={
+                "validation_errors": result.errors
+            }
+        )
 
     return result
 

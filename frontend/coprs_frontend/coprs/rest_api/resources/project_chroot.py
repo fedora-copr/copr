@@ -16,7 +16,7 @@ from ...exceptions import InsufficientRightsException, MalformedArgumentExceptio
 
 from ..exceptions import AccessForbidden, MalformedRequest, \
     ObjectAlreadyExists, ServerError, ObjectNotFoundError
-from ..common import rest_api_auth_required, render_copr_chroot
+from ..common import rest_api_auth_required, render_copr_chroot, get_project_safe
 from ..schemas import CoprChrootSchema, CoprChrootCreateSchema
 from ..util import get_one_safe, mm_deserialize
 
@@ -24,12 +24,12 @@ from ..util import get_one_safe, mm_deserialize
 class ProjectChrootListR(Resource):
 
     def get(self, project_id):
-        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
+        project = get_project_safe(project_id)
 
         return {
             "chroots": [
                 render_copr_chroot(chroot)
-                for chroot in copr.active_copr_chroots
+                for chroot in project.active_copr_chroots
             ],
             "_links": {
                 "self": {"href": url_for(".projectchrootlistr", project_id=project_id)}
@@ -38,7 +38,7 @@ class ProjectChrootListR(Resource):
 
     @rest_api_auth_required
     def post(self, project_id):
-        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
+        project = get_project_safe(project_id)
 
         chroot_data = mm_deserialize(CoprChrootCreateSchema(),
                                      flask.request.data)
@@ -54,22 +54,22 @@ class ProjectChrootListR(Resource):
         if mock_chroot is None:
             raise MalformedRequest("Mock chroot `{}` doesn't exists"
                                    .format(name))
-        CoprChrootsLogic.create_chroot(flask.g.user, copr, mock_chroot, **req)
+        CoprChrootsLogic.create_chroot(flask.g.user, project, mock_chroot, **req)
         try:
             db.session.commit()
         except IntegrityError as err:
             # assuming conflict with existing chroot
             db.session.rollback()
-            if get_one_safe(CoprChrootsLogic.get_by_name(copr, name)) is not None:
+            if get_one_safe(CoprChrootsLogic.get_by_name(project, name)) is not None:
                 raise ObjectAlreadyExists("Copr {} already has chroot {} enabled"
-                                          .format(copr.full_name, name))
+                                          .format(project.full_name, name))
             else:
                 raise ServerError("Unexpected error, contact site administrator: {}"
                                   .format(err))
 
         resp = make_response("", 201)
         resp.headers["Location"] = url_for(".projectchrootr",
-                                           project_id=copr.id, name=name)
+                                           project_id=project.id, name=name)
         return resp
 
 
@@ -84,15 +84,15 @@ class ProjectChrootR(Resource):
         return chroot
 
     def get(self, project_id, name):
-        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
-        chroot = self._get_chroot_safe(copr, name)
+        project = get_project_safe(project_id)
+        chroot = self._get_chroot_safe(project, name)
 
         return render_copr_chroot(chroot)
 
     @rest_api_auth_required
     def delete(self, project_id, name):
-        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
-        chroot = CoprChrootsLogic.get_by_name_safe(copr, name)
+        project = get_project_safe(project_id)
+        chroot = CoprChrootsLogic.get_by_name_safe(project, name)
 
         if chroot:
             try:
@@ -106,8 +106,8 @@ class ProjectChrootR(Resource):
 
     @rest_api_auth_required
     def put(self, project_id, name):
-        copr = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
-        chroot = self._get_chroot_safe(copr, name)
+        project = get_project_safe(project_id)
+        chroot = self._get_chroot_safe(project, name)
 
         chroot_data = mm_deserialize(CoprChrootSchema(), flask.request.data)
         try:

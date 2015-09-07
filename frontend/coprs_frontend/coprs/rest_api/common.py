@@ -3,16 +3,20 @@ import base64
 import datetime
 import functools
 from logging import getLogger
+from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.coprs_logic import CoprsLogic
 from coprs.rest_api.schemas import BuildChrootSchema
-from coprs.rest_api.util import mm_serialize_one
+from coprs.rest_api.util import mm_serialize_one, get_one_safe
 
 log = getLogger(__name__)
 
 from flask import url_for
 import flask
 
+from .. import models
 from ..logic.users_logic import UsersLogic
-from .exceptions import AuthFailed
+
+from .exceptions import AuthFailed, ObjectNotFoundError
 from .schemas import CoprChrootSchema, BuildSchema, ProjectSchema
 from .util import mm_serialize_one
 
@@ -105,3 +109,38 @@ def rest_api_auth_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+def get_project_safe(project_id):
+    """
+    :param int project_id:
+    :rtype: models.Copr
+    """
+    return get_one_safe(
+        CoprsLogic.get_by_id(project_id),
+        msg="Project with id `{}` not found".format(project_id),
+        data={"project_id": project_id}
+    )
+
+
+def get_build_safe(build_id):
+    """
+    :param int build_id:
+    :rtype: models.Build
+    """
+    return get_one_safe(
+        BuildsLogic.get(build_id),
+        msg="Build with id `{}` not found".format(build_id),
+        data={"build_id": build_id}
+    )
+
+
+def get_user_safe(username):
+    """
+    :param str username:
+    :rtype: models.User
+    """
+    return get_one_safe(
+        UsersLogic.get(username),
+        msg="User `{}` doesn't have any project".format(username),
+        data={"username": username}
+    )

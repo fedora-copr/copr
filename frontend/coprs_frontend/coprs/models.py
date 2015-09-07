@@ -425,9 +425,12 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def source_metadata(self):
+        if self.source_json is None:
+            return None
+
         try:
             return json.loads(self.source_json)
-        except ValueError:
+        except (TypeError, ValueError):
             return None
 
     @property

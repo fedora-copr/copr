@@ -5,17 +5,16 @@ from flask import url_for, make_response
 
 # from flask_restful_swagger import swagger
 
-from coprs import db, models
+from coprs import db
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, RequestCannotBeExecuted
-from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
-from coprs.logic.users_logic import UsersLogic
+from coprs.rest_api.common import get_project_safe
 from coprs.rest_api.exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
-from ..common import render_build, rest_api_auth_required, render_build_chroot
+from ..common import render_build, rest_api_auth_required, render_build_chroot, get_build_safe, get_user_safe
 
 from coprs.rest_api.schemas import BuildSchema, BuildCreateSchema, BuildCreateFromUrlSchema
 
-from coprs.rest_api.util import get_one_safe, mm_deserialize
+from coprs.rest_api.util import mm_deserialize
 
 from flask_restful import Resource, reqparse
 
@@ -37,10 +36,10 @@ class BuildListR(Resource):
         req_args = parser.parse_args()
 
         if req_args["project_id"] is not None:
-            copr = get_one_safe(CoprsLogic.get_by_id(req_args["project_id"]))
-            query = BuildsLogic.get_multiple_by_copr(copr)
+            project = get_project_safe(req_args["project_id"])
+            query = BuildsLogic.get_multiple_by_copr(project)
         elif req_args["owner"] is not None:
-            user = get_one_safe(UsersLogic.get(req_args["owner"]))
+            user = get_user_safe(req_args["owner"])
             query = BuildsLogic.get_multiple_by_owner(user)
         else:
             query = BuildsLogic.get_multiple()
@@ -62,7 +61,6 @@ class BuildListR(Resource):
         self_params = dict(req_args)
         self_params["limit"] = limit
         return {
-
             "builds": [
                 render_build(build) for build in builds
             ],
@@ -76,10 +74,8 @@ class BuildListR(Resource):
         :return: if of the created build or raise Exception
         """
         build_params = mm_deserialize(BuildCreateFromUrlSchema(), req.data).data
-        project_id = build_params["project_id"]
+        project = get_project_safe(build_params["project_id"])
 
-        project = get_one_safe(CoprsLogic.get_by_id(project_id))
-        """:type : models.Copr """
         chroot_names = build_params.pop("chroots")
         srpm_url = build_params.pop("srpm_url")
         try:
@@ -118,8 +114,7 @@ class BuildListR(Resource):
         build_params = mm_deserialize(BuildCreateSchema(), metadata).data
         project_id = build_params["project_id"]
 
-        project = get_one_safe(CoprsLogic.get_by_id(project_id))
-        """:type : models.Copr """
+        project = get_project_safe(project_id)
 
         chroot_names = build_params.pop("chroots")
         try:
@@ -167,9 +162,7 @@ class BuildR(Resource):
         parser.add_argument('show_chroots', type=bool, default=False)
         req_args = parser.parse_args()
 
-        build = get_one_safe(BuildsLogic.get(build_id),
-                             "Not found build with id: {}".format(build_id))
-        """:type : models.Build """
+        build = get_build_safe(build_id)
 
         self_params = {}
         if req_args["show_chroots"]:
@@ -186,8 +179,7 @@ class BuildR(Resource):
 
     @rest_api_auth_required
     def delete(self, build_id):
-        build = get_one_safe(BuildsLogic.get(build_id),
-                             "Not found build with id: {}".format(build_id))
+        build = get_build_safe(build_id)
         try:
             BuildsLogic.delete_build(flask.g.user, build)
             db.session.commit()
@@ -202,10 +194,7 @@ class BuildR(Resource):
 
     @rest_api_auth_required
     def put(self, build_id):
-        build = get_one_safe(BuildsLogic.get(build_id),
-                             "Not found build with id: {}".format(build_id))
-        """:type : models.Build """
-
+        build = get_build_safe(build_id)
         build_dict = mm_deserialize(BuildSchema(), flask.request.data).data
         try:
             if not build.canceled and build_dict["state"] == "canceled":

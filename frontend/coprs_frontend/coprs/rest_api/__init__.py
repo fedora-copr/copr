@@ -1,5 +1,6 @@
 # coding: utf-8
-from flask import Response, url_for, Blueprint
+import json
+from flask import Response, url_for, Blueprint, make_response
 from flask_restful import Resource, Api
 
 from coprs.exceptions import InsufficientRightsException
@@ -68,12 +69,16 @@ api.add_resource(BuildChrootR, "/builds/<int:build_id>/chroots/<name>")
 def register_api_error_handler(app):
     @app.errorhandler(ApiError)
     def handle_api_error(error):
-        kwargs = dict(
-            status=error.code,
-            mimetype="text/plain",
-            headers=error.headers,
-        )
-        if error.data:
-            kwargs["response"] = "{}\n".format(error.data)
+        """
+        :param ApiError error:
+        """
 
-        return Response(**kwargs)
+        content = {
+            "message": error.msg,
+        }
+        if error.data:
+            content["data"] = error.data
+
+        response = make_response(json.dumps(content), error.code)
+        response.headers["Content-Type"] = "application/json"
+        return response

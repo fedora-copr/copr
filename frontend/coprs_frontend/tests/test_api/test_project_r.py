@@ -366,9 +366,9 @@ class TestProjectResource(CoprsTestCase):
             method="put",
             content=self.put_update_dict
         )
-        assert r0.status_code == 201
+        assert r0.status_code == 204
 
-        r1 = self.tc.get(r0.headers["Location"])
+        r1 = self.tc.get(href)
         obj = json.loads(r1.data)
         updated_project = obj["project"]
         for k, v in self.put_update_dict.items():
@@ -449,4 +449,4 @@ class TestProjectResource(CoprsTestCase):
                 method="put",
                 content=test_case
             )
-            assert r0.status_code == 201
+            assert r0.status_code == 204

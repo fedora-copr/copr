@@ -49,9 +49,9 @@ Field               Type                 Description
 id                  int                  unique build identifier
 state               string               current state of the build
 submitted_on        int(unixtime UTC)    time of the build submission
-started_on          int(unixtime UTC)    time of when the first build chroot started, otherwise ``null``
-ended_on            int(unixtime UTC)    time of when the last build chroot ended, otherwise ``null``
-source_type         string               name of the method which was used for build creation
+started_on          int(unixtime UTC)    time when the first build chroot started, otherwise ``null``
+ended_on            int(unixtime UTC)    time when the last build chroot ended, otherwise ``null``
+source_type         string               method used for build creation
 source_metadata     json object          build source information
 package_version     string               version of the source package
 package_name        string               name of the source package

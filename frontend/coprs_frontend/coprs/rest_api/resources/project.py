@@ -16,10 +16,10 @@ from ...exceptions import ActionInProgressException, InsufficientRightsException
 
 from ...exceptions import DuplicateException
 
-from ..common import rest_api_auth_required, render_copr_chroot, render_build, render_project
+from ..common import rest_api_auth_required, render_copr_chroot, render_build, render_project, get_project_safe
 from ..schemas import ProjectSchema, ProjectCreateSchema
 from ..exceptions import ObjectAlreadyExists, CannotProcessRequest, AccessForbidden
-from ..util import get_one_safe, mm_deserialize
+from ..util import mm_deserialize
 
 
 class ProjectListR(Resource):
@@ -45,7 +45,7 @@ class ProjectListR(Resource):
             )
             db.session.commit()
         except DuplicateException as error:
-            raise ObjectAlreadyExists(data=error)
+            raise ObjectAlreadyExists(msg=str(error))
 
         resp = make_response("", 201)
         resp.headers["Location"] = url_for(".projectr", project_id=project.id)
@@ -98,7 +98,7 @@ class ProjectR(Resource):
 
     @rest_api_auth_required
     def delete(self, project_id):
-        project = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
+        project = get_project_safe(project_id)
 
         try:
             ComplexLogic.delete_copr(project)
@@ -116,7 +116,7 @@ class ProjectR(Resource):
         parser.add_argument('show_chroots', type=bool, default=False)
         req_args = parser.parse_args()
 
-        project = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
+        project = get_project_safe(project_id)
         self_params = {}
         if req_args["show_builds"]:
             self_params["show_builds"] = req_args["show_builds"]
@@ -144,7 +144,7 @@ class ProjectR(Resource):
         """
         Modifies project by replacement of provided fields
         """
-        project = get_one_safe(CoprsLogic.get_by_id(int(project_id)))
+        project = get_project_safe(project_id)
 
         project_dict = mm_deserialize(ProjectSchema(), flask.request.data).data
         # pprint(project_dict)
