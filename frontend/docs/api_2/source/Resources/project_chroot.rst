@@ -48,7 +48,6 @@ List project chroots
 
         GET /api_2/projects/2482/chroots HTTP/1.1
         Host: copr.fedoraproject.org
-        Accept: application/json
 
     **Response**
 

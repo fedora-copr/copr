@@ -103,7 +103,33 @@ GET requests would return the following structures:
 
 Errors
 ______
-todo:
+
+To distinguish errors we use standard HTTP codes: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
+Additional information may be contained in the response body, it SHOULD have `application/json` Content-Type.
+Inside json object, there are MUST be key ``message`` with error description,
+additional information MAY be present at key ``data``
+
+    **Example**
+
+    .. sourcecode:: http
+
+        GET /api_2/builds?project_id=999999999 HTTP/1.1
+        Host: copr.fedoraproject.org
+
+    **Response**
+
+    .. sourcecode:: http
+
+        HTTP/1.1 404 NOT FOUND
+        Content-Type: application/json
+
+        {
+          "message": "Project with id `999999999` not found",
+          "data": {
+            "project_id": 999999999
+          }
+        }
+
 
 .. _BasicAuth: https://en.wikipedia.org/wiki/Basic_access_authentication
 .. _CoprAPI: https://copr.fedoraproject.org/api
