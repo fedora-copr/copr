@@ -1,10 +1,13 @@
 # coding: utf-8
 import json
 
-import sqlalchemy.orm.exc
-from .exceptions import ObjectNotFoundError, MalformedRequest
-from schemas import AllowedMethodSchema
 from flask import Response, url_for, Blueprint
+import sqlalchemy.orm.exc
+
+from flask_restful.reqparse import Argument, RequestParser
+
+from .exceptions import ObjectNotFoundError, MalformedRequest
+from .schemas import AllowedMethodSchema
 
 
 class AllowedMethod(object):
@@ -62,3 +65,21 @@ def mm_deserialize(schema, json_string):
 
 def mm_serialize_one(schema, obj):
     return schema().dump(obj)[0]
+
+
+class MyArg(Argument):
+    def handle_validation_error(self, error, bundle_errors):
+        # dirty monkey patching, better to switch to webargs
+        # bundle errors are ignored
+        data = {u"error": unicode(error)}
+        if self.help:
+            data["help"] = self.help
+        raise MalformedRequest(
+            "Failed to validate query parameter: {}".format(self.name),
+            data=data
+        )
+
+
+def get_request_parser():
+    return RequestParser(argument_class=MyArg)
+    #return RequestParser(bundle_errors=True)

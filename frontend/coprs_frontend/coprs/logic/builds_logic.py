@@ -9,6 +9,7 @@ import time
 import flask
 from sqlalchemy import or_
 from sqlalchemy import and_
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false
 from werkzeug.utils import secure_filename
@@ -37,6 +38,7 @@ class BuildsLogic(object):
     def get(cls, build_id):
         return models.Build.query.filter(models.Build.id == build_id)
 
+    # todo: move methods operating with BuildChroot to BuildChrootLogic
     @classmethod
     def get_build_tasks(cls, status):
         return models.BuildChroot.query.filter(models.BuildChroot.status == status) \
@@ -520,6 +522,34 @@ class BuildChrootsLogic(object):
             .filter(BuildChroot.build_id == build_id)
             .filter(BuildChroot.mock_chroot_id == mc.id)
         )
+
+    @classmethod
+    def get_multiply(cls):
+        query = (
+            models.BuildChroot.query
+            .join(models.BuildChroot.build)
+            .join(models.BuildChroot.mock_chroot)
+            .join(models.Build.copr)
+            .join(models.Copr.owner)
+
+        )
+        return query
+
+    @classmethod
+    def filter_by_build_id(cls, query, build_id):
+        return query.filter(models.Build.id == build_id)
+
+    @classmethod
+    def filter_by_project_id(cls, query, project_id):
+        return query.filter(models.Copr.id == project_id)
+
+    @classmethod
+    def filter_by_project_owner_name(cls, query, username):
+        return query.filter(models.User.username == username)
+
+    @classmethod
+    def filter_by_state(cls, query, state):
+        return query.filter(models.BuildChroot.status == StatusEnum(state))
 
 
 class BuildsMonitorLogic(object):

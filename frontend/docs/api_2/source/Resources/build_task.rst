@@ -1,15 +1,16 @@
-Build Chroot
-============
+Build Task
+==========
 
-Build chroot represents information about individual build tasks for each chroot.
+Build task represents information about individual build tasks per each chroot.
 
-Structure of the build chroot entity
-------------------------------------
+Structure of the build task entity
+----------------------------------
 
 .. code-block:: javascript
 
     {
         "name": "fedora-rawhide-x86_64",
+        "build_id": 12345,
         "started_on": 1440753865,
         "ended_on": 1440753919,
         "state": "succeeded",
@@ -22,7 +23,8 @@ Build chroot fields
 ==================  ==================== ===============
 Field               Type                 Description
 ==================  ==================== ===============
-name                str                  chroot name
+chroot_name         str                  chroot name
+build_id            int                  unique build identifier
 state               str                  current build state
 started_on          int(unixtime UTC)    time when the build chroot started
 ended_on            int(unixtime UTC)    time when the build chroot ended
@@ -38,11 +40,24 @@ result_dir_url      str(URL)             location of the build results
 List build chroots
 ------------------
 
-.. http:get:: /api_2/builds/(int:build_id)/chroots
+.. http:get:: /api_2/builds_tasks
 
-    Returns list of build chroots contained in the one build
+    Returns list of build tasks according to the given query parameters
 
-    :param int build_id: a unique identifier of the build
+    :query str owner: select build tasks from projects owned by this user
+    :query int project_id:
+        select build tasks from one project,
+        when used query parameter ``owner`` is ignored
+    :query int build_id:
+        select build tasks from one project,
+        when used query parameters ``owner`` and ``project_id`` are ignored
+
+    :query int offset: offset number, default value is 0
+    :query int limit: limit number, default value is 100
+    :query str state:
+        select builds in particular state, allowed values:
+        ``failed``, ``succeeded``, ``canceled``, ``running``,
+        ``pending``, ``starting``, ``importing``
 
     :statuscode 200: no error
     :statuscode 404: build not found
@@ -51,7 +66,7 @@ List build chroots
 
     .. sourcecode:: http
 
-        GET /api_2/builds/106882/chroots HTTP/1.1
+        GET /api_2/builds_tasks?build_id=106882 HTTP/1.1
         Host: copr.fedoraproject.org
 
     **Response**
@@ -91,18 +106,18 @@ List build chroots
 
 
 
-Get build chroot details
-------------------------
+Get build task details
+----------------------
 
 .. http:get:: /api_2/builds/(int:build_id)/chroots/(str:name)
 
-    Returns details about one build chroot
+    Returns details about one build task
 
     :param int build_id: a unique identifier of the build
     :param str name: chroot name
 
     :statuscode 200: no error
-    :statuscode 404: build or build chroot not found
+    :statuscode 404: build or build task not found
 
     **Example request**
 

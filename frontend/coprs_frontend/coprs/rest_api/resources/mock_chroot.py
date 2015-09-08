@@ -6,7 +6,7 @@ from flask_restful import Resource, reqparse
 from ...logic.coprs_logic import MockChrootsLogic
 
 from ..schemas import MockChrootSchema
-from ..util import get_one_safe
+from ..util import get_one_safe, get_request_parser
 
 
 def render_mock_chroot(chroot):
@@ -21,7 +21,7 @@ def render_mock_chroot(chroot):
 class MockChrootListR(Resource):
 
     def get(self):
-        parser = reqparse.RequestParser()
+        parser = get_request_parser()
         parser.add_argument('active_only', type=bool)
         req_args = parser.parse_args()
         active_only = False

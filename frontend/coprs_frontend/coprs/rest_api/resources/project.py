@@ -1,7 +1,4 @@
 from logging import getLogger
-from coprs.rest_api.exceptions import MalformedRequest
-
-log = getLogger(__name__)
 
 import flask
 from flask import url_for, make_response
@@ -19,7 +16,9 @@ from ...exceptions import DuplicateException
 from ..common import rest_api_auth_required, render_copr_chroot, render_build, render_project, get_project_safe
 from ..schemas import ProjectSchema, ProjectCreateSchema
 from ..exceptions import ObjectAlreadyExists, CannotProcessRequest, AccessForbidden
-from ..util import mm_deserialize
+from ..util import mm_deserialize, get_request_parser
+
+log = getLogger(__name__)
 
 
 class ProjectListR(Resource):
@@ -52,7 +51,7 @@ class ProjectListR(Resource):
         return resp
 
     def get(self):
-        parser = reqparse.RequestParser()
+        parser = get_request_parser()
         parser.add_argument('owner', type=str)
         parser.add_argument('name', type=str)
         parser.add_argument('limit', type=int)
@@ -111,7 +110,7 @@ class ProjectR(Resource):
         return None, 204
 
     def get(self, project_id):
-        parser = reqparse.RequestParser()
+        parser = get_request_parser()
         parser.add_argument('show_builds', type=bool, default=False)
         parser.add_argument('show_chroots', type=bool, default=False)
         req_args = parser.parse_args()

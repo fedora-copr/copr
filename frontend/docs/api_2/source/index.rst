@@ -22,7 +22,7 @@ Resources
    Resources/project
    Resources/project_chroot
    Resources/build
-   Resources/build_chroot
+   Resources/build_task
    Resources/mock_chroot
 
 

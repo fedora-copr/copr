@@ -128,13 +128,14 @@ class CoprChrootCreateSchema(CoprChrootSchema):
     name = fields.Str(required=True)
 
 
-class BuildChrootSchema(Schema):
+class BuildTaskSchema(Schema):
     # used only for presentation
     state = fields.Str()
     started_on = fields.Int(dump_only=True)
     ended_on = fields.Int(dump_only=True)
     git_hash = fields.Str(dump_only=True)
-    name = fields.Str(dump_only=True)
+    chroot_name = fields.Str(dump_only=True, attribute="name")
+    build_id = fields.Int(dump_only=True)
 
     result_dir_url = fields.Str(dump_only=True)
 

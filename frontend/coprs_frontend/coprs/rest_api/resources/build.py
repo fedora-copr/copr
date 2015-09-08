@@ -2,28 +2,24 @@
 
 import flask
 from flask import url_for, make_response
-
-# from flask_restful_swagger import swagger
-
-from coprs import db
-from coprs.exceptions import ActionInProgressException, InsufficientRightsException, RequestCannotBeExecuted
-from coprs.logic.builds_logic import BuildsLogic
-from coprs.rest_api.common import get_project_safe
-from coprs.rest_api.exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
-from ..common import render_build, rest_api_auth_required, render_build_chroot, get_build_safe, get_user_safe
-
-from coprs.rest_api.schemas import BuildSchema, BuildCreateSchema, BuildCreateFromUrlSchema
-
-from coprs.rest_api.util import mm_deserialize
-
 from flask_restful import Resource, reqparse
+
+from ... import db
+from ...exceptions import ActionInProgressException, InsufficientRightsException, RequestCannotBeExecuted
+from ...helpers import StatusEnum
+from ...logic.builds_logic import BuildsLogic
+from ..common import get_project_safe
+from ..exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
+from ..common import render_build, rest_api_auth_required, render_build_task, get_build_safe, get_user_safe
+from ..schemas import BuildSchema, BuildCreateSchema, BuildCreateFromUrlSchema
+from ..util import mm_deserialize, get_request_parser
 
 
 class BuildListR(Resource):
 
     def get(self):
 
-        parser = reqparse.RequestParser()
+        parser = get_request_parser()
 
         parser.add_argument('owner', type=str,)
         parser.add_argument('project_id', type=int)
@@ -31,6 +27,7 @@ class BuildListR(Resource):
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
 
+        parser.add_argument('state', type=str)
         # parser.add_argument('package', type=str)
 
         req_args = parser.parse_args()
@@ -158,7 +155,7 @@ class BuildListR(Resource):
 class BuildR(Resource):
 
     def get(self, build_id):
-        parser = reqparse.RequestParser()
+        parser = get_request_parser()
         parser.add_argument('show_chroots', type=bool, default=False)
         req_args = parser.parse_args()
 
@@ -171,7 +168,7 @@ class BuildR(Resource):
         result = render_build(build, self_params)
         if req_args["show_chroots"]:
             result["build_chroots"] = [
-                render_build_chroot(chroot)
+                render_build_task(chroot)
                 for chroot in build.build_chroots
             ]
 

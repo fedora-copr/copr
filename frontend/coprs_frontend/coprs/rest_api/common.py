@@ -5,7 +5,7 @@ import functools
 from logging import getLogger
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.coprs_logic import CoprsLogic
-from coprs.rest_api.schemas import BuildChrootSchema
+from coprs.rest_api.schemas import BuildTaskSchema
 from coprs.rest_api.util import mm_serialize_one, get_one_safe
 
 log = getLogger(__name__)
@@ -41,7 +41,7 @@ def render_build(build, self_params=None):
         "_links": {
             "self": {"href": url_for(".buildr", build_id=build.id, **self_params)},
             "project": {"href": url_for(".projectr", project_id=build.copr_id)},
-            "chroots": {"href": url_for(".buildchrootlistr", build_id=build.id)}
+            "tasks": {"href": url_for(".buildtasklistr", build_id=build.id)}
         }
     }
 
@@ -60,15 +60,15 @@ def render_project(copr, self_params=None):
     }
 
 
-def render_build_chroot(chroot):
+def render_build_task(chroot):
     """
     :type chroot: models.BuildChroot
     """
     return {
-        "chroot": mm_serialize_one(BuildChrootSchema, chroot),
+        "task": mm_serialize_one(BuildTaskSchema, chroot),
         "_links": {
             "project": {"href": url_for(".projectr", project_id=chroot.build.copr_id)},
-            "self": {"href": url_for(".buildchrootr",
+            "self": {"href": url_for(".buildtaskr",
                                      build_id=chroot.build.id,
                                      name=chroot.name)},
         }
