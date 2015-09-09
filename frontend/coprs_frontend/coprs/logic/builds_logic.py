@@ -511,6 +511,15 @@ class BuildsLogic(object):
         else:
             return None
 
+    @classmethod
+    def filter_is_finished(cls, query, is_finished):
+        # todo: check that ended_on is set correctly for all cases
+        # e.g.: failed dist-git import, cancellation
+        if is_finished:
+            return query.filter(models.Build.ended_on.isnot(None))
+        else:
+            return query.filter(models.Build.ended_on.is_(None))
+
 
 class BuildChrootsLogic(object):
     @classmethod
@@ -531,7 +540,6 @@ class BuildChrootsLogic(object):
             .join(models.BuildChroot.mock_chroot)
             .join(models.Build.copr)
             .join(models.Copr.owner)
-
         )
         return query
 

@@ -52,6 +52,9 @@ Here is a short example with the content of API root:
        "builds": {
          "href": "/api_2/builds"
        }
+       "build_tasks": {
+         "href": "/api_2/build_tasks"
+       }
    }
 
 Response structure

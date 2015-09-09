@@ -13,14 +13,12 @@ from coprs.logic.coprs_logic import CoprsLogic
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 
-class TestBuildChrootResource(CoprsTestCase):
+class TestBuildTaskResource(CoprsTestCase):
 
     def test_collection_ok(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,
                            f_users_api):
 
-        # project_id = self.c1.id
-        # import ipdb; ipdb.set_trace()
-        href = "/api_2/builds/1/chroots"
+        href = "/api_2/build_tasks?build_id=1&limit=5"
         bc_list = copy.deepcopy(self.b1_bc)
 
         self.db.session.commit()
@@ -28,14 +26,14 @@ class TestBuildChrootResource(CoprsTestCase):
         r0 = self.tc.get(href)
         assert r0.status_code == 200
         obj = json.loads(r0.data)
-        assert len(obj["chroots"]) == len(bc_list)
+        assert len(obj["build_tasks"]) == len(bc_list)
         assert obj["_links"]["self"]["href"] == href
 
     def test_post_not_allowed(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,
                            f_users_api):
         self.db.session.commit()
         r0 = self.request_rest_api_with_auth(
-            "/api_2/builds/1/chroots",
+            "/api_2/build_tasks",
             method="post",
             content={},
         )
@@ -44,30 +42,32 @@ class TestBuildChrootResource(CoprsTestCase):
     def test_get_one(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,
                            f_users_api):
         expected_fields = [
-            "state",
-            "git_hash",
-            "started_on",
-            "ended_on",
-            "name"
+            ("state", None),
+            ("git_hash", None),
+            ("started_on", None),
+            ("ended_on", None),
+            ("name", "chroot_name"),
         ]
         bc = self.b1_bc[0]
         expected_dict = {
             f: getattr(bc, f)
-            for f in expected_fields
+            for f, _ in expected_fields
         }
-        href = "/api_2/builds/1/chroots/{}".format(bc.name)
+        href = "/api_2/build_tasks/1/{}".format(bc.name)
         self.db.session.commit()
 
         r0 = self.tc.get(href)
         assert r0.status_code == 200
         obj = json.loads(r0.data)
-        for k in expected_fields:
-            assert obj["chroot"][k] == expected_dict[k]
+        for k, res_k in expected_fields:
+            if res_k is None:
+                res_k = k
+            assert obj["build_task"][res_k] == expected_dict[k]
 
     def test_get_one_bad_name(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,
                            f_users_api):
 
-        href = "/api_2/builds/1/chroots/surely_bad_chroot_name"
+        href = "/api_2/build_tasks/1/surely_bad_chroot_name"
         self.db.session.commit()
 
         r0 = self.tc.get(href)

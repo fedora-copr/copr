@@ -3,22 +3,22 @@ import base64
 import datetime
 import functools
 from logging import getLogger
-from coprs.logic.builds_logic import BuildsLogic
-from coprs.logic.coprs_logic import CoprsLogic
-from coprs.rest_api.schemas import BuildTaskSchema
-from coprs.rest_api.util import mm_serialize_one, get_one_safe
-
-log = getLogger(__name__)
 
 from flask import url_for
 import flask
 
 from .. import models
 from ..logic.users_logic import UsersLogic
+from ..logic.builds_logic import BuildsLogic
+from ..logic.coprs_logic import CoprsLogic
+from ..rest_api.schemas import BuildTaskSchema
+from ..rest_api.util import mm_serialize_one, get_one_safe
 
 from .exceptions import AuthFailed, ObjectNotFoundError
 from .schemas import CoprChrootSchema, BuildSchema, ProjectSchema
 from .util import mm_serialize_one
+
+log = getLogger(__name__)
 
 
 def render_copr_chroot(chroot):
@@ -41,21 +41,25 @@ def render_build(build, self_params=None):
         "_links": {
             "self": {"href": url_for(".buildr", build_id=build.id, **self_params)},
             "project": {"href": url_for(".projectr", project_id=build.copr_id)},
-            "tasks": {"href": url_for(".buildtasklistr", build_id=build.id)}
+            "build_tasks": {"href": url_for(".buildtasklistr", build_id=build.id)}
         }
     }
 
 
-def render_project(copr, self_params=None):
+def render_project(project, self_params=None):
+    """
+    :param models.Copr project:
+    """
     if self_params is None:
         self_params = {}
 
     return {
-        "project": mm_serialize_one(ProjectSchema, copr),
+        "project": mm_serialize_one(ProjectSchema, project),
         "_links": {
-            "self": {"href": url_for(".projectr", project_id=copr.id, **self_params)},
-            "builds": {"href": url_for(".buildlistr", project_id=copr.id)},
-            "chroots": {"href": url_for(".projectchrootlistr", project_id=copr.id)}
+            "self": {"href": url_for(".projectr", project_id=project.id, **self_params)},
+            "builds": {"href": url_for(".buildlistr", project_id=project.id)},
+            "chroots": {"href": url_for(".projectchrootlistr", project_id=project.id)},
+            "build_tasks": {"href":url_for(".buildtasklistr", project_id=project.id) }
         },
     }
 
@@ -65,9 +69,10 @@ def render_build_task(chroot):
     :type chroot: models.BuildChroot
     """
     return {
-        "task": mm_serialize_one(BuildTaskSchema, chroot),
+        "build_task": mm_serialize_one(BuildTaskSchema, chroot),
         "_links": {
             "project": {"href": url_for(".projectr", project_id=chroot.build.copr_id)},
+            "build": {"href": url_for(".buildr", build_id=chroot.build_id)},
             "self": {"href": url_for(".buildtaskr",
                                      build_id=chroot.build.id,
                                      name=chroot.name)},

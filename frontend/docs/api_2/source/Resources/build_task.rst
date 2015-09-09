@@ -1,7 +1,7 @@
 Build Task
 ==========
 
-Build task represents information about individual build tasks per each chroot.
+Build task represents information about individual build tasks. One task is responsible for one chroot.
 
 Structure of the build task entity
 ----------------------------------
@@ -9,7 +9,7 @@ Structure of the build task entity
 .. code-block:: javascript
 
     {
-        "name": "fedora-rawhide-x86_64",
+        "chroot_name": "fedora-rawhide-x86_64",
         "build_id": 12345,
         "started_on": 1440753865,
         "ended_on": 1440753919,
@@ -18,14 +18,14 @@ Structure of the build task entity
         "git_hash": "d241064b14f9dcd5d9032d0aca3b4e78fbd1aafd"
     }
 
-Build chroot fields
-~~~~~~~~~~~~~~~~~~~
+Build tasks fields
+~~~~~~~~~~~~~~~~~~
 ==================  ==================== ===============
 Field               Type                 Description
 ==================  ==================== ===============
 chroot_name         str                  chroot name
 build_id            int                  unique build identifier
-state               str                  current build state
+state               str                  current build task state
 started_on          int(unixtime UTC)    time when the build chroot started
 ended_on            int(unixtime UTC)    time when the build chroot ended
 git_hash            str                  hash of the git commit in dist-git used for the build
@@ -37,8 +37,8 @@ result_dir_url      str(URL)             location of the build results
     Build Chroot doesn't currently support any modifications,
     so all fields are read-only.
 
-List build chroots
-------------------
+List build tasks
+----------------
 
 .. http:get:: /api_2/builds_tasks
 
@@ -77,10 +77,10 @@ List build chroots
         Content-Type: application/json
 
         {
-          "chroots": [
+          "build_tasks": [
             {
-              "chroot": {
-                "name": "fedora-rawhide-x86_64",
+              "build_task": {
+                "chroot_name": "fedora-rawhide-x86_64",
                 "started_on": 1440753865,
                 "state": "succeeded",
                 "ended_on": 1440753919,
@@ -92,14 +92,14 @@ List build chroots
                   "href": "/api_2/projects/3985"
                 },
                 "self": {
-                  "href": "/api_2/builds/106882/chroots/fedora-rawhide-x86_64"
+                  "href": "/api_2/build_tasks/106882/fedora-rawhide-x86_64"
                 }
               }
             }
           ],
           "_links": {
             "self": {
-              "href": "/api_2/builds/106882/chroots"
+              "href": "/api_2/build_tasks?build_id=106882"
             }
           }
         }
@@ -109,7 +109,7 @@ List build chroots
 Get build task details
 ----------------------
 
-.. http:get:: /api_2/builds/(int:build_id)/chroots/(str:name)
+.. http:get:: /api_2/build_tasks/(int:build_id)/(str:name)
 
     Returns details about one build task
 
@@ -123,7 +123,7 @@ Get build task details
 
     .. sourcecode:: http
 
-        GET /api_2/builds/106882/chroots/fedora-rawhide-x86_64 HTTP/1.1
+        GET /api_2/build_tasks/106882/fedora-rawhide-x86_64 HTTP/1.1
         Host: copr.fedoraproject.org
 
     **Response**
@@ -134,8 +134,9 @@ Get build task details
         Content-Type: application/json
 
         {
-          "chroot": {
-            "name": "fedora-rawhide-x86_64",
+          "build_task": {
+            "chroot_name": "fedora-rawhide-x86_64",
+            "build_id": 3985,
             "started_on": 1440753865,
             "state": "succeeded",
             "ended_on": 1440753919,
@@ -147,7 +148,7 @@ Get build task details
               "href": "/api_2/projects/3985"
             },
             "self": {
-              "href": "/api_2/builds/106882/chroots/fedora-rawhide-x86_64"
+              "href": "/api_2/build_tasks/106882/fedora-rawhide-x86_64"
             }
           }
         }

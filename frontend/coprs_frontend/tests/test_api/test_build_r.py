@@ -295,13 +295,13 @@ class TestBuildResource(CoprsTestCase):
 
         assert build_obj["build"]["source_type"] == "srpm_upload"
 
-        chroots_href = build_obj["_links"]["chroots"]["href"]
-        r2 = self.tc.get(chroots_href)
+        tasks_href = build_obj["_links"]["build_tasks"]["href"]
+        r2 = self.tc.get(tasks_href)
         build_chroots_obj = json.loads(r2.data)
-        build_chroots_names = set([bc["chroot"]["name"] for bc in
-                                   build_chroots_obj["chroots"]])
+        build_chroots_names = set([bc["build_task"]["chroot_name"] for bc in
+                                   build_chroots_obj["build_tasks"]])
         assert set(chroot_name_list) == build_chroots_names
-        assert len(chroot_name_list) == len(build_chroots_obj["chroots"])
+        assert len(chroot_name_list) == len(build_chroots_obj["build_tasks"])
 
     def test_post_multipart_missing_file(
             self,f_users, f_coprs, f_builds, f_db,
@@ -351,20 +351,20 @@ class TestBuildResource(CoprsTestCase):
             assert obj["build"]["id"] == b_id
             assert obj["_links"]["self"]["href"] == href
 
-    def test_get_one_build_with_chroots(self, f_users, f_coprs, f_builds, f_db,
+    def test_get_one_build_with_tasks(self, f_users, f_coprs, f_builds, f_db,
                      f_users_api, f_mock_chroots):
 
         build_id_list = [b.id for b in self.basic_builds]
         self.db.session.commit()
 
         for b_id in build_id_list:
-            href = "/api_2/builds/{}?show_chroots=True".format(b_id)
+            href = "/api_2/builds/{}?show_build_tasks=True".format(b_id)
             r = self.tc.get(href)
             assert r.status_code == 200
             obj = json.loads(r.data)
             assert obj["build"]["id"] == b_id
             assert obj["_links"]["self"]["href"] == href
-            assert "build_chroots" in obj
+            assert "build_tasks" in obj
 
     def test_get_one_build_not_found(self, f_users, f_coprs, f_builds, f_db,
                      f_users_api, f_mock_chroots):

@@ -24,11 +24,6 @@ from ..util import get_one_safe, get_request_parser
 #         resp.headers["Location"] ==  url_for(".buildtasklistr", build_id=build_id)
 
 
-class BuildTaskListQuerySchema(Schema):
-
-    build_id = fields.Int()
-
-
 class BuildTaskListR(Resource):
     state_choices = StatusEnum.vals.keys()
 
@@ -80,7 +75,7 @@ class BuildTaskListR(Resource):
 
         build_chroots = query.all()
         return {
-            "tasks": [
+            "build_tasks": [
                 render_build_task(chroot)
                 for chroot in build_chroots
             ],

@@ -4,7 +4,7 @@ Build
 Build resources allows to submit new builds and access current build progress.
 
 Build in fact consists of the few tasks, one per chroot, and detail information
-is available through sub-resource :doc:`./build_chroot`.
+is available through sub-resource :doc:`./build_task`.
 
 
 
@@ -47,10 +47,10 @@ Build fields
 Field               Type                 Description
 ==================  ==================== ===============
 id                  int                  unique build identifier
-state               string               current state of the build, value is aggregated from build chroots
+state               string               current state of the build, value is aggregated from build tasks
 submitted_on        int(unixtime UTC)    time of the build submission
-started_on          int(unixtime UTC)    time when the first build chroot started, otherwise ``null``
-ended_on            int(unixtime UTC)    time when the last build chroot ended, otherwise ``null``
+started_on          int(unixtime UTC)    time when the first build task started, otherwise ``null``
+ended_on            int(unixtime UTC)    time when the last build task ended, otherwise ``null``
 source_type         string               method used for build creation
 source_metadata     json object          build source information
 package_version     string               version of the source package
@@ -108,8 +108,8 @@ List builds
                 "self": {
                   "href": "/api_2/builds/106897"
                 },
-                "chroots": {
-                  "href": "/api_2/builds/106897/chroots"
+                "build_tasks": {
+                  "href": "/api_2/build_tasks?build_id=106897"
                 }
               },
               "build": {
@@ -269,7 +269,7 @@ Get build details
     Returns details about build
 
     :param int build_id: a unique identifier of the build
-    :query bool show_chroots: embed :doc:`./build_chroot` sub-resources into the result, default is False
+    :query bool show_build_tasks: embed :doc:`./build_task` sub-resources into the result, default is False
 
     :statuscode 200: no error
     :statuscode 404: build not found
@@ -278,7 +278,7 @@ Get build details
 
     .. sourcecode:: http
 
-        GET /api_2/builds/106897 HTTP/1.1
+        GET /api_2/builds/106897?show_build_tasks=True HTTP/1.1
         Host: copr.fedoraproject.org
 
     **Response**
@@ -289,10 +289,11 @@ Get build details
         Content-Type: application/json
 
         {
-          "build_chroots": [
+          "build_tasks": [
             {
-              "chroot": {
-                "name": "fedora-21-i386",
+              "tasks": {
+                "build_id": 3985,
+                "chroot_name": "fedora-21-i386",
                 "started_on": 1441366860,
                 "state": "succeeded",
                 "ended_on": 1441366969,
@@ -304,7 +305,7 @@ Get build details
                   "href": "/api_2/projects/3985"
                 },
                 "self": {
-                  "href": "/api_2/builds/106897/chroots/fedora-21-i386"
+                  "href": "/api_2/build_tasks/106897/fedora-21-i386"
                 }
               }
             }
@@ -316,8 +317,8 @@ Get build details
             "self": {
               "href": "/api_2/builds/106897?show_chroots=True"
             },
-            "chroots": {
-              "href": "/api_2/builds/106897/chroots"
+            "build_tasks": {
+              "href": "/api_2/build_tasks/?build_id=3985"
             }
           },
           "build": {

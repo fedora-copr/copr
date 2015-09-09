@@ -27,7 +27,7 @@ class BuildListR(Resource):
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
 
-        parser.add_argument('state', type=str)
+        parser.add_argument('is_finished', type=bool)
         # parser.add_argument('package', type=str)
 
         req_args = parser.parse_args()
@@ -40,6 +40,11 @@ class BuildListR(Resource):
             query = BuildsLogic.get_multiple_by_owner(user)
         else:
             query = BuildsLogic.get_multiple()
+
+        if req_args["is_finished"] is not None:
+            is_finished = req_args["is_finished"]
+            query = BuildsLogic.filter_is_finished(query, is_finished)
+            # TODO: add test!
 
         if req_args["limit"] is not None:
             limit = req_args["limit"]
@@ -156,18 +161,18 @@ class BuildR(Resource):
 
     def get(self, build_id):
         parser = get_request_parser()
-        parser.add_argument('show_chroots', type=bool, default=False)
+        parser.add_argument('show_build_tasks', type=bool, default=False)
         req_args = parser.parse_args()
 
         build = get_build_safe(build_id)
 
         self_params = {}
-        if req_args["show_chroots"]:
-            self_params["show_chroots"] = req_args["show_chroots"]
+        if req_args["show_build_tasks"]:
+            self_params["show_build_tasks"] = req_args["show_build_tasks"]
 
         result = render_build(build, self_params)
-        if req_args["show_chroots"]:
-            result["build_chroots"] = [
+        if req_args["show_build_tasks"]:
+            result["build_tasks"] = [
                 render_build_task(chroot)
                 for chroot in build.build_chroots
             ]
