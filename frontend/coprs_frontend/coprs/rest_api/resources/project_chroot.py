@@ -60,9 +60,6 @@ class ProjectChrootListR(Resource):
             if get_one_safe(CoprChrootsLogic.get_by_name(project, name)) is not None:
                 raise ObjectAlreadyExists("Copr {} already has chroot {} enabled"
                                           .format(project.full_name, name))
-            else:
-                raise ServerError("Unexpected error, contact site administrator: {}"
-                                  .format(err))
 
         resp = make_response("", 201)
         resp.headers["Location"] = url_for(".projectchrootr",

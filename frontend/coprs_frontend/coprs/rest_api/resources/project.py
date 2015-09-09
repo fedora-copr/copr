@@ -16,7 +16,7 @@ from ...exceptions import DuplicateException
 from ..common import rest_api_auth_required, render_copr_chroot, render_build, render_project, get_project_safe
 from ..schemas import ProjectSchema, ProjectCreateSchema
 from ..exceptions import ObjectAlreadyExists, CannotProcessRequest, AccessForbidden
-from ..util import mm_deserialize, get_request_parser
+from ..util import mm_deserialize, get_request_parser, arg_bool
 
 log = getLogger(__name__)
 
@@ -111,8 +111,8 @@ class ProjectR(Resource):
 
     def get(self, project_id):
         parser = get_request_parser()
-        parser.add_argument('show_builds', type=bool, default=False)
-        parser.add_argument('show_chroots', type=bool, default=False)
+        parser.add_argument('show_builds', type=arg_bool, default=False)
+        parser.add_argument('show_chroots', type=arg_bool, default=False)
         req_args = parser.parse_args()
 
         project = get_project_safe(project_id)

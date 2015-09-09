@@ -6,6 +6,7 @@ from marshmallow import pprint
 
 import pytest
 import sqlalchemy
+from coprs.helpers import StatusEnum
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
@@ -18,7 +19,7 @@ class TestBuildTaskResource(CoprsTestCase):
     def test_collection_ok(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,
                            f_users_api):
 
-        href = "/api_2/build_tasks?build_id=1&limit=5"
+        href = "/api_2/build_tasks?build_id=1"
         bc_list = copy.deepcopy(self.b1_bc)
 
         self.db.session.commit()
@@ -27,6 +28,81 @@ class TestBuildTaskResource(CoprsTestCase):
         assert r0.status_code == 200
         obj = json.loads(r0.data)
         assert len(obj["build_tasks"]) == len(bc_list)
+
+    def test_collection_ok_default_limit(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,
+                           f_users_api):
+
+        self.db.session.commit()
+        href_tpl = "/api_2/build_tasks?limit={}"
+        expected = href_tpl.format(100)
+
+        for val in [-1, 0, 100, 105, 1000]:
+            href = href_tpl.format(val)
+
+            r0 = self.tc.get(href)
+            assert r0.status_code == 200
+            obj = json.loads(r0.data)
+            assert obj["_links"]["self"]["href"] == expected
+
+    def test_collection_ok_by_state(
+            self, f_users, f_coprs,
+            f_mock_chroots_many,
+            f_build_many_chroots,
+            f_db,
+            f_users_api):
+
+        self.db.session.commit()
+        for status in StatusEnum.vals.values():
+            expected_chroots = set([
+                name
+                for name, chroot_status in
+                self.status_by_chroot.items()
+                if chroot_status == status
+            ])
+
+            href = "/api_2/build_tasks?state={}&limit=50".format(StatusEnum(status))
+
+            r0 = self.tc.get(href)
+            assert r0.status_code == 200
+            obj = json.loads(r0.data)
+            assert len(obj["build_tasks"]) == len(expected_chroots)
+            assert set(bt["build_task"]["chroot_name"]
+                       for bt in obj["build_tasks"]) == expected_chroots
+            assert obj["_links"]["self"]["href"] == href
+
+    def test_collection_ok_by_project(
+            self, f_users, f_coprs, f_mock_chroots, f_builds,
+           f_users_api, f_db):
+
+        href = "/api_2/build_tasks?project_id=1&limit=50"
+        bc_list = copy.deepcopy(self.b1_bc)
+        bc_list.extend(copy.deepcopy(self.b2_bc))
+
+        self.db.session.commit()
+
+        r0 = self.tc.get(href)
+        assert r0.status_code == 200
+        obj = json.loads(r0.data)
+        assert len(obj["build_tasks"]) == len(bc_list)
+        assert obj["_links"]["self"]["href"] == href
+
+    def test_collection_ok_by_owner(
+            self, f_users, f_coprs, f_mock_chroots, f_builds,
+           f_users_api, f_db):
+
+        href = "/api_2/build_tasks?owner={}&limit=50".format(self.u2.username)
+        bc_list_len = sum(
+            len(b.build_chroots)
+            for b in self.basic_builds
+            if b.copr.owner == self.u2
+        )
+
+        self.db.session.commit()
+
+        r0 = self.tc.get(href)
+        assert r0.status_code == 200
+        obj = json.loads(r0.data)
+        assert len(obj["build_tasks"]) == bc_list_len
         assert obj["_links"]["self"]["href"] == href
 
     def test_post_not_allowed(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,

@@ -12,7 +12,7 @@ from ..common import get_project_safe
 from ..exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
 from ..common import render_build, rest_api_auth_required, render_build_task, get_build_safe, get_user_safe
 from ..schemas import BuildSchema, BuildCreateSchema, BuildCreateFromUrlSchema
-from ..util import mm_deserialize, get_request_parser
+from ..util import mm_deserialize, get_request_parser, arg_bool
 
 
 class BuildListR(Resource):
@@ -27,7 +27,7 @@ class BuildListR(Resource):
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
 
-        parser.add_argument('is_finished', type=bool)
+        parser.add_argument('is_finished', type=arg_bool)
         # parser.add_argument('package', type=str)
 
         req_args = parser.parse_args()
@@ -44,7 +44,6 @@ class BuildListR(Resource):
         if req_args["is_finished"] is not None:
             is_finished = req_args["is_finished"]
             query = BuildsLogic.filter_is_finished(query, is_finished)
-            # TODO: add test!
 
         if req_args["limit"] is not None:
             limit = req_args["limit"]
@@ -161,7 +160,7 @@ class BuildR(Resource):
 
     def get(self, build_id):
         parser = get_request_parser()
-        parser.add_argument('show_build_tasks', type=bool, default=False)
+        parser.add_argument('show_build_tasks', type=arg_bool, default=False)
         req_args = parser.parse_args()
 
         build = get_build_safe(build_id)

@@ -20,7 +20,7 @@ class TestBuildResource(CoprsTestCase):
             for b_dict in response_object["builds"]
         ])
 
-    def test_collection_ok(self, f_users, f_coprs, f_builds, f_db,
+    def test_build_collection_ok(self, f_users, f_coprs, f_builds, f_db,
                            f_users_api, f_mock_chroots):
 
         href = "/api_2/builds"
@@ -35,7 +35,30 @@ class TestBuildResource(CoprsTestCase):
 
         assert expected_ids == self.extract_build_ids(obj)
 
-    def test_collection_by_owner(self, f_users, f_coprs, f_builds, f_db,
+    def test_build_collection_ok_finished(
+            self, f_users, f_coprs, f_mock_chroots,  f_builds, f_db):
+
+        self.db.session.commit()
+
+        href_a = "/api_2/builds?is_finished=True"
+        href_b = "/api_2/builds?is_finished=False"
+
+        r_a = self.tc.get(href_a)
+        r_b = self.tc.get(href_b)
+
+        assert r_a.status_code == 200
+        assert r_b.status_code == 200
+        obj_a = json.loads(r_a.data)
+        obj_b = json.loads(r_b.data)
+
+        builds = BuildsLogic.get_multiple().all()
+        expected_ids_a = set([b.id for b in builds if b.ended_on is not None])
+        expected_ids_b = set([b.id for b in builds if b.ended_on is None])
+
+        assert expected_ids_a == self.extract_build_ids(obj_a)
+        assert expected_ids_b == self.extract_build_ids(obj_b)
+
+    def test_build_collection_by_owner(self, f_users, f_coprs, f_builds, f_db,
                            f_users_api, f_mock_chroots):
 
         names_list = [user.username for user in self.basic_user_list]
@@ -54,8 +77,8 @@ class TestBuildResource(CoprsTestCase):
             expected_ids = set([b.id for b in builds])
             assert expected_ids == self.extract_build_ids(obj)
 
-    def test_collection_by_project_id(self, f_users, f_coprs, f_builds, f_db,
-                           f_users_api, f_mock_chroots):
+    def test_build_collection_by_project_id(
+            self, f_users, f_mock_chroots, f_coprs,  f_builds, f_db):
 
         project_id_list = [copr.id for copr in self.basic_coprs_list]
         for id_ in project_id_list:
@@ -73,8 +96,9 @@ class TestBuildResource(CoprsTestCase):
             expected_ids = set([b.id for b in builds])
             assert expected_ids == self.extract_build_ids(obj)
 
-    def test_collection_limit_offset(self, f_users, f_coprs, f_builds, f_db,
-                           f_users_api, f_mock_chroots):
+    def test_build_collection_limit_offset(
+            self, f_users, f_mock_chroots, f_coprs, f_builds, f_db):
+
         self.db.session.commit()
         builds = BuildsLogic.get_multiple().all()
         total = len(builds)
@@ -110,7 +134,7 @@ class TestBuildResource(CoprsTestCase):
         r = self.tc.get(href)
         assert r.status_code == 200
 
-    def test_post_bad_content_type(
+    def test_build_post_bad_content_type(
             self, f_users, f_coprs, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
@@ -128,7 +152,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r0.status_code == 400
 
-    def test_post_json_bad_url(
+    def test_build_post_json_bad_url(
             self, f_users, f_coprs, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
@@ -147,7 +171,7 @@ class TestBuildResource(CoprsTestCase):
             )
             assert r0.status_code == 400
 
-    def test_post_json(
+    def test_build_post_json(
             self, f_users, f_coprs, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
@@ -173,7 +197,7 @@ class TestBuildResource(CoprsTestCase):
             metadata["srpm_url"]
         assert build_dict["source_type"] == "srpm_link"
 
-    def test_post_json_on_wrong_user(
+    def test_build_post_json_on_wrong_user(
             self, f_users, f_coprs, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
@@ -196,7 +220,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r0.status_code == 403
 
-    def test_post_json_on_project_during_action(
+    def test_build_post_json_on_project_during_action(
             self, f_users, f_coprs, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
@@ -216,7 +240,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r0.status_code == 400
 
-    def test_post_multipart_wrong_user(
+    def test_build_post_multipart_wrong_user(
             self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
@@ -242,7 +266,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r0.status_code == 403
 
-    def test_post_multipart_on_project_during_action(
+    def test_build_post_multipart_on_project_during_action(
             self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
@@ -267,7 +291,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r0.status_code == 400
 
-    def test_post_multipart(
+    def test_build_post_multipart(
             self, f_users, f_coprs, f_builds, f_db, f_mock_chroots,
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
@@ -303,7 +327,7 @@ class TestBuildResource(CoprsTestCase):
         assert set(chroot_name_list) == build_chroots_names
         assert len(chroot_name_list) == len(build_chroots_obj["build_tasks"])
 
-    def test_post_multipart_missing_file(
+    def test_build_post_multipart_missing_file(
             self,f_users, f_coprs, f_builds, f_db,
             f_users_api, f_mock_chroots):
 
@@ -322,7 +346,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r0.status_code == 400
 
-    def test_post_multipart_missing_metadata(
+    def test_build_post_multipart_missing_metadata(
             self,f_users, f_coprs, f_builds, f_db,
             f_users_api, f_mock_chroots):
         data = {
@@ -337,7 +361,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r0.status_code == 400
 
-    def test_get_one_build(self, f_users, f_coprs, f_builds, f_db,
+    def test_build_get_one(self, f_users, f_coprs, f_builds, f_db,
                      f_users_api, f_mock_chroots):
 
         build_id_list = [b.id for b in self.basic_builds]
@@ -351,7 +375,7 @@ class TestBuildResource(CoprsTestCase):
             assert obj["build"]["id"] == b_id
             assert obj["_links"]["self"]["href"] == href
 
-    def test_get_one_build_with_tasks(self, f_users, f_coprs, f_builds, f_db,
+    def test_build_get_one_with_tasks(self, f_users, f_coprs, f_builds, f_db,
                      f_users_api, f_mock_chroots):
 
         build_id_list = [b.id for b in self.basic_builds]
@@ -366,7 +390,7 @@ class TestBuildResource(CoprsTestCase):
             assert obj["_links"]["self"]["href"] == href
             assert "build_tasks" in obj
 
-    def test_get_one_build_not_found(self, f_users, f_coprs, f_builds, f_db,
+    def test_build_get_one_not_found(self, f_users, f_coprs, f_builds, f_db,
                      f_users_api, f_mock_chroots):
         build_id_list = [b.id for b in self.basic_builds]
         max_id = max(build_id_list) + 1
@@ -379,7 +403,7 @@ class TestBuildResource(CoprsTestCase):
             r = self.tc.get(href)
             assert r.status_code == 404
 
-    def test_delete_build_ok(self, f_users, f_coprs,
+    def test_build_delete_ok(self, f_users, f_coprs,
                              f_mock_chroots, f_builds,f_users_api, ):
 
         self.db.session.commit()
@@ -394,7 +418,7 @@ class TestBuildResource(CoprsTestCase):
         r2 = self.tc.get(href)
         assert r2.status_code == 404
 
-    def test_delete_build_wrong_user(self, f_users, f_coprs,
+    def test_build_delete_wrong_user(self, f_users, f_coprs,
                              f_mock_chroots, f_builds,f_users_api, ):
 
         login = self.u2.api_login
@@ -409,7 +433,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r.status_code == 403
 
-    def test_delete_build_in_progress(self, f_users, f_coprs,
+    def test_build_delete_in_progress(self, f_users, f_coprs,
                              f_mock_chroots, f_builds,f_users_api, ):
 
         login = self.u2.api_login
@@ -424,7 +448,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r.status_code == 400
 
-    def test_put_build_wrong_user(
+    def test_build_put_wrong_user(
             self, f_users, f_coprs,
             f_mock_chroots, f_builds,f_users_api, ):
 
@@ -453,7 +477,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r.status_code == 403
 
-    def test_put_build_not_found(
+    def test_build_put_not_found(
             self, f_users, f_coprs,
             f_mock_chroots, f_builds,f_users_api, ):
 
@@ -469,7 +493,7 @@ class TestBuildResource(CoprsTestCase):
         )
         assert r.status_code == 404
 
-    def test_put_cancel_build(
+    def test_build_put_cancel(
             self, f_users, f_coprs,
             f_mock_chroots, f_builds,f_users_api, ):
 
@@ -499,7 +523,7 @@ class TestBuildResource(CoprsTestCase):
         obj = json.loads(r2.data)
         assert obj["build"]["state"] == "canceled"
 
-    def test_put_cancel_build_wrong_state(
+    def test_build_put_cancel_wrong_state(
             self, f_users, f_coprs,
             f_mock_chroots, f_builds,f_users_api, ):
 

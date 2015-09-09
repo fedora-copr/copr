@@ -218,6 +218,7 @@ class CoprsTestCase(object):
                 [self.b1, self.b2, self.b3, self.b4],
                 [self.b1_bc, self.b2_bc, self.b3_bc, self.b4_bc]):
 
+            # import ipdb; ipdb.set_trace()
             status = None
             if build is self.b1:  # this build is going to be deleted
                 status = StatusEnum("succeeded")
@@ -229,10 +230,11 @@ class CoprsTestCase(object):
                     git_hash="12345",
                 )
 
-                if build is [self.b1, self.b2]:
+                if build is self.b1 or build is self.b2:
                     buildchroot.started_on = 139086644000
                     buildchroot.ended_on = 149086644000
                     build.ended_on = 149086644000
+
 
                 build_chroots.append(buildchroot)
                 self.db.session.add(buildchroot)
@@ -275,6 +277,9 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_build_many_chroots(self):
+        """
+            Requires: f_mock_chroots_many
+        """
         self.b_many_chroots = models.Build(
             id=12347,
             copr=self.c1, user=self.u1,

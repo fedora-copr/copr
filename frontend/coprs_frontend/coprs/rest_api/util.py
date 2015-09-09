@@ -82,4 +82,23 @@ class MyArg(Argument):
 
 def get_request_parser():
     return RequestParser(argument_class=MyArg)
-    #return RequestParser(bundle_errors=True)
+
+
+def arg_bool(value):
+    """
+    :param str value: value to convert
+    :rtype: bool
+    :raises ValueError:
+    """
+    true_values = ["true", "yes", "1"]
+    false_values = ["false", "no", "0"]
+    value = str(value).strip().lower()
+
+    if value in true_values:
+        return True
+    elif value in false_values:
+        return False
+
+    raise ValueError("Value `{}` doesn't belong to either true of false sets. "
+                     "Allowed values: {} and {}"
+                     .format(value, true_values, false_values))
