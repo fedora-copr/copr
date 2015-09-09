@@ -7,12 +7,12 @@ Welcome to Copr Api 2's documentation!
 ======================================
 
 Welcome to the documentation of the new REST-like API for the Copr build service.
-Almost all API calls is done using ``application/json`` ContentType.
+Almost all API calls are done using ``application/json`` ContentType.
 
 Endpoint of the the API is ``/api_2``, public data is available without authorization.
 
-To create new projects, submit builds and do other modification requests you will need to provide API token using
-BasicAuth_ . Token can be obtained and renewed at the CoprAPI_ page.
+To create new projects, submit builds and do other modification requests, you need to provide an API token using
+BasicAuth_ . The token can be obtained and renewed at the CoprAPI_ page.
 
 Resources
 ---------
@@ -30,8 +30,8 @@ HETEOAS
 -------
 
 
-This API implements HETEOAS_ in the very simple form: each entity is accompanied with set of relative links
-to other related entities. HETEOAS makes API self discoverable, so you shouldn't learn how to access sub-resources.
+This API implements HETEOAS_ in the very simple form: each entity is accompanied with a set of relative links
+to other related entities. HETEOAS makes API self discoverable, so you don't need to learn how to access sub-resources.
 Here is a short example with the content of API root:
 
 **GET /api_2**
@@ -60,12 +60,12 @@ Here is a short example with the content of API root:
 Response structure
 ------------------
 
-The API operates two kinds of resources: collections and individuals.
-
-Each entity is enveloped into json dict and accompanied with set of HETEOAS references.
+Each entity is enveloped into a json dict and accompanied with set of HETEOAS references.
 GET requests would return the following structures:
 
 **Collection structure**:
+
+A collection provides information about several objects.
 
 .. code-block:: javascript
 
@@ -90,6 +90,8 @@ GET requests would return the following structures:
 
 **Individual structure**:
 
+An individual provides information about one object.
+
 .. code-block:: javascript
 
     {
@@ -107,10 +109,10 @@ GET requests would return the following structures:
 Errors
 ______
 
-To distinguish errors we use standard HTTP codes: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
-Additional information may be contained in the response body, it SHOULD have `application/json` Content-Type.
-Inside json object, there are MUST be key ``message`` with error description,
-additional information MAY be present at key ``data``
+To distinguish errors, we use standard HTTP codes: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
+Additional information may be contained in the response body, which SHOULD have `application/json` Content-Type.
+Inside json object, there will always be a key ``message`` with error description. In some cases, an
+additional information would be present at key ``data``.
 
     **Example**
 
