@@ -1,5 +1,6 @@
 {% extends "coprs/detail.html" %}
 {% from "coprs/detail/_builds_forms.html" import copr_build_form_rebuild with context %}
+{% from "coprs/detail/_describe_source.html" import describe_source %}
 
 {% block new_build_rebuild_selected %}active{% endblock %}
 
@@ -23,6 +24,31 @@
   <div class="col-sm-12">
     <h2> Resubmit build {{ build.id }}  </h2>
     <p> Resubmitting a build will rebuild the same sources again. </p>
+
+
+    <h3> Original Build Details </h3>
+    <dl class="dl-horizontal">
+      <dt> Package:</dt>
+      <dd>
+        {% if build.package %}
+          <a href="{{url_for('coprs_ns.copr_package', username=build.copr.owner.name, package_name=build.package.name, coprname=copr.name)}}">
+            {{ build.package.name }}
+          </a>
+        {% else %}
+             -
+        {% endif %}
+      </dd>
+      <dt> Version:</dt>
+      <dd>
+        {% if build.pkg_version %}
+            {{ build.pkg_version}}
+        {% else %}
+             -
+        {% endif %}
+      </dd>
+      {{ describe_source(build) }}
+    </dl>
+    <h3> New Build Options </h3>
     {{ copr_build_form_rebuild(form, 'coprs_ns.copr_new_build_rebuild', copr, build) }}
   </div>
 </div>
