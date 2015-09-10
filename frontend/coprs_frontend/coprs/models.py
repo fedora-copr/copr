@@ -370,6 +370,10 @@ class Build(db.Model, helpers.Serializer):
     chroots = association_proxy("build_chroots", "mock_chroot")
 
     @property
+    def user_name(self):
+        return self.user.name
+
+    @property
     def fail_type_text(self):
         return helpers.FailTypeEnum(self.fail_type)
 

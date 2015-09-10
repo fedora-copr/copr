@@ -145,6 +145,8 @@ class BuildSchema(Schema):
     id = fields.Int(dump_only=True)
     state = fields.Str()
 
+    submitter = fields.Str(dump_only=True, attribute="user_name")
+
     built_packages = BuiltPackages(dump_only=True)
     package_version = fields.Str(dump_only=True, attribute="pkg_version")
     package_name = fields.Str(dump_only=True)
