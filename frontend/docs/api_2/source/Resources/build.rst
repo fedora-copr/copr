@@ -8,8 +8,8 @@ is available through sub-resource :doc:`./build_task`.
 
 
 
-Structure of the build
-----------------------
+Structure of the build entity
+-----------------------------
 
 .. code-block:: javascript
 
