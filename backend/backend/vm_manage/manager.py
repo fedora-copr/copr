@@ -120,9 +120,6 @@ class VmManager(object):
     :type logger: logging.Logger
     :param logger: Logger instance to use inside of manager, if None manager would create
         new logger using helpers.get_redis_logger
-
-    :param checker: object with method `check_health(ip) -> None or raise exception`
-    :param terminator: object with safe method `terminate(ip, vm_name)`
     """
     def __init__(self, opts, logger=None):
 

@@ -112,7 +112,9 @@ class TestEventHandle(object):
         self.grl_patcher = mock.patch("{}.get_redis_logger".format(MODULE_REF))
         self.grl_patcher.start()
 
-        self.eh = EventHandler(self.opts, self.vmm)
+        self.eh = EventHandler(self.opts,
+                               self.vmm,
+                               self.terminator)
         self.eh.post_init()
 
         self.vm_ip = "127.0.0.1"
@@ -134,14 +136,14 @@ class TestEventHandle(object):
         self.erase_redis()
 
     def test_post_init(self):
-        test_eh = EventHandler(self.opts, self.vmm)
+        test_eh = EventHandler(self.opts, self.vmm, self.terminator)
         assert "on_health_check_success" not in test_eh.lua_scripts
         test_eh.post_init()
         assert test_eh.lua_scripts["on_health_check_success"]
         assert isinstance(test_eh.lua_scripts["on_health_check_success"], Script)
 
     def test_recycle(self, mc_time):
-        self.recycle = Recycle(vmm=self.vmm, recycle_period=60)
+        self.recycle = Recycle(terminator=self.terminator, recycle_period=60)
         self.stage = 0
 
         def incr(*args, **kwargs):
@@ -150,10 +152,10 @@ class TestEventHandle(object):
                 self.recycle.terminate()
         mc_time.sleep.side_effect = incr
 
-        assert not self.vmm.terminator.recycle.called
+        assert not self.terminator.recycle.called
         self.recycle.run()
-        assert self.vmm.terminator.recycle.called
-        assert len(self.vmm.terminator.recycle.call_args_list) == 3
+        assert self.terminator.recycle.called
+        assert len(self.terminator.recycle.call_args_list) == 3
 
     def test_on_vm_spawned(self):
         expected_call = mock.call(**self.msg)
@@ -163,7 +165,7 @@ class TestEventHandle(object):
     def test_on_vm_termination_request(self):
         expected_call = mock.call(**self.msg)
         self.eh.on_vm_termination_request(self.msg)
-        assert self.vmm.terminator.terminate_vm.call_args == expected_call
+        assert self.terminator.terminate_vm.call_args == expected_call
 
     def test_health_check_result_no_vmd(self):
         self.vmm.get_vm_by_name.side_effect = VmDescriptorNotFound("foobar")
@@ -281,14 +283,10 @@ class TestEventHandle(object):
 
     def test_dummy_run(self, mc_setproctitle, mc_recycle):
         #  dummy test, mainly for perfect coverage
-        self.eh.post_init = types.MethodType(MagicMock(), self.eh)
         self.eh.start_listen = types.MethodType(MagicMock(), self.eh)
-
         self.eh.run()
 
-        assert mc_recycle.call_args == mock.call(vmm=self.eh.vmm, recycle_period=self.eh.recycle_period)
-
-        assert self.eh.post_init.called
+        assert mc_recycle.called
         assert self.eh.start_listen.called
 
     def test_dummy_terminate(self, mc_setproctitle, mc_recycle):

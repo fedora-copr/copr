@@ -133,16 +133,21 @@ class TestVmMaster(object):
         self.terminator = MagicMock()
 
         self.mc_logger = MagicMock()
-        self.vmm = VmManager(self.opts, logger=self.mc_logger,
-                             checker=self.checker,
-                             spawner=self.spawner,
-                             terminator=self.terminator)
+        self.vmm = VmManager(self.opts, logger=self.mc_logger)
         self.vmm.post_init()
 
         self.event_handler = MagicMock()
-        self.vm_master = VmMaster(self.vmm)
+        self.vm_master = VmMaster(
+            self.opts,
+            self.vmm,
+            self.spawner,
+            self.checker,
+        )
         self.vm_master.event_handler = MagicMock()
         self.pid = 12345
+
+        self.vm_ip = "127.0.0.1"
+        self.vm_name = "build 12345"
 
     def clean_redis(self):
         keys = self.vmm.rc.keys("*")
@@ -264,7 +269,7 @@ class TestVmMaster(object):
         # assert set(["2", "4"]) == set([json.loads(m["data"])["build_id"] for m in msg_list])
 
     def test_check_vms_health(self, mc_time, add_vmd):
-        self.vmm.start_vm_check = types.MethodType(MagicMock(), self.vmm)
+        self.vm_master.start_vm_check = types.MethodType(MagicMock(), self.vmm)
         for vmd in [self.vmd_a1, self.vmd_a2, self.vmd_a3, self.vmd_b1, self.vmd_b2, self.vmd_b3]:
             vmd.store_field(self.rc, "last_health_check", 0)
 
@@ -277,18 +282,19 @@ class TestVmMaster(object):
 
         mc_time.time.return_value = 1
         self.vm_master.check_vms_health()
-        assert not self.vmm.start_vm_check.called
+        assert not self.vm_master.start_vm_check.called
 
         mc_time.time.return_value = 1 + self.opts.build_groups[0]["vm_health_check_period"]
         self.vm_master.check_vms_health()
-        to_check = set(call[0][1] for call in self.vmm.start_vm_check.call_args_list)
+        to_check = set(call[0][1] for call in self.vm_master.start_vm_check.call_args_list)
         assert set(['a1', 'a3', 'b1', 'b2']) == to_check
 
-        self.vmm.start_vm_check.reset_mock()
+        self.vm_master.start_vm_check.reset_mock()
         for vmd in [self.vmd_a1, self.vmd_a2, self.vmd_a3, self.vmd_b1, self.vmd_b2, self.vmd_b3]:
-            self.rc.hdel(self.vmd_a3.vm_key, "last_health_check")
+            self.rc.hdel(vmd.vm_key, "last_health_check")
+
         self.vm_master.check_vms_health()
-        to_check = set(call[0][1] for call in self.vmm.start_vm_check.call_args_list)
+        to_check = set(call[0][1] for call in self.vm_master.start_vm_check.call_args_list)
         assert set(['a1', 'a3', 'b1', 'b2']) == to_check
 
     def test_finalize_long_health_checks(self, mc_time, add_vmd):
@@ -362,15 +368,15 @@ class TestVmMaster(object):
         assert self.vmm.remove_vm_from_pool.call_args[0][0] == self.vmd_a1.vm_name
         assert not self.vmm.start_vm_termination.called
 
-    def test_run_undefined_helpers(self, mc_setproctitle):
-        for target in ["spawner", "terminator", "checker"]:
-            setattr(self.vmm, target, None)
-            with pytest.raises(RuntimeError):
-                self.vm_master.run()
-
-            setattr(self.vmm, target, MagicMock())
-
-            assert not mc_setproctitle.called
+    # def test_run_undefined_helpers(self, mc_setproctitle):
+    #     for target in ["spawner", "terminator", "checker"]:
+    #         setattr(self.vmm, target, None)
+    #         with pytest.raises(RuntimeError):
+    #             self.vm_master.run()
+    #
+    #         setattr(self.vmm, target, MagicMock())
+    #
+    #         assert not mc_setproctitle.called
 
     def test_dummy_run(self, mc_time, mc_setproctitle):
         mc_do_cycle = MagicMock()
@@ -391,19 +397,13 @@ class TestVmMaster(object):
                 self.vm_master.kill_received = True
 
         mc_time.sleep.side_effect = on_sleep
-        with mock.patch("{}.EventHandler".format(MODULE_REF)) as mc_event_handler:
-
-            self.vm_master.run()
-
-            assert mc_event_handler.called
-            assert mc_event_handler.return_value.start.called
-
-            assert self.vmm.mark_server_start.called
+        self.vm_master.run()
 
     def test_dummy_terminate(self):
         self.vm_master.terminate()
         assert self.vm_master.kill_received
-        assert self.vm_master.event_handler.terminate.called
+        assert self.vm_master.checker.terminate.called
+        assert self.vm_master.spawner.terminate.called
 
     def test_dummy_do_cycle(self):
         self.vm_master.remove_old_dirty_vms = types.MethodType(MagicMock(), self.vm_master)
@@ -416,8 +416,7 @@ class TestVmMaster(object):
         assert self.vm_master.remove_old_dirty_vms.called
         assert self.vm_master.check_vms_health.called
         assert self.vm_master.start_spawn_if_required.called
-
-        assert self.vmm.spawner.recycle.called
+        assert self.vm_master.spawner.recycle.called
 
     def test_dummy_start_spawn_if_required(self):
         self.vm_master.try_spawn_one = MagicMock()
@@ -443,7 +442,7 @@ class TestVmMaster(object):
                 state = choice(active_vm_states)
                 vmd_list[idx].store_field(self.rc, "state", state)
 
-            self.vmm.spawner.get_proc_num_per_group.return_value = spawn_procs_number
+            self.vm_master.spawner.get_proc_num_per_group.return_value = spawn_procs_number
             with pytest.raises(VmSpawnLimitReached):
                 self.vm_master._check_total_running_vm_limit(0)
             self.vm_master.log.reset_mock()
@@ -468,7 +467,7 @@ class TestVmMaster(object):
                 state = choice(active_vm_states)
                 vmd_list[idx].store_field(self.rc, "state", state)
             # self.vmm.spawner.children_number = spawn_procs_number
-            self.vmm.spawner.get_proc_num_per_group.return_value = spawn_procs_number
+            self.vm_master.spawner.get_proc_num_per_group.return_value = spawn_procs_number
 
             # doesn't raise exception
             self.vm_master._check_total_running_vm_limit(0)
@@ -500,11 +499,11 @@ class TestVmMaster(object):
 
     def test__check_number_of_running_spawn_processes(self):
         for i in range(self.opts.build_groups[0]["max_spawn_processes"]):
-            self.vmm.spawner.get_proc_num_per_group.return_value = i
+            self.vm_master.spawner.get_proc_num_per_group.return_value = i
             self.vm_master._check_number_of_running_spawn_processes(0)
 
         for i in [0, 1, 2, 5, 100]:
-            self.vmm.spawner.get_proc_num_per_group.return_value = \
+            self.vm_master.spawner.get_proc_num_per_group.return_value = \
                 self.opts.build_groups[0]["max_spawn_processes"] + i
 
             with pytest.raises(VmSpawnLimitReached):
@@ -526,10 +525,10 @@ class TestVmMaster(object):
         mc_time.time.return_value = 0
         self.vm_master.log = MagicMock()
 
-        self.vmm.spawner.start_spawn.side_effect = IOError()
+        self.vm_master.spawner.start_spawn.side_effect = IOError()
 
         self.vm_master.try_spawn_one(0)
-        assert self.vmm.spawner.start_spawn.called
+        assert self.vm_master.spawner.start_spawn.called
 
     def test_try_spawn_exit_on_check_fail(self):
         check_mocks = []
@@ -558,4 +557,57 @@ class TestVmMaster(object):
 
         self.vm_master.try_spawn_one(0)
         assert self.vm_master.vmm.write_vm_pool_info.called
-        assert self.vm_master.vmm.spawner.start_spawn.called
+        assert self.vm_master.spawner.start_spawn.called
+
+    def test_start_vm_check_ok_ok(self):
+        self.vmm.start_vm_termination = types.MethodType(MagicMock(), self.vmm)
+        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.get_vm_by_name(self.vm_name)
+        # can start, no problem to start
+        # > can start IN_USE, don't change status
+        vmd.store_field(self.rc, "state", VmStates.IN_USE)
+        self.vm_master.start_vm_check(vm_name=self.vm_name)
+
+        assert self.checker.run_check_health.called
+        self.checker.run_check_health.reset_mock()
+        assert vmd.get_field(self.rc, "state") == VmStates.IN_USE
+
+        # > changes status to HEALTH_CHECK
+        states = [VmStates.GOT_IP, VmStates.CHECK_HEALTH_FAILED, VmStates.READY]
+        for state in states:
+            vmd.store_field(self.rc, "state", state)
+            self.vm_master.start_vm_check(vm_name=self.vm_name)
+
+            assert self.checker.run_check_health.called
+            self.checker.run_check_health.reset_mock()
+            assert vmd.get_field(self.rc, "state") == VmStates.CHECK_HEALTH
+
+    def test_start_vm_check_wrong_old_state(self):
+        self.vmm.start_vm_termination = types.MethodType(MagicMock(), self.vmm)
+        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.get_vm_by_name(self.vm_name)
+
+        states = [VmStates.TERMINATING, VmStates.CHECK_HEALTH]
+        for state in states:
+            vmd.store_field(self.rc, "state", state)
+            assert not self.vm_master.start_vm_check(vm_name=self.vm_name)
+
+            assert not self.checker.run_check_health.called
+            assert vmd.get_field(self.rc, "state") == state
+
+    def test_start_vm_check_lua_ok_check_spawn_failed(self):
+        self.vmm.start_vm_termination = types.MethodType(MagicMock(), self.vmm)
+        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.get_vm_by_name(self.vm_name)
+
+        self.vm_master.checker.run_check_health.side_effect = RuntimeError()
+
+        # restore orig state
+        states = [VmStates.GOT_IP, VmStates.CHECK_HEALTH_FAILED, VmStates.READY, VmStates.IN_USE]
+        for state in states:
+            vmd.store_field(self.rc, "state", state)
+            self.vm_master.start_vm_check(vm_name=self.vm_name)
+
+            assert self.checker.run_check_health.called
+            self.checker.run_check_health.reset_mock()
+            assert vmd.get_field(self.rc, "state") == state

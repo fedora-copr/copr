@@ -11,6 +11,7 @@ import time
 from setproctitle import setproctitle
 import traceback
 import sys
+import types
 import psutil
 
 from ..constants import JOB_GRAB_TASK_END_PUBSUB
@@ -25,7 +26,9 @@ class VmMaster(Process):
     """
     Spawns and terminate VM for builder process.
 
-    :type vm_manager: backend.vm_manage.manager.VmManager
+    :type vmm: backend.vm_manage.manager.VmManager
+    :type spawner: backend.vm_manage.spawn.Spawner
+    :type checker: backend.vm_manage.check.HealthChecker
     """
     def __init__(self, opts, vmm, spawner, checker):
         super(VmMaster, self).__init__(name="vm_master")
@@ -273,6 +276,10 @@ class VmMaster(Process):
 
     def terminate(self):
         self.kill_received = True
+        if self.spawner is not None:
+            self.spawner.terminate()
+        if self.checker is not None:
+            self.checker.terminate()
 
     def finalize_long_health_checks(self):
         """

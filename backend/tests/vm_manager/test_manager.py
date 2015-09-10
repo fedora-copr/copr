@@ -81,16 +81,10 @@ class TestManager(object):
         self.log_msg_list = []
 
         self.callback = TestCallback()
-        # checker = HealthChecker(self.opts, self.callback)
-        self.checker = MagicMock()
-        self.spawner = MagicMock()
-        self.terminator = MagicMock()
 
         self.queue = Queue()
-        self.vmm = VmManager(self.opts, self.queue,
-                             checker=self.checker,
-                             spawner=self.spawner,
-                             terminator=self.terminator)
+        self.vmm = VmManager(self.opts)
+
         self.vmm.post_init()
         self.vmm.log = MagicMock()
         self.pid = 12345
@@ -122,42 +116,6 @@ class TestManager(object):
         with pytest.raises(VmError):
             self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
 
-    def test_start_vm_check_ok_ok(self):
-        self.vmm.start_vm_termination = types.MethodType(MagicMock(), self.vmm)
-        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
-        vmd = self.vmm.get_vm_by_name(self.vm_name)
-        # can start, no problem to start
-        # > can start IN_USE, don't change status
-        vmd.store_field(self.rc, "state", VmStates.IN_USE)
-        self.vmm.start_vm_check(vm_name=self.vm_name)
-
-        assert self.checker.run_check_health.called
-        self.checker.run_check_health.reset_mock()
-        assert vmd.get_field(self.rc, "state") == VmStates.IN_USE
-
-        # > changes status to HEALTH_CHECK
-        states = [VmStates.GOT_IP, VmStates.CHECK_HEALTH_FAILED, VmStates.READY]
-        for state in states:
-            vmd.store_field(self.rc, "state", state)
-            self.vmm.start_vm_check(vm_name=self.vm_name)
-
-            assert self.checker.run_check_health.called
-            self.checker.run_check_health.reset_mock()
-            assert vmd.get_field(self.rc, "state") == VmStates.CHECK_HEALTH
-
-    def test_start_vm_check_wrong_old_state(self):
-        self.vmm.start_vm_termination = types.MethodType(MagicMock(), self.vmm)
-        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
-        vmd = self.vmm.get_vm_by_name(self.vm_name)
-
-        states = [VmStates.TERMINATING, VmStates.CHECK_HEALTH]
-        for state in states:
-            vmd.store_field(self.rc, "state", state)
-            assert not self.vmm.start_vm_check(vm_name=self.vm_name)
-
-            assert not self.checker.run_check_health.called
-            assert vmd.get_field(self.rc, "state") == state
-
     def test_mark_vm_check_failed(self, mc_time):
         self.vmm.start_vm_termination = types.MethodType(MagicMock(), self.vmm)
         self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
@@ -172,23 +130,6 @@ class TestManager(object):
         for state in states:
             vmd.store_field(self.rc, "state", state)
             self.vmm.mark_vm_check_failed(self.vm_name)
-            assert vmd.get_field(self.rc, "state") == state
-
-    def test_start_vm_check_lua_ok_check_spawn_failed(self):
-        self.vmm.start_vm_termination = types.MethodType(MagicMock(), self.vmm)
-        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
-        vmd = self.vmm.get_vm_by_name(self.vm_name)
-
-        self.vmm.checker.run_check_health.side_effect = RuntimeError()
-
-        # restore orig state
-        states = [VmStates.GOT_IP, VmStates.CHECK_HEALTH_FAILED, VmStates.READY, VmStates.IN_USE]
-        for state in states:
-            vmd.store_field(self.rc, "state", state)
-            self.vmm.start_vm_check(vm_name=self.vm_name)
-
-            assert self.checker.run_check_health.called
-            self.checker.run_check_health.reset_mock()
             assert vmd.get_field(self.rc, "state") == state
 
     def test_acquire_vm_no_vm_after_server_restart(self, mc_time):
