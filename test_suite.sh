@@ -33,7 +33,7 @@ python -m pytest python/copr/test  --junitxml=_report/python-copr.junit.xml --co
 mv {,_report/python-copr.}coverage.xml
 
 COPR_CONFIG="$(pwd)/frontend/coprs_frontend/config/copr_unit_test.conf"  \
-    python -m pytest frontend/coprs_frontend/tests --junitxml=_report/frontend.junit.xml --cov-report xml --cov frontend/coprs_frontend/coprs $@
+PYTHONPATH=frontend/coprs_frontend/:$PYTHONPATH python -m pytest frontend/coprs_frontend/tests --junitxml=_report/frontend.junit.xml --cov-report xml --cov frontend/coprs_frontend/coprs $@
 mv {,_report/frontend.}coverage.xml
 
 PYTHONPATH=backend/run:backend:python:$PYTHONPATH python -m pytest backend/tests  --junitxml=_report/backend.junit.xml \

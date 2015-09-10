@@ -11,3 +11,4 @@ sphinx
 sphinx-argparse
 netaddr
 psutil
+munch
