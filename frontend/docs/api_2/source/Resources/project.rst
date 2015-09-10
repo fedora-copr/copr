@@ -202,6 +202,9 @@ Get project details
                     "_links": { },
                     "build": {
                         "enable_net": true,
+                        "source_metadata": {
+                            "url": "http://miroslav.suchy.cz/copr/copr-ping-1-1.fc20.src.rpm"
+                        },
                         "submitted_on": 1422379448,
                         "repos": [],
                         "results": "https://copr-be.cloud.fedoraproject.org/results/jmiahman/Synergy-Linux/",
@@ -212,7 +215,8 @@ Get project details
                         "ended_on": 1422379584,
                         "timeout": 21600,
                         "pkg_version": "21.6-1.fc21",
-                        "id": 69493
+                        "id": 69493,
+                        "submitter": "asamalik"
                     }
                 },
                 {  }

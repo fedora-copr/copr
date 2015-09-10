@@ -1,10 +1,10 @@
 Build
 =====
 
-Build resources allows to submit new builds and access current build progress.
+Build resource allows to submit new builds and access current build progress.
 
-Build in fact consists of the few tasks, one per chroot, and detail information
-is available through sub-resource :doc:`./build_task`.
+In fact, build consists of a few tasks, one per chroot, and detailed information
+is available through resource :doc:`./build_task`.
 
 
 
@@ -37,7 +37,8 @@ Structure of the build entity
         "ended_on": 1440754058,
         "package_version": "2.0.0b5-1.fc22",
         "package_name": "python-marshmallow",
-        "id": 106882
+        "id": 106882,
+        "submitter": "asamalik"
     }
 
 
@@ -58,19 +59,20 @@ package_name        string               name of the source package
 enable_net          bool                 defines if network is available during the build
 repos               list of string       list of additional repositories enabled during the build
 built_packages      list of hash maps    list of the built packages, each hash map has two keys: ``name`` and ``version``
+submitter           string               name of the user who submitted the build
 ==================  ==================== ===============
 
 .. note::
     Only the ``state`` field is editable by the PUT method.
-    All other fields are read only.
-    There is a different structure used for build creation, see details at `Submit new build`_
+    All other fields are read-only.
+    There is a different structure used for build creation, see details at `Submit new build`_.
 
 
 List builds
 -----------
 .. http:post:: /api_2/builds
 
-    Return a list of build according to the given query parameters.
+    Returns a list of builds according to the given query parameters.
 
     :query str owner: select only builds from projects owned by this user
     :query str project_id: select only projects owned by this project
@@ -131,7 +133,8 @@ List builds
                 "state": "succeeded",
                 "ended_on": 1441366969,
                 "id": 106897,
-                "repos": []
+                "repos": [],
+                "submitter": "asamalik"
               }
             }
           ]
@@ -140,11 +143,11 @@ List builds
 
 Submit new build
 ----------------
-**REQUIRE AUTH**
+**REQUIRES AUTH**
 
-Allows to submit new build. Copr services currently provides the following options for build submission:
+There are more ways to submit new build. Copr services currently provides the following options for build submission:
 
-From srpm url
+From SRPM URL
 ~~~~~~~~~~~~~
     .. code-block:: javascript
 
@@ -159,8 +162,8 @@ From srpm url
     Field               Type                 Description
     ==================  ==================== ===============
     project_id          int                  identifier of the parent project
-    chroots             list of strings      what chroots should be used for build
-    srpm_url            string(URL)          url to the publicly available source package
+    chroots             list of strings      which chroots should be used for build
+    srpm_url            string(URL)          URL to the publicly available source package
     enable_net          bool                 allows to disable network access during the build, default: True
     ==================  ==================== ===============
 
@@ -197,14 +200,14 @@ From srpm url
         HTTP/1.1 201 CREATED
         Location: /api_2/builds/106897
 
-Using file upload
-~~~~~~~~~~~~~~~~~
+Using SRPM file upload
+~~~~~~~~~~~~~~~~~~~~~~
 To upload source package you MUST use ``multipart/form-data`` content type.
-Addition build information MUST present in ``metadata`` part in JSON format. Source package
+An additional build information MUST be present in ``metadata`` part in JSON format. Source package
 MUST be uploaded as binary  ``srpm`` file.
 
 
-    **Build info**
+    ****
 
     .. code-block:: javascript
 
@@ -226,8 +229,8 @@ MUST be uploaded as binary  ``srpm`` file.
 .. http:post:: /api_2/builds
 
     :reqheader Content-Type: MUST be a ``multipart/form-data``
-    :formparam metadata: JSON with the build info
-    :formparam srpm: file with source package
+    :formparam metadata: JSON with the build info, MUST have a content type ``application/json``
+    :formparam srpm: file with source package, MUST have a content type ``application/x-rpm``
 
     :resheader Location: contains URL to the created build
 
@@ -235,7 +238,46 @@ MUST be uploaded as binary  ``srpm`` file.
     :statuscode 400: user data doesn't satisfy some requirements
     :statuscode 403: authorization failed
 
-    **Example**
+    .. note::  Using a ``multipart/form-data`` might not be nice to read. To make your life a bit brighter, a Python example is included below.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        POST /api_2/builds HTTP/1.1
+        Host: copr.fedoraproject.org
+        Authorization: Basic base64=encoded=string
+        Content-Length: xxxx
+        Content-Type: multipart/form-data; boundary=--------------------31063722920652
+
+        ------------------------------31063722920652
+        Content-Disposition: form-data; name="metadata"
+        Content-Type: application/json
+
+        {
+            "project_id": 3985,
+            "chroots": ["fedora-22-i386", "fedora-21-i386"],
+            "enable_net": false
+        }
+
+        ------------------------------31063722920652
+        Content-Disposition: form-data; name="srpm"; filename="package-2.6-fc21.src.rpm"
+        Content-Type: application/x-rpm
+
+        << SRPM BINARY CONTENT HERE >>
+
+        -----------------------------31063722920652--
+
+
+    **Response**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 201 CREATED
+        Location: /api_2/builds/106897
+        
+
+    **Python Example**:
 
     Here we use python-requests_ lib:
 
@@ -340,7 +382,8 @@ Get build details
             "state": "succeeded",
             "ended_on": 1441366969,
             "id": 106897,
-            "repos": []
+            "repos": [],
+            "submitter": "asamalik"
           }
         }
 
@@ -384,7 +427,7 @@ Delete build
 
     **REQUIRE AUTH**
 
-    Deletes build and schedules deletion of build result at Copr backend
+    Deletes build and schedules deletion of build result from the Copr backend
 
     :param int build_id: a unique identifier of the build
 
