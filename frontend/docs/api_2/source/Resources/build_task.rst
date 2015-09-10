@@ -34,7 +34,7 @@ result_dir_url      str(URL)             location of the build results
 
 
 .. note::
-    Build Chroot doesn't currently support any modifications,
+    Build Task doesn't currently support any modifications,
     so all fields are read-only.
 
 List build tasks
@@ -51,13 +51,13 @@ List build tasks
     :query int build_id:
         select build tasks from one project,
         when used query parameters ``owner`` and ``project_id`` are ignored
-
-    :query int offset: offset number, default value is 0
-    :query int limit: limit number, default value is 100
     :query str state:
         select builds in particular state, allowed values:
         ``failed``, ``succeeded``, ``canceled``, ``running``,
         ``pending``, ``starting``, ``importing``
+
+    :query int offset: offset number, default value is 0
+    :query int limit: limit number, default value is 100
 
     :statuscode 200: no error
     :statuscode 404: build not found
