@@ -56,8 +56,6 @@ def mc_daemon_context():
         yield obj
 
 
-
-
 class TestBackend(object):
 
     def setup_method(self, method):
@@ -125,12 +123,14 @@ class TestBackend(object):
     @pytest.fixture
     def init_be(self):
         self.be = CoprBackend(self.config_file, self.ext_opts)
+        self.be.log = MagicMock()
 
 
     @pytest.yield_fixture
     def mc_vmm_stuff(self):
         patchers = []
-        for klass_name in ["Spawner", "HealthChecker", "Terminator", "VmManager", "VmMaster"]:
+        for klass_name in ["Spawner", "HealthChecker", "Terminator",
+                           "VmManager", "VmMaster", "EventHandler"]:
             patcher = mock.patch("{}.{}".format(MODULE_REF, klass_name))
             patchers.append(patcher)
             setattr(self, klass_name, patcher.start())
