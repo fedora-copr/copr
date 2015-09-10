@@ -91,7 +91,7 @@ Enable chroot for project
     **REQUIRE AUTH**
 
     Enables chroot for the Copr project.
-    Available `chroot` names could be obtained from :doc:`./mock_chroot` resource.
+    Available `chroot` names can be obtained from :doc:`./mock_chroot` resource.
 
     :param int project_id: a unique identifier of the Copr project.
 
