@@ -191,7 +191,7 @@ class AddDebugUserCommand(Command):
     """
 
     def run(self, name, mail, **kwargs):
-        user = models.User(username=name, mail=mail)
+        user = User(username=name, mail=mail)
 
         if kwargs["admin"]:
             user.admin = True

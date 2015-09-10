@@ -7,7 +7,7 @@ from logging import getLogger
 from flask import url_for
 import flask
 
-from .. import models
+from ..models import User, Copr, BuildChroot, Build
 from ..logic.users_logic import UsersLogic
 from ..logic.builds_logic import BuildsLogic
 from ..logic.coprs_logic import CoprsLogic
@@ -48,7 +48,7 @@ def render_build(build, self_params=None):
 
 def render_project(project, self_params=None):
     """
-    :param models.Copr project:
+    :param Copr project:
     """
     if self_params is None:
         self_params = {}
@@ -66,7 +66,7 @@ def render_project(project, self_params=None):
 
 def render_build_task(chroot):
     """
-    :type chroot: models.BuildChroot
+    :type chroot: BuildChroot
     """
     return {
         "build_task": mm_serialize_one(BuildTaskSchema, chroot),
@@ -118,7 +118,7 @@ def rest_api_auth_required(f):
 def get_project_safe(project_id):
     """
     :param int project_id:
-    :rtype: models.Copr
+    :rtype: Copr
     """
     return get_one_safe(
         CoprsLogic.get_by_id(project_id),
@@ -130,7 +130,7 @@ def get_project_safe(project_id):
 def get_build_safe(build_id):
     """
     :param int build_id:
-    :rtype: models.Build
+    :rtype: Build
     """
     return get_one_safe(
         BuildsLogic.get(build_id),
@@ -142,7 +142,7 @@ def get_build_safe(build_id):
 def get_user_safe(username):
     """
     :param str username:
-    :rtype: models.User
+    :rtype: User
     """
     return get_one_safe(
         UsersLogic.get(username),
