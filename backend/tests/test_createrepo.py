@@ -29,14 +29,14 @@ def test_createrepo_conditional_true(mc_client, mc_add_appdata, mc_create_unsafe
     mc_add_appdata.return_value = ""
 
     createrepo(path="/tmp/", front_url="http://example.com/api",
-               username="foo", projectname="bar", lock=None)
+               username="foo", projectname="bar")
     mc_create_unsafe.reset_mock()
 
     mc_client.return_value.get_project_details.return_value = MagicMock(
         data={"detail": {"auto_createrepo": True}})
 
     createrepo(path="/tmp/", front_url="http://example.com/api",
-               username="foo", projectname="bar", lock=None)
+               username="foo", projectname="bar")
 
     mc_create_unsafe.reset_mock()
 
@@ -48,9 +48,9 @@ def test_createrepo_conditional_false(mc_client, mc_create_unsafe):
 
     base_url = "http://example.com/repo/"
     createrepo(path="/tmp/", front_url="http://example.com/api",
-               username="foo", projectname="bar", base_url=base_url, lock=None)
+               username="foo", projectname="bar", base_url=base_url)
 
-    assert mc_create_unsafe.call_args == mock.call('/tmp/', None, dest_dir='devel', base_url=base_url)
+    assert mc_create_unsafe.call_args == mock.call('/tmp/', dest_dir='devel', base_url=base_url)
 
 
 @pytest.yield_fixture
@@ -111,38 +111,35 @@ class TestCreaterepo(object):
         mc_popen.return_value.communicate.return_value = ("stdout", "stderr")
         mc_popen.return_value.returncode = 0
 
-        for lock in [None, MagicMock()]:
-            assert run_cmd_unsafe(cmd, lock) == "stdout"
-            assert mc_popen.call_args[0][0] == ["foo", "--bar"]
-            mc_popen.reset()
+        assert run_cmd_unsafe(cmd, self.tmp_dir_name) == "stdout"
+        mc_popen.reset()
 
     def test_run_cmd_unsafe_err_popen(self, mc_popen):
         cmd = "foo --bar"
         mc_popen.side_effect = IOError()
 
-        for lock in [None, MagicMock()]:
-            with pytest.raises(CreateRepoError) as err:
-                run_cmd_unsafe(cmd, lock) == "stdout"
+        with pytest.raises(CreateRepoError) as err:
+            run_cmd_unsafe(cmd, self.tmp_dir_name) == "stdout"
 
-            assert err.value.cmd == cmd
-            assert mc_popen.call_args[0][0] == ["foo", "--bar"]
-            mc_popen.reset()
+        assert err.value.cmd == cmd
+        assert mc_popen.call_args[0][0] == ["foo", "--bar"]
+        mc_popen.reset()
 
     def test_run_cmd_unsafe_err_return_code(self, mc_popen):
         cmd = "foo --bar"
         mc_popen.return_value.communicate.return_value = ("stdout", "stderr")
         mc_popen.return_value.returncode = 1
 
-        for lock in [None, MagicMock()]:
-            with pytest.raises(CreateRepoError) as err:
-                run_cmd_unsafe(cmd, lock) == "stdout"
 
-            assert err.value.cmd == cmd
-            assert err.value.stdout == "stdout"
-            assert err.value.stderr == "stderr"
-            assert err.value.exit_code == 1
-            assert mc_popen.call_args[0][0] == ["foo", "--bar"]
-            mc_popen.reset()
+        with pytest.raises(CreateRepoError) as err:
+            run_cmd_unsafe(cmd, self.tmp_dir_name) == "stdout"
+
+        assert err.value.cmd == cmd
+        assert err.value.stdout == "stdout"
+        assert err.value.stderr == "stderr"
+        assert err.value.exit_code == 1
+        assert mc_popen.call_args[0][0] == ["foo", "--bar"]
+        mc_popen.reset()
 
     def test_run_cmd_unsafe_err_communicate(self, mc_popen):
         cmd = "foo --bar"
@@ -151,42 +148,12 @@ class TestCreaterepo(object):
         mc_handle.returncode = 0
         mc_handle.side_effect = RuntimeError()
 
-        for lock in [None, MagicMock()]:
-            with pytest.raises(CreateRepoError) as err:
-                run_cmd_unsafe(cmd, lock) == "stdout"
+        with pytest.raises(CreateRepoError) as err:
+            run_cmd_unsafe(cmd, self.tmp_dir_name) == "stdout"
 
-            assert err.value.cmd == cmd
-            assert mc_popen.call_args[0][0] == ["foo", "--bar"]
-            mc_popen.reset()
-
-    def test_run_cmd_unsafe_lock_usage(self, mc_popen):
-        cmd = "foo --bar"
-        mocked_lock = MagicMock()
-        self.shared_state = dict(in_lock=False, lock_status=None)
-
-        def enter_lock(*args, **kwargs):
-            self.shared_state["in_lock"] = True
-
-        def exit_lock(*args, **kwargs):
-            self.shared_state["in_lock"] = False
-
-        def popen_side_effect(*args, **kwargs):
-            self.shared_state["lock_status"] = copy.copy(self.shared_state["in_lock"])
-            return mock.DEFAULT
-
-        mocked_lock.__enter__.side_effect = enter_lock
-        mocked_lock.__exit__.side_effect = exit_lock
-
-        mc_popen.side_effect = popen_side_effect
-        mc_popen.return_value.communicate.return_value = ("", "")
-        mc_popen.return_value.returncode = 0
-
-        run_cmd_unsafe(cmd, lock=mocked_lock)
-        assert self.shared_state["lock_status"]
-
-        self.shared_state["lock_status"] = None
-        run_cmd_unsafe(cmd, lock=None)
-        assert not self.shared_state["lock_status"]
+        assert err.value.cmd == cmd
+        assert mc_popen.call_args[0][0] == ["foo", "--bar"]
+        mc_popen.reset()
 
     def test_createrepo_generated_commands_existing_repodata(self, mc_run_cmd_unsafe):
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
@@ -203,7 +170,7 @@ class TestCreaterepo(object):
             with open(os.path.join(repo_path, "repomd.xml"), "w") as handle:
                 handle.write("1")
 
-            createrepo_unsafe(path, None)
+            createrepo_unsafe(path)
             assert mc_run_cmd_unsafe.call_args[0][0] == expected
 
     def test_createrepo_generated_commands_comps_xml(self, mc_run_cmd_unsafe):
@@ -218,13 +185,12 @@ class TestCreaterepo(object):
                     with open(comps_path, "w") as handle:
                         handle.write("1")
 
-
                 repo_path = os.path.join(path, "repodata")
                 os.makedirs(repo_path)
                 with open(os.path.join(repo_path, "repomd.xml"), "w") as handle:
                     handle.write("1")
 
-                createrepo_unsafe(path, None)
+                createrepo_unsafe(path)
                 if add_comps:
                     assert "--groupfile" in mc_run_cmd_unsafe.call_args[0][0]
                 else:
@@ -250,7 +216,7 @@ class TestCreaterepo(object):
             with open(os.path.join(repo_path, "repomd.xml"), "w") as handle:
                 handle.write("1")
 
-            createrepo_unsafe(path, lock=None, base_url=self.base_url, dest_dir="devel")
+            createrepo_unsafe(path, base_url=self.base_url, dest_dir="devel")
             assert mc_run_cmd_unsafe.call_args[0][0] == expected
 
     def test_createrepo_devel_generated_commands(self, mc_run_cmd_unsafe):
@@ -266,7 +232,7 @@ class TestCreaterepo(object):
         for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
             os.makedirs(path)
 
-            createrepo_unsafe(path, lock=None, base_url=self.base_url, dest_dir="devel")
+            createrepo_unsafe(path, base_url=self.base_url, dest_dir="devel")
             assert os.path.exists(os.path.join(path, "devel"))
             assert mc_run_cmd_unsafe.call_args[0][0] == expected
             # assert mc_popen.call_args == mock.call(expected, stderr=-1, stdout=-1)
@@ -278,5 +244,5 @@ class TestCreaterepo(object):
         for path in [path_epel_5, path_fedora]:
             os.makedirs(path)
 
-            createrepo_unsafe(path, lock=None, base_url=self.base_url, dest_dir="devel")
+            createrepo_unsafe(path, base_url=self.base_url, dest_dir="devel")
             assert os.path.exists(os.path.join(path, "devel"))

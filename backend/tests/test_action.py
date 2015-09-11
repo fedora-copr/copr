@@ -93,7 +93,6 @@ class TestAction(object):
                 "action_type": ActionType.LEGAL_FLAG,
                 "id": 1
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()
@@ -119,7 +118,6 @@ class TestAction(object):
                 "old_value": "old_dir",
                 "new_value": "new_dir"
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()
@@ -150,7 +148,6 @@ class TestAction(object):
                 "old_value": "old_dir",
                 "new_value": "new_dir"
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()
@@ -180,7 +177,6 @@ class TestAction(object):
                 "old_value": "old_dir",
                 "new_value": "new_dir"
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()
@@ -210,7 +206,6 @@ class TestAction(object):
                 "id": 6,
                 "old_value": "old_dir",
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()
@@ -236,7 +231,6 @@ class TestAction(object):
                 "id": 6,
                 "old_value": "old_dir",
             },
-            lock=None,
             frontend_client=mc_front_cb
         )
         test_action.run()
@@ -263,7 +257,6 @@ class TestAction(object):
                 "old_value": "not-existing-project",
                 "data": self.ext_data_for_delete_build,
             },
-            lock=None,
             frontend_client=mc_front_cb
         )
         with mock.patch("backend.actions.shutil") as mc_shutil:
@@ -305,7 +298,6 @@ class TestAction(object):
                 "data": self.ext_data_for_delete_build,
                 "object_id": 42
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
 
@@ -320,7 +312,6 @@ class TestAction(object):
             username=u'foo',
             projectname=u'bar',
             base_url=u'http://example.com/results/foo/bar/fedora20',
-            lock=None,
             path='{}/old_dir/fedora20'.format(self.tmp_dir_name),
             front_url=None
         )
@@ -357,19 +348,18 @@ class TestAction(object):
                 "data": self.ext_data_for_delete_build,
                 "object_id": 42,
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
 
         test_action.run()
 
     @mock.patch("backend.actions.createrepo")
-    def test_delete_two_chroots(self, mc_createrepo_unsafe, mc_time):
+    def test_delete_two_chroots(self, mc_createrepo, mc_time):
         """
         Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
 
         """
-        mc_createrepo_unsafe.return_value = 0, STDOUT, ""
+        mc_createrepo.return_value = 0, STDOUT, ""
 
         resource_name = "1171796.tar.gz"
         self.unpack_resource(resource_name)
@@ -389,7 +379,7 @@ class TestAction(object):
         mc_time.time.return_value = self.test_time
         mc_front_cb = MagicMock()
 
-        self.opts.destdir=self.tmp_dir_name
+        self.opts.destdir = self.tmp_dir_name
         test_action = Action(
             opts=self.opts,
             action={
@@ -405,7 +395,6 @@ class TestAction(object):
                     "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
                 }),
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()
@@ -423,12 +412,12 @@ class TestAction(object):
         assert os.path.exists(chroot_21_path)
 
     @mock.patch("backend.actions.createrepo")
-    def test_delete_two_chroots_two_remains(self, mc_createrepo_unsafe, mc_time):
+    def test_delete_two_chroots_two_remains(self, mc_createrepo, mc_time):
         """
         Regression test, https://bugzilla.redhat.com/show_bug.cgi?id=1171796
         extended: we also put two more chroots, which should be unaffected
         """
-        mc_createrepo_unsafe.return_value = 0, STDOUT, ""
+        mc_createrepo.return_value = 0, STDOUT, ""
 
         resource_name = "1171796_doubled.tar.gz"
         self.unpack_resource(resource_name)
@@ -472,7 +461,6 @@ class TestAction(object):
                     "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
                 }),
             },
-            lock=None,
             frontend_client=mc_front_cb
         )
         test_action.run()
@@ -524,7 +512,6 @@ class TestAction(object):
                     "chroots": ["fedora-20-x86_64", "fedora-21-x86_64"]
                 }),
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
 
@@ -534,15 +521,6 @@ class TestAction(object):
         # shouldn't touch chroot dirs
         assert os.path.exists(chroot_20_path)
         assert os.path.exists(chroot_21_path)
-
-
-    @mock.patch("backend.actions.createrepo_unsafe")
-    def test_delete_two_chroots_two_builds_stay_untouched(self, mc_createrepo_unsafe, mc_time):
-        # TODO: prepare archive
-        """
-        Before: 2 builds of the same package-version, all using different chroot
-        """
-        pass
 
     @mock.patch("backend.actions.createrepo")
     def test_handle_createrepo_ok(self, mc_createrepo, mc_time):
@@ -563,7 +541,6 @@ class TestAction(object):
                 "data": action_data,
                 "id": 8
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()
@@ -575,10 +552,10 @@ class TestAction(object):
 
         exp_call_1 = mock.call(path=tmp_dir + u'/foo/bar/epel-6-i386',
                                front_url=self.opts.frontend_base_url, override_acr_flag=True,
-                               username=u"foo", projectname=u"bar", lock=None)
+                               username=u"foo", projectname=u"bar")
         exp_call_2 = mock.call(path=tmp_dir + u'/foo/bar/fedora-20-x86_64',
                                front_url=self.opts.frontend_base_url, override_acr_flag=True,
-                               username=u"foo", projectname=u"bar", lock=None)
+                               username=u"foo", projectname=u"bar")
         assert exp_call_1 in mc_createrepo.call_args_list
         assert exp_call_2 in mc_createrepo.call_args_list
         assert len(mc_createrepo.call_args_list) == 2
@@ -603,7 +580,6 @@ class TestAction(object):
                 "data": action_data,
                 "id": 9
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()
@@ -635,7 +611,6 @@ class TestAction(object):
                 "data": action_data,
                 "id": 10
             },
-            lock=None,
             frontend_client=mc_front_cb,
         )
         test_action.run()

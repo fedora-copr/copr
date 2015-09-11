@@ -124,19 +124,6 @@ class TestBackend(object):
         self.be = CoprBackend(self.config_file, self.ext_opts)
         self.be.log = MagicMock()
 
-    @pytest.yield_fixture
-    def mc_vmm_stuff(self):
-        patchers = []
-        for klass_name in ["Spawner", "HealthChecker", "Terminator",
-                           "VmManager", "VmMaster", "EventHandler"]:
-            patcher = mock.patch("{}.{}".format(MODULE_REF, klass_name))
-            patchers.append(patcher)
-            setattr(self, klass_name, patcher.start())
-
-        yield None
-        for patcher in patchers:
-            patcher.stop()
-
     def teardown_method(self, method):
         # print("\nremove: {}".format(self.tmp_dir_path))
         shutil.rmtree(self.tmp_dir_path)
@@ -192,9 +179,8 @@ class TestBackend(object):
         with pytest.raises(CoprBackendError):
             self.be.init_task_queues()
 
-    @mock.patch("backend.daemons.backend.RedisLogHandler")
     @mock.patch("backend.daemons.backend.CoprJobGrab")
-    def test_dummy_init_sub_process(self, mc_jobgrab, mc_rlh, init_be, mc_vmm_stuff):
+    def test_dummy_init_sub_process(self, mc_jobgrab, init_be):
 
         self.be.init_sub_process()
         assert mc_jobgrab.called
@@ -202,12 +188,6 @@ class TestBackend(object):
                                                  frontend_client=self.be.frontend_client,
                                                  lock=self.be.lock)
         assert mc_jobgrab.return_value.start.called
-
-        assert mc_rlh.called
-        assert mc_rlh.return_value.start.called
-
-        assert self.VmMaster.called
-        assert self.VmMaster.return_value.start.called
 
     def test_update_conf(self, init_be):
         test_obj = MagicMock()

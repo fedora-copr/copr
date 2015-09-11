@@ -146,7 +146,6 @@ class TestMockRemote(object):
             base_url=u"/".join([self.BASE_URL, COPR_OWNER, COPR_NAME, self.CHROOT]),
             username=COPR_OWNER,
             projectname=COPR_NAME,
-            lock=None,
         )
         assert mc_createrepo.call_args == expected_call
 

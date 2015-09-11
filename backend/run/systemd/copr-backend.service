@@ -1,5 +1,5 @@
 [Unit]
-Description=Copr Backend service, Virtual Machine Management component
+Description=Copr Backend service, Workers controller
 After=syslog.target network.target auditd.service
 Requires=copr-backend-vmm.service
 Wants=copr-backend-log.service

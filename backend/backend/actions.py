@@ -6,15 +6,14 @@ from urllib import urlretrieve
 
 from munch import Munch
 
-from .createrepo import createrepo, createrepo_unsafe
-from exceptions import CreateRepoError
+from .createrepo import createrepo
+from .exceptions import CreateRepoError
 from .helpers import get_redis_logger, silent_remove
 
 
 class Action(object):
     """ Object to send data back to fronted
 
-    :param multiprocessing.Lock lock: Global lock for backend
     :param backend.callback.FrontendCallback frontent_callback:
         object to post data back to frontend
 
@@ -29,13 +28,11 @@ class Action(object):
 
     """
     # TODO: get more form opts, decrease number of parameters
-    def __init__(self, opts, action, lock, frontend_client):
+    def __init__(self, opts, action, frontend_client):
 
         self.opts = opts
         self.frontend_client = frontend_client
         self.data = action
-
-        self.lock = lock
 
         self.destdir = self.opts.destdir
         self.front_url = self.opts.frontend_base_url
@@ -66,8 +63,7 @@ class Action(object):
             try:
                 createrepo(path=path, front_url=self.front_url,
                            username=username, projectname=projectname,
-                           override_acr_flag=True,
-                           lock=self.lock)
+                           override_acr_flag=True)
                 done_count += 1
             except CreateRepoError:
                 self.log.exception("Error making local repo for: {}/{}/{}"
@@ -194,7 +190,7 @@ class Action(object):
                 createrepo_target = os.path.join(path, chroot)
                 try:
                     createrepo(
-                        path=createrepo_target, lock=self.lock,
+                        path=createrepo_target,
                         front_url=self.front_url, base_url=result_base_url,
                         username=username, projectname=projectname
                     )

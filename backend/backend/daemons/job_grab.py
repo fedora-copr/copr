@@ -58,7 +58,7 @@ class CoprJobGrab(Process):
         self.task_queues_by_group = {}
 
         self.added_jobs_dict = dict()  # task_id -> task dict
-        self.lock = lock
+        self.lock = lock  # used only for createrepo calls
 
         self.frontend_client = frontend_client
 
@@ -139,7 +139,7 @@ class CoprJobGrab(Process):
 
         :param action: dict-like object with action task
         """
-        ao = Action(self.opts, action, self.lock, frontend_client=self.frontend_client)
+        ao = Action(self.opts, action, frontend_client=self.frontend_client)
         ao.run()
 
     def load_tasks(self):

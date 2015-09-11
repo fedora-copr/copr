@@ -2,8 +2,8 @@ import os
 import subprocess
 from subprocess import Popen, PIPE
 
-from exceptions import CreateRepoError
 from shlex import split
+from lockfile import LockFile
 
 # todo: add logging here
 # from backend.helpers import BackendConfigReader, get_redis_logger
@@ -11,20 +11,17 @@ from shlex import split
 # log = get_redis_logger(opts, "createrepo", "actions")
 
 from .helpers import get_auto_createrepo_status
+from .exceptions import CreateRepoError
 
 
-def run_cmd_unsafe(comm_str, lock=None):
+def run_cmd_unsafe(comm_str, lock_path):
     # log.info("Running command: {}".format(comm_str))
     comm = split(comm_str)
     try:
-        # # todo: replace with file lock on target dir
-        if lock:
-            with lock:
-                cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out, err = cmd.communicate()
-        else:
+        with LockFile(lock_path):
             cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = cmd.communicate()
+
     except Exception as err:
         raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm_str)
 
@@ -35,7 +32,7 @@ def run_cmd_unsafe(comm_str, lock=None):
     return out
 
 
-def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
+def createrepo_unsafe(path, dest_dir=None, base_url=None):
     """
         Run createrepo_c on the given path
 
@@ -73,7 +70,7 @@ def createrepo_unsafe(path, lock=None, dest_dir=None, base_url=None):
 
     comm.append(path)
 
-    return run_cmd_unsafe(" ".join(map(str, comm)), lock)
+    return run_cmd_unsafe(" ".join(map(str, comm)), os.path.join(path, "createrepo.lock"))
 
 
 APPDATA_CMD_TEMPLATE = \
@@ -115,20 +112,20 @@ def add_appdata(path, username, projectname, lock=None):
     }
     try:
         out += "\n" + run_cmd_unsafe(
-            APPDATA_CMD_TEMPLATE.format(**kwargs), lock)
+            APPDATA_CMD_TEMPLATE.format(**kwargs), os.path.join(path, "createrepo.lock"))
 
         if os.path.exists(os.path.join(path, "appdata", "appstream.xml.gz")):
             out += "\n" + run_cmd_unsafe(
-                INCLUDE_APPSTREAM.format(**kwargs), lock)
+                INCLUDE_APPSTREAM.format(**kwargs), os.path.join(path, "createrepo.lock"))
 
         if os.path.exists(os.path.join(path, "appdata", "appstream-icons.tar.gz")):
             out += "\n" + run_cmd_unsafe(
-                INCLUDE_ICONS.format(**kwargs), lock)
+                INCLUDE_ICONS.format(**kwargs), os.path.join(path, "createrepo.lock"))
 
         # appstream builder provide strange access rights to result dir
         # fix them, so that lighttpd could serve appdata dir
         out += "\n" + run_cmd_unsafe("chmod -R +rX {packages_dir}"
-                                     .format(**kwargs), lock)
+                                     .format(**kwargs), os.path.join(path, "createrepo.lock"))
     except CreateRepoError as err:
         err.stdout = out + "\nLast command\n" + err.stdout
         raise
@@ -136,7 +133,7 @@ def add_appdata(path, username, projectname, lock=None):
 
 
 def createrepo(path, front_url, username, projectname,
-               override_acr_flag=False, base_url=None, lock=None):
+               override_acr_flag=False, base_url=None):
     """
         Creates repo depending on the project setting "auto_createrepo".
         When enabled creates `repodata` at the provided path, otherwise
@@ -156,8 +153,8 @@ def createrepo(path, front_url, username, projectname,
 
     acr_flag = get_auto_createrepo_status(front_url, username, projectname)
     if override_acr_flag or acr_flag:
-        out_cr = createrepo_unsafe(path, lock)
-        out_ad = add_appdata(path, username, projectname, lock)
+        out_cr = createrepo_unsafe(path)
+        out_ad = add_appdata(path, username, projectname)
         return "\n".join([out_cr, out_ad])
     else:
-        return createrepo_unsafe(path, lock, base_url=base_url, dest_dir="devel")
+        return createrepo_unsafe(path, base_url=base_url, dest_dir="devel")

@@ -243,7 +243,6 @@ class MockRemote(object):
                 base_url=base_url,
                 username=self.job.project_owner,
                 projectname=self.job.project_name,
-                lock=self.lock,
             )
         except CreateRepoError:
             self.log.exception("Error making local repo: {}".format(self.chroot_dir))

@@ -28,16 +28,14 @@ BuildRequires: python-copr
 BuildRequires: systemd
 BuildRequires: redis
 
-
-
 BuildRequires: pytest
 BuildRequires: python-pytest-cov
 BuildRequires: python-mock
 BuildRequires: python-six
 BuildRequires: python-munch
+BuildRequires: python-lockfile
 # missing python3
 BuildRequires: python-daemon
-BuildRequires: python-lockfile
 BuildRequires: python-requests
 BuildRequires: python-setproctitle
 # missing python3
@@ -85,6 +83,7 @@ Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
 Requires:   python-paramiko
+Requires:   python-lockfile
 # Requires:   python-ipdb
 Requires:   logstash
 Requires:   libappstream-glib-builder >= 0.4.0

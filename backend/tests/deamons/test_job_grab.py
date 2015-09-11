@@ -220,7 +220,7 @@ class TestJobGrab(object):
 
         self.jg.process_action(test_action)
 
-        expected_call = call(self.opts, test_action, self.lock, frontend_client=self.jg.frontend_client)
+        expected_call = call(self.opts, test_action, frontend_client=self.jg.frontend_client)
         assert expected_call == mc_action.call_args
         assert mc_action.return_value.run.called
 
