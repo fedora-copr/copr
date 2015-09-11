@@ -80,7 +80,7 @@ class MockRemote(object):
     #   idea: send events according to the build progress to handler
 
     def __init__(self, builder_host, job, logger,
-                 repos=None, opts=None, lock=None,):
+                 repos=None, opts=None):
 
         """
         :param builder_host: builder hostname or ip
@@ -101,8 +101,6 @@ class MockRemote(object):
         :param macros: {    "copr_username": ...,
                             "copr_projectname": ...,
                             "vendor": ...}
-        :param multiprocessing.Lock lock: instance of Lock shared between
-            Copr backend process
 
         :param Munch opts: builder options, used keys::
             :ivar build_user: user to run as/connect as on builder systems
@@ -131,12 +129,6 @@ class MockRemote(object):
 
         self.log = logger
         self.job = job
-
-        # TODO: remove or re-implement
-        # self.cont = cont    # unused since we build only one pkg at time
-        # self.recurse = recurse
-
-        self.lock = lock
 
         self.log.info("Setting up builder: {0}".format(builder_host))
         # TODO: add option "builder_log_level" to backend config

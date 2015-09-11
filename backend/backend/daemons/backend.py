@@ -23,7 +23,6 @@ from backend.frontend import FrontendClient
 
 from ..exceptions import CoprBackendError
 from ..helpers import BackendConfigReader, get_redis_logger
-from .job_grab import CoprJobGrab
 from .dispatcher import Worker
 
 
@@ -53,7 +52,6 @@ class CoprBackend(object):
         self.opts = None
         self.update_conf()
 
-        self.lock = multiprocessing.Lock()
         self.task_queues = {}
 
         self.frontend_client = FrontendClient(self.opts)
@@ -89,31 +87,6 @@ class CoprBackend(object):
 
         self.clean_task_queues()
 
-    def _start_job_grab(self):
-        self.log.info("Starting up Job Grabber")
-        self._jobgrab = CoprJobGrab(opts=self.opts,
-                                    frontend_client=self.frontend_client,
-                                    lock=self.lock)
-        self._jobgrab.start()
-
-    def init_sub_process(self):
-        """
-        - Create job grabber
-        """
-        self._start_job_grab()
-
-    def ensure_sub_processes_alive(self):
-        if self.is_running:
-            for proc, start_method in [
-                (self._jobgrab, self._start_job_grab),
-
-            ]:
-                if not proc.is_alive():
-                    self.log.error("Process `{}` died unexpectedly, restarting".format(proc))
-                    proc.terminate()
-                    proc.join()
-                    start_method()
-
     def update_conf(self):
         """
         Update backend config from config file
@@ -142,8 +115,7 @@ class CoprBackend(object):
                         opts=self.opts,
                         frontend_client=self.frontend_client,
                         worker_num=self.max_worker_num_by_group_id[group_id],
-                        group_id=group_id,
-                        lock=self.lock
+                        group_id=group_id
                     )
 
                     self.workers_by_group_id[group_id].append(w)
@@ -202,13 +174,9 @@ class CoprBackend(object):
         Starts backend process. Control sub process start/stop.
         """
         self.update_conf()
-
         self.init_task_queues()
-        self.init_sub_process()
         time.sleep(1)
-
         self.log.info("Initial config: {}".format(self.opts))
-        self.log.info("Sub processes was started")
 
         try:
             self.log.info("Rescheduling old unfinished builds")
@@ -221,8 +189,6 @@ class CoprBackend(object):
         while self.is_running:
             # re-read config into opts
             self.update_conf()
-
-            self.ensure_sub_processes_alive()
 
             for group in self.opts.build_groups:
                 group_id = group["id"]

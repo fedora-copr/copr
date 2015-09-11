@@ -1,14 +1,14 @@
 [Unit]
-Description=Copr Backend service, Virtual Machine Management component
+Description=Copr Backend service, Job Grabber component
 After=syslog.target network.target auditd.service
-Before=copr-backend.service
+After=copr-backend.service
 
 [Service]
 Type=simple
 Environment="PYTHONPATH=/usr/share/copr/"
 User=copr
 Group=copr
-ExecStart=/usr/bin/copr_run_vmm.py
+ExecStart=/usr/bin/copr_run_job_grab.py
 
 [Install]
 WantedBy=multi-user.target

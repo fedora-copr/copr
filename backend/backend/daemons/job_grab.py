@@ -29,7 +29,7 @@ from ..frontend import FrontendClient
 from ..vm_manage.manager import VmManager
 
 
-class CoprJobGrab(Process):
+class CoprJobGrab(object):
 
     """
     Fetch jobs from the Frontend
@@ -44,9 +44,8 @@ class CoprJobGrab(Process):
 
     """
 
-    def __init__(self, opts, frontend_client, lock):
+    def __init__(self, opts, frontend_client):
         # base class initialization
-        super(CoprJobGrab, self).__init__(name="jobgrab")
 
         self.opts = opts
         self.arch_to_group_id_map = dict()
@@ -58,7 +57,6 @@ class CoprJobGrab(Process):
         self.task_queues_by_group = {}
 
         self.added_jobs_dict = dict()  # task_id -> task dict
-        self.lock = lock  # used only for createrepo calls
 
         self.frontend_client = frontend_client
 

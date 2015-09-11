@@ -39,11 +39,10 @@ class Worker(multiprocessing.Process):
     :param Munch opts: backend config
     :param int worker_num: worker number
     :param int group_id: group_id from the set of groups defined in config
-    :param lock: (:py:class:`multiprocessing.Lock`) global backend lock
 
     """
 
-    def __init__(self, opts, frontend_client, worker_num, group_id, lock=None):
+    def __init__(self, opts, frontend_client, worker_num, group_id):
 
         # base class initialization
         multiprocessing.Process.__init__(self, name="worker-builder")
@@ -60,7 +59,6 @@ class Worker(multiprocessing.Process):
         # event queue for communicating back to dispatcher
 
         self.kill_received = False
-        self.lock = lock
 
         self.frontend_client = frontend_client
         self.vm_name = None
@@ -299,8 +297,7 @@ class Worker(multiprocessing.Process):
                     builder_host=self.vm_ip,
                     job=job,
                     logger=build_logger,
-                    opts=self.opts,
-                    lock=self.lock,
+                    opts=self.opts
                 )
                 mr.check()
 
