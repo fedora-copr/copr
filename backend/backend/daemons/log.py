@@ -62,14 +62,14 @@ class CustomFilter(logging.Filter):
         return True
 
 
-class RedisLogHandler(Process):
+class RedisLogHandler(object):
     """
     Single point to collect logs through redis pub/sub and write
         them through standard python logging lib
     """
 
     def __init__(self, opts):
-        Process.__init__(self, name="log_handler")
+        # Process.__init__(self, name="log_handler")
 
         self.opts = opts
 
