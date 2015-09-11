@@ -367,3 +367,21 @@ def silent_remove(filename):
     except OSError as e: # this would be "except OSError, e:" before Python 2.6
         if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
             raise # re-raise exception if a different error occured
+
+
+def get_backend_opts():
+    args = sys.argv[1:]
+    parser = optparse.OptionParser("\ncopr-be [options]")
+    parser.add_option("-c", "--config", default="/etc/copr/copr-be.conf",
+                      dest="config_file",
+                      help="config file to use for copr-be run")
+
+    opts, args = parser.parse_args(args)
+    if not os.path.exists(opts.config_file):
+        sys.stderr.write("No config file found at: {0}\n".format(
+            opts.config_file))
+        sys.exit(1)
+
+    config_file = os.path.abspath(opts.config_file)
+    config_reader = BackendConfigReader(config_file, {})
+    return config_reader.read()

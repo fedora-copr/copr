@@ -1,0 +1,13 @@
+[Unit]
+Description=Copr Backend service
+After=syslog.target network.target auditd.service
+
+[Service]
+Type=simple
+Environment="PYTHONPATH=/usr/share/copr/"
+User=copr
+Group=copr
+ExecStart=/usr/bin/copr_run_vmm.py
+
+[Install]
+WantedBy=multi-user.target

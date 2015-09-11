@@ -119,12 +119,10 @@ class TestBackend(object):
 
         )
 
-
     @pytest.fixture
     def init_be(self):
         self.be = CoprBackend(self.config_file, self.ext_opts)
         self.be.log = MagicMock()
-
 
     @pytest.yield_fixture
     def mc_vmm_stuff(self):

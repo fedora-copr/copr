@@ -123,7 +123,7 @@ class CoprBackend(object):
 
         self._start_log_handler()
         self._start_job_grab()
-        self._start_vmm()
+        # self._start_vmm()
 
     def _start_vmm(self):
         self.log.info("Creating VM Spawner, HealthChecker, Terminator")
