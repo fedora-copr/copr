@@ -2,6 +2,7 @@ import os
 import logging
 import ConfigParser
 
+# todo: replace with munch, check availability in epel
 from bunch import Bunch
 
 log = logging.getLogger(__name__)

@@ -3,27 +3,15 @@
 import os
 import json
 import time
-from urllib import urlretrieve
 import shutil
 import tempfile
 import logging
-from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen, call
 
 from requests import get, post
 
-# pyrpkg uses os.getlogin(). It requires tty which is unavailable when we run this script as a daemon
-# very dirty solution for now
-import pwd
-import sys
 from .exceptions import PackageImportException, PackageDownloadException, PackageQueryException
 from .srpm_import import do_git_srpm_import
-
-os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
-# monkey patch end
-
-from subprocess import call
-
-from helpers import DistGitConfigReader
 
 log = logging.getLogger(__name__)
 
