@@ -6,8 +6,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import grp
-import multiprocessing
-import os
 import pwd
 import signal
 import sys
@@ -29,7 +27,7 @@ from .dispatcher import Worker
 class CoprBackend(object):
 
     """
-    Core process - starts/stops/initializes workers and other backend components
+    Core process - starts/stops/initializes workers
 
 
     :param config_file: path to the backend configuration file

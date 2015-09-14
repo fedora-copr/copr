@@ -4,7 +4,7 @@ import shutil
 import time
 
 from munch import Munch
-import pwd
+
 import pytest
 import retask
 from retask import ConnectionError
@@ -66,9 +66,6 @@ class TestBackend(object):
 
         self.bc_patcher = mock.patch("backend.daemons.backend.BackendConfigReader")
         self.bc = self.bc_patcher.start()
-
-        self.mp_patcher = mock.patch("backend.daemons.backend.multiprocessing")
-        self.mc_mp = self.mp_patcher.start()
 
         self.config_file = "/dev/null/copr.conf"
         self.ext_opts = {}
@@ -179,16 +176,6 @@ class TestBackend(object):
         with pytest.raises(CoprBackendError):
             self.be.init_task_queues()
 
-    @mock.patch("backend.daemons.backend.CoprJobGrab")
-    def test_dummy_init_sub_process(self, mc_jobgrab, init_be):
-
-        self.be.init_sub_process()
-        assert mc_jobgrab.called
-        assert mc_jobgrab.call_args == mock.call(opts=self.be.opts,
-                                                 frontend_client=self.be.frontend_client,
-                                                 lock=self.be.lock)
-        assert mc_jobgrab.return_value.start.called
-
     def test_update_conf(self, init_be):
         test_obj = MagicMock()
         self.bc_obj.read.return_value = test_obj
@@ -285,9 +272,6 @@ class TestBackend(object):
         worker_dead.is_alive.return_value = False
 
         self.be.clean_task_queues = MagicMock()
-        self.be.init_sub_process = MagicMock()
-        self.be.ensure_sub_processes_alive = MagicMock()
-        # self.be.init_task_queues = MagicMock()
         self.be.update_conf = MagicMock()
         self.be.spin_up_workers_by_group = MagicMock()
         self.be.frontend_client = MagicMock()
@@ -308,7 +292,6 @@ class TestBackend(object):
             mock.call(self.opts.build_groups[1]),
         ]
         assert self.be.update_conf.called
-        assert self.be.ensure_sub_processes_alive.called
         assert not self.be.is_running
         assert not self.be.workers_by_group_id[0]
         assert not self.be.workers_by_group_id[1]

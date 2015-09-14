@@ -138,14 +138,14 @@ class TestJobGrab(object):
 
     @pytest.fixture
     def init_jg(self, mc_retask_queue, mc_grc):
-        self.jg = CoprJobGrab(self.opts, self.frontend_client, self.lock)
+        self.jg = CoprJobGrab(self.opts, self.frontend_client)
         self.jg.connect_queues()
         self.jg.vm_manager = MagicMock()
 
     def test_connect_queues(self, mc_retask_queue, mc_grc):
         mc_rc = MagicMock()
         mc_grc.return_value = mc_rc
-        self.jg = CoprJobGrab(self.opts, self.frontend_client, self.lock)
+        self.jg = CoprJobGrab(self.opts, self.frontend_client)
 
         assert len(self.jg.task_queues_by_arch) == 0
         self.jg.connect_queues()
@@ -161,7 +161,7 @@ class TestJobGrab(object):
     def test_listen_to_pubsub(self, mc_retask_queue, mc_grc):
         mc_rc = MagicMock()
         mc_grc.return_value = mc_rc
-        self.jg = CoprJobGrab(self.opts, self.frontend_client, self.lock)
+        self.jg = CoprJobGrab(self.opts, self.frontend_client)
 
         assert not mc_rc.pubsub.called
         self.jg.listen_to_pubsub()
