@@ -23,7 +23,6 @@ sys.path.append(os.path.dirname(here))
 
 from coprs import app
 from coprs.logic.coprs_logic import CoprsLogic
-from copr.client.exceptions import CoprException, CoprRequestException
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -80,7 +79,7 @@ class RepoRpmBuilder(object):
         url = urlparse.urljoin(FRONTEND_URL, api)
         r = requests.get(url)
         if r.status_code != 200:
-            raise CoprRequestException("Can't get {}".format(url))
+            raise RuntimeError("Can't get {}".format(url))
         return r.content
 
     def generate_repo_package(self):
@@ -109,7 +108,7 @@ class RepoRpmBuilder(object):
         out, err = process.communicate()
 
         if process.returncode != 0:
-            raise CoprException("Failed rpmbuild for: {}\n{}".format(self.repo_name, err))
+            raise RuntimeError("Failed rpmbuild for: {}\n{}".format(self.repo_name, err))
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -157,7 +156,7 @@ def main():
                 builder.generate_repo_package()
                 print("Created RPM package for: {}".format(builder.repo_name))
 
-            except CoprException as e:
+            except RuntimeError as e:
                 print(e.message, file=sys.stderr)
 
 
