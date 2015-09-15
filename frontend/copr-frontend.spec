@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.66
+Version:    1.67
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -200,6 +200,26 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Tue Sep 15 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.67-1
+- new REST-like api
+- fixed resubmitting build
+- validate uploaded file to .src.rpm extension
+- warn user if he use rpmfusion repository for building.
+- give user hint how to give permission to somebody else
+- [frontend][old API] backported `result_dir_url` of BuildChroot to the build
+  details: new field `results_by_chroot`
+- [frontend] [dist-git] provide build failure details
+- fix missing copr names in yum_repos (RhBug:1258943) URL build.results may or
+  may not end with slash, so when not, the urljoin cuts off it's last part
+  (which is copr name)
+- UI updates: 403, 404 errors, notification texts, footer, alerts are dismissable
+- comps.xml support
+- unify printing of form errors (RhBug:1252559)
+- sort chroots alphabetically (RhBug:1253588)
+- add command generate_repo_packages for manage.py
+- build deletion fix (taiga #32)
+- change columns in status (taiga #28)
+
 * Tue Aug 11 2015 Miroslav Suchý <msuchy@redhat.com> 1.66-1
 - correctly join url fragments
 - create json for each package (RhBug:1252432)
