@@ -32,10 +32,14 @@ class CoprsTestCase(object):
     @classmethod
     def setup_class(cls):
         config = coprs.app.config
-        if "LOCAL_TMP_DIR" in config:
-            path = os.path.abspath(config["LOCAL_TMP_DIR"])
-            if not os.path.exists(path):
-                os.makedirs(path)
+        for key in [
+                "LOCAL_TMP_DIR",
+                "SRPM_STORAGE_DIR",
+            ]:
+            if key in config:
+                path = os.path.abspath(config[key])
+                if not os.path.exists(path):
+                    os.makedirs(path)
 
     @classmethod
     def teardown_class(cls):
