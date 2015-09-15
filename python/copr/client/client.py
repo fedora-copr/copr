@@ -15,6 +15,7 @@ import six
 
 from six.moves import configparser
 from six.moves.urllib.parse import urlparse
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 if sys.version_info < (2, 7):
@@ -137,7 +138,7 @@ class CoprClient(UnicodeMixin):
         return CoprClient(**config)
 
     def _fetch(self, url, data=None, projectname=None, username=None,
-               method=None, skip_auth=False, on_error_response=None, files=None):
+               method=None, skip_auth=False, on_error_response=None, headers=None):
         """ Fetches data from server,
         checks response and raises a CoprRequestException with nice error message
         or CoprUnknownResponseException in case of some some error. \n
@@ -150,7 +151,7 @@ class CoprClient(UnicodeMixin):
             :param username: [optional] use alternative username
             :param on_error_response: [optional] function to handle responses
                 with bad status code
-            :param files: [optional] files to upload
+            :param headers: [optional] custom request headers
 
             :return: deserialized response
             :rtype: dict
@@ -168,8 +169,8 @@ class CoprClient(UnicodeMixin):
             kwargs["auth"] = (self.login, self.token)
         if data is not None:
             kwargs["data"] = data
-        if files is not None:
-            kwargs["files"] = files
+        if headers is not None:
+            kwargs["headers"] = headers
 
         if method not in ["get", "post", "head", "delete", "put"]:
             raise Exception("Method {0} not allowed".format(method))
@@ -311,12 +312,11 @@ class CoprClient(UnicodeMixin):
         """
         if not username:
             username = self.username
-
         data = {
             "memory_reqs": memory,
             "timeout": timeout
         }
-        files = None
+        headers = None
 
         if urlparse(pkgs[0]).scheme != "":
             api_endpoint = "new_build"
@@ -324,7 +324,8 @@ class CoprClient(UnicodeMixin):
         else:
             try:
                 api_endpoint = "new_build_upload"
-                files = {'pkgs': open(pkgs[0], "rb")}
+                f = open(pkgs[0], "rb")
+                data["pkgs"] = (os.path.basename(f.name), f, "application/x-rpm")
             except IOError as e:
                 raise CoprRequestException(e)
 
@@ -335,7 +336,8 @@ class CoprClient(UnicodeMixin):
         for chroot in chroots or []:
             data[chroot] = "y"
 
-        data = self._fetch(url, data, method="post", files=files)
+        m = MultipartEncoder(data)
+        data = self._fetch(url, m, method="post", headers={'Content-Type': m.content_type})
 
         response = CoprResponse(
             client=self,

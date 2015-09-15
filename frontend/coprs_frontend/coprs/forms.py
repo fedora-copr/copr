@@ -283,6 +283,7 @@ class BuildFormFactory(object):
             memory_reqs = wtforms.IntegerField(
                 "Memory requirements",
                 validators=[
+                    wtforms.validators.Optional(),
                     wtforms.validators.NumberRange(
                         min=constants.MIN_BUILD_MEMORY,
                         max=constants.MAX_BUILD_MEMORY)],
@@ -291,6 +292,7 @@ class BuildFormFactory(object):
             timeout = wtforms.IntegerField(
                 "Timeout",
                 validators=[
+                    wtforms.validators.Optional(),
                     wtforms.validators.NumberRange(
                         min=constants.MIN_BUILD_TIMEOUT,
                         max=constants.MAX_BUILD_TIMEOUT)],
@@ -330,6 +332,7 @@ class BuildFormUploadFactory(object):
             memory_reqs = wtforms.IntegerField(
                 "Memory requirements",
                 validators=[
+                    wtforms.validators.Optional(),
                     wtforms.validators.NumberRange(
                         min=constants.MIN_BUILD_MEMORY,
                         max=constants.MAX_BUILD_MEMORY)],
@@ -338,6 +341,7 @@ class BuildFormUploadFactory(object):
             timeout = wtforms.IntegerField(
                 "Timeout",
                 validators=[
+                    wtforms.validators.Optional(),
                     wtforms.validators.NumberRange(
                         min=constants.MIN_BUILD_TIMEOUT,
                         max=constants.MAX_BUILD_TIMEOUT)],
