@@ -12,6 +12,7 @@ import ConfigParser
 import os
 import sys
 import errno
+from contextlib import contextmanager
 
 import traceback
 
@@ -385,3 +386,16 @@ def get_backend_opts():
     config_file = os.path.abspath(opts.config_file)
     config_reader = BackendConfigReader(config_file, {})
     return config_reader.read()
+
+
+@contextmanager
+def local_file_logger(name, path, fmt):
+    build_logger = create_file_logger(name, path, fmt)
+    try:
+        yield build_logger
+    finally:
+        # TODO: kind of ugly solution
+        # we should remove handler from build loger, otherwise we would write
+        # to the previous project
+        for h in build_logger.handlers[:]:
+            build_logger.removeHandler(h)

@@ -17,7 +17,8 @@ from ..exceptions import MockRemoteError, CoprWorkerError, VmError, NoVmAvailabl
 from ..job import BuildJob
 from ..mockremote import MockRemote
 from ..constants import BuildStatus, JOB_GRAB_TASK_END_PUBSUB, build_log_format
-from ..helpers import register_build_result, format_tb, get_redis_connection, get_redis_logger, create_file_logger
+from ..helpers import register_build_result, format_tb, get_redis_connection, get_redis_logger, create_file_logger, \
+    local_file_logger
 
 
 # ansible_playbook = "ansible-playbook"
@@ -288,41 +289,35 @@ class Worker(multiprocessing.Process):
             self.log.info("Starting build: id={} builder={} job: {}"
                           .format(job.build_id, self.vm_ip, job))
 
-            build_logger = create_file_logger(
-                "{}.builder.mr".format(self.logger_name),
-                job.chroot_log_path, fmt=build_log_format)
+            with local_file_logger(
+                    "{}.builder.mr".format(self.logger_name),
+                    job.chroot_log_path,
+                    fmt=build_log_format) as build_logger:
+                try:
+                    mr = MockRemote(
+                        builder_host=self.vm_ip,
+                        job=job,
+                        logger=build_logger,
+                        opts=self.opts
+                    )
+                    mr.check()
 
-            try:
-                mr = MockRemote(
-                    builder_host=self.vm_ip,
-                    job=job,
-                    logger=build_logger,
-                    opts=self.opts
-                )
-                mr.check()
+                    build_details = mr.build_pkg_and_process_results()
+                    job.update(build_details)
 
-                build_details = mr.build_pkg_and_process_results()
-                job.update(build_details)
+                    if self.opts.do_sign:
+                        mr.add_pubkey()
 
-                if self.opts.do_sign:
-                    mr.add_pubkey()
+                    register_build_result(self.opts)
 
-                register_build_result(self.opts)
-
-            except MockRemoteError as e:
-                # record and break
-                self.log.exception(
-                    "Error during the build, host={}, build_id={}, chroot={}, error: {}"
-                    .format(self.vm_ip, job.build_id, job.chroot, e)
-                )
-                status = BuildStatus.FAILURE
-                register_build_result(self.opts, failed=True)
-            finally:
-                # TODO: kind of ugly solution
-                # we should remove handler from build loger, otherwise we would write
-                # to the previous project
-                for h in build_logger.handlers[:]:
-                    build_logger.removeHandler(h)
+                except MockRemoteError as e:
+                    # record and break
+                    self.log.exception(
+                        "Error during the build, host={}, build_id={}, chroot={}, error: {}"
+                        .format(self.vm_ip, job.build_id, job.chroot, e)
+                    )
+                    status = BuildStatus.FAILURE
+                    register_build_result(self.opts, failed=True)
 
             self.log.info(
                 "Finished build: id={} builder={} timeout={} destdir={}"
