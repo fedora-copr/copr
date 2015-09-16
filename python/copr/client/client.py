@@ -18,7 +18,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 # urlparse from six is not available on el7
 # because it requires at least python-six-1.4.1
-if sys.version_info.major == 2:
+if sys.version_info[0] == 2:
     from urlparse import urlparse
 else:
     from urllib.parse import urlparse
