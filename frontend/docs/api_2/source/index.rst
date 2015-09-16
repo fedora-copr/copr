@@ -97,7 +97,7 @@ An individual provides information about one object.
     {
         "_links": {
             "self": {
-                "href": "<url which was used to obtain current collection>"
+                "href": "<url which was used to obtain the object>"
             },
             "<relation name>": {
                 "href": "<relation url>"
