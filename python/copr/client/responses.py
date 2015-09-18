@@ -15,7 +15,7 @@ import weakref
 # TODO:  Add Response for collections?
 # TODO:  what about copr_project-> chroot_list, build_list, repos_list
 #
-from .util import UnicodeMixin
+from ..util import UnicodeMixin
 
 
 class CoprResponse(UnicodeMixin):

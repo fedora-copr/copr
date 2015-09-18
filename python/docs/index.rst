@@ -26,7 +26,7 @@ Dependencies:
 
 repo
 ----
-[Soon] Available for fedora 19, fedora 20.
+Available for fedora 21+
 ::
 
     dnf install python-copr python-copr-doc
@@ -56,6 +56,11 @@ If you have any questions, please contact us:
 Usage
 =====
 
+Recently Copr started to offer an alternative REST-like APIv2_.
+New API is provided by mostly independent `client_v2` package.
+
+Legacy client
+-------------
 All interaction are done through copr.CoprClient.
 It can be created directly or using config file :file:`/etc/copr.conf`
 
@@ -67,8 +72,6 @@ provided attributes and methods.
 .. toctree::
     Examples
 
-Autodoc
--------
 See method signatures and response objects in
 the auto generated documentation:
 
@@ -76,6 +79,17 @@ the auto generated documentation:
 .. toctree::
     CoprClient
     Responses
+
+Client_v2
+---------
+Main object for interaction is copr.ClientV2
+It can be created using either of two functions:
+    - create_client2_from_params
+    - create_client2_from_file_config
+
+New API and Client_v2 provides more simple and uniform approach for communication with the Copr service.
+See `auto-generated docs`_ and `usage examples`_
+
 
 
 
@@ -85,3 +99,6 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+.. _APIv2: http://copr-rest-api.readthedocs.org/en/latest/index.html

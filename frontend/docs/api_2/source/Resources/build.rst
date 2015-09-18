@@ -221,7 +221,7 @@ MUST be uploaded as binary  ``srpm`` file.
     Field               Type                 Description
     ==================  ==================== ===============
     project_id          int                  identifier of the parent project
-    chroots             list of strings      what chroots should be used for build
+    chroots             list of strings      which chroots should be used for build
     enable_net          bool                 allows to disable network access during the build, default: True
     ==================  ==================== ===============
 

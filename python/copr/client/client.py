@@ -33,7 +33,7 @@ else:
 log = logging.getLogger(__name__)
 log.addHandler(NullHandler())
 
-from .exceptions import CoprConfigException, CoprNoConfException, \
+from ..exceptions import CoprConfigException, CoprNoConfException, \
     CoprRequestException, \
     CoprUnknownResponseException
 
@@ -44,7 +44,7 @@ from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     CommonMsgErrorOutParser, NewBuildListParser, ProjectChrootsParser, \
     ProjectDetailsFieldsParser
 
-from .util import UnicodeMixin
+from ..util import UnicodeMixin
 
 # TODO: add deco to check that login/token are provided
 # and  raise correct error
