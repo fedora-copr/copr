@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.72
+Version:    1.73
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -244,6 +244,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Sep 21 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.73-1
+- added context manager `local_file_logger`
+- eliminated global multiprocessing.Lock
+- split backend daemon: extracted RedisLogHandler, JobGrab, VMM
+- replace python-bunch with python-munch
+- added comps.xml support
+
 * Tue Aug 04 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.72-1
 - support new results naming in the build deletion action
 - fix BuildJob.results_dir; eliminated MockRemote.pkg_dest_path
