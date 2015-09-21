@@ -1,7 +1,7 @@
 [Unit]
 Description=Copr Backend service, Log Handler component
 After=syslog.target network.target auditd.service
-Before=copr-backend.service
+Before=copr-backend.service copr-backend-vmm.service copr-backend-jobgrab.service
 
 [Service]
 Type=simple
