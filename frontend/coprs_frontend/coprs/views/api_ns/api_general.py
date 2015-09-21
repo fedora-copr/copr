@@ -5,7 +5,6 @@ import os
 import shutil
 import tempfile
 import json
-import urlparse
 import flask
 
 from werkzeug import secure_filename

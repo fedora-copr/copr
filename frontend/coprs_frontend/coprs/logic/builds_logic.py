@@ -1,6 +1,5 @@
 from collections import defaultdict
 import tempfile
-import urlparse
 import shutil
 import json
 import os

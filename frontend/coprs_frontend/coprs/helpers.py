@@ -2,7 +2,7 @@ from functools import wraps
 import math
 import random
 import string
-import urlparse
+from six.moves.urllib.parse import urljoin
 
 import flask
 from flask import url_for
@@ -259,7 +259,7 @@ def generate_repo_url(mock_chroot, url):
         if mock_chroot.os_version != "rawhide":
             mock_chroot.os_version = "$releasever"
 
-    url = urlparse.urljoin(
+    url = urljoin(
         url, "{0}-{1}-{2}/".format(mock_chroot.os_release,
                                    mock_chroot.os_version, "$basearch"))
 

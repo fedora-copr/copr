@@ -1,5 +1,5 @@
 import re
-import urlparse
+from six.moves.urllib.parse import urlparse
 
 import flask
 import wtforms
@@ -28,7 +28,7 @@ class UrlListValidator(object):
                 raise wtforms.ValidationError(self.message.format(u))
 
     def is_url(self, url):
-        parsed = urlparse.urlparse(url)
+        parsed = urlparse(url)
         if not parsed.scheme.startswith("http"):
             return False
         if not parsed.netloc:
@@ -39,7 +39,7 @@ class UrlListValidator(object):
 class UrlRepoListValidator(UrlListValidator):
     """ Allows also `repo://` schema"""
     def is_url(self, url):
-        parsed = urlparse.urlparse(url)
+        parsed = urlparse(url)
         if parsed.scheme not in ["http", "https", "copr"]:
             return False
         if not parsed.netloc:
@@ -63,7 +63,7 @@ class UrlSrpmListValidator(UrlListValidator):
         super(UrlSrpmListValidator, self).__init__(message)
 
     def is_url(self, url):
-        parsed = urlparse.urlparse(url)
+        parsed = urlparse(url)
         if not parsed.path.endswith((".src.rpm", ".nosrc.rpm")):
             return False
         return True

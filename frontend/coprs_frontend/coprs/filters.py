@@ -1,5 +1,5 @@
 import datetime
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 import pytz
 import time
 import markdown

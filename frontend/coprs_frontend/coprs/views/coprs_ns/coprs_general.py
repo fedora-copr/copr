@@ -4,7 +4,7 @@ import os
 import time
 import os
 import re
-import urlparse
+from six.moves.urllib.parse import urljoin
 
 import flask
 from flask import render_template, url_for
@@ -723,7 +723,7 @@ def render_generate_repo_file(copr, name_release, repofile):
     # add trainling slash
     url = os.path.join(url, '')
     repo_url = generate_repo_url(mock_chroot, url)
-    pubkey_url = urlparse.urljoin(url, "pubkey.gpg")
+    pubkey_url = urljoin(url, "pubkey.gpg")
     response = flask.make_response(
         flask.render_template("coprs/copr.repo", copr=copr, url=repo_url, pubkey_url=pubkey_url))
     response.mimetype = "text/plain"
