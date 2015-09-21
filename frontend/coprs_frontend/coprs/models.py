@@ -160,6 +160,8 @@ class Copr(db.Model, helpers.Serializer):
     # relations
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     owner = db.relationship("User", backref=db.backref("coprs"))
+    group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
+    group = db.relationship("Group", backref=db.backref("groups"))
     mock_chroots = association_proxy("copr_chroots", "mock_chroot")
 
     # enable networking for the builds by default
@@ -853,3 +855,16 @@ class CounterStat(db.Model, helpers.Serializer):
 
     counter = db.Column(db.Integer, default=0, server_default="0")
 
+class Group(db.Model, helpers.Serializer):
+    """
+    Represents FAS groups and their aliases in Copr
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(127))
+    fas_name = db.Column(db.String(127))
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return "{0} ({1})".format(self.name, self.fas_name)
