@@ -9,8 +9,8 @@ from flask import url_for
 from dateutil import parser as dt_parser
 from netaddr import IPAddress, IPNetwork
 from redis import StrictRedis
-from rpmUtils.miscutils import splitFilename
 from sqlalchemy.types import TypeDecorator, VARCHAR
+from dnf.rpm.miscutils import splitFilename
 import json
 
 from coprs import constants
