@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.74
+Version:    1.75
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -244,6 +244,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Sep 21 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.75-1
+- [backend] run copr-backend-log service before other components
+
 * Mon Sep 21 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.74-1
 - [backend] add executible bit to run/copr_run_job_grab.py
 
