@@ -3,7 +3,7 @@ import sys
 import time
 import os
 
-from coprs import db
+from coprs import db, app
 from coprs import helpers
 from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
@@ -127,32 +127,36 @@ def waiting():
     # tasks represented by models.BuildChroot with some other stuff
     builds_list = []
     for task in BuildsLogic.get_build_task_queue().limit(200):
-        record = {
-            "task_id": "{}-{}".format(task.build.id, task.mock_chroot.name),
-            "build_id": task.build.id,
-            "project_owner": task.build.copr.owner.name,
-            "project_name": task.build.copr.name,
-            "submitter": task.build.user.name,
-            "pkgs": task.build.pkgs,  # TODO to be removed
-            "chroot": task.mock_chroot.name,
+        try:
+            record = {
+                "task_id": "{}-{}".format(task.build.id, task.mock_chroot.name),
+                "build_id": task.build.id,
+                "project_owner": task.build.copr.owner.name,
+                "project_name": task.build.copr.name,
+                "submitter": task.build.user.name,
+                "pkgs": task.build.pkgs,  # TODO to be removed
+                "chroot": task.mock_chroot.name,
 
-            "repos": task.build.repos,
-            "memory_reqs": task.build.memory_reqs,
-            "timeout": task.build.timeout,
-            "enable_net": task.build.enable_net,
-            "git_repo": task.build.package.dist_git_repo,
-            "git_hash": task.git_hash,
-            "git_branch": helpers.chroot_to_branch(task.mock_chroot.name),
-            "package_name": task.build.package.name,
-            "package_version": task.build.pkg_version
-        }
-        copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
-        if copr_chroot:
-            record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
-        else:
-            record["buildroot_pkgs"] = ""
+                "repos": task.build.repos,
+                "memory_reqs": task.build.memory_reqs,
+                "timeout": task.build.timeout,
+                "enable_net": task.build.enable_net,
+                "git_repo": task.build.package.dist_git_repo,
+                "git_hash": task.git_hash,
+                "git_branch": helpers.chroot_to_branch(task.mock_chroot.name),
+                "package_name": task.build.package.name,
+                "package_version": task.build.pkg_version
+            }
+            copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
+            if copr_chroot:
+                record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
+            else:
+                record["buildroot_pkgs"] = ""
 
-        builds_list.append(record)
+            builds_list.append(record)
+
+        except Exception as err:
+            app.logger.exception(err)
 
     response_dict = {"actions": actions_list, "builds": builds_list}
     return flask.jsonify(response_dict)
