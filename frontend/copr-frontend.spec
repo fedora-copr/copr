@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.68
+Version:    1.69
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -200,6 +200,9 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Tue Sep 22 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.69-1
+- hotfix for resubmit button
+
 * Tue Sep 15 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.68-1
 - fix tests to create tmp directory for srpm upload
 - don't depend on python-copr
