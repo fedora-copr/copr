@@ -33,7 +33,7 @@ class TestHelpers(CoprsTestCase):
             'xorg-x11-fonts-ISO8859-1-75dpi-7.1-2.1.el5.noarch.rpm': 'xorg-x11-fonts-ISO8859-1-75dpi',
         }
 
-        for pkg, expected in EXP.iteritems():
+        for pkg, expected in EXP.items():
             assert parse_package_name(pkg) == expected
 
     def test_generate_repo_url(self):
