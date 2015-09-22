@@ -209,6 +209,9 @@ class BuildsLogic(object):
             git_hashes=git_hashes,
             skip_import=skip_import)
 
+        build.package_id = source_build.package_id
+        build.pkg_version = source_build.pkg_version
+
         if user.proven:
             if "timeout" in build_options:
                 build.timeout = build_options["timeout"]

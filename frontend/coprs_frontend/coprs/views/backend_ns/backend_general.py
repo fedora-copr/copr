@@ -60,7 +60,8 @@ def dist_git_upload_completed():
     """
     result = {"updated": False}
 
-    if "task_id" in flask.request.json: 
+    if "task_id" in flask.request.json:
+        app.logger.debug(flask.request.data)
         task_id = flask.request.json["task_id"]
         build_chroots = BuildsLogic.get_chroots_from_dist_git_task_id(task_id)
         build = build_chroots[0].build

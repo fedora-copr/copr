@@ -193,6 +193,7 @@ class DistGitImporter(object):
         """
         Could raise error related to networkd connection
         """
+        log.debug("Sending back: \n{}".format(json.dumps(data_dict)))
         return post(self.upload_url, auth=self.auth, data=json.dumps(data_dict), headers=self.headers)
 
     def post_back_safe(self, data_dict):
