@@ -18,7 +18,7 @@ class TestMockChrootResource(CoprsTestCase):
         href = "/api_2/mock_chroots"
         r = self.tc.get(href)
         assert r.status_code == 200
-        obj = json.loads(r.data)
+        obj = json.loads(r.data.decode("utf-8"))
         assert obj["_links"]["self"]["href"] == href
         assert len(obj["chroots"]) == len(self.mc_basic_list)
 
@@ -31,7 +31,7 @@ class TestMockChrootResource(CoprsTestCase):
         href = "/api_2/mock_chroots?active_only=True"
         r = self.tc.get(href)
         assert r.status_code == 200
-        obj = json.loads(r.data)
+        obj = json.loads(r.data.decode("utf-8"))
         assert obj["_links"]["self"]["href"] == href
         assert len(obj["chroots"]) == expected_len
 
@@ -48,6 +48,6 @@ class TestMockChrootResource(CoprsTestCase):
         href = "/api_2/mock_chroots/{}".format(chroot_name)
         r = self.tc.get(href)
         assert r.status_code == 200
-        obj = json.loads(r.data)
+        obj = json.loads(r.data.decode("utf-8"))
         assert obj["_links"]["self"]["href"] == href
         assert obj["chroot"]["name"] == chroot_name

@@ -12,7 +12,7 @@ class TestAdminLogin(CoprsTestCase):
                 s["openid"] = self.u2.username
 
         r = c.get("/admin/", follow_redirects=True)
-        assert self.text_to_check not in r.data
+        assert self.text_to_check not in r.data.decode("utf-8")
 
     def test_admin_can_login(self, f_users, f_db):
         with self.tc as c:
@@ -20,4 +20,4 @@ class TestAdminLogin(CoprsTestCase):
                 s["openid"] = self.u1.username
 
         r = c.get("/admin/", follow_redirects=True)
-        assert self.text_to_check in r.data
+        assert self.text_to_check in r.data.decode("utf-8")

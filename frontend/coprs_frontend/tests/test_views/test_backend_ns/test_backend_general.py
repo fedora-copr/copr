@@ -6,7 +6,7 @@ from tests.coprs_test_case import CoprsTestCase
 class TestWaitingBuilds(CoprsTestCase):
 
     def test_no_waiting_builds(self):
-        assert '"builds": []' in self.tc.get(
+        assert b'"builds": []' in self.tc.get(
             "/backend/waiting/", headers=self.auth_header).data
 
     def test_waiting_build_only_lists_not_started_or_ended(
@@ -18,7 +18,7 @@ class TestWaitingBuilds(CoprsTestCase):
         self.db.session.commit()
 
         r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        assert len(json.loads(r.data)["builds"]) == 5
+        assert len(json.loads(r.data.decode("utf-8"))["builds"]) == 5
 
 
 # status = 0 # failure
@@ -88,7 +88,7 @@ class TestUpdateBuilds(CoprsTestCase):
         r = self.tc.post("/backend/update/",
                          content_type="application/json",
                          data="")
-        assert "You have to provide the correct password" in r.data
+        assert b"You have to provide the correct password" in r.data
 
     # todo: add test for `backend/starting_build/`
 
@@ -99,8 +99,8 @@ class TestUpdateBuilds(CoprsTestCase):
                          content_type="application/json",
                          headers=self.auth_header,
                          data=self.data2)
-        assert json.loads(r.data)["updated_builds_ids"] == [1]
-        assert json.loads(r.data)["non_existing_builds_ids"] == []
+        assert json.loads(r.data.decode("utf-8"))["updated_builds_ids"] == [1]
+        assert json.loads(r.data.decode("utf-8"))["non_existing_builds_ids"] == []
 
         updated = self.models.Build.query.filter(
             self.models.Build.id == 1).one()
@@ -120,8 +120,8 @@ class TestUpdateBuilds(CoprsTestCase):
                          headers=self.auth_header,
                          data=self.data3)
 
-        assert sorted(json.loads(r.data)["updated_builds_ids"]) == [1, 2]
-        assert sorted(json.loads(r.data)["non_existing_builds_ids"]) == [
+        assert sorted(json.loads(r.data.decode("utf-8"))["updated_builds_ids"]) == [1, 2]
+        assert sorted(json.loads(r.data.decode("utf-8"))["non_existing_builds_ids"]) == [
             123321, 1234321]
 
         started = self.models.Build.query.filter(
@@ -138,14 +138,14 @@ class TestUpdateBuilds(CoprsTestCase):
 class TestWaitingActions(CoprsTestCase):
 
     def test_no_waiting_actions(self):
-        assert '"actions": []' in self.tc.get(
+        assert b'"actions": []' in self.tc.get(
             "/backend/waiting/", headers=self.auth_header).data
 
     def test_waiting_actions_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_actions, f_db):
 
         r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        assert len(json.loads(r.data)["actions"]) == 2
+        assert len(json.loads(r.data.decode("utf-8"))["actions"]) == 2
 
 
 class TestUpdateActions(CoprsTestCase):
@@ -189,8 +189,8 @@ class TestUpdateActions(CoprsTestCase):
                          content_type="application/json",
                          headers=self.auth_header,
                          data=self.data1)
-        assert json.loads(r.data)["updated_actions_ids"] == [1]
-        assert json.loads(r.data)["non_existing_actions_ids"] == []
+        assert json.loads(r.data.decode("utf-8"))["updated_actions_ids"] == [1]
+        assert json.loads(r.data.decode("utf-8"))["non_existing_actions_ids"] == []
 
         updated = self.models.Action.query.filter(
             self.models.Action.id == 1).first()
@@ -205,8 +205,8 @@ class TestUpdateActions(CoprsTestCase):
                          content_type="application/json",
                          headers=self.auth_header,
                          data=self.data2)
-        assert sorted(json.loads(r.data)["updated_actions_ids"]) == [1, 2]
-        assert json.loads(r.data)["non_existing_actions_ids"] == [100]
+        assert sorted(json.loads(r.data.decode("utf-8"))["updated_actions_ids"]) == [1, 2]
+        assert json.loads(r.data.decode("utf-8"))["non_existing_actions_ids"] == [100]
 
         updated = self.models.Action.query.filter(
             self.models.Action.id == 1).first()

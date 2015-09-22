@@ -34,10 +34,10 @@ def create_user_wrapper(username, email, timezone=None):
         datetime.timedelta(
             days=flask.current_app.config["API_TOKEN_EXPIRATION"])
 
-    copr64 = base64.b64encode("copr") + "##"
+    copr64 = base64.b64encode(b"copr") + b"##"
     user = models.User(username=username, mail=email,
                        timezone=timezone,
-                       api_login=copr64 + helpers.generate_api_token(
+                       api_login=copr64.decode("utf-8") + helpers.generate_api_token(
                            app.config["API_TOKEN_LENGTH"] - len(copr64)),
                        api_token=helpers.generate_api_token(
                            app.config["API_TOKEN_LENGTH"]),
@@ -218,7 +218,7 @@ def api_login_required(f):
             base64string = flask.request.headers["Authorization"]
             base64string = base64string.split()[1].strip()
             userstring = base64.b64decode(base64string)
-            (apt_login, token) = userstring.split(":")
+            (apt_login, token) = userstring.decode("utf-8").split(":")
         token_auth = False
         if token and apt_login:
             user = UsersLogic.get_by_api_login(apt_login).first()

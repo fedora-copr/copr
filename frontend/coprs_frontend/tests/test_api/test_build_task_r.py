@@ -26,7 +26,7 @@ class TestBuildTaskResource(CoprsTestCase):
 
         r0 = self.tc.get(href)
         assert r0.status_code == 200
-        obj = json.loads(r0.data)
+        obj = json.loads(r0.data.decode("utf-8"))
         assert len(obj["build_tasks"]) == len(bc_list)
 
     def test_collection_ok_default_limit(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db,
@@ -41,7 +41,7 @@ class TestBuildTaskResource(CoprsTestCase):
 
             r0 = self.tc.get(href)
             assert r0.status_code == 200
-            obj = json.loads(r0.data)
+            obj = json.loads(r0.data.decode("utf-8"))
             assert obj["_links"]["self"]["href"] == expected
 
     def test_collection_ok_by_state(
@@ -64,7 +64,7 @@ class TestBuildTaskResource(CoprsTestCase):
 
             r0 = self.tc.get(href)
             assert r0.status_code == 200
-            obj = json.loads(r0.data)
+            obj = json.loads(r0.data.decode("utf-8"))
             assert len(obj["build_tasks"]) == len(expected_chroots)
             assert set(bt["build_task"]["chroot_name"]
                        for bt in obj["build_tasks"]) == expected_chroots
@@ -82,7 +82,7 @@ class TestBuildTaskResource(CoprsTestCase):
 
         r0 = self.tc.get(href)
         assert r0.status_code == 200
-        obj = json.loads(r0.data)
+        obj = json.loads(r0.data.decode("utf-8"))
         assert len(obj["build_tasks"]) == len(bc_list)
         assert obj["_links"]["self"]["href"] == href
 
@@ -101,7 +101,7 @@ class TestBuildTaskResource(CoprsTestCase):
 
         r0 = self.tc.get(href)
         assert r0.status_code == 200
-        obj = json.loads(r0.data)
+        obj = json.loads(r0.data.decode("utf-8"))
         assert len(obj["build_tasks"]) == bc_list_len
         assert obj["_links"]["self"]["href"] == href
 
@@ -134,7 +134,7 @@ class TestBuildTaskResource(CoprsTestCase):
 
         r0 = self.tc.get(href)
         assert r0.status_code == 200
-        obj = json.loads(r0.data)
+        obj = json.loads(r0.data.decode("utf-8"))
         for k, res_k in expected_fields:
             if res_k is None:
                 res_k = k

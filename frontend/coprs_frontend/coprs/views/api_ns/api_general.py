@@ -66,7 +66,7 @@ def api_new_token():
     """
 
     user = flask.g.user
-    copr64 = base64.b64encode("copr") + "##"
+    copr64 = base64.b64encode(b"copr") + b"##"
     api_login = helpers.generate_api_token(
         flask.current_app.config["API_TOKEN_LENGTH"] - len(copr64))
     user.api_login = api_login

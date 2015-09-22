@@ -3,6 +3,7 @@
 from collections import Iterable
 from marshmallow import Schema, fields
 from marshmallow import Schema, fields, validates_schema, ValidationError, validate
+from six import string_types
 
 
 def validate_any(fn_list):
@@ -37,7 +38,7 @@ class SpaceSeparatedList(fields.Field):
     def _deserialize(self, value):
         if value is None:
             return ""
-        elif not isinstance(value, Iterable) or isinstance(value, basestring):
+        elif not isinstance(value, Iterable) or isinstance(value, string_types):
             raise ValidationError("Value `{}` is not a list of strings"
                                   .format(value))
         else:

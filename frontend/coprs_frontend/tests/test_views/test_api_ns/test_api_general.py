@@ -18,8 +18,8 @@ class TestCreateCopr(CoprsTestCase):
 
     def post_api_with_auth(self, url, content):
         userstring = "{}:{}".format(self.u1.api_login, self.u1.api_token)
-        base64string_user = base64.b64encode(userstring)
-        base64string = "Basic " + base64string_user
+        base64string_user = base64.b64encode(userstring.encode("utf-8"))
+        base64string = b"Basic " + base64string_user
 
         return self.tc.post(
             url,
@@ -52,7 +52,7 @@ class TestCreateCopr(CoprsTestCase):
             "/api/coprs/{}/new/".format(self.u1.name),
             content_encoded
         )
-        response = json.loads(r.data)
+        response = json.loads(r.data.decode("utf-8"))
         assert "New project was successfully created" in response["message"]
 
         copr = self.models.Copr.query.filter(self.models.Copr.name == self.copr_name).one()
@@ -84,7 +84,7 @@ class TestCreateCopr(CoprsTestCase):
             "/api/coprs/{}/new/".format(self.u1.name),
             content_encoded
         )
-        response = json.loads(r.data)
+        response = json.loads(r.data.decode("utf-8"))
         assert "New project was successfully created" in response["message"]
 
         copr = self.models.Copr.query.filter(self.models.Copr.name == self.copr_name).one()
