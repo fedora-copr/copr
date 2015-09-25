@@ -6,6 +6,7 @@ import flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_openid import OpenID
 from flask_whooshee import Whooshee
+from openid_teams.teams import TeamsResponse
 
 app = flask.Flask(__name__)
 
@@ -21,7 +22,12 @@ else:
     app.config.from_pyfile("/etc/copr/copr.conf", silent=True)
 
 
-oid = OpenID(app, app.config["OPENID_STORE"], safe_roots=[])
+oid = OpenID(
+    app, app.config["OPENID_STORE"],
+    safe_roots=[],
+    extension_responses=[TeamsResponse]
+)
+
 db = SQLAlchemy(app)
 whooshee = Whooshee(app)
 

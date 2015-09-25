@@ -39,6 +39,7 @@ Requires:   passwd
 Requires:   python-alembic
 Requires:   python-flask
 Requires:   python-flask-openid
+Requires:   python-openid-teams
 Requires:   python-flask-wtf
 Requires:   python-flask-sqlalchemy
 Requires:   python-flask-script
@@ -73,6 +74,7 @@ BuildRequires: python-flask
 BuildRequires: python-flask-script
 BuildRequires: python-flask-sqlalchemy
 BuildRequires: python-flask-openid
+BuildRequires: python-openid-teams
 BuildRequires: python-flask-whooshee
 BuildRequires: python-pylibravatar
 BuildRequires: python-flask-wtf

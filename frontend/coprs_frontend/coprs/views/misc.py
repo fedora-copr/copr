@@ -6,6 +6,8 @@ from netaddr import IPAddress, IPNetwork
 import re
 import flask
 
+from openid_teams.teams import TeamsRequest
+
 from coprs import app
 from coprs import db
 from coprs import helpers
@@ -146,20 +148,30 @@ def login():
     if flask.g.user is not None:
         return flask.redirect(oid.get_next_url())
     else:
+        # todo: ask puiterwijk to enable "magic" group
+        team_req = TeamsRequest(["fi-apprentice", "_FAS_ALL_GROUPS_"])
         return oid.try_login("https://id.fedoraproject.org/",
-                             ask_for=["email", "timezone"])
+                             ask_for=["email", "timezone"],
+                             extensions=[team_req])
 
 
 @oid.after_login
 def create_or_login(resp):
     flask.session["openid"] = resp.identity_url
+
     fasusername = resp.identity_url.replace(
         ".id.fedoraproject.org/", "").replace("http://", "")
 
+    if "lp" in resp.extensions:
+        team_resp = resp.extensions['lp']  # name space for the teams extension
+        flask.session["teams"] = team_resp.teams
+
     # kidding me.. or not
-    if fasusername and ((app.config["USE_ALLOWED_USERS"]
-                         and fasusername in app.config["ALLOWED_USERS"])
-                        or not app.config["USE_ALLOWED_USERS"]):
+    if fasusername and (
+            (
+                app.config["USE_ALLOWED_USERS"] and
+                fasusername in app.config["ALLOWED_USERS"]
+            ) or not app.config["USE_ALLOWED_USERS"]):
 
         username = fed_raw_name(resp.identity_url)
         user = models.User.query.filter(
@@ -225,7 +237,6 @@ def api_login_required(f):
             return jsonout
         return f(*args, **kwargs)
     return decorated_function
-
 
 
 def login_required(role=helpers.RoleEnum("user")):
