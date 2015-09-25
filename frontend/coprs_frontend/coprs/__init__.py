@@ -8,7 +8,10 @@ from flask_openid import OpenID
 from flask_whooshee import Whooshee
 from openid_teams.teams import TeamsResponse
 
+from coprs.redis_session import RedisSessionInterface
+
 app = flask.Flask(__name__)
+app.session_interface = RedisSessionInterface()
 
 if "COPRS_ENVIRON_PRODUCTION" in os.environ:
     app.config.from_object("coprs.config.ProductionConfig")
