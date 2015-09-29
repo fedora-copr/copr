@@ -2,6 +2,7 @@ import copy
 import datetime
 import json
 import os
+import flask
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
@@ -87,6 +88,11 @@ class User(db.Model, helpers.Serializer):
 
             can_build = True
 
+        # a bit dirty code, here we access flask.session object
+        if copr.group is not None and \
+                copr.group.fas_name in flask.session.get("teams", []):
+            return True
+
         return can_build
 
     def can_edit(self, copr):
@@ -94,16 +100,20 @@ class User(db.Model, helpers.Serializer):
         Determine if this user can edit the given copr.
         """
 
-        can_edit = False
         if copr.owner == self or self.admin:
-            can_edit = True
+            return True
         if (self.permissions_for_copr(copr) and
                 self.permissions_for_copr(copr).copr_admin ==
                 helpers.PermissionEnum("approved")):
 
-            can_edit = True
+            return True
 
-        return can_edit
+        # a bit dirty code, here we access flask.session object
+        if copr.group is not None and \
+                copr.group.fas_name in flask.session.get("teams", []):
+            return True
+
+        return False
 
     @property
     def serializable_attributes(self):
@@ -171,6 +181,10 @@ class Copr(db.Model, helpers.Serializer):
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
+
+    @property
+    def is_a_group_project(self):
+        return self.group_id is not None
 
     @property
     def owner_name(self):
@@ -855,12 +869,15 @@ class CounterStat(db.Model, helpers.Serializer):
 
     counter = db.Column(db.Integer, default=0, server_default="0")
 
+
 class Group(db.Model, helpers.Serializer):
     """
     Represents FAS groups and their aliases in Copr
     """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(127))
+
+    # TODO: add unique=True
     fas_name = db.Column(db.String(127))
 
     def __str__(self):

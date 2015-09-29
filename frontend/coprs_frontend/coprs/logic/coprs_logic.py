@@ -39,6 +39,22 @@ class CoprsLogic(object):
         return cls.get_all().filter(models.Copr.id == copr_id)
 
     @classmethod
+    def _attach_build(cls, query):
+        query = (query.outerjoin(models.Copr.builds)
+                 .options(db.contains_eager(models.Copr.builds))
+                 .order_by(models.Build.submitted_on.desc()))
+        return query
+
+    @classmethod
+    def _attach_mock_chroots(cls, query):
+        query = (query.outerjoin(*models.Copr.mock_chroots.attr)
+                 .options(db.contains_eager(*models.Copr.mock_chroots.attr))
+                 .order_by(models.MockChroot.os_release.asc())
+                 .order_by(models.MockChroot.os_version.asc())
+                 .order_by(models.MockChroot.arch.asc()))
+        return query
+
+    @classmethod
     def get(cls, username, coprname, **kwargs):
         with_builds = kwargs.get("with_builds", False)
         with_mock_chroots = kwargs.get("with_mock_chroots", False)
@@ -50,18 +66,32 @@ class CoprsLogic(object):
         )
 
         if with_builds:
-            query = (query.outerjoin(models.Copr.builds)
-                     .options(db.contains_eager(models.Copr.builds))
-                     .order_by(models.Build.submitted_on.desc()))
+            query = cls._attach_build(query)
 
         if with_mock_chroots:
-            query = (query.outerjoin(*models.Copr.mock_chroots.attr)
-                     .options(db.contains_eager(*models.Copr.mock_chroots.attr))
-                     .order_by(models.MockChroot.os_release.asc())
-                     .order_by(models.MockChroot.os_version.asc())
-                     .order_by(models.MockChroot.arch.asc()))
+            query = cls._attach_mock_chroots(query)
 
         return query
+
+    @classmethod
+    def get_by_group_id(cls, group_id, coprname, **kwargs):
+        with_builds = kwargs.get("with_builds", False)
+        with_mock_chroots = kwargs.get("with_mock_chroots", False)
+
+        query = (
+            cls.get_all()
+            .filter(models.Copr.group_id == group_id)
+            .filter(models.Copr.name == coprname)
+        )
+
+        if with_builds:
+            query = cls._attach_build(query)
+
+        if with_mock_chroots:
+            query = cls._attach_mock_chroots(query)
+
+        return query
+
 
     @classmethod
     def get_multiple(cls, include_deleted=False):

@@ -1,6 +1,7 @@
 from coprs import exceptions
 
-from coprs.models import User
+from coprs import db
+from coprs.models import User, Group
 
 
 class UsersLogic(object):
@@ -34,3 +35,33 @@ class UsersLogic(object):
 
         if not user.can_build_in(copr):
             raise exceptions.InsufficientRightsException(message)
+
+    @classmethod
+    def get_group_by_alias(cls, name):
+        return Group.query.filter(Group.name == name)
+
+    @classmethod
+    def get_group_by_fas_name(cls, fas_name):
+        return Group.query.filter(Group.fas_name == fas_name)
+
+    @classmethod
+    def create_group_by_fas_name(cls, fas_name, alias=None):
+        if alias is None:
+            alias = fas_name
+
+        group = Group(
+            fas_name=fas_name,
+            name=alias,
+        )
+        db.session.add(group)
+        return group
+
+    @classmethod
+    def get_group_by_fas_name_or_create(cls, fas_name, alias=None):
+        mb_group = cls.get_group_by_fas_name(fas_name).first()
+        if mb_group is not None:
+            return mb_group
+
+        group = cls.create_group_by_fas_name(fas_name, alias)
+        db.session.flush()
+        return group

@@ -25,6 +25,13 @@
         The following unofficial repositories are provided as-is by owner of this project.
         Contact the owner directly for bugs or issues (IE: not bugzilla).
     </p>
+
+    <p>
+    {% if copr.is_a_group_project %}
+      This project is managed by FAS group {{ copr.group.fas_name }}
+    {% endif %}
+    </p>
+
     <table class="table table-striped table-bordered">
       <thead>
         <tr>
@@ -162,9 +169,18 @@
         <h3 class="panel-title"> Other Actions </h3>
       </div>
       <div class="panel-body">
+        {% if user.can_edit(copr) and not copr.is_a_group_project %}
+          <a href="{{ url_for('coprs_ns.copr_group_managed', username = copr.owner.name, coprname = copr.name) }}">
+            Change to a group project
+          </a>
+        {% endif %}
+
+
         <a href="{{ url_for('coprs_ns.copr_report_abuse', username = copr.owner.name, coprname = copr.name) }}">
           <small class="pficon pficon-warning-triangle-o"> Report Abuse </small></a>
+
       </div>
+
     </div>
   </div>
 </div>

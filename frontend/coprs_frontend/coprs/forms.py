@@ -506,3 +506,17 @@ class AdminPlaygroundForm(wtf.Form):
 
 class AdminPlaygroundSearchForm(wtf.Form):
     project = wtforms.TextField("Project")
+
+
+def group_managed_form_fabric(available_fas_groups):
+    """
+    :type available_fas_groups: list of str
+    """
+    choices = [(x, x) for x in available_fas_groups]
+
+    class GroupManagedForm(wtf.Form):
+
+        name = wtforms.StringField()
+        fas_name = wtforms.SelectField(choices=choices)
+
+    return GroupManagedForm()

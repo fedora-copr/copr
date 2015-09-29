@@ -19,8 +19,10 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
+from coprs.forms import group_managed_form_fabric
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.stat_logic import CounterStatLogic
+from coprs.logic.users_logic import UsersLogic
 from coprs.rmodels import TimedStatEvents
 
 from coprs.logic.complex_logic import ComplexLogic
@@ -215,18 +217,40 @@ def copr_report_abuse(username, coprname):
         form=form)
 
 
+@coprs_ns.route("/g/<groupname>/<coprname>/")
+def group_copr_detail(groupname, coprname):
+    
+    try:
+        group = UsersLogic.get_group_by_alias(groupname).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found(
+            "Group {} does not exist.".format(groupname))
+
+    try:
+        copr = CoprsLogic.get_by_group_id(group.id, coprname).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found(
+            "Project {0} does not exist.".format(coprname))
+
+    return render_copr_detail(copr)
+
+
 @coprs_ns.route("/<username>/<coprname>/")
 def copr_detail(username, coprname):
     query = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True)
-    form = forms.CoprLegalFlagForm()
+
     try:
         copr = query.one()
     except sqlalchemy.orm.exc.NoResultFound:
         return page_not_found(
             "Project {0} does not exist.".format(coprname))
 
-    repo_dl_stat = CounterStatLogic.get_copr_repo_dl_stat(copr)
+    return render_copr_detail(copr)
 
+
+def render_copr_detail(copr):
+    repo_dl_stat = CounterStatLogic.get_copr_repo_dl_stat(copr)
+    form = forms.CoprLegalFlagForm()
     repos_info = {}
     for chroot in copr.active_chroots:
         # chroot_rpms_dl_stat_key = CHROOT_REPO_MD_DL_STAT_FMT.format(
@@ -260,14 +284,12 @@ def copr_detail(username, coprname):
         else:
             repos_info[chroot.name_release]["arch_list"].append(chroot.arch)
             repos_info[chroot.name_release]["rpm_dl_stat"][chroot.arch] = chroot_rpms_dl_stat
-
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
-
     builds = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr).limit(1).all()
-
     return flask.render_template(
         "coprs/detail/overview.html",
         copr=copr,
+        user=flask.g.user,
         form=form,
         repo_dl_stat=repo_dl_stat,
         repos_info_list=repos_info_list,
@@ -706,3 +728,39 @@ def copr_build_monitor_detailed(username, coprname):
                                                 monitor=monitor,
                                                 oses=oses_grouped,
                                                 archs=archs)
+
+
+@coprs_ns.route("/<username>/<coprname>/group_managed", methods=["GET", "POST"])
+def copr_group_managed(username, coprname):
+    try:
+        copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return page_not_found(
+            "Project {0} does not exist.".format(coprname))
+
+    form = group_managed_form_fabric(flask.session.get("teams"))
+
+    if form.validate_on_submit():
+        group = UsersLogic.get_group_by_fas_name_or_create(
+            form.fas_name.data, form.name.data)
+
+        copr.group_id = group.id
+        db.session.add(copr)
+        db.session.commit()
+
+        flask.flash(
+            "Project is now managed by {} FAS group, "
+            "main url to the project: {}"
+            .format(
+                form.fas_name.data,
+                "group url todo:"
+            )
+        )
+        return flask.redirect(flask.url_for(
+            "coprs_ns.copr_detail", username=username, coprname=coprname))
+
+    else:
+        return flask.render_template(
+            "coprs/detail/make_group_project.html",
+            copr=copr, form=form,
+        )

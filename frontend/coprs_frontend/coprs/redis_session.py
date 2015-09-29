@@ -54,6 +54,7 @@ class RedisSessionInterface(SessionInterface):
         return self.session_class(sid=sid, new=True)
 
     def save_session(self, app, session, response):
+        # print("String session: {}".format(session))
         domain = self.get_cookie_domain(app)
         if not session:
             self.redis.delete(self.prefix + session.sid)

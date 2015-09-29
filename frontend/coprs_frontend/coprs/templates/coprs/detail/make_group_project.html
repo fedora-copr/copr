@@ -1,0 +1,35 @@
+{% extends "coprs/detail.html" %}
+
+{% from "_helpers.html" import render_field, render_form_errors %}
+
+{% block title %}
+  Change project {{ copr.owner.name }}/{{ copr.name }} into a group managed one/
+
+{% endblock %}
+{%block project_breadcrumb %}
+{#
+<!--<li>-->
+  <!--<a href="{{ url_for('coprs_ns.copr_builds', username=copr.owner.name, coprname=copr.name) }}">Packages</a>-->
+<!--</li>-->
+#}
+<li class="active">
+
+</li>
+{%endblock%}
+
+{% block detail_body %}
+  <h3>
+    Select Fas project to bound project
+  </h3>
+  <form class="form-horizontal"
+        action="{{ url_for('coprs_ns.copr_group_managed', username=copr.owner.name, coprname=copr.name) }}"
+        method="post" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+
+    {{ render_field(form.name, label="Group alias to use in the Copr") }}
+    {{ render_field(form.fas_name) }}
+
+    <input class="btn btn-primary" type="submit" value="Submit">
+  </form>
+
+{% endblock %}
