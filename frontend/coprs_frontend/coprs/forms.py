@@ -236,10 +236,10 @@ class CoprFormFactory(object):
                         have_any = True
                 return have_any
 
-        F.chroots_list = map(lambda x: x.name,
+        F.chroots_list = list(map(lambda x: x.name,
                              models.MockChroot.query.filter(
                                  models.MockChroot.is_active == True
-                             ).all())
+                             ).all()))
         F.chroots_list.sort()
         # sets of chroots according to how we should print them in columns
         F.chroots_sets = {}
@@ -309,7 +309,7 @@ class BuildFormFactory(object):
 
             enable_net = wtforms.BooleanField()
 
-        F.chroots_list = map(lambda x: x.name, active_chroots)
+        F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
         F.chroots_sets = {}
         for ch in F.chroots_list:
@@ -464,7 +464,7 @@ class BuildFormRebuildFactory(object):
 
             enable_net = wtforms.BooleanField()
 
-        F.chroots_list = map(lambda x: x.name, active_chroots)
+        F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
         F.chroots_sets = {}
         for ch in F.chroots_list:
