@@ -53,7 +53,8 @@ Vagrant.configure(2) do |config|
 
   # ..
   config.vm.provision "shell",
-    inline: "sudo systemctl start postgresql"
+    inline: "sudo systemctl start postgresql",
+    run: "always"
 
   # ..
   config.vm.provision "shell",
