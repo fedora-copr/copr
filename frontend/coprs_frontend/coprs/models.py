@@ -644,7 +644,7 @@ class CoprChroot(db.Model, helpers.Serializer):
                                single_parent=True,
                                cascade="all,delete,delete-orphan"))
 
-    comps_zlib = db.Column(db.VARBINARY, nullable=True)
+    comps_zlib = db.Column(db.LargeBinary(), nullable=True)
     comps_name = db.Column(db.String(127), nullable=True)
 
     def update_comps(self, comps_xml):
