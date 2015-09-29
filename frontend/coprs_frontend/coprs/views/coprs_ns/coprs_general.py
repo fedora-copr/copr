@@ -505,7 +505,7 @@ def copr_update_permissions(copr):
             # if admin is changing his permissions, his must be changed last
             # so that we don't get InsufficientRightsException
             permissions.sort(
-                cmp=lambda x, y: -1 if y.user_id == flask.g.user.id else 1)
+                key=lambda x: -1 if x.user_id == flask.g.user.id else 1)
             for perm in permissions:
                 old_builder = perm.copr_builder
                 old_admin = perm.copr_admin
