@@ -110,13 +110,16 @@ class FailTypeEnum(object):
 class Paginator(object):
 
     def __init__(self, query, total_count, page=1,
-                 per_page_override=None, urls_count_override=None):
+                 per_page_override=None, urls_count_override=None,
+                 additional_params=None):
 
         self.query = query
         self.total_count = total_count
         self.page = page
         self.per_page = per_page_override or constants.ITEMS_PER_PAGE
         self.urls_count = urls_count_override or constants.PAGES_URLS_COUNT
+        self.additional_params = additional_params or dict()
+
         self._sliced_query = None
 
     def page_slice(self, page):
@@ -155,6 +158,7 @@ class Paginator(object):
     def url_for_other_page(self, request, page):
         args = request.view_args.copy()
         args["page"] = page
+        args.update(self.additional_params)
         return flask.url_for(request.endpoint, **args)
 
 

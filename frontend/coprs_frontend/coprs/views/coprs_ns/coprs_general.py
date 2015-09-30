@@ -123,7 +123,8 @@ def coprs_fulltext_search(page=1):
         return flask.redirect(flask.request.referrer or
                               flask.url_for("coprs_ns.coprs_show"))
 
-    paginator = helpers.Paginator(query, query.count(), page)
+    paginator = helpers.Paginator(query, query.count(), page,
+                                  additional_params={"fulltext": fulltext})
 
     coprs = paginator.sliced_query
     return render_template("coprs/show/fulltext.html", coprs=coprs,
@@ -357,6 +358,7 @@ def _check_rpmfusion(repos):
     if "rpmfusion" in repos:
         message = flask.Markup('Using rpmfusion as dependency is nearly always wrong. Please see <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">What I can build in Copr</a>.')
         flask.flash(message, "error")
+
 
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
 @login_required
