@@ -169,7 +169,7 @@
         <h3 class="panel-title"> Other Actions </h3>
       </div>
       <div class="panel-body">
-        {% if user.can_edit(copr) and not copr.is_a_group_project %}
+        {% if user and user.can_edit(copr) and not copr.is_a_group_project %}
           <a href="{{ url_for('coprs_ns.copr_group_managed', username = copr.owner.name, coprname = copr.name) }}">
             Change to a group project
           </a>
