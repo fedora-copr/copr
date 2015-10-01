@@ -22,3 +22,5 @@ _redis.log
 
 # IDE
 .idea
+
+.vagrant
