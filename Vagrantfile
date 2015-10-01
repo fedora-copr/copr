@@ -96,7 +96,15 @@ Vagrant.configure(2) do |config|
 
   # ..
   config.vm.provision "shell",
-    inline: ""
+    inline: "echo 'dns=none' | sudo tee -a /etc/NetworkManager/NetworkManager.conf"
+
+  # ..
+  config.vm.provision "shell",
+    inline: "echo 'nameserver 8.8.8.8' | sudo tee -a /etc/resolv.conf"
+
+  # ..
+  config.vm.provision "shell",
+    inline: "sudo systemctl restart NetworkManager"
 
   # ..
   config.vm.provision "shell",
