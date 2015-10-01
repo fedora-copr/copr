@@ -127,3 +127,41 @@
   {{ message }}
   </div>
 {% endmacro %}
+
+
+{% macro copr_title(copr) %}
+  {% if copr.is_a_group_project %}
+    <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) }}">
+      @{{ copr.group.name }}
+    </a> /
+    <strong><a href="{{ url_for('coprs_ns.group_copr_detail', groupname=copr.group.name, coprname=copr.name) }}">
+      {{ copr.name }}
+    </a></strong>
+  {% else %}
+    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=copr.owner.name) }}">
+      {{ copr.owner.name }}
+    </a> /
+    <strong><a href="{{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}">
+      {{ copr.name }}
+    </a></strong>
+  {% endif %}
+
+{% endmacro %}
+
+
+{% macro copr_name(copr) %}
+  {% if copr.is_a_group_project %}
+      @{{ copr.group.name }} / {{ copr.name }}
+  {% else %}
+      {{ copr.owner.name }} / {{ copr.name }}
+  {% endif %}
+{% endmacro %}
+
+
+{% macro copr_details_href(copr) %}
+  {% if copr.is_a_group_project %}
+      {{ url_for('coprs_ns.group_copr_detail', groupname=copr.group.name, coprname=copr.name) }}
+  {% else %}
+      {{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}
+  {% endif %}
+{% endmacro %}

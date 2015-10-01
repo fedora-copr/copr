@@ -2,4 +2,4 @@
 
 import flask
 
-groups_ns = flask.Blueprint("groups_ns", __name__, url_prefix="/groups")
+groups_ns = flask.Blueprint("groups_ns", __name__, url_prefix="/teams")
