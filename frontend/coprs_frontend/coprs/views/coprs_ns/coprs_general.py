@@ -33,6 +33,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.views.misc import login_required, page_not_found
 
 from coprs.views.coprs_ns import coprs_ns
+from coprs.views.groups_ns import groups_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
 from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
