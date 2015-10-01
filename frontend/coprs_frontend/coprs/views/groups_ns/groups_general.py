@@ -31,18 +31,21 @@ from coprs.logic.complex_logic import ComplexLogic
 
 from coprs.views.misc import login_required, page_not_found
 
-from coprs.views.coprs_ns import coprs_ns
-
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
 from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT
 
+from . import groups_ns
 
-@coprs_ns.route("/groups/activate/<fas_group>", methods=["GET", "POST"])
+@groups_ns.route("/groups/activate/<fas_group>", methods=["GET", "POST"])
 @login_required
 def activate_group(fas_group):
     pass
 
 
-@coprs_ns.route("/groups/by_user/<username>")
-def list_groups_by_user(username):
+@groups_ns.route("/groups/by_user/<user_name>")
+def list_groups_by_user(user_name):
+    pass
+
+@groups_ns.route("/groups/g/<group_name>/coprs")
+def list_projects_by_group(group_name):
     pass

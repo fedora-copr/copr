@@ -251,7 +251,7 @@ def get_copr_safe(user_name, copr_name):
     return copr
 
 
-@coprs_ns.route("/@<groupname>/<coprname>/")
+@coprs_ns.route("/g/<groupname>/<coprname>/")
 def group_copr_detail(groupname, coprname):
 
     copr = get_group_copr_safe(groupname, coprname)
