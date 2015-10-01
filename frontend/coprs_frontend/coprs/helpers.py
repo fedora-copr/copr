@@ -96,7 +96,8 @@ class BuildSourceEnum(object):
     __metaclass__ = EnumType
     vals = {"unset": 0,
             "srpm_link": 1,  # url
-            "srpm_upload": 2}  # pkg, tmp
+            "srpm_upload": 2,  # pkg, tmp
+            "git_and_tito": 3} # git_url, git_dir, git_branch, tito_test
 
 
 class FailTypeEnum(object):

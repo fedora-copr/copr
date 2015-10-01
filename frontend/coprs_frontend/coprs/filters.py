@@ -157,6 +157,7 @@ def build_state_decoration(state):
         "unset": "No default source",
         "srpm_link": "External link with SRPM",
         "srpm_upload": "SRPM file upload",
+        "git_and_tito": "Tito build from a Git repository",
     }
 
     return description_map.get(state, "")

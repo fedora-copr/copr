@@ -371,6 +371,69 @@ class BuildFormUploadFactory(object):
         return F
 
 
+class BuildFormTitoFactory(object):
+    @staticmethod
+    def create_form_cls(active_chroots):
+        class F(wtf.Form):
+            @property
+            def selected_chroots(self):
+                selected = []
+                for ch in self.chroots_list:
+                    if getattr(self, ch).data:
+                        selected.append(ch)
+                return selected
+
+            git_url = wtforms.StringField(
+                "Git URL",
+                validators=[
+                    wtforms.validators.DataRequired(),
+                    wtforms.validators.URL()])
+
+            git_directory = wtforms.StringField(
+                "Git Directory",
+                validators=[
+                    wtforms.validators.Optional()])
+
+            git_branch = wtforms.StringField(
+                "Git Branch",
+                validators=[
+                    wtforms.validators.Optional()])
+
+            tito_test = wtforms.BooleanField(default=False)
+
+            memory_reqs = wtforms.IntegerField(
+                "Memory requirements",
+                validators=[
+                    wtforms.validators.Optional(),
+                    wtforms.validators.NumberRange(
+                        min=constants.MIN_BUILD_MEMORY,
+                        max=constants.MAX_BUILD_MEMORY)],
+                default=constants.DEFAULT_BUILD_MEMORY)
+
+            timeout = wtforms.IntegerField(
+                "Timeout",
+                validators=[
+                    wtforms.validators.Optional(),
+                    wtforms.validators.NumberRange(
+                        min=constants.MIN_BUILD_TIMEOUT,
+                        max=constants.MAX_BUILD_TIMEOUT)],
+                default=constants.DEFAULT_BUILD_TIMEOUT)
+
+            enable_net = wtforms.BooleanField()
+
+        F.chroots_list = map(lambda x: x.name, active_chroots)
+        F.chroots_list.sort()
+        F.chroots_sets = {}
+        for ch in F.chroots_list:
+            setattr(F, ch, wtforms.BooleanField(ch, default=True))
+            if ch[0] in F.chroots_sets:
+                F.chroots_sets[ch[0]].append(ch)
+            else:
+                F.chroots_sets[ch[0]] = [ch]
+
+        return F
+
+
 class BuildFormRebuildFactory(object):
     @staticmethod
     def create_form_cls(active_chroots):

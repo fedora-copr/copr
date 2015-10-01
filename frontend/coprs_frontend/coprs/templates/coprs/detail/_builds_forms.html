@@ -120,6 +120,25 @@
 {% endmacro %}
 
 
+{% macro copr_build_form_tito(form, view, copr) %}
+  {{ copr_build_form_begin(form, view, copr) }}
+
+    {{ render_field(form.git_url, placeholder="Public clone URL of your git repository.") }}
+    {{ render_field(form.git_directory, placeholder="Optional - A directory in the git containing the spec file.") }}
+    {{ render_field(form.git_branch, placeholder="Optional - A Git branch you want to build from.") }}
+    <div class="form-group">
+      <label class="col-sm-2 control-label" for="textInput-markup">
+      Tito Options
+      </label>
+      <div class="col-sm-10">
+      {{ form.tito_test() }} Build with the --test option. (build the last commit instead of the last release tag)
+      </div>
+    </div>
+
+  {{ copr_build_form_end(form, view, copr) }}
+{% endmacro %}
+
+
 {% macro copr_build_form_rebuild(form, view, copr, build) %}
   {{ copr_build_form_begin(form, view, copr, build) }}
   {{ copr_build_form_end(form, view, copr) }}

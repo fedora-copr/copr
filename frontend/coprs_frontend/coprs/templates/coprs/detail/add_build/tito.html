@@ -1,0 +1,17 @@
+{% extends "coprs/detail/add_build.html" %}
+{% from "coprs/detail/_builds_forms.html" import copr_build_form_tito with context %}
+
+{% block new_build_tito_selected %}active{% endblock %}
+{%block project_breadcrumb_new_build %}
+<li>
+  From Git Using Tito
+</li>
+{%endblock%}
+
+{% block build_form %}
+<h3> Build From URL of a SRPM Package</h3>
+<p> Provide a URL of a Git repository. </p>
+
+  {{ copr_build_form_tito(form, 'coprs_ns.copr_new_build_tito', copr) }}
+
+{% endblock %}

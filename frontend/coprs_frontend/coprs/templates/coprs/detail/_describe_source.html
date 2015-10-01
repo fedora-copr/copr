@@ -12,5 +12,18 @@
   <dt>File Name:</dt>
   <dd>{{ build.source_json_dict["pkg"] }}</dd>
 
+  {% elif build.source_type_text == "git_and_tito" %}
+  <dt>Git URL:</dt>
+  <dd>{{ build.source_json_dict["git_url"] }}</dd>
+
+  <dt>Local directory in Git:</dt>
+  <dd>{{ build.source_json_dict["git_dir"] }}</dd>
+
+  <dt>Git branch:</dt>
+  <dd>{{ build.source_json_dict["git_branch"] }}</dd>
+
+  <dt>Using --test:</dt>
+  <dd>{{ build.source_json_dict["tito_test"] }}</dd>
+
   {% endif %}
 {% endmacro %}

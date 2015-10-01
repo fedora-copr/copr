@@ -110,15 +110,15 @@ def render_package(copr, package_name):
 @login_required
 @req_with_copr
 def copr_add_build(copr, form=None):
-    return render_add_build(copr, form, view='coprs_ns.copr_new_build')
-
+    return render_add_build(
+        copr, form, view='coprs_ns.copr_new_build')
 
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build/")
 @login_required
 @req_with_copr
 def group_copr_add_build(copr, form=None):
-    return render_add_build(copr, form, view='coprs_ns.group_copr_new_build')
-
+    return render_add_build(
+        copr, form, view='coprs_ns.group_copr_new_build')
 
 def render_add_build(copr, form, view):
     if not form:
@@ -134,7 +134,6 @@ def copr_add_build_upload(copr, form=None):
     return render_add_build_upload(
         copr, form, view='coprs_ns.copr_new_build_upload')
 
-
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build_upload/")
 @login_required
 @req_with_copr
@@ -142,12 +141,79 @@ def group_copr_add_build_upload(copr, form=None):
     return render_add_build_upload(
         copr, form, view='coprs_ns.group_copr_new_build_upload')
 
-
 def render_add_build_upload(copr, form, view):
     if not form:
         form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/upload.html",
                                  copr=copr, form=form, view=view)
+
+
+@coprs_ns.route("/<username>/<coprname>/add_build_tito/")
+@login_required
+@req_with_copr
+def copr_add_build_tito(copr, form=None):
+    return render_add_build_tito(
+        copr, form, view='coprs_ns.copr_new_build_tito')
+
+@coprs_ns.route("/g/<group_name>/<coprname>/add_build_tito/")
+@login_required
+@req_with_copr
+def group_copr_add_build_tito(copr, form=None):
+    return render_add_build_tito(
+        copr, form, view='coprs_ns.group_copr_new_build_tito')
+
+def render_add_build_tito(copr, form, view):
+    if not form:
+        form = forms.BuildFormTitoFactory.create_form_cls(copr.active_chroots)()
+    return flask.render_template("coprs/detail/add_build/tito.html",
+                                 copr=copr, form=form, view=view)
+
+
+
+def process_new_build_tito(copr, add_view, url_on_success):
+    form = forms.BuildFormTitoFactory.create_form_cls(copr.active_chroots)()
+
+    if form.validate_on_submit():
+        build_options = {
+            "enable_net": form.enable_net.data,
+            "timeout": form.timeout.data,
+        }
+
+        try:
+            BuildsLogic.create_new_from_tito(
+                flask.g.user, copr, form.git_url.data, form.git_directory.data, form.git_branch.data, form.tito_test.data,
+                **build_options
+            )
+            db.session.commit()
+        except (ActionInProgressException, InsufficientRightsException) as e:
+            db.session.rollback()
+            flask.flash(str(e), "error")
+        else:
+            flask.flash("New build has been created.")
+
+        return flask.redirect(url_on_success)
+    else:
+        return render_add_build_upload(copr, form, add_view)
+
+
+@coprs_ns.route("/<username>/<coprname>/new_build_tito/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_new_build_tito(copr):
+    view = 'coprs_ns.copr_new_build_tito'
+    url_on_success = url_for("coprs_ns.copr_builds",
+                             username=copr.owner.username, coprname=copr.name)
+    return process_new_build_tito(copr, view, url_on_success)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_tito/", methods=["POST"])
+@login_required
+@req_with_copr
+def group_copr_new_build_tito(copr):
+    view = 'coprs_ns.group_copr_new_build_tito'
+    url_on_success = url_for("coprs_ns.group_copr_builds",
+                             group_name=copr.group.name, coprname=copr.name)
+    return process_new_build_tito(copr, view, url_on_success)
 
 
 def process_new_build_upload(copr, add_view, url_on_success):
