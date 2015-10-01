@@ -4,6 +4,10 @@
 Vagrant.configure(2) do |config|
   config.vm.box = "bento/fedora-21"
 
+  config.vm.provider "libvirt" do |v, override|
+    override.vm.box = "humaton/fedora-21-cloud"
+  end
+
   config.vm.network "forwarded_port", guest: 80, host: 5000
 
   config.vm.synced_folder ".", "/vagrant", type: "rsync"
@@ -31,6 +35,15 @@ Vagrant.configure(2) do |config|
   # Remove previous build, if any
   config.vm.provision "shell", 
     inline: "sudo rm -rf /tmp/tito",
+    run: "always"
+
+  # WORKAROUND: install redis which is needed for %check in spec
+  config.vm.provision "shell",
+    inline: "sudo dnf -y install redis"
+
+  # WORKAROUND: start redis
+  config.vm.provision "shell",
+    inline: "sudo systemctl start redis"
     run: "always"
 
   # Build Copr Frontend
