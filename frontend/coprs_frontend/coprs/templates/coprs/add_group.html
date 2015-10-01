@@ -19,14 +19,43 @@
 
   <h1>Add a New Group</h1>
 
-<p>
-  {% for team in teams %}
-    <div>
-        {{ team }}
-    </div>
-  {% else %}
-    <h2>You are not listed in any FAS group.</h2>
-  {% endfor %}
-</p>
+{% if teams %}
+  <table class="datatable table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>FAS Group</th>
+        <th>Copr Group Alias</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for team in teams %}
+      <tr>
+        <td><a href="https://admin.fedoraproject.org/accounts/group/view/{{team}}">{{ team }}</a></td>
+        <td>
+            {% if copr_groups[team] %}
+                {{ copr_groups[team] }}
+            {% else %}
+                <a href="{{ url_for('group_ns.activate_group', fas_group=team) }}"><span class="pficon pficon-add-circle-o"> Activate this group.</a>
+            {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <h3>You are not listed in any FAS group.</h3>
+{% endif %}
+
+<script>
+  // Initialize Datatables
+  $(document).ready(function() {
+    $('.datatable').dataTable({
+      "order": [[ 0, "desc" ]]
+    });
+  });
+</script>
+
+
+
 
 {% endblock %}
