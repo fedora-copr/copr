@@ -9,4 +9,10 @@ logging.basicConfig(stream=sys.stderr)
 os.environ["COPRS_ENVIRON_PRODUCTION"] = "1"
 sys.path.insert(0, os.path.dirname(__file__))
 
-from coprs import app as application
+from coprs import app
+
+if app.debug:
+    from werkzeug.debug import DebuggedApplication
+    app = DebuggedApplication(app, True)
+
+application = app
