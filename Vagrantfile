@@ -43,7 +43,7 @@ Vagrant.configure(2) do |config|
 
   # WORKAROUND: start redis
   config.vm.provision "shell",
-    inline: "sudo systemctl start redis"
+    inline: "sudo systemctl start redis",
     run: "always"
 
   # Build Copr Frontend
