@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}Add a Group{% endblock %}
+{% block header %}Add a Group{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}">{{ g.user.name }}</a>
+  </li>
+  <li class="active">
+    Add Group
+  </li>
+</ol>
+{% endblock %}
+{% block body %}
+
+  <h1>Add a New Group</h1>
+
+<p>
+  {% for team in teams %}
+    <div>
+        {{ team }}
+    </div>
+  {% else %}
+    <h2>You are not listed in any FAS group.</h2>
+  {% endfor %}
+</p>
+
+{% endblock %}

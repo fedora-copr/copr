@@ -107,6 +107,13 @@
       {% endfor %}
       </div>
     </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <a href="{{url_for('coprs_ns.group_add', username=g.user.name) }}">
+          <span class="pficon pficon-add-circle-o"> Add Group </span>
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
