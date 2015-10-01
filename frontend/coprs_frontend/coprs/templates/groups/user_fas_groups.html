@@ -30,12 +30,20 @@
     <tbody>
     {% for team in teams %}
       <tr>
-        <td><a href="https://admin.fedoraproject.org/accounts/group/view/{{team}}">{{ team }}</a></td>
+        <td><a href="https://admin.fedoraproject.org/accounts/group/view/{{team}}">
+          {{ team }}
+        </a></td>
         <td>
             {% if copr_groups[team] %}
-                {{ copr_groups[team] }}
+                <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=copr_groups[team]) }}">
+                  {{ copr_groups[team] }}
+                </a>
             {% else %}
-                <a href="{{ url_for('group_ns.activate_group', fas_group=team) }}"><span class="pficon pficon-add-circle-o"> Activate this group.</a>
+                <a href="{{ url_for('groups_ns.activate_group', fas_group=team) }}">
+                  <span class="pficon pficon-add-circle-o">
+                    Activate this group.
+                  </span>
+                </a>
             {% endif %}
         </td>
       </tr>

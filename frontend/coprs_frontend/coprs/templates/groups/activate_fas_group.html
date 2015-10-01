@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}Project List{% endblock %}
+{% block header %}Project List{% endblock %}
+{% from "_helpers.html" import render_pagination, copr_details_href, copr_name %}
+{% from "_helpers.html" import render_field, render_form_errors %}
+{%block main_menu_projects %}active{% endblock %}
+
+
+
+
+{% block body %}
+  <h3>
+    Activate FAS group <strong>"  "</strong> in the Copr.
+  </h3>
+  <form class="form-horizontal"
+        method="post" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+
+    {{ render_field(form.name, label="Group alias to use in the Copr") }}
+
+
+    <input class="btn btn-primary" type="submit" value="Submit">
+  </form>
+{% endblock %}

@@ -22,7 +22,6 @@ from coprs import forms
 from coprs import helpers
 from coprs import models
 from coprs.exceptions import ObjectNotFound
-from coprs.forms import group_managed_form_fabric
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.users_logic import UsersLogic
@@ -216,13 +215,13 @@ def copr_report_abuse(username, coprname):
         return page_not_found(
             "Project {0} does not exist.".format(coprname))
 
-
     return flask.render_template(
         "coprs/report_abuse.html",
         copr=copr,
         form=form)
 
 
+# todo: move to ComplexLogix
 def get_group_copr_safe(group_name, copr_name):
     try:
         group = UsersLogic.get_group_by_alias(group_name).one()
@@ -240,6 +239,7 @@ def get_group_copr_safe(group_name, copr_name):
     return copr
 
 
+# todo: move to ComplexLogix
 def get_copr_safe(user_name, copr_name):
     query = coprs_logic.CoprsLogic.get(user_name, copr_name, with_mock_chroots=True)
 
@@ -756,37 +756,37 @@ def copr_build_monitor_detailed(username, coprname):
                                                 archs=archs)
 
 
-@coprs_ns.route("/<username>/<coprname>/group_managed", methods=["GET", "POST"])
-def copr_group_managed(username, coprname):
-    try:
-        copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Project {0} does not exist.".format(coprname))
-
-    form = group_managed_form_fabric(flask.session.get("teams"))
-
-    if form.validate_on_submit():
-        group = UsersLogic.get_group_by_fas_name_or_create(
-            form.fas_name.data, form.name.data)
-
-        copr.group_id = group.id
-        db.session.add(copr)
-        db.session.commit()
-
-        flask.flash(
-            "Project is now managed by {} FAS group, "
-            "main url to the project: {}"
-            .format(
-                form.fas_name.data,
-                "group url todo:"
-            )
-        )
-        return flask.redirect(flask.url_for(
-            "coprs_ns.copr_detail", username=username, coprname=coprname))
-
-    else:
-        return flask.render_template(
-            "coprs/detail/make_group_project.html",
-            copr=copr, form=form,
-        )
+# @coprs_ns.route("/<username>/<coprname>/group_managed", methods=["GET", "POST"])
+# def copr_group_managed(username, coprname):
+#     try:
+#         copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
+#     except sqlalchemy.orm.exc.NoResultFound:
+#         return page_not_found(
+#             "Project {0} does not exist.".format(coprname))
+#
+#     form = group_managed_form_fabric(flask.session.get("teams"))
+#
+#     if form.validate_on_submit():
+#         group = UsersLogic.get_group_by_fas_name_or_create(
+#             form.fas_name.data, form.name.data)
+#
+#         copr.group_id = group.id
+#         db.session.add(copr)
+#         db.session.commit()
+#
+#         flask.flash(
+#             "Project is now managed by {} FAS group, "
+#             "main url to the project: {}"
+#             .format(
+#                 form.fas_name.data,
+#                 "group url todo:"
+#             )
+#         )
+#         return flask.redirect(flask.url_for(
+#             "coprs_ns.copr_detail", username=username, coprname=coprname))
+#
+#     else:
+#         return flask.render_template(
+#             "coprs/detail/make_group_project.html",
+#             copr=copr, form=form,
+#         )

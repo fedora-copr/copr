@@ -74,14 +74,13 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def get_by_group_id(cls, group_id, coprname, **kwargs):
+    def get_multiple_by_group_id(cls, group_id, **kwargs):
         with_builds = kwargs.get("with_builds", False)
         with_mock_chroots = kwargs.get("with_mock_chroots", False)
 
         query = (
             cls.get_all()
             .filter(models.Copr.group_id == group_id)
-            .filter(models.Copr.name == coprname)
         )
 
         if with_builds:
@@ -92,6 +91,12 @@ class CoprsLogic(object):
 
         return query
 
+    @classmethod
+    def get_by_group_id(cls, group_id, coprname, **kwargs):
+        query = cls.get_multiple_by_group_id(group_id, **kwargs)
+        query = query.filter(models.Copr.name == coprname)
+
+        return query
 
     @classmethod
     def get_multiple(cls, include_deleted=False):

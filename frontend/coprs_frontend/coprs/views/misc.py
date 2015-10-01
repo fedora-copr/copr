@@ -149,7 +149,7 @@ def login():
         return flask.redirect(oid.get_next_url())
     else:
         # todo: ask puiterwijk to enable "magic" group
-        team_req = TeamsRequest(["fi-apprentice", "packager", "_FAS_ALL_GROUPS_"])
+        team_req = TeamsRequest(["fedorabugs", "fi-apprentice", "packager", "_FAS_ALL_GROUPS_"])
         return oid.try_login("https://id.fedoraproject.org/",
                              ask_for=["email", "timezone"],
                              extensions=[team_req])
