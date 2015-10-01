@@ -49,3 +49,12 @@ def list_groups_by_user(user_name):
 @groups_ns.route("/groups/g/<group_name>/coprs")
 def list_projects_by_group(group_name):
     pass
+
+@groups_ns.route("/groups/add/")
+@login_required
+def group_add():
+    teams = flask.session.get("teams")
+    copr_groups = {fas_group : UsersLogic.get_group_by_fas_name(fas_group) for fas_group in teams}
+    return flask.render_template("coprs/add_group.html",
+                                 username=flask.g.user.name,
+                                 teams=teams, copr_groups=copr_groups)
