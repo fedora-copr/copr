@@ -62,7 +62,7 @@ from coprs.views.recent_ns import recent_general
 from coprs.views.stats_ns import stats_receiver
 from coprs.views import tmp_ns
 from coprs.views.tmp_ns import tmp_general
-
+from coprs.views.groups_ns import groups_ns
 
 from .context_processors import include_banner, inject_fedmenu
 
@@ -77,6 +77,7 @@ app.register_blueprint(status_ns.status_ns)
 app.register_blueprint(recent_ns.recent_ns)
 app.register_blueprint(stats_receiver.stats_rcv_ns)
 app.register_blueprint(tmp_ns.tmp_ns)
+app.register_blueprint(groups_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
 

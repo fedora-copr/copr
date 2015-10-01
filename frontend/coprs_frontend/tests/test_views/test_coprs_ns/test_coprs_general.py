@@ -679,7 +679,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
     def test_fail_on_missing_dash(self):
         r = self.tc.get("/coprs/reponamewithoutdash/repo/")
         assert r.status_code == 404
-        assert "Project repo does not exist" in r.data
+        assert "does not exist" in r.data
 
     def test_fail_on_nonexistent_copr(self):
         r = self.tc.get(

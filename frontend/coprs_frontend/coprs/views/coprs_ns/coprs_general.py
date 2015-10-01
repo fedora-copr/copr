@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import os
 import time
 import os
@@ -19,6 +21,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
+from coprs.exceptions import ObjectNotFound
 from coprs.forms import group_managed_form_fabric
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.stat_logic import CounterStatLogic
@@ -32,7 +35,8 @@ from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
-from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT
+from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
+    fixed_redirect
 
 
 @coprs_ns.route("/", defaults={"page": 1})
@@ -218,33 +222,52 @@ def copr_report_abuse(username, coprname):
         form=form)
 
 
-@coprs_ns.route("/g/<groupname>/<coprname>/")
+def get_group_copr_safe(group_name, copr_name):
+    try:
+        group = UsersLogic.get_group_by_alias(group_name).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        raise ObjectNotFound(
+            message="Group {} does not exist.".format(group_name))
+
+    try:
+        copr = CoprsLogic.get_by_group_id(
+            group.id, copr_name, with_mock_chroots=True).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        raise ObjectNotFound(
+            message="Project {0} does not exist.".format(copr_name))
+
+    return copr
+
+
+def get_copr_safe(user_name, copr_name):
+    query = coprs_logic.CoprsLogic.get(user_name, copr_name, with_mock_chroots=True)
+
+    try:
+        copr = query.one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        raise ObjectNotFound(
+            message="Project {}/{} does not exist.".format(user_name, copr_name))
+
+    return copr
+
+
+@coprs_ns.route("/@<groupname>/<coprname>/")
 def group_copr_detail(groupname, coprname):
-    
-    try:
-        group = UsersLogic.get_group_by_alias(groupname).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Group {} does not exist.".format(groupname))
 
-    try:
-        copr = CoprsLogic.get_by_group_id(group.id, coprname).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Project {0} does not exist.".format(coprname))
-
+    copr = get_group_copr_safe(groupname, coprname)
     return render_copr_detail(copr)
 
 
 @coprs_ns.route("/<username>/<coprname>/")
 def copr_detail(username, coprname):
-    query = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True)
-
-    try:
-        copr = query.one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Project {0} does not exist.".format(coprname))
+    copr = get_copr_safe(username, coprname)
+    # import  ipdb; ipdb.set_trace()
+    if copr.is_a_group_project:
+        return fixed_redirect(flask.url_for(
+            endpoint=".group_copr_detail",
+            groupname=copr.group.name,
+            coprname=copr.name,
+        ))
 
     return render_copr_detail(copr)
 

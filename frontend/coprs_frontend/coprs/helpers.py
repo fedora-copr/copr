@@ -2,6 +2,7 @@ import math
 import random
 import string
 import urlparse
+from urlparse import urlsplit, urlunsplit
 import flask
 
 from dateutil import parser as dt_parser
@@ -376,3 +377,17 @@ def is_ip_from_builder_net(ip):
             return True
 
     return False
+
+
+def fixed_redirect(location, code=None):
+    # Workaround to have non-encoded @ symbol in the url path segment
+    response = flask.redirect(location, code or 302)
+
+    loc = response.headers["location"]
+    sr = urlsplit(loc)
+    new_sr = list(sr)
+    new_sr[2] = sr.path.replace("%40", "@")
+    new_loc = urlunsplit(new_sr)
+
+    response.headers["location"] = new_loc
+    return response

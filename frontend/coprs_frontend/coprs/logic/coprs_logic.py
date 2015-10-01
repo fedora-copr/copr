@@ -39,14 +39,14 @@ class CoprsLogic(object):
         return cls.get_all().filter(models.Copr.id == copr_id)
 
     @classmethod
-    def _attach_build(cls, query):
+    def attach_build(cls, query):
         query = (query.outerjoin(models.Copr.builds)
                  .options(db.contains_eager(models.Copr.builds))
                  .order_by(models.Build.submitted_on.desc()))
         return query
 
     @classmethod
-    def _attach_mock_chroots(cls, query):
+    def attach_mock_chroots(cls, query):
         query = (query.outerjoin(*models.Copr.mock_chroots.attr)
                  .options(db.contains_eager(*models.Copr.mock_chroots.attr))
                  .order_by(models.MockChroot.os_release.asc())
@@ -66,10 +66,10 @@ class CoprsLogic(object):
         )
 
         if with_builds:
-            query = cls._attach_build(query)
+            query = cls.attach_build(query)
 
         if with_mock_chroots:
-            query = cls._attach_mock_chroots(query)
+            query = cls.attach_mock_chroots(query)
 
         return query
 
@@ -85,10 +85,10 @@ class CoprsLogic(object):
         )
 
         if with_builds:
-            query = cls._attach_build(query)
+            query = cls.attach_build(query)
 
         if with_mock_chroots:
-            query = cls._attach_mock_chroots(query)
+            query = cls.attach_mock_chroots(query)
 
         return query
 
