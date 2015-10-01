@@ -58,7 +58,7 @@ Vagrant.configure(2) do |config|
 
   # ..
   config.vm.provision "shell",
-    inline: "sudo dnf -y install postgresql-server"
+    inline: "sudo dnf -y install copr-selinux postgresql-server"
 
   # ..
   config.vm.provision "shell",
