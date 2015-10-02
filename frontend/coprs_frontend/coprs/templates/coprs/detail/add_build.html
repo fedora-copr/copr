@@ -1,32 +1,44 @@
 {% extends "coprs/detail.html" %}
+{% from "_helpers.html" import nav_element %}
 {% block title %}Adding Build for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-{% block new_build_selected %}active{% endblock %}
+
+{% set selected_tab = "add_build" %}
 
 {%block project_breadcrumb %}
 <li class="active">
   <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">
       New Build
   </a>
-  {%block project_breadcrumb_new_build %}
-  {%endblock%}
 </li>
 {%endblock%}
+
 {% block detail_body %}
 {#
 <h2> Submit a New Build </h2>
 Select the source type and submit a new build. Options in this form are relevant to this build only and will not change any settings of the project itself.
 #}
+
+{% macro nav_element(tab_name, tab_title, href) %}
+<li class="{% if add_build_tab == tab_name %}active{% endif %}">
+  <a href="{{ href }}">
+    {{ tab_title }}
+  </a>
+</li>
+{% endmacro %}
+
+
 <ul class="nav nav-tabs nav-tabs-pf">
-  <li class="{% block new_build_url_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">
-        From URLs
-    </a>
-  </li>
-  <li class="{% block new_build_upload_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name) }}">
-        Upload SRPM
-    </a>
-  </li>
+  {% if copr.is_a_group_project %}
+    {{ nav_element("url", "From URLs",
+          url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name)) }}
+    {{ nav_element("upload", "From URLs",
+          url_for('coprs_ns.group_copr_add_build_upload', group_name = copr.group.name, coprname = copr.name)) }}
+  {% else %}
+    {{ nav_element("url", "From URLs",
+          url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name)) }}
+    {{ nav_element("upload", "From URLs",
+          url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name)) }}
+  {% endif %}
 </ul>
 
 {% block build_form %}{% endblock %}

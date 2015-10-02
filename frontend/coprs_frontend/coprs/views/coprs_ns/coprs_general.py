@@ -7,7 +7,7 @@ import re
 import urlparse
 
 import flask
-from flask import render_template
+from flask import render_template, url_for
 import platform
 import smtplib
 import sqlalchemy
@@ -97,6 +97,7 @@ def coprs_by_allowed(username=None, page=1):
     coprs = paginator.sliced_query
     return flask.render_template("coprs/show.html",
                                  coprs=coprs,
+                                 tasks_info=ComplexLogic.get_queues_size(),
                                  paginator=paginator)
 
 
@@ -286,7 +287,7 @@ def get_copr_safe(user_name, copr_name):
     return copr
 
 
-@coprs_ns.route("/g/<group_name>/<coprname>/ ")
+@coprs_ns.route("/g/<group_name>/<coprname>/")
 def group_copr_detail(group_name, coprname):
 
     copr = get_group_copr_safe(group_name, coprname)
@@ -296,7 +297,7 @@ def group_copr_detail(group_name, coprname):
 @coprs_ns.route("/<username>/<coprname>/")
 def copr_detail(username, coprname):
     copr = get_copr_safe(username, coprname)
-    # import  ipdb; ipdb.set_trace()
+
     if copr.is_a_group_project:
         return fixed_redirect(flask.url_for(
             endpoint=".group_copr_detail",
@@ -393,23 +394,27 @@ def copr_permissions(username, coprname):
         current_user_permissions=user_perm)
 
 
-@coprs_ns.route("/<username>/<coprname>/edit/")
-@login_required
-def copr_edit(username, coprname, form=None):
-    query = coprs_logic.CoprsLogic.get(username, coprname)
-    copr = query.first()
-
-    if not copr:
-        return page_not_found(
-            "Project {0} does not exist.".format(coprname))
-
+def render_copr_edit(copr, form, view):
     if not form:
         form = forms.CoprFormFactory.create_form_cls(
             copr.mock_chroots)(obj=copr)
+    return flask.render_template(
+        "coprs/detail/edit.html",
+        copr=copr, form=form, view=view)
 
-    return flask.render_template("coprs/detail/edit.html",
-                                 copr=copr,
-                                 form=form)
+
+@coprs_ns.route("/g/<group_name>/<coprname>/edit/")
+@login_required
+def group_copr_edit(group_name, coprname, form=None):
+    copr = get_group_copr_safe(group_name, coprname)
+    return render_copr_edit(copr, form, 'coprs_ns.group_copr_update')
+
+
+@coprs_ns.route("/<username>/<coprname>/edit/")
+@login_required
+def copr_edit(username, coprname, form=None):
+    copr = get_copr_safe(username, coprname)
+    return render_copr_edit(copr, form, 'coprs_ns.copr_update')
 
 
 def _check_rpmfusion(repos):
@@ -418,42 +423,58 @@ def _check_rpmfusion(repos):
         flask.flash(message, "error")
 
 
+def process_copr_update(copr, form):
+    copr.name = form.name.data
+    copr.homepage = form.homepage.data
+    copr.contact = form.contact.data
+    copr.repos = form.repos.data.replace("\n", " ")
+    copr.description = form.description.data
+    copr.instructions = form.instructions.data
+    copr.disable_createrepo = form.disable_createrepo.data
+    copr.build_enable_net = form.build_enable_net.data
+    coprs_logic.CoprChrootsLogic.update_from_names(
+        flask.g.user, copr, form.selected_chroots)
+    try:
+        # form validation checks for duplicates
+        coprs_logic.CoprsLogic.update(flask.g.user, copr)
+    except (exceptions.ActionInProgressException,
+            exceptions.InsufficientRightsException) as e:
+
+        flask.flash(str(e), "error")
+        db.session.rollback()
+    else:
+        flask.flash("Project has been updated successfully.", "success")
+        db.session.commit()
+    _check_rpmfusion(copr.repos)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/update/", methods=["POST"])
+@login_required
+def group_copr_update(group_name, coprname):
+    copr = get_group_copr_safe(group_name, coprname)
+    form = forms.CoprFormFactory.create_form_cls()()
+
+    if form.validate_on_submit():
+        process_copr_update(copr, form)
+        return flask.redirect(url_for(
+            "coprs_ns.group_copr_detail",
+            group_name=copr.group.name, coprname=copr.name
+        ))
+
+    else:
+        return group_copr_edit(group_name, coprname, form)
+
+
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
 @login_required
 def copr_update(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-    form = forms.CoprFormFactory.create_form_cls(owner=copr.owner)()
+    copr = get_copr_safe(username, coprname)
+    form = forms.CoprFormFactory.create_form_cls()()
 
     if form.validate_on_submit():
-        # we don"t change owner (yet)
-        copr.name = form.name.data
-        copr.homepage = form.homepage.data
-        copr.contact = form.contact.data
-        copr.repos = form.repos.data.replace("\n", " ")
-        copr.description = form.description.data
-        copr.instructions = form.instructions.data
-        copr.disable_createrepo = form.disable_createrepo.data
-        copr.build_enable_net = form.build_enable_net.data
-
-        coprs_logic.CoprChrootsLogic.update_from_names(
-            flask.g.user, copr, form.selected_chroots)
-
-        try:
-            # form validation checks for duplicates
-            coprs_logic.CoprsLogic.update(flask.g.user, copr)
-        except (exceptions.ActionInProgressException,
-                exceptions.InsufficientRightsException) as e:
-
-            flask.flash(str(e), "error")
-            db.session.rollback()
-        else:
-            flask.flash("Project has been updated successfully.", "success")
-            db.session.commit()
-        _check_rpmfusion(copr.repos)
-
-        return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-                                            username=username,
-                                            coprname=copr.name))
+        process_copr_update(copr, form)
+        return flask.redirect(url_for(
+            "coprs_ns.copr_detail", username=username, coprname=copr.name))
     else:
         return copr_edit(username, coprname, form)
 
@@ -596,13 +617,8 @@ def copr_createrepo(username, coprname):
                                         coprname=copr.name))
 
 
-@coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])
-@login_required
-def copr_delete(username, coprname):
-    form = forms.CoprDeleteForm()
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-
-    if form.validate_on_submit() and copr:
+def process_delete(copr, form, url_on_error, url_on_success):
+    if form.validate_on_submit():
 
         try:
             ComplexLogic.delete_copr(copr)
@@ -611,21 +627,63 @@ def copr_delete(username, coprname):
 
             db.session.rollback()
             flask.flash(str(e), "error")
-            return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-                                                username=username,
-                                                coprname=coprname))
+            return flask.redirect(url_on_error)
         else:
             db.session.commit()
             flask.flash("Project has been deleted successfully.")
-            return flask.redirect(flask.url_for("coprs_ns.coprs_by_owner",
-                                                username=username))
+            return flask.redirect(url_on_success)
     else:
-        if copr:
-            return flask.render_template("coprs/detail/delete.html",
-                                         form=form, copr=copr)
-        else:
-            return page_not_found("Project {0}/{1} does not exist"
-                                  .format(username, coprname))
+        return render_template("coprs/detail/delete.html", form=form, copr=copr)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/delete/", methods=["GET", "POST"])
+@login_required
+def group_copr_delete(group_name, coprname):
+    form = forms.CoprDeleteForm()
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+
+    return process_delete(
+        copr, form,
+        url_on_error=url_for('coprs_ns.group_copr_detail',
+                             group_name=group_name, coprname=coprname),
+        url_on_success=url_for('groups_ns.list_projects_by_group',
+                               group_name=group_name)
+    )
+
+
+@coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])
+@login_required
+def copr_delete(username, coprname):
+    form = forms.CoprDeleteForm()
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+
+    return process_delete(
+        copr, form,
+        url_on_error=url_for("coprs_ns.copr_detail",
+                             username=username, coprname=coprname),
+        url_on_success=url_for("coprs_ns.coprs_by_owner", username=username)
+    )
+
+    # if form.validate_on_submit():
+    #
+    #     try:
+    #         ComplexLogic.delete_copr(copr)
+    #     except (exceptions.ActionInProgressException,
+    #             exceptions.InsufficientRightsException) as e:
+    #
+    #         db.session.rollback()
+    #         flask.flash(str(e), "error")
+    #         return flask.redirect(flask.url_for("coprs_ns.copr_detail",
+    #                                             username=username,
+    #                                             coprname=coprname))
+    #     else:
+    #         db.session.commit()
+    #         flask.flash("Project has been deleted successfully.")
+    #         return flask.redirect(flask.url_for("coprs_ns.coprs_by_owner",
+    #                                             username=username))
+    # else:
+    #     return render_template("coprs/detail/delete.html", form=form, copr=copr)
+
 
 
 @coprs_ns.route("/<username>/<coprname>/legal_flag/", methods=["POST"])

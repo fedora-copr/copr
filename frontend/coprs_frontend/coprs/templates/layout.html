@@ -69,7 +69,10 @@
   </nav>
   <div class="breadcrumb-panel">
     <div class="container">
-    {% block breadcrumbs %}{% endblock %}
+      <ol class="breadcrumb">
+        {% block breadcrumbs %}
+        {% endblock %}
+      </ol>
     </div>
   </div>
   {#

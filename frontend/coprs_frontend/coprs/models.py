@@ -897,6 +897,10 @@ class Group(db.Model, helpers.Serializer):
     # TODO: add unique=True
     fas_name = db.Column(db.String(127))
 
+    @property
+    def at_name(self):
+        return u"@{}".format(self.name)
+
     def __str__(self):
         return self.__unicode__()
 

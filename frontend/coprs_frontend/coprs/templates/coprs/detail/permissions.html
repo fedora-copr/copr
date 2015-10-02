@@ -1,6 +1,8 @@
 {% extends "coprs/detail.html" %}
 {% block title %}Permissions for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-{% block permissions_selected %}active{% endblock %}
+
+{% set selected_tab = "permissions" %}
+
 {% from "coprs/detail/_permissions_table.html" import permissions_table with context%}
 {%block project_breadcrumb %}
 <li class="active">

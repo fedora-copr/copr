@@ -243,3 +243,37 @@
     </div>
   </div>
 {% endmacro %}
+
+
+{% macro render_crumb(href, title, active=False) %}
+<li {% if active %} class="active" {% endif %} >
+  <a href="{{ href }}">
+    {{ title }}
+  </a>
+</li>
+{% endmacro %}
+
+{% macro render_breadcrumbs(crumbs) %}
+<ol class="breadcrumb">
+  render_crumb({{ url_for('coprs_ns.coprs_show') }}, "Home')
+
+  {% for href, title in crumbs %}
+    <li>
+      {% if href %}
+        <a href="{{ href }}"> {{ title }} </a>
+      {% else %}
+        {{ title }}
+      {% endif %}
+    </li>
+  {% endfor %}
+</ol>
+{% endmacro %}
+
+
+{% macro build_href(build) %}
+{% if build.copr.is_a_group_project %}
+  {{ url_for('coprs_ns.group_copr_build', group_name=build.copr.group.name, coprname=build.copr.name, build_id=build.id) }}
+{% else %}
+  {{ url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id) }}
+{% endif %}
+{% endmacro %}

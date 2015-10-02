@@ -40,13 +40,29 @@ class ComplexLogic(object):
         group = ComplexLogic.get_group_by_name_safe(group_name)
 
         try:
-            copr = CoprsLogic.get_by_group_id(
+            return CoprsLogic.get_by_group_id(
                 group.id, copr_name, with_mock_chroots=True).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise ObjectNotFound(
-                message="Project {0} does not exist.".format(copr_name))
+                message="Project @{}/{} does not exist."
+                        .format(group_name, copr_name))
 
-        return copr
+    @staticmethod
+    def get_copr_safe(user_name, copr_name, **kwargs):
+        try:
+            return CoprsLogic.get(user_name, copr_name, **kwargs).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            raise ObjectNotFound(
+                message="Project {}/{} does not exist."
+                        .format(user_name, copr_name))
+
+    @staticmethod
+    def get_build_safe(build_id):
+        try:
+            return BuildsLogic.get_by_id(build_id).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            raise ObjectNotFound(
+                message="Build {} does not exist.".format(build_id))
 
     @staticmethod
     def get_group_by_name_safe(group_name):

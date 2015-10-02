@@ -1,4 +1,5 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
+{% from "_helpers.html" import build_href %}
 
 {% macro builds_table(builds) %}
 {% if builds %}
@@ -16,7 +17,11 @@
     <tbody>
     {% for build in builds %}
       <tr class="build-row build-row-{{ build.state }}" >
-        <td><a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">{{ build.id }}</a></td>
+        <td>
+          <a href="{{ build_href(build) }}">
+            {{ build.id }}
+          </a>
+        </td>
         <td>
             {% if build.package %} 
                 {{ build.package.name }}

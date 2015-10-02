@@ -29,9 +29,23 @@
 {% macro copr_build_form_begin(form, view, copr, build=None) %}
     {{ render_form_errors(form, [form._mock_chroots_error]) }}
     {% if not build %}
-    <form class="form-horizontal" action="{{ url_for(view, username=copr.owner.name, coprname=copr.name) }}" method="post" enctype="multipart/form-data">
+    <form class="form-horizontal"
+          action="
+          {% if copr.is_a_group_project %}
+            {{ url_for(view, group_name=copr.group.name, coprname=copr.name) }}
+          {% else %}
+            {{ url_for(view, username=copr.owner.name, coprname=copr.name) }}
+          {% endif %}"
+          method="post" enctype="multipart/form-data">
     {% else %}
-    <form class="form-horizontal" action="{{ url_for(view, username=copr.owner.name, coprname=copr.name, build_id=build.id) }}" method="post" enctype="multipart/form-data">
+    <form class="form-horizontal"
+          action="
+          {% if copr.is_a_group_project %}
+            {{ url_for(view, group_name=copr.group.name, coprname=copr.name, build_id=build.id) }}
+          {% else %}
+            {{ url_for(view, username=copr.owner.name, coprname=copr.name, build_id=build.id) }}
+          {% endif %}"
+          method="post" enctype="multipart/form-data">
     {% endif %}
       <div class="form-group">
         <label class="col-sm-2 control-label" for="textInput-markup">
@@ -115,7 +129,14 @@
 
 {% macro copr_build_cancel_form(build, page) %}
   {% if build.cancelable %}
-    <form action="{{ url_for('coprs_ns.copr_cancel_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post">
+    <form action="
+        {% if build.copr.is_a_group_project %}
+          {{ url_for('coprs_ns.group_copr_cancel_build', group_name=build.copr.group.name, coprname=build.copr.name, build_id=build.id)}}
+        {% else %}
+          {{ url_for('coprs_ns.copr_cancel_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}
+        {% endif %}
+        "
+      method="post">
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
         <span class="pficon pficon-close"> Cancel</span>

@@ -1,5 +1,5 @@
 import flask
-from flask import request
+from flask import request, render_template, url_for
 import re
 import os
 import shutil
@@ -17,6 +17,7 @@ from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 from coprs.logic import packages_logic
 from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.complex_logic import ComplexLogic
 
 from coprs.views.misc import login_required, page_not_found
 from coprs.views.coprs_ns import coprs_ns
@@ -27,45 +28,53 @@ from coprs.exceptions import (ActionInProgressException,
 
 @coprs_ns.route("/build/<int:build_id>/")
 def copr_build_redirect(build_id):
-    build = builds_logic.BuildsLogic.get_by_id(build_id)
-    if not build:
-        return page_not_found(
-            "Build {0} does not exist.".format(str(build_id)))
+    build = ComplexLogic.get_build_safe(build_id)
+    copr = build.copr
+    if copr.is_a_group_project:
+        return flask.redirect(url_for(
+            "coprs_ns.group_copr_build",
+            group_name=build.copr.group.name,
+            coprname=build.copr.name,
+            build_id=build_id))
+    else:
+        return flask.redirect(url_for(
+            "coprs_ns.copr_build",
+            username=build.copr.owner.name,
+            coprname=build.copr.name,
+            build_id=build_id))
 
-    return flask.redirect(flask.url_for("coprs_ns.copr_build",
-                                        username=build.copr.owner.name,
-                                        coprname=build.copr.name,
-                                        build_id=build_id))
+
+def render_copr_build(build_id, copr):
+    build = ComplexLogic.get_build_safe(build_id)
+    return render_template("coprs/detail/build.html", build=build, copr=copr)
 
 
 @coprs_ns.route("/<username>/<coprname>/build/<int:build_id>/")
 def copr_build(username, coprname, build_id):
-    build = builds_logic.BuildsLogic.get_by_id(build_id)
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-
-    if not build:
-        return page_not_found(
-            "Build {0} does not exist.".format(str(build_id)))
-
-    if not copr:  # but the build does
-        return flask.render_template(
-            "coprs/detail/build-no-project.html",
-            build=build, username=username, coprname=coprname)
-
-    return flask.render_template("coprs/detail/build.html", build=build, copr=copr)
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+    return render_copr_build(build_id, copr)
 
 
-@coprs_ns.route("/<username>/<coprname>/builds/", defaults={"page": 1})
-@coprs_ns.route("/<username>/<coprname>/builds/<int:page>/")
-def copr_builds(username, coprname, page=1):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+@coprs_ns.route("/g/<group_name>/<coprname>/build/<int:build_id>/")
+def group_copr_build(group_name, coprname, build_id):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    return render_copr_build(build_id, copr)
 
-    if not copr:
-        return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
 
+@coprs_ns.route("/<username>/<coprname>/builds/")
+def copr_builds(username, coprname):
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+    return render_copr_builds(copr)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/builds/")
+def group_copr_builds(group_name, coprname):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    return render_copr_builds(copr)
+
+
+def render_copr_builds(copr):
     builds_query = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr)
-
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,
                                  builds=builds_query)
@@ -88,50 +97,52 @@ def copr_package(username, coprname, package_name):
     return flask.render_template("coprs/detail/package.html", package=package, copr=copr)
 
 
+@coprs_ns.route("/g/<group_name>/<coprname>/add_build/")
+@login_required
+def group_copr_add_build(group_name, coprname, form=None):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    return render_add_build(copr, form, view='coprs_ns.group_copr_new_build')
+
+
 @coprs_ns.route("/<username>/<coprname>/add_build/")
 @login_required
 def copr_add_build(username, coprname, form=None):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+    return render_add_build(copr, form, view='coprs_ns.copr_new_build')
 
-    if not copr:
-        return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
 
+def render_add_build(copr, form, view):
     if not form:
         form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
-
     return flask.render_template("coprs/detail/add_build/url.html",
-                                 copr=copr,
-                                 form=form)
+                                 copr=copr, view=view, form=form)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/add_build_upload/")
+@login_required
+def group_copr_add_build_upload(group_name, coprname, form=None):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    view = 'coprs_ns.group_copr_new_build_upload'
+    return render_add_build_upload(copr, form, view)
 
 
 @coprs_ns.route("/<username>/<coprname>/add_build_upload/")
 @login_required
 def copr_add_build_upload(username, coprname, form=None):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+    view = 'coprs_ns.copr_new_build_upload'
+    return render_add_build_upload(copr, form, view)
 
-    if not copr:
-        return page_not_found(
-            "Copr with name {0} does not exist.".format(coprname))
 
+def render_add_build_upload(copr, form, view):
     if not form:
         form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
-
     return flask.render_template("coprs/detail/add_build/upload.html",
-                                 copr=copr,
-                                 form=form)
+                                 copr=copr, form=form, view=view)
 
 
-@coprs_ns.route("/<username>/<coprname>/new_build_upload/", methods=["POST"])
-@login_required
-def copr_new_build_upload(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-    if not copr:
-        return page_not_found(
-            "Project {0}/{1} does not exist.".format(username, coprname))
-
+def process_new_build_upload(copr, add_view, url_on_success):
     form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
-
     if form.validate_on_submit():
         build_options = {
             "enable_net": form.enable_net.data,
@@ -153,21 +164,32 @@ def copr_new_build_upload(username, coprname):
         else:
             flask.flash("New build has been created.")
 
-        return flask.redirect(flask.url_for("coprs_ns.copr_builds",
-                                            username=username,
-                                            coprname=copr.name))
+        return flask.redirect(url_on_success)
     else:
-        return copr_add_build_upload(username=username, coprname=coprname, form=form)
+        return render_add_build_upload(copr, form, add_view)
 
 
-@coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/new_build_upload/", methods=["POST"])
 @login_required
-def copr_new_build(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-    if not copr:
-        return page_not_found(
-            "Project {0}/{1} does not exist.".format(username, coprname))
+def copr_new_build_upload(username, coprname):
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+    view = 'coprs_ns.copr_new_build_upload'
+    url_on_success = url_for("coprs_ns.copr_builds",
+                             username=username, coprname=copr.name)
+    return process_new_build_upload(copr, view, url_on_success)
 
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_upload/", methods=["POST"])
+@login_required
+def group_copr_new_build_upload(group_name, coprname):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    view = 'coprs_ns.group_copr_new_build_upload'
+    url_on_success = url_for("coprs_ns.group_copr_builds",
+                             group_name=group_name, coprname=copr.name)
+    return process_new_build_upload(copr, view, url_on_success)
+
+
+def process_new_build_url(copr, add_view, url_on_success):
     form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
 
     if form.validate_on_submit():
@@ -195,25 +217,6 @@ def copr_new_build(username, coprname):
                         **build_options
                     )
 
-                    # # create json describing the build source
-                    # source_type = helpers.BuildSourceEnum("srpm_link")
-                    # source_json = json.dumps({"url": pkg})
-
-
-
-                    # build = BuildsLogic.add(
-                    #     user=flask.g.user,
-                    #     pkgs=pkg,
-                    #     copr=copr,
-                    #     chroots=chroots,
-                    #     source_type=source_type,
-                    #     source_json=source_json,
-                    #     enable_net=form.enable_net.data)
-                    #
-                    # if flask.g.user.proven:
-                    #     build.memory_reqs = form.memory_reqs.data
-                    #     build.timeout = form.timeout.data
-
             except (ActionInProgressException, InsufficientRightsException) as e:
                 flask.flash(str(e), "error")
                 db.session.rollback()
@@ -223,11 +226,33 @@ def copr_new_build(username, coprname):
 
                 db.session.commit()
 
-        return flask.redirect(flask.url_for("coprs_ns.copr_builds",
-                                            username=username,
-                                            coprname=copr.name))
+        return flask.redirect(url_on_success)
     else:
-        return copr_add_build(username=username, coprname=coprname, form=form)
+        return render_add_build_upload(copr, form, add_view)
+
+
+@coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
+@login_required
+def copr_new_build(username, coprname):
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+    return process_new_build_url(
+        copr,
+        "coprs_ns.copr_add_build",
+        url_on_success=url_for("coprs_ns.copr_builds",
+                               username=username, coprname=copr.name)
+    )
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build/", methods=["POST"])
+@login_required
+def group_copr_new_build(group_name, coprname):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    return process_new_build_url(
+        copr,
+        "coprs_ns.group_copr_add_build",
+        url_on_success=url_for("coprs_ns.group_copr_builds",
+                               group_name=group_name, coprname=coprname)
+    )
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
@@ -239,6 +264,7 @@ def copr_new_build_rebuild(username, coprname, build_id):
         return page_not_found(
             "Project {0}/{1} does not exist.".format(username, coprname))
 
+    # todo: add to ComplexLogic method get_build_safe
     if not source_build:
         return page_not_found(
             "Build {} does not exist!".format(form.build_id.data))
@@ -273,30 +299,34 @@ def copr_new_build_rebuild(username, coprname, build_id):
         return copr_add_build(username=username, coprname=coprname, form=form)
 
 
-@coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/",
-                defaults={"page": 1},
-                methods=["POST"])
-@coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/<int:page>/",
-                methods=["POST"])
-@login_required
-def copr_cancel_build(username, coprname, build_id, page=1):
-    # only the user who ran the build can cancel it
-    build = builds_logic.BuildsLogic.get(build_id).first()
-    if not build:
-        return page_not_found(
-            "Build with id {0} does not exist.".format(build_id))
+def process_cancel_build(build, url):
     try:
         builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
     except InsufficientRightsException as e:
         flask.flash(str(e), "error")
     else:
         db.session.commit()
-        flask.flash("Build {} has been canceled successfully.".format(build_id), "success")
+        flask.flash("Build {} has been canceled successfully.".format(build.id), "success")
+    return flask.redirect(url)
 
-    return flask.redirect(flask.url_for("coprs_ns.copr_builds",
-                                        username=username,
-                                        coprname=coprname,
-                                        page=page))
+
+@coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/",
+                methods=["POST"])
+@login_required
+def copr_cancel_build(username, coprname, build_id):
+    # only the user who ran the build can cancel it
+    build = ComplexLogic.get_build_safe(build_id)
+    url = url_for("coprs_ns.copr_builds", username=username, coprname=coprname)
+    return process_cancel_build(build, url)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/cancel_build/<int:build_id>/",
+                methods=["POST"])
+@login_required
+def group_copr_cancel_build(group_name, coprname, build_id):
+    build = ComplexLogic.get_build_safe(build_id)
+    url = url_for("coprs_ns.group_copr_builds", group_name=group_name, coprname=coprname)
+    return process_cancel_build(build, url)
 
 
 @coprs_ns.route("/<username>/<coprname>/repeat_build/<int:build_id>/",

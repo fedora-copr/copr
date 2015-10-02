@@ -9,6 +9,7 @@ from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
 from coprs.logic.backend_logic import BackendLogic
 from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
 
@@ -218,7 +219,7 @@ def starting_build():
     result = {"can_start": False}
 
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build = BuildsLogic.get_by_id(flask.request.json["build_id"])
+        build = ComplexLogic.get_build_safe(flask.request.json["build_id"])
         chroot = flask.request.json.get("chroot")
 
         if build and chroot and not build.canceled:
@@ -258,7 +259,7 @@ def reschedule_all_running():
 def reschedule_build_chroot():
     response = {}
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build = BuildsLogic.get_by_id(flask.request.json["build_id"])
+        build = ComplexLogic.get_build_safe(flask.request.json["build_id"])
     else:
         response["result"] = "bad request"
         response["msg"] = "Request missing  `build_id` and/or `chroot`"

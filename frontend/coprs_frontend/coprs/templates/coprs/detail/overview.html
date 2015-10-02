@@ -1,9 +1,10 @@
 {% extends "coprs/detail.html" %}
 
 {% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
-{% from "_helpers.html" import chroot_to_os_logo %}
+{% from "_helpers.html" import chroot_to_os_logo, copr_name %}
 
-{% block overview_selected %}active{% endblock %}
+{% set selected_tab = "overview" %}
+
 {%block project_breadcrumb %}
 <li class="active">
   Overview
@@ -14,15 +15,24 @@
 <div class="row">
   <div class="col-sm-8 col-md-9">
     <h3>Description</h3>
-    <p>{{ copr.description|markdown|default('Description not filled in by author. Very likely personal repository for testing purpose, which you should not use.', true) }}</p>
+    <p>{{ copr.description|markdown|default(
+            'Description not filled in by author.
+             Very likely personal repository for testing purpose,
+             which you should not use.', true) }}
+    </p>
 
 
     <h3>Installation Instructions</h3>
-    <p>{{ copr.instructions|markdown|default('Instructions not filled in by author. Author knows what to do. Everybody else should avoid this repo.', true) }}</p>
+    <p>{{ copr.instructions|markdown|default(
+            'Instructions not filled in by author.
+             Author knows what to do.
+             Everybody else should avoid this repo.', true) }}
+    </p>
 
     <h3>Active Releases</h3>
     <p>
-        The following unofficial repositories are provided as-is by owner of this project.
+        The following unofficial repositories are provided as-is
+        by owner of this project.
         Contact the owner directly for bugs or issues (IE: not bugzilla).
     </p>
 
@@ -143,7 +153,7 @@
       </div>
       <div class="panel-body">
         <div class="well well-sm">
-          dnf copr enable {{copr.owner.name}}/{{copr.name}}
+          dnf copr enable {{ copr_name(copr) }}
         </div>
         <a href="https://fedorahosted.org/copr/wiki/HowToEnableRepo" target="_blank">
           <small class="pficon pficon-info"> More info about enabling Copr repositories</small></a>

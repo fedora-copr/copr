@@ -1,40 +1,29 @@
 {% extends "layout.html" %}
-{% from "_helpers.html" import copr_title %}
+{% from "_helpers.html" import copr_title, render_crumb %}
 
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
 {% block main_menu_projects %}active{% endblock %}
-{% block breadcrumbs %}
 
-<ol class="breadcrumb">
-  <li>
-    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
-  </li>
-  <li>
-    {% if copr.is_a_group_project %}
-      <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) }}">
-        @{{ copr.group.name }}
-      </a>
-    {% else %}
-      <a href="{{ url_for('coprs_ns.coprs_by_owner', username=copr.owner.name) }}">
-        {{ copr.owner.name }}
-      </a>
-    {% endif %}
-  </li>
-  <li class="active">
-    {% if copr.is_a_group_project %}
-      <a href="{{ url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}">
-        {{ copr.name }}
-      </a>
-    {% else %}
-      <a href="{{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}">
-        {{ copr.name }}
-      </a>
-    {% endif %}
-  </li>
+
+{% block breadcrumbs %}
+  {{ render_crumb(url_for('coprs_ns.coprs_show'), 'Home') }}
+  {% if copr.is_a_group_project %}
+    {{ render_crumb(url_for('groups_ns.list_projects_by_group', group_name=copr.group.name),
+                 copr.group.at_name) }}
+    {{ render_crumb(url_for('coprs_ns.group_copr_detail',
+                            group_name=copr.group.name, coprname=copr.name),
+                    copr.name, active=True) }}
+  {% else %}
+    {{ render_crumb(url_for('coprs_ns.coprs_by_owner', username=copr.owner.name),
+                    copr.owner.name)}}
+    {{ render_crumb(url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name),
+                    copr.name)}}
+  {% endif %}
+
   {%block project_breadcrumb %}
   {%endblock%}
-</ol>
 {%endblock%}
+
 {% block body %}
 
 <!-- PROJECT NAME -->
@@ -42,55 +31,90 @@
   {{ copr_title(copr) }}
 </h1>
 
+
+{% macro nav_element(tab_name, tab_title, href) %}
+<li class="{% if selected_tab == tab_name %}active{% endif %}">
+  <a href="{{ href }}">
+    {{ tab_title }}
+  </a>
+</li>
+{% endmacro %}
+
 <!-- MENU -->
 <ul class="nav nav-tabs">
-  <li class="{% block overview_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}">
-      Overview
-    </a>
-  </li>
+{% if copr.is_a_group_project %}
 
-  <li class="{% block builds_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name) }}">
-      Builds
-    </a>
-  </li>
+    {{ nav_element("overview", "Overview",
+           url_for('coprs_ns.group_copr_detail', group_name = copr.group.name, coprname = copr.name)) }}
 
-  <li class="{% block monitor_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name) }}">
-      Monitor
-    </a>
-  </li>
+    {{ nav_element("builds", "Builds",
+           url_for('coprs_ns.group_copr_builds', group_name = copr.group.name, coprname = copr.name))
+    }}
 
-  <li class="{% block permissions_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name) }}">
-      Permissions
-    </a>
-  </li>
+    {{ nav_element("monitor", "Monitor",
+           "")
+    }}
 
-  {% if g.user and g.user.can_build_in(copr) %}
-  <li class="{% block new_build_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">
-      New Build
-    </a>
-  </li>
-  {% endif %}
+    {% if g.user and g.user.can_build_in(copr) %}
+    {{ nav_element("add_build", "New Build",
+          url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name))
+    }}
+    {% endif %}
 
-  {% if g.user and g.user.can_edit(copr) %}
-  <li class="{% block edit_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">
-      Edit
-    </a>
-  </li>
-  {% endif %}
+    {% if g.user and g.user.can_edit(copr) %}
+    {{ nav_element("edit", "Edit",
+           url_for('coprs_ns.group_copr_edit', group_name = copr.group.name, coprname = copr.name))
+    }}
+    {% endif %}
 
-  {% if g.user and g.user == copr.owner %}
-  <li class="{% block delete_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_delete', username=copr.owner.name, coprname=copr.name) }}">
-      Delete
-    </a>
-  </li>
-  {% endif %}
+    {% if g.user and g.user.can_edit(copr) %}
+    {{ nav_element("delete", "Delete",
+          url_for('coprs_ns.group_copr_delete', group_name = copr.group.name, coprname = copr.name))
+    }}
+    {% endif %}
+
+{% else %}
+
+    {{ nav_element("overview", "Overview",
+           url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name)) }}
+
+    {{ nav_element("builds", "Builds",
+         url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name)
+       )
+    }}
+
+    {{ nav_element("monitor", "Monitor",
+         url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name)
+       )
+    }}
+
+    {{ nav_element("permissions", "Permission",
+         url_for('coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name)
+       )
+    }}
+
+    {% if g.user and g.user.can_build_in(copr) %}
+    {{ nav_element("add_build", "New Build",
+         url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name)
+       )
+    }}
+    {% endif %}
+
+    {% if g.user and g.user.can_edit(copr) %}
+    {{ nav_element("edit", "Edit",
+         url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name)
+       )
+    }}
+    {% endif %}
+
+    {% if g.user and g.user == copr.owner %}
+    {{ nav_element("delete", "Delete",
+         url_for('coprs_ns.copr_delete', username = copr.owner.name, coprname = copr.name)
+       )
+    }}
+    {% endif %}
+
+{% endif %}
 </ul>
 
 {% block detail_body %}{% endblock %}

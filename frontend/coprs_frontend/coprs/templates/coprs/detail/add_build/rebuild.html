@@ -2,7 +2,7 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_form_rebuild with context %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 
-{% block new_build_rebuild_selected %}active{% endblock %}
+{% set add_build_tab = "rebuild" %}
 
 {%block project_breadcrumb %}
 <li>
@@ -49,7 +49,7 @@
       {{ describe_source(build) }}
     </dl>
     <h3> New Build Options </h3>
-    {{ copr_build_form_rebuild(form, 'coprs_ns.copr_new_build_rebuild', copr, build) }}
+    {{ copr_build_form_rebuild(form, view, copr, build) }}
   </div>
 </div>
 {% endblock %}

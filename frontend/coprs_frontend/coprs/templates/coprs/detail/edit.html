@@ -1,7 +1,10 @@
 {% extends "coprs/detail.html" %}
-{% block title %}Editing {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-{% block edit_selected %}active{% endblock %}
 {% from "coprs/_coprs_forms.html" import copr_form, copr_permissions_form with context %}
+
+{% set selected_tab = "edit" %}
+
+{% block title %}Editing {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+
 {%block project_breadcrumb %}
 <li class="active">
   Edit
@@ -11,6 +14,5 @@
 {% block detail_body %}
   <h2> Edit Project Details</h2>
 
-  {{ copr_form(form, view = 'coprs_ns.copr_update', copr = copr) }}
-
+  {{ copr_form(form, view = view, copr = copr) }}
 {% endblock %}

@@ -173,7 +173,7 @@ class BuildsLogic(object):
 
     @classmethod
     def get_by_id(cls, build_id):
-        return models.Build.query.get(build_id)
+        return models.Build.query.filter(models.Build.id == build_id)
 
     @classmethod
     def create_new_from_other_build(cls, user, copr, source_build,
@@ -382,7 +382,7 @@ class BuildsLogic(object):
         Example: 42-f22 -> build id 42, chroots fedora-22-*
         """
         build_id, branch = task_id.split("-")
-        build = cls.get_by_id(build_id)
+        build = cls.get_by_id(build_id).one()
         build_chroots = build.build_chroots
         os, version = helpers.branch_to_os_version(branch)
         chroot_halfname = "{}-{}".format(os, version)
