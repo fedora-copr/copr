@@ -132,6 +132,48 @@ def copr_add(username):
     return flask.render_template("coprs/add.html", form=form)
 
 
+@coprs_ns.route("/g/<group_name>/add/")
+@login_required
+def group_copr_add(group_name):
+    group = ComplexLogic.get_group_by_name_safe(group_name)
+    form = forms.CoprFormFactory.create_form_cls()()
+
+    return flask.render_template(
+        "coprs/group_add.html", form=form, group=group)
+
+
+@coprs_ns.route("/g/<group_name>/new/", methods=["POST"])
+@login_required
+def group_copr_new(group_name):
+    group = ComplexLogic.get_group_by_name_safe(group_name)
+    form = forms.CoprFormFactory.create_form_cls()()
+
+    if form.validate_on_submit():
+        copr = coprs_logic.CoprsLogic.add(
+            flask.g.user,
+            name=form.name.data,
+            homepage=form.homepage.data,
+            contact=form.contact.data,
+            repos=form.repos.data.replace("\n", " "),
+            selected_chroots=form.selected_chroots,
+            description=form.description.data,
+            instructions=form.instructions.data,
+            disable_createrepo=form.disable_createrepo.data,
+            build_enable_net=form.build_enable_net.data,
+            group_id=group.id
+        )
+
+        db.session.add(copr)
+        db.session.commit()
+        after_the_project_creation(copr, form)
+
+        return flask.redirect(flask.url_for("coprs_ns.group_copr_detail",
+                                            group_name=group.name,
+                                            coprname=copr.name))
+    else:
+        return flask.render_template("coprs/group_add.html", form=form)
+
+
 @coprs_ns.route("/<username>/new/", methods=["POST"])
 @login_required
 def copr_new(username):
@@ -156,42 +198,45 @@ def copr_new(username):
         )
 
         db.session.commit()
-        flask.flash("New project has been created successfully.", "success")
-        _check_rpmfusion(copr.repos)
-
-        if form.initial_pkgs.data:
-            pkgs = form.initial_pkgs.data.replace("\n", " ").split(" ")
-
-            # validate (and skip bad) urls
-            bad_urls = []
-            for pkg in pkgs:
-                if not re.match("^.*\.src\.rpm$", pkg):
-                    bad_urls.append(pkg)
-                    flask.flash("Bad url: {0} (skipped)".format(pkg))
-            for bad_url in bad_urls:
-                pkgs.remove(bad_url)
-
-            if not pkgs:
-                flask.flash("No initial packages submitted")
-            else:
-                # build each package as a separate build
-                for pkg in pkgs:
-                    builds_logic.BuildsLogic.add(
-                        flask.g.user,
-                        pkgs=pkg,
-                        copr=copr,
-                        enable_net=form.build_enable_net.data
-                    )
-
-                db.session.commit()
-                flask.flash("Initial packages were successfully submitted "
-                            "for building.")
+        after_the_project_creation(copr, form)
 
         return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                             username=flask.g.user.name,
                                             coprname=copr.name))
     else:
         return flask.render_template("coprs/add.html", form=form)
+
+
+def after_the_project_creation(copr, form):
+    flask.flash("New project has been created successfully.", "success")
+    _check_rpmfusion(copr.repos)
+    if form.initial_pkgs.data:
+        pkgs = form.initial_pkgs.data.replace("\n", " ").split(" ")
+
+        # validate (and skip bad) urls
+        bad_urls = []
+        for pkg in pkgs:
+            if not re.match("^.*\.src\.rpm$", pkg):
+                bad_urls.append(pkg)
+                flask.flash("Bad url: {0} (skipped)".format(pkg))
+        for bad_url in bad_urls:
+            pkgs.remove(bad_url)
+
+        if not pkgs:
+            flask.flash("No initial packages submitted")
+        else:
+            # build each package as a separate build
+            for pkg in pkgs:
+                builds_logic.BuildsLogic.add(
+                    flask.g.user,
+                    pkgs=pkg,
+                    copr=copr,
+                    enable_net=form.build_enable_net.data
+                )
+
+            db.session.commit()
+            flask.flash("Initial packages were successfully submitted "
+                        "for building.")
 
 
 @coprs_ns.route("/<username>/<coprname>/report-abuse")
@@ -241,10 +286,10 @@ def get_copr_safe(user_name, copr_name):
     return copr
 
 
-@coprs_ns.route("/g/<groupname>/<coprname>/")
-def group_copr_detail(groupname, coprname):
+@coprs_ns.route("/g/<group_name>/<coprname>/ ")
+def group_copr_detail(group_name, coprname):
 
-    copr = get_group_copr_safe(groupname, coprname)
+    copr = get_group_copr_safe(group_name, coprname)
     return render_copr_detail(copr)
 
 
@@ -255,7 +300,7 @@ def copr_detail(username, coprname):
     if copr.is_a_group_project:
         return fixed_redirect(flask.url_for(
             endpoint=".group_copr_detail",
-            groupname=copr.group.name,
+            group_name=copr.group.name,
             coprname=copr.name,
         ))
 

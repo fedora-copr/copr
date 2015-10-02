@@ -158,6 +158,7 @@ class CoprFormFactory(object):
             # is updating a copr if so, we don't want to shout
             # that name already exists
             id = wtforms.HiddenField()
+            group_id = wtforms.HiddenField()
 
             name = wtforms.StringField(
                 "Name",

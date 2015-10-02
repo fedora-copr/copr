@@ -1,25 +1,40 @@
 {% from "_helpers.html" import render_field, render_form_errors %}
 
-{% macro copr_form(form, view, copr = None, username = None) %}
+{% macro copr_form(form, view, copr = None, username = None, group = None) %}
   {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
 
   {{ render_form_errors(form, [form._mock_chroots_error]) }}
 
-  <form action="{% if copr %}
-        {{ url_for(view, username = copr.owner.name, coprname = copr.name) }}
+  <form action="
+    {% if copr %}
+        {% if group %}
+          {{ url_for(view, group_name = group.name, coprname = copr.name) }}
+        {% else %}
+          {{ url_for(view, username = copr.owner.name, coprname = copr.name) }}
+        {% endif %}
+    {% elif group %}
+        {{ url_for(view, group_name = group.name) }}
     {% elif username %}
         {{ url_for(view, username = username) }}
     {% else %}
         {{ url_for(view) }}
     {% endif %}" method="post" class="form-horizontal">
+
     {{ form.csrf_token }}
     {{ render_field(form.id, hidden = True) }}
+
+    {% if group %}
+        <input type="hidden" name="group_id" value="{{ group.id }}" />
+    {% endif %}
+
     {% if copr is none %}
       {{ render_field(form.name, label='Project Name', required = True, class="required") }}
+
     {% else %}
       {{ render_field(form.name, hidden = True) }}
       {{ render_field(form.name, label='Project Name', disabled = True) }}
     {% endif %}
+
     {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.',
           info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTMLis forbidden.') }}
 

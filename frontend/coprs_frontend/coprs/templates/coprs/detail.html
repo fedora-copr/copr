@@ -11,7 +11,7 @@
   </li>
   <li>
     {% if copr.is_a_group_project %}
-      <a href="#">
+      <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) }}">
         @{{ copr.group.name }}
       </a>
     {% else %}
@@ -22,7 +22,7 @@
   </li>
   <li class="active">
     {% if copr.is_a_group_project %}
-      <a href="{{ url_for('coprs_ns.group_copr_detail', groupname=copr.group.name, coprname=copr.name) }}">
+      <a href="{{ url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}">
         {{ copr.name }}
       </a>
     {% else %}
@@ -30,7 +30,6 @@
         {{ copr.name }}
       </a>
     {% endif %}
-
   </li>
   {%block project_breadcrumb %}
   {%endblock%}
