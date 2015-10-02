@@ -40,18 +40,21 @@
   </div>
   <div class="col-md-3 col-sm-4">
     <br>
-    {% if g.user %}
+    {% if g.user and g.user.can_build_in_group(group) %}
       <div class="panel panel-default">
         <div class="panel-body">
           <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn btn-primary">
-            <span class="pficon pficon-add-circle-o"> New Project </span>
+            <span class="pficon pficon-add-circle-o">
+              New Project for <br />
+              the group <strong> @{{ group.name }} </strong>
+            </span>
           </a>
         </div>
       </div>
 
-      {% if g.user %}
-        {{ user_projects_panel(g.user) }}
-      {% endif %}
+    {% endif %}
+    {% if g.user %}
+      {{ user_projects_panel(g.user) }}
     {% endif %}
 
     {{ task_queue_panel(tasks_info) }}

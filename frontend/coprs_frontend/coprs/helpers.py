@@ -9,6 +9,7 @@ from dateutil import parser as dt_parser
 from netaddr import IPAddress, IPNetwork
 
 from redis import StrictRedis
+import sqlalchemy
 
 from coprs import constants, app
 from coprs import app

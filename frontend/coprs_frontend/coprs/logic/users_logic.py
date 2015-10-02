@@ -49,6 +49,10 @@ class UsersLogic(object):
         return Group.query.filter(Group.fas_name.in_(fas_name_list))
 
     @classmethod
+    def get_groups_by_names_list(cls, name_list):
+        return Group.query.filter(Group.name.in_(name_list))
+
+    @classmethod
     def create_group_by_fas_name(cls, fas_name, alias=None):
         if alias is None:
             alias = fas_name

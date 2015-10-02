@@ -90,10 +90,27 @@ class User(db.Model, helpers.Serializer):
 
         # a bit dirty code, here we access flask.session object
         if copr.group is not None and \
-                copr.group.fas_name in flask.session.get("teams", []):
+                copr.group.fas_name in self.user_teams:
             return True
 
         return can_build
+
+    @property
+    def user_teams(self):
+        return flask.session.get("teams", [])
+
+    @property
+    def user_groups(self):
+        return Group.query.filter(Group.fas_name.in_(self.user_teams)).all()
+
+    def can_build_in_group(self, group):
+        """
+        :type group: Group
+        """
+        if group.fas_name in self.user_teams:
+            return True
+        else:
+            return False
 
     def can_edit(self, copr):
         """

@@ -2,10 +2,16 @@
 
 import flask
 import sqlalchemy
+
+from .. import db
 from .builds_logic import BuildsLogic
 from coprs.exceptions import ObjectNotFound
+from coprs.helpers import StatusEnum
+
 from coprs.logic.users_logic import UsersLogic
+from coprs.models import User
 from .coprs_logic import CoprsLogic
+from .. import helpers
 
 
 class ComplexLogic(object):
@@ -56,3 +62,26 @@ class ComplexLogic(object):
     #     group = ComplexLogic.get_group_by_name_safe(group_name)
     #
     #
+
+    @staticmethod
+    def get_active_groups_by_user(user_name):
+        if "teams" in flask.session:
+            names = flask.session["teams"]
+            query = UsersLogic.get_groups_by_names_list(names)
+            return query.filter(User.name == user_name)
+        else:
+            return []
+
+    @staticmethod
+    def get_queues_size():
+        # todo: check if count works slowly
+
+        waiting = BuildsLogic.get_build_task_queue().count()
+        running = BuildsLogic.get_build_tasks(StatusEnum("running")).count()
+        importing = BuildsLogic.get_build_tasks(helpers.StatusEnum("importing")).count()
+        return dict(
+            waiting=waiting,
+            running=running,
+            importing=importing
+        )
+

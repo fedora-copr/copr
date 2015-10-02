@@ -11,13 +11,16 @@
     <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}">{{ g.user.name }}</a>
   </li>
   <li class="active">
-    Add Group
+    groups
   </li>
 </ol>
 {% endblock %}
 {% block body %}
 
-  <h1>Add a New Group</h1>
+  <h1>
+    {{ user.name|capitalize }}'s groups
+
+  </h1>
 
 {% if teams %}
   <table class="datatable table table-striped table-bordered">

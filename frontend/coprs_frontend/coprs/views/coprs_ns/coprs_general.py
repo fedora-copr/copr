@@ -54,18 +54,10 @@ def coprs_show(page=1):
     # users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
     users_builds = builds_logic.BuildsLogic.get_recent_tasks(None, 5)
 
-    waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
-    running_tasks = len(list(builds_logic.BuildsLogic
-                             .get_build_tasks(helpers.StatusEnum("running"))))
-    importing_tasks = len(list(builds_logic.BuildsLogic
-                             .get_build_tasks(helpers.StatusEnum("importing"))))
-
     return flask.render_template("coprs/show/all.html",
                                  coprs=coprs,
                                  paginator=paginator,
-                                 waiting_tasks=waiting_tasks,
-                                 running_tasks=running_tasks,
-                                 importing_tasks=importing_tasks,
+                                 tasks_info=ComplexLogic.get_queues_size(),
                                  users_builds=users_builds)
 
 
@@ -87,19 +79,11 @@ def coprs_by_owner(username=None, page=1):
     # flask.g.user is none when no user is logged - showing builds from everyone
     users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
 
-    waiting_tasks = len(list(builds_logic.BuildsLogic.get_build_task_queue()))
-    running_tasks = len(list(builds_logic.BuildsLogic
-                             .get_build_tasks(helpers.StatusEnum("running"))))
-    importing_tasks = len(list(builds_logic.BuildsLogic
-                             .get_build_tasks(helpers.StatusEnum("importing"))))
-
     return flask.render_template("coprs/show/user.html",
                                  user=user,
                                  coprs=coprs,
                                  paginator=paginator,
-                                 waiting_tasks=waiting_tasks,
-                                 running_tasks=running_tasks,
-                                 importing_tasks=importing_tasks,
+                                 tasks_info=ComplexLogic.get_queues_size(),
                                  users_builds=users_builds)
 
 
@@ -131,8 +115,13 @@ def coprs_fulltext_search(page=1):
                                   additional_params={"fulltext": fulltext})
 
     coprs = paginator.sliced_query
-    return render_template("coprs/show/fulltext.html", coprs=coprs,
-                           paginator=paginator, fulltext=fulltext)
+    return render_template(
+        "coprs/show/fulltext.html",
+        coprs=coprs,
+        paginator=paginator,
+        fulltext=fulltext,
+        tasks_info=ComplexLogic.get_queues_size(),
+    )
 
 
 @coprs_ns.route("/<username>/add/")

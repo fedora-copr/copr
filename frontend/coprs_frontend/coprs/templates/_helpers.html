@@ -164,3 +164,82 @@
       {{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}
   {% endif %}
 {% endmacro %}
+
+
+{% macro user_projects_panel(user) %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"> {{ g.user.name | capitalize}} </h3>
+    </div>
+    <div class="panel-body">
+      <img class="avatar" src="{{ g.user.gravatar_url }}" alt="User Image">
+    </div>
+    <div class="list-group">
+      <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" class="list-group-item">
+        <span class="badge">{{ g.user.coprs_count }}</span>
+        My projects
+      </a>
+    </div>
+    <div>
+      <a href="{{url_for('groups_ns.list_user_groups') }}" class="list-group-item">
+        <span class="badge"> {{ user.user_groups|length }} </span>
+        My groups
+      </a>
+    </div>
+  </div>
+{% endmacro %}
+
+
+{% macro task_queue_panel(tasks_info) %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"> Task Queue </h3>
+    </div>
+    <div class="list-group">
+      <a href="{{url_for('status_ns.importing')}}" class="list-group-item">
+        <span class="badge">{{ tasks_info.importing}}</span>
+        Importing
+      </a>
+      <a href="{{url_for('status_ns.waiting')}}" class="list-group-item">
+        <span class="badge">{{ tasks_info.waiting }}</span>
+        Waiting
+      </a>
+      <a href="{{url_for('status_ns.running')}}" class="list-group-item">
+        <span class="badge">{{ tasks_info.running }}</span>
+        Running
+      </a>
+    </div>
+  </div>
+{% endmacro %}
+
+
+{% macro recent_builds_panel(builds) %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"> Recent Builds </h3>
+    </div>
+    <div class="list-group">
+      {% for build in builds %}
+        <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
+          <h4 class="list-group-item-heading">{{build.pkgs | pkg_name}}</h4>
+          <p class="list-group-item-text">
+            <small>Project:</small>
+            {{build.copr.owner.name}}/{{build.copr.name}}
+          </p>
+          <p class="list-group-item-text">
+            <small>Build:</small>
+            {{build.id}}
+          </p>
+          <p class="list-group-item-text">
+            <small>State:</small>
+            <span class="build build-{{build.state}}">{{build.state}}</span>
+          </p>
+          <p class="list-group-item-text">
+            <small>Finished:</small>
+            {{build.ended_on|time_ago()}} ago
+          </p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+{% endmacro %}

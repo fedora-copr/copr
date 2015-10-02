@@ -66,13 +66,14 @@ def list_projects_by_group(group_name, page=1):
         user=flask.g.user,
         coprs=coprs,
         paginator=paginator,
+        tasks_info=ComplexLogic.get_queues_size(),
         group=group
     )
 
 
-@groups_ns.route("/add/")
+@groups_ns.route("/list/my")
 @login_required
-def add():
+def list_user_groups():
     teams = session.get("teams")
     print(teams)
     active_map = {
