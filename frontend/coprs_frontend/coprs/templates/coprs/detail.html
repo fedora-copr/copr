@@ -52,7 +52,7 @@
     }}
 
     {{ nav_element("monitor", "Monitor",
-           "")
+           url_for('coprs_ns.group_copr_build_monitor', group_name = copr.group.name, coprname = copr.name))
     }}
 
     {% if g.user and g.user.can_build_in(copr) %}

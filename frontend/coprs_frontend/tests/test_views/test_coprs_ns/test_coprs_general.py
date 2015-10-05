@@ -71,21 +71,6 @@ class TestCoprsOwned(CoprsTestCase):
         assert r.data.count('<!--copr-project-->') == 1
 
 
-class TestCoprsAllowed(CoprsTestCase):
-
-    @TransactionDecorator("u3")
-    def test_allowed_none(self, f_users, f_coprs, f_copr_permissions, f_db):
-        self.db.session.add(self.u3)
-        r = self.test_client.get("/coprs/{0}/allowed/".format(self.u3.name))
-        assert "No projects..." in r.data
-
-    @TransactionDecorator("u1")
-    def test_allowed_one(self, f_users, f_coprs, f_copr_permissions, f_db):
-        self.db.session.add(self.u1)
-        r = self.test_client.get("/coprs/{0}/allowed/".format(self.u1.name))
-        assert r.data.count('<!--copr-project-->') == 1
-
-
 class TestCoprNew(CoprsTestCase):
     success_string = "New project has been created successfully."
 

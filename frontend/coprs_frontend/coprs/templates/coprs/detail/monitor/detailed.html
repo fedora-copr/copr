@@ -1,13 +1,14 @@
 {% extends "coprs/detail/monitor.html" %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 
+{% set selected_monitor_tab = "detailed" %}
+
 {% block project_breadcrumb_monitor %}
 <li class="active">
   Detailed
 </li>
 {% endblock %}
 
-{% block monitor_detailed_selected %}active{% endblock %}
 
 {% block monitor_table %}
 <h2> Detailed Build Monitor </h2>

@@ -4,9 +4,22 @@
 
 {% set selected_tab = "monitor" %}
 
+
+{% if copr.is_a_group_project %}
+  {% set monitor_view='coprs_ns.group_copr_build_monitor' %}
+{% else %}
+  {% set monitor_view='coprs_ns.copr_build_monitor' %}
+{% endif %}
+
 {%block project_breadcrumb %}
 <li>
-  <a href="{{ url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name) }}">
+  <a href="
+    {% if copr.is_a_group_project %}
+      {{ url_for(monitor_view, group_name = copr.group.name, coprname = copr.name) }}
+    {% else %}
+      {{ url_for(monitor_view, username = copr.owner.name, coprname = copr.name) }}
+    {% endif %}
+    ">
     Monitor
   </a>
   {% block project_breadcrumb_monitor %}
@@ -14,18 +27,37 @@
 </li>
 {%endblock%}
 
+
+{% macro monitor_tab(tab_name, tab_title, href) %}
+<li class="{% if selected_monitor_tab == tab_name %}active{% endif %}">
+  <a href="{{ href }}">
+    {{ tab_title }}
+  </a>
+</li>
+{% endmacro %}
+
+
 {% block detail_body %}
+
 <ul class="nav nav-tabs nav-tabs-pf">
-  <li class="{% block monitor_simple_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name) }}">
-        Simple
-    </a>
-  </li>
-  <li class="{% block monitor_detailed_selected %}{% endblock %}">
-    <a href="{{ url_for('coprs_ns.copr_build_monitor_detailed', username = copr.owner.name, coprname = copr.name) }}">
-        Detailed
-    </a>
-  </li>
+  {% if copr.is_a_group_project %}
+    {{ monitor_tab("simple", "Simple",
+        url_for(monitor_view, group_name = copr.group.name, coprname = copr.name)
+    ) }}
+    {{ monitor_tab("detailed", "Detailed",
+        url_for(monitor_view, group_name = copr.group.name, coprname = copr.name, detailed=True)
+    ) }}
+
+  {% else %}
+    {{ monitor_tab("simple", "Simple",
+        url_for(monitor_view, username = copr.owner.name, coprname = copr.name)
+    ) }}
+    {{ monitor_tab("detailed", "Detailed",
+        url_for(monitor_view, username = copr.owner.name, coprname = copr.name, detailed=True)
+    ) }}
+
+  {% endif %}
+
 </ul>
 
 {% block monitor_table %}{% endblock %}

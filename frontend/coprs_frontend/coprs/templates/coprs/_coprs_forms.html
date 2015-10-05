@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field, render_form_errors %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_details_href %}
 
 {% macro copr_form(form, view, copr = None, username = None, group = None) %}
   {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
@@ -191,7 +191,16 @@
   {% endmacro %}
 
 {% macro copr_legal_flag_form(form, copr) %}
-<form class="legal-flag" method="post" action={{ url_for('coprs_ns.copr_legal_flag', username=copr.owner.name, coprname=copr.name) }}>
+<form class="legal-flag"
+      method="post"
+      action="
+      {% if copr.is_a_group_project %}
+        {{ url_for('coprs_ns.group_copr_legal_flag', group_name=copr.group.name, coprname=copr.name) }}
+      {% else %}
+        {{ url_for('coprs_ns.copr_legal_flag', username=copr.owner.name, coprname=copr.name) }}
+      {% endif %}
+      "
+  >
   If you think that this project may be violating our policies, you can mark it for legal review.
   You can add an optional comment describing what you think is wrong here.
 
@@ -199,7 +208,7 @@
     {{ render_field(form.comment, rows=5, cols=50) }}
     <dt>
       <input class="btn btn-danger" type="submit" value="Raise Legal Flag">
-      <a href="{{ url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) }}" class="btn btn-default">Cancel</a>
+      <a href="{{ copr_details_href(copr) }}" class="btn btn-default">Cancel</a>
     </dt>
   </dl>
   </form>

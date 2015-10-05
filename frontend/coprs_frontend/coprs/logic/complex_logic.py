@@ -36,12 +36,12 @@ class ComplexLogic(object):
         CoprsLogic.delete_unsafe(flask.g.user, copr)
 
     @staticmethod
-    def get_group_copr_safe(group_name, copr_name):
+    def get_group_copr_safe(group_name, copr_name, **kwargs):
         group = ComplexLogic.get_group_by_name_safe(group_name)
 
         try:
             return CoprsLogic.get_by_group_id(
-                group.id, copr_name, with_mock_chroots=True).one()
+                group.id, copr_name, **kwargs).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise ObjectNotFound(
                 message="Project @{}/{} does not exist."
@@ -55,6 +55,15 @@ class ComplexLogic(object):
             raise ObjectNotFound(
                 message="Project {}/{} does not exist."
                         .format(user_name, copr_name))
+
+    @staticmethod
+    def get_copr_by_id_safe(copr_id):
+        try:
+            return CoprsLogic.get_by_id(copr_id).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            raise ObjectNotFound(
+                message="Project with id {} does not exist."
+                        .format(copr_id))
 
     @staticmethod
     def get_build_safe(build_id):

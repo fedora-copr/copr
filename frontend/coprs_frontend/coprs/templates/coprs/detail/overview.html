@@ -165,7 +165,7 @@
         <h3 class="panel-title"> Regenerate Repositories </h3>
       </div>
       <div class="panel-body">
-        <form action="{{url_for('coprs_ns.copr_createrepo', username=copr.owner.name, coprname=copr.name)}}" method="post" >
+        <form action="{{url_for('coprs_ns.copr_createrepo', copr_id=copr.id)}}" method="post" >
           <button class="btn btn-default" type="submit">
             <span class="fa fa-refresh"> Regenerate</span></button>
         </form>
@@ -179,7 +179,13 @@
         <h3 class="panel-title"> Other Actions </h3>
       </div>
       <div class="panel-body">
-        <a href="{{ url_for('coprs_ns.copr_report_abuse', username = copr.owner.name, coprname = copr.name) }}">
+        <a href="
+          {% if copr.is_a_group_project %}
+            {{ url_for('coprs_ns.group_copr_report_abuse', group_name = copr.group.name, coprname = copr.name) }}
+          {% else %}
+            {{ url_for('coprs_ns.copr_report_abuse', username = copr.owner.name, coprname = copr.name) }}
+          {% endif %}
+          ">
           <small class="pficon pficon-warning-triangle-o"> Report Abuse </small></a>
 
       </div>

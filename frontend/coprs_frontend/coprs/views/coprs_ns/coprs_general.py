@@ -36,7 +36,16 @@ from coprs.views.groups_ns import groups_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
 from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
-    fixed_redirect
+    str2bool
+
+
+def url_for_copr_details(copr):
+    if copr.is_a_group_project:
+        return url_for("coprs_ns.group_copr_detail",
+                       group_name=copr.group.name, coprname=copr.name)
+    else:
+        return url_for("coprs_ns.copr_detail",
+                       username=copr.owner.name, coprname=copr.name)
 
 
 @coprs_ns.route("/", defaults={"page": 1})
@@ -85,20 +94,6 @@ def coprs_by_owner(username=None, page=1):
                                  paginator=paginator,
                                  tasks_info=ComplexLogic.get_queues_size(),
                                  users_builds=users_builds)
-
-
-@coprs_ns.route("/<username>/allowed/", defaults={"page": 1})
-@coprs_ns.route("/<username>/allowed/<int:page>/")
-def coprs_by_allowed(username=None, page=1):
-    query = coprs_logic.CoprsLogic.get_multiple_allowed_to_username(username)
-    query = CoprsLogic.set_query_order(query, desc=True)
-    paginator = helpers.Paginator(query, query.count(), page)
-
-    coprs = paginator.sliced_query
-    return flask.render_template("coprs/show.html",
-                                 coprs=coprs,
-                                 tasks_info=ComplexLogic.get_queues_size(),
-                                 paginator=paginator)
 
 
 @coprs_ns.route("/fulltext/", defaults={"page": 1})
@@ -168,9 +163,7 @@ def group_copr_new(group_name):
         db.session.commit()
         after_the_project_creation(copr, form)
 
-        return flask.redirect(flask.url_for("coprs_ns.group_copr_detail",
-                                            group_name=group.name,
-                                            coprname=copr.name))
+        return flask.redirect(url_for_copr_details(copr))
     else:
         return flask.render_template("coprs/group_add.html", form=form)
 
@@ -201,9 +194,7 @@ def copr_new(username):
         db.session.commit()
         after_the_project_creation(copr, form)
 
-        return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-                                            username=flask.g.user.name,
-                                            coprname=copr.name))
+        return flask.redirect(url_for_copr_details(copr))
     else:
         return flask.render_template("coprs/add.html", form=form)
 
@@ -242,68 +233,33 @@ def after_the_project_creation(copr, form):
 
 @coprs_ns.route("/<username>/<coprname>/report-abuse")
 def copr_report_abuse(username, coprname):
-    query = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True)
+    copr = ComplexLogic.get_copr_safe(username, coprname, with_mock_chroots=True)
+    return render_copr_report_abuse(copr)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/report-abuse")
+def group_copr_report_abuse(group_name, coprname):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname, with_mock_chroots=True)
+    return render_copr_report_abuse(copr)
+
+
+def render_copr_report_abuse(copr):
     form = forms.CoprLegalFlagForm()
-    try:
-        copr = query.one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Project {0} does not exist.".format(coprname))
-
-    return flask.render_template(
-        "coprs/report_abuse.html",
-        copr=copr,
-        form=form)
-
-
-# todo: move to ComplexLogix
-def get_group_copr_safe(group_name, copr_name):
-    try:
-        group = UsersLogic.get_group_by_alias(group_name).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        raise ObjectNotFound(
-            message="Group {} does not exist.".format(group_name))
-
-    try:
-        copr = CoprsLogic.get_by_group_id(
-            group.id, copr_name, with_mock_chroots=True).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        raise ObjectNotFound(
-            message="Project {0} does not exist.".format(copr_name))
-
-    return copr
-
-
-# todo: move to ComplexLogix
-def get_copr_safe(user_name, copr_name):
-    query = coprs_logic.CoprsLogic.get(user_name, copr_name, with_mock_chroots=True)
-
-    try:
-        copr = query.one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        raise ObjectNotFound(
-            message="Project {}/{} does not exist.".format(user_name, copr_name))
-
-    return copr
+    return render_template("coprs/report_abuse.html", copr=copr, form=form)
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/")
 def group_copr_detail(group_name, coprname):
-
-    copr = get_group_copr_safe(group_name, coprname)
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
     return render_copr_detail(copr)
 
 
 @coprs_ns.route("/<username>/<coprname>/")
 def copr_detail(username, coprname):
-    copr = get_copr_safe(username, coprname)
+    copr = ComplexLogic.get_copr_safe(username, coprname)
 
     if copr.is_a_group_project:
-        return fixed_redirect(flask.url_for(
-            endpoint=".group_copr_detail",
-            group_name=copr.group.name,
-            coprname=copr.name,
-        ))
+        return flask.redirect(url_for_copr_details(copr))
 
     return render_copr_detail(copr)
 
@@ -406,14 +362,14 @@ def render_copr_edit(copr, form, view):
 @coprs_ns.route("/g/<group_name>/<coprname>/edit/")
 @login_required
 def group_copr_edit(group_name, coprname, form=None):
-    copr = get_group_copr_safe(group_name, coprname)
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
     return render_copr_edit(copr, form, 'coprs_ns.group_copr_update')
 
 
 @coprs_ns.route("/<username>/<coprname>/edit/")
 @login_required
 def copr_edit(username, coprname, form=None):
-    copr = get_copr_safe(username, coprname)
+    copr = ComplexLogic.get_copr_safe(username, coprname)
     return render_copr_edit(copr, form, 'coprs_ns.copr_update')
 
 
@@ -451,7 +407,7 @@ def process_copr_update(copr, form):
 @coprs_ns.route("/g/<group_name>/<coprname>/update/", methods=["POST"])
 @login_required
 def group_copr_update(group_name, coprname):
-    copr = get_group_copr_safe(group_name, coprname)
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
     form = forms.CoprFormFactory.create_form_cls()()
 
     if form.validate_on_submit():
@@ -468,7 +424,7 @@ def group_copr_update(group_name, coprname):
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
 @login_required
 def copr_update(username, coprname):
-    copr = get_copr_safe(username, coprname)
+    copr = ComplexLogic.get_copr_safe(username, coprname)
     form = forms.CoprFormFactory.create_form_cls()()
 
     if form.validate_on_submit():
@@ -599,11 +555,10 @@ def copr_update_permissions(username, coprname):
                                         coprname=copr.name))
 
 
-@coprs_ns.route("/<username>/<coprname>/createrepo/", methods=["POST"])
+@coprs_ns.route("/id/<copr_id>/createrepo/", methods=["POST"])
 @login_required
-def copr_createrepo(username, coprname):
-
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+def copr_createrepo(copr_id):
+    copr = ComplexLogic.get_copr_by_id_safe(copr_id)
 
     chroots = [c.name for c in copr.active_chroots]
     actions_logic.ActionsLogic.send_createrepo(
@@ -612,9 +567,7 @@ def copr_createrepo(username, coprname):
 
     db.session.commit()
     flask.flash("Repository metadata will be regenerated in a few minutes ...")
-    return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-                                        username=copr.owner.name,
-                                        coprname=copr.name))
+    return flask.redirect(url_for_copr_details(copr))
 
 
 def process_delete(copr, form, url_on_error, url_on_success):
@@ -664,72 +617,53 @@ def copr_delete(username, coprname):
         url_on_success=url_for("coprs_ns.coprs_by_owner", username=username)
     )
 
-    # if form.validate_on_submit():
-    #
-    #     try:
-    #         ComplexLogic.delete_copr(copr)
-    #     except (exceptions.ActionInProgressException,
-    #             exceptions.InsufficientRightsException) as e:
-    #
-    #         db.session.rollback()
-    #         flask.flash(str(e), "error")
-    #         return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-    #                                             username=username,
-    #                                             coprname=coprname))
-    #     else:
-    #         db.session.commit()
-    #         flask.flash("Project has been deleted successfully.")
-    #         return flask.redirect(flask.url_for("coprs_ns.coprs_by_owner",
-    #                                             username=username))
-    # else:
-    #     return render_template("coprs/detail/delete.html", form=form, copr=copr)
-
-
 
 @coprs_ns.route("/<username>/<coprname>/legal_flag/", methods=["POST"])
 @login_required
 def copr_legal_flag(username, coprname):
-    form = forms.CoprLegalFlagForm()
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+    contact_info = "{} <>".format(username, copr.owner.mail)
+    return process_legal_flag(contact_info, copr)
 
+
+@coprs_ns.route("/g/<group_name>/<coprname>/legal_flag/", methods=["POST"])
+@login_required
+def group_copr_legal_flag(group_name, coprname):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    contact_info = "group managed project, fas name: {}".format(copr.group.name)
+    return process_legal_flag(contact_info, copr)
+
+
+def process_legal_flag(contact_info, copr):
+    form = forms.CoprLegalFlagForm()
     legal_flag = models.LegalFlag(raise_message=form.comment.data,
                                   raised_on=int(time.time()),
                                   copr=copr,
                                   reporter=flask.g.user)
     db.session.add(legal_flag)
     db.session.commit()
-
     send_to = app.config["SEND_LEGAL_TO"] or ["root@localhost"]
     hostname = platform.node()
     navigate_to = "\nNavigate to http://{0}{1}".format(
         hostname, flask.url_for("admin_ns.legal_flag"))
-
-    contact = "\nContact on owner is: {0} <{1}>".format(username,
-                                                        copr.owner.mail)
-
+    contact = "\nContact on owner is: {}".format(contact_info)
     reported_by = "\nReported by {0} <{1}>".format(flask.g.user.name,
                                                    flask.g.user.mail)
-
     try:
         msg = MIMEText(
             form.comment.data + navigate_to + contact + reported_by, "plain")
     except UnicodeEncodeError:
         msg = MIMEText(form.comment.data.encode(
             "utf-8") + navigate_to + contact + reported_by, "plain", "utf-8")
-
-    msg["Subject"] = "Legal flag raised on {0}".format(coprname)
+    msg["Subject"] = "Legal flag raised on {0}".format(copr.name)
     msg["From"] = "root@{0}".format(hostname)
     msg["To"] = ", ".join(send_to)
     s = smtplib.SMTP("localhost")
     s.sendmail("root@{0}".format(hostname), send_to, msg.as_string())
     s.quit()
-
     flask.flash("Admin has been noticed about your report"
                 " and will investigate the project shortly.")
-
-    return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-                                        username=username,
-                                        coprname=coprname))
+    return flask.redirect(url_for_copr_details(copr))
 
 
 @coprs_ns.route("/<username>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
@@ -806,79 +740,33 @@ def copr_repo_rpm_file(username, coprname, name_release, rpmfile):
         return flask.render_template("404.html")
 
 
+def render_monitor(copr, detailed=False):
+    monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
+    oses = [chroot.os for chroot in copr.active_chroots_sorted]
+    oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
+    archs = [chroot.arch for chroot in copr.active_chroots_sorted]
+    if detailed:
+        template = "coprs/detail/monitor/detailed.html"
+    else:
+        template = "coprs/detail/monitor/simple.html"
+    return flask.render_template(template,
+                                 copr=copr,
+                                 monitor=monitor,
+                                 oses=oses_grouped,
+                                 archs=archs)
+
+
 @coprs_ns.route("/<username>/<coprname>/monitor/")
 def copr_build_monitor(username, coprname):
-    try:
-        copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Project {0} does not exist.".format(coprname))
-
-    monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
-
-    oses = [chroot.os for chroot in copr.active_chroots_sorted]
-    oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
-    archs = [chroot.arch for chroot in copr.active_chroots_sorted]
-
-    return flask.render_template("coprs/detail/monitor/simple.html",
-                                                copr=copr,
-                                                monitor=monitor,
-                                                oses=oses_grouped,
-                                                archs=archs)
+    copr = ComplexLogic.get_copr_safe(username, coprname)
+    detailed = str2bool(flask.request.args.get("detailed"))
+    return render_monitor(copr, detailed)
 
 
-@coprs_ns.route("/<username>/<coprname>/monitor-detailed/")
-def copr_build_monitor_detailed(username, coprname):
-    try:
-        copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Project {0} does not exist.".format(coprname))
-
-    monitor = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
-
-    oses = [chroot.os for chroot in copr.active_chroots_sorted]
-    oses_grouped = [(len(list(group)), key) for key, group in groupby(oses)]
-    archs = [chroot.arch for chroot in copr.active_chroots_sorted]
-
-    return flask.render_template("coprs/detail/monitor/detailed.html",
-                                                copr=copr,
-                                                monitor=monitor,
-                                                oses=oses_grouped,
-                                                archs=archs)
+@coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
+def group_copr_build_monitor(group_name, coprname):
+    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    detailed = bool(flask.request.args.get("detailed", False))
+    return render_monitor(copr, detailed)
 
 
-# @coprs_ns.route("/<username>/<coprname>/group_managed", methods=["GET", "POST"])
-# def copr_group_managed(username, coprname):
-#     try:
-#         copr = coprs_logic.CoprsLogic.get(username, coprname, with_mock_chroots=True).one()
-#     except sqlalchemy.orm.exc.NoResultFound:
-#         return page_not_found(
-#             "Project {0} does not exist.".format(coprname))
-#
-#     form = group_managed_form_fabric(flask.session.get("teams"))
-#
-#     if form.validate_on_submit():
-#         group = UsersLogic.get_group_by_fas_name_or_create(
-#             form.fas_name.data, form.name.data)
-#
-#         copr.group_id = group.id
-#         db.session.add(copr)
-#         db.session.commit()
-#
-#         flask.flash(
-#             "Project is now managed by {} FAS group, "
-#             "main url to the project: {}"
-#             .format(
-#                 form.fas_name.data,
-#                 "group url todo:"
-#             )
-#         )
-#         return flask.redirect(flask.url_for(
-#             "coprs_ns.copr_detail", username=username, coprname=coprname))
-#
-#     else:
-#         return flask.render_template(
-#             "coprs/detail/make_group_project.html",
-#             copr=copr, form=form,
-#         )
