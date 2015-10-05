@@ -5,6 +5,7 @@ import time
 from urllib import urlretrieve
 
 from munch import Munch
+from copr.client.exceptions import CoprRequestException
 
 from .createrepo import createrepo
 from .exceptions import CreateRepoError
@@ -65,6 +66,12 @@ class Action(object):
                            username=username, projectname=projectname,
                            override_acr_flag=True)
                 done_count += 1
+            except CoprRequestException as err:
+                # fixme: dirty hack to catch case when createrepo invoked upon deleted project
+                if "does not exists" in str(err):
+                    result.result = ActionResult.FAILURE
+                    return
+
             except CreateRepoError:
                 self.log.exception("Error making local repo for: {}/{}/{}"
                                    .format(username, projectname, chroot))
