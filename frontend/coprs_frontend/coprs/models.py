@@ -333,9 +333,14 @@ class Package(db.Model, helpers.Serializer):
 
     @property
     def dist_git_repo(self):
-        return "{}/{}/{}".format(self.copr.owner.name,
-                                 self.copr.name,
-                                 self.name)
+        if self.copr.is_a_group_project:
+            return "@{}/{}/{}".format(self.copr.group.name,
+                                      self.copr.name,
+                                      self.name)
+        else:
+            return "{}/{}/{}".format(self.copr.owner.name,
+                                     self.copr.name,
+                                     self.name)
 
     @property
     def source_json_dict(self):
@@ -766,11 +771,16 @@ class BuildChroot(db.Model, helpers.Serializer):
         # old: results/valtri/ruby/fedora-rawhide-x86_64/rubygem-aws-sdk-resources-2.1.11-1.fc24/
         # new: results/asamalik/rh-perl520/epel-7-x86_64/00000187-rh-perl520/
 
-        parts = [
-            self.build.copr.owner.username,
+        parts = []
+        if self.build.copr.is_a_group_project:
+            parts.append(u"@{}".format(self.build.copr.group.name))
+        else:
+            parts.append(self.build.copr.owner.username)
+
+        parts.extend([
             self.build.copr.name,
             self.name,
-        ]
+        ])
         if self.git_hash is not None and self.build.package:
             parts.append(self.build.result_dir_name)
         else:

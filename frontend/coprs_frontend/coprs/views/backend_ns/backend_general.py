@@ -30,9 +30,16 @@ def dist_git_importing_queue():
     """
     builds_list = []
     for task in BuildsLogic.get_build_importing_queue().limit(200):
+        copr = task.build.copr
+
+        # we are using fake username's here
+        if copr.is_a_group_project:
+            user_name = u"@{}".format(copr.group.name)
+        else:
+            user_name = copr.owner.name
         task_dict = {
             "task_id": "{}-{}".format(task.build.id, helpers.chroot_to_branch(task.mock_chroot.name)),
-            "user": task.build.copr.owner.name,
+            "user": user_name,
             "project": task.build.copr.name,
 
             "branch": helpers.chroot_to_branch(task.mock_chroot.name),
@@ -130,10 +137,18 @@ def waiting():
     builds_list = []
     for task in BuildsLogic.get_build_task_queue().limit(200):
         try:
+            copr = task.build.copr
+
+            # we are using fake username's here
+            if copr.is_a_group_project:
+                user_name = u"@{}".format(copr.group.name)
+            else:
+                user_name = copr.owner.name
+
             record = {
                 "task_id": "{}-{}".format(task.build.id, task.mock_chroot.name),
                 "build_id": task.build.id,
-                "project_owner": task.build.copr.owner.name,
+                "project_owner": user_name,
                 "project_name": task.build.copr.name,
                 "submitter": task.build.user.name,
                 "pkgs": task.build.pkgs,  # TODO to be removed

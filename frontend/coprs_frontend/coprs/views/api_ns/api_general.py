@@ -223,7 +223,11 @@ def api_coprs_by_owner_detail(username, coprname):
     :arg coprname: the name of project.
 
     """
-    copr = CoprsLogic.get(username, coprname).first()
+    if username.startswith("@"):
+        copr = ComplexLogic.get_group_copr_safe(username[1:], coprname)
+    else:
+        copr = CoprsLogic.get(username, coprname).first()
+
     release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
     httpcode = 200
     if username and copr:
