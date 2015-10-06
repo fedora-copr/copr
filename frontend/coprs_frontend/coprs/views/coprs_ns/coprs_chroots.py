@@ -2,64 +2,79 @@ from io import BytesIO
 from zlib import compress, decompress
 
 import flask
-from flask import Response
+from flask import Response, url_for, render_template
 
 from coprs import db
 from coprs import forms
+from coprs.exceptions import AccessRestricted
 
 from coprs.logic import coprs_logic
+from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
+from coprs.views.coprs_ns.coprs_general import url_for_copr_edit
 
-from coprs.views.misc import login_required, page_not_found
+from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
 from coprs.views.coprs_ns import coprs_ns
 
 
 @coprs_ns.route("/<username>/<coprname>/edit_chroot/<chrootname>/")
 @login_required
-def chroot_edit(username, coprname, chrootname):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-    if not copr:
-        return page_not_found(
-            "Project with name {0} does not exist.".format(coprname))
+@req_with_copr
+def chroot_edit(copr, chrootname):
+    return render_chroot_edit(copr, chrootname)
 
-    try:
-        chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
-    except (ValueError, KeyError, RuntimeError) as e:
-        return page_not_found(str(e))
 
-    if not chroot:
-        return page_not_found(
-            "Chroot name {0} does not exist.".format(chrootname))
+@coprs_ns.route("/g/<group_name>/<coprname>/edit_chroot/<chrootname>/")
+@login_required
+@req_with_copr
+def group_chroot_edit(copr, chrootname):
+    return render_chroot_edit(copr, chrootname)
+
+
+def render_chroot_edit(copr, chroot_name):
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
 
     # todo: get COPR_chroot, not mock chroot, WTF?!
     # form = forms.ChrootForm(buildroot_pkgs=copr.buildroot_pkgs(chroot))
+
     form = forms.ChrootForm(buildroot_pkgs=chroot.buildroot_pkgs)
     # FIXME - test if chroot belongs to copr
     if flask.g.user.can_build_in(copr):
-        return flask.render_template("coprs/detail/edit_chroot.html",
-                                     form=form, copr=copr, chroot=chroot)
+        return render_template("coprs/detail/edit_chroot.html",
+                               form=form, copr=copr, chroot=chroot)
     else:
-        return page_not_found(
+        raise AccessRestricted(
             "You are not allowed to modify chroots in project {0}."
-            .format(coprname))
+            .format(copr.name))
 
 
 @coprs_ns.route("/<username>/<coprname>/update_chroot/<chrootname>/",
                 methods=["POST"])
 @login_required
-def chroot_update(username, coprname, chrootname):
+@req_with_copr
+def chroot_update(copr, chrootname):
+    return process_chroot_update(copr, chrootname)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/update_chroot/<chrootname>/",
+                methods=["POST"])
+@login_required
+@req_with_copr
+def group_chroot_update(copr, chrootname):
+    return process_chroot_update(copr, chrootname)
+
+
+def process_chroot_update(copr, chroot_name):
+
     form = forms.ChrootForm()
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-    if not copr:
-        return page_not_found(
-            "Projec with name {0} does not exist.".format(coprname))
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
 
-    try:
-        chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
-    except ValueError as e:
-        return page_not_found(str(e))
+    if not flask.g.user.can_build_in(copr):
+        raise AccessRestricted(
+            "You are not allowed to modify chroots in project {0}."
+            .format(copr.name))
 
-    if form.validate_on_submit() and flask.g.user.can_build_in(copr):
+    if form.validate_on_submit():
         if "submit" in flask.request.form:
             action = flask.request.form["submit"]
             if action == "update":
@@ -77,31 +92,28 @@ def chroot_update(username, coprname, chrootname):
 
             flask.flash(
                 "Buildroot {0} in project {1} has been updated successfully.".format(
-                    chrootname, coprname))
+                    chroot_name, copr.name))
 
             db.session.commit()
-        return flask.redirect(flask.url_for("coprs_ns.copr_edit",
-                                            username=username,
-                                            coprname=copr.name))
+        return flask.redirect(url_for_copr_edit(copr))
 
     else:
-        if form.validate_on_submit():
-            flask.flash("You are not allowed to modify chroots.")
-        else:
-            return chroot_edit(username, coprname, chrootname)
+        flask.flash("You are not allowed to modify chroots.")
+        return render_chroot_edit(copr, chroot_name)
 
 
 @coprs_ns.route("/<username>/<coprname>/chroot/<chrootname>/comps/")
-def chroot_view_comps(username, coprname, chrootname):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-    if not copr:
-        return page_not_found(
-            "Projec with name {0} does not exist.".format(coprname))
+@req_with_copr
+def chroot_view_comps(copr, chrootname):
+    return render_chroot_view_comps(copr, chrootname)
 
-    try:
-        chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
-    except ValueError as e:
-        return page_not_found(str(e))
 
-    result = chroot.comps or ""
-    return Response(result, mimetype="text/plain; charset=utf-8")
+@coprs_ns.route("/g/<group_name>/<coprname>/chroot/<chrootname>/comps/")
+@req_with_copr
+def group_chroot_view_comps(copr, chrootname):
+    return render_chroot_view_comps(copr, chrootname)
+
+
+def render_chroot_view_comps(copr, chroot_name):
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
+    return Response(chroot.comps or "", mimetype="text/plain; charset=utf-8")

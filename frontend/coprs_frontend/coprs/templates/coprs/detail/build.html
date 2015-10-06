@@ -71,7 +71,15 @@
       <dt> Package:</dt>
       <dd>
         {% if build.package %} 
-          <a href="{{url_for('coprs_ns.copr_package', username=build.copr.owner.name, package_name=build.package.name, coprname=copr.name)}}">
+          <a href="
+            {% if build.copr.is_a_group_project %}
+              {{url_for('coprs_ns.group_copr_package', group_name=build.copr.group.name,
+                        package_name=build.package.name, coprname=copr.name)}}
+            {% else %}
+              {{url_for('coprs_ns.copr_package', username=build.copr.owner.name,
+                        package_name=build.package.name, coprname=copr.name)}}
+            {% endif %}
+          ">
             {{ build.package.name }}
           </a>
         {% else %}

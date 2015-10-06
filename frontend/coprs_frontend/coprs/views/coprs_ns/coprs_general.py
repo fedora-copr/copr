@@ -29,23 +29,28 @@ from coprs.rmodels import TimedStatEvents
 
 from coprs.logic.complex_logic import ComplexLogic
 
-from coprs.views.misc import login_required, page_not_found
+from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
 
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.groups_ns import groups_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
 from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
-    str2bool
+    str2bool, url_for_copr_view
 
 
 def url_for_copr_details(copr):
-    if copr.is_a_group_project:
-        return url_for("coprs_ns.group_copr_detail",
-                       group_name=copr.group.name, coprname=copr.name)
-    else:
-        return url_for("coprs_ns.copr_detail",
-                       username=copr.owner.name, coprname=copr.name)
+    return url_for_copr_view(
+        "coprs_ns.copr_detail",
+        "coprs_ns.group_copr_detail",
+        copr)
+
+
+def url_for_copr_edit(copr):
+    return url_for_copr_view(
+        "coprs_ns.copr_edit",
+        "coprs_ns.group_copr_edit",
+        copr)
 
 
 @coprs_ns.route("/", defaults={"page": 1})
@@ -165,7 +170,7 @@ def group_copr_new(group_name):
 
         return flask.redirect(url_for_copr_details(copr))
     else:
-        return flask.render_template("coprs/group_add.html", form=form)
+        return flask.render_template("coprs/group_add.html", form=form, group=group)
 
 
 @coprs_ns.route("/<username>/new/", methods=["POST"])
@@ -249,18 +254,16 @@ def render_copr_report_abuse(copr):
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/")
-def group_copr_detail(group_name, coprname):
-    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+@req_with_copr
+def group_copr_detail(copr):
     return render_copr_detail(copr)
 
 
 @coprs_ns.route("/<username>/<coprname>/")
-def copr_detail(username, coprname):
-    copr = ComplexLogic.get_copr_safe(username, coprname)
-
+@req_with_copr
+def copr_detail(copr):
     if copr.is_a_group_project:
         return flask.redirect(url_for_copr_details(copr))
-
     return render_copr_detail(copr)
 
 
@@ -314,13 +317,8 @@ def render_copr_detail(copr):
 
 
 @coprs_ns.route("/<username>/<coprname>/permissions/")
-def copr_permissions(username, coprname):
-    query = coprs_logic.CoprsLogic.get(username, coprname)
-    copr = query.first()
-    if not copr:
-        return page_not_found(
-            "Project {0} does not exist.".format(coprname))
-
+@req_with_copr
+def copr_permissions(copr):
     permissions = coprs_logic.CoprPermissionsLogic.get_for_copr(copr).all()
     if flask.g.user:
         user_perm = flask.g.user.permissions_for_copr(copr)
@@ -361,15 +359,15 @@ def render_copr_edit(copr, form, view):
 
 @coprs_ns.route("/g/<group_name>/<coprname>/edit/")
 @login_required
-def group_copr_edit(group_name, coprname, form=None):
-    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+@req_with_copr
+def group_copr_edit(copr, form=None):
     return render_copr_edit(copr, form, 'coprs_ns.group_copr_update')
 
 
 @coprs_ns.route("/<username>/<coprname>/edit/")
 @login_required
-def copr_edit(username, coprname, form=None):
-    copr = ComplexLogic.get_copr_safe(username, coprname)
+@req_with_copr
+def copr_edit(copr, form=None):
     return render_copr_edit(copr, form, 'coprs_ns.copr_update')
 
 
@@ -406,8 +404,8 @@ def process_copr_update(copr, form):
 
 @coprs_ns.route("/g/<group_name>/<coprname>/update/", methods=["POST"])
 @login_required
-def group_copr_update(group_name, coprname):
-    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+@req_with_copr
+def group_copr_update(copr):
     form = forms.CoprFormFactory.create_form_cls()()
 
     if form.validate_on_submit():
@@ -418,35 +416,30 @@ def group_copr_update(group_name, coprname):
         ))
 
     else:
-        return group_copr_edit(group_name, coprname, form)
+        return group_copr_edit(copr.group.name, copr.name, form)
 
 
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
 @login_required
-def copr_update(username, coprname):
-    copr = ComplexLogic.get_copr_safe(username, coprname)
+@req_with_copr
+def copr_update(copr):
     form = forms.CoprFormFactory.create_form_cls()()
 
     if form.validate_on_submit():
         process_copr_update(copr, form)
-        return flask.redirect(url_for(
-            "coprs_ns.copr_detail", username=username, coprname=copr.name))
+        return flask.redirect(url_for_copr_details(copr))
     else:
-        return copr_edit(username, coprname, form)
+        return copr_edit(copr.owner.username, copr.name, form)
 
 
 @coprs_ns.route("/<username>/<coprname>/permissions_applier_change/",
                 methods=["POST"])
 @login_required
-def copr_permissions_applier_change(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
+@req_with_copr
+def copr_permissions_applier_change(copr):
     permission = coprs_logic.CoprPermissionsLogic.get(copr, flask.g.user).first()
     applier_permissions_form = \
         forms.PermissionsApplierFormFactory.create_form_cls(permission)()
-
-    if not copr:
-        return page_not_found(
-            "Project with name {0} does not exist.".format(coprname))
 
     if copr.owner == flask.g.user:
         flask.flash("Owner cannot request permissions for his own project.", "error")
@@ -499,9 +492,8 @@ def copr_permissions_applier_change(username, coprname):
 
 @coprs_ns.route("/<username>/<coprname>/update_permissions/", methods=["POST"])
 @login_required
-def copr_update_permissions(username, coprname):
-    query = coprs_logic.CoprsLogic.get(username, coprname)
-    copr = query.first()
+@req_with_copr
+def copr_update_permissions(copr):
     permissions = copr.copr_permissions
     permissions_form = forms.PermissionsFormFactory.create_form_cls(
         permissions)()
@@ -550,9 +542,7 @@ def copr_update_permissions(username, coprname):
             db.session.commit()
             flask.flash("Project permissions were updated successfully.", "success")
 
-    return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-                                        username=copr.owner.name,
-                                        coprname=copr.name))
+    return flask.redirect(url_for_copr_details(copr))
 
 
 @coprs_ns.route("/id/<copr_id>/createrepo/", methods=["POST"])
@@ -570,7 +560,8 @@ def copr_createrepo(copr_id):
     return flask.redirect(url_for_copr_details(copr))
 
 
-def process_delete(copr, form, url_on_error, url_on_success):
+def process_delete(copr, url_on_error, url_on_success):
+    form = forms.CoprDeleteForm()
     if form.validate_on_submit():
 
         try:
@@ -589,47 +580,44 @@ def process_delete(copr, form, url_on_error, url_on_success):
         return render_template("coprs/detail/delete.html", form=form, copr=copr)
 
 
-@coprs_ns.route("/g/<group_name>/<coprname>/delete/", methods=["GET", "POST"])
+@coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])
 @login_required
-def group_copr_delete(group_name, coprname):
-    form = forms.CoprDeleteForm()
-    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
-
+@req_with_copr
+def copr_delete(copr):
     return process_delete(
-        copr, form,
-        url_on_error=url_for('coprs_ns.group_copr_detail',
-                             group_name=group_name, coprname=coprname),
-        url_on_success=url_for('groups_ns.list_projects_by_group',
-                               group_name=group_name)
+        copr,
+        url_on_error=url_for("coprs_ns.copr_detail",
+                             username=copr.owner.name, coprname=copr.name),
+        url_on_success=url_for("coprs_ns.coprs_by_owner", username=copr.owner.username)
     )
 
 
-@coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/delete/", methods=["GET", "POST"])
 @login_required
-def copr_delete(username, coprname):
-    form = forms.CoprDeleteForm()
-    copr = ComplexLogic.get_copr_safe(username, coprname)
+@req_with_copr
+def group_copr_delete(copr):
 
     return process_delete(
-        copr, form,
-        url_on_error=url_for("coprs_ns.copr_detail",
-                             username=username, coprname=coprname),
-        url_on_success=url_for("coprs_ns.coprs_by_owner", username=username)
+        copr,
+        url_on_error=url_for('coprs_ns.group_copr_detail',
+                             group_name=copr.group.name, coprname=copr.name),
+        url_on_success=url_for('groups_ns.list_projects_by_group',
+                               group_name=copr.group.name)
     )
 
 
 @coprs_ns.route("/<username>/<coprname>/legal_flag/", methods=["POST"])
 @login_required
-def copr_legal_flag(username, coprname):
-    copr = ComplexLogic.get_copr_safe(username, coprname)
-    contact_info = "{} <>".format(username, copr.owner.mail)
+@req_with_copr
+def copr_legal_flag(copr):
+    contact_info = "{} <>".format(copr.owner.username, copr.owner.mail)
     return process_legal_flag(contact_info, copr)
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/legal_flag/", methods=["POST"])
 @login_required
-def group_copr_legal_flag(group_name, coprname):
-    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+@req_with_copr
+def group_copr_legal_flag(copr):
     contact_info = "group managed project, fas name: {}".format(copr.group.name)
     return process_legal_flag(contact_info, copr)
 
@@ -668,37 +656,32 @@ def process_legal_flag(contact_info, copr):
 
 @coprs_ns.route("/<username>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
 @coprs_ns.route("/<username>/<coprname>/repo/<name_release>/<repofile>")
-def generate_repo_file(username, coprname, name_release, repofile):
+@req_with_copr
+def generate_repo_file(copr, name_release, repofile):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
     # This solution is used because flask splits off the last part after a
     # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
     # FAS usernames may not contain dashes, so this construction is safe.
 
-    reponame = "{}-{}".format(username, coprname)
-
-    try:
-        # query.one() is used since it fetches all builds, unlike
-        # query.first().
-        copr = coprs_logic.CoprsLogic.get(username, coprname, with_builds=True).one()
-    except sqlalchemy.orm.exc.NoResultFound:
-        return page_not_found(
-            "Project {0}/{1} does not exist".format(username, coprname))
+    reponame = "{}-{}".format(copr.owner.username, copr.name)
 
     # we need to check if we really got name release or it's a full chroot (caused by old dnf plugin)
     if name_release in [c.name for c in copr.active_chroots]:
         chroot = [c for c in copr.active_chroots if c.name == name_release][0]
         return flask.redirect(flask.url_for(
-            "coprs_ns.generate_repo_file", username=username, coprname=coprname,
+            "coprs_ns.generate_repo_file", username=copr.owner.username, coprname=copr.name,
             name_release=chroot.name_release))
 
-    if repofile is not None and repofile != username + '-' + coprname + '-' + name_release + '.repo':
+    expected = "{}-{}-{}.repo".format(copr.owner.username, copr.name, name_release)
+    if repofile is not None and repofile != expected:
         return page_not_found(
             "Repository filename does not match expected: {0}"
             .format(repofile))
 
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
     if not mock_chroot:
+        # TODO: replace with raise ObjectNotFound
         return page_not_found("Chroot {0} does not exist".format(name_release))
 
     url = ""
@@ -710,7 +693,7 @@ def generate_repo_file(username, coprname, name_release, repofile):
     if not url:
         return page_not_found(
             "Repository not initialized: No finished builds in {}/{}."
-            .format(username, coprname))
+            .format(copr.owner.username, copr.name))
 
     # add trainling slash
     url = os.path.join(url, '')
@@ -757,15 +740,15 @@ def render_monitor(copr, detailed=False):
 
 
 @coprs_ns.route("/<username>/<coprname>/monitor/")
-def copr_build_monitor(username, coprname):
-    copr = ComplexLogic.get_copr_safe(username, coprname)
+@req_with_copr
+def copr_build_monitor(copr):
     detailed = str2bool(flask.request.args.get("detailed"))
     return render_monitor(copr, detailed)
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
-def group_copr_build_monitor(group_name, coprname):
-    copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+@req_with_copr
+def group_copr_build_monitor(copr):
     detailed = bool(flask.request.args.get("detailed", False))
     return render_monitor(copr, detailed)
 

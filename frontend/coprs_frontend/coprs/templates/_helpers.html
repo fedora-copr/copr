@@ -1,10 +1,7 @@
 {% macro render_field(field, label=None, class='', info=None) %}
   {% if not kwargs['hidden'] %}
-    {% if field.errors %}
-    <div class="form-group has-error">
-    {% else %}
-    <div class="form-group">
-    {% endif %}
+
+    <div class="form-group {% if field.errors %} has-error {% endif %} ">
       <label class="col-sm-2 control-label">
         {{ label or field.label }}
       </label>
@@ -94,57 +91,50 @@
 {% endmacro %}
 
 
+
 {% macro alert(message, type=None) %}
-  {% if type == "error" %}
-  <div class="alert alert-danger alert-dismissable">
+  {% set alert_class_map = {
+        "error": "alert-danger",
+        "warning": "alert-warning",
+        "success": "alert-success",
+  } %}
+
+  {% set alert_icon_map = {
+        "error": "pficon-error-circle-o",
+        "warning": "pficon-warning-triangle-o",
+        "success": "pficon-ok",
+  } %}
+
+  <div class="alert {{ alert_class_map.get(type, 'alert-info') }} alert-dismissable">
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
       <span class="pficon pficon-close"></span>
     </button>
-    <span class="pficon pficon-error-circle-o"></span>
-
-  {% elif type == "warning" %}
-  <div class="alert alert-warning alert-dismissable">
-    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-      <span class="pficon pficon-close"></span>
-    </button>
-    <span class="pficon pficon-warning-triangle-o"></span>
-
-  {% elif type == "success" %}
-  <div class="alert alert-success alert-dismissable">
-    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-      <span class="pficon pficon-close"></span>
-    </button>
-    <span class="pficon pficon-ok"></span>
-
-  {% else %}
-  <div class="alert alert-info alert-dismissable">
-    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-      <span class="pficon pficon-close"></span>
-    </button>
-    <span class="pficon pficon-info"></span>
-  {% endif %}
-
+    <span class="pficon {{ alert_icon_map.get(type, 'pficon-info') }}"></span>
   {{ message }}
   </div>
 {% endmacro %}
 
+{% macro copr_details_href(copr) %}
+  {% if copr.is_a_group_project %}
+      {{ url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}
+  {% else %}
+      {{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}
+  {% endif %}
+{% endmacro %}
 
 {% macro copr_title(copr) %}
   {% if copr.is_a_group_project %}
     <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) }}">
       @{{ copr.group.name }}
-    </a> /
-    <strong><a href="{{ url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}">
-      {{ copr.name }}
-    </a></strong>
+    </a>
   {% else %}
     <a href="{{ url_for('coprs_ns.coprs_by_owner', username=copr.owner.name) }}">
       {{ copr.owner.name }}
-    </a> /
-    <strong><a href="{{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}">
-      {{ copr.name }}
-    </a></strong>
+    </a>
   {% endif %}
+  /<strong><a href="{{ copr_details_href(copr) }}">
+    {{ copr.name }}
+  </a></strong>
 {% endmacro %}
 
 
@@ -157,13 +147,7 @@
 {% endmacro %}
 
 
-{% macro copr_details_href(copr) %}
-  {% if copr.is_a_group_project %}
-      {{ url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}
-  {% else %}
-      {{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}
-  {% endif %}
-{% endmacro %}
+
 
 
 {% macro user_projects_panel(user) %}
@@ -275,5 +259,13 @@
   {{ url_for('coprs_ns.group_copr_build', group_name=build.copr.group.name, coprname=build.copr.name, build_id=build.id) }}
 {% else %}
   {{ url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id) }}
+{% endif %}
+{% endmacro %}
+
+{% macro package_href(package) %}
+{% if package.copr.is_a_group_project %}
+  {{ url_for('coprs_ns.group_copr_package', group_name=package.copr.group.name, coprname=package.copr.name, package_name=package.name) }}
+{% else %}
+  {{ url_for('coprs_ns.copr_package', username = package.copr.owner.name, coprname = package.copr.name, package_name=package.name) }}
 {% endif %}
 {% endmacro %}

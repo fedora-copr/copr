@@ -137,6 +137,7 @@
         {% endif %}
         "
       method="post">
+
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
         <span class="pficon pficon-close"> Cancel</span>
@@ -147,7 +148,15 @@
 
 {% macro copr_build_repeat_form(build, page) %}
   {% if build.repeatable %}
-    <form action="{{ url_for('coprs_ns.copr_repeat_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post">
+    <form action="
+        {% if build.copr.is_a_group_project %}
+          {{ url_for('coprs_ns.group_copr_repeat_build',  group_name=build.copr.group.name, coprname=build.copr.name, build_id=build.id )}}
+        {% else %}
+          {{ url_for('coprs_ns.copr_repeat_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id) }}
+        {% endif %}
+        "
+      method="post">
+
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
         <span class="pficon pficon-restart"> Resubmit</span>

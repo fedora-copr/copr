@@ -1,6 +1,22 @@
 {% extends "layout.html" %}
 {% from "_helpers.html" import copr_title, render_crumb %}
 
+{% if copr.is_a_group_project %}
+  {% set url_overview = url_for('coprs_ns.group_copr_detail', group_name = copr.group.name, coprname = copr.name) %}
+  {% set url_builds =  url_for('coprs_ns.group_copr_builds', group_name = copr.group.name, coprname = copr.name) %}
+  {% set url_monitor = url_for('coprs_ns.group_copr_build_monitor', group_name = copr.group.name, coprname = copr.name) %}
+  {% set url_add_build = url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name) %}
+  {% set url_delete =  url_for('coprs_ns.group_copr_delete', group_name = copr.group.name, coprname = copr.name)  %}
+  {% set url_edit = url_for('coprs_ns.group_copr_edit', group_name = copr.group.name, coprname = copr.name) %}
+{% else %}
+  {% set url_overview = url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) %}
+  {% set url_builds =  url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name) %}
+  {% set url_monitor =  url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name)  %}
+  {% set url_add_build =  url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) %}
+  {% set url_delete =  url_for('coprs_ns.copr_delete', username = copr.owner.name, coprname = copr.name) %}
+  {% set url_edit = url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) %}
+{% endif %}
+
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
 {% block main_menu_projects %}active{% endblock %}
 
@@ -24,7 +40,7 @@
   {%endblock%}
 {%endblock%}
 
-{% block body %}
+{% block body scoped %}
 
 <!-- PROJECT NAME -->
 <h1 class="project-name">
@@ -40,81 +56,31 @@
 </li>
 {% endmacro %}
 
+
+
 <!-- MENU -->
 <ul class="nav nav-tabs">
-{% if copr.is_a_group_project %}
 
-    {{ nav_element("overview", "Overview",
-           url_for('coprs_ns.group_copr_detail', group_name = copr.group.name, coprname = copr.name)) }}
-
-    {{ nav_element("builds", "Builds",
-           url_for('coprs_ns.group_copr_builds', group_name = copr.group.name, coprname = copr.name))
-    }}
-
-    {{ nav_element("monitor", "Monitor",
-           url_for('coprs_ns.group_copr_build_monitor', group_name = copr.group.name, coprname = copr.name))
-    }}
+    {{ nav_element("overview", "Overview", url_overview) }}
+    {{ nav_element("builds", "Builds", url_builds) }}
+    {{ nav_element("monitor", "Monitor", url_monitor) }}
 
     {% if g.user and g.user.can_build_in(copr) %}
-    {{ nav_element("add_build", "New Build",
-          url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name))
-    }}
+      {{ nav_element("add_build", "New Build", url_add_build) }}
     {% endif %}
 
     {% if g.user and g.user.can_edit(copr) %}
-    {{ nav_element("edit", "Edit",
-           url_for('coprs_ns.group_copr_edit', group_name = copr.group.name, coprname = copr.name))
-    }}
+      {{ nav_element("edit", "Edit", url_edit) }}
+      {{ nav_element("delete", "Delete", url_delete) }}
     {% endif %}
 
-    {% if g.user and g.user.can_edit(copr) %}
-    {{ nav_element("delete", "Delete",
-          url_for('coprs_ns.group_copr_delete', group_name = copr.group.name, coprname = copr.name))
-    }}
+
+    {% if g.user and not copr.is_a_group_project and g.user.can_edit(copr) %}
+      {{ nav_element("permissions", "Permission",  url_for(
+          'coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name))
+      }}
     {% endif %}
 
-{% else %}
-
-    {{ nav_element("overview", "Overview",
-           url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name)) }}
-
-    {{ nav_element("builds", "Builds",
-         url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name)
-       )
-    }}
-
-    {{ nav_element("monitor", "Monitor",
-         url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name)
-       )
-    }}
-
-    {{ nav_element("permissions", "Permission",
-         url_for('coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name)
-       )
-    }}
-
-    {% if g.user and g.user.can_build_in(copr) %}
-    {{ nav_element("add_build", "New Build",
-         url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name)
-       )
-    }}
-    {% endif %}
-
-    {% if g.user and g.user.can_edit(copr) %}
-    {{ nav_element("edit", "Edit",
-         url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name)
-       )
-    }}
-    {% endif %}
-
-    {% if g.user and g.user == copr.owner %}
-    {{ nav_element("delete", "Delete",
-         url_for('coprs_ns.copr_delete', username = copr.owner.name, coprname = copr.name)
-       )
-    }}
-    {% endif %}
-
-{% endif %}
 </ul>
 
 {% block detail_body %}{% endblock %}

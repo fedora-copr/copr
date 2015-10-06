@@ -6,7 +6,7 @@
 
 {%block project_breadcrumb %}
 <li class="active">
-  <a href="{{ url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) }}">
+  <a href="{{ url_add_build }}">
       New Build
   </a>
 </li>
@@ -26,19 +26,18 @@ Select the source type and submit a new build. Options in this form are relevant
 </li>
 {% endmacro %}
 
+{% if copr.is_a_group_project %}
+  {% set url_add_build_url = url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name) %}
+  {% set url_add_build_upload = url_for('coprs_ns.group_copr_add_build_upload', group_name = copr.group.name, coprname = copr.name) %}
+{% else %}
+  {% set url_add_build_url = url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) %}
+  {% set url_add_build_upload = url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name) %}
+{% endif %}
+
 
 <ul class="nav nav-tabs nav-tabs-pf">
-  {% if copr.is_a_group_project %}
-    {{ nav_element("url", "From URLs",
-          url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name)) }}
-    {{ nav_element("upload", "From URLs",
-          url_for('coprs_ns.group_copr_add_build_upload', group_name = copr.group.name, coprname = copr.name)) }}
-  {% else %}
-    {{ nav_element("url", "From URLs",
-          url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name)) }}
-    {{ nav_element("upload", "From URLs",
-          url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name)) }}
-  {% endif %}
+  {{ nav_element("url", "From URLs", url_add_build_url) }}
+  {{ nav_element("upload", "From URLs", url_add_build_upload) }}
 </ul>
 
 {% block build_form %}{% endblock %}

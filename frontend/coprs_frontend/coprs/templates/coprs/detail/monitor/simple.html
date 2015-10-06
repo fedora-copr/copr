@@ -1,4 +1,6 @@
 {% extends "coprs/detail/monitor.html" %}
+
+{% from "_helpers.html" import package_href, build_href %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 
 {% set selected_monitor_tab = "simple" %}
@@ -30,33 +32,35 @@
     </tr>
   </thead>
   <tbody>
-    {% for package in monitor %}
-    <tr>
-      <td style="white-space:nowrap">
-        <a href="{{ url_for('coprs_ns.copr_package',
-                            username=copr.owner.name,
-                            coprname=copr.name,
-                            package_name=package["package"].name) }}">
-          {{ package["package"].name }}
-        </a>
-      </td>
-      {% for chroot in copr.active_chroots_sorted %}
-      <td>
-        {% if package["build_chroots"][chroot.name] %}
-        <a href="{{ url_for('coprs_ns.copr_build',
-                              username=copr.owner.name,
-                              coprname=copr.name,
-                              build_id=package["build_chroots"][chroot.name].build.id) }}">
-          <span class="build-{{ package["build_chroots"][chroot.name].state }}">
-            {{ package["build_chroots"][chroot.name].state }}
-          </span>
-        </a>
-        {% else %}
-          -
-        {% endif %}
-      </td>
-      {% endfor %}
-    </tr>
+    {% for package_dict in monitor %}
+      {% set package = package_dict["package"] %}
+      {% set build_chroots = package_dict["build_chroots"] %}
+      <tr>
+        <td style="white-space:nowrap">
+          <a href="{{  package_href(package) }}">
+            {{ package.name }}
+          </a>
+        </td>
+        {% for chroot in copr.active_chroots_sorted %}
+        <td>
+          {% if chroot.name in build_chroots %}
+            {% set build_chroot = build_chroots[chroot.name] %}
+            {% if build_chroot %}
+              {% set build = build_chroot.build %}
+              <a href="{{ build_href(build) }}">
+                <span class="build-{{ build_chroot.state }}">
+                  {{ build_chroot.state }}
+                </span>
+              </a>
+            {% else %}
+            -
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
     {% endfor %}
   </tbody>
 </table>

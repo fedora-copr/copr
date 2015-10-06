@@ -7,10 +7,11 @@ from .. import db
 from .builds_logic import BuildsLogic
 from coprs.exceptions import ObjectNotFound
 from coprs.helpers import StatusEnum
+from coprs.logic.packages_logic import PackagesLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.models import User
-from .coprs_logic import CoprsLogic
+from .coprs_logic import CoprsLogic, CoprChrootsLogic
 from .. import helpers
 
 
@@ -74,6 +75,15 @@ class ComplexLogic(object):
                 message="Build {} does not exist.".format(build_id))
 
     @staticmethod
+    def get_package_safe(copr, package_name):
+        try:
+            return PackagesLogic.get(copr.id, package_name).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            raise ObjectNotFound(
+                message="Package {} in the copr {} does not exist."
+                .format(package_name, copr))
+
+    @staticmethod
     def get_group_by_name_safe(group_name):
         try:
             group = UsersLogic.get_group_by_alias(group_name).one()
@@ -81,6 +91,19 @@ class ComplexLogic(object):
             raise ObjectNotFound(
                 message="Group {} does not exist.".format(group_name))
         return group
+
+    @staticmethod
+    def get_copr_chroot_safe(copr, chroot_name):
+        try:
+            chroot = CoprChrootsLogic.get_by_name_safe(copr, chroot_name)
+        except (ValueError, KeyError, RuntimeError) as e:
+            raise ObjectNotFound(message=str(e))
+
+        if not chroot:
+            raise ObjectNotFound(
+                message="Chroot name {0} does not exist.".format(chroot_name))
+
+        return chroot
     #
     # @staticmethod
     # def get_coprs_in_a_group(group_name):

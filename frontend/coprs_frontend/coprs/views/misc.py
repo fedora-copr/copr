@@ -1,6 +1,7 @@
 import base64
 import datetime
 import functools
+from functools import wraps
 
 from netaddr import IPAddress, IPNetwork
 import re
@@ -13,6 +14,7 @@ from coprs import db
 from coprs import helpers
 from coprs import models
 from coprs import oid
+from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 
 
@@ -73,6 +75,11 @@ def lookup_current_user():
 @app.errorhandler(404)
 def page_not_found(message):
     return flask.render_template("404.html", message=message), 404
+
+
+@app.errorhandler(403)
+def access_restricted(message):
+    return flask.render_template("403.html", message=message), 403
 
 
 misc = flask.Blueprint("misc", __name__)
@@ -288,3 +295,17 @@ def intranet_required(f):
 
         return f(*args, **kwargs)
     return decorated_function
+
+
+def req_with_copr(f):
+    @wraps(f)
+    def wrapper(**kwargs):
+        coprname = kwargs.pop("coprname")
+        if "group_name" in kwargs:
+            group_name = kwargs.pop("group_name")
+            copr = ComplexLogic.get_group_copr_safe(group_name, coprname, with_mock_chroots=True)
+        else:
+            username = kwargs.pop("username")
+            copr = ComplexLogic.get_copr_safe(username, coprname, with_mock_chroots=True)
+        return f(copr, **kwargs)
+    return wrapper

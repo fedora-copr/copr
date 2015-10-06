@@ -1,20 +1,18 @@
+from functools import wraps
 import math
 import random
 import string
 import urlparse
-from urlparse import urlsplit, urlunsplit
-import flask
 
+import flask
+from flask import url_for
 from dateutil import parser as dt_parser
 from netaddr import IPAddress, IPNetwork
-
 from redis import StrictRedis
-import sqlalchemy
-
-from coprs import constants, app
-from coprs import app
-
 from rpmUtils.miscutils import splitFilename
+
+from coprs import constants
+from coprs import app
 
 
 def generate_api_token(size=30):
@@ -384,3 +382,10 @@ def str2bool(v):
     if v is None:
         return False
     return v.lower() in ("yes", "true", "t", "1")
+
+
+def url_for_copr_view(view, group_view, copr, **kwargs):
+    if copr.is_a_group_project:
+        return url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs)
+    else:
+        return url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs)

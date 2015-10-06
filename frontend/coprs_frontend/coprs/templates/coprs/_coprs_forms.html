@@ -58,7 +58,20 @@
             {{ form|attr(ch) }}
             {{ form|attr(ch)|attr('label') }}
             {% if copr and form|attr(ch)|attr('data') %}
-            <a href="{{ url_for('coprs_ns.chroot_edit', username = copr.owner.name, coprname = copr.name, chrootname = form|attr(ch)|attr('label')|attr('text'))}}">[Edit]</a>
+              {% set chrootname = form|attr(ch)|attr('label')|attr('text') %}
+
+              <a href="
+                {% if copr.is_a_group_project %}
+                  {{ url_for('coprs_ns.group_chroot_edit', group_name = copr.group.name,
+                                      coprname = copr.name, chrootname = chrootname)}}
+
+                {% else %}
+                  {{ url_for('coprs_ns.chroot_edit', username = copr.owner.name,
+                                      coprname = copr.name, chrootname = chrootname)}}
+                {% endif %}
+              ">
+                [Edit]
+              </a>
             {% endif %}
           </label>
         </div>

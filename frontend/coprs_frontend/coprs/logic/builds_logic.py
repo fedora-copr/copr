@@ -571,12 +571,13 @@ class BuildsMonitorLogic(object):
         for pkg in copr_packages:
             chroots = {}
             for ch in copr.active_chroots:
+                # todo: move to ComplexLogic
                 query = (
                     models.BuildChroot.query.join(models.Build)
                     .filter(models.Build.package_id == pkg.id)
                     .filter(models.BuildChroot.mock_chroot_id == ch.id)
                     .filter(models.BuildChroot.status != helpers.StatusEnum("canceled")))
-                query = query.order_by(models.BuildChroot.build_id.desc()).first()
-                chroots[ch.name] = query
+                build = query.order_by(models.BuildChroot.build_id.desc()).first()
+                chroots[ch.name] = build
             packages.append({"package": pkg, "build_chroots": chroots})
         return packages

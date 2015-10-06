@@ -1,9 +1,18 @@
 {% extends "coprs/detail.html" %}
 {% from "_helpers.html" import render_field %}
+
+{% if copr.is_a_group_project %}
+  {% set url_chroot_edit = url_for('coprs_ns.group_chroot_update', group_name = copr.group.name, coprname = copr.name, chrootname = chroot.name) %}
+  {% set url_chroot_comps = url_for('coprs_ns.group_chroot_view_comps', group_name = copr.group.name, coprname = copr.name, chrootname = chroot.name) %}
+{% else %}
+  {% set url_chroot_edit = url_for('coprs_ns.chroot_update', username = copr.owner.name, coprname = copr.name, chrootname = chroot.name) %}
+  {% set url_chroot_comps = url_for('coprs_ns.chroot_view_comps', username = copr.owner.name, coprname = copr.name, chrootname = chroot.name) %}
+{% endif %}
+
 {% block title %}Editing {{ copr.owner.name }}/{{ copr.name }}/{{ chroot.name }}{% endblock %}
 {%block project_breadcrumb%}
 <li>
-  <a href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">
+  <a href="{{ url_edit }}">
     Edit
   </a>
 </li>
@@ -15,7 +24,7 @@
 {% block detail_body %}
   <h2>Edit chroot '{{ chroot.name }}'</h2>
 
-  <form action="{{ url_for('coprs_ns.chroot_update', username = copr.owner.name, coprname = copr.name, chrootname = chroot.name) }}"
+  <form action="{{ url_chroot_edit }}"
         method="post" class="form-horizontal"
         enctype=multipart/form-data
       >
@@ -36,13 +45,9 @@
         {{ form.comps }}
         {% if chroot.comps_name %}
           Stored comps file: <code>
-            <a href="{{ url_for('coprs_ns.chroot_view_comps',
-                                username = copr.owner.name,
-                                coprname = copr.name,
-                                chrootname = chroot.name) }}">
+            <a href="{{ url_chroot_comps }}">
               {{ chroot.comps_name}}
             </a>
-
 
           </code>
           <button class="btn btn-default" type="submit" value="delete_comps" name="submit">
@@ -60,7 +65,7 @@
     </div>
 
     <input class="btn btn-primary" type="submit" name="submit" value="update">
-    <a class="btn btn-default" href="{{ url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) }}">Cancel</a>
+    <a class="btn btn-default" href="{{ url_edit }}">Cancel</a>
   </form>
 
 

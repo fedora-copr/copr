@@ -1,20 +1,28 @@
 {% extends "coprs/detail.html" %}
+{% from "_helpers.html" import build_href, package_href %}
 {% from "coprs/detail/_builds_forms.html" import copr_build_form_rebuild with context %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 
 {% set add_build_tab = "rebuild" %}
 
+{% if build.copr.is_a_group_project %}
+  {% set view = "coprs_ns.group_copr_new_build_rebuild" %}
+{% else %}
+  {% set view = "coprs_ns.copr_new_build_rebuild" %}
+{% endif %}
+
+
 {%block project_breadcrumb %}
 <li>
-  <a href="{{ url_for('coprs_ns.copr_builds', username=copr.owner.name, coprname=copr.name) }}">Builds</a>
+  <a href="{{ url_builds }}">Builds</a>
 </li>
 <li>
-  <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}">
+  <a href="{{ build_href(build) }}">
   {{build.id}}
   </a>
 </li>
 <li class="active">
-  resubmit
+  Resubmit
 </li>
 {%endblock%}
 
@@ -24,14 +32,12 @@
   <div class="col-sm-12">
     <h2> Resubmit build {{ build.id }}  </h2>
     <p> Resubmitting a build will rebuild the same sources again. </p>
-
-
     <h3> Original Build Details </h3>
     <dl class="dl-horizontal">
       <dt> Package:</dt>
       <dd>
         {% if build.package %}
-          <a href="{{url_for('coprs_ns.copr_package', username=build.copr.owner.name, package_name=build.package.name, coprname=copr.name)}}">
+          <a href="{{ package_href(build.package) }}">
             {{ build.package.name }}
           </a>
         {% else %}

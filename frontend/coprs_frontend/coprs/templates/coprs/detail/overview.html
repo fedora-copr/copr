@@ -1,7 +1,7 @@
 {% extends "coprs/detail.html" %}
 
 {% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
-{% from "_helpers.html" import chroot_to_os_logo, copr_name %}
+{% from "_helpers.html" import chroot_to_os_logo, copr_name, build_href %}
 
 {% set selected_tab = "overview" %}
 
@@ -120,10 +120,7 @@
       </div>
     {% if latest_build %}
       <div class="list-group">
-        <a href="{{url_for("coprs_ns.copr_build",
-                         username = copr.owner.name,
-                         coprname = copr.name,
-                         build_id = latest_build.id)}}" class="list-group-item">
+        <a href="{{ build_href(latest_build) }}" class="list-group-item">
           <h4 class="list-group-item-heading">{{latest_build.pkgs | pkg_name}}</h4>
           <p class="list-group-item-text">
             <small> Build: </small>

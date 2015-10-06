@@ -57,3 +57,9 @@ class ObjectNotFound(CoprHttpException):
 
     _default = "Requested object was not found"
     _code = 404
+
+
+class AccessRestricted(CoprHttpException):
+
+    _default = "You don't have required permission"
+    _code = 403
