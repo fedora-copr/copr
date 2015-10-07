@@ -237,14 +237,14 @@ def after_the_project_creation(copr, form):
 
 
 @coprs_ns.route("/<username>/<coprname>/report-abuse")
-def copr_report_abuse(username, coprname):
-    copr = ComplexLogic.get_copr_safe(username, coprname, with_mock_chroots=True)
+@req_with_copr
+def copr_report_abuse(copr):
     return render_copr_report_abuse(copr)
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/report-abuse")
-def group_copr_report_abuse(group_name, coprname):
-    copr = ComplexLogic.get_group_copr_safe(group_name, coprname, with_mock_chroots=True)
+@req_with_copr
+def group_copr_report_abuse(copr):
     return render_copr_report_abuse(copr)
 
 
