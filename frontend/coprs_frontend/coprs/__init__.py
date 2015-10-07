@@ -81,8 +81,6 @@ app.register_blueprint(stats_receiver.stats_rcv_ns)
 app.register_blueprint(tmp_ns.tmp_ns)
 app.register_blueprint(groups_ns)
 
-print("\n".join(sorted([x.rule for x in app.url_map.iter_rules()])))
-
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
 
 from rest_api import rest_api_bp, register_api_error_handler, URL_PREFIX

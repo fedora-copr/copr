@@ -664,34 +664,52 @@ def generate_repo_file(copr, name_release, repofile):
     # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
     # FAS usernames may not contain dashes, so this construction is safe.
 
-    reponame = "{}-{}".format(copr.owner.username, copr.name)
+    return render_generate_repo_file(copr, name_release, repofile)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
+@coprs_ns.route("/g/<group_name>/<coprname>/repo/<name_release>/<repofile>")
+@req_with_copr
+def group_generate_repo_file(copr, name_release, repofile):
+    """ Generate repo file for a given repo name.
+        Reponame = username-coprname """
+    # This solution is used because flask splits off the last part after a
+    # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
+    # FAS usernames may not contain dashes, so this construction is safe.
+
+    return render_generate_repo_file(copr, name_release, repofile)
+
+
+def render_generate_repo_file(copr, name_release, repofile):
 
     # we need to check if we really got name release or it's a full chroot (caused by old dnf plugin)
     if name_release in [c.name for c in copr.active_chroots]:
         chroot = [c for c in copr.active_chroots if c.name == name_release][0]
-        return flask.redirect(flask.url_for(
-            "coprs_ns.generate_repo_file", username=copr.owner.username, coprname=copr.name,
-            name_release=chroot.name_release))
+        kwargs = dict(coprname=copr.name, name_release=chroot.name)
+        if copr.is_a_group_project:
+            fixed_url = url_for("coprs_ns.group_generate_repo_file",
+                                group_name=copr.group.name, **kwargs)
+        else:
+            fixed_url = url_for("coprs_ns.generate_repo_file",
+                                username=copr.owner.username, **kwargs)
+        return flask.redirect(fixed_url)
 
     expected = "{}-{}-{}.repo".format(copr.owner.username, copr.name, name_release)
     if repofile is not None and repofile != expected:
-        return page_not_found(
-            "Repository filename does not match expected: {0}"
-            .format(repofile))
+        raise ObjectNotFound(
+            "Repository filename does not match expected: {}".format(repofile))
 
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
     if not mock_chroot:
-        # TODO: replace with raise ObjectNotFound
-        return page_not_found("Chroot {0} does not exist".format(name_release))
+        raise ObjectNotFound("Chroot {} does not exist".format(name_release))
 
     url = ""
     for build in copr.builds:
         if build.results:
             url = build.results
             break
-
     if not url:
-        return page_not_found(
+        raise ObjectNotFound(
             "Repository not initialized: No finished builds in {}/{}."
             .format(copr.owner.username, copr.name))
 
@@ -701,11 +719,9 @@ def generate_repo_file(copr, name_release, repofile):
     pubkey_url = urlparse.urljoin(url, "pubkey.gpg")
     response = flask.make_response(
         flask.render_template("coprs/copr.repo", copr=copr, url=repo_url, pubkey_url=pubkey_url))
-
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
-        "filename={0}.repo".format(reponame)
-
+        "filename={0}.repo".format(copr.repo_name)
     return response
 
 

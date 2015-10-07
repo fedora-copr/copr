@@ -1,7 +1,7 @@
 {% extends "coprs/group_show.html" %}
 {% block title %}Project List{% endblock %}
 {% block header %}Project List{% endblock %}
-{% from "_helpers.html" import render_pagination %}
+{% from "_helpers.html" import render_pagination, fas_group_href %}
 {% block breadcrumbs %}
 <ol class="breadcrumb">
   <li>
@@ -17,10 +17,10 @@
 <div id="profile">
   <h1>Group <strong>@{{group.name|capitalize}}'s</strong> Profile</h1>
   <h2>group is managed in the FAS, under the name
-    <strong>{{ group.fas_name }}</strong>
+    <a href="{{ fas_group_href(group.fas_name) }}">
+      <strong>{{ group.fas_name }}</strong>
+    </a>
   </h2>
-
-  <small> todo: link to the FAS page with groups members </small>
 </div>
 
 <h2>Projects</h2>

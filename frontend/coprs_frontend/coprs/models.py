@@ -287,7 +287,17 @@ class Copr(db.Model, helpers.Serializer):
 
     @property
     def full_name(self):
-        return "{}/{}".format(self.owner.username, self.name)
+        if self.is_a_group_project:
+            return "@{}/{}".format(self.group.name, self.name)
+        else:
+            return "{}/{}".format(self.owner.username, self.name)
+
+    @property
+    def repo_name(self):
+        if self.is_a_group_project:
+            return "@{}-{}".format(self.group.name, self.name)
+        else:
+            return "{}-{}".format(self.owner.username, self.name)
 
     def to_dict(self, private=False, show_builds=True, show_chroots=True):
         result = {}

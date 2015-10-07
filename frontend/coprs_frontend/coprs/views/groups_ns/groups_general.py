@@ -1,14 +1,15 @@
 # coding: utf-8
 
 import flask
-from flask import render_template, session
+from flask import render_template, session, url_for
 from coprs.forms import ActivateFasGroupForm
 from coprs.helpers import Paginator
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
 
-from coprs.views.misc import login_required
+from ... import db
+from ..misc import login_required
 
 from . import groups_ns
 
@@ -18,37 +19,26 @@ from . import groups_ns
 def activate_group(fas_group):
     form = ActivateFasGroupForm()
 
-
-    if False: #form.validate_on_submit():
+    if form.validate_on_submit():
+        alias = form.name.data
         group = UsersLogic.get_group_by_fas_name_or_create(
-            form.fas_name.data, form.name.data)
+            fas_group, alias)
 
-        # copr.group_id = group.id
-        # db.session.add(copr)
-        # db.session.commit()
-        #
-        # flask.flash(
-        #     "Project is now managed by {} FAS group, "
-        #     "main url to the project: {}"
-        #     .format(
-        #         form.fas_name.data,
-        #         "group url todo:"
-        #     )
-        # )
-        # return flask.redirect(flask.url_for(
-        #     "coprs_ns.copr_detail", username=username, coprname=coprname))
+        db.session.add(group)
+        db.session.commit()
+
+        flask.flash(
+            "FAS group {} is activated in the Copr under the alias {} "
+            .format(fas_group, alias)
+        )
+        return flask.redirect(url_for(
+            "groups_ns.list_projects_by_group", group_name=alias))
 
     else:
         return flask.render_template(
             "groups/activate_fas_group.html",
             form=form, user=flask.g.user,
         )
-
-
-@groups_ns.route("/by_user/<user_name>")
-def list_groups_by_user(user_name):
-    query = CoprsLogic.get_multiple()
-    pass
 
 
 @groups_ns.route("/g/<group_name>/coprs/", defaults={"page": 1})
@@ -75,7 +65,6 @@ def list_projects_by_group(group_name, page=1):
 @login_required
 def list_user_groups():
     teams = session.get("teams")
-    print(teams)
     active_map = {
         group.fas_name: group.name for group in
         UsersLogic.get_groups_by_fas_names_list(teams).all()
@@ -84,7 +73,6 @@ def list_user_groups():
         fas_name: active_map.get(fas_name)
         for fas_name in teams
     }
-    print(copr_groups)
     return render_template(
         "groups/user_fas_groups.html",
         user=flask.g.user,

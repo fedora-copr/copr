@@ -1,7 +1,7 @@
 {% extends "coprs/detail.html" %}
 
 {% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
-{% from "_helpers.html" import chroot_to_os_logo, copr_name, build_href %}
+{% from "_helpers.html" import chroot_to_os_logo, copr_name, build_href, repo_file_href %}
 
 {% set selected_tab = "overview" %}
 
@@ -66,15 +66,7 @@
             {% endfor %}
           </td>
           <td class="rightmost">
-            <a class="btn btn-default btn-margin" href="{{
-                url_for(
-                'coprs_ns.generate_repo_file',
-                username=copr.owner.name,
-                coprname=copr.name,
-                name_release=repo.name_release,
-                repofile=repo.repo_file,
-                _external=True
-              )|fix_url_https_frontend}}">
+            <a class="btn btn-default btn-margin" href="{{ repo_file_href(copr, repo) }}">
               <span class="pficon pficon-save"> {{ repo.name_release_human|capitalize }}</span>
             </a>
             <small class="text-muted"> ({{ repo.dl_stat }} downloads) </small>
