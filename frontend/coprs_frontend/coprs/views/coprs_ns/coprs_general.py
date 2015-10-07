@@ -147,7 +147,7 @@ def group_copr_add(group_name):
 @login_required
 def group_copr_new(group_name):
     group = ComplexLogic.get_group_by_name_safe(group_name)
-    form = forms.CoprFormFactory.create_form_cls()()
+    form = forms.CoprFormFactory.create_form_cls(group=group)()
 
     if form.validate_on_submit():
         copr = coprs_logic.CoprsLogic.add(

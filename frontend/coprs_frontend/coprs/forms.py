@@ -10,7 +10,7 @@ from flask.ext import wtf
 from coprs import constants
 from coprs import helpers
 from coprs import models
-from coprs.logic import coprs_logic
+from coprs.logic.coprs_logic import CoprsLogic
 
 
 class UrlListValidator(object):
@@ -83,17 +83,25 @@ class SrpmValidator(object):
 
 class CoprUniqueNameValidator(object):
 
-    def __init__(self, message=None, owner=None):
+    def __init__(self, message=None, owner=None, group=None):
         if not message:
-            message = "You already have project named '{0}'."
+            if group is None:
+                message = "You already have project named '{}'."
+            else:
+                message = "Group {} ".format(group) + "already have project named '{}'."
         self.message = message
         if not owner:
             owner = flask.g.user
         self.owner = owner
+        self.group = group
 
     def __call__(self, form, field):
-        existing = coprs_logic.CoprsLogic.exists_for_user(
-            self.owner, field.data).first()
+        if self.group:
+            existing = CoprsLogic.exists_for_group(
+                self.group, field.data).first()
+        else:
+            existing = CoprsLogic.exists_for_user(
+                self.owner, field.data).first()
 
         if existing and str(existing.id) != form.id.data:
             raise wtforms.ValidationError(self.message.format(field.data))
@@ -152,7 +160,7 @@ class ValueToPermissionNumberFilter(object):
 class CoprFormFactory(object):
 
     @staticmethod
-    def create_form_cls(mock_chroots=None, owner=None):
+    def create_form_cls(mock_chroots=None, owner=None, group=None):
         class F(wtf.Form):
             # also use id here, to be able to find out whether user
             # is updating a copr if so, we don't want to shout
@@ -168,7 +176,7 @@ class CoprFormFactory(object):
                         re.compile(r"^[\w.-]+$"),
                         message="Name must contain only letters,"
                         "digits, underscores, dashes and dots."),
-                    CoprUniqueNameValidator(owner=owner),
+                    CoprUniqueNameValidator(owner=owner, group=group),
                     NameNotNumberValidator()
                 ])
 

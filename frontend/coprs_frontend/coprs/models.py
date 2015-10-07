@@ -929,4 +929,4 @@ class Group(db.Model, helpers.Serializer):
         return self.__unicode__()
 
     def __unicode__(self):
-        return "{0} ({1})".format(self.name, self.fas_name)
+        return "{} (fas: {})".format(self.name, self.fas_name)

@@ -259,6 +259,17 @@ class CoprsLogic(object):
         return existing
 
     @classmethod
+    def exists_for_group(cls, group, coprname, incl_deleted=False):
+        existing = (models.Copr.query
+                    .filter(models.Copr.name == coprname)
+                    .filter(models.Copr.group_id == group.id))
+
+        if not incl_deleted:
+            existing = existing.filter(models.Copr.deleted == False)
+
+        return existing
+
+    @classmethod
     def unfinished_blocking_actions_for(cls, copr):
         blocking_actions = [helpers.ActionTypeEnum("rename"),
                             helpers.ActionTypeEnum("delete")]
