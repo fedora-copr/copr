@@ -34,6 +34,7 @@ class BuildTaskListR(Resource):
         parser.add_argument('owner', type=str,)
         parser.add_argument('project_id', type=int)
         parser.add_argument('build_id', type=int)
+        parser.add_argument('group', type=str)
 
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
@@ -56,6 +57,8 @@ class BuildTaskListR(Resource):
         elif self_params.get("owner") is not None:
             query = BuildChrootsLogic.filter_by_project_owner_name(
                 query, self_params["owner"])
+        elif self_params.get("group") is not None:
+            query = BuildChrootsLogic.filter_by_group_name(query, req_args["group"])
 
         state = self_params.get("state")
         if state:

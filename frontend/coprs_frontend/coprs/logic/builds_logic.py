@@ -123,6 +123,10 @@ class BuildsLogic(object):
             models.Copr.owner == user)
 
     @classmethod
+    def join_group(cls, query):
+        return query.join(models.Copr).outerjoin(models.Group)
+
+    @classmethod
     def get_multiple_by_name(cls, username, coprname):
         query = cls.get_multiple()
         return (query.join(models.Build.copr)
@@ -523,6 +527,10 @@ class BuildsLogic(object):
         else:
             return query.filter(models.Build.ended_on.is_(None))
 
+    @classmethod
+    def filter_by_group_name(cls, query, group_name):
+        return query.filter(models.Group.name == group_name)
+
 
 class BuildChrootsLogic(object):
     @classmethod
@@ -543,6 +551,7 @@ class BuildChrootsLogic(object):
             .join(models.BuildChroot.mock_chroot)
             .join(models.Build.copr)
             .join(models.Copr.owner)
+            .outerjoin(models.Group)
         )
         return query
 
@@ -561,6 +570,10 @@ class BuildChrootsLogic(object):
     @classmethod
     def filter_by_state(cls, query, state):
         return query.filter(models.BuildChroot.status == StatusEnum(state))
+
+    @classmethod
+    def filter_by_group_name(cls, query, group_name):
+        return query.filter(models.Group.name == group_name)
 
 
 class BuildsMonitorLogic(object):

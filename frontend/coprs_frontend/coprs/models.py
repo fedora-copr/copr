@@ -208,6 +208,10 @@ class Copr(db.Model, helpers.Serializer):
         return self.owner.name
 
     @property
+    def group_name(self):
+        return self.group.name
+
+    @property
     def repos_list(self):
         """
         Return repos of this copr as a list of strings

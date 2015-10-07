@@ -43,6 +43,7 @@ class SpaceSeparatedList(fields.Field):
         else:
             return " ".join(value)
 
+
 class BuiltPackages(fields.Field):
     """ stored in db as a string:
     "python3-marshmallow 2.0.0b5\npython-marshmallow 2.0.0b5"
@@ -85,6 +86,9 @@ class ProjectSchema(Schema):
     name = fields.Str(dump_only=True)
 
     owner = fields.Str(attribute="owner_name", dump_only=True)
+    is_a_group_project = fields.Bool(dump_only=True)
+    group = fields.Str(attribute="group_name", dump_only=True)
+
     description = fields.Str(allow_none=True)
     instructions = fields.Str(allow_none=True)
     homepage = fields.Url(allow_none=True)
@@ -111,6 +115,7 @@ class ProjectCreateSchema(ProjectSchema):
                       "digits, underscores, dashes and dots."
                       "And starts with letter"),
         ])
+    group = fields.Str(load_only=True, allow_none=True)
     chroots = SpaceSeparatedList(load_only=True, default=list)
 
 

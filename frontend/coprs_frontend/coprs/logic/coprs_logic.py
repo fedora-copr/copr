@@ -103,6 +103,7 @@ class CoprsLogic(object):
         query = (
             db.session.query(models.Copr)
             .join(models.Copr.owner)
+            .outerjoin(models.Group)
             .options(db.contains_eager(models.Copr.owner))
         )
 
@@ -125,18 +126,6 @@ class CoprsLogic(object):
         query = cls.get_multiple()
         return query.filter(models.User.username == username)
 
-    # user_relation="allowed", username=username, with_mock_chroots=False)
-    @classmethod
-    def get_multiple_allowed_to_username(cls, username):
-        query = cls.get_multiple()
-        aliased_user = db.aliased(models.User)
-
-        return (query.join(models.CoprPermission, models.Copr.copr_permissions)
-                .filter(models.CoprPermission.copr_builder ==
-                        helpers.PermissionEnum('approved'))
-                .join(aliased_user, models.CoprPermission.user)
-                .filter(aliased_user.username == username))
-
     @classmethod
     def filter_by_name(cls, query, name):
         return query.filter(models.Copr.name == name)
@@ -145,6 +134,11 @@ class CoprsLogic(object):
     def filter_by_owner_name(cls, query, username):
         # should be already joined with the User table
         return query.filter(models.User.username == username)
+
+    @classmethod
+    def filter_by_group_name(cls, query, group_name):
+        # should be already joined with the Group table
+        return query.filter(models.Group.name == group_name)
 
     @classmethod
     def join_builds(cls, query):

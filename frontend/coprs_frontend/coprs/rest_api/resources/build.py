@@ -23,6 +23,7 @@ class BuildListR(Resource):
 
         parser.add_argument('owner', type=str,)
         parser.add_argument('project_id', type=int)
+        parser.add_argument('group', type=str)
 
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
@@ -40,6 +41,9 @@ class BuildListR(Resource):
             query = BuildsLogic.get_multiple_by_owner(user)
         else:
             query = BuildsLogic.get_multiple()
+
+        if req_args["group"]:
+            query = BuildsLogic.filter_by_group_name(query, req_args["group"])
 
         if req_args["is_finished"] is not None:
             is_finished = req_args["is_finished"]

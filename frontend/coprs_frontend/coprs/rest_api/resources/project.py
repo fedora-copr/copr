@@ -53,6 +53,7 @@ class ProjectListR(Resource):
     def get(self):
         parser = get_request_parser()
         parser.add_argument('owner', type=str)
+        parser.add_argument('group', type=str)
         parser.add_argument('name', type=str)
         parser.add_argument('limit', type=int)
         parser.add_argument('offset', type=int)
@@ -69,6 +70,9 @@ class ProjectListR(Resource):
 
         if req_args["owner"]:
             query = CoprsLogic.filter_by_owner_name(query, req_args["owner"])
+
+        if req_args["group"]:
+            query = CoprsLogic.filter_by_group_name(query, req_args["group"])
 
         if req_args["name"]:
             query = CoprsLogic.filter_by_name(query, req_args["name"])
