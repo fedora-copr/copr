@@ -15,12 +15,12 @@
 {% block show_top %}
 
 <div id="profile">
-  <h1>Group <strong>@{{group.name|capitalize}}'s</strong> Profile</h1>
-  <h2>group is managed in the FAS, under the name
-    <a href="{{ fas_group_href(group.fas_name) }}">
-      <strong>{{ group.fas_name }}</strong>
-    </a>
-  </h2>
+  <img src="https://seccdn.libravatar.org/avatar/" alt="" class="avatar">
+  <h1>@{{group.name|capitalize}}'s Group</h1>
+  <p>
+    <a href="https://admin.fedoraproject.org/accounts/group/view/{{ group.fas_name }}" title="{{ group.fas_name }}'s FAS details" target="_blank">FAS details</a> |
+    <a href="https://admin.fedoraproject.org/accounts/group/members/{{ group.fas_name }}" title="{{ group.fas_name }}'s Members" target="_blank">View Members</a>
+  </h>
 </div>
 
 <h2>Projects</h2>
