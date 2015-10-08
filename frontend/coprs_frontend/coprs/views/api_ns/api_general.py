@@ -1,5 +1,6 @@
 import base64
 import datetime
+from functools import wraps
 import os
 import shutil
 import tempfile
@@ -17,6 +18,7 @@ from coprs import helpers
 from coprs.helpers import fix_protocol_for_backend
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.users_logic import UsersLogic
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -27,7 +29,24 @@ from coprs.logic import coprs_logic
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic
 
 from coprs.exceptions import (ActionInProgressException,
-                              InsufficientRightsException)
+                              InsufficientRightsException,
+                              LegacyApiError)
+
+
+def api_req_with_copr(f):
+    """
+    Dirty code, using until we migrate to the API 2
+    """
+    @wraps(f)
+    def wrapper(username, coprname, **kwargs):
+        if username.startswith("@"):
+            group_name = username[1:]
+            copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+        else:
+            copr = ComplexLogic.get_copr_safe(username, coprname)
+
+        return f(copr, **kwargs)
+    return wrapper
 
 
 @api_ns.route("/")
@@ -80,15 +99,12 @@ def api_new_copr(username):
     """
 
     form = forms.CoprFormFactory.create_form_cls()(csrf_enabled=False)
-    httpcode = 200
 
     # are there any arguments in POST which our form doesn't know?
     # TODO: don't use WTFform for parsing and validation here
     if any([post_key not in form.__dict__.keys()
             for post_key in flask.request.form.keys()]):
-        output = {"output": "notok",
-                  "error": "Unknown arguments passed (non-existing chroot probably)"}
-        httpcode = 500
+        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
 
     elif form.validate_on_submit():
         infos = []
@@ -120,9 +136,8 @@ def api_new_copr(username):
             output = {"output": "ok", "message": "\n".join(infos)}
             db.session.commit()
         except exceptions.DuplicateException as err:
-            output = {"output": "notok", "error": err}
-            httpcode = 500
             db.session.rollback()
+            raise LegacyApiError(str(err))
 
     else:
         errormsg = "Validation error\n"
@@ -131,21 +146,18 @@ def api_new_copr(username):
                 errormsg += "- {0}: {1}\n".format(field, "\n".join(emsgs))
 
         errormsg = errormsg.replace('"', "'")
-        output = {"output": "notok", "error": errormsg}
-        httpcode = 500
+        raise LegacyApiError(errormsg)
 
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/delete/", methods=["POST"])
 @api_login_required
-def api_copr_delete(username, coprname):
+@api_req_with_copr
+def api_copr_delete(copr):
     """ Deletes selected user's project
     """
     form = forms.CoprDeleteForm(csrf_enabled=False)
-    copr = CoprsLogic.get(username, coprname).first()
     httpcode = 200
 
     if form.validate_on_submit() and copr:
@@ -153,20 +165,17 @@ def api_copr_delete(username, coprname):
             ComplexLogic.delete_copr(copr)
         except (exceptions.ActionInProgressException,
                 exceptions.InsufficientRightsException) as err:
-            output = {"output": "notok", "error": err}
-            httpcode = 500
+
             db.session.rollback()
+            raise LegacyApiError(str(err))
         else:
-            message = "Project {0} has been deleted.".format(coprname)
+            message = "Project {0} has been deleted.".format(cop.rname)
             output = {"output": "ok", "message": message}
             db.session.commit()
     else:
-        output = {"output": "notok", "error": "Invalid request"}
-        httpcode = 500
+        raise LegacyApiError("Invalid request")
 
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/")
@@ -181,41 +190,39 @@ def api_coprs_by_owner(username=None):
 
     """
     username = flask.request.args.get("username", None) or username
+    if username is None:
+        raise LegacyApiError("Invalid request: missing `username` ")
+
     release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
-    httpcode = 200
-    if username:
-        query = CoprsLogic.join_builds(
-            CoprsLogic.get_multiple_owned_by_username(username))
-        query = CoprsLogic.set_query_order(query)
 
-        repos = query.all()
-        output = {"output": "ok", "repos": []}
-        for repo in repos:
-            yum_repos = {}
-            for build in repo.builds:
-                if build.results:
-                    for chroot in repo.active_chroots:
-                        release = release_tmpl.format(chroot=chroot)
-                        yum_repos[release] = fix_protocol_for_backend(
-                            os.path.join(build.results, release + '/'))
-                    break
+    query = CoprsLogic.join_builds(
+        CoprsLogic.get_multiple_owned_by_username(username))
+    query = CoprsLogic.set_query_order(query)
 
-            output["repos"].append({"name": repo.name,
-                                    "additional_repos": repo.repos,
-                                    "yum_repos": yum_repos,
-                                    "description": repo.description,
-                                    "instructions": repo.instructions})
-    else:
-        output = {"output": "notok", "error": "Invalid request"}
-        httpcode = 500
+    repos = query.all()
+    output = {"output": "ok", "repos": []}
+    for repo in repos:
+        yum_repos = {}
+        for build in repo.builds:
+            if build.results:
+                for chroot in repo.active_chroots:
+                    release = release_tmpl.format(chroot=chroot)
+                    yum_repos[release] = fix_protocol_for_backend(
+                        os.path.join(build.results, release + '/'))
+                break
 
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+        output["repos"].append({"name": repo.name,
+                                "additional_repos": repo.repos,
+                                "yum_repos": yum_repos,
+                                "description": repo.description,
+                                "instructions": repo.instructions})
+
+    return  flask.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/detail/")
-def api_coprs_by_owner_detail(username, coprname):
+@api_req_with_copr
+def api_coprs_by_owner_detail(copr):
     """ Return detail of one project.
 
     :arg username: the username of the person one would like to the
@@ -223,373 +230,272 @@ def api_coprs_by_owner_detail(username, coprname):
     :arg coprname: the name of project.
 
     """
-    if username.startswith("@"):
-        copr = ComplexLogic.get_group_copr_safe(username[1:], coprname)
-    else:
-        copr = CoprsLogic.get(username, coprname).first()
-
     release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
-    httpcode = 200
-    if username and copr:
-        output = {"output": "ok", "detail": {}}
-        yum_repos = {}
-        for build in copr.builds:
-            if build.results:
-                for chroot in copr.active_chroots:
-                    release = release_tmpl.format(chroot=chroot)
-                    yum_repos[release] = fix_protocol_for_backend(
-                        os.path.join(build.results, release + '/'))
-                break
-        output["detail"] = {
-            "name": copr.name,
-            "additional_repos": copr.repos,
-            "yum_repos": yum_repos,
-            "description": copr.description,
-            "instructions": copr.instructions,
-            "last_modified": builds_logic.BuildsLogic.last_modified(copr),
-            "auto_createrepo": copr.auto_createrepo,
-        }
-    else:
-        output = {"output": "notok", "error": "Copr with name {0} does not exist.".format(coprname)}
-        httpcode = 500
 
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    output = {"output": "ok", "detail": {}}
+    yum_repos = {}
+    for build in copr.builds:
+        if build.results:
+            for chroot in copr.active_chroots:
+                release = release_tmpl.format(chroot=chroot)
+                yum_repos[release] = fix_protocol_for_backend(
+                    os.path.join(build.results, release + '/'))
+            break
+    output["detail"] = {
+        "name": copr.name,
+        "additional_repos": copr.repos,
+        "yum_repos": yum_repos,
+        "description": copr.description,
+        "instructions": copr.instructions,
+        "last_modified": builds_logic.BuildsLogic.last_modified(copr),
+        "auto_createrepo": copr.auto_createrepo,
+    }
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
 @api_login_required
-def copr_new_build(username, coprname):
-    copr = CoprsLogic.get(username, coprname).first()
-    httpcode = 200
-    if not copr:
-        output = {"output": "notok", "error":
-                  "Copr with name {0} does not exist.".format(coprname)}
-        httpcode = 500
+@api_req_with_copr
+def copr_new_build(copr):
 
-    else:
-        form = forms.BuildFormFactory.create_form_cls(
-            copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormFactory.create_form_cls(
+        copr.active_chroots)(csrf_enabled=False)
 
-        # are there any arguments in POST which our form doesn't know?
-        if any([post_key not in form.__dict__.keys()
-                for post_key in flask.request.form.keys()]):
-            output = {"output": "notok",
-                      "error": "Unknown arguments passed (non-existing chroot probably)"}
-            httpcode = 500
+    # are there any arguments in POST which our form doesn't know?
+    if any([post_key not in form.__dict__.keys()
+            for post_key in flask.request.form.keys()]):
+        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
 
-        elif form.validate_on_submit() and flask.g.user.can_build_in(copr):
-            # we're checking authorization above for now
-            # and also creating separate build for each package
-            pkgs = form.pkgs.data.split("\n")
-            ids = []
-            chroots = []
-            for chroot in copr.active_chroots:
-                if chroot.name in form.selected_chroots:
-                    chroots.append(chroot)
+    if not form.validate_on_submit():
+        raise LegacyApiError("Invalid request: bad request parameters")
 
-            for pkg in pkgs:
-                # create json describing the build source
-                source_type = helpers.BuildSourceEnum("srpm_link")
-                source_json = json.dumps({"url": pkg})
+    if not flask.g.user.can_build_in(copr):
+        raise LegacyApiError("Invalid request: user {} is not allowed to build in the copr: {}"
+                             .format(flask.g.user.username, copr))
 
-                build = builds_logic.BuildsLogic.add(
-                    user=flask.g.user,
-                    pkgs=pkg,
-                    copr=copr,
-                    chroots=chroots,
-                    source_type=source_type,
-                    source_json=source_json)
+    # we're checking authorization above for now
+    # and also creating separate build for each package
+    pkgs = form.pkgs.data.split("\n")
+    ids = []
+    chroots = []
+    for chroot in copr.active_chroots:
+        if chroot.name in form.selected_chroots:
+            chroots.append(chroot)
 
-                if flask.g.user.proven:
-                    build.memory_reqs = form.memory_reqs.data
-                    build.timeout = form.timeout.data
+    for pkg in pkgs:
+        # create json describing the build source
+        source_type = helpers.BuildSourceEnum("srpm_link")
+        source_json = json.dumps({"url": pkg})
 
-                db.session.commit()
-                ids.append(build.id)
+        build = builds_logic.BuildsLogic.add(
+            user=flask.g.user,
+            pkgs=pkg,
+            copr=copr,
+            chroots=chroots,
+            source_type=source_type,
+            source_json=source_json)
 
-            output = {"output": "ok",
-                      "ids": ids,
-                      "message": "Build was added to {0}.".format(coprname)}
-        else:
-            output = {"output": "notok", "error": "Invalid request"}
-            httpcode = 500
+        if flask.g.user.proven:
+            build.memory_reqs = form.memory_reqs.data
+            build.timeout = form.timeout.data
 
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+        db.session.commit()
+        ids.append(build.id)
+
+    output = {"output": "ok",
+              "ids": ids,
+              "message": "Build was added to {0}.".format(copr.name)}
+
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/new_build_upload/", methods=["POST"])
 @api_login_required
-def copr_new_build_upload(username, coprname):
-    copr = coprs_logic.CoprsLogic.get(username, coprname).first()
-    httpcode = 200
-    if not copr:
-        output = {"output": "notok", "error":
-            "Copr with name {0} does not exist.".format(coprname)}
-        httpcode = 500
+@api_req_with_copr
+def copr_new_build_upload(copr):
 
-    else:
-        form = forms.BuildFormUploadFactory.create_form_cls(
-            copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormUploadFactory.create_form_cls(
+        copr.active_chroots)(csrf_enabled=False)
 
-        # are there any arguments in POST which our form doesn't know?
-        if any([post_key not in form.__dict__.keys()
-                for post_key in flask.request.form.keys()]):
-            output = {"output": "notok",
-                      "error": "Unknown arguments passed (non-existing chroot probably)"}
-            httpcode = 500
+    # are there any arguments in POST which our form doesn't know?
+    if any([post_key not in form.__dict__.keys()
+            for post_key in flask.request.form.keys()]):
+        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
 
-        elif form.validate_on_submit():
-            tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
-            tmp_name = os.path.basename(tmp)
-            filename = secure_filename(form.pkgs.data.filename)
-            file_path = os.path.join(tmp, filename)
-            form.pkgs.data.save(file_path)
+    if not form.validate_on_submit():
+        raise LegacyApiError("Invalid request: bad request parameters")
 
-            # get the package name vithout version and release
-            pkgname = helpers.parse_package_name(filename)
+    tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
+    tmp_name = os.path.basename(tmp)
+    filename = secure_filename(form.pkgs.data.filename)
+    file_path = os.path.join(tmp, filename)
+    form.pkgs.data.save(file_path)
 
-            # make the pkg public
-            pkg_url = "https://{hostname}/tmp/{tmp_dir}/{srpm}".format(
-                hostname=app.config["PUBLIC_COPR_HOSTNAME"],
-                tmp_dir=tmp_name,
-                srpm=filename)
+    # make the pkg public
+    pkg_url = "https://{hostname}/tmp/{tmp_dir}/{srpm}".format(
+        hostname=app.config["PUBLIC_COPR_HOSTNAME"],
+        tmp_dir=tmp_name,
+        srpm=filename)
 
-            # check which chroots we need
-            chroots = []
-            for chroot in copr.active_chroots:
-                if chroot.name in form.selected_chroots:
-                    chroots.append(chroot)
+    # check which chroots we need
+    chroots = []
+    for chroot in copr.active_chroots:
+        if chroot.name in form.selected_chroots:
+            chroots.append(chroot)
 
-            # create json describing the build source
-            source_type = helpers.BuildSourceEnum("srpm_upload")
-            source_json = json.dumps({"tmp": tmp_name,
-                                      "pkg": filename})
+    # create json describing the build source
+    source_type = helpers.BuildSourceEnum("srpm_upload")
+    source_json = json.dumps({"tmp": tmp_name,
+                              "pkg": filename})
 
-            # create a new build
-            try:
-                build = builds_logic.BuildsLogic.add(
-                    user=flask.g.user,
-                    pkgs=pkg_url,
-                    copr=copr,
-                    chroots=chroots,
-                    source_type=source_type,
-                    source_json=source_json,
-                    enable_net=form.enable_net.data)
+    # create a new build
+    try:
+        build = builds_logic.BuildsLogic.add(
+            user=flask.g.user,
+            pkgs=pkg_url,
+            copr=copr,
+            chroots=chroots,
+            source_type=source_type,
+            source_json=source_json,
+            enable_net=form.enable_net.data)
 
-                if flask.g.user.proven:
-                    build.memory_reqs = form.memory_reqs.data
-                    build.timeout = form.timeout.data
+        if flask.g.user.proven:
+            build.memory_reqs = form.memory_reqs.data
+            build.timeout = form.timeout.data
 
-                db.session.commit()
+        db.session.commit()
 
-            except (ActionInProgressException, InsufficientRightsException) as e:
-                flask.flash(str(e))
-                db.session.rollback()
-                shutil.rmtree(tmp)
+    except (ActionInProgressException, InsufficientRightsException) as e:
+        db.session.rollback()
+        shutil.rmtree(tmp)
+        raise LegacyApiError("Invalid request: {}".format(e))
 
-            output = {"output": "ok",
-                      "ids": [build.id],
-                      "message": "Build was added to {0}.".format(coprname)}
-        else:
-            output = {"output": "notok", "error": "Invalid request"}
-            httpcode = 500
+    output = {"output": "ok",
+              "ids": [build.id],
+              "message": "Build was added to {0}.".format(copr.name)}
 
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/build_status/<build_id>/", methods=["GET"])
 @api_login_required
 def build_status(build_id):
-    if build_id.isdigit():
-        build = builds_logic.BuildsLogic.get(build_id).first()
-    else:
-        build = None
-
-    if build:
-        httpcode = 200
-        output = {"output": "ok",
-                  "status": build.state}
-    else:
-        output = {"output": "notok", "error": "Invalid build"}
-        httpcode = 404
-
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    build = ComplexLogic.get_build_safe(build_id)
+    output = {"output": "ok",
+              "status": build.state}
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/build_detail/<build_id>/", methods=["GET"])
 @api_ns.route("/coprs/build/<build_id>/", methods=["GET"])
 def build_detail(build_id):
-    if build_id.isdigit():
-        build = builds_logic.BuildsLogic.get(build_id).first()
-    else:
-        build = None
+    build = ComplexLogic.get_build_safe(build_id)
 
-    if build:
-        httpcode = 200
-        chroots = {}
-        results_by_chroot = {}
-        for chroot in build.build_chroots:
-            chroots[chroot.name] = chroot.state
-            results_by_chroot[chroot.name] = chroot.result_dir_url
+    chroots = {}
+    results_by_chroot = {}
+    for chroot in build.build_chroots:
+        chroots[chroot.name] = chroot.state
+        results_by_chroot[chroot.name] = chroot.result_dir_url
 
-        built_packages = None
-        if build.built_packages:
-            built_packages = build.built_packages.split("\n")
+    built_packages = None
+    if build.built_packages:
+        built_packages = build.built_packages.split("\n")
 
-        output = {
-            "output": "ok",
-            "status": build.state,
-            "project": build.copr.name,
-            "owner": build.copr.owner.name,
-            "results": build.results,
-            "built_pkgs": built_packages,
-            "src_version": build.pkg_version,
-            "chroots": chroots,
-            "submitted_on": build.submitted_on,
-            "started_on": build.min_started_on,
-            "ended_on": build.ended_on,
-            "src_pkg": build.pkgs,
-            "submitted_by": build.user.name,
-            "results_by_chroot": results_by_chroot
-        }
-    else:
-        output = {"output": "notok", "error": "Invalid build"}
-        httpcode = 404
-
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    output = {
+        "output": "ok",
+        "status": build.state,
+        "project": build.copr.name,
+        "owner": build.copr.owner.name,
+        "results": build.results,
+        "built_pkgs": built_packages,
+        "src_version": build.pkg_version,
+        "chroots": chroots,
+        "submitted_on": build.submitted_on,
+        "started_on": build.min_started_on,
+        "ended_on": build.ended_on,
+        "src_pkg": build.pkgs,
+        "submitted_by": build.user.name,
+        "results_by_chroot": results_by_chroot
+    }
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/cancel_build/<build_id>/", methods=["POST"])
 @api_login_required
 def cancel_build(build_id):
-    if build_id.isdigit():
-        build = builds_logic.BuildsLogic.get(build_id).first()
-    else:
-        build = None
+    build = ComplexLogic.get_build_safe(build_id)
 
-    if build:
-        try:
-            builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
-        except exceptions.InsufficientRightsException as e:
-            output = {'output': 'notok', 'error': str(e)}
-            httpcode = 500
-        else:
-            db.session.commit()
-            httpcode = 200
-            output = {'output': 'ok', 'status': "Build canceled"}
-    else:
-        output = {"output": "notok", "error": "Invalid build"}
-        httpcode = 404
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    try:
+        builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
+        db.session.commit()
+    except exceptions.InsufficientRightsException as e:
+        raise LegacyApiError("Invalid request: {}".format(e))
+
+    output = {'output': 'ok', 'status': "Build canceled"}
+    return flask.jsonify(output)
 
 
 @api_ns.route('/coprs/<username>/<coprname>/modify/', methods=["POST"])
 @api_login_required
-def copr_modify(username, coprname):
+@api_req_with_copr
+def copr_modify(copr):
     form = forms.CoprModifyForm(csrf_enabled=False)
-    copr = CoprsLogic.get(username, coprname).first()
 
-    if copr is None:
-        output = {'output': 'notok', 'error': 'Invalid copr name or username'}
-        httpcode = 500
-    elif not form.validate_on_submit():
-        output = {'output': 'notok', 'error': 'Invalid request'}
-        httpcode = 500
-    else:
-        # .raw_data needs to be inspected to figure out whether the field
-        # was not sent or was sent empty
-        if form.description.raw_data and len(form.description.raw_data):
-            copr.description = form.description.data
-        if form.instructions.raw_data and len(form.instructions.raw_data):
-            copr.instructions = form.instructions.data
-        if form.repos.raw_data and len(form.repos.raw_data):
-            copr.repos = form.repos.data
-        if form.disable_createrepo.raw_data and len(form.disable_createrepo.raw_data):
-            copr.disable_createrepo = form.disable_createrepo.data
+    if not form.validate_on_submit():
+        raise LegacyApiError("Invalid request: bad request parameters")
 
-        try:
-            CoprsLogic.update(flask.g.user, copr)
-        except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
-            db.session.rollback()
+    # .raw_data needs to be inspected to figure out whether the field
+    # was not sent or was sent empty
+    if form.description.raw_data and len(form.description.raw_data):
+        copr.description = form.description.data
+    if form.instructions.raw_data and len(form.instructions.raw_data):
+        copr.instructions = form.instructions.data
+    if form.repos.raw_data and len(form.repos.raw_data):
+        copr.repos = form.repos.data
+    if form.disable_createrepo.raw_data and len(form.disable_createrepo.raw_data):
+        copr.disable_createrepo = form.disable_createrepo.data
 
-            output = {'output': 'notok', 'error': str(e)}
-            httpcode = 500
-        else:
-            db.session.commit()
+    try:
+        CoprsLogic.update(flask.g.user, copr)
+        db.session.commit()
+    except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
+        db.session.rollback()
+        raise LegacyApiError("Invalid request: {}".format(e))
 
-            output = {
-                'output': 'ok',
-                'description': copr.description,
-                'instructions': copr.instructions,
-                'repos': copr.repos,
-            }
-            httpcode = 200
+    output = {
+        'output': 'ok',
+        'description': copr.description,
+        'instructions': copr.instructions,
+        'repos': copr.repos,
+    }
 
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    return flask.jsonify(output)
 
 
 @api_ns.route('/coprs/<username>/<coprname>/modify/<chrootname>/', methods=["POST"])
 @api_login_required
-def copr_modify_chroot(username, coprname, chrootname):
+@api_req_with_copr
+def copr_modify_chroot(copr, chrootname):
     form = forms.ModifyChrootForm(csrf_enabled=False)
-    copr = CoprsLogic.get(username, coprname).first()
     # chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
-    chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
-    if copr is None:
-        output = {'output': 'notok', 'error': 'Invalid copr name or username'}
-        httpcode = 500
-    elif chroot is None:
-        output = {'output': 'notok', 'error': 'Invalid chroot name'}
-        httpcode = 500
-    elif not form.validate_on_submit():
-        output = {'output': 'notok', 'error': 'Invalid request'}
-        httpcode = 500
+    if not form.validate_on_submit():
+        raise LegacyApiError("Invalid request: bad request parameters")
     else:
         coprs_logic.CoprChrootsLogic.update_chroot(flask.g.user, chroot, form.buildroot_pkgs.data)
         db.session.commit()
 
-        output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
-        httpcode = 200
-
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
+    return flask.jsonify(output)
 
 
 @api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["GET"])
-def copr_chroot_details(username, coprname, chrootname):
-    copr = CoprsLogic.get(username, coprname).first()
-
-    if copr is None:
-        output = {'output': 'notok', 'error': 'Invalid copr name or username'}
-        httpcode = 500
-    else:
-        chroot = CoprChrootsLogic.get_by_name_safe(copr, chrootname)
-        if chroot:
-            output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
-            httpcode = 200
-        else:
-            output = {"output": "notok", "error": "Invalid chroot for this project."}
-            httpcode = 404
-
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+@api_req_with_copr
+def copr_chroot_details(copr, chrootname):
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
+    output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/search/")
@@ -603,27 +509,22 @@ def api_coprs_search_by_project(project=None):
 
     """
     project = flask.request.args.get("project", None) or project
-    httpcode = 200
-    if project:
-        try:
-            query = CoprsLogic.get_multiple_fulltext(project)
+    if not project:
+        raise LegacyApiError("Invalid request")
 
-            repos = query.all()
-            output = {"output": "ok", "repos": []}
-            for repo in repos:
-                output["repos"].append({"username": repo.owner.name,
-                                        "coprname": repo.name,
-                                        "description": repo.description})
-        except ValueError as e:
-            output = {"output": "nook", "error": str(e)}
+    try:
+        query = CoprsLogic.get_multiple_fulltext(project)
 
-    else:
-        output = {"output": "notok", "error": "Invalid request"}
-        httpcode = 500
+        repos = query.all()
+        output = {"output": "ok", "repos": []}
+        for repo in repos:
+            output["repos"].append({"username": repo.owner.name,
+                                    "coprname": repo.name,
+                                    "description": repo.description})
+    except ValueError as e:
+        raise LegacyApiError("Server error: {}".format(e))
 
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = httpcode
-    return jsonout
+    return flask.jsonify(output)
 
 
 @api_ns.route("/playground/list/")
@@ -643,12 +544,8 @@ def playground_list():
 
 
 @api_ns.route("/coprs/<username>/<coprname>/monitor/", methods=["GET"])
-def monitor(username, coprname):
-    copr = CoprsLogic.get(username, coprname).first()
-
+@api_req_with_copr
+def monitor(copr):
     monitor_data = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
     output = MonitorWrapper(copr, monitor_data).to_dict()
-
-    jsonout = flask.jsonify(output)
-    jsonout.status_code = 200
-    return jsonout
+    return flask.jsonify(output)

@@ -41,10 +41,12 @@ class ActionInProgressException(BaseException):
 class CoprHttpException(Exception):
 
     _default = "Generic copr exception"
-    code = 500
+    _code = 500
 
-    def __init__(self, message=None):
+    def __init__(self, message=None, code=None, **kwargs):
         self.message = message
+        self.code = code or self._code
+        self.kwargs = kwargs
 
     def __unicode__(self):
         return self.message or self._default
@@ -63,3 +65,9 @@ class AccessRestricted(CoprHttpException):
 
     _default = "You don't have required permission"
     _code = 403
+
+
+class LegacyApiError(CoprHttpException):
+
+    _default = "API error"
+    _code = 500

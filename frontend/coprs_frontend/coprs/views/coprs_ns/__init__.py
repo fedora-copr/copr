@@ -8,11 +8,11 @@ from coprs.exceptions import ObjectNotFound, AccessRestricted
 coprs_ns = flask.Blueprint("coprs_ns", __name__, url_prefix="/coprs")
 
 
-@coprs_ns.app_errorhandler(ObjectNotFound)
+@coprs_ns.errorhandler(ObjectNotFound)
 def handle_404(error):
     return page_not_found(error.message)
 
 
-@coprs_ns.app_errorhandler(AccessRestricted)
+@coprs_ns.errorhandler(AccessRestricted)
 def handle_403(error):
     return access_restricted(error.message)
