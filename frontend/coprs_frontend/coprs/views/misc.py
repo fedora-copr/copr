@@ -165,7 +165,6 @@ def login():
 @oid.after_login
 def create_or_login(resp):
     flask.session["openid"] = resp.identity_url
-
     fasusername = resp.identity_url.replace(
         ".id.fedoraproject.org/", "").replace("http://", "")
 
@@ -185,8 +184,8 @@ def create_or_login(resp):
             user.mail = resp.email
             user.timezone = resp.timezone
         if "lp" in resp.extensions:
-           team_resp = resp.extensions['lp']  # name space for the teams extension
-           user.openid_groups = { fas_groups: team_resp.teams }
+            team_resp = resp.extensions['lp']  # name space for the teams extension
+            user.openid_groups = {"fas_groups": team_resp.teams}
 
         db.session.add(user)
         db.session.commit()
@@ -198,10 +197,7 @@ def create_or_login(resp):
                                                 username=user.name))
         return flask.redirect(oid.get_next_url())
     else:
-        # TODO: auto-fix, original line here. Check logic
-        #flask.flash("User '{0}' is not allowed".format(user.name))
-
-        flask.flash("User '{0}' is not allowed".format(fasusername.name))
+        flask.flash("User '{0}' is not allowed".format(fasusername))
         return flask.redirect(oid.get_next_url())
 
 
