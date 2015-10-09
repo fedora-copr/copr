@@ -113,8 +113,8 @@ class ComplexLogic(object):
 
     @staticmethod
     def get_active_groups_by_user(user_name):
-        if "teams" in flask.session:
-            names = flask.session["teams"]
+        names = flask.g.user.user_groups
+        if names:
             query = UsersLogic.get_groups_by_names_list(names)
             return query.filter(User.name == user_name)
         else:

@@ -169,10 +169,6 @@ def create_or_login(resp):
     fasusername = resp.identity_url.replace(
         ".id.fedoraproject.org/", "").replace("http://", "")
 
-    if "lp" in resp.extensions:
-        team_resp = resp.extensions['lp']  # name space for the teams extension
-        flask.session["teams"] = team_resp.teams
-
     # kidding me.. or not
     if fasusername and (
             (
@@ -188,6 +184,9 @@ def create_or_login(resp):
         else:
             user.mail = resp.email
             user.timezone = resp.timezone
+        if "lp" in resp.extensions:
+           team_resp = resp.extensions['lp']  # name space for the teams extension
+           user.openid_groups = { fas_groups: team_resp.teams }
 
         db.session.add(user)
         db.session.commit()

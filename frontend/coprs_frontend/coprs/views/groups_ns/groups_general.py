@@ -64,7 +64,7 @@ def list_projects_by_group(group_name, page=1):
 @groups_ns.route("/list/my")
 @login_required
 def list_user_groups():
-    teams = session.get("teams")
+    teams = flask.g.user.user_teams
     active_map = {
         group.fas_name: group.name for group in
         UsersLogic.get_groups_by_fas_names_list(teams).all()

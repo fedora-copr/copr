@@ -101,7 +101,10 @@ class User(db.Model, helpers.Serializer):
 
     @property
     def user_teams(self):
-        return flask.session.get("teams", [])
+        if self.openid_groups and 'fas_groups' in self.openid_groups:
+            return self.openid_groups['fas_groups']
+        else:
+            return []
 
     @property
     def user_groups(self):
@@ -129,9 +132,8 @@ class User(db.Model, helpers.Serializer):
 
             return True
 
-        # a bit dirty code, here we access flask.session object
         if copr.group is not None and \
-                copr.group.fas_name in flask.session.get("teams", []):
+                copr.group.fas_name in self.user_teams:
             return True
 
         return False
