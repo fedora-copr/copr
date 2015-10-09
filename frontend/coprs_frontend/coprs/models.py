@@ -5,6 +5,7 @@ import os
 import flask
 
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.dialects.postgresql import JSON
 from libravatar import libravatar_url
 import zlib
 
@@ -48,6 +49,9 @@ class User(db.Model, helpers.Serializer):
     api_token = db.Column(db.String(40), nullable=False, default="abc")
     api_token_expiration = db.Column(
         db.Date, nullable=False, default=datetime.date(2000, 1, 1))
+
+    # list of groups as retrieved from openid
+    openid_groups = db.Column(JSON)
 
     @property
     def name(self):
