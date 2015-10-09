@@ -195,8 +195,14 @@ def api_coprs_by_owner(username=None):
 
     release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
 
-    query = CoprsLogic.join_builds(
-        CoprsLogic.get_multiple_owned_by_username(username))
+    if username.startswith("@"):
+        group_name = username[1:]
+        query = CoprsLogic.get_multiple()
+        query = CoprsLogic.filter_by_group_name(query, group_name)
+    else:
+        query = CoprsLogic.get_multiple_owned_by_username(username)
+
+    query = CoprsLogic.join_builds(query)
     query = CoprsLogic.set_query_order(query)
 
     repos = query.all()
