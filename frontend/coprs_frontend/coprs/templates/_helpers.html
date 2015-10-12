@@ -124,17 +124,16 @@
 
 {% macro copr_title(copr) %}
   {% if copr.is_a_group_project %}
-    <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) }}">
-      @{{ copr.group.name }}
-    </a>
+    {% set projects_list_href=url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) %}
+    {% set projects_list_name="@" + copr.group.name  %}
   {% else %}
-    <a href="{{ url_for('coprs_ns.coprs_by_owner', username=copr.owner.name) }}">
-      {{ copr.owner.name }}
-    </a>
+    {% set projects_list_href=url_for('coprs_ns.coprs_by_owner', username=copr.owner.name) %}
+    {% set projects_list_name=copr.owner.username  %}
   {% endif %}
-  /<strong><a href="{{ copr_details_href(copr) }}">
-    {{ copr.name }}
-  </a></strong>
+
+  <a href="{{ projects_list_href }}">{{ projects_list_name }}</a><!--
+  -->/<!--
+  --><strong><a href="{{ copr_details_href(copr) }}">{{ copr.name }}</a></strong>
 {% endmacro %}
 
 
