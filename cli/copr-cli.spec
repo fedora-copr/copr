@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.44
+Version:    1.45
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -91,6 +91,9 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Mon Oct 12 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.45-1
+- build action: accept any character in the username
+
 * Fri May 15 2015 Miroslav Suchý <msuchy@redhat.com> 1.44-1
 - mark license as license in spec
 - 1188022 - accept dash in project name
