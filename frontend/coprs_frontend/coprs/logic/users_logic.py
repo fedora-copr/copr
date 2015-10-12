@@ -1,6 +1,6 @@
 from coprs import exceptions
 
-from coprs import db
+from coprs import app, db
 from coprs.models import User, Group
 
 
@@ -73,3 +73,19 @@ class UsersLogic(object):
         group = cls.create_group_by_fas_name(fas_name, alias)
         db.session.flush()
         return group
+
+    @classmethod
+    def filter_blacklisted_groups(cls, active_map):
+        """ remove from active_map blacklisted groups
+            active_map is l-value so we can remove it in-place.
+        """
+        if "SRPM_STORAGE_DIR" in app.config:
+            for group in app.config["SRPM_STORAGE_DIR"]:
+                del(active_map[group])
+
+    @classmethod
+    def is_blacklisted_groups(cls, fas_group):
+        if "SRPM_STORAGE_DIR" in app.config:
+            return fas_group in app.config["SRPM_STORAGE_DIR"]
+        else:
+            return False
