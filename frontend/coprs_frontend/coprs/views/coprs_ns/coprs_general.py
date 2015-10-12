@@ -657,14 +657,20 @@ def process_legal_flag(contact_info, copr):
 
 @coprs_ns.route("/<username>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
 @coprs_ns.route("/<username>/<coprname>/repo/<name_release>/<repofile>")
-@req_with_copr
-def generate_repo_file(copr, name_release, repofile):
+def generate_repo_file(username, coprname, name_release, repofile):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
     # This solution is used because flask splits off the last part after a
     # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
     # FAS usernames may not contain dashes, so this construction is safe.
 
+    # support access to the group projects using @-notation
+    # todo: remove when yum/dnf plugin is updated to use new url schema
+    if username.startswith("@"):
+        return group_generate_repo_file(group_name=username[1:], coprname=coprname,
+                                        name_release=name_release, repofile=repofile)
+
+    copr = ComplexLogic.get_copr_safe(username, coprname)
     return render_generate_repo_file(copr, name_release, repofile)
 
 
