@@ -140,9 +140,9 @@
 
 {% macro copr_name(copr) %}
   {% if copr.is_a_group_project %}
-      @{{ copr.group.name }} / {{ copr.name }}
+      @{{ copr.group.name }}/{{ copr.name }}
   {% else %}
-      {{ copr.owner.name }} / {{ copr.name }}
+      {{ copr.owner.name }}/{{ copr.name }}
   {% endif %}
 {% endmacro %}
 
