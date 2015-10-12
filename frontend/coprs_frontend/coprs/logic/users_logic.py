@@ -75,17 +75,18 @@ class UsersLogic(object):
         return group
 
     @classmethod
-    def filter_blacklisted_groups(cls, active_map):
-        """ remove from active_map blacklisted groups
-            active_map is l-value so we can remove it in-place.
+    def filter_blacklisted_teams(cls, teams):
+        """ removes blacklisted groups from teams list
+            :type teams: list of str
+            :return: filtered teams
+            :rtype: list of str
         """
-        if "SRPM_STORAGE_DIR" in app.config:
-            for group in app.config["SRPM_STORAGE_DIR"]:
-                del(active_map[group])
+        blacklist = set(app.config.get("BLACKLISTED_GROUPS", []))
+        return filter(lambda t: t not in blacklist, teams)
 
     @classmethod
-    def is_blacklisted_groups(cls, fas_group):
-        if "SRPM_STORAGE_DIR" in app.config:
-            return fas_group in app.config["SRPM_STORAGE_DIR"]
+    def is_blacklisted_group(cls, fas_group):
+        if "BLACKLISTED_GROUPS" in app.config:
+            return fas_group in app.config["BLACKLISTED_GROUPS"]
         else:
             return False

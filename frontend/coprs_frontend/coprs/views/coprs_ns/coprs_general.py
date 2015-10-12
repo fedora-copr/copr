@@ -84,6 +84,7 @@ def coprs_by_owner(username=None, page=1):
             "User {0} does not exist.".format(username))
 
     query = CoprsLogic.get_multiple_owned_by_username(username)
+    query = CoprsLogic.filter_without_group_projects(query)
     query = CoprsLogic.set_query_order(query, desc=True)
 
     paginator = helpers.Paginator(query, query.count(), page)

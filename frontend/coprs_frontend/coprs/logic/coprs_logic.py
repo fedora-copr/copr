@@ -141,6 +141,10 @@ class CoprsLogic(object):
         return query.filter(models.Group.name == group_name)
 
     @classmethod
+    def filter_without_group_projects(cls, query):
+        return query.filter(models.Copr.group_id.is_(None))
+
+    @classmethod
     def join_builds(cls, query):
         return (query.outerjoin(models.Copr.builds)
                 .options(db.contains_eager(models.Copr.builds))
