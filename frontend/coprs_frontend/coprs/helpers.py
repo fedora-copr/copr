@@ -10,6 +10,8 @@ from dateutil import parser as dt_parser
 from netaddr import IPAddress, IPNetwork
 from redis import StrictRedis
 from rpmUtils.miscutils import splitFilename
+from sqlalchemy.types import TypeDecorator, VARCHAR
+import json
 
 from coprs import constants
 from coprs import app
@@ -106,6 +108,28 @@ class FailTypeEnum(object):
             "srpm_download_failed": 4,
             "srpm_query_failed": 5}
 
+
+class JSONEncodedDict(TypeDecorator):
+    """Represents an immutable structure as a json-encoded string.
+
+    Usage::
+
+        JSONEncodedDict(255)
+
+    """
+
+    impl = VARCHAR
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
 
 class Paginator(object):
 

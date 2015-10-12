@@ -5,7 +5,6 @@ import os
 import flask
 
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.dialects.postgresql import JSON
 from libravatar import libravatar_url
 import zlib
 
@@ -16,7 +15,7 @@ from coprs import app
 
 import itertools
 import operator
-from coprs.helpers import BuildSourceEnum, StatusEnum, ActionTypeEnum
+from coprs.helpers import BuildSourceEnum, StatusEnum, ActionTypeEnum, JSONEncodedDict
 
 
 class User(db.Model, helpers.Serializer):
@@ -51,7 +50,7 @@ class User(db.Model, helpers.Serializer):
         db.Date, nullable=False, default=datetime.date(2000, 1, 1))
 
     # list of groups as retrieved from openid
-    openid_groups = db.Column(JSON)
+    openid_groups = db.Column(JSONEncodedDict)
 
     @property
     def name(self):

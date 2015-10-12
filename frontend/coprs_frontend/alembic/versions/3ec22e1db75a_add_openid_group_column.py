@@ -12,10 +12,10 @@ down_revision = '3f4966a9cc0'
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+from coprs.helpers import JSONEncodedDict
 
 def upgrade():
-    op.add_column('user', sa.Column('openid_groups', postgresql.JSON(), nullable=True))
+    op.add_column('user', sa.Column('openid_groups', JSONEncodedDict(), nullable=True))
 
 
 def downgrade():
