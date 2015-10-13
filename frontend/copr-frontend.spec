@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.69
+Version:    1.70
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -202,6 +202,12 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Tue Oct 13 2015 Miroslav Suchý <msuchy@redhat.com> 1.70-1
+- support for groups projects
+- api2 improvements
+- [rhbz: #1266750]  Unable to view second, third, … page of search
+  results: " Search string must have at least 3 characters "
+
 * Tue Sep 22 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.69-1
 - hotfix for resubmit button
 
