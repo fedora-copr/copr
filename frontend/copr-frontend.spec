@@ -80,6 +80,7 @@ BuildRequires: python-pylibravatar
 BuildRequires: python-flask-wtf
 BuildRequires: python-netaddr
 BuildRequires: python-redis
+BuildRequires: redis
 BuildRequires: python-dateutil
 BuildRequires: pytest
 BuildRequires: yum
@@ -153,8 +154,11 @@ touch %{buildroot}%{_var}/log/copr/frontend.log
 %check
 %if %{with_test} && "%{_arch}" == "x86_64"
     pushd coprs_frontend
+    REDIS_PORT=7777
+    redis-server --port $REDIS_PORT & #&> _redis.log &
     rm -rf /tmp/copr.db /tmp/whooshee || :
     COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
+    redis-cli -p $REDIS_PORT shutdown
     popd
 %endif
 
