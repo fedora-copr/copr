@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.58
+Version:    1.59
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -174,6 +174,13 @@ popd
 %endif
 
 %changelog
+* Tue Oct 13 2015 Miroslav Suchý <msuchy@redhat.com> 1.59-1
+- version_info is not namedtuple on epel6 interpreter
+- fix missing urllib.parse on el7
+- use requests-toolbelt to stream SRPM files (RhBug:1261125)
+- add run_tests.sh script
+- fix unicode representation of CoprResponse (RhBug:1258915)
+
 * Tue Aug 11 2015 Miroslav Suchý <msuchy@redhat.com> 1.58-1
 - implement srpm upload functionality
 - better error handling (RhBug:1245105)
