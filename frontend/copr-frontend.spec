@@ -94,6 +94,28 @@ BuildRequires: python-marshmallow >= 2.0.0
 BuildRequires: python-sphinx
 BuildRequires: python-sphinxcontrib-httpdomain
 
+%if 0%{?with_python3}
+Requires:   python3-flask
+Requires:   python3-flask-wtf
+Requires:   python3-flask-sqlalchemy
+Requires:   python3-flask-script
+Requires:   python3-flask-whooshee
+Requires:   python3-pytz
+Requires:   python3-markdown
+Requires:   python3-netaddr
+Requires:   python3-redis
+Requires:   python3-pylibravatar
+Requires:   python3-wtforms
+Requires:   python3-flask-wtf
+Requires:   python3-flask-restful
+Requires:   python3-marshmallow
+Requires:   python3-flexmock
+
+# Not packaged yet:
+# Requires:   python3-flask-openid    # https://bugzilla.redhat.com/show_bug.cgi?id=1010810
+# Requires:   python3-openid-teams    # https://bugzilla.redhat.com/show_bug.cgi?id=1271176
+%endif # with_python3
+
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
