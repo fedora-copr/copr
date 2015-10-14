@@ -169,7 +169,7 @@ def api_copr_delete(copr):
             db.session.rollback()
             raise LegacyApiError(str(err))
         else:
-            message = "Project {0} has been deleted.".format(cop.rname)
+            message = "Project {} has been deleted.".format(copr.name)
             output = {"output": "ok", "message": message}
             db.session.commit()
     else:
