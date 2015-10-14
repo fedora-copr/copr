@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.71
+Version:    1.72
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -206,6 +206,10 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Wed Oct 14 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.72-1
+- [frontend] typo
+- [frontend][docs] minor
+
 * Wed Oct 14 2015 Miroslav Suchý <msuchy@redhat.com> 1.71-1
 - more api2 improvements
 - proper check for group membership in the copr creation method
