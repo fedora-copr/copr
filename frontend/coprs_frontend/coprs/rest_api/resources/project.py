@@ -33,7 +33,14 @@ class ProjectListR(Resource):
 
         req = result.data
         name = req.pop("name")
-        selected_chroots = req.pop("chroots")
+
+        selected_chroots = req.pop("chroots", None)
+
+        if req["group"]:
+            group_name = req.pop("group")
+            group = ComplexLogic.get_group_by_name_safe(group_name)
+        else:
+            group = None
 
         try:
             project = CoprsLogic.add(
@@ -42,6 +49,9 @@ class ProjectListR(Resource):
                 selected_chroots=selected_chroots,
                 **req
             )
+            if group:
+                project.group = group
+
             db.session.commit()
         except DuplicateException as error:
             raise ObjectAlreadyExists(msg=str(error))
