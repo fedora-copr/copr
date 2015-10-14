@@ -11,8 +11,6 @@ from openid_teams.teams import TeamsResponse
 from coprs.redis_session import RedisSessionInterface
 
 app = flask.Flask(__name__)
-app.session_interface = RedisSessionInterface()
-
 if "COPRS_ENVIRON_PRODUCTION" in os.environ:
     app.config.from_object("coprs.config.ProductionConfig")
 elif "COPRS_ENVIRON_UNITTEST" in os.environ:
@@ -43,6 +41,7 @@ import coprs.whoosheers
 
 from coprs.helpers import RedisConnectionProvider
 rcp = RedisConnectionProvider(config=app.config)
+app.session_interface = RedisSessionInterface(rcp.get_connection())
 
 from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general

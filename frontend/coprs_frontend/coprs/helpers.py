@@ -356,8 +356,8 @@ class Serializer(object):
 
 class RedisConnectionProvider(object):
     def __init__(self, config):
-        self.host = config.get("redis_host", "127.0.0.1")
-        self.port = int(config.get("redis_port", "6379"))
+        self.host = config.get("REDIS_HOST", "127.0.0.1")
+        self.port = int(config.get("REDIS_PORT", "6379"))
 
     def get_connection(self):
         return StrictRedis(host=self.host, port=self.port)
