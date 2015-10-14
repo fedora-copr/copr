@@ -36,7 +36,7 @@ class ProjectListR(Resource):
 
         selected_chroots = req.pop("chroots", None)
 
-        if req["group"]:
+        if "group" in req:
             group_name = req.pop("group")
             group = ComplexLogic.get_group_by_name_safe(group_name)
         else:
