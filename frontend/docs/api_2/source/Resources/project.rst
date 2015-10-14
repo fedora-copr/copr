@@ -55,6 +55,7 @@ List projects
 
     :query str search_query: filter project using full-text search
     :query str owner: select only projects owned by this user
+    :query str group: select only projects owned by this group
     :query str name: select only projects with this name
     :query int offset: offset number, default value is 0
     :query int limit: limit number, default value is 100
