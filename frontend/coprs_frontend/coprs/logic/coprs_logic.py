@@ -188,7 +188,7 @@ class CoprsLogic(object):
 
     @classmethod
     def add(cls, user, name, selected_chroots, repos=None, description=None,
-            instructions=None, check_for_duplicates=False, **kwargs):
+            instructions=None, check_for_duplicates=False, group=None, **kwargs):
         copr = models.Copr(name=name,
                            repos=repos or u"",
                            owner_id=user.id,
@@ -196,6 +196,10 @@ class CoprsLogic(object):
                            instructions=instructions or u"",
                            created_on=int(time.time()),
                            **kwargs)
+
+        if group is not None:
+            UsersLogic.raise_if_not_in_group(user, group)
+            copr.group = group
 
         # form validation checks for duplicates
         CoprsLogic.new(user, copr,

@@ -162,7 +162,7 @@ def group_copr_new(group_name):
             instructions=form.instructions.data,
             disable_createrepo=form.disable_createrepo.data,
             build_enable_net=form.build_enable_net.data,
-            group_id=group.id
+            group=group
         )
 
         db.session.add(copr)

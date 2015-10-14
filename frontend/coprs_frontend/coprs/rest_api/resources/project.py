@@ -47,10 +47,9 @@ class ProjectListR(Resource):
                 user=owner, check_for_duplicates=True,
                 name=name,
                 selected_chroots=selected_chroots,
+                group=group,
                 **req
             )
-            if group:
-                project.group = group
 
             db.session.commit()
         except DuplicateException as error:

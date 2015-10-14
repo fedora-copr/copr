@@ -37,6 +37,13 @@ class UsersLogic(object):
             raise exceptions.InsufficientRightsException(message)
 
     @classmethod
+    def raise_if_not_in_group(cls, user, group):
+        if group.fas_name not in user.user_teams:
+            raise exceptions.InsufficientRightsException(
+                "User '{}' doesn't have access to group {}({})"
+                .format(user.username, group.name, group.fas_name))
+
+    @classmethod
     def get_group_by_alias(cls, name):
         return Group.query.filter(Group.name == name)
 
