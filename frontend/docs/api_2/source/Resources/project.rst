@@ -29,12 +29,15 @@ Structure of the project entity
 
 Project fields
 ~~~~~~~~~~~~~~
-==================  ==================== ========= ===============
+==================  ==================== ========= =================================================================================
 Field               Type                 Can edit? Description
-==================  ==================== ========= ===============
+==================  ==================== ========= =================================================================================
 id                  number               no        unique identifier
 owner               string               no        username of the project owner
-name                string               no        name of the project, MUST be specified during a project creation
+group               string               no        name of the group which owns the project, value is null for non-group projects
+                                                    - MAY be specified during a project creation to create a group managed project
+name                string               no        name of the project
+                                                    - MUST be specified during a project creation
 description         string               yes       project description
 instructions        string               yes       installation instructions
 homepage            string(URL)          yes       project homepage URL
@@ -42,7 +45,7 @@ contact             string(URL or email) yes       contact with the project main
 disable_createrepo  bool                 yes       disables automatic repository metadata generation
 build_enable_net    bool                 yes       set default value for new builds option `enable_net`
 repos               list of string       yes       list of additional repositories to be enabled during the build
-==================  ==================== ========= ===============
+==================  ==================== ========= =================================================================================
 
 List projects
 -------------
