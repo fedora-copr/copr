@@ -223,7 +223,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo yum -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm",
+      inline: "sudo yum -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || sudo yum -y upgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm || sudo yum -y downgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm",
       run: "always"
 
     # ...
@@ -353,11 +353,21 @@ echo \"Host *
 
     # ...
     distgit.vm.provision "shell",
-      inline: "systemctl start dist-git.socket && systemctl enable dist-git.socket"
+      inline: "sudo systemctl start dist-git.socket && sudo systemctl enable dist-git.socket"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "systemctl start copr-dist-git && systemctl enable copr-dist-git"
+      inline: "sudo systemctl start copr-dist-git && sudo systemctl enable copr-dist-git"
+
+    #...
+    distgit.vm.provision "shell",
+      inline: "sudo systemctl daemon-reload",
+      run: "always"
+    
+    #...
+    distgit.vm.provision "shell",
+      inline: "sudo systemctl restart copr-dist-git",
+      run: "always"
 
     distgit.vm.provision "shell", run: "always", inline: <<-EOF
       echo "#########################################################"

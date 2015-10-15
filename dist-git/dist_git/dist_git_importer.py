@@ -10,8 +10,10 @@ from subprocess import PIPE, Popen, call
 
 from requests import get, post
 
-from .exceptions import PackageImportException, PackageDownloadException, PackageQueryException
+from .exceptions import PackageImportException, PackageDownloadException, PackageQueryException, GitAndTitoException
 from .srpm_import import do_git_srpm_import
+
+from .helpers import FailTypeEnum
 
 log = logging.getLogger(__name__)
 
@@ -19,6 +21,7 @@ log = logging.getLogger(__name__)
 class SourceType:
     SRPM_LINK = 1
     SRPM_UPLOAD = 2
+    GIT_AND_TITO = 3
 
 
 class ImportTask(object):
@@ -37,7 +40,15 @@ class ImportTask(object):
         self.package_version = None
         self.git_hash = None
 
+        # For SRPM_LINK and SRPM_UPLOAD
         self.package_url = None
+
+        # For GIT_AND_TITO
+        self.tito_git_url = None
+        self.tito_git_dir = None
+        self.tito_git_branch = None
+        self.tito_test = None
+        
 
     @property
     def reponame(self):
@@ -67,6 +78,12 @@ class ImportTask(object):
             json_pkg = task.source_data["pkg"]
             task.package_url = "{}/tmp/{}/{}".format(opts.frontend_base_url, json_tmp, json_pkg)
 
+        elif task.source_type == SourceType.GIT_AND_TITO:
+            task.tito_git_url = task.source_data["git_url"]
+            task.tito_git_dir = task.source_data["git_dir"]
+            task.tito_git_branch = task.source_data["git_branch"]
+            task.tito_test = task.source_data["tito_test"]
+
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
 
@@ -82,30 +99,143 @@ class ImportTask(object):
         }
 
 
-def do_srpm_fetch(task, target_path):
-    """
-    :param ImportTask task:
-    :param str target_path:
-    :raises PackageDownloadException:
-    """
-    log.debug("download the package")
-    try:
-        r = get(task.package_url, stream=True)
-    except Exception:
-        raise PackageDownloadException("Unexpected error during URL fetch: {}"
-                                       .format(task.package_url))
+class SourceDownloader(object):
+    @classmethod
+    def get_srpm(cls, task, target_path):
+        """
+        Download sources from anywhere in any form and save them as SRPM
+        :param ImportTask task:
+        :param str target_path:
+        """
+        if task.source_type == SourceType.SRPM_LINK:
+            cls._from_srpm_url(task, target_path)
 
-    if 200 <= r.status_code < 400:
+        elif task.source_type == SourceType.SRPM_UPLOAD:
+            cls._from_srpm_url(task, target_path)
+
+        elif task.source_type == SourceType.GIT_AND_TITO:
+            cls._from_git_and_tito(task, target_path)
+
+        else:
+            raise PackageImportException("Got unknown source type: {}".format(task.source_type))
+
+    @classmethod
+    def _from_git_and_tito(cls, task, target_path):
+        """
+        Used for GIT_AND_TITO
+        :param ImportTask task:
+        :param str target_path:
+        :raises PackageDownloadException:
+        """
+        # task.tito_git_url
+        # task.tito_git_dir
+        # task.tito_git_branch
+        # task.tito_test
+        tmp = tempfile.mkdtemp()
+
+        # 1. clone the repo
+        log.debug("TITO: 1. clone")
+        cmd = ['git', 'clone', task.tito_git_url]
         try:
-            with open(target_path, 'wb') as f:
-                for chunk in r.iter_content(1024):
-                    f.write(chunk)
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tmp)
+            output, error = proc.communicate()
+        except OSError as e:
+            raise GitAndTitoException(FailTypeEnum("tito_git_clone_failed"))
+        if error:
+            raise GitAndTitoException(FailTypeEnum("tito_git_clone_failed"))
+
+        # 1b. get dir name
+        log.debug("TITO: 1b. dir name...")
+        cmd = ['ls']
+        try:
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tmp)
+            output, error = proc.communicate()
+        except OSError as e:
+            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
+        if error:
+            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
+        if output and len(output.split()) == 1:
+            git_dir_name = output.split()[0]
+        else:
+            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
+        log.debug("   {}".format(git_dir_name))
+
+        tito_dir = "{}/{}/{}".format(tmp, git_dir_name, task.tito_git_dir) 
+
+        # 2. checkout git branch
+        log.debug("TITO: 2. checkout")
+        if task.tito_git_branch and task.tito_git_branch != 'master':
+            cmd = ['git', 'checkout', task.tito_git_branch]
+            try:
+                proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tito_dir)
+                output, error = proc.communicate()
+            except OSError as e:
+                raise GitAndTitoException(FailTypeEnum("tito_git_checkout_error"))
+            if error:
+                raise GitAndTitoException(FailTypeEnum("tito_git_checkout_error"))
+
+        # 3. build with tito
+        tmp_tito = tempfile.mkdtemp()
+        log.debug("TITO: 3. build")
+        cmd = ['tito', 'build', '-o', tmp_tito, '--srpm']
+        if task.tito_test:
+            cmd.append('--test')
+
+        try:
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tito_dir)
+            output, error = proc.communicate()
+        except OSError as e:
+            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
+        if error:
+            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
+
+        # 4. copy srpm to the target destination
+        log.debug("TITO: 4. get srpm path")
+        tito_files = os.listdir(tmp_tito)
+        tito_srpms = filter(lambda f: f.endswith(".src.rpm"), tito_files)
+        if len(tito_srpms) == 1:
+            srpm_name = tito_srpms[0]
+        else:
+            log.debug("ERROR :( :( :(")
+            log.debug("tito_dir: {}".format(tito_dir))
+            log.debug("tito_files: {}".format(tito_files))
+            log.debug("tito_srpms: {}".format(tito_srpms))
+            log.debug("")
+            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
+        log.debug("   {}".format(srpm_name))
+        shutil.copyfile("{}/{}".format(tmp_tito, srpm_name), target_path)
+
+        # 5. delete temps
+        log.debug("TITO: 5. delete tmp")
+        shutil.rmtree(tmp)
+        shutil.rmtree(tmp_tito)
+
+    @classmethod
+    def _from_srpm_url(cls, task, target_path):
+        """
+        Used for SRPM_LINK and SRPM_UPLOAD
+        :param ImportTask task:
+        :param str target_path:
+        :raises PackageDownloadException:
+        """
+        log.debug("download the package")
+        try:
+            r = get(task.package_url, stream=True)
         except Exception:
-            raise PackageDownloadException("Unexpected error during URL retrieval: {}"
+            raise PackageDownloadException("Unexpected error during URL fetch: {}"
                                            .format(task.package_url))
-    else:
-        raise PackageDownloadException("Failed to fetch: {} with HTTP status: {}"
-                                       .format(task.package_url, r.status_code))
+
+        if 200 <= r.status_code < 400:
+            try:
+                with open(target_path, 'wb') as f:
+                    for chunk in r.iter_content(1024):
+                        f.write(chunk)
+            except Exception:
+                raise PackageDownloadException("Unexpected error during URL retrieval: {}"
+                                               .format(task.package_url))
+        else:
+            raise PackageDownloadException("Failed to fetch: {} with HTTP status: {}"
+                                           .format(task.package_url, r.status_code))
 
 
 class DistGitImporter(object):
@@ -215,7 +345,7 @@ class DistGitImporter(object):
         fetched_srpm_path = os.path.join(tmp_root, "package.src.rpm")
 
         try:
-            do_srpm_fetch(task, fetched_srpm_path)
+            SourceDownloader.get_srpm(task, fetched_srpm_path)
             task.package_name, task.package_version = self.pkg_name_evr(fetched_srpm_path)
 
             self.before_git_import(task)
@@ -236,6 +366,11 @@ class DistGitImporter(object):
         except PackageQueryException:
             log.exception("send a response - failure during query of: {}".format(task.package_url))
             self.post_back_safe({"task_id": task.task_id, "error": "srpm_query_failed"})
+
+        except GitAndTitoException as e:
+            log.exception("send a response - failure during 'Tito and Git' import of: {}".format(task.tito_git_url))
+            log.exception("   ... due to: {}".format(e))
+            self.post_back_safe({"task_id": task.task_id, "error": e})
 
         except Exception:
             log.exception("Unexpected error during package import")

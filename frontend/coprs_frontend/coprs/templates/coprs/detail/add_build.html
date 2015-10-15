@@ -29,9 +29,11 @@ Select the source type and submit a new build. Options in this form are relevant
 {% if copr.is_a_group_project %}
   {% set url_add_build_url = url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name) %}
   {% set url_add_build_upload = url_for('coprs_ns.group_copr_add_build_upload', group_name = copr.group.name, coprname = copr.name) %}
+  {% set url_add_build_tito = url_for('coprs_ns.group_copr_add_build_tito', group_name = copr.group.name, coprname = copr.name) %}
 {% else %}
   {% set url_add_build_url = url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) %}
   {% set url_add_build_upload = url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name) %}
+  {% set url_add_build_tito = url_for('coprs_ns.copr_add_build_tito', username = copr.owner.name, coprname = copr.name) %}
 {% endif %}
 
 

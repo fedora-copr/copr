@@ -12,6 +12,35 @@ class ConfigReaderError(Exception):
     pass
 
 
+class EnumType(type):
+    def __call__(self, attr):
+        if isinstance(attr, int):
+            for k, v in self.vals.items():
+                if v == attr:
+                    return k
+            raise KeyError("num {0} is not mapped".format(attr))
+        else:
+            return self.vals[attr]
+
+# The same enum is also in frontend's helpers.py
+class FailTypeEnum(object):
+    __metaclass__ = EnumType
+    vals = {"unset": 0,
+            # General errors mixed with errors for SRPM URL/upload:
+            "unknown_error": 1,
+            "build_error": 2,
+            "git_import_failed": 3,
+            "srpm_download_failed": 4,
+            "srpm_query_failed": 5,
+            # Git and Tito errors:
+            "tito_general_error": 30,
+            "tito_git_clone_failed": 31,
+            "tito_wrong_directory_in_git": 32,
+            "tito_git_checkout_error": 33,
+            "tito_srpm_build_error": 34,
+    }
+
+
 def _get_conf(cp, section, option, default, mode=None):
     """
     To make returning items from config parser less irritating
