@@ -17,7 +17,7 @@
     <tbody>
     {% for build in builds %}
       <tr class="build-row build-row-{{ build.state }}" >
-        <td>
+        <td data-order="{{ build.id }}">
           <a href="{{ build_href(build) }}">
             {{ build.id }}
           </a>
