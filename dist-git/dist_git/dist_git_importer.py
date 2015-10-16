@@ -369,8 +369,8 @@ class DistGitImporter(object):
 
         except GitAndTitoException as e:
             log.exception("send a response - failure during 'Tito and Git' import of: {}".format(task.tito_git_url))
-            log.exception("   ... due to: {}".format(e))
-            self.post_back_safe({"task_id": task.task_id, "error": e})
+            log.exception("   ... due to: {}".format(str(e)))
+            self.post_back_safe({"task_id": task.task_id, "error": str(e)})
 
         except Exception:
             log.exception("Unexpected error during package import")
