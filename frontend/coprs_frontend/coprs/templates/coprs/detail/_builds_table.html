@@ -17,7 +17,7 @@
     <tbody>
     {% for build in builds %}
       <tr class="build-row build-row-{{ build.state }}" >
-        <td>
+        <td data-order="{{ build.id }}">
           <a href="{{ build_href(build) }}">
             {{ build.id }}
           </a>
@@ -36,8 +36,8 @@
                  - 
             {% endif %}
         </td> 
-        <td> {{ build.submitted_on|time_ago() }} ago </td>
-        <td> {{ build.min_started_on|time_ago(build.max_ended_on) }} </td>
+        <td data-order="{{build.submitted_on}}"> {{ build.submitted_on|time_ago() }} ago </td>
+        <td data-order="{{build.min_started_on|timestamp_diff(build.max_ended_on)}}"> {{ build.min_started_on|time_ago(build.max_ended_on) }} </td>
         <td class="build-{{build.state}}" abbr="{{build.state|build_state_description}}">{{ build.state }}</td>
       </tr>
     {% endfor %}

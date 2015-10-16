@@ -73,6 +73,22 @@ def localized_time(time_in, timezone):
     return dt_my_tz.strftime(format_tz)
 
 
+@app.template_filter('timestamp_diff')
+def timestamp_diff(time_in, until=None):
+    """ returns string with difference between two timestamps 
+
+    Input is in EPOCH (seconds since epoch).
+    """
+    if time_in is None:
+        return " - "
+    if until is not None:
+        now = datetime.datetime.fromtimestamp(until)
+    else:
+        now = datetime.datetime.now()
+    diff = now - datetime.datetime.fromtimestamp(time_in)
+    return str(int(diff.total_seconds()))
+
+
 @app.template_filter('time_ago')
 def time_ago(time_in, until=None):
     """ returns string saying how long ago the time on input was
