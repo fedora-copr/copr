@@ -7,14 +7,35 @@
   <dd>
   {% if build.fail_type_text == "unknown_error" %}
     Unknown error.
+
   {% elif build.fail_type_text == "build_error" %}
     Build error. See logs of individual chroots for more information.
+
   {% elif build.fail_type_text == "git_import_failed" %}
     Importing SRPM into Dist Git failed.
+
   {% elif build.fail_type_text == "srpm_download_failed" %}
     Could not download the SRPM. Probably bad URL.
+
   {% elif build.fail_type_text == "srpm_query_failed" %}
     RPM query failed. The file is probably not a SRPM.
+
+  {# Git and Tito section #}
+  {% elif build.fail_type_text == "tito_general_error" %}
+    Unspecified error when importing with Git and Tito.
+
+  {% elif build.fail_type_text == "tito_git_clone_failed" %}
+    Git clone failed.
+
+  {% elif build.fail_type_text == "tito_wrong_directory_in_git" %}
+    Wrong directory in git.
+
+  {% elif build.fail_type_text == "tito_git_checkout_error" %}
+    Git checkout failed.
+
+  {% elif build.fail_type_text == "tito_srpm_build_error" %}
+    Tito build of SRPM failed.
+
   {% endif %}
   </dd>
 {% endif %}

@@ -100,14 +100,23 @@ class BuildSourceEnum(object):
             "git_and_tito": 3} # git_url, git_dir, git_branch, tito_test
 
 
+# The same enum is also in distgit's helpers.py
 class FailTypeEnum(object):
     __metaclass__ = EnumType
     vals = {"unset": 0,
+            # General errors mixed with errors for SRPM URL/upload:
             "unknown_error": 1,
             "build_error": 2,
             "git_import_failed": 3,
             "srpm_download_failed": 4,
-            "srpm_query_failed": 5}
+            "srpm_query_failed": 5,
+            # Git and Tito errors:
+            "tito_general_error": 30,
+            "tito_git_clone_failed": 31,
+            "tito_wrong_directory_in_git": 32,
+            "tito_git_checkout_error": 33,
+            "tito_srpm_build_error": 34,
+    }
 
 
 class JSONEncodedDict(TypeDecorator):
