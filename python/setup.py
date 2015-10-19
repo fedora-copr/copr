@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+import re
+import os
+import codecs
+
 from setuptools import setup
 
 long_description = """Copr is designed to be a lightweight buildsystem that allows contributors
@@ -9,7 +13,20 @@ is used to allow packagers to create third party repositories.
 
 This part is a python client to the copr service."""
 
-from copr.client import __description__, __version__
+
+def read(*parts):
+    return codecs.open(os.path.join(os.path.dirname(__file__), *parts),
+                       encoding='utf8').read()
+
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 requires = [
     'requests',
@@ -18,8 +35,8 @@ requires = [
 ]
 
 
-__version__ = __version__
-__description__ = __description__
+__version__ = find_version('copr/client/__init__.py')
+__description__ = "Python client for copr service."
 __author__ = "Valentin Gologuzov"
 __author_email__ = "vgologuz@redhat.com"
 __url__ = "http://fedorahosted.org/copr/"
