@@ -75,7 +75,7 @@ class RepoRpmBuilder(object):
         return os.path.isfile(os.path.join(self.packagesdir, self.rpm_name))
 
     def get_repofile(self):
-        api = "coprs/{}/{}/repo/{}".format(self.user, self.copr, self.chroot.name)
+        api = "coprs/{}/{}/repo/{}/{}".format(self.user, self.copr, self.chroot.name_release, self.repo_name)
         url = urlparse.urljoin(FRONTEND_URL, api)
         r = requests.get(url)
         if r.status_code != 200:
