@@ -34,6 +34,7 @@ FRONTEND_URL = "http://127.0.0.1:5000/"
 FRONTEND_URL = "http://copr.fedoraproject.org/"
 FRONTEND_URL = "http://copr-fe-dev.cloud.fedoraproject.org/"
 
+FRONTEND_DIR = os.path.dirname(here)
 PACKAGES_DIR = os.path.join(app.config["DATA_DIR"], "repo-rpm-packages")
 PACKAGES_DIR = "/usr/share/copr/repo_rpm_storage"  # @TODO Move to the config file
 
@@ -88,7 +89,7 @@ class RepoRpmBuilder(object):
 
     def generate_repo_package(self):
 
-        shutil.copyfile(os.path.join("coprs/templates/coprs/", self.SPEC_NAME),
+        shutil.copyfile(os.path.join(FRONTEND_DIR, "coprs/templates/coprs/", self.SPEC_NAME),
                         os.path.join(self.topdir, "SPECS", self.SPEC_NAME))
 
         with open(os.path.join(self.topdir, "SOURCES", self.repo_name), "w") as f:
