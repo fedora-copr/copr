@@ -28,18 +28,13 @@ from coprs.logic.coprs_logic import CoprsLogic
 
 # ----------------------------------------------------------------------------------------------------------------------
 
+hostname = app.config["PUBLIC_COPR_HOSTNAME"]
+scheme = "https" if hostname == "copr.fedoraproject.org" else "http"  # Workaround to broken enforce https on fe-dev
 
-FRONTEND_URL = app.config["PUBLIC_COPR_HOSTNAME"]
-FRONTEND_URL = "http://127.0.0.1:5000/"
-FRONTEND_URL = "http://copr.fedoraproject.org/"
-FRONTEND_URL = "http://copr-fe-dev.cloud.fedoraproject.org/"
-
+FRONTEND_URL = "{}://{}".format(scheme, hostname)
 FRONTEND_DIR = os.path.dirname(here)
 PACKAGES_DIR = os.path.join(app.config["DATA_DIR"], "repo-rpm-packages")
-PACKAGES_DIR = "/usr/share/copr/repo_rpm_storage"  # @TODO Move to the config file
-
 RPMBUILD = os.path.join(os.path.expanduser("~"), "rpmbuild")
-RPMBUILD = "/tmp/rpmbuild"
 LOG_FILE = "/var/log/copr/repo-packages.log"
 
 VERSION = 1

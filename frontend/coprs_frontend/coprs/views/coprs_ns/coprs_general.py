@@ -735,8 +735,8 @@ def render_generate_repo_file(copr, name_release, repofile):
 @coprs_ns.route("/<username>/<coprname>/rpm/<name_release>/<rpmfile>")
 def copr_repo_rpm_file(username, coprname, name_release, rpmfile):
     try:
-        PACKAGES_DIR = "/usr/share/copr/repo_rpm_storage"  # @TODO Move to the config file
-        with open(os.path.join(PACKAGES_DIR, rpmfile), "rb") as rpm:
+        packages_dir = os.path.join(app.config["DATA_DIR"], "repo-rpm-packages")
+        with open(os.path.join(packages_dir, rpmfile), "rb") as rpm:
             response = flask.make_response(rpm.read())
             response.mimetype = "application/x-rpm"
             response.headers["Content-Disposition"] = \
