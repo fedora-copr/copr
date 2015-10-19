@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 
-__version__ = "1.45.0"
+__version__ = "1.45.1"
 
 import argparse
 from urlparse import urlparse

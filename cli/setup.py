@@ -54,7 +54,7 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
         "Topic :: System :: Archiving :: Packaging",
-        "Development Status :: 1 - Alpha",
+        "Development Status :: 3 - Alpha",
     ],
     install_requires=requires,
     packages=['copr_cli'],
