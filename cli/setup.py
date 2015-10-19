@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
-from setuptools import setup
+import codecs
+import os
+import re
 
-import sys
+from setuptools import setup
 
 long_description = """Copr is designed to be a lightweight buildsystem that allows contributors
 to create packages, put them in repositories, and make it easy for users
@@ -11,16 +13,28 @@ is used to allow packagers to create third party repositories.
 
 This part is a command line interface to use copr."""
 
-from copr_cli.main import __description__, __version__
-
 requires = [
     'copr'
 ]
 
 
+def read(*parts):
+    return codecs.open(os.path.join(os.path.dirname(__file__), *parts),
+                       encoding='utf8').read()
+
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
+
 __name__ = 'copr-cli'
-__version__ = __version__
-__description__ = __description__
+__version__ = find_version('copr_cli/main.py')
+__description__ = "CLI tool to run copr"
 __author__ = "Pierre-Yves Chibon"
 __author_email__ = "pingou@pingoured.fr"
 __url__ = "http://fedorahosted.org/copr/"

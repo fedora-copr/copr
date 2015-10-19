@@ -4,8 +4,7 @@ import os
 import re
 import subprocess
 
-__version__ = "0.3.0"
-__description__ = "CLI tool to run copr"
+__version__ = "1.45.0"
 
 import argparse
 from urlparse import urlparse
