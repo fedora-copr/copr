@@ -16,6 +16,7 @@ import urlparse
 import os
 import shutil
 import subprocess
+import logging
 
 here = os.path.dirname(os.path.realpath(__file__))
 import sys
@@ -38,12 +39,15 @@ PACKAGES_DIR = "/usr/share/copr/repo_rpm_storage"  # @TODO Move to the config fi
 
 RPMBUILD = os.path.join(os.path.expanduser("~"), "rpmbuild")
 RPMBUILD = "/tmp/rpmbuild"
+LOG_FILE = "/var/log/copr/repo-packages.log"
 
 VERSION = 1
 RELEASE = 1
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+
+log = logging.getLogger(__name__)
 
 
 class RepoRpmBuilder(object):
@@ -149,19 +153,24 @@ def main():
             builder = RepoRpmBuilder(user=copr.owner.name, copr=copr.name, chroot=chroot)
 
             if builder.has_repo_package():
-                print("Skipping {}".format(builder.repo_name))
+                log.info("Skipping {}".format(builder.repo_name))
                 continue
 
             try:
                 builder.generate_repo_package()
-                print("Created RPM package for: {}".format(builder.repo_name))
+                log.info("Created RPM package for: {}".format(builder.repo_name))
 
             except RuntimeError as e:
-                print(e.message, file=sys.stderr)
+                log.error(e.message)
 
 
 if __name__ == "__main__":
     try:
+        logging.getLogger("requests").setLevel(logging.WARNING)
+        logging.basicConfig(
+            filename=LOG_FILE,
+            format='[%(asctime)s][%(levelname)6s]: %(message)s',
+            level=logging.INFO)
         main()
     except KeyboardInterrupt:
         pass
