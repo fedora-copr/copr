@@ -1,5 +1,5 @@
 # coding: utf-8
-from cStringIO import StringIO
+from io import BytesIO
 import json
 import math
 import random
@@ -27,7 +27,7 @@ class TestBuildResource(CoprsTestCase):
         self.db.session.commit()
         r = self.tc.get(href)
         assert r.status_code == 200
-        obj = json.loads(r.data)
+        obj = json.loads(r.data.decode("utf-8"))
 
         # not a pure test, but we test API here
         builds = BuildsLogic.get_multiple().all()
@@ -48,8 +48,8 @@ class TestBuildResource(CoprsTestCase):
 
         assert r_a.status_code == 200
         assert r_b.status_code == 200
-        obj_a = json.loads(r_a.data)
-        obj_b = json.loads(r_b.data)
+        obj_a = json.loads(r_a.data.decode("utf-8"))
+        obj_b = json.loads(r_b.data.decode("utf-8"))
 
         builds = BuildsLogic.get_multiple().all()
         expected_ids_a = set([b.id for b in builds if b.ended_on is not None])
@@ -67,7 +67,7 @@ class TestBuildResource(CoprsTestCase):
             self.db.session.commit()
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
 
             # not a pure test, but we test API here
             builds = [
@@ -86,7 +86,7 @@ class TestBuildResource(CoprsTestCase):
             self.db.session.commit()
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
 
             # not a pure test, but we test API here
             builds = [
@@ -108,7 +108,7 @@ class TestBuildResource(CoprsTestCase):
             href = "/api_2/builds?limit={}".format(lim)
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
             builds = obj["builds"]
             assert len(builds) == lim
 
@@ -123,8 +123,8 @@ class TestBuildResource(CoprsTestCase):
                 assert r1.status_code == 200
                 assert r2.status_code == 200
 
-                obj1 = json.loads(r1.data)
-                obj2 = json.loads(r2.data)
+                obj1 = json.loads(r1.data.decode("utf-8"))
+                obj2 = json.loads(r2.data.decode("utf-8"))
 
                 assert builds[:delta] == obj1["builds"]
                 assert builds[delta:2 * delta] == obj2["builds"]
@@ -191,7 +191,7 @@ class TestBuildResource(CoprsTestCase):
         assert r0.status_code == 201
         r1 = self.tc.get(r0.headers["Location"])
         assert r1.status_code == 200
-        build_obj = json.loads(r1.data)
+        build_obj = json.loads(r1.data.decode("utf-8"))
         build_dict = build_obj["build"]
         assert build_dict["source_metadata"]["url"] == \
             metadata["srpm_url"]
@@ -252,7 +252,7 @@ class TestBuildResource(CoprsTestCase):
         }
         data = {
             "metadata": json.dumps(metadata),
-            "srpm": (StringIO(u'my file contents'), 'hello world.src.rpm')
+            "srpm": (BytesIO(b'my file contents'), 'hello world.src.rpm')
         }
         login = self.u2.api_login
         token = self.u2.api_token
@@ -280,7 +280,7 @@ class TestBuildResource(CoprsTestCase):
         }
         data = {
             "metadata": json.dumps(metadata),
-            "srpm": (StringIO(u'my file contents'), 'hello world.src.rpm')
+            "srpm": (BytesIO(b'my file contents'), 'hello world.src.rpm')
         }
         self.db.session.commit()
         r0 = self.request_rest_api_with_auth(
@@ -303,7 +303,7 @@ class TestBuildResource(CoprsTestCase):
         }
         data = {
             "metadata": json.dumps(metadata),
-            "srpm": (StringIO(u'my file contents'), 'hello world.src.rpm')
+            "srpm": (BytesIO(b'my file contents'), 'hello world.src.rpm')
         }
         self.db.session.commit()
         r0 = self.request_rest_api_with_auth(
@@ -315,13 +315,13 @@ class TestBuildResource(CoprsTestCase):
         assert r0.status_code == 201
         r1 = self.tc.get(r0.headers["Location"])
         assert r1.status_code == 200
-        build_obj = json.loads(r1.data)
+        build_obj = json.loads(r1.data.decode("utf-8"))
 
         assert build_obj["build"]["source_type"] == "srpm_upload"
 
         tasks_href = build_obj["_links"]["build_tasks"]["href"]
         r2 = self.tc.get(tasks_href)
-        build_chroots_obj = json.loads(r2.data)
+        build_chroots_obj = json.loads(r2.data.decode("utf-8"))
         build_chroots_names = set([bc["build_task"]["chroot_name"] for bc in
                                    build_chroots_obj["build_tasks"]])
         assert set(chroot_name_list) == build_chroots_names
@@ -350,7 +350,7 @@ class TestBuildResource(CoprsTestCase):
             self,f_users, f_coprs, f_builds, f_db,
             f_users_api, f_mock_chroots):
         data = {
-            "srpm": (StringIO(u'my file contents'), 'hello world.src.rpm')
+            "srpm": (BytesIO(b'my file contents'), 'hello world.src.rpm')
         }
         self.db.session.commit()
         r0 = self.request_rest_api_with_auth(
@@ -371,7 +371,7 @@ class TestBuildResource(CoprsTestCase):
             href = "/api_2/builds/{}".format(b_id)
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
             assert obj["build"]["id"] == b_id
             assert obj["_links"]["self"]["href"] == href
 
@@ -385,7 +385,7 @@ class TestBuildResource(CoprsTestCase):
             href = "/api_2/builds/{}?show_build_tasks=True".format(b_id)
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
             assert obj["build"]["id"] == b_id
             assert obj["_links"]["self"]["href"] == href
             assert "build_tasks" in obj
@@ -520,7 +520,7 @@ class TestBuildResource(CoprsTestCase):
 
         r2 = self.tc.get(r.headers["Location"])
         assert r2.status_code == 200
-        obj = json.loads(r2.data)
+        obj = json.loads(r2.data.decode("utf-8"))
         assert obj["build"]["state"] == "canceled"
 
     def test_build_put_cancel_wrong_state(
@@ -547,6 +547,6 @@ class TestBuildResource(CoprsTestCase):
 
         r2 = self.tc.get(href)
         assert r2.status_code == 200
-        obj = json.loads(r2.data)
+        obj = json.loads(r2.data.decode("utf-8"))
         assert obj["build"]["state"] == old_state
 

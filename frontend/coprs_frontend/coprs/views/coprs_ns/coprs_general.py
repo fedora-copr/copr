@@ -4,7 +4,7 @@ import os
 import time
 import os
 import re
-import urlparse
+from six.moves.urllib.parse import urljoin
 
 import flask
 from flask import render_template, url_for
@@ -505,7 +505,7 @@ def copr_update_permissions(copr):
             # if admin is changing his permissions, his must be changed last
             # so that we don't get InsufficientRightsException
             permissions.sort(
-                cmp=lambda x, y: -1 if y.user_id == flask.g.user.id else 1)
+                key=lambda x: -1 if x.user_id == flask.g.user.id else 1)
             for perm in permissions:
                 old_builder = perm.copr_builder
                 old_admin = perm.copr_admin
@@ -723,7 +723,7 @@ def render_generate_repo_file(copr, name_release, repofile):
     # add trainling slash
     url = os.path.join(url, '')
     repo_url = generate_repo_url(mock_chroot, url)
-    pubkey_url = urlparse.urljoin(url, "pubkey.gpg")
+    pubkey_url = urljoin(url, "pubkey.gpg")
     response = flask.make_response(
         flask.render_template("coprs/copr.repo", copr=copr, url=repo_url, pubkey_url=pubkey_url))
     response.mimetype = "text/plain"

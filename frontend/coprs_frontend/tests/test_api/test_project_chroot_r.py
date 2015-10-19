@@ -23,7 +23,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
-        assert len(json.loads(r0.data)["chroots"]) == init_len
+        assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == init_len
 
         r1 = self.request_rest_api_with_auth(
             "/api_2/projects/1/chroots/{}".format(chroot_name),
@@ -33,7 +33,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r2 = self.tc.get("/api_2/projects/1/chroots")
         assert r2.status_code == 200
-        assert len(json.loads(r2.data)["chroots"]) == init_len - 1
+        assert len(json.loads(r2.data.decode("utf-8"))["chroots"]) == init_len - 1
 
         # test idempotency
         r3 = self.request_rest_api_with_auth(
@@ -43,7 +43,7 @@ class TestProjectChrootResource(CoprsTestCase):
         assert r3.status_code == 204
         r4 = self.tc.get("/api_2/projects/1/chroots")
         assert r4.status_code == 200
-        assert len(json.loads(r4.data)["chroots"]) == init_len - 1
+        assert len(json.loads(r4.data.decode("utf-8"))["chroots"]) == init_len - 1
 
     def test_remove_chroot_other_user(
             self, f_users, f_coprs,f_db, f_users_api,
@@ -57,7 +57,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
-        assert len(json.loads(r0.data)["chroots"]) == init_len
+        assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == init_len
 
         r1 = self.request_rest_api_with_auth(
             "/api_2/projects/1/chroots/{}".format(chroot_name),
@@ -68,7 +68,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r2 = self.tc.get("/api_2/projects/1/chroots")
         assert r2.status_code == 200
-        assert len(json.loads(r2.data)["chroots"]) == init_len
+        assert len(json.loads(r2.data.decode("utf-8"))["chroots"]) == init_len
 
     def test_put_correct(self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
         chroot_name = self.mc1.name
@@ -93,7 +93,7 @@ class TestProjectChrootResource(CoprsTestCase):
             for k, v in data.items():
                 assert response_data.get(k) == v
 
-        assert_content(json.loads(r2.data)["chroot"])
+        assert_content(json.loads(r2.data.decode("utf-8"))["chroot"])
 
         # test idempotency
         self.request_rest_api_with_auth(
@@ -103,7 +103,7 @@ class TestProjectChrootResource(CoprsTestCase):
         )
         r3 = self.tc.get("/api_2/projects/1/chroots/{}".format(chroot_name))
         assert r3.status_code == 200
-        assert_content(json.loads(r3.data)["chroot"])
+        assert_content(json.loads(r3.data.decode("utf-8"))["chroot"])
 
         # test put with excessive name field
         data["name"] = chroot_name
@@ -137,7 +137,7 @@ class TestProjectChrootResource(CoprsTestCase):
             for k, v in data.items():
                 assert response_data.get(k) == v
 
-        assert_content(json.loads(r2.data)["chroot"])
+        assert_content(json.loads(r2.data.decode("utf-8"))["chroot"])
 
     def test_put_wrong_name(self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
         chroot_name = "completely_fake_chroot"
@@ -170,7 +170,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
-        assert len(json.loads(r0.data)["chroots"]) == 1
+        assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == 1
 
         r1 = self.request_rest_api_with_auth(
             "/api_2/projects/1/chroots/{}".format(chroot_name),
@@ -196,7 +196,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
-        assert len(json.loads(r0.data)["chroots"]) == 1
+        assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == 1
 
         r1 = self.request_rest_api_with_auth(
             "/api_2/projects/1/chroots",
@@ -207,7 +207,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r2 = self.tc.get("/api_2/projects/1/chroots")
         assert r2.status_code == 200
-        assert len(json.loads(r2.data)["chroots"]) == 2
+        assert len(json.loads(r2.data.decode("utf-8"))["chroots"]) == 2
 
         r3 = self.tc.get(r1.headers["Location"])
 
@@ -215,7 +215,7 @@ class TestProjectChrootResource(CoprsTestCase):
             for k, v in base_data.items():
                 assert response_data.get(k) == v
 
-        assert_content(json.loads(r3.data)["chroot"])
+        assert_content(json.loads(r3.data.decode("utf-8"))["chroot"])
 
     def test_create_chroot_build_no_buildchroot(self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
         new_chroot_name = self.mc2.name
@@ -232,7 +232,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
-        assert len(json.loads(r0.data)["chroots"]) == 1
+        assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == 1
 
     def test_create_chroot_missing_name(self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
         base_data = {
@@ -243,7 +243,7 @@ class TestProjectChrootResource(CoprsTestCase):
         self.db.session.commit()
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
-        assert len(json.loads(r0.data)["chroots"]) == 1
+        assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == 1
 
         r1 = self.request_rest_api_with_auth(
             "/api_2/projects/1/chroots",
@@ -254,7 +254,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r2 = self.tc.get("/api_2/projects/1/chroots")
         assert r2.status_code == 200
-        assert len(json.loads(r2.data)["chroots"]) == 1
+        assert len(json.loads(r2.data.decode("utf-8"))["chroots"]) == 1
 
     def test_create_chroot_non_existing_name(
             self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
@@ -272,7 +272,7 @@ class TestProjectChrootResource(CoprsTestCase):
         self.db.session.commit()
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
-        assert len(json.loads(r0.data)["chroots"]) == 1
+        assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == 1
 
         r1 = self.request_rest_api_with_auth(
             "/api_2/projects/1/chroots",
@@ -283,7 +283,7 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r2 = self.tc.get("/api_2/projects/1/chroots")
         assert r2.status_code == 200
-        assert len(json.loads(r2.data)["chroots"]) == 1
+        assert len(json.loads(r2.data.decode("utf-8"))["chroots"]) == 1
 
     def test_create_conflict_existing(
             self, f_users, f_coprs, f_db, f_users_api, f_mock_chroots):
@@ -301,7 +301,7 @@ class TestProjectChrootResource(CoprsTestCase):
         self.db.session.commit()
         r0 = self.tc.get("/api_2/projects/1/chroots")
         assert r0.status_code == 200
-        assert len(json.loads(r0.data)["chroots"]) == 1
+        assert len(json.loads(r0.data.decode("utf-8"))["chroots"]) == 1
 
         r1 = self.request_rest_api_with_auth(
             "/api_2/projects/1/chroots",
@@ -312,5 +312,5 @@ class TestProjectChrootResource(CoprsTestCase):
 
         r2 = self.tc.get("/api_2/projects/1/chroots")
         assert r2.status_code == 200
-        assert len(json.loads(r2.data)["chroots"]) == 1
+        assert len(json.loads(r2.data.decode("utf-8"))["chroots"]) == 1
 

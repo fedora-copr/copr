@@ -703,7 +703,7 @@ class CoprChroot(db.Model, helpers.Serializer):
     comps_name = db.Column(db.String(127), nullable=True)
 
     def update_comps(self, comps_xml):
-        self.comps_zlib = zlib.compress(comps_xml)
+        self.comps_zlib = zlib.compress(comps_xml.encode("utf-8"))
 
     @property
     def buildroot_pkgs_list(self):

@@ -29,7 +29,7 @@ class ProjectListR(Resource):
         Creates new copr
         """
         owner = flask.g.user
-        result = mm_deserialize(ProjectCreateSchema(), flask.request.data)
+        result = mm_deserialize(ProjectCreateSchema(), flask.request.data.decode("utf-8"))
 
         req = result.data
         name = req.pop("name")
@@ -158,7 +158,7 @@ class ProjectR(Resource):
         """
         project = get_project_safe(project_id)
 
-        project_dict = mm_deserialize(ProjectSchema(), flask.request.data).data
+        project_dict = mm_deserialize(ProjectSchema(), flask.request.data.decode("utf-8")).data
         # pprint(project_dict)
 
         for k, v in project_dict.items():

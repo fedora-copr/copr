@@ -68,8 +68,8 @@ def upgrade():
 
 
 def downgrade():
-    print "Why are you downgrading? You will just lost some data."
+    print("Why are you downgrading? You will just lost some data.")
     op.add_column(u"build", sa.Column(u"chroots", sa.TEXT(), nullable=False))
     op.add_column(u"build", sa.Column(u"status", sa.INTEGER(), nullable=True))
     op.drop_table("build_chroot")
-    print "Data about chroots for builds are gone!"
+    print("Data about chroots for builds are gone!")

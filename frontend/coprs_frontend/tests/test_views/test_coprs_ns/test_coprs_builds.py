@@ -11,7 +11,7 @@ class TestCoprShowBuilds(CoprsTestCase):
 
         r = self.tc.get(
             "/coprs/{0}/{1}/builds/".format(self.u2.name, self.c2.name))
-        assert r.data.count('<tr class="build-') == 2
+        assert r.data.count(b'<tr class="build-') == 2
 
 
 class TestCoprAddBuild(CoprsTestCase):
@@ -80,7 +80,7 @@ class TestCoprAddBuild(CoprsTestCase):
 
         r = self.tc.get(
             "/coprs/{0}/{1}/add_build/".format(self.u1.name, "foo"))
-        assert '<input checked id="enable_net" name="enable_net"' not in r.data
+        assert b'<input checked id="enable_net" name="enable_net"' not in r.data
 
 
 class TestCoprCancelBuild(CoprsTestCase):
@@ -140,7 +140,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
             .format(self.u1.name, self.c1.name, self.b1.id),
             data={},
             follow_redirects=True)
-        assert "Build has been deleted" in r.data
+        assert b"Build has been deleted" in r.data
         b = (self.models.Build.query.filter(
             self.models.Build.id == self.b1.id)
             .first())
@@ -187,7 +187,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
             .format(self.u1.name, self.c1.name, self.b1.id),
             data={},
             follow_redirects=True)
-        assert "not allowed to delete build" in r.data
+        assert b"not allowed to delete build" in r.data
         b = (self.models.Build.query.filter(
             self.models.Build.id == self.b1.id)
             .first())
@@ -236,7 +236,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
         assert r.status_code == 200
         # no longer using URL
         #assert self.b_few_chroots.pkgs in r.data
-        assert "Resubmit build {}".format(self.b_few_chroots.id) in r.data
+        assert "Resubmit build {}".format(self.b_few_chroots.id).encode("utf-8") in r.data
 
         # TODO: maybe test, that only failed chroots are selected
 
@@ -264,7 +264,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
             data={},
             follow_redirects=True)
 
-        assert "Resubmit build {}".format(self.b1.id) in r.data
+        assert "Resubmit build {}".format(self.b1.id).encode("utf-8") in r.data
         assert r.status_code == 200
         # assert "Build was resubmitted" in r.data
         # assert len(self.models.Build.query
@@ -285,7 +285,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
             follow_redirects=True)
 
         # import ipdb; ipdb.set_trace()
-        assert "You are not allowed to repeat this build." in r.data
+        assert b"You are not allowed to repeat this build." in r.data
 
     @TransactionDecorator("u1")
     def test_copr_build_package_urls(self, f_users,
@@ -305,6 +305,6 @@ class TestCoprRepeatBuild(CoprsTestCase):
         for i, url in enumerate(urls):
             r.insert(i, self.test_client.post(route, data={"pkgs": url}, follow_redirects=True))
 
-        assert "New build has been created" in r[0].data
-        assert "doesn&#39;t seem to be a valid URL" in r[1].data
-        assert "doesn&#39;t seem to be a valid SRPM URL" in r[2].data
+        assert b"New build has been created" in r[0].data
+        assert b"doesn&#39;t seem to be a valid URL" in r[1].data
+        assert b"doesn&#39;t seem to be a valid SRPM URL" in r[2].data

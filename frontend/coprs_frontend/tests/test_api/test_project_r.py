@@ -35,7 +35,7 @@ class TestProjectResource(CoprsTestCase):
         href = "/api_2/projects"
         r = self.tc.get(href)
         assert r.status_code == 200
-        obj = json.loads(r.data)
+        obj = json.loads(r.data.decode("utf-8"))
         assert obj["_links"]["self"]["href"] == href
 
     def test_project_list_all(self, f_users, f_mock_chroots, f_coprs, f_db):
@@ -43,7 +43,7 @@ class TestProjectResource(CoprsTestCase):
         href = "/api_2/projects"
         r = self.tc.get(href)
         assert r.status_code == 200
-        obj = json.loads(r.data)
+        obj = json.loads(r.data.decode("utf-8"))
         assert set(p["project"]["id"] for p in obj["projects"]) == \
             expected_id_set
 
@@ -55,7 +55,7 @@ class TestProjectResource(CoprsTestCase):
         href = "/api_2/projects?owner={}".format(self.u1.username)
         r = self.tc.get(href)
         assert r.status_code == 200
-        obj = json.loads(r.data)
+        obj = json.loads(r.data.decode("utf-8"))
         assert set(p["project"]["id"] for p in obj["projects"]) == \
             expected_id_set
 
@@ -67,7 +67,7 @@ class TestProjectResource(CoprsTestCase):
         href = "/api_2/projects?name={}".format(self.c1.name)
         r = self.tc.get(href)
         assert r.status_code == 200
-        obj = json.loads(r.data)
+        obj = json.loads(r.data.decode("utf-8"))
         assert set(p["project"]["id"] for p in obj["projects"]) == \
             expected_id_set
 
@@ -85,7 +85,7 @@ class TestProjectResource(CoprsTestCase):
         for href, expected in zip(href_list, [s_1, s_2, s_3]):
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
             assert set(p["project"]["id"] for p in obj["projects"]) == \
                 expected
 
@@ -107,7 +107,7 @@ class TestProjectResource(CoprsTestCase):
 
         r0 = self.tc.get(u"/api_2/projects?search_query={}".format(self.prefix))
         assert r0.status_code == 200
-        obj = json.loads(r0.data)
+        obj = json.loads(r0.data.decode("utf-8"))
         assert len(obj["projects"]) == k1 + k2
         for p in obj["projects"]:
             assert self.prefix in p["project"]["name"]
@@ -115,7 +115,7 @@ class TestProjectResource(CoprsTestCase):
         r1 = self.tc.get(u"/api_2/projects?search_query={}&owner={}"
                          .format(self.prefix, c1_username))
         assert r1.status_code == 200
-        obj = json.loads(r1.data)
+        obj = json.loads(r1.data.decode("utf-8"))
         assert len(obj["projects"]) == k1
         for p in obj["projects"]:
             assert self.prefix in p["project"]["name"]
@@ -140,7 +140,7 @@ class TestProjectResource(CoprsTestCase):
         assert r.headers["Location"].endswith("/api_2/projects/1")
 
         r2 = self.tc.get("/api_2/projects/1/chroots")
-        copr_chroots_dict = json.loads(r2.data)
+        copr_chroots_dict = json.loads(r2.data.decode("utf-8"))
         assert len(copr_chroots_dict["chroots"]) == 1
         assert copr_chroots_dict["chroots"][0]["chroot"]["name"] == chroot_name
 
@@ -254,7 +254,7 @@ class TestProjectResource(CoprsTestCase):
             href = "/api_2/projects/{}".format(p_id)
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
 
             assert obj["project"]["id"] == p_id
             assert obj["_links"]["self"]["href"] == href
@@ -266,7 +266,7 @@ class TestProjectResource(CoprsTestCase):
             href = "/api_2/projects/{}?show_chroots=True".format(p_id)
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
 
             assert obj["project"]["id"] == p_id
             assert obj["_links"]["self"]["href"] == href
@@ -282,7 +282,7 @@ class TestProjectResource(CoprsTestCase):
             href = "/api_2/projects/{}?show_builds=True".format(p_id)
             r = self.tc.get(href)
             assert r.status_code == 200
-            obj = json.loads(r.data)
+            obj = json.loads(r.data.decode("utf-8"))
 
             assert obj["project"]["id"] == p_id
             assert obj["_links"]["self"]["href"] == href
@@ -369,7 +369,7 @@ class TestProjectResource(CoprsTestCase):
         assert r0.status_code == 204
 
         r1 = self.tc.get(href)
-        obj = json.loads(r1.data)
+        obj = json.loads(r1.data.decode("utf-8"))
         updated_project = obj["project"]
         for k, v in self.put_update_dict.items():
             assert updated_project[k] == v

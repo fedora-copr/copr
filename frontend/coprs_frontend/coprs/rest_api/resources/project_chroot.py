@@ -41,7 +41,7 @@ class ProjectChrootListR(Resource):
         project = get_project_safe(project_id)
 
         chroot_data = mm_deserialize(CoprChrootCreateSchema(),
-                                     flask.request.data)
+                                     flask.request.data.decode("utf-8"))
 
         req = chroot_data.data
         name = req.pop("name")
@@ -103,7 +103,7 @@ class ProjectChrootR(Resource):
         project = get_project_safe(project_id)
         chroot = self._get_chroot_safe(project, name)
 
-        chroot_data = mm_deserialize(CoprChrootSchema(), flask.request.data)
+        chroot_data = mm_deserialize(CoprChrootSchema(), flask.request.data.decode("utf-8"))
         try:
             updated_chroot = CoprChrootsLogic.update_chroot(
                 user=flask.g.user,

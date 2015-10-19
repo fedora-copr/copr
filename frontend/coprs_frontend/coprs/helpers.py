@@ -2,15 +2,17 @@ from functools import wraps
 import math
 import random
 import string
-import urlparse
+
+from six import with_metaclass
+from six.moves.urllib.parse import urljoin
 
 import flask
 from flask import url_for
 from dateutil import parser as dt_parser
 from netaddr import IPAddress, IPNetwork
 from redis import StrictRedis
-from rpmUtils.miscutils import splitFilename
 from sqlalchemy.types import TypeDecorator, VARCHAR
+from dnf.rpm.miscutils import splitFilename
 import json
 
 from coprs import constants
@@ -50,8 +52,7 @@ class EnumType(type):
             return self.vals[attr]
 
 
-class PermissionEnum(object):
-    __metaclass__ = EnumType
+class PermissionEnum(with_metaclass(EnumType, object)):
     vals = {"nothing": 0, "request": 1, "approved": 2}
 
     @classmethod
@@ -59,8 +60,7 @@ class PermissionEnum(object):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 
-class ActionTypeEnum(object):
-    __metaclass__ = EnumType
+class ActionTypeEnum(with_metaclass(EnumType, object)):
     vals = {
         "delete": 0,
         "rename": 1,
@@ -70,18 +70,15 @@ class ActionTypeEnum(object):
     }
 
 
-class BackendResultEnum(object):
-    __metaclass__ = EnumType
+class BackendResultEnum(with_metaclass(EnumType, object)):
     vals = {"waiting": 0, "success": 1, "failure": 2}
 
 
-class RoleEnum(object):
-    __metaclass__ = EnumType
+class RoleEnum(with_metaclass(EnumType, object)):
     vals = {"user": 0, "admin": 1}
 
 
-class StatusEnum(object):
-    __metaclass__ = EnumType
+class StatusEnum(with_metaclass(EnumType, object)):
     vals = {"failed": 0,
             "succeeded": 1,
             "canceled": 2,
@@ -92,8 +89,7 @@ class StatusEnum(object):
             "importing": 7} # SRPM is being imported to dist-git
 
 
-class BuildSourceEnum(object):
-    __metaclass__ = EnumType
+class BuildSourceEnum(with_metaclass(EnumType, object)):
     vals = {"unset": 0,
             "srpm_link": 1,  # url
             "srpm_upload": 2,  # pkg, tmp
@@ -101,8 +97,7 @@ class BuildSourceEnum(object):
 
 
 # The same enum is also in distgit's helpers.py
-class FailTypeEnum(object):
-    __metaclass__ = EnumType
+class FailTypeEnum(with_metaclass(EnumType, object)):
     vals = {"unset": 0,
             # General errors mixed with errors for SRPM URL/upload:
             "unknown_error": 1,
@@ -259,7 +254,7 @@ def generate_repo_url(mock_chroot, url):
         if mock_chroot.os_version != "rawhide":
             mock_chroot.os_version = "$releasever"
 
-    url = urlparse.urljoin(
+    url = urljoin(
         url, "{0}-{1}-{2}/".format(mock_chroot.os_release,
                                    mock_chroot.os_version, "$basearch"))
 

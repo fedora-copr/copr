@@ -1,5 +1,5 @@
 import re
-import urlparse
+from six.moves.urllib.parse import urlparse
 
 import flask
 import wtforms
@@ -28,7 +28,7 @@ class UrlListValidator(object):
                 raise wtforms.ValidationError(self.message.format(u))
 
     def is_url(self, url):
-        parsed = urlparse.urlparse(url)
+        parsed = urlparse(url)
         if not parsed.scheme.startswith("http"):
             return False
         if not parsed.netloc:
@@ -39,7 +39,7 @@ class UrlListValidator(object):
 class UrlRepoListValidator(UrlListValidator):
     """ Allows also `repo://` schema"""
     def is_url(self, url):
-        parsed = urlparse.urlparse(url)
+        parsed = urlparse(url)
         if parsed.scheme not in ["http", "https", "copr"]:
             return False
         if not parsed.netloc:
@@ -63,7 +63,7 @@ class UrlSrpmListValidator(UrlListValidator):
         super(UrlSrpmListValidator, self).__init__(message)
 
     def is_url(self, url):
-        parsed = urlparse.urlparse(url)
+        parsed = urlparse(url)
         if not parsed.path.endswith((".src.rpm", ".nosrc.rpm")):
             return False
         return True
@@ -236,10 +236,10 @@ class CoprFormFactory(object):
                         have_any = True
                 return have_any
 
-        F.chroots_list = map(lambda x: x.name,
+        F.chroots_list = list(map(lambda x: x.name,
                              models.MockChroot.query.filter(
                                  models.MockChroot.is_active == True
-                             ).all())
+                             ).all()))
         F.chroots_list.sort()
         # sets of chroots according to how we should print them in columns
         F.chroots_sets = {}
@@ -309,7 +309,7 @@ class BuildFormFactory(object):
 
             enable_net = wtforms.BooleanField()
 
-        F.chroots_list = map(lambda x: x.name, active_chroots)
+        F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
         F.chroots_sets = {}
         for ch in F.chroots_list:
@@ -464,7 +464,7 @@ class BuildFormRebuildFactory(object):
 
             enable_net = wtforms.BooleanField()
 
-        F.chroots_list = map(lambda x: x.name, active_chroots)
+        F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
         F.chroots_sets = {}
         for ch in F.chroots_list:

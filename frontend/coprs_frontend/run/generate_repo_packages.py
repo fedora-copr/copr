@@ -12,11 +12,11 @@ from __future__ import division
 from __future__ import absolute_import
 
 import requests
-import urlparse
 import os
 import shutil
 import subprocess
 import logging
+from six.moves.urllib.parse import urljoin
 
 here = os.path.dirname(os.path.realpath(__file__))
 import sys
@@ -76,7 +76,7 @@ class RepoRpmBuilder(object):
 
     def get_repofile(self):
         api = "coprs/{}/{}/repo/{}/{}".format(self.user, self.copr, self.chroot.name_release, self.repo_name)
-        url = urlparse.urljoin(FRONTEND_URL, api)
+        url = urljoin(FRONTEND_URL, api)
         r = requests.get(url)
         if r.status_code != 200:
             raise RuntimeError("Can't get {}".format(url))

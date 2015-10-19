@@ -91,7 +91,7 @@ def rest_api_auth_required(f):
                 base64string = flask.request.headers["Authorization"]
                 base64string = base64string.split()[1].strip()
                 userstring = base64.b64decode(base64string)
-                (api_login, token) = userstring.split(":")
+                (api_login, token) = userstring.decode("utf-8").split(":")
         except Exception:
             log.exception("Failed to get auth token from headers")
             api_login = token = None

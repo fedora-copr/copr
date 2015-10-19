@@ -49,11 +49,11 @@ class TestMonitor(CoprsTestCase):
 class TestCoprsShow(CoprsTestCase):
 
     def test_show_no_entries(self):
-        assert "No projects..." in self.tc.get("/").data
+        assert b"No projects..." in self.tc.get("/").data
 
     def test_show_more_entries(self, f_users, f_coprs, f_db):
         r = self.tc.get("/")
-        assert r.data.count('<!--copr-project-->') == 3
+        assert r.data.count(b'<!--copr-project-->') == 3
 
 
 class TestCoprsOwned(CoprsTestCase):
@@ -62,13 +62,13 @@ class TestCoprsOwned(CoprsTestCase):
     def test_owned_none(self, f_users, f_coprs, f_db):
         self.db.session.add(self.u3)
         r = self.test_client.get("/coprs/{0}/".format(self.u3.name))
-        assert "No projects..." in r.data
+        assert b"No projects..." in r.data
 
     @TransactionDecorator("u1")
     def test_owned_one(self, f_users, f_coprs, f_db):
         self.db.session.add(self.u1)
         r = self.test_client.get("/coprs/{0}/".format(self.u1.name))
-        assert r.data.count('<!--copr-project-->') == 1
+        assert r.data.count(b'<!--copr-project-->') == 1
 
 
 class TestCoprNew(CoprsTestCase):
@@ -85,7 +85,7 @@ class TestCoprNew(CoprsTestCase):
 
         assert self.models.Copr.query.filter(
             self.models.Copr.name == "foo").first()
-        assert self.success_string in r.data
+        assert self.success_string.encode("utf-8") in r.data
 
         # make sure no initial build was submitted
         assert self.models.Build.query.first() is None
@@ -109,7 +109,7 @@ class TestCoprNew(CoprsTestCase):
 
         assert len(self.models.Copr.query.filter(
             self.models.Copr.name == self.c1.name).all()) == foocoprs + 1
-        assert self.success_string in r.data
+        assert self.success_string.encode("utf-8") in r.data
 
     @TransactionDecorator("u1")
     def test_copr_new_exists_for_this_user(self, f_users, f_coprs,
@@ -128,7 +128,7 @@ class TestCoprNew(CoprsTestCase):
         self.db.session.add(self.c1)
         assert len(self.models.Copr.query.filter(
             self.models.Copr.name == self.c1.name).all()) == foocoprs
-        assert "You already have project named" in r.data
+        assert b"You already have project named" in r.data
 
     @TransactionDecorator("u1")
     def test_copr_new_with_initial_pkgs(self, f_users, f_mock_chroots, f_db):
@@ -144,12 +144,12 @@ class TestCoprNew(CoprsTestCase):
         copr = self.models.Copr.query.filter(
             self.models.Copr.name == "foo").first()
         assert copr
-        assert self.success_string in r.data
+        assert self.success_string.encode("utf-8") in r.data
 
         assert self.models.Build.query.first().copr == copr
         assert self.models.Build.query.first().enable_net is True
         assert copr.build_count == 1
-        assert "Initial packages were successfully submitted" in r.data
+        assert b"Initial packages were successfully submitted" in r.data
 
 
     @TransactionDecorator("u1")
@@ -166,12 +166,12 @@ class TestCoprNew(CoprsTestCase):
         copr = self.models.Copr.query.filter(
             self.models.Copr.name == "foo").first()
         assert copr
-        assert self.success_string in r.data
+        assert self.success_string.encode("utf-8") in r.data
 
         assert self.models.Build.query.first().copr == copr
         assert self.models.Build.query.first().enable_net is False
         assert copr.build_count == 1
-        assert "Initial packages were successfully submitted" in r.data
+        assert b"Initial packages were successfully submitted" in r.data
 
     @TransactionDecorator("u1")
     def test_copr_new_is_allowed_even_if_deleted_has_same_name(
@@ -195,7 +195,7 @@ class TestCoprNew(CoprsTestCase):
                                                  self.c1.name)
                    .filter(self.models.Copr.owner == self.u1)
                    .all()) == 2
-        assert self.success_string in r.data
+        assert self.success_string.encode("utf-8") in r.data
 
 
 class TestCoprDetail(CoprsTestCase):
@@ -207,29 +207,29 @@ class TestCoprDetail(CoprsTestCase):
     def test_copr_detail_normal(self, f_users, f_coprs, f_db):
         r = self.tc.get("/coprs/{0}/{1}/".format(self.u1.name, self.c1.name))
         assert r.status_code == 200
-        assert self.c1.name in r.data
+        assert self.c1.name.encode("utf-8") in r.data
 
     def test_copr_detail_contains_builds(self, f_users, f_coprs,
                                          f_mock_chroots, f_builds, f_db):
         r = self.tc.get(
             "/coprs/{0}/{1}/builds/".format(self.u1.name, self.c1.name))
-        assert r.data.count('<tr class="build') == 2
+        assert r.data.count(b'<tr class="build') == 2
 
     def test_copr_detail_anonymous_doesnt_contain_permissions_table_when_no_permissions(
             self, f_users, f_coprs, f_copr_permissions, f_db):
 
         r = self.tc.get(
             "/coprs/{0}/{1}/permissions/".format(self.u1.name, self.c1.name))
-        assert '<!--permissions-table-->' not in r.data
+        assert b'<!--permissions-table-->' not in r.data
 
     def test_copr_detail_contains_permissions_table(self, f_users, f_coprs,
                                                     f_copr_permissions, f_db):
 
         r = self.tc.get(
             "/coprs/{0}/{1}/permissions/".format(self.u2.name, self.c3.name))
-        assert '<!--permissions-table-->' in r.data
-        assert '<td>{0}'.format(self.u3.name) in r.data
-        assert '<td>{0}'.format(self.u1.name) in r.data
+        assert b'<!--permissions-table-->' in r.data
+        assert '<td>{0}'.format(self.u3.name).encode("utf-8") in r.data
+        assert '<td>{0}'.format(self.u1.name).encode("utf-8") in r.data
 
     @TransactionDecorator("u2")
     def test_detail_has_correct_permissions_form(self, f_users, f_coprs,
@@ -239,14 +239,14 @@ class TestCoprDetail(CoprsTestCase):
         r = self.test_client.get(
             "/coprs/{0}/{1}/permissions/".format(self.u2.name, self.c3.name))
 
-        assert r.data.count("nothing") == 2
-        assert '<select id="copr_builder_1" name="copr_builder_1">' in r.data
-        assert '<select id="copr_admin_1" name="copr_admin_1">' in r.data
+        assert r.data.count(b"nothing") == 2
+        assert b'<select id="copr_builder_1" name="copr_builder_1">' in r.data
+        assert b'<select id="copr_admin_1" name="copr_admin_1">' in r.data
 
     def test_copr_detail_doesnt_show_cancel_build_for_anonymous(self, f_users, f_coprs, f_builds, f_db):
         r = self.tc.get(
             "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
-        assert "/cancel_build/" not in r.data
+        assert b"/cancel_build/" not in r.data
 
     @TransactionDecorator("u1")
     def test_copr_detail_doesnt_allow_non_submitter_to_cancel_build(
@@ -255,7 +255,7 @@ class TestCoprDetail(CoprsTestCase):
         self.db.session.add_all([self.u2, self.c2])
         r = self.test_client.get(
             "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
-        assert "/cancel_build/" not in r.data
+        assert b"/cancel_build/" not in r.data
 
     @TransactionDecorator("u2")
     def test_copr_detail_allows_submitter_to_cancel_build(
@@ -264,7 +264,7 @@ class TestCoprDetail(CoprsTestCase):
         self.db.session.add_all([self.u2, self.c2])
         r = self.test_client.get(
             "/coprs/{0}/{1}/build/{2}/".format(self.u2.name, self.c2.name, self.c2.builds[0].id))
-        assert "/cancel_build/" in r.data
+        assert b"/cancel_build/" in r.data
 
 
 class TestCoprEdit(CoprsTestCase):
@@ -278,7 +278,7 @@ class TestCoprEdit(CoprsTestCase):
         # for the hidden input, this ties us
         # to the precise format of the tag
         assert ('<input hidden id="id" name="id" type="hidden" value="{0}">'
-                .format(self.c1.id) in r.data)
+                .format(self.c1.id).encode("utf-8") in r.data)
 
 
 class TestCoprUpdate(CoprsTestCase):
@@ -293,7 +293,7 @@ class TestCoprUpdate(CoprsTestCase):
                                         "id": self.c1.id},
                                   follow_redirects=True)
 
-        assert "Project has been updated successfully" in r.data
+        assert b"Project has been updated successfully" in r.data
 
     @TransactionDecorator("u1")
     def test_copr_admin_can_update(self, f_users, f_coprs,
@@ -307,7 +307,7 @@ class TestCoprUpdate(CoprsTestCase):
                                         "id": self.c3.id},
                                   follow_redirects=True)
 
-        assert "Project has been updated successfully" in r.data
+        assert b"Project has been updated successfully" in r.data
 
     @TransactionDecorator("u1")
     def test_update_multiple_chroots(self, f_users, f_coprs,
@@ -323,7 +323,7 @@ class TestCoprUpdate(CoprsTestCase):
                                         "id": self.c1.id},
                                   follow_redirects=True)
 
-        assert "Project has been updated successfully" in r.data
+        assert b"Project has been updated successfully" in r.data
         self.c1 = self.db.session.merge(self.c1)
         self.mc1 = self.db.session.merge(self.mc1)
         self.mc2 = self.db.session.merge(self.mc2)
@@ -357,7 +357,7 @@ class TestCoprUpdate(CoprsTestCase):
                                         "id": self.c2.id},
                                   follow_redirects=True)
 
-        assert "Project has been updated successfully" in r.data
+        assert b"Project has been updated successfully" in r.data
         self.c2 = self.db.session.merge(self.c2)
         self.mc1 = self.db.session.merge(self.mc1)
         mock_chroots = (self.models.MockChroot.query
@@ -432,7 +432,7 @@ class TestCoprApplyForPermissions(CoprsTestCase):
                                   data={"copr_builder": "1"},
                                   follow_redirects=True)
 
-        assert "Successfuly updated" in r.data
+        assert b"Successfuly updated" in r.data
 
         self.u1 = self.db.session.merge(self.u1)
         self.u2 = self.db.session.merge(self.u2)
@@ -454,7 +454,7 @@ class TestCoprApplyForPermissions(CoprsTestCase):
                                   .format(self.u2.name, self.c2.name),
                                   data={"copr_builder": 1, "copr_admin": "1"},
                                   follow_redirects=True)
-        assert "Successfuly updated" in r.data
+        assert b"Successfuly updated" in r.data
 
         self.u1 = self.db.session.merge(self.u1)
         self.c2 = self.db.session.merge(self.c2)
@@ -486,7 +486,7 @@ class TestCoprUpdatePermissions(CoprsTestCase):
             '<option selected value="2">approved</option>'
             '</select>'
         )
-        assert check_string not in r.data
+        assert check_string.encode("utf-8") not in r.data
 
     @TransactionDecorator("u2")
     def test_update_more_permissions(self, f_users, f_coprs,
@@ -538,7 +538,7 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                                         "copr_admin_3": "2"},
                                   follow_redirects=True)
 
-        assert "Project permissions were updated" in r.data
+        assert b"Project permissions were updated" in r.data
 
     @TransactionDecorator("u1")
     def test_copr_admin_can_give_up_his_permissions(self, f_users, f_coprs,
@@ -565,7 +565,7 @@ class TestCoprUpdatePermissions(CoprsTestCase):
                 .first())
 
         assert perm.copr_admin == 1
-        assert "Project permissions were updated" in r.data
+        assert b"Project permissions were updated" in r.data
 
 
 class TestCoprDelete(CoprsTestCase):
@@ -578,7 +578,7 @@ class TestCoprDelete(CoprsTestCase):
                                   data={"verify": "yes"},
                                   follow_redirects=True)
 
-        assert "Project has been deleted successfully" in r.data
+        assert b"Project has been deleted successfully" in r.data
         self.db.session.add(self.c1)
         assert self.models.Action.query.first().id == self.c1.id
         assert self.models.Copr.query.filter(
@@ -594,7 +594,7 @@ class TestCoprDelete(CoprsTestCase):
                                   data={"verify": "no"},
                                   follow_redirects=True)
 
-        assert "Project has been deleted successfully" not in r.data
+        assert b"Project has been deleted successfully" not in r.data
         assert not self.models.Action.query.first()
         assert self.models.Copr.query.filter(
             self.models.Copr.id == self.c1.id).first()
@@ -607,7 +607,7 @@ class TestCoprDelete(CoprsTestCase):
                                   data={"verify": "yes"},
                                   follow_redirects=True)
         self.c1 = self.db.session.merge(self.c1)
-        assert "Project has been deleted successfully" not in r.data
+        assert b"Project has been deleted successfully" not in r.data
         assert not self.models.Action.query.first()
         assert self.models.Copr.query.filter(
             self.models.Copr.id == self.c1.id).first()
@@ -665,7 +665,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
         r = self.tc.get(
             "/coprs/bogus-user/bogus-nonexistent-repo/repo/fedora-18-x86_64/")
         assert r.status_code == 404
-        assert "does not exist" in r.data
+        assert b"does not exist" in r.data
 
     def test_fail_on_no_finished_builds(self, f_users, f_coprs, f_mock_chroots,
                                         f_not_finished_builds, f_db):
@@ -675,7 +675,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
             .format(self.u1.name, self.c1.name))
 
         assert r.status_code == 404
-        assert "Repository not initialized" in r.data
+        assert b"Repository not initialized" in r.data
 
     def test_works_on_older_builds(self, f_users, f_coprs, f_mock_chroots,
                                    f_custom_builds, f_db):
@@ -687,7 +687,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
             .format(self.u1.name, self.c1.name))
 
         assert r.status_code == 200
-        assert "baseurl=https://bar.baz" in r.data
+        assert b"baseurl=https://bar.baz" in r.data
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
 
 

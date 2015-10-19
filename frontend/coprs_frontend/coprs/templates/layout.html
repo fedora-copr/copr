@@ -47,7 +47,7 @@
             <a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a>
           {% else %}
             <a href="{{ url_for('misc.login') }}">log in</a> |
-            {% for key,val in config.KRB5_LOGIN.iteritems() %}
+            {% for key,val in config.KRB5_LOGIN.items() %}
             <a href="{{ config.KRB5_LOGIN_BASEURI }}{{ val.URI }}/">{{ val.log_text }}</a> |
             {% endfor %}
             <a href="https://admin.fedoraproject.org/accounts/user/new">sign up</a>
