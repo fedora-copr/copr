@@ -14,7 +14,8 @@ import requests
 import six
 
 from six.moves import configparser
-from requests_toolbelt.multipart.encoder import MultipartEncoder
+from requests_toolbelt.multipart.encoder import (MultipartEncoder,
+                                                 MultipartEncoderMonitor)
 
 # urlparse from six is not available on el7
 # because it requires at least python-six-1.4.1
@@ -301,7 +302,8 @@ class CoprClient(UnicodeMixin):
         return response
 
     def create_new_build(self, projectname, pkgs, username=None,
-                         timeout=None, memory=None, chroots=None):
+                         timeout=None, memory=None, chroots=None,
+                         progress_callback=None):
         """ Creates new build
 
             :param projectname: name of Copr project (without user namespace)
@@ -310,6 +312,8 @@ class CoprClient(UnicodeMixin):
             :param timeout: [optional] build timeout
             :param memory: [optional] amount of required memory for build process
             :param chroots: [optional] build only with given chroots
+            :param progress_callback: [optional] a function that received a
+            MultipartEncoderMonitor instance for each chunck of uploaded data
 
             :return: :py:class:`~.responses.CoprResponse` with additional fields:
 
@@ -321,7 +325,6 @@ class CoprClient(UnicodeMixin):
             "memory_reqs": memory,
             "timeout": timeout
         }
-        headers = None
 
         if urlparse(pkgs[0]).scheme != "":
             api_endpoint = "new_build"
@@ -342,7 +345,12 @@ class CoprClient(UnicodeMixin):
             data[chroot] = "y"
 
         m = MultipartEncoder(data)
-        data = self._fetch(url, m, method="post", headers={'Content-Type': m.content_type})
+
+        callback = progress_callback or (lambda x: x)
+
+        monit = MultipartEncoderMonitor(m, callback)
+        data = self._fetch(url, monit, method="post",
+                           headers={'Content-Type': monit.content_type})
 
         response = CoprResponse(
             client=self,

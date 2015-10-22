@@ -29,6 +29,8 @@ log.addHandler(NullHandler())
 from copr import CoprClient
 import copr.client.exceptions as copr_exceptions
 
+from .util import ProgressBar
+
 
 no_config_warning = """
 |================ WARNING: =======================|
@@ -159,10 +161,24 @@ class Commands(object):
             copr = m.group(2)
         else:
             username = None
+
+        if os.path.exists(args.pkgs[0]):
+            bar = ProgressBar(max=os.path.getsize(args.pkgs[0]))
+
+            def progress_callback(monitor):
+                bar.next(n=8192)
+
+            print('Uploading package {}'.format(args.pkgs[0]))
+        else:
+            progress_callback = None
+
         result = self.client.create_new_build(
             projectname=copr, chroots=args.chroots, pkgs=args.pkgs,
             memory=args.memory, timeout=args.timeout,
-            username=username)
+            username=username, progress_callback=progress_callback)
+
+        bar.finish()
+
         if result.output != "ok":
             print(result.error)
             return
