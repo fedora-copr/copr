@@ -25,7 +25,7 @@ def read(*parts):
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+    version_match = re.search(r"^Version: (.*)$",
                               version_file, re.M)
     if version_match:
         return version_match.group(1)
@@ -33,7 +33,7 @@ def find_version(*file_paths):
 
 
 __name__ = 'copr-cli'
-__version__ = find_version('copr_cli/main.py')
+__version__ = find_version('copr-cli.spec')
 __description__ = "CLI tool to run copr"
 __author__ = "Pierre-Yves Chibon"
 __author_email__ = "pingou@pingoured.fr"

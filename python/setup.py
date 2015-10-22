@@ -21,10 +21,10 @@ def read(*parts):
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+    version_match = re.search(r"^Version: (.*)$",
                               version_file, re.M)
     if version_match:
-        return version_match.group(1)
+        return version_match.group(1).strip()
     raise RuntimeError("Unable to find version string.")
 
 
@@ -35,7 +35,7 @@ requires = [
 ]
 
 
-__version__ = find_version('copr/client/__init__.py')
+__version__ = find_version('python-copr.spec')
 __description__ = "Python client for copr service."
 __author__ = "Valentin Gologuzov"
 __author_email__ = "vgologuz@redhat.com"
