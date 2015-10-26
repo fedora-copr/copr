@@ -25,5 +25,15 @@
   <dt>Using --test:</dt>
   <dd>{{ build.source_json_dict["tito_test"] }}</dd>
 
+  {% elif build.source_type_text == "git_and_mock" %}
+  <dt>Git URL:</dt>
+  <dd>{{ build.source_json_dict["git_url"] }}</dd>
+
+  <dt>Local directory in Git:</dt>
+  <dd>{{ build.source_json_dict["git_dir"] }}</dd>
+
+  <dt>Git branch:</dt>
+  <dd>{{ build.source_json_dict["git_branch"] }}</dd>
   {% endif %}
+
 {% endmacro %}

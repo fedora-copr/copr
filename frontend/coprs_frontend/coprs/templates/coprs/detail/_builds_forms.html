@@ -139,6 +139,17 @@
 {% endmacro %}
 
 
+{% macro copr_build_form_mock(form, view, copr) %}
+  {{ copr_build_form_begin(form, view, copr) }}
+
+    {{ render_field(form.git_url, placeholder="Public clone URL of your git repository.") }}
+    {{ render_field(form.git_directory, placeholder="Optional - A directory in the git containing the spec file.") }}
+    {{ render_field(form.git_branch, placeholder="Optional - A Git branch you want to build from.") }}
+
+  {{ copr_build_form_end(form, view, copr) }}
+{% endmacro %}
+
+
 {% macro copr_build_form_rebuild(form, view, copr, build) %}
   {{ copr_build_form_begin(form, view, copr, build) }}
   {{ copr_build_form_end(form, view, copr) }}

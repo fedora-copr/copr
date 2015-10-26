@@ -30,10 +30,12 @@ Select the source type and submit a new build. Options in this form are relevant
   {% set url_add_build_url = url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name) %}
   {% set url_add_build_upload = url_for('coprs_ns.group_copr_add_build_upload', group_name = copr.group.name, coprname = copr.name) %}
   {% set url_add_build_tito = url_for('coprs_ns.group_copr_add_build_tito', group_name = copr.group.name, coprname = copr.name) %}
+  {% set url_add_build_mock = url_for('coprs_ns.group_copr_add_build_mock', group_name = copr.group.name, coprname = copr.name) %}
 {% else %}
   {% set url_add_build_url = url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) %}
   {% set url_add_build_upload = url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name) %}
   {% set url_add_build_tito = url_for('coprs_ns.copr_add_build_tito', username = copr.owner.name, coprname = copr.name) %}
+  {% set url_add_build_mock = url_for('coprs_ns.copr_add_build_mock', username = copr.owner.name, coprname = copr.name) %}
 {% endif %}
 
 
@@ -41,6 +43,7 @@ Select the source type and submit a new build. Options in this form are relevant
   {{ nav_element("url", "From URLs", url_add_build_url) }}
   {{ nav_element("upload", "Upload SRPM", url_add_build_upload) }}
   {{ nav_element("tito", "Git and Tito", url_add_build_tito) }}
+  {{ nav_element("tito", "Git and Mock", url_add_build_mock) }}
 </ul>
 
 {% block build_form %}{% endblock %}
