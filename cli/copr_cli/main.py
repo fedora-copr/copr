@@ -4,8 +4,6 @@ import os
 import re
 import subprocess
 
-__version__ = "1.45.1"
-
 import argparse
 from urlparse import urlparse
 import sys
@@ -293,8 +291,6 @@ def setup_parser():
     """
     parser = argparse.ArgumentParser(prog="copr")
     # General connection options
-    parser.add_argument("--version", action="version",
-                        version="copr {0}".format(__version__))
 
     parser.add_argument("--debug", dest="debug", action="store_true",
                         help="Enable debug output")
