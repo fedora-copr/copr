@@ -29,6 +29,7 @@ BuildRequires: util-linux
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python-requests-toolbelt
+BuildRequires: python-marshmallow
 BuildRequires: python-six
 BuildRequires: python-mock
 BuildRequires: pytest
@@ -41,6 +42,7 @@ Requires: python-setuptools
 Requires: python-six
 Requires: python-requests
 Requires: python-requests-toolbelt
+Requires: python-marshmallow
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -61,12 +63,14 @@ BuildRequires: python3-pytest
 BuildRequires: python3-mock
 BuildRequires: python3-requests
 BuildRequires: python3-requests-toolbelt
+BuildRequires: python3-marshmallow
 BuildRequires: python3-six
 
 Requires: python3-setuptools
 Requires: python3-six
 Requires: python3-requests
 Requires: python3-requests-toolbelt
+Requires: python3-marshmallow
 
 %description -n python3-copr
 COPR is lightweight build system. It allows you to create new project in WebUI,
