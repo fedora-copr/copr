@@ -62,7 +62,9 @@
 <ul class="nav nav-tabs">
 
     {{ nav_element("overview", "Overview", url_overview) }}
+
     {{ nav_element("builds", "Builds", url_builds) }}
+
     {{ nav_element("monitor", "Monitor", url_monitor) }}
 
     {% if g.user and g.user.can_build_in(copr) %}
@@ -71,16 +73,17 @@
 
     {% if g.user and g.user.can_edit(copr) %}
       {{ nav_element("edit", "Edit", url_edit) }}
-      {{ nav_element("delete", "Delete", url_delete) }}
     {% endif %}
 
-
-    {% if g.user and not copr.is_a_group_project and g.user.can_edit(copr) %}
+    {% if g.user and not copr.is_a_group_project %}
       {{ nav_element("permissions", "Permission",  url_for(
           'coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name))
       }}
     {% endif %}
 
+    {% if g.user and g.user.can_edit(copr) %}
+      {{ nav_element("delete", "Delete", url_delete) }}
+    {% endif %}
 </ul>
 
 {% block detail_body %}{% endblock %}
