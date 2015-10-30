@@ -11,7 +11,7 @@ import time
 import copr
 from copr.client.parsers import ProjectListParser, CommonMsgErrorOutParser
 from copr.client.responses import CoprResponse
-from copr.client.exceptions import CoprConfigException, CoprNoConfException, \
+from copr.exceptions import CoprConfigException, CoprNoConfException, \
     CoprRequestException, CoprUnknownResponseException, CoprException, \
     CoprBuildException
 from copr.client import CoprClient

@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 log.addHandler(NullHandler())
 
 from copr import CoprClient
-import copr.client.exceptions as copr_exceptions
+import copr.exceptions as copr_exceptions
 
 from .util import ProgressBar
 
