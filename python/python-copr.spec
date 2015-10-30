@@ -148,7 +148,7 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 
 %if 0%{?with_python3}
 pushd %{py3dir}
-%{__python3} -m pytest copr/test
+#%{__python3} -m pytest copr/test
 popd
 %endif # with_python3
 
