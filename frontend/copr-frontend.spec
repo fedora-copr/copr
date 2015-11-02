@@ -61,6 +61,7 @@ Requires:   python-flexmock
 Requires:   python-mock
 Requires:   python-decorator
 Requires:   yum
+Requires:   dnf
 Requires:   logstash
 Requires:   redis
 Requires:   python-redis
@@ -84,6 +85,7 @@ BuildRequires: redis
 BuildRequires: python-dateutil
 BuildRequires: pytest
 BuildRequires: yum
+BuildRequires: dnf
 BuildRequires: python-flexmock
 BuildRequires: python-mock
 BuildRequires: python-decorator
@@ -95,6 +97,7 @@ BuildRequires: python-sphinx
 BuildRequires: python-sphinxcontrib-httpdomain
 
 %if 0%{?with_python3}
+Requires:   dnf
 Requires:   python3-flask
 Requires:   python3-flask-wtf
 Requires:   python3-flask-sqlalchemy
