@@ -4,7 +4,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.45
+Version:    1.46
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -91,6 +91,14 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.46-1
+- Removed __version__ from cli and python
+- Added version parse from specs instead of __init__
+- Fixed invalid classifiers
+- Fixes to allow copr-cli to be installed using setup.py
+- ImportError: No module named exceptions
+- Display progress bar if python-progress is available
+
 * Mon Oct 12 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.45-1
 - build action: accept any character in the username
 
