@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.73
+Version:    1.74
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -231,6 +231,9 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.74-1
+- [frontend] require dnf because of 6ab5306
+
 * Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.73-1
 - fix permission tab on project page
 - support APIv2
