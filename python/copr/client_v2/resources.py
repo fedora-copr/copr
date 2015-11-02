@@ -1,5 +1,6 @@
 # coding: utf-8
 from collections import Iterable
+from six import with_metaclass
 
 from ..util import UnicodeMixin
 
@@ -41,14 +42,15 @@ class EntityFieldsMetaClass(type):
         return type.__new__(cls, class_name, bases, class_attrs)
 
 
-class IndividualResource(UnicodeMixin):
+class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
     """
     :type handle: client_v2.handlers.AbstractHandle or None
     :type response: ResponseWrapper or None
     :type links: (dict of (str, Link)) or None
     """
     _schema = EmptySchema(strict=True)
-    __metaclass__ = EntityFieldsMetaClass
+    # PY2 compatibility
+    #__metaclass__ = EntityFieldsMetaClass
 
     def __init__(self, entity, handle=None, response=None, links=None, embedded=None, options=None):
 
