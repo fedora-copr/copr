@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.72
+Version:    1.73
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -228,6 +228,35 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.73-1
+- fix permission tab on project page
+- support APIv2
+- still run on python2 until we get all py3 dependencies
+- use integers division
+- run on python3 from apache
+- specify python3 dependencies
+- use print function instead of statement
+- run tests in python3 interpreter
+- [api 2] don't assert url parameters in fixed order Flask's url_for
+  can generate them randomly
+- sort by argument 'key' instead of 'cmp'
+- explicitly cast map results to list On python3, the result of a
+  map function is an iterator, not list
+- do the str/bytes/unicode py2/3 compatibility magic
+- use dict items() instead of iteritems()
+- use python2/3 compatible metaclasses
+- fix import path of rest_api
+- use rpmutils provided by DNF
+- use six.moves.urllib instead of py2 only urllib
+- properly set repo rpm configuration
+- use absolute path
+- implement logging for generating repo packages
+- use new api format
+- add Git and Tito errors
+- sort colums with time ago natural way (not alphabetical)
+- 1272184 - sort builds numericaly
+- tito support in frontend
+
 * Wed Oct 14 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.72-1
 - [frontend] typo
 - [frontend][docs] minor
