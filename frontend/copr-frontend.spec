@@ -61,11 +61,19 @@ Requires:   python-flexmock
 Requires:   python-mock
 Requires:   python-decorator
 Requires:   yum
-Requires:   dnf
 Requires:   logstash
 Requires:   redis
 Requires:   python-redis
 Requires:   python-dateutil
+
+%if 0%{?fedora} >= 23
+Requires: python-dnf
+BuildRequires: python-dnf
+%else
+Requires: dnf
+BuildRequires: dnf
+%endif
+
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -85,7 +93,6 @@ BuildRequires: redis
 BuildRequires: python-dateutil
 BuildRequires: pytest
 BuildRequires: yum
-BuildRequires: dnf
 BuildRequires: python-flexmock
 BuildRequires: python-mock
 BuildRequires: python-decorator
@@ -117,6 +124,15 @@ Requires:   python3-flexmock
 # Not packaged yet:
 # Requires:   python3-flask-openid    # https://bugzilla.redhat.com/show_bug.cgi?id=1010810
 # Requires:   python3-openid-teams    # https://bugzilla.redhat.com/show_bug.cgi?id=1271176
+
+%if 0%{?fedora} >= 23
+Requires: python3-dnf
+BuildRequires: python3-dnf
+%else
+Requires: dnf
+BuildRequires: dnf
+%endif
+
 %endif # with_python3
 
 %description
