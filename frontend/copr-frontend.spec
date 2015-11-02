@@ -332,7 +332,7 @@ service logstash condrestart
 * Tue Aug 04 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.65-1
 - Dist-git support
 - Transition to Patternfly UI
-- and lot of fixes 
+- and lot of fixes
 * Wed Jul 01 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.64-1
 - [frontend] fix help text on builds pages
 
