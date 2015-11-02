@@ -108,7 +108,7 @@ class FailTypeEnum(with_metaclass(EnumType, object)):
             "srpm_query_failed": 5,
             # Git and Tito errors:
             "tito_general_error": 30,
-            "tito_git_clone_failed": 31,
+            "git_clone_failed": 31,
             "tito_wrong_directory_in_git": 32,
             "tito_git_checkout_error": 33,
             "tito_srpm_build_error": 34,
