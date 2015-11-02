@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.7
+Version:    0.8
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -99,6 +99,11 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 0.8-1
+- add Git and Tito errors
+- tito support
+- hotfix for resubmit button
+
 * Tue Sep 15 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.7-1
 - provide build failure details
 - replace urllib.urlretrieve with requests.get to catch non-200 HTTP  status codes
