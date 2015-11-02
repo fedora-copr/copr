@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.59
+Version:    1.60
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -174,6 +174,16 @@ popd
 %endif
 
 %changelog
+* Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.60-1
+- python3 compatibility
+- Removed __version__ from cli and python
+- Added version parse from specs instead of __init__
+- Fixes to allow copr lib to be installed using setup.py
+- Fixed invalid classifiers
+- put client_v2 into package
+- Display progress bar if python-progress is available
+- support APIv2
+
 * Tue Oct 13 2015 Miroslav Suchý <msuchy@redhat.com> 1.59-1
 - version_info is not namedtuple on epel6 interpreter
 - fix missing urllib.parse on el7
