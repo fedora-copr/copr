@@ -242,7 +242,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo useradd copr-service -G apache,packager"
+      inline: "sudo useradd copr-service -G apache,packager,mock"
 
     # ...
     distgit.vm.provision "shell",
