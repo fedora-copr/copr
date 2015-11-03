@@ -44,16 +44,16 @@ class ImportTask(object):
         # For SRPM_LINK and SRPM_UPLOAD
         self.package_url = None
 
+        # For GIT_AND_TITO, GIT_AND_MOCK
+        self.git_url = None
+        self.git_branch = None
+
         # For GIT_AND_TITO
-        self.tito_git_url = None
         self.tito_git_dir = None
-        self.tito_git_branch = None
         self.tito_test = None
 
         # For GIT_AND_MOCK
-        self.mock_git_url = None
         self.mock_git_dir = None
-        self.mock_git_branch = None
 
 
     @property
@@ -76,6 +76,10 @@ class ImportTask(object):
         task.source_json = dict_data["source_json"]
         task.source_data = json.loads(dict_data["source_json"])
 
+        if task.source_type in [SourceType.GIT_AND_TITO, SourceType.GIT_AND_MOCK]:
+            task.git_url = task.source_data["git_url"]
+            task.git_branch = task.source_data["git_branch"]
+
         if task.source_type == SourceType.SRPM_LINK:
             task.package_url = json.loads(task.source_json)["url"]
 
@@ -85,15 +89,12 @@ class ImportTask(object):
             task.package_url = "{}/tmp/{}/{}".format(opts.frontend_base_url, json_tmp, json_pkg)
 
         elif task.source_type == SourceType.GIT_AND_TITO:
-            task.tito_git_url = task.source_data["git_url"]
             task.tito_git_dir = task.source_data["git_dir"]
-            task.tito_git_branch = task.source_data["git_branch"]
             task.tito_test = task.source_data["tito_test"]
 
         elif task.source_type == SourceType.GIT_AND_MOCK:
-            task.mock_git_url = task.source_data["git_url"]
             task.mock_git_dir = task.source_data["git_dir"]
-            task.mock_git_branch = task.source_data["git_branch"]
+            task.tito_git_dir = task.source_data["git_dir"]  # WORKAROUND
 
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
@@ -125,28 +126,31 @@ class SourceDownloader(object):
             cls._from_srpm_url(task, target_path)
 
         elif task.source_type == SourceType.GIT_AND_TITO:
-            cls._from_git_and_tito(task, target_path)
+            cls._from_git_and_builder(task, target_path, cls._build_from_tito)
 
         elif task.source_type == SourceType.GIT_AND_MOCK:
-            cls._from_git_and_builder(task.source_type, task.mock_git_url, task.mock_git_dir, task.mock_git_branch,
-                                      target_path, cls._build_from_mock, task)
+            cls._from_git_and_builder(task, target_path, cls._build_from_mock)
 
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
 
     @classmethod
-    def _from_git_and_builder(cls, source_type, git_url, git_dir, git_branch, target_path, builder, task):
+    def _from_git_and_builder(cls, task, target_path, builder):
         """
+        Used for GIT_AND_TITO, GIT_AND_MOCK
         :param ImportTask task:
         :param str target_path:
-        :param function builder describe what to do with sources obtained via Git:
+        :param function builder describe how to build SRPM from sources obtained via GIT:
         :raises PackageDownloadException:
         """
+        # task.git_url
+        # task.git_branch
+        # task.tito_git_dir
         tmp = tempfile.mkdtemp()
 
         # 1. clone the repo
-        log.debug("{}: 1. clone".format(source_type))
-        cmd = ['git', 'clone', git_url]
+        log.debug("GIT_BUILDER: 1. clone".format(task.source_type))
+        cmd = ['git', 'clone', task.git_url]
         try:
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tmp)
             output, error = proc.communicate()
@@ -156,7 +160,7 @@ class SourceDownloader(object):
             raise GitAndTitoException(FailTypeEnum("git_clone_failed"))
 
         # 1b. get dir name
-        log.debug("{}: 1b. dir name...".format(source_type))
+        log.debug("GIT_BUILDER: 1b. dir name...")
         cmd = ['ls']
         try:
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tmp)
@@ -171,12 +175,12 @@ class SourceDownloader(object):
             raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
         log.debug("   {}".format(git_dir_name))
 
-        git_subdir = "{}/{}/{}".format(tmp, git_dir_name, git_dir)
+        git_subdir = "{}/{}/{}".format(tmp, git_dir_name, task.tito_git_dir)
 
         # 2. checkout git branch
-        log.debug("{}: 2. checkout".format(source_type))
-        if git_branch and git_branch != 'master':
-            cmd = ['git', 'checkout', git_branch]
+        log.debug("GIT_BUILDER: 2. checkout")
+        if task.git_branch and task.git_branch != 'master':
+            cmd = ['git', 'checkout', task.git_branch]
             try:
                 proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=git_subdir)
                 output, error = proc.communicate()
@@ -187,11 +191,11 @@ class SourceDownloader(object):
 
         # 3. build with ``builder``
         tmp_dest = tempfile.mkdtemp()
-        log.debug("{}: 3. build".format(source_type))
+        log.debug("GIT_BUILDER: 3. build")
         builder(task, git_subdir, tmp_dest)
 
         # 4. copy srpm to the target destination
-        log.debug("{}: 4. get srpm path".format(source_type))
+        log.debug("GIT_BUILDER: 4. get srpm path".format(task.source_type))
         dest_files = os.listdir(tmp_dest)
         dest_srpms = filter(lambda f: f.endswith(".src.rpm"), dest_files)
         if len(dest_srpms) == 1:
@@ -207,103 +211,14 @@ class SourceDownloader(object):
         shutil.copyfile("{}/{}".format(tmp_dest, srpm_name), target_path)
 
         # 5. delete temps
-        log.debug("{}: 5. delete tmp".format(source_type))
+        log.debug("GIT_BUILDER: 5. delete tmp")
         shutil.rmtree(tmp)
         shutil.rmtree(tmp_dest)
 
     @classmethod
-    def _from_git_and_tito(cls, task, target_path):
-        """
-        Used for GIT_AND_TITO
-        :param ImportTask task:
-        :param str target_path:
-        :raises PackageDownloadException:
-        """
-        # task.tito_git_url
-        # task.tito_git_dir
-        # task.tito_git_branch
-        # task.tito_test
-        tmp = tempfile.mkdtemp()
-
-        # 1. clone the repo
-        log.debug("TITO: 1. clone")
-        cmd = ['git', 'clone', task.tito_git_url]
-        try:
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tmp)
-            output, error = proc.communicate()
-        except OSError as e:
-            raise GitAndTitoException(FailTypeEnum("git_clone_failed"))
-        if error:
-            raise GitAndTitoException(FailTypeEnum("git_clone_failed"))
-
-        # 1b. get dir name
-        log.debug("TITO: 1b. dir name...")
-        cmd = ['ls']
-        try:
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tmp)
-            output, error = proc.communicate()
-        except OSError as e:
-            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
-        if error:
-            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
-        if output and len(output.split()) == 1:
-            git_dir_name = output.split()[0]
-        else:
-            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
-        log.debug("   {}".format(git_dir_name))
-
-        tito_dir = "{}/{}/{}".format(tmp, git_dir_name, task.tito_git_dir) 
-
-        # 2. checkout git branch
-        log.debug("TITO: 2. checkout")
-        if task.tito_git_branch and task.tito_git_branch != 'master':
-            cmd = ['git', 'checkout', task.tito_git_branch]
-            try:
-                proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tito_dir)
-                output, error = proc.communicate()
-            except OSError as e:
-                raise GitAndTitoException(FailTypeEnum("tito_git_checkout_error"))
-            if error:
-                raise GitAndTitoException(FailTypeEnum("tito_git_checkout_error"))
-
-        # 3. build with tito
-        tmp_tito = tempfile.mkdtemp()
-        log.debug("TITO: 3. build")
-        cmd = ['tito', 'build', '-o', tmp_tito, '--srpm']
-        if task.tito_test:
-            cmd.append('--test')
-
-        try:
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=tito_dir)
-            output, error = proc.communicate()
-        except OSError as e:
-            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
-        if error:
-            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
-
-        # 4. copy srpm to the target destination
-        log.debug("TITO: 4. get srpm path")
-        tito_files = os.listdir(tmp_tito)
-        tito_srpms = filter(lambda f: f.endswith(".src.rpm"), tito_files)
-        if len(tito_srpms) == 1:
-            srpm_name = tito_srpms[0]
-        else:
-            log.debug("ERROR :( :( :(")
-            log.debug("tito_dir: {}".format(tito_dir))
-            log.debug("tito_files: {}".format(tito_files))
-            log.debug("tito_srpms: {}".format(tito_srpms))
-            log.debug("")
-            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
-        log.debug("   {}".format(srpm_name))
-        shutil.copyfile("{}/{}".format(tmp_tito, srpm_name), target_path)
-
-        # 5. delete temps
-        log.debug("TITO: 5. delete tmp")
-        shutil.rmtree(tmp)
-        shutil.rmtree(tmp_tito)
-
-    @classmethod
     def _build_from_tito(cls, task, git_subdir, tmp_dest):
+        # task.tito_test
+        log.debug("build via tito")
         cmd = ['tito', 'build', '-o', tmp_dest, '--srpm']
         if task.tito_test:
             cmd.append('--test')
@@ -318,19 +233,20 @@ class SourceDownloader(object):
 
     @classmethod
     def _build_from_mock(cls, task, git_subdir, tmp_dest):
+        log.debug("build via mock")
 
         specs = filter(lambda x: x.endswith(".spec"), os.listdir(git_subdir))
         if len(specs) != 1:
             raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
 
         package_name = specs[0].replace(".spec", "")
-        cmd = ['/usr/bin/mock', '-r', 'fedora-22-x86_64',
+        cmd = ['/usr/bin/mock', '-r', 'epel-7-x86_64',
                '--scm-enable',
                '--scm-option', 'method=git',
                '--scm-option', 'package={}'.format(package_name),
-               '--scm-option', 'branch={}'.format(task.mock_git_branch),
+               '--scm-option', 'branch={}'.format(task.git_branch),
                '--scm-option', 'write_tar=True',
-               '--scm-option', 'git_get="git clone {}"'.format(task.mock_git_url),
+               '--scm-option', 'git_get="git clone {}"'.format(task.git_url),
                '--buildsrpm', '--resultdir={}'.format(tmp_dest)]
 
         try:
@@ -501,7 +417,7 @@ class DistGitImporter(object):
             self.post_back_safe({"task_id": task.task_id, "error": "srpm_query_failed"})
 
         except GitAndTitoException as e:
-            log.exception("send a response - failure during 'Tito and Git' import of: {}".format(task.tito_git_url))
+            log.exception("send a response - failure during 'Tito and Git' import of: {}".format(task.git_url))
             log.exception("   ... due to: {}".format(str(e)))
             self.post_back_safe({"task_id": task.task_id, "error": str(e)})
 
