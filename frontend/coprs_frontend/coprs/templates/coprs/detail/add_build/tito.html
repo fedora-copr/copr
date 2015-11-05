@@ -1,7 +1,8 @@
 {% extends "coprs/detail/add_build.html" %}
 {% from "coprs/detail/_builds_forms.html" import copr_build_form_tito with context %}
 
-{% block new_build_tito_selected %}active{% endblock %}
+{% set add_build_tab = "tito" %}
+
 {%block project_breadcrumb_new_build %}
 <li>
   From Git Using Tito
