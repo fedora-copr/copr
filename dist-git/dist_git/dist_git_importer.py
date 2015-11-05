@@ -220,7 +220,7 @@ class SourceDownloader(object):
         """
         log.debug("download the package")
         try:
-            r = get(task.package_url, stream=True)
+            r = get(task.package_url, stream=True, verify=False)
         except Exception:
             raise PackageDownloadException("Unexpected error during URL fetch: {}"
                                            .format(task.package_url))
