@@ -446,21 +446,28 @@ class BuildFormMockFactory(object):
                         selected.append(ch)
                 return selected
 
-            git_url = wtforms.StringField(
-                "Git URL",
+            scm_type = wtforms.SelectField(
+                "SCM Type",
+                choices=[("git", "Git"), ("svn", "SVN")])
+
+            scm_url = wtforms.StringField(
+                "SCM URL",
                 validators=[
                     wtforms.validators.DataRequired(),
                     wtforms.validators.URL()])
 
-            git_directory = wtforms.StringField(
-                "Git Directory",
-                validators=[
-                    wtforms.validators.Optional()])
-
-            git_branch = wtforms.StringField(
+            scm_branch = wtforms.StringField(
                 "Git Branch",
                 validators=[
                     wtforms.validators.Optional()])
+
+            spec = wtforms.StringField(
+                "Spec file",
+                validators=[
+                    wtforms.validators.Regexp(
+                        "^.+\.spec$",
+                        message="RPM spec file must end with .spec"
+                    )])
 
             memory_reqs = wtforms.IntegerField(
                 "Memory requirements",

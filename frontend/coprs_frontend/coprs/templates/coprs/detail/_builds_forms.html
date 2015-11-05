@@ -142,9 +142,17 @@
 {% macro copr_build_form_mock(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
-    {{ render_field(form.git_url, placeholder="Public clone URL of your git repository.") }}
-    {{ render_field(form.git_directory, placeholder="Optional - A directory in the git containing the spec file.") }}
-    {{ render_field(form.git_branch, placeholder="Optional - A Git branch you want to build from.") }}
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="textInput-markup">SCM URL</label>
+        <div class="col-sm-10">
+            {{ form.scm_type(class="form-control") }}
+            {{ form.scm_url(class="form-control", placeholder="URL to your Git or SVN directory") }}
+        </div>
+    </div>
+
+    {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
+    {{ render_field(form.spec, placeholder="Path from repository root directory to your .spec file") }}
 
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}

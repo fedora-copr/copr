@@ -4,12 +4,12 @@
 {% block new_build_tito_selected %}active{% endblock %}
 {%block project_breadcrumb_new_build %}
 <li>
-  Git and Mock
+  Mock SCM
 </li>
 {%endblock%}
 
 {% block build_form %}
-<h3>Build from Git Using Mock</h3>
+<h3>Build from Mock SCM</h3>
 
   {{ copr_build_form_mock(form, 'coprs_ns.copr_new_build_mock', copr) }}
 

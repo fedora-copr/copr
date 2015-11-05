@@ -174,7 +174,7 @@ def build_state_decoration(state):
         "srpm_link": "External link with SRPM",
         "srpm_upload": "SRPM file upload",
         "git_and_tito": "Tito build from a Git repository",
-        "git_and_mock": "Mock build from a Git repository",
+        "mock_scm": "Mock build from a SCM repository",
     }
 
     return description_map.get(state, "")

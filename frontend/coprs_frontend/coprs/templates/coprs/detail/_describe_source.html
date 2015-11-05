@@ -25,15 +25,18 @@
   <dt>Using --test:</dt>
   <dd>{{ build.source_json_dict["tito_test"] }}</dd>
 
-  {% elif build.source_type_text == "git_and_mock" %}
-  <dt>Git URL:</dt>
-  <dd>{{ build.source_json_dict["git_url"] }}</dd>
+  {% elif build.source_type_text == "mock_scm" %}
+  <dt>SCM type:</dt>
+  <dd>{{ build.source_json_dict["scm_type"] }}</dd>
 
-  <dt>Local directory in Git:</dt>
-  <dd>{{ build.source_json_dict["git_dir"] }}</dd>
+  <dt>SCM URL:</dt>
+  <dd>{{ build.source_json_dict["scm_url"] }}</dd>
 
-  <dt>Git branch:</dt>
-  <dd>{{ build.source_json_dict["git_branch"] }}</dd>
+  <dt>SCM branch:</dt>
+  <dd>{{ build.source_json_dict["scm_branch"] }}</dd>
+
+  <dt>Path to .spec file:</dt>
+  <dd>{{ build.source_json_dict["spec"] }}</dd>
   {% endif %}
 
 {% endmacro %}

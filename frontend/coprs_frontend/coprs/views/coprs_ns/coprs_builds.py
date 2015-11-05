@@ -234,7 +234,7 @@ def group_copr_add_build_mock(copr, form=None):
 
 def render_add_build_mock(copr, form, view):
     if not form:
-        form = forms.BuildFormTitoFactory.create_form_cls(copr.active_chroots)()
+        form = forms.BuildFormMockFactory.create_form_cls(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/mock.html",
                                  copr=copr, form=form, view=view)
 
@@ -270,7 +270,7 @@ def process_new_build_mock(copr, add_view, url_on_success):
 
         try:
             BuildsLogic.create_new_from_mock(
-                flask.g.user, copr, form.git_url.data, form.git_directory.data, form.git_branch.data,
+                flask.g.user, copr, form.scm_type.data, form.scm_url.data, form.scm_branch.data, form.spec.data,
                 **build_options
             )
             db.session.commit()

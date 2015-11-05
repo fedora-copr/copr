@@ -301,7 +301,7 @@ class BuildsLogic(object):
         return build
 
     @classmethod
-    def create_new_from_mock(cls, user, copr, git_url, git_dir, git_branch,
+    def create_new_from_mock(cls, user, copr, scm_type, scm_url, scm_branch, spec,
                              chroot_names=None, **build_options):
         """
         :type user: models.User
@@ -319,10 +319,11 @@ class BuildsLogic(object):
                 if chroot.name in chroot_names:
                     chroots.append(chroot)
 
-        source_type = helpers.BuildSourceEnum("git_and_mock")
-        source_json = json.dumps({"git_url": git_url,
-                                  "git_dir": git_dir,
-                                  "git_branch": git_branch})
+        source_type = helpers.BuildSourceEnum("mock_scm")
+        source_json = json.dumps({"scm_type": scm_type,
+                                  "scm_url": scm_url,
+                                  "scm_branch": scm_branch,
+                                  "spec": spec})
 
         # try:
         build = cls.add(
