@@ -29,6 +29,7 @@ def find_version(*file_paths):
 
 
 requires = [
+    'marshmallow',
     'requests',
     'requests-toolbelt',
     'six'
