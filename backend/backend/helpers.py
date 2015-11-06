@@ -28,13 +28,6 @@ from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
 from backend.exceptions import CoprBackendError
 
-try:
-    import fedmsg
-except ImportError:
-    # fedmsg is optional
-    fedmsg = None
-
-
 class SortedOptParser(optparse.OptionParser):
     """Optparser which sorts the options by opt before outputting --help"""
 
