@@ -10,7 +10,6 @@ from multiprocessing import Process
 import time
 from setproctitle import setproctitle
 import traceback
-import types
 import psutil
 
 from ..constants import JOB_GRAB_TASK_END_PUBSUB
