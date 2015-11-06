@@ -8,7 +8,6 @@ import json
 
 import time
 from setproctitle import setproctitle
-import weakref
 
 from requests import get, RequestException
 from retask.task import Task
