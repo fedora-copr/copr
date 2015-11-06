@@ -207,8 +207,8 @@ class CoprJobGrab(object):
                 return
 
             if action in ["remove", "reschedule"]:
-                    self.added_jobs_dict.pop(task_id)
-                    self.log.info("Removed task `{}` from added_jobs".format(task_id))
+                self.added_jobs_dict.pop(task_id)
+                self.log.info("Removed task `{}` from added_jobs".format(task_id))
 
         except Exception as err:
             self.log.exception("Error receiving message from remove pubsub: raw msg: {}, error: {}"
