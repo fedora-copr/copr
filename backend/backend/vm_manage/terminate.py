@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 import os
-from threading import Thread
 import weakref
 import time
 from multiprocessing import Process
@@ -78,9 +77,3 @@ class Terminator(Executor):
         self.log.info("received VM ip: {}, name: {} for termination".format(vm_ip, vm_name))
 
         self.run_detached(terminate_vm, args=(self.opts, terminate_playbook, group, vm_name, vm_ip))
-        # proc = Process(target=terminate_vm, args=(self.opts, terminate_playbook, group, vm_name, vm_ip))
-        # proc = Thread(target=terminate_vm, args=(self.opts, terminate_playbook, group, vm_name, vm_ip))
-        # self.child_processes.append(proc)
-        # proc.start()
-        # self.log.debug("Termination process started: {}".format(proc.pid))
-
