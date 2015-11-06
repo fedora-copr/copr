@@ -1,0 +1,101 @@
+#!/bin/sh
+
+if [ $EUID -ne 0 ]; then
+   echo -e "This script must be run as root!\n"
+   exit 1
+fi
+
+
+
+copr_target_services() {
+    echo copr-backend copr-backend-vmm copr-backend-log copr-backend-jobgrab
+}
+
+turn_on() {
+   echo "Enabling Copr backend services..."
+   copr_target_services | xargs systemctl enable --quiet
+   echo "Done"
+   return 0
+}
+
+turn_off() {
+   echo "Disabling Copr backend services..."
+   copr_target_services | xargs systemctl disable --quiet
+   echo "Done"
+   return 0
+}
+
+list() {
+   echo "Listing Copr backend services..."
+   systemctl list-unit-files --type=service | grep -F "$(copr_target_services)"
+   echo "Done"
+   return 0
+}
+
+start() {
+    echo "Starting Copr backend services..."
+    systemctl start $(copr_target_services)
+    echo "Done."
+    return 0
+}
+
+stop() {
+    echo "Shutting down Copr backend services..."
+    copr_target_services | xargs systemctl stop
+    echo "Done."
+    return 0
+}
+
+status() {
+    copr_target_services | xargs systemctl status -n0
+    return $?
+}
+
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+while true ; do
+    case "$1" in
+        --)
+            shift
+            break
+            ;;
+        start|stop|enable|disable|list|status|restart|reload)
+            break
+            ;;
+        *)
+            echo "Internal error [$1]!" >&2
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    enable)
+        turn_on
+        ;;
+    disable)
+        turn_off
+        ;;
+    list)
+        list
+        ;;
+    status)
+        status
+        ;;
+    restart|reload)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: $(basename $0) {start|stop|status|reload|restart|enable|disable}"
+        exit 1
+        ;;
+esac
+exit $?
