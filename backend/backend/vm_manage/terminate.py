@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 import os
-import weakref
 import time
 from multiprocessing import Process
 import sys
