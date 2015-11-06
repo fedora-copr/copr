@@ -6,7 +6,6 @@ from __future__ import division
 from __future__ import absolute_import
 import json
 
-from multiprocessing import Process
 from threading import Thread
 import time
 from setproctitle import setproctitle
