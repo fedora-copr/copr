@@ -8,7 +8,6 @@ import json
 
 import logging
 import logging.handlers
-from multiprocessing import Process
 import os
 from setproctitle import setproctitle
 
@@ -67,8 +66,6 @@ class RedisLogHandler(object):
     """
 
     def __init__(self, opts):
-        # Process.__init__(self, name="log_handler")
-
         self.opts = opts
 
         self.log_dir = os.path.dirname(self.opts.log_dir)
