@@ -4,7 +4,6 @@ from multiprocessing import Process
 from setproctitle import setproctitle
 from threading import Thread
 import time
-import sys
 
 from backend.exceptions import VmDescriptorNotFound
 from backend.helpers import format_tb, get_redis_logger
