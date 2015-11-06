@@ -10,7 +10,6 @@ import logging
 import logging.handlers
 from multiprocessing import Process
 import os
-import sys
 import time
 from setproctitle import setproctitle
 
