@@ -8,7 +8,6 @@ from urlparse import urlparse
 from ansible.runner import Runner
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
 from ..helpers import get_redis_connection
-from ..helpers import chroot_to_branch
 
 from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError, VmError
 
