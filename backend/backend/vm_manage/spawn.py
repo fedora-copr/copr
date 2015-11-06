@@ -3,7 +3,6 @@
 import json
 import os
 import re
-from threading import Thread
 import time
 from multiprocessing import Process
 from collections import defaultdict
@@ -127,11 +126,3 @@ class Spawner(Executor):
 
         proc = self.run_detached(do_spawn_and_publish, args=(self.opts, spawn_playbook, group))
         self.proc_to_group[proc] = group
-
-        # proc = Process(target=do_spawn_and_publish, args=(self.opts, spawn_playbook, group))
-        # proc = Thread(target=do_spawn_and_publish, args=(self.opts, spawn_playbook, group))
-        # self.child_processes.append(proc)
-        # proc.start()
-        # self.log.debug("Spawn process started: {}".format(proc.pid))
-
-
