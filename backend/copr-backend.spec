@@ -24,7 +24,7 @@ BuildRequires: yum-utils
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python2-devel
-BuildRequires: python-copr
+BuildRequires: python-copr >= 1.60
 BuildRequires: systemd
 BuildRequires: redis
 
@@ -40,7 +40,7 @@ BuildRequires: python-requests
 BuildRequires: python-setproctitle
 # missing python3
 BuildRequires: python-retask
-BuildRequires: python-copr
+BuildRequires: python-copr >= 1.60
 BuildRequires: ansible >= 1.2
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
