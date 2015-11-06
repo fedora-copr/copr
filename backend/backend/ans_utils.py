@@ -2,7 +2,6 @@
 import json
 import subprocess
 from subprocess import CalledProcessError
-import sys
 
 ansible_playbook_bin = "ansible-playbook"
 
