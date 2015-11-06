@@ -1,5 +1,4 @@
 # coding: utf-8
-import os
 import threading
 import time
 from ..helpers import get_redis_logger
