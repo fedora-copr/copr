@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 import os
-from setproctitle import setproctitle
 from threading import Thread
 import weakref
 import time
@@ -19,8 +18,6 @@ def terminate_vm(opts, terminate_playbook, group, vm_name, vm_ip):
     """
     Call the terminate playbook to destroy the instance
     """
-    # setproctitle("Terminating VM")
-
     log = get_redis_logger(opts, "terminator.detached", "terminator")
 
     term_args = {"ip": vm_ip, "vm_name": vm_name}
