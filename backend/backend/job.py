@@ -52,6 +52,11 @@ class BuildJob(object):
         self.git_hash = None
         self.git_branch = None
 
+        self.pkg_main_version = None
+        self.pkg_epoch = None
+        self.pkg_release = None
+
+
         # TODO: validate update data, user marshmallow
         for key, val in task_data.items():
             key = str(key)
