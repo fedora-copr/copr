@@ -10,7 +10,6 @@ from multiprocessing import Process
 import time
 from setproctitle import setproctitle
 import traceback
-import sys
 import types
 import psutil
 
