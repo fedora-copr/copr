@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.76
+Version:    1.77
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -246,6 +246,11 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Nov 06 2015 Miroslav Suchý <msuchy@redhat.com> 1.77-1
+- we need to have recent python-copr
+- create copr-backend-service script to handle all copr services
+- [backend] fix not starting job_grab
+
 * Tue Oct 13 2015 Miroslav Suchý <msuchy@redhat.com> 1.76-1
 - createrepo action run infinitely when applied to
   deleted project
