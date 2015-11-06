@@ -1,6 +1,5 @@
 import os
 import subprocess
-from subprocess import Popen, PIPE
 
 from shlex import split
 from lockfile import LockFile
@@ -19,7 +18,7 @@ def run_cmd_unsafe(comm_str, lock_path):
     comm = split(comm_str)
     try:
         with LockFile(lock_path):
-            cmd = Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            cmd = subprocess.Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = cmd.communicate()
 
     except Exception as err:
