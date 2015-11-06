@@ -78,7 +78,7 @@ def chroot_to_branch(chroot):
     """
     Get a git branch name from chroot. Follow the fedora naming standard.
     """
-    os_name, version, arch = chroot.split("-")
+    os_name, version, _ = chroot.split("-")
     if os_name == "fedora":
         os_name = "f"
     elif os_name == "epel" and int(version) <= 6:
