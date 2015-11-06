@@ -3,7 +3,6 @@
 import json
 import os
 import re
-from setproctitle import setproctitle
 from threading import Thread
 import time
 from multiprocessing import Process
