@@ -6,7 +6,6 @@ from __future__ import division
 from __future__ import absolute_import
 from abc import ABCMeta, abstractproperty
 
-import json
 import sys
 import os
 import logging
