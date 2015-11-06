@@ -14,7 +14,6 @@ import psutil
 
 from ..constants import JOB_GRAB_TASK_END_PUBSUB
 from ..vm_manage import VmStates
-from ..vm_manage.event_handle import EventHandler
 from ..exceptions import VmSpawnLimitReached
 
 from ..helpers import get_redis_logger
