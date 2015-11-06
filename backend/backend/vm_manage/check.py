@@ -7,7 +7,7 @@ import time
 
 from ansible.runner import Runner
 
-from backend.helpers import get_redis_connection, format_tb
+from backend.helpers import get_redis_connection
 from backend.vm_manage import PUBSUB_MB, EventTopics
 from backend.vm_manage.executor import Executor
 
