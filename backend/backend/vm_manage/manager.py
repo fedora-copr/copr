@@ -314,7 +314,6 @@ class VmManager(object):
                 result.append(VmDescriptor.load(self.rc, vm_name))
             except VmDescriptorNotFound:
                 self.log.debug("Failed to load VMD: {}".format(vm_name))
-                pass
         return result
 
     def get_all_vm_in_group(self, group):
