@@ -111,7 +111,7 @@ class EventHandler(Process):
                 self.log.info("check fail threshold reached: {}, terminating: {}"
                               .format(check_fails_count, msg))
                 self.vmm.start_vm_termination(vmd.vm_name)
-    
+
     def on_vm_spawned(self, msg):
         self.vmm.add_vm_to_pool(vm_ip=msg["vm_ip"], vm_name=msg["vm_name"], group=msg["group"])
 
