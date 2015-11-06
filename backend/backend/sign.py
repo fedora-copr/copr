@@ -12,8 +12,7 @@ import os
 from requests import request
 
 from .exceptions import CoprSignError, CoprSignNoKeyError, \
-    CoprKeygenRequestError, \
-    MockRemoteError
+    CoprKeygenRequestError
 
 
 SIGN_BINARY = "/bin/sign"

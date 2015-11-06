@@ -316,6 +316,7 @@ class RedisPublishHandler(logging.Handler):
                 msg["traceback"] = format_tb(error, tb)
 
             self.rc.publish(constants.LOG_PUB_SUB, json.dumps(msg))
+        # pylint: disable=W0703
         except Exception as error:
             _, _, ex_tb = sys.exc_info()
             sys.stderr.write("Failed to publish log record to redis, {}"
