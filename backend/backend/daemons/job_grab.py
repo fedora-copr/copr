@@ -21,8 +21,6 @@ from ..exceptions import CoprJobGrabError
 
 # TODO: Replace entire model with asynchronous queue, so that frontend push task,
 # and workers listen for them
-from ..vm_manage.manager import VmManager
-
 
 class CoprJobGrab(object):
 
