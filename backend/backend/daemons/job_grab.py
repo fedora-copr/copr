@@ -17,7 +17,6 @@ from ..actions import Action
 from ..constants import JOB_GRAB_TASK_END_PUBSUB
 from ..helpers import get_redis_connection, get_redis_logger
 from ..exceptions import CoprJobGrabError
-from ..frontend import FrontendClient
 
 
 # TODO: Replace entire model with asynchronous queue, so that frontend push task,
