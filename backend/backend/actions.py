@@ -5,7 +5,7 @@ import time
 from urllib import urlretrieve
 
 from munch import Munch
-from copr.client.exceptions import CoprRequestException
+from copr.exceptions import CoprRequestException
 
 from .createrepo import createrepo
 from .exceptions import CreateRepoError

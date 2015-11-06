@@ -6,6 +6,9 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
+import sys
+sys.path.append("/usr/share/copr/")
+
 from backend.helpers import get_backend_opts
 from backend.daemons.job_grab import CoprJobGrab
 from backend.frontend import FrontendClient
