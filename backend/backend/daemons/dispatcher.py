@@ -287,9 +287,9 @@ class Worker(multiprocessing.Process):
                           .format(job.build_id, self.vm_ip, job))
 
             with local_file_logger(
-                    "{}.builder.mr".format(self.logger_name),
-                    job.chroot_log_path,
-                    fmt=build_log_format) as build_logger:
+                "{}.builder.mr".format(self.logger_name),
+                job.chroot_log_path,
+                fmt=build_log_format) as build_logger:
                 try:
                     mr = MockRemote(
                         builder_host=self.vm_ip,
