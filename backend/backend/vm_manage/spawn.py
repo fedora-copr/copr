@@ -4,7 +4,6 @@ import json
 import os
 import re
 import time
-from collections import defaultdict
 
 from IPy import IP
 
@@ -98,8 +97,6 @@ class Spawner(Executor):
 
     def __init__(self, *args, **kwargs):
         super(Spawner, self).__init__(*args, **kwargs)
-
-        # self.proc_num_by_group = defaultdict(int)
         self.proc_to_group = {}  # {proc: Thread -> group: int}
 
     def after_proc_finished(self, proc):
