@@ -14,7 +14,7 @@ from ..exceptions import MockRemoteError, CoprWorkerError, VmError, NoVmAvailabl
 from ..job import BuildJob
 from ..mockremote import MockRemote
 from ..constants import BuildStatus, JOB_GRAB_TASK_END_PUBSUB, build_log_format
-from ..helpers import register_build_result, get_redis_connection, get_redis_logger, create_file_logger, \
+from ..helpers import register_build_result, get_redis_connection, get_redis_logger, \
     local_file_logger
 
 
