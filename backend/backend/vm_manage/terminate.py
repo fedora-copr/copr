@@ -2,7 +2,6 @@
 import json
 import os
 import time
-import sys
 from backend.ans_utils import ans_extra_vars_encode, run_ansible_playbook_cli
 from backend.exceptions import CoprSpawnFailError
 from backend.helpers import format_tb, get_redis_connection
