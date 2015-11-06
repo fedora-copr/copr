@@ -14,7 +14,7 @@ from retask.task import Task
 from retask.queue import Queue
 
 from ..actions import Action
-from ..constants import JOB_GRAB_TASK_END_PUBSUB, BuildStatus
+from ..constants import JOB_GRAB_TASK_END_PUBSUB
 from ..helpers import get_redis_connection, format_tb, get_redis_logger
 from ..exceptions import CoprJobGrabError
 from ..frontend import FrontendClient
