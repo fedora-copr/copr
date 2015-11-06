@@ -6,7 +6,7 @@ from threading import Thread
 import time
 
 from backend.exceptions import VmDescriptorNotFound
-from backend.helpers import format_tb, get_redis_logger
+from backend.helpers import get_redis_logger
 from backend.vm_manage import VmStates, PUBSUB_MB, EventTopics
 
 
