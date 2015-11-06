@@ -56,8 +56,7 @@ class Action(object):
 
         done_count = 0
         for chroot in chroots:
-            self.log.info("Creating repo for: {}/{}/{}"
-                          .format(username, projectname, chroot))
+            self.log.info("Creating repo for: {}/{}/{}", username, projectname, chroot)
 
             path = self.get_chroot_result_dir(chroot, projectname, username)
 
@@ -73,8 +72,7 @@ class Action(object):
                     return
 
             except CreateRepoError:
-                self.log.exception("Error making local repo for: {}/{}/{}"
-                                   .format(username, projectname, chroot))
+                self.log.exception("Error making local repo for: {}/{}/{}", username, projectname, chroot)
 
         if done_count == len(chroots):
             result.result = ActionResult.SUCCESS
@@ -107,7 +105,7 @@ class Action(object):
         project = self.data["old_value"]
         path = os.path.normpath(self.destdir + '/' + project)
         if os.path.exists(path):
-            self.log.info("Removing copr {0}".format(path))
+            self.log.info("Removing copr {0}", path)
             shutil.rmtree(path)
 
     def handle_comps_update(self, result):
@@ -132,11 +130,11 @@ class Action(object):
             try:
 
                 urlretrieve(remote_comps_url, local_comps_path)
-                self.log.info("updated comps.xml for {}/{}/{} from {} "
-                              .format(username, projectname, chroot, remote_comps_url))
+                self.log.info("updated comps.xml for {}/{}/{} from {} ",
+                              username, projectname, chroot, remote_comps_url)
             except Exception:
-                self.log.exception("Failed to update comps from {} at location {}"
-                                   .format(remote_comps_url, local_comps_path))
+                self.log.exception("Failed to update comps from {} at location {}",
+                                   remote_comps_url, local_comps_path)
 
         result.result = ActionResult.SUCCESS
 
@@ -151,19 +149,18 @@ class Action(object):
 
         if "src_pkg_name" not in ext_data and "result_dir_name" not in ext_data:
             self.log.error("Delete build action missing `src_pkg_name` or `result_dir_name` field,"
-                           " check frontend version. Raw ext_data: {}"
-                           .format(ext_data))
+                           " check frontend version. Raw ext_data: {}", ext_data)
             return
 
         target_dir = ext_data.get("result_dir_name") or ext_data.get("src_pkg_name")
         if target_dir is None or target_dir == "":
-            self.log.error("Bad delete request, ignored. Raw ext_data: {}"
-                           .format(ext_data))
+            self.log.error("Bad delete request, ignored. Raw ext_data: {}",
+                           ext_data)
             return
         path = os.path.join(self.destdir, project)
 
-        self.log.info("Deleting package {0}".format(target_dir))
-        self.log.info("Copr path {0}".format(path))
+        self.log.info("Deleting package {0}", target_dir)
+        self.log.info("Copr path {0}", path)
 
         try:
             chroot_list = set(os.listdir(path))
@@ -173,8 +170,8 @@ class Action(object):
 
         chroots_to_do = chroot_list.intersection(chroots_requested)
         if not chroots_to_do:
-            self.log.info("Nothing to delete for delete action: package {}, {}"
-                          .format(target_dir, ext_data))
+            self.log.info("Nothing to delete for delete action: package {}, {}",
+                          target_dir, ext_data)
             return
 
         for chroot in chroots_to_do:
@@ -183,11 +180,11 @@ class Action(object):
 
             pkg_path = os.path.join(path, chroot, target_dir)
             if os.path.isdir(pkg_path):
-                self.log.info("Removing build {0}".format(pkg_path))
+                self.log.info("Removing build {0}", pkg_path)
                 shutil.rmtree(pkg_path)
                 altered = True
             else:
-                self.log.debug("Package {0} dir not found in chroot {1}".format(target_dir, chroot))
+                self.log.debug("Package {0} dir not found in chroot {1}", target_dir, chroot)
 
             if altered:
                 self.log.debug("Running createrepo")
@@ -202,7 +199,7 @@ class Action(object):
                         username=username, projectname=projectname
                     )
                 except CreateRepoError:
-                    self.log.exception("Error making local repo: {}".format(createrepo_target))
+                    self.log.exception("Error making local repo: {}", createrepo_target)
 
             logs_to_remove = [
                 os.path.join(path, chroot, template.format(self.data['object_id']))
@@ -210,7 +207,7 @@ class Action(object):
             ]
             for log_path in logs_to_remove:
                 if os.path.isfile(log_path):
-                    self.log.info("Removing log {0}".format(log_path))
+                    self.log.info("Removing log {0}", log_path)
                     os.remove(log_path)
 
     def run(self):
