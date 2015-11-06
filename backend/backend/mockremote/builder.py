@@ -434,7 +434,7 @@ def check_for_ans_error(results, hostname, err_codes=None, success_codes=None):
                     err_results["msg"] = "rc {0} not in success_codes".format(rc)
 
             elif ("failed" in results["contacted"][hostname] and
-                    results["contacted"][hostname]["failed"]):
+                  results["contacted"][hostname]["failed"]):
 
                 error = True
                 err_results["msg"] = "results included failed as true"
