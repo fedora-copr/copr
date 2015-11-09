@@ -8,7 +8,6 @@ import shutil
 import time
 
 import six
-import sys
 import json
 
 if six.PY3:
