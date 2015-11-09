@@ -82,9 +82,9 @@ class BuildEntity(Entity):
 
     def is_finished(self):
         if self.state in [
-            "failed",
-            "skipped",
-            "succeeded"
+                "failed",
+                "skipped",
+                "succeeded"
         ]:
             return True
         else:
