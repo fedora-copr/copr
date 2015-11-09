@@ -35,11 +35,7 @@ log = logging.getLogger(__name__)
 log.addHandler(NullHandler())
 
 
-class HandlersProvider(with_metaclass(ABCMeta)):
-
-    @abstractproperty
-    def __init__(self):
-        pass
+class HandlersProvider(object, with_metaclass(ABCMeta)):
 
     @abstractproperty
     def projects(self):
@@ -72,7 +68,6 @@ class HandlersProvider(with_metaclass(ABCMeta)):
         :rtype: MockChrootHandle
         """
         pass
-
 
 
 class CoprClient(UnicodeMixin, HandlersProvider):
