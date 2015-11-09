@@ -1,6 +1,5 @@
 import os
 
-import pytest
 import mock
 from requests.models import Response
 
