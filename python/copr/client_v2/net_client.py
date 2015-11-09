@@ -57,6 +57,7 @@ class NetworkError(RequestError):
     def __unicode__(self):
         res = super(NetworkError, self).__unicode__()
         res += u"Original error: {}\n".format(self.requests_error)
+        return res
 
 
 class AuthError(RequestError):
