@@ -1,7 +1,6 @@
 # coding: utf-8
 import os
 import copy
-import tarfile
 
 import six
 import json
