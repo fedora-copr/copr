@@ -79,7 +79,7 @@ class BuildSchema(Schema):
 
 
 class BuildTaskSchema(Schema):
-    
+
     state = fields.Str()
     started_on = fields.Int(load_only=True)
     ended_on = fields.Int(load_only=True)
