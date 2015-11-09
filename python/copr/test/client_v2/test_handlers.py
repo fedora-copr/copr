@@ -20,7 +20,7 @@ else:
 
 import pytest
 
-from copr.client_v2.handlers import ProjectHandle, ProjectChrootHandle
+from copr.client_v2.handlers import ProjectHandle
 
 
 class TestHandleBase(object):
