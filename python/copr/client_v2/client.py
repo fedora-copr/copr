@@ -10,7 +10,6 @@ import sys
 import os
 import logging
 import weakref
-from marshmallow import pprint
 
 import six
 from six import with_metaclass
