@@ -143,8 +143,8 @@ class CoprClient(UnicodeMixin):
                         "Bad configuration file: {0}".format(err))
         return CoprClient(**config)
 
-    def _fetch(self, url, data=None, projectname=None, username=None,
-               method=None, skip_auth=False, on_error_response=None, headers=None):
+    def _fetch(self, url, data=None, username=None, method=None,
+               skip_auth=False, on_error_response=None, headers=None):
         """ Fetches data from server,
         checks response and raises a CoprRequestException with nice error message
         or CoprUnknownResponseException in case of some some error. \n
@@ -153,7 +153,6 @@ class CoprClient(UnicodeMixin):
             :param url: formed url to fetch
             :param data: [optional] serialised data to send
             :param skip_auth: [optional] don't send auth credentials
-            :param projectname: [optional] name of the copr project
             :param username: [optional] use alternative username
             :param on_error_response: [optional] function to handle responses
                 with bad status code
