@@ -7,7 +7,6 @@ import shutil
 import time
 
 import six
-import sys
 import json
 from copr.client_v2.net_client import ResponseWrapper
 
