@@ -4,7 +4,6 @@ from six import with_metaclass
 
 from ..util import UnicodeMixin
 
-from .common import EntityTypes
 from .entities import Link, ProjectEntity, ProjectChrootEntity, BuildEntity, MockChrootEntity
 from .schemas import EmptySchema, BuildSchema, ProjectSchema, ProjectChrootSchema, MockChrootSchema
 
