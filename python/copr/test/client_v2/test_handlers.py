@@ -1,6 +1,4 @@
 # coding: utf-8
-import os
-
 import six
 import json
 from copr.client_v2.net_client import ResponseWrapper
