@@ -14,7 +14,7 @@ log = getLogger(__name__)
 
 class RequestError(Exception, UnicodeMixin):
     def __init__(self, msg, url, request_kwargs=None, response=None, request_body=None):
-        super(RequestError. self).__init__()
+        super(RequestError, self).__init__()
         self.msg = msg
         self.url = url
         self.request_body = request_body
