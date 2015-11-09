@@ -4,7 +4,6 @@ import copy
 import tarfile
 import tempfile
 import shutil
-import time
 
 import six
 from copr.client_v2.handlers import ProjectHandle, ProjectChrootHandle
