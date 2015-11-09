@@ -33,8 +33,7 @@ def test_client_from_config():
     assert cl.username == "user_name"
 
 
-@mock.patch('requests.request')
-def test_list_projects(mock_request):
+def test_list_projects():
     CoprClient.create_from_file_config(config_location)
 
 
