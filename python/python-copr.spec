@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.60
+Version:    1.61
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,11 @@ popd
 %endif
 
 %changelog
+* Mon Nov 09 2015 Miroslav Suchý <msuchy@redhat.com> 1.61-1
+- W:  9, 0: Unused import json (unused-import)
+- Added marshmallow as dep
+- since APIv2 we require python-marshmallow
+
 * Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.60-1
 - python3 compatibility
 - Removed __version__ from cli and python
