@@ -478,7 +478,7 @@ class CoprClient(UnicodeMixin):
         if isinstance(chroots, list):
             chroots = [chroots]
 
-        if type(repos) == list:
+        if isinstance(repos, list):
             repos = " ".join(repos)
 
         if type(initial_pkgs) == list:
