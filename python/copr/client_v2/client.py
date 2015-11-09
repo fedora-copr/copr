@@ -30,9 +30,7 @@ if sys.version_info < (2, 7):
 else:
     from logging import NullHandler
 
-from ..exceptions import CoprConfigException, CoprNoConfException, \
-    CoprUnknownResponseException
-
+from ..exceptions import CoprConfigException, CoprNoConfException
 from ..util import UnicodeMixin
 
 log = logging.getLogger(__name__)
