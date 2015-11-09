@@ -1,6 +1,5 @@
 # coding: utf-8
 import os
-import copy
 
 import six
 from copr.client_v2.handlers import ProjectHandle, ProjectChrootHandle
