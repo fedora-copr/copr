@@ -22,6 +22,15 @@ def mc_request():
 
 class TestNetClient(object):
 
+    def __init__(self):
+        self.base_response = None
+        self.content = None
+        self.login = None
+        self.password = None
+        self.base_url = None
+        self.nc = None
+        self.nc_with_auth = None
+
     def setup_method(self, method):
         # print(sys.path)
 

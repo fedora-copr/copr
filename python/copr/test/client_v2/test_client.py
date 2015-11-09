@@ -15,6 +15,14 @@ from copr.client_v2.client import CoprClient
 
 
 class TestClientV2(object):
+    def __init__(self):
+        self.login = None
+        self.token = None
+        self.root_url = None
+        self.nc = None
+        self.root_json = None
+        self.response = None
+
     def setup_method(self, method):
         self.login = u"foo"
         self.token = u"bar"

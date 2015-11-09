@@ -14,6 +14,13 @@ from copr.client_v2.handlers import ProjectHandle
 
 
 class TestHandleBase(object):
+    def __init__(self):
+        self.nc = None
+        self.client = None
+        self.root_url = None
+        self.response = None
+        self.root_json = None
+
     def setup_method(self, method):
         self.nc = MagicMock()
         self.client = MagicMock()
