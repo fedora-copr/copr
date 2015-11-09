@@ -3,7 +3,6 @@ from abc import abstractmethod, ABCMeta
 import json
 import os
 
-from .common import EntityTypes
 from copr.client_v2.net_client import RequestError, MultiPartTuple
 from .entities import Link, ProjectChrootEntity
 from .resources import Project, OperationResult, ProjectsList, ProjectChroot, ProjectChrootList, Build, BuildList, \
