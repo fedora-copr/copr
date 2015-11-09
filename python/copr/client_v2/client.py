@@ -38,6 +38,10 @@ log.addHandler(NullHandler())
 class HandlersProvider(with_metaclass(ABCMeta)):
 
     @abstractproperty
+    def __init__(self):
+        pass
+
+    @abstractproperty
     def projects(self):
         """
         :rtype: ProjectHandle
