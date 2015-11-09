@@ -55,7 +55,7 @@ class BuiltPackageSchema(Schema):
 
 
 class BuildSchema(Schema):
-    
+
     id = fields.Int(load_only=True)
     state = fields.Str()
 
