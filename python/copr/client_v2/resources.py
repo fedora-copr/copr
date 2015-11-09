@@ -33,12 +33,12 @@ class EntityFieldsMetaClass(type):
     Magic: we take fields info from class._schema and attach EntityFieldDescriptor
     to Resource classes
     """
-    def __new__(cls, class_name, bases, class_attrs):
+    def __new__(mcs, class_name, bases, class_attrs):
         schema = class_attrs.get("_schema")
         if schema:
             for f_name, f in schema.fields.items():
                 class_attrs[f_name] = EntityFieldDescriptor(f_name)
-        return type.__new__(cls, class_name, bases, class_attrs)
+        return type.__new__(mcs, class_name, bases, class_attrs)
 
 
 class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
