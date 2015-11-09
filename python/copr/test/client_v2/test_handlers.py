@@ -12,10 +12,8 @@ import json
 from copr.client_v2.net_client import ResponseWrapper
 
 if six.PY3:
-    from unittest import mock
     from unittest.mock import MagicMock
 else:
-    import mock
     from mock import MagicMock
 
 import pytest
