@@ -481,7 +481,7 @@ class CoprClient(UnicodeMixin):
         if isinstance(repos, list):
             repos = " ".join(repos)
 
-        if type(initial_pkgs) == list:
+        if isinstance(initial_pkgs, list):
             initial_pkgs = " ".join(initial_pkgs)
 
         request_data = {
