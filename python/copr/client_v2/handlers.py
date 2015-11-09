@@ -247,7 +247,7 @@ class ProjectHandle(AbstractHandle):
 
 class ProjectChrootHandle(AbstractHandle):
 
-    def get_base_url(self, project):
+    def get_base_url(self, project, **kwargs):
         """
         :type project: copr.client_v2.resources.Project
         """
