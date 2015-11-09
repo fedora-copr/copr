@@ -25,7 +25,7 @@ class RequestError(Exception, UnicodeMixin):
     @property
     def response_json(self):
         if self.response is None:
-                raise ValueError("No response")
+            raise ValueError("No response")
         if self.response.headers["content-type"] == "application/json":
             try:
                 result = json.loads(self.response.text)
