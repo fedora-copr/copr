@@ -2,7 +2,6 @@
 import os
 import copy
 import tarfile
-import tempfile
 
 import six
 import json
