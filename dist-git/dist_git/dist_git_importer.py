@@ -10,7 +10,8 @@ from subprocess import PIPE, Popen, call
 
 from requests import get, post
 
-from .exceptions import PackageImportException, PackageDownloadException, PackageQueryException, GitAndTitoException
+from .exceptions import PackageImportException, PackageDownloadException, PackageQueryException, GitAndTitoException, \
+    SrpmBuilderException, GitException
 from .srpm_import import do_git_srpm_import
 
 from .helpers import FailTypeEnum
@@ -169,7 +170,7 @@ class SrpmBuilderProvider(BaseSourceProvider):
             log.debug("dest_files: {}".format(dest_files))
             log.debug("dest_srpms: {}".format(dest_srpms))
             log.debug("")
-            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
+            raise SrpmBuilderException(FailTypeEnum("srpm_build_error"))
         log.debug("   {}".format(srpm_name))
         shutil.copyfile("{}/{}".format(self.tmp_dest, srpm_name), self.target_path)
 
@@ -200,9 +201,9 @@ class GitProvider(SrpmBuilderProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
             output, error = proc.communicate()
         except OSError as e:
-            raise GitAndTitoException(FailTypeEnum("git_clone_failed"))
+            raise GitException(FailTypeEnum("git_clone_failed"))
         if error:
-            raise GitAndTitoException(FailTypeEnum("git_clone_failed"))
+            raise GitException(FailTypeEnum("git_clone_failed"))
 
         # 1b. get dir name
         log.debug("GIT_BUILDER: 1b. dir name...")
@@ -211,13 +212,13 @@ class GitProvider(SrpmBuilderProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
             output, error = proc.communicate()
         except OSError as e:
-            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
+            raise GitException(FailTypeEnum("git_wrong_directory"))
         if error:
-            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
+            raise GitException(FailTypeEnum("git_wrong_directory"))
         if output and len(output.split()) == 1:
             git_dir_name = output.split()[0]
         else:
-            raise GitAndTitoException(FailTypeEnum("tito_wrong_directory_in_git"))
+            raise GitException(FailTypeEnum("git_wrong_directory"))
         log.debug("   {}".format(git_dir_name))
 
         self.git_dir = "{}/{}".format(self.tmp, git_dir_name)
@@ -231,9 +232,9 @@ class GitProvider(SrpmBuilderProvider):
                 proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.git_dir)
                 output, error = proc.communicate()
             except OSError as e:
-                raise GitAndTitoException(FailTypeEnum("tito_git_checkout_error"))
+                raise GitException(FailTypeEnum("git_checkout_error"))
             if proc.returncode:
-                raise GitAndTitoException(FailTypeEnum("tito_git_checkout_error"))
+                raise GitException(FailTypeEnum("git_checkout_error"))
 
     def build(self):
         raise NotImplemented
@@ -262,9 +263,9 @@ class GitAndTitoProvider(GitProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=git_subdir)
             output, error = proc.communicate()
         except OSError as e:
-            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
+            raise GitAndTitoException(FailTypeEnum("srpm_build_error"))
         if error:
-            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
+            raise GitAndTitoException(FailTypeEnum("srpm_build_error"))
 
 
 class MockScmProvider(SrpmBuilderProvider):
@@ -289,10 +290,10 @@ class MockScmProvider(SrpmBuilderProvider):
             output, error = proc.communicate()
         except OSError as e:
             log.error(error)
-            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
+            raise SrpmBuilderException(FailTypeEnum("srpm_build_error"))
         if proc.returncode:
             log.error(error)
-            raise GitAndTitoException(FailTypeEnum("tito_srpm_build_error"))
+            raise SrpmBuilderException(FailTypeEnum("srpm_build_error"))
 
         self.copy()
 
