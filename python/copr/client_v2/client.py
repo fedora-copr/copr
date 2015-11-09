@@ -19,7 +19,6 @@ from six.moves import configparser
 
 from .resources import Root
 from .handlers import ProjectHandle, ProjectChrootHandle, BuildHandle, MockChrootHandle
-from .common import EntityTypes
 from .net_client import NetClient
 
 if sys.version_info < (2, 7):
