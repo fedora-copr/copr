@@ -31,7 +31,6 @@ else:
     from logging import NullHandler
 
 from ..exceptions import CoprConfigException, CoprNoConfException, \
-    CoprRequestException, \
     CoprUnknownResponseException
 
 from ..util import UnicodeMixin
