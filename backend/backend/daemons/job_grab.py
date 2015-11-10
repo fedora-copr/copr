@@ -38,7 +38,7 @@ class CoprJobGrab(object):
     """
 
     def __init__(self, opts, frontend_client):
-        # base class initialization
+        """ base class initialization """
 
         self.opts = opts
         self.arch_to_group_id_map = dict()
