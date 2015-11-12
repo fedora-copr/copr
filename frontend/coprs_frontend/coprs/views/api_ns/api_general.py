@@ -16,6 +16,7 @@ from coprs import forms
 from coprs import helpers
 from coprs.helpers import fix_protocol_for_backend
 from coprs.logic.api_logic import MonitorWrapper
+from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 
@@ -281,30 +282,25 @@ def copr_new_build(copr):
     # we're checking authorization above for now
     # and also creating separate build for each package
     pkgs = form.pkgs.data.split("\n")
+
     ids = []
-    chroots = []
-    for chroot in copr.active_chroots:
-        if chroot.name in form.selected_chroots:
-            chroots.append(chroot)
-
     for pkg in pkgs:
-        # create json describing the build source
-        source_type = helpers.BuildSourceEnum("srpm_link")
-        source_json = json.dumps({"url": pkg})
+        try:
+            build = BuildsLogic.create_new_from_url(
+                flask.g.user, copr,
+                srpm_url=pkg,
+                chroot_names=form.selected_chroots,
+            )
+            db.session.commit()
+        except ActionInProgressException as err:
+            db.session.rollback()
 
-        build = builds_logic.BuildsLogic.add(
-            user=flask.g.user,
-            pkgs=pkg,
-            copr=copr,
-            chroots=chroots,
-            source_type=source_type,
-            source_json=source_json)
+            raise LegacyApiError("Cannot create new build due to: {}".format(err))
+        except InsufficientRightsException as err:
+            db.session.rollback()
+            raise LegacyApiError("User {} cannot create build in project {}: {}"
+                                 .format(flask.g.user.username, copr.full_name, err))
 
-        if flask.g.user.proven:
-            build.memory_reqs = form.memory_reqs.data
-            build.timeout = form.timeout.data
-
-        db.session.commit()
         ids.append(build.id)
 
     output = {"output": "ok",
@@ -330,49 +326,20 @@ def copr_new_build_upload(copr):
     if not form.validate_on_submit():
         raise LegacyApiError("Invalid request: bad request parameters")
 
-    tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
-    tmp_name = os.path.basename(tmp)
     filename = secure_filename(form.pkgs.data.filename)
-    file_path = os.path.join(tmp, filename)
-    form.pkgs.data.save(file_path)
-
-    # make the pkg public
-    pkg_url = "https://{hostname}/tmp/{tmp_dir}/{srpm}".format(
-        hostname=app.config["PUBLIC_COPR_HOSTNAME"],
-        tmp_dir=tmp_name,
-        srpm=filename)
-
-    # check which chroots we need
-    chroots = []
-    for chroot in copr.active_chroots:
-        if chroot.name in form.selected_chroots:
-            chroots.append(chroot)
-
-    # create json describing the build source
-    source_type = helpers.BuildSourceEnum("srpm_upload")
-    source_json = json.dumps({"tmp": tmp_name,
-                              "pkg": filename})
 
     # create a new build
     try:
-        build = builds_logic.BuildsLogic.add(
-            user=flask.g.user,
-            pkgs=pkg_url,
-            copr=copr,
-            chroots=chroots,
-            source_type=source_type,
-            source_json=source_json,
-            enable_net=form.enable_net.data)
-
-        if flask.g.user.proven:
-            build.memory_reqs = form.memory_reqs.data
-            build.timeout = form.timeout.data
+        build = BuildsLogic.create_new_from_upload(
+            flask.g.user, copr,
+            f_uploader=lambda path: form.pkgs.data.save(path),
+            orig_filename=filename,
+            chroot_names=form.selected_chroots,
+        )
 
         db.session.commit()
 
     except (ActionInProgressException, InsufficientRightsException) as e:
-        db.session.rollback()
-        shutil.rmtree(tmp)
         raise LegacyApiError("Invalid request: {}".format(e))
 
     output = {"output": "ok",

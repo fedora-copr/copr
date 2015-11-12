@@ -208,7 +208,7 @@ class BuildsLogic(object):
             chroots=chroots,
             source_type=source_build.source_type,
             source_json=source_build.source_json,
-            enable_net=build_options.get("enabled_net", True),
+            enable_net=build_options.get("enabled_net", source_build.enable_net),
             git_hashes=git_hashes,
             skip_import=skip_import)
 
@@ -251,7 +251,7 @@ class BuildsLogic(object):
             chroots=chroots,
             source_type=source_type,
             source_json=source_json,
-            enable_net=build_options.get("enabled_net", True))
+            enable_net=build_options.get("enabled_net", copr.build_enable_net))
 
         if user.proven:
             if "timeout" in build_options:
@@ -292,7 +292,7 @@ class BuildsLogic(object):
             chroots=chroots,
             source_type=source_type,
             source_json=source_json,
-            enable_net=build_options.get("enabled_net", True))
+            enable_net=build_options.get("enabled_net", copr.build_enable_net))
 
         if user.proven:
             if "timeout" in build_options:
@@ -333,7 +333,7 @@ class BuildsLogic(object):
             chroots=chroots,
             source_type=source_type,
             source_json=source_json,
-            enable_net=build_options.get("enabled_net", True))
+            enable_net=build_options.get("enabled_net", copr.build_enable_net))
 
         if user.proven:
             if "timeout" in build_options:
@@ -379,7 +379,7 @@ class BuildsLogic(object):
                 chroots=chroots,
                 source_type=source_type,
                 source_json=source_json,
-                enable_net=build_options.get("enabled_net", True))
+                enable_net=build_options.get("enabled_net", copr.build_enable_net))
 
             if user.proven:
                 if "timeout" in build_options:

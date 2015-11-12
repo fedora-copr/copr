@@ -74,7 +74,8 @@ class BuildListR(Resource):
             },
         }
 
-    def handle_post_json(self, req):
+    @staticmethod
+    def handle_post_json(req):
         """
         :return: if of the created build or raise Exception
         """
