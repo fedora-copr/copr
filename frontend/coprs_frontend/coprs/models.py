@@ -308,6 +308,13 @@ class Copr(db.Model, helpers.Serializer):
         else:
             return "{}-{}".format(self.owner.username, self.name)
 
+    @property
+    def repo_id(self):
+        if self.is_a_group_project:
+            return "group_{}-{}".format(self.group.name, self.name)
+        else:
+            return "{}-{}".format(self.owner.username, self.name)
+
     def to_dict(self, private=False, show_builds=True, show_chroots=True):
         result = {}
         for key in ["id", "name", "description", "instructions"]:
