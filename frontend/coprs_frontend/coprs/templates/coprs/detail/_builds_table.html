@@ -1,5 +1,5 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
-{% from "_helpers.html" import build_href %}
+{% from "_helpers.html" import build_href_from_sql %}
 
 {% macro builds_table(builds) %}
 {% if builds %}
@@ -15,16 +15,17 @@
       </tr>
     </thead>
     <tbody>
+    {# builds here is not a build object #}
     {% for build in builds %}
-      <tr class="build-row build-row-{{ build.state }}" >
+      <tr class="build-row" >
         <td data-order="{{ build.id }}">
-          <a href="{{ build_href(build) }}">
+          <a href="{{ build_href_from_sql(build) }}">
             {{ build.id }}
           </a>
         </td>
         <td>
-            {% if build.package %} 
-                {{ build.package.name }}
+            {% if build.pkg_name %} 
+                {{ build.pkg_name }}
             {% else %}
                  - 
             {% endif %}
@@ -37,8 +38,12 @@
             {% endif %}
         </td> 
         <td data-order="{{build.submitted_on}}"> {{ build.submitted_on|time_ago() }} ago </td>
-        <td data-order="{{build.min_started_on|timestamp_diff(build.max_ended_on)}}"> {{ build.min_started_on|time_ago(build.max_ended_on) }} </td>
-        <td class="build-{{build.state}}" abbr="{{build.state|build_state_description}}">{{ build.state }}</td>
+        <td data-order="{{build.started_on|timestamp_diff(build.ended_on)}}"> {{ build.started_on|time_ago(build.ended_on) }} </td>
+        {% if build.canceled %}
+        <td class="build-canceled">canceled</td>
+        {% else %}
+        <td class="build-{{build.status | state_from_num }}" abbr="{{build.status | state_from_num | build_state_description}}">{{ build.status | state_from_num }}</td>
+        {% endif %}
       </tr>
     {% endfor %}
     </tbody>

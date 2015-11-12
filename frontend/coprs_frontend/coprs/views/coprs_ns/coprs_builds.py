@@ -83,7 +83,7 @@ def group_copr_builds(copr):
 
 
 def render_copr_builds(copr):
-    builds_query = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr)
+    builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr=copr)
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,
                                  builds=builds_query)

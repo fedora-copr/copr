@@ -6,6 +6,8 @@ import os
 import pprint
 import time
 import flask
+import sqlite3
+from sqlalchemy.sql import text
 from sqlalchemy import or_
 from sqlalchemy import and_
 from sqlalchemy.orm import joinedload
@@ -120,6 +122,100 @@ class BuildsLogic(object):
         """
         return cls.get_multiple().join(models.Build.copr).filter(
             models.Copr.owner == user)
+
+    @classmethod
+    def get_copr_builds_list(cls, copr):
+        query_functions = """
+CREATE OR REPLACE FUNCTION status_to_order (x integer)
+RETURNS integer AS $$ BEGIN
+        RETURN CASE WHEN x = 0 THEN 0
+                    WHEN x = 3 THEN 1
+                    WHEN x = 6 THEN 2
+                    WHEN x = 7 THEN 3
+                    WHEN x = 4 THEN 4
+                    WHEN x = 1 THEN 5
+                    WHEN x = 5 THEN 6
+               ELSE 1000
+        END; END;
+    $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION order_to_status (x integer)
+RETURNS integer AS $$ BEGIN
+        RETURN CASE WHEN x = 0 THEN 0
+                    WHEN x = 1 THEN 3
+                    WHEN x = 2 THEN 6
+                    WHEN x = 3 THEN 7
+                    WHEN x = 4 THEN 4
+                    WHEN x = 5 THEN 1
+                    WHEN x = 6 THEN 5
+               ELSE 1000
+        END; END;
+    $$ LANGUAGE plpgsql;
+"""
+        query_select = """
+SELECT build.id, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
+    MIN(statuses.started_on) AS started_on, MAX(statuses.ended_on) AS ended_on, order_to_status(MIN(statuses.st)) AS status,
+    build.canceled, MIN("group".name) AS group_name, MIN(copr.name) as copr_name, MIN("user".username) as owner_name
+FROM build
+LEFT OUTER JOIN package
+    ON build.package_id = package.id
+LEFT OUTER JOIN (SELECT build_chroot.build_id, started_on, ended_on, status_to_order(status) AS st FROM build_chroot) AS statuses
+    ON statuses.build_id=build.id
+LEFT OUTER JOIN copr
+    ON copr.id = build.copr_id
+LEFT OUTER JOIN "user"
+    ON copr.owner_id = "user".id
+LEFT OUTER JOIN "group"
+    ON copr.group_id = "group".id
+WHERE build.copr_id = {copr_id}
+GROUP BY
+    build.id;
+""".format(copr_id=copr.id)
+
+        if db.engine.url.drivername == "sqlite":
+            def sqlite_status_to_order(x):
+                if x == 0:
+                    return 0
+                elif x == 3:
+                    return 1
+                elif x == 6:
+                    return 2
+                elif x == 7:
+                    return 3
+                elif x == 4:
+                    return 4
+                elif x == 1:
+                    return 5
+                elif x == 5:
+                    return 6
+                return 1000
+
+            def sqlite_order_to_status(x):
+                if x == 0:
+                    return 0
+                elif x == 1:
+                    return 3
+                elif x == 2:
+                    return 6
+                elif x == 3:
+                    return 7
+                elif x == 4:
+                    return 4
+                elif x == 5:
+                    return 1
+                elif x == 6:
+                    return 5
+                return 1000
+
+            conn = db.engine.connect()
+            conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
+            conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
+            result = conn.execute(text(query_select))
+
+        else:
+            result = db.engine.execute(text(query_functions+query_select))
+
+        return result
 
     @classmethod
     def join_group(cls, query):

@@ -261,6 +261,14 @@
 {% endif %}
 {% endmacro %}
 
+{% macro build_href_from_sql(build) %}
+{% if build.group_name %}
+  {{ url_for('coprs_ns.group_copr_build', group_name=build.group_name, coprname=build.copr_name, build_id=build.id) }}
+{% else %}
+  {{ url_for("coprs_ns.copr_build", username = build.owner_name, coprname = build.copr_name, build_id = build.id) }}
+{% endif %}
+{% endmacro %}
+
 {% macro package_href(package) %}
 {% if package.copr.is_a_group_project %}
   {{ url_for('coprs_ns.group_copr_package', group_name=package.copr.group.name, coprname=package.copr.name, package_name=package.name) }}
