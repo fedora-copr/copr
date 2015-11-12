@@ -1,7 +1,7 @@
 import base64
 import datetime
 import functools
-from functools import wraps
+from functools import wraps, partial
 
 from netaddr import IPAddress, IPNetwork
 import re
@@ -81,6 +81,23 @@ def page_not_found(message):
 def access_restricted(message):
     return flask.render_template("403.html", message=message), 403
 
+
+def generic_error(message, code=500, title=None):
+    """
+    :type message: str
+    :type err: CoprHttpException
+    """
+    return flask.render_template("_error.html",
+                                 message=message,
+                                 error_code=code,
+                                 error_title=title), code
+
+
+server_error_handler = partial(generic_error, code=500, title="Internal Server Error")
+bad_request_handler = partial(generic_error, code=400, title="Bad Request")
+
+app.errorhandler(500)(server_error_handler)
+app.errorhandler(400)(bad_request_handler)
 
 misc = flask.Blueprint("misc", __name__)
 

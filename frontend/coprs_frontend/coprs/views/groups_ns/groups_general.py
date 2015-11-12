@@ -2,6 +2,7 @@
 
 import flask
 from flask import render_template, session, url_for
+from coprs.exceptions import InsufficientRightsException
 from coprs.forms import ActivateFasGroupForm
 from coprs.helpers import Paginator
 from coprs.logic.complex_logic import ComplexLogic
@@ -24,6 +25,12 @@ def activate_group(fas_group):
             flask.flash("This group is blacklisted and cannot be added.")
             return flask.redirect(url_for(
                 "groups_ns.list_user_groups"))
+
+        if fas_group not in flask.g.user.user_teams:
+            raise InsufficientRightsException(
+                "User '{}' doesn't have access to fas group {}"
+                .format(flask.g.user.username, fas_group))
+
         alias = form.name.data
         group = UsersLogic.get_group_by_fas_name_or_create(
             fas_group, alias)
@@ -41,7 +48,9 @@ def activate_group(fas_group):
     else:
         return flask.render_template(
             "groups/activate_fas_group.html",
-            form=form, user=flask.g.user,
+            fas_group=fas_group,
+            form=form,
+            user=flask.g.user,
         )
 
 

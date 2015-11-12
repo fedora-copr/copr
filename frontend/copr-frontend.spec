@@ -93,7 +93,6 @@ BuildRequires: redis
 BuildRequires: python-dateutil
 BuildRequires: pytest
 BuildRequires: yum
-BuildRequires: python-flexmock
 BuildRequires: python-mock
 BuildRequires: python-decorator
 BuildRequires: python-markdown
@@ -119,7 +118,6 @@ Requires:   python3-wtforms
 Requires:   python3-flask-wtf
 Requires:   python3-flask-restful
 Requires:   python3-marshmallow
-Requires:   python3-flexmock
 
 # Not packaged yet:
 # Requires:   python3-flask-openid    # https://bugzilla.redhat.com/show_bug.cgi?id=1010810

@@ -1,43 +1,3 @@
-class ArgumentMissingException(BaseException):
-    pass
-
-
-class MalformedArgumentException(ValueError):
-    pass
-
-
-class NotFoundException(BaseException):
-    pass
-
-
-class DuplicateException(BaseException):
-    pass
-
-
-class InsufficientRightsException(BaseException):
-    pass
-
-
-class RequestCannotBeExecuted(Exception):
-    pass
-
-
-class ActionInProgressException(BaseException):
-
-    def __init__(self, msg, action):
-        self.msg = msg
-        self.action = action
-
-    def __unicode__(self):
-        return self.formatted_msg()
-
-    def __str__(self):
-        return self.__unicode__()
-
-    def formatted_msg(self):
-        return self.msg.format(action=self.action)
-
-
 class CoprHttpException(Exception):
 
     _default = "Generic copr exception"
@@ -67,7 +27,50 @@ class AccessRestricted(CoprHttpException):
     _code = 403
 
 
+class BadRequest(CoprHttpException):
+
+    _default = "Bad request to the server"
+    _code = 400
+
+
 class LegacyApiError(CoprHttpException):
 
     _default = "API error"
     _code = 500
+
+
+class MalformedArgumentException(ValueError):
+    pass
+
+
+class NotFoundException(ObjectNotFound):
+    pass
+
+
+class DuplicateException(BadRequest):
+    pass
+
+
+InsufficientRightsException = AccessRestricted
+
+
+class RequestCannotBeExecuted(CoprHttpException):
+    pass
+
+
+class ActionInProgressException(CoprHttpException):
+
+    def __init__(self, msg, action):
+        self.msg = msg
+        self.action = action
+
+    def __unicode__(self):
+        return self.formatted_msg()
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def formatted_msg(self):
+        return self.msg.format(action=self.action)
+
+

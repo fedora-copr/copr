@@ -110,6 +110,19 @@ class CoprsTestCase(object):
         self.db.session.add_all(self.basic_user_list)
 
     @pytest.fixture
+    def f_fas_groups(self, f_users):
+        self.fas_group_names = [
+            "fas_1",
+            "fas_2",
+            "fas_3",
+            "fas_4",
+        ]
+        self.u1.openid_groups = {'fas_groups': self.fas_group_names[:2]}
+        self.db.session.add(self.u1)
+
+        return self.fas_group_names
+
+    @pytest.fixture
     def f_users_api(self):
         """
         Requires f_users

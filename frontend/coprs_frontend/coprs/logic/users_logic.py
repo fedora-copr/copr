@@ -48,6 +48,11 @@ class UsersLogic(object):
         return Group.query.filter(Group.name == name)
 
     @classmethod
+    def group_alias_exists(cls, name):
+        query = cls.get_group_by_alias(name)
+        return query.count() != 0
+
+    @classmethod
     def get_group_by_fas_name(cls, fas_name):
         return Group.query.filter(Group.fas_name == fas_name)
 

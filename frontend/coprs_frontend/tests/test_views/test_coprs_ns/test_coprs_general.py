@@ -2,9 +2,8 @@ import json
 import flask
 import pytest
 
-from flexmock import flexmock
 import mock
-import time
+
 
 from coprs import models
 from coprs.helpers import ActionTypeEnum
@@ -550,7 +549,8 @@ class TestCoprUpdatePermissions(CoprsTestCase):
         # mock out the order of CoprPermission objects, so that we are sure
         # the admin is the first one and therefore this fails if
         # the view doesn"t reorder the permissions
-        flexmock(self.models.Copr, copr_permissions=[self.cp3, self.cp2])
+
+        # flexmock(self.models.Copr, copr_permissions=[self.cp3, self.cp2])
         r = self.test_client.post("/coprs/{0}/{1}/update_permissions/"
                                   .format(self.u2.name, self.c3.name),
                                   data={"copr_admin_1": "1",

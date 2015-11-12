@@ -11,6 +11,7 @@ from coprs import constants
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.users_logic import UsersLogic
 
 
 class UrlListValidator(object):
@@ -648,7 +649,27 @@ class AdminPlaygroundSearchForm(wtf.Form):
     project = wtforms.TextField("Project")
 
 
+class GroupUniqueNameValidator(object):
+
+    def __init__(self, message=None):
+        if not message:
+            message = "Group with the alias '{}' already exists."
+        self.message = message
+
+    def __call__(self, form, field):
+        if UsersLogic.group_alias_exists(field.data):
+            raise wtforms.ValidationError(self.message.format(field.data))
+
+
 class ActivateFasGroupForm(wtf.Form):
 
-    name = wtforms.StringField()
+    name = wtforms.StringField(
+        validators=[
+            wtforms.validators.Regexp(
+                re.compile(r"^[\w.-]+$"),
+                message="Name must contain only letters,"
+                "digits, underscores, dashes and dots."),
+            GroupUniqueNameValidator()
+        ]
+    )
 
