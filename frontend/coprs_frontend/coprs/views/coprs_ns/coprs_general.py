@@ -690,9 +690,9 @@ def group_generate_repo_file(copr, name_release, repofile):
 def render_generate_repo_file(copr, name_release, repofile):
 
     # we need to check if we really got name release or it's a full chroot (caused by old dnf plugin)
-    if name_release in [c.name for c in copr.active_chroots]:
-        chroot = [c for c in copr.active_chroots if c.name == name_release][0]
-        kwargs = dict(coprname=copr.name, name_release=chroot.name)
+    if name_release in [c.name for c in copr.mock_chroots]:
+        chroot = [c for c in copr.mock_chroots if c.name == name_release][0]
+        kwargs = dict(coprname=copr.name, name_release=chroot.name_release)
         if copr.is_a_group_project:
             fixed_url = url_for("coprs_ns.group_generate_repo_file",
                                 group_name=copr.group.name, **kwargs)
