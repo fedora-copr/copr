@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+from setproctitle import getproctitle, setproctitle
 from shlex import split
 from lockfile import LockFile
 
@@ -16,13 +17,16 @@ from .exceptions import CreateRepoError
 def run_cmd_unsafe(comm_str, lock_path):
     # log.info("Running command: {}".format(comm_str))
     comm = split(comm_str)
+    title = getproctitle()
     try:
+        # TODO change this to logger
+        setproctitle("[locked] in createrepo")
         with LockFile(lock_path):
             cmd = subprocess.Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = cmd.communicate()
-
     except Exception as err:
         raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm_str)
+    setproctitle(title)
 
     if cmd.returncode != 0:
         raise CreateRepoError(msg="exit code != 0",
