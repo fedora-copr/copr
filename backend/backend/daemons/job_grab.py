@@ -164,13 +164,19 @@ class CoprJobGrab(object):
                 self.log.info("New build jobs: %s" % count)
 
         if r_json.get("actions"):
+            count = 0
             self.log.info("{0} actions returned".format(len(r_json["actions"])))
 
             for action in r_json["actions"]:
+                start = time.time()
                 try:
                     self.process_action(action)
                 except Exception as error:
                     self.log.exception("Error during processing action `{}`: {}".format(action, error))
+                if time.time() - start > 2*self.opts.sleeptime:
+                    # we are processing actions for too long, stop and fetch everything again (including new builds)
+                    break
+                    
 
     def on_pubsub_event(self, raw):
         # from celery.contrib import rdb; rdb.set_trace()
