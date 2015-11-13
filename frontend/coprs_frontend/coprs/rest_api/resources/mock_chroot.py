@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from flask import url_for
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 
 from ...logic.coprs_logic import MockChrootsLogic
 
