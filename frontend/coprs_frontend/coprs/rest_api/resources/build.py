@@ -204,6 +204,7 @@ class BuildR(Resource):
 
         return "", 204
 
+    @classmethod
     @rest_api_auth_required
     def put(self, build_id):
         build = get_build_safe(build_id)
