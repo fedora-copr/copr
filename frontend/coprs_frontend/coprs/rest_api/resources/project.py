@@ -2,7 +2,7 @@ from logging import getLogger
 
 import flask
 from flask import url_for, make_response
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 
 from ... import db
 from ...logic.builds_logic import BuildsLogic
