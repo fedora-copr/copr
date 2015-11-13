@@ -75,7 +75,6 @@ def dist_git_upload_completed():
         # Is it OK?
         if "git_hash" in flask.request.json and "repo_name" in flask.request.json:
             git_hash = flask.request.json["git_hash"]
-            repo_name = flask.request.json["repo_name"]
             pkg_name = flask.request.json["pkg_name"]
             pkg_version = flask.request.json["pkg_version"]
 
