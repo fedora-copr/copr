@@ -2,7 +2,6 @@ import base64
 import datetime
 from functools import wraps
 import os
-import tempfile
 import json
 import flask
 
