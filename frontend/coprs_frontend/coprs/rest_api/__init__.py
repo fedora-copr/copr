@@ -16,7 +16,8 @@ URL_PREFIX = "/api_2"
 
 
 class RootR(Resource):
-    def get(self):
+    @classmethod
+    def get(cls):
         return {
             "_links": {
                 "self": {"href": url_for(".rootr")},
