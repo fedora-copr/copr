@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import flask
-from flask import render_template, session, url_for
+from flask import render_template, url_for
 from coprs.exceptions import InsufficientRightsException
 from coprs.forms import ActivateFasGroupForm
 from coprs.helpers import Paginator
