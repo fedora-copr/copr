@@ -284,7 +284,6 @@ class TestCoprRepeatBuild(CoprsTestCase):
             data={},
             follow_redirects=True)
 
-        # import ipdb; ipdb.set_trace()
         assert b"You are not allowed to repeat this build." in r.data
 
     @TransactionDecorator("u1")

@@ -235,7 +235,6 @@ class CoprsTestCase(object):
                 [self.b1, self.b2, self.b3, self.b4],
                 [self.b1_bc, self.b2_bc, self.b3_bc, self.b4_bc]):
 
-            # import ipdb; ipdb.set_trace()
             status = None
             if build is self.b1:  # this build is going to be deleted
                 status = StatusEnum("succeeded")

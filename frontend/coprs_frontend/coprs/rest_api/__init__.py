@@ -41,7 +41,6 @@ class RootR(Resource):
 class MyApi(Api):
     # flask-restfull error handling quite buggy right now
     def error_router(self, original_handler, e):
-        # import ipdb; ipdb.set_trace()
         return original_handler(e)
 #     # def handle_error(self, e):
 #     #
@@ -83,7 +82,7 @@ def register_api_error_handler(app):
         """
         :param ApiError error:
         """
-        # import ipdb; ipdb.set_trace()
+
         content = {
             "message": error.msg,
         }

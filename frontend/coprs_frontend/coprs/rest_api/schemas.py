@@ -12,7 +12,6 @@ def validate_any(fn_list):
     :raises ValidationError: otherwise
     """
     def func(value):
-        # import ipdb; ipdb.set_trace()
         errors = []
         for fn in fn_list:
             try:
