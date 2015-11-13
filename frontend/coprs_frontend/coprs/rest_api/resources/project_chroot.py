@@ -23,7 +23,8 @@ from ..util import get_one_safe, mm_deserialize
 
 class ProjectChrootListR(Resource):
 
-    def get(self, project_id):
+    @classmethod
+    def get(cls, project_id):
         project = get_project_safe(project_id)
 
         return {
