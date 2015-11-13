@@ -112,7 +112,7 @@ class FailTypeEnum(with_metaclass(EnumType, object)):
             "git_wrong_directory": 32,
             "git_checkout_error": 33,
             "srpm_build_error": 34,
-    }
+           }
 
 
 class JSONEncodedDict(TypeDecorator):
