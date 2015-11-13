@@ -21,7 +21,7 @@ from coprs.views.api_ns import api_ns
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
-from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic
+from coprs.logic.coprs_logic import CoprsLogic
 
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
