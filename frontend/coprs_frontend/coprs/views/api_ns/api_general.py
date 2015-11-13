@@ -6,7 +6,6 @@ import flask
 
 from werkzeug import secure_filename
 
-from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import forms
