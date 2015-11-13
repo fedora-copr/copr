@@ -75,7 +75,7 @@ def localized_time(time_in, timezone):
 
 @app.template_filter('timestamp_diff')
 def timestamp_diff(time_in, until=None):
-    """ returns string with difference between two timestamps 
+    """ returns string with difference between two timestamps
 
     Input is in EPOCH (seconds since epoch).
     """
