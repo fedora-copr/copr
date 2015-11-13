@@ -14,7 +14,6 @@ from coprs.helpers import fix_protocol_for_backend
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.logic.users_logic import UsersLogic
 
 from coprs.views.misc import login_required, api_login_required
 
