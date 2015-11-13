@@ -1,7 +1,6 @@
 import flask
 import sys
 import time
-import os
 
 from coprs import db, app
 from coprs import helpers
