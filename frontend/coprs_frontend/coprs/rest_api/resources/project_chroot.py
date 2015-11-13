@@ -15,7 +15,7 @@ from ...logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic
 from ...exceptions import InsufficientRightsException, MalformedArgumentException
 
 from ..exceptions import AccessForbidden, MalformedRequest, \
-    ObjectAlreadyExists, ServerError, ObjectNotFoundError
+    ObjectAlreadyExists, ObjectNotFoundError
 from ..common import rest_api_auth_required, render_copr_chroot, get_project_safe
 from ..schemas import CoprChrootSchema, CoprChrootCreateSchema
 from ..util import get_one_safe, mm_deserialize
