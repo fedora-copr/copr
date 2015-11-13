@@ -85,8 +85,9 @@ class ProjectChrootR(Resource):
 
         return render_copr_chroot(chroot)
 
+    @classmethod
     @rest_api_auth_required
-    def delete(self, project_id, name):
+    def delete(cls, project_id, name):
         project = get_project_safe(project_id)
         chroot = CoprChrootsLogic.get_by_name_safe(project, name)
 
