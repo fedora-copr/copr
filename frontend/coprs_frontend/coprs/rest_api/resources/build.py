@@ -167,7 +167,8 @@ class BuildListR(Resource):
 
 class BuildR(Resource):
 
-    def get(self, build_id):
+    @classmethod
+    def get(cls, build_id):
         parser = get_request_parser()
         parser.add_argument('show_build_tasks', type=arg_bool, default=False)
         req_args = parser.parse_args()
