@@ -78,7 +78,7 @@
     {% endif %}
 
     {% if g.user and not copr.is_a_group_project %}
-      {{ nav_element("permissions", "Permission",  url_for(
+      {{ nav_element("permissions", "Permissions",  url_for(
           'coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name))
       }}
     {% endif %}
