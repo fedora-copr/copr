@@ -1,5 +1,5 @@
 import os
-import subprocess
+from subprocess import Popen, PIPE
 
 from setproctitle import getproctitle, setproctitle
 from shlex import split
@@ -22,7 +22,7 @@ def run_cmd_unsafe(comm_str, lock_path):
         # TODO change this to logger
         setproctitle("[locked] in createrepo")
         with LockFile(lock_path):
-            cmd = subprocess.Popen(comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            cmd = Popen(comm, stdout=PIPE, stderr=PIPE)
             out, err = cmd.communicate()
     except Exception as err:
         raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm_str)

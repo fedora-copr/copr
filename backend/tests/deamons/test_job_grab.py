@@ -73,9 +73,6 @@ class TestJobGrab(object):
 
     def setup_method(self, method):
 
-        self.mc_mpp_patcher = mock.patch("{}.Process".format(MODULE_REF))
-        self.mc_mpp = self.mc_mpp_patcher.start()
-
         self.test_time = time.time()
         subdir = "test_createrepo_{}".format(time.time())
         self.tmp_dir_path = os.path.join(tempfile.gettempdir(), subdir)
@@ -121,7 +118,6 @@ class TestJobGrab(object):
         )
 
     def teardown_method(self, method):
-        self.mc_mpp_patcher.stop()
 
         shutil.rmtree(self.tmp_dir_path)
         if hasattr(self, "cbl"):
@@ -213,9 +209,8 @@ class TestJobGrab(object):
         assert not self.jg.task_queues_by_arch["x86_64"].enqueue.called
         assert not self.jg.task_queues_by_arch["armv7"].enqueue.called
 
-    @mock.patch("backend.daemons.job_grab.FrontendClient")
     @mock.patch("backend.daemons.job_grab.Action", spec=backend.actions.Action)
-    def test_process_action(self, mc_action, mc_fe_c, init_jg):
+    def test_process_action(self, mc_action, init_jg):
         test_action = MagicMock()
 
         self.jg.process_action(test_action)

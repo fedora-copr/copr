@@ -8,7 +8,7 @@ import tempfile
 import time
 from munch import Munch
 from subprocess import Popen, PIPE
-from copr.client.exceptions import CoprException
+from copr.exceptions import CoprException
 
 import pytest
 

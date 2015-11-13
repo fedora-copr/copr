@@ -7,6 +7,7 @@ from urllib import urlretrieve
 from munch import Munch
 from copr.exceptions import CoprRequestException
 
+from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError
 from .helpers import get_redis_logger, silent_remove
@@ -213,6 +214,19 @@ class Action(object):
                     self.log.info("Removing log {0}".format(log_path))
                     os.remove(log_path)
 
+    def handle_generate_gpg_key(self, result):
+        self.log.debug("Action generate gpg key")
+
+        ext_data = json.loads(self.data["data"])
+        username = ext_data["username"]
+        projectname = ext_data["projectname"]
+
+        try:
+            create_user_keys(username, projectname, self.opts)
+            result.results = ActionResult.SUCCESS
+        except CoprKeygenRequestError:
+            result.result = ActionResult.FAILURE
+
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
         result = Munch()
@@ -240,6 +254,9 @@ class Action(object):
         elif action_type == ActionType.UPDATE_COMPS:
             self.handle_comps_update(result)
 
+        elif action_type == ActionType.GEN_GPG_KEY:
+            self.handle_generate_gpg_key(result)
+
         if "result" in result:
             if result.result == ActionResult.SUCCESS and \
                     not getattr(result, "job_ended_on", None):
@@ -254,6 +271,7 @@ class ActionType(object):
     LEGAL_FLAG = 2
     CREATEREPO = 3
     UPDATE_COMPS = 4
+    GEN_GPG_KEY = 5
 
 
 class ActionResult(object):

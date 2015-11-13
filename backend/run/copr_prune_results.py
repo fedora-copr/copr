@@ -17,7 +17,7 @@ import pwd
 log = logging.getLogger(__name__)
 
 
-from copr.client.exceptions import CoprException, CoprRequestException
+from copr.exceptions import CoprException, CoprRequestException
 
 sys.path.append("/usr/share/copr/")
 
