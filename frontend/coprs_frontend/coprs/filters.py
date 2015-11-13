@@ -167,8 +167,7 @@ def build_state_decoration(state):
 
 
 @app.template_filter("build_source_description")
-def build_state_decoration(state):
-
+def build_source_description(state):
     description_map = {
         "unset": "No default source",
         "srpm_link": "External link with SRPM",
