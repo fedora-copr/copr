@@ -1,10 +1,13 @@
+import json
 import pytest
 
 from coprs.exceptions import ActionInProgressException
 from coprs.helpers import ActionTypeEnum
+from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic
 
 from coprs import models
+from coprs.logic.users_logic import UsersLogic
 from tests.coprs_test_case import CoprsTestCase
 
 
@@ -52,5 +55,20 @@ class TestCoprsLogic(CoprsTestCase):
 
         obtained = len(results)
         expected = u1_count + u2_count
-        # TODO: uncomment after fix in flask-whooshee will be released
-        # assert obtained == expected
+
+        assert obtained == expected
+
+    def test_copr_logic_add_sends_create_gpg_key_action(self, f_users, f_mock_chroots, f_db):
+        name = u"project_1"
+        selected_chroots = [self.mc1.name]
+
+        CoprsLogic.add(self.u1, name, selected_chroots)
+        self.db.session.commit()
+
+        actions = ActionsLogic.get_many(ActionTypeEnum("gen_gpg_key")).all()
+        assert len(actions) == 1
+        data = json.loads(actions[0].data)
+        assert data["username"] == self.u1.name
+        assert data["projectname"] == name
+
+

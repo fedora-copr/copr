@@ -141,3 +141,22 @@ class ActionsLogic(object):
             created_on=int(time.time())
         )
         db.session.add(action)
+
+    @classmethod
+    def send_create_gpg_key(cls, copr):
+        """
+        :type copr: models.Copr
+        """
+
+        data_dict = {
+            "username": copr.owner.name,
+            "projectname": copr.name,
+        }
+
+        action = models.Action(
+            action_type=helpers.ActionTypeEnum("gen_gpg_key"),
+            object_type="copr",
+            data=json.dumps(data_dict),
+            created_on=int(time.time()),
+        )
+        db.session.add(action)
