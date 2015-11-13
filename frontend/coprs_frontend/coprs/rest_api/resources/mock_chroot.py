@@ -20,7 +20,8 @@ def render_mock_chroot(chroot):
 
 class MockChrootListR(Resource):
 
-    def get(self):
+    @classmethod
+    def get(cls):
         parser = get_request_parser()
         parser.add_argument('active_only', type=arg_bool)
         req_args = parser.parse_args()
