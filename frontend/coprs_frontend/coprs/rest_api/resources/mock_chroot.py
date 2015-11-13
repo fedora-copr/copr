@@ -46,6 +46,7 @@ class MockChrootListR(Resource):
 
 
 class MockChrootR(Resource):
-    def get(self, name):
+    @classmethod
+    def get(cls, name):
         chroot = get_one_safe(MockChrootsLogic.get_from_name(name))
         return render_mock_chroot(chroot)
