@@ -47,6 +47,12 @@
           {% endif %}"
           method="post" enctype="multipart/form-data">
     {% endif %}
+      <h3> Source of the Build </h3>
+{% endmacro %}
+
+
+{% macro copr_build_form_end(form, view, copr) %}
+      <h3> Build Options </h3>
       <div class="form-group">
         <label class="col-sm-2 control-label" for="textInput-markup">
           Chroots
@@ -62,10 +68,6 @@
         {% endfor %}{% endfor %}
         </div>
       </div>
-{% endmacro %}
-
-
-{% macro copr_build_form_end(form, view, copr) %}
       {{ form.csrf_token }}
       {% if g.user.proven %}
         {{ render_field(form.memory_reqs) }}
@@ -76,7 +78,7 @@
       {% endif %}
       <div class="form-group">
         <label class="col-sm-2 control-label" for="textInput-markup">
-        Build Options
+        Other Options
         </label>
         <div class="col-sm-10">
         {{ form.enable_net(checked=copr.build_enable_net) }} Enable internet access during this build
@@ -98,7 +100,7 @@
 {% macro copr_build_form_url(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
-    {{ render_field(form.pkgs, label='URLs of packages to build', rows = 10, cols = 50) }}
+    {{ render_field(form.pkgs, label='URLs to SRPM Files', rows = 10, cols = 50) }}
 
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
@@ -109,7 +111,7 @@
 
       <div class="form-group">
         <label class="col-sm-2 control-label" for="textInput-markup">
-        Package File
+        SRPM File
         </label>
         <div class="col-sm-10">
           {{ form.pkgs }}
@@ -142,17 +144,11 @@
 {% macro copr_build_form_mock(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
+    {{ render_field(form.scm_type) }}
+    {{ render_field(form.scm_url, placeholder="URL to your Git or SVN repository") }}
 
-    <div class="form-group">
-        <label class="col-sm-2 control-label" for="textInput-markup">SCM URL</label>
-        <div class="col-sm-10">
-            {{ form.scm_type(class="form-control") }}
-            {{ form.scm_url(class="form-control", placeholder="URL to your Git or SVN directory") }}
-        </div>
-    </div>
-
-    {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
     {{ render_field(form.spec, placeholder="Path from repository root directory to your .spec file") }}
+    {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
 
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}

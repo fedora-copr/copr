@@ -463,7 +463,7 @@ class BuildFormMockFactory(object):
                     wtforms.validators.Optional()])
 
             spec = wtforms.StringField(
-                "Spec file",
+                "Spec File",
                 validators=[
                     wtforms.validators.Regexp(
                         "^.+\.spec$",

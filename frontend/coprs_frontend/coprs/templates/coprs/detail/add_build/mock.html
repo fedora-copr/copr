@@ -10,7 +10,8 @@
 {%endblock%}
 
 {% block build_form %}
-<h3>Build from Mock SCM</h3>
+<h2> New Build <small>From a Git or SVN Repository Using Mock SCM</small></h2>
+<p> Provide a URL of a Git or SVN repository and path to the SPEC file within the repository. You can optionally build from a specific branch. </p>
 
   {{ copr_build_form_mock(form, 'coprs_ns.copr_new_build_mock', copr) }}
 
