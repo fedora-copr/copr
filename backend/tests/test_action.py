@@ -19,8 +19,7 @@ else:
 
 
 from backend.actions import Action, ActionType, ActionResult
-from backend.exceptions import CreateRepoError
-
+from backend.exceptions import CreateRepoError, CoprKeygenRequestError
 
 RESULTS_ROOT_URL = "http://example.com/results"
 STDOUT = "stdout"
@@ -619,3 +618,45 @@ class TestAction(object):
 
         assert result_dict["id"] == 10
         assert result_dict["result"] == ActionResult.FAILURE
+
+    @mock.patch("backend.actions.create_user_keys")
+    def test_handle_generate_gpg_key(self, mc_cuk, mc_time):
+        uname = "foo"
+        pname = "bar"
+        action_data = json.dumps({
+            "username": uname,
+            "projectname": pname,
+        })
+
+        expected_call = mock.call(uname, pname, self.opts)
+
+        mc_front_cb = MagicMock()
+        test_action = Action(
+            opts=self.opts,
+            action={
+                "action_type": ActionType.GEN_GPG_KEY,
+                "data": action_data,
+                "id": 11
+            },
+            frontend_client=mc_front_cb
+        )
+
+        test_action.run()
+
+        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
+
+        assert result_dict["id"] == 11
+        assert result_dict["result"] == ActionResult.SUCCESS
+
+        assert mc_cuk.call_args == expected_call
+
+        # handle exception
+        mc_cuk.side_effect = CoprKeygenRequestError("foo")
+        mc_front_cb.reset_mock()
+        test_action.run()
+
+        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
+
+        assert result_dict["id"] == 11
+        assert result_dict["result"] == ActionResult.FAILURE
+

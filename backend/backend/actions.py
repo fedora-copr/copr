@@ -223,7 +223,7 @@ class Action(object):
 
         try:
             create_user_keys(username, projectname, self.opts)
-            result.results = ActionResult.SUCCESS
+            result.result = ActionResult.SUCCESS
         except CoprKeygenRequestError:
             result.result = ActionResult.FAILURE
 
