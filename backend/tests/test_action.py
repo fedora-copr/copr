@@ -50,7 +50,9 @@ class TestAction(object):
 
             destdir=None,
             frontend_base_url=None,
-            results_baseurl=RESULTS_ROOT_URL
+            results_baseurl=RESULTS_ROOT_URL,
+
+            do_sign=True,
         )
 
     def teardown_method(self, method):
@@ -644,7 +646,6 @@ class TestAction(object):
         test_action.run()
 
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
-
         assert result_dict["id"] == 11
         assert result_dict["result"] == ActionResult.SUCCESS
 
@@ -660,3 +661,13 @@ class TestAction(object):
         assert result_dict["id"] == 11
         assert result_dict["result"] == ActionResult.FAILURE
 
+        # test, that key creation is skipped when signing is disabled
+        self.opts.do_sign = False
+        mc_front_cb.reset_mock()
+        mc_cuk.reset_mock()
+        test_action.run()
+
+        assert not mc_cuk.called
+        result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
+        assert result_dict["id"] == 11
+        assert result_dict["result"] == ActionResult.SUCCESS

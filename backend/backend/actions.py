@@ -215,11 +215,16 @@ class Action(object):
                     os.remove(log_path)
 
     def handle_generate_gpg_key(self, result):
-        self.log.debug("Action generate gpg key")
-
         ext_data = json.loads(self.data["data"])
+        self.log.info("Action generate gpg key: {}".format(ext_data))
+
         username = ext_data["username"]
         projectname = ext_data["projectname"]
+
+        if self.opts.do_sign is False:
+            # skip key creation, most probably sign component is unused
+            result.result = ActionResult.SUCCESS
+            return
 
         try:
             create_user_keys(username, projectname, self.opts)
@@ -256,6 +261,8 @@ class Action(object):
 
         elif action_type == ActionType.GEN_GPG_KEY:
             self.handle_generate_gpg_key(result)
+
+        self.log.info("Action result: {}".format(result))
 
         if "result" in result:
             if result.result == ActionResult.SUCCESS and \
