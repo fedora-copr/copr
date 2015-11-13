@@ -11,7 +11,7 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
 from ... import db
-from ...logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic, CoprsLogic
+from ...logic.coprs_logic import MockChrootsLogic, CoprChrootsLogic
 from ...exceptions import InsufficientRightsException, MalformedArgumentException
 
 from ..exceptions import AccessForbidden, MalformedRequest, \
