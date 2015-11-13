@@ -1,7 +1,6 @@
 # coding: utf-8
 
 from collections import Iterable
-from marshmallow import Schema, fields
 from marshmallow import Schema, fields, ValidationError, validate
 from six import string_types
 
