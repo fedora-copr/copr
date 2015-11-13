@@ -143,7 +143,7 @@ def parse_package_name(pkg):
 
 
 @app.template_filter("basename")
-def parse_package_name(pkg):
+def parse_basename(pkg):
     if pkg is not None:
         return os.path.basename(pkg)
     return pkg
