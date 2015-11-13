@@ -188,8 +188,9 @@ class BuildR(Resource):
 
         return result
 
+    @classmethod
     @rest_api_auth_required
-    def delete(self, build_id):
+    def delete(cls, build_id):
         build = get_build_safe(build_id)
         try:
             BuildsLogic.delete_build(flask.g.user, build)
