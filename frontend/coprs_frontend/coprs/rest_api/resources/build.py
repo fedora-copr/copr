@@ -6,7 +6,6 @@ from flask_restful import Resource
 
 from ... import db
 from ...exceptions import ActionInProgressException, InsufficientRightsException, RequestCannotBeExecuted
-from ...helpers import StatusEnum
 from ...logic.builds_logic import BuildsLogic
 from ..common import get_project_safe
 from ..exceptions import MalformedRequest, CannotProcessRequest, AccessForbidden
