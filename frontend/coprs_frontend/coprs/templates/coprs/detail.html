@@ -22,6 +22,7 @@
 
 
 {% block breadcrumbs %}
+<ol class="breadcrumb">
   {{ render_crumb(url_for('coprs_ns.coprs_show'), 'Home') }}
   {% if copr.is_a_group_project %}
     {{ render_crumb(url_for('groups_ns.list_projects_by_group', group_name=copr.group.name),
@@ -38,6 +39,7 @@
 
   {%block project_breadcrumb %}
   {%endblock%}
+</ol>
 {%endblock%}
 
 {% block body scoped %}
