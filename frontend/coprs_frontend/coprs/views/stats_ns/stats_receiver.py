@@ -4,7 +4,7 @@ import flask
 from coprs import rcp
 from coprs import app
 from coprs import db
-from coprs.helpers import REPO_DL_STAT_FMT, CounterStatType
+from coprs.helpers import CounterStatType
 from ..misc import intranet_required
 from . import stats_rcv_ns
 from ...logic.stat_logic import CounterStatLogic, handle_logstash
