@@ -17,7 +17,8 @@ from ..util import mm_deserialize, get_request_parser, arg_bool
 
 class BuildListR(Resource):
 
-    def get(self):
+    @classmethod
+    def get(cls):
 
         parser = get_request_parser()
 
