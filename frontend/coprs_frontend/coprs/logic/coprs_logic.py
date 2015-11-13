@@ -205,6 +205,8 @@ class CoprsLogic(object):
         CoprsLogic.new(user, copr,
                        check_for_duplicates=check_for_duplicates)
         CoprChrootsLogic.new_from_names(copr, selected_chroots)
+
+        db.session.flush()
         ActionsLogic.send_create_gpg_key(copr)
 
         return copr
