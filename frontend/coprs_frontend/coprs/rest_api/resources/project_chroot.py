@@ -37,8 +37,9 @@ class ProjectChrootListR(Resource):
             }
         }
 
+    @classmethod
     @rest_api_auth_required
-    def post(self, project_id):
+    def post(cls, project_id):
         project = get_project_safe(project_id)
 
         chroot_data = mm_deserialize(CoprChrootCreateSchema(),
