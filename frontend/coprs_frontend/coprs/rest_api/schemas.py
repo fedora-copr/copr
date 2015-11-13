@@ -2,7 +2,7 @@
 
 from collections import Iterable
 from marshmallow import Schema, fields
-from marshmallow import Schema, fields, validates_schema, ValidationError, validate
+from marshmallow import Schema, fields, ValidationError, validate
 from six import string_types
 
 
