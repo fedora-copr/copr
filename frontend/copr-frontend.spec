@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.75
+Version:    1.76
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -245,6 +245,9 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Mon Nov 16 2015 Miroslav Suchý <msuchy@redhat.com> 1.76-1
+- move status_to_order() definition to alembic
+
 * Mon Nov 16 2015 Miroslav Suchý <miroslav@suchy.cz> 1.75-1
 - Sending action to create gpg key right after the project creation
 - Permission -> Permissions
