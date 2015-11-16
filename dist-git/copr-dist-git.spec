@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.8
+Version:    0.9
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -100,6 +100,15 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Nov 16 2015 Miroslav Suchý <msuchy@redhat.com> 0.9-1
+- make more abstract exceptions
+- implement support for multiple Mock SCMs
+- split SourceDownloader to multiple SourceProvider classes
+- refactor duplicate code from GIT_AND_TITO and GIT_AND_MOCK
+- require mock-scm
+- implement mock support in dist-git
+- do not check cert when downloading srpm
+
 * Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 0.8-1
 - add Git and Tito errors
 - tito support
