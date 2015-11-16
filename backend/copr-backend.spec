@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.77
+Version:    1.78
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -246,6 +246,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Nov 16 2015 Miroslav Suchý <miroslav@suchy.cz> 1.78-1
+- handle_generate_gpg_key skips key creation when signing is disabled
+- Added test_handle_generate_gpg_key
+- fixed failing tests
+- show when createrepo is waiting for lock
+- do not block builds when processing too much actions
+
 * Fri Nov 06 2015 Miroslav Suchý <msuchy@redhat.com> 1.77-1
 - we need to have recent python-copr
 - create copr-backend-service script to handle all copr services
