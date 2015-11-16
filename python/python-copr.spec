@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.61
+Version:    1.62
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,9 @@ popd
 %endif
 
 %changelog
+* Mon Nov 16 2015 Miroslav Suchý <msuchy@redhat.com> 1.62-1
+- pylint cleaning
+
 * Mon Nov 09 2015 Miroslav Suchý <msuchy@redhat.com> 1.61-1
 - W:  9, 0: Unused import json (unused-import)
 - Added marshmallow as dep
