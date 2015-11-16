@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.74
+Version:    1.75
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -245,6 +245,25 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Mon Nov 16 2015 Miroslav Suchý <miroslav@suchy.cz> 1.75-1
+- Sending action to create gpg key right after the project creation
+- Permission -> Permissions
+- Make the New Build forms more organized
+- fix breadcrumb
+- using raw SQL for builds view
+- [rhbz:#1273738] "dnf copr enable" fails with old projects because
+  old projects are not redirect well
+- [rhbz:#1279199] Internet access always enabled when building from
+  CLI
+- 1280416 - do not use @ in repo id
+- Validate group name and access right during the group activation.
+- make more abstract exceptions
+- fix showing active tab for tito and mock
+- implement support for multiple Mock SCMs
+- implement mock support in dist-git
+- implement mock support in frontend
+- fix dnf dependency for F23
+
 * Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.74-1
 - [frontend] require dnf because of 6ab5306
 
