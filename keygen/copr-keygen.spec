@@ -7,7 +7,7 @@
 # this package doesn't support rhel7- since it doesn't have python3* packages
 
 Name:       copr-keygen
-Version:    1.63
+Version:    1.64
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -187,6 +187,9 @@ service httpd condrestart
 
 
 %changelog
+* Mon Nov 16 2015 Miroslav Suchý <msuchy@redhat.com> 1.64-1
+- Fixed invalid classifiers
+
 * Thu Jul 02 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.63-1
 - fix race condition during key-pair creation, now should be safe with
   file locking.
