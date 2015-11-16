@@ -125,33 +125,6 @@ class BuildsLogic(object):
 
     @classmethod
     def get_copr_builds_list(cls, copr):
-        query_functions = """
-CREATE OR REPLACE FUNCTION status_to_order (x integer)
-RETURNS integer AS $$ BEGIN
-        RETURN CASE WHEN x = 0 THEN 0
-                    WHEN x = 3 THEN 1
-                    WHEN x = 6 THEN 2
-                    WHEN x = 7 THEN 3
-                    WHEN x = 4 THEN 4
-                    WHEN x = 1 THEN 5
-                    WHEN x = 5 THEN 6
-               ELSE 1000
-        END; END;
-    $$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION order_to_status (x integer)
-RETURNS integer AS $$ BEGIN
-        RETURN CASE WHEN x = 0 THEN 0
-                    WHEN x = 1 THEN 3
-                    WHEN x = 2 THEN 6
-                    WHEN x = 3 THEN 7
-                    WHEN x = 4 THEN 4
-                    WHEN x = 5 THEN 1
-                    WHEN x = 6 THEN 5
-               ELSE 1000
-        END; END;
-    $$ LANGUAGE plpgsql;
-"""
         query_select = """
 SELECT build.id, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
     MIN(statuses.started_on) AS started_on, MAX(statuses.ended_on) AS ended_on, order_to_status(MIN(statuses.st)) AS status,
@@ -211,9 +184,8 @@ GROUP BY
             conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
             conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
             result = conn.execute(text(query_select))
-
         else:
-            result = db.engine.execute(text(query_functions+query_select))
+            result = db.engine.execute(text(query_select))
 
         return result
 
