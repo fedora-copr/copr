@@ -12,35 +12,7 @@ through its `API <http://copr.fedoraproject.org/api>`_.
 Python-copr right now is in alpha stage, so expect lot of changes. Now it targets python 2.6+
 and python3.3+.
 
-
-Installation
-============
-
-Dependencies:
--------------
-::
-
- python2.6+
- python-requests
- python-six
-
-repo
-----
-Available for fedora 21+
-::
-
-    dnf install python-copr python-copr-doc
-
-source
-------
-
-.. code-block:: bash
-
-    git clone https://git.fedorahosted.org/git/copr.git
-    cd python
-    # enable virtualenv if needed
-    pip install -r requirements.txt
-    python setup.py install
+.. include:: installation.rst
 
 Contact
 =======
@@ -59,38 +31,8 @@ Usage
 Recently Copr started to offer an alternative REST-like APIv2_.
 New API is provided by mostly independent `client_v2` package.
 
-Legacy client
--------------
-All interaction are done through copr.CoprClient.
-It can be created directly or using config file :file:`/etc/copr.conf`
-
-*CoprClient* offers methods that directly reflect Copr api. Received data
-are wrapped into the Response object.
-Depending on used methods Responses will have different set of
-provided attributes and methods.
-
-.. toctree::
-    Examples
-
-See method signatures and response objects in
-the auto generated documentation:
-
-
-.. toctree::
-    CoprClient
-    Responses
-
-Client_v2
----------
-Main object for interaction is copr.ClientV2
-It can be created using either of two functions:
-    - create_client2_from_params
-    - create_client2_from_file_config
-
-New API and Client_v2 provides more simple and uniform approach for communication with the Copr service.
-See `auto-generated docs`_ and `usage examples`_
-
-
+.. include:: ClientV1.rst
+.. include:: ClientV2.rst
 
 
 Indices and tables

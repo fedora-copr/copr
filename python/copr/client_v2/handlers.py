@@ -180,13 +180,14 @@ class ProjectHandle(AbstractHandle):
         return self._base_url
 
     def get_list(self, search_query=None, owner=None, name=None, limit=None, offset=None):
-        """
-        :param search_query:
-        :param owner:
-        :param name:
-        :param limit:
-        :param offset:
-        :rtype: ProjectsList
+        """ Retrieves projects object according to the given parameters
+        :param str search_query: search projects with such string
+        :param str owner: owner username
+        :param str name: project name
+        :param int limit: limit number of projects
+        :param int offset: number of projects to skip
+
+        :rtype: :py:class:`~.resources.ProjectsList`
         """
         options = {
             "search_query": search_query,
@@ -199,15 +200,18 @@ class ProjectHandle(AbstractHandle):
         response = self.nc.request(self.get_base_url(), query_params=options)
         return ProjectsList.from_response(self, response, options)
 
-    def get_one(self, project_id, show_builds=False, show_chroots=False):
-        """
+    def get_one(self, project_id):
+        # todo: implement: , show_builds=False, show_chroots=False):
+        """ Retrieves project object.
+
         :type project_id: int
+        :rtype: :py:class:`~.resources.Project`
         """
         query_params = {
-            "show_builds": show_builds,
-            "show_chroots": show_chroots
+            # "show_builds": show_builds,
+            # "show_chroots": show_chroots
         }
-        # import ipdb; ipdb.set_trace()
+
         url = "{}/{}".format(self.get_base_url(), project_id)
         response = self.nc.request(url, query_params=query_params)
         return Project.from_response(
@@ -218,8 +222,10 @@ class ProjectHandle(AbstractHandle):
         )
 
     def update(self, project_entity):
-        """
+        """ Updates project.
+
         :type project_entity: ProjectEntity
+        :rtype: OperationResult
         """
         url = "{}/{}".format(self.get_base_url(), project_entity.id)
         data = project_entity.to_json()
@@ -228,6 +234,11 @@ class ProjectHandle(AbstractHandle):
         return OperationResult(self, response)
 
     def delete(self, project_id):
+        """ Deletes project.
+
+        :param int project_id: project identifier
+        :rtype: OperationResult
+        """
         url = "{}/{}".format(self.get_base_url(), project_id)
         response = self.nc.request(url, method="delete", do_auth=True)
         return OperationResult(self, response, expected_status=204)
@@ -292,6 +303,8 @@ class ProjectChrootHandle(AbstractHandle):
     def enable(self, project, name, buildroot_pkgs=None):
         """
         :type project: copr.client_v2.resources.Project
+
+        :rtype:
         """
 
         new_entity = ProjectChrootEntity(

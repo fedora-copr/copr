@@ -1,0 +1,16 @@
+General
+=======
+
+.. autofunction:: copr.create_client2_from_params
+.. autofunction:: copr.create_client2_from_file_config
+
+
+CoprClient
+==========
+
+
+.. autoclass:: copr.client_v2.client.CoprClient
+   :members: projects, builds, project_chroots, mock_chroots, create_from_file_config, create_from_params, post_init
+   :undoc-members:
+
+

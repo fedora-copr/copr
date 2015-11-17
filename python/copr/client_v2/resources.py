@@ -144,13 +144,23 @@ class Project(IndividualResource):
         self._handle = handle
 
     def update(self):
+        """ Updates project using the current state.
+
+        Shortcut for for :py:meth:`.ProjectHandle.update`
+
+        :rtype: :py:class:`~copr.client_v2.resources.OperationResult`
+        """
         return self._handle.update(self._entity)
 
     def delete(self):
+        """ Updates project using the current state
+
+        :rtype: :py:class:`~copr.client_v2.resources.OperationResult`
+        """
         return self._handle.delete(self.id)
 
     def get_self(self):
-        return self._handle.get_one(self.id, **self._options)
+        return self._handle.get_one(self.id)
 
     def get_project_chroot(self, name):
         handle = self._handle.get_project_chroots_handle()
@@ -160,9 +170,13 @@ class Project(IndividualResource):
         handle = self._handle.get_project_chroots_handle()
         return handle.get_list(self)
 
-    def enable_project_chroot(self, *args, **kwargs):
+    def enable_project_chroot(self, name):
+        """
+        :param str name: mock chroot name
+        :rtype: :py:class:`~copr.client_v2.resources.OperationResult`
+        """
         handle = self._handle.get_project_chroots_handle()
-        return handle.enable(self, *args, **kwargs)
+        return handle.enable(self, name)
 
     # TODO: remove proxy methods on the handle classes
     def create_build_from_file(self, *args, **kwargs):
@@ -319,6 +333,7 @@ class ProjectsList(CollectionResource):
 
     @property
     def projects(self):
+        """ :rtype: list of :py:class:`~.resources.Project` """
         return self._individuals
 
     @classmethod
@@ -335,7 +350,7 @@ class ProjectsList(CollectionResource):
                 )
                 for dict_part in data_dict["projects"]
             ],
-            options=None
+            options=options
         )
         return result
 
@@ -365,7 +380,8 @@ class BuildList(CollectionResource):
                     data_dict=dict_part,
                 )
                 for dict_part in data_dict["builds"]
-            ]
+            ],
+            options=options
         )
         return result
 
@@ -432,5 +448,6 @@ class MockChrootList(CollectionResource):
                     data_dict=dict_part,
                 )
                 for dict_part in data_dict["chroots"]
-            ]
+            ],
+            options=options
         )

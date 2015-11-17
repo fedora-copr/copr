@@ -78,10 +78,10 @@ class CoprClient(UnicodeMixin, HandlersProvider):
     :param bool no_config: helper flag to indicate that no config was provided
 
     Could be created:
-        - using static method :py:meth:`CoprClient.create_from_file_config`
-        - using static method :py:meth:`CoprClient.create_from_params`
+        - using static method :meth:`~copr.client_v2.client.CoprClient.create_from_file_config`
+        - using static method :meth:`~copr.client_v2.client.CoprClient.create_from_params`
 
-    If you create Client directly call post_init() method after the creation.
+    If you create Client directly call :meth:`CoprClient.post_init` method after the creation.
     """
 
     def __init__(self, net_client, root_url=None, no_config=False):
@@ -110,21 +110,33 @@ class CoprClient(UnicodeMixin, HandlersProvider):
 
     @property
     def projects(self):
+        """
+        :rtype: :py:class:`~copr.client_v2.handlers.ProjectHandle`
+        """
         self._check_client_init()
         return self._projects
 
     @property
     def project_chroots(self):
+        """
+        :rtype: :py:class:`~copr.client_v2.handlers.ProjectChrootHandle`
+        """
         self._check_client_init()
         return self._project_chroots
 
     @property
     def builds(self):
+        """
+        :rtype: :py:class:`~copr.client_v2.handlers.BuildHandle`
+        """
         self._check_client_init()
         return self._builds
 
     @property
     def mock_chroots(self):
+        """
+        :rtype: :py:class:`~copr.client_v2.handlers.MockChrootHandle`
+        """
         self._check_client_init()
         return self._mock_chroots
 
@@ -143,6 +155,14 @@ class CoprClient(UnicodeMixin, HandlersProvider):
 
     @classmethod
     def create_from_params(cls, root_url=None, login=None, token=None):
+        """ Create client instance using the given parameters
+
+        :param str root_url: Url to the Copr service, default: "http://copr.fedoraproject.org"
+        :param str login: api login
+        :param str token: api token
+
+        :rtype: :py:class:`.client_v2.client.CoprClient`
+        """
         nc = NetClient(login, token)
         client = cls(nc, root_url, no_config=True)
         client.post_init()
@@ -160,7 +180,7 @@ class CoprClient(UnicodeMixin, HandlersProvider):
         :param bool ignore_error: When true and config is missing,
             creates default Client without credentionals
 
-        :rtype: :py:class:`~.client.CoprClient`
+        :rtype: :py:class:`.client_v2.client.CoprClient`
         """
         raw_config = configparser.ConfigParser()
         if not filepath:
@@ -196,6 +216,8 @@ class CoprClient(UnicodeMixin, HandlersProvider):
         return client
 
     def post_init(self):
+        """ Finalizes client initialization be querying API root info
+        """
 
         log.debug("Getting root resources")
 

@@ -1,0 +1,4 @@
+Error handling
+==============
+
+.. todo:: implement

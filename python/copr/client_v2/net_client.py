@@ -94,8 +94,8 @@ class NetClient(object):
     """
     Abstraction around python-requests
 
-    :param unicode login: login for BasicAuth
-    :param unicode password: password for BasicAuth
+    :param str login: login for BasicAuth
+    :param str password: password for BasicAuth
     """
 
     def __init__(self, login=None, password=None):
@@ -120,6 +120,9 @@ class NetClient(object):
                             data=data, do_auth=do_auth, headers=headers)
 
     def request(self, url, method=None, query_params=None, data=None, do_auth=False, headers=None):
+        """
+        :raises: RequestError
+        """
 
         if method is None:
             method = "get"
