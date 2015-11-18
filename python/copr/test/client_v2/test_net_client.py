@@ -58,4 +58,4 @@ class TestNetClient(object):
         s = str(exc_info.value)
         with pytest.raises(ValueError):
             # import ipdb; ipdb.set_trace()
-            x = exc_info.value.response_json
+            assert exc_info.value.response_json
