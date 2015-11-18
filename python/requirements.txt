@@ -7,3 +7,4 @@ six
 sphinx
 requests
 requests-toolbelt
+marshmallow
