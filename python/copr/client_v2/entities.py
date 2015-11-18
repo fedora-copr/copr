@@ -39,6 +39,7 @@ class Link(UnicodeMixin):
         }
 
 
+# pylint: disable=E1101
 class Entity(UnicodeMixin):
     _schema = EmptySchema()
 

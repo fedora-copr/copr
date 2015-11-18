@@ -41,6 +41,7 @@ class EntityFieldsMetaClass(type):
         return type.__new__(mcs, class_name, bases, class_attrs)
 
 
+# pylint: disable=E1101
 class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
     """
     :type handle: client_v2.handlers.AbstractHandle or None
