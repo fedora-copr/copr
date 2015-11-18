@@ -55,7 +55,7 @@ class TestNetClient(object):
             self.nc.request(self.base_url, method="non_existing_method")
 
         # some coverage for Request error
-        s = str(exc_info.value)
+        assert str(exc_info.value) is not None
         with pytest.raises(ValueError):
             # import ipdb; ipdb.set_trace()
             assert exc_info.value.response_json
