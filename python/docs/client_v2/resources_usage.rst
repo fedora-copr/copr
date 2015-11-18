@@ -50,4 +50,5 @@ Individual resource allows to directly access entity properties and also provide
         # change project description (require auth)
         >>> p.description = u"Hello world!"
         >>> p.update()
+        # instead of cl.projects.update(p._entity)
 

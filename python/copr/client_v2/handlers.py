@@ -237,7 +237,7 @@ class ProjectHandle(AbstractHandle):
         # todo: implement: , show_builds=False, show_chroots=False):
         """ Retrieves project object.
 
-        :type project_id: int
+        :param int project_id: project identifier
         :rtype: :py:class:`~.resources.Project`
         """
         query_params = {
@@ -257,7 +257,8 @@ class ProjectHandle(AbstractHandle):
     def update(self, project_entity):
         """ Updates project.
 
-        :type project_entity: ProjectEntity
+        :param project_entity: project entity to use for update
+        :type project_entity: :py:class:`~.ProjectEntity`
         :rtype: OperationResult
         """
         url = "{}/{}".format(self.get_base_url(), project_entity.id)
