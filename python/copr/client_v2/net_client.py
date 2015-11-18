@@ -1,4 +1,5 @@
 # coding: utf-8
+# pylint: disable=W1202
 from collections import namedtuple
 import json
 

@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+# pylint: disable=W1202
 
 from __future__ import print_function
 from __future__ import unicode_literals
