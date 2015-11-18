@@ -18,7 +18,17 @@ of retrieved objects.
     client_v2/initialization.rst
     client_v2/resources_usage.rst
     client_v2/errors.rst
-    client_v2/project.rst
+
+Resources info
+--------------
+
+.. toctree::
+    :maxdepth: 1
+
+    client_v2/resource_info/project.rst
+    client_v2/resource_info/project_chroot.rst
+    client_v2/resource_info/build.rst
+    client_v2/resource_info/mock_chroot.rst
 
 
 Autodoc

@@ -2,7 +2,7 @@ Resources
 ~~~~~~~~~
 
 Client represents API with two kinds of resources: Individuals and Collections. For example when we request
-all projects with name `copr` we would receive collection ProjectsList_ resource:
+all projects with name `copr` we would receive collection :py:class:`~copr.client_v2.resources.ProjectList` resource:
 
     .. sourcecode:: python
 
@@ -31,7 +31,7 @@ retrieved in the one request, collections has method `next_page()` to retrieve m
 
 
 
-If we already knew project id we could get an individual Project_ resource:
+If we already knew project id we could get an individual :py:class:`~copr.client_v2.resources.Project` resource:
 
     .. sourcecode:: python
 

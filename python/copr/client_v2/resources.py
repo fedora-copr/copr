@@ -50,8 +50,6 @@ class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
     :type links: (dict of (str, Link)) or None
     """
     _schema = EmptySchema(strict=True)
-    # PY2 compatibility
-    #__metaclass__ = EntityFieldsMetaClass
 
     def __init__(self, entity, handle=None, response=None, links=None, embedded=None, options=None):
 
@@ -67,7 +65,8 @@ class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
             dir(self.__class__) + list(self.__dict__.keys())
         ))
         if self._entity:
-            res.extend([x for x in dir(self._entity) if not x.startswith("_")])
+            # res.extend([x for x in dir(self._entity) if not x.startswith("_")])
+            res.extend(self._schema.fields.keys())
         return res
 
     def __unicode__(self):
@@ -88,7 +87,7 @@ class Root(IndividualResource):
 
     def get_resource_base_url(self, resource_name):
         """
-        :type entity_type: client_v2.common.EntityTypes
+        :param str resource_name:
         """
         return "{}{}".format(self.root_url, self.get_href_by_name(resource_name))
 
@@ -141,7 +140,7 @@ class Project(IndividualResource):
 
     def __init__(self, entity, handle, **kwargs):
         super(Project, self).__init__(entity=entity, handle=handle, **kwargs)
-        # import ipdb; ipdb.set_trace()
+
         self._entity = entity
         self._handle = handle
 
@@ -162,31 +161,63 @@ class Project(IndividualResource):
         return self._handle.delete(self.id)
 
     def get_self(self):
+        """ Retrieves fresh project object from the service
+
+        :rtype: :py:class:`~copr.client_v2.resources.Project`
+        """
         return self._handle.get_one(self.id)
 
+    def get_builds(self, **query_options):
+        """ Get builds owned by this project
+
+        :param query_options: see :py:meth:`.handlers.BuildHandle.get_list`
+        :rtype: :py:class:`~.BuildsList`
+        """
+        handle = self._handle.get_builds_handle()
+        return handle.get_list(project_id=self.id, **query_options)
+
     def get_project_chroot(self, name):
+        """ Retrieves project chroot object by the given name
+
+        :param str name: mock chroot name
+        :rtype: :py:class:`~copr.client_v2.resources.ProjectChroot`
+        """
         handle = self._handle.get_project_chroots_handle()
         return handle.get_one(self, name)
 
     def get_project_chroot_list(self):
+        """ Retrieves project chroots list
+
+        :rtype: :py:class:`~copr.client_v2.resources.ProjectChrootList`
+        """
         handle = self._handle.get_project_chroots_handle()
         return handle.get_list(self)
 
     def enable_project_chroot(self, name):
         """
+        Enables given chroot for this project
+
         :param str name: mock chroot name
         :rtype: :py:class:`~copr.client_v2.resources.OperationResult`
         """
         handle = self._handle.get_project_chroots_handle()
         return handle.enable(self, name)
 
-    # TODO: remove proxy methods on the handle classes
     def create_build_from_file(self, *args, **kwargs):
         """
-        See additional options `:py:method:BuildHandle.create_from_file:`
+        Shortcut for :py:meth:`.BuildHandle.create_from_file`
+        (here you don't need to specify project_id)
         """
         builds = self._handle.get_builds_handle()
         return builds.create_from_file(self.id, *args, **kwargs)
+
+    def create_build_from_url(self, *args, **kwargs):
+        """
+        Shortcut for :py:meth:`.BuildHandle.create_from_file`
+        (here you don't need to specify project_id)
+        """
+        builds = self._handle.get_builds_handle()
+        return builds.create_from_url(self.id, *args, **kwargs)
 
     @classmethod
     def from_response(cls, handle, data_dict, response=None, options=None):
@@ -248,15 +279,22 @@ class MockChroot(IndividualResource):
 
 
 class OperationResult(IndividualResource):
+    """ Fake resource to represent results of the requested operation
 
-    # TODO: app param expected_status=200 and method is_successful() which would compare
-    # obtained status with expected one
+    """
     def __init__(self, handle, response=None, entity=None, options=None, expected_status=200):
         super(OperationResult, self).__init__(handle=handle, response=response, entity=entity, options=options)
         self._expected_status = expected_status
 
     @property
     def new_location(self):
+        """ Contains an url to the new location produced by an operation
+        If operation doesn't produce a new location would contain None
+
+        :rtype: str
+        """
+        # todo: Create sub-class for results which contains `new_location`
+
         if self._response and \
                 self._response.headers and \
                 "location" in self._response.headers:
@@ -265,6 +303,11 @@ class OperationResult(IndividualResource):
         return None
 
     def is_successful(self):
+        """ Performs check if status code is equal to the expected value
+        of particular request.
+
+        :rtype: bool
+        """
         if self._response and self._response.status_code == self._expected_status:
             return True
         else:
@@ -317,21 +360,39 @@ class CollectionResource(Iterable, UnicodeMixin):
         """
         return iter(self._individuals)
 
+    def __len__(self):
+        if self._individuals is None:
+            raise RuntimeError(u"Collection resource is missing self._individuals")
+
+        return len(self._individuals)
+
+    def __getitem__(self, item):
+        if self._individuals is None:
+            raise RuntimeError(u"Collection resource is missing self._individuals")
+
+        return self._individuals[item]
+
     @classmethod
     def from_response(cls, handle, response, options):
         raise NotImplementedError
 
-    # todo: add classmethod from response
 
-
-class ProjectsList(CollectionResource):
+class ProjectList(CollectionResource):
     """
     :type handle: copr.client_v2.handlers.ProjectHandle
     """
 
     def __init__(self, handle, **kwargs):
-        super(ProjectsList, self).__init__(**kwargs)
+        super(ProjectList, self).__init__(**kwargs)
         self._handle = handle
+
+    def next_page(self):
+        """
+        Retrieves next chunk of the Project list for the same query options
+
+        :rtype: :py:class:`.ProjectList`
+        """
+        return super(ProjectList, self).next_page()
 
     @property
     def projects(self):
@@ -341,7 +402,7 @@ class ProjectsList(CollectionResource):
     @classmethod
     def from_response(cls, handle, response, options):
         data_dict = response.json
-        result = ProjectsList(
+        result = ProjectList(
             handle,
             response=response,
             links=Link.from_dict(data_dict["_links"]),
@@ -390,6 +451,8 @@ class BuildList(CollectionResource):
 
 class ProjectChrootList(CollectionResource):
     """
+    List of the :class:`~.ProjectChroot` in the one Project.
+
     :type handle: copr.client_v2.handlers.ProjectChrootHandle
     """
 
@@ -400,9 +463,17 @@ class ProjectChrootList(CollectionResource):
 
     @property
     def chroots(self):
+        """
+        :rtype: list of :py:class:`~.resources.ProjectChroot`
+        """
         return self._individuals
 
     def enable(self, name):
+        """
+        Enables mock chroot for the current project
+
+        :rtype: :py:class:`~.OperationResult`
+        """
         return self._handle.enable(self._project, name)
 
     @classmethod
@@ -426,6 +497,8 @@ class ProjectChrootList(CollectionResource):
 
 class MockChrootList(CollectionResource):
     """
+    List of the mock chroots supported by the service
+
     :type handle: copr.client_v2.handlers.MockChrootHandle
     """
 
@@ -435,6 +508,7 @@ class MockChrootList(CollectionResource):
 
     @property
     def chroots(self):
+
         return self._individuals
 
     @classmethod

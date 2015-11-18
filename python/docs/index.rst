@@ -12,7 +12,10 @@ through its `API <http://copr.fedoraproject.org/api>`_.
 Python-copr right now is in alpha stage, so expect lot of changes. Now it targets python 2.6+
 and python3.3+.
 
-.. include:: installation.rst
+.. toctree::
+    :maxdepth: 1
+
+    installation.rst
 
 Contact
 =======
@@ -31,8 +34,11 @@ Usage
 Recently Copr started to offer an alternative REST-like APIv2_.
 New API is provided by mostly independent `client_v2` package.
 
-.. include:: ClientV1.rst
-.. include:: ClientV2.rst
+.. toctree::
+    :maxdepth: 1
+
+    ClientV1.rst
+    ClientV2.rst
 
 
 Indices and tables

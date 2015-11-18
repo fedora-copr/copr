@@ -216,7 +216,7 @@ class CoprClient(UnicodeMixin, HandlersProvider):
         return client
 
     def post_init(self):
-        """ Finalizes client initialization be querying API root info
+        """ Finalizes client initialization by querying API root info
         """
 
         log.debug("Getting root resources")

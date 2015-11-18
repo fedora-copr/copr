@@ -11,8 +11,7 @@ Handlers
 
 
 .. autoclass:: copr.client_v2.handlers.BuildHandle
-   :members: get_list, get_one
-   :undoc-members:
+   :members:
 
 .. autoclass:: copr.client_v2.handlers.MockChrootHandle
    :members: get_list, get_one

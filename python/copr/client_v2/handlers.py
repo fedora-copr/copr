@@ -5,7 +5,7 @@ import os
 
 from copr.client_v2.net_client import RequestError, MultiPartTuple
 from .entities import ProjectChrootEntity
-from .resources import Project, OperationResult, ProjectsList, ProjectChroot, ProjectChrootList, Build, BuildList, \
+from .resources import Project, OperationResult, ProjectList, ProjectChroot, ProjectChrootList, Build, BuildList, \
     MockChroot, MockChrootList
 
 
@@ -103,6 +103,19 @@ class BuildHandle(AbstractHandle):
     def create_from_url(self, project_id, srpm_url,
                         chroots=None, enable_net=True):
 
+        """
+        Creates new build using public url to the srpm file
+
+        :param int project_id:
+        :param str srpm_url:
+        :param str file_name:
+        :param list chroots:
+        :param bool enable_net:
+        :return: created build
+        :rtype: Build
+        """
+
+
         chroots = map(str, chroots or list())
         content = {
             "project_id": int(project_id),
@@ -181,13 +194,14 @@ class ProjectHandle(AbstractHandle):
 
     def get_list(self, search_query=None, owner=None, name=None, limit=None, offset=None):
         """ Retrieves projects object according to the given parameters
+
         :param str search_query: search projects with such string
         :param str owner: owner username
         :param str name: project name
         :param int limit: limit number of projects
         :param int offset: number of projects to skip
 
-        :rtype: :py:class:`~.resources.ProjectsList`
+        :rtype: :py:class:`~.resources.ProjectList`
         """
         options = {
             "search_query": search_query,
@@ -198,7 +212,7 @@ class ProjectHandle(AbstractHandle):
         }
 
         response = self.nc.request(self.get_base_url(), query_params=options)
-        return ProjectsList.from_response(self, response, options)
+        return ProjectList.from_response(self, response, options)
 
     def get_one(self, project_id):
         # todo: implement: , show_builds=False, show_chroots=False):
