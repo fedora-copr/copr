@@ -28,6 +28,7 @@ Resources info
     client_v2/resource_info/project.rst
     client_v2/resource_info/project_chroot.rst
     client_v2/resource_info/build.rst
+    client_v2/resource_info/build_task.rst
     client_v2/resource_info/mock_chroot.rst
 
 Autodoc

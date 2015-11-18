@@ -122,12 +122,24 @@ class Build(IndividualResource):
                    response=response, links=links, options=options)
 
     def get_self(self):
+        """ Retrieves fresh build object from the service
+
+        :rtype: :py:class:`~.Build`
+        """
         return self._handle.get_one(self.id)
 
     def cancel(self):
+        """ Updates the current build
+
+        :rtype: :py:class:`.OperationResult`
+        """
         return self._handle.cancel(self._entity)
 
     def delete(self):
+        """ Deletes the current build
+
+        :rtype: :py:class:`.OperationResult`
+        """
         return self._handle.delete(self.id)
 
 
@@ -436,8 +448,19 @@ class BuildList(CollectionResource):
         super(BuildList, self).__init__(**kwargs)
         self._handle = handle
 
+    def next_page(self):
+        """
+        Retrieves next chunk of the Build list for the same query options
+
+        :rtype: :py:class:`.BuildList`
+        """
+        return super(BuildList, self).next_page()
+
     @property
     def builds(self):
+        """
+        :rtype: :py:class:`.BuildList`
+        """
         return self._individuals
 
     @classmethod

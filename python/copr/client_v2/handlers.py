@@ -37,8 +37,10 @@ class BuildHandle(AbstractHandle):
         return self._base_url
 
     def get_one(self, build_id):
-        """
-        :type build_id: int
+        """ Retrieves builds object
+
+        :param int build_id: id of the target build
+        :rtype: :py:class:`~.resources.Build`
         """
 
         options = {"build_id": build_id}
@@ -52,12 +54,14 @@ class BuildHandle(AbstractHandle):
         )
 
     def get_list(self, project_id=None, owner=None, limit=None, offset=None):
-        """
-        :param owner:
-        :param project_id:
-        :param limit:
-        :param offset:
-        :rtype: BuildList
+        """ Retrieves builds object according to the given parameters
+
+        :param owner: name of the project owner
+        :param project_id: id of the project
+        :param limit: limit number of builds
+        :param offset: number of builds to skip
+
+        :rtype: :py:class:`~.resources.BuildList`
         """
         options = {
             "project_id": project_id,
@@ -70,8 +74,12 @@ class BuildHandle(AbstractHandle):
         return BuildList.from_response(self, response, options)
 
     def cancel(self, build_entity):
-        """
-        :type build_entity: copr.client_v2.entities.BuildEntity
+        """ Cancels the given build
+
+        :param build_entity: build entity to delete
+        :type build_entity: :py:class:`~.copr.client_v2.entities.BuildEntity
+
+        :rtype: :py:class:`.OperationResult`
         """
         build_id = build_entity.id
         build_entity.state = "canceled"
@@ -81,6 +89,13 @@ class BuildHandle(AbstractHandle):
         return OperationResult(self, response)
 
     def delete(self, build_id):
+        """ Deletes the given build
+
+        :param int build_id: build id to delete
+
+        :rtype: :py:class:`.OperationResult`
+        """
+
         url = "{}/{}".format(self.get_base_url(), build_id)
         response = self.nc.request(url, method="delete", do_auth=True)
         return OperationResult(self, response, expected_status=204)
@@ -106,15 +121,14 @@ class BuildHandle(AbstractHandle):
         """
         Creates new build using public url to the srpm file
 
-        :param int project_id:
-        :param str srpm_url:
-        :param str file_name:
-        :param list chroots:
-        :param bool enable_net:
-        :return: created build
-        :rtype: Build
-        """
+        :param int project_id: id of the project where we want to submit new build
+        :param str srpm_url: url to the source rpm
+        :param list chroots: which chroots should be used during the build
+        :param bool enable_net: allows to disable network access during the build, default: True
 
+        :return: created build
+        :rtype: :py:class:`~.resources.Build`
+        """
 
         chroots = map(str, chroots or list())
         content = {
@@ -131,20 +145,25 @@ class BuildHandle(AbstractHandle):
 
         return self._process_create_response(data, response)
 
-    def create_from_file(self, project_id, file_path=None, file_obj=None, file_name=None,
+    def create_from_file(self, project_id, file_path=None,
+                         file_obj=None, file_name=None,
                          chroots=None, enable_net=True):
         """
         Creates new build using srpm upload, please specify
         either `file_path` or (`file_obj`, `file_name).
 
-        :param int project_id:
+        :param int project_id: id of the project where we want to submit new build
+
         :param str file_path: path to the srpm file
-        :param file like object file_obj:
-        :param str file_name:
-        :param list chroots:
-        :param bool enable_net:
+
+        :param file file_obj: file-like object to read from
+        :param str file_name: name for the uploaded file
+
+        :param list chroots: which chroots should be used during the build
+        :param bool enable_net: allows to disable network access during the build, default: True
+
         :return: created build
-        :rtype: Build
+        :rtype: :py:class:`~.resources.Build`
         """
 
         chroots = map(str, chroots or list())

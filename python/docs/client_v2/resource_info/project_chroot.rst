@@ -18,8 +18,8 @@ Chroot are represented by
 
 .. _project-chroot-attributes:
 
-Entity Attributes
------------------
+Project chroot entity attributes
+--------------------------------
 
 .. copied from frontend docs, don't forget to update
 

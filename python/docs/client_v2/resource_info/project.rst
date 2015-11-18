@@ -1,4 +1,3 @@
-
 .. _project-info:
 
 Project

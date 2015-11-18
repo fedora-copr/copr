@@ -13,6 +13,8 @@ see entity attributes here: :ref:`project-attributes`.
 
 Project chroot
 --------------
+see entity attributes here: :ref:`project-chroot-attributes`.
+
 .. autoclass:: copr.client_v2.resources.ProjectChroot
    :members:
 
@@ -21,6 +23,8 @@ Project chroot
 
 Build
 -----
+see entity attributes here: :ref:`build-attributes`.
+
 .. autoclass:: copr.client_v2.resources.Build
    :members:
 
