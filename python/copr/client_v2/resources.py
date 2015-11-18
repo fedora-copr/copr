@@ -1,3 +1,4 @@
+# pylint: disable=R0903
 # coding: utf-8
 from collections import Iterable
 from six import with_metaclass

@@ -1,3 +1,4 @@
+# pylint: disable=R0903
 # coding: utf-8
 from copr.util import UnicodeMixin
 

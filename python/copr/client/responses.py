@@ -1,3 +1,4 @@
+# pylint: disable=R0903
 """
 Wrappers for Copr api response.
 Response classes provide convenient representation of received data

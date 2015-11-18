@@ -2,6 +2,7 @@
 import sys
 
 
+# pylint: disable=R0903
 class UnicodeMixin(object):
     # http://lucumr.pocoo.org/2011/1/22/forwards-compatible-python/
     """Mixin class to handle defining the proper __str__/__unicode__
