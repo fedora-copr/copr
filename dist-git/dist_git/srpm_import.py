@@ -86,7 +86,8 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     log.info("save the source files into lookaside cache")
     commands.upload(upload_files, replace=True)
     log.debug("git push")
-    message = "Import of {} {}".format(task.package_name, task.package_version)
+    #message = "Import of {} {}".format(task.package_name, task.package_version)
+    message = "import_srpm"
     try:
         commands.commit(message)
         commands.push()
