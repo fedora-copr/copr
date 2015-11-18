@@ -279,9 +279,13 @@ class ProjectChrootHandle(AbstractHandle):
         return "{}{}".format(self.root_url, project.get_href_by_name("chroots"))
 
     def get_one(self, project, name):
-        """
-        :type project: copr.client_v2.resources.Project
+        """ Retrieves project chroot object.
+
+        :type project: :py:class:`~copr.client_v2.resources.Project`
+        :param project: parent project for the chroot
         :param str name: chroot name
+
+        :rtype: :py:class:`~copr.client_v2.resources.ProjectChroot`
         """
 
         url = "{}/{}".format(self.get_base_url(project), name)
@@ -295,8 +299,12 @@ class ProjectChrootHandle(AbstractHandle):
         )
 
     def get_list(self, project):
-        """
-        :type project: copr.client_v2.resources.Project
+        """ Retrieves project chroot list object.
+
+        :type project: :py:class:`~copr.client_v2.resources.Project`
+        :param project: parent project for the chroot
+
+        :rtype: :py:class:`~copr.client_v2.resources.ProjectChrootList`
         """
         response = self.nc.request(self.get_base_url(project))
         return ProjectChrootList.from_response(
@@ -306,8 +314,11 @@ class ProjectChrootHandle(AbstractHandle):
         )
 
     def disable(self, project, name):
-        """
-        :type project: copr.client_v2.resources.Project
+        """ Disables one chroot for the project
+
+        :type project: :py:class:`~copr.client_v2.resources.Project`
+        :param project: parent project for the chroot
+
         :param str name: chroot name to disable
         """
         url = "{}/{}".format(self.get_base_url(project), name)
@@ -315,10 +326,17 @@ class ProjectChrootHandle(AbstractHandle):
         return OperationResult(self, response)
 
     def enable(self, project, name, buildroot_pkgs=None):
-        """
-        :type project: copr.client_v2.resources.Project
+        """ Enables one chroot for the project
 
-        :rtype:
+        :type project: :py:class:`~copr.client_v2.resources.Project`
+        :param project: parent project for the chroot
+
+        :param str name: chroot name to enable
+
+        :params buildroot_pkgs: packages to add into the buildroot
+        :type buildroot_pkgs: list of str
+
+        :rtype: :py:class:`.OperationResult`
         """
 
         new_entity = ProjectChrootEntity(
@@ -336,7 +354,10 @@ class ProjectChrootHandle(AbstractHandle):
     def update(self, project, chroot_entity):
         """
         :type project: copr.client_v2.resources.Project
-        :type chroot_entity: copr.client_v2.entities.ProjectChrootEntity
+        :param chroot_entity: Entity to update
+        :type chroot_entity: :py:class:`.entities.ProjectChrootEntity`
+
+        :rtype: :py:class:`.OperationResult`
         """
         url = "{}/{}".format(self.get_base_url(project), chroot_entity.name)
         response = self.nc.request(

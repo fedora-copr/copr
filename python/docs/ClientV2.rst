@@ -30,7 +30,6 @@ Resources info
     client_v2/resource_info/build.rst
     client_v2/resource_info/mock_chroot.rst
 
-
 Autodoc
 -------
 
@@ -39,3 +38,4 @@ Autodoc
     client_v2/general.rst
     client_v2/handlers.rst
     client_v2/resources.rst
+    client_v2/entities.rst

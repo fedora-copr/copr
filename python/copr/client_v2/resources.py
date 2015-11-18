@@ -149,21 +149,21 @@ class Project(IndividualResource):
 
         Shortcut for for :py:meth:`.ProjectHandle.update`
 
-        :rtype: :py:class:`~copr.client_v2.resources.OperationResult`
+        :rtype: :py:class:`.OperationResult`
         """
         return self._handle.update(self._entity)
 
     def delete(self):
         """ Updates project using the current state
 
-        :rtype: :py:class:`~copr.client_v2.resources.OperationResult`
+        :rtype: :py:class:`.OperationResult`
         """
         return self._handle.delete(self.id)
 
     def get_self(self):
         """ Retrieves fresh project object from the service
 
-        :rtype: :py:class:`~copr.client_v2.resources.Project`
+        :rtype: :py:class:`.Project`
         """
         return self._handle.get_one(self.id)
 
@@ -180,7 +180,7 @@ class Project(IndividualResource):
         """ Retrieves project chroot object by the given name
 
         :param str name: mock chroot name
-        :rtype: :py:class:`~copr.client_v2.resources.ProjectChroot`
+        :rtype: :py:class:`.ProjectChroot`
         """
         handle = self._handle.get_project_chroots_handle()
         return handle.get_one(self, name)
@@ -188,7 +188,7 @@ class Project(IndividualResource):
     def get_project_chroot_list(self):
         """ Retrieves project chroots list
 
-        :rtype: :py:class:`~copr.client_v2.resources.ProjectChrootList`
+        :rtype: :py:class:`.ProjectChrootList`
         """
         handle = self._handle.get_project_chroots_handle()
         return handle.get_list(self)
@@ -197,8 +197,10 @@ class Project(IndividualResource):
         """
         Enables given chroot for this project
 
+        Shortcut for for :py:meth:`.ProjectChrootHandle.enable`
+
         :param str name: mock chroot name
-        :rtype: :py:class:`~copr.client_v2.resources.OperationResult`
+        :rtype: :py:class:`.OperationResult`
         """
         handle = self._handle.get_project_chroots_handle()
         return handle.enable(self, name)
@@ -249,9 +251,17 @@ class ProjectChroot(IndividualResource):
                    response=response, links=links, options=options)
 
     def disable(self):
+        """ Disables chroot for the bound project
+
+        :rtype: :py:class:`.OperationResult`
+        """
         return self._handle.disable(self._project, self.name)
 
     def update(self):
+        """ Updates chroot with the current entity state
+
+        :rtype: :py:class:`.OperationResult`
+        """
         return self._handle.update(self._project, self._entity)
 
 

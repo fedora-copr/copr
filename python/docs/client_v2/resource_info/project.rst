@@ -1,13 +1,18 @@
+
+.. _project-info:
+
 Project
 =======
 
-Access to project resources is done through :py:meth:`~copr.client_v2.client.CoprClient.projects`.
+Access to the projects is done through :py:meth:`~copr.client_v2.client.CoprClient.projects`.
 property of initialized :py:class:`~copr.client_v2.client.CoprClient`. That property is an instance of
 :py:class:`~copr.client_v2.handlers.ProjectHandle`. Projects are represented by
 :py:class:`~copr.client_v2.resources.Project` class.
 
-Individual Attributes
----------------------
+.. _project-attributes:
+
+Project entity attributes
+-------------------------
 
 .. copied from frontend docs, don't forget to update
 
@@ -33,6 +38,19 @@ repos               list of string       yes       list of additional repositori
 .. note::
     all following examples assume that we use ``cl``
     as an instance of :py:class:`.client_v2.client.CoprClient`
+
+
+Get projects list
+-----------------
+
+.. sourcecode:: python
+
+    >>> plist_1 = cl.project.get_list(limit=10)
+    # filter by name
+    >>> plist_2 = cl.project.get_list(name="copr")
+    # search by string
+    >>> plist_2 = cl.project.get_list(name="copr")
+
 
 Get one project
 ---------------
@@ -60,18 +78,6 @@ Create new project
 ------------------
 
 .. note:: Not Implemented yet
-
-
-Fetch projects
---------------
-
-.. sourcecode:: python
-
-    >>> plist_1 = cl.project.get_list(limit=10)
-    # filter by name
-    >>> plist_2 = cl.project.get_list(name="copr")
-    # search by string
-    >>> plist_2 = cl.project.get_list(name="copr")
 
 
 Access project chroots
