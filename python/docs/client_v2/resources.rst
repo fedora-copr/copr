@@ -31,6 +31,16 @@ see entity attributes at :ref:`build-attributes`.
 .. autoclass:: copr.client_v2.resources.BuildList
    :members:
 
+Build task
+----------
+see entity attributes at :ref:`build-task-attributes`.
+
+.. autoclass:: copr.client_v2.resources.BuildTask
+   :members:
+
+.. autoclass:: copr.client_v2.resources.BuildTaskList
+   :members:
+
 Mock chroot
 -----------
 see entity attributes at :ref:`mock-chroot-attributes`.

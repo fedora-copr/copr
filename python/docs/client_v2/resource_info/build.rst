@@ -3,6 +3,9 @@
 Build
 =====
 
+Build resource allows to submit new builds and access current build progress.
+In fact, build consists of a few tasks, one per chroot, and detailed information is available through
+:ref:`build-task-info`.
 
 Access to the builds is done through :py:meth:`~copr.client_v2.client.CoprClient.builds`.
 property of initialized :py:class:`~copr.client_v2.client.CoprClient`. That property is an instance of

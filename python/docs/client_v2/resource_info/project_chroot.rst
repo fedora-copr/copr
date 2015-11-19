@@ -4,6 +4,9 @@
 Project chroot
 ==============
 
+Projects Chroots allows to enable and disable target chroots and
+modify project settings dedicated for specific chroots.
+
 Access to the project chroots is done through :py:meth:`~copr.client_v2.client.CoprClient.project_chroots`.
 property of initialized :py:class:`~copr.client_v2.client.CoprClient`. That property is an instance of
 :py:class:`~copr.client_v2.handlers.ProjectChrootHandle`.

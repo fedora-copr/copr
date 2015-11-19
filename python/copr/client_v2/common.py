@@ -20,3 +20,27 @@ class BuiltPackage(UnicodeMixin):
 
     def __unicode__(self):
         return u"{} {}".format(self.name, self.version)
+
+
+class BuildStateValues(object):
+    FAILED = "failed"
+    SUCCEEDED = "succeeded"
+    CANCELED = "canceled"
+    RUNNING = "running"
+    PENDING = "pending"
+    SKIPPED = "skipped"
+    STARTING = "starting"
+    IMPORTING = "importing"
+    UNKNOWN = "unknown"
+
+ALLOWED_BUILD_STATES = {
+    BuildStateValues.FAILED,
+    BuildStateValues.SUCCEEDED,
+    BuildStateValues.CANCELED,
+    BuildStateValues.RUNNING,
+    BuildStateValues.PENDING,
+    BuildStateValues.SKIPPED,
+    BuildStateValues.STARTING,
+    BuildStateValues.IMPORTING,
+    BuildStateValues.UNKNOWN,
+}

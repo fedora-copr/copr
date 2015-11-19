@@ -20,8 +20,8 @@ Build
 Build task
 ----------
 
-.. note::
-   Not implemented yet
+.. autoclass:: copr.client_v2.handlers.BuildTaskHandle
+   :members:
 
 
 Mock chroot

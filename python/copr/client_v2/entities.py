@@ -14,24 +14,6 @@ class Link(UnicodeMixin):
 
     @classmethod
     def from_dict(cls, data_dict):
-        """
-        {
-            "self": {
-              "href": "/api_2/projects/2482?show_builds=True&show_chroots=True"
-            },
-            "chroots": {
-              "href": "/api_2/projects/2482/chroots"
-            },
-            "builds": {
-              "href": "/api_2/builds?project_id=2482"
-            }
-        }
-
-        return
-        {
-            <role> -> Link()
-        }
-        """
         return {
             role_name:
                 cls(role_name, definition["href"])
@@ -82,14 +64,16 @@ class BuildEntity(Entity):
         return "<Build #{} state: {}>".format(self.id, self.state)
 
     def is_finished(self):
-        if self.state in [
+        """
+        Check is the build was finished
+
+        :rtype: bool
+        """
+        return self.state in [
                 "failed",
                 "skipped",
                 "succeeded"
-        ]:
-            return True
-        else:
-            return False
+        ]
 
 
 class BuildTaskEntity(Entity):

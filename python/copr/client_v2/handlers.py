@@ -6,7 +6,7 @@ import os
 from copr.client_v2.net_client import RequestError, MultiPartTuple
 from .entities import ProjectChrootEntity
 from .resources import Project, OperationResult, ProjectList, ProjectChroot, ProjectChrootList, Build, BuildList, \
-    MockChroot, MockChrootList
+    MockChroot, MockChrootList, BuildTask, BuildTaskList
 
 
 class AbstractHandle(object):
@@ -200,6 +200,69 @@ class BuildHandle(AbstractHandle):
         )
         return parts, response
 
+    def get_build_tasks_handle(self):
+        """
+        :rtype: BuildTasksHandle
+        """
+        return self.client.build_tasks
+
+class BuildTaskHandle(AbstractHandle):
+
+    def __init__(self, client, nc, root_url, build_tasks_href):
+        super(BuildTaskHandle, self).__init__(client, nc, root_url)
+        self.build_tasks_href = build_tasks_href
+        self._base_url = "{}{}".format(self.root_url, build_tasks_href)
+
+    def get_base_url(self):
+        return self._base_url
+
+    def get_list(self, owner=None, project_id=None, build_id=None,
+                 state=None, offset=None, limit=None):
+
+        """ Retrieves build tasks list according to the given parameters
+
+        :param str owner: build tasks from the project owner by this user
+        :param int project_id: get tasks only from this project,
+            when used query parameter ``owner`` is ignored
+        :param int build_id: get tasks only from this build,
+            when used query parameters ``owner`` and ``project_id`` are ignored
+        :param str state: get build tasks only with this state, allowed values:
+            ``failed``, ``succeeded``, ``canceled``, ``running``,
+            ``pending``, ``starting``, ``importing``
+        :param int limit: limit number of projects
+        :param int offset: number of projects to skip
+
+        :rtype: :py:class:`~.resources.BuildTaskList`
+        """
+        options = {
+            "owner": owner,
+            "project_id": project_id,
+            "build_id": build_id,
+            "state": state,
+            "limit": limit,
+            "offset": offset
+        }
+
+        response = self.nc.request(self.get_base_url(), query_params=options)
+        return BuildTaskList.from_response(self, response, options)
+
+    def get_one(self, build_id, chroot_name):
+        """ Retrieves single build task object
+
+
+        :param int build_id: id of the build
+        :param str chroot_name: name of the build chroot
+        :rtype:  :py:class:`~.resources.BuildTask`
+        """
+
+        url = "{}/{}/{}".format(self.get_base_url(), build_id, chroot_name)
+        response = self.nc.request(url)
+        return BuildTask.from_response(
+            handle=self,
+            response=response,
+            data_dict=response.json,
+        )
+
 
 class ProjectHandle(AbstractHandle):
 
@@ -282,6 +345,12 @@ class ProjectHandle(AbstractHandle):
         :rtype: BuildHandle
         """
         return self.client.builds
+
+    def get_build_tasks_handle(self):
+        """
+        :rtype: BuildTasksHandle
+        """
+        return self.client.build_tasks
 
     def get_project_chroots_handle(self):
         """

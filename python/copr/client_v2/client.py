@@ -15,10 +15,8 @@ import six
 from six import with_metaclass
 from six.moves import configparser
 
-# from requests_toolbelt.multipart.encoder import MultipartEncoder
-
 from .resources import Root
-from .handlers import ProjectHandle, ProjectChrootHandle, BuildHandle, MockChrootHandle
+from .handlers import ProjectHandle, ProjectChrootHandle, BuildHandle, MockChrootHandle, BuildTaskHandle
 from .net_client import NetClient
 
 if sys.version_info < (2, 7):
@@ -58,9 +56,12 @@ class HandlersProvider(object, with_metaclass(ABCMeta)):
         """
         pass
 
-    # @abstractproperty
-    # def build_tasks(self):
-    #     pass
+    @abstractproperty
+    def build_tasks(self):
+        """
+        :rtype: BuildTaskHandle
+        """
+        pass
 
     @abstractproperty
     def mock_chroots(self):
@@ -94,13 +95,12 @@ class CoprClient(UnicodeMixin, HandlersProvider):
         self.no_config = no_config
         self._post_init_done = False
 
-        self._main_resources = None
-
         self.root = None
 
         self._projects = None
         self._project_chroots = None
         self._builds = None
+        self._build_tasks = None
         self._mock_chroots = None
 
     def _check_client_init(self):
@@ -131,6 +131,14 @@ class CoprClient(UnicodeMixin, HandlersProvider):
         """
         self._check_client_init()
         return self._builds
+
+    @property
+    def build_tasks(self):
+        """
+        :rtype: :py:class:`~copr.client_v2.handlers.BuildTaskHandle`
+        """
+        self._check_client_init()
+        return self._build_tasks
 
     @property
     def mock_chroots(self):
@@ -236,7 +244,11 @@ class CoprClient(UnicodeMixin, HandlersProvider):
         self._builds = BuildHandle(
             weakref.proxy(self), self.nc, root_url=self.root_url,
             builds_href=self.root.get_href_by_name(u"builds"),)
-        # self._build_chroots = BuildTaskHandle()
+
+        self._build_tasks = BuildTaskHandle(
+            weakref.proxy(self), self.nc, root_url=self.root_url,
+            build_tasks_href=self.root.get_href_by_name("build_tasks")
+        )
 
         self._mock_chroots = MockChrootHandle(
             weakref.proxy(self), self.nc, root_url=self.root_url,

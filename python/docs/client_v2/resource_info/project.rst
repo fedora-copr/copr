@@ -3,6 +3,8 @@
 Project
 =======
 
+Project resource represents copr projects and operations with them.
+
 Access to the projects is done through :py:meth:`~copr.client_v2.client.CoprClient.projects`.
 property of initialized :py:class:`~copr.client_v2.client.CoprClient`. That property is an instance of
 :py:class:`~copr.client_v2.handlers.ProjectHandle`. Projects are represented by

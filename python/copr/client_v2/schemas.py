@@ -1,12 +1,13 @@
 # coding: utf-8
 
 from marshmallow import Schema, fields
+from marshmallow.validate import OneOf
 
 # todo: maybe define schemas for Link sets in each indvidual/collection
 # class LinkSchema(Schema):
 #     href = fields.Str()
 #
-from .common import BuiltPackage
+from .common import BuiltPackage, ALLOWED_BUILD_STATES
 
 
 class EmptySchema(Schema):
@@ -80,14 +81,15 @@ class BuildSchema(Schema):
 
 class BuildTaskSchema(Schema):
 
-    state = fields.Str()
-    started_on = fields.Int(load_only=True)
-    ended_on = fields.Int(load_only=True)
-    git_hash = fields.Str(load_only=True)
+    state = fields.Str(load_only=True, validate=[
+        OneOf(ALLOWED_BUILD_STATES)
+    ])
+    started_on = fields.Int(load_only=True, allow_none=True)
+    ended_on = fields.Int(load_only=True, allow_none=True)
+    git_hash = fields.Str(load_only=True, allow_none=True)
     chroot_name = fields.Str(load_only=True)
     build_id = fields.Int(load_only=True)
-
-    result_dir_url = fields.Str(load_only=True)
+    result_dir_url = fields.Str(load_only=True, allow_none=True)
 
 
 class MockChrootSchema(Schema):

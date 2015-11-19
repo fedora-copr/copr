@@ -5,8 +5,8 @@ from six import with_metaclass
 
 from ..util import UnicodeMixin
 
-from .entities import Link, ProjectEntity, ProjectChrootEntity, BuildEntity, MockChrootEntity
-from .schemas import EmptySchema, BuildSchema, ProjectSchema, ProjectChrootSchema, MockChrootSchema
+from .entities import Link, ProjectEntity, ProjectChrootEntity, BuildEntity, MockChrootEntity, BuildTaskEntity
+from .schemas import EmptySchema, BuildSchema, ProjectSchema, ProjectChrootSchema, MockChrootSchema, BuildTaskSchema
 
 
 class EntityFieldDescriptor(object):
@@ -29,6 +29,20 @@ class EntityFieldDescriptor(object):
         setattr(obj._entity, self.name, val)
 
 
+class ReadOnlyFieldDescriptor(object):
+    """
+    Entity read-only Field Descriptor
+    """
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, obj, objtype):
+        """
+        :type obj: IndividualResource
+        """
+        return getattr(obj._entity, self.name)
+
+
 class EntityFieldsMetaClass(type):
     """
     Magic: we take fields info from class._schema and attach EntityFieldDescriptor
@@ -39,6 +53,15 @@ class EntityFieldsMetaClass(type):
         if schema:
             for f_name, f in schema.fields.items():
                 class_attrs[f_name] = EntityFieldDescriptor(f_name)
+
+        entity_methods = []
+        for base in bases:
+            entity_methods.extend(getattr(base, "_entity_methods", []))
+        entity_methods.extend(class_attrs.get("_entity_methods", []))
+
+        for m_name in entity_methods:
+            class_attrs[m_name] = ReadOnlyFieldDescriptor(m_name)
+
         return type.__new__(mcs, class_name, bases, class_attrs)
 
 
@@ -50,6 +73,11 @@ class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
     :type links: (dict of (str, Link)) or None
     """
     _schema = EmptySchema(strict=True)
+
+    # todo:  this methods only serialize fields which can be modified by the user
+    # think about an apporach to override `load_only=True` fields in
+    #  our schemas during the dump function
+    # _entity_methods = ["to_json", "to_dict"]
 
     def __init__(self, entity, handle=None, response=None, links=None, embedded=None, options=None):
 
@@ -65,7 +93,6 @@ class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
             dir(self.__class__) + list(self.__dict__.keys())
         ))
         if self._entity:
-            # res.extend([x for x in dir(self._entity) if not x.startswith("_")])
             res.extend(self._schema.fields.keys())
         return res
 
@@ -108,6 +135,7 @@ class Build(IndividualResource):
     :type handle: copr.client_v2.handlers.BuildHandle
     """
     _schema = BuildSchema(strict=True)
+    _entity_methods = ["is_finished"]
 
     def __init__(self, entity, handle, **kwargs):
         super(Build, self).__init__(entity=entity, handle=handle, **kwargs)
@@ -141,6 +169,43 @@ class Build(IndividualResource):
         :rtype: :py:class:`.OperationResult`
         """
         return self._handle.delete(self.id)
+
+    def get_build_tasks(self, **query_options):
+        """ Get build tasks owned by this build
+
+        :param query_options: see :py:meth:`.handlers.BuildHandle.get_list`
+        :rtype: :py:class:`~.BuildTasksList`
+        """
+        handle = self._handle.get_build_tasks_handle()
+        return handle.get_list(build_id=self.id, **query_options)
+
+
+class BuildTask(IndividualResource):
+    """
+    :type entity: BuildTaskEntity
+    :type handle: copr.client_v2.handlers.BuildTaskHandle
+    """
+    _schema = BuildTaskSchema(strict=True)
+
+    def __init__(self, entity, handle, **kwargs):
+        super(BuildTask, self).__init__(entity=entity, handle=handle, **kwargs)
+        self._entity = entity
+        self._handle = handle
+
+    def get_self(self):
+        """ Retrieves fresh build task object from the service
+
+        :rtype: :py:class:`~.Build`
+        """
+        return self._handle.get_one(self.build_id, self.chroot_name)
+
+
+    @classmethod
+    def from_response(cls, handle, data_dict, response=None, options=None):
+        links = Link.from_dict(data_dict["_links"])
+        entity = BuildTaskEntity.from_dict(data_dict["build_task"])
+        return cls(entity=entity, handle=handle,
+                   response=response, links=links, options=options)
 
 
 class Project(IndividualResource):
@@ -186,6 +251,15 @@ class Project(IndividualResource):
         :rtype: :py:class:`~.BuildsList`
         """
         handle = self._handle.get_builds_handle()
+        return handle.get_list(project_id=self.id, **query_options)
+
+    def get_build_tasks(self, **query_options):
+        """ Get build tasks owned by this project
+
+        :param query_options: see :py:meth:`.handlers.BuildHandle.get_list`
+        :rtype: :py:class:`~.BuildTasksList`
+        """
+        handle = self._handle.get_build_tasks_handle()
         return handle.get_list(project_id=self.id, **query_options)
 
     def get_project_chroot(self, name):
@@ -399,6 +473,32 @@ class CollectionResource(Iterable, UnicodeMixin):
         raise NotImplementedError
 
 
+def _construct_collection(
+        resource_class, handle, response,
+        individuals, options=None, **kwargs):
+
+    """ Helper to avoid code repetition
+
+    :type resource_class: CollectionResource
+    :param handle: AbstractHandle
+    :param response: ResponseWrapper
+    :param options: dict with query options
+    :param individuals: individuals
+
+    :param kwargs: additional parameters for constructor
+
+    :rtype: CollectionResource
+    """
+    return resource_class(
+        handle,
+        response=response,
+        links=Link.from_dict(response.json["_links"]),
+        individuals=individuals,
+        options=options,
+        **kwargs
+    )
+
+
 class ProjectList(CollectionResource):
     """
     :type handle: copr.client_v2.handlers.ProjectHandle
@@ -423,21 +523,17 @@ class ProjectList(CollectionResource):
 
     @classmethod
     def from_response(cls, handle, response, options):
-        data_dict = response.json
-        result = ProjectList(
-            handle,
-            response=response,
-            links=Link.from_dict(data_dict["_links"]),
-            individuals=[
-                Project.from_response(
-                    handle=handle,
-                    data_dict=dict_part,
-                )
-                for dict_part in data_dict["projects"]
-            ],
-            options=options
+        individuals = [
+            Project.from_response(
+                handle=handle,
+                data_dict=dict_part,
+            )
+            for dict_part in response.json["projects"]
+        ]
+        return _construct_collection(
+            cls, handle, response=response,
+            individuals=individuals, options=options
         )
-        return result
 
 
 class BuildList(CollectionResource):
@@ -465,21 +561,17 @@ class BuildList(CollectionResource):
 
     @classmethod
     def from_response(cls, handle, response, options):
-        data_dict = response.json
-        result = BuildList(
-            handle,
-            response=response,
-            links=Link.from_dict(data_dict["_links"]),
-            individuals=[
-                Build.from_response(
-                    handle=handle,
-                    data_dict=dict_part,
-                )
-                for dict_part in data_dict["builds"]
-            ],
-            options=options
+        individuals = [
+            Build.from_response(
+                handle=handle,
+                data_dict=dict_part,
+            )
+            for dict_part in response.json["builds"]
+        ]
+        return _construct_collection(
+            cls, handle, response=response,
+            individuals=individuals, options=options
         )
-        return result
 
 
 class ProjectChrootList(CollectionResource):
@@ -511,20 +603,18 @@ class ProjectChrootList(CollectionResource):
 
     @classmethod
     def from_response(cls, handle, response, project):
-        data_dict = response.json
-        return ProjectChrootList(
-            handle,
-            project=project,
-            response=response,
-            links=Link.from_dict(data_dict["_links"]),
-            individuals=[
-                ProjectChroot.from_response(
-                    handle=handle,
-                    data_dict=dict_part,
-                    project=project
-                )
-                for dict_part in data_dict["chroots"]
-            ]
+        individuals = [
+            ProjectChroot.from_response(
+                handle=handle,
+                data_dict=dict_part,
+                project=project
+            )
+            for dict_part in response.json["chroots"]
+        ]
+
+        return _construct_collection(
+            cls, handle, response=response,
+            individuals=individuals, project=project
         )
 
 
@@ -548,17 +638,47 @@ class MockChrootList(CollectionResource):
 
     @classmethod
     def from_response(cls, handle, response, options):
-        data_dict = response.json
-        return MockChrootList(
-            handle,
-            response=response,
-            links=Link.from_dict(data_dict["_links"]),
-            individuals=[
-                MockChroot.from_response(
-                    handle=handle,
-                    data_dict=dict_part,
-                )
-                for dict_part in data_dict["chroots"]
-            ],
-            options=options
+        individuals = [
+            MockChroot.from_response(
+                handle=handle,
+                data_dict=dict_part,
+            )
+            for dict_part in response.json["chroots"]
+        ]
+        return _construct_collection(
+            cls, handle, response=response,
+            options=options, individuals=individuals
+        )
+
+
+class BuildTaskList(CollectionResource):
+    """
+    List of build tasks
+
+    :type handle: copr.client_v2.handlers.BuildTaskHandle
+    """
+
+    def __init__(self, handle, **kwargs):
+        super(BuildTaskList, self).__init__(**kwargs)
+        self._handle = handle
+
+    @property
+    def build_tasks(self):
+        """
+        :rtype: list of :py:class:`~.resources.BuildTask`
+        """
+        return self._individuals
+
+    @classmethod
+    def from_response(cls, handle, response, options):
+        individuals = [
+            BuildTask.from_response(
+                handle=handle,
+                data_dict=dict_part
+            )
+            for dict_part in response.json["build_tasks"]
+        ]
+        return _construct_collection(
+            cls, handle, response=response,
+            options=options, individuals=individuals
         )
