@@ -77,7 +77,7 @@ class BuildHandle(AbstractHandle):
         """ Cancels the given build
 
         :param build_entity: build entity to delete
-        :type build_entity: :py:class:`~.copr.client_v2.entities.BuildEntity
+        :type build_entity: :py:class:`~.copr.client_v2.entities.BuildEntity`
 
         :rtype: :py:class:`.OperationResult`
         """
@@ -150,7 +150,7 @@ class BuildHandle(AbstractHandle):
                          chroots=None, enable_net=True):
         """
         Creates new build using srpm upload, please specify
-        either `file_path` or (`file_obj`, `file_name).
+        either ``file_path`` or (``file_obj``, ``file_name``    ).
 
         :param int project_id: id of the project where we want to submit new build
 
@@ -400,11 +400,27 @@ class MockChrootHandle(AbstractHandle):
         return self._base_url
 
     def get_one(self, name):
+        """ Retrieves mock chroot object.
+
+        :param str name: chroot name
+
+        :rtype: :py:class:`~copr.client_v2.resources.MockChroot`
+        """
         url = "{}/{}".format(self.get_base_url(), name)
         response = self.nc.get(url)
-        return MockChroot.from_response(self, response, response.json)
+        return MockChroot.from_response(
+            handle=self,
+            response=response,
+            data_dict=response.json,
+        )
 
     def get_list(self, active_only=True):
+        """ Retrieves mock chroot list object.
+
+        :param bool active_only: when True, shows only chroots which can be used for builds
+
+        :rtype: :py:class:`~copr.client_v2.resources.MockChrootList`
+        """
         options = dict(active_only=active_only)
 
         response = self.nc.get(
@@ -414,4 +430,5 @@ class MockChrootHandle(AbstractHandle):
         return MockChrootList.from_response(
             handle=self,
             response=response,
-            options=options)
+            options=options
+        )

@@ -3,7 +3,7 @@ Resources
 
 Project
 -------
-see entity attributes here: :ref:`project-attributes`.
+see entity attributes at :ref:`project-attributes`.
 
 .. autoclass:: copr.client_v2.resources.Project
    :members:
@@ -13,7 +13,7 @@ see entity attributes here: :ref:`project-attributes`.
 
 Project chroot
 --------------
-see entity attributes here: :ref:`project-chroot-attributes`.
+see entity attributes at :ref:`project-chroot-attributes`.
 
 .. autoclass:: copr.client_v2.resources.ProjectChroot
    :members:
@@ -23,7 +23,7 @@ see entity attributes here: :ref:`project-chroot-attributes`.
 
 Build
 -----
-see entity attributes here: :ref:`build-attributes`.
+see entity attributes at :ref:`build-attributes`.
 
 .. autoclass:: copr.client_v2.resources.Build
    :members:
@@ -33,6 +33,8 @@ see entity attributes here: :ref:`build-attributes`.
 
 Mock chroot
 -----------
+see entity attributes at :ref:`mock-chroot-attributes`.
+
 .. autoclass:: copr.client_v2.resources.MockChroot
    :members:
 

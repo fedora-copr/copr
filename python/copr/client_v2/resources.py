@@ -541,7 +541,9 @@ class MockChrootList(CollectionResource):
 
     @property
     def chroots(self):
-
+        """
+        :rtype: list of :py:class:`~.resources.MockChroot`
+        """
         return self._individuals
 
     @classmethod
