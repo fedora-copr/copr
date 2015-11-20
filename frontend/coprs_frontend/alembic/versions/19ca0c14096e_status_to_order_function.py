@@ -42,11 +42,13 @@ RETURNS integer AS $$ BEGIN
         END; END;
     $$ LANGUAGE plpgsql;
 """
-    op.execute(sa.text(query_functions))
+    if op.get_bind().dialect.name == "postgresql":
+        op.execute(sa.text(query_functions))
 
 
 def downgrade():
     query = """DROP FUNCTION status_to_order (x integer);
 		DROP FUNCTION order_to_status (x integer);
 		"""
-    op.execute(sa.text(query))
+    if op.get_bind().dialect.name == "postgresql":
+        op.execute(sa.text(query))
