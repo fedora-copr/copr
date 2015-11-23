@@ -30,7 +30,7 @@ BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python-requests-toolbelt
 BuildRequires: python-marshmallow
-BuildRequires: python-six
+BuildRequires: python-six >= 1.9.0
 BuildRequires: python-mock
 BuildRequires: pytest
 BuildRequires: python2-devel
@@ -39,7 +39,7 @@ BuildRequires: python-sphinx
 BuildRequires: python-docutils
 
 Requires: python-setuptools
-Requires: python-six
+Requires: python-six >= 1.9.0
 Requires: python-requests
 Requires: python-requests-toolbelt
 Requires: python-marshmallow
