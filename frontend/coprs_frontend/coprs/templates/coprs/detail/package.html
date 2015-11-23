@@ -28,6 +28,11 @@
         </a>
       </dd>
       {% endif %}
+      <dt>Default source type:</dt>
+      <dd>
+        {{ package.source_type_text | build_source_description }}
+        <a href="{{ url_for('coprs_ns.copr_package_edit', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}">[edit]</a>
+      </dd>
     </dl>
     {#
     <h3> Default Package Source </h3>

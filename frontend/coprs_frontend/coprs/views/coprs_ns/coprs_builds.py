@@ -15,7 +15,7 @@ from coprs import helpers
 
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
-from coprs.logic import packages_logic
+from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -104,6 +104,82 @@ def group_copr_package(copr, package_name):
 def render_package(copr, package_name):
     package = ComplexLogic.get_package_safe(copr, package_name)
     return flask.render_template("coprs/detail/package.html", package=package, copr=copr)
+
+
+@coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit")
+@req_with_copr
+def copr_package_edit(copr, package_name):
+    return render_package_edit(copr, package_name)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit")
+@req_with_copr
+def group_copr_package_edit(copr, package_name):
+    return render_package_edit(copr, package_name)
+
+
+def render_package_edit(copr, package_name, form_tito=None, form_mock=None):
+    package = ComplexLogic.get_package_safe(copr, package_name)
+    if not form_tito:
+        data = package.source_json_dict
+        if "git_dir" in data:
+            data["git_directory"] = data["git_dir"]  # @FIXME workaround
+        form_tito = forms.PackageFormTitoFactory.create_form_cls()(data=data)
+
+    if not form_mock:
+        data = package.source_json_dict
+        form_mock = forms.PackageFormMockFactory.create_form_cls()(data=data)
+
+    return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr, form_tito=form_tito,
+                                 form_mock=form_mock)
+
+
+@coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_package_edit_post(copr, package_name):
+    return process_package_edit(copr, package_name)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit", methods=["POST"])
+@login_required
+@req_with_copr
+def group_package_edit_post(copr, package_name):  # @TODO Merge with copr_package_edit_post ?
+    return process_package_edit(copr, package_name)
+
+
+def process_package_edit(copr, package_name):
+    if request.form["source_type"] == "git_and_tito":
+        form = forms.PackageFormTitoFactory
+        form_var = "form_tito"
+    elif request.form["source_type"] == "mock_scm":
+        form = forms.PackageFormMockFactory
+        form_var = "form_mock"
+    else:
+        raise Exception("Wrong source type")
+    form = form.create_form_cls()()
+
+    if form.validate_on_submit():
+        package = PackagesLogic.get(copr.id, package_name).first()
+        package.source_type = helpers.BuildSourceEnum(form.source_type.data)
+
+        if package.source_type == helpers.BuildSourceEnum("git_and_tito"):
+            package.source_json = json.dumps({
+                "git_url": form.git_url.data,
+                "git_branch": form.git_branch.data,
+                "git_dir": form.git_directory.data,
+                "tito_test": form.tito_test.data})
+        elif package.source_type == helpers.BuildSourceEnum("mock_scm"):
+            package.source_json = json.dumps({
+                "scm_type": form.scm_type.data,
+                "scm_url": form.scm_url.data,
+                "scm_branch": form.scm_branch.data,
+                "spec": form.spec.data})
+
+        db.session.add(package)
+        db.session.commit()
+
+    return render_package_edit(copr, package_name, **{form_var: form})
 
 
 @coprs_ns.route("/<username>/<coprname>/add_build/")
