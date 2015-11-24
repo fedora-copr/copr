@@ -33,10 +33,14 @@
         {{ package.source_type_text | build_source_description }}
         {% if not copr.is_a_group_project %}
           <a href="{{ url_for('coprs_ns.copr_package_edit', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}">[edit]</a>
-          <a href="{{ url_for('coprs_ns.copr_package_rebuild', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}">[rebuild]</a>
+          {% if package.source_type %}
+            <a href="{{ url_for('coprs_ns.copr_package_rebuild', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}">[rebuild]</a>
+          {% endif %}
         {% else %}
           <a href="{{ url_for('coprs_ns.group_copr_package_edit', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}">[edit]</a>
-          <a href="{{ url_for('coprs_ns.group_copr_package_rebuild', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}">[rebuild]</a>
+          {% if package.source_type %}
+            <a href="{{ url_for('coprs_ns.group_copr_package_rebuild', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}">[rebuild]</a>
+          {% endif %}
         {% endif %}
       </dd>
     </dl>
