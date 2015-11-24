@@ -13,6 +13,6 @@
 <h2> New Build <small>From a Git Repository Using Tito</small></h2>
 <p> Provide a URL of a Git repository. You can optionally specify a directory within that repository and Git branch. You can also choose to build from the last commit instead of the last release.</p>
 
-  {{ copr_build_form_tito(form, 'coprs_ns.copr_new_build_tito', copr) }}
+  {{ copr_build_form_tito(form, view, copr) }}
 
 {% endblock %}
