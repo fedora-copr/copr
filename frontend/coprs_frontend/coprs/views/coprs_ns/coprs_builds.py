@@ -109,16 +109,16 @@ def render_package(copr, package_name):
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit")
 @req_with_copr
 def copr_package_edit(copr, package_name):
-    return render_package_edit(copr, package_name)
+    return render_package_edit(copr, package_name, view="coprs_ns.copr_package_edit")
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit")
 @req_with_copr
 def group_copr_package_edit(copr, package_name):
-    return render_package_edit(copr, package_name)
+    return render_package_edit(copr, package_name, view="coprs_ns.group_copr_package_edit")
 
 
-def render_package_edit(copr, package_name, form_tito=None, form_mock=None):
+def render_package_edit(copr, package_name, view, form_tito=None, form_mock=None):
     package = ComplexLogic.get_package_safe(copr, package_name)
     if not form_tito:
         data = package.source_json_dict
@@ -131,24 +131,24 @@ def render_package_edit(copr, package_name, form_tito=None, form_mock=None):
         form_mock = forms.PackageFormMockFactory.create_form_cls()(data=data)
 
     return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr, form_tito=form_tito,
-                                 form_mock=form_mock)
+                                 form_mock=form_mock, view=view)
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_package_edit_post(copr, package_name):
-    return process_package_edit(copr, package_name)
+    return process_package_edit(copr, package_name, view="coprs_ns.copr_package_edit")
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit", methods=["POST"])
 @login_required
 @req_with_copr
-def group_package_edit_post(copr, package_name):  # @TODO Merge with copr_package_edit_post ?
-    return process_package_edit(copr, package_name)
+def group_package_edit_post(copr, package_name):
+    return process_package_edit(copr, package_name, view="coprs_ns.group_copr_package_edit")
 
 
-def process_package_edit(copr, package_name):
+def process_package_edit(copr, package_name, view):
     if request.form["source_type"] == "git_and_tito":
         form = forms.PackageFormTitoFactory
         form_var = "form_tito"
@@ -179,12 +179,22 @@ def process_package_edit(copr, package_name):
         db.session.add(package)
         db.session.commit()
 
-    return render_package_edit(copr, package_name, **{form_var: form})
+    return render_package_edit(copr, package_name, view, **{form_var: form})
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/rebuild")
 @req_with_copr
 def copr_package_rebuild(copr, package_name):
+    return render_copr_package_rebuild(copr, package_name, view="coprs_ns.copr_new_build")
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/rebuild")
+@req_with_copr
+def group_copr_package_rebuild(copr, package_name):
+    return render_copr_package_rebuild(copr, package_name, view="coprs_ns.group_copr_new_build")
+
+
+def render_copr_package_rebuild(copr, package_name, view):
     package = ComplexLogic.get_package_safe(copr, package_name)
     data = package.source_json_dict
 
@@ -192,12 +202,14 @@ def copr_package_rebuild(copr, package_name):
         data["git_directory"] = data["git_dir"]  # @FIXME workaround
         form = forms.BuildFormTitoFactory
         f = render_add_build_tito
+        view_suffix = "_tito"
     elif package.source_type_text == "mock_scm":
         form = forms.BuildFormMockFactory
         f = render_add_build_mock
+        view_suffix = "_mock"
 
     form = form.create_form_cls(copr.active_chroots)(data=data)
-    return f(copr, form, view="")
+    return f(copr, form, view=view + view_suffix)
 
 
 @coprs_ns.route("/<username>/<coprname>/add_build/")

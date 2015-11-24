@@ -11,14 +11,14 @@
 
 <div class="clearfix">
   <h3>Tito</h3>
-  {{ copr_package_form_tito(form_tito, 'coprs_ns.copr_package_edit_post', copr, package) }}
+  {{ copr_package_form_tito(form_tito, view, copr, package) }}
 </div>
 
 <hr>
 
 <div class="clearfix">
   <h3>Mock</h3>
-  {{ copr_package_form_mock(form_mock, 'coprs_ns.copr_package_edit_post', copr, package) }}
+  {{ copr_package_form_mock(form_mock, view, copr, package) }}
 </div>
 
 {% endblock %}
