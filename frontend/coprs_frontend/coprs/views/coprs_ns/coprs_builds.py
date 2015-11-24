@@ -182,6 +182,24 @@ def process_package_edit(copr, package_name):
     return render_package_edit(copr, package_name, **{form_var: form})
 
 
+@coprs_ns.route("/<username>/<coprname>/package/<package_name>/rebuild")
+@req_with_copr
+def copr_package_rebuild(copr, package_name):
+    package = ComplexLogic.get_package_safe(copr, package_name)
+    data = package.source_json_dict
+
+    if package.source_type_text == "git_and_tito":
+        data["git_directory"] = data["git_dir"]  # @FIXME workaround
+        form = forms.BuildFormTitoFactory
+        f = render_add_build_tito
+    elif package.source_type_text == "mock_scm":
+        form = forms.BuildFormMockFactory
+        f = render_add_build_mock
+
+    form = form.create_form_cls(copr.active_chroots)(data=data)
+    return f(copr, form, view="")
+
+
 @coprs_ns.route("/<username>/<coprname>/add_build/")
 @login_required
 @req_with_copr

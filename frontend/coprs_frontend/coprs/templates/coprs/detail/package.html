@@ -32,6 +32,7 @@
       <dd>
         {{ package.source_type_text | build_source_description }}
         <a href="{{ url_for('coprs_ns.copr_package_edit', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}">[edit]</a>
+        <a href="{{ url_for('coprs_ns.copr_package_rebuild', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}">[rebuild]</a>
       </dd>
     </dl>
     {#
