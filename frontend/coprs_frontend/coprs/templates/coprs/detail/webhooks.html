@@ -1,0 +1,24 @@
+{% extends "coprs/detail.html" %}
+
+{% set selected_tab = "webhooks" %}
+
+{%block project_breadcrumb %}
+<li class="active">
+  Webhooks
+</li>
+{%endblock%}
+
+{% block detail_body %}
+<div class="row">
+  <div class="col-sm-8 col-md-9">
+    <h2> Webhooks </h2>
+    <p> You can set up an automatic builds with webhooks </p>
+
+    <h3> GitHub </h3>
+    <p> We might need to explain here what to do with that... </p>
+    <div class="well well-sm">
+    {{ github_url }}
+    </div>
+  </div>
+</div>
+{% endblock %}

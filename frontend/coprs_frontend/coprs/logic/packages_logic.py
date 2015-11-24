@@ -1,7 +1,8 @@
 import json
+import time
 from sqlalchemy import or_
 from sqlalchemy import and_
-from sqlalchemy.sql import false
+from sqlalchemy.sql import false, true
 
 from coprs import app
 from coprs import db
@@ -11,6 +12,8 @@ from coprs import helpers
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
+
+from coprs.constants import DEFAULT_BUILD_TIMEOUT
 
 log = app.logger
 
@@ -25,6 +28,14 @@ class PackagesLogic(object):
     def get(cls, copr_id, package_name):
         return models.Package.query.filter(models.Package.copr_id == copr_id,
                                            models.Package.name == package_name)
+
+    @classmethod
+    def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url):
+        return (models.Package.query.join(models.Copr)
+                .filter(models.Copr.webhook_secret == webhook_secret)
+                .filter(models.Package.copr_id == copr_id)
+                .filter(models.Package.webhook_rebuild == true())
+                .filter(models.Package.source_json.contains(clone_url)))
 
     @classmethod
     def add(cls, user, copr, package_name):
@@ -56,3 +67,4 @@ class PackagesLogic(object):
         return (models.Package.query
                 .filter(models.Package.copr_id == copr_id)
                 .filter(models.Package.name == package_name))
+

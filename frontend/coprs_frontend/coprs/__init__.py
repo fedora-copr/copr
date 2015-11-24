@@ -63,6 +63,8 @@ from coprs.views import tmp_ns
 from coprs.views.tmp_ns import tmp_general
 from coprs.views.groups_ns import groups_ns
 from coprs.views.groups_ns import groups_general
+from coprs.views.webhooks_ns import webhooks_ns
+from coprs.views.webhooks_ns import webhooks_general
 
 
 from .context_processors import include_banner, inject_fedmenu
@@ -79,6 +81,7 @@ app.register_blueprint(recent_ns.recent_ns)
 app.register_blueprint(stats_receiver.stats_rcv_ns)
 app.register_blueprint(tmp_ns.tmp_ns)
 app.register_blueprint(groups_ns)
+app.register_blueprint(webhooks_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
 

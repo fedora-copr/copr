@@ -4,6 +4,7 @@ import os
 import time
 import os
 import re
+import uuid
 from six.moves.urllib.parse import urljoin
 
 import flask
@@ -347,6 +348,36 @@ def copr_permissions(copr):
         permissions_applier_form=permissions_applier_form,
         permissions=permissions,
         current_user_permissions=user_perm)
+
+
+def render_copr_webhooks(copr):
+    if not copr.webhook_secret:
+        copr.webhook_secret = uuid.uuid4()
+        db.session.add(copr)
+        db.session.commit()
+
+    github_url = "https://{}/webhooks/github/{}/{}/".format(
+                  app.config["PUBLIC_COPR_HOSTNAME"],
+                  copr.id,
+                  copr.webhook_secret)
+
+    return flask.render_template(
+        "coprs/detail/webhooks.html",
+        copr=copr, github_url=github_url)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/webhooks/")
+@login_required
+@req_with_copr
+def group_copr_webhooks(copr):
+    return render_copr_webhooks(copr)
+
+
+@coprs_ns.route("/<username>/<coprname>/webhooks/")
+@login_required
+@req_with_copr
+def copr_webhooks(copr):
+    return render_copr_webhooks(copr)
 
 
 def render_copr_edit(copr, form, view):

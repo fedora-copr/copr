@@ -525,6 +525,40 @@ GROUP BY
 
         return build
 
+    @classmethod
+    def rebuild_package(cls, package):
+        build = models.Build(
+            user=None,
+            pkgs=None,
+            package_id=package.id,
+            copr=package.copr,
+            repos=package.copr.repos,
+            source_type=package.source_type,
+            source_json=package.source_json,
+            submitted_on=int(time.time()),
+            enable_net=package.enable_net,
+            timeout=DEFAULT_BUILD_TIMEOUT
+        )
+
+        db.session.add(build)
+
+        chroots = package.copr.active_chroots
+
+        status = helpers.StatusEnum("importing")
+
+        for chroot in chroots:
+            buildchroot = models.BuildChroot(
+                build=build,
+                status=status,
+                mock_chroot=chroot,
+                git_hash=None
+            )
+
+            db.session.add(buildchroot)
+
+        return build
+
+
     terminal_states = {StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")}
 
     @classmethod

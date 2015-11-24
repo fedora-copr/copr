@@ -196,6 +196,9 @@ class Copr(db.Model, helpers.Serializer):
     group = db.relationship("Group", backref=db.backref("groups"))
     mock_chroots = association_proxy("copr_chroots", "mock_chroot")
 
+    # a secret to be used for webhooks authentication
+    webhook_secret = db.Column(db.String(100))
+
     # enable networking for the builds by default
     build_enable_net = db.Column(db.Boolean, default=True,
                                  server_default="1", nullable=False)
@@ -352,6 +355,11 @@ class Package(db.Model, helpers.Serializer):
     source_type = db.Column(db.Integer, default=helpers.BuildSourceEnum("unset"))
     # Source of the build: description in json, example: git link, srpm url, etc.
     source_json = db.Column(db.Text)
+    # True if the package is built automatically via webhooks
+    webhook_rebuild = db.Column(db.Boolean, default=False)
+    # enable networking during a build process
+    enable_net = db.Column(db.Boolean, default=False,
+                           server_default="0", nullable=False)
 
     # relations
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
