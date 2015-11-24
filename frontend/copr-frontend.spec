@@ -133,6 +133,22 @@ BuildRequires: dnf
 
 %endif # with_python3
 
+Provides: bundled(bootstrap) = 3.3.4
+Provides: bundled(bootstrap-combobox) = 1.1.6
+Provides: bundled(bootstrap-select) = 1.5.4
+Provides: bundled(bootstrap-treeview) = 1.0.1
+Provides: bundled(c3) = 0.4.10
+Provides: bundled(d3) = 3.5.0
+Provides: bundled(datatables) = 1.10.7
+Provides: bundled(datatables-colreorder) = 1.1.3
+Provides: bundled(datatables-colvis) = 1.1.2
+Provides: bundled(font-awesome) = 1.0.1
+Provides: bundled(google-code-prettify) = 4.3.0
+Provides: bundled(html5shiv) = 3.7.2
+Provides: bundled(jquery) = 1.11.3
+Provides: bundled(jquery-ui) = 1.11.4
+Provides: bundled(Respond.js) = 1.4.2
+
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latests builds.
