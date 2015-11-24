@@ -287,7 +287,7 @@ def process_new_build_tito(copr, add_view, url_on_success):
 
         return flask.redirect(url_on_success)
     else:
-        return render_add_build_upload(copr, form, add_view)
+        return render_add_build_tito(copr, form, add_view)
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build_tito/", methods=["POST"])
@@ -466,7 +466,7 @@ def process_new_build_url(copr, add_view, url_on_success):
 
         return flask.redirect(url_on_success)
     else:
-        return render_add_build_upload(copr, form, add_view)
+        return render_add_build(copr, form, add_view)
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
@@ -475,7 +475,7 @@ def process_new_build_url(copr, add_view, url_on_success):
 def copr_new_build(copr):
     return process_new_build_url(
         copr,
-        "coprs_ns.copr_add_build",
+        "coprs_ns.copr_new_build",
         url_on_success=url_for("coprs_ns.copr_builds",
                                username=copr.owner.username, coprname=copr.name)
     )
@@ -487,7 +487,7 @@ def copr_new_build(copr):
 def group_copr_new_build(copr):
     return process_new_build_url(
         copr,
-        "coprs_ns.group_copr_add_build",
+        "coprs_ns.group_copr_new_build",
         url_on_success=url_for("coprs_ns.group_copr_builds",
                                group_name=copr.group.name, coprname=copr.name)
     )
