@@ -16,7 +16,32 @@
 
 {% block detail_body %}
 
+{% macro controls() %}
+  <div class="btn-group">
+    <a class="btn btn-default btn-sm" href="
+      {% if not copr.is_a_group_project %}
+        {{ url_for('coprs_ns.copr_package_edit', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}
+      {% else %}
+        {{ url_for('coprs_ns.group_copr_package_edit', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}
+      {% endif %}">
+      <span class="pficon pficon-edit"></span> Edit</button>
+    </a>
+
+    {% if package.source_type %}
+    <a class="btn btn-default btn-sm" href="
+      {% if not copr.is_a_group_project %}
+        {{ url_for('coprs_ns.copr_package_rebuild', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}
+      {% else %}
+        {{ url_for('coprs_ns.group_copr_package_rebuild', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}
+      {% endif %}">
+      <span class="pficon pficon-restart"></span> Rebuild</button>
+    </a>
+    {% endif %}
+  </div>
+{% endmacro %}
+
 <h2> Package: {{ package.name }} </h2>
+
 <div class="row">
   <div class="col-sm-8 col-md-9">
     <dl class="dl-horizontal">
@@ -28,26 +53,14 @@
         </a>
       </dd>
       {% endif %}
-      <dt>Default source type:</dt>
+
+      <dt><h3>Default source</h3></dt>
       <dd>
-        {{ package.source_type_text | build_source_description }}
-        {% if not copr.is_a_group_project %}
-          <a href="{{ url_for('coprs_ns.copr_package_edit', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}">[edit]</a>
-          {% if package.source_type %}
-            <a href="{{ url_for('coprs_ns.copr_package_rebuild', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}">[rebuild]</a>
-          {% endif %}
-        {% else %}
-          <a href="{{ url_for('coprs_ns.group_copr_package_edit', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}">[edit]</a>
-          {% if package.source_type %}
-            <a href="{{ url_for('coprs_ns.group_copr_package_rebuild', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}">[rebuild]</a>
-          {% endif %}
-        {% endif %}
+        <dt>Controls:</dt>
+        <dd>{{ controls() }}</dd>
+        {{ describe_source(package) }}
       </dd>
     </dl>
-    {#
-    <h3> Default Package Source </h3>
-    {{ describe_source(package) }}
-    #}
   </div>
   <div class="col-sm-12">
     <h3> Recent Builds: </h3>
