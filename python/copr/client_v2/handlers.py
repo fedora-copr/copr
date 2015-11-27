@@ -325,7 +325,6 @@ class ProjectHandle(AbstractHandle):
     ):
         """ Creates new project
 
-
         :param name: project name
         :param owner: username
         :param chroots: list of mock chroot to be used in project
@@ -367,9 +366,6 @@ class ProjectHandle(AbstractHandle):
                 url=self.get_base_url(),
                 request_body=request_data, response=response
             )
-
-
-
 
     def update(self, project_entity):
         """ Updates project.
