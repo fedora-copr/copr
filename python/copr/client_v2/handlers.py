@@ -323,6 +323,22 @@ class ProjectHandle(AbstractHandle):
             homepage=None, contact=None, disable_createrepo=None, build_enable_net=None,
             repos=None,
     ):
+        """ Creates new project
+
+
+        :param name: project name
+        :param owner: username
+        :param chroots: list of mock chroot to be used in project
+        :param description:
+        :param instructions:
+        :param homepage:
+        :param contact:
+        :param bool disable_createrepo:
+        :param bool build_enable_net:
+        :param repos: list of additional repos enabled for builds
+
+        :rtype: :py:class:`~.resources.Project`
+        """
 
         new_entity = ProjectCreateEntity(
             owner=owner,
@@ -338,8 +354,22 @@ class ProjectHandle(AbstractHandle):
         )
 
         url = self.get_base_url()
-        response = self.nc.request(url, method="post", data=new_entity.to_json(), do_auth=True)
-        return OperationResult(self, response)
+        request_data = new_entity.to_json()
+        response = self.nc.request(url, method="post", data=request_data, do_auth=True)
+        op_result = OperationResult(self, response, expected_status=201)
+        if op_result.is_successful():
+            response = self.nc.get(op_result.new_location)
+            return Project.from_response(
+                handle=self, response=response, data_dict=response.json)
+        else:
+            raise RequestError(
+                "Got unexpected status code at create build request",
+                url=self.get_base_url(),
+                request_body=request_data, response=response
+            )
+
+
+
 
     def update(self, project_entity):
         """ Updates project.
