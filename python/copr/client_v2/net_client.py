@@ -122,6 +122,12 @@ class NetClient(object):
 
     def request(self, url, method=None, query_params=None, data=None, do_auth=False, headers=None):
         """
+        :param str method: what HTTP method to use, default is GET, allowed methods: GET, POST, PUT, DELETE
+        :param dict query_params: HTTP query parameters
+        :param str data: serialized data, when present set default content type to application/json
+        :param dict headers: dict with headers, takes priority over implicit ones
+        :param bool do_auth: sends auth headers when enabled
+
         :raises: RequestError
         """
 

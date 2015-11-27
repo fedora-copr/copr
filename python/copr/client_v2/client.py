@@ -176,7 +176,6 @@ class CoprClient(UnicodeMixin, HandlersProvider):
         client.post_init()
         return client
 
-
     @classmethod
     def create_from_file_config(cls, filepath=None, ignore_error=False):
         """

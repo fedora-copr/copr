@@ -7,7 +7,7 @@ Build task represents information about individual build tasks. One task is resp
 
 Access to the build tasks is done through :py:meth:`~copr.client_v2.client.CoprClient.build_tasks`.
 property of initialized :py:class:`~copr.client_v2.client.CoprClient`. That property is an instance of
-:py:class:`~copr.client_v2.handlers.BuildTasksHandle`.
+:py:class:`~copr.client_v2.handlers.BuildTaskHandle`.
 
 
 It may be more convenient to access build tasks in context of a build

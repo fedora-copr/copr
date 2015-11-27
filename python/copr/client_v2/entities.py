@@ -1,7 +1,8 @@
 # coding: utf-8
 from ..util import UnicodeMixin
 
-from .schemas import ProjectSchema, EmptySchema, ProjectChrootSchema, BuildSchema, BuildTaskSchema, MockChrootSchema
+from .schemas import ProjectSchema, EmptySchema, ProjectChrootSchema, BuildSchema, BuildTaskSchema, MockChrootSchema, \
+    ProjectCreateSchema
 
 
 class Link(UnicodeMixin):
@@ -47,6 +48,12 @@ class ProjectEntity(Entity):
     def __unicode__(self):
         return "<Project #{}: {}/{}>".format(self.id, self.owner, self.name)
 
+
+class ProjectCreateEntity(Entity):
+    _schema = ProjectCreateSchema(strict=True)
+
+    def __unicode__(self):
+        return "<New project {}/{}>".format(self.owner, self.name)
 
 class ProjectChrootEntity(Entity):
     _schema = ProjectChrootSchema(strict=True)

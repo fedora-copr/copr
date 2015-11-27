@@ -4,7 +4,8 @@ import json
 import os
 
 from copr.client_v2.net_client import RequestError, MultiPartTuple
-from .entities import ProjectChrootEntity
+from copr.client_v2.schemas import ProjectCreateSchema
+from .entities import ProjectChrootEntity, ProjectEntity, ProjectCreateEntity
 from .resources import Project, OperationResult, ProjectList, ProjectChroot, ProjectChrootList, Build, BuildList, \
     MockChroot, MockChrootList, BuildTask, BuildTaskList
 
@@ -316,6 +317,29 @@ class ProjectHandle(AbstractHandle):
             data_dict=response.json,
             options=query_params
         )
+
+    def create(
+            self, name, owner, chroots, description=None, instructions=None,
+            homepage=None, contact=None, disable_createrepo=None, build_enable_net=None,
+            repos=None,
+    ):
+
+        new_entity = ProjectCreateEntity(
+            owner=owner,
+            name=name,
+            chroots=chroots,
+            description=description,
+            instructions=instructions,
+            homepage=homepage,
+            contact=contact,
+            disable_createrepo=disable_createrepo,
+            build_enable_net=build_enable_net,
+            repos=repos
+        )
+
+        url = self.get_base_url()
+        response = self.nc.request(url, method="post", data=new_entity.to_json(), do_auth=True)
+        return OperationResult(self, response)
 
     def update(self, project_entity):
         """ Updates project.

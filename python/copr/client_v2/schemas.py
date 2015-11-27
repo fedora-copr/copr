@@ -35,6 +35,12 @@ class ProjectSchema(Schema):
     repos = fields.List(fields.Str())
 
 
+class ProjectCreateSchema(ProjectSchema):
+
+    id = fields.Int(allow_none=True)
+    chroots = fields.List(fields.Str())
+
+
 class ProjectChrootSchema(Schema):
 
     name = fields.Str()
