@@ -50,7 +50,7 @@ Get projects list
     # filter by name
     >>> plist_2 = cl.project.get_list(name="copr")
     # search by string
-    >>> plist_2 = cl.project.get_list(name="copr")
+    >>> plist_2 = cl.project.get_list(search_query="copr")
 
 
 Get one project
