@@ -78,7 +78,18 @@ Delete project
 Create new project
 ------------------
 
-.. note:: Not Implemented yet
+.. note::
+    Here you could also provide list of chroots, which should be activated. Use key ``chroots``.
+
+.. sourcecode:: python
+
+    >>> res = cl.projects.create(name="my_cool_project",
+                                 owner="vgologuz",
+                                 instructions="don't touch me!",
+                                 chroots=["fedora-22-x86_64"])
+    >>>  print(res)
+    <Project #5384: vgologuz/my_cool_project>
+
 
 
 Access project chroots
