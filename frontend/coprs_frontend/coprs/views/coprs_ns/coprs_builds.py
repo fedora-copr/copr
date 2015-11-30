@@ -120,14 +120,16 @@ def group_copr_package_edit(copr, package_name):
 
 def render_package_edit(copr, package_name, view, form_tito=None, form_mock=None):
     package = ComplexLogic.get_package_safe(copr, package_name)
+
+    data = package.source_json_dict
+    data["webhook_rebuild"] = package.webhook_rebuild
+
     if not form_tito:
-        data = package.source_json_dict
         if "git_dir" in data:
             data["git_directory"] = data["git_dir"]  # @FIXME workaround
         form_tito = forms.PackageFormTitoFactory.create_form_cls()(data=data)
 
     if not form_mock:
-        data = package.source_json_dict
         form_mock = forms.PackageFormMockFactory.create_form_cls()(data=data)
 
     return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr, form_tito=form_tito,
@@ -162,6 +164,7 @@ def process_package_edit(copr, package_name, view):
     if form.validate_on_submit():
         package = PackagesLogic.get(copr.id, package_name).first()
         package.source_type = helpers.BuildSourceEnum(form.source_type.data)
+        package.webhook_rebuild = form.webhook_rebuild.data
 
         if package.source_type == helpers.BuildSourceEnum("git_and_tito"):
             package.source_json = json.dumps({

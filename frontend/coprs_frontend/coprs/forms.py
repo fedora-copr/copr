@@ -571,6 +571,7 @@ class PackageFormTitoFactory(object):
                     wtforms.validators.Optional()])
 
             tito_test = wtforms.BooleanField(default=False)
+            webhook_rebuild = wtforms.BooleanField(default=False)
 
         return F
 
@@ -605,6 +606,8 @@ class PackageFormMockFactory(object):
                         "^.+\.spec$",
                         message="RPM spec file must end with .spec"
                     )])
+
+            webhook_rebuild = wtforms.BooleanField(default=False)
 
         return F
 
