@@ -1,0 +1,12 @@
+{% extends "coprs/detail/settings/settings.html" %}
+{% from "coprs/_coprs_forms.html" import copr_form %}
+
+{% set selected_monitor_tab = "edit" %}
+
+
+{% block tab_content %}
+
+<h2> Edit Project Details</h2>
+{{ copr_form(form, view=view, copr=copr) }}
+
+{% endblock %}

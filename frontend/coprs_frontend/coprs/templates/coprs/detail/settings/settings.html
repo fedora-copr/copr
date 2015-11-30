@@ -1,0 +1,32 @@
+{% extends "coprs/detail.html" %}
+{% block title %}Settings {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+
+{% set selected_tab = "settings" %}
+
+
+{% macro tab(tab_name, tab_title, href) %}
+<li class="{% if selected_monitor_tab == tab_name %}active{% endif %}">
+  <a href="{{ href }}">
+    {{ tab_title }}
+  </a>
+</li>
+{% endmacro %}
+
+
+{% block detail_body %}
+
+<ul class="nav nav-tabs nav-tabs-pf">
+  {% if copr.is_a_group_project %}
+    {{ tab("edit", "Edit", url_for('coprs_ns.group_copr_edit', group_name=copr.group.name, coprname=copr.name)) }}
+    {{ tab("webhooks", "Webhooks", url_for('coprs_ns.group_copr_webhooks', group_name=copr.group.name, coprname=copr.name)) }}
+    {{ tab("delete", "Delete", url_for('coprs_ns.group_copr_delete', group_name=copr.group.name, coprname=copr.name)) }}
+  {% else %}
+    {{ tab("edit", "Edit", url_for('coprs_ns.copr_edit', username=copr.owner.name, coprname=copr.name)) }}
+    {{ tab("webhooks", "Webhooks", url_for('coprs_ns.copr_webhooks', username=copr.owner.name, coprname=copr.name)) }}
+    {{ tab("delete", "Delete", url_for('coprs_ns.copr_delete', username=copr.owner.name, coprname=copr.name)) }}
+  {% endif %}
+</ul>
+
+{% block tab_content %}{% endblock %}
+
+{% endblock %}

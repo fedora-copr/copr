@@ -6,16 +6,13 @@
   {% set url_builds =  url_for('coprs_ns.group_copr_builds', group_name = copr.group.name, coprname = copr.name) %}
   {% set url_monitor = url_for('coprs_ns.group_copr_build_monitor', group_name = copr.group.name, coprname = copr.name) %}
   {% set url_add_build = url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name) %}
-  {% set url_delete =  url_for('coprs_ns.group_copr_delete', group_name = copr.group.name, coprname = copr.name)  %}
-  {% set url_edit = url_for('coprs_ns.group_copr_edit', group_name = copr.group.name, coprname = copr.name) %}
+  {% set url_settings = url_for('coprs_ns.group_copr_edit', group_name = copr.group.name, coprname = copr.name) %}
 {% else %}
   {% set url_overview = url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) %}
   {% set url_builds =  url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name) %}
   {% set url_monitor =  url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name)  %}
   {% set url_add_build =  url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_delete =  url_for('coprs_ns.copr_delete', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_edit = url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_webhooks = url_for('coprs_ns.copr_webhooks', username = copr.owner.name, coprname = copr.name) %}
+  {% set url_settings = url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) %}
 {% endif %}
 
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
@@ -74,14 +71,6 @@
       {{ nav_element("add_build", "New Build", url_add_build) }}
     {% endif %}
 
-    {% if g.user and g.user.can_edit(copr) %}
-      {{ nav_element("edit", "Edit", url_edit) }}
-    {% endif %}
-
-    {% if g.user and g.user.can_edit(copr) %}
-      {{ nav_element("webhooks", "Webhooks", url_webhooks) }}
-    {% endif %}
-
     {% if g.user and not copr.is_a_group_project %}
       {{ nav_element("permissions", "Permissions",  url_for(
           'coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name))
@@ -89,7 +78,7 @@
     {% endif %}
 
     {% if g.user and g.user.can_edit(copr) %}
-      {{ nav_element("delete", "Delete", url_delete) }}
+    {{ nav_element("settings", "Settings", url_settings) }}
     {% endif %}
 </ul>
 

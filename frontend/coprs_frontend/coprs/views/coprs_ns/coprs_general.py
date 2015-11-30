@@ -362,7 +362,7 @@ def render_copr_webhooks(copr):
                   copr.webhook_secret)
 
     return flask.render_template(
-        "coprs/detail/webhooks.html",
+        "coprs/detail/settings/webhooks.html",
         copr=copr, github_url=github_url)
 
 
@@ -385,7 +385,7 @@ def render_copr_edit(copr, form, view):
         form = forms.CoprFormFactory.create_form_cls(
             copr.mock_chroots)(obj=copr)
     return flask.render_template(
-        "coprs/detail/edit.html",
+        "coprs/detail/settings/edit.html",
         copr=copr, form=form, view=view)
 
 
@@ -609,7 +609,7 @@ def process_delete(copr, url_on_error, url_on_success):
             flask.flash("Project has been deleted successfully.")
             return flask.redirect(url_on_success)
     else:
-        return render_template("coprs/detail/delete.html", form=form, copr=copr)
+        return render_template("coprs/detail/settings/delete.html", form=form, copr=copr)
 
 
 @coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])

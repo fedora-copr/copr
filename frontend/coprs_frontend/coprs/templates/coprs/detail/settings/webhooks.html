@@ -1,0 +1,21 @@
+{% extends "coprs/detail/settings/settings.html" %}
+
+{% set selected_monitor_tab = "webhooks" %}
+
+
+{% block tab_content %}
+
+<div class="row">
+    <div class="col-sm-8 col-md-9">
+        <h2> Webhooks </h2>
+        <p> You can set up an automatic builds with webhooks </p>
+
+        <h3> GitHub </h3>
+        <p> We might need to explain here what to do with that... </p>
+        <div class="well well-sm">
+            {{ github_url }}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

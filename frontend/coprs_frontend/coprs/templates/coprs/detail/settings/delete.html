@@ -1,0 +1,17 @@
+{% extends "coprs/detail/settings/settings.html" %}
+{% from "coprs/_coprs_forms.html" import copr_delete_form %}
+
+{% set selected_monitor_tab = "delete" %}
+
+
+{% block tab_content %}
+
+<h2> Delete Project </h2>
+<p>If you really want to delete this Project, you'll have to answer this riddle:</p>
+<p>{{ range(5)|random }}.{{ range(10)|random }} hens lay {{ range(5)|random }}.{{ range(10)|random }} eggs in
+    {{ range(5)|random }}.{{ range(10)|random }} days. How many eggs do {{ range(5)|random }}.{{ range(10)|random }}
+    hens lay in {{ range(5)|random }}.{{ range(10)|random }} days?</p>
+<p>Ok, kidding, just type "<strong>yes</strong>" into the below box.</p>
+{{ copr_delete_form(form, copr) }}
+
+{% endblock %}
