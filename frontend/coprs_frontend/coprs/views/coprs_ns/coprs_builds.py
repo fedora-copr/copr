@@ -127,10 +127,10 @@ def render_package_edit(copr, package_name, view, form_tito=None, form_mock=None
     if not form_tito:
         if "git_dir" in data:
             data["git_directory"] = data["git_dir"]  # @FIXME workaround
-        form_tito = forms.PackageFormTitoFactory.create_form_cls()(data=data)
+        form_tito = forms.PackageFormTitoFactory(data=data)
 
     if not form_mock:
-        form_mock = forms.PackageFormMockFactory.create_form_cls()(data=data)
+        form_mock = forms.PackageFormMockFactory(data=data)
 
     return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr, form_tito=form_tito,
                                  form_mock=form_mock, view=view)
@@ -152,14 +152,13 @@ def group_package_edit_post(copr, package_name):
 
 def process_package_edit(copr, package_name, view):
     if request.form["source_type"] == "git_and_tito":
-        form = forms.PackageFormTitoFactory
+        form = forms.PackageFormTitoFactory()
         form_var = "form_tito"
     elif request.form["source_type"] == "mock_scm":
-        form = forms.PackageFormMockFactory
+        form = forms.PackageFormMockFactory()
         form_var = "form_mock"
     else:
         raise Exception("Wrong source type")
-    form = form.create_form_cls()()
 
     if form.validate_on_submit():
         package = PackagesLogic.get(copr.id, package_name).first()

@@ -546,70 +546,60 @@ class BuildFormRebuildFactory(object):
         return F
 
 
-class PackageFormTitoFactory(object):
-    @staticmethod
-    def create_form_cls():
-        class F(wtf.Form):
-            source_type = wtforms.HiddenField(
-                "Source Type",
-                validators=[wtforms.validators.AnyOf(["git_and_tito"])])
-
-            git_url = wtforms.StringField(
-                "Git URL",
-                validators=[
-                    wtforms.validators.DataRequired(),
-                    wtforms.validators.URL()])
-
-            git_directory = wtforms.StringField(
-                "Git Directory",
-                validators=[
-                    wtforms.validators.Optional()])
-
-            git_branch = wtforms.StringField(
-                "Git Branch",
-                validators=[
-                    wtforms.validators.Optional()])
-
-            tito_test = wtforms.BooleanField(default=False)
-            webhook_rebuild = wtforms.BooleanField(default=False)
-
-        return F
+class PackageFormFactory(wtf.Form):
+    webhook_rebuild = wtforms.BooleanField(default=False)
 
 
-class PackageFormMockFactory(object):
-    @staticmethod
-    def create_form_cls():
-        class F(wtf.Form):
-            source_type = wtforms.HiddenField(
-                "Source Type",
-                validators=[wtforms.validators.AnyOf(["mock_scm"])])
+class PackageFormTito(BasePackageForm):
+    source_type = wtforms.HiddenField(
+        "Source Type",
+        validators=[wtforms.validators.AnyOf(["git_and_tito"])])
 
-            scm_type = wtforms.SelectField(
-                "SCM Type",
-                choices=[("git", "Git"), ("svn", "SVN")])
+    git_url = wtforms.StringField(
+        "Git URL",
+        validators=[
+            wtforms.validators.DataRequired(),
+            wtforms.validators.URL()])
 
-            scm_url = wtforms.StringField(
-                "SCM URL",
-                validators=[
-                    wtforms.validators.DataRequired(),
-                    wtforms.validators.URL()])
+    git_directory = wtforms.StringField(
+        "Git Directory",
+        validators=[
+            wtforms.validators.Optional()])
 
-            scm_branch = wtforms.StringField(
-                "Git Branch",
-                validators=[
-                    wtforms.validators.Optional()])
+    git_branch = wtforms.StringField(
+        "Git Branch",
+        validators=[
+            wtforms.validators.Optional()])
 
-            spec = wtforms.StringField(
-                "Spec File",
-                validators=[
-                    wtforms.validators.Regexp(
-                        "^.+\.spec$",
-                        message="RPM spec file must end with .spec"
-                    )])
+    tito_test = wtforms.BooleanField(default=False)
 
-            webhook_rebuild = wtforms.BooleanField(default=False)
 
-        return F
+class PackageFormMock(BasePackageForm):
+    source_type = wtforms.HiddenField(
+        "Source Type",
+        validators=[wtforms.validators.AnyOf(["mock_scm"])])
+
+    scm_type = wtforms.SelectField(
+        "SCM Type",
+        choices=[("git", "Git"), ("svn", "SVN")])
+
+    scm_url = wtforms.StringField(
+        "SCM URL",
+        validators=[
+            wtforms.validators.DataRequired(),
+            wtforms.validators.URL()])
+
+    scm_branch = wtforms.StringField(
+        "Git Branch",
+        validators=[
+            wtforms.validators.Optional()])
+
+    spec = wtforms.StringField(
+        "Spec File",
+        validators=[
+            wtforms.validators.Regexp(
+                "^.+\.spec$",
+                message="RPM spec file must end with .spec")])
 
 
 class ChrootForm(wtf.Form):
