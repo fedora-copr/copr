@@ -1,4 +1,4 @@
-{% extends "coprs/detail/settings/settings.html" %}
+{% extends "coprs/detail/settings.html" %}
 
 {% set selected_monitor_tab = "webhooks" %}
 
@@ -8,13 +8,27 @@
 <div class="row">
     <div class="col-sm-8 col-md-9">
         <h2> Webhooks </h2>
-        <p> You can set up an automatic builds with webhooks </p>
+        <p> You can set up automatic builds of your packages directly from
+            your git using webhooks.</p>
+        <h3> How does it work </h3>
+        <ol>
+          <li> Set a default source of a package in this project </li>
+          <li> Enable automatic rebuilds for the package </li>
+          <li> Use the webhook URL from this project in your Git (see below) </li>
+        </ol>
+        <p> Copr will now rebuild the package everytime it recieves the webhook
+            call - usualy with every commit </p>
 
-        <h3> GitHub </h3>
-        <p> We might need to explain here what to do with that... </p>
+        <h3> Webhook URL for GitHub </h3>
         <div class="well well-sm">
             {{ github_url }}
         </div>
+        <h4> How to use it: </h4>
+        <ol>
+          <li> In your GitHub project, go to Settings / 'Webhooks and services' </li>
+          <li> Click on the 'Add webhook' button </li>
+          <li> Fill in the 'Payload URL' field with the url above </li>
+          <li> Click the 'Add webhook' button. </li>
     </div>
 </div>
 
