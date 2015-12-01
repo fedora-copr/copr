@@ -127,10 +127,10 @@ def render_package_edit(copr, package_name, view, form_tito=None, form_mock=None
     if not form_tito:
         if "git_dir" in data:
             data["git_directory"] = data["git_dir"]  # @FIXME workaround
-        form_tito = forms.PackageFormTitoFactory(data=data)
+        form_tito = forms.PackageFormTito(data=data)
 
     if not form_mock:
-        form_mock = forms.PackageFormMockFactory(data=data)
+        form_mock = forms.PackageFormMock(data=data)
 
     return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr, form_tito=form_tito,
                                  form_mock=form_mock, view=view)
@@ -152,10 +152,10 @@ def group_package_edit_post(copr, package_name):
 
 def process_package_edit(copr, package_name, view):
     if request.form["source_type"] == "git_and_tito":
-        form = forms.PackageFormTitoFactory()
+        form = forms.PackageFormTito()
         form_var = "form_tito"
     elif request.form["source_type"] == "mock_scm":
-        form = forms.PackageFormMockFactory()
+        form = forms.PackageFormMock()
         form_var = "form_mock"
     else:
         raise Exception("Wrong source type")
@@ -210,7 +210,7 @@ def render_copr_package_rebuild(copr, package_name, view):
         f = render_add_build_mock
         view_suffix = "_mock"
 
-    form = form.create_form_cls(copr.active_chroots)(data=data)
+    form = form(copr.active_chroots)(data=data)
     return f(copr, form, view=view + view_suffix)
 
 
@@ -230,7 +230,7 @@ def group_copr_add_build(copr, form=None):
 
 def render_add_build(copr, form, view):
     if not form:
-        form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
+        form = forms.BuildFormUrlFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/url.html",
                                  copr=copr, view=view, form=form)
 
@@ -251,7 +251,7 @@ def group_copr_add_build_upload(copr, form=None):
 
 def render_add_build_upload(copr, form, view):
     if not form:
-        form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
+        form = forms.BuildFormUploadFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/upload.html",
                                  copr=copr, form=form, view=view)
 
@@ -272,14 +272,14 @@ def group_copr_add_build_tito(copr, form=None):
 
 def render_add_build_tito(copr, form, view):
     if not form:
-        form = forms.BuildFormTitoFactory.create_form_cls(copr.active_chroots)()
+        form = forms.BuildFormTitoFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/tito.html",
                                  copr=copr, form=form, view=view)
 
 
 
 def process_new_build_tito(copr, add_view, url_on_success):
-    form = forms.BuildFormTitoFactory.create_form_cls(copr.active_chroots)()
+    form = forms.BuildFormTitoFactory(copr.active_chroots)()
 
     if form.validate_on_submit():
         build_options = {
@@ -342,7 +342,7 @@ def group_copr_add_build_mock(copr, form=None):
 
 def render_add_build_mock(copr, form, view):
     if not form:
-        form = forms.BuildFormMockFactory.create_form_cls(copr.active_chroots)()
+        form = forms.BuildFormMockFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/mock.html",
                                  copr=copr, form=form, view=view)
 
@@ -368,7 +368,7 @@ def group_copr_new_build_mock(copr):
 
 
 def process_new_build_mock(copr, add_view, url_on_success):
-    form = forms.BuildFormMockFactory.create_form_cls(copr.active_chroots)()
+    form = forms.BuildFormMockFactory(copr.active_chroots)()
 
     if form.validate_on_submit():
         build_options = {
@@ -394,7 +394,7 @@ def process_new_build_mock(copr, add_view, url_on_success):
 
 
 def process_new_build_upload(copr, add_view, url_on_success):
-    form = forms.BuildFormUploadFactory.create_form_cls(copr.active_chroots)()
+    form = forms.BuildFormUploadFactory(copr.active_chroots)()
     if form.validate_on_submit():
         build_options = {
             "enable_net": form.enable_net.data,
@@ -442,7 +442,7 @@ def group_copr_new_build_upload(copr):
 
 
 def process_new_build_url(copr, add_view, url_on_success):
-    form = forms.BuildFormFactory.create_form_cls(copr.active_chroots)()
+    form = forms.BuildFormUrlFactory(copr.active_chroots)()
 
     if form.validate_on_submit():
         pkgs = form.pkgs.data.split("\n")

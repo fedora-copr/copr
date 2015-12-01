@@ -270,239 +270,7 @@ class CoprDeleteForm(wtf.Form):
         ])
 
 
-class BuildFormFactory(object):
-    @staticmethod
-    def create_form_cls(active_chroots):
-        class F(wtf.Form):
-            @property
-            def selected_chroots(self):
-                selected = []
-                for ch in self.chroots_list:
-                    if getattr(self, ch).data:
-                        selected.append(ch)
-                return selected
-
-            pkgs = wtforms.TextAreaField(
-                "Pkgs",
-                validators=[
-                    wtforms.validators.DataRequired(message="URLs to packages are required"),
-                    UrlListValidator(),
-                    UrlSrpmListValidator()],
-                filters=[StringListFilter()])
-
-            memory_reqs = wtforms.IntegerField(
-                "Memory requirements",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_MEMORY,
-                        max=constants.MAX_BUILD_MEMORY)],
-                default=constants.DEFAULT_BUILD_MEMORY)
-
-            timeout = wtforms.IntegerField(
-                "Timeout",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_TIMEOUT,
-                        max=constants.MAX_BUILD_TIMEOUT)],
-                default=constants.DEFAULT_BUILD_TIMEOUT)
-
-            enable_net = wtforms.BooleanField()
-
-        F.chroots_list = list(map(lambda x: x.name, active_chroots))
-        F.chroots_list.sort()
-        F.chroots_sets = {}
-        for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True))
-            if ch[0] in F.chroots_sets:
-                F.chroots_sets[ch[0]].append(ch)
-            else:
-                F.chroots_sets[ch[0]] = [ch]
-
-        return F
-
-
-class BuildFormUploadFactory(object):
-    @staticmethod
-    def create_form_cls(active_chroots):
-        class F(wtf.Form):
-            @property
-            def selected_chroots(self):
-                selected = []
-                for ch in self.chroots_list:
-                    if getattr(self, ch).data:
-                        selected.append(ch)
-                return selected
-
-            pkgs = FileField('srpm', validators=[
-                FileRequired(),
-                SrpmValidator()])
-
-            memory_reqs = wtforms.IntegerField(
-                "Memory requirements",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_MEMORY,
-                        max=constants.MAX_BUILD_MEMORY)],
-                default=constants.DEFAULT_BUILD_MEMORY)
-
-            timeout = wtforms.IntegerField(
-                "Timeout",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_TIMEOUT,
-                        max=constants.MAX_BUILD_TIMEOUT)],
-                default=constants.DEFAULT_BUILD_TIMEOUT)
-
-            enable_net = wtforms.BooleanField()
-
-        F.chroots_list = map(lambda x: x.name, active_chroots)
-        F.chroots_list.sort()
-        F.chroots_sets = {}
-        for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True))
-            if ch[0] in F.chroots_sets:
-                F.chroots_sets[ch[0]].append(ch)
-            else:
-                F.chroots_sets[ch[0]] = [ch]
-
-        return F
-
-
-class BuildFormTitoFactory(object):
-    @staticmethod
-    def create_form_cls(active_chroots):
-        class F(wtf.Form):
-            @property
-            def selected_chroots(self):
-                selected = []
-                for ch in self.chroots_list:
-                    if getattr(self, ch).data:
-                        selected.append(ch)
-                return selected
-
-            git_url = wtforms.StringField(
-                "Git URL",
-                validators=[
-                    wtforms.validators.DataRequired(),
-                    wtforms.validators.URL()])
-
-            git_directory = wtforms.StringField(
-                "Git Directory",
-                validators=[
-                    wtforms.validators.Optional()])
-
-            git_branch = wtforms.StringField(
-                "Git Branch",
-                validators=[
-                    wtforms.validators.Optional()])
-
-            tito_test = wtforms.BooleanField(default=False)
-
-            memory_reqs = wtforms.IntegerField(
-                "Memory requirements",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_MEMORY,
-                        max=constants.MAX_BUILD_MEMORY)],
-                default=constants.DEFAULT_BUILD_MEMORY)
-
-            timeout = wtforms.IntegerField(
-                "Timeout",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_TIMEOUT,
-                        max=constants.MAX_BUILD_TIMEOUT)],
-                default=constants.DEFAULT_BUILD_TIMEOUT)
-
-            enable_net = wtforms.BooleanField()
-
-        F.chroots_list = map(lambda x: x.name, active_chroots)
-        F.chroots_list.sort()
-        F.chroots_sets = {}
-        for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True))
-            if ch[0] in F.chroots_sets:
-                F.chroots_sets[ch[0]].append(ch)
-            else:
-                F.chroots_sets[ch[0]] = [ch]
-
-        return F
-
-
-class BuildFormMockFactory(object):
-    @staticmethod
-    def create_form_cls(active_chroots):
-        class F(wtf.Form):
-            @property
-            def selected_chroots(self):
-                selected = []
-                for ch in self.chroots_list:
-                    if getattr(self, ch).data:
-                        selected.append(ch)
-                return selected
-
-            scm_type = wtforms.SelectField(
-                "SCM Type",
-                choices=[("git", "Git"), ("svn", "SVN")])
-
-            scm_url = wtforms.StringField(
-                "SCM URL",
-                validators=[
-                    wtforms.validators.DataRequired(),
-                    wtforms.validators.URL()])
-
-            scm_branch = wtforms.StringField(
-                "Git Branch",
-                validators=[
-                    wtforms.validators.Optional()])
-
-            spec = wtforms.StringField(
-                "Spec File",
-                validators=[
-                    wtforms.validators.Regexp(
-                        "^.+\.spec$",
-                        message="RPM spec file must end with .spec"
-                    )])
-
-            memory_reqs = wtforms.IntegerField(
-                "Memory requirements",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_MEMORY,
-                        max=constants.MAX_BUILD_MEMORY)],
-                default=constants.DEFAULT_BUILD_MEMORY)
-
-            timeout = wtforms.IntegerField(
-                "Timeout",
-                validators=[
-                    wtforms.validators.Optional(),
-                    wtforms.validators.NumberRange(
-                        min=constants.MIN_BUILD_TIMEOUT,
-                        max=constants.MAX_BUILD_TIMEOUT)],
-                default=constants.DEFAULT_BUILD_TIMEOUT)
-
-            enable_net = wtforms.BooleanField()
-
-        F.chroots_list = map(lambda x: x.name, active_chroots)
-        F.chroots_list.sort()
-        F.chroots_sets = {}
-        for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True))
-            if ch[0] in F.chroots_sets:
-                F.chroots_sets[ch[0]].append(ch)
-            else:
-                F.chroots_sets[ch[0]] = [ch]
-
-        return F
-
-
+# @TODO jkadlcik - rewrite via BaseBuildFormFactory after fe-dev-cloud is back online
 class BuildFormRebuildFactory(object):
     @staticmethod
     def create_form_cls(active_chroots):
@@ -546,7 +314,7 @@ class BuildFormRebuildFactory(object):
         return F
 
 
-class PackageFormFactory(wtf.Form):
+class BasePackageForm(wtf.Form):
     webhook_rebuild = wtforms.BooleanField(default=False)
 
 
@@ -600,6 +368,81 @@ class PackageFormMock(BasePackageForm):
             wtforms.validators.Regexp(
                 "^.+\.spec$",
                 message="RPM spec file must end with .spec")])
+
+
+class BaseBuildFormFactory(object):
+    def __new__(cls, active_chroots, form):
+        class F(form):
+            @property
+            def selected_chroots(self):
+                selected = []
+                for ch in self.chroots_list:
+                    if getattr(self, ch).data:
+                        selected.append(ch)
+                return selected
+
+        F.memory_reqs = wtforms.IntegerField(
+            "Memory requirements",
+            validators=[
+                wtforms.validators.Optional(),
+                wtforms.validators.NumberRange(
+                    min=constants.MIN_BUILD_MEMORY,
+                    max=constants.MAX_BUILD_MEMORY)],
+            default=constants.DEFAULT_BUILD_MEMORY)
+
+        F.timeout = wtforms.IntegerField(
+            "Timeout",
+            validators=[
+                wtforms.validators.Optional(),
+                wtforms.validators.NumberRange(
+                    min=constants.MIN_BUILD_TIMEOUT,
+                    max=constants.MAX_BUILD_TIMEOUT)],
+            default=constants.DEFAULT_BUILD_TIMEOUT)
+
+        F.enable_net = wtforms.BooleanField()
+
+        F.chroots_list = map(lambda x: x.name, active_chroots)
+        F.chroots_list.sort()
+        F.chroots_sets = {}
+        for ch in F.chroots_list:
+            setattr(F, ch, wtforms.BooleanField(ch, default=True))
+            if ch[0] in F.chroots_sets:
+                F.chroots_sets[ch[0]].append(ch)
+            else:
+                F.chroots_sets[ch[0]] = [ch]
+        return F
+
+
+class BuildFormTitoFactory(object):
+    def __new__(cls, active_chroots):
+        return BaseBuildFormFactory(active_chroots, PackageFormTito)
+
+
+class BuildFormMockFactory(object):
+    def __new__(cls, active_chroots):
+        return BaseBuildFormFactory(active_chroots, PackageFormMock)
+
+
+class BuildFormUploadFactory(object):
+    def __new__(cls, active_chroots):
+        form = BaseBuildFormFactory(active_chroots, wtf.Form)
+        form.pkgs = FileField('srpm', validators=[
+            FileRequired(),
+            SrpmValidator()])
+        return form
+
+
+class BuildFormUrlFactory(object):
+    def __new__(cls, active_chroots):
+        form = BaseBuildFormFactory(active_chroots, wtf.Form)
+        form.pkgs = wtforms.TextAreaField(
+            "Pkgs",
+            validators=[
+                wtforms.validators.DataRequired(message="URLs to packages are required"),
+                UrlListValidator(),
+                UrlSrpmListValidator()],
+            filters=[StringListFilter()])
+        return form
 
 
 class ChrootForm(wtf.Form):

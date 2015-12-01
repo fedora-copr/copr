@@ -137,6 +137,7 @@
       </div>
     </div>
 
+    <input type="hidden" name="source_type" value="git_and_tito" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
@@ -150,6 +151,7 @@
     {{ render_field(form.spec, placeholder="Path from repository root directory to your .spec file") }}
     {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
 
+    <input type="hidden" name="source_type" value="mock_scm" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
