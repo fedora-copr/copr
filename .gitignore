@@ -24,3 +24,5 @@ _redis.log
 .idea
 
 .vagrant
+
+.DS_Store
