@@ -1,4 +1,5 @@
 {% extends "coprs/detail.html" %}
+{% from "_helpers.html" import copr_url %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 
@@ -18,23 +19,13 @@
 
 {% macro controls() %}
   <div class="btn-group">
-    <a class="btn btn-default btn-sm" href="
-      {% if not copr.is_a_group_project %}
-        {{ url_for('coprs_ns.copr_package_edit', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}
-      {% else %}
-        {{ url_for('coprs_ns.group_copr_package_edit', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}
-      {% endif %}">
-      <span class="pficon pficon-edit"></span> Edit</button>
+    <a class="btn btn-default btn-sm" href="{{ copr_url('coprs_ns.copr_package_edit', copr, package_name=package.name) }}">
+      <span class="pficon pficon-edit"></span> Edit
     </a>
 
     {% if package.source_type %}
-    <a class="btn btn-default btn-sm" href="
-      {% if not copr.is_a_group_project %}
-        {{ url_for('coprs_ns.copr_package_rebuild', username=package.copr.owner.name, coprname=package.copr.name, package_name=package.name) }}
-      {% else %}
-        {{ url_for('coprs_ns.group_copr_package_rebuild', group_name=package.copr.group_name, coprname=package.copr.name, package_name=package.name) }}
-      {% endif %}">
-      <span class="pficon pficon-restart"></span> Rebuild</button>
+    <a class="btn btn-default btn-sm" href="{{ copr_url('coprs_ns.copr_package_rebuild', copr, package_name=package.name) }}">
+      <span class="pficon pficon-restart"></span> Rebuild
     </a>
     {% endif %}
   </div>
