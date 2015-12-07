@@ -15,6 +15,11 @@
 
 {% block detail_body %}
 <h2>Project Builds</h2>
+
+{% if g.user and g.user.can_build_in(copr) %}
+  <a class="btn btn-primary pull-right" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>
+{% endif %}
+
 <p>This view shows all builds in the project</p>
   {{ builds_table(builds) }}
   {{ build_states() }}

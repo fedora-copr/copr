@@ -47,10 +47,6 @@
 
     {{ nav_element("monitor", "Monitor", copr_url('coprs_ns.copr_build_monitor', copr)) }}
 
-    {% if g.user and g.user.can_build_in(copr) %}
-      {{ nav_element("add_build", "New Build", copr_url('coprs_ns.copr_add_build', copr)) }}
-    {% endif %}
-
     {% if g.user and not copr.is_a_group_project %}
       {{ nav_element("permissions", "Permissions",  url_for(
           'coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name))
