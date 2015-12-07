@@ -47,14 +47,10 @@
 
     {{ nav_element("monitor", "Monitor", copr_url('coprs_ns.copr_build_monitor', copr)) }}
 
-    {% if g.user and not copr.is_a_group_project %}
-      {{ nav_element("permissions", "Permissions",  url_for(
-          'coprs_ns.copr_permissions', username = copr.owner.name, coprname = copr.name))
-      }}
-    {% endif %}
 
-    {% if g.user and g.user.can_edit(copr) %}
-    {{ nav_element("settings", "Settings", copr_url('coprs_ns.copr_edit', copr)) }}
+    {% if g.user and (not copr.group or g.user == copr.owner or g.user.permissions_for_copr(copr)) %}
+      {% set settings_view = 'coprs_ns.copr_edit' if g.user.can_edit(copr) else 'coprs_ns.copr_permissions' %}
+      {{ nav_element("settings", "Settings", copr_url(settings_view, copr)) }}
     {% endif %}
 </ul>
 

@@ -342,7 +342,7 @@ def copr_permissions(copr):
                     user_perm)(formdata=None)
 
     return flask.render_template(
-        "coprs/detail/permissions.html",
+        "coprs/detail/settings/permissions.html",
         copr=copr,
         permissions_form=permissions_form,
         permissions_applier_form=permissions_applier_form,

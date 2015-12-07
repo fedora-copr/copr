@@ -16,9 +16,23 @@
 {% block detail_body %}
 
 <ul class="nav nav-tabs nav-tabs-pf">
-  {{ tab("edit", "Project Details", copr_url('coprs_ns.copr_edit', copr)) }}
-  {{ tab("webhooks", "Webhooks", copr_url('coprs_ns.copr_webhooks', copr)) }}
-  {{ tab("delete", "Delete Project", copr_url('coprs_ns.copr_delete', copr)) }}
+
+  {% if g.user.can_edit(copr) %}
+    {{ tab("edit", "Project Details", copr_url('coprs_ns.copr_edit', copr)) }}
+  {% endif %}
+
+  {% if g.user and not copr.is_a_group_project %}
+    {{ tab("permissions", "Permissions", copr_url('coprs_ns.copr_permissions', copr)) }}
+  {% endif %}
+
+  {% if g.user.can_edit(copr) %}
+    {{ tab("webhooks", "Webhooks", copr_url('coprs_ns.copr_webhooks', copr)) }}
+  {% endif %}
+
+  {% if g.user.can_edit(copr) %}
+    {{ tab("delete", "Delete Project", copr_url('coprs_ns.copr_delete', copr)) }}
+  {% endif %}
+
 </ul>
 
 {% block tab_content %}{% endblock %}
