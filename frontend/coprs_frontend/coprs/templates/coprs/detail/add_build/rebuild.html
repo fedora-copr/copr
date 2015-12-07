@@ -5,13 +5,6 @@
 
 {% set add_build_tab = "rebuild" %}
 
-{% if build.copr.is_a_group_project %}
-  {% set view = "coprs_ns.group_copr_new_build_rebuild" %}
-{% else %}
-  {% set view = "coprs_ns.copr_new_build_rebuild" %}
-{% endif %}
-
-
 {%block project_breadcrumb %}
 <li>
   <a href="{{ url_builds }}">Builds</a>
@@ -55,7 +48,7 @@
       {{ describe_source(build) }}
     </dl>
     <h3> New Build Options </h3>
-    {{ copr_build_form_rebuild(form, view, copr, build) }}
+    {{ copr_build_form_rebuild(form, 'coprs_ns.copr_new_build_rebuild', copr, build) }}
   </div>
 </div>
 {% endblock %}

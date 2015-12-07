@@ -41,7 +41,7 @@ def copr_build_redirect(build_id):
     copr = build.copr
     if copr.is_a_group_project:
         return flask.redirect(url_for(
-            "coprs_ns.group_copr_build",
+            "coprs_ns.copr_build",
             group_name=build.copr.group.name,
             coprname=build.copr.name,
             build_id=build_id))
@@ -115,7 +115,7 @@ def copr_package_edit(copr, package_name):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit")
 @req_with_copr
 def group_copr_package_edit(copr, package_name):
-    return render_package_edit(copr, package_name, view="coprs_ns.group_copr_package_edit")
+    return render_package_edit(copr, package_name, view="coprs_ns.copr_package_edit")
 
 
 def render_package_edit(copr, package_name, view, form_tito=None, form_mock=None):
@@ -147,7 +147,7 @@ def copr_package_edit_post(copr, package_name):
 @login_required
 @req_with_copr
 def group_package_edit_post(copr, package_name):
-    return process_package_edit(copr, package_name, view="coprs_ns.group_copr_package_edit")
+    return process_package_edit(copr, package_name, view="coprs_ns.copr_package_edit")
 
 
 def process_package_edit(copr, package_name, view):
@@ -193,7 +193,7 @@ def copr_package_rebuild(copr, package_name):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/rebuild")
 @req_with_copr
 def group_copr_package_rebuild(copr, package_name):
-    return render_copr_package_rebuild(copr, package_name, view="coprs_ns.group_copr_new_build")
+    return render_copr_package_rebuild(copr, package_name, view="coprs_ns.copr_new_build")
 
 
 def render_copr_package_rebuild(copr, package_name, view):
@@ -226,7 +226,7 @@ def copr_add_build(copr, form=None):
 @req_with_copr
 def group_copr_add_build(copr, form=None):
     return render_add_build(
-        copr, form, view='coprs_ns.group_copr_new_build')
+        copr, form, view='coprs_ns.copr_new_build')
 
 def render_add_build(copr, form, view):
     if not form:
@@ -247,7 +247,7 @@ def copr_add_build_upload(copr, form=None):
 @req_with_copr
 def group_copr_add_build_upload(copr, form=None):
     return render_add_build_upload(
-        copr, form, view='coprs_ns.group_copr_new_build_upload')
+        copr, form, view='coprs_ns.copr_new_build_upload')
 
 def render_add_build_upload(copr, form, view):
     if not form:
@@ -268,7 +268,7 @@ def copr_add_build_tito(copr, form=None):
 @req_with_copr
 def group_copr_add_build_tito(copr, form=None):
     return render_add_build_tito(
-        copr, form, view='coprs_ns.group_copr_new_build_tito')
+        copr, form, view='coprs_ns.copr_new_build_tito')
 
 def render_add_build_tito(copr, form, view):
     if not form:
@@ -318,7 +318,7 @@ def copr_new_build_tito(copr):
 @login_required
 @req_with_copr
 def group_copr_new_build_tito(copr):
-    view = 'coprs_ns.group_copr_new_build_tito'
+    view = 'coprs_ns.copr_new_build_tito'
     url_on_success = url_for("coprs_ns.group_copr_builds",
                              group_name=copr.group.name, coprname=copr.name)
     return process_new_build_tito(copr, view, url_on_success)
@@ -337,7 +337,7 @@ def copr_add_build_mock(copr, form=None):
 @req_with_copr
 def group_copr_add_build_mock(copr, form=None):
     return render_add_build_mock(
-        copr, form, view='coprs_ns.group_copr_new_build_mock')
+        copr, form, view='coprs_ns.copr_new_build_mock')
 
 
 def render_add_build_mock(copr, form, view):
@@ -361,7 +361,7 @@ def copr_new_build_mock(copr):
 @login_required
 @req_with_copr
 def group_copr_new_build_mock(copr):
-    view = 'coprs_ns.group_copr_new_build_mock'
+    view = 'coprs_ns.copr_new_build_mock'
     url_on_success = url_for("coprs_ns.group_copr_builds",
                              group_name=copr.group.name, coprname=copr.name)
     return process_new_build_mock(copr, view, url_on_success)
@@ -435,7 +435,7 @@ def copr_new_build_upload(copr):
 @login_required
 @req_with_copr
 def group_copr_new_build_upload(copr):
-    view = 'coprs_ns.group_copr_new_build_upload'
+    view = 'coprs_ns.copr_new_build_upload'
     url_on_success = url_for("coprs_ns.group_copr_builds",
                              group_name=copr.group.name, coprname=copr.name)
     return process_new_build_upload(copr, view, url_on_success)
@@ -501,7 +501,7 @@ def copr_new_build(copr):
 def group_copr_new_build(copr):
     return process_new_build_url(
         copr,
-        "coprs_ns.group_copr_new_build",
+        "coprs_ns.copr_new_build",
         url_on_success=url_for("coprs_ns.group_copr_builds",
                                group_name=copr.group.name, coprname=copr.name)
     )
@@ -557,8 +557,8 @@ def group_copr_new_build_rebuild(copr, build_id):
 
     view='coprs_ns.copr_new_build'
     url_on_success = url_for(
-        "coprs_ns.copr_builds",
-        username=copr.owner.username, coprname=copr.name)
+        "coprs_ns.group_copr_builds",
+        group_name=copr.group.name, coprname=copr.name)
 
     return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
 

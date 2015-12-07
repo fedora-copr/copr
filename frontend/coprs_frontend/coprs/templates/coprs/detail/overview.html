@@ -1,7 +1,7 @@
 {% extends "coprs/detail.html" %}
 
 {% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
-{% from "_helpers.html" import chroot_to_os_logo, copr_name, build_href, repo_file_href %}
+{% from "_helpers.html" import chroot_to_os_logo, copr_name, copr_url, build_href, repo_file_href %}
 
 {% set selected_tab = "overview" %}
 
@@ -162,15 +162,8 @@
         <h3 class="panel-title"> Other Actions </h3>
       </div>
       <div class="panel-body">
-        <a href="
-          {% if copr.is_a_group_project %}
-            {{ url_for('coprs_ns.group_copr_report_abuse', group_name = copr.group.name, coprname = copr.name) }}
-          {% else %}
-            {{ url_for('coprs_ns.copr_report_abuse', username = copr.owner.name, coprname = copr.name) }}
-          {% endif %}
-          ">
+        <a href="{{ copr_url('coprs_ns.copr_report_abuse', copr) }}">
           <small class="pficon pficon-warning-triangle-o"> Report Abuse </small></a>
-
       </div>
 
     </div>

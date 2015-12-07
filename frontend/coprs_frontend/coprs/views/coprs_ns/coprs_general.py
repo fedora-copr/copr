@@ -393,7 +393,7 @@ def render_copr_edit(copr, form, view):
 @login_required
 @req_with_copr
 def group_copr_edit(copr, form=None):
-    return render_copr_edit(copr, form, 'coprs_ns.group_copr_update')
+    return render_copr_edit(copr, form, 'coprs_ns.copr_update')
 
 
 @coprs_ns.route("/<username>/<coprname>/edit/")

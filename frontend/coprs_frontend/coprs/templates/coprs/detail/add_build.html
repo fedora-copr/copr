@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import nav_element %}
+{% from "_helpers.html" import nav_element, copr_url %}
 {% block title %}Adding Build for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 
 {% set selected_tab = "add_build" %}
@@ -26,24 +26,11 @@ Select the source type and submit a new build. Options in this form are relevant
 </li>
 {% endmacro %}
 
-{% if copr.is_a_group_project %}
-  {% set url_add_build_url = url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name) %}
-  {% set url_add_build_upload = url_for('coprs_ns.group_copr_add_build_upload', group_name = copr.group.name, coprname = copr.name) %}
-  {% set url_add_build_tito = url_for('coprs_ns.group_copr_add_build_tito', group_name = copr.group.name, coprname = copr.name) %}
-  {% set url_add_build_mock = url_for('coprs_ns.group_copr_add_build_mock', group_name = copr.group.name, coprname = copr.name) %}
-{% else %}
-  {% set url_add_build_url = url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_add_build_upload = url_for('coprs_ns.copr_add_build_upload', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_add_build_tito = url_for('coprs_ns.copr_add_build_tito', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_add_build_mock = url_for('coprs_ns.copr_add_build_mock', username = copr.owner.name, coprname = copr.name) %}
-{% endif %}
-
-
 <ul class="nav nav-tabs nav-tabs-pf">
-  {{ nav_element("url", "From URLs", url_add_build_url) }}
-  {{ nav_element("upload", "Upload SRPM", url_add_build_upload) }}
-  {{ nav_element("tito", "Git and Tito", url_add_build_tito) }}
-  {{ nav_element("mock", "Mock SCM", url_add_build_mock) }}
+  {{ nav_element("url", "From URLs", copr_url('coprs_ns.copr_add_build', copr)) }}
+  {{ nav_element("upload", "Upload SRPM", copr_url('coprs_ns.copr_add_build_upload', copr)) }}
+  {{ nav_element("tito", "Git and Tito", copr_url('coprs_ns.copr_add_build_tito', copr)) }}
+  {{ nav_element("mock", "Mock SCM", copr_url('coprs_ns.copr_add_build_mock', copr)) }}
 </ul>
 
 {% block build_form %}{% endblock %}

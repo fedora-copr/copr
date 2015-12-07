@@ -16,15 +16,9 @@
 {% block detail_body %}
 
 <ul class="nav nav-tabs nav-tabs-pf">
-  {% if copr.is_a_group_project %}
-    {{ tab("edit", "Edit", url_for('coprs_ns.group_copr_edit', group_name=copr.group.name, coprname=copr.name)) }}
-    {{ tab("webhooks", "Webhooks", url_for('coprs_ns.group_copr_webhooks', group_name=copr.group.name, coprname=copr.name)) }}
-    {{ tab("delete", "Delete", url_for('coprs_ns.group_copr_delete', group_name=copr.group.name, coprname=copr.name)) }}
-  {% else %}
-    {{ tab("edit", "Edit", url_for('coprs_ns.copr_edit', username=copr.owner.name, coprname=copr.name)) }}
-    {{ tab("webhooks", "Webhooks", url_for('coprs_ns.copr_webhooks', username=copr.owner.name, coprname=copr.name)) }}
-    {{ tab("delete", "Delete", url_for('coprs_ns.copr_delete', username=copr.owner.name, coprname=copr.name)) }}
-  {% endif %}
+  {{ tab("edit", "Edit", copr_url('coprs_ns.copr_edit', copr)) }}
+  {{ tab("webhooks", "Webhooks", copr_url('coprs_ns.copr_webhooks', copr)) }}
+  {{ tab("delete", "Delete", copr_url('coprs_ns.copr_delete', copr)) }}
 </ul>
 
 {% block tab_content %}{% endblock %}

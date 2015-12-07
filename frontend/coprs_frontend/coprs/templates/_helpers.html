@@ -146,6 +146,25 @@
 {% endmacro %}
 
 
+{% macro copr_url(view, copr) %}
+  {# Examine given copr and generate proper URL for the `view`
+
+  Values of `username/group_name` and `coprname` are autimatically passed as the first two URL parameters,
+  and therefore you should *not* pass them manually.
+
+  Usage:
+    copr_url('coprs_ns.foo', copr)
+    copr_url('coprs_ns.foo', copr, arg1='bar', arg2='baz)
+  #}
+
+  {% if not copr.is_a_group_project %}
+    {{ url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs) }}
+  {% else %}
+    {% set group_view = view.split(".")[0] + ".group_" + view.split(".")[-1] %}
+    {{ url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs) }}
+  {% endif %}
+
+{% endmacro %}
 
 
 
@@ -254,27 +273,19 @@
 
 
 {% macro build_href(build) %}
-{% if build.copr.is_a_group_project %}
-  {{ url_for('coprs_ns.group_copr_build', group_name=build.copr.group.name, coprname=build.copr.name, build_id=build.id) }}
-{% else %}
-  {{ url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id) }}
-{% endif %}
+  {{ copr_url("coprs_ns.copr_build", build.copr, build_id=build.id) }}
 {% endmacro %}
 
 {% macro build_href_from_sql(build) %}
-{% if build.group_name %}
-  {{ url_for('coprs_ns.group_copr_build', group_name=build.group_name, coprname=build.copr_name, build_id=build.id) }}
-{% else %}
-  {{ url_for("coprs_ns.copr_build", username = build.owner_name, coprname = build.copr_name, build_id = build.id) }}
-{% endif %}
+  {% if build.group_name %}
+    {{ url_for('coprs_ns.group_copr_build', group_name=build.group_name, coprname=build.copr_name, build_id=build.id) }}
+  {% else %}
+    {{ url_for("coprs_ns.copr_build", username = build.owner_name, coprname = build.copr_name, build_id = build.id) }}
+  {% endif %}
 {% endmacro %}
 
 {% macro package_href(package) %}
-{% if package.copr.is_a_group_project %}
-  {{ url_for('coprs_ns.group_copr_package', group_name=package.copr.group.name, coprname=package.copr.name, package_name=package.name) }}
-{% else %}
-  {{ url_for('coprs_ns.copr_package', username = package.copr.owner.name, coprname = package.copr.name, package_name=package.name) }}
-{% endif %}
+  {{ copr_url('coprs_ns.copr_package', package.copr, package_name=package.name) }}
 {% endmacro %}
 
 {% macro fas_group_href(name) %}
@@ -283,23 +294,10 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 
 
 {% macro repo_file_href(copr, repo) %}
-  {% if copr.is_a_group_project %}
-  {{url_for('coprs_ns.group_generate_repo_file',
-            group_name=copr.group.name,
-            coprname=copr.name,
-            name_release=repo.name_release,
-            repofile=repo.repo_file,
-            _external=True
+  {{copr_url('coprs_ns.generate_repo_file',
+      copr,
+      name_release=repo.name_release,
+      repofile=repo.repo_file,
+      _external=True
     )|fix_url_https_frontend}}
-
-  {% else %}
-  {{url_for('coprs_ns.generate_repo_file',
-            username=copr.owner.name,
-            coprname=copr.name,
-            name_release=repo.name_release,
-            repofile=repo.repo_file,
-            _external=True
-    )|fix_url_https_frontend}}
-  {% endif %}
-
 {% endmacro %}

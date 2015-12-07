@@ -1,26 +1,9 @@
-{% from "_helpers.html" import render_field, render_form_errors %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_url %}
 
 {% macro copr_package_form_begin(form, view, copr, package) %}
   {{ render_form_errors(form) }}
-  {% if not build %}
     <form class="form-horizontal"
-      action="
-        {% if copr.is_a_group_project %}
-          {{ url_for(view, group_name=copr.group.name, coprname=copr.name, package_name=package.name) }}
-        {% else %}
-          {{ url_for(view, username=copr.owner.name, coprname=copr.name, package_name=package.name) }}
-        {% endif %}"
-        method="post" enctype="multipart/form-data">
-  {% else %}
-    <form class="form-horizontal"
-      action="
-        {% if copr.is_a_group_project %}
-          {{ url_for(view, group_name=copr.group.name, coprname=copr.name, package_name=package.name) }}
-        {% else %}
-          {{ url_for(view, username=copr.owner.name, coprname=copr.name, package_name=package.name) }}
-        {% endif %}"
-        method="post" enctype="multipart/form-data">
-  {% endif %}
+      action="{{ copr_url(view, copr, package_name=package.name) }}" method="post" enctype="multipart/form-data">
 {% endmacro %}
 
 

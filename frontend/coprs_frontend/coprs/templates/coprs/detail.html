@@ -1,19 +1,5 @@
 {% extends "layout.html" %}
-{% from "_helpers.html" import copr_title, render_crumb %}
-
-{% if copr.is_a_group_project %}
-  {% set url_overview = url_for('coprs_ns.group_copr_detail', group_name = copr.group.name, coprname = copr.name) %}
-  {% set url_builds =  url_for('coprs_ns.group_copr_builds', group_name = copr.group.name, coprname = copr.name) %}
-  {% set url_monitor = url_for('coprs_ns.group_copr_build_monitor', group_name = copr.group.name, coprname = copr.name) %}
-  {% set url_add_build = url_for('coprs_ns.group_copr_add_build', group_name = copr.group.name, coprname = copr.name) %}
-  {% set url_settings = url_for('coprs_ns.group_copr_edit', group_name = copr.group.name, coprname = copr.name) %}
-{% else %}
-  {% set url_overview = url_for('coprs_ns.copr_detail', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_builds =  url_for('coprs_ns.copr_builds', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_monitor =  url_for('coprs_ns.copr_build_monitor', username = copr.owner.name, coprname = copr.name)  %}
-  {% set url_add_build =  url_for('coprs_ns.copr_add_build', username = copr.owner.name, coprname = copr.name) %}
-  {% set url_settings = url_for('coprs_ns.copr_edit', username = copr.owner.name, coprname = copr.name) %}
-{% endif %}
+{% from "_helpers.html" import copr_title, copr_url, render_crumb %}
 
 {% block title %}{{ copr.owner.name }}/{{ copr.name }} Copr{% endblock %}
 {% block main_menu_projects %}active{% endblock %}
@@ -23,17 +9,11 @@
 <ol class="breadcrumb">
   {{ render_crumb(url_for('coprs_ns.coprs_show'), 'Home') }}
   {% if copr.is_a_group_project %}
-    {{ render_crumb(url_for('groups_ns.list_projects_by_group', group_name=copr.group.name),
-                 copr.group.at_name) }}
-    {{ render_crumb(url_for('coprs_ns.group_copr_detail',
-                            group_name=copr.group.name, coprname=copr.name),
-                    copr.name, active=True) }}
+    {{ render_crumb(url_for('groups_ns.list_projects_by_group', group_name=copr.group.name), copr.group.at_name) }}
   {% else %}
-    {{ render_crumb(url_for('coprs_ns.coprs_by_owner', username=copr.owner.name),
-                    copr.owner.name)}}
-    {{ render_crumb(url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name),
-                    copr.name)}}
+    {{ render_crumb(url_for('coprs_ns.coprs_by_owner', username=copr.owner.name), copr.owner.name)}}
   {% endif %}
+  {{ render_crumb(copr_url('coprs_ns.copr_detail', copr), copr.name)}}
 
   {%block project_breadcrumb %}
   {%endblock%}
@@ -61,14 +41,14 @@
 <!-- MENU -->
 <ul class="nav nav-tabs">
 
-    {{ nav_element("overview", "Overview", url_overview) }}
+    {{ nav_element("overview", "Overview", copr_url('coprs_ns.copr_detail', copr)) }}
 
-    {{ nav_element("builds", "Builds", url_builds) }}
+    {{ nav_element("builds", "Builds", copr_url('coprs_ns.copr_builds', copr)) }}
 
-    {{ nav_element("monitor", "Monitor", url_monitor) }}
+    {{ nav_element("monitor", "Monitor", copr_url('coprs_ns.copr_build_monitor', copr)) }}
 
     {% if g.user and g.user.can_build_in(copr) %}
-      {{ nav_element("add_build", "New Build", url_add_build) }}
+      {{ nav_element("add_build", "New Build", copr_url('coprs_ns.copr_add_build', copr)) }}
     {% endif %}
 
     {% if g.user and not copr.is_a_group_project %}
@@ -78,7 +58,7 @@
     {% endif %}
 
     {% if g.user and g.user.can_edit(copr) %}
-    {{ nav_element("settings", "Settings", url_settings) }}
+    {{ nav_element("settings", "Settings", copr_url('coprs_ns.copr_edit', copr)) }}
     {% endif %}
 </ul>
 
