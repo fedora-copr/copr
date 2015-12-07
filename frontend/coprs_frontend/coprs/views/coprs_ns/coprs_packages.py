@@ -11,6 +11,23 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 
 
+@coprs_ns.route("/<username>/<coprname>/packages/")
+@req_with_copr
+def copr_packages(copr):
+    return render_packages(copr)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/packages/")
+@req_with_copr
+def group_copr_packages(copr):
+    return render_packages(copr)
+
+
+def render_packages(copr):
+    packages = PackagesLogic.get_all(copr.id)
+    return flask.render_template("coprs/detail/packages.html", packages=packages, copr=copr)
+
+
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/")
 @req_with_copr
 def copr_package(copr, package_name):

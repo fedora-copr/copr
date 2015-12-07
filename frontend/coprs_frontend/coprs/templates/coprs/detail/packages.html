@@ -1,8 +1,11 @@
 {% extends "coprs/detail.html" %}
 {% block title %}Packages for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-{% block packages_selected %}active{% endblock %}
+
 {% from "_helpers.html" import render_pagination %}
 {% from "coprs/detail/_packages_table.html" import packages_table with context %}
+
+{% set selected_tab = "packages" %}
+
 {%block project_breadcrumb %}
 <li class="active">
   Packages
@@ -11,6 +14,7 @@
 
 {% block detail_body %}
 <h2>Project Packages</h2>
-<p>This view shows all packages in the project</p>
-  {{ packages_table(packages) }}
+
+{{ packages_table(packages) }}
+
 {% endblock %}

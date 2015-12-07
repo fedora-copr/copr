@@ -1,32 +1,53 @@
+{% from "_helpers.html" import copr_url %}
+
 {% macro packages_table(packages) %}
 {% if packages %}
   <table class="datatable table table-striped table-bordered">
     <thead>
       <tr>
         <th>Name</th>
-        <th>Current Version</th>
-        <th>Builds</th>
-        <th>Last Built</th>
-        <th>Dist Git</th>
+        <th>Last Build Version</th>
+        <th>Last Build Submitted</th>
+        <th>Last Build Status</th>
+        <th>Automatic Build</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
     {% for package in packages %}
       <tr>
-        <td>
-          {{ package.name }}
+        <td data-order="{{ package.name }}">
+          <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a>
         </td>
-        <td>
-          no idea
+
+        <td data-order="{{ package.builds[-1].version }}">
+          {% if package.builds[-1].pkg_version %}
+            {{ build.pkg_version}}
+          {% else %}
+            -
+          {% endif %}
         </td>
-        <td>
-          {% for b in  package.builds %}{{b.id}} ; {%endfor%}
+
+        <td data-order="{{ package.builds[-1].submitted_on }}">
+          {{ package.builds[-1].submitted_on|time_ago() }} ago
         </td>
+
+        {% if package.builds[-1].canceled %}
+          <td class="build-canceled">canceled</td>
+        {% else %}
+          <td class="build-{{ package.builds[-1].status | state_from_num }}"
+              abbr="{{package.builds[-1].status | state_from_num | build_state_description}}">{{ package.builds[-1].status | state_from_num }}</td>
+        {% endif %}
+
+        <td data-order="{{ package.webhook_rebuild }}">
+          {{ package.webhook_rebuild }}
+        </td>
+
         <td>
-          no idea
-        </td> 
-        <td>
-          {{ package.dist_git }}
+          <a class="btn btn-default btn-sm"
+             {% if not package.source_type %}disabled="disabled"{% endif %}
+             href="{{ copr_url('coprs_ns.copr_package_rebuild', copr, package_name=package.name) }}">
+            <span class="pficon pficon-restart"></span> Rebuild</a>
         </td>
       </tr>
     {% endfor %}
