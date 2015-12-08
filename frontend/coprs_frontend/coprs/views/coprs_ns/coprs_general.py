@@ -794,16 +794,16 @@ def render_monitor(copr, detailed=False):
 
 
 @coprs_ns.route("/<username>/<coprname>/monitor/")
+@coprs_ns.route("/<username>/<coprname>/monitor/<detailed>")
 @req_with_copr
-def copr_build_monitor(copr):
-    detailed = str2bool(flask.request.args.get("detailed"))
-    return render_monitor(copr, detailed)
+def copr_build_monitor(copr, detailed=False):
+    return render_monitor(copr, detailed == "detailed")
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
+@coprs_ns.route("/g/<group_name>/<coprname>/monitor/<detailed>")
 @req_with_copr
-def group_copr_build_monitor(copr):
-    detailed = bool(flask.request.args.get("detailed", False))
-    return render_monitor(copr, detailed)
+def group_copr_build_monitor(copr, detailed=False):
+    return render_monitor(copr, detailed == "detailed")
 
 
