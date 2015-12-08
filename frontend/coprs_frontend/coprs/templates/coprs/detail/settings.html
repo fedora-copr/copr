@@ -6,7 +6,7 @@
 
 {%block project_breadcrumb %}
   <li>
-    {% set settings_view = 'coprs_ns.copr_edit' if g.user.can_edit(copr) else 'coprs_ns.copr_permissions' %}
+    {% set settings_view = 'coprs_ns.copr_edit' if g.user and g.user.can_edit(copr) else 'coprs_ns.copr_permissions' %}
     <a href="{{ copr_url(settings_view, copr) }}">Settings</a>
   </li>
   <li class="active">
@@ -29,11 +29,13 @@
 
 <ul class="nav nav-tabs nav-tabs-pf">
 
+
+{% if g.user %}
   {% if g.user.can_edit(copr) %}
     {{ tab("edit", "Project Details", copr_url('coprs_ns.copr_edit', copr)) }}
   {% endif %}
 
-  {% if g.user and not copr.is_a_group_project %}
+  {% if not copr.is_a_group_project %}
     {{ tab("permissions", "Permissions", copr_url('coprs_ns.copr_permissions', copr)) }}
   {% endif %}
 
@@ -44,6 +46,7 @@
   {% if g.user.can_edit(copr) %}
     {{ tab("delete", "Delete Project", copr_url('coprs_ns.copr_delete', copr)) }}
   {% endif %}
+{% endif %}
 
 </ul>
 
