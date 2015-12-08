@@ -46,7 +46,7 @@
         <td>
           <a class="btn btn-default btn-sm"
              {% if not package.source_type %}disabled="disabled"{% endif %}
-             href="{{ copr_url('coprs_ns.copr_package_rebuild', copr, package_name=package.name) }}">
+             href="{{ copr_url('coprs_ns.copr_rebuild_package', copr, package_name=package.name) }}">
             <span class="pficon pficon-restart"></span> Rebuild</a>
         </td>
       </tr>

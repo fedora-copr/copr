@@ -47,17 +47,17 @@ def render_package(copr, package_name):
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit")
 @req_with_copr
-def copr_package_edit(copr, package_name):
-    return render_package_edit(copr, package_name, view="coprs_ns.copr_package_edit")
+def copr_edit_package(copr, package_name):
+    return render_edit_package(copr, package_name, view="coprs_ns.copr_edit_package")
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit")
 @req_with_copr
-def group_copr_package_edit(copr, package_name):
-    return render_package_edit(copr, package_name, view="coprs_ns.copr_package_edit")
+def group_copr_edit_package(copr, package_name):
+    return render_edit_package(copr, package_name, view="coprs_ns.copr_edit_package")
 
 
-def render_package_edit(copr, package_name, view, form_tito=None, form_mock=None):
+def render_edit_package(copr, package_name, view, form_tito=None, form_mock=None):
     package = ComplexLogic.get_package_safe(copr, package_name)
 
     data = package.source_json_dict
@@ -78,18 +78,18 @@ def render_package_edit(copr, package_name, view, form_tito=None, form_mock=None
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit", methods=["POST"])
 @login_required
 @req_with_copr
-def copr_package_edit_post(copr, package_name):
-    return process_package_edit(copr, package_name, view="coprs_ns.copr_package_edit")
+def copr_edit_package_post(copr, package_name):
+    return process_edit_package(copr, package_name, view="coprs_ns.copr_edit_package")
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit", methods=["POST"])
 @login_required
 @req_with_copr
-def group_package_edit_post(copr, package_name):
-    return process_package_edit(copr, package_name, view="coprs_ns.copr_package_edit")
+def group_copr_edit_package_post(copr, package_name):
+    return process_edit_package(copr, package_name, view="coprs_ns.copr_edit_package")
 
 
-def process_package_edit(copr, package_name, view):
+def process_edit_package(copr, package_name, view):
     if flask.request.form["source_type"] == "git_and_tito":
         form = forms.PackageFormTito()
         form_var = "form_tito"
@@ -120,22 +120,22 @@ def process_package_edit(copr, package_name, view):
         db.session.add(package)
         db.session.commit()
 
-    return render_package_edit(copr, package_name, view, **{form_var: form})
+    return render_edit_package(copr, package_name, view, **{form_var: form})
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/rebuild")
 @req_with_copr
-def copr_package_rebuild(copr, package_name):
-    return render_copr_package_rebuild(copr, package_name, view="coprs_ns.copr_new_build")
+def copr_rebuild_package(copr, package_name):
+    return render_copr_rebuild_package(copr, package_name, view="coprs_ns.copr_new_build")
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/rebuild")
 @req_with_copr
-def group_copr_package_rebuild(copr, package_name):
-    return render_copr_package_rebuild(copr, package_name, view="coprs_ns.copr_new_build")
+def group_copr_rebuild_package(copr, package_name):
+    return render_copr_rebuild_package(copr, package_name, view="coprs_ns.copr_new_build")
 
 
-def render_copr_package_rebuild(copr, package_name, view):
+def render_copr_rebuild_package(copr, package_name, view):
     package = ComplexLogic.get_package_safe(copr, package_name)
     data = package.source_json_dict
 
