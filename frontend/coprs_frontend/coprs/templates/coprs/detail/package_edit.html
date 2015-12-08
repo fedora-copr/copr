@@ -2,6 +2,11 @@
 {% from "coprs/detail/_package_forms.html" import copr_package_form_tito, copr_package_form_mock with context %}
 
 {% block title %}Package {{ package.name }} in {{ package.copr.owner.name }}/{{ package.copr.name }}{% endblock %}
+{%block project_breadcrumb %}
+  <li><a href="{{ copr_url('coprs_ns.copr_packages', copr) }}">Packages</a></li>
+  <li><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></li>
+  <li class="active">Edit</li>
+{%endblock%}
 
 {% block detail_body %}
 

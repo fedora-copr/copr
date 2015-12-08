@@ -1,6 +1,11 @@
 {% extends "coprs/detail.html" %}
 
 {% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
+{%block project_breadcrumb %}
+  <li class="active">
+    Report Abuse
+  </li>
+{% endblock %}
 
 {% block detail_body %}
 <div class="row">

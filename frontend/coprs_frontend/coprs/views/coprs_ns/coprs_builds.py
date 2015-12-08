@@ -143,11 +143,11 @@ def group_copr_add_build_tito(copr, form=None):
     return render_add_build_tito(
         copr, form, view='coprs_ns.copr_new_build_tito')
 
-def render_add_build_tito(copr, form, view):
+def render_add_build_tito(copr, form, view, package=None):
     if not form:
         form = forms.BuildFormTitoFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/tito.html",
-                                 copr=copr, form=form, view=view)
+                                 copr=copr, form=form, view=view, package=package)
 
 
 
@@ -213,11 +213,11 @@ def group_copr_add_build_mock(copr, form=None):
         copr, form, view='coprs_ns.copr_new_build_mock')
 
 
-def render_add_build_mock(copr, form, view):
+def render_add_build_mock(copr, form, view, package=None):
     if not form:
         form = forms.BuildFormMockFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/mock.html",
-                                 copr=copr, form=form, view=view)
+                                 copr=copr, form=form, view=view, package=package)
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build_mock/", methods=["POST"])

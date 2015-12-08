@@ -4,6 +4,18 @@
 {% set selected_tab = "settings" %}
 
 
+{%block project_breadcrumb %}
+  <li>
+    {% set settings_view = 'coprs_ns.copr_edit' if g.user.can_edit(copr) else 'coprs_ns.copr_permissions' %}
+    <a href="{{ copr_url(settings_view, copr) }}">Settings</a>
+  </li>
+  <li class="active">
+    {%block settings_breadcrumb %}
+    {%endblock%}
+  </li>
+{%endblock%}
+
+
 {% macro tab(tab_name, tab_title, href) %}
 <li class="{% if selected_monitor_tab == tab_name %}active{% endif %}">
   <a href="{{ href }}">

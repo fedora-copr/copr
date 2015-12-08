@@ -150,4 +150,4 @@ def render_copr_package_rebuild(copr, package_name, view):
         view_suffix = "_mock"
 
     form = form(copr.active_chroots)(data=data)
-    return f(copr, form, view=view + view_suffix)
+    return f(copr, form, view=view + view_suffix, package=package)

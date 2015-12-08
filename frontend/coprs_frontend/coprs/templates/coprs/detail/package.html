@@ -5,13 +5,13 @@
 
 {% block title %}Package {{ package.name }} in {{ package.copr.owner.name }}/{{ package.copr.name }}{% endblock %}
 {%block project_breadcrumb %}
-{#
+
 <li>
-  <a href="{{ url_for('coprs_ns.copr_builds', username=copr.owner.name, coprname=copr.name) }}">Packages</a>
+  <a href="{{ copr_url('coprs_ns.copr_packages', copr) }}">Packages</a>
 </li>
-#}
+
 <li class="active">
-  Package: {{package.name}}
+  {{package.name}}
 </li>
 {%endblock%}
 

@@ -5,11 +5,13 @@
 {% set selected_tab = "add_build" %}
 
 {%block project_breadcrumb %}
-<li class="active">
-  <a href="{{ url_add_build }}">
-      New Build
-  </a>
-</li>
+  {% if package %}
+    <li><a href="{{ copr_url('coprs_ns.copr_packages', copr) }}">Packages</a></li>
+    <li><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></li>
+    <li><a href="{{ copr_url('coprs_ns.copr_package_rebuild', copr, package_name=package.name) }}">Rebuild</a></li>
+  {% else %}
+    <li><a href="{{ url_add_build }}">New Build</a></li>
+  {% endif %}
 {%endblock%}
 
 {% block detail_body %}
