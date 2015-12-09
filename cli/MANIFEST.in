@@ -1,0 +1,6 @@
+include MANIFEST.in
+include copr-cli.spec
+include copr_cli/README.rst
+include requirements.txt
+include run_tests.sh
+recursive-include man/ *
