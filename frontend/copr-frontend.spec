@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.76
+Version:    1.77
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -261,6 +261,42 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Wed Dec 09 2015 Miroslav Suchý <msuchy@redhat.com> 1.77-1
+- do not assume logged user
+- use same naming convention as for builds (i.e.
+  coprs_ns.copr_edit_package instead of coprs_ns.copr_package_edit)
+- make cleaner URL for detailed monitor
+- complete missing breadcrumbs
+- add Packages page
+- use copr_url macro (see 2473efc)
+- move package views to seperate file
+- make a settings tab from permissions page
+- clarify settings tab names
+- move 'New Build' button to 'Builds' page
+- use copr_url macro to generate proper URLs for user/group projects
+- remove duplicates from build forms
+- don't use create_form_cls for package forms
+- explain webhooks
+- unite edit, webhooks and delete under settings page
+- add checkbox for 'package.webhook_rebuild'
+- removed old api documentation, added link to the rest api
+  documentation at the ReadTheDocs.
+- automatic builds from GitHub - initial implementation
+- show which default source type is selected
+- show icon instead of [edit] tag
+- show all information about default source
+- improve package default source navigation
+- fix default source for group projects
+- fix error handling on 'new build' page for url and tito
+- fix broken 'new build' page for tito and mock on group projects
+- provide link to rebuild package
+- add Provides for bundled components
+- do not use jquery from remote URL (RhBug: 1268215)
+- possibility to set default source for the package
+- add function only for Pg
+- fix bug in the psql stored procedure (status order)
+- use the same variable as defined in route
+
 * Mon Nov 16 2015 Miroslav Suchý <msuchy@redhat.com> 1.76-1
 - move status_to_order() definition to alembic
 
