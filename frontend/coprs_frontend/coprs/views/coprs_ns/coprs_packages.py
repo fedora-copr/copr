@@ -1,6 +1,7 @@
 import flask
 import json
 
+from flask import url_for
 from coprs import db
 from coprs import forms
 from coprs import helpers
@@ -9,6 +10,8 @@ from coprs.views.coprs_ns.coprs_builds import render_add_build_tito, render_add_
 from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.exceptions import (ActionInProgressException,
+                              InsufficientRightsException,)
 
 
 @coprs_ns.route("/<username>/<coprname>/packages/")
@@ -79,14 +82,21 @@ def render_edit_package(copr, package_name, view, form_tito=None, form_mock=None
 @login_required
 @req_with_copr
 def copr_edit_package_post(copr, package_name):
-    return process_edit_package(copr, package_name, view="coprs_ns.copr_edit_package")
+    url_on_success = url_for("coprs_ns.copr_packages",
+                           username=copr.owner_name,
+                           coprname=copr.name)
+    return process_edit_package(copr, package_name, view="coprs_ns.copr_edit_package", url_on_success=url_on_success)
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit", methods=["POST"])
 @login_required
 @req_with_copr
 def group_copr_edit_package_post(copr, package_name):
-    return process_edit_package(copr, package_name, view="coprs_ns.copr_edit_package")
+    url_on_success = url_for("coprs_ns.group_copr_packages",
+                           group_name=copr.group.name,
+                           coprname=copr.name)
+    return process_edit_package(copr, package_name, view="coprs_ns.copr_edit_package", url_on_success=url_on_success)
+
 
 
 def process_edit_package(copr, package_name, view):
@@ -117,10 +127,18 @@ def process_edit_package(copr, package_name, view):
                 "scm_branch": form.scm_branch.data,
                 "spec": form.spec.data})
 
-        db.session.add(package)
-        db.session.commit()
+        try:
+            db.session.add(package)
+            db.session.commit()
+        except (ActionInProgressException, InsufficientRightsException) as e:
+            db.session.rollback()
+            flask.flash(str(e), "error")
+        else:
+            flask.flash("Package successfully saved" if package_name else "New package has been created.")
 
-    return render_edit_package(copr, package_name, view, **{form_var: form})
+        return flask.redirect(url_on_success)
+
+    return view_method(copr, package_name, view, **{form_var: form})
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/rebuild")
