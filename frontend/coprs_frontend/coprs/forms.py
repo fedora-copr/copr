@@ -315,6 +315,9 @@ class BuildFormRebuildFactory(object):
 
 
 class BasePackageForm(wtf.Form):
+    package_name = wtforms.StringField(
+        "Package Name",
+        validators=[wtforms.validators.DataRequired()])
     webhook_rebuild = wtforms.BooleanField(default=False)
 
 

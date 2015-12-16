@@ -15,6 +15,11 @@
 {% block detail_body %}
 <h2>Project Packages</h2>
 
+{% if g.user and g.user.can_edit(copr) %}
+  <a class="btn btn-primary pull-right" href="{{ copr_url('coprs_ns.copr_add_package', copr) }}">New package</a>
+{% endif %}
+
+<p>This view shows all packages in the project</p>
 {{ packages_table(packages) }}
 
 {% endblock %}
