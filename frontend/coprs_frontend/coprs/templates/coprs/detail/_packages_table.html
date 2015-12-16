@@ -15,28 +15,35 @@
     </thead>
     <tbody>
     {% for package in packages %}
+      {% set build = package.builds[-1] if package.builds else empty_build %}
       <tr>
         <td data-order="{{ package.name }}">
           <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a>
         </td>
 
-        <td data-order="{{ package.builds[-1].version }}">
-          {% if package.builds[-1].pkg_version %}
-            {{ build.pkg_version}}
+        <td data-order="{{ build.pkg_version }}">
+          {% if build.pkg_version %}
+            {{ build.pkg_version }}
           {% else %}
             -
           {% endif %}
         </td>
 
-        <td data-order="{{ package.builds[-1].submitted_on }}">
-          {{ package.builds[-1].submitted_on|time_ago() }} ago
+        <td data-order="{{ build.submitted_on }}">
+          {% if build.submitted_on  %}
+            {{ build['submitted_on']|time_ago() }} ago
+          {% else %}
+            -
+          {% endif %}
         </td>
 
-        {% if package.builds[-1].canceled %}
+        {% if build.canceled %}
           <td class="build-canceled">canceled</td>
+        {% elif not build.status %}
+          <td>-</td>
         {% else %}
-          <td class="build-{{ package.builds[-1].status | state_from_num }}"
-              abbr="{{package.builds[-1].status | state_from_num | build_state_description}}">{{ package.builds[-1].status | state_from_num }}</td>
+          <td class="build-{{ build.status | state_from_num }}"
+              abbr="{{ build.status | state_from_num | build_state_description}}">{{ build.status | state_from_num }}</td>
         {% endif %}
 
         <td data-order="{{ package.webhook_rebuild }}">

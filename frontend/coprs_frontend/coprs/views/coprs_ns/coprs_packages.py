@@ -5,6 +5,7 @@ from flask import url_for
 from coprs import db
 from coprs import forms
 from coprs import helpers
+from coprs.models import Package, Build
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.coprs_ns.coprs_builds import render_add_build_tito, render_add_build_mock
 from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
@@ -28,7 +29,7 @@ def group_copr_packages(copr):
 
 def render_packages(copr):
     packages = PackagesLogic.get_all(copr.id)
-    return flask.render_template("coprs/detail/packages.html", packages=packages, copr=copr)
+    return flask.render_template("coprs/detail/packages.html", packages=packages, copr=copr, empty_build=Build())
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/")
