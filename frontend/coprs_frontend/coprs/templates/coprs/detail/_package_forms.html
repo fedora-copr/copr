@@ -20,7 +20,7 @@
     </label>
     <div class="col-sm-10">
       {# @WORKAROUND form.webhook_rebuild(checked=(...)) just didn't work #}
-      {% if package.source_type_text == source_type %}
+      {% if source_type in [form.source_type.data, package.source_type_text] %}
         {{ form.webhook_rebuild() }}
       {% else %}
         <input type="checkbox" name="webhook_rebuild" />
