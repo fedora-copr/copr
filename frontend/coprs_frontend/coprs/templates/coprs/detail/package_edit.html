@@ -10,11 +10,7 @@
 
 {% block detail_body %}
 
-{% if not copr.is_a_group_project %}
-  <h2> Package: <a href="{{ url_for('coprs_ns.copr_package', username=package.copr.owner.name, coprname=copr.name, package_name=package.name) }}">{{ package.name }}</a></h2>
-{% else %}
-  <h2> Package: <a href="{{ url_for('coprs_ns.group_copr_package', group_name=package.copr.group.name, coprname=copr.name, package_name=package.name) }}">{{ package.name }}</a></h2>
-{% endif %}
+<h2> Package: <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></h2>
 
 <p>You can choose and configure <b>exactly one</b> default source for the {{ package.name }} package.</p>
 
