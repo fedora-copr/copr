@@ -1,8 +1,8 @@
 Name:       example
-Version:	1.0.1
+Version:	1.0.2
 Release:	1%{?dist}
 Summary:	This is a simple example to test copr
-BuildArch:  noarch
+BuildArch:  x86_64
 
 Group:		Applications/File
 License:	GPLv2+
@@ -10,8 +10,8 @@ URL:		http://github.com
 Source0:	%{name}-%{version}.tar.gz
 
 # simulated dependencies
-BuildRequires:  desktop-file-utils
-BuildRequires:  gtk2-devel gettext
+#BuildRequires:  desktop-file-utils
+#BuildRequires:  gtk2-devel gettext
 
 %description
 Simple example to demonstrate copr's abilites.
@@ -22,18 +22,23 @@ Simple example to demonstrate copr's abilites.
 
 
 %build
-%configure
 make %{?_smp_mflags}
 
 
 %install
-%make_install
+install -d %{buildroot}%{_sbindir}
+cp -a main %{buildroot}%{_sbindir}/main
 
 
 %files
 %doc
 
+%{_sbindir}/main
+
 %changelog
+* Sun Dec 20 2015 clime <clime@redhat.com> 1.0.2-1
+- spec file change 
+
 * Sat Dec 19 2015 Unknown name 1.0.1-1
 - new package built with tito
 
