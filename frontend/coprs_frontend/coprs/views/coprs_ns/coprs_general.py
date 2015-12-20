@@ -461,7 +461,7 @@ def copr_update(copr):
         process_copr_update(copr, form)
         return flask.redirect(url_for_copr_details(copr))
     else:
-        return copr_edit(copr.owner.username, copr.name, form)
+        return render_copr_edit(copr, form, 'coprs_ns.copr_update')
 
 
 @coprs_ns.route("/<username>/<coprname>/permissions_applier_change/",
