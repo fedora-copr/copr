@@ -1,6 +1,10 @@
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
+%if 0%{?rhel} > 0
+%if 0%{?rhel} <= 7
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
+%endif
+%if 0%{?rhel} <= 6
 %global __python2 %{__python}
+%endif
 %endif
 
 Name:       copr-cli
@@ -76,6 +80,7 @@ install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 %files
+%{!?_licensedir:%global license %doc}
 %license LICENSE
 %doc README.rst
 %{_bindir}/copr-cli
@@ -86,8 +91,9 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 
 %if 0%{?fedora}
-%license LICENSE
 %files doc
+%{!?_licensedir:%global license %doc}
+%license LICENSE
 %endif
 
 %changelog
