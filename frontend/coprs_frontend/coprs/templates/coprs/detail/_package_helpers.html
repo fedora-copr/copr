@@ -1,0 +1,13 @@
+{% macro badge(source_type) %}
+  {% if package.source_type_text == source_type %}
+    <span class="badge"><span class="fa fa-check"></span></span>
+  {% endif %}
+{% endmacro %}
+
+{% macro nav_element(tab_name, tab_title, href) %}
+  <li class="{% if source_type == tab_name %}active{% endif %}">
+    <a href="{{ href }}">
+      {{ tab_title }}
+    </a>
+  </li>
+{% endmacro %}

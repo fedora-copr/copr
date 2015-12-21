@@ -53,10 +53,12 @@ def copr_rebuild_package(copr, package_name):
 
 
 @coprs_ns.route("/<username>/<coprname>/package/add")
+@coprs_ns.route("/<username>/<coprname>/package/add/<source_type>")
 @coprs_ns.route("/g/<group_name>/<coprname>/package/add")
+@coprs_ns.route("/g/<group_name>/<coprname>/package/add/<source_type>")
 @login_required
 @req_with_copr
-def copr_add_package(copr, package_name=None):
+def copr_add_package(copr, source_type="git_and_tito", package_name=None):
     form = {
         "git_and_tito": forms.PackageFormTito(),
         "mock_scm": forms.PackageFormMock()
@@ -66,8 +68,8 @@ def copr_add_package(copr, package_name=None):
         form[flask.request.form["source_type"]].validate()
 
     return flask.render_template("coprs/detail/add_package.html", copr=copr, package=None,
-                                 view="coprs_ns.copr_new_package", form_tito=form["git_and_tito"],
-                                 form_mock=form["mock_scm"])
+                                 source_type=source_type, view="coprs_ns.copr_new_package",
+                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"])
 
 
 @coprs_ns.route("/<username>/<coprname>/package/new", methods=["POST"])
@@ -81,12 +83,19 @@ def copr_new_package(copr):
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit")
+@coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit/<source_type>")
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit")
+@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit/<source_type>")
 @req_with_copr
-def copr_edit_package(copr, package_name):
+def copr_edit_package(copr, package_name, source_type=None):
     package = ComplexLogic.get_package_safe(copr, package_name)
     data = package.source_json_dict
     data["webhook_rebuild"] = package.webhook_rebuild
+
+    if package.source_type and not source_type:
+        source_type = package.source_type_text
+    elif not source_type:
+        source_type = "git_and_tito"
 
     form_classes = {
         "git_and_tito": forms.PackageFormTito,
@@ -102,8 +111,8 @@ def copr_edit_package(copr, package_name):
         form[package.source_type_text] = form_classes[package.source_type_text](data=data)
 
     return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr,
-                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"],
-                                 view="coprs_ns.copr_edit_package")
+                                 source_type=source_type, view="coprs_ns.copr_edit_package",
+                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"])
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit", methods=["POST"])
@@ -157,7 +166,8 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
 
         return flask.redirect(url_on_success)
 
-    return view_method(username=copr.owner.name, coprname=copr.name, package_name=package_name)
+    return view_method(username=copr.owner.name, coprname=copr.name,
+                       package_name=package_name, source_type=form.source_type.data)
 
 
 def copr_url(view, copr, **kwargs):
