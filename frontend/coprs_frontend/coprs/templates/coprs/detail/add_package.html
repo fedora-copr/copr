@@ -2,6 +2,7 @@
 {% from "coprs/detail/_package_forms.html" import copr_package_form_tito, copr_package_form_mock with context %}
 
 {% block title %}New package in {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+{% set selected_tab = "packages" %}
 {%block project_breadcrumb %}
   <li><a href="{{ copr_url('coprs_ns.copr_packages', copr) }}">Packages</a></li>
   <li class="active">New</li>

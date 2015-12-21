@@ -4,6 +4,7 @@
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 
 {% block title %}Package {{ package.name }} in {{ package.copr.owner.name }}/{{ package.copr.name }}{% endblock %}
+{% set selected_tab = "packages" %}
 {%block project_breadcrumb %}
 
 <li>
