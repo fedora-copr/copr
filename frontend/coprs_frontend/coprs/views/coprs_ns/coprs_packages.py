@@ -58,14 +58,14 @@ def copr_rebuild_package(copr, package_name):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/add/<source_type>")
 @login_required
 @req_with_copr
-def copr_add_package(copr, source_type="git_and_tito", package_name=None):
+def copr_add_package(copr, source_type="git_and_tito", **kwargs):
     form = {
         "git_and_tito": forms.PackageFormTito(),
         "mock_scm": forms.PackageFormMock()
     }
 
-    if flask.request.form:
-        form[flask.request.form["source_type"]].validate()
+    if "form" in kwargs:
+        form[kwargs["form"].source_type.data] = kwargs["form"]
 
     return flask.render_template("coprs/detail/add_package.html", copr=copr, package=None,
                                  source_type=source_type, view="coprs_ns.copr_new_package",
@@ -87,7 +87,7 @@ def copr_new_package(copr):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit")
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit/<source_type>")
 @req_with_copr
-def copr_edit_package(copr, package_name, source_type=None):
+def copr_edit_package(copr, package_name, source_type=None, **kwargs):
     package = ComplexLogic.get_package_safe(copr, package_name)
     data = package.source_json_dict
     data["webhook_rebuild"] = package.webhook_rebuild
@@ -167,7 +167,7 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
         return flask.redirect(url_on_success)
 
     return view_method(username=copr.owner.name, coprname=copr.name,
-                       package_name=package_name, source_type=form.source_type.data)
+                       package_name=package_name, source_type=form.source_type.data, form=form)
 
 
 def copr_url(view, copr, **kwargs):
