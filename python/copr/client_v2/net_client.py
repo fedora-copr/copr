@@ -34,7 +34,7 @@ class RequestError(Exception, UnicodeMixin):
             except (ValueError, AttributeError):
                 raise ValueError(
                     "Malformed response, couldn't "
-                    "get json content, raw:\n{}"
+                    "get json content, raw:\n{0}"
                     .format(self.response.text)
                 )
 
@@ -43,10 +43,10 @@ class RequestError(Exception, UnicodeMixin):
             return None
 
     def __unicode__(self):
-        res = "Error occurred while accessing {}: {}\n".format(
+        res = "Error occurred while accessing {0}: {1}\n".format(
             self.url, self.msg)
         if self.response is not None:
-            res += "code {}: {}\n".format(self.response.status_code, self.response_json["message"])
+            res += "code {0}: {1}\n".format(self.response.status_code, self.response_json["message"])
         return res
 
 
@@ -58,7 +58,7 @@ class NetworkError(RequestError):
 
     def __unicode__(self):
         res = super(NetworkError, self).__unicode__()
-        res += u"Original error: {}\n".format(self.requests_error)
+        res += u"Original error: {0}\n".format(self.requests_error)
         return res
 
 
@@ -134,7 +134,7 @@ class NetClient(object):
         if method is None:
             method = "get"
         elif method.lower() not in ["get", "post", "delete", "put"]:
-            raise RequestError("Method {} not allowed".format(method), url)
+            raise RequestError("Method {0} not allowed".format(method), url)
 
         kwargs = {}
         headers = headers or {}

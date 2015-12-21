@@ -93,7 +93,7 @@ class CoprClient(UnicodeMixin):
 
     def __unicode__(self):
         return (
-            u"<Copr client. username: {}, api url: {}, login presents: {}, token presents: {}>"
+            u"<Copr client. username: {0}, api url: {1}, login presents: {2}, token presents: {3}>"
             .format(self.username, self.api_url, bool(self.login), bool(self.token))
         )
 
@@ -211,8 +211,8 @@ class CoprClient(UnicodeMixin):
             output = json.loads(response.text)
         except ValueError:
             raise CoprUnknownResponseException(
-                "Unknown response from the server. Code: {}, raw response:"
-                " \n {}".format(response.status_code, response.text))
+                "Unknown response from the server. Code: {0}, raw response:"
+                " \n {1}".format(response.status_code, response.text))
         if response.status_code != 200:
             raise CoprRequestException(output["error"])
 

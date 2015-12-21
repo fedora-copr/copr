@@ -32,7 +32,7 @@ class BuildHandle(AbstractHandle):
     def __init__(self, client, nc, root_url, builds_href):
         super(BuildHandle, self).__init__(client, nc, root_url)
         self.builds_href = builds_href
-        self._base_url = "{}{}".format(self.root_url, builds_href)
+        self._base_url = "{0}{1}".format(self.root_url, builds_href)
 
     def get_base_url(self):
         return self._base_url
@@ -45,7 +45,7 @@ class BuildHandle(AbstractHandle):
         """
 
         options = {"build_id": build_id}
-        url = "{}/{}".format(self.get_base_url(), build_id)
+        url = "{0}/{1}".format(self.get_base_url(), build_id)
         response = self.nc.request(url)
         return Build.from_response(
             handle=self,
@@ -85,7 +85,7 @@ class BuildHandle(AbstractHandle):
         build_id = build_entity.id
         build_entity.state = "canceled"
 
-        url = "{}/{}".format(self.get_base_url(), build_id)
+        url = "{0}/{1}".format(self.get_base_url(), build_id)
         response = self.nc.request(url, data=build_entity.to_json(), method="PUT", do_auth=True)
         return OperationResult(self, response)
 
@@ -97,7 +97,7 @@ class BuildHandle(AbstractHandle):
         :rtype: :py:class:`.OperationResult`
         """
 
-        url = "{}/{}".format(self.get_base_url(), build_id)
+        url = "{0}/{1}".format(self.get_base_url(), build_id)
         response = self.nc.request(url, method="delete", do_auth=True)
         return OperationResult(self, response, expected_status=204)
 
@@ -212,7 +212,7 @@ class BuildTaskHandle(AbstractHandle):
     def __init__(self, client, nc, root_url, build_tasks_href):
         super(BuildTaskHandle, self).__init__(client, nc, root_url)
         self.build_tasks_href = build_tasks_href
-        self._base_url = "{}{}".format(self.root_url, build_tasks_href)
+        self._base_url = "{0}{1}".format(self.root_url, build_tasks_href)
 
     def get_base_url(self):
         return self._base_url
@@ -256,7 +256,7 @@ class BuildTaskHandle(AbstractHandle):
         :rtype:  :py:class:`~.resources.BuildTask`
         """
 
-        url = "{}/{}/{}".format(self.get_base_url(), build_id, chroot_name)
+        url = "{0}/{1}/{2}".format(self.get_base_url(), build_id, chroot_name)
         response = self.nc.request(url)
         return BuildTask.from_response(
             handle=self,
@@ -270,7 +270,7 @@ class ProjectHandle(AbstractHandle):
     def __init__(self, client, nc, root_url, projects_href):
         super(ProjectHandle, self).__init__(client, nc, root_url)
         self.projects_href = projects_href
-        self._base_url = "{}{}".format(self.root_url, projects_href)
+        self._base_url = "{0}{1}".format(self.root_url, projects_href)
 
     def get_base_url(self):
         return self._base_url
@@ -309,7 +309,7 @@ class ProjectHandle(AbstractHandle):
             # "show_chroots": show_chroots
         }
 
-        url = "{}/{}".format(self.get_base_url(), project_id)
+        url = "{0}/{1}".format(self.get_base_url(), project_id)
         response = self.nc.request(url, query_params=query_params)
         return Project.from_response(
             handle=self,
@@ -374,7 +374,7 @@ class ProjectHandle(AbstractHandle):
         :type project_entity: :py:class:`~.ProjectEntity`
         :rtype: OperationResult
         """
-        url = "{}/{}".format(self.get_base_url(), project_entity.id)
+        url = "{0}/{1}".format(self.get_base_url(), project_entity.id)
         data = project_entity.to_json()
 
         response = self.nc.request(url, method="put", data=data, do_auth=True)
@@ -386,7 +386,7 @@ class ProjectHandle(AbstractHandle):
         :param int project_id: project identifier
         :rtype: OperationResult
         """
-        url = "{}/{}".format(self.get_base_url(), project_id)
+        url = "{0}/{1}".format(self.get_base_url(), project_id)
         response = self.nc.request(url, method="delete", do_auth=True)
         return OperationResult(self, response, expected_status=204)
 
@@ -415,7 +415,7 @@ class ProjectChrootHandle(AbstractHandle):
         """
         :type project: copr.client_v2.resources.Project
         """
-        return "{}{}".format(self.root_url, project.get_href_by_name("chroots"))
+        return "{0}{1}".format(self.root_url, project.get_href_by_name("chroots"))
 
     def get_one(self, project, name):
         """ Retrieves project chroot object.
@@ -427,7 +427,7 @@ class ProjectChrootHandle(AbstractHandle):
         :rtype: :py:class:`~copr.client_v2.resources.ProjectChroot`
         """
 
-        url = "{}/{}".format(self.get_base_url(project), name)
+        url = "{0}/{1}".format(self.get_base_url(project), name)
         response = self.nc.request(url)
 
         return ProjectChroot.from_response(
@@ -460,7 +460,7 @@ class ProjectChrootHandle(AbstractHandle):
 
         :param str name: chroot name to disable
         """
-        url = "{}/{}".format(self.get_base_url(project), name)
+        url = "{0}/{1}".format(self.get_base_url(project), name)
         response = self.nc.request(url, method="DELETE", do_auth=True)
         return OperationResult(self, response)
 
@@ -498,7 +498,7 @@ class ProjectChrootHandle(AbstractHandle):
 
         :rtype: :py:class:`.OperationResult`
         """
-        url = "{}/{}".format(self.get_base_url(project), chroot_entity.name)
+        url = "{0}/{1}".format(self.get_base_url(project), chroot_entity.name)
         response = self.nc.request(
             url,
             method="PUT",
@@ -513,7 +513,7 @@ class MockChrootHandle(AbstractHandle):
     def __init__(self, client, nc, root_url, href):
         super(MockChrootHandle, self).__init__(client, nc, root_url)
         self._href = href
-        self._base_url = "{}{}".format(self.root_url, href)
+        self._base_url = "{0}{1}".format(self.root_url, href)
 
     def get_base_url(self):
         return self._base_url
@@ -525,7 +525,7 @@ class MockChrootHandle(AbstractHandle):
 
         :rtype: :py:class:`~copr.client_v2.resources.MockChroot`
         """
-        url = "{}/{}".format(self.get_base_url(), name)
+        url = "{0}/{1}".format(self.get_base_url(), name)
         response = self.nc.get(url)
         return MockChroot.from_response(
             handle=self,

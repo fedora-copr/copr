@@ -210,4 +210,4 @@ class TestProjectHandle(TestHandleBase):
         ca = self.nc.request.call_args
 
         assert ca[1]["method"] == "delete"
-        assert ca[0][0] == self.root_url + "/api_2/projects/{}".format(self.project_1_id)
+        assert ca[0][0] == self.root_url + "/api_2/projects/{0}".format(self.project_1_id)

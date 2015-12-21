@@ -23,7 +23,7 @@ def main():
     )
 
     def pp(project):
-        print("Project: {} id {}, {}\n {}\n{}".format(
+        print("Project: {0} id {1}, {2}\n {3}\n{4}".format(
             project.name,
             project.id,
             project.description,
@@ -145,9 +145,9 @@ if __name__ == "__main__":
         main()
     except RequestError as err:
         log.exception(err)
-        log.error("error occurred while fetching: {}, with params: {}"
+        log.error("error occurred while fetching: {0}, with params: {1}"
                   .format(err.url, err.request_kwargs))
-        log.error("status code: {}, message: {} {}"
+        log.error("status code: {0}, message: {1} {2}"
                   .format(err.response.status_code, err.msg, err.response_json))
     except Exception:
         log.exception("something went wrong")

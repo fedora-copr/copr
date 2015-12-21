@@ -19,7 +19,7 @@ class BuiltPackage(UnicodeMixin):
         self.version = version
 
     def __unicode__(self):
-        return u"{} {}".format(self.name, self.version)
+        return u"{0} {1}".format(self.name, self.version)
 
 
 class BuildStateValues(object):
@@ -33,7 +33,7 @@ class BuildStateValues(object):
     IMPORTING = "importing"
     UNKNOWN = "unknown"
 
-ALLOWED_BUILD_STATES = {
+ALLOWED_BUILD_STATES = set([
     BuildStateValues.FAILED,
     BuildStateValues.SUCCEEDED,
     BuildStateValues.CANCELED,
@@ -43,4 +43,4 @@ ALLOWED_BUILD_STATES = {
     BuildStateValues.STARTING,
     BuildStateValues.IMPORTING,
     BuildStateValues.UNKNOWN,
-}
+])

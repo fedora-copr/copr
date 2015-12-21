@@ -116,7 +116,7 @@ class Root(IndividualResource):
         """
         :param str resource_name:
         """
-        return "{}{}".format(self.root_url, self.get_href_by_name(resource_name))
+        return "{0}{1}".format(self.root_url, self.get_href_by_name(resource_name))
 
     @classmethod
     def from_response(cls, response, root_url):
@@ -412,7 +412,7 @@ class OperationResult(IndividualResource):
     def __unicode__(self):
         out = u"<Result: "
         if self._response:
-            out += u" status: {}".format(self._response.status_code)
+            out += u" status: {0}".format(self._response.status_code)
         out += u">"
 
         return out

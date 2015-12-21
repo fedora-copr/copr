@@ -73,7 +73,7 @@ Work with builds
 
     # retrieve build statuses
     for bw in result.builds_list:
-        print("{}:{}".format(bw.build_id, bw.handle.get_build_details().status))
+        print("{0}:{1}".format(bw.build_id, bw.handle.get_build_details().status))
 
     # cancel all created build
     for bw in result.builds_list:
@@ -81,21 +81,21 @@ Work with builds
 
     # get build status for each chroot
     for bw in result.builds_list:
-        print("build: {}".format(bw.build_id))
+        print("build: {0}".format(bw.build_id))
         for ch, status in bw.handle.get_build_details().data["chroots"].items():
-            print("\t chroot {}:\t {}".format(ch, status))
+            print("\t chroot {0}:\t {1}".format(ch, status))
 
     # simple build progress:
     import time, datetime
     watched = set(result.builds_list)
     done = set()
     while watched != done:
-        print("time: {}".format(datetime.datetime.now()))
+        print("time: {0}".format(datetime.datetime.now()))
         for bw in watched:
             if bw in done:
                 continue
             status = bw.handle.get_build_details().status
-            print("{}: {}".format(bw.build_id, status))
+            print("{0}: {1}".format(bw.build_id, status))
             if status in ["skipped", "failed", "succeeded"]:
                 done.add(bw)
         time.sleep(10)

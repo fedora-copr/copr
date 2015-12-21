@@ -14,12 +14,6 @@ import pytest
 from copr.client_v2.net_client import NetClient, RequestError
 
 
-@pytest.yield_fixture
-def mc_request():
-    with mock.patch('copr.client_v2.net_client.request') as handle:
-        yield handle
-
-
 class TestNetClient(object):
 
     def setup_method(self, method):
@@ -42,20 +36,22 @@ class TestNetClient(object):
         self.nc = NetClient()
         self.nc_with_auth = NetClient(self.login, self.password)
 
-    def test_get_simple(self, mc_request):
-        mc_request.return_value = self.base_response
-        res = self.nc.request(self.base_url)
-        # import ipdb; ipdb.set_trace()
-        assert res.status_code == self.base_response.status_code
-        assert res.json == self.content
-        assert res.headers == self.base_response.headers
-
-    def test_unsupported_method(self, mc_request):
-        with pytest.raises(RequestError) as exc_info:
-            self.nc.request(self.base_url, method="non_existing_method")
-
-        # some coverage for Request error
-        assert str(exc_info.value) is not None
-        with pytest.raises(ValueError):
+    def test_get_simple(self):
+        with mock.patch('copr.client_v2.net_client.request') as mc_request:
+            mc_request.return_value = self.base_response
+            res = self.nc.request(self.base_url)
             # import ipdb; ipdb.set_trace()
-            assert exc_info.value.response_json
+            assert res.status_code == self.base_response.status_code
+            assert res.json == self.content
+            assert res.headers == self.base_response.headers
+
+    def test_unsupported_method(self):
+        with mock.patch('copr.client_v2.net_client.request') as mc_request:
+            with pytest.raises(RequestError) as exc_info:
+                self.nc.request(self.base_url, method="non_existing_method")
+
+            # some coverage for Request error
+            assert str(exc_info.value) is not None
+            with pytest.raises(ValueError):
+                # import ipdb; ipdb.set_trace()
+                assert exc_info.value.response_json

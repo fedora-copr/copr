@@ -35,6 +35,6 @@ class TestEntities(object):
                set([("foo", "baz"), ("bar", 123)])
 
     def test_to_json(self):
-        assert self.entity.to_json() == \
-               '{"foo": "baz", "bar": 123}'
+        assert self.entity.to_json() == '{"foo": "baz", "bar": 123}' \
+            or self.entity.to_json() == '{"bar": 123, "foo": "baz"}'
 
