@@ -13,6 +13,12 @@
 
 <h2>Add Package</h2>
 
+
+<p>In this view, you can create package entities for this Copr repository. Such a package can have predefined default
+source and can be automatically build from it via webhook. If you just want to build a package from SRPM, please
+create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>.
+</p>
+
 <p>You can choose and configure <b>exactly one</b> default source for the {{ package.name }} package.</p>
 
 <ul class="nav nav-tabs nav-tabs-pf">
