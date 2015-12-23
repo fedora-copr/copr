@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.77
+Version:    1.78
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -261,6 +261,19 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Wed Dec 23 2015 Miroslav Suchý <msuchy@redhat.com> 1.78-1
+- do not validate package forms twice
+- enhance the packages and webhooks UI
+- re-design source options for packages to tabs
+- show active menu tab when inner tab is selected
+- display link to webhooks settings
+- merge group/user views for package routes
+- fix checkboxes in package adding
+- 1286797 - failing validation on project edit
+- be able to print packages without builds
+- implement packages adding
+- show flash messages when editing packages
+
 * Wed Dec 09 2015 Miroslav Suchý <msuchy@redhat.com> 1.77-1
 - do not assume logged user
 - use same naming convention as for builds (i.e.
