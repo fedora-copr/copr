@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.62
+Version:    1.63
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,23 @@ popd
 %endif
 
 %changelog
+* Wed Dec 23 2015 Miroslav Suchý <msuchy@redhat.com> 1.63-1
+- fixes for epel-6+ and fedora-22+
+- Added MANIFEST.in for python and cli
+- updated docs to include project creation method
+- create new projects now returns newly created project on success
+- added method to create new projects through ClientV2
+- we need six >= 1.9.0
+- added support for BuildTask and update docs
+- W: 67, 8: Unused variable 's' (unused-variable)
+- W: 70,12: Unused variable 'x' (unused-variable)
+- Too few public methods (0/1) (too-few-public-methods)
+- Use %% formatting in logging functions but pass the %% parameters as
+  arguments
+- Instance of '...Entity' has no '...' member (no-member)
+- add Entity tests
+- initial documentation for ClientV2
+
 * Mon Nov 16 2015 Miroslav Suchý <msuchy@redhat.com> 1.62-1
 - pylint cleaning
 
