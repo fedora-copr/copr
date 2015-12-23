@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.78
+Version:    1.79
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -246,6 +246,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Dec 23 2015 Miroslav Suchý <msuchy@redhat.com> 1.79-1
+- fix packaging issues in epel-7+
+
 * Mon Nov 16 2015 Miroslav Suchý <miroslav@suchy.cz> 1.78-1
 - handle_generate_gpg_key skips key creation when signing is disabled
 - Added test_handle_generate_gpg_key
