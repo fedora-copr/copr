@@ -332,14 +332,14 @@ def copr_permissions(copr):
 
     # generate a proper form for displaying
     if flask.g.user:
+        # https://github.com/ajford/flask-wtf/issues/58
+        permissions_applier_form = \
+            forms.PermissionsApplierFormFactory.create_form_cls(
+                user_perm)(formdata=None)
+
         if flask.g.user.can_edit(copr):
             permissions_form = forms.PermissionsFormFactory.create_form_cls(
                 permissions)()
-        else:
-            # https://github.com/ajford/flask-wtf/issues/58
-            permissions_applier_form = \
-                forms.PermissionsApplierFormFactory.create_form_cls(
-                    user_perm)(formdata=None)
 
     return flask.render_template(
         "coprs/detail/settings/permissions.html",

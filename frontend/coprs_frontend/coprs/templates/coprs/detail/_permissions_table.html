@@ -9,7 +9,7 @@
       {{ permissions_form.csrf_token }}
     {% endif %}
     <!--permissions-table-->
-    <table class="table table-striped table-bordered">
+    <table class="table table-striped table-bordered permissions">
       <thead>
         <tr>
           <th>Username</th>
@@ -26,7 +26,7 @@
       {{ permissions_table_row_current_user(current_user_permissions, permissions_applier_form, permissions_form) }}
     </table>
     {% if g.user and (permissions_applier_form or permissions_form) %} {# TODO: when to display? #}
-    <input class="btn btn-primary" type="submit" value="Update">
+    <input class="btn btn-primary pull-right" type="submit" value="Update">
   </form>
     {% endif %}
   {% else %}

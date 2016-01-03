@@ -121,3 +121,7 @@ img.avatar {
   margin-left: 0px;
   padding-left: 0px;
 }
+
+table.permissions {
+  margin-bottom: 0px;
+}
