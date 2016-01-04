@@ -1,24 +1,26 @@
 Flask
 Flask-OpenID
-Flask-SQLAlchemy==1.0
+Flask-SQLAlchemy
 Flask-Script
 Flask-WTF
-flask-whooshee==0.0.6
-SQLAlchemy==0.8.7
+flask-whooshee
 pytest
 pytest-cov
 blinker
 pytz
 markdown
 pyLibravatar
-pydns
-# py3dns
-decorator
+pydns # pyLibravatar uses this
 python-dateutil
 netaddr
 alembic
 flask-restful
-# flask-restful-swagger # -- nice to have, but probably later
 marshmallow
 redis
-hiredis
+python-openid-teams
+requests
+psycopg2
+# flask-restful-swagger # -- nice to have, but probably later
+decorator
+flexmock
+mock
