@@ -49,6 +49,7 @@ Requires:   python-blinker
 Requires:   python-markdown
 Requires:   python-psycopg2
 Requires:   python-pylibravatar
+Requires:   python-requests
 Requires:   python-whoosh >= 2.5.3
 Requires:   pytz
 Requires:   python-six
