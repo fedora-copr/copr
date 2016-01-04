@@ -15,7 +15,7 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    query_functions = """
+    status_to_order = """
 CREATE OR REPLACE FUNCTION status_to_order (x integer)
 RETURNS integer AS $$ BEGIN
         RETURN CASE WHEN x = 0 THEN 0
@@ -28,7 +28,9 @@ RETURNS integer AS $$ BEGIN
                ELSE 1000
         END; END;
     $$ LANGUAGE plpgsql;
+"""
 
+    order_to_status = """
 CREATE OR REPLACE FUNCTION order_to_status (x integer)
 RETURNS integer AS $$ BEGIN
         RETURN CASE WHEN x = 0 THEN 0
@@ -42,8 +44,10 @@ RETURNS integer AS $$ BEGIN
         END; END;
     $$ LANGUAGE plpgsql;
 """
+
     if op.get_bind().dialect.name == "postgresql":
-        op.execute(sa.text(query_functions))
+        op.execute(status_to_order)
+        op.execute(order_to_status)
 
 
 def downgrade():
