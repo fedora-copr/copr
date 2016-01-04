@@ -342,7 +342,7 @@ class Builder(object):
             ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
 
             rsync_log_filepath = os.path.join(destdir, self.job.rsync_log_name)
-            command = "{} -avH -e {} {} {}/ &> {}".format(
+            command = "{} -rlptDvH -e {} {} {}/ &> {}".format(
                 rsync, ssh_opts, remote_src, destdir,
                 rsync_log_filepath)
 
