@@ -12,6 +12,11 @@ down_revision = '3f4966a9cc0'
 
 from alembic import op
 import sqlalchemy as sa
+
+import os
+import sys
+here = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.dirname(os.path.dirname(here)))
 from coprs.helpers import JSONEncodedDict
 
 def upgrade():
