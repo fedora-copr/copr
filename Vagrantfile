@@ -146,6 +146,11 @@ Vagrant.configure(2) do |config|
     frontend.vm.provision "shell",
       inline: "sudo chown -R copr-fe:copr-fe /usr/share/copr"
 
+    # selinux: make data dir writeable for httpd
+    frontend.vm.provision "shell",
+      inline: "chcon -R -t httpd_sys_rw_content_t /usr/share/copr/data",
+      run: "always"
+
     # ..
     frontend.vm.provision "shell",
       inline: "sudo chown -R copr-fe:copr-fe /var/log/copr"
