@@ -402,7 +402,9 @@ class BaseBuildFormFactory(object):
                     max=constants.MAX_BUILD_TIMEOUT)],
             default=constants.DEFAULT_BUILD_TIMEOUT)
 
+
         F.enable_net = wtforms.BooleanField()
+        F.package_name = wtforms.StringField()
 
         F.chroots_list = map(lambda x: x.name, active_chroots)
         F.chroots_list.sort()
