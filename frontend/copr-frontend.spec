@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.79
+Version:    1.80
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -262,6 +262,10 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Tue Jan 05 2016 Miroslav Suchý <miroslav@suchy.cz> 1.80-1
+- 1295930 - leftover after b7c5a76848587629cc9358fe45258a2f1af884e7
+- 1295915 - leftover after 4b1ec255 refactoring
+
 * Tue Jan 05 2016 Miroslav Suchý <miroslav@suchy.cz> 1.79-1
 - Fix API uploads after frontend refactoring
 - manage.py requires python-requests
