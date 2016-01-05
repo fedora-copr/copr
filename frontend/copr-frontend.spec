@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.78
+Version:    1.79
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -262,6 +262,19 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Tue Jan 05 2016 Miroslav Suchý <miroslav@suchy.cz> 1.79-1
+- Fix API uploads after frontend refactoring
+- manage.py requires python-requests
+- dependency on dnf package removed by providing own impl of
+  SplitFilename function in coprs/helpers.py
+- versioned (by current f23 package versions) requirements file
+  added and also cleanup in non-versioned requirements.txt file
+- split creating of SQL functions to two separate commands
+- adjust python path to fix 'alembic history'
+- do not require package_name on build forms
+- show both request and manage permissions forms for admin (RhBug:
+  1268261)
+
 * Wed Dec 23 2015 Miroslav Suchý <msuchy@redhat.com> 1.78-1
 - do not validate package forms twice
 - enhance the packages and webhooks UI
