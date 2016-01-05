@@ -310,8 +310,7 @@ def copr_new_build(copr):
 @api_req_with_copr
 def copr_new_build_upload(copr):
 
-    form = forms.BuildFormUploadFactory.create_form_cls(
-        copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormUploadFactory(copr.active_chroots)(csrf_enabled=False)
 
     # are there any arguments in POST which our form doesn't know?
     if any([post_key not in form.__dict__.keys()
