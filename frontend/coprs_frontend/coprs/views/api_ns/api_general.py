@@ -259,8 +259,7 @@ def api_coprs_by_owner_detail(copr):
 @api_req_with_copr
 def copr_new_build(copr):
 
-    form = forms.BuildFormFactory.create_form_cls(
-        copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormUrlFactory(copr.active_chroots)(csrf_enabled=False)
 
     # are there any arguments in POST which our form doesn't know?
     if any([post_key not in form.__dict__.keys()
