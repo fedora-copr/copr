@@ -10,7 +10,7 @@ from coprs.helpers import StatusEnum
 from coprs.logic.packages_logic import PackagesLogic
 
 from coprs.logic.users_logic import UsersLogic
-from coprs.models import User
+from coprs.models import User, Copr
 from .coprs_logic import CoprsLogic, CoprChrootsLogic
 from .. import helpers
 
@@ -50,8 +50,12 @@ class ComplexLogic(object):
 
     @staticmethod
     def get_copr_safe(user_name, copr_name, **kwargs):
+        """ Get one project
+
+        This always return personal project. For group projects see get_group_copr_safe().
+        """
         try:
-            return CoprsLogic.get(user_name, copr_name, **kwargs).one()
+            return CoprsLogic.get(user_name, copr_name, **kwargs).filter(Copr.group_id.is_(None)).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise ObjectNotFound(
                 message="Project {}/{} does not exist."
