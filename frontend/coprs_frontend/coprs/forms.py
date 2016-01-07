@@ -210,7 +210,7 @@ class CoprFormFactory(object):
                 filters=[StringListFilter()])
 
             disable_createrepo = wtforms.BooleanField(default=False)
-            build_enable_net = wtforms.BooleanField(default=True)
+            build_enable_net = wtforms.BooleanField(default=False)
 
             @property
             def selected_chroots(self):
