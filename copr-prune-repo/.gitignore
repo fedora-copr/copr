@@ -1,0 +1,6 @@
+tests/fedora-23-x86_64-test
+build
+dist
+__pycache__
+MANIFEST
+*.pyc
