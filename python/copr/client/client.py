@@ -475,7 +475,7 @@ class CoprClient(UnicodeMixin):
         if not chroots:
             raise Exception("You should provide chroots")
 
-        if isinstance(chroots, list):
+        if not isinstance(chroots, list):
             chroots = [chroots]
 
         if isinstance(repos, list):
