@@ -40,10 +40,10 @@ no_config_warning = """
 
 
 class Commands(object):
-    def __init__(self):
+    def __init__(self, config):
 
         try:
-            self.client = CoprClient.create_from_file_config()
+            self.client = CoprClient.create_from_file_config(config)
         except (copr_exceptions.CoprNoConfException,
                 copr_exceptions.CoprConfigException):
             print(no_config_warning)
@@ -295,6 +295,9 @@ def setup_parser():
     parser.add_argument("--debug", dest="debug", action="store_true",
                         help="Enable debug output")
 
+    parser.add_argument("--config", dest="config",
+                        help="Path to an alternative configuration file")
+
     subparsers = parser.add_subparsers(title="actions")
 
     # create the parser for the "list" command
@@ -422,7 +425,7 @@ def main(argv=sys.argv[1:]):
         if arg.debug:
             enable_debug()
 
-        commands = Commands()
+        commands = Commands(arg.config)
         getattr(commands, arg.func)(arg)
 
     except KeyboardInterrupt:

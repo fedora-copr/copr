@@ -10,7 +10,7 @@ copr-cli - command line interface for the Copr service
 
 SYNOPSIS
 --------
-copr-cli [-h] [--version] {list,create,build} ...
+copr-cli [-h] [--version] [--config CONFIG] {list,create,build} ...
 
 DESCRIPTION
 -----------
@@ -27,6 +27,9 @@ show this help message and exit
 
 --version::
 show the program's version number and exit
+
+--config::
+path to an alternative configuration file (default is ~/.config/copr).
 
 ACTIONS
 -------
@@ -175,24 +178,23 @@ format:
  username = msuchy
  login = Y57wcg==##fkfaxbkjhuoiebfafadl
  token = vbfseelqdebzedukgombekmuvbkqwo
+ copr_url = https://copr.fedoraproject.org
 
 Be aware that API tokens have an expiration date. The expiration date for
 your token is listed on the /api page.
 
-If you are using a different instance for the Copr service, the API token is
-available from http://your.copr.server/api/
+USING DIFFERENT COPR INSTANCE
+-----------------------------
 
-COPR URL
---------
+If you plan to run `copr` client against non-default Copr instance, the API
+token is available on the http://YOUR.COPR.URL/api/ page.  You can either
+replace your default `~/.config/copr` configuration file, or rather use
+alternative file with a shell alias
 
-You can alternatively specify a different URL for the Copr service.
-Open the file `~/.config/copr` provide the `copr_url` setting:
+    alias your_copr='copr --config ~/.config/your-copr'
 
- [copr-cli]
- copr_url = https://copr.fedoraproject.org
+inserted into your profile.
 
-The value listed above is the default value. Only define copr_url only if
-you use a different instance.
 
 AUTHORS
 -------
