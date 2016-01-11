@@ -4,7 +4,7 @@
 {% block title %}Editing {{ copr.owner.name }}/{{ copr.name }}/{{ chroot.name }}{% endblock %}
 {%block project_breadcrumb%}
 <li>
-  <a href="{{ url_edit }}">
+  <a href="{{ copr_url('coprs_ns.copr_edit', copr) }}">
     Edit
   </a>
 </li>
@@ -57,7 +57,7 @@
     </div>
 
     <input class="btn btn-primary" type="submit" name="submit" value="update">
-    <a class="btn btn-default" href="{{ url_edit }}">Cancel</a>
+    <a class="btn btn-default" href="{{ copr_url('coprs_ns.copr_edit', copr) }}">Cancel</a>
   </form>
 
 
