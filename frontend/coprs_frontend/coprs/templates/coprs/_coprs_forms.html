@@ -19,7 +19,11 @@
     {{ form.csrf_token }}
     {{ render_field(form.id, hidden = True) }}
 
-    <h3> Project Information </h3>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">1. Project information</h3>
+    </div>
+    <div class="panel-body">
 
     {% if group %}
         <input type="hidden" name="group_id" value="{{ group.id }}" />
@@ -42,7 +46,13 @@
     {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url', info="Use e-mail address or a link to your issue tracker. This information will be shown publicly.") }}
 
 
-    <h3> Build Settings </h3>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">2. Build options</h3>
+    </div>
+    <div class="panel-body">
 
     {% if form._mock_chroots_error %}
     <div class="form-group has-error">
@@ -100,9 +110,6 @@
       </div>
     </div>
 
-    {% if copr is none %}{# we're creating the copr, so display initial builds area #}
-      {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submitted later.') }}
-    {% endif %}
 
     <div class="form-group">
       <label class="col-sm-2 control-label" for="textInput-markup">
@@ -122,12 +129,20 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="col-sm-2 control-label" for="textInput-markup">
-      </label>
-      <div class="col-sm-10">
-      </div>
     </div>
+  </div>
+
+  {% if copr is none %}{# we're creating the copr, so display initial builds area #}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">3. (Optional) initial builds </h3>
+    </div>
+    <div class="panel-body">
+
+      {{ render_field(form.initial_pkgs, rows=5, cols=50, placeholder='Optional - list of src.rpm to build initially. Can be skipped and submitted later.') }}
+    </div>
+  </div>
+  {% endif %}
 
     <input class="btn btn-primary" type="submit" value="{% if copr %}Update{% else %}Create{% endif %}">
   </form>
