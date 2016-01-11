@@ -11,8 +11,6 @@
 {%endblock%}
 
 {% block build_form %}
-<h2> New Build <small>From URLs to SRPM Files</small></h2>
-<p> Provide an external URL link to the package you want to build. You can provide more than one URL. This is the only option to submit more builds at once. </p>
 
   {{ copr_build_form_url(form, view, copr) }}
 

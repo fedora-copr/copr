@@ -15,10 +15,6 @@
 {%endblock%}
 
 {% block detail_body %}
-{#
-<h2> Submit a New Build </h2>
-Select the source type and submit a new build. Options in this form are relevant to this build only and will not change any settings of the project itself.
-#}
 
 {% macro nav_element(tab_name, tab_title, href) %}
 <li class="{% if add_build_tab == tab_name %}active{% endif %}">
@@ -28,12 +24,21 @@ Select the source type and submit a new build. Options in this form are relevant
 </li>
 {% endmacro %}
 
-<ul class="nav nav-tabs nav-tabs-pf">
-  {{ nav_element("url", "From URLs", copr_url('coprs_ns.copr_add_build', copr)) }}
-  {{ nav_element("upload", "Upload SRPM", copr_url('coprs_ns.copr_add_build_upload', copr)) }}
-  {{ nav_element("tito", "Git and Tito", copr_url('coprs_ns.copr_add_build_tito', copr)) }}
-  {{ nav_element("mock", "Mock SCM", copr_url('coprs_ns.copr_add_build_mock', copr)) }}
-</ul>
+<h2> New Build </h2>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">1. Select the source type</h3>
+  </div>
+  <div class="panel-body">
+    <ul class="nav nav-tabs nav-tabs-pf">
+      {{ nav_element("url", "From URLs", copr_url('coprs_ns.copr_add_build', copr)) }}
+      {{ nav_element("upload", "Upload SRPM", copr_url('coprs_ns.copr_add_build_upload', copr)) }}
+      {{ nav_element("tito", "Git and Tito", copr_url('coprs_ns.copr_add_build_tito', copr)) }}
+      {{ nav_element("mock", "Mock SCM", copr_url('coprs_ns.copr_add_build_mock', copr)) }}
+    </ul>
+  </div>
+</div>
 
 {% block build_form %}{% endblock %}
 

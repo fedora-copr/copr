@@ -37,9 +37,9 @@
       {% set build_chroots = package_dict["build_chroots"] %}
       <tr>
         <td style="white-space:nowrap">
-          <a href="{{  package_href(package) }}">
+          <b><a href="{{  package_href(package) }}">
             {{ package.name }}
-          </a>
+          </a></b>
         </td>
         {% for chroot in copr.active_chroots_sorted %}
         <td>

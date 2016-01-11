@@ -26,7 +26,7 @@
 
 {#####  GENERAL FORM HELPERS  #####}
 
-{% macro copr_build_form_begin(form, view, copr, build=None) %}
+{% macro copr_build_form_begin(form, view, copr, build=None, hide_panels=False) %}
     {{ render_form_errors(form, [form._mock_chroots_error]) }}
     <form class="form-horizontal"
           action="
@@ -36,12 +36,26 @@
             {{ copr_url(view, copr, build_id=build.id) }}
           {% endif %}"
           method="post" enctype="multipart/form-data">
-      <h3> Source of the Build </h3>
+  {% if not hide_panels %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">2. Provide the source</h3>
+      </div>
+      <div class="panel-body">
+  {% endif %}
 {% endmacro %}
 
 
-{% macro copr_build_form_end(form, view, copr) %}
-      <h3> Build Options </h3>
+{% macro copr_build_form_end(form, view, copr, hide_panels=False) %}
+  {% if not hide_panels %}
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">3. Select chroots and other options</h3>
+      </div>
+      <div class="panel-body">
+  {% endif %}
       <div class="form-group">
         <label class="col-sm-2 control-label" for="textInput-markup">
           Chroots
@@ -73,6 +87,10 @@
         {{ form.enable_net(checked=copr.build_enable_net) }} Enable internet access during this build
         </div>
       </div>
+  {% if not hide_panels %}
+      </div>
+    </div>
+  {% endif %}
 
       <p> 
         You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr.
@@ -146,8 +164,8 @@
 
 
 {% macro copr_build_form_rebuild(form, view, copr, build) %}
-  {{ copr_build_form_begin(form, view, copr, build) }}
-  {{ copr_build_form_end(form, view, copr) }}
+  {{ copr_build_form_begin(form, view, copr, build, hide_panels=True) }}
+  {{ copr_build_form_end(form, view, copr, hide_panels=True) }}
 {% endmacro %}
 
 
