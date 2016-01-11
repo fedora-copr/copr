@@ -3,6 +3,7 @@
 
 {% from "_helpers.html" import render_pagination %}
 {% from "coprs/detail/_packages_table.html" import packages_table with context %}
+{% from "coprs/detail/_build_states.html" import build_states %}
 
 {% set selected_tab = "packages" %}
 
@@ -13,13 +14,13 @@
 {%endblock%}
 
 {% block detail_body %}
+{% if g.user and g.user.can_edit(copr) %}
+  <a class="btn btn-primary button-new pull-right" href="{{ copr_url('coprs_ns.copr_add_package', copr) }}"><span class="pficon pficon-add-circle-o"> New package </span></a>
+{% endif %}
 <h2>Project Packages</h2>
 
-{% if g.user and g.user.can_edit(copr) %}
-  <a class="btn btn-primary pull-right" href="{{ copr_url('coprs_ns.copr_add_package', copr) }}"><span class="pficon pficon-add-circle-o"> New package </span></a>
-{% endif %}
 
-<p>This view shows all packages in the project</p>
 {{ packages_table(packages) }}
+{{ build_states() }}
 
 {% endblock %}

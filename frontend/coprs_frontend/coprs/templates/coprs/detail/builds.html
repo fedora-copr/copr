@@ -14,13 +14,12 @@
 {%endblock%}
 
 {% block detail_body %}
-<h2>Project Builds</h2>
-
 {% if g.user and g.user.can_build_in(copr) %}
-  <a class="btn btn-primary pull-right" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}"><span class="pficon pficon-add-circle-o"> New Build </span></a>
+  <a class="btn btn-primary button-new pull-right" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}"><span class="pficon pficon-add-circle-o"> New Build </span></a>
 {% endif %}
 
-<p>This view shows all builds in the project</p>
+<h2>Project Builds</h2>
+
   {{ builds_table(builds) }}
   {{ build_states() }}
 {% endblock %}

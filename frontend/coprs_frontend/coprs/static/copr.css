@@ -6,6 +6,14 @@ body {
   background-color: #eee;
 }
 
+.button-new {
+  margin-top: 20px;
+}
+
+.breadcrumb {
+  padding: 3px 15px;
+}
+
 #content {
   background-color: white;
 }
