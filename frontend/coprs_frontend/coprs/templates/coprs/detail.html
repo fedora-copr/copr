@@ -28,11 +28,11 @@
 </h1>
 
 
-{% macro nav_element(tab_name, tab_title, href) %}
+{% macro nav_element(tab_name, tab_title, icon,  href) %}
 <li class="{% if selected_tab == tab_name %}active{% endif %}">
-  <a href="{{ href }}">
+  <a href="{{ href }}"> <span class="{{icon}}">{% if "pficon" not in icon %}&nbsp;{%endif%}
     {{ tab_title }}
-  </a>
+  </span></a>
 </li>
 {% endmacro %}
 
@@ -41,14 +41,14 @@
 <!-- MENU -->
 <ul class="nav nav-tabs">
 
-    {{ nav_element("overview", "Overview", copr_url('coprs_ns.copr_detail', copr)) }}
-    {{ nav_element("packages", "Packages", copr_url('coprs_ns.copr_packages', copr)) }}
-    {{ nav_element("builds", "Builds", copr_url('coprs_ns.copr_builds', copr)) }}
-    {{ nav_element("monitor", "Monitor", copr_url('coprs_ns.copr_build_monitor', copr)) }}
+    {{ nav_element("overview", "Overview", "fa fa-home", copr_url('coprs_ns.copr_detail', copr)) }}
+    {{ nav_element("packages", "Packages", "fa fa-archive", copr_url('coprs_ns.copr_packages', copr)) }}
+    {{ nav_element("builds", "Builds", "fa fa-tasks", copr_url('coprs_ns.copr_builds', copr)) }}
+    {{ nav_element("monitor", "Monitor", "fa fa-desktop", copr_url('coprs_ns.copr_build_monitor', copr)) }}
 
     {% if g.user and (not copr.group or g.user == copr.owner or g.user.permissions_for_copr(copr)) %}
       {% set settings_view = 'coprs_ns.copr_edit' if g.user and g.user.can_edit(copr) else 'coprs_ns.copr_permissions' %}
-      {{ nav_element("settings", "Settings", copr_url(settings_view, copr)) }}
+      {{ nav_element("settings", "Settings", "pficon pficon-settings",  copr_url(settings_view, copr)) }}
     {% endif %}
 </ul>
 
