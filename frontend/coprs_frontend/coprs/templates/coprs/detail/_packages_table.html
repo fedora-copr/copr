@@ -47,14 +47,22 @@
         {% endif %}
 
         <td data-order="{{ package.webhook_rebuild }}">
-          {{ package.webhook_rebuild }}
+            {% if package.webhook_rebuild %}
+              Enabled
+            {% else %}
+              Disabled
+            {% endif %}
         </td>
 
         <td>
+          {% if g.user and g.user.can_build_in(copr) %}
           <a class="btn btn-default btn-sm"
              {% if not package.source_type %}disabled="disabled"{% endif %}
              href="{{ copr_url('coprs_ns.copr_rebuild_package', copr, package_name=package.name) }}">
-            <span class="pficon pficon-restart"></span> Rebuild</a>
+            <span class="pficon pficon-restart"></span> Rebuild </a>
+          {% else %}
+            -
+          {% endif %}
         </td>
       </tr>
     {% endfor %}
