@@ -19,6 +19,8 @@
     {{ form.csrf_token }}
     {{ render_field(form.id, hidden = True) }}
 
+    <h3> Project Information </h3>
+
     {% if group %}
         <input type="hidden" name="group_id" value="{{ group.id }}" />
     {% endif %}
@@ -38,6 +40,9 @@
 
     {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}
     {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url', info="Use e-mail address or a link to your issue tracker. This information will be shown publicly.") }}
+
+
+    <h3> Build Settings </h3>
 
     {% if form._mock_chroots_error %}
     <div class="form-group has-error">
