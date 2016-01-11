@@ -55,8 +55,8 @@
             {{ form|attr(ch)|attr('label') }}
             {% if copr and form|attr(ch)|attr('data') %}
               {% set chrootname = form|attr(ch)|attr('label')|attr('text') %}
-              <a href="{{ copr_url('coprs_ns.chroot_edit', copr, chrootname = chrootname)}}">
-                <span class="pficon pficon-edit"></span>
+              <a class="btn btn-sm btn-default" href="{{ copr_url('coprs_ns.chroot_edit', copr, chrootname = chrootname)}}">
+                <span class="pficon pficon-edit"> Edit </span>
               </a>
             {% endif %}
           </label>
