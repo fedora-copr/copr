@@ -19,9 +19,9 @@
     {% for build in builds %}
       <tr class="build-row" >
         <td data-order="{{ build.id }}">
-          <a href="{{ build_href_from_sql(build) }}">
+          <b><a href="{{ build_href_from_sql(build) }}">
             {{ build.id }}
-          </a>
+          </a></b>
         </td>
         <td>
             {% if build.pkg_name %} 
