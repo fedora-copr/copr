@@ -5,11 +5,7 @@ Vagrant.configure(2) do |config|
 
   ###  FRONTEND  ###################################################
   config.vm.define "frontend" do |frontend|
-    frontend.vm.box = "bento/fedora-21"
-
-    frontend.vm.provider "libvirt" do |v, override|
-      override.vm.box = "http://file.rdu.redhat.com/~jshubin/vagrant/fedora-21/fedora-21.box"
-    end
+    frontend.vm.box = "fedora/23-cloud-base"
 
     frontend.vm.network "forwarded_port", guest: 80, host: 5000
 
@@ -19,15 +15,11 @@ Vagrant.configure(2) do |config|
 
     # Update the system
     frontend.vm.provision "shell",
-      inline: "sudo yum -y install dnf"
-
-    # Update the system
-    frontend.vm.provision "shell",
       inline: "sudo dnf clean all && sudo dnf -y update"
 
     # Install packages to support Copr and building RPMs
     frontend.vm.provision "shell",
-      inline: "sudo dnf -y install dnf-plugins-core tito "
+      inline: "sudo dnf -y install dnf-plugins-core tito wget"
 
     # Enable the Copr repository for dependencies
     frontend.vm.provision "shell",
@@ -115,7 +107,7 @@ Vagrant.configure(2) do |config|
 
     # ..
     frontend.vm.provision "shell",
-      inline: "echo 'dns=none' | sudo tee -a /etc/NetworkManager/NetworkManager.conf"
+      inline: "echo 'PEERDNS=no' | sudo tee -a /etc/sysconfig/network"
 
     # ..
     frontend.vm.provision "shell",
@@ -123,7 +115,7 @@ Vagrant.configure(2) do |config|
 
     # ..
     frontend.vm.provision "shell",
-      inline: "sudo systemctl restart NetworkManager"
+      inline: "sudo systemctl restart network"
 
     # ..
     frontend.vm.provision "shell", inline: <<-FOO
