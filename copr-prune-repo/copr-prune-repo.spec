@@ -39,6 +39,8 @@ cp man/man1/copr_prune_repo.1 $RPM_BUILD_ROOT%{_mandir}/man1/
 %doc %{_mandir}/man1/copr_prune_repo.1*
 
 %changelog
+* Wed Jan 13 2016 clime <clime@redhat.com> 1.2-1
+- changes in .spec according to package review
 * Thu Jan 07 2016 Michal Novotny <clime@redhat.com> 1.2-1
 - tests fix
 
