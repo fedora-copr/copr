@@ -13,6 +13,8 @@ from requests import get, RequestException
 from retask.task import Task
 from retask.queue import Queue
 
+from backend.frontend import FrontendClient
+
 from ..actions import Action
 from ..constants import JOB_GRAB_TASK_END_PUBSUB
 from ..helpers import get_redis_connection, get_redis_logger
@@ -32,12 +34,11 @@ class CoprJobGrab(object):
 
 
     :param Munch opts: backend config
-    :type frontend_client: FrontendClient
     :param lock: :py:class:`multiprocessing.Lock` global backend lock
 
     """
 
-    def __init__(self, opts, frontend_client):
+    def __init__(self, opts):
         """ base class initialization """
 
         self.opts = opts
@@ -51,13 +52,13 @@ class CoprJobGrab(object):
 
         self.added_jobs_dict = dict()  # task_id -> task dict
 
-        self.frontend_client = frontend_client
 
         self.rc = None
         self.channel = None
         self.ps_thread = None
 
         self.log = get_redis_logger(self.opts, "backend.job_grab", "job_grab")
+        self.frontend_client = FrontendClient(self.opts, self.log)
 
     def connect_queues(self):
         """

@@ -11,13 +11,11 @@ sys.path.append("/usr/share/copr/")
 
 from backend.helpers import get_backend_opts
 from backend.daemons.job_grab import CoprJobGrab
-from backend.frontend import FrontendClient
 
 
 def main():
     opts = get_backend_opts()
-    fc = FrontendClient(opts)
-    grabber = CoprJobGrab(opts, frontend_client=fc)
+    grabber = CoprJobGrab(opts)
     grabber.run()
 
 

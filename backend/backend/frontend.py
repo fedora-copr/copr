@@ -8,12 +8,13 @@ class FrontendClient(object):
     Object to send data back to fronted
     """
 
-    def __init__(self, opts):
+    def __init__(self, opts, logger=None):
         super(FrontendClient, self).__init__()
         self.frontend_url = "{}/backend".format(opts.frontend_base_url)
         self.frontend_auth = opts.frontend_auth
 
         self.msg = None
+        self.log = logger
 
     def _post_to_frontend(self, data, url_path):
         """
@@ -43,6 +44,8 @@ class FrontendClient(object):
         """
         for i in range(max_repeats):
             try:
+                if i and self.log:
+                    self.log.warning("failed to post data to frontend, repeat #{0}".format(i))
                 return self._post_to_frontend(data, url_path)
             except RequestException:
                 time.sleep(5)
@@ -74,7 +77,7 @@ class FrontendClient(object):
         data = {"build_id": build_id, "chroot": chroot_name}
         self._post_to_frontend_repeatedly(data, "reschedule_build_chroot")
 
-    def reschedule_all_running(self):
-        response = self._post_to_frontend({}, "reschedule_all_running")
+    def reschedule_all_running(self, attempts):
+        response = self._post_to_frontend_repeatedly({}, "reschedule_all_running", attempts)
         if response.status_code != 200:
             raise RequestException("Failed to reschedule all running jobs")

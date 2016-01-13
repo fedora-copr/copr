@@ -52,10 +52,10 @@ class CoprBackend(object):
 
         self.task_queues = {}
 
-        self.frontend_client = FrontendClient(self.opts)
-        self.is_running = False
-
         self.log = get_redis_logger(self.opts, "backend.main", "backend")
+
+        self.frontend_client = FrontendClient(self.opts, self.log)
+        self.is_running = False
 
     def clean_task_queues(self):
         """
@@ -162,7 +162,7 @@ class CoprBackend(object):
 
         try:
             self.log.info("Rescheduling unfinished builds before stop")
-            self.frontend_client.reschedule_all_running()
+            self.frontend_client.reschedule_all_running(5)
         except RequestException as err:
             self.log.exception(err)
             return
@@ -178,7 +178,8 @@ class CoprBackend(object):
 
         try:
             self.log.info("Rescheduling old unfinished builds")
-            self.frontend_client.reschedule_all_running()
+            # 120*5 = 10 minutes
+            self.frontend_client.reschedule_all_running(120)
         except RequestException as err:
             self.log.exception(err)
             return
