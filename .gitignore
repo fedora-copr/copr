@@ -20,6 +20,10 @@ frontend/coprs_frontend/copr_frontend.log
 
 _redis.log
 
+# for vim "intellisense"
+.tags
+.cscope.out
+
 # IDE
 .idea
 
