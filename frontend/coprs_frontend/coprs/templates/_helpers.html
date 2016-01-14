@@ -3,7 +3,7 @@
 
     <div class="form-group {% if field.errors %} has-error {% endif %} ">
       <label class="col-sm-2 control-label">
-        {{ label or field.label }}
+        {{ label or field.label }}:
       </label>
       <div class="col-sm-10">
         {{ field(class="form-control", **kwargs)|safe }}
@@ -23,7 +23,7 @@
           {% endfor %}
         {% endif %}
         </ul>
-      </div> 
+      </div>
     </div>
   {% else %}
     {{ field(**kwargs)|safe }}

@@ -92,7 +92,7 @@
     </div>
   {% endif %}
 
-      <p> 
+      <p>
         You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr.
         Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
       </p>
@@ -101,11 +101,26 @@
     </form>
 {% endmacro %}
 
+{% macro source_description(description) %}
+  <div class="form-group">
+    <label class="col-sm-2 control-label">
+      Source Description:
+    </label>
+    <div class="col-sm-10">
+      {{ description | safe }}
+    </div>
+  </div>
+{% endmacro %}
+
+
 
 {#####  SPECIFIC FORMS  #####}
 
+
 {% macro copr_build_form_url(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
+
+    {{ source_description('Please upload your SRPM(s) on a public server and provide link(s) to the form below. This is the only option to submit more builds at once.')}}
 
     {{ render_field(form.pkgs, label='URLs to SRPM Files', rows = 10, cols = 50) }}
 
@@ -116,9 +131,11 @@
 {% macro copr_build_form_upload(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
+      {{ source_description("Upload your SRPM directly to Copr.")}}
+
       <div class="form-group">
         <label class="col-sm-2 control-label" for="textInput-markup">
-        SRPM File
+        SRPM File:
         </label>
         <div class="col-sm-10">
           {{ form.pkgs }}
@@ -131,6 +148,8 @@
 
 {% macro copr_build_form_tito(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
+
+    {{ source_description('This method uses <a href="https://github.com/dgoodwin/tito">Tito</a> in a Git repository to create the SRPM for you automatically. Please provide the Git URL.')}}
 
     {{ render_field(form.git_url, placeholder="Public clone URL of your git repository.") }}
     {{ render_field(form.git_directory, placeholder="Optional - A directory in the git containing the spec file.") }}
@@ -151,6 +170,8 @@
 
 {% macro copr_build_form_mock(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
+
+    {{ source_description('This method uses an <a href="https://fedoraproject.org/wiki/Projects/Mock/Plugin/Scm">SCM plugin for Mock</a> in a Git or SVN repository to create the SRPM for you automatically. Please provide the Git or SVN URL.')}}
 
     {{ render_field(form.scm_type) }}
     {{ render_field(form.scm_url, placeholder="URL to your Git or SVN repository") }}
