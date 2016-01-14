@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 setup(name='copr-prune-repo',
-      version='1.2',
+      version='1.3',
       description='Remove failed and obsolete succeeded builds (with the associated packages) from a copr repository.',
       author='clime',
       author_email='micnovot@redhat.com',

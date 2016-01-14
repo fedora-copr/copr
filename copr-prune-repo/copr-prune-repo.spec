@@ -39,6 +39,11 @@ cp man/man1/copr_prune_repo.1 $RPM_BUILD_ROOT%{_mandir}/man1/
 %changelog
 * Thu Jan 14 2016 clime <clime@redhat.com> 1.3-1
 - dependency on yum-utils removed by using updated dnf repoquery plugin from
+  copr clime/dnf-plugins-repo (enable repo with: dnf copr enable clime/dnf-
+  plugins-repo & install with: dnf install dnf-plugins-core)
+
+* Thu Jan 14 2016 clime <clime@redhat.com> 1.3-1
+- dependency on yum-utils removed by using updated dnf repoquery plugin from
   copr clime/dnf-plugins-repo
 
 * Wed Jan 13 2016 clime <clime@redhat.com> 1.2-1
