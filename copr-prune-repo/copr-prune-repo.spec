@@ -1,6 +1,6 @@
 Summary: Remove failed and obsolete succeeded builds (with the associated packages) from a copr repository.
 Name: copr-prune-repo
-Version: 1.2
+Version: 1.3
 Release: 1%{?dist} 
 
 # Source is created by:
@@ -37,9 +37,12 @@ cp man/man1/copr_prune_repo.1 $RPM_BUILD_ROOT%{_mandir}/man1/
 %doc %{_mandir}/man1/copr_prune_repo.1*
 
 %changelog
+* Thu Jan 14 2016 clime <clime@redhat.com> 1.3-1
+- dependency on yum-utils removed by using updated dnf repoquery plugin from
+  copr clime/dnf-plugins-repo
+
 * Wed Jan 13 2016 clime <clime@redhat.com> 1.2-1
 - changes in .spec according to package review
-* Thu Jan 07 2016 Michal Novotny <clime@redhat.com> 1.2-1
 - tests fix
 
 * Thu Jan 07 2016 Michal Novotny <clime@redhat.com> 1.1-1
