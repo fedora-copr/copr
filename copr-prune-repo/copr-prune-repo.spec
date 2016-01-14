@@ -12,9 +12,7 @@ Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 BuildArch: noarch
 BuildRequires: python3-devel
-
-# todo: remove
-Requires: yum-utils
+Requires: dnf-plugins-core
 
 %description
 Removes failed and obsolete succeeded builds (with the associated packages)

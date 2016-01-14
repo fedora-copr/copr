@@ -56,20 +56,23 @@ def get_latest_packages():
     """
     Get paths to the latest packages in the repository.
     """
-    cmd = [ #TODO: use non-deprecated dnf repoquery when bz#1292475 is solved
+    cmd = [
+        'dnf',
         'repoquery',
         '--repofrompath=query,'+os.path.abspath(args.path),
         '--repoid=query',
-        '-a',
-        '--location'
+        '--latest-limit=1',
+        '--queryformat="%{location}"',
+        '--quiet'
     ]
     repoquery = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr= subprocess.PIPE)
     (stdout, stderr) = repoquery.communicate()
     if repoquery.returncode != 0:
         print("repoquery to get the lastest packages was not successful. Exiting.", file=sys.stderr)
         sys.exit(1)
-    package_paths = stdout.decode(encoding='utf-8').split()
-    return package_paths
+    rel_package_paths = [relpath.strip('"') for relpath in stdout.decode(encoding='utf-8').split()]
+    abs_package_paths = [os.path.abspath(os.path.join(args.path, relpath)) for relpath in rel_package_paths]
+    return abs_package_paths
 
 if __name__ == '__main__':
     failed, succeeded = get_builds()
