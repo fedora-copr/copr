@@ -4,6 +4,9 @@
 {% from "coprs/detail/_describe_failure.html" import describe_failure %}
 {% from "_helpers.html" import chroot_to_os_logo %}
 {% block title %}Build {{ build.id }} in {{ build.copr.owner.name }}/{{ build.copr.name }}{% endblock %}
+
+{% set selected_tab = "builds" %}
+
 {%block project_breadcrumb %}
 <li>
   <a href="{{ url_for('coprs_ns.copr_builds', username=copr.owner.name, coprname=copr.name) }}">Builds</a>
@@ -20,174 +23,176 @@
 <p> You can go to <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}"> {{ build.copr.owner.name }}/{{ build.copr.name }}/build/{{build.id}} </a>to see this build. </p>
 {% else %}
 
-<h2>Build {{ build.id }}: <span class="build-{{build.state}}"> {{ build.state }} </span> </h2>
+{% if g.user and g.user.can_build_in(copr) and build.deletable %}
+{% if g.user.can_edit(copr) or build.user == g.user %}
+    {{ copr_build_delete_form(build, page, class="pull-right button-build-action") }}
+{% endif %}
+{% endif %}
+
+{% if g.user and g.user.can_build_in(copr) and build.cancelable %}
+    {{ copr_build_cancel_form(build, page, class="pull-right button-build-action") }}
+{% endif %}
+
+{% if g.user and g.user.can_build_in(copr) and build.repeatable %}
+    {{ copr_build_repeat_form(build, page, class="pull-right button-build-action") }}
+{% endif %}
+
+<h2 class="page-title">Build {{ build.id }}: <span class="build-{{build.state}}"> {{ build.state }} </span> </h2>
 
 <div class="row">
-  <div class="col-sm-8 col-md-9">
-    <dl class="dl-horizontal">
-      <dt> Submitted: </dt>
-      <dd>
-        {% if g.user %}
-            {{ build.submitted_on|localized_time(g.user.timezone) }}
-        {% else %}
-            {{ build.submitted_on|localized_time("UTC") }}
-        {% endif %}
-        ({{ build.submitted_on|time_ago }} ago)
-      </dd>
-      <dt> Started: </dt>
-      <dd>
-        {% if g.user %}
-            {{ build.min_started_on|localized_time(g.user.timezone) }}
-        {% else %}
-            {{ build.min_started_on|localized_time("UTC") }}
-        {% endif %}
-      </dd>
-      <dt> Finished: </dt>
-      <dd>
-        {% if g.user %}
-            {{ build.max_ended_on|localized_time(g.user.timezone) }}
-        {% else %}
-            {{ build.max_ended_on|localized_time("UTC") }}
-        {% endif %}
-      </dd>
-      <dt> Build time: </dt>
-      <dd>
-        {{ build.min_started_on|time_ago(build.max_ended_on) }}
-      </dd>
-      <dt> Networking enabled: </dt>
-      <dd>
-          {{ build.enable_net }}
-      </dd>
-      <dt> Built by: </dt>
-      <dd>
-        <a href="{{ url_for('coprs_ns.coprs_by_owner', username=build.user.name) }}">
-          {{ build.user.name }}
-        </a>
-      </dd>
-    </dl>
-
-    <h3> Build Source </h3>
-    <dl class="dl-horizontal">
-      <dt> Package:</dt>
-      <dd>
-        {% if build.package %}
-          <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=build.package.name) }}">
-            {{ build.package.name }}
-          </a>
-        {% else %}
-             - 
-        {% endif %}
-      </dd>
-      <dt> Version:</dt>
-      <dd>
-        {% if build.pkg_version %} 
-            {{ build.pkg_version}}
-        {% else %}
-             - 
-        {% endif %}
-      </dd>
-      {{ describe_source(build) }}
-    </dl>
-
-    <h3> Build Results </h3>
-    <dl class="dl-horizontal">
-    {{ describe_failure(build) }}
-    <dt> Built Packages:</dt>
-    {% if build.built_packages %}
-      {% for pkg in build.built_packages.split("\n"): %}
-        <dd>{{ pkg }}</dd>
-      {% endfor %}
-    {% else %}
-      <dd> - </dd>
-    {% endif %}
-    </dl>
-  </div>
-  <div class="col-sm-4 col-md-3">
-  {% if g.user and g.user.can_build_in(copr) %}
+  <div class="col-sm-12">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title"> Actions </h3>
+        <h3 class="panel-title">General Information</h3>
       </div>
-      <ul class="list-group">
-      {% if g.user and g.user.can_build_in(copr) and build.cancelable %}
-        <li class="list-group-item">
-          {{ copr_build_cancel_form(build, page) }}
-        </li>
-      {% endif %}
-
-      {% if g.user and g.user.can_build_in(copr) and build.repeatable %}
-        <li class="list-group-item">
-          {{ copr_build_repeat_form(build, page) }}
-        </li>
-      {% endif %}
-
-      {% if g.user and g.user.can_build_in(copr) and build.deletable %}
-      {% if g.user.can_edit(copr) or build.user == g.user %}
-        <li class="list-group-item">
-          {{ copr_build_delete_form(build, page) }}
-        </li>
-      {% endif %}
-      {% endif %}
-      </ul>
-    </div>
-    {% endif %}
-  </div>
-
-  <div class="col-sm-12">
-    <h4> Chroot Details </h4>
-    <table class="table table-striped table-bordered">
-      <thead>
-        <tr>
-          <th>Chroot Name</th>
-          <th>Dist Git Source</th>
-          <th>Build Time</th>
-          <th>State</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for chroot in build.build_chroots|sort(attribute='name') %}
-        <tr>
-          <td>
-            {% if chroot.started_on %}
-
-            <a href="{{ chroot.result_dir_url }}">
-              <span class="pficon pficon-folder-open">
-                {{ chroot.name }}
-              </span>
+      <div class="panel-body">
+        <dl class="dl-horizontal">
+          <dt> Submitted: </dt>
+          <dd>
+            {% if g.user %}
+                {{ build.submitted_on|localized_time(g.user.timezone) }}
+            {% else %}
+                {{ build.submitted_on|localized_time("UTC") }}
+            {% endif %}
+            ({{ build.submitted_on|time_ago }} ago)
+          </dd>
+          <dt> Started: </dt>
+          <dd>
+            {% if g.user %}
+                {{ build.min_started_on|localized_time(g.user.timezone) }}
+            {% else %}
+                {{ build.min_started_on|localized_time("UTC") }}
+            {% endif %}
+          </dd>
+          <dt> Finished: </dt>
+          <dd>
+            {% if g.user %}
+                {{ build.max_ended_on|localized_time(g.user.timezone) }}
+            {% else %}
+                {{ build.max_ended_on|localized_time("UTC") }}
+            {% endif %}
+          </dd>
+          <dt> Build time: </dt>
+          <dd>
+            {{ build.min_started_on|time_ago(build.max_ended_on) }}
+          </dd>
+          <dt> Networking enabled: </dt>
+          <dd>
+              {{ build.enable_net }}
+          </dd>
+          <dt> Built by: </dt>
+          <dd>
+            <a href="{{ url_for('coprs_ns.coprs_by_owner', username=build.user.name) }}">
+              {{ build.user.name }}
             </a>
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Source</h3>
+      </div>
+      <div class="panel-body">
+        <dl class="dl-horizontal">
+          <dt> Package:</dt>
+          <dd>
+            {% if build.package %}
+              <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=build.package.name) }}">
+                {{ build.package.name }}
+              </a>
             {% else %}
-            {{ chroot.name }}
+                 -
             {% endif %}
-          </td>
-          <td>
-            {% if chroot.git_hash %}
-              {% if chroot.dist_git_url %}
-                <a href="{{chroot.dist_git_url}}">
-                  {{ chroot.git_hash[:7] }}
+          </dd>
+          <dt> Version:</dt>
+          <dd>
+            {% if build.pkg_version %}
+                {{ build.pkg_version}}
+            {% else %}
+                 -
+            {% endif %}
+          </dd>
+          {{ describe_source(build) }}
+        </dl>
+      </div>
+    </div>
+
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Results</h3>
+      </div>
+      <div class="panel-body">
+        <dl class="dl-horizontal">
+        {{ describe_failure(build) }}
+        <dt> Built Packages:</dt>
+        {% if build.built_packages %}
+          {% for pkg in build.built_packages.split("\n"): %}
+            <dd>{{ pkg }}</dd>
+          {% endfor %}
+        {% else %}
+          <dd> - </dd>
+        {% endif %}
+        </dl>
+
+        <table class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th>Chroot Name</th>
+              <th>Dist Git Source</th>
+              <th>Build Time</th>
+              <th>State</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for chroot in build.build_chroots|sort(attribute='name') %}
+            <tr>
+              <td>
+                {% if chroot.started_on %}
+
+                <a href="{{ chroot.result_dir_url }}">
+                  <span class="pficon pficon-folder-open">
+                    {{ chroot.name }}
+                  </span>
                 </a>
-              {% else %}
-                {{ chroot.git_hash[:7] }}
-              {% endif %}
-            {% else %}
-              -
-            {% endif %}
-          </td>
-          <td>
-            {{ chroot.started_on|time_ago(chroot.ended_on) }}
-          </td>
-          <td>
-            <span class="build-{{chroot.state}}" alt="{{chroot.state|build_state_description}}">
-              {{ chroot.state }}
-            </span>
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+                {% else %}
+                {{ chroot.name }}
+                {% endif %}
+              </td>
+              <td>
+                {% if chroot.git_hash %}
+                  {% if chroot.dist_git_url %}
+                    <a href="{{chroot.dist_git_url}}">
+                      {{ chroot.git_hash[:7] }}
+                    </a>
+                  {% else %}
+                    {{ chroot.git_hash[:7] }}
+                  {% endif %}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {{ chroot.started_on|time_ago(chroot.ended_on) }}
+              </td>
+              <td>
+                <span class="build-{{chroot.state}}" alt="{{chroot.state|build_state_description}}">
+                  {{ chroot.state }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
   </div>
+
 </div>
-      
+
 
 {% endif %}
 {% endblock %}

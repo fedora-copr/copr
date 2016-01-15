@@ -191,9 +191,9 @@
 
 
 
-{% macro copr_build_cancel_form(build, page) %}
+{% macro copr_build_cancel_form(build, page, class="") %}
   {% if build.cancelable %}
-    <form action="{{ copr_url('coprs_ns.copr_cancel_build', build.copr, build_id=build.id) }}" method="post">
+    <form class="{{class}}" action="{{ copr_url('coprs_ns.copr_cancel_build', build.copr, build_id=build.id) }}" method="post">
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
         <span class="pficon pficon-close"> Cancel</span>
@@ -202,9 +202,9 @@
   {% endif %}
 {% endmacro %}
 
-{% macro copr_build_repeat_form(build, page) %}
+{% macro copr_build_repeat_form(build, page, class="") %}
   {% if build.repeatable %}
-    <form action="{{ copr_url('coprs_ns.copr_repeat_build', build.copr, build_id=build.id) }}" method="post">
+    <form class="{{class}}" action="{{ copr_url('coprs_ns.copr_repeat_build', build.copr, build_id=build.id) }}" method="post">
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
         <span class="pficon pficon-restart"> Resubmit</span>
@@ -213,9 +213,9 @@
   {% endif %}
 {% endmacro %}
 
-{% macro copr_build_delete_form(build, page) %}
+{% macro copr_build_delete_form(build, page, class="") %}
   {% if build.deletable %}
-    <form action="{{ url_for('coprs_ns.copr_delete_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post">
+    <form class="{{class}}" action="{{ url_for('coprs_ns.copr_delete_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post">
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
         <span class="pficon pficon-delete"> Delete</span>

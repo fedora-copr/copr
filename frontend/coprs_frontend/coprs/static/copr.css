@@ -10,8 +10,25 @@ h3 a {
   color: #3d69a8!important;
 }
 
+div.panel-body dl:last-child {
+  margin-bottom: 0px;
+}
+
+div.panel-body table:last-child {
+  margin-bottom: 0px;
+}
+
 .button-new {
   margin-top: 20px;
+}
+
+.button-build-action {
+  margin-top: 20px;
+  margin-left: 10px;
+}
+
+h2.page-title {
+  margin-bottom: 20px;
 }
 
 .breadcrumb {
