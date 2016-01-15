@@ -22,31 +22,29 @@
     </tr>
   </thead>
   <tbody>
-  {% for build in builds %}
-    <tr>
-      <td>
-        <a href="{{ build_href(build) }}"><b>{{ build.id }}</b></a>
-      </td>
-      <td>
-        <a href="{{ copr_details_href(build.copr) }}">{{ copr_name(build.copr) }}
-      </a>
-      <td>
-        {{ build.package.name}}
-      </td>
-      <td>
-        {{ build.package.version}}
-      </td>
-      <td>
-        <td data-order="{{build.submitted_on}}"> {{ build.ended_on|time_ago() }} ago </td>
-      </td>
-      <td>
+    {% for build in builds %}
+      <tr>
+        <td>
+          <a href="{{ build_href(build) }}"><b>{{ build.id }}</b></a>
+        </td>
+        <td>
+          <a href="{{ copr_details_href(build.copr) }}">{{ copr_name(build.copr) }}
+        </a>
+        <td>
+          {{ build.package.name}}
+        </td>
+        <td>
+          {{ build.pkg_version}}
+        </td>
+        <td>
+          {{ build.ended_on|time_ago() }} ago
+        </td>
         {% if build.canceled %}
         <td class="build-canceled">canceled</td>
         {% else %}
         <td class="build-{{build.status | state_from_num }}" abbr="{{build.status | state_from_num | build_state_description}}">{{ build.status | state_from_num }}</td>
         {% endif %}
-      </td>
-    </tr>
+      </tr>
     {% endfor %}
   </tbody>
 </table>
