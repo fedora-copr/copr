@@ -6,6 +6,10 @@ body {
   background-color: #eee;
 }
 
+h3 a {
+  color: #3d69a8!important;
+}
+
 .button-new {
   margin-top: 20px;
 }

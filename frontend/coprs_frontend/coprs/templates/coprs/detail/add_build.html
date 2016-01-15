@@ -10,7 +10,8 @@
     <li><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></li>
     <li><a href="{{ copr_url('coprs_ns.copr_rebuild_package', copr, package_name=package.name) }}">Rebuild</a></li>
   {% else %}
-    <li><a href="{{ url_add_build }}">New Build</a></li>
+    <li><a href="{{ copr_url('coprs_ns.copr_builds', copr) }}">Builds</a></li>
+    <li>New Build</li>
   {% endif %}
 {%endblock%}
 
@@ -28,13 +29,13 @@
 
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title">1. Select the source type</h3>
+    <h3 class="panel-title">1. Select the source type - <a href="https://fedorahosted.org/copr/wiki/UserDocs#BuildSourceTypes">Learn More</a></h3>
   </div>
   <div class="panel-body">
     <ul class="nav nav-tabs nav-tabs-pf">
       {{ nav_element("url", "From URLs", copr_url('coprs_ns.copr_add_build', copr)) }}
       {{ nav_element("upload", "Upload SRPM", copr_url('coprs_ns.copr_add_build_upload', copr)) }}
-      {{ nav_element("tito", "Git and Tito", copr_url('coprs_ns.copr_add_build_tito', copr)) }}
+      {{ nav_element("tito", "Tito", copr_url('coprs_ns.copr_add_build_tito', copr)) }}
       {{ nav_element("mock", "Mock SCM", copr_url('coprs_ns.copr_add_build_mock', copr)) }}
     </ul>
   </div>

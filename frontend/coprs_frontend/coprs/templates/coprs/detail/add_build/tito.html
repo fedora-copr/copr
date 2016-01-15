@@ -3,13 +3,6 @@
 
 {% set add_build_tab = "tito" %}
 
-{%block project_breadcrumb %}
-{{ super() }}
-<li>
-  From Git Using Tito
-</li>
-{%endblock%}
-
 {% block build_form %}
 
   {{ copr_build_form_tito(form, view, copr) }}
