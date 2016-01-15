@@ -1,5 +1,5 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
-{% from "_helpers.html" import build_href_from_sql %}
+{% from "_helpers.html" import build_href_from_sql, build_state %}
 
 {% macro builds_table(builds) %}
 {% if builds %}
@@ -24,26 +24,24 @@
           </a></b>
         </td>
         <td>
-            {% if build.pkg_name %} 
+            {% if build.pkg_name %}
                 {{ build.pkg_name }}
             {% else %}
-                 - 
+                 -
             {% endif %}
-        </td> 
+        </td>
         <td>
-            {% if build.pkg_version %} 
+            {% if build.pkg_version %}
                 {{ build.pkg_version}}
             {% else %}
-                 - 
+                 -
             {% endif %}
-        </td> 
+        </td>
         <td data-order="{{build.submitted_on}}"> {{ build.submitted_on|time_ago() }} ago </td>
         <td data-order="{{build.started_on|timestamp_diff(build.ended_on)}}"> {{ build.started_on|time_ago(build.ended_on) }} </td>
-        {% if build.canceled %}
-        <td class="build-canceled">canceled</td>
-        {% else %}
-        <td class="build-{{build.status | state_from_num }}" abbr="{{build.status | state_from_num | build_state_description}}">{{ build.status | state_from_num }}</td>
-        {% endif %}
+        <td>
+          {{ build_state(build) }}
+        </td>
       </tr>
     {% endfor %}
     </tbody>

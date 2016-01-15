@@ -1,4 +1,4 @@
-{% from "_helpers.html" import copr_url %}
+{% from "_helpers.html" import copr_url, build_state %}
 
 {% macro packages_table(packages) %}
 {% if packages %}
@@ -36,15 +36,9 @@
             -
           {% endif %}
         </td>
-
-        {% if build.canceled %}
-          <td class="build-canceled">canceled</td>
-        {% elif not build.status %}
-          <td>-</td>
-        {% else %}
-          <td class="build-{{ build.status | state_from_num }}"
-              abbr="{{ build.status | state_from_num | build_state_description}}">{{ build.status | state_from_num }}</td>
-        {% endif %}
+        <td>
+          {{ build_state(build) }}
+        </td>
 
         <td data-order="{{ package.webhook_rebuild }}">
             {% if package.webhook_rebuild %}

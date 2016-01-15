@@ -79,6 +79,38 @@
   {% endif %}
 {% endmacro %}
 
+{% macro build_state_text(state) %}
+  <span class="build-{{ state }}" title="{{ state | build_state_description }}">
+  {% if state == "importing" %}
+    <span class="pficon pficon-running"> {{ state }} </span>
+  {% elif state == "pending" %}
+    <span class="pficon pficon-running"> {{ state }} </span>
+  {% elif state == "starting" %}
+    <span class="pficon pficon-running"> {{ state }} </span>
+  {% elif state == "running" %}
+    <span class="pficon pficon-running"> {{ state }} </span>
+  {% elif state == "succeeded" %}
+    <span class="pficon pficon-ok"> {{ state }} </span>
+  {% elif state == "skipped" %}
+    <span class="pficon pficon-ok"> {{ state }} </span>
+  {% elif state == "failed" %}
+    <span class="pficon pficon-error-circle-o"> {{ state }} </span>
+  {% elif state == "canceled" %}
+    <span class="pficon pficon-close"> {{ state }} </span>
+  {% else %}
+    <span> unknown </span>
+  {% endif %}
+  </span>
+{% endmacro %}
+
+{% macro build_state(build) %}
+  {% if build.canceled %}
+    {{ build_state_text("canceled") }}
+  {% else %}
+    {{ build_state_text(build.status | state_from_num) }}
+  {% endif %}
+{% endmacro %}
+
 {% macro chroot_to_os_logo(chroot) %}
   {% if chroot.os_release == "fedora" %}
     <img style="height:1.8em" src="{{ url_for('static', filename='fedora_logo.png') }}"> Fedora {{chroot.os_version}}

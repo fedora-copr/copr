@@ -1,4 +1,5 @@
 {% macro build_states() %}
+{% from "_helpers.html" import build_state_text %}
     <dl class="aligned">
         <div>
             <dt> Possible build states: </dt>
@@ -10,9 +11,10 @@
               "succeeded",
               "skipped",
               "failed",
+              "canceled"
             ]%}
             <dd>
-                <span class="build-{{state}}"> {{state|capitalize}} </span>
+                {{ build_state_text(state) }}
                 - {{state|build_state_description}}
             </dd>
 
