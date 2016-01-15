@@ -70,7 +70,7 @@
             {{ form|attr(ch)|attr('label') }}
             {% if copr and form|attr(ch)|attr('data') %}
               {% set chrootname = form|attr(ch)|attr('label')|attr('text') %}
-              <a class="btn btn-sm btn-default" href="{{ copr_url('coprs_ns.chroot_edit', copr, chrootname = chrootname)}}">
+              <a style="margin-left:20px" class="btn btn-xs btn-default" href="{{ copr_url('coprs_ns.chroot_edit', copr, chrootname = chrootname)}}">
                 <span class="pficon pficon-edit"> Edit </span>
               </a>
             {% endif %}
@@ -120,7 +120,7 @@
           {{ form.disable_createrepo }} Create repositories manually
           <br>
           <small class="text-muted pficon pficon-info">
-            Repository meta data is refreshed after each build. If you want to do this manually, check the option above. 
+            Repository meta data is refreshed after each build. If you want to do this manually, check the option above.
           </small>
         </div>
         <div class="checkbox">
