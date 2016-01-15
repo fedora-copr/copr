@@ -1,0 +1,54 @@
+{% extends "recent.html" %}
+{% from "_helpers.html" import build_href, copr_name, copr_details_href %}
+{% block all_selected %}active{% endblock %}
+{%block status_breadcrumb %}
+<li class="active">
+  All Projects
+</li>
+{%endblock%}
+{% block status_body %}
+
+<h2> All Projects </h2>
+
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>Build</th>
+      <th>Project</th>
+      <th>Package</th>
+      <th>Package Version</th>
+      <th>Finished</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for build in builds %}
+    <tr>
+      <td>
+        <a href="{{ build_href(build) }}"><b>{{ build.id }}</b></a>
+      </td>
+      <td>
+        <a href="{{ copr_details_href(build.copr) }}">{{ copr_name(build.copr) }}
+      </a>
+      <td>
+        {{ build.package.name}}
+      </td>
+      <td>
+        {{ build.package.version}}
+      </td>
+      <td>
+        <td data-order="{{build.submitted_on}}"> {{ build.ended_on|time_ago() }} ago </td>
+      </td>
+      <td>
+        {% if build.canceled %}
+        <td class="build-canceled">canceled</td>
+        {% else %}
+        <td class="build-{{build.status | state_from_num }}" abbr="{{build.status | state_from_num | build_state_description}}">{{ build.status | state_from_num }}</td>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

@@ -1,91 +1,29 @@
 {% extends "layout.html" %}
 {% block title %} Recent builds - Copr {% endblock %}
 {% block header %} Recent builds - Copr {% endblock %}
+{%block main_menu_status %}active{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    <a href="{{ url_for('recent_ns.all') }}">Recent Builds</a>
+  </li>
+  {%block status_breadcrumb %}{%endblock%}
+</ol>
+{% endblock %}
 {% block body %}
-<h1> Recent builds </h1>
-
-{% if g.user %}
-<h2> Your projects </h2>
-<table class="status-table">
-    <tr>
-        <th>Build</th>
-        <th>Finished</th>
-        <th>Project</th>
-        <th>Packages</th>
-        <th>Repo</th>
-        <th>Status</th>
-    </tr>
-
-    {% for build in user_builds %}
-        <tr>
-            <td><a href="{{ url_for('coprs_ns.copr_build', username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id) }}">
-                {{build.id}}
-            </a></td>
-
-
-            <td>{{ build.ended_on | localized_time(g.user.timezone) }}</td>
-
-            <td><a href="{{ url_for('coprs_ns.copr_detail', username = build.copr.owner.name, coprname = build.copr.name) }}">
-                {{build.copr.owner.name}}/{{build.copr.name}}
-            </a></td>
-
-
-            <td>{{ build.pkgs | pkg_name }} </td>
-
-            <td><a href="{{ build.results }}">
-                {{build.copr.owner.name}}/{{build.copr.name}}
-            </a></td>
-
-            <td>
-                {{ build.state }}
-            </td>
-        </tr>
-    {% endfor %}
-</table>
-
-
-
-{% endif %}
-
-<h2> All projects </h2>
-<table class="status-table">
-    <tr>
-        <th>Build</th>
-        <th>Finished</th>
-        <th>Project</th>
-        <th>Packages</th>
-        <th>Repo</th>
-        <th>Status</th>
-    </tr>
-
-
-
-    {% for build in builds %}
-        <tr>
-            <td><a href="{{ url_for('coprs_ns.copr_build', username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id) }}">
-                {{build.id}}
-            </a></td>
-
-
-            <td>{{ build.ended_on | localized_time(g.user.timezone) }}</td>
-
-            <td><a href="{{ url_for('coprs_ns.copr_detail', username = build.copr.owner.name, coprname = build.copr.name) }}">
-                {{build.copr.owner.name}}/{{build.copr.name}}
-            </a></td>
-
-
-            <td>{{ build.pkgs | pkg_name }} </td>
-
-            <td><a href="{{ build.results }}">
-                {{build.copr.owner.name}}/{{build.copr.name}}
-            </a></td>
-
-            <td>
-                {{ build.state }}
-            </td>
-        </tr>
-    {% endfor %}
-</table>
-
+<h1> Recent Builds </h1>
+<ul class="nav nav-tabs">
+  <li class="{% block all_selected %}{% endblock %}">
+      <a href="{{ url_for('recent_ns.all') }}">All Projects</a>
+  </li>
+  {% if g.user %}
+  <li class="{% block my_selected %}{% endblock %}">
+      <a href="{{ url_for('recent_ns.my') }}">My Projects</a>
+  </li>
+  {% endif %}
+</ul>
 {% block status_body %}{% endblock %}
 {% endblock %}

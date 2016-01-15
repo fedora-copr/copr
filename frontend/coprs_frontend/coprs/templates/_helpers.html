@@ -223,7 +223,7 @@
 {% macro recent_builds_panel(builds) %}
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title"> Recent Builds </h3>
+      <h3 class="panel-title"> Recent Builds - <a href="{{ url_for('recent_ns.all') }}">View All</a></h3>
     </div>
     <div class="list-group">
       {% for build in builds %}
