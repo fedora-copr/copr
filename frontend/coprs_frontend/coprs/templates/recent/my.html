@@ -37,15 +37,13 @@
         {{ build.package.version}}
       </td>
       <td>
-        <td data-order="{{build.submitted_on}}"> {{ build.ended_on|time_ago() }} ago </td>
+        {{ build.ended_on|time_ago() }} ago
       </td>
-      <td>
-        {% if build.canceled %}
-        <td class="build-canceled">canceled</td>
-        {% else %}
-        <td class="build-{{build.status | state_from_num }}" abbr="{{build.status | state_from_num | build_state_description}}">{{ build.status | state_from_num }}</td>
-        {% endif %}
-      </td>
+      {% if build.canceled %}
+      <td class="build-canceled">canceled</td>
+      {% else %}
+      <td class="build-{{build.status | state_from_num }}" abbr="{{build.status | state_from_num | build_state_description}}">{{ build.status | state_from_num }}</td>
+      {% endif %}
     </tr>
     {% endfor %}
   </tbody>

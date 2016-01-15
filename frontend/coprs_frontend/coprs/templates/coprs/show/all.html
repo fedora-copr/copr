@@ -18,5 +18,10 @@
 </div>
 {% endif %}
 
-<h1> Projects </h1>
+{% if g.user %}
+<a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new pull-right btn-primary">
+  <span class="pficon pficon-add-circle-o"> New Project </span>
+</a>
+{% endif %}
+<h2 class="page-title"> Projects </h2>
 {% endblock %}

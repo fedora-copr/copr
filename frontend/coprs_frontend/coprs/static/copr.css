@@ -139,8 +139,7 @@ div.breadcrumb-panel ol.breadcrumb {
 }
 
 #profile {
-  min-height: 88px;
-  margin-bottom: 20px;
+  height: 88px;
 }
 
 #profile h1 {
