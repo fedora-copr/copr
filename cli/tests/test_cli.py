@@ -183,7 +183,7 @@ def test_cancel_build_response(mock_cc, capsys):
 
     main.main(argv=["cancel", "123"])
     out, err = capsys.readouterr()
-    assert "{}\n".format(response_status) in out
+    assert "{0}\n".format(response_status) in out
 
 
 def read_res(name):
@@ -283,7 +283,7 @@ def test_status_response(mock_cc, capsys):
 
     main.main(argv=["status", "123"])
     out, err = capsys.readouterr()
-    assert "{}\n".format(response_status) in out
+    assert "{0}\n".format(response_status) in out
 
 
 @mock.patch('copr_cli.main.CoprClient')
@@ -297,7 +297,7 @@ def test_debug_by_status_response(mock_cc, capsys):
 
     main.main(argv=["--debug", "status", "123"])
     stdout, stderr = capsys.readouterr()
-    assert "{}\n".format(response_status) in stdout
+    assert "{0}\n".format(response_status) in stdout
     assert "Debug log enabled " in stderr
 
 
@@ -327,7 +327,7 @@ def test_delete_project(mock_cc, capsys):
 
     main.main(argv=["delete", "foo"])
     out, err = capsys.readouterr()
-    assert "{}\n".format(response_message) in out
+    assert "{0}\n".format(response_message) in out
 
 
 @mock.patch('copr_cli.main.subprocess')
@@ -417,7 +417,7 @@ def test_create_project(mock_cc, capsys):
         instructions="instruction string", chroots=["f20", "f21"],
         repos=["repo1", "repo2"], initial_pkgs=["pkg1"])
 
-    assert "{}\n".format(response_message) in stdout
+    assert "{0}\n".format(response_message) in stdout
 
 
 @mock.patch('copr_cli.main.CoprClient')

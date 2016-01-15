@@ -165,7 +165,7 @@ class Commands(object):
             def progress_callback(monitor):
                 bar.next(n=8192)
 
-            print('Uploading package {}'.format(args.pkgs[0]))
+            print('Uploading package {0}'.format(args.pkgs[0]))
         else:
             progress_callback = None
 
@@ -182,7 +182,7 @@ class Commands(object):
         print(result.message)
 
         build_ids = [bw.build_id for bw in result.builds_list]
-        print("Created builds: {}".format(" ".join(map(str, build_ids))))
+        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
 
         if not args.nowait:
             self._watch_builds(result.builds_list)
@@ -271,7 +271,7 @@ class Commands(object):
 
             cmd.extend(['-P', os.path.join(args.dest, chroot)])
             cmd.extend(['--cut-dirs', str(base_len + 4)])
-            cmd.append("{}{}/{}/".format(base_url, chroot, pkg_dir))
+            cmd.append("{0}{1}/{2}/".format(base_url, chroot, pkg_dir))
 
             subprocess.call(cmd)
 
