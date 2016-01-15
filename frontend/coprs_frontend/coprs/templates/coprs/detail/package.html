@@ -18,45 +18,54 @@
 
 {% block detail_body %}
 
-{% macro controls() %}
-  <div class="btn-group">
-    <a class="btn btn-default btn-sm" href="{{ copr_url('coprs_ns.copr_edit_package', copr, package_name=package.name) }}">
-      <span class="pficon pficon-edit"></span> Edit
-    </a>
+{% if package.source_type %}
+<a class="btn btn-default pull-right button-build-action" href="{{ copr_url('coprs_ns.copr_rebuild_package', copr, package_name=package.name) }}">
+  <span class="pficon pficon-restart"></span> Rebuild
+</a>
+{% endif %}
 
-    {% if package.source_type %}
-    <a class="btn btn-default btn-sm" href="{{ copr_url('coprs_ns.copr_rebuild_package', copr, package_name=package.name) }}">
-      <span class="pficon pficon-restart"></span> Rebuild
-    </a>
-    {% endif %}
-  </div>
-{% endmacro %}
-
-<h2 class="build-detail"> Package: {{ package.name }} </h2>
+<h2 class="page-title"> Package: {{ package.name }} </h2>
 
 <div class="row">
-  <div class="col-sm-8 col-md-9">
-    <dl class="dl-horizontal">
-      {% if package.dist_git_url %}
-      <dt> Dist Git Repo:</dt>
-      <dd>
-        <a href="{{package.dist_git_url}}">
-        {{package.dist_git_repo}}
-        </a>
-      </dd>
-      {% endif %}
-
-      <dt><h3>Default source</h3></dt>
-      <dd>
-        <dt>Controls:</dt>
-        <dd>{{ controls() }}</dd>
-        {{ describe_source(package) }}
-      </dd>
-    </dl>
-  </div>
   <div class="col-sm-12">
-    <h3> Recent Builds: </h3>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">General Information</h3>
+      </div>
+      <div class="panel-body">
+        <dl class="dl-horizontal">
+          {% if package.dist_git_url %}
+          <dt> Dist Git Repo:</dt>
+          <dd>
+            <a href="{{package.dist_git_url}}">
+            {{package.dist_git_repo}}
+            </a>
+          </dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading clearfix panel-heading-buttons">
+        <h3 class="panel-title pull-left">Default Build Source</h3>
+        <div class="btn-group pull-right">
+          <a class="btn btn-default btn-sm" href="{{ copr_url('coprs_ns.copr_edit_package', copr, package_name=package.name) }}">
+            <span class="pficon pficon-edit"> Edit</span>
+          </a>
+        </div>
+      </div>
+      <div class="panel-body">
+        <dl class="dl-horizontal">
+          <dd>
+            {{ describe_source(package) }}
+          </dd>
+        </dl>
+      </div>
+    </div>
+
     {{builds_table(package.builds)}}
+
   </div>
 </div>
 
