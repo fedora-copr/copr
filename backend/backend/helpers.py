@@ -11,6 +11,7 @@ import ConfigParser
 import os
 import sys
 import errno
+import time
 from contextlib import contextmanager
 
 import traceback
@@ -27,6 +28,18 @@ from copr.client import CoprClient
 from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
 from backend.exceptions import CoprBackendError
+
+
+def wait_log(log, reason="I don't know why.", timeout=5):
+    """
+    We need to wait a while, this should happen only when copr converges to
+    boot-up/restart/..
+    """
+    if not log:
+        return
+    log.warning("I'm waiting {0}s because: {1}".format(timeout, reason))
+    time.sleep(timeout)
+
 
 class SortedOptParser(optparse.OptionParser):
     """Optparser which sorts the options by opt before outputting --help"""

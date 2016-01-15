@@ -15,13 +15,13 @@ from collections import defaultdict
 import lockfile
 from daemon import DaemonContext
 from requests import RequestException
-from retask.queue import Queue
 from retask import ConnectionError
 from backend.frontend import FrontendClient
 
 from ..exceptions import CoprBackendError
 from ..helpers import BackendConfigReader, get_redis_logger
 from .dispatcher import Worker
+from .. import jobgrabcontrol
 
 
 class CoprBackend(object):
@@ -42,7 +42,7 @@ class CoprBackend(object):
             raise CoprBackendError("Must specify config_file")
 
         self.config_file = config_file
-        self.ext_opts = ext_opts  # to stow our cli options for read_conf()
+        self.ext_opts = ext_opts  # to show our cli options for read_conf()
         self.workers_by_group_id = defaultdict(list)
         self.max_worker_num_by_group_id = defaultdict(int)
 
@@ -55,35 +55,14 @@ class CoprBackend(object):
         self.log = get_redis_logger(self.opts, "backend.main", "backend")
 
         self.frontend_client = FrontendClient(self.opts, self.log)
+        self.jg_control = jobgrabcontrol.Channel(self.opts, self.log)
         self.is_running = False
-
-    def clean_task_queues(self):
-        """
-        Make sure there is nothing in our task queues
-        """
-        try:
-            for queue in self.task_queues.values():
-                while queue.length:
-                    queue.dequeue()
-        except ConnectionError:
-            raise CoprBackendError(
-                "Could not connect to a task queue. Is Redis running?")
 
     def init_task_queues(self):
         """
-        Connect to the retask.Queue for each group_id. Remove old tasks from queues.
+        Remove old tasks from queues.
         """
-        try:
-            for group in self.opts.build_groups:
-                group_id = group["id"]
-                queue = Queue("copr-be-{0}".format(group_id))
-                queue.connect()
-                self.task_queues[group_id] = queue
-        except ConnectionError:
-            raise CoprBackendError(
-                "Could not connect to a task queue. Is Redis running?")
-
-        self.clean_task_queues()
+        self.jg_control.backend_start()
 
     def update_conf(self):
         """
@@ -158,7 +137,6 @@ class CoprBackend(object):
             for w in self.workers_by_group_id[group_id][:]:
                 self.workers_by_group_id[group_id].remove(w)
                 w.terminate_instance()
-        self.clean_task_queues()
 
         try:
             self.log.info("Rescheduling unfinished builds before stop")

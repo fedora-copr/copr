@@ -7,8 +7,6 @@ import shutil
 import multiprocessing
 from setproctitle import setproctitle
 
-from retask.queue import Queue
-
 from ..vm_manage.manager import VmManager
 from ..exceptions import MockRemoteError, CoprWorkerError, VmError, NoVmAvailable
 from ..job import BuildJob
@@ -16,6 +14,7 @@ from ..mockremote import MockRemote
 from ..constants import BuildStatus, JOB_GRAB_TASK_END_PUBSUB, build_log_format
 from ..helpers import register_build_result, get_redis_connection, get_redis_logger, \
     local_file_logger
+from .. import jobgrabcontrol
 
 
 # ansible_playbook = "ansible-playbook"
@@ -31,8 +30,6 @@ class Worker(multiprocessing.Process):
     """
     Worker process dispatches building tasks. Backend spin-up multiple workers, each
     worker associated to one group_id and process one task at the each moment.
-
-    Worker listens for the new tasks from :py:class:`retask.Queue` associated with its group_id
 
     :param Munch opts: backend config
     :param int worker_num: worker number
@@ -51,9 +48,7 @@ class Worker(multiprocessing.Process):
 
         self.log = get_redis_logger(self.opts, self.logger_name, "worker")
 
-        # job management stuff
-        self.task_queue = Queue("copr-be-{0}".format(str(group_id)))
-        self.task_queue.connect()
+        self.jg = jobgrabcontrol.Channel(self.opts, self.log)
         # event queue for communicating back to dispatcher
 
         self.kill_received = False
@@ -238,14 +233,16 @@ class Worker(multiprocessing.Process):
         # this sometimes caused TypeError in random worker
         # when another one  picekd up a task to build
         # why?
+        # praiskup: not reproduced
         try:
-            task = self.task_queue.dequeue()
-        except TypeError:
+            task = self.jg.get_build(self.group_id)
+        except TypeError as err:
+            self.log.warning(err)
             return
         if not task:
             return
 
-        job = BuildJob(task.data, self.opts)
+        job = BuildJob(task, self.opts)
         self.update_process_title(suffix="Task: {} chroot: {}, obtained at {}"
                                   .format(job.build_id, job.chroot, str(datetime.now())))
 

@@ -10,8 +10,6 @@ import time
 from setproctitle import setproctitle
 
 from requests import get, RequestException
-from retask.task import Task
-from retask.queue import Queue
 
 from backend.frontend import FrontendClient
 
@@ -19,11 +17,22 @@ from ..actions import Action
 from ..constants import JOB_GRAB_TASK_END_PUBSUB
 from ..helpers import get_redis_connection, get_redis_logger
 from ..exceptions import CoprJobGrabError
-
+from .. import jobgrabcontrol
 
 # TODO: Replace entire model with asynchronous queue, so that frontend push task,
 # and workers listen for them
-
+# praiskup: Please don't.  I doubt this would help too much, and I really don't
+# think it is worth another rewrite.  Reasons (imho):
+#   a. there still needs to be "one" organizator, aka jobgrabber on the backend
+#      VM side -- we do not want allow Workers to contact frontend directly
+#      because of (1) security and (2) process synchronization.
+#   b. in frontend, we _never_ want to block UI differently than on database,
+#      so the push to BE can't be done instantly -- and thus there would have
+#      to be something like buffered "JobPusher" (and that would be most
+#      probably implemented as poll anyway).  Maybe we could use some "pipe"
+#      approach through infinite (http?) connection, or opened database
+#      connection, .. but I don't think it does matter too much who will
+#      control the "pipe".
 class CoprJobGrab(object):
 
     """
@@ -36,41 +45,33 @@ class CoprJobGrab(object):
     :param Munch opts: backend config
     :param lock: :py:class:`multiprocessing.Lock` global backend lock
 
+    TODO: Not yet fully ready for config reload.
     """
 
     def __init__(self, opts):
         """ base class initialization """
 
         self.opts = opts
+
+        # Maps e.g. x86_64 && i386 => PC (.
         self.arch_to_group_id_map = dict()
-        for group in self.opts.build_groups:
-            for arch in group["archs"]:
-                self.arch_to_group_id_map[arch] = group["id"]
-
-        self.task_queues_by_arch = {}
-        self.task_queues_by_group = {}
-
-        self.added_jobs_dict = dict()  # task_id -> task dict
-
+        # PC => max N builders per user
+        self.group_to_usermax = dict()
+        # task_id -> task dict
+        self.added_jobs_dict = dict()
 
         self.rc = None
         self.channel = None
         self.ps_thread = None
 
         self.log = get_redis_logger(self.opts, "backend.job_grab", "job_grab")
+        self.jg_control = jobgrabcontrol.Channel(self.opts, self.log)
         self.frontend_client = FrontendClient(self.opts, self.log)
 
-    def connect_queues(self):
-        """
-        Connects to the retask queues. One queue per builders group.
-        """
-        for group in self.opts.build_groups:
-            queue = Queue("copr-be-{0}".format(group["id"]))
-            queue.connect()
 
-            self.task_queues_by_group[group["name"]] = queue
-            for arch in group["archs"]:
-                self.task_queues_by_arch[arch] = queue
+    def group(self, arch):
+        return self.arch_to_group_id_map[arch]
+
 
     def listen_to_pubsub(self):
         """
@@ -83,6 +84,7 @@ class CoprJobGrab(object):
         self.ps_thread = self.channel.run_in_thread(sleep_time=0.05)
 
         self.log.info("Subscribed to {} channel".format(JOB_GRAB_TASK_END_PUBSUB))
+
 
     def route_build_task(self, task):
         """
@@ -101,24 +103,23 @@ class CoprJobGrab(object):
         if "task_id" in task:
             if task["task_id"] not in self.added_jobs_dict:
                 arch = task["chroot"].split("-")[2]
-                if arch not in self.task_queues_by_arch:
-                    raise CoprJobGrabError("No builder group for architecture: {}, task: {}"
-                                           .format(arch, task))
+                group = self.group(arch)
 
                 username = task["project_owner"]
-                group_id = int(self.arch_to_group_id_map[arch])
                 active_jobs_count = len([t for t_id, t in self.added_jobs_dict.items()
                                          if t["project_owner"] == username])
 
-                if active_jobs_count > self.opts.build_groups[group_id]["max_vm_per_user"]:
-                    self.log.debug("User can not acquire more VM (active builds #{}), "
+                if active_jobs_count > self.group_to_usermax[group]:
+                    self.log.debug("User can not acquire more VM (active builds #{0}), "
                                    "don't schedule more tasks".format(active_jobs_count))
                     return 0
 
-                self.added_jobs_dict[task["task_id"]] = task
+                msg = "enqueue task for user {0}: id={1}, arch={2}, group={3}, active={4}"
+                self.log.debug(msg.format(username, task["task_id"], arch, group, active_jobs_count))
 
-                task_obj = Task(task)
-                self.task_queues_by_arch[arch].enqueue(task_obj)
+                # Add both to local list and control channel queue.
+                self.added_jobs_dict[task["task_id"]] = task
+                self.jg_control.add_build(group, task)
                 count += 1
 
         else:
@@ -226,22 +227,46 @@ class CoprJobGrab(object):
             self.log.debug("Added jobs after remove and load: {}".format(self.added_jobs_dict))
             self.log.debug("# of executed jobs: {}".format(len(self.added_jobs_dict)))
 
-        for group, queue in self.task_queues_by_group.items():
-            if queue.length > 0:
-                self.log.debug("# of pending jobs for `{}`: {}".format(group, queue.length))
+
+    def init_internal_structures(self):
+        self.arch_to_group_id_map = dict()
+        self.group_to_usermax = dict()
+        for group in self.opts.build_groups:
+            group_id = group["id"]
+            for arch in group["archs"]:
+                self.arch_to_group_id_map[arch] = group_id
+                self.log.debug("mapping {0} to {1} group".format(arch, group_id))
+
+            self.log.debug("user might use only {0}VMs for {1} group".format(group["max_vm_per_user"], group_id))
+            self.group_to_usermax[group_id] = group["max_vm_per_user"]
+
+        self.added_jobs_dict = dict()
+
+
+    def handle_control_channel(self):
+        if not self.jg_control.backend_started():
+            return
+        self.log.info("backend gave us signal to start")
+        self.init_internal_structures()
+        self.jg_control.remove_all_builds()
+        self.jg_control.job_graber_initialized()
 
     def run(self):
         """
         Starts job grabber process
         """
         setproctitle("CoprJobGrab")
-        self.connect_queues()
         self.listen_to_pubsub()
 
         self.log.info("JobGrub started.")
+
+        self.init_internal_structures()
         try:
             while True:
                 try:
+                    # This effectively delays job_grabbing until backend
+                    # gives as signal to start.
+                    self.handle_control_channel()
                     self.load_tasks()
                     self.log_queue_info()
                     time.sleep(self.opts.sleeptime)
