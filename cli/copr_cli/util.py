@@ -39,6 +39,9 @@ class DummyBar(object):
     def next(self, n=None):
         pass
 
+    def finish(self):
+        pass
+
 
 if progress:
     class ProgressBar(Bar, ProgressMixin):
