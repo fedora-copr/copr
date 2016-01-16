@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.9
+Version:    0.10
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -100,6 +100,10 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Sat Jan 16 2016 clime <clime@redhat.com> 0.10-1
+- fixed do_import test
+- workaround for BZ 1283101
+
 * Mon Nov 16 2015 Miroslav Suchý <msuchy@redhat.com> 0.9-1
 - make more abstract exceptions
 - implement support for multiple Mock SCMs
