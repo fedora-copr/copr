@@ -1,6 +1,6 @@
 Summary: Remove failed and obsolete succeeded builds (with the associated packages) from a copr repository.
 Name: copr-prune-repo
-Version: 1.3
+Version: 1.4
 Release: 1%{?dist} 
 
 # Source is created by:

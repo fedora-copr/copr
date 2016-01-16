@@ -3,7 +3,7 @@
 alias RUNCMD='../copr_prune_repo.py'
 
 shopt -s expand_aliases
-die() { echo "$@" 1>&2 ; exit 1; }
+#die() { echo "$@" 1>&2 ; exit 1; }
 
 # repo builds:
 # drwxrwxr-x. 2 copr  copr   4096 Jan  1 00:00 1-success1
@@ -11,11 +11,12 @@ die() { echo "$@" 1>&2 ; exit 1; }
 # drwxrwxr-x. 2 clime clime  4096 Jan  3 00:00 3-fail1-baduser
 # drwxrwxr-x. 2 copr  copr   4096 Jan  4 00:00 4-fail2
 # drwxrwxr-x. 2 copr  copr   4096 Jan  5 00:00 5-success3
-# drwxrwxr-x. 2 copr  copr   4096 Jan  6 00:00 6-success4-latestpkg
+# drwxrwxr-x. 2 copr  copr   4096 Jan  6 00:00 6-success4-seclatest
+# drwxrwxr-x. 2 copr  copr   4096 Jan  7 00:00 7-success5-latest
 
 origrepo=./fedora-23-x86_64-template
 testrepo=./fedora-23-x86_64-test
-alias lsbuilds="ls -dr $testrepo/1-success1 $testrepo/2-success2 $testrepo/3-fail1-baduser $testrepo/4-fail2 $testrepo/5-success3 $testrepo/6-success4-latestpkg 2> /dev/null"
+alias lsbuilds="ls -dr $testrepo/1-success1 $testrepo/2-success2 $testrepo/3-fail1-baduser $testrepo/4-fail2 $testrepo/5-success3 $testrepo/6-success4-seclatest $testrepo/7-success5-latest 2> /dev/null"
 
 function setup {
 	set +x
@@ -33,7 +34,7 @@ function setup {
 # && - expect missing
 # || - expect present
 
-set +x; echo "============================ test1 ============================"; set -x;
+set +x; echo "============================ test basic usecase ============================"; set -x;
 
 setup
 RUNCMD $testrepo
@@ -42,9 +43,10 @@ lsbuilds | grep success2           && exit 1
 lsbuilds | grep fail1-baduser      || exit 1
 lsbuilds | grep fail2              && exit 1
 lsbuilds | grep success3           && exit 1
-lsbuilds | grep success4-latestpkg || exit 1
+lsbuilds | grep success4-seclatest && exit 1
+lsbuilds | grep success5-latest    || exit 1
 
-set +x; echo "============================ test2 ============================"; set -x;
+set +x; echo "============================ test --disableusercheck ============================"; set -x;
 
 setup
 RUNCMD --disableusercheck $testrepo
@@ -53,20 +55,22 @@ lsbuilds | grep success2           && exit 1
 lsbuilds | grep fail1-baduser      && exit 1
 lsbuilds | grep fail2              && exit 1
 lsbuilds | grep success3           && exit 1
-lsbuilds | grep success4-latestpkg || exit 1
+lsbuilds | grep success4-seclatest && exit 1
+lsbuilds | grep success5-latest    || exit 1
 
-set +x; echo "============================ test3 ============================"; set -x;
+set +x; echo "============================ test --days ============================"; set -x;
 
 setup
-RUNCMD --disableusercheck --days 6 $testrepo
+RUNCMD --disableusercheck --days 7 $testrepo
 lsbuilds | grep success1           && exit 1
 lsbuilds | grep success2           || exit 1
 lsbuilds | grep fail1-baduser      || exit 1
 lsbuilds | grep fail2              || exit 1
 lsbuilds | grep success3           || exit 1
-lsbuilds | grep success4-latestpkg || exit 1
+lsbuilds | grep success4-seclatest || exit 1
+lsbuilds | grep success5-latest    || exit 1
 
-set +x; echo "============================ test4 ============================"; set -x;
+set +x; echo "============================ test --failed ============================"; set -x;
 
 setup
 RUNCMD --disableusercheck --failed $testrepo
@@ -75,9 +79,10 @@ lsbuilds | grep success2           || exit 1
 lsbuilds | grep fail1-baduser      && exit 1
 lsbuilds | grep fail2              && exit 1
 lsbuilds | grep success3           || exit 1
-lsbuilds | grep success4-latestpkg || exit 1
+lsbuilds | grep success4-seclatest || exit 1
+lsbuilds | grep success5-latest    || exit 1
 
-set +x; echo "============================ test5 ============================"; set -x;
+set +x; echo "============================ test --obsolete ============================"; set -x;
 
 setup
 RUNCMD --disableusercheck --obsolete $testrepo
@@ -86,9 +91,10 @@ lsbuilds | grep success2           && exit 1
 lsbuilds | grep fail1-baduser      || exit 1
 lsbuilds | grep fail2              || exit 1
 lsbuilds | grep success3           && exit 1
-lsbuilds | grep success4-latestpkg || exit 1
+lsbuilds | grep success4-seclatest && exit 1
+lsbuilds | grep success5-latest    || exit 1
 
-set +x; echo "============================ test6 ============================"; set -x;
+set +x; echo "============================ test no build.info in builddir ============================"; set -x;
 
 setup
 find $testrepo | grep success1/build.info | xargs rm
@@ -98,6 +104,31 @@ lsbuilds | grep success2           && exit 1
 lsbuilds | grep fail1-baduser      || exit 1
 lsbuilds | grep fail2              && exit 1
 lsbuilds | grep success3           && exit 1
-lsbuilds | grep success4-latestpkg || exit 1
+lsbuilds | grep success4-seclatest && exit 1
+lsbuilds | grep success5-latest    || exit 1
+
+set +x; echo "============================ test dnf cache always fresh ============================"; set -x;
+
+setup
+RUNCMD $testrepo
+lsbuilds | grep success1           && exit 1
+lsbuilds | grep success2           && exit 1
+lsbuilds | grep fail1-baduser      || exit 1
+lsbuilds | grep fail2              && exit 1
+lsbuilds | grep success3           && exit 1
+lsbuilds | grep success4-seclatest && exit 1
+lsbuilds | grep success5-latest    || exit 1
+
+setup
+rm -r $testrepo/7-success5-latest
+createrepo_c $testrepo
+RUNCMD $testrepo
+lsbuilds | grep success1           && exit 1
+lsbuilds | grep success2           && exit 1
+lsbuilds | grep fail1-baduser      || exit 1
+lsbuilds | grep fail2              && exit 1
+lsbuilds | grep success3           && exit 1
+lsbuilds | grep success4-seclatest || exit 1
+lsbuilds | grep success5-latest    && exit 1
 
 exit 0

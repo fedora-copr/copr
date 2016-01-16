@@ -21,7 +21,7 @@ parser.add_argument('--obsoleted', dest='removefailed', action='store_false',
                    help='only remove obsoleted builds (keep failed)')
 parser.add_argument('--disableusercheck', dest='usercheckenabled', action='store_false',
                    help='do not check if the build directories belong to user `copr`')
-parser.add_argument('-v', '--version', action='version', version='1.3',
+parser.add_argument('-v', '--version', action='version', version='1.4',
                    help='print program version and exit')
 
 args = parser.parse_args()
@@ -59,11 +59,14 @@ def get_latest_packages():
     cmd = [
         'dnf',
         'repoquery',
+        '--disablerepo=*',
         '--repofrompath=query,'+os.path.abspath(args.path),
         '--repoid=query',
+        '--enablerepo=query',
+        '--refresh',
         '--latest-limit=1',
         '--queryformat="%{location}"',
-        '--quiet'
+        '--quiet',
     ]
     repoquery = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr= subprocess.PIPE)
     (stdout, stderr) = repoquery.communicate()
