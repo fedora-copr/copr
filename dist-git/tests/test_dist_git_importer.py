@@ -40,8 +40,8 @@ def mc_time():
 
 
 @pytest.yield_fixture
-def mc_do_srpm_fetch():
-    with mock.patch("{}.do_srpm_fetch".format(MODULE_REF)) as handle:
+def mc_SourceProvider():
+    with mock.patch("{}.SourceProvider".format(MODULE_REF)) as handle:
         yield handle
 
 
@@ -286,9 +286,8 @@ class TestDistGitImporter(object):
         self.dgi.post_back_safe(dd)
         assert mc_post.called
 
-    def test_do_import(self, mc_do_srpm_fetch):
+    def test_do_import(self, mc_SourceProvider):
         internal_methods = [
-            # "fetch_srpm",
             "pkg_name_evr",
             "before_git_import",
             "git_import_srpm",
