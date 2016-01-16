@@ -37,6 +37,9 @@ cp man/man1/copr_prune_repo.1 $RPM_BUILD_ROOT%{_mandir}/man1/
 %doc %{_mandir}/man1/copr_prune_repo.1*
 
 %changelog
+* Sat Jan 16 2016 clime <clime@redhat.com> 1.4-1
+- dnf cache bypassed by using --refresh for dnf repoquery
+
 * Thu Jan 14 2016 clime <clime@redhat.com> 1.3-1
 - dependency on yum-utils removed by using updated dnf repoquery plugin from
   copr clime/dnf-plugins-repo (enable repo with: dnf copr enable clime/dnf-
