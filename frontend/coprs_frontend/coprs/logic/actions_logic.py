@@ -160,3 +160,13 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+
+    @classmethod
+    def send_rawhide_to_release(cls, data):
+        action = models.Action(
+            action_type=helpers.ActionTypeEnum("rawhide_to_release"),
+            object_type="None",
+            data=json.dumps(data),
+            created_on=int(time.time()),
+        )
+        db.session.add(action)

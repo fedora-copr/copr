@@ -232,6 +232,28 @@ class Action(object):
         except CoprKeygenRequestError:
             result.result = ActionResult.FAILURE
 
+    def handle_rawhide_to_release(self, result):
+        data = json.loads(self.data["data"])
+
+        for chroot in data["chroots"]:
+            rawhide_chroot = "fedora-rawhide-{}".format(chroot.split("-")[-1])
+            try:
+                chrootdir = os.path.join(self.opts.destdir, data["user"], data["copr"], chroot)
+                if not os.path.exists(chrootdir):
+                    self.log.debug("Create directory: {}".format(chrootdir))
+                    os.makedirs(chrootdir)
+
+                for build in data["builds"]:
+                    srcdir = os.path.join(self.opts.destdir, data["user"], data["copr"], rawhide_chroot, build)
+                    if os.path.exists(srcdir):
+                        destdir = os.path.join(chrootdir, build)
+                        self.log.debug("Copy directory: {} as {}".format(srcdir, destdir))
+                        shutil.copytree(srcdir, destdir)
+            except:
+                result.result = ActionResult.FAILURE
+
+        result.result = ActionResult.SUCCESS
+
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
         result = Munch()
@@ -262,6 +284,9 @@ class Action(object):
         elif action_type == ActionType.GEN_GPG_KEY:
             self.handle_generate_gpg_key(result)
 
+        elif action_type == ActionType.RAWHIDE_TO_RELEASE:
+            self.handle_rawhide_to_release(result)
+
         self.log.info("Action result: {}".format(result))
 
         if "result" in result:
@@ -279,6 +304,7 @@ class ActionType(object):
     CREATEREPO = 3
     UPDATE_COMPS = 4
     GEN_GPG_KEY = 5
+    RAWHIDE_TO_RELEASE = 6
 
 
 class ActionResult(object):

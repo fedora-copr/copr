@@ -12,7 +12,7 @@ from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
-from coprs.logic import coprs_logic
+from coprs.logic import coprs_logic, packages_logic, actions_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprUserWhoosheer
 from run import generate_repo_packages
@@ -119,6 +119,53 @@ class CreateChrootCommand(ChrootCommand):
                 self.print_invalid_format(chroot_name)
             except exceptions.DuplicateException:
                 self.print_already_exists(chroot_name)
+
+
+class RawhideToReleaseCommand(ChrootCommand):
+
+    def run(self, chroot_names):
+        for chroot_name in chroot_names:
+            mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot_name).first()
+            if not mock_chroot:
+                print("Given chroot does not exist. Please run:")
+                print("    sudo python manage.py create_chroot {}".format(chroot_name))
+                print("Nothing was committed, rolling back")
+                return
+
+            for copr in coprs_logic.CoprsLogic.get_all():
+                if not self.has_rawhide(copr):
+                    continue
+
+                data = {"copr": copr.name,
+                        "user": copr.owner.name,
+                        "chroots": chroot_names,
+                        "builds": []}
+
+                for package in packages_logic.PackagesLogic.get_all(copr.id):
+                    last_build = package.last_build(successful=True)
+                    if last_build:
+                        data["builds"].append("{}-{}".format(str(last_build.id).zfill(8), package.name))
+
+                if len(data["builds"]):
+                    actions_logic.ActionsLogic.send_rawhide_to_release(data)
+                    self.turn_on_the_chroot_for_copr(copr, mock_chroot)
+
+        db.session.commit()
+
+    def turn_on_the_chroot_for_copr(self, copr, mock_chroot):
+        rawhide_chroot = coprs_logic.CoprChrootsLogic.\
+            get_by_name_safe(copr, "fedora-rawhide-{}".format(mock_chroot.name.split("-")[-1]))
+
+        if not rawhide_chroot or coprs_logic.CoprChrootsLogic.get_by_name_safe(copr, mock_chroot.name):
+            return
+
+        coprs_logic.CoprChrootsLogic.create_chroot(copr.owner, copr, mock_chroot,
+                                                   buildroot_pkgs=rawhide_chroot.buildroot_pkgs,
+                                                   comps=rawhide_chroot.comps,
+                                                   comps_name=rawhide_chroot.comps_name)
+
+    def has_rawhide(self, copr):
+        return any(filter(lambda ch: ch.os_version == "rawhide", copr.mock_chroots))
 
 
 class AlterChrootCommand(ChrootCommand):
@@ -318,6 +365,7 @@ manager.add_command("alter_user", AlterUserCommand())
 manager.add_command("add_debug_user", AddDebugUserCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
 manager.add_command("generate_repo_packages", GenerateRepoPackagesCommand())
+manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
 
 if __name__ == "__main__":
     manager.run()

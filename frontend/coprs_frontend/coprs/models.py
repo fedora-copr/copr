@@ -390,6 +390,12 @@ class Package(db.Model, helpers.Serializer):
             return "{}/{}.git".format(app.config["DIST_GIT_URL"], self.dist_git_repo)
         return None
 
+    def last_build(self, successful=False):
+        for build in reversed(self.builds):
+            if not successful or build.state == "succeeded":
+                return build
+        return None
+
 
 class Build(db.Model, helpers.Serializer):
 
