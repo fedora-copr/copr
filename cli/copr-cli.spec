@@ -33,7 +33,7 @@ BuildRequires: python-argparse
 %endif
 
 Requires:   python-setuptools
-Requires:   python-copr
+Requires:   python-copr >= 1.63
 Requires:   wget
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
