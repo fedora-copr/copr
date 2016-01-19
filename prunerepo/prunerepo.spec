@@ -1,4 +1,4 @@
-Summary: Remove old packages from rpm-md (yum) repository
+Summary: Remove old packages from rpm-md repository
 Name: prunerepo
 Version: 1.0
 Release: 1%{?dist} 
