@@ -1,6 +1,6 @@
-Summary: Remove failed and obsolete succeeded builds (with the associated packages) from a copr repository.
+Summary: Remove failed and obsolete succeeded package builds from a copr repository
 Name: copr-prune-repo
-Version: 1.4
+Version: 1.5
 Release: 1%{?dist} 
 
 # Source is created by:
@@ -28,15 +28,22 @@ The repository needs to be recreated manually afterwards with createrepo.
 
 %install
 %py3_install
-install -d $RPM_BUILD_ROOT/%{_mandir}/man1
-cp man/man1/copr_prune_repo.1 $RPM_BUILD_ROOT%{_mandir}/man1/
+install -d %{buildroot}%{_mandir}/man1
+cp man/man1/copr_prune_repo.1 %{buildroot}%{_mandir}/man1/
 
 %files
+%license LICENSE
+
 %{python3_sitelib}/*
-%{_bindir}/copr_prune_repo.py
+%{_bindir}/copr_prune_repo
 %doc %{_mandir}/man1/copr_prune_repo.1*
 
 %changelog
+* Tue Jan 19 2016 clime <clime@redhat.com> 1.5-1
+- .py removed from the name of executable
+- LICENCE file added
+- .spec improvements 
+
 * Sat Jan 16 2016 clime <clime@redhat.com> 1.4-1
 - dnf cache bypassed by using --refresh for dnf repoquery
 

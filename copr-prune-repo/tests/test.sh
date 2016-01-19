@@ -1,6 +1,6 @@
 #!/bin/bash
 
-alias RUNCMD='../copr_prune_repo.py'
+alias RUNCMD='../copr_prune_repo'
 
 shopt -s expand_aliases
 #die() { echo "$@" 1>&2 ; exit 1; }
