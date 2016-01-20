@@ -46,6 +46,9 @@ OPTIONS
 --verbose::
 	print all deleted items to stdout
 
+--verbose::
+	do not print any info messages, just do your job
+
 -h, --help::
 	show this help message and exit
 
