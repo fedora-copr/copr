@@ -5,6 +5,9 @@ import sys
 import argparse
 import rpm
 import os
+import re
+import time
+import shutil
 
 spec_file = rpm.ts().parseSpec('prunerepo.spec')
 
@@ -12,14 +15,14 @@ parser = argparse.ArgumentParser(description=spec_file.sourceHeader.summary.deco
 
 parser.add_argument('path', action='store',
                    help='local path to a yum repository')
-parser.add_argument('--days', type=int, action='store', default=0, # todo
+parser.add_argument('--days', type=int, action='store', default=0,
                    help='only remove packages older than DAYS (by their build date)')
-parser.add_argument('--copr', type=int, action='store', default=0, # todo
+parser.add_argument('--cleancopr', action='store_true',
                    help='additionaly remove whole copr build dirs and logs if the associated package gets deleted')
 parser.add_argument('--nocreaterepo', action='store_true',
                    help='repository is not automatically recreated after deletion')
 parser.add_argument('--verbose', action='store_true',
-                   help='print all deleted packages (*.src.rpm, *.rpm) to stdout')
+                   help='print all deleted packages items to stdout')
 parser.add_argument('-v', '--version', action='version', version=spec_file.sourceHeader.version.decode("utf-8"),
                    help='print program version and exit')
 
@@ -41,52 +44,99 @@ get_all_packages_cmd = [
 get_latest_packages_cmd = get_all_packages_cmd + [ '--latest-limit=1' ]
 
 
-def run_cmd(cmd):
+def run_cmd(cmd, silent=False):
     """
     Run given command in a subprocess
     """
-    print("Executing: "+' '.join(cmd))
+    if not silent:
+        print("Executing: "+' '.join(cmd))
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = process.communicate()
     if process.returncode != 0:
-        print(stderr, file=sys.stderr)
+        print(stderr.decode(encoding='utf-8'), file=sys.stderr)
         sys.exit(1)
-    return (stdout, stderr)
+    return stdout.decode(encoding='utf-8').split()
+
+
+def get_package_build_time(package_path):
+    createrepo_cmd = ['/usr/bin/rpm', '-qp', '--queryformat', '%{BUILDTIME}'] + [ package_path ]
+    stdout = run_cmd(createrepo_cmd, silent=True)
+    return int(stdout[0])
 
 
 def get_packages(repoquery_cmd):
     """
     Get paths to packages in the repository according to given repoquery_cmd
     """
-    (stdout, stderr) = run_cmd(repoquery_cmd)
-    rel_package_paths = [relpath.strip('"') for relpath in stdout.decode(encoding='utf-8').split()]
+    stdout = run_cmd(repoquery_cmd)
+    rel_package_paths = [relpath.strip('"') for relpath in stdout]
     abs_package_paths = [os.path.abspath(os.path.join(args.path, relpath)) for relpath in rel_package_paths]
     return abs_package_paths
 
 
 def prune_packages():
-    print("Removing obsoleted packages...")
+    """
+    Remove obsoleted packages
+    """
+    print('Removing obsoleted packages...')
     latest_packages = get_packages(get_latest_packages_cmd)
     all_packages = get_packages(get_all_packages_cmd)
     to_remove_packages = set(all_packages) - set(latest_packages)
     removed_counter = 0
     for package in to_remove_packages:
+        if time.time() - get_package_build_time(package) <= args.days * 24 * 3600:
+            continue
         os.remove(package)
         if args.verbose:
-            print(package)
+            print("Removing: "+package)
         removed_counter += 1
-    print('{} packages removed'.format(removed_counter))
+    print('- {} packages removed'.format(removed_counter))
 
 
 def recreate_repo():
     """
     Recreate the repository by using createrepo_c
     """
+    print("Recreating repository...")
     createrepo_cmd = ['/usr/bin/createrepo_c', '--database', '--update'] + [ args.path ]
     return run_cmd(createrepo_cmd)
+
+
+def clean_copr():
+    """
+    Remove whole copr build dirs if they no longer contain a srpm/rpm file
+    """
+    print("Cleaning COPR repository...")
+    removed_counter = 0
+    for dir_name in os.listdir(args.path):
+        dir_path = os.path.abspath(os.path.join(args.path, dir_name))
+
+        if not os.path.isdir(dir_path):
+            continue
+        if not os.path.isfile(os.path.join(dir_path, 'build.info')):
+            continue
+        if [item for item in os.listdir(dir_path) if re.match(r'.*\.rpm$', item)]:
+            continue
+
+        if args.verbose:
+            print('Removing: '+dir_path)
+        shutil.rmtree(dir_path)
+        removed_counter += 1
+
+        # also remove the associated log in the main dir
+        build_id = os.path.basename(dir_path).split('-')[0]
+        buildlog_name = 'build-' + build_id + '.log'
+        buildlog_path = os.path.abspath(os.path.join(args.path, buildlog_name))
+        if args.verbose:
+            print('Removing: '+buildlog_path)
+        os.remove(os.path.join(args.path, buildlog_path))
+
+    print ('- {} build dirs (with no *.rpm inside) and build logs removed'.format(removed_counter))
 
 
 if __name__ == '__main__':
     prune_packages()
     if not args.nocreaterepo:
         recreate_repo()
+    if args.cleancopr:
+        clean_copr()
