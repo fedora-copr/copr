@@ -35,7 +35,7 @@ path::
 OPTIONS
 -------
 --days DAYS::
-	only remove packages older than DAYS (by their build date)
+	only remove packages older than DAYS (by their build date), does remove srpm only if associated rpm is removed
 
 --cleancopr::
 	additionaly remove whole copr build dirs and logs if the associated package gets deleted
