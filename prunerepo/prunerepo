@@ -3,15 +3,12 @@
 import subprocess
 import sys
 import argparse
-import rpm
 import os
 import re
 import time
 import shutil
 
-spec_file = rpm.ts().parseSpec('prunerepo.spec')
-
-parser = argparse.ArgumentParser(description=spec_file.sourceHeader.summary.decode("utf-8"))
+parser = argparse.ArgumentParser(description='Remove old packages from rpm-md repository')
 
 parser.add_argument('path', action='store',
                    help='local path to a yum repository')
@@ -23,7 +20,7 @@ parser.add_argument('--nocreaterepo', action='store_true',
                    help='repository is not automatically recreated after deletion')
 parser.add_argument('--verbose', action='store_true',
                    help='print all deleted items to stdout')
-parser.add_argument('-v', '--version', action='version', version=spec_file.sourceHeader.version.decode("utf-8"),
+parser.add_argument('-v', '--version', action='version', version='1.0',
                    help='print program version and exit')
 
 args = parser.parse_args()
