@@ -22,7 +22,7 @@ parser.add_argument('--cleancopr', action='store_true',
 parser.add_argument('--nocreaterepo', action='store_true',
                    help='repository is not automatically recreated after deletion')
 parser.add_argument('--verbose', action='store_true',
-                   help='print all deleted packages items to stdout')
+                   help='print all deleted items to stdout')
 parser.add_argument('-v', '--version', action='version', version=spec_file.sourceHeader.version.decode("utf-8"),
                    help='print program version and exit')
 

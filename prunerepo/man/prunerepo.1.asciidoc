@@ -1,0 +1,75 @@
+prunerepo(1)
+==========
+
+NAME
+----
+prunerepo - remove old packages from rpm-md repository
+
+
+SYNOPSIS
+--------
+prunerepo [--days DAYS] [--cleancopr] [--nocreaterepo] [--verbose] [-h] [-v] path
+
+
+DESCRIPTION
+-----------
+Removes obsoleted package versions from a yum repository. Both
+rpms and srpms, that have a newer version available in that same
+repository, are deleted from filesystem and rpm-md metadata are 
+recreated afterwards. 
+
+Support for specific repository structure (e.g. COPR) is also available
+making it possible to additionally remove build logs and whole build 
+directories associated with a package. 
+
+After deletion of obsoleted packages, the command
+"createrepo_c --database --update" is called 
+to recreate the repository metadata.
+
+ARGUMENTS
+---------
+path::
+	local path to a yum repository
+
+
+OPTIONS
+-------
+--days DAYS::
+	only remove packages older than DAYS (by their build date)
+
+--cleancopr::
+	additionaly remove whole copr build dirs and logs if the associated package gets deleted
+
+--nocreaterepo::
+	repository is not automatically recreated after deletion
+
+--verbose::
+	print all deleted items to stdout
+
+-h, --help::
+	show this help message and exit
+
+-v, --version::
+	print program version and exit
+
+-h, --help::
+	show this help message and exit
+
+
+EXAMPLES
+--------
+prunerepo /path/to/repo::
+	removes all packages for which a newer version is available in the repository
+
+prunerepo /path/to/repo --cleancopr::
+	the same thing but also removes copr-specific build directories if they no longer contain any srpm/rpm package 
+
+prunerepo /path/to/repo --days 7::
+	does not delete a package built in last 7 days even if a newer version is available for it
+
+prunerepo /path/to/repo --days 7 --nocreaterepo::
+	the same thing but omits call to createrepo_c at the end
+
+AUTHORS
+-------
+Michal Novotny <clime@redhat.com>

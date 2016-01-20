@@ -1,7 +1,7 @@
 Summary: Remove old packages from rpm-md repository
 Name: prunerepo
 Version: 1.0
-Release: 1%{?dist} 
+Release: 1%{?dist}
 
 # Source is created by:
 # git clone https://git.fedorahosted.org/git/copr.git
@@ -13,6 +13,7 @@ License: GPLv2+
 BuildArch: noarch
 BuildRequires: python3-devel
 BuildRequires: rpm-python3
+BuildRequires: asciidoc
 Requires: createrepo_c
 Requires: dnf-plugins-core
 Requires: rpm-python3
@@ -34,15 +35,20 @@ repository metadata.
 
 %build
 %py3_build
+a2x -d manpage -f manpage man/prunerepo.1.asciidoc
 
 %install
 %py3_install
+
+install -d %{buildroot}%{_mandir}/man1
+install -p -m 644 man/prunerepo.1 %{buildroot}/%{_mandir}/man1/
 
 %files
 %license LICENSE
 
 %{python3_sitelib}/*
 %{_bindir}/prunerepo
+%{_mandir}/man1/prunerepo.1*
 
 %changelog
 * Tue Jan 19 2016 clime <clime@redhat.com> 1.0-1
