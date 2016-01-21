@@ -1,5 +1,5 @@
 Name:       example
-Version:	1.0.3
+Version:	1.0.4
 Release:	1%{?dist}
 Summary:	This is a simple example to test copr
 BuildArch:  x86_64
@@ -36,6 +36,9 @@ cp -a main %{buildroot}%{_sbindir}/main
 %{_sbindir}/main
 
 %changelog
+* Thu Jan 21 2016 clime <clime@redhat.com> 1.0.4-1
+- new package built with tito
+
 * Thu Jan 21 2016 clime <clime@redhat.com> 1.0.3-1
 - 
 
