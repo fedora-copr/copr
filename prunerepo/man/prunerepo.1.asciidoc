@@ -26,6 +26,7 @@ After deletion of obsoleted packages, the command
 "createrepo_c --database --update" is called 
 to recreate the repository metadata.
 
+
 ARGUMENTS
 ---------
 path::
@@ -55,9 +56,6 @@ OPTIONS
 -v, --version::
 	print program version and exit
 
--h, --help::
-	show this help message and exit
-
 
 EXAMPLES
 --------
@@ -72,6 +70,7 @@ prunerepo /path/to/repo --days 7::
 
 prunerepo /path/to/repo --days 7 --nocreaterepo::
 	the same thing but omits call to createrepo_c at the end
+
 
 AUTHORS
 -------
