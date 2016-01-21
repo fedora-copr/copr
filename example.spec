@@ -1,5 +1,5 @@
 Name:       example
-Version:	1.0.2
+Version:	1.0.3
 Release:	1%{?dist}
 Summary:	This is a simple example to test copr
 BuildArch:  x86_64
@@ -36,6 +36,10 @@ cp -a main %{buildroot}%{_sbindir}/main
 %{_sbindir}/main
 
 %changelog
+* Thu Jan 21 2016 clime <clime@redhat.com>
+- subpkg added (experimental thing to play with COPR building system)
+  (clime@redhat.com)
+
 * Sun Dec 20 2015 clime <clime@redhat.com> 1.0.2-1
 - spec file change 
 
