@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.10
+Version:    0.11
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -101,6 +101,9 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Thu Jan 21 2016 clime <clime@redhat.com> 0.11-1
+- tito added to requirements
+
 * Sat Jan 16 2016 clime <clime@redhat.com> 0.10-1
 - fixed do_import test
 - workaround for BZ 1283101
