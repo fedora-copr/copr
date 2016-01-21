@@ -32,7 +32,8 @@ function run {
 }
 
 function setup {
-	cp -aT $origrepo $testrepo
+	rm -r $testrepo
+	cp -r $origrepo $testrepo
 	cd $testrepo
 }
 
@@ -65,22 +66,53 @@ run "ls build-3.log" || die
 
 echo success.
 
-echo "============================ test --nocreaterepo ============================"; #TODO
+echo "============================ test --days ============================";
 
 setup
-runcmd --days 7 .
+
+echo $testrepo
+oldestbuilddate=`rpm -qp --queryformat '%{BUILDTIME:date}' $testrepo/0-oldestbuild/example-1.0.1-1.fc23.x86_64.rpm 2> /dev/null`
+oldestbuilddayback=$(( (`date +'%s'` - `date -d "$oldestbuilddate" +'%s'`)/60/60/24 ))
+
+runcmd --days $oldestbuilddayback .
+
+run 'ls 0-oldestbuild/*.rpm' && die
+run '[[ `ls 2-secondlatestpkg/*.rpm | wc -l` == 3 ]]' || die
+run '[[ `ls 3-latestpkg/*.rpm | wc -l` == 3 ]]' || die
+
 echo success.
 
-echo "============================ test --days ============================"; #TODO
+echo "============================ test --nocreaterepo ============================";
 
 setup
-runcmd --days 7 .
+
+repomdlastmodtime1=`stat -c '%Y' $testrepo/repodata/repomd.xml`
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
+
+runcmd --nocreaterepo .
+
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' && die
+run '[[ $repomdlastmodtime1 == `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
+
 echo success.
 
-echo "============================ test no dnf caching ============================"; #TODO
+echo "============================ test repo data always fresh (no dnf cache used) ============================";
 
 setup
+
 runcmd .
+
+run 'ls 2-secondlatestpkg/*.rpm' && die
+run '[[ `ls 3-latestpkg/*.rpm | wc -l` == 3 ]]' || die
+
+setup
+
+run 'rm -r $testrepo/3-latestpkg'
+run 'createrepo_c $testrepo'
+
+runcmd .
+run '[[ `ls 2-secondlatestpkg/*.rpm | wc -l` == 3 ]]' || die
+
 echo success.
 
 exit 0
