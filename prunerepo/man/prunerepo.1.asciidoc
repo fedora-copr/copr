@@ -39,7 +39,7 @@ OPTIONS
 	only remove packages older than DAYS (by their build date), does remove srpm only if associated rpm is removed
 
 --cleancopr::
-	additionaly remove whole copr build dirs and logs if the associated package gets deleted
+	additionaly remove whole copr build dirs (contain 'build.info' file) and logs if the associated package gets deleted
 
 --nocreaterepo::
 	repository is not automatically recreated after deletion
