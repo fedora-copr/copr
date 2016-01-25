@@ -39,7 +39,7 @@ def copr_build_redirect(build_id):
     copr = build.copr
     if copr.is_a_group_project:
         return flask.redirect(url_for(
-            "coprs_ns.copr_build",
+            "coprs_ns.group_copr_build",
             group_name=build.copr.group.name,
             coprname=build.copr.name,
             build_id=build_id))

@@ -452,6 +452,14 @@ class Build(db.Model, helpers.Serializer):
         return self.user.name
 
     @property
+    def group_name(self):
+        return self.copr.group_name
+
+    @property
+    def copr_name(self):
+        return self.copr.name
+
+    @property
     def fail_type_text(self):
         return helpers.FailTypeEnum(self.fail_type)
 
