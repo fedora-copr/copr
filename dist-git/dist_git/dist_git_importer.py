@@ -282,6 +282,7 @@ class MockScmProvider(SrpmBuilderProvider):
                "--scm-option", "package={}".format(package_name),
                "--scm-option", "branch={}".format(self.task.mock_scm_branch),
                "--scm-option", "write_tar=True",
+               "--scm-option", "spec={0}".format(self.task.mock_spec),
                "--scm-option", self.scm_option_get(),
                "--buildsrpm", "--resultdir={}".format(self.tmp_dest)]
 
