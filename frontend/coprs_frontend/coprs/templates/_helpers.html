@@ -310,14 +310,14 @@
 
 
 {% macro build_href(build) %}
-  {{ copr_url("coprs_ns.copr_build", build.copr, build_id=build.id) }}
+  {{- copr_url("coprs_ns.copr_build", build.copr, build_id=build.id) -}}
 {% endmacro %}
 
 {% macro build_href_from_sql(build) %}
   {% if build.group_name %}
-    {{ url_for('coprs_ns.group_copr_build', group_name=build.group_name, coprname=build.copr_name, build_id=build.id) }}
+    {{- url_for('coprs_ns.group_copr_build', group_name=build.group_name, coprname=build.copr_name, build_id=build.id) -}}
   {% else %}
-    {{ url_for("coprs_ns.copr_build", username = build.owner_name, coprname = build.copr_name, build_id = build.id) }}
+    {{- url_for("coprs_ns.copr_build", username = build.owner_name, coprname = build.copr_name, build_id = build.id) -}}
   {% endif %}
 {% endmacro %}
 

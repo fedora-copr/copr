@@ -86,6 +86,9 @@ app.register_blueprint(webhooks_ns)
 
 app.add_url_rule("/", "coprs_ns.coprs_show", coprs_general.coprs_show)
 
+app.jinja_env.trim_blocks = True
+app.jinja_env.lstrip_blocks = True
+
 from coprs.rest_api import rest_api_bp, register_api_error_handler, URL_PREFIX
 register_api_error_handler(app)
 app.register_blueprint(rest_api_bp, url_prefix=URL_PREFIX)
