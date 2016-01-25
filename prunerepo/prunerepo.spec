@@ -1,6 +1,6 @@
 Summary: Remove old packages from rpm-md repository
 Name: prunerepo
-Version: 1.0
+Version: 1.1
 Release: 1%{?dist}
 
 # Source is created by:
@@ -51,5 +51,8 @@ install -p -m 644 man/prunerepo.1 %{buildroot}/%{_mandir}/man1/
 %{_mandir}/man1/prunerepo.1*
 
 %changelog
+* Mon Jan 25 2016 clime <clime@redhat.com> 1.1-1
+- test suite finished (clime@redhat.com)
+- --quiet, --cleancopr and --days options implemented (clime@redhat.com)
 * Tue Jan 19 2016 clime <clime@redhat.com> 1.0-1
 - Initial package version
