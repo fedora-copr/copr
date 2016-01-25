@@ -201,8 +201,10 @@ class GitProvider(SrpmBuilderProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
             output, error = proc.communicate()
         except OSError as e:
+            log.error(str(e))
             raise GitException(FailTypeEnum("git_clone_failed"))
-        if error:
+        if proc.returncode != 0:
+            log.error(error)
             raise GitException(FailTypeEnum("git_clone_failed"))
 
         # 1b. get dir name
@@ -212,8 +214,10 @@ class GitProvider(SrpmBuilderProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
             output, error = proc.communicate()
         except OSError as e:
+            log.error(str(e))
             raise GitException(FailTypeEnum("git_wrong_directory"))
-        if error:
+        if proc.returncode != 0:
+            log.error(error)
             raise GitException(FailTypeEnum("git_wrong_directory"))
         if output and len(output.split()) == 1:
             git_dir_name = output.split()[0]
@@ -232,8 +236,10 @@ class GitProvider(SrpmBuilderProvider):
                 proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.git_dir)
                 output, error = proc.communicate()
             except OSError as e:
+                log.error(str(e))
                 raise GitException(FailTypeEnum("git_checkout_error"))
-            if proc.returncode:
+            if proc.returncode != 0:
+                log.error(error)
                 raise GitException(FailTypeEnum("git_checkout_error"))
 
     def build(self):
@@ -263,8 +269,10 @@ class GitAndTitoProvider(GitProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=git_subdir)
             output, error = proc.communicate()
         except OSError as e:
+            log.error(str(e))
             raise GitAndTitoException(FailTypeEnum("srpm_build_error"))
-        if error:
+        if proc.returncode != 0:
+            log.error(error)
             raise GitAndTitoException(FailTypeEnum("srpm_build_error"))
 
 
@@ -290,9 +298,9 @@ class MockScmProvider(SrpmBuilderProvider):
             proc = Popen(" ".join(cmd), shell=True, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
         except OSError as e:
-            log.error(error)
+            log.error(str(e))
             raise SrpmBuilderException(FailTypeEnum("srpm_build_error"))
-        if proc.returncode:
+        if proc.returncode != 0:
             log.error(error)
             raise SrpmBuilderException(FailTypeEnum("srpm_build_error"))
 
@@ -387,8 +395,10 @@ class DistGitImporter(object):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
         except OSError as e:
+            log.error(str(e))
             raise PackageQueryException(e)
-        if error:
+        if proc.returncode != 0:
+            log.error(error)
             raise PackageQueryException('Error querying srpm: %s' % error)
 
         try:
@@ -461,6 +471,11 @@ class DistGitImporter(object):
         except PackageQueryException:
             log.exception("send a response - failure during query of: {}".format(task.package_url))
             self.post_back_safe({"task_id": task.task_id, "error": "srpm_query_failed"})
+
+        except GitException as e:
+            log.exception("send a response - failure during query of: {}".format(task.package_url))
+            log.exception("... due to: {}".format(str(e)))
+            self.post_back_safe({"task_id": task.task_id, "error": str(e)})
 
         except GitAndTitoException as e:
             log.exception("send a response - failure during 'Tito and Git' import of: {}".format(task.git_url))
