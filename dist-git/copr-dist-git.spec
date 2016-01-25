@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.11
+Version:    0.12
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -101,6 +101,9 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Jan 25 2016 Miroslav Suchý <msuchy@redhat.com> 0.12-1
+- pass --scm-option spec=foo to mock-scm (msuchy@redhat.com)
+
 * Thu Jan 21 2016 clime <clime@redhat.com> 0.11-1
 - tito added to requirements
 
