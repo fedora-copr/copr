@@ -361,6 +361,8 @@ class Package(db.Model, helpers.Serializer):
     enable_net = db.Column(db.Boolean, default=False,
                            server_default="0", nullable=False)
 
+    builds = db.relationship("Build", order_by="Build.id")
+
     # relations
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
     copr = db.relationship("Copr", backref=db.backref("packages"))
@@ -443,7 +445,7 @@ class Build(db.Model, helpers.Serializer):
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
     copr = db.relationship("Copr", backref=db.backref("builds"))
     package_id = db.Column(db.Integer, db.ForeignKey("package.id"))
-    package = db.relationship("Package", backref=db.backref("builds"))
+    package = db.relationship("Package")
 
     chroots = association_proxy("build_chroots", "mock_chroot")
 
