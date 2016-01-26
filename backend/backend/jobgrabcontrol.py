@@ -19,7 +19,7 @@ class Channel(object):
         # channel for JobGrabber <--> [[Builders]] communication
         self.build_queues = dict()
         while not self.jg_start.connect():
-            wait_log("waiting for redis", 5)
+            wait_log(self.log, "waiting for redis", 5)
 
     def _get_queue(self, bgroup):
         if not bgroup in self.build_queues:
@@ -75,6 +75,8 @@ class Channel(object):
     # Backend's API
     def backend_start(self):
         """ Notify jobgrab about service start. """
-        self.jg_start.enqueue("start")
+        if not self.jg_start.enqueue(Task("start")):
+             raise Exception("can't append to retask queue, should never happen!")
+
         while self.jg_start.length:
             wait_log(self.log, "waiting until jobgrabber initializes queue")
