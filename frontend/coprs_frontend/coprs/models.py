@@ -637,7 +637,10 @@ class Build(db.Model, helpers.Serializer):
         Extract source package name from source name or url
         todo: obsolete
         """
-        src_rpm_name = self.pkgs.split("/")[-1]
+        try:
+            src_rpm_name = self.pkgs.split("/")[-1]
+        except:
+            return None
         if src_rpm_name.endswith(".src.rpm"):
             return src_rpm_name[:-8]
         else:
