@@ -162,7 +162,13 @@ def process_new_build_tito(copr, add_view, url_on_success):
 
         try:
             BuildsLogic.create_new_from_tito(
-                flask.g.user, copr, form.git_url.data, form.git_directory.data, form.git_branch.data, form.tito_test.data,
+                flask.g.user,
+                copr,
+                form.git_url.data,
+                form.git_directory.data,
+                form.git_branch.data,
+                form.tito_test.data,
+                form.selected_chroots,
                 **build_options
             )
             db.session.commit()
@@ -251,7 +257,13 @@ def process_new_build_mock(copr, add_view, url_on_success):
 
         try:
             BuildsLogic.create_new_from_mock(
-                flask.g.user, copr, form.scm_type.data, form.scm_url.data, form.scm_branch.data, form.spec.data,
+                flask.g.user,
+                copr,
+                form.scm_type.data,
+                form.scm_url.data,
+                form.scm_branch.data,
+                form.spec.data,
+                form.selected_chroots,
                 **build_options
             )
             db.session.commit()
