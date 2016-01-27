@@ -579,8 +579,6 @@ class Build(db.Model, helpers.Serializer):
             if StatusEnum(state) in self.chroot_states:
                 return StatusEnum(state)
 
-        return StatusEnum("failed") # happens when no chroot exists (e.g. failed SRPM import), logic is a bit tricky here
-
     @property
     def state(self):
         """
