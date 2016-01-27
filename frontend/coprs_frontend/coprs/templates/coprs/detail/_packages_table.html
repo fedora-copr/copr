@@ -15,7 +15,7 @@
     </thead>
     <tbody>
     {% for package in packages %}
-      {% set build = package.last_build(False) %}
+      {% set build = package.builds[-1] if package.builds else empty_build %}
       <tr>
         <td data-order="{{ package.name }}">
           <b><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></b>
