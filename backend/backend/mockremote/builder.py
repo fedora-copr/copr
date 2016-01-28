@@ -354,11 +354,14 @@ class Builder(object):
                 cmd.wait()
                 self.log.info("End retrieve results for: {0}".format(self.job))
             except Exception as error:
-                raise BuilderError(msg="Failed to download from builder due to rsync error, "
-                                       "see logs dir. Original error: {}".format(error))
+                err_msg = "Failed to download results from builder due to rsync error, see the rsync log file for details. Original error: {}".format(error)
+                self.log.error(err_msg)
+                raise BuilderError(err_msg)
+
             if cmd.returncode != 0:
-                raise BuilderError(msg="Failed to download from builder due to rsync error, "
-                                       "see logs dir.", return_code=cmd.returncode)
+                err_msg = "Failed to download results from builder due to rsync error, see the rsync log file for details."
+                self.log.error(err_msg)
+                raise BuilderError(err_msg, return_code=cmd.returncode)
 
     def check(self):
         # do check of host
