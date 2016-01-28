@@ -276,7 +276,7 @@ GROUP BY
             chroots=chroots,
             source_type=source_build.source_type,
             source_json=source_build.source_json,
-            enable_net=build_options.get("", source_build.enable_net),
+            enable_net=build_options.get("enable_net", source_build.enable_net),
             git_hashes=git_hashes,
             skip_import=skip_import)
 
