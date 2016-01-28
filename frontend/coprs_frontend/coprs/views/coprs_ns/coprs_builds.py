@@ -468,11 +468,11 @@ def process_copr_repeat_build(build_id, copr):
     build = ComplexLogic.get_build_safe(build_id)
     if not flask.g.user.can_build_in(build.copr):
         flask.flash("You are not allowed to repeat this build.")
-    form = forms.BuildFormRebuildFactory.create_form_cls(build.chroots)(
+    form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)(
         build_id=build_id, enable_net=build.enable_net,
     )
     # remove all checkboxes by default
-    for ch in build.chroots:
+    for ch in copr.active_chroots:
         field = getattr(form, ch.name)
         field.data = False
     chroot_to_build = request.args.get("chroot")
@@ -482,13 +482,13 @@ def process_copr_repeat_build(build_id, copr):
         if hasattr(form, chroot_to_build):
             getattr(form, chroot_to_build).data = True
     else:
-        # set checkbox on the failed chroots
-        chroots_to_select = set(ch.name for ch in build.get_chroots_by_status([
+        build_chroot_names = set(ch.name for ch in build.chroots)
+        build_failed_chroot_names = set(ch.name for ch in build.get_chroots_by_status([
             helpers.StatusEnum('failed'), helpers.StatusEnum('canceled'),
         ]))
-
-        for ch in build.chroots:
-            if ch.name in chroots_to_select:
+        for ch in copr.active_chroots:
+            # check checkbox on all the chroots that have not been (successfully) built before
+            if (ch.name not in build_chroot_names) or (ch.name in build_failed_chroot_names):
                 getattr(form, ch.name).data = True
     return flask.render_template(
         "coprs/detail/add_build/rebuild.html",
