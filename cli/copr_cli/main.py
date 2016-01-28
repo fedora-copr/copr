@@ -167,6 +167,7 @@ class Commands(object):
 
             print('Uploading package {0}'.format(args.pkgs[0]))
         else:
+            bar = None
             progress_callback = None
 
         result = self.client.create_new_build(
@@ -174,7 +175,8 @@ class Commands(object):
             memory=args.memory, timeout=args.timeout,
             username=username, progress_callback=progress_callback)
 
-        bar.finish()
+        if bar:
+            bar.finish()
 
         if result.output != "ok":
             print(result.error)
