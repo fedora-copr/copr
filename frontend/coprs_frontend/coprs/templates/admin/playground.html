@@ -2,9 +2,11 @@
 {% from "admin/_admin_forms.html" import admin_playground_form %}
 {% from "admin/_admin_forms.html" import admin_playground_search %}
 
-{% block playground_selected %}selected{% endblock %}
+{% set selected_tab = "playground" %}
 
 {% block admin_body %}
+<h2 class="page-title"> Playground </h2>
+
 {% if form_search: %}
 {{ admin_playground_search(form_search) }}
 {% endif %}

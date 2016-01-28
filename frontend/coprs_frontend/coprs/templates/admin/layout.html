@@ -2,7 +2,37 @@
 
 {% block title %}Coprs - Admin{% endblock %}
 
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+  </li>
+  <li>
+    Administration
+  </li>
+  {%block status_breadcrumb %}{%endblock%}
+</ol>
+{% endblock %}
+
+
+
 {% block body %}
+  {% macro nav_element(tab_name, tab_title, icon,  href) %}
+  <li class="{% if selected_tab == tab_name %}active{% endif %}">
+    <a href="{{ href }}"> <span class="{{icon}}">{% if "pficon" not in icon %}&nbsp;{%endif%}
+      {{ tab_title }}
+    </span></a>
+  </li>
+  {% endmacro %}
+
+  <h1 class="project-name"> Copr Administration </h1>
+
+  <ul class="nav nav-tabs">
+    {{ nav_element("legalflags", "Legal Flags", "pficon pficon-flag", url_for('admin_ns.legal_flag')) }}
+    {{ nav_element("playground", "Playground", "fa fa-gamepad", url_for('admin_ns.playground')) }}
+  </ul>
+
+<!--
   <div class="horizontal-menu">
     <ul>
       <li class="{% block legal_flag_selected %}unselected{% endblock %}">
@@ -12,6 +42,6 @@
         <a href="{{ url_for('admin_ns.playground') }}">Playground</a>
       </li>
     </ul>
-  </div>
+  </div> -->
 {% block admin_body %}{% endblock %}
 {% endblock %}

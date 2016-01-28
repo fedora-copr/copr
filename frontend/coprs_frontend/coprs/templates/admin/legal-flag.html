@@ -1,34 +1,49 @@
 {% extends "admin/layout.html" %}
 
-{% block legal_flag_selected %}selected{% endblock %}
+{% set selected_tab = "legalflags" %}
 
 {% block admin_body %}
-  {% for flag in legal_flags %}
-    <div class="legal-flag">
-	    <div>
-        {% if not flag.copr.deleted %}
-        <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.owner.name, coprname=flag.copr.name) }}>
-        {% endif %}
+<h2 class="page-title"> Legal Flags </h2>
+
+{% for flag in legal_flags %}
+<div class="panel panel-default">
+  <div class="panel-body">
+    <h3 style="margin-top:0px">
+      {% if not flag.copr.deleted %}
+      <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.owner.name, coprname=flag.copr.name) }}>
+      {% endif %}
         {{ flag.copr.owner.name }}/{{ flag.copr.name }}
-        {% if not flag.copr.deleted %}
-          </a>
-        {% endif %}
-	|
-        {% if flag.copr.deleted %}
-          Already deleted
-        {% else %}
-          <a href="">Freeze</a>
-          | <a href="{{ url_for('coprs_ns.copr_delete', username=flag.copr.owner.name, coprname=flag.copr.name) }}">Delete</a>
-        {% endif %}
-	<form method="post" action="{{ url_for('admin_ns.legal_flag_resolve', flag_id=flag.id) }}">
-            <input type="submit" value="Resolve">
-          </form>
-      </div>
-      <div class="message">
+      {% if not flag.copr.deleted %}
+      </a>
+      {% else %}
+      (deleted)
+      {% endif %}
+
+      <small>
+        Submitted <b>{{ flag.raised_on | time_ago() }} ago </b> by <a href="{{ url_for('coprs_ns.coprs_by_owner', username=flag.reporter.name) }}"> {{ flag.reporter.name }}</a>.
+      </small>
+    </h3>
+    <p>
+      {% if flag.raise_message %}
         {{ flag.raise_message }}
-      </div>
-    </div>
-  {% else %}
-    <h2>No coprs marked for legal review</h2>
-  {% endfor %}
+      {% else %}
+        <span class="text-muted">No details supplied.</span>
+      {% endif %}
+    </p>
+    <ul class="list-inline" style="margin-bottom:0px">
+      <li>
+        <form method="post" action="{{ url_for('admin_ns.legal_flag_resolve', flag_id=flag.id) }}">
+          <input class="btn btn-xs btn-primary" type="submit" value="Resolve">
+        </form>
+      </li>
+      <li>
+        <a class="btn btn-xs btn-danger" href="{{ url_for('coprs_ns.copr_delete', username=flag.copr.owner.name, coprname=flag.copr.name) }}">Delete Project</a>
+      </li>
+    </ul>
+  </div>
+</div>
+{% else %}
+  <p> No projects have been marked for a legal review. </p>
+{% endfor %}
+
 {% endblock %}

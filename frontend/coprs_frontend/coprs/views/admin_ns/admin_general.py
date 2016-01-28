@@ -19,7 +19,7 @@ from coprs.exceptions import InsufficientRightsException
 @admin_ns.route("/")
 @login_required(role=helpers.RoleEnum("admin"))
 def admin_index():
-    return flask.render_template("admin/index.html")
+    return flask.redirect(flask.url_for("admin_ns.legal_flag"))
 
 
 @admin_ns.route("/legal-flag/")
