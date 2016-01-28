@@ -111,7 +111,8 @@ permissions to do so.
 
 PKG::
 This can be either file on your local workstation or URL of the package to build. When URL is used, then the package must be placed on a public web or
-ftp server.
+ftp server. Note that you cannot combine local file paths and URLs in one command line and local-file builds are limited to the first specified PKG.
+This limitation comes from the COPR API.
 
 
 `copr-cli download-build [options]`
