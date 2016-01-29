@@ -15,7 +15,7 @@ footer dt h3 {
 }
 
 div.panel-default div.list-group:first-child {
-  border-top: 0px;
+  border-top: 0px!important;
 }
 
 div.panel-body dl:last-child {
