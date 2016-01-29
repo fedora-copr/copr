@@ -70,7 +70,10 @@ class CoprJobGrab(object):
 
 
     def group(self, arch):
-        return self.arch_to_group_id_map[arch]
+        try:
+            return self.arch_to_group_id_map[arch]
+        except KeyError:
+            raise CoprJobGrabError("Unknown architecture {0}".format(arch))
 
 
     def listen_to_pubsub(self):
