@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.80
+Version:    1.81
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -262,6 +262,37 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.81-1
+- minor css fix
+- report a bug link
+- fix 1286334 - resubmit should offer other buildroots
+- admin section UI
+- fix 1296805 also for building from "other builds"
+- fix 1296805 - cannot enable internet network access for builds
+  without enabling it in project settings
+- fix for two special cases: 1) no build exists for a package (might
+  happen if srpm import failed or all builds were deleted), 2) there is no
+  chroot for a build and hence build.status cannot be derived from chroot's
+  statuses (also case for failes srpm imports)
+- fix 1297907 - Information about packages is not correct
+- fix 1300849 
+- fix 1299159 - "Git & Tito" new build includes even deselected
+  chroots
+- remove trailing and leading whitespaces in links (at least for
+  build links, other links might still contain some)
+- fix bug 1299163 - Clicking on a build in list of builds for a
+  package gives 500 if the owner is a group
+- [frontend][backend] implement rawhide to release feature First create new
+  chroots:     python manage.py create_chroot fedora-24-i386 fedora-24-x86_64
+- don't show rebuild button to all
+- Packages and Builds css polishing
+- button icon
+- two sections on the Edit Poject Details view
+- edit chroot buttons
+- fix cancel button on the Edit Chroot view
+- disable internet connection by default
+- get_copr_safe() should always return only personal projects
+
 * Tue Jan 05 2016 Miroslav Suchý <miroslav@suchy.cz> 1.80-1
 - 1295930 - leftover after b7c5a76848587629cc9358fe45258a2f1af884e7
 - 1295915 - leftover after 4b1ec255 refactoring
