@@ -52,7 +52,7 @@ def mc_setproctitle():
 
 @pytest.yield_fixture
 def mc_retask_queue():
-    with mock.patch("{}.Queue".format(MODULE_REF)) as mc_queue:
+    with mock.patch("{}.jobgrabcontrol.Channel".format(MODULE_REF)) as mc_queue:
         def make_queue(*args, **kwargs):
             updated_kwargs = copy.deepcopy(kwargs)
             updated_kwargs["spec"] = Queue
@@ -117,6 +117,7 @@ class TestJobGrab(object):
             project_owner="foobar",
         )
 
+
     def teardown_method(self, method):
 
         shutil.rmtree(self.tmp_dir_path)
@@ -134,30 +135,14 @@ class TestJobGrab(object):
 
     @pytest.fixture
     def init_jg(self, mc_retask_queue, mc_grc):
-        self.jg = CoprJobGrab(self.opts, self.frontend_client)
-        self.jg.connect_queues()
-        self.jg.vm_manager = MagicMock()
-
-    def test_connect_queues(self, mc_retask_queue, mc_grc):
-        mc_rc = MagicMock()
-        mc_grc.return_value = mc_rc
-        self.jg = CoprJobGrab(self.opts, self.frontend_client)
-
-        assert len(self.jg.task_queues_by_arch) == 0
-        self.jg.connect_queues()
-        # created retask queue
-        expected = [call(u'copr-be-0'), call(u'copr-be-1')]
-        assert mc_retask_queue.call_args_list == expected
-        # connected to them
-        for obj in self.jg.task_queues_by_arch.values():
-            assert obj.connect.called
-
-        assert not mc_rc.pubsub.called
+        self.jg = CoprJobGrab(self.opts)
+        self.jg.init_internal_structures()
+        self.jg.jg_control = MagicMock()
 
     def test_listen_to_pubsub(self, mc_retask_queue, mc_grc):
         mc_rc = MagicMock()
         mc_grc.return_value = mc_rc
-        self.jg = CoprJobGrab(self.opts, self.frontend_client)
+        self.jg = CoprJobGrab(self.opts)
 
         assert not mc_rc.pubsub.called
         self.jg.listen_to_pubsub()
@@ -170,9 +155,7 @@ class TestJobGrab(object):
             self.jg.added_jobs_dict[d["task_id"]] = d
 
         assert self.jg.route_build_task(self.task_dict_1) == 0
-        assert self.jg.route_build_task(self.task_dict_2) == 0
-        for obj in self.jg.task_queues_by_arch.values():
-            assert not obj.enqueue.called
+        assert not self.jg.jg_control.add_build.called
 
     def test_route_build_task_skip_too_much_added(self, init_jg):
         for i in range(10):
@@ -181,33 +164,23 @@ class TestJobGrab(object):
             self.jg.added_jobs_dict[task["task_id"]] = task
 
         assert self.jg.route_build_task(self.task_dict_1) == 0
-        for obj in self.jg.task_queues_by_arch.values():
-            assert not obj.enqueue.called
+        assert not self.jg.jg_control.add_build.called
 
     def test_route_build_task_missing_task_ud(self, init_jg):
         assert self.jg.route_build_task({"task": "wrong_key"}) == 0
-        for obj in self.jg.task_queues_by_arch.values():
-            assert not obj.enqueue.called
+        assert not self.jg.jg_control.add_build.called
 
     def test_route_build_task_correct_group_1(self, init_jg,):
-
         assert self.jg.route_build_task(self.task_dict_1) == 1
-        assert self.jg.task_queues_by_arch["x86_64"].enqueue.called
-        assert not self.jg.task_queues_by_arch["armv7"].enqueue.called
+        assert self.jg.jg_control.add_build.call_args[0][0] == 0
 
     def test_route_build_task_correct_group_2(self, init_jg, ):
-
         assert self.jg.route_build_task(self.task_dict_2) == 1
-        assert not self.jg.task_queues_by_arch["x86_64"].enqueue.called
-        assert self.jg.task_queues_by_arch["armv7"].enqueue.called
+        assert self.jg.jg_control.add_build.call_args[0][0] == 1
 
     def test_route_build_task_correct_group_error(self, init_jg):
-
         with pytest.raises(CoprJobGrabError) as err:
             self.jg.route_build_task(self.task_dict_bad_arch)
-
-        assert not self.jg.task_queues_by_arch["x86_64"].enqueue.called
-        assert not self.jg.task_queues_by_arch["armv7"].enqueue.called
 
     @mock.patch("backend.daemons.job_grab.Action", spec=backend.actions.Action)
     def test_process_action(self, mc_action, init_jg):
@@ -378,7 +351,6 @@ class TestJobGrab(object):
     #     self.jg.process_task_end_pubsub()
 
     def test_run(self, mc_time, mc_setproctitle, init_jg, mc_grc):
-        self.jg.connect_queues = MagicMock()
         self.jg.process_task_end_pubsub = MagicMock()
         self.jg.load_tasks = MagicMock()
         self.jg.load_tasks.side_effect = [
@@ -391,5 +363,4 @@ class TestJobGrab(object):
         self.jg.run()
 
         assert mc_setproctitle.called
-        assert self.jg.connect_queues.called_once
         assert self.jg.load_tasks.called

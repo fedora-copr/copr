@@ -358,7 +358,7 @@ class TestDispatcher(object):
         self.worker.task_queue = mc_tq
         self.worker.starting_build = MagicMock()
 
-        mc_tq.dequeue.return_value = MagicMock(data=self.task)
+        self.worker.jg.get_build = MagicMock(return_value=self.task)
         obtained_job = self.worker.obtain_job()
         assert obtained_job.__dict__ == self.job.__dict__
 

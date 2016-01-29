@@ -31,9 +31,9 @@ COPR_VENDOR = "vendor"
 MODULE_REF = "backend.daemons.backend"
 
 @pytest.yield_fixture
-def mc_rt_queue():
-    with mock.patch("{}.Queue".format(MODULE_REF)) as mc_queue:
-        yield mc_queue
+def mc_rt_channel():
+    with mock.patch("{}.jobgrabcontrol.Channel".format(MODULE_REF)) as mc_channel:
+        yield mc_channel
 
 @pytest.yield_fixture
 def mc_worker():
@@ -137,44 +137,10 @@ class TestBackend(object):
         assert self.be.config_reader == self.bc_obj
         assert self.bc_obj.read.called
 
-    def test_clean_task_queue_error(self, init_be):
-        mc_queue = MagicMock(length=1)
-        mc_queue.dequeue.side_effect = retask.ConnectionError()
-        self.be.task_queues[0] = mc_queue
-
-        with pytest.raises(CoprBackendError):
-            self.be.clean_task_queues()
-
-    def test_clean_task_queue_ok(self, init_be):
-        mc_queue = MagicMock(length=5)
-
-        def decr():
-            mc_queue.length -= 1
-
-        mc_queue.dequeue.side_effect = decr
-        self.be.task_queues[0] = mc_queue
-        self.be.clean_task_queues()
-
-        assert len(mc_queue.dequeue.call_args_list) == 5
-
-    def test_init_task_queues(self, mc_rt_queue, init_be):
-
-        mc_rt_queue.side_effect = lambda name: MagicMock(name=name)
-        self.be.clean_task_queues = MagicMock()
+    def test_init_task_queues(self, mc_rt_channel, init_be):
+        self.be.jg_control = MagicMock()
         self.be.init_task_queues()
-
-        assert mc_rt_queue.call_args_list == \
-               [mock.call("copr-be-0"), mock.call("copr-be-1")]
-        assert self.be.task_queues[0].connect.called
-        assert self.be.task_queues[1].connect.called
-
-    def test_init_task_queues_error(self, mc_rt_queue, init_be):
-
-        mc_rt_queue.return_value.connect.side_effect = ConnectionError()
-        self.be.clean_task_queues = MagicMock()
-
-        with pytest.raises(CoprBackendError):
-            self.be.init_task_queues()
+        assert self.be.jg_control.backend_start.called
 
     def test_update_conf(self, init_be):
         test_obj = MagicMock()
@@ -260,12 +226,11 @@ class TestBackend(object):
 
         self.be.terminate()
 
-        assert self.be.clean_task_queues.called
         assert not self.be.is_running
         assert worker_alive.terminate_instance.called
         assert worker_dead.terminate_instance.called
 
-    def test_run(self, mc_time, mc_rt_queue, init_be):
+    def test_run(self, mc_time, mc_rt_channel, init_be):
         worker_alive = MagicMock()
         worker_alive.is_alive.return_value = True
         worker_dead = MagicMock()
