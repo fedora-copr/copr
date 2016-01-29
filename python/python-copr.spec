@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.63
+Version:    1.64
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,9 @@ popd
 %endif
 
 %changelog
+* Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.64-1
+- fix wrong check for list instance
+
 * Wed Dec 23 2015 Miroslav Suchý <msuchy@redhat.com> 1.63-1
 - fixes for epel-6+ and fedora-22+
 - Added MANIFEST.in for python and cli
