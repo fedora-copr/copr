@@ -99,7 +99,7 @@
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for type, message in messages %}
           {{ alert(message, type) }}
-        {% endfor %}  
+        {% endfor %}
       {% endwith %}
 
       <!-- the actual content -->
@@ -117,6 +117,7 @@
                   <dd>
                     <ul class="list-unstyled">
                       <li> <a href="https://fedorahosted.org/copr/">Project Homepage</a> </li>
+                      <li> <a href="https://bugzilla.redhat.com/enter_bug.cgi?product=Copr">Report a Bug</a> </li>
                       <li> <a href="https://fedorahosted.org/copr/wiki/UserDocs#FAQ">FAQ</a> </li>
                     </ul>
                   </dd>
