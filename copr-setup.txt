@@ -146,6 +146,16 @@ Run:
 Then navigate to:
   http://your.copr.fqdn/admin
 
+Add new chroot
+==============
+
+First create new chroots:
+
+    python manage.py create_chroot fedora-24-i386 fedora-24-x86_64
+
+And then copy data from rawhide into them:
+
+    python manage.py rawhide_to_release fedora-24-i386 fedora-24-x86_64
 
 DEBUGING
 ========
