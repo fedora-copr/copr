@@ -11,6 +11,7 @@ fi
 for package in $(cat .tito/packages/*| cut -d' ' -f2); do
 	pushd $package
     tito release $PROJECT
+    popd
 done
 
 popd >/dev/null
