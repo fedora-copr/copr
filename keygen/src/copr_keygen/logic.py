@@ -71,7 +71,7 @@ def user_exists(app, mail):
 
 
 template = """
-%no-protection
+%no-ask-passphrase
 Key-Type: {key_type}
 Key-Length: {key_length}
 Name-Real: {name_real}
