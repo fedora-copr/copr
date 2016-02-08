@@ -47,6 +47,10 @@ def copr_rebuild_package(copr, package_name):
         form = forms.BuildFormMockFactory
         f = render_add_build_mock
         view_suffix = "_mock"
+    else:
+        flask.flash("Package {} has not the default source which is required for rebuild. Please configure some source"
+                    .format(package_name, copr.full_name))
+        return flask.redirect(copr_url("coprs_ns.copr_edit_package", copr, package_name=package_name))
 
     form = form(copr.active_chroots)(data=data)
     return f(copr, form, view="coprs_ns.copr_new_build" + view_suffix, package=package)
