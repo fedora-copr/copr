@@ -8,7 +8,7 @@
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
-Version:    1.38
+Version:    1.39
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -111,6 +111,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Fri Feb 12 2016 Miroslav Suchý <msuchy@redhat.com> 1.39-1
+- allow copr-dist-git to read dist-git
+
 * Wed Feb 03 2016 Miroslav Suchý <msuchy@redhat.com> 1.38-1
 - add rules for dist-git and keygen
 
