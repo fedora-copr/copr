@@ -184,11 +184,22 @@
 {% endmacro %}
 
 
+{% macro copr_build_form_pypi(form, view, copr) %}
+  {{ copr_build_form_begin(form, view, copr) }}
+
+    {{ source_description('This method uses <a href="https://github.com/fedora-python/pyp2rpm">pyp2rpm</a> to create the RPM for you automatically from PyPI - the Python Package Index. Please provide the package name.')}}
+
+    {{ render_field(form.package_name, placeholder="Package name in the Python Package Index.") }}
+    {{ render_field(form.package_version, placeholder="Optional - Version of the package") }}
+    {{ render_field(form.python_version, placeholder="Base python version that you want to build for") }}
+  {{ copr_build_form_end(form, view, copr) }}
+{% endmacro %}
+
+
 {% macro copr_build_form_rebuild(form, view, copr, build) %}
   {{ copr_build_form_begin(form, view, copr, build, hide_panels=True) }}
   {{ copr_build_form_end(form, view, copr, hide_panels=True) }}
 {% endmacro %}
-
 
 
 {% macro copr_build_cancel_form(build, page, class="") %}

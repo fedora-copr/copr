@@ -316,7 +316,7 @@ class BuildFormRebuildFactory(object):
 
 class BasePackageForm(wtf.Form):
     package_name = wtforms.StringField(
-        "Package Name",
+        "Package name",
         validators=[wtforms.validators.DataRequired()])
     webhook_rebuild = wtforms.BooleanField(default=False)
 
@@ -373,6 +373,25 @@ class PackageFormMock(BasePackageForm):
                 message="RPM spec file must end with .spec")])
 
 
+class PackageFormPyPI(BasePackageForm):
+    package_version = wtforms.StringField(
+        "Package version",
+        validators=[
+            wtforms.validators.Optional(),
+        ])
+
+    python_version = wtforms.RadioField(
+        "Base Python version",
+        choices=[
+            ('2', '2'),
+            ('3', '3'),
+        ],
+        default='3',
+        validators=[
+            wtforms.validators.DataRequired(),
+        ])
+
+
 class BaseBuildFormFactory(object):
     def __new__(cls, active_chroots, form):
         class F(form):
@@ -426,6 +445,11 @@ class BuildFormTitoFactory(object):
 class BuildFormMockFactory(object):
     def __new__(cls, active_chroots):
         return BaseBuildFormFactory(active_chroots, PackageFormMock)
+
+
+class BuildFormPyPIFactory(object):
+    def __new__(cls, active_chroots):
+        return BaseBuildFormFactory(active_chroots, PackageFormPyPI)
 
 
 class BuildFormUploadFactory(object):
