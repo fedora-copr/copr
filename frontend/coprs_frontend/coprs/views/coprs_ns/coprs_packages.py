@@ -11,6 +11,7 @@ from coprs.views.coprs_ns.coprs_builds import render_add_build_tito, render_add_
 from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,)
 
@@ -124,6 +125,9 @@ def copr_edit_package(copr, package_name, source_type=None, **kwargs):
 @login_required
 @req_with_copr
 def copr_edit_package_post(copr, package_name):
+    UsersLogic.raise_if_cant_build_in_copr(
+        flask.g.user, copr, "You don't have permissions to edit this package.")
+
     url_on_success = copr_url("coprs_ns.copr_packages", copr)
     return process_save_package(copr, package_name, view="coprs_ns.copr_edit_package",
                                 view_method=copr_edit_package, url_on_success=url_on_success)
