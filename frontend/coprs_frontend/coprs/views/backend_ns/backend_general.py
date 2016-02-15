@@ -73,8 +73,7 @@ def dist_git_upload_completed():
         build = build_chroots[0].build
 
         # Is it OK?
-        if "git_hash" in flask.request.json and "repo_name" in flask.request.json and \
-            flask.request.json["git_hash"] != "None" and  flask.request.json["git_hash"] is None:
+        if "git_hash" in flask.request.json and "repo_name" in flask.request.json:
             git_hash = flask.request.json["git_hash"]
             pkg_name = flask.request.json["pkg_name"]
             pkg_version = flask.request.json["pkg_version"]
