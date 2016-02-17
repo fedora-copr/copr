@@ -37,6 +37,13 @@
 
   <dt>Path to .spec file:</dt>
   <dd>{{ build.source_json_dict["spec"] }}</dd>
+
+  {% elif build.source_type_text == "pypi" %}
+  <dt>Package name</dt>
+  <dd>{{ build.source_json_dict["package_name"] }}</dd>
+
+  <dt>Base python version</dt>
+  <dd>{{ build.source_json_dict["python_version"] }}</dd>
   {% endif %}
 
 {% endmacro %}

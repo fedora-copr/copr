@@ -187,7 +187,7 @@ class Builder(object):
     def download_job_pkg_to_builder(self):
         repo_url = "{}/{}.git".format(self.opts.dist_git_url, self.job.git_repo)
         self.log.info("Cloning Dist Git repo {}, branch {}, hash {}".format(
-            self.job.git_repo, self.job.git_branch, self.job.git_hash))
+            self.job.git_repo, self.job.git_hash, self.job.git_branch))
         results = self._run_ansible(
             "rm -rf /tmp/build_package_repo && "
             "mkdir /tmp/build_package_repo && "

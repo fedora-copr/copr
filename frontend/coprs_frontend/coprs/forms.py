@@ -374,6 +374,10 @@ class PackageFormMock(BasePackageForm):
 
 
 class PackageFormPyPI(BasePackageForm):
+    source_type = wtforms.HiddenField(
+        "Source Type",
+        validators=[wtforms.validators.AnyOf(["pypi"])])
+
     package_version = wtforms.StringField(
         "Package version",
         validators=[

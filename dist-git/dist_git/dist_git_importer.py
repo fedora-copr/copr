@@ -337,7 +337,7 @@ class PyPIProvider(SrpmBuilderProvider):
         if self.task.pypi_package_version:
             cmd += ['-v', self.task.pypi_package_version]
 
-        log.info(cmd)
+        log.info(' '.join(cmd))
 
         try:
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
@@ -349,6 +349,7 @@ class PyPIProvider(SrpmBuilderProvider):
             log.error(error)
             raise PyPIException(FailTypeEnum("srpm_build_error")) # pass error message somehow?
 
+        log.info(output)
         self.copy()
 
 
