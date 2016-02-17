@@ -246,6 +246,9 @@ class Action(object):
                     destdir = os.path.join(chrootdir, build)
                     self.log.debug("Copy directory: {} as {}".format(srcdir, destdir))
                     shutil.copytree(srcdir, destdir)
+
+                    with open(os.path.join(destdir, "build.info"), "a") as f:
+                        f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
         except:
             result.result = ActionResult.FAILURE
 
