@@ -106,8 +106,8 @@ class ImportTask(object):
             task.mock_spec = task.source_data["spec"]
 
         elif task.source_type == SourceType.PYPI:
-            task.pypi_package_name = task.source_data["package_name"]
-            task.pypi_package_version = task.source_data["package_version"]
+            task.pypi_package_name = task.source_data["pypi_package_name"]
+            task.pypi_package_version = task.source_data["pypi_package_version"]
             task.pypi_python_version = task.source_data["python_version"]
 
         else:
@@ -350,6 +350,7 @@ class PyPIProvider(SrpmBuilderProvider):
             raise PyPIException(FailTypeEnum("srpm_build_error")) # pass error message somehow?
 
         log.info(output)
+        log.info(error)
         self.copy()
 
 

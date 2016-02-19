@@ -411,7 +411,7 @@ GROUP BY
 
 
     @classmethod
-    def create_new_from_pypi(cls, user, copr, package_name, package_version, python_version,
+    def create_new_from_pypi(cls, user, copr, pypi_package_name, pypi_package_version, python_version,
                             chroot_names=None, **build_options):
         """
         :type user: models.User
@@ -433,8 +433,8 @@ GROUP BY
                     chroots.append(chroot)
 
         source_type = helpers.BuildSourceEnum("pypi")
-        source_json = json.dumps({"package_name": package_name,
-                                  "package_version": package_version,
+        source_json = json.dumps({"pypi_package_name": pypi_package_name,
+                                  "pypi_package_version": pypi_package_version,
                                   "python_version": python_version})
 
         build = cls.add(

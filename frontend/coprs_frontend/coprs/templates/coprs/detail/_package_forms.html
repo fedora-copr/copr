@@ -79,11 +79,11 @@
     <input type="hidden" name="package_name" value="{{ package.name }}" />
   {% endif %}
 
-    {{ render_field(form.package_name, placeholder="Package name in the Python Package Index.") }}
+    {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
 
     <div class="form-group">
       <label class="col-sm-2 control-label">
-        <label for="python_version">Base Python version</label>:
+        <label for="python_version">Build for Python</label>:
       </label>
       <div class="col-sm-10 pypi-python-version">
         <input id="python_version-0" name="python_version" value="2" type="radio" {% if form.python_version.data == '2' %}checked="checked"{% endif %}>
@@ -95,11 +95,11 @@
 
     <div class="form-group">
       <label class="col-sm-2 control-label" for="textInput-markup">
-        Anitya rebuild
+        Anitya autorebuild:
       </label>
       <div class="col-sm-10 anitya-rebuild">
         <input type="checkbox" name="webhook_rebuild" id="anitya_rebuild" {% if form.webhook_rebuild.data == True %}checked="checked"{% endif %}/>
-        <label for="webhook_rebuild">Use Anitya emitted message to rebuild this package (you also need to register respective PyPI package on <a href="https://release-monitoring.org/">release-monitoring.org</a>)</label>
+        <label for="webhook_rebuild" style="display:inline">Use Anitya emitted message to rebuild this package (you also need to register respective PyPI package on <a href="https://release-monitoring.org/">release-monitoring.org</a>). At the current state, Anitya update messages are emitted twice a day but you can also trigger a manual emission.</label>
       </div>
     </div>
     <input type="hidden" name="source_type" value="pypi" />

@@ -172,7 +172,7 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
                 "spec": form.spec.data})
         elif package.source_type == helpers.BuildSourceEnum("pypi"):
             package.source_json = json.dumps({
-                "package_name": form.package_name.data,
+                "pypi_package_name": form.pypi_package_name.data,
                 "python_version": form.python_version.data})
 
         try:

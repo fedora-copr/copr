@@ -1,4 +1,4 @@
-{% macro describe_source(build) %}
+{% macro describe_source(build) %} {# also called from package.html as describe_source(package)...which works #}
   <dt>Source Type:</dt>
   <dd>{{ build.source_type_text | build_source_description }} </dd>
 
@@ -39,10 +39,15 @@
   <dd>{{ build.source_json_dict["spec"] }}</dd>
 
   {% elif build.source_type_text == "pypi" %}
-  <dt>Package name</dt>
-  <dd>{{ build.source_json_dict["package_name"] }}</dd>
+  <dt>PyPI package name</dt>
+  <dd>{{ build.source_json_dict["pypi_package_name"] }}</dd>
 
-  <dt>Base python version</dt>
+  {% if build.source_json_dict["pypi_package_version"] %}
+  <dt>PyPI package version</dt>
+  <dd>{{ build.source_json_dict["pypi_package_version"] }}</dd>
+  {% endif %}
+
+  <dt>Build for Python</dt>
   <dd>{{ build.source_json_dict["python_version"] }}</dd>
   {% endif %}
 

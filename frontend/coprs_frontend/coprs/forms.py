@@ -378,14 +378,18 @@ class PackageFormPyPI(BasePackageForm):
         "Source Type",
         validators=[wtforms.validators.AnyOf(["pypi"])])
 
-    package_version = wtforms.StringField(
-        "Package version",
+    pypi_package_name = wtforms.StringField(
+        "PyPI package name",
+        validators=[wtforms.validators.DataRequired()])
+
+    pypi_package_version = wtforms.StringField(
+        "PyPI package version",
         validators=[
             wtforms.validators.Optional(),
         ])
 
     python_version = wtforms.RadioField(
-        "Base Python version",
+        "Build for Python",
         choices=[
             ('2', '2'),
             ('3', '3'),

@@ -394,8 +394,8 @@ def process_new_build_pypi(copr, add_view, url_on_success):
             BuildsLogic.create_new_from_pypi(
                 flask.g.user,
                 copr,
-                form.package_name.data,
-                form.package_version.data,
+                form.pypi_package_name.data,
+                form.pypi_package_version.data,
                 form.python_version.data,
                 form.selected_chroots,
                 **build_options
