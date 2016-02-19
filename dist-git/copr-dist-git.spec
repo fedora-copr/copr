@@ -35,6 +35,7 @@ Requires: python-requests
 Requires: pyrpkg
 Requires: mock-scm
 Requires: tito
+Requires: pyp2rpm
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI

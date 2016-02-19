@@ -66,6 +66,7 @@ Requires:   logstash
 Requires:   redis
 Requires:   python-redis
 Requires:   python-dateutil
+Requires:   httpie
 
 %if 0%{?fedora} >= 23
 Requires: python-dnf
