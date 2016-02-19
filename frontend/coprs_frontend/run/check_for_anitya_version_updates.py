@@ -46,14 +46,14 @@ def loginfo(msg):
     log.info(msg)
 
 def logerror(msg):
-    print msg
+    print >> sys.stderr, msg
     log.error(msg)
 
 def logexception(msg):
-    print msg
+    print >> sys.stderr, msg
     log.exception(msg)
 
-def run_cmd(cmd, silent=False):
+def run_cmd(cmd):
     """
     Run given command in a subprocess
     """
@@ -74,7 +74,7 @@ def to_json(data):
     return data_json
 
 def get_updates_messages():
-    get_updates_cmd = ['http', 'get', 'https://apps.fedoraproject.org/datagrepper/raw', 'category=anitya', 'delta=={0}'.format(args.delta), 'topic==org.release-monitoring.prod.anitya.project.version.update', 'rows_per_page==64', 'order==asc']
+    get_updates_cmd = ['http', 'get', 'https://apps.fedoraproject.org/datagrepper/raw', 'category==anitya', 'delta=={0}'.format(args.delta), 'topic==org.release-monitoring.prod.anitya.project.version.update', 'rows_per_page==64', 'order==asc']
     get_updates_cmd_paged = get_updates_cmd + ['page==1']
     result_json = to_json(run_cmd(get_updates_cmd_paged))
     messages = result_json['raw_messages']
@@ -99,15 +99,21 @@ def get_updated_packages(updates_messages):
 
 def get_copr_package_info_rows():
     source_type = helpers.BuildSourceEnum(args.backend.lower())
+    if db.engine.url.drivername == "sqlite":
+        placeholder = '?'
+        true = '1'
+    else:
+        placeholder = '%s'
+        true = 'true'
     rows = db.engine.execute(
         """
         SELECT package.id AS package_id, package.source_json AS source_json, build.pkg_version AS pkg_version, package.copr_id AS copr_id
         FROM package
         LEFT OUTER JOIN build ON build.package_id = package.id
-        WHERE package.source_type = %s AND
-              package.webhook_rebuild = true AND
+        WHERE package.source_type = {placeholder} AND
+              package.webhook_rebuild = {true} AND
               (build.id is NULL OR build.id = (SELECT MAX(build.id) FROM build WHERE build.package_id = package.id));
-        """, source_type
+        """.format(placeholder=placeholder, true=true), source_type
     )
     return rows
 
