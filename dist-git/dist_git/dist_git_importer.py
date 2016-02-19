@@ -11,7 +11,7 @@ from subprocess import PIPE, Popen, call
 from requests import get, post
 
 from .exceptions import PackageImportException, PackageDownloadException, PackageQueryException, GitAndTitoException, \
-    SrpmBuilderException, GitException
+    SrpmBuilderException, GitException, PyPIException
 from .srpm_import import do_git_srpm_import
 
 from .helpers import FailTypeEnum
