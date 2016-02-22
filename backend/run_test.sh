@@ -4,9 +4,26 @@ REDIS_PORT=7777
 
 redis-server --port $REDIS_PORT &> _redis.log &
 
+COVPARAMS='--cov-report term-missing --cov ./backend --cov ./run'
 
-# PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest -s ./tests/ $@
-PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest -s --cov-report term-missing --cov ./backend --cov ./run ./tests/ $@
-# PYTHONPATH=../python/:./copr_cli:$PYTHONPATH python3 -B -m pytest --cov-report term-missing --cov ./copr_cli/ $@
+while [[ $# > 1 ]]
+do
+	key="$1"
+	case $key in
+		--nocov)
+		COVPARAMS=""
+		;;
+		*) # unknown option
+		;;
+	esac
+shift # past argument or value
+done
+
+TESTS=./tests
+if [[ -n $@ ]]; then
+	TESTS=$@
+fi
+
+PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest -s $COVPARAMS $TESTS
 
 kill %1

@@ -11,7 +11,7 @@ from subprocess import PIPE, Popen, call
 from requests import get, post
 
 from .exceptions import PackageImportException, PackageDownloadException, PackageQueryException, GitAndTitoException, \
-    SrpmBuilderException, GitException
+    SrpmBuilderException, GitException, PyPIException
 from .srpm_import import do_git_srpm_import
 
 from .helpers import FailTypeEnum
@@ -24,6 +24,7 @@ class SourceType:
     SRPM_UPLOAD = 2
     GIT_AND_TITO = 3
     MOCK_SCM = 4
+    PYPI = 5
 
 
 class ImportTask(object):
@@ -58,6 +59,11 @@ class ImportTask(object):
         self.mock_scm_url = None
         self.mock_scm_branch = None
         self.mock_spec = None
+
+        # For PyPI
+        self.pypi_package_name = None
+        self.pypi_package_version = None
+        self.pypi_python_version = None
 
     @property
     def reponame(self):
@@ -99,6 +105,11 @@ class ImportTask(object):
             task.mock_scm_branch = task.source_data["scm_branch"]
             task.mock_spec = task.source_data["spec"]
 
+        elif task.source_type == SourceType.PYPI:
+            task.pypi_package_name = task.source_data["pypi_package_name"]
+            task.pypi_package_version = task.source_data["pypi_package_version"]
+            task.pypi_python_version = task.source_data["python_version"]
+
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
 
@@ -138,6 +149,9 @@ class SourceProvider(object):
         elif task.source_type == SourceType.MOCK_SCM:
             self.provider = MockScmProvider
 
+        elif task.source_type == SourceType.PYPI:
+            self.provider = PyPIProvider
+
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
 
@@ -166,7 +180,7 @@ class SrpmBuilderProvider(BaseSourceProvider):
             srpm_name = dest_srpms[0]
         else:
             log.debug("ERROR :( :( :(")
-            log.debug("git_dir: {}".format(self.git_dir))
+            #log.debug("git_dir: {}".format(self.git_dir))
             log.debug("dest_files: {}".format(dest_files))
             log.debug("dest_srpms: {}".format(dest_srpms))
             log.debug("")
@@ -308,9 +322,36 @@ class MockScmProvider(SrpmBuilderProvider):
 
     def scm_option_get(self):
         return {
-            "git": "git_get='git clone {}'",
+            "git": "git_get='git clone --depth 1 {}'",
             "svn": "git_get='git svn clone {}'"
         }[self.task.mock_scm_type].format(self.task.mock_scm_url)
+
+
+class PyPIProvider(SrpmBuilderProvider):
+    """
+    Used for PyPI
+    """
+    def get_srpm(self):
+        log.debug("GIT_BUILDER: 3. build via pyp2rpm")
+        cmd = ['pyp2rpm', self.task.pypi_package_name, '--srpm', '-d', self.tmp_dest, '-b', self.task.pypi_python_version]
+        if self.task.pypi_package_version:
+            cmd += ['-v', self.task.pypi_package_version]
+
+        log.info(' '.join(cmd))
+
+        try:
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            output, error = proc.communicate()
+        except OSError as e:
+            log.error(str(e))
+            raise PyPIException(FailTypeEnum("srpm_build_error"))
+        if proc.returncode != 0:
+            log.error(error)
+            raise PyPIException(FailTypeEnum("srpm_build_error")) # pass error message somehow?
+
+        log.info(output)
+        log.info(error)
+        self.copy()
 
 
 class SrpmUrlProvider(BaseSourceProvider):

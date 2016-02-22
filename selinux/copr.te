@@ -26,3 +26,10 @@ allow httpd_t copr_data_t:file { rename write getattr read create open lock unli
 
 allow httpd_t copr_httpd_log_t:file  { rename write getattr read create open lock unlink };
 allow httpd_t copr_httpd_log_t:dir { write getattr read remove_name open add_name create search};
+
+# dist-git
+allow git_script_t git_user_content_t:lnk_file read;
+allow httpd_t git_user_content_t:dir read;
+allow httpd_t git_user_content_t:file { getattr read open };
+allow syslogd_t auditd_log_t:dir search;
+allow syslogd_t auditd_log_t:file { read getattr open ioctl };

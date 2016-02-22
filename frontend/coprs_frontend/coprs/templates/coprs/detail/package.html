@@ -18,7 +18,7 @@
 
 {% block detail_body %}
 
-{% if package.source_type %}
+{% if g.user and g.user.can_edit(copr) %}
 <a class="btn btn-default pull-right button-build-action" href="{{ copr_url('coprs_ns.copr_rebuild_package', copr, package_name=package.name) }}">
   <span class="pficon pficon-restart"></span> Rebuild
 </a>
@@ -49,11 +49,13 @@
     <div class="panel panel-default">
       <div class="panel-heading clearfix panel-heading-buttons">
         <h3 class="panel-title pull-left">Default Build Source</h3>
+        {% if g.user and g.user.can_edit(copr) %}
         <div class="btn-group pull-right">
           <a class="btn btn-default btn-sm" href="{{ copr_url('coprs_ns.copr_edit_package', copr, package_name=package.name) }}">
             <span class="pficon pficon-edit"> Edit</span>
           </a>
         </div>
+        {% endif %}
       </div>
       <div class="panel-body">
         <dl class="dl-horizontal">

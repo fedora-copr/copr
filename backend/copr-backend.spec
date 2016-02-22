@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.79
+Version:    1.80
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -246,6 +246,19 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.80-1
+- do not fail when when you recieve job with architecture which does not have
+  queue
+- fix 1260780 - Build fails after successful package generation -
+  just add a log error message pointing to an rsync log
+- jobgrabcontrol.py/retask misuse fix
+- "localhost-targeted" spawn and terminate playbooks added for testing
+- [frontend]implement rawhide to release feature First create new
+  chroots:     python manage.py create_chroot fedora-24-i386 fedora-24-x86_64
+- abstraction above [BE <-> JG <-> Builders] channels
+- don't traceback backend if frontend is not yet up&running
+- do not preserve user and group when rsyncing
+
 * Wed Dec 23 2015 Miroslav Suchý <msuchy@redhat.com> 1.79-1
 - fix packaging issues in epel-7+
 

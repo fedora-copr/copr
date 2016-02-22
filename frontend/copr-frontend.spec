@@ -36,6 +36,7 @@ BuildRequires: python-argparse
 Requires:   httpd
 Requires:   mod_wsgi
 Requires:   passwd
+Requires:   curl
 Requires:   python-alembic
 Requires:   python-flask
 Requires:   python-flask-openid
