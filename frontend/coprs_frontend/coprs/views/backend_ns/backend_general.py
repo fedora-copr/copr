@@ -147,7 +147,7 @@ def waiting():
                 "build_id": task.build.id,
                 "project_owner": user_name,
                 "project_name": task.build.copr.name,
-                "submitter": task.build.user.name,
+                "submitter": task.build.user.name if task.build.user else None, # there is no user for webhook builds
                 "pkgs": task.build.pkgs,  # TODO to be removed
                 "chroot": task.mock_chroot.name,
 
