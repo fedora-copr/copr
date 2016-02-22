@@ -4,6 +4,8 @@
 # RUN
 #     cd frontend/coprs_frontend
 #     COPR_CONFIG=../config/copr_devel.conf python run/migrate-copr.py
+#
+#               --stage=<number> to run only particular stage
 
 # NOTES
 # - We do have to copy user, group and some other (see mods variable) tables
@@ -20,6 +22,7 @@ here = os.path.dirname(os.path.realpath(__file__))
 import sys
 sys.path.append(os.path.dirname(here))
 
+import argparse
 import flask
 from flask_sqlalchemy import SQLAlchemy
 from coprs import app, models, db, logic, helpers
@@ -34,6 +37,11 @@ dstapp = flask.Flask(__name__)
 dstapp.config.from_object("coprs.config.DevelopmentConfig")
 dstapp.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://{username}:{password}@{host}/{database}".format(**DSTDB_CONFIG)
 dstdb = SQLAlchemy(dstapp)
+
+
+parser = argparse.ArgumentParser(prog = "migrate-copr")
+parser.add_argument("-s", "--stage", dest="stage", type=int, default=-1)
+args = parser.parse_args()
 
 
 def all_coprs():
@@ -125,26 +133,33 @@ def rebuild_failed(dstdb):
 
 
 def main():
-    # Stage 0 - Cleaning
-    print("### Stage 0 - Cleaning ###################################")
-    clean(dstdb)
-    dstdb.session.commit()
+    if args.stage in [-1, 0]:
+        # Stage 0 - Cleaning
+        print("### Stage 0 - Cleaning ###################################")
+        clean(dstdb)
+        dstdb.session.commit()
 
-    # Stage 1 - Copy data (projects, packages, last successfull build from each package)
-    print("### Stage 1 - Copy data ##################################")
-    cp = Copying(dstdb)
-    copy_data(cp)
-    dstdb.session.commit()
+    if args.stage in [-1, 1]:
+        # Stage 1 - Copy data (projects, packages, last successfull build from each package)
+        print("### Stage 1 - Copy data ##################################")
+        cp = Copying(dstdb)
+        copy_data(cp)
+        dstdb.session.commit()
 
-    # Stage 2 - succeeded -> [pending|importing]
-    print("### Stage 2 - succeeded -> [pending|importing] ###########")
-    ensure_rebuild(dstdb)
-    dstdb.session.commit()
+    if args.stage in [-1, 2]:
+        # Stage 2 - succeeded -> [pending|importing]
+        print("### Stage 2 - succeeded -> [pending|importing] ###########")
+        ensure_rebuild(dstdb)
+        dstdb.session.commit()
 
-    # Stage 3 - failed -> pending (repeat)
-    print("### Stage 3 - failed -> pending (repeat ##################")
-    rebuild_failed(dstdb)
-    dstdb.session.commit()
+    if args.stage in [-1, 3]:
+        # Stage 3 - failed -> pending (repeat)
+        print("### Stage 3 - failed -> pending (repeat ##################")
+        rebuild_failed(dstdb)
+        dstdb.session.commit()
+
+    if args.stage not in range(-1, 4):
+        print("No such stage. See the code for possible values :-P")
 
 
 if __name__ == "__main__":
