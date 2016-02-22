@@ -89,14 +89,15 @@ mods = [
     models.User,
     models.Group,
     models.Copr,
+    models.LegalFlag,
     models.CoprPermission,
     models.CoprChroot,
+    models.CounterStat,
     models.Package,
     models.MockChroot,
 ]
 
 clean_mods = [
-    models.LegalFlag,
     models.BuildChroot,
     models.Build,
 ] + list(reversed(mods))
