@@ -9,33 +9,10 @@ shopt -s expand_aliases
 # 4-latestpkg
 
 export testdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export origrepo=$testdir/fedora-23-x86_64-template
-export testrepo=$testdir/fedora-23-x86_64-test
+export origrepo=$testdir/repo-template
+export testrepo=$testdir/repo-test
 
-die() { echo "fail."; exit 1; }
-
-function runcmd {
-	bash -c "set -x; ../../prunerepo --quiet $*;"
-}
-
-function listpkgsbyrepo {
-	dnf --disablerepo="*" repoquery --repofrompath=test_prunerepo,$testrepo --repoid=test_prunerepo --enablerepo=test_prunerepo --refresh --quiet --queryformat '%{location}' | sort
-}
-
-function listpkgsbyfs {
-	find . -name '*.rpm' | cut -c 3- | sort
-}
-
-function run {
-	echo '>' $@;
-	eval $@;
-}
-
-function setup {
-	rm -r $testrepo
-	cp -r $origrepo $testrepo
-	cd $testrepo
-}
+source $testdir/../testlib.sh
 
 echo "============================ test basic functionality ============================";
 
@@ -48,6 +25,7 @@ run 'ls 2-secondlatestpkg/*.rpm' && die
 run '[[ `ls 3-latestpkg/*.rpm | wc -l` == 3 ]]' || die
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
 
+echo success.
 
 echo "============================ test --cleancopr ============================";
 

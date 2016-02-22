@@ -92,13 +92,14 @@ def get_packages(repoquery_cmd):
     return abs_package_paths
 
 
-def rm_srpm(package):
+def rm_srpms(package):
     """
     Attempt to remove srpm for the associated rpm package described by absolute fs path
     """
     get_srpm_cmd = get_all_packages_cmd + [ '--srpm', os.path.splitext(os.path.basename(package))[0] ]
-    srpm = run_cmd(get_srpm_cmd, silent=True)[0]
-    rm_file(os.path.abspath(os.path.join(args.path, srpm)))
+    srpms = run_cmd(get_srpm_cmd, silent=True)
+    for srpm in srpms:
+        rm_file(os.path.abspath(os.path.join(args.path, srpm)))
 
 
 def prune_packages():
@@ -113,7 +114,7 @@ def prune_packages():
         if args.days:
             if not is_srpm(package) and time.time() - get_package_build_time(package) > args.days * 24 * 3600:
                 rm_file(package)
-                rm_srpm(package)
+                rm_srpms(package)
         else:
             rm_file(package)
 
