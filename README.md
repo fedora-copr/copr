@@ -11,3 +11,15 @@ Copr is a Fedora community build service in [Fedora](https://getfedora.org/) tha
 
 ## Using Copr
 Learn [how to use Copr](https://developer.fedoraproject.org/deployment/copr/about.html) and [how to create RPM packages](https://developer.fedoraproject.org/deployment/rpm/about.html) on the [Fedora Developer Portal](https://developer.fedoraproject.org).
+
+
+## Local Testing Environment
+You can use [Vagrant](https://developer.fedoraproject.org/tools/vagrant/about.html) to run your local test environment. We currently support *frontend* and *dist-git*.
+
+```
+$ git clone https://github.com/fedora-copr/copr.git
+$ cd copr
+$ vagrant up
+```
+
+For more information see [our wiki page](https://fedorahosted.org/copr/wiki/Contribute#LocalDevelopmentEnvironment).
