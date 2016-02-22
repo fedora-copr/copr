@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description='Remove old packages from rpm-md re
 parser.add_argument('path', action='store',
                    help='local path to a yum repository')
 parser.add_argument('--days', type=int, action='store', default=0,
-                   help='only remove packages older than DAYS by their build date, does remove srpm only if associated rpm is removed')
+                   help='only remove packages older than DAYS by their build date')
 parser.add_argument('--cleancopr', action='store_true',
                    help='additionaly remove whole copr build dirs and logs if the associated package gets deleted')
 parser.add_argument('--nocreaterepo', action='store_true',
@@ -48,6 +48,9 @@ def is_srpm(package):
 
 
 def rm_file(path):
+    """
+    Remove file given its absolute path
+    """
     if args.verbose:
         log_info("Removing: "+path)
     if os.path.exists(path) and os.path.isfile(path):
@@ -82,24 +85,23 @@ def get_package_build_time(package_path):
     return int(stdout[0])
 
 
-def get_packages(repoquery_cmd):
+def get_rpms(repoquery_cmd):
     """
-    Get paths to packages in the repository according to given repoquery_cmd
+    Get paths to rpm packages in the repository according to given repoquery_cmd
     """
-    stdout = run_cmd(repoquery_cmd)
-    rel_package_paths = [relpath.strip('"') for relpath in stdout]
-    abs_package_paths = [os.path.abspath(os.path.join(args.path, relpath)) for relpath in rel_package_paths]
-    return abs_package_paths
+    stdout = run_cmd(repoquery_cmd) # returns srpms as well
+    rel_rpms_paths = [relpath.strip('"') for relpath in stdout if not is_srpm(relpath)]
+    abs_rpms_paths = [os.path.abspath(os.path.join(args.path, relpath)) for relpath in rel_rpms_paths]
+    return abs_rpms_paths
 
 
-def rm_srpms(package):
+def rm_srpm(rpm):
     """
-    Attempt to remove srpm for the associated rpm package described by absolute fs path
+    If there is matching srpm in the same directory as given rpm (described by its absolute path), delete it
     """
-    get_srpm_cmd = get_all_packages_cmd + [ '--srpm', os.path.splitext(os.path.basename(package))[0] ]
-    srpms = run_cmd(get_srpm_cmd, silent=True)
-    for srpm in srpms:
-        rm_file(os.path.abspath(os.path.join(args.path, srpm)))
+    get_srpm_cmd = get_all_packages_cmd + [ '--srpm', os.path.splitext(os.path.basename(rpm))[0] ]
+    srpm_name = os.path.basename(run_cmd(get_srpm_cmd, silent=True)[0])
+    rm_file(os.path.abspath(os.path.join(os.path.dirname(rpm), srpm_name)))
 
 
 def prune_packages():
@@ -107,16 +109,13 @@ def prune_packages():
     Remove obsoleted packages
     """
     log_info('Removing obsoleted packages...')
-    latest_packages = get_packages(get_latest_packages_cmd)
-    all_packages = get_packages(get_all_packages_cmd)
-    to_remove_packages = set(all_packages) - set(latest_packages)
-    for package in to_remove_packages:
-        if args.days:
-            if not is_srpm(package) and time.time() - get_package_build_time(package) > args.days * 24 * 3600:
-                rm_file(package)
-                rm_srpms(package)
-        else:
-            rm_file(package)
+    latest_rpms = get_rpms(get_latest_packages_cmd)
+    all_rpms = get_rpms(get_all_packages_cmd)
+    to_remove_rpms = set(all_rpms) - set(latest_rpms)
+    for rpm in to_remove_rpms:
+        if time.time() - get_package_build_time(rpm) > args.days * 24 * 3600:
+            rm_file(rpm)
+            rm_srpm(rpm)
 
 
 def recreate_repo():

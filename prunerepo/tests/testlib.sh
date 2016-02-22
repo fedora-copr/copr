@@ -5,7 +5,7 @@ die() {
 }
 
 function runcmd {
-	bash -c "set -x; $libdir/../prunerepo --quiet $*;" 
+	bash -c "set -x; $libdir/../prunerepo --verbose $*;" 
 }
 
 function listpkgsbyrepo {
