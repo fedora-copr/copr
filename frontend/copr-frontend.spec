@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.82
+Version:    1.83
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -36,6 +36,7 @@ BuildRequires: python-argparse
 Requires:   httpd
 Requires:   mod_wsgi
 Requires:   passwd
+Requires:   curl
 Requires:   python-alembic
 Requires:   python-flask
 Requires:   python-flask-openid
@@ -262,6 +263,9 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Mon Feb 22 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.83-1
+- [frontend] select as user_name; see e492bb
+
 * Mon Feb 22 2016 clime <clime@redhat.com> 1.82-1
 - patch for webhook invoked rebuilds
 

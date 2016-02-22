@@ -28,6 +28,10 @@ class GitException(SrpmBuilderException):
     pass
 
 
+class PyPIException(SrpmBuilderException):
+    pass
+
+
 class GitAndTitoException(GitException):
     def __init__(self, error_code=None):
         super(GitAndTitoException, self).__init__(error_code)

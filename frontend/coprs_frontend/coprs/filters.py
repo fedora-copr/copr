@@ -174,6 +174,7 @@ def build_source_description(state):
         "srpm_upload": "SRPM file upload",
         "git_and_tito": "Tito build from a Git repository",
         "mock_scm": "Mock build from a SCM repository",
+        "pypi": "Build from PyPI",
     }
 
     return description_map.get(state, "")

@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import nav_element, copr_url %}
+{% from "_helpers.html" import copr_url %}
 {% block title %}Adding Build for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 
 {% set selected_tab = "builds" %}
@@ -37,6 +37,7 @@
       {{ nav_element("upload", "Upload SRPM", copr_url('coprs_ns.copr_add_build_upload', copr)) }}
       {{ nav_element("tito", "Tito", copr_url('coprs_ns.copr_add_build_tito', copr)) }}
       {{ nav_element("mock", "Mock SCM", copr_url('coprs_ns.copr_add_build_mock', copr)) }}
+      {{ nav_element("pypi", "PyPI", copr_url('coprs_ns.copr_add_build_pypi', copr)) }}
     </ul>
   </div>
 </div>

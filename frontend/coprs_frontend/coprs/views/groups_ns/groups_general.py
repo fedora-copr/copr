@@ -93,4 +93,3 @@ def list_user_groups():
         user=flask.g.user,
         teams=teams,
         copr_groups=copr_groups)
-

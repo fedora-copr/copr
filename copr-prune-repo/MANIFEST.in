@@ -1,2 +1,0 @@
-include copr_prune_repo.py
-recursive-include man *

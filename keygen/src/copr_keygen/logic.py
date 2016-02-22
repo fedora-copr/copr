@@ -137,9 +137,9 @@ def create_new_key(
         log.error(err)
         raise err
 
-    log.debug("returncode: {}".format(handle.returncode))
-    log.debug("stdout: {}".format(stdout))
-    log.debug("stderr: {}".format(stderr))
+    log.info("returncode: {}".format(handle.returncode))
+    log.info("stdout: {}".format(stdout))
+    log.info("stderr: {}".format(stderr))
     if handle.returncode == 0:
         # TODO: validate that we really got armored gpg key
         if not user_exists(app, name_email):

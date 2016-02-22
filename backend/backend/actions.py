@@ -234,23 +234,23 @@ class Action(object):
 
     def handle_rawhide_to_release(self, result):
         data = json.loads(self.data["data"])
+        try:
+            chrootdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["dest_chroot"])
+            if not os.path.exists(chrootdir):
+                self.log.debug("Create directory: {}".format(chrootdir))
+                os.makedirs(chrootdir)
 
-        for chroot in data["chroots"]:
-            rawhide_chroot = "fedora-rawhide-{}".format(chroot.split("-")[-1])
-            try:
-                chrootdir = os.path.join(self.opts.destdir, data["user"], data["copr"], chroot)
-                if not os.path.exists(chrootdir):
-                    self.log.debug("Create directory: {}".format(chrootdir))
-                    os.makedirs(chrootdir)
+            for build in data["builds"]:
+                srcdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["rawhide_chroot"], build)
+                if os.path.exists(srcdir):
+                    destdir = os.path.join(chrootdir, build)
+                    self.log.debug("Copy directory: {} as {}".format(srcdir, destdir))
+                    shutil.copytree(srcdir, destdir)
 
-                for build in data["builds"]:
-                    srcdir = os.path.join(self.opts.destdir, data["user"], data["copr"], rawhide_chroot, build)
-                    if os.path.exists(srcdir):
-                        destdir = os.path.join(chrootdir, build)
-                        self.log.debug("Copy directory: {} as {}".format(srcdir, destdir))
-                        shutil.copytree(srcdir, destdir)
-            except:
-                result.result = ActionResult.FAILURE
+                    with open(os.path.join(destdir, "build.info"), "a") as f:
+                        f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
+        except:
+            result.result = ActionResult.FAILURE
 
         result.result = ActionResult.SUCCESS
 

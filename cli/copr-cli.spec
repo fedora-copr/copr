@@ -8,7 +8,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.46
+Version:    1.47
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -97,6 +97,18 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.47-1
+- gfix 1302615 - UnboundLocalError: local variable 'bar' referenced before
+  assignment when building from URLs
+- gman pages updated for 1292033 - copr-cli ignores multiple package
+  arguments if the first is a local file
+- grequire sufficiently new python-copr package
+- gadd DummyBar.finish() stub
+- compatibility with el6 and el7
+- add --config option
+- fix packaging for epel-6+ and fedora-22+
+- Added MANIFEST.in for python and cli
+
 * Mon Nov 02 2015 Miroslav Suchý <msuchy@redhat.com> 1.46-1
 - Removed __version__ from cli and python
 - Added version parse from specs instead of __init__

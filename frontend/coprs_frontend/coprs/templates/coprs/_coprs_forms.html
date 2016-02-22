@@ -38,9 +38,9 @@
     {% endif %}
 
     {{ render_field(form.description, rows=5, cols=50, placeholder='Optional - describe your project briefly.',
-          info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTMLis forbidden.') }}
+          info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden.') }}
 
-    {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.', info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTMLis forbidden.') }}
+    {{ render_field(form.instructions, rows=5, cols=50, placeholder='Optional - describe how your project can be installed. Where users can report bugs and issues. Link to wiki is good as well.', info='You can use <a href="http://daringfireball.net/projects/markdown/syntax">markdown syntax</a>, inline HTML is forbidden.') }}
 
     {{ render_field(form.homepage, label='Homepage', placeholder='Optional - project homepage') }}
     {{ render_field(form.contact, label='Contact', placeholder='Optional - email address or contact url', info="Use e-mail address or a link to your issue tracker. This information will be shown publicly.") }}

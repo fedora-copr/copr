@@ -51,10 +51,7 @@ def copr_build_redirect(build_id):
             build_id=build_id))
 
 
-def render_copr_build(build_id, copr):
-    build = ComplexLogic.get_build_safe(build_id)
-    return render_template("coprs/detail/build.html", build=build, copr=copr)
-
+################################ Build detail ################################
 
 @coprs_ns.route("/<username>/<coprname>/build/<int:build_id>/")
 @req_with_copr
@@ -67,6 +64,13 @@ def copr_build(copr, build_id):
 def group_copr_build(copr, build_id):
     return render_copr_build(build_id, copr)
 
+
+def render_copr_build(build_id, copr):
+    build = ComplexLogic.get_build_safe(build_id)
+    return render_template("coprs/detail/build.html", build=build, copr=copr)
+
+
+################################ Build table ################################
 
 @coprs_ns.route("/<username>/<coprname>/builds/")
 @req_with_copr
@@ -87,12 +91,15 @@ def render_copr_builds(copr):
                                  builds=builds_query)
 
 
+################################ Url builds ################################
+
 @coprs_ns.route("/<username>/<coprname>/add_build/")
 @login_required
 @req_with_copr
 def copr_add_build(copr, form=None):
     return render_add_build(
         copr, form, view='coprs_ns.copr_new_build')
+
 
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build/")
 @login_required
@@ -101,6 +108,7 @@ def group_copr_add_build(copr, form=None):
     return render_add_build(
         copr, form, view='coprs_ns.copr_new_build')
 
+
 def render_add_build(copr, form, view):
     if not form:
         form = forms.BuildFormUrlFactory(copr.active_chroots)()
@@ -108,26 +116,73 @@ def render_add_build(copr, form, view):
                                  copr=copr, view=view, form=form)
 
 
-@coprs_ns.route("/<username>/<coprname>/add_build_upload/")
+@coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
 @login_required
 @req_with_copr
-def copr_add_build_upload(copr, form=None):
-    return render_add_build_upload(
-        copr, form, view='coprs_ns.copr_new_build_upload')
+def copr_new_build(copr):
+    return process_new_build_url(
+        copr,
+        "coprs_ns.copr_new_build",
+        url_on_success=url_for("coprs_ns.copr_builds",
+                               username=copr.owner.username, coprname=copr.name)
+    )
 
-@coprs_ns.route("/g/<group_name>/<coprname>/add_build_upload/")
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build/", methods=["POST"])
 @login_required
 @req_with_copr
-def group_copr_add_build_upload(copr, form=None):
-    return render_add_build_upload(
-        copr, form, view='coprs_ns.copr_new_build_upload')
+def group_copr_new_build(copr):
+    return process_new_build_url(
+        copr,
+        "coprs_ns.copr_new_build",
+        url_on_success=url_for("coprs_ns.group_copr_builds",
+                               group_name=copr.group.name, coprname=copr.name)
+    )
 
-def render_add_build_upload(copr, form, view):
-    if not form:
-        form = forms.BuildFormUploadFactory(copr.active_chroots)()
-    return flask.render_template("coprs/detail/add_build/upload.html",
-                                 copr=copr, form=form, view=view)
 
+def process_new_build_url(copr, add_view, url_on_success):
+    form = forms.BuildFormUrlFactory(copr.active_chroots)()
+
+    if form.validate_on_submit():
+        pkgs = form.pkgs.data.split("\n")
+
+        if not pkgs:
+            flask.flash("No builds submitted")
+        else:
+            # # check which chroots we need
+            # chroots = []
+            # for chroot in copr.active_chroots:
+            #     if chroot.name in form.selected_chroots:
+            #         chroots.append(chroot)
+
+            # build each package as a separate build
+            try:
+                for pkg in pkgs:
+                    build_options = {
+                        "enable_net": form.enable_net.data,
+                        "timeout": form.timeout.data,
+                    }
+                    BuildsLogic.create_new_from_url(
+                        flask.g.user, copr, pkg,
+                        chroot_names=form.selected_chroots,
+                        **build_options
+                    )
+
+            except (ActionInProgressException, InsufficientRightsException) as e:
+                flask.flash(str(e), "error")
+                db.session.rollback()
+            else:
+                for pkg in pkgs:
+                    flask.flash("New build has been created: {}".format(pkg))
+
+                db.session.commit()
+
+        return flask.redirect(url_on_success)
+    else:
+        return render_add_build(copr, form, add_view)
+
+
+################################ Tito builds ################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_tito/")
 @login_required
@@ -136,6 +191,7 @@ def copr_add_build_tito(copr, form=None):
     return render_add_build_tito(
         copr, form, view='coprs_ns.copr_new_build_tito')
 
+
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build_tito/")
 @login_required
 @req_with_copr
@@ -143,12 +199,32 @@ def group_copr_add_build_tito(copr, form=None):
     return render_add_build_tito(
         copr, form, view='coprs_ns.copr_new_build_tito')
 
+
 def render_add_build_tito(copr, form, view, package=None):
     if not form:
         form = forms.BuildFormTitoFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/tito.html",
                                  copr=copr, form=form, view=view, package=package)
 
+
+@coprs_ns.route("/<username>/<coprname>/new_build_tito/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_new_build_tito(copr):
+    view = 'coprs_ns.copr_new_build_tito'
+    url_on_success = url_for("coprs_ns.copr_builds",
+                             username=copr.owner.username, coprname=copr.name)
+    return process_new_build_tito(copr, view, url_on_success)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_tito/", methods=["POST"])
+@login_required
+@req_with_copr
+def group_copr_new_build_tito(copr):
+    view = 'coprs_ns.copr_new_build_tito'
+    url_on_success = url_for("coprs_ns.group_copr_builds",
+                             group_name=copr.group.name, coprname=copr.name)
+    return process_new_build_tito(copr, view, url_on_success)
 
 
 def process_new_build_tito(copr, add_view, url_on_success):
@@ -183,25 +259,7 @@ def process_new_build_tito(copr, add_view, url_on_success):
         return render_add_build_tito(copr, form, add_view)
 
 
-@coprs_ns.route("/<username>/<coprname>/new_build_tito/", methods=["POST"])
-@login_required
-@req_with_copr
-def copr_new_build_tito(copr):
-    view = 'coprs_ns.copr_new_build_tito'
-    url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.owner.username, coprname=copr.name)
-    return process_new_build_tito(copr, view, url_on_success)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_tito/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build_tito(copr):
-    view = 'coprs_ns.copr_new_build_tito'
-    url_on_success = url_for("coprs_ns.group_copr_builds",
-                             group_name=copr.group.name, coprname=copr.name)
-    return process_new_build_tito(copr, view, url_on_success)
-
+################################ Mock builds ################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_mock/")
 @login_required
@@ -278,6 +336,127 @@ def process_new_build_mock(copr, add_view, url_on_success):
         return render_add_build_mock(copr, form, add_view)
 
 
+################################ PyPI builds ################################
+
+@coprs_ns.route("/<username>/<coprname>/add_build_pypi/")
+@login_required
+@req_with_copr
+def copr_add_build_pypi(copr, form=None):
+    return render_add_build_pypi(
+        copr, form, view='coprs_ns.copr_new_build_pypi')
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/add_build_pypi/")
+@login_required
+@req_with_copr
+def group_copr_add_build_pypi(copr, form=None):
+    return render_add_build_pypi(
+        copr, form, view='coprs_ns.copr_new_build_pypi')
+
+
+def render_add_build_pypi(copr, form, view, package=None):
+    if not form:
+        form = forms.BuildFormPyPIFactory(copr.active_chroots)()
+    return flask.render_template("coprs/detail/add_build/pypi.html",
+                                 copr=copr, form=form, view=view, package=package)
+
+
+@coprs_ns.route("/<username>/<coprname>/new_build_pypi/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_new_build_pypi(copr):
+    view = 'coprs_ns.copr_new_build_pypi'
+    url_on_success = url_for("coprs_ns.copr_builds",
+                             username=copr.owner.username, coprname=copr.name)
+    return process_new_build_pypi(copr, view, url_on_success)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_pypi/", methods=["POST"])
+@login_required
+@req_with_copr
+def group_copr_new_build_pypi(copr):
+    view = 'coprs_ns.copr_new_build_pypi'
+    url_on_success = url_for("coprs_ns.group_copr_builds",
+                             group_name=copr.group.name, coprname=copr.name)
+    return process_new_build_pypi(copr, view, url_on_success)
+
+
+def process_new_build_pypi(copr, add_view, url_on_success):
+    form = forms.BuildFormPyPIFactory(copr.active_chroots)()
+
+    if form.validate_on_submit():
+        build_options = {
+            "enable_net": form.enable_net.data,
+            "timeout": form.timeout.data,
+        }
+
+        try:
+            BuildsLogic.create_new_from_pypi(
+                flask.g.user,
+                copr,
+                form.pypi_package_name.data,
+                form.pypi_package_version.data,
+                form.python_version.data,
+                form.selected_chroots,
+                **build_options
+            )
+            db.session.commit()
+        except (ActionInProgressException, InsufficientRightsException) as e:
+            db.session.rollback()
+            flask.flash(str(e), "error")
+        else:
+            flask.flash("New build has been created.")
+
+        return flask.redirect(url_on_success)
+    else:
+        return render_add_build_pypi(copr, form, add_view)
+
+
+################################ Upload builds ################################
+
+@coprs_ns.route("/<username>/<coprname>/add_build_upload/")
+@login_required
+@req_with_copr
+def copr_add_build_upload(copr, form=None):
+    return render_add_build_upload(
+        copr, form, view='coprs_ns.copr_new_build_upload')
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/add_build_upload/")
+@login_required
+@req_with_copr
+def group_copr_add_build_upload(copr, form=None):
+    return render_add_build_upload(
+        copr, form, view='coprs_ns.copr_new_build_upload')
+
+
+def render_add_build_upload(copr, form, view):
+    if not form:
+        form = forms.BuildFormUploadFactory(copr.active_chroots)()
+    return flask.render_template("coprs/detail/add_build/upload.html",
+                                 copr=copr, form=form, view=view)
+
+
+@coprs_ns.route("/<username>/<coprname>/new_build_upload/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_new_build_upload(copr):
+    view = 'coprs_ns.copr_new_build_upload'
+    url_on_success = url_for("coprs_ns.copr_builds",
+                             username=copr.owner.username, coprname=copr.name)
+    return process_new_build_upload(copr, view, url_on_success)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_upload/", methods=["POST"])
+@login_required
+@req_with_copr
+def group_copr_new_build_upload(copr):
+    view = 'coprs_ns.copr_new_build_upload'
+    url_on_success = url_for("coprs_ns.group_copr_builds",
+                             group_name=copr.group.name, coprname=copr.name)
+    return process_new_build_upload(copr, view, url_on_success)
+
+
 def process_new_build_upload(copr, add_view, url_on_success):
     form = forms.BuildFormUploadFactory(copr.active_chroots)()
     if form.validate_on_submit():
@@ -306,90 +485,30 @@ def process_new_build_upload(copr, add_view, url_on_success):
         return render_add_build_upload(copr, form, add_view)
 
 
-@coprs_ns.route("/<username>/<coprname>/new_build_upload/", methods=["POST"])
+################################ Builds rebuilds ################################
+
+@coprs_ns.route("/<username>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
 @login_required
 @req_with_copr
-def copr_new_build_upload(copr):
-    view = 'coprs_ns.copr_new_build_upload'
-    url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.owner.username, coprname=copr.name)
-    return process_new_build_upload(copr, view, url_on_success)
+def copr_new_build_rebuild(copr, build_id):
+    view='coprs_ns.copr_new_build'
+    url_on_success = url_for(
+        "coprs_ns.copr_builds",
+        username=copr.owner.username, coprname=copr.name)
+
+    return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
 
 
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_upload/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
 @login_required
 @req_with_copr
-def group_copr_new_build_upload(copr):
-    view = 'coprs_ns.copr_new_build_upload'
-    url_on_success = url_for("coprs_ns.group_copr_builds",
-                             group_name=copr.group.name, coprname=copr.name)
-    return process_new_build_upload(copr, view, url_on_success)
+def group_copr_new_build_rebuild(copr, build_id):
+    view='coprs_ns.copr_new_build'
+    url_on_success = url_for(
+        "coprs_ns.group_copr_builds",
+        group_name=copr.group.name, coprname=copr.name)
 
-
-def process_new_build_url(copr, add_view, url_on_success):
-    form = forms.BuildFormUrlFactory(copr.active_chroots)()
-
-    if form.validate_on_submit():
-        pkgs = form.pkgs.data.split("\n")
-
-        if not pkgs:
-            flask.flash("No builds submitted")
-        else:
-            # # check which chroots we need
-            # chroots = []
-            # for chroot in copr.active_chroots:
-            #     if chroot.name in form.selected_chroots:
-            #         chroots.append(chroot)
-
-            # build each package as a separate build
-            try:
-                for pkg in pkgs:
-                    build_options = {
-                        "enable_net": form.enable_net.data,
-                        "timeout": form.timeout.data,
-                    }
-                    BuildsLogic.create_new_from_url(
-                        flask.g.user, copr, pkg,
-                        chroot_names=form.selected_chroots,
-                        **build_options
-                    )
-
-            except (ActionInProgressException, InsufficientRightsException) as e:
-                flask.flash(str(e), "error")
-                db.session.rollback()
-            else:
-                for pkg in pkgs:
-                    flask.flash("New build has been created: {}".format(pkg))
-
-                db.session.commit()
-
-        return flask.redirect(url_on_success)
-    else:
-        return render_add_build(copr, form, add_view)
-
-
-@coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
-@login_required
-@req_with_copr
-def copr_new_build(copr):
-    return process_new_build_url(
-        copr,
-        "coprs_ns.copr_new_build",
-        url_on_success=url_for("coprs_ns.copr_builds",
-                               username=copr.owner.username, coprname=copr.name)
-    )
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build(copr):
-    return process_new_build_url(
-        copr,
-        "coprs_ns.copr_new_build",
-        url_on_success=url_for("coprs_ns.group_copr_builds",
-                               group_name=copr.group.name, coprname=copr.name)
-    )
+    return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
 
 
 def process_rebuild(copr, build_id, view, url_on_success):
@@ -422,31 +541,7 @@ def process_rebuild(copr, build_id, view, url_on_success):
         return render_add_build(copr, form, view)
 
 
-@coprs_ns.route("/<username>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
-@login_required
-@req_with_copr
-def copr_new_build_rebuild(copr, build_id):
-
-    view='coprs_ns.copr_new_build'
-    url_on_success = url_for(
-        "coprs_ns.copr_builds",
-        username=copr.owner.username, coprname=copr.name)
-
-    return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build_rebuild(copr, build_id):
-
-    view='coprs_ns.copr_new_build'
-    url_on_success = url_for(
-        "coprs_ns.group_copr_builds",
-        group_name=copr.group.name, coprname=copr.name)
-
-    return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
-
+################################ Repeat ################################
 
 @coprs_ns.route("/<username>/<coprname>/repeat_build/<int:build_id>/",
                 methods=["GET", "POST"])
@@ -495,6 +590,8 @@ def process_copr_repeat_build(build_id, copr):
         copr=copr, build=build, form=form)
 
 
+################################ Cancel ################################
+
 def process_cancel_build(build):
     try:
         builds_logic.BuildsLogic.cancel_build(flask.g.user, build)
@@ -522,6 +619,8 @@ def group_copr_cancel_build(group_name, coprname, build_id):
     build = ComplexLogic.get_build_safe(build_id)
     return process_cancel_build(build)
 
+
+################################ Delete ################################
 
 @coprs_ns.route("/<username>/<coprname>/delete_build/<int:build_id>/",
                 methods=["POST"])
