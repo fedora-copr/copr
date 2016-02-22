@@ -1,6 +1,6 @@
 {% extends "coprs/detail.html" %}
 {% from "coprs/detail/_package_helpers.html" import nav_element, badge with context %}
-{% from "coprs/detail/_package_forms.html" import copr_package_form_tito, copr_package_form_mock with context %}
+{% from "coprs/detail/_package_forms.html" import copr_package_form_tito, copr_package_form_mock, copr_package_form_pypi with context %}
 
 {% block title %}New package in {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
 {% set selected_tab = "packages" %}
@@ -24,6 +24,7 @@ create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>
 <ul class="nav nav-tabs nav-tabs-pf">
   {{ nav_element("git_and_tito", "Git and Tito", copr_url('coprs_ns.copr_add_package', copr, source_type="git_and_tito")) }}
   {{ nav_element("mock_scm", "Mock SCM", copr_url('coprs_ns.copr_add_package', copr, source_type="mock_scm")) }}
+  {{ nav_element("pypi", "PyPI", copr_url('coprs_ns.copr_add_package', copr, source_type="pypi")) }}
 </ul>
 
 {% if source_type == "git_and_tito" %}
@@ -33,6 +34,10 @@ create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>
 {% elif source_type == "mock_scm" %}
     <h3>Mock {{ badge('mock_scm') }}</h3>
     {{ copr_package_form_mock(form_mock, view, copr, package) }}
+
+{% elif source_type == "pypi" %}
+    <h3>PyPI {{ badge('pypi') }}</h3>
+    {{ copr_package_form_pypi(form_pypi, view, copr, package) }}
 
 {% else %}
   <h3>Wrong source type</h3>

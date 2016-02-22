@@ -162,6 +162,6 @@ def create_user_keys(username, projectname, opts):
 
     if response.status_code >= 400:
         raise CoprKeygenRequestError(
-            msg="Failed to create key-pair for user: {}, project:{}"
-            .format(username, projectname),
+            msg="Failed to create key-pair for user: {}, project:{}, status_code: {}, response: {}"
+            .format(username, projectname, response.status_code, response.text),
             request=query, response=response)

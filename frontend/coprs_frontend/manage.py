@@ -121,48 +121,60 @@ class CreateChrootCommand(ChrootCommand):
                 self.print_already_exists(chroot_name)
 
 
-class RawhideToReleaseCommand(ChrootCommand):
+class RawhideToReleaseCommand(Command):
 
-    def run(self, chroot_names):
-        for chroot_name in chroot_names:
-            mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(chroot_name).first()
-            if not mock_chroot:
-                print("Given chroot does not exist. Please run:")
-                print("    sudo python manage.py create_chroot {}".format(chroot_name))
-                print("Nothing was committed, rolling back")
-                return
+    option_list = (
+        Option("rawhide_chroot", help="Rawhide chroot name, e.g. fedora-rawhide-x86_64."),
+        Option("dest_chroot", help="Destination chroot, e.g. fedora-24-x86_64."),
+    )
 
-            for copr in coprs_logic.CoprsLogic.get_all():
-                if not self.has_rawhide(copr):
-                    continue
+    def run(self, rawhide_chroot, dest_chroot):
+        mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(dest_chroot).first()
+        if not mock_chroot:
+            print("Given chroot does not exist. Please run:")
+            print("    sudo python manage.py create_chroot {}".format(dest_chroot))
+            return
 
-                data = {"copr": copr.name,
-                        "user": copr.owner.name,
-                        "chroots": chroot_names,
-                        "builds": []}
+        mock_rawhide_chroot = coprs_logic.MockChrootsLogic.get_from_name(rawhide_chroot).first()
+        if not mock_rawhide_chroot:
+            print("Given rawhide chroot does not exist. Didnt you mistyped?:")
+            print("    {}".format(rawhide_chroot))
+            return
 
-                for package in packages_logic.PackagesLogic.get_all(copr.id):
-                    last_build = package.last_build(successful=True)
-                    if last_build:
-                        data["builds"].append("{}-{}".format(str(last_build.id).zfill(8), package.name))
+        for copr in coprs_logic.CoprsLogic.get_all():
+            if not self.has_rawhide(copr):
+                continue
 
-                if len(data["builds"]):
-                    actions_logic.ActionsLogic.send_rawhide_to_release(data)
-                    self.turn_on_the_chroot_for_copr(copr, mock_chroot)
+            data = {"copr": copr.name,
+                    "user": copr.owner.name,
+                    "rawhide_chroot": rawhide_chroot,
+                    "dest_chroot": dest_chroot,
+                    "builds": []}
+
+            for package in packages_logic.PackagesLogic.get_all(copr.id):
+                last_build = package.last_build(successful=True)
+                if last_build:
+                    data["builds"].append("{}-{}".format(str(last_build.id).zfill(8), package.name))
+
+            if len(data["builds"]):
+                actions_logic.ActionsLogic.send_rawhide_to_release(data)
+                self.turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
 
         db.session.commit()
 
-    def turn_on_the_chroot_for_copr(self, copr, mock_chroot):
-        rawhide_chroot = coprs_logic.CoprChrootsLogic.\
-            get_by_name_safe(copr, "fedora-rawhide-{}".format(mock_chroot.name.split("-")[-1]))
+    def turn_on_the_chroot_for_copr(self, copr, rawhide_name, mock_chroot):
+        rawhide_chroot = coprs_logic.CoprChrootsLogic.get_by_name_safe(copr, rawhide_name)
+        dest_chroot = coprs_logic.CoprChrootsLogic.get_by_name_safe(copr, mock_chroot.name)
 
-        if not rawhide_chroot or coprs_logic.CoprChrootsLogic.get_by_name_safe(copr, mock_chroot.name):
+        if not rawhide_chroot or dest_chroot:
             return
 
-        coprs_logic.CoprChrootsLogic.create_chroot(copr.owner, copr, mock_chroot,
-                                                   buildroot_pkgs=rawhide_chroot.buildroot_pkgs,
-                                                   comps=rawhide_chroot.comps,
-                                                   comps_name=rawhide_chroot.comps_name)
+        create_kwargs = {
+            "buildroot_pkgs": rawhide_chroot.buildroot_pkgs,
+            "comps": rawhide_chroot.comps,
+            "comps_name": rawhide_chroot.comps_name,
+        }
+        coprs_logic.CoprChrootsLogic.create_chroot(copr.owner, copr, mock_chroot, **create_kwargs)
 
     def has_rawhide(self, copr):
         return any(filter(lambda ch: ch.os_version == "rawhide", copr.mock_chroots))

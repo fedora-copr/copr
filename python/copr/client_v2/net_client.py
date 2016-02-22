@@ -76,7 +76,10 @@ class ResponseWrapper(object):
         """
         self.response = response
         if response.status_code != 204 and response.content:
-            self.json = json.loads(response.content)
+            if isinstance(response.content, bytes):
+                self.json = json.loads(response.content.decode('utf-8'))
+            else:
+                self.json = json.loads(response.content)
         else:
             self.json = None
 

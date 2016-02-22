@@ -226,6 +226,7 @@ class TestDistGitImporter(object):
 
     def test_pkg_name_evr(self, mc_popen):
         mc_comm = MagicMock()
+        mc_popen.return_value.returncode = 0
         mc_popen.return_value.communicate = mc_comm
 
         test_plan = [

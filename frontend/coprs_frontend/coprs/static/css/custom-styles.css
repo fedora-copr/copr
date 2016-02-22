@@ -1,0 +1,23 @@
+div.pypi-python-version {
+	cursor: default;
+}
+
+div.pypi-python-version input {
+	margin-bottom: -1px;
+	vertical-align:middle;
+}
+
+div.pypi-python-version label {
+	margin-bottom: -5px;
+	vertical-align:middle;
+}
+
+div.anitya-rebuild input {
+	margin-bottom: -1px;
+	vertical-align:middle;
+}
+
+div.anitya-rebuild label {
+	margin-bottom: -5px;
+	vertical-align:middle;
+}

@@ -181,7 +181,7 @@ class CoprJobGrab(object):
                 if time.time() - start > 2*self.opts.sleeptime:
                     # we are processing actions for too long, stop and fetch everything again (including new builds)
                     break
-                    
+
 
     def on_pubsub_event(self, raw):
         # from celery.contrib import rdb; rdb.set_trace()

@@ -7,10 +7,11 @@ from coprs import forms
 from coprs import helpers
 from coprs.models import Package, Build
 from coprs.views.coprs_ns import coprs_ns
-from coprs.views.coprs_ns.coprs_builds import render_add_build_tito, render_add_build_mock
+from coprs.views.coprs_ns.coprs_builds import render_add_build_tito, render_add_build_mock, render_add_build_pypi
 from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,)
 
@@ -47,6 +48,14 @@ def copr_rebuild_package(copr, package_name):
         form = forms.BuildFormMockFactory
         f = render_add_build_mock
         view_suffix = "_mock"
+    elif package.source_type_text == "pypi":
+        form = forms.BuildFormPyPIFactory
+        f = render_add_build_pypi
+        view_suffix = "_pypi"
+    else:
+        flask.flash("Package {} has not the default source which is required for rebuild. Please configure some source"
+                    .format(package_name, copr.full_name))
+        return flask.redirect(copr_url("coprs_ns.copr_edit_package", copr, package_name=package_name))
 
     form = form(copr.active_chroots)(data=data)
     return f(copr, form, view="coprs_ns.copr_new_build" + view_suffix, package=package)
@@ -61,7 +70,8 @@ def copr_rebuild_package(copr, package_name):
 def copr_add_package(copr, source_type="git_and_tito", **kwargs):
     form = {
         "git_and_tito": forms.PackageFormTito(),
-        "mock_scm": forms.PackageFormMock()
+        "mock_scm": forms.PackageFormMock(),
+        "pypi": forms.PackageFormPyPI(),
     }
 
     if "form" in kwargs:
@@ -69,7 +79,7 @@ def copr_add_package(copr, source_type="git_and_tito", **kwargs):
 
     return flask.render_template("coprs/detail/add_package.html", copr=copr, package=None,
                                  source_type=source_type, view="coprs_ns.copr_new_package",
-                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"])
+                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"])
 
 
 @coprs_ns.route("/<username>/<coprname>/package/new", methods=["POST"])
@@ -100,6 +110,7 @@ def copr_edit_package(copr, package_name, source_type=None, **kwargs):
     form_classes = {
         "git_and_tito": forms.PackageFormTito,
         "mock_scm": forms.PackageFormMock,
+        "pypi": forms.PackageFormPyPI,
     }
     form = {k: v(formdata=None) for k, v in form_classes.items()}
 
@@ -112,7 +123,7 @@ def copr_edit_package(copr, package_name, source_type=None, **kwargs):
 
     return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr,
                                  source_type=source_type, view="coprs_ns.copr_edit_package",
-                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"])
+                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"])
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit", methods=["POST"])
@@ -120,6 +131,9 @@ def copr_edit_package(copr, package_name, source_type=None, **kwargs):
 @login_required
 @req_with_copr
 def copr_edit_package_post(copr, package_name):
+    UsersLogic.raise_if_cant_build_in_copr(
+        flask.g.user, copr, "You don't have permissions to edit this package.")
+
     url_on_success = copr_url("coprs_ns.copr_packages", copr)
     return process_save_package(copr, package_name, view="coprs_ns.copr_edit_package",
                                 view_method=copr_edit_package, url_on_success=url_on_success)
@@ -130,6 +144,8 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
         form = forms.PackageFormTito()
     elif flask.request.form["source_type"] == "mock_scm":
         form = forms.PackageFormMock()
+    elif flask.request.form["source_type"] == "pypi":
+        form = forms.PackageFormPyPI()
     else:
         raise Exception("Wrong source type")
 
@@ -154,6 +170,10 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
                 "scm_url": form.scm_url.data,
                 "scm_branch": form.scm_branch.data,
                 "spec": form.spec.data})
+        elif package.source_type == helpers.BuildSourceEnum("pypi"):
+            package.source_json = json.dumps({
+                "pypi_package_name": form.pypi_package_name.data,
+                "python_version": form.python_version.data})
 
         try:
             db.session.add(package)

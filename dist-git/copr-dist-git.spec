@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.12
+Version:    0.13
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -35,6 +35,7 @@ Requires: python-requests
 Requires: pyrpkg
 Requires: mock-scm
 Requires: tito
+Requires: pyp2rpm
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI
@@ -101,6 +102,12 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 0.13-1
+- [dist-git] error handling based on subprocess return codes instead of output
+  to stderr (e.g. git outputs progress to stderr) + missing catch for
+  GitException in do_import (results in better error messages in frontend, see
+  bz#1295540)
+
 * Mon Jan 25 2016 Miroslav Suchý <msuchy@redhat.com> 0.12-1
 - pass --scm-option spec=foo to mock-scm (msuchy@redhat.com)
 
