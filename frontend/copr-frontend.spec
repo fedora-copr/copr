@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.81
+Version:    1.82
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -262,6 +262,9 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Mon Feb 22 2016 clime <clime@redhat.com> 1.82-1
+- patch for webhook invoked rebuilds
+
 * Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.81-1
 - minor css fix
 - report a bug link
