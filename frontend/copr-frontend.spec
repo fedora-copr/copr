@@ -36,6 +36,7 @@ BuildRequires: python-argparse
 Requires:   httpd
 Requires:   mod_wsgi
 Requires:   passwd
+Requires:   curl
 Requires:   python-alembic
 Requires:   python-flask
 Requires:   python-flask-openid
@@ -66,7 +67,6 @@ Requires:   logstash
 Requires:   redis
 Requires:   python-redis
 Requires:   python-dateutil
-Requires:   httpie
 
 %if 0%{?fedora} >= 23
 Requires: python-dnf

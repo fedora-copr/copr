@@ -74,15 +74,16 @@ def to_json(data):
     return data_json
 
 def get_updates_messages():
-    get_updates_cmd = ['http', 'get', 'https://apps.fedoraproject.org/datagrepper/raw', 'category==anitya', 'delta=={0}'.format(args.delta), 'topic==org.release-monitoring.prod.anitya.project.version.update', 'rows_per_page==64', 'order==asc']
-    get_updates_cmd_paged = get_updates_cmd + ['page==1']
-    result_json = to_json(run_cmd(get_updates_cmd_paged))
+    cmd_binary = 'curl'
+    url_template = 'https://apps.fedoraproject.org/datagrepper/raw?category=anitya&delta={delta}&topic=org.release-monitoring.prod.anitya.project.version.update&rows_per_page=64&order=asc&page={page}'
+    get_updates_cmd = [cmd_binary, url_template.format(delta=args.delta, page=1)]
+    result_json = to_json(run_cmd(get_updates_cmd))
     messages = result_json['raw_messages']
     pages = result_json['pages']
 
     for p in range(2, pages+1):
-        get_updates_cmd_paged = get_updates_cmd + ['page=='+str(p)]
-        result_json = to_json(run_cmd(get_updates_cmd_paged))
+        get_updates_cmd = [cmd_binary, url_template.format(delta=args.delta, page=p)]
+        result_json = to_json(run_cmd(get_updates_cmd))
         messages += result_json['raw_messages']
 
     return messages
