@@ -21,15 +21,15 @@
 </div>
 
 {% for copr in coprs %}
-  <h2 class="page-title">{{ copr.full_name }}</h2>
+  <h2 class="page-title"><a href="{{ copr_url('coprs_ns.copr_detail', copr) }}">{{ copr.full_name }}</a></h2>
 
   {% if copr.packages %}
   <table class="datatable table table-striped table-bordered">
     <thead>
       <tr>
         <th>Package Name</th>
-        <th>Old State</th>
-        <th>New State</th>
+        <th>State Before Migration</th>
+        <th>State After Migration</th>
         <th>Build</th>
       </tr>
     </thead>
