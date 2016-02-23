@@ -103,6 +103,20 @@ def coprs_by_owner(username=None, page=1):
                                  users_builds=users_builds)
 
 
+@coprs_ns.route("/migration-report")
+def coprs_migration_report():
+    username = flask.g.user.name if flask.g.user else "codeblock"  # He has plenty of projects so we can see a big report
+    user = users_logic.UsersLogic.get(username).first()
+
+    query = CoprsLogic.get_multiple_owned_by_username(username)
+    query = CoprsLogic.set_query_order(query, desc=True)
+    coprs = query.all()
+
+    return flask.render_template("migration-report.html",
+                                 user=user,
+                                 coprs=coprs)
+
+
 @coprs_ns.route("/fulltext/", defaults={"page": 1})
 @coprs_ns.route("/fulltext/<int:page>/")
 def coprs_fulltext_search(page=1):

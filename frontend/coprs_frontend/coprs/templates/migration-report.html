@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% from "_helpers.html" import build_href_from_sql, build_state, copr_url %}
+{% block title %}Migration Report{% endblock %}
+{% block header %}Migration Report{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li><a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a></li>
+  <li><a href="{{ url_for('coprs_ns.coprs_by_owner', username=user.name) }}">{{ user.name }}</a></li>
+  <li class="active">Migration Report</li>
+</ol>
+{% endblock %}
+
+{% block body %}
+
+
+<div id="profile">
+  <img src="{{ user.gravatar_url }}" alt="User Image" class="avatar">
+  <h1>{{ user.name|capitalize }}'s Migration</h1>
+  <p style="color:#333">Hello {{ user.name|capitalize }}, we have performed migration of Copr service to foo and therefore bar</p>
+</div>
+
+{% for copr in coprs %}
+  <h2 class="page-title">{{ copr.full_name }}</h2>
+
+  {% if copr.packages %}
+  <table class="datatable table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Package Name</th>
+        <th>Old State</th>
+        <th>New State</th>
+        <th>Build</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for package in copr.packages %}
+      <tr>
+        <td>
+          <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a>
+        </td>
+        <td>
+          Foo
+        </td>
+        <td>
+          {{ build_state(package.last_build()) }}
+        </td>
+        <td>
+          <a href="{{ build_href_from_sql(package.last_build()) }}">{{ package.last_build().id }}</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <h3>No packages</h3>
+  {% endif %}
+{% endfor %}
+
+{% endblock %}
