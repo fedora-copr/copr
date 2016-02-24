@@ -16,6 +16,7 @@ from coprs import models
 from coprs import oid
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.logic.coprs_logic import CoprsLogic
 
 
 def fed_openidize_name(name):
@@ -321,3 +322,17 @@ def req_with_copr(f):
             copr = ComplexLogic.get_copr_safe(username, coprname, with_mock_chroots=True)
         return f(copr, **kwargs)
     return wrapper
+
+
+@misc.route("/migration-report/")
+def coprs_migration_report():
+    username = flask.g.user.name if flask.g.user else "codeblock"  # He has plenty of projects so we can see a big report
+    user = UsersLogic.get(username).first()
+
+    query = CoprsLogic.get_multiple_owned_by_username(username)
+    query = CoprsLogic.set_query_order(query, desc=True)
+    coprs = query.all()
+
+    return flask.render_template("migration-report.html",
+                                 user=user,
+                                 coprs=coprs)
