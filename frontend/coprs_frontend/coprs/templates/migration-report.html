@@ -6,18 +6,34 @@
 {% block breadcrumbs %}
 <ol class="breadcrumb">
   <li><a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a></li>
-  <li><a href="{{ url_for('coprs_ns.coprs_by_owner', username=user.name) }}">{{ user.name }}</a></li>
+  {% if user %}
+    <li><a href="{{ url_for('coprs_ns.coprs_by_owner', username=user.name) }}">{{ user.name }}</a></li>
+  {% else %}
+    <li><a href="{{ url_for('groups_ns.list_projects_by_group', group_name=group.name) }}">{{ group.name }}</a></li>
+  {% endif %}
   <li class="active">Migration Report</li>
 </ol>
 {% endblock %}
 
 {% block body %}
-
-
 <div id="profile">
-  <img src="{{ user.gravatar_url }}" alt="User Image" class="avatar">
-  <h1>{{ user.name|capitalize }}'s Migration</h1>
-  <p style="color:#333">Hello {{ user.name|capitalize }}, we have performed migration of Copr service to foo and therefore bar</p>
+  {% if user %}
+    <img src="{{ user.gravatar_url }}" alt="User Image" class="avatar">
+    <h1>{{ user.name|capitalize }}'s Migration</h1>
+    {% if (user and user.name == g.user.name) %}
+    {% endif %}
+  {% else %}
+    <img src="https://seccdn.libravatar.org/avatar/" alt="" class="avatar">
+    <h1>Migration of @{{ group.name }} Group</h1>
+    <p>
+      <a href="https://admin.fedoraproject.org/accounts/group/view/{{ group.fas_name }}" title="{{ group.fas_name }}'s FAS details" target="_blank">FAS details</a> |
+      <a href="https://admin.fedoraproject.org/accounts/group/members/{{ group.fas_name }}" title="{{ group.fas_name }}'s Members" target="_blank">View Members</a>
+    </p>
+  {% endif %}
+
+  {% if g.user and ((user and user.name == g.user.name) or (group and g.user.can_build_in_group(group))) %}
+    <p style="color:#333">Hello {{ g.user.name|capitalize }}, we have performed migration of Copr service to foo and therefore bar</p>
+  {% endif %}
 </div>
 
 {% for copr in coprs |sort(attribute='group_id') %}
