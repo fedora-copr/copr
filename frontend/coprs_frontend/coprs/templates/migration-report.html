@@ -20,7 +20,7 @@
   <p style="color:#333">Hello {{ user.name|capitalize }}, we have performed migration of Copr service to foo and therefore bar</p>
 </div>
 
-{% for copr in coprs %}
+{% for copr in coprs |sort(attribute='group_id') %}
   <h2 class="page-title"><a href="{{ copr_url('coprs_ns.copr_detail', copr) }}">{{ copr.full_name }}</a></h2>
 
   {% if copr.packages %}
