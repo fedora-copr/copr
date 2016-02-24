@@ -34,7 +34,9 @@
       </tr>
     </thead>
     <tbody>
-      {% for package in copr.packages %}
+      {% set packages_succeeded = copr.packages |selectattr('old_status', 'sameas', 1) |list %}
+      {% set packages_other = copr.packages |rejectattr('old_status', 'sameas', 1) |sort(attribute='old_status') |list %}
+      {% for package in packages_succeeded + packages_other %}
       <tr>
         <td>
           <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a>
