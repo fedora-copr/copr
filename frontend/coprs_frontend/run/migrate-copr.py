@@ -10,6 +10,7 @@
 # NOTES
 # - We do have to copy user, group and some other (see mods variable) tables
 # - Stage 0 - Cleaning
+# - Not storing `old_status` in `BuildChroot`, but in `Package`
 
 
 from __future__ import print_function
@@ -63,13 +64,19 @@ class Copying(object):
     def copy_objects(self, model):
         for obj in srcdb.session.query(model).all():
             new = self.create_object(model, obj)
-            dstdb.session.add(new)
+            self.dstdb.session.add(new)
+
+    def copy_package(self, package):
+        build = package.last_build(successful=True) or package.last_build() or models.Build()
+        new = self.create_object(models.Package, package)
+        new.old_status = build.status
+        self.dstdb.session.add(new)
 
     def copy_build(self, build):
         if build:
             new = self.create_object(models.Build, build, exclude=["id"])
             new.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id"]) for c in build.build_chroots]
-            dstdb.session.add(new)
+            self.dstdb.session.add(new)
 
 
 # class MockDB():
@@ -93,13 +100,13 @@ mods = [
     models.CoprPermission,
     models.CoprChroot,
     models.CounterStat,
-    models.Package,
     models.MockChroot,
 ]
 
 clean_mods = [
     models.BuildChroot,
     models.Build,
+    models.Package,
 ] + list(reversed(mods))
 
 
@@ -116,6 +123,7 @@ def copy_data(cp):
 
     for copr in all_coprs():
         for package in PackagesLogic.get_all(copr.id):
+            cp.copy_package(package)
             cp.copy_build(package.last_build(successful=True))
 
 

@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "_helpers.html" import build_href_from_sql, build_state, copr_url %}
+{% from "_helpers.html" import build_href_from_sql, build_state, build_state_text, copr_url %}
 {% block title %}Migration Report{% endblock %}
 {% block header %}Migration Report{% endblock %}
 
@@ -40,13 +40,17 @@
           <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a>
         </td>
         <td>
-          Foo
+          {{ build_state_text(package.old_status | state_from_num) }}
         </td>
         <td>
-          {{ build_state(package.last_build()) }}
+          {{ build_state(package.last_build()) if package.last_build() else '-' }}
         </td>
         <td>
-          <a href="{{ build_href_from_sql(package.last_build()) }}">{{ package.last_build().id }}</a>
+          {% if package.last_build() %}
+            <a href="{{ build_href_from_sql(package.last_build()) }}">{{ package.last_build().id }}</a>
+          {% else %}
+            -
+          {% endif %}
         </td>
       </tr>
       {% endfor %}

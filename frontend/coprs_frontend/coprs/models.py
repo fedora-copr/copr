@@ -361,6 +361,14 @@ class Package(db.Model, helpers.Serializer):
     enable_net = db.Column(db.Boolean, default=False,
                            server_default="0", nullable=False)
 
+    # @TODO Remove me few weeks after Copr migration
+    # Contain status of the Package before migration
+    # Normally the `status` is not stored in `Package`. It is computed from `status` variable of `BuildChroot`,
+    # but `old_status` has to be stored here, because we migrate whole `package` table, but only succeeded builds.
+    # Therefore if `old_status` was in `BuildChroot` we wouldn't be able to know old state of non-succeeded packages
+    # even though it would be known before migration.
+    old_status = db.Column(db.Integer)
+
     builds = db.relationship("Build", order_by="Build.id")
 
     # relations
