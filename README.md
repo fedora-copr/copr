@@ -2,6 +2,7 @@
 
 [**Project Page**](https://fedorahosted.org/copr/) | 
 [**Report a Bug**](https://bugzilla.redhat.com/enter_bug.cgi?product=Copr) | 
+[**Already reported bugs**](https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=POST&bug_status=MODIFIED&bug_status=ON_DEV&bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&classification=Community&list_id=4678560&product=Copr&query_format=advanced) |
 [**Production Instance**](https://copr.fedoraproject.org) | 
 [**Testing Instance**](http://copr-fe-dev.cloud.fedoraproject.org/)
 
