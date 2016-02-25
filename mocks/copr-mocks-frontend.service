@@ -1,0 +1,11 @@
+[Unit]
+Description=COPR mock for the frontend component
+
+[Service]
+User=copr-mocks
+Group=copr-mocks
+WorkingDirectory=/usr/share/copr/mocks/frontend
+ExecStart=/usr/share/copr/mocks/frontend/manage.py runserver
+
+[Install]
+WantedBy=multi-user.target

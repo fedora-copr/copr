@@ -1,0 +1,1 @@
+For regression testing purposes, this package contains the most basic Flask projects that subtitute individual COPR system components while keeping their crucial interfaces to other system components.

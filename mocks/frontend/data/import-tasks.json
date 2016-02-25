@@ -1,0 +1,18 @@
+[
+  {
+    "branch": "f23",
+    "project": "example",
+    "source_json": "{\"url\": \"http://localhost:5000/static/example-1.0.5-1.fc23.src.rpm\"}",
+    "source_type": 1,
+    "task_id": "1-f23",
+    "user": "clime"
+  },
+  {
+    "branch": "master",
+    "project": "example",
+    "source_json": "{\"url\": \"http://localhost:5000/static/example-1.0.5-1.fc23.src.rpm\"}",
+    "source_type": 1,
+    "task_id": "1-master",
+    "user": "clime"
+  }
+]

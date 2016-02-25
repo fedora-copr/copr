@@ -2,7 +2,7 @@
 *.pyo
 *.swp
 .coverage
-data/
+frontend/data/
 cli/dist/
 build/
 _build/
