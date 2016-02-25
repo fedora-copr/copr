@@ -279,6 +279,7 @@ class GitAndTitoProvider(GitProvider):
             cmd.append('--test')
         git_subdir = "{}/{}".format(self.git_dir, self.task.tito_git_dir)
 
+        log.debug(' '.join(cmd))
         try:
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=git_subdir)
             output, error = proc.communicate()
@@ -307,6 +308,7 @@ class MockScmProvider(SrpmBuilderProvider):
                "--scm-option", "spec={0}".format(self.task.mock_spec),
                "--scm-option", self.scm_option_get(),
                "--buildsrpm", "--resultdir={}".format(self.tmp_dest)]
+        log.debug(' '.join(cmd))
 
         try:
             proc = Popen(" ".join(cmd), shell=True, stdout=PIPE, stderr=PIPE)
@@ -337,7 +339,7 @@ class PyPIProvider(SrpmBuilderProvider):
         if self.task.pypi_package_version:
             cmd += ['-v', self.task.pypi_package_version]
 
-        log.info(' '.join(cmd))
+        log.debug(' '.join(cmd))
 
         try:
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
