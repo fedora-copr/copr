@@ -150,8 +150,6 @@ def clean_copr():
         build_id = os.path.basename(dir_path).split('-')[0]
         buildlog_name = 'build-' + build_id + '.log'
         buildlog_path = os.path.abspath(os.path.join(args.path, buildlog_name))
-        if args.verbose:
-            log_info('Removing: '+buildlog_path)
         rm_file(os.path.join(args.path, buildlog_path))
 
 
