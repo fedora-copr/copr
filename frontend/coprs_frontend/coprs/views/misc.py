@@ -327,7 +327,9 @@ def req_with_copr(f):
 @misc.route("/migration-report/")
 @misc.route("/migration-report/<username>")
 def coprs_migration_report(username=None):
-    if not username:
+    if not username and not flask.g.user:
+        return generic_error("You are not logged in")
+    elif not username:
         username = flask.g.user.name
     user = UsersLogic.get(username).first()
 
