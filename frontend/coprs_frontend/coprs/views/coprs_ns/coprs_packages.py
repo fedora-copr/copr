@@ -173,7 +173,7 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
         elif package.source_type == helpers.BuildSourceEnum("pypi"):
             package.source_json = json.dumps({
                 "pypi_package_name": form.pypi_package_name.data,
-                "python_version": form.python_version.data})
+                "python_versions": form.python_versions.data})
 
         try:
             db.session.add(package)

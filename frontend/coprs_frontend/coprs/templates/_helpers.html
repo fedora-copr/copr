@@ -30,6 +30,27 @@
   {% endif %}
 {% endmacro %}
 
+{% macro render_pypi_python_versions_field(field) %}
+  <div class="form-group {% if field.errors %}has-error{% endif %}">
+    <label class="col-sm-2 control-label">
+      <label for="python_versions">Build for Python</label>:
+    </label>
+    <div class="col-sm-10 pypi-python-version">
+      <input id="python_versions-0" name="python_versions" value="3" type="checkbox" {% if '3' in field.data %}checked="checked"{% endif %}>
+      <label for="python_versions-0">3</label>&nbsp;&nbsp;&nbsp;
+      <input id="python_versions-1" name="python_versions" value="2" type="checkbox" {% if '2' in field.data %}checked="checked"{% endif %}>
+      <label for="python_versions-1">2</label>
+    </div>
+    {% if field.errors %}
+      {% for error in field.errors %}
+        <li class="help-block">
+          <span class="help-block">{{ error }}</span>
+        </li>
+      {% endfor %}
+    {% endif %}
+  </div>
+{% endmacro %}
+
 {% macro render_pagination(request, paginator) %}
   {% if paginator.pages > 1 %}
   <div class="text-center">

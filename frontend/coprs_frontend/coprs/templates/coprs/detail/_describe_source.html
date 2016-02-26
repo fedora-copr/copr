@@ -48,7 +48,7 @@
   {% endif %}
 
   <dt>Build for Python</dt>
-  <dd>{{ build.source_json_dict["python_version"] }}</dd>
+  <dd>{{ ', '.join(build.source_json_dict["python_versions"]).strip(', ') }}</dd>
   {% endif %}
 
 {% endmacro %}

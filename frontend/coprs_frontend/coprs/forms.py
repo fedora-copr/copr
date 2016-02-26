@@ -14,6 +14,11 @@ from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
 
 
+class MultiCheckboxField(wtforms.SelectMultipleField):
+    widget = wtforms.widgets.ListWidget(prefix_label=False)
+    option_widget = wtforms.widgets.CheckboxInput()
+
+
 class UrlListValidator(object):
 
     def __init__(self, message=None):
@@ -388,13 +393,13 @@ class PackageFormPyPI(BasePackageForm):
             wtforms.validators.Optional(),
         ])
 
-    python_version = wtforms.RadioField(
-        "Build for Python",
+    python_versions = MultiCheckboxField(
+        'Build for Python',
         choices=[
-            ('2', '2'),
-            ('3', '3'),
+            ('3', 'python3'),
+            ('2', 'python2')
         ],
-        default='3',
+        default=['3', '2'],
         validators=[
             wtforms.validators.DataRequired(),
         ])

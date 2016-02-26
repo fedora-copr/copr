@@ -63,7 +63,7 @@ class ImportTask(object):
         # For PyPI
         self.pypi_package_name = None
         self.pypi_package_version = None
-        self.pypi_python_version = None
+        self.pypi_python_versions = None
 
     @property
     def reponame(self):
@@ -108,7 +108,7 @@ class ImportTask(object):
         elif task.source_type == SourceType.PYPI:
             task.pypi_package_name = task.source_data["pypi_package_name"]
             task.pypi_package_version = task.source_data["pypi_package_version"]
-            task.pypi_python_version = task.source_data["python_version"]
+            task.pypi_python_versions = task.source_data["python_versions"]
 
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
@@ -335,7 +335,14 @@ class PyPIProvider(SrpmBuilderProvider):
     """
     def get_srpm(self):
         log.debug("GIT_BUILDER: 3. build via pyp2rpm")
-        cmd = ['pyp2rpm', self.task.pypi_package_name, '--srpm', '-d', self.tmp_dest, '-b', self.task.pypi_python_version]
+        cmd = ['pyp2rpm', self.task.pypi_package_name, '--srpm', '-d', self.tmp_dest]
+
+        for i, python_version in enumerate(self.task.pypi_python_versions):
+            if i == 0:
+                cmd += ['-b', python_version]
+            else:
+                cmd += ['-p', python_version]
+
         if self.task.pypi_package_version:
             cmd += ['-v', self.task.pypi_package_version]
 
