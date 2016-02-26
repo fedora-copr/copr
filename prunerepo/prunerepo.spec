@@ -20,15 +20,19 @@ Requires: rpm-python3
 Requires: python3
 
 %description
-Removes obsoleted package versions from a yum repository. Both
-rpms and srpms, that have a newer version available in that same
-repository, are deleted from filesystem and rpm-md metadata are 
-recreated afterwards. Support for specific repository structure
-(e.g. COPR) is also available making it possible to additionally
-remove build logs and whole build directories associated with a 
-package. After deletion of obsoleted packages, the command
-"createrepo_c --database --update" is called to recreate the
-repository metadata.
+RPM packages that have newer version available in that same
+repository are deleted from filesystem and the rpm-md metadata are
+recreated afterwards. If there is a source rpm for a deleted rpm
+(and they both share the same directory path), then the source rpm
+will be deleted as well.
+
+Support for specific repository structure (e.g. COPR) is also available
+making it possible to additionally remove build logs and whole build
+directories associated with a package.
+
+After deletion of obsoleted packages, the command
+"createrepo_c --database --update" is called
+to recreate the repository metadata.
 
 %prep
 %setup -q

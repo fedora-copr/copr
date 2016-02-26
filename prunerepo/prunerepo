@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description='Remove old packages from rpm-md re
 parser.add_argument('path', action='store',
                    help='local path to a yum repository')
 parser.add_argument('--days', type=int, action='store', default=0,
-                   help='only remove packages older than DAYS by their build date')
+                   help='only remove packages that are DAYS old or older (by their build date)')
 parser.add_argument('--cleancopr', action='store_true',
                    help='additionaly remove whole copr build dirs and logs if the associated package gets deleted')
 parser.add_argument('--nocreaterepo', action='store_true',

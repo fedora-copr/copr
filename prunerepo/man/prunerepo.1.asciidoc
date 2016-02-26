@@ -14,17 +14,17 @@ prunerepo [--days DAYS] [--cleancopr] [--nocreaterepo] [--verbose] [-h] [-v] pat
 DESCRIPTION
 -----------
 RPM packages that have newer version available in that same
-repository are deleted from filesystem and the rpm-md metadata are 
+repository are deleted from filesystem and the rpm-md metadata are
 recreated afterwards. If there is a source rpm for a deleted rpm
-(and they both share the same directory path), then the source rpm 
-is deleted as well.
+(and they both share the same directory path), then the source rpm
+will be deleted as well.
 
 Support for specific repository structure (e.g. COPR) is also available
-making it possible to additionally remove build logs and whole build 
+making it possible to additionally remove build logs and whole build
 directories associated with a package.
 
 After deletion of obsoleted packages, the command
-"createrepo_c --database --update" is called 
+"createrepo_c --database --update" is called
 to recreate the repository metadata.
 
 
@@ -37,7 +37,7 @@ path::
 OPTIONS
 -------
 --days DAYS::
-	only remove packages older than DAYS (by their build date), does remove srpm only if associated rpm is removed
+	only remove packages that are DAYS old or older (by their build date)
 
 --cleancopr::
 	additionaly remove whole copr build dirs (contain 'build.info' file) and logs if the associated package gets deleted
