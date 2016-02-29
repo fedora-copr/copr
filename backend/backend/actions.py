@@ -239,6 +239,9 @@ class Action(object):
             if not os.path.exists(chrootdir):
                 self.log.debug("Create directory: {}".format(chrootdir))
                 os.makedirs(chrootdir)
+                createrepo(path=chrootdir, front_url=self.front_url,
+                           username=data["user"], projectname=data["copr"],
+                           override_acr_flag=True)
 
             for build in data["builds"]:
                 srcdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["rawhide_chroot"], build)
