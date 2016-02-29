@@ -195,6 +195,8 @@ class Copr(db.Model, helpers.Serializer):
     group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
     group = db.relationship("Group", backref=db.backref("groups"))
     mock_chroots = association_proxy("copr_chroots", "mock_chroot")
+    forked_from_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
+    forked_from = db.relationship("Copr", remote_side=id, backref=db.backref("forks"))
 
     # a secret to be used for webhooks authentication
     webhook_secret = db.Column(db.String(100))
