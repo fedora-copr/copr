@@ -807,3 +807,14 @@ def group_copr_build_monitor(copr, detailed=False):
     return render_monitor(copr, detailed == "detailed")
 
 
+@coprs_ns.route("/<username>/<coprname>/fork/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/fork/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_fork(copr):
+    fcopr = ComplexLogic.fork_copr(copr, flask.g.user)
+    db.session.commit()
+
+    flask.flash("Forking project {} for you into {}. Please be aware that it may take a few minutes "
+                "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+    return render_copr_detail(fcopr)

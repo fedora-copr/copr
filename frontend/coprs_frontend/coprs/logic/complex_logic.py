@@ -5,6 +5,8 @@ import sqlalchemy
 
 from .. import db
 from .builds_logic import BuildsLogic
+from coprs import models
+from coprs import exceptions
 from coprs.exceptions import ObjectNotFound
 from coprs.helpers import StatusEnum
 from coprs.logic.packages_logic import PackagesLogic
@@ -35,6 +37,46 @@ class ComplexLogic(object):
             BuildsLogic.delete_build(flask.g.user, build)
 
         CoprsLogic.delete_unsafe(flask.g.user, copr)
+
+    @classmethod
+    def fork_copr(cls, copr, user):
+        if CoprsLogic.get(user.name, copr.name).first():
+            raise exceptions.DuplicateException("You already have {}/{} project".format(user.name, copr.name))
+
+        # @TODO Move outside and properly test it
+        def create_object(clazz, from_object, exclude=list()):
+            arguments = {}
+            for name, column in from_object.__mapper__.columns.items():
+                if not name in exclude:
+                    arguments[name] = getattr(from_object, name)
+            return clazz(**arguments)
+
+        fcopr = create_object(models.Copr, copr, exclude=["id"])
+        fcopr.owner = user
+        fcopr.owner_id = user.id
+        fcopr.forked_from_id = copr.id
+
+        for chroot in list(copr.copr_chroots):
+            CoprChrootsLogic.create_chroot(user, fcopr, chroot.mock_chroot, chroot.buildroot_pkgs,
+                                           comps=chroot.comps, comps_name=chroot.comps_name)
+
+        packages = copr.packages
+        for package in packages:
+            fpackage = create_object(models.Package, package, exclude=["id", "copr_id"])
+            fpackage.copr = fcopr
+            db.session.add(fpackage)
+
+            build = package.last_build()
+            fbuild = create_object(models.Build, build, exclude=["id", "copr_id", "package_id"])
+            fbuild.copr = fcopr
+            fbuild.package = fpackage
+            fbuild.build_chroots = [create_object(models.BuildChroot, c, exclude=["id"]) for c in build.build_chroots]
+            db.session.add(fbuild)
+
+        db.session.add(fcopr)
+
+        # add action to fork data on backend
+        return fcopr
 
     @staticmethod
     def get_group_copr_safe(group_name, copr_name, **kwargs):

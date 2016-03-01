@@ -162,6 +162,14 @@
         <h3 class="panel-title"> Other Actions </h3>
       </div>
       <div class="panel-body">
+        {% if g.user %}
+        <form method="post" action="{{ copr_url('coprs_ns.copr_fork', copr) }}">
+          <button type="submit" class="button">
+            <i class="fa fa-code-fork"></i> Fork this project<br />
+          </button>
+        </form>
+        {% endif %}
+
         <a href="{{ copr_url('coprs_ns.copr_report_abuse', copr) }}">
           <small class="pficon pficon-warning-triangle-o"> Report Abuse </small></a>
       </div>
