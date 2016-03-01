@@ -717,7 +717,7 @@ GROUP BY
                 "Unfinished build")
 
         # Only failed, finished, succeeded  get here.
-        if build.state not in ["cancelled"]:  # has nothing in backend to delete
+        if build.state not in ["canceled"]:  # has nothing in backend to delete
             ActionsLogic.send_delete_build(build)
 
         for build_chroot in build.build_chroots:
