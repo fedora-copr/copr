@@ -32,7 +32,7 @@ Vagrant.configure(2) do |config|
       inline: "sudo dnf -y builddep /vagrant/frontend/copr-frontend.spec"
 
     # Remove previous build, if any
-    frontend.vm.provision "shell", 
+    frontend.vm.provision "shell",
       inline: "sudo rm -rf /tmp/tito",
       run: "always"
 
@@ -101,6 +101,17 @@ Vagrant.configure(2) do |config|
     frontend.vm.provision "shell",
       inline: "cd /usr/share/copr/coprs_frontend/ && sudo ./manage.py create_db --alembic alembic.ini"
 
+    # This is an ugly hack.
+    # The command above creates a new database from the database models.
+    # However, I need to run an alembic script to create the SQL functions
+    # for builds and monitor. Well, I just downgrade behind this point and
+    # back again. This way, I'll have my functions!
+    frontend.vm.provision "shell",
+      inline: "cd /usr/share/copr/coprs_frontend/ && sudo alembic downgrade 3ec22e1db75a"
+
+    frontend.vm.provision "shell",
+      inline: "cd /usr/share/copr/coprs_frontend/ && sudo alembic upgrade head"
+
     # ..
     frontend.vm.provision "shell",
       inline: "sudo /usr/share/copr/coprs_frontend/manage.py create_chroot fedora-{22,23,rawhide}-{i386,x86_64,ppc64le} epel-{6,7}-x86_64 epel-6-i386"
@@ -131,7 +142,7 @@ Vagrant.configure(2) do |config|
           Require all granted
       </Directory>
   </VirtualHost>
-  \" | sudo tee /etc/httpd/conf.d/copr.conf 
+  \" | sudo tee /etc/httpd/conf.d/copr.conf
   FOO
 
     # ..
@@ -154,7 +165,7 @@ Vagrant.configure(2) do |config|
 
     frontend.vm.provision "shell", run: "always", inline: <<-EOF
       echo "#########################################################"
-      echo "###   Your development instance of Copr Frontend      ###" 
+      echo "###   Your development instance of Copr Frontend      ###"
       echo "###   is now running at: http://localhost:5000        ###"
       echo "#########################################################"
     EOF
@@ -278,7 +289,7 @@ echo \" [user]
 
     # ...
     distgit.vm.provision "shell", inline: <<-EOF
-echo \" 
+echo \"
 alias /lookaside        /var/lib/dist-git/cache/lookaside
 <Directory /var/lib/dist-git/cache/lookaside>
     Options Indexes FollowSymLinks
@@ -290,14 +301,14 @@ alias /lookaside        /var/lib/dist-git/cache/lookaside
 
     # ...
     distgit.vm.provision "shell", inline: <<-EOF
-echo \" 
+echo \"
 Alias /repo/ /var/lib/dist-git/cache/lookaside/
 \" | sudo tee /etc/httpd/conf.d/dist-git/lookaside-copr.conf
     EOF
 
     # ...
     distgit.vm.provision "shell", inline: <<-EOF
-echo \" 
+echo \"
 [acls]
 user_groups=cvsadmin
 admin_groups=cvsadmin
@@ -362,7 +373,7 @@ echo \"Host *
     distgit.vm.provision "shell",
       inline: "sudo systemctl daemon-reload",
       run: "always"
-    
+
     #...
     distgit.vm.provision "shell",
       inline: "sudo systemctl restart copr-dist-git",
@@ -370,10 +381,9 @@ echo \"Host *
 
     distgit.vm.provision "shell", run: "always", inline: <<-EOF
       echo "#########################################################"
-      echo "###   Your development instance of Copr Dist Git      ###" 
+      echo "###   Your development instance of Copr Dist Git      ###"
       echo "###   is now running at: http://localhost:5001/cgit   ###"
       echo "#########################################################"
     EOF
   end
 end
-
