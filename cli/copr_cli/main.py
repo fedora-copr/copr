@@ -190,6 +190,38 @@ class Commands(object):
             self._watch_builds(result.builds_list)
 
     @requires_api_auth
+    def action_build_pypi(self, args):
+        """
+        Method called when the 'build_pypi' action has been selected by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        copr = args.copr
+        m = re.match(r"([^/]+)/(.*)", copr)
+        if m:
+            username = m.group(1)
+            copr = m.group(2)
+        else:
+            username = None
+
+        result = self.client.create_new_build_pypi(
+            projectname=copr, pypi_package_name=args.packagename,
+            pypi_package_version=args.packageversion, python_versions=args.pythonversions,
+            chroots=args.chroots, memory=args.memory, timeout=args.timeout,
+            username=username)
+
+        if result.output != "ok":
+            print(result.error)
+            return
+        print(result.message)
+
+        build_ids = [bw.build_id for bw in result.builds_list]
+        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
+
+        if not args.nowait:
+            self._watch_builds(result.builds_list)
+
+    @requires_api_auth
     def action_create(self, args):
         """ Method called when the 'create' action has been selected by the
         user.
@@ -355,28 +387,36 @@ def setup_parser():
                                help="Name of your project to be deleted.")
     parser_delete.set_defaults(func="action_delete")
 
-    # create the parser for the "build" command
-    parser_build = subparsers.add_parser("build",
-                                         help="Build packages to a "
-                                              "specified copr")
-    parser_build.add_argument(
-        "copr",
-        help="The copr repo to build the package in. Can just name of project or even in format username/project."
-    )
+    # parent parser for the builds commands below
+    parser_build_parent = argparse.ArgumentParser(add_help=False)
+    parser_build_parent.add_argument("copr",
+                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project.")
+    parser_build_parent.add_argument("--memory", dest="memory",
+                                     help="")
+    parser_build_parent.add_argument("--timeout", dest="timeout",
+                                     help="")
+    parser_build_parent.add_argument("--nowait", action="store_true", default=False,
+                                     help="Don't wait for build")
+    parser_build_parent.add_argument("-r", "--chroot", dest="chroots", action="append",
+                                     help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
+
+    # create the parser for the "build" (url/upload) command
+    parser_build = subparsers.add_parser("build", parents=[parser_build_parent],
+                                         help="Build packages to a specified copr")
     parser_build.add_argument("pkgs", nargs="+",
                               help="filename of SRPM or URL of packages to build")
-    parser_build.add_argument(
-        "-r", "--chroot", dest="chroots", action="append",
-        help="If you don't need this build for all the project's chroots. You can use it several times for each"
-             " chroot you need."
-    )
-    parser_build.add_argument("--memory", dest="memory",
-                              help="")
-    parser_build.add_argument("--timeout", dest="timeout",
-                              help="")
-    parser_build.add_argument("--nowait", action="store_true", default=False,
-                              help="Don't wait for build")
     parser_build.set_defaults(func="action_build")
+
+    # create the parser for the "buildpypi" command
+    parser_build_pypi = subparsers.add_parser("buildpypi", parents=[parser_build_parent],
+                                              help="Build PyPI package to a specified copr")
+    parser_build_pypi.add_argument("--packagename", required=True,
+                                   help="Name of the PyPI package to be built, required.")
+    parser_build_pypi.add_argument("--packageversion",
+                                   help="Version of the PyPI package to be built (by default latest)")
+    parser_build_pypi.add_argument("--pythonversions", nargs="*", type=str, metavar="VERSION",
+                                   help="For what Python versions to build (by default '3 2')")
+    parser_build_pypi.set_defaults(func="action_build_pypi")
 
     # create the parser for the "status" command
     parser_status = subparsers.add_parser("status",

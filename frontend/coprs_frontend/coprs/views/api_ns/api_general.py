@@ -342,6 +342,42 @@ def copr_new_build_upload(copr):
     return flask.jsonify(output)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/new_build_pypi/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_new_build_pypi(copr):
+    form = forms.BuildFormPyPIFactory(copr.active_chroots)(csrf_enabled=False)
+
+    # are there any arguments in POST which our form doesn't know?
+    if any([post_key not in form.__dict__.keys()
+            for post_key in flask.request.form.keys()]):
+        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
+
+    if not form.validate_on_submit():
+        raise LegacyApiError("Invalid request: bad request parameters: {0}".format(form.errors))
+
+    # create a new build
+    try:
+        build = BuildsLogic.create_new_from_pypi(
+            flask.g.user,
+            copr,
+            form.pypi_package_name.data,
+            form.pypi_package_version.data,
+            form.python_versions.data,
+            form.selected_chroots,
+        )
+        db.session.commit()
+
+    except (ActionInProgressException, InsufficientRightsException) as e:
+        raise LegacyApiError("Invalid request: {}".format(e))
+
+    output = {"output": "ok",
+              "ids": [build.id],
+              "message": "Build was added to {0}.".format(copr.name)}
+
+    return flask.jsonify(output)
+
+
 @api_ns.route("/coprs/build_status/<build_id>/", methods=["GET"])
 @api_login_required
 def build_status(build_id):

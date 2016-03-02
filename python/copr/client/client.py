@@ -371,6 +371,70 @@ class CoprClient(UnicodeMixin):
 
         return response
 
+
+    def create_new_build_pypi(self, projectname, pypi_package_name, pypi_package_version=None,
+                         python_versions=['3', '2'], username=None, timeout=None, memory=None,
+                         chroots=None, progress_callback=None):
+        """ Creates new build from PyPI
+
+            :param projectname: name of Copr project (without user namespace)
+            :param pypi_package_name: PyPI package name
+            :param pypi_package_vesion: [optional] PyPI package version (None means "latest")
+            :param python_versions: [optional] list of python versions to build for
+            :param username: [optional] use alternative username
+            :param timeout: [optional] build timeout
+            :param memory: [optional] amount of required memory for build process
+            :param chroots: [optional] build only with given chroots
+            :param progress_callback: [optional] a function that received a
+            MultipartEncoderMonitor instance for each chunck of uploaded data
+
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
+        """
+        if not username:
+            username = self.username
+
+        data = {
+            "memory_reqs": memory,
+            "timeout": timeout,
+            "pypi_package_name": pypi_package_name,
+            "pypi_package_version": pypi_package_version,
+            "python_versions": python_versions,
+            "source_type": "pypi",
+        }
+
+        api_endpoint = "new_build_pypi"
+
+        url = "{0}/coprs/{1}/{2}/{3}/".format(
+            self.api_url, username, projectname, api_endpoint
+        )
+
+        for chroot in chroots or []:
+            data[chroot] = "y"
+
+        data = self._fetch(url, data, method="post")
+
+        response = CoprResponse(
+            client=self,
+            method="cancel_build",
+            data=data,
+            request_kwargs={
+                "projectname": projectname,
+                "username": username
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+                NewBuildListParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname, username=username)
+
+        return response
+
+
     def get_project_details(self, projectname, username=None):
         """ Returns project details
 
