@@ -348,6 +348,10 @@ def copr_new_build_upload(copr):
 def copr_new_build_pypi(copr):
     form = forms.BuildFormPyPIFactory(copr.active_chroots)(csrf_enabled=False)
 
+    # TODO: automatically prepopulate all form fields with their defaults
+    if not form.python_versions.data:
+        form.python_versions.data = form.python_versions.default
+
     # are there any arguments in POST which our form doesn't know?
     if any([post_key not in form.__dict__.keys()
             for post_key in flask.request.form.keys()]):
