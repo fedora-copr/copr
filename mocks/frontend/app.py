@@ -2,11 +2,9 @@
 
 import flask
 import json
-import logging
 import sys
 
 app = flask.Flask(__name__)
-log = logging.getLogger(__name__)
 
 task_dict = {}
 distgit_responses = []
@@ -18,11 +16,6 @@ def shutdown_server():
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
-
-
-@app.errorhandler(Exception)
-def exception_handler(error):
-    log.exception(repr(error))
 
 
 @app.route('/tmp/<path:path>')
@@ -55,21 +48,6 @@ def dump_responses():
         f.write(json.dumps(distgit_responses))
 
 
-def setup_logging():
-    formatter = logging.Formatter('[%(asctime)s][%(levelname)s][%(name)s][%(module)s:%(lineno)d] %(message)s')
-
-    file_handler = logging.FileHandler('/var/log/copr/copr-mocks-frontend.log')
-    file_handler.setFormatter(formatter)
-    stream_handler = logging.StreamHandler(sys.stdout)
-
-    werkzeug_log = logging.getLogger('werkzeug')
-    werkzeug_log.addHandler(file_handler)
-
-    log.setLevel(logging.DEBUG)
-    log.addHandler(file_handler)
-    log.addHandler(stream_handler)
-
-
 def load_import_tasks():
     with open('data/import-tasks.json', 'r') as f:
         task_queue = json.loads(f.read())
@@ -78,6 +56,5 @@ def load_import_tasks():
 
 
 if __name__ == '__main__':
-    setup_logging()
     load_import_tasks()
     app.run()
