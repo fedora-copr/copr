@@ -307,6 +307,11 @@ def render_copr_detail(copr):
             repos_info[chroot.name_release]["rpm_dl_stat"][chroot.arch] = chroot_rpms_dl_stat
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
     builds = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr).limit(1).all()
+
+    still_forking = actions_logic.ActionsLogic.get_waiting()\
+        .filter(models.Action.action_type == helpers.ActionTypeEnum("fork"))\
+        .filter(models.Action.new_value == copr.full_name).all()
+
     return flask.render_template(
         "coprs/detail/overview.html",
         copr=copr,
@@ -315,6 +320,7 @@ def render_copr_detail(copr):
         repo_dl_stat=repo_dl_stat,
         repos_info_list=repos_info_list,
         latest_build=builds[0] if len(builds) == 1 else None,
+        still_forking=still_forking
     )
 
 
@@ -812,9 +818,12 @@ def group_copr_build_monitor(copr, detailed=False):
 @login_required
 @req_with_copr
 def copr_fork(copr):
-    fcopr = ComplexLogic.fork_copr(copr, flask.g.user)
-    db.session.commit()
+    fcopr = CoprsLogic.get(flask.g.user.name, copr.name).first()
+    if not fcopr:
+        fcopr = ComplexLogic.fork_copr(copr, flask.g.user)
+        db.session.commit()
 
-    flask.flash("Forking project {} for you into {}. Please be aware that it may take a few minutes "
-                "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+        flask.flash("Forking project {} for you into {}. Please be aware that it may take a few minutes "
+                    "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+
     return render_copr_detail(fcopr)

@@ -129,7 +129,7 @@ class Action(object):
                 self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
 
         result.result = ActionResult.SUCCESS
-        result.job_ended_on = time.time()
+        result.ended_on = time.time()
 
     def handle_delete_copr_project(self):
         self.log.debug("Action delete copr")
