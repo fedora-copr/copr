@@ -67,6 +67,7 @@ class ActionTypeEnum(with_metaclass(EnumType, object)):
         "update_comps": 4,
         "gen_gpg_key": 5,
         "rawhide_to_release": 6,
+        "fork": 7,
     }
 
 

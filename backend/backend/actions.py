@@ -2,6 +2,7 @@ import json
 import os.path
 import shutil
 import time
+import glob
 from urllib import urlretrieve
 
 from munch import Munch
@@ -101,6 +102,33 @@ class Action(object):
                 result.result = ActionResult.FAILURE
         else:  # nothing to do, that is success too
             result.result = ActionResult.SUCCESS
+        result.job_ended_on = time.time()
+
+    def handle_fork(self, result):
+        self.log.info("Action fork {}".format(self.data["object_type"]))
+        old_path = os.path.join(self.destdir, self.data["old_value"])
+        new_path = os.path.join(self.destdir, self.data["new_value"])
+        builds_map = json.loads(self.data["data"])["builds_map"]
+
+        if not os.path.exists(old_path):
+            result.result = ActionResult.FAILURE
+            return
+
+        for new_id, old_id in builds_map.items():
+            # @FIXME Doesnt work for old build because of different folder naming (i.e. msuchy/nanoblogger)
+            for build_folder in glob.glob(os.path.join(old_path, "*", str(old_id).zfill(8) + "-*")):
+
+                new_chroot_folder = os.path.dirname(build_folder.replace(old_path, new_path))
+                new_build_folder = os.path.join(
+                    new_chroot_folder, str(new_id).zfill(8) + os.path.basename(build_folder)[8:])
+
+                if not os.path.exists(new_chroot_folder):
+                    os.makedirs(new_chroot_folder)
+                shutil.copytree(build_folder, new_build_folder)
+
+                self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
+
+        result.result = ActionResult.SUCCESS
         result.job_ended_on = time.time()
 
     def handle_delete_copr_project(self):
@@ -278,6 +306,9 @@ class Action(object):
         elif action_type == ActionType.RENAME:
             self.handle_rename(result)
 
+        elif action_type == ActionType.FORK:
+            self.handle_fork(result)
+
         elif action_type == ActionType.CREATEREPO:
             self.handle_createrepo(result)
 
@@ -308,6 +339,7 @@ class ActionType(object):
     UPDATE_COMPS = 4
     GEN_GPG_KEY = 5
     RAWHIDE_TO_RELEASE = 6
+    FORK = 7
 
 
 class ActionResult(object):

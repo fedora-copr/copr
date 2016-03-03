@@ -170,3 +170,21 @@ class ActionsLogic(object):
             created_on=int(time.time()),
         )
         db.session.add(action)
+
+    @classmethod
+    def send_fork_copr(cls, src, dst, builds_map):
+        """
+        :type src: models.Copr
+        :type dst: models.Copr
+        :type builds_map: dict where keys are forked builds IDs and values are IDs from the original builds.
+        """
+
+        action = models.Action(
+            action_type=helpers.ActionTypeEnum("fork"),
+            object_type="copr",
+            old_value="{0}".format(src.full_name),
+            new_value="{0}".format(dst.full_name),
+            data=json.dumps({"builds_map": builds_map}),
+            created_on=int(time.time()),
+        )
+        db.session.add(action)

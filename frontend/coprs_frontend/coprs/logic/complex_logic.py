@@ -10,6 +10,7 @@ from coprs import exceptions
 from coprs.exceptions import ObjectNotFound
 from coprs.helpers import StatusEnum
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.actions_logic import ActionsLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.models import User, Copr
@@ -60,8 +61,8 @@ class ComplexLogic(object):
             CoprChrootsLogic.create_chroot(user, fcopr, chroot.mock_chroot, chroot.buildroot_pkgs,
                                            comps=chroot.comps, comps_name=chroot.comps_name)
 
-        packages = copr.packages
-        for package in packages:
+        builds_map = {}
+        for package in copr.packages:
             fpackage = create_object(models.Package, package, exclude=["id", "copr_id"])
             fpackage.copr = fcopr
             db.session.add(fpackage)
@@ -72,10 +73,10 @@ class ComplexLogic(object):
             fbuild.package = fpackage
             fbuild.build_chroots = [create_object(models.BuildChroot, c, exclude=["id"]) for c in build.build_chroots]
             db.session.add(fbuild)
+            builds_map[fbuild.id] = build.id
 
+        ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
         db.session.add(fcopr)
-
-        # add action to fork data on backend
         return fcopr
 
     @staticmethod
