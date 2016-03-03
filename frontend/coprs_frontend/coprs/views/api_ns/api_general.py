@@ -417,7 +417,7 @@ def build_detail(build_id):
         "chroots": chroots,
         "submitted_on": build.submitted_on,
         "started_on": build.min_started_on,
-        "ended_on": build.ended_on,
+        "ended_on": build.max_ended_on,
         "src_pkg": build.pkgs,
         "submitted_by": build.user.name,
         "results_by_chroot": results_by_chroot

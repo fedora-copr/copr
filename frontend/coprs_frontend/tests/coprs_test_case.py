@@ -249,7 +249,6 @@ class CoprsTestCase(object):
                 if build is self.b1 or build is self.b2:
                     buildchroot.started_on = 139086644000
                     buildchroot.ended_on = 149086644000
-                    build.ended_on = 149086644000
 
 
                 build_chroots.append(buildchroot)
@@ -265,7 +264,7 @@ class CoprsTestCase(object):
         self.b_few_chroots = models.Build(
             id=2345,
             copr=self.c1, user=self.u1,
-            submitted_on=50, started_on=139086644000,
+            submitted_on=50,
             pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
             pkg_version="1.58"
         )
@@ -299,7 +298,7 @@ class CoprsTestCase(object):
         self.b_many_chroots = models.Build(
             id=12347,
             copr=self.c1, user=self.u1,
-            submitted_on=50, started_on=139086644000,
+            submitted_on=50,
             pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
             pkg_version="1.58"
         )

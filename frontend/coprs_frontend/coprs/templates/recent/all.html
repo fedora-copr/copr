@@ -37,7 +37,7 @@
           {{ build.pkg_version}}
         </td>
         <td>
-          {{ build.ended_on|time_ago() }} ago
+          {{ build.max_ended_on|time_ago() }} ago
         </td>
         {% if build.canceled %}
         <td class="build-canceled">canceled</td>

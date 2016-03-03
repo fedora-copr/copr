@@ -122,7 +122,6 @@ class TestBuildsLogic(CoprsTestCase):
         for bc in self.b4_bc:
             bc.status = StatusEnum("succeeded")
             bc.ended_on = time.time()
-        self.b4.ended_on = time.time()
         self.u1.admin = False
 
         self.db.session.add_all(self.b4_bc)
@@ -142,7 +141,6 @@ class TestBuildsLogic(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
         self.b4.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
-        self.b4.ended_on = time.time()
         expected_dir = self.b4.result_dir_name
         for bc in self.b4_bc:
             bc.status = StatusEnum("succeeded")

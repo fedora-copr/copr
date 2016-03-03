@@ -202,7 +202,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
         self.b_few_chroots = models.Build(
             id=2345,
             copr=self.c1, user=self.u1,
-            submitted_on=50, started_on=139086644000,
+            submitted_on=50,
             pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
             pkg_version="1.58"
         )

@@ -51,8 +51,8 @@ class BuildsLogic(object):
             limit = 100
 
         query = models.Build.query \
-            .filter(models.Build.ended_on.isnot(None)) \
-            .order_by(models.Build.ended_on.desc())
+            .join(models.BuildChroot).filter(models.BuildChroot.ended_on.isnot(None)) \
+            .order_by(models.BuildChroot.ended_on.desc())
 
         if user is not None:
             query = query.filter(models.Build.user_id == user.id)
@@ -209,11 +209,12 @@ GROUP BY
         """
         query = (models.Build.query.join(models.Build.copr)
                  .join(models.User)
+                 .join(models.BuildChroot)
                  .options(db.contains_eager(models.Build.copr))
                  .options(db.contains_eager("copr.owner"))
-                 .filter((models.Build.started_on == None)
-                         | (models.Build.started_on < int(time.time() - 7200)))
-                 .filter(models.Build.ended_on == None)
+                 .filter((models.BuildChroot.started_on == None)
+                         | (models.BuildChroot.started_on < int(time.time() - 7200)))
+                 .filter(models.BuildChroot.ended_on == None)
                  .filter(models.Build.canceled == False)
                  .order_by(models.Build.submitted_on.asc()))
         return query
@@ -681,9 +682,6 @@ GROUP BY
             if value:
                 setattr(build, attr, value)
 
-        if build.max_ended_on is not None:
-            build.ended_on = build.max_ended_on
-
         db.session.add(build)
 
     @classmethod
@@ -736,8 +734,8 @@ GROUP BY
             builds.join(models.BuildChroot)
             .filter((models.BuildChroot.status == helpers.StatusEnum("succeeded"))
                     | (models.BuildChroot.status == helpers.StatusEnum("skipped")))
-            .filter(models.Build.ended_on.isnot(None))
-            .order_by(models.Build.ended_on.desc())
+            .filter(models.BuildChroot.ended_on.isnot(None))
+            .order_by(models.BuildChroot.ended_on.desc())
         ).first()
         if last_build:
             return last_build.ended_on
@@ -749,9 +747,9 @@ GROUP BY
         # todo: check that ended_on is set correctly for all cases
         # e.g.: failed dist-git import, cancellation
         if is_finished:
-            return query.filter(models.Build.ended_on.isnot(None))
+            return query.join(models.BuildChroot).filter(models.BuildChroot.ended_on.isnot(None))
         else:
-            return query.filter(models.Build.ended_on.is_(None))
+            return query.join(models.BuildChroot).filter(models.BuildChroot.ended_on.is_(None))
 
     @classmethod
     def filter_by_group_name(cls, query, group_name):

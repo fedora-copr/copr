@@ -294,7 +294,7 @@
           </p>
           <p class="list-group-item-text">
             <small>Finished:</small>
-            {{build.ended_on|time_ago()}} ago
+            {{build.max_ended_on|time_ago()}} ago
           </p>
         </a>
       {% endfor %}

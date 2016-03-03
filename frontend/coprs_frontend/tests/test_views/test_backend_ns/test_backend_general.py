@@ -111,7 +111,6 @@ class TestUpdateBuilds(CoprsTestCase):
     def test_update_more_existent_and_non_existent_builds(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
-        self.b1.started_on = None
         self.db.session.add(self.b1)
         self.db.session.commit()
 

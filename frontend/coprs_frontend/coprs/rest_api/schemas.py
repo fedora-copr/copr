@@ -159,8 +159,6 @@ class BuildSchema(Schema):
     repos = SpaceSeparatedList(dump_only=True)
 
     submitted_on = fields.Int(dump_only=True)
-    started_on = fields.Int(dump_only=True)
-    ended_on = fields.Int(dump_only=True)
 
     # timeout = fields.Int(dump_only=True)  # currently has no use
     enable_net = fields.Bool(dump_only=True)

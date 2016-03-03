@@ -620,12 +620,12 @@ class TestCoprRepoGeneration(CoprsTestCase):
         """ Custom builds are used in order not to break the default ones """
         self.b5 = self.models.Build(
             copr=self.c1, user=self.u1, submitted_on=9,
-            ended_on=200, results="https://bar.baz")
+            results="https://bar.baz")
         self.b6 = self.models.Build(
             copr=self.c1, user=self.u1, submitted_on=11)
         self.b7 = self.models.Build(
             copr=self.c1, user=self.u1, submitted_on=10,
-            ended_on=150, results="https://bar.baz")
+            results="https://bar.baz")
         self.mc1 = self.models.MockChroot(
             os_release="fedora", os_version="18", arch="x86_64")
         self.cc1 = self.models.CoprChroot(mock_chroot=self.mc1, copr=self.c1)

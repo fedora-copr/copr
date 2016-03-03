@@ -52,8 +52,8 @@ class TestBuildResource(CoprsTestCase):
         obj_b = json.loads(r_b.data.decode("utf-8"))
 
         builds = BuildsLogic.get_multiple().all()
-        expected_ids_a = set([b.id for b in builds if b.ended_on is not None])
-        expected_ids_b = set([b.id for b in builds if b.ended_on is None])
+        expected_ids_a = set([b.id for b in builds if b.max_ended_on is not None])
+        expected_ids_b = set([b.id for b in builds if b.max_ended_on is None])
 
         assert expected_ids_a == self.extract_build_ids(obj_a)
         assert expected_ids_b == self.extract_build_ids(obj_b)
@@ -459,7 +459,6 @@ class TestBuildResource(CoprsTestCase):
             bc.status = StatusEnum("pending")
             bc.ended_on = None
 
-        self.b1.ended_on = None
         self.db.session.add_all(self.b1_bc)
         self.db.session.add(self.b1)
 
@@ -501,7 +500,6 @@ class TestBuildResource(CoprsTestCase):
             bc.status = StatusEnum("pending")
             bc.ended_on = None
 
-        self.b1.ended_on = None
         self.db.session.add_all(self.b1_bc)
         self.db.session.add(self.b1)
 
@@ -527,7 +525,6 @@ class TestBuildResource(CoprsTestCase):
             self, f_users, f_coprs,
             f_mock_chroots, f_builds,f_users_api, ):
 
-        self.b1.ended_on = None
         old_state = self.b1.state
         self.db.session.add_all(self.b1_bc)
         self.db.session.add(self.b1)

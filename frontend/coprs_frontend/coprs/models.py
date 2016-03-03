@@ -429,10 +429,6 @@ class Build(db.Model, helpers.Serializer):
     # the three below represent time of important events for this build
     # as returned by int(time.time())
     submitted_on = db.Column(db.Integer, nullable=False)
-    # obsolete, see started_on property of each build_chroot
-    started_on = db.Column(db.Integer)
-    # means that ALL chroots are finished
-    ended_on = db.Column(db.Integer)
     # url of the build results
     results = db.Column(db.Text)
     # memory requirements for backend builder
@@ -497,6 +493,10 @@ class Build(db.Model, helpers.Serializer):
         return json.loads(self.source_json)
 
     @property
+    def started_on(self):
+        return self.min_started_on()
+
+    @property
     def min_started_on(self):
         mb_list = [chroot.started_on for chroot in
                    self.build_chroots if chroot.started_on]
@@ -504,6 +504,10 @@ class Build(db.Model, helpers.Serializer):
             return min(mb_list)
         else:
             return None
+
+    @property
+    def ended_on(self):
+        return self.max_ended_on()
 
     @property
     def max_ended_on(self):
@@ -634,11 +638,11 @@ class Build(db.Model, helpers.Serializer):
         """
 
         # build failed due to import error
-        if self.state == "failed" and self.started_on is None:
+        if self.state == "failed" and self.min_started_on is None:
             return True
 
         # build failed and all chroots are finished
-        if self.state == "failed" and self.ended_on is not None:
+        if self.state == "failed" and self.max_ended_on is not None:
             return True
 
         return self.state in ["succeeded", "canceled", "skipped"]
