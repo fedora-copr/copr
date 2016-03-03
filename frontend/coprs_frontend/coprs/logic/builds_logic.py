@@ -519,7 +519,7 @@ GROUP BY
             repos = copr.repos
 
         # todo: eliminate pkgs and this check
-        if " " in pkgs or "\n" in pkgs or "\t" in pkgs or pkgs.strip() != pkgs:
+        if pkgs and (" " in pkgs or "\n" in pkgs or "\t" in pkgs or pkgs.strip() != pkgs):
             raise exceptions.MalformedArgumentException("Trying to create a build using src_pkg "
                                                         "with bad characters. Forgot to split?")
 
