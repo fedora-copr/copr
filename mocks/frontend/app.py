@@ -25,6 +25,11 @@ def exception_handler(error):
     log.exception(repr(error))
 
 
+@app.route('/tmp/<path:path>')
+def serve_uploaded_file(path):
+    return app.send_static_file(path)
+
+
 @app.route('/backend/importing/')
 def dist_git_importing_queue():
     response = {'builds': list(task_dict.values())}
@@ -42,8 +47,8 @@ def dist_git_upload_completed():
 
 
 def dump_responses():
-    if len(sys.argv) > 2:
-        filename = sys.argv[2]
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
     else:
         filename = 'data/distgit-responses.json'
     with open(filename, 'w') as f:
@@ -66,11 +71,7 @@ def setup_logging():
 
 
 def load_import_tasks():
-    if len(sys.argv) > 1:
-        filename = sys.argv[1]
-    else:
-        filename = 'data/import-tasks.json'
-    with open(filename, 'r') as f:
+    with open('data/import-tasks.json', 'r') as f:
         task_queue = json.loads(f.read())
         for task in task_queue:
             task_dict[task['task_id']] = task
