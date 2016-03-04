@@ -12,11 +12,9 @@ Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
 BuildArch: noarch
 BuildRequires: python3-devel
-BuildRequires: rpm-python3
 BuildRequires: asciidoc
 Requires: createrepo_c
 Requires: dnf-plugins-core
-Requires: rpm-python3
 Requires: python3
 
 %description
