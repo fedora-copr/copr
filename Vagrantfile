@@ -210,12 +210,21 @@ gpgcheck=1
 gpgkey=https://copr-be.cloud.fedoraproject.org/results/msuchy/copr/pubkey.gpg
 enabled=1
 enabled_metadata=1
+
+[group_copr-copr-dev]
+name=Copr repo for copr-dev owned by clime
+baseurl=https://copr-be.cloud.fedoraproject.org/results/@copr/copr-dev/epel-7-x86_64/
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/@copr/copr-dev/pubkey.gpg
+enabled=1
+enabled_metadata=1
   \" | sudo tee /etc/yum.repos.d/dist-git-epel-7.repo
   FOO
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg"
+      inline: "sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg pyp2rpm"
 
     # ...
     distgit.vm.provision "shell",
