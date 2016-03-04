@@ -150,6 +150,10 @@ Vagrant.configure(2) do |config|
       inline: "sudo chown -R copr-fe:copr-fe /usr/share/copr"
 
     # selinux: make data dir writeable for httpd
+    # TODO: probly correct solution is to uncomment first four lines in
+    # coprs_frontend/config/copr.conf so that data are stored under /var/lib
+    # and not under /usr/share/copr. copr-selinux does not account for storing
+    # data under /usr/share/copr/. Discuss this with peers.
     frontend.vm.provision "shell",
       inline: "chcon -R -t httpd_sys_rw_content_t /usr/share/copr/data",
       run: "always"
