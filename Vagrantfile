@@ -106,6 +106,11 @@ Vagrant.configure(2) do |config|
     # However, I need to run an alembic script to create the SQL functions
     # for builds and monitor. Well, I just downgrade behind this point and
     # back again. This way, I'll have my functions!
+    # TODO: we should put the functions separately and throw the current alembic history away
+    # as it is buggy (e.g. 'manage.py db migrate' was not called after adding legal_flag model).
+    # There should be probly an sql script (with the functions and perhaps other db stuff
+    # that cannot be kept 1:1 with models) and create_db cmd of manage.py will execute it.
+    # I don't see a better way. A new alembic history should be started.
     frontend.vm.provision "shell",
       inline: "cd /usr/share/copr/coprs_frontend/ && sudo alembic downgrade 3ec22e1db75a"
 
