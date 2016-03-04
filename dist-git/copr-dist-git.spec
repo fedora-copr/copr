@@ -36,7 +36,8 @@ Requires: pyrpkg
 Requires: mock-scm
 Requires: tito
 Requires: pyp2rpm
-Requires(post): policycoreutils-python-utils
+%{?fedora:Requires(post): policycoreutils-python-utils}
+%{?rhel:Requires(post): policycoreutils-python}
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI
