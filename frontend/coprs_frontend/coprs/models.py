@@ -494,7 +494,7 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def started_on(self):
-        return self.min_started_on()
+        return self.min_started_on
 
     @property
     def min_started_on(self):
@@ -507,7 +507,7 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def ended_on(self):
-        return self.max_ended_on()
+        return self.max_ended_on
 
     @property
     def max_ended_on(self):
