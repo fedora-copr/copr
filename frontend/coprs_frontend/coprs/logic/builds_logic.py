@@ -256,18 +256,23 @@ GROUP BY
             if chroot.name in chroot_names:
                 chroots.append(chroot)
 
-        # I don't want to import anything, just rebuild what's in dist git
-        skip_import = True
+        skip_import = False
         git_hashes = {}
-        for chroot in source_build.build_chroots:
-            if not chroot.git_hash:
-                # I got an old build from time we didn't use dist git
-                # So I'll submit it as a new build using it's link
-                skip_import = False
-                git_hashes = None
-                flask.flash("This build is not in Dist Git. Trying to import the package again.")
-                break
-            git_hashes[chroot.name] = chroot.git_hash
+
+        if source_build.source_type == helpers.BuildSourceEnum('srpm_upload'):
+            # I don't have the source
+            # so I don't want to import anything, just rebuild what's in dist git
+            skip_import = True
+
+            for chroot in source_build.build_chroots:
+                if not chroot.git_hash:
+                    # I got an old build from time we didn't use dist git
+                    # So I'll submit it as a new build using it's link
+                    skip_import = False
+                    git_hashes = None
+                    flask.flash("This build is not in Dist Git. Trying to import the package again.")
+                    break
+                git_hashes[chroot.name] = chroot.git_hash
 
         # try:
         build = cls.add(

@@ -563,11 +563,22 @@ def process_copr_repeat_build(build_id, copr):
     build = ComplexLogic.get_build_safe(build_id)
     if not flask.g.user.can_build_in(build.copr):
         flask.flash("You are not allowed to repeat this build.")
-    form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)(
-        build_id=build_id, enable_net=build.enable_net,
-    )
+
+    if build.source_type == helpers.BuildSourceEnum('srpm_upload'):
+        # If the original build's source is 'srpm_upload', we will show only the
+        # original build's chroots and skip import.
+        available_chroots = build.chroots
+
+    else:
+        # For all other sources, we will show all chroots enabled in the project
+        # and proceed with import.
+        available_chroots = copr.active_chroots
+
+    form = forms.BuildFormRebuildFactory.create_form_cls(available_chroots)(
+        build_id=build_id, enable_net=build.enable_net)
+
     # remove all checkboxes by default
-    for ch in copr.active_chroots:
+    for ch in available_chroots:
         field = getattr(form, ch.name)
         field.data = False
     chroot_to_build = request.args.get("chroot")
@@ -581,7 +592,7 @@ def process_copr_repeat_build(build_id, copr):
         build_failed_chroot_names = set(ch.name for ch in build.get_chroots_by_status([
             helpers.StatusEnum('failed'), helpers.StatusEnum('canceled'),
         ]))
-        for ch in copr.active_chroots:
+        for ch in available_chroots:
             # check checkbox on all the chroots that have not been (successfully) built before
             if (ch.name not in build_chroot_names) or (ch.name in build_failed_chroot_names):
                 getattr(form, ch.name).data = True
