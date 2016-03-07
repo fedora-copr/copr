@@ -55,7 +55,7 @@ def copr_rebuild_package(copr, package_name):
     else:
         flask.flash("Package {} has not the default source which is required for rebuild. Please configure some source"
                     .format(package_name, copr.full_name))
-        return flask.redirect(copr_url("coprs_ns.copr_edit_package", copr, package_name=package_name))
+        return flask.redirect(helpers.copr_url("coprs_ns.copr_edit_package", copr, package_name=package_name))
 
     form = form(copr.active_chroots)(data=data)
     return f(copr, form, view="coprs_ns.copr_new_build" + view_suffix, package=package)
@@ -87,7 +87,7 @@ def copr_add_package(copr, source_type="git_and_tito", **kwargs):
 @login_required
 @req_with_copr
 def copr_new_package(copr):
-    url_on_success = copr_url("coprs_ns.copr_packages", copr)
+    url_on_success = helpers.copr_url("coprs_ns.copr_packages", copr)
     return process_save_package(copr, package_name=None, view="coprs_ns.copr_new_package",
                                 view_method=copr_add_package, url_on_success=url_on_success)
 
@@ -134,7 +134,7 @@ def copr_edit_package_post(copr, package_name):
     UsersLogic.raise_if_cant_build_in_copr(
         flask.g.user, copr, "You don't have permissions to edit this package.")
 
-    url_on_success = copr_url("coprs_ns.copr_packages", copr)
+    url_on_success = helpers.copr_url("coprs_ns.copr_packages", copr)
     return process_save_package(copr, package_name, view="coprs_ns.copr_edit_package",
                                 view_method=copr_edit_package, url_on_success=url_on_success)
 
@@ -188,19 +188,3 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
 
     return view_method(username=copr.owner.name, coprname=copr.name,
                        package_name=package_name, source_type=form.source_type.data, form=form)
-
-
-def copr_url(view, copr, **kwargs):
-    """
-    Examine given copr and generate proper URL for the `view`
-
-    Values of `username/group_name` and `coprname` are automatically passed as the first two URL parameters,
-    and therefore you should *not* pass them manually.
-
-    Usage:
-      copr_url("coprs_ns.foo", copr)
-      copr_url("coprs_ns.foo", copr, arg1='bar', arg2='baz)
-    """
-    if copr.is_a_group_project:
-        return url_for(view, group_name=copr.group.name, coprname=copr.name, **kwargs)
-    return url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs)

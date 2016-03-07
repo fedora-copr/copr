@@ -448,6 +448,22 @@ def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
 
 
+def copr_url(view, copr, **kwargs):
+    """
+    Examine given copr and generate proper URL for the `view`
+
+    Values of `username/group_name` and `coprname` are automatically passed as the first two URL parameters,
+    and therefore you should *not* pass them manually.
+
+    Usage:
+      copr_url("coprs_ns.foo", copr)
+      copr_url("coprs_ns.foo", copr, arg1='bar', arg2='baz)
+    """
+    if copr.is_a_group_project:
+        return url_for(view, group_name=copr.group.name, coprname=copr.name, **kwargs)
+    return url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs)
+
+
 def url_for_copr_view(view, group_view, copr, **kwargs):
     if copr.is_a_group_project:
         return url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs)
