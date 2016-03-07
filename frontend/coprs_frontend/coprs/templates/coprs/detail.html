@@ -22,7 +22,7 @@
 
 {% block body scoped %}
 
-{% if copr.forked_from and still_forking %}
+{% if copr.forked_from and copr.still_forking %}
   {{ alert('Forked project is still being prepared for you. It may take a few minutes to duplicate a backend data.', 'warning') }}
 {% endif %}
 

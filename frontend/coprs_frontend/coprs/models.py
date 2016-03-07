@@ -327,6 +327,12 @@ class Copr(db.Model, helpers.Serializer):
         result["owner"] = self.owner.name
         return result
 
+    @property
+    def still_forking(self):
+        return bool(Action.query.filter(Action.result == helpers.BackendResultEnum("waiting"))
+                    .filter(Action.action_type == helpers.ActionTypeEnum("fork"))
+                    .filter(Action.new_value == self.full_name).all())
+
 
 class CoprPermission(db.Model, helpers.Serializer):
 

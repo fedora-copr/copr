@@ -308,10 +308,6 @@ def render_copr_detail(copr):
     repos_info_list = sorted(repos_info.values(), key=lambda rec: rec["name_release"])
     builds = builds_logic.BuildsLogic.get_multiple_by_copr(copr=copr).limit(1).all()
 
-    still_forking = actions_logic.ActionsLogic.get_waiting()\
-        .filter(models.Action.action_type == helpers.ActionTypeEnum("fork"))\
-        .filter(models.Action.new_value == copr.full_name).all()
-
     return flask.render_template(
         "coprs/detail/overview.html",
         copr=copr,
@@ -320,7 +316,6 @@ def render_copr_detail(copr):
         repo_dl_stat=repo_dl_stat,
         repos_info_list=repos_info_list,
         latest_build=builds[0] if len(builds) == 1 else None,
-        still_forking=still_forking
     )
 
 
