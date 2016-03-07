@@ -68,6 +68,9 @@ class ComplexLogic(object):
             db.session.add(fpackage)
 
             build = package.last_build()
+            if not build:
+                continue
+
             fbuild = create_object(models.Build, build, exclude=["id", "copr_id", "package_id"])
             fbuild.copr = fcopr
             fbuild.package = fpackage
