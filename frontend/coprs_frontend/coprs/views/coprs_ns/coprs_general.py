@@ -816,7 +816,7 @@ def group_copr_build_monitor(copr, detailed=False):
 @req_with_copr
 def copr_fork(copr, dst_group_name=None):
     dstgroup = UsersLogic.get_group_by_alias(dst_group_name).first()
-    if not dstgroup:
+    if dst_group_name and not dstgroup:
         return generic_error("There is no such group: {}".format(dst_group_name))
 
     fcopr = CoprsLogic.get_by_group_id(dstgroup.id, copr.name).first() if dst_group_name \
