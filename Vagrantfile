@@ -233,7 +233,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg pyp2rpm"
+      inline: "sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg pyp2rpm || sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg pyp2rpm"
 
     # ...
     distgit.vm.provision "shell",
