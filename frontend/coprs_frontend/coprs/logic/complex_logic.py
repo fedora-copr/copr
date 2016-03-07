@@ -52,7 +52,7 @@ class ComplexLogic(object):
                     arguments[name] = getattr(from_object, name)
             return clazz(**arguments)
 
-        fcopr = create_object(models.Copr, copr, exclude=["id"])
+        fcopr = create_object(models.Copr, copr, exclude=["id", "group_id"])
         fcopr.owner = user
         fcopr.owner_id = user.id
         fcopr.forked_from_id = copr.id
