@@ -186,5 +186,11 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
 
         return flask.redirect(url_on_success)
 
-    return view_method(username=copr.owner.name, coprname=copr.name,
-                       package_name=package_name, source_type=form.source_type.data, form=form)
+    kwargs = {
+        "coprname": copr.name,
+        "package_name": package_name,
+        "source_type": form.source_type.data,
+        "form": form,
+    }
+    kwargs.update({"group_name": copr.group_name} if copr.is_a_group_project else {"username": copr.owner_name})
+    return view_method(**kwargs)
