@@ -1,39 +1,33 @@
 from .helpers import FailTypeEnum
 
-# coding: utf-8
-class PackageImportException(Exception):
-    pass
+
+class CoprDistGitException(Exception):
+    strtype = 'unknown_error'
 
 
-class PackageDownloadException(Exception):
-    pass
+class PackageImportException(CoprDistGitException):
+    strtype = 'srpm_import_failed'
 
 
-class PackageQueryException(Exception):
-    pass
+class PackageDownloadException(CoprDistGitException):
+    strtype = 'srpm_download_failed'
 
 
-class SrpmBuilderException(Exception):
-    """
-    error_code is defined in FailTypeEnum
-    """
-    def __init__(self, error_code=None):
-        self.code = error_code
-
-    def __str__(self):
-        return FailTypeEnum(self.code)
+class SrpmBuilderException(CoprDistGitException):
+    strtype = 'srpm_build_error'
 
 
-class GitException(SrpmBuilderException):
-    pass
+class SrpmQueryException(CoprDistGitException):
+    strtype = 'srpm_query_failed'
 
 
-class PyPIException(SrpmBuilderException):
-    pass
+class GitCloneException(CoprDistGitException):
+    strtype = 'git_clone_failed'
 
 
-class GitAndTitoException(GitException):
-    def __init__(self, error_code=None):
-        super(GitAndTitoException, self).__init__(error_code)
-        if not error_code:
-            self.code = FailTypeEnum("tito_general_error")
+class GitWrongDirectoryException(CoprDistGitException):
+    strtype = 'git_wrong_directory'
+
+
+class GitCheckoutException(CoprDistGitException):
+    strtype = 'git_checkout_error'

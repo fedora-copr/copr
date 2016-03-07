@@ -29,7 +29,7 @@ class FailTypeEnum(object):
             # General errors mixed with errors for SRPM URL/upload:
             "unknown_error": 1,
             "build_error": 2,
-            "git_import_failed": 3,
+            "srpm_import_failed": 3,
             "srpm_download_failed": 4,
             "srpm_query_failed": 5,
             # Git and Tito errors:
@@ -38,7 +38,7 @@ class FailTypeEnum(object):
             "git_wrong_directory": 32,
             "git_checkout_error": 33,
             "srpm_build_error": 34,
-    }
+           }
 
 
 def _get_conf(cp, section, option, default, mode=None):

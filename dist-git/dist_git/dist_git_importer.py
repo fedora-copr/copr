@@ -10,8 +10,8 @@ from subprocess import PIPE, Popen, call
 
 from requests import get, post
 
-from .exceptions import PackageImportException, PackageDownloadException, PackageQueryException, GitAndTitoException, \
-    SrpmBuilderException, GitException, PyPIException
+from .exceptions import CoprDistGitException, PackageImportException, PackageDownloadException, SrpmBuilderException, \
+        SrpmQueryException, GitCloneException, GitWrongDirectoryException, GitCheckoutException
 from .srpm_import import do_git_srpm_import
 
 from .helpers import FailTypeEnum
@@ -179,13 +179,11 @@ class SrpmBuilderProvider(BaseSourceProvider):
         if len(dest_srpms) == 1:
             srpm_name = dest_srpms[0]
         else:
-            log.debug("ERROR :( :( :(")
-            #log.debug("git_dir: {}".format(self.git_dir))
+            log.debug("tmp_dest: {}".format(self.tmp_dest))
             log.debug("dest_files: {}".format(dest_files))
             log.debug("dest_srpms: {}".format(dest_srpms))
-            log.debug("")
-            raise SrpmBuilderException(FailTypeEnum("srpm_build_error"))
-        log.debug("   {}".format(srpm_name))
+            raise SrpmBuilderException("No srpm files were generated.")
+        log.debug("Found srpm: {}".format(srpm_name))
         shutil.copyfile("{}/{}".format(self.tmp_dest, srpm_name), self.target_path)
 
 
@@ -215,11 +213,9 @@ class GitProvider(SrpmBuilderProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
             output, error = proc.communicate()
         except OSError as e:
-            log.error(str(e))
-            raise GitException(FailTypeEnum("git_clone_failed"))
+            raise GitCloneException(str(e))
         if proc.returncode != 0:
-            log.error(error)
-            raise GitException(FailTypeEnum("git_clone_failed"))
+            raise GitCloneException(error)
 
         # 1b. get dir name
         log.debug("GIT_BUILDER: 1b. dir name...")
@@ -228,16 +224,15 @@ class GitProvider(SrpmBuilderProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
             output, error = proc.communicate()
         except OSError as e:
-            log.error(str(e))
-            raise GitException(FailTypeEnum("git_wrong_directory"))
+            raise GitWrongDirectoryException(str(e))
         if proc.returncode != 0:
-            log.error(error)
-            raise GitException(FailTypeEnum("git_wrong_directory"))
+            raise GitWrongDirectoryException(error)
+
         if output and len(output.split()) == 1:
             git_dir_name = output.split()[0]
         else:
-            raise GitException(FailTypeEnum("git_wrong_directory"))
-        log.debug("   {}".format(git_dir_name))
+            raise GitWrongDirectoryException("Could not get name of git directory.")
+        log.debug("Git directory name: {}".format(git_dir_name))
 
         self.git_dir = "{}/{}".format(self.tmp, git_dir_name)
 
@@ -250,11 +245,9 @@ class GitProvider(SrpmBuilderProvider):
                 proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.git_dir)
                 output, error = proc.communicate()
             except OSError as e:
-                log.error(str(e))
-                raise GitException(FailTypeEnum("git_checkout_error"))
+                raise GitCheckoutException(str(e))
             if proc.returncode != 0:
-                log.error(error)
-                raise GitException(FailTypeEnum("git_checkout_error"))
+                raise GitCheckoutException(error)
 
     def build(self):
         raise NotImplemented
@@ -284,11 +277,9 @@ class GitAndTitoProvider(GitProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=git_subdir)
             output, error = proc.communicate()
         except OSError as e:
-            log.error(str(e))
-            raise GitAndTitoException(FailTypeEnum("srpm_build_error"))
+            raise SrpmBuilderException(str(e))
         if proc.returncode != 0:
-            log.error(error)
-            raise GitAndTitoException(FailTypeEnum("srpm_build_error"))
+            raise SrpmBuilderException(error)
 
 
 class MockScmProvider(SrpmBuilderProvider):
@@ -314,11 +305,9 @@ class MockScmProvider(SrpmBuilderProvider):
             proc = Popen(" ".join(cmd), shell=True, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
         except OSError as e:
-            log.error(str(e))
-            raise SrpmBuilderException(FailTypeEnum("srpm_build_error"))
+            raise SrpmBuilderException(str(e))
         if proc.returncode != 0:
-            log.error(error)
-            raise SrpmBuilderException(FailTypeEnum("srpm_build_error"))
+            raise SrpmBuilderException(error)
 
         self.copy()
 
@@ -352,11 +341,9 @@ class PyPIProvider(SrpmBuilderProvider):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
         except OSError as e:
-            log.error(str(e))
-            raise PyPIException(FailTypeEnum("srpm_build_error"))
+            raise SrpmBuilderException(str(e))
         if proc.returncode != 0:
-            log.error(error)
-            raise PyPIException(FailTypeEnum("srpm_build_error")) # pass error message somehow?
+            raise SrpmBuilderException(error)
 
         log.info(output)
         log.info(error)
@@ -371,23 +358,21 @@ class SrpmUrlProvider(BaseSourceProvider):
         :param str target_path:
         :raises PackageDownloadException:
         """
-        log.debug("download the package")
+        log.debug("downloading package {0}".format(self.task.package_url))
         try:
             r = get(self.task.package_url, stream=True, verify=False)
-        except Exception:
-            raise PackageDownloadException("Unexpected error during URL fetch: {}"
-                                           .format(self.task.package_url))
+        except Exception as e:
+            raise PackageDownloadException(str(e))
 
         if 200 <= r.status_code < 400:
             try:
                 with open(self.target_path, 'wb') as f:
                     for chunk in r.iter_content(1024):
                         f.write(chunk)
-            except Exception:
-                raise PackageDownloadException("Unexpected error during URL retrieval: {}"
-                                               .format(self.task.package_url))
+            except Exception as e:
+                raise PackageDownloadException(str(e))
         else:
-            raise PackageDownloadException("Failed to fetch: {} with HTTP status: {}"
+            raise PackageDownloadException("Failed to fetch: {0} with HTTP status: {1}"
                                            .format(self.task.package_url, r.status_code))
 
 
@@ -414,8 +399,9 @@ class DistGitImporter(object):
                 log.debug("No new tasks to process")
                 return
             return ImportTask.from_dict(builds_list[0], self.opts)
-        except Exception:
-            log.exception("Failed acquire new packages for import")
+        except Exception as e:
+            log.error("Failed acquire new packages for import:")
+            log.exception(str(e))
         return
 
     def git_import_srpm(self, task, filepath):
@@ -445,16 +431,14 @@ class DistGitImporter(object):
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
         except OSError as e:
-            log.error(str(e))
-            raise PackageQueryException(e)
+            raise SrpmQueryException(str(e))
         if proc.returncode != 0:
-            log.error(error)
-            raise PackageQueryException('Error querying srpm: %s' % error)
+            raise SrpmQueryException('Error querying srpm: %s' % error)
 
         try:
             name, epoch, version, release = output.split(" ")
         except ValueError as e:
-            raise PackageQueryException(e)
+            raise SrpmQueryException(str(e))
 
         # Epoch is an integer or '(none)' if not set
         if epoch.isdigit():
@@ -487,8 +471,9 @@ class DistGitImporter(object):
         """
         try:
             return self.post_back(data_dict)
-        except Exception:
-            log.exception("Failed to post back to frontend : {}".format(data_dict))
+        except Exception as e:
+            log.error("Failed to post back to frontend : {}".format(data_dict))
+            log.exception(str(e))
 
     def do_import(self, task):
         """
@@ -510,31 +495,9 @@ class DistGitImporter(object):
             log.debug("sending a response - success")
             self.post_back(task.get_dict_for_frontend())
 
-        except PackageImportException:
-            log.exception("send a response - failure during import of: {}".format(task.package_url))
-            self.post_back_safe({"task_id": task.task_id, "error": "git_import_failed"})
-
-        except PackageDownloadException:
-            log.exception("send a response - failure during download of: {}".format(task.package_url))
-            self.post_back_safe({"task_id": task.task_id, "error": "srpm_download_failed"})
-
-        except PackageQueryException:
-            log.exception("send a response - failure during query of: {}".format(task.package_url))
-            self.post_back_safe({"task_id": task.task_id, "error": "srpm_query_failed"})
-
-        except GitException as e:
-            log.exception("send a response - failure during query of: {}".format(task.package_url))
-            log.exception("... due to: {}".format(str(e)))
-            self.post_back_safe({"task_id": task.task_id, "error": str(e)})
-
-        except GitAndTitoException as e:
-            log.exception("send a response - failure during 'Tito and Git' import of: {}".format(task.git_url))
-            log.exception("   ... due to: {}".format(str(e)))
-            self.post_back_safe({"task_id": task.task_id, "error": str(e)})
-
-        except Exception:
-            log.exception("Unexpected error during package import")
-            self.post_back_safe({"task_id": task.task_id, "error": "unknown_error"})
+        except CoprDistGitException as e:
+            log.exception("Exception raised during srpm import:")
+            self.post_back_safe({"task_id": task.task_id, "error": e.strtype})
 
         finally:
             shutil.rmtree(tmp_root, ignore_errors=True)

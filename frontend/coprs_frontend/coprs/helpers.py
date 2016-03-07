@@ -106,7 +106,7 @@ class FailTypeEnum(with_metaclass(EnumType, object)):
             # General errors mixed with errors for SRPM URL/upload:
             "unknown_error": 1,
             "build_error": 2,
-            "git_import_failed": 3,
+            "srpm_import_failed": 3,
             "srpm_download_failed": 4,
             "srpm_query_failed": 5,
             # Git and Tito errors:

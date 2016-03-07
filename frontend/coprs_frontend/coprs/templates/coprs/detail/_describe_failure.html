@@ -11,7 +11,7 @@
   {% elif build.fail_type_text == "build_error" %}
     Build error. See logs of individual chroots for more information.
 
-  {% elif build.fail_type_text == "git_import_failed" %}
+  {% elif build.fail_type_text == "srpm_import_failed" %}
     Importing SRPM into Dist Git failed.
 
   {% elif build.fail_type_text == "srpm_download_failed" %}
