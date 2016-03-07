@@ -30,7 +30,7 @@ from coprs.rmodels import TimedStatEvents
 
 from coprs.logic.complex_logic import ComplexLogic
 
-from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
+from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr, generic_error
 
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.groups_ns import groups_ns
@@ -808,17 +808,25 @@ def group_copr_build_monitor(copr, detailed=False):
     return render_monitor(copr, detailed == "detailed")
 
 
-@coprs_ns.route("/<username>/<coprname>/fork/", methods=["POST"])
-@coprs_ns.route("/g/<group_name>/<coprname>/fork/", methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/fork/")
+@coprs_ns.route("/<username>/<coprname>/fork/<dst_group_name>")
+@coprs_ns.route("/g/<group_name>/<coprname>/fork/")
+@coprs_ns.route("/g/<group_name>/<coprname>/fork/<dst_group_name>")
 @login_required
 @req_with_copr
-def copr_fork(copr):
-    fcopr = CoprsLogic.get(flask.g.user.name, copr.name).first()
+def copr_fork(copr, dst_group_name=None):
+    dstgroup = UsersLogic.get_group_by_alias(dst_group_name).first()
+    if not dstgroup:
+        return generic_error("There is no such group: {}".format(dst_group_name))
+
+    fcopr = CoprsLogic.get_by_group_id(dstgroup.id, copr.name).first() if dst_group_name \
+        else CoprsLogic.filter_without_group_projects(CoprsLogic.get(flask.g.user.name, copr.name)).first()
+
     if not fcopr:
-        fcopr = ComplexLogic.fork_copr(copr, flask.g.user)
+        fcopr = ComplexLogic.fork_copr(copr, flask.g.user, dstgroup=dstgroup)
         db.session.commit()
 
         flask.flash("Forking project {} for you into {}. Please be aware that it may take a few minutes "
                     "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
 
-    return render_copr_detail(fcopr)
+    return flask.redirect(url_for_copr_details(fcopr))

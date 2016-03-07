@@ -162,12 +162,26 @@
         <h3 class="panel-title"> Other Actions </h3>
       </div>
       <div class="panel-body">
-        {% if g.user and g.user.id != copr.owner.id %}
-        <form method="post" action="{{ copr_url('coprs_ns.copr_fork', copr) }}">
-          <button type="submit" class="button">
-            <i class="fa fa-code-fork"></i> Fork this project<br />
+
+        {% if g.user and (g.user.id != copr.owner.id or copr.is_a_group_project) %}
+        <div class="btn-group">
+          <a href="{{ copr_url('coprs_ns.copr_fork', copr) }}" class="btn btn-default">
+            <i class="fa fa-code-fork"></i> Fork this project
+          </a>
+
+          {% set groups = g.user.user_groups |rejectattr("name", "sameas", copr.group_name) |list %}
+          {% if groups %}
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+            <span class="caret"></span>
           </button>
-        </form>
+          <ul class="dropdown-menu">
+            {% for group in groups %}
+              <li><a href="{{ copr_url('coprs_ns.copr_fork', copr, dst_group_name=group.name) }}">Fork as {{ group.at_name }}</a></li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        <br>
         {% endif %}
 
         <a href="{{ copr_url('coprs_ns.copr_report_abuse', copr) }}">
