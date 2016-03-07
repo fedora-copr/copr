@@ -157,9 +157,7 @@
                 {% if chroot.started_on %}
 
                 <a href="{{ chroot.result_dir_url }}">
-                  <span class="pficon pficon-folder-open">
-                    {{ chroot.name }}
-                  </span>
+                  <span class="pficon pficon-folder-open"></span> {{ chroot.name }}
                 </a>
                 {% else %}
                 {{ chroot.name }}

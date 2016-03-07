@@ -10,9 +10,7 @@
         <ul class="list-unstyled">
         {% if info %}
           <li class="help-block">
-            <small class="text-muted pficon pficon-info">
-              {{info|safe}}
-            </small>
+            <small class="text-muted pficon pficon-info"></small> {{info|safe}}
           </li>
         {% endif %}
         {% if field.errors %}
@@ -103,21 +101,21 @@
 {% macro build_state_text(state) %}
   <span class="build-{{ state }}" title="{{ state | build_state_description }}">
   {% if state == "importing" %}
-    <span class="pficon pficon-running"> {{ state }} </span>
+    <span class="pficon pficon-running"></span> {{ state }}
   {% elif state == "pending" %}
-    <span class="pficon pficon-running"> {{ state }} </span>
+    <span class="pficon pficon-running"></span> {{ state }}
   {% elif state == "starting" %}
-    <span class="pficon pficon-running"> {{ state }} </span>
+    <span class="pficon pficon-running"></span> {{ state }}
   {% elif state == "running" %}
-    <span class="pficon pficon-running"> {{ state }} </span>
+    <span class="pficon pficon-running"></span> {{ state }}
   {% elif state == "succeeded" %}
-    <span class="pficon pficon-ok"> {{ state }} </span>
+    <span class="pficon pficon-ok"></span> {{ state }}
   {% elif state == "skipped" %}
-    <span class="pficon pficon-ok"> {{ state }} </span>
+    <span class="pficon pficon-ok"></span> {{ state }}
   {% elif state == "failed" %}
-    <span class="pficon pficon-error-circle-o"> {{ state }} </span>
+    <span class="pficon pficon-error-circle-o"></span> {{ state }}
   {% elif state == "canceled" %}
-    <span class="pficon pficon-close"> {{ state }} </span>
+    <span class="pficon pficon-close"></span> {{ state }}
   {% else %}
     <span> unknown </span>
   {% endif %}

@@ -19,9 +19,9 @@
 {% block body %}
   {% macro nav_element(tab_name, tab_title, icon,  href) %}
   <li class="{% if selected_tab == tab_name %}active{% endif %}">
-    <a href="{{ href }}"> <span class="{{icon}}">{% if "pficon" not in icon %}&nbsp;{%endif%}
+    <a href="{{ href }}"> <span class="{{icon}}"></span> {% if "pficon" not in icon %}&nbsp;{%endif%}
       {{ tab_title }}
-    </span></a>
+    </a>
   </li>
   {% endmacro %}
 

@@ -15,7 +15,7 @@
 
 {% block detail_body %}
 {% if g.user and g.user.can_build_in(copr) %}
-  <a class="btn btn-primary button-new pull-right" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}"><span class="pficon pficon-add-circle-o"> New Build </span></a>
+  <a class="btn btn-primary button-new pull-right" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}"><span class="pficon pficon-add-circle-o"></span> New Build</a>
 {% endif %}
 
 <h2>Project Builds</h2>

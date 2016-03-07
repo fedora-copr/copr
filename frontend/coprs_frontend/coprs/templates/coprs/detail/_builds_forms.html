@@ -209,7 +209,7 @@
     <form class="{{class}}" action="{{ copr_url('coprs_ns.copr_cancel_build', build.copr, build_id=build.id) }}" method="post">
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
-        <span class="pficon pficon-close"> Cancel</span>
+        <span class="pficon pficon-close"></span> Cancel
       </button>
     </form>
   {% endif %}
@@ -220,7 +220,7 @@
     <form class="{{class}}" action="{{ copr_url('coprs_ns.copr_repeat_build', build.copr, build_id=build.id) }}" method="post">
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
-        <span class="pficon pficon-restart"> Resubmit</span>
+        <span class="pficon pficon-restart"></span> Resubmit
       </button>
     </form>
   {% endif %}
@@ -231,7 +231,7 @@
     <form class="{{class}}" action="{{ url_for('coprs_ns.copr_delete_build', username=build.copr.owner.name, coprname=build.copr.name, build_id=build.id)}}" method="post">
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
-        <span class="pficon pficon-delete"> Delete</span>
+        <span class="pficon pficon-delete"></span> Delete
       </button>
     </form>
   {% endif %}

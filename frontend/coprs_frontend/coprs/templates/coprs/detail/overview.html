@@ -61,7 +61,7 @@
           </td>
           <td class="rightmost">
             <a class="btn btn-default btn-margin" href="{{ repo_file_href(copr, repo) }}">
-              <span class="pficon pficon-save"> {{ repo.name_release_human|capitalize }}</span>
+              <span class="pficon pficon-save"></span> {{ repo.name_release_human|capitalize }}
             </a>
             <small class="text-muted"> ({{ repo.dl_stat }} downloads) </small>
           </td>
@@ -139,7 +139,7 @@
           dnf copr enable {{ copr_name(copr) }}
         </div>
         <a href="https://fedorahosted.org/copr/wiki/HowToEnableRepo" target="_blank">
-          <small class="pficon pficon-info"> More info about enabling Copr repositories</small></a>
+          <small><span class="pficon pficon-info"></span> More info about enabling Copr repositories</small></a>
       </div>
     </div>
     {% if g.user and g.user.can_edit(copr) and copr and copr.owner and not copr.auto_createrepo %}
@@ -153,7 +153,7 @@
             <span class="fa fa-refresh"> Regenerate</span></button>
         </form>
         <br>
-        <small class="pficon pficon-info text-muted"> Package repositories are not generated automatically after each build. You can change this setting on the Edit page</small>
+        <small><span class="pficon pficon-info text-muted"></span> Package repositories are not generated automatically after each build. You can change this setting on the Edit page</small>
       </div>
     </div>
     {% endif %}
@@ -171,7 +171,7 @@
         {% endif %}
 
         <a href="{{ copr_url('coprs_ns.copr_report_abuse', copr) }}">
-          <small class="pficon pficon-warning-triangle-o"> Report Abuse </small></a>
+          <small><span class="pficon pficon-warning-triangle-o"></span> Report Abuse </small></a>
       </div>
 
     </div>

@@ -15,7 +15,7 @@
 
 {% block detail_body %}
 {% if g.user and g.user.can_edit(copr) %}
-  <a class="btn btn-primary button-new pull-right" href="{{ copr_url('coprs_ns.copr_add_package', copr) }}"><span class="pficon pficon-add-circle-o"> New package </span></a>
+  <a class="btn btn-primary button-new pull-right" href="{{ copr_url('coprs_ns.copr_add_package', copr) }}"><span class="pficon pficon-add-circle-o"></span> New package </a>
 {% endif %}
 <h2 class="page-title">Project Packages</h2>
 
