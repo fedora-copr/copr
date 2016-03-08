@@ -23,8 +23,8 @@ def main():
     except Exception:
         print("Failed to read config file, used file location: `{}`"
               .format(config_file))
-        # sys.exit(1)
         sys.exit(1)
+
 
     logging.basicConfig(
         filename=os.path.join(opts.log_dir, "main.log"),
@@ -35,6 +35,15 @@ def main():
 
     logging.getLogger('requests.packages.urllib3').setLevel(logging.WARN)
     logging.getLogger('urllib3').setLevel(logging.WARN)
+
+    log.info("Make sure per-task-logs dir exists at: {}".format(opts.per_task_log_dir))
+    try:
+        os.makedirs(opts.per_task_log_dir)
+    except OSError:
+        if not os.path.isdir(opts.per_task_log_dir):
+            log.error("Could not create per-task-logs directory at path {}"
+                      .format(opts.per_task_log_dir))
+            sys.exit(1)
 
     log.info("Logging configuration done")
     log.info("Using configuration: \n"
