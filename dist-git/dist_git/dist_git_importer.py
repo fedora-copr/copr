@@ -313,9 +313,9 @@ class MockScmProvider(SrpmBuilderProvider):
 
     def scm_option_get(self):
         return {
-            "git": "git_get='git clone --depth 1 {}'",
-            "svn": "git_get='git svn clone {}'"
-        }[self.task.mock_scm_type].format(self.task.mock_scm_url)
+            "git": "git_get='git clone --depth 1 {} {}'",
+            "svn": "git_get='git svn clone {} {}'"
+        }[self.task.mock_scm_type].format(self.task.mock_scm_url, self.task.package_name)
 
 
 class PyPIProvider(SrpmBuilderProvider):
