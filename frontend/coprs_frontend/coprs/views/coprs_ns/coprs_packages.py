@@ -149,6 +149,14 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
     else:
         raise Exception("Wrong source type")
 
+    if "reset" in flask.request.form:
+        package = PackagesLogic.get(copr.id, package_name).first()
+        package.source_type = helpers.BuildSourceEnum("unset")
+        db.session.add(package)
+        db.session.commit()
+        flask.flash("Package default source successfully reset")
+        return flask.redirect(url_on_success)
+
     if form.validate_on_submit():
         if package_name:
             package = PackagesLogic.get(copr.id, package_name).first()

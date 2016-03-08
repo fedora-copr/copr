@@ -31,6 +31,7 @@
   </div>
   {{ form.csrf_token }}
   <input class="btn btn-primary pull-right" type="submit" value="Submit">
+  {% if package.name %}<input class="btn btn-default pull-right" type="submit" name="reset" value="Reset">{% endif %}
 </form>
 {% endmacro %}
 
@@ -94,6 +95,7 @@
     <input type="hidden" name="source_type" value="pypi" />
     {{ form.csrf_token }}
     <input class="btn btn-primary pull-right" type="submit" value="Submit">
+    {% if package.name %}<input class="btn btn-default pull-right" type="submit" name="reset" value="Reset">{% endif %}
 
   </form>
 {% endmacro %}
