@@ -1,6 +1,6 @@
 {% extends "coprs/detail/monitor.html" %}
 
-{% from "_helpers.html" import package_href, build_href, build_state %}
+{% from "_helpers.html" import package_href, build_href, build_state_text %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 
 {% set selected_monitor_tab = "simple" %}
@@ -48,7 +48,7 @@
             {% if build_chroot %}
               {% set build = build_chroot.build %}
               <a href="{{ build_href(build) }}">
-                {{ build_state(build) }}
+                {{ build_state_text(build_chroot.state) }}
               </a>
             {% else %}
             -
