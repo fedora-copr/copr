@@ -102,6 +102,10 @@ class DistGitConfigReader(object):
             cp, "dist-git", "log_dir", "/var/log/copr-dist-git"
         )
 
+        opts.per_task_log_dir = _get_conf(
+            cp, "dist-git", "per_task_log_dir", "/var/lib/copr-dist-git/per-task-logs"
+        )
+
         opts.sleep_time = _get_conf(
             cp, "dist-git", "sleep_time", 15, mode="int"
         )

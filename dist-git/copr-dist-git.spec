@@ -36,6 +36,7 @@ Requires: pyrpkg
 Requires: mock-scm
 Requires: tito
 Requires: pyp2rpm
+Requires: httpd
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
 
@@ -58,6 +59,7 @@ This package contains Copr services for Dist Git server
 install -d %{buildroot}%{_datadir}/copr/dist_git
 install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d/
+install -d %{buildroot}%{_sysconfdir}/httpd/conf.d/
 install -d %{buildroot}%{_unitdir}
 install -d %{buildroot}%{_var}/log/copr-dist-git
 install -d %{buildroot}%{_sharedstatedir}/copr-dist-git
@@ -65,6 +67,7 @@ install -d %{buildroot}%{_bindir}/
 
 cp -a dist_git/* %{buildroot}%{_datadir}/copr/dist_git
 cp -a conf/copr-dist-git.conf.example %{buildroot}%{_sysconfdir}/copr/copr-dist-git.conf
+cp -a conf/httpd/copr-dist-git.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/copr-dist-git.conf
 cp -a copr-dist-git.service %{buildroot}%{_unitdir}/
 cp -a run/* %{buildroot}%{_bindir}/
 
@@ -93,6 +96,7 @@ restorecon -rv /var/lib/copr-dist-git
 %{_datadir}/copr/*
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr-service) %{_sysconfdir}/copr/copr-dist-git.conf
+%config(noreplace) %attr(0644, root, root) %{_sysconfdir}/httpd/conf.d/copr-dist-git.conf
 
 %dir %attr(0755, copr-service, copr-service) %{_sharedstatedir}/copr-dist-git/
 

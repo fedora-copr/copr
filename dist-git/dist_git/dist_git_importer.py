@@ -479,6 +479,7 @@ class DistGitImporter(object):
         """
         :type task: ImportTask
         """
+        per_task_log_handler = self.setup_per_task_logging(task)
         log.info("2. Task: {}, importing the package: {}"
                  .format(task.task_id, task.package_url))
         tmp_root = tempfile.mkdtemp()
@@ -501,6 +502,16 @@ class DistGitImporter(object):
 
         finally:
             shutil.rmtree(tmp_root, ignore_errors=True)
+            self.tear_up_per_task_logging(per_task_log_handler)
+
+    def setup_per_task_logging(self, task):
+        handler = logging.FileHandler(os.path.join(self.opts.per_task_log_dir, task.task_id+'.log'))
+        handler.setLevel(logging.DEBUG)
+        logging.getLogger('').addHandler(handler)
+        return handler
+
+    def tear_up_per_task_logging(self, handler):
+        logging.getLogger('').removeHandler(handler)
 
     def run(self):
         log.info("DistGitImported initialized")
