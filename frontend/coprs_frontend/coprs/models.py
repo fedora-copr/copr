@@ -822,11 +822,26 @@ class BuildChroot(db.Model, helpers.Serializer):
         return "unknown"
 
     @property
+    def task_id(self):
+        return "{}-{}".format(self.build_id, self.name)
+
+    @property
+    def import_task_id(self):
+        return "{}-{}".format(self.build_id, helpers.chroot_to_branch(self.name))
+
+    @property
     def dist_git_url(self):
         if app.config["DIST_GIT_URL"]:
             return "{}/{}.git/commit/?id={}".format(app.config["DIST_GIT_URL"],
                                                     self.build.package.dist_git_repo,
                                                     self.git_hash)
+        return None
+
+    @property
+    def import_log_url(self):
+        if app.config["COPR_DIST_GIT_LOGS_URL"]:
+            return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
+                                      self.import_task_id)
         return None
 
     @property

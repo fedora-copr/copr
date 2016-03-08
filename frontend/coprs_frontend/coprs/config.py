@@ -42,6 +42,7 @@ class Config(object):
     PUBLIC_COPR_HOSTNAME = "copr-fe-dev.cloud.fedoraproject.org"
 
     DIST_GIT_URL = None
+    COPR_DIST_GIT_LOGS_URL = None
 
     # primary log file
     LOG_FILENAME = "/var/log/copr/frontend.log"

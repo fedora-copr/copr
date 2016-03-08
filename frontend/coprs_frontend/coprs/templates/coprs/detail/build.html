@@ -146,6 +146,7 @@
             <tr>
               <th>Chroot Name</th>
               <th>Dist Git Source</th>
+              <th>Import log</th>
               <th>Build Time</th>
               <th>State</th>
             </tr>
@@ -172,6 +173,15 @@
                   {% else %}
                     {{ chroot.git_hash[:7] }}
                   {% endif %}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if chroot.import_log_url %}
+                    <a href="{{chroot.import_log_url}}">
+                      {{ chroot.import_task_id }}.log
+                    </a>
                 {% else %}
                   -
                 {% endif %}

@@ -36,7 +36,7 @@ def dist_git_importing_queue():
         else:
             user_name = copr.owner.name
         task_dict = {
-            "task_id": "{}-{}".format(task.build.id, helpers.chroot_to_branch(task.mock_chroot.name)),
+            "task_id": task.import_task_id,
             "user": user_name,
             "project": task.build.copr.name,
 
@@ -143,7 +143,7 @@ def waiting():
                 user_name = copr.owner.name
 
             record = {
-                "task_id": "{}-{}".format(task.build.id, task.mock_chroot.name),
+                "task_id": task.task_id,
                 "build_id": task.build.id,
                 "project_owner": user_name,
                 "project_name": task.build.copr.name,
