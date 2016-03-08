@@ -505,7 +505,7 @@ class DistGitImporter(object):
             self.tear_up_per_task_logging(per_task_log_handler)
 
     def setup_per_task_logging(self, task):
-        handler = logging.FileHandler(os.path.join(self.opts.per_task_log_dir, task.task_id+'.log'))
+        handler = logging.FileHandler(os.path.join(self.opts.per_task_log_dir, "{0}.log".format(task.task_id)))
         handler.setLevel(logging.DEBUG)
         logging.getLogger('').addHandler(handler)
         return handler

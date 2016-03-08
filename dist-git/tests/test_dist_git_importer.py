@@ -22,7 +22,7 @@ else:
     from mock import MagicMock
 
 from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask
-from dist_git.exceptions import PackageImportException, PackageDownloadException, PackageQueryException
+from dist_git.exceptions import PackageImportException, PackageDownloadException, SrpmQueryException
 
 MODULE_REF = 'dist_git.dist_git_importer'
 
@@ -93,6 +93,8 @@ class TestDistGitImporter(object):
     def setup_method(self, method):
         self.tmp_dir_name = self.make_temp_dir()
         self.lookaside_location = os.path.join(self.tmp_dir_name, "lookaside")
+        self.per_task_location = os.path.join(self.tmp_dir_name, "per-task-logs")
+        os.mkdir(self.per_task_location)
         self.opts = Bunch({
             "frontend_base_url": "http://front",
             "frontend_auth": "secure_password",
@@ -101,7 +103,8 @@ class TestDistGitImporter(object):
 
             "cgit_pkg_list_location": self.tmp_dir_name,
             "sleep_time": 10,
-            "log_dir": self.tmp_dir_name
+            "log_dir": self.tmp_dir_name,
+            "per_task_log_dir": self.per_task_location
         })
 
         self.dgi = DistGitImporter(self.opts)
@@ -247,18 +250,18 @@ class TestDistGitImporter(object):
         ]
 
         mc_popen.side_effect = OSError
-        with pytest.raises(PackageQueryException):
+        with pytest.raises(SrpmQueryException):
             self.dgi.pkg_name_evr("/dev/null")
 
         mc_popen.side_effect = None
         for (e, v, r), expected in test_plan:
             mc_comm.return_value = ("foo {} {} {}".format(e, v, r), "err msg")
-            with pytest.raises(PackageQueryException):
+            with pytest.raises(SrpmQueryException):
                 self.dgi.pkg_name_evr("/dev/null")
 
         for (e, v, r), expected in test_plan:
             mc_comm.return_value = ("", None)
-            with pytest.raises(PackageQueryException):
+            with pytest.raises(SrpmQueryException):
                 self.dgi.pkg_name_evr("/dev/null")
 
     def test_before_git_import(self, mc_call):
@@ -309,7 +312,7 @@ class TestDistGitImporter(object):
 
         for name in internal_methods:
             mc = mc_methods[name]
-            for err in (IOError, PackageImportException, PackageDownloadException, PackageQueryException):
+            for err in (PackageImportException, PackageDownloadException, SrpmQueryException):
                 mc.side_effect = err
                 self.dgi.do_import(self.task_1)
 
