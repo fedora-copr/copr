@@ -1,8 +1,0 @@
-
-[msuchy-copr]
-name=Copr repo for copr owned by msuchy
-baseurl=https://copr-be.cloud.fedoraproject.org/results/msuchy/copr/fedora-$releasever-$basearch/
-skip_if_unavailable=True
-gpgcheck=1
-gpgkey=https://copr-be.cloud.fedoraproject.org/results/msuchy/copr/pubkey.gpg
-enabled=1

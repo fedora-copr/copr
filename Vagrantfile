@@ -63,6 +63,16 @@ Vagrant.configure(2) do |config|
     frontend.vm.provision "shell",
       inline: "sed -e \"s/^#BACKEND_PASSWORD.*/BACKEND_PASSWORD = \\'1234\\'/\" /etc/copr/copr.conf | sudo tee /etc/copr/copr.conf"
 
+    # Configure backend base url
+    frontend.vm.provision "shell",
+      inline: "sed -e 's/^BACKEND_BASE_URL.*/BACKEND_BASE_URL = \"http:\\/\\/localhost:5002\"/' /etc/copr/copr.conf | sudo tee /etc/copr/copr.conf",
+      run: "always"
+
+    # Configure import logs url
+    frontend.vm.provision "shell",
+      inline: "sed -e 's/^COPR_DIST_GIT_LOGS_URL.*/COPR_DIST_GIT_LOGS_URL = \"http:\\/\\/192.168.242.52\\/per-task-logs\"/' /etc/copr/copr.conf | sudo tee /etc/copr/copr.conf",
+      run: "always"
+
     # ..
     frontend.vm.provision "shell",
       inline: "sudo dnf -y install copr-selinux postgresql-server"
@@ -233,7 +243,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg pyp2rpm || sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg pyp2rpm"
+      inline: "sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg || sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg"
 
     # ...
     distgit.vm.provision "shell",

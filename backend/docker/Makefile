@@ -1,5 +1,5 @@
 build:
-	docker build -t copr-backend-image .
+	docker build -t copr-backend-image -f Dockerfile ../../
 
 run:
 	docker run --privileged --name="copr-backend" -dit --net="host" copr-backend-image
