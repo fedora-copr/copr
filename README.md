@@ -31,4 +31,11 @@ $ cd copr
 $ vagrant up
 ```
 
+Good news, everyone! From now on, you can additionally run backend in a docker container. This makes it possible to build a package by using our COPR stack but solely on your machine. Mainly useful for development. Makefile is provided for easy manipulation with the backend Dockerfile and the afterwards created docker image.
+
+```
+$ cd copr/backend/docker
+$ make build && make run
+```
+
 For more information see [our wiki page](https://fedorahosted.org/copr/wiki/Contribute#LocalDevelopmentEnvironment).
