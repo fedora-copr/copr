@@ -132,6 +132,15 @@ class BackendConfigReader(object):
         opts.frontend_auth = _get_conf(
             cp, "backend", "frontend_auth", "PASSWORDHERE")
 
+        opts.redis_host = _get_conf(
+            cp, "backend", "redis_host", "127.0.0.1")
+
+        opts.redis_port = _get_conf(
+            cp, "backend", "redis_port", "6379")
+
+        opts.redis_db = _get_conf(
+            cp, "backend", "redis_db", "0")
+
         opts.do_sign = _get_conf(
             cp, "backend", "do_sign", False, mode="bool")
 
@@ -275,8 +284,7 @@ def register_build_result(opts=None, failed=False):
     if opts is None:
         opts = BackendConfigReader().read()
 
-    # TODO: add config options to specify redis host, port
-    conn = StrictRedis()  # connecting to default local redis instance
+    conn = get_redis_connection(opts)
 
     key = CONSECUTIVE_FAILURE_REDIS_KEY
     if not failed:
@@ -291,7 +299,6 @@ def get_redis_connection(opts):
 
     :rtype: StrictRedis
     """
-    # TODO: use host/port from opts
     kwargs = {}
     if hasattr(opts, "redis_db"):
         kwargs["db"] = opts.redis_db

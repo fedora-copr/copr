@@ -14,17 +14,25 @@ class Channel(object):
     def __init__(self, opts, log=None):
         self.log = log
         self.opts = opts
+        self.redis_config = {
+            'host': opts['redis_host'],
+            'port': opts['redis_port'],
+            'db': opts['redis_db'],
+        }
+
         # channel for Backend <--> JobGrabber communication
-        self.jg_start = Queue("jg_control_start")
+        self.jg_start = Queue("jg_control_start", config=self.redis_config)
+
         # channel for JobGrabber <--> [[Builders]] communication
         self.build_queues = dict()
+
         while not self.jg_start.connect():
             wait_log(self.log, "waiting for redis", 5)
 
     def _get_queue(self, bgroup):
         if not bgroup in self.build_queues:
             q_id = "copr-be-{0}".format(bgroup)
-            q = Queue(q_id)
+            q = Queue(q_id, config=self.redis_config)
             if not q.connect():
                 # As we already connected to jg_control_message, this should
                 # be also OK.

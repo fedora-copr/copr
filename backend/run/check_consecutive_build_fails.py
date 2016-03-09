@@ -13,13 +13,13 @@ from redis import StrictRedis
 sys.path.append("/usr/share/copr/")
 
 
-from backend.helpers import BackendConfigReader
+from backend.helpers import BackendConfigReader, get_redis_connection
 from backend.constants import CONSECUTIVE_FAILURE_REDIS_KEY
 
 
 def main():
     opts = BackendConfigReader().read()
-    conn = StrictRedis()  # connecting to default local redis instance
+    conn = get_redis_connection()
 
     key = CONSECUTIVE_FAILURE_REDIS_KEY
 
