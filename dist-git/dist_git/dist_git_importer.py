@@ -297,7 +297,7 @@ class MockScmProvider(SrpmBuilderProvider):
                "--scm-option", "branch={}".format(self.task.mock_scm_branch),
                "--scm-option", "write_tar=True",
                "--scm-option", "spec={0}".format(self.task.mock_spec),
-               "--scm-option", self.scm_option_get(),
+               "--scm-option", self.scm_option_get(package_name),
                "--buildsrpm", "--resultdir={}".format(self.tmp_dest)]
         log.debug(' '.join(cmd))
 
@@ -311,11 +311,11 @@ class MockScmProvider(SrpmBuilderProvider):
 
         self.copy()
 
-    def scm_option_get(self):
+    def scm_option_get(self, package_name):
         return {
             "git": "git_get='git clone --depth 1 {} {}'",
             "svn": "git_get='git svn clone {} {}'"
-        }[self.task.mock_scm_type].format(self.task.mock_scm_url, self.task.package_name)
+        }[self.task.mock_scm_type].format(self.task.mock_scm_url, package_name)
 
 
 class PyPIProvider(SrpmBuilderProvider):
