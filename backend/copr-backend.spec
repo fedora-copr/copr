@@ -82,6 +82,7 @@ Requires:   logrotate
 Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
+Requires:   prunerepo
 Requires:   python-paramiko
 Requires:   python-lockfile
 # Requires:   python-ipdb
