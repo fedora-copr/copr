@@ -64,6 +64,10 @@ RUN cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys
 RUN chown copr:copr -R /home/copr
 RUN usermod -a -G mock copr
 
+# probably temporary fix for upload builds
+RUN echo "config_opts['chrootgid'] = 1234" >> /etc/mock/site-defaults.cfg
+RUN groupadd mockbuild -g 1234
+
 COPY . /copr
 RUN dnf -y builddep /copr/backend/copr-backend.spec
 RUN rm -rf /tmp/tito && cd /copr/backend && LANG=en_US.UTF-8 tito build --test --rpm
