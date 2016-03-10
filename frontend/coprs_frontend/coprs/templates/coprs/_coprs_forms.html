@@ -215,3 +215,15 @@
   </dl>
   </form>
 {% endmacro %}
+
+
+{% macro copr_fork_form(form, copr) %}
+<form method="post" action="">
+  {{ render_field(form.source, disabled = True) }}
+  {{ render_field(form.source, hidden = True) }}
+  {{ render_field(form.owner) }}
+  {{ render_field(form.name) }}
+  {{ form.csrf_token }}
+  <input class="btn btn-primary pull-right" type="submit" value="Fork it">
+</form>
+{% endmacro %}

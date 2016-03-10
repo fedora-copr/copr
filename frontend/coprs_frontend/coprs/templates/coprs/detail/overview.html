@@ -168,20 +168,8 @@
           <a href="{{ copr_url('coprs_ns.copr_fork', copr) }}" class="btn btn-default">
             <i class="fa fa-code-fork"></i> Fork this project
           </a>
-
-          {% set groups = g.user.user_groups |rejectattr("name", "sameas", copr.group_name) |list %}
-          {% if groups %}
-          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu">
-            {% for group in groups %}
-              <li><a href="{{ copr_url('coprs_ns.copr_fork', copr, dst_group_name=group.name) }}">Fork as {{ group.at_name }}</a></li>
-            {% endfor %}
-          </ul>
-          {% endif %}
-        </div>
-        <br>
+          <br>
+          <br>
         {% endif %}
 
         <a href="{{ copr_url('coprs_ns.copr_report_abuse', copr) }}">

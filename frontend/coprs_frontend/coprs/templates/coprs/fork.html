@@ -1,0 +1,17 @@
+{% extends "coprs/detail.html" %}
+{% block title %}Fork Project{% endblock %}
+{% block header %}Fork Project{% endblock %}
+{% from "coprs/_coprs_forms.html" import copr_fork_form %}
+
+{%block project_breadcrumb %}
+<li class="active">
+  Fork
+</li>
+{%endblock%}
+
+{% block body %}
+<h1>Fork Project</h1>
+
+{{ copr_fork_form(form, copr) }}
+
+{% endblock %}

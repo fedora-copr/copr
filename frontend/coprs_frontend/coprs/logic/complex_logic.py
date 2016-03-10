@@ -40,13 +40,13 @@ class ComplexLogic(object):
         CoprsLogic.delete_unsafe(flask.g.user, copr)
 
     @classmethod
-    def fork_copr(cls, copr, user, dstgroup=None):
-        if not user.can_build_in_group(dstgroup):
+    def fork_copr(cls, copr, user, dstname, dstgroup=None):
+        if dstgroup and not user.can_build_in_group(dstgroup):
             raise exceptions.InsufficientRightsException(
                 "Only members may create projects in the particular groups.")
 
-        fcopr = CoprsLogic.get_by_group_id(dstgroup.id, copr.name).first() if dstgroup \
-            else CoprsLogic.filter_without_group_projects(CoprsLogic.get(flask.g.user.name, copr.name)).first()
+        fcopr = CoprsLogic.get_by_group_id(dstgroup.id, dstname).first() if dstgroup \
+            else CoprsLogic.filter_without_group_projects(CoprsLogic.get(flask.g.user.name, dstname)).first()
 
         if fcopr:
             raise exceptions.DuplicateException("You already have {}/{} project".format(user.name, copr.name))
@@ -63,6 +63,8 @@ class ComplexLogic(object):
         fcopr.forked_from_id = copr.id
         fcopr.owner = user
         fcopr.owner_id = user.id
+        if dstname:
+            fcopr.name = dstname
         if dstgroup:
             fcopr.group = dstgroup
             fcopr.group_id = dstgroup.id

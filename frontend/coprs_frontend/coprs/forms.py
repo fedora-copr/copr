@@ -575,6 +575,27 @@ class CoprModifyForm(wtf.Form):
     disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
 
 
+class CoprForkFormFactory(object):
+    @staticmethod
+    def create_form_cls(copr, user, groups):
+        class F(wtf.Form):
+            source = wtforms.StringField(
+                "Source",
+                default=copr.full_name)
+
+            owner = wtforms.SelectField(
+                "Fork owner",
+                choices=[(user.name, user.name)] + [(g.at_name, g.at_name) for g in groups],
+                default=user.name,
+                validators=[wtforms.validators.DataRequired()])
+
+            name = wtforms.StringField(
+                "Fork name",
+                default=copr.name,
+                validators=[wtforms.validators.DataRequired()])
+        return F
+
+
 class ModifyChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
 
