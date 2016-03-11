@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+
+runuser -c '/usr/share/copr/coprs_frontend/run/check_for_anitya_version_updates.py --delta=172800' - copr-fe

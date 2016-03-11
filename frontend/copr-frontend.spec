@@ -67,6 +67,7 @@ Requires:   logstash
 Requires:   redis
 Requires:   python-redis
 Requires:   python-dateutil
+Requires:   crontabs
 
 %if 0%{?fedora} >= 23
 Requires: python-dnf
@@ -191,7 +192,9 @@ install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store/temp
 install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee
 install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 install -d %{buildroot}%{_sharedstatedir}/copr/data/srpm_storage
+install -d %{buildroot}%{_sysconfdir}/cron.hourly
 
+install -p -m 755 conf/cron.hourly/copr-frontend %{buildroot}%{_sysconfdir}/cron.hourly/copr-frontend
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 sed -i "s/__RPM_BUILD_VERSION/%{version}-%{release}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
@@ -257,6 +260,8 @@ service logstash condrestart
 %config(noreplace)  %{_sysconfdir}/copr/copr.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_devel.conf
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
+
+%config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend
 
 %files doc
 %license LICENSE
