@@ -429,7 +429,7 @@ class Build(db.Model, helpers.Serializer):
     # version of the srpm package got by rpm
     pkg_version = db.Column(db.Text)
     # was this build canceled by user?
-    canceled = db.Column(db.Boolean, default=False)
+    canceled = db.Column(db.Boolean, index=True, default=False)
     # list of space separated additional repos
     repos = db.Column(db.Text)
     # the three below represent time of important events for this build
