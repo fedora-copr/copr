@@ -163,7 +163,7 @@
       </div>
       <div class="panel-body">
 
-        {% if g.user and (g.user.id != copr.owner.id or copr.is_a_group_project) %}
+        {% if g.user %}
         <div class="btn-group">
           <a href="{{ copr_url('coprs_ns.copr_fork', copr) }}" class="btn btn-default">
             <i class="fa fa-code-fork"></i> Fork this project
