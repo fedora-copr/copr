@@ -56,7 +56,7 @@ class ComplexLogic(object):
                 continue
 
             fbuild = forking.fork_build(build, fcopr, fpackage)
-            builds_map[fbuild.id] = build.id
+            builds_map[fbuild.id] = build.result_dir_name
 
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
         return fcopr, created

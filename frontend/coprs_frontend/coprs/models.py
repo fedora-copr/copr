@@ -493,6 +493,11 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def result_dir_name(self):
+        # We can remove this ugly condition after migrating Copr to new machines
+        # It is throw-back from era before dist-git
+        if self.is_older_results_naming_used:
+            return self.src_pkg_name
+
         return "{:08d}-{}".format(self.id, self.package.name)
 
     @property

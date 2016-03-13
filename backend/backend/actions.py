@@ -114,13 +114,15 @@ class Action(object):
             result.result = ActionResult.FAILURE
             return
 
-        for new_id, old_id in builds_map.items():
-            # @FIXME Doesnt work for old build because of different folder naming (i.e. msuchy/nanoblogger)
-            for build_folder in glob.glob(os.path.join(old_path, "*", str(old_id).zfill(8) + "-*")):
-
+        for new_id, old_dir_name in builds_map.items():
+            for build_folder in glob.glob(os.path.join(old_path, "*", old_dir_name)):
                 new_chroot_folder = os.path.dirname(build_folder.replace(old_path, new_path))
-                new_build_folder = os.path.join(
-                    new_chroot_folder, str(new_id).zfill(8) + os.path.basename(build_folder)[8:])
+
+                # We can remove this ugly condition after migrating Copr to new machines
+                # It is throw-back from era before dist-git
+                new_basename = old_dir_name if not os.path.basename(build_folder)[:8].isdigit() \
+                    else str(new_id).zfill(8) + os.path.basename(build_folder)[8:]
+                new_build_folder = os.path.join(new_chroot_folder, new_basename)
 
                 if not os.path.exists(new_chroot_folder):
                     os.makedirs(new_chroot_folder)
