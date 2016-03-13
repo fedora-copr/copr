@@ -41,57 +41,20 @@ class ComplexLogic(object):
 
     @classmethod
     def fork_copr(cls, copr, user, dstname, dstgroup=None):
-        if dstgroup and not user.can_build_in_group(dstgroup):
-            raise exceptions.InsufficientRightsException(
-                "Only members may create projects in the particular groups.")
-
-        fcopr = CoprsLogic.get_by_group_id(dstgroup.id, dstname).first() if dstgroup \
-            else CoprsLogic.filter_without_group_projects(CoprsLogic.get(flask.g.user.name, dstname)).first()
-
-        if fcopr:
-            raise exceptions.DuplicateException("You already have {}/{} project".format(user.name, copr.name))
-
-        # @TODO Move outside and properly test it
-        def create_object(clazz, from_object, exclude=list()):
-            arguments = {}
-            for name, column in from_object.__mapper__.columns.items():
-                if not name in exclude:
-                    arguments[name] = getattr(from_object, name)
-            return clazz(**arguments)
-
-        fcopr = create_object(models.Copr, copr, exclude=["id", "group_id"])
-        fcopr.forked_from_id = copr.id
-        fcopr.owner = user
-        fcopr.owner_id = user.id
-        if dstname:
-            fcopr.name = dstname
-        if dstgroup:
-            fcopr.group = dstgroup
-            fcopr.group_id = dstgroup.id
-
-        for chroot in list(copr.copr_chroots):
-            CoprChrootsLogic.create_chroot(user, fcopr, chroot.mock_chroot, chroot.buildroot_pkgs,
-                                           comps=chroot.comps, comps_name=chroot.comps_name)
+        forking = ProjectForking(user, dstgroup)
+        fcopr = forking.fork_copr(copr, dstname)
 
         builds_map = {}
         for package in copr.packages:
-            fpackage = create_object(models.Package, package, exclude=["id", "copr_id"])
-            fpackage.copr = fcopr
-            db.session.add(fpackage)
-
+            fpackage = forking.fork_package(package, fcopr)
             build = package.last_build()
             if not build:
                 continue
 
-            fbuild = create_object(models.Build, build, exclude=["id", "copr_id", "package_id"])
-            fbuild.copr = fcopr
-            fbuild.package = fpackage
-            fbuild.build_chroots = [create_object(models.BuildChroot, c, exclude=["id"]) for c in build.build_chroots]
-            db.session.add(fbuild)
+            fbuild = forking.fork_build(build, fcopr, fpackage)
             builds_map[fbuild.id] = build.id
 
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
-        db.session.add(fcopr)
         return fcopr
 
     @staticmethod
@@ -195,3 +158,56 @@ class ComplexLogic(object):
             importing=importing
         )
 
+
+class ProjectForking(object):
+    def __init__(self, user, group=None):
+        self.user = user
+        self.group = group
+
+        if group and not user.can_build_in_group(group):
+            raise exceptions.InsufficientRightsException(
+                "Only members may create projects in the particular groups.")
+
+    def fork_copr(self, copr, name):
+        fcopr = CoprsLogic.get_by_group_id(self.group.id, name).first() if self.group \
+            else CoprsLogic.filter_without_group_projects(CoprsLogic.get(flask.g.user.name, name)).first()
+
+        if not fcopr:
+            fcopr = self.create_object(models.Copr, copr, exclude=["id", "group_id"])
+            fcopr.forked_from_id = copr.id
+            fcopr.owner = self.user
+            fcopr.owner_id = self.user.id
+            if name:
+                fcopr.name = name
+            if self.group:
+                fcopr.group = self.group
+                fcopr.group_id = self.group.id
+
+            for chroot in list(copr.copr_chroots):
+                CoprChrootsLogic.create_chroot(self.user, fcopr, chroot.mock_chroot, chroot.buildroot_pkgs,
+                                               comps=chroot.comps, comps_name=chroot.comps_name)
+            db.session.add(fcopr)
+        return fcopr
+
+    def fork_package(self, package, fcopr):
+        fpackage = PackagesLogic.get(fcopr.id, package.name).first()
+        if not fpackage:
+            fpackage = self.create_object(models.Package, package, exclude=["id", "copr_id"])
+            fpackage.copr = fcopr
+            db.session.add(fpackage)
+        return fpackage
+
+    def fork_build(self, build, fcopr, fpackage):
+        fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "package_id"])
+        fbuild.copr = fcopr
+        fbuild.package = fpackage
+        fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id"]) for c in build.build_chroots]
+        db.session.add(fbuild)
+        return fbuild
+
+    def create_object(self, clazz, from_object, exclude=list()):
+        arguments = {}
+        for name, column in from_object.__mapper__.columns.items():
+            if not name in exclude:
+                arguments[name] = getattr(from_object, name)
+        return clazz(**arguments)
