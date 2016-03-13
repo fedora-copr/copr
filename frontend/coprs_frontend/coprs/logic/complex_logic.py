@@ -43,6 +43,10 @@ class ComplexLogic(object):
     def fork_copr(cls, copr, user, dstname, dstgroup=None):
         forking = ProjectForking(user, dstgroup)
         fcopr = forking.fork_copr(copr, dstname)
+        created = fcopr in db.session.new
+
+        if fcopr.full_name == copr.full_name:
+            raise exceptions.DuplicateException("Source project should not be same as destination")
 
         builds_map = {}
         for package in copr.packages:
@@ -55,7 +59,7 @@ class ComplexLogic(object):
             builds_map[fbuild.id] = build.id
 
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
-        return fcopr
+        return fcopr, created
 
     @staticmethod
     def get_group_copr_safe(group_name, copr_name, **kwargs):

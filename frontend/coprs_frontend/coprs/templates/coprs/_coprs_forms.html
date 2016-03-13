@@ -222,7 +222,7 @@
   {{ render_field(form.source, disabled = True) }}
   {{ render_field(form.source, hidden = True) }}
   {{ render_field(form.owner) }}
-  {{ render_field(form.name) }}
+  {{ render_field(form.name, info="If you enter the name of your existing project, then only new packages and builds from source project will be forked into yours.") }}
   {{ form.csrf_token }}
   <input class="btn btn-primary pull-right" type="submit" value="Fork it">
 </form>
