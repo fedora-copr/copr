@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.83
+Version:    1.84
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -268,6 +268,19 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.84-1
+- support building from PyPI
+- support project forking
+- add button to reset package default source (RhBug: 1314917)
+- support for import (copr-dist-git per-task) logs
+- implement migration report table
+- add possibility to run only particular migration stage
+- fix 1311777 - failure to delete project (and cancelled build)
+- fix 1314369 - Exception raised when resubmitting Git&Tito build
+- fix resubmiting as reported in RHBZ 1313270
+- fix default package source validation for group projects (RhBug: 1314918)
+- fix chroot states in monitor (RhBug: 1306182)
+
 * Mon Feb 22 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.83-1
 - [frontend] select as user_name; see e492bb
 
