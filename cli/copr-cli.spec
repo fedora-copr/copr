@@ -8,7 +8,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.47
+Version:    1.48
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -97,6 +97,9 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.48-1
+- support building from PyPI
+
 * Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.47-1
 - gfix 1302615 - UnboundLocalError: local variable 'bar' referenced before
   assignment when building from URLs
