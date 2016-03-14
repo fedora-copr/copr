@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.80
+Version:    1.81
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,14 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.81-1
+- support project forking
+- support building from PyPI
+- support for redis_host, redis_port, redis_db config options
+- dockerized-backend project moved under backend/docker
+- run createrepo in rawhide_to_release
+- specify rawhide name when calling rawhide_to_release
+
 * Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.80-1
 - do not fail when when you recieve job with architecture which does not have
   queue
