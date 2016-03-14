@@ -817,8 +817,8 @@ def copr_fork(copr):
     return render_copr_fork(copr, form)
 
 
-def render_copr_fork(copr, form):
-    return flask.render_template("coprs/fork.html", copr=copr, form=form)
+def render_copr_fork(copr, form, confirm=False):
+    return flask.render_template("coprs/fork.html", copr=copr, form=form, confirm=confirm)
 
 
 @coprs_ns.route("/<username>/<coprname>/fork/", methods=["POST"])
@@ -836,9 +836,11 @@ def copr_fork_post(copr):
         if created:
             msg = ("Forking project {} for you into {}. Please be aware that it may take a few minutes "
                    "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
-        else:
+        elif not created and form.confirm.data == True:
             msg = ("Updating packages in {} from {}. Please be aware that it may take a few minutes "
                    "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+        else:
+            return render_copr_fork(copr, form, confirm=True)
 
         db.session.commit()
         flask.flash(msg)

@@ -217,8 +217,14 @@
 {% endmacro %}
 
 
-{% macro copr_fork_form(form, copr) %}
+{% macro copr_fork_form(form, copr, confirm) %}
 <form method="post" action="">
+  {% if confirm %}
+    <div class="alert alert-warning" role="alert">
+      {{ form.confirm }} Please confirm that you want to fork into existing project: {{ form.owner.data }}/{{ form.name.data }}
+    </div>
+  {% endif %}
+
   {{ render_field(form.source, disabled = True) }}
   {{ render_field(form.source, hidden = True) }}
   {{ render_field(form.owner) }}

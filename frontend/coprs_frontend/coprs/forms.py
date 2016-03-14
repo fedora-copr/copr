@@ -593,6 +593,10 @@ class CoprForkFormFactory(object):
                 "Fork name",
                 default=copr.name,
                 validators=[wtforms.validators.DataRequired()])
+
+            confirm = wtforms.BooleanField(
+                "Confirm",
+                default=False)
         return F
 
 
