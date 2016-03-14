@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.13
+Version:    0.14
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -108,6 +108,13 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 0.14-1
+- per task logging for users
+- don't assume the SCM repo has the same name as the package
+- added policycoreutils-python-utils dependency
+- do shallow git clone for mock-scm
+- support building from PyPI
+
 * Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 0.13-1
 - [dist-git] error handling based on subprocess return codes instead of output
   to stderr (e.g. git outputs progress to stderr) + missing catch for
