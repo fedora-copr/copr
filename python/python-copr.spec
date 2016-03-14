@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.65
+Version:    1.66
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,9 @@ popd
 %endif
 
 %changelog
+* Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.66-1
+- support building from PyPI
+
 * Wed Feb 03 2016 Miroslav Suchý <msuchy@redhat.com> 1.65-1
 - convert bytes to utf-8 in Py3
 
