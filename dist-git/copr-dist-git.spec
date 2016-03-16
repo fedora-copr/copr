@@ -93,6 +93,7 @@ restorecon -rv /var/lib/copr-dist-git
 %license LICENSE
 
 %{_bindir}/*
+%dir %{_datadir}/copr 
 %{_datadir}/copr/*
 %dir %{_sysconfdir}/copr
 %config(noreplace) %attr(0640, root, copr-service) %{_sysconfdir}/copr/copr-dist-git.conf
