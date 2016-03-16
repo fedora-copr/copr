@@ -44,7 +44,7 @@ Requires: httpd
 COPR is lightweight build system. It allows you to create new project in WebUI
 and submit new builds and COPR will create yum repository from latest builds.
 
-This package contains Copr services for Dist Git server
+This package contains Copr services for Dist Git server.
 
 
 %prep
