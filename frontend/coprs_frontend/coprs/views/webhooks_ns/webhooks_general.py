@@ -19,6 +19,8 @@ log = logging.getLogger(__name__)
 
 @webhooks_ns.route("/github/<copr_id>/<uuid>/", methods=["POST"])
 def webhooks_hello(copr_id, uuid):
+    # For the documentation of the data we receive see:
+    # https://developer.github.com/v3/activity/events/types/#pushevent
     try:
         copr = ComplexLogic.get_copr_by_id_safe(copr_id)
     except ObjectNotFound:
@@ -30,10 +32,11 @@ def webhooks_hello(copr_id, uuid):
     try:
         request_json = flask.request.json
         clone_url = request_json["repository"]["clone_url"]
+        commits = request_json["commits"]
     except KeyError:
         return "Bad Request", 400
 
-    packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url)
+    packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url, commits)
 
     for package in packages:
         BuildsLogic.rebuild_package(package)

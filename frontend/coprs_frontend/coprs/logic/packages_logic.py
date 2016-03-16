@@ -30,12 +30,35 @@ class PackagesLogic(object):
                                            models.Package.name == package_name)
 
     @classmethod
-    def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url):
-        return (models.Package.query.join(models.Copr)
-                .filter(models.Copr.webhook_secret == webhook_secret)
-                .filter(models.Package.copr_id == copr_id)
-                .filter(models.Package.webhook_rebuild == true())
-                .filter(models.Package.source_json.contains(clone_url)))
+    def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, commits):
+        packages = (models.Package.query.join(models.Copr)
+                    .filter(models.Copr.webhook_secret == webhook_secret)
+                    .filter(models.Package.copr_id == copr_id)
+                    .filter(models.Package.webhook_rebuild == true())
+                    .filter(models.Package.source_json.contains(clone_url)))
+        result = []
+        for package in packages:
+            if cls.commits_belong_to_package(package, commits):
+                result += package
+        return result
+
+    @classmethod
+    def commits_belong_to_package(cls, package, commits):
+        if package.source_type_text == "git_and_tito":
+            for commit in commits:
+                for file_path in commit['added'] + commit['removed'] + commit['modified']:
+                    if cls.path_belong_to_package(package, file_path):
+                    return True
+            return False
+        return True
+
+    @classmethod
+    def path_belong_to_package(cls, package, file_path):
+        if package.source_type_text == "git_and_tito":
+            data = package.source_json_dict
+            return file_path.startswith(data["git_dir"] or '')
+        else:
+            return True
 
     @classmethod
     def add(cls, user, copr, package_name):
