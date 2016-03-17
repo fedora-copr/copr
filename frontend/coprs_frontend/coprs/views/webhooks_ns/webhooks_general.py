@@ -32,9 +32,12 @@ def webhooks_hello(copr_id, uuid):
     try:
         request_json = flask.request.json
         clone_url = request_json["repository"]["clone_url"]
-        commits = request_json["commits"]
     except KeyError:
         return "Bad Request", 400
+    if "commits" in request_json:
+        commits = request_json["commits"]
+    else:
+        commits = []
 
     packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url, commits)
 
