@@ -127,14 +127,18 @@ def main():
         source_package_name = source_json['pypi_package_name'].lower()
         source_python_versions = source_json['python_versions']
         latest_build_version = row.pkg_version
-        logdebug('candidate package for rebuild: {0}'.format(source_package_name))
+        loginfo('candidate package for rebuild: {0}, package_id: {1}, copr_id: {2}'.format(source_package_name, row.package_id, row.copr_id))
         if source_package_name in updated_packages:
             new_updated_version = updated_packages[source_package_name]
             logdebug('source_package_name: {0}, latest_build_version: {1}, new_updated_version {2}'.format(source_package_name, latest_build_version, new_updated_version))
             if not latest_build_version or not re.match(new_updated_version, latest_build_version): # if the last build's package version is "different" from new remote package version, rebuild
-                copr = CoprsLogic.get_by_id(row.copr_id)[0]
+                try:
+                    copr = CoprsLogic.get_by_id(row.copr_id)[0]
+                except Exception as e:
+                    logexception(e)
+                    continue
                 if args.backend.lower() == 'pypi':
-                    loginfo('Launching pypi build for package of source name: {0}, package id: {1}, copr id: {2}, user id: {3}'.format(source_package_name, row.package_id, copr.id, copr.owner.id))
+                    loginfo('Launching pypi build for package of source name: {0}, package_id: {1}, copr_id: {2}, user_id: {3}'.format(source_package_name, row.package_id, copr.id, copr.owner.id))
                     build = BuildsLogic.create_new_from_pypi(copr.owner, copr, source_package_name, new_updated_version, source_python_versions, chroot_names=None)
                 else:
                     raise Exception('Unsupported backend {0} passed as command-line argument'.format(args.backend))
