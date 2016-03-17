@@ -48,7 +48,7 @@ class PackagesLogic(object):
             for commit in commits:
                 for file_path in commit['added'] + commit['removed'] + commit['modified']:
                     if cls.path_belong_to_package(package, file_path):
-                    return True
+                        return True
             return False
         return True
 
