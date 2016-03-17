@@ -39,7 +39,7 @@ class PackagesLogic(object):
         result = []
         for package in packages:
             if cls.commits_belong_to_package(package, commits):
-                result += package
+                result += [package]
         return result
 
     @classmethod
