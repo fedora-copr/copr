@@ -30,11 +30,11 @@ from .util import ProgressBar
 
 
 no_config_warning = """
-|================ WARNING: =======================|
-|File '~/.config/copr' is missing or incorrect.   |
-| See documentation: man copr-cli.                |
-| Any operation requiring credentionals will fail!|
-|=================================================|
+================= WARNING: =======================
+File '{0}' is missing or incorrect.
+See documentation: man copr-cli.
+Any operation requiring credentials will fail!
+==================================================
 
 """
 
@@ -46,7 +46,7 @@ class Commands(object):
             self.client = CoprClient.create_from_file_config(config)
         except (copr_exceptions.CoprNoConfException,
                 copr_exceptions.CoprConfigException):
-            print(no_config_warning)
+            print(no_config_warning.format(config or "~/.config/copr"))
             self.client = CoprClient(
                 copr_url=u"http://copr.fedoraproject.org",
                 no_config=True
