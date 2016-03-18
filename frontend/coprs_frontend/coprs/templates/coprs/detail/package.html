@@ -2,6 +2,7 @@
 {% from "_helpers.html" import copr_url %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
+{% from "coprs/detail/_package_forms.html" import copr_package_delete_form %}
 
 {% block title %}Package {{ package.name }} in {{ package.copr.owner.name }}/{{ package.copr.name }}{% endblock %}
 {% set selected_tab = "packages" %}
@@ -19,6 +20,7 @@
 {% block detail_body %}
 
 {% if g.user and g.user.can_edit(copr) %}
+{{ copr_package_delete_form(package, page, class="pull-right button-build-action") }}
 <a class="btn btn-default pull-right button-build-action" href="{{ copr_url('coprs_ns.copr_rebuild_package', copr, package_name=package.name) }}">
   <span class="pficon pficon-restart"></span> Rebuild
 </a>

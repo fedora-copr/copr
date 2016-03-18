@@ -202,3 +202,22 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
     }
     kwargs.update({"group_name": copr.group_name} if copr.is_a_group_project else {"username": copr.owner_name})
     return view_method(**kwargs)
+
+
+
+@coprs_ns.route("/<username>/<coprname>/package/<int:package_id>/delete", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/package/<int:package_id>/delete", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_delete_package(copr, package_id):
+    package = ComplexLogic.get_package_by_id_safe(package_id)
+
+    try:
+        PackagesLogic.delete_package(flask.g.user, package)
+    except (InsufficientRightsException, ActionInProgressException) as e:
+        flask.flash(str(e), "error")
+    else:
+        db.session.commit()
+        flask.flash("Package has been deleted successfully.", "success")
+
+    return flask.redirect(helpers.copr_url("coprs_ns.copr_packages", copr))

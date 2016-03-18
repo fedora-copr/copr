@@ -104,6 +104,14 @@ class ComplexLogic(object):
                 message="Build {} does not exist.".format(build_id))
 
     @staticmethod
+    def get_package_by_id_safe(package_id):
+        try:
+            return PackagesLogic.get_by_id(package_id).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            raise ObjectNotFound(
+                message="Package {} does not exist.".format(package_id))
+
+    @staticmethod
     def get_package_safe(copr, package_name):
         try:
             return PackagesLogic.get(copr.id, package_name).one()

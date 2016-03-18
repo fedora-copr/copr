@@ -26,7 +26,6 @@ from coprs.helpers import StatusEnum
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
-from coprs.logic import packages_logic
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.models import BuildChroot
 from .coprs_logic import MockChrootsLogic
