@@ -423,7 +423,7 @@ def setup_parser():
                                          help="Get build status of build"
                                               " specified by its ID")
     parser_status.add_argument("build_id",
-                              help="Build ID")
+                              help="Build ID", type=int)
     parser_status.set_defaults(func="action_status")
 
     # create the parser for the "download-build" command
