@@ -514,13 +514,14 @@ class CoprClient(UnicodeMixin):
         return response
 
     def create_project(
-            self, projectname, chroots,
+            self, username, projectname, chroots,
             description=None, instructions=None,
             repos=None, initial_pkgs=None
     ):
         """ Creates a new copr project
             Auth required.
 
+            :param projectname: User or group name
             :param projectname: Copr project name
             :param chroots: List of target chroots
             :param description: [optional] Project description
@@ -533,8 +534,11 @@ class CoprClient(UnicodeMixin):
                 - text fields: "message"
         """
 
+        if not username:
+            username = self.username
+
         url = "{0}/coprs/{1}/new/".format(
-            self.api_url, self.username)
+            self.api_url, username)
 
         if not chroots:
             raise Exception("You should provide chroots")

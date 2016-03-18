@@ -230,8 +230,16 @@ class Commands(object):
 
         """
 
+        copr = args.name
+        m = re.match(r"([^/]+)/(.*)", copr)
+        if m:
+            username = m.group(1)
+            copr = m.group(2)
+        else:
+            username = None
+
         result = self.client.create_project(
-            projectname=args.name, description=args.description,
+            username=username, projectname=copr, description=args.description,
             instructions=args.instructions, chroots=args.chroots,
             repos=args.repos, initial_pkgs=args.initial_pkgs)
         print(result.message)

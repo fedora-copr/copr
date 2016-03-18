@@ -14,6 +14,7 @@ from coprs.helpers import fix_protocol_for_backend
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.users_logic import UsersLogic
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -103,6 +104,7 @@ def api_new_copr(username):
 
     elif form.validate_on_submit():
         infos = []
+        group = UsersLogic.get_group_by_alias(username[1:]).first() if username[0] == "@" else None
 
         try:
             copr = CoprsLogic.add(
@@ -112,8 +114,9 @@ def api_new_copr(username):
                 selected_chroots=form.selected_chroots,
                 description=form.description.data,
                 instructions=form.instructions.data,
-                check_for_duplicates=True,
+                check_for_duplicates=False,
                 auto_createrepo=True,
+                group=group,
             )
             infos.append("New project was successfully created.")
 
