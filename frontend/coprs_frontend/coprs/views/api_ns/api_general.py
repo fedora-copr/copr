@@ -382,7 +382,7 @@ def copr_new_build_pypi(copr):
     return flask.jsonify(output)
 
 
-@api_ns.route("/coprs/build_status/<build_id>/", methods=["GET"])
+@api_ns.route("/coprs/build_status/<int:build_id>/", methods=["GET"])
 @api_login_required
 def build_status(build_id):
     build = ComplexLogic.get_build_safe(build_id)
@@ -391,8 +391,8 @@ def build_status(build_id):
     return flask.jsonify(output)
 
 
-@api_ns.route("/coprs/build_detail/<build_id>/", methods=["GET"])
-@api_ns.route("/coprs/build/<build_id>/", methods=["GET"])
+@api_ns.route("/coprs/build_detail/<int:build_id>/", methods=["GET"])
+@api_ns.route("/coprs/build/<int:build_id>/", methods=["GET"])
 def build_detail(build_id):
     build = ComplexLogic.get_build_safe(build_id)
 
@@ -425,7 +425,7 @@ def build_detail(build_id):
     return flask.jsonify(output)
 
 
-@api_ns.route("/coprs/cancel_build/<build_id>/", methods=["POST"])
+@api_ns.route("/coprs/cancel_build/<int:build_id>/", methods=["POST"])
 @api_login_required
 def cancel_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
