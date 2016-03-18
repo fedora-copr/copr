@@ -103,6 +103,7 @@ restorecon -rv /var/lib/copr-dist-git
 
 %{_unitdir}/copr-dist-git.service
 
+%dir %{_sysconfdir}/logrotate.d
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-dist-git
 %attr(0755, copr-service, copr-service) %{_var}/log/copr-dist-git
 %attr(0644, copr-service, copr-service) %{_var}/log/copr-dist-git/main.log
