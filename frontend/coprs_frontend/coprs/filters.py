@@ -120,7 +120,7 @@ def time_ago(time_in, until=None):
         return str(secdiff // 2592000) + " months"
     else:
         # more than 2 years
-        return str(secdiff // 31536000) + " days"
+        return str(secdiff // 31536000) + " years"
 
 
 @app.template_filter("markdown")
