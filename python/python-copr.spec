@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.66
+Version:    1.67
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,9 @@ popd
 %endif
 
 %changelog
+* Sun Mar 20 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.67-1
+- allow creating group projects
+
 * Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.66-1
 - support building from PyPI
 
