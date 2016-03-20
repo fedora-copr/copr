@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.84
+Version:    1.85
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -268,6 +268,12 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Sun Mar 20 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.85-1
+- allow creating group projects via API
+- do not build tito based packages, if the commit did not affect it
+- bug 1305754 - incorrect dates are displayed on the build page
+- bug 1318229 - fix package deletion issue
+
 * Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.84-1
 - support building from PyPI
 - support project forking
