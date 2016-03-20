@@ -8,7 +8,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.48
+Version:    1.49
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -97,6 +97,10 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Sun Mar 20 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.49-1
+- allow creating group projects
+- bug 1309101 - copr-cli doesn't handle string input for 'status'
+
 * Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.48-1
 - support building from PyPI
 
