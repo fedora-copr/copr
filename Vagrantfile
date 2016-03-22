@@ -15,7 +15,7 @@ Vagrant.configure(2) do |config|
 
     # Update the system
     frontend.vm.provision "shell",
-      inline: "sudo dnf clean all && sudo dnf -y update"
+      inline: "sudo dnf clean all && sudo dnf -y update || true" # || true cause dnf might return non-zero status (probly delta rpm rebuild failed)
 
     # Install packages to support Copr and building RPMs
     frontend.vm.provision "shell",
