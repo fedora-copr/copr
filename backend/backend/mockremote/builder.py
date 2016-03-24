@@ -21,7 +21,7 @@ class Builder(object):
         self.opts = opts
         self.hostname = hostname
         self.job = job
-        self.timeout = self.job.timeout or DEF_BUILD_TIMEOUT
+        self.timeout = self.job.timeout or self.opts.timeout
         self.repos =  []
         self.log = logger
 

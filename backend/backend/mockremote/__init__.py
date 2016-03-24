@@ -123,6 +123,7 @@ class MockRemote(object):
             build_user=DEF_BUILD_USER,
             remote_basedir=DEF_REMOTE_BASEDIR,
             remote_tempdir=None,
+            timeout=DEF_BUILD_TIMEOUT,
         )
         if opts:
             self.opts.update(opts)
