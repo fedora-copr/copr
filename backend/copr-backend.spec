@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.81
+Version:    1.82
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Mar 24 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.82-1
+- use timeout variable from config
+
 * Mon Mar 14 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.81-1
 - support project forking
 - support building from PyPI
