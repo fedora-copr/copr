@@ -1,5 +1,6 @@
 {% extends "coprs/detail.html" %}
-{% block title %}Settings {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+{% from "_helpers.html" import copr_name %}
+{% block title %}Settings {{ copr_name(copr) }}{% endblock %}
 
 {% set selected_tab = "settings" %}
 

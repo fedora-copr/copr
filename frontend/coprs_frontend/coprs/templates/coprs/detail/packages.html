@@ -1,10 +1,9 @@
 {% extends "coprs/detail.html" %}
-{% block title %}Packages for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
-
-{% from "_helpers.html" import render_pagination %}
+{% from "_helpers.html" import render_pagination, copr_name %}
 {% from "coprs/detail/_packages_table.html" import packages_table with context %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 
+{% block title %}Packages for {{ copr_name(copr) }}{% endblock %}
 {% set selected_tab = "packages" %}
 
 {%block project_breadcrumb %}

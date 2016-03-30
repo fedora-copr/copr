@@ -1,7 +1,7 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import render_field, copr_url %}
+{% from "_helpers.html" import render_field, copr_url, copr_name %}
 
-{% block title %}Editing {{ copr.owner.name }}/{{ copr.name }}/{{ chroot.name }}{% endblock %}
+{% block title %}Editing {{ copr_name(copr) }}/{{ chroot.name }}{% endblock %}
 {%block project_breadcrumb%}
 <li>
   <a href="{{ copr_url('coprs_ns.copr_edit', copr) }}">

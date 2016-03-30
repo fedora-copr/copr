@@ -1,10 +1,10 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import copr_url %}
+{% from "_helpers.html" import copr_url, copr_name %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}
 {% from "coprs/detail/_package_forms.html" import copr_package_delete_form %}
 
-{% block title %}Package {{ package.name }} in {{ package.copr.owner.name }}/{{ package.copr.name }}{% endblock %}
+{% block title %}Package {{ package.name }} in {{ copr_name(package.copr) }}{% endblock %}
 {% set selected_tab = "packages" %}
 {%block project_breadcrumb %}
 
