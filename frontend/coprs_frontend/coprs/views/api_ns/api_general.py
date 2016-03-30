@@ -104,7 +104,7 @@ def api_new_copr(username):
 
     elif form.validate_on_submit():
         infos = []
-        group = UsersLogic.get_group_by_alias(username[1:]).first() if username[0] == "@" else None
+        group = ComplexLogic.get_group_by_name_safe(username[1:]) if username[0] == "@" else None
 
         try:
             copr = CoprsLogic.add(
