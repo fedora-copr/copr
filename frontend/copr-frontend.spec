@@ -63,7 +63,7 @@ Requires:   python-flexmock
 Requires:   python-mock
 Requires:   python-decorator
 Requires:   yum
-Requires:   logstash
+Suggests:   logstash
 Requires:   redis
 Requires:   python-redis
 Requires:   python-dateutil
