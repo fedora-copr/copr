@@ -175,7 +175,7 @@ def test_cancel_build_no_config(mock_cc, capsys):
     assert ("Error: Operation requires api authentication\n"
             "File `~/.config/copr` is missing or incorrect\n") in out
 
-    expected_warning = no_config_warning
+    expected_warning = no_config_warning.format("~/.config/copr")
     assert expected_warning in out
 
 
@@ -217,7 +217,7 @@ def test_list_project(mock_cc, capsys):
     out, err = capsys.readouterr()
     assert expected_output in out
 
-    expected_warning = no_config_warning
+    expected_warning = no_config_warning.format("~/.config/copr")
     assert expected_warning in out
 
 
