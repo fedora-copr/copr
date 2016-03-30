@@ -231,9 +231,9 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-
+        username, copr = parse_name(args.name)
         result = self.client.modify_project(
-            projectname=args.name,
+            username=username, projectname=copr,
             description=args.description, instructions=args.instructions,
             repos=args.repos, disable_createrepo=args.disable_createrepo)
 
@@ -244,7 +244,8 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        result = self.client.delete_project(projectname=args.copr)
+        username, copr = parse_name(args.copr)
+        result = self.client.delete_project(username=username, projectname=copr)
         print(result.message)
 
     @check_username_presence
