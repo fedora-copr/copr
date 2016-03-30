@@ -40,6 +40,12 @@ else:
 from copr_cli import main
 
 
+def test_parse_name():
+    assert main.parse_name("foo") == (None, "foo")
+    assert main.parse_name("frostyx/foo") == ("frostyx", "foo")
+    assert main.parse_name("@copr/foo") == ("@copr", "foo")
+
+
 @mock.patch('copr_cli.main.CoprClient')
 def test_error_keyboard_interrupt(mock_cc, capsys):
     mock_client = MagicMock(no_config=False)
@@ -413,7 +419,7 @@ def test_create_project(mock_cc, capsys):
     stdout, stderr = capsys.readouterr()
 
     mock_client.create_project.assert_called_with(
-        projectname="foo", description="desc string",
+        username=None, projectname="foo", description="desc string",
         instructions="instruction string", chroots=["f20", "f21"],
         repos=["repo1", "repo2"], initial_pkgs=["pkg1"])
 

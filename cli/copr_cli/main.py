@@ -151,13 +151,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        copr = args.copr
-        m = re.match(r"([^/]+)/(.*)", copr)
-        if m:
-            username = m.group(1)
-            copr = m.group(2)
-        else:
-            username = None
+        username, copr = parse_name(args.copr)
 
         if os.path.exists(args.pkgs[0]):
             bar = ProgressBar(max=os.path.getsize(args.pkgs[0]))
@@ -196,13 +190,7 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        copr = args.copr
-        m = re.match(r"([^/]+)/(.*)", copr)
-        if m:
-            username = m.group(1)
-            copr = m.group(2)
-        else:
-            username = None
+        username, copr = parse_name(args.copr)
 
         result = self.client.create_new_build_pypi(
             projectname=copr, pypi_package_name=args.packagename,
@@ -229,15 +217,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-
-        copr = args.name
-        m = re.match(r"([^/]+)/(.*)", copr)
-        if m:
-            username = m.group(1)
-            copr = m.group(2)
-        else:
-            username = None
-
+        username, copr = parse_name(args.name)
         result = self.client.create_project(
             username=username, projectname=copr, description=args.description,
             instructions=args.instructions, chroots=args.chroots,
@@ -455,6 +435,16 @@ def setup_parser():
     parser_cancel.set_defaults(func="action_cancel")
 
     return parser
+
+
+def parse_name(name):
+    m = re.match(r"([^/]+)/(.*)", name)
+    if m:
+        owner = m.group(1)
+        name = m.group(2)
+    else:
+        owner = None
+    return owner, name
 
 
 def enable_debug():
