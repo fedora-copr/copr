@@ -375,7 +375,7 @@ echo \"Host *
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sed -e s/^cache-size.*// /etc/cgitrc | sudo tee /etc/cgitrc"
+      inline: "sudo sed -i s/^cache-size.*// /etc/cgitrc"
 
     # ...
     distgit.vm.provision "shell",
