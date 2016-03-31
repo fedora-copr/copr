@@ -156,6 +156,7 @@ def load_waiting_tasks():
 
 def dump_responses():
     outputdir = '{0}/out'.format(datadir)
+    os.makedirs(outputdir, exist_ok=True)
 
     output = {
         'distgit_responses': distgit_responses,
