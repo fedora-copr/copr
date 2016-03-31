@@ -154,7 +154,7 @@ class RawhideToReleaseCommand(Command):
             for package in packages_logic.PackagesLogic.get_all(copr.id):
                 last_build = package.last_build(successful=True)
                 if last_build:
-                    data["builds"].append("{}-{}".format(str(last_build.id).zfill(8), package.name))
+                    data["builds"].append(last_build.result_dir_name)
 
             if len(data["builds"]):
                 actions_logic.ActionsLogic.send_rawhide_to_release(data)
