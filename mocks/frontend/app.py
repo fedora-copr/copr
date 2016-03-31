@@ -46,13 +46,13 @@ def debug_output(data, label='RECEIVED:', delim=True):
 
 @app.errorhandler(500)
 def internal_server_error(error):
-    app.logger.error('Server Error: %s', str(error))
+    print('Server Error: %s', str(error))
     return 'NOT OK', 500
 
 
 @app.errorhandler(Exception)
 def unhandled_exception(e):
-    app.logger.error('Unhandled Exception: %s', str(e))
+    print('Unhandled Exception: %s', str(e))
     return 'NOT OK', 500
 
 
