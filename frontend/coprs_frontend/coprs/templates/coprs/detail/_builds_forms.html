@@ -29,11 +29,10 @@
 {% macro copr_build_form_begin(form, view, copr, build=None, hide_panels=False) %}
     {{ render_form_errors(form, [form._mock_chroots_error]) }}
     <form class="form-horizontal"
-          action="
-          {% if not build %}
-            {{ copr_url(view, copr) }}
+          action="{% if not build %}
+            {{- copr_url(view, copr) -}}
           {% else %}
-            {{ copr_url(view, copr, build_id=build.id) }}
+            {{- copr_url(view, copr, build_id=build.id) -}}
           {% endif %}"
           method="post" enctype="multipart/form-data">
   {% if not hide_panels %}
