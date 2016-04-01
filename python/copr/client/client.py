@@ -373,7 +373,7 @@ class CoprClient(UnicodeMixin):
 
 
     def create_new_build_pypi(self, projectname, pypi_package_name, pypi_package_version=None,
-                         python_versions=['3', '2'], username=None, timeout=None, memory=None,
+                         python_versions=[3, 2], username=None, timeout=None, memory=None,
                          chroots=None, progress_callback=None):
         """ Creates new build from PyPI
 
@@ -400,7 +400,7 @@ class CoprClient(UnicodeMixin):
             "timeout": timeout,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
-            "python_versions": python_versions,
+            "python_versions": [str(version) for version in python_versions],
             "source_type": "pypi",
         }
 

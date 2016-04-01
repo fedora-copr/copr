@@ -329,9 +329,9 @@ class PyPIProvider(SrpmBuilderProvider):
 
         for i, python_version in enumerate(self.task.pypi_python_versions):
             if i == 0:
-                cmd += ['-b', python_version]
+                cmd += ['-b', str(python_version)]
             else:
-                cmd += ['-p', python_version]
+                cmd += ['-p', str(python_version)]
 
         if self.task.pypi_package_version:
             cmd += ['-v', self.task.pypi_package_version]
