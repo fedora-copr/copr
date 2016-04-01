@@ -115,6 +115,27 @@ ftp server. Note that you cannot combine local file paths and URLs in one comman
 This limitation comes from the COPR API.
 
 
+`copr-cli buildpypi [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr buildpypi [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                      [--pythonversions [VERSION [VERSION ...]]] [--packageversion PYPIVERSION] 
+                      --packagename PYPINAME
+                      project
+
+--pythonversions [VERSION [VERSION ...]]::
+For what Python versions to build (by default: 3 2)
+
+--packageversion PYPIVERSION::
+Version of the PyPI package to be built (by default latest)
+
+--packagename PYPINAME::
+Name of the PyPI package to be built, required.
+
+
+For the rest of the arguments, see `copr-cli build` command above.
+
+
 `copr-cli download-build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
