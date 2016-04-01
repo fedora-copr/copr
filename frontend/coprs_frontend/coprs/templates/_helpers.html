@@ -165,13 +165,13 @@
   </div>
 {% endmacro %}
 
-{% macro copr_details_href(copr) %}
-  {% if copr.is_a_group_project %}
-      {{ url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}
-  {% else %}
-      {{ url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}
-  {% endif %}
-{% endmacro %}
+{%- macro copr_details_href(copr) %}
+  {%- if copr.is_a_group_project %}
+      {{- url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}
+  {%- else %}
+      {{- url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}
+  {%- endif %}
+{%- endmacro %}
 
 {% macro copr_title(copr) %}
   {% if copr.is_a_group_project %}
@@ -197,8 +197,8 @@
 {% endmacro %}
 
 
-{% macro copr_url(view, copr) %}
-  {# Examine given copr and generate proper URL for the `view`
+{%- macro copr_url(view, copr) %}
+  {#- Examine given copr and generate proper URL for the `view`
 
   Values of `username/group_name` and `coprname` are autimatically passed as the first two URL parameters,
   and therefore you should *not* pass them manually.
@@ -207,20 +207,18 @@
     copr_url('coprs_ns.foo', copr)
     copr_url('coprs_ns.foo', copr, arg1='bar', arg2='baz)
   #}
-
-  {% if not copr.is_a_group_project %}
-    {{ url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs) }}
-  {% else %}
-    {# Only the listed views have merged functions for regular and group projects. Once all views have it, @TODO remove the workaround #}
-    {% if view in ["coprs_ns.copr_add_package", "coprs_ns.copr_new_package", "coprs_ns.copr_rebuild_package", "coprs_ns.copr_packages", "coprs_ns.copr_package", "coprs_ns.copr_edit_package", "coprs_ns.copr_fork"] %}
-      {% set group_view = view %}
-    {% else %}
-      {% set group_view = view.split(".")[0] + ".group_" + view.split(".")[-1] %}
-    {% endif %}
-    {{ url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs) }}
-  {% endif %}
-
-{% endmacro %}
+  {%- if not copr.is_a_group_project %}
+    {{- url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs) }}
+  {%- else %}
+    {#- Only the listed views have merged functions for regular and group projects. Once all views have it, @TODO remove the workaround #}
+    {%- if view in ["coprs_ns.copr_add_package", "coprs_ns.copr_new_package", "coprs_ns.copr_rebuild_package", "coprs_ns.copr_packages", "coprs_ns.copr_package", "coprs_ns.copr_edit_package", "coprs_ns.copr_fork"] %}
+      {%- set group_view = view %}
+    {%- else %}
+      {%- set group_view = view.split(".")[0] + ".group_" + view.split(".")[-1] %}
+    {%- endif %}
+    {{- url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs) }}
+  {%- endif %}
+{%- endmacro %}
 
 
 
@@ -326,7 +324,7 @@
 {% endmacro %}
 
 
-{% macro build_href(build) %}
+{%- macro build_href(build) %}
   {{- copr_url("coprs_ns.copr_build", build.copr, build_id=build.id) -}}
 {% endmacro %}
 
@@ -339,19 +337,19 @@
 {% endmacro %}
 
 {% macro package_href(package) %}
-  {{ copr_url('coprs_ns.copr_package', package.copr, package_name=package.name) }}
+  {{- copr_url('coprs_ns.copr_package', package.copr, package_name=package.name) -}}
 {% endmacro %}
 
-{% macro fas_group_href(name) %}
+{%- macro fas_group_href(name) -%}
 https://admin.fedoraproject.org/accounts/group/view/{{name}}
-{% endmacro %}
+{%- endmacro -%}
 
 
 {% macro repo_file_href(copr, repo) %}
-  {{copr_url('coprs_ns.generate_repo_file',
+  {{- copr_url('coprs_ns.generate_repo_file',
       copr,
       name_release=repo.name_release,
       repofile=repo.repo_file,
       _external=True
-    )|fix_url_https_frontend}}
+    )|fix_url_https_frontend -}}
 {% endmacro %}
