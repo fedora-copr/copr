@@ -81,7 +81,7 @@ def dist_git_upload_completed():
             # Now I need to assign a package to this build
             package = PackagesLogic.get(build.copr.id, pkg_name).first()
             if not package:
-                package = PackagesLogic.add(build.copr.owner, build.copr, pkg_name)
+                package = PackagesLogic.add(build.copr.owner, build.copr, pkg_name, build.source_type, build.source_json)
                 db.session.add(package)
                 db.session.flush()
 

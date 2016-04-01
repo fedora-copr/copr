@@ -67,7 +67,7 @@ class PackagesLogic(object):
             return True
 
     @classmethod
-    def add(cls, user, copr, package_name):
+    def add(cls, user, copr, package_name, source_type=helpers.BuildSourceEnum("unset"), source_json=json.dumps({})):
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
             user, copr,
             "You don't have permissions to build in this copr.")
@@ -76,9 +76,6 @@ class PackagesLogic(object):
             raise exceptions.DuplicateException(
                 "Project {}/{} already has a package '{}'"
                 .format(copr.owner.name, copr.name, package_name))
-
-        source_type = helpers.BuildSourceEnum("unset")
-        source_json = json.dumps({})
 
         package = models.Package(
             name=package_name,
