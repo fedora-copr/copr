@@ -314,6 +314,12 @@ class Copr(db.Model, helpers.Serializer):
             return "{}-{}".format(self.owner.username, self.name)
 
     @property
+    def repo_url(self):
+        return "/".join([app.config["BACKEND_BASE_URL"],
+                         u"results",
+                         self.full_name])
+
+    @property
     def repo_id(self):
         if self.is_a_group_project:
             return "group_{}-{}".format(self.group.name, self.name)
