@@ -12,7 +12,7 @@ from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
-from coprs.logic import coprs_logic, packages_logic, actions_logic
+from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprUserWhoosheer
 from run import generate_repo_packages
@@ -155,6 +155,15 @@ class RawhideToReleaseCommand(Command):
                 last_build = package.last_build(successful=True)
                 if last_build:
                     data["builds"].append(last_build.result_dir_name)
+
+                    # rbc means rawhide_build_chroot (we needed short variable)
+                    rbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(last_build.id, rawhide_chroot).first()
+                    dbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(last_build.id, dest_chroot).first()
+                    if rbc and not dbc:
+                        dest_build_chroot = models.BuildChroot(**rbc.to_dict())
+                        dest_build_chroot.mock_chroot_id = mock_chroot.id
+                        dest_build_chroot.mock_chroot = mock_chroot
+                        db.session.add(dest_build_chroot)
 
             if len(data["builds"]):
                 actions_logic.ActionsLogic.send_rawhide_to_release(data)
