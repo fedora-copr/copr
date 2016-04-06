@@ -36,7 +36,7 @@
 {% endmacro %}
 
 {% macro copr_package_delete_form(package, page, class="") %}
-  <form class="{{ class }}" action="{{ url_for('coprs_ns.copr_delete_package', username=package.copr.owner.name, coprname=package.copr.name, package_id=package.id)}}" method="post">
+  <form class="{{ class }}" action="{{ copr_url('coprs_ns.copr_delete_package', package.copr, package_id=package.id)}}" method="post">
     <input type="hidden" value="page" value="{{ page }}">
     <button class="btn btn-default" type="submit" onclick="return confirm('Do you really want to remove the package?');">
       <span class="pficon pficon-delete"></span> Delete
