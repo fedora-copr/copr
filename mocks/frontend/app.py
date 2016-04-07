@@ -7,9 +7,17 @@ import os
 
 ########################### constants & vars ###########################
 
-datadir = './data'
+data_dir = './data'
+static_dir = './static'
+static_path = '/static'
 
-app = flask.Flask(__name__)
+if len(sys.argv) > 1:
+    data_dir = sys.argv[1]
+
+if len(sys.argv) > 2:
+    static_dir = sys.argv[2]
+
+app = flask.Flask(__name__, static_path=static_path, static_folder=static_dir)
 
 import_task_dict = {}
 waiting_task_dict = {}
@@ -116,7 +124,7 @@ def backend_reschedule_build_chroot():
 ########################### helpers ###########################
 
 def load_import_tasks():
-    inputfile = '{0}/in/import-tasks.json'.format(datadir)
+    inputfile = '{0}/in/import-tasks.json'.format(data_dir)
     with open(inputfile, 'r') as f:
         task_queue = json.loads(f.read())
         for task in task_queue:
@@ -125,7 +133,7 @@ def load_import_tasks():
 
 
 def load_waiting_tasks():
-    inputfile = '{0}/in/waiting-tasks.json'.format(datadir)
+    inputfile = '{0}/in/waiting-tasks.json'.format(data_dir)
     with open(inputfile, 'r') as f:
         task_queue = json.loads(f.read())
         for task in task_queue:
@@ -134,7 +142,7 @@ def load_waiting_tasks():
 
 
 def dump_responses():
-    outputdir = '{0}/out'.format(datadir)
+    outputdir = '{0}/out'.format(data_dir)
     os.makedirs(outputdir, exist_ok=True)
 
     output = {
@@ -170,8 +178,6 @@ def debug_output(data, label='RECEIVED:', delim=True):
 ########################### main ###########################
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
     load_import_tasks()
     load_waiting_tasks()
     app.run()
