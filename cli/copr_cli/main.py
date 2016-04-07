@@ -209,6 +209,33 @@ class Commands(object):
         if not args.nowait:
             self._watch_builds(result.builds_list)
 
+
+    @requires_api_auth
+    def action_build_tito(self, args):
+        """
+        Method called when the 'build-tito' action has been selected by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        username, copr = parse_name(args.copr)
+
+        result = self.client.create_new_build_tito(username=username, projectname=copr, git_url=args.git_url,
+                                                   git_dir=args.git_dir, git_branch=args.git_branch,
+                                                   tito_test=args.tito_test, chroots=args.chroots, memory=args.memory,
+                                                   timeout= args.timeout)
+
+        if result.output != "ok":
+            print(result.error)
+            return
+        print(result.message)
+
+        build_ids = [bw.build_id for bw in result.builds_list]
+        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
+
+        if not args.nowait:
+            self._watch_builds(result.builds_list)
+
+
     @requires_api_auth
     def action_create(self, args):
         """ Method called when the 'create' action has been selected by the
@@ -406,6 +433,16 @@ def setup_parser():
     parser_build_pypi.add_argument("--packagename", required=True, metavar="PYPINAME",
                                    help="Name of the PyPI package to be built, required.")
     parser_build_pypi.set_defaults(func="action_build_pypi")
+
+    # create the parser for the "build-tito" command
+    parser_build_tito = subparsers.add_parser("build-tito", parents=[parser_build_parent],
+                                              help="submit a build from Git repository via Tito to a specified copr")
+    parser_build_tito.add_argument("--git-url", metavar="git_url", help="")
+    parser_build_tito.add_argument("--git-dir", metavar="git_dir", help="")
+    parser_build_tito.add_argument("--git-branch", metavar="git_branch", help="")
+    parser_build_tito.add_argument("--test", dest="tito_test", action="store_true",
+                                   help="build the last commit instead of the last release tag")
+    parser_build_tito.set_defaults(func="action_build_tito")
 
     # create the parser for the "status" command
     parser_status = subparsers.add_parser("status",
