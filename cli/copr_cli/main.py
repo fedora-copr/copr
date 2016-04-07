@@ -217,13 +217,19 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
+        data = {
+            "git_url": args.git_url,
+            "git_dir": args.git_dir,
+            "git_branch": args.git_branch,
+            "tito_test": args.tito_test,
+        }
+        return self.process_build(args, self.client.create_new_build_tito, data)
+
+    def process_build(self, args, build_function, data):
         username, copr = parse_name(args.copr)
 
-        result = self.client.create_new_build_tito(username=username, projectname=copr, git_url=args.git_url,
-                                                   git_dir=args.git_dir, git_branch=args.git_branch,
-                                                   tito_test=args.tito_test, chroots=args.chroots, memory=args.memory,
-                                                   timeout= args.timeout)
-
+        result = build_function(username=username, projectname=copr, chroots=args.chroots,
+                                            memory=args.memory, timeout= args.timeout, **data)
         if result.output != "ok":
             print(result.error)
             return

@@ -454,9 +454,6 @@ class CoprClient(UnicodeMixin):
 
                 - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
         """
-        if not username:
-            username = self.username
-
         data = {
             "memory_reqs": memory,
             "timeout": timeout,
@@ -466,8 +463,12 @@ class CoprClient(UnicodeMixin):
             "tito_test": tito_test,
             "source_type": "git_and_tito",
         }
-
         api_endpoint = "new_build_tito"
+        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
+
+    def process_creating_new_build(self, projectname, data, api_endpoint, username=None, chroots=None):
+        if not username:
+            username = self.username
 
         url = "{0}/coprs/{1}/{2}/{3}/".format(
             self.api_url, username, projectname, api_endpoint
@@ -476,7 +477,6 @@ class CoprClient(UnicodeMixin):
         for chroot in chroots or []:
             data[chroot] = "y"
 
-        import ipdb; ipdb.set_trace()
         data = self._fetch(url, data, method="post")
 
         response = CoprResponse(

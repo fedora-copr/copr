@@ -391,6 +391,21 @@ def copr_new_build_pypi(copr):
 def copr_new_build_tito(copr):
     form = forms.BuildFormTitoFactory(copr.active_chroots)(csrf_enabled=False)
 
+    def create_new_build():
+        return BuildsLogic.create_new_from_tito(
+            flask.g.user,
+            copr,
+            form.git_url.data,
+            form.git_directory.data,
+            form.git_branch.data,
+            form.tito_test.data,
+            form.selected_chroots,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
+def process_creating_new_build(copr, form, create_new_build):
+
     # are there any arguments in POST which our form doesn't know?
     if any([post_key not in form.__dict__.keys()
             for post_key in flask.request.form.keys()]):
@@ -401,15 +416,7 @@ def copr_new_build_tito(copr):
 
     # create a new build
     try:
-        build = BuildsLogic.create_new_from_tito(
-            flask.g.user,
-            copr,
-            form.git_url.data,
-            form.git_directory.data,
-            form.git_branch.data,
-            form.tito_test.data,
-            form.selected_chroots,
-        )
+        build = create_new_build()
         db.session.commit()
 
     except (ActionInProgressException, InsufficientRightsException) as e:
