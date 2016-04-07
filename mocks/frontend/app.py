@@ -12,10 +12,10 @@ static_dir = './static'
 static_path = '/static'
 
 if len(sys.argv) > 1:
-    data_dir = sys.argv[1]
+    data_dir = os.path.abspath(sys.argv[1])
 
 if len(sys.argv) > 2:
-    static_dir = sys.argv[2]
+    static_dir = os.path.abspath(sys.argv[2])
 
 app = flask.Flask(__name__, static_path=static_path, static_folder=static_dir)
 
@@ -90,7 +90,7 @@ def backend_starting_build():
     update = flask.request.json
     task_id = '{0}-{1}'.format(update['build_id'], update['chroot'])
 
-    waiting_task_dict.pop(task_id)
+    waiting_task_dict.pop(task_id, None)
 
     response = {'can_start': True}
     debug_output(response, 'SENDING BACK:', delim=False)
@@ -125,20 +125,30 @@ def backend_reschedule_build_chroot():
 
 def load_import_tasks():
     inputfile = '{0}/in/import-tasks.json'.format(data_dir)
-    with open(inputfile, 'r') as f:
-        task_queue = json.loads(f.read())
-        for task in task_queue:
-            import_task_dict[task['task_id']] = task
-    debug_output(import_task_dict, 'LOADED IMPORT TASKS:', delim=False)
+    try:
+        with open(inputfile, 'r') as f:
+            task_queue = json.loads(f.read())
+            for task in task_queue:
+                import_task_dict[task['task_id']] = task
+        debug_output(import_task_dict, 'LOADED IMPORT TASKS:', delim=False)
+    except Exception as e:
+        print('Could not load in/import-tasks.json from data directory {0}'.format(data_dir))
+        print(str(e))
+        print('---------------')
 
 
 def load_waiting_tasks():
     inputfile = '{0}/in/waiting-tasks.json'.format(data_dir)
-    with open(inputfile, 'r') as f:
-        task_queue = json.loads(f.read())
-        for task in task_queue:
-            waiting_task_dict[task['task_id']] = task
-    debug_output(waiting_task_dict, 'LOADED WAITING TASKS:', delim=False)
+    try:
+        with open(inputfile, 'r') as f:
+            task_queue = json.loads(f.read())
+            for task in task_queue:
+                waiting_task_dict[task['task_id']] = task
+        debug_output(waiting_task_dict, 'LOADED WAITING TASKS:', delim=False)
+    except Exception as e:
+        print('Could not load in/waiting-tasks.json from data directory {0}'.format(data_dir))
+        print(str(e))
+        print('---------------')
 
 
 def dump_responses():
@@ -156,7 +166,7 @@ def dump_responses():
 
 
 def test_for_server_end():
-    if not import_task_dict or not waiting_task_dict:
+    if not import_task_dict and not waiting_task_dict:
         dump_responses()
         shutdown_server()
 
@@ -180,4 +190,5 @@ def debug_output(data, label='RECEIVED:', delim=True):
 if __name__ == '__main__':
     load_import_tasks()
     load_waiting_tasks()
-    app.run()
+    if import_task_dict or waiting_task_dict:
+        app.run()
