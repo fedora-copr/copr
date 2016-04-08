@@ -687,7 +687,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
             .format(self.u1.name, self.c1.name))
 
         assert r.status_code == 200
-        assert b"baseurl=https://bar.baz" in r.data
+        assert b"baseurl=https://" in r.data
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
 
 
