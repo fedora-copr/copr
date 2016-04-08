@@ -147,8 +147,9 @@ class Builder(object):
         }
         buildroot_cmd = (
             "dest=/etc/mock/{chroot}.cfg"
-            " line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {pkgs}'\""
-            " regexp=\"^.*chroot_setup_cmd.*$\""
+            " line=\"config_opts['chroot_setup_cmd'] = 'install \1 {pkgs}'\""
+            " regexp=\"^.*chroot_setup_cmd.*(@buildsys-build|buildsys-build buildsys-macros).*$\""
+            " backrefs=yes"
         )
 
         disable_networking_cmd = (
