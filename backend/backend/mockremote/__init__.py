@@ -224,7 +224,7 @@ class MockRemote(object):
     def do_createrepo(self):
         base_url = "/".join([self.opts.results_baseurl, self.job.project_owner,
                              self.job.project_name, self.job.chroot])
-        self.log.debug("Createrepo:: owner:  {}; project: {}; "
+        self.log.info("Createrepo:: owner:  {}; project: {}; "
                        "front url: {}; path: {}; base_url: {}"
                        .format(self.job.project_owner, self.job.project_name,
                                self.opts.frontend_base_url, self.chroot_dir, base_url))

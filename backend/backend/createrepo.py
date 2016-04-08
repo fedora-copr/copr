@@ -79,7 +79,6 @@ def createrepo_unsafe(path, dest_dir=None, base_url=None):
 APPDATA_CMD_TEMPLATE = \
     """/usr/bin/appstream-builder \
 --api-version=0.8 \
---verbose \
 --add-cache-id \
 --max-threads=4 \
 --temp-dir={packages_dir}/tmp \
