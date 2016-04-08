@@ -127,7 +127,7 @@ def add_appdata(path, username, projectname, lock=None):
 
         # appstream builder provide strange access rights to result dir
         # fix them, so that lighttpd could serve appdata dir
-        out += "\n" + run_cmd_unsafe("chmod -R +rX {packages_dir}"
+        out += "\n" + run_cmd_unsafe("chmod -R +rX {packages_dir}/appdata"
                                      .format(**kwargs), os.path.join(path, "createrepo.lock"))
     except CreateRepoError as err:
         err.stdout = out + "\nLast command\n" + err.stdout
