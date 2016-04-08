@@ -113,8 +113,7 @@ class ActionsLogic(object):
             action_type=helpers.ActionTypeEnum("delete"),
             object_type="build",
             object_id=build.id,
-            old_value="{0}/{1}".format(build.copr.owner.name,
-                                       build.copr.name),
+            old_value=build.copr.full_name,
             data=json.dumps(data_dict),
             created_on=int(time.time())
         )
