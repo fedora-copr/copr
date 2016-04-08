@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.85
+Version:    1.86
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -268,6 +268,26 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Fri Apr 08 2016 Miroslav Suchý <msuchy@redhat.com> 1.86-1
+- temporary disable this test
+- tests: base url is now in config not taken from results
+- Bug 1323796 - incorrect centos7 repodata - deleted build present
+- [python][cli] refactor building via tito
+- [python][cli] implement building via tito
+- Bug 1324378 - Wrong .repo file in forked project.
+- fix removing packages from group projects (RhBug: 1322293)
+- create database records for duplicated builds
+- package default source is automatically set upon creation from its
+  build data
+- do not print whitespace around urls in href
+- do not print whitespace around urls in href
+- fix rawhide_to_release for old directory naming
+- copr can actually work even without logstash
+- set correctly name of page for group projects
+- [api] return error when group does not exist
+- Bug 1196826 - RFE: A build is marked as failed even though one
+  chroot is still running
+
 * Sun Mar 20 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.85-1
 - allow creating group projects via API
 - do not build tito based packages, if the commit did not affect it
