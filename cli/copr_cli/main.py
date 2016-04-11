@@ -213,7 +213,7 @@ class Commands(object):
     @requires_api_auth
     def action_build_tito(self, args):
         """
-        Method called when the 'build-tito' action has been selected by the user.
+        Method called when the 'buildtito' action has been selected by the user.
 
         :param args: argparse arguments provided by the user
         """
@@ -440,8 +440,8 @@ def setup_parser():
                                    help="Name of the PyPI package to be built, required.")
     parser_build_pypi.set_defaults(func="action_build_pypi")
 
-    # create the parser for the "build-tito" command
-    parser_build_tito = subparsers.add_parser("build-tito", parents=[parser_build_parent],
+    # create the parser for the "buildtito" command
+    parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_build_parent],
                                               help="submit a build from Git repository via Tito to a specified copr")
     parser_build_tito.add_argument("--git-url", metavar="git_url", help="")
     parser_build_tito.add_argument("--git-dir", metavar="git_dir", help="")
