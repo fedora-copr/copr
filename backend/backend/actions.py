@@ -6,6 +6,7 @@ import glob
 from urllib import urlretrieve
 
 from munch import Munch
+from distutils.dir_util import copy_tree
 from copr.exceptions import CoprRequestException
 
 from .sign import create_user_keys, CoprKeygenRequestError
@@ -126,7 +127,7 @@ class Action(object):
 
                 if not os.path.exists(new_chroot_folder):
                     os.makedirs(new_chroot_folder)
-                shutil.copytree(build_folder, new_build_folder)
+                copy_tree(build_folder, new_build_folder)
 
                 self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
 
