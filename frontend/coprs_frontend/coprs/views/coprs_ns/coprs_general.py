@@ -585,7 +585,7 @@ def copr_createrepo(copr_id):
 
     chroots = [c.name for c in copr.active_chroots]
     actions_logic.ActionsLogic.send_createrepo(
-        username=copr.owner.name, coprname=copr.name,
+        username=('@'+copr.group.name if copr.is_a_group_project else copr.owner.name), coprname=copr.name,
         chroots=chroots)
 
     db.session.commit()
