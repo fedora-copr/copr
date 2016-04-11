@@ -136,6 +136,29 @@ Name of the PyPI package to be built, required.
 For the rest of the arguments, see `copr-cli build` command above.
 
 
+`copr-cli buildtito [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr buildtito [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                      [-r CHROOTS] [--git-url URL] [--git-dir DIRECTORY]
+                      [--git-branch BRANCH] [--test]
+                      project
+
+--git-url URL::
+Url to a project managed by Tito, required.
+
+--git-dir DIRECTORY::
+Relative path from Git root to directory containing .spec file.
+
+--git-branch BRANCH::
+
+--test::
+To build from the last commit instead of the last release tag.
+
+
+For the rest of the arguments, see `copr-cli build` command above.
+
+
 `copr-cli download-build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

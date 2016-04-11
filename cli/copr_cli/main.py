@@ -443,9 +443,11 @@ def setup_parser():
     # create the parser for the "buildtito" command
     parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_build_parent],
                                               help="submit a build from Git repository via Tito to a specified copr")
-    parser_build_tito.add_argument("--git-url", metavar="git_url", help="")
-    parser_build_tito.add_argument("--git-dir", metavar="git_dir", help="")
-    parser_build_tito.add_argument("--git-branch", metavar="git_branch", help="")
+    parser_build_tito.add_argument("--git-url", metavar="URL", dest="git_url",
+                                   help="url to a project managed by Tito")
+    parser_build_tito.add_argument("--git-dir", metavar="DIRECTORY", dest="git_dir",
+                                   help="relative path from Git root to directory containing .spec file")
+    parser_build_tito.add_argument("--git-branch", metavar="BRANCH", dest="git_branch", help="")
     parser_build_tito.add_argument("--test", dest="tito_test", action="store_true",
                                    help="build the last commit instead of the last release tag")
     parser_build_tito.set_defaults(func="action_build_tito")
