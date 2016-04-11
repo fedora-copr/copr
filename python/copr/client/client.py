@@ -466,6 +466,38 @@ class CoprClient(UnicodeMixin):
         api_endpoint = "new_build_tito"
         return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
 
+    def create_new_build_mock(self, projectname, scm_url, spec, scm_type="git", scm_branch=None, username=None,
+                              timeout=None, memory=None, chroots=None, progress_callback=None):
+        """ Creates new build from PyPI
+
+            :param projectname: name of Copr project (without user namespace)
+            :param scm_url: url to a project versioned by Git or SVN
+            :param spec: relative path from SCM root to .spec file
+            :param scm_type: possible values are "git" and "svn"
+            :param scm_branch: [optional] Git or SVN branch
+            :param username: [optional] use alternative username
+            :param timeout: [optional] build timeout
+            :param memory: [optional] amount of required memory for build process
+            :param chroots: [optional] build only with given chroots
+            :param progress_callback: [optional] a function that received a
+            MultipartEncoderMonitor instance for each chunck of uploaded data
+
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
+        """
+        data = {
+            "memory_reqs": memory,
+            "timeout": timeout,
+            "scm_type": scm_type,
+            "scm_url": scm_url,
+            "scm_branch": scm_branch,
+            "spec": spec,
+            "source_type": "mock_scm",
+        }
+        api_endpoint = "new_build_mock"
+        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
+
     def process_creating_new_build(self, projectname, data, api_endpoint, username=None, chroots=None):
         if not username:
             username = self.username

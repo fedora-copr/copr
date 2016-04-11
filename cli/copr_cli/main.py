@@ -225,6 +225,21 @@ class Commands(object):
         }
         return self.process_build(args, self.client.create_new_build_tito, data)
 
+    @requires_api_auth
+    def action_build_mock(self, args):
+        """
+        Method called when the 'build-mock' action has been selected by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        data = {
+            "scm_type": args.scm_type,
+            "scm_url": args.scm_url,
+            "scm_branch": args.scm_branch,
+            "spec": args.spec,
+        }
+        return self.process_build(args, self.client.create_new_build_mock, data)
+
     def process_build(self, args, build_function, data):
         username, copr = parse_name(args.copr)
 
@@ -451,6 +466,18 @@ def setup_parser():
     parser_build_tito.add_argument("--test", dest="tito_test", action="store_true",
                                    help="build the last commit instead of the last release tag")
     parser_build_tito.set_defaults(func="action_build_tito")
+
+    # create the parser for the "buildmock" command
+    parser_build_mock = subparsers.add_parser("buildmock", parents=[parser_build_parent],
+                                              help="submit a build from SCM repository via Mock to a specified copr")
+    parser_build_mock.add_argument("--scm-type", metavar="TYPE", dest="scm_type", choices=["git", "svn"], default="git",
+                                   help="specify versioning tool, default is 'git'")
+    parser_build_mock.add_argument("--scm-url", metavar="URL", dest="scm_url",
+                                   help="url to a project versioned by Git or SVN, required")
+    parser_build_mock.add_argument("--scm-branch", metavar="BRANCH", dest="scm_branch", help="")
+    parser_build_mock.add_argument("--spec", dest="spec", metavar="FILE",
+                                   help="relative path from SCM root to .spec file, required")
+    parser_build_mock.set_defaults(func="action_build_mock")
 
     # create the parser for the "status" command
     parser_status = subparsers.add_parser("status",

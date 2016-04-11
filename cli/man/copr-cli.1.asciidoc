@@ -159,6 +159,29 @@ To build from the last commit instead of the last release tag.
 For the rest of the arguments, see `copr-cli build` command above.
 
 
+`copr-cli buildmock [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr buildmock [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                      [-r CHROOTS] [--scm-type TYPE] [--scm-url URL]
+                      [--scm-branch BRANCH] [--spec FILE]
+                      project
+
+--scm-type TYPE::
+Specify versioning tool, default is 'git'.
+
+--scm-url URL::
+Url to a project versioned by Git or SVN, required.
+
+--scm-branch BRANCH::
+
+--spec FILE::
+Relative path from SCM root to .spec file, required.
+
+
+For the rest of the arguments, see `copr-cli build` command above.
+
+
 `copr-cli download-build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

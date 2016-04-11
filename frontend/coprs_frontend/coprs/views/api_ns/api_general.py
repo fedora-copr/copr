@@ -404,6 +404,25 @@ def copr_new_build_tito(copr):
     return process_creating_new_build(copr, form, create_new_build)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/new_build_mock/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_new_build_mock(copr):
+    form = forms.BuildFormMockFactory(copr.active_chroots)(csrf_enabled=False)
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_mock(
+            flask.g.user,
+            copr,
+            form.scm_type.data,
+            form.scm_url.data,
+            form.scm_branch.data,
+            form.spec.data,
+            form.selected_chroots,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
 def process_creating_new_build(copr, form, create_new_build):
 
     # are there any arguments in POST which our form doesn't know?
