@@ -19,4 +19,4 @@
 
 absdir="$(dirname "$(readlink -f "$0")")"
 export PYTHONPATH="$absdir:$absdir/../python"
-python -m copr_cli.main "$@"
+python3 -m copr_cli.main "$@"

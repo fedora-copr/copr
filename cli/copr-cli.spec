@@ -7,6 +7,10 @@
 %endif
 %endif
 
+%if 0%{?fedora} >= 24
+%global %{use_python3}
+%endif
+
 Name:       copr-cli
 Version:    1.49
 Release:    1%{?dist}
@@ -25,15 +29,23 @@ BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
-BuildRequires: python-setuptools
+%if 0%{?use_python3}
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
+BuildRequires: python3-copr
+Requires:   python3-setuptools
+Requires:   python3-copr >= 1.63
+%else
 BuildRequires: python2-devel
+BuildRequires: python-setuptools
 BuildRequires: python-copr
+Requires:   python-setuptools
+Requires:   python-copr >= 1.63
+%endif
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
 
-Requires:   python-setuptools
-Requires:   python-copr >= 1.63
 Requires:   wget
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
@@ -62,7 +74,14 @@ only.
 
 
 %build
+%if 0%{?use_python3}
+%{__python3} setup.py build
+%else
+for file in copr_cli/main.py copr_cli/__init__.py setup.py; do
+  sed -i 1"s|#!/usr/bin/python3 |#!/usr/bin/python |" $file
+done
 %{__python2} setup.py build
+%endif
 
 mv copr_cli/README.rst ./
 
@@ -71,7 +90,11 @@ a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 
 %install
 install -d %{buildroot}%{_pkgdocdir}/
+%if 0%{?use_python3}
+%{__python3} setup.py install --root %{buildroot}
+%else
 %{__python2} setup.py install --root %{buildroot}
+%endif
 
 ln -sf %{_bindir}/copr-cli %{buildroot}%{_bindir}/copr
 
@@ -84,7 +107,11 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %license LICENSE
 %doc README.rst
 %{_bindir}/copr-cli
+%if 0%{?use_python3}
+%{python3_sitelib}/*
+%else
 %{python_sitelib}/*
+%endif
 %{_mandir}/man1/copr-cli.1*
 %{_mandir}/man1/copr.1*
 %{_bindir}/copr

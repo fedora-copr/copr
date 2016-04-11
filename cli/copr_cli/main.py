@@ -1,17 +1,21 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 import os
 import re
 import subprocess
 
 import argparse
-from urlparse import urlparse
 import sys
 import datetime
 import time
+import six
 from collections import defaultdict
 
 import logging
+if six.PY2:
+    from urlparse import urlparse
+else:
+    from urllib.parse import urlparse
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
