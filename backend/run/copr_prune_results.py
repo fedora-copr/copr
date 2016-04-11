@@ -17,9 +17,7 @@ log = logging.getLogger(__name__)
 from copr.exceptions import CoprException
 from copr.exceptions import CoprRequestException
 
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-)
+sys.path.append("/usr/share/copr/")
 
 from backend.helpers import BackendConfigReader
 from backend.helpers import get_auto_createrepo_status
