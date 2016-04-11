@@ -345,8 +345,10 @@ def test_download_build(mock_cc, mock_sp, capsys):
             data={"chroots": {
                 u'epel-6-x86_64': u'succeeded', u'epel-6-i386': u'succeeded'
             }},
-            src_pkg="http://example/python/python-copr-1.50-1.fc20.src.rpm",
-            results="http://example.com/results/",
+            results_by_chroot={
+                u'epel-6-x86_64': u'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20',
+                u'epel-6-i386': u'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20',
+            }
         )
     mock_cc.create_from_file_config.return_value = mock_client
 
@@ -358,12 +360,12 @@ def test_download_build(mock_cc, mock_sp, capsys):
         mock.call([
             'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
             '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
-            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20/'
+            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20'
         ]),
         mock.call([
             'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
             '-P', u'./epel-6-i386', '--cut-dirs', '6',
-            'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20/'
+            'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20'
         ])
     ]
 
@@ -379,8 +381,10 @@ def test_download_build_select_chroot(mock_cc, mock_sp, capsys):
             data={"chroots": {
                 u'epel-6-x86_64': u'succeeded', u'epel-6-i386': u'succeeded'
             }},
-            src_pkg="http://example/python/python-copr-1.50-1.fc20.src.rpm",
-            results="http://example.com/results/",
+            results_by_chroot={
+                u'epel-6-x86_64': u'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20',
+                u'epel-6-i386': u'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20',
+            }
         )
     mock_cc.create_from_file_config.return_value = mock_client
 
@@ -391,7 +395,7 @@ def test_download_build_select_chroot(mock_cc, mock_sp, capsys):
         mock.call([
             'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
             '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
-            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20/'
+            'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20'
         ]),
     ]
 

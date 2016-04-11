@@ -323,27 +323,16 @@ class Commands(object):
 
     def action_download_build(self, args):
         result = self.client.get_build_details(args.build_id)
-        # TODO: can be simplified after https://bugzilla.redhat.com/show_bug.cgi?id=1133650
-        #  and addition of that paths to api
+        base_len = len(os.path.split(result.results))
 
-        o = urlparse(result.src_pkg)
-        pkgs_name = os.path.split(o.path)[-1]
-        assert pkgs_name.endswith(".src.rpm")
-
-        base_url = result.results
-        base_len = len(os.path.split(base_url))
-
-        pkg_dir = pkgs_name[:-8]
-        for chroot, status in result.data["chroots"].items():
+        for chroot, url in result.results_by_chroot.items():
             if args.chroots and chroot not in args.chroots:
                 continue
 
             cmd = "wget -r -nH --no-parent --reject 'index.html*'".split(' ')
-
             cmd.extend(['-P', os.path.join(args.dest, chroot)])
             cmd.extend(['--cut-dirs', str(base_len + 4)])
-            cmd.append("{0}{1}/{2}/".format(base_url, chroot, pkg_dir))
-
+            cmd.append(url)
             subprocess.call(cmd)
 
     @requires_api_auth

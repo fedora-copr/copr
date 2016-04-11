@@ -251,7 +251,7 @@ class CoprClient(UnicodeMixin):
                 CommonMsgErrorOutParser,
                 fabric_simple_fields_parser(
                     [
-                        "project", "owner", "status", "results",
+                        "project", "owner", "status", "results", "results_by_chroot",
                         "submitted_on", "started_on", "ended_on",
                         "built_pkgs", "src_pkg", "src_version",
                     ],  # TODO: convert unix time
