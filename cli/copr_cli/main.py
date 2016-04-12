@@ -41,7 +41,7 @@ Any operation requiring credentials will fail!
 
 class Commands(object):
     def __init__(self, config):
-
+        self.config = config
         try:
             self.client = CoprClient.create_from_file_config(config)
         except (copr_exceptions.CoprNoConfException,
@@ -59,7 +59,7 @@ class Commands(object):
         def wrapper(self, args):
             if self.client.no_config:
                 print("Error: Operation requires api authentication")
-                print(no_config_warning.format(config or "~/.config/copr"))
+                print(no_config_warning.format(self.config or "~/.config/copr"))
                 sys.exit(6)
 
             return func(self, args)
