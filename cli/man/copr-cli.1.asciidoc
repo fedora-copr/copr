@@ -151,6 +151,7 @@ Url to a project managed by Tito, required.
 Relative path from Git root to directory containing .spec file.
 
 --git-branch BRANCH::
+Checokut specific branch on the repository.
 
 --test::
 To build from the last commit instead of the last release tag.
@@ -174,6 +175,7 @@ Specify versioning tool, default is 'git'.
 Url to a project versioned by Git or SVN, required.
 
 --scm-branch BRANCH::
+Checokut specific branch on the repository.
 
 --spec FILE::
 Relative path from SCM root to .spec file, required.
