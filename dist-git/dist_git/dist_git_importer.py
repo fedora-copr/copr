@@ -187,7 +187,7 @@ class SrpmBuilderProvider(BaseSourceProvider):
 
     def copy(self):
         # 4. copy srpm to the target destination
-        log.debug("GIT_BUILDER: 4. get srpm path".format(self.task.source_type))
+        log.debug("GIT_BUILDER: 4. get srpm path")
         dest_files = os.listdir(self.tmp_dest)
         dest_srpms = filter(lambda f: f.endswith(".src.rpm"), dest_files)
         if len(dest_srpms) == 1:
