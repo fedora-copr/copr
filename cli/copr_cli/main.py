@@ -58,8 +58,8 @@ class Commands(object):
 
         def wrapper(self, args):
             if self.client.no_config:
-                print("Error: Operation requires api authentication\n"
-                      "File `~/.config/copr` is missing or incorrect")
+                print("Error: Operation requires api authentication")
+                print(no_config_warning.format(config or "~/.config/copr"))
                 sys.exit(6)
 
             return func(self, args)
