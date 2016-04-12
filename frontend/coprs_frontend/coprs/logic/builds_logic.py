@@ -42,7 +42,7 @@ class BuildsLogic(object):
     @classmethod
     def get_build_tasks(cls, status):
         return models.BuildChroot.query.filter(models.BuildChroot.status == status) \
-            .order_by(models.BuildChroot.build_id.desc())
+            .order_by(models.BuildChroot.build_id.asc())
 
     @classmethod
     def get_recent_tasks(cls, user=None, limit=None):
@@ -57,7 +57,7 @@ class BuildsLogic(object):
             query = query.filter(models.Build.user_id == user.id)
 
         query = query \
-            .order_by(models.Build.id.desc()) \
+            .order_by(models.Build.id.asc()) \
             .limit(limit)
 
         return query
