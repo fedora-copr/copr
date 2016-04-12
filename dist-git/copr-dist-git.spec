@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.15
+Version:    0.16
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -110,6 +110,11 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Tue Apr 12 2016 Miroslav Suchý <msuchy@redhat.com> 0.16-1
+- clean up after dist-git import
+- assure python_versions type for pypi builds
+- 1322553 - checkout specific branch
+
 * Fri Mar 18 2016 Miroslav Suchý <msuchy@redhat.com> 0.15-1
 - own /etc/logrotate.d
 - own /usr/share/copr
