@@ -138,34 +138,30 @@ class SourceProvider(object):
         self.target_path = target_path
 
         if task.source_type == SourceType.SRPM_LINK:
-            self.provider = SrpmUrlProvider
-
+            self.provider_class = SrpmUrlProvider
         elif task.source_type == SourceType.SRPM_UPLOAD:
-            self.provider = SrpmUrlProvider
-
+            self.provider_class = SrpmUrlProvider
         elif task.source_type == SourceType.GIT_AND_TITO:
-            self.provider = GitAndTitoProvider
-
+            self.provider_class = GitAndTitoProvider
         elif task.source_type == SourceType.MOCK_SCM:
-            self.provider = MockScmProvider
-
+            self.provider_class = MockScmProvider
         elif task.source_type == SourceType.PYPI:
-            self.provider = PyPIProvider
-
+            self.provider_class = PyPIProvider
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
+        self.provider = self.provider_class(self.task, self.target_path)
 
     def get_srpm(self):
-        self.provider(self.task, self.target_path).get_srpm()
+        self.provider.get_srpm()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.provider(self.task, self.target_path).cleanup()
+        self.provider.cleanup()
 
     def cleanup(self):
-        self.provider(self.task, self.target_path).cleanup()
+        self.provider.cleanup()
 
 
 class BaseSourceProvider(object):
