@@ -220,7 +220,7 @@ class GitProvider(SrpmBuilderProvider):
 
     def clone(self):
         # 1. clone the repo
-        log.debug("GIT_BUILDER: 1. clone".format(self.task.source_type))
+        log.debug("GIT_BUILDER: 1. clone")
         cmd = ['git', 'clone', self.task.git_url]
         try:
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
