@@ -158,18 +158,36 @@ class SourceProvider(object):
     def get_srpm(self):
         self.provider(self.task, self.target_path).get_srpm()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.provider(self.task, self.target_path).cleanup()
+
+    def cleanup(self):
+        self.provider(self.task, self.target_path).cleanup()
+
 
 class BaseSourceProvider(object):
     def __init__(self, task, target_path):
         self.task = task
         self.target_path = target_path
+        self.dir_to_cleanup = [self.target_path]
 
+    def cleanup(self):
+        for directory in self.dir_to_cleanup:
+            try:
+                shutil.rmtree(directory)
+            except OSError as e:
+                pass #what else we can do? Hopefuly tmpreaper will clean it up
+        self.dir_to_cleanup = []
 
 class SrpmBuilderProvider(BaseSourceProvider):
     def __init__(self, task, target_path):
         super(SrpmBuilderProvider, self).__init__(task, target_path)
         self.tmp = tempfile.mkdtemp()
         self.tmp_dest = tempfile.mkdtemp()
+        self.dir_to_cleanup.extend([self.tmp, self.tmp_dest])
 
     def copy(self):
         # 4. copy srpm to the target destination
@@ -203,7 +221,6 @@ class GitProvider(SrpmBuilderProvider):
         self.checkout()
         self.build()
         self.copy()
-        self.clean()
 
     def clone(self):
         # 1. clone the repo
@@ -251,12 +268,6 @@ class GitProvider(SrpmBuilderProvider):
 
     def build(self):
         raise NotImplemented
-
-    def clean(self):
-        # 5. delete temps
-        log.debug("GIT_BUILDER: 5. delete tmp")
-        shutil.rmtree(self.tmp)
-        shutil.rmtree(self.tmp_dest)
 
 
 class GitAndTitoProvider(GitProvider):
@@ -487,11 +498,13 @@ class DistGitImporter(object):
         fetched_srpm_path = os.path.join(tmp_root, "package.src.rpm")
 
         try:
-            SourceProvider(task, fetched_srpm_path).get_srpm()
+            provider = SourceProvider(task, fetched_srpm_path)
+            provider.get_srpm()
             task.package_name, task.package_version = self.pkg_name_evr(fetched_srpm_path)
 
             self.before_git_import(task)
             task.git_hash = self.git_import_srpm(task, fetched_srpm_path)
+            provider.cleanup()
             self.after_git_import()
 
             log.debug("sending a response - success")
