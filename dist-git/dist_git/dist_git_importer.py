@@ -493,14 +493,13 @@ class DistGitImporter(object):
         tmp_root = tempfile.mkdtemp()
         fetched_srpm_path = os.path.join(tmp_root, "package.src.rpm")
 
+        provider = SourceProvider(task, fetched_srpm_path)
         try:
-            provider = SourceProvider(task, fetched_srpm_path)
             provider.get_srpm()
             task.package_name, task.package_version = self.pkg_name_evr(fetched_srpm_path)
 
             self.before_git_import(task)
             task.git_hash = self.git_import_srpm(task, fetched_srpm_path)
-            provider.cleanup()
             self.after_git_import()
 
             log.debug("sending a response - success")
@@ -511,6 +510,7 @@ class DistGitImporter(object):
             self.post_back_safe({"task_id": task.task_id, "error": e.strtype})
 
         finally:
+            provider.cleanup()
             shutil.rmtree(tmp_root, ignore_errors=True)
             self.tear_up_per_task_logging(per_task_log_handler)
 
