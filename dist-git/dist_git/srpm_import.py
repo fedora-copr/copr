@@ -1,12 +1,11 @@
 # coding: utf-8
 
-
-import os
-import types
-import shutil
-import logging
-import traceback
 from multiprocessing import Process, Manager
+import logging
+import os
+import shutil
+import traceback
+import types
 
 # pyrpkg uses os.getlogin(). It requires tty which is unavailable when we run this script as a daemon
 # very dirty solution for now
