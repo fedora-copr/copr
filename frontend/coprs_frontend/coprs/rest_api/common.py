@@ -17,6 +17,7 @@ from ..rest_api.util import mm_serialize_one, get_one_safe
 from .exceptions import AuthFailed, ObjectNotFoundError
 from .schemas import CoprChrootSchema, BuildSchema, ProjectSchema
 from .util import mm_serialize_one
+from coprs import app
 
 log = getLogger(__name__)
 
@@ -107,10 +108,10 @@ def rest_api_auth_required(f):
         if not token_auth:
             message = (
                 "Login invalid/expired. "
-                "Please visit https://copr.fedoraproject.org/api "
+                "Please visit {0}/api "
                 "get or renew your API token.")
 
-            raise AuthFailed(message)
+            raise AuthFailed(message.format(app.config["PUBLIC_COPR_HOSTNAME"]))
         return f(*args, **kwargs)
     return decorated_function
 

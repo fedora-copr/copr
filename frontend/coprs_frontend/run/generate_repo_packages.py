@@ -29,7 +29,7 @@ from coprs.logic.coprs_logic import CoprsLogic
 # ----------------------------------------------------------------------------------------------------------------------
 
 hostname = app.config["PUBLIC_COPR_HOSTNAME"]
-scheme = "https" if hostname == "copr.fedoraproject.org" else "http"  # Workaround to broken enforce https on fe-dev
+scheme = app.config["ENFORCE_PROTOCOL_FOR_FRONTEND_URL"] if "ENFORCE_PROTOCOL_FOR_FRONTEND_URL" in app.config else "http"
 
 FRONTEND_URL = "{}://{}".format(scheme, hostname)
 FRONTEND_DIR = os.path.dirname(here)
