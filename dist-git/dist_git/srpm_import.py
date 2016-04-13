@@ -5,6 +5,7 @@ import os
 import types
 import shutil
 import logging
+import traceback
 from multiprocessing import Process, Manager
 
 # pyrpkg uses os.getlogin(). It requires tty which is unavailable when we run this script as a daemon
@@ -80,6 +81,7 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     try:
         upload_files = commands.import_srpm(src_filepath)
     except Exception:
+        log.exception("Original traceback: {0}".format(traceback.format_exc))
         log.exception("Failed to import the source rpm: {}".format(src_filepath))
         return
         # raise PackageImportException()
