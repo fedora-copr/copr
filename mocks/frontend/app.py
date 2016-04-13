@@ -63,6 +63,7 @@ def distgit_importing_queue():
 
 @app.route('/backend/import-completed/', methods=['POST', 'PUT'])
 def distgit_upload_completed():
+    debug_output(flask.request.json, 'RECEIVED:')
     distgit_responses.append(flask.request.json)
     import_task_dict.pop(flask.request.json['task_id'])
     test_for_server_end()
