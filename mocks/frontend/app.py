@@ -156,11 +156,13 @@ def dump_responses():
     os.makedirs(outputdir, exist_ok=True)
 
     output = {
-        'distgit_responses': distgit_responses,
-        'backend_builds': backend_builds,
+        'distgit-responses': distgit_responses,
+        'backend-builds': backend_builds,
     }
 
     for filename, data in output.items():
+        if not data:
+            continue
         with open(os.path.join(outputdir, filename), 'w') as f:
             f.write(json.dumps(data))
 
