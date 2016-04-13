@@ -232,21 +232,15 @@ class GitProvider(SrpmBuilderProvider):
 
         # 1b. get dir name
         log.debug("GIT_BUILDER: 1b. dir name...")
-        cmd = ['ls']
         try:
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
-            output, error = proc.communicate()
+            files = os.listdir(self.tmp)
         except OSError as e:
             raise GitWrongDirectoryException(str(e))
-        if proc.returncode != 0:
-            raise GitWrongDirectoryException(error)
-
-        if output and len(output.split()) == 1:
-            git_dir_name = output.split()[0]
-        else:
+        if not files or len(files) != 1:
             raise GitWrongDirectoryException("Could not get name of git directory.")
-        log.debug("Git directory name: {}".format(git_dir_name))
 
+        git_dir_name = files[0]
+        log.debug("Git directory name: {}".format(git_dir_name))
         self.git_dir = "{}/{}".format(self.tmp, git_dir_name)
 
     def checkout(self):
