@@ -84,8 +84,13 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
         log.exception("Failed to import the source rpm: {}".format(src_filepath))
         return
         # raise PackageImportException()
+
     log.info("save the source files into lookaside cache")
+    oldpath = os.getcwd()
+    os.chdir(repo_dir) # we need to be in repo_dir for the following to work
     commands.upload(upload_files, replace=True)
+    os.chdir(oldpath)
+
     log.debug("git push")
     #message = "Import of {} {}".format(task.package_name, task.package_version)
     message = "import_srpm"
