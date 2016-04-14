@@ -52,7 +52,7 @@ class TestPruneResults(object):
     def setup_method(self, method):
         self.testresults = {
             'clime': {
-                'example': [ 'epel-6-x86_64', 'fedora-23-x86_64' ],
+                'example': [ 'epel-6-x86_64' ],
                 'motionpaint': [ 'fedora-23-x86_64', 'fedora-24-x86_64' ],
             },
             '@copr': {
