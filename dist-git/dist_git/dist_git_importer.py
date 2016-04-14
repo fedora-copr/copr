@@ -506,7 +506,7 @@ class DistGitImporter(object):
         finally:
             provider.cleanup()
             shutil.rmtree(tmp_root, ignore_errors=True)
-            self.tear_up_per_task_logging(per_task_log_handler)
+            self.teardown_per_task_logging(per_task_log_handler)
 
     def setup_per_task_logging(self, task):
         handler = logging.FileHandler(os.path.join(self.opts.per_task_log_dir, "{0}.log".format(task.task_id)))
@@ -514,7 +514,7 @@ class DistGitImporter(object):
         logging.getLogger('').addHandler(handler)
         return handler
 
-    def tear_up_per_task_logging(self, handler):
+    def teardown_per_task_logging(self, handler):
         logging.getLogger('').removeHandler(handler)
 
     def run(self):
