@@ -95,6 +95,10 @@ class TestBackend(object):
 
             log_dir=self.tmp_dir_path,
             log_level="info",
+
+            redis_host="127.0.0.1",
+            redis_port=6379,
+            redis_db=0,
         )
         self.bc_obj.read.return_value = self.opts
         self.bc.return_value = self.bc_obj

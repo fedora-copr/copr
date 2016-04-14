@@ -79,6 +79,7 @@ class TestVmMaster(object):
         self.vm_spawn_min_interval = 30
 
         self.opts = Munch(
+            redis_host="127.0.0.1",
             redis_db=9,
             redis_port=7777,
             ssh=Munch(

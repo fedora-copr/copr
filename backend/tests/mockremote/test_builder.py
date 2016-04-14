@@ -461,49 +461,6 @@ class TestBuilder(object):
                 builder.buildroot_pkgs = bad_pkg
                 builder.modify_mock_chroot_config()
 
-    def test_modify_base_buildroot_on_error(self, ):
-        storage = []
-
-        def fake_run_ansible(self, cmd, *args, **kwargs):
-            storage.append(cmd)
-            raise AnsibleCallError("", "", "", True)
-
-        builder = self.get_test_builder()
-        builder.run_ansible_with_check = MethodType(fake_run_ansible, builder)
-        br_pkgs = "foo bar"
-        builder.buildroot_pkgs = br_pkgs
-
-        with pytest.raises(BuilderError) as err:
-            builder.modify_mock_chroot_config()
-
-        expected = (
-            "dest=/etc/mock/{}.cfg "
-            "line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {}'\" "
-            "regexp=\"^.*chroot_setup_cmd.*$\""
-        ).format(self.BUILDER_CHROOT, br_pkgs)
-
-        assert any([expected in r for r in storage])
-
-    def test_modify_base_buildroot(self, ):
-        storage = []
-
-        def fake_run_ansible(self, cmd, *args, **kwargs):
-            storage.append(cmd)
-
-        builder = self.get_test_builder()
-        builder.run_ansible_with_check = MethodType(fake_run_ansible, builder)
-        br_pkgs = "foo bar"
-        builder.buildroot_pkgs = br_pkgs
-        builder.modify_mock_chroot_config()
-
-        expected = (
-            "dest=/etc/mock/{}.cfg "
-            "line=\"config_opts['chroot_setup_cmd'] = 'install @buildsys-build {}'\" "
-            "regexp=\"^.*chroot_setup_cmd.*$\""
-        ).format(self.BUILDER_CHROOT, br_pkgs)
-
-        assert any([expected in r for r in storage])
-
     def test_modify_chroot_disable_networking(self):
         storage = []
 
