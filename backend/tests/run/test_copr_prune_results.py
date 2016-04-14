@@ -1,12 +1,9 @@
 # coding: utf-8
-import logging
 import os
 import sys
 import shutil
 import tarfile
 import tempfile
-import time
-import subprocess
 from munch import Munch
 
 import pytest
