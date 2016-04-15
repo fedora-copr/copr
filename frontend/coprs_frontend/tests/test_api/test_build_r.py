@@ -72,7 +72,7 @@ class TestBuildResource(CoprsTestCase):
             # not a pure test, but we test API here
             builds = [
                 b for b in BuildsLogic.get_multiple().all()
-                if b.copr.owner.username == user_name
+                if b.copr.user.username == user_name
             ]
             expected_ids = set([b.id for b in builds])
             assert expected_ids == self.extract_build_ids(obj)

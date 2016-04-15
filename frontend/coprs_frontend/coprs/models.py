@@ -83,7 +83,7 @@ class User(db.Model, helpers.Serializer):
         Determine if this user can build in the given copr.
         """
         can_build = False
-        if copr.owner_id == self.id:
+        if copr.user_id == self.id:
             can_build = True
         if (self.permissions_for_copr(copr) and
                 self.permissions_for_copr(copr).copr_builder ==
@@ -123,7 +123,7 @@ class User(db.Model, helpers.Serializer):
         Determine if this user can edit the given copr.
         """
 
-        if copr.owner == self or self.admin:
+        if copr.user == self or self.admin:
             return True
         if (self.permissions_for_copr(copr) and
                 self.permissions_for_copr(copr).copr_admin ==
@@ -148,7 +148,7 @@ class User(db.Model, helpers.Serializer):
         Get number of coprs for this user.
         """
 
-        return (Copr.query.filter_by(owner=self).
+        return (Copr.query.filter_by(user=self).
                 filter_by(deleted=False).
                 count())
 
@@ -190,8 +190,8 @@ class Copr(db.Model, helpers.Serializer):
     auto_createrepo = db.Column(db.Boolean, default=True)
 
     # relations
-    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    owner = db.relationship("User", backref=db.backref("coprs"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user = db.relationship("User", backref=db.backref("coprs"))
     group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
     group = db.relationship("Group", backref=db.backref("groups"))
     mock_chroots = association_proxy("copr_chroots", "mock_chroot")
@@ -214,12 +214,8 @@ class Copr(db.Model, helpers.Serializer):
         return self.group_id is not None
 
     @property
-    def owner_name(self):
-        return self.owner.name
-
-    @property
-    def group_name(self):
-        return self.group.name
+    def owner(self):
+        return self.group if self.is_a_group_project else self.user
 
     @property
     def repos_list(self):
@@ -304,14 +300,14 @@ class Copr(db.Model, helpers.Serializer):
         if self.is_a_group_project:
             return "@{}/{}".format(self.group.name, self.name)
         else:
-            return "{}/{}".format(self.owner.username, self.name)
+            return "{}/{}".format(self.user.name, self.name)
 
     @property
     def repo_name(self):
         if self.is_a_group_project:
             return "@{}-{}".format(self.group.name, self.name)
         else:
-            return "{}-{}".format(self.owner.username, self.name)
+            return "{}-{}".format(self.user.name, self.name)
 
     @property
     def repo_url(self):
@@ -324,7 +320,7 @@ class Copr(db.Model, helpers.Serializer):
         if self.is_a_group_project:
             return "group_{}-{}".format(self.group.name, self.name)
         else:
-            return "{}-{}".format(self.owner.username, self.name)
+            return "{}-{}".format(self.user.name, self.name)
 
     def to_dict(self, private=False, show_builds=True, show_chroots=True):
         result = {}
@@ -396,7 +392,7 @@ class Package(db.Model, helpers.Serializer):
                                       self.copr.name,
                                       self.name)
         else:
-            return "{}/{}/{}".format(self.copr.owner.name,
+            return "{}/{}/{}".format(self.copr.user.name,
                                      self.copr.name,
                                      self.name)
 
@@ -875,7 +871,7 @@ class BuildChroot(db.Model, helpers.Serializer):
         if self.build.copr.is_a_group_project:
             parts.append(u"@{}".format(self.build.copr.group.name))
         else:
-            parts.append(self.build.copr.owner.username)
+            parts.append(self.build.copr.user.username)
 
         parts.extend([
             self.build.copr.name,

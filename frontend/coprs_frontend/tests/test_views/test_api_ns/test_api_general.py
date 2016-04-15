@@ -59,7 +59,7 @@ class TestCreateCopr(CoprsTestCase):
         assert copr.name == self.copr_name
         assert [self.mc1.name] == [c.name for c in copr.active_chroots]
         assert copr.repos == ''
-        assert copr.owner.id == self.u1.id
+        assert copr.user.id == self.u1.id
         assert copr.auto_createrepo
 
     @TransactionDecorator("u1")
@@ -91,7 +91,7 @@ class TestCreateCopr(CoprsTestCase):
         assert copr.name == self.copr_name
         assert [self.mc1.name] == [c.name for c in copr.active_chroots]
         assert copr.repos == self.repos
-        assert copr.owner.id == self.u1.id
+        assert copr.user.id == self.u1.id
         assert copr.description == self.description
         assert copr.instructions == self.instructions
 

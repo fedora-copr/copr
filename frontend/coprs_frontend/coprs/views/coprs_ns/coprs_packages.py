@@ -200,7 +200,7 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
         "source_type": form.source_type.data,
         "form": form,
     }
-    kwargs.update({"group_name": copr.group_name} if copr.is_a_group_project else {"username": copr.owner_name})
+    kwargs.update({"group_name": copr.group_name} if copr.is_a_group_project else {"username": copr.user.name})
     return view_method(**kwargs)
 
 

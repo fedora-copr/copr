@@ -137,9 +137,9 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_coprs(self):
-        self.c1 = models.Copr(name=u"foocopr", owner=self.u1)
-        self.c2 = models.Copr(name=u"foocopr", owner=self.u2)
-        self.c3 = models.Copr(name=u"barcopr", owner=self.u2)
+        self.c1 = models.Copr(name=u"foocopr", user=self.u1)
+        self.c2 = models.Copr(name=u"foocopr", user=self.u2)
+        self.c3 = models.Copr(name=u"barcopr", user=self.u2)
 
         self.basic_coprs_list = [self.c1, self.c2, self.c3]
         self.db.session.add_all(self.basic_coprs_list)
@@ -364,17 +364,17 @@ class CoprsTestCase(object):
                                 object_type="copr",
                                 object_id=self.c1.id,
                                 old_value="{0}/{1}".format(
-                                    self.c1.owner.name, self.c1.name),
+                                    self.c1.user.name, self.c1.name),
                                 new_value="{0}/new_name".format(
-                                    self.c1.owner.name),
+                                    self.c1.user.name),
                                 created_on=int(time.time()))
         self.a2 = models.Action(action_type=helpers.ActionTypeEnum("rename"),
                                 object_type="copr",
                                 object_id=self.c2.id,
                                 old_value="{0}/{1}".format(
-                                    self.c2.owner.name, self.c2.name),
+                                    self.c2.user.name, self.c2.name),
                                 new_value="{0}/new_name2".format(
-                                    self.c2.owner.name),
+                                    self.c2.user.name),
                                 created_on=int(time.time()))
         self.a3 = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                 object_type="copr",

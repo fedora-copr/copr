@@ -27,7 +27,7 @@ class TestMonitor(CoprsTestCase):
         res = self.tc.get("/coprs/{}/{}/monitor/".format(self.u1.name, copr_name))
         assert res.status_code == 404
 
-        tmp_copr = models.Copr(name=copr_name, owner=self.u1)
+        tmp_copr = models.Copr(name=copr_name, user=self.u1)
         cc = models.CoprChroot()
         cc.mock_chroot = self.mc1
         tmp_copr.copr_chroots.append(cc)
@@ -178,7 +178,7 @@ class TestCoprNew(CoprsTestCase):
 
         self.db.session.add(self.c1)
         self.c1.deleted = True
-        self.c1.owner = self.u1
+        self.c1.user = self.u1
         self.db.session.commit()
 
         self.db.session.add(self.c1)
@@ -192,7 +192,7 @@ class TestCoprNew(CoprsTestCase):
         self.u1 = self.db.session.merge(self.u1)
         assert len(self.models.Copr.query.filter(self.models.Copr.name ==
                                                  self.c1.name)
-                   .filter(self.models.Copr.owner == self.u1)
+                   .filter(self.models.Copr.user == self.u1)
                    .all()) == 2
         assert self.success_string.encode("utf-8") in r.data
 
@@ -702,10 +702,10 @@ class TestSearch(CoprsTestCase):
         self.s_coprs = []
 
         for x in range(5):
-            self.s_coprs.append(models.Copr(name=self.prefix + str(x), owner=self.u1))
+            self.s_coprs.append(models.Copr(name=self.prefix + str(x), user=self.u1))
 
         for x in range(7):
-            self.s_coprs.append(models.Copr(name=self.prefix + str(x), owner=self.u2))
+            self.s_coprs.append(models.Copr(name=self.prefix + str(x), user=self.u2))
 
         self.db.session.add_all(self.s_coprs)
         self.db.session.commit()

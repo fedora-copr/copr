@@ -31,15 +31,15 @@ class TestCoprsLogic(CoprsTestCase):
 
         u1_count = 150
         for x in range(u1_count):
-            self.s_coprs.append(models.Copr(name=self.prefix + str(x), owner=self.u1))
+            self.s_coprs.append(models.Copr(name=self.prefix + str(x), user=self.u1))
 
         u2_count = 7
         for x in range(u2_count):
-            self.s_coprs.append(models.Copr(name=self.prefix + str(x), owner=self.u2))
+            self.s_coprs.append(models.Copr(name=self.prefix + str(x), user=self.u2))
 
         u3_count = 9
         for x in range(u3_count):
-            self.s_coprs.append(models.Copr(name=u"_wrong_" + str(x), owner=self.u3))
+            self.s_coprs.append(models.Copr(name=u"_wrong_" + str(x), user=self.u3))
 
         self.db.session.add_all(self.s_coprs)
         self.db.session.commit()

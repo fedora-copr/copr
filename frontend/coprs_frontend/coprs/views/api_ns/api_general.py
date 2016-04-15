@@ -476,7 +476,7 @@ def build_detail(build_id):
         "output": "ok",
         "status": build.state,
         "project": build.copr.name,
-        "owner": build.copr.owner.name,
+        "owner": build.copr.user.name,
         "results": build.results,
         "built_pkgs": built_packages,
         "src_version": build.pkg_version,
@@ -589,7 +589,7 @@ def api_coprs_search_by_project(project=None):
         repos = query.all()
         output = {"output": "ok", "repos": []}
         for repo in repos:
-            output["repos"].append({"username": repo.owner.name,
+            output["repos"].append({"username": repo.user.name,
                                     "coprname": repo.name,
                                     "description": repo.description})
     except ValueError as e:

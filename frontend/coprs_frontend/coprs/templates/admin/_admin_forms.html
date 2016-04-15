@@ -1,7 +1,7 @@
 {% from "_helpers.html" import render_field %}
 
 {% macro admin_playground_form(form, copr) %}
-  <form action="{{ url_for('admin_ns.playground_set', username=copr.owner.name, coprname=copr.name) }}" method="post">
+  <form action="{{ url_for('admin_ns.playground_set', username=copr.user.name, coprname=copr.name) }}" method="post">
       {{ form.csrf_token }}
         <table class="status-table">
             <tbody>

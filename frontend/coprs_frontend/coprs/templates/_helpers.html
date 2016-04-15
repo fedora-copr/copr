@@ -169,7 +169,7 @@
   {%- if copr.is_a_group_project %}
       {{- url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}
   {%- else %}
-      {{- url_for('coprs_ns.copr_detail', username=copr.owner.name, coprname=copr.name) }}
+      {{- url_for('coprs_ns.copr_detail', username=copr.user.name, coprname=copr.name) }}
   {%- endif %}
 {%- endmacro %}
 
@@ -178,8 +178,8 @@
     {% set projects_list_href=url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) %}
     {% set projects_list_name="@" + copr.group.name  %}
   {% else %}
-    {% set projects_list_href=url_for('coprs_ns.coprs_by_owner', username=copr.owner.name) %}
-    {% set projects_list_name=copr.owner.username  %}
+    {% set projects_list_href=url_for('coprs_ns.coprs_by_owner', username=copr.user.name) %}
+    {% set projects_list_name=copr.user.username  %}
   {% endif %}
 
   <a href="{{ projects_list_href }}">{{ projects_list_name }}</a><!--
@@ -208,7 +208,7 @@
     copr_url('coprs_ns.foo', copr, arg1='bar', arg2='baz)
   #}
   {%- if not copr.is_a_group_project %}
-    {{- url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs) }}
+    {{- url_for(view, username=copr.user.name, coprname=copr.name, **kwargs) }}
   {%- else %}
     {#- Only the listed views have merged functions for regular and group projects. Once all views have it, @TODO remove the workaround #}
     {%- if view in ["coprs_ns.copr_add_package", "coprs_ns.copr_new_package", "coprs_ns.copr_rebuild_package", "coprs_ns.copr_packages", "coprs_ns.copr_package", "coprs_ns.copr_edit_package", "coprs_ns.copr_fork", "coprs_ns.copr_delete_package"] %}
@@ -274,7 +274,7 @@
     </div>
     <div class="list-group">
       {% for build in builds %}
-        <a href="{{url_for("coprs_ns.copr_build", username = build.copr.owner.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
+        <a href="{{url_for("coprs_ns.copr_build", username = build.copr.user.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
           <h4 class="list-group-item-heading">{{build.pkgs | pkg_name}}</h4>
           <p class="list-group-item-text">
             <small>Project:</small>

@@ -275,12 +275,12 @@ def render_copr_detail(copr):
     repos_info = {}
     for chroot in copr.active_chroots:
         # chroot_rpms_dl_stat_key = CHROOT_REPO_MD_DL_STAT_FMT.format(
-        #     copr_user=copr.owner.name,
+        #     copr_user=copr.user.name,
         #     copr_project_name=copr.name,
         #     copr_chroot=chroot.name,
         # )
         chroot_rpms_dl_stat_key = CHROOT_RPMS_DL_STAT_FMT.format(
-            copr_user=copr.owner.name,
+            copr_user=copr.user.name,
             copr_project_name=copr.name,
             copr_chroot=chroot.name,
         )
@@ -296,7 +296,7 @@ def render_copr_detail(copr):
                 "os_release": chroot.os_release,
                 "os_version": chroot.os_version,
                 "arch_list": [chroot.arch],
-                "repo_file": "{}-{}-{}.repo".format(copr.group.name if copr.is_a_group_project else copr.owner.name, copr.name, chroot.name_release),
+                "repo_file": "{}-{}-{}.repo".format(copr.group.name if copr.is_a_group_project else copr.user.name, copr.name, chroot.name_release),
                 "dl_stat": repo_dl_stat[chroot.name_release],
                 "rpm_dl_stat": {
                     chroot.arch: chroot_rpms_dl_stat
@@ -474,7 +474,7 @@ def copr_permissions_applier_change(copr):
     applier_permissions_form = \
         forms.PermissionsApplierFormFactory.create_form_cls(permission)()
 
-    if copr.owner == flask.g.user:
+    if copr.user == flask.g.user:
         flask.flash("Owner cannot request permissions for his own project.", "error")
     elif applier_permissions_form.validate_on_submit():
         # we rely on these to be 0 or 1 from form. TODO: abstract from that
@@ -492,7 +492,7 @@ def copr_permissions_applier_change(copr):
         flask.flash(
             "Successfuly updated permissions for project '{0}'."
             .format(copr.name))
-        admin_mails = [copr.owner.mail]
+        admin_mails = [copr.user.mail]
         for perm in copr.copr_permissions:
             # this 2 means that his status (admin) is approved
             if perm.copr_admin == 2:
@@ -509,7 +509,7 @@ def copr_permissions_applier_change(copr):
                         helpers.PermissionEnum(new_builder),
                         helpers.PermissionEnum(old_admin),
                         helpers.PermissionEnum(new_admin),
-                        copr.name, copr.owner.name, flask.g.user.name))
+                        copr.name, copr.user.name, flask.g.user.name))
 
                 msg["Subject"] = "[Copr] {0}: {1} is asking permissons".format(copr.name, flask.g.user.name)
                 msg["From"] = "root@{0}".format(platform.node())
@@ -519,7 +519,7 @@ def copr_permissions_applier_change(copr):
                 s.quit()
 
     return flask.redirect(flask.url_for("coprs_ns.copr_detail",
-                                        username=copr.owner.name,
+                                        username=copr.user.name,
                                         coprname=copr.name))
 
 
@@ -558,7 +558,7 @@ def copr_update_permissions(copr):
                             helpers.PermissionEnum(new_builder),
                             helpers.PermissionEnum(old_admin),
                             helpers.PermissionEnum(new_admin),
-                            copr.name, copr.owner.name))
+                            copr.name, copr.user.name))
 
                     msg["Subject"] = "[Copr] {0}: Your permissions have changed".format(copr.name)
                     msg["From"] = "root@{0}".format(platform.node())
@@ -585,7 +585,7 @@ def copr_createrepo(copr_id):
 
     chroots = [c.name for c in copr.active_chroots]
     actions_logic.ActionsLogic.send_createrepo(
-        username=('@'+copr.group.name if copr.is_a_group_project else copr.owner.name), coprname=copr.name,
+        username=('@'+copr.group.name if copr.is_a_group_project else copr.user.name), coprname=copr.name,
         chroots=chroots)
 
     db.session.commit()
@@ -620,8 +620,8 @@ def copr_delete(copr):
     return process_delete(
         copr,
         url_on_error=url_for("coprs_ns.copr_detail",
-                             username=copr.owner.name, coprname=copr.name),
-        url_on_success=url_for("coprs_ns.coprs_by_owner", username=copr.owner.username)
+                             username=copr.user.name, coprname=copr.name),
+        url_on_success=url_for("coprs_ns.coprs_by_owner", username=copr.user.username)
     )
 
 
@@ -643,7 +643,7 @@ def group_copr_delete(copr):
 @login_required
 @req_with_copr
 def copr_legal_flag(copr):
-    contact_info = "{} <>".format(copr.owner.username, copr.owner.mail)
+    contact_info = "{} <>".format(copr.user.username, copr.user.mail)
     return process_legal_flag(contact_info, copr)
 
 
@@ -730,7 +730,7 @@ def render_generate_repo_file(copr, name_release):
                                 group_name=copr.group.name, **kwargs)
         else:
             fixed_url = url_for("coprs_ns.generate_repo_file",
-                                username=copr.owner.username, **kwargs)
+                                username=copr.user.username, **kwargs)
         return flask.redirect(fixed_url)
 
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()

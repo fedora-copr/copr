@@ -146,7 +146,7 @@ def main():
 
     for copr in all_coprs():
         for chroot in unique_chroots(copr):
-            builder = RepoRpmBuilder(user=copr.owner.name, copr=copr.name, chroot=chroot)
+            builder = RepoRpmBuilder(user=copr.user.name, copr=copr.name, chroot=chroot)
 
             if builder.has_repo_package():
                 log.info("Skipping {}".format(builder.repo_name))

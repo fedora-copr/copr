@@ -10,7 +10,7 @@
   <div class="panel-body">
     <h3 style="margin-top:0px">
       {% if not flag.copr.deleted %}
-      <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.owner.name, coprname=flag.copr.name) }}>
+      <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.user.name, coprname=flag.copr.name) }}>
       {% endif %}
         {{ flag.copr.owner.name }}/{{ flag.copr.name }}
       {% if not flag.copr.deleted %}
@@ -37,7 +37,7 @@
         </form>
       </li>
       <li>
-        <a class="btn btn-xs btn-danger" href="{{ url_for('coprs_ns.copr_delete', username=flag.copr.owner.name, coprname=flag.copr.name) }}">Delete Project</a>
+        <a class="btn btn-xs btn-danger" href="{{ url_for('coprs_ns.copr_delete', username=flag.copr.user.name, coprname=flag.copr.name) }}">Delete Project</a>
       </li>
     </ul>
   </div>

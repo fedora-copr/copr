@@ -57,7 +57,7 @@ class CounterStatLogic(object):
         chroot_by_stat_name = {}
         for chroot in copr.active_chroots:
             kwargs = {
-                "copr_user": copr.owner.name,
+                "copr_user": copr.user.name,
                 "copr_project_name": copr.name,
                 "copr_name_release": chroot.name_release
             }

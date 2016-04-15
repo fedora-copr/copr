@@ -29,8 +29,8 @@ class CoprsLogic(object):
     def get_all(cls):
         """ Return all coprs without those which are deleted. """
         query = (db.session.query(models.Copr)
-                 .join(models.Copr.owner)
-                 .options(db.contains_eager(models.Copr.owner))
+                 .join(models.Copr.user)
+                 .options(db.contains_eager(models.Copr.user))
                  .filter(models.Copr.deleted == False))
         return query
 
@@ -102,9 +102,9 @@ class CoprsLogic(object):
     def get_multiple(cls, include_deleted=False):
         query = (
             db.session.query(models.Copr)
-            .join(models.Copr.owner)
+            .join(models.Copr.user)
             .outerjoin(models.Group)
-            .options(db.contains_eager(models.Copr.owner))
+            .options(db.contains_eager(models.Copr.user))
         )
 
         if not include_deleted:
@@ -191,7 +191,7 @@ class CoprsLogic(object):
             instructions=None, check_for_duplicates=False, group=None, **kwargs):
         copr = models.Copr(name=name,
                            repos=repos or u"",
-                           owner_id=user.id,
+                           user_id=user.id,
                            description=description or u"",
                            instructions=instructions or u"",
                            created_on=int(time.time()),
@@ -252,7 +252,7 @@ class CoprsLogic(object):
         action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type="copr",
                                object_id=copr.id,
-                               old_value="{0}/{1}".format(copr.owner.name,
+                               old_value="{0}/{1}".format(copr.user.name,
                                                           copr.name),
                                new_value="",
                                created_on=int(time.time()))
@@ -263,7 +263,7 @@ class CoprsLogic(object):
     def exists_for_user(cls, user, coprname, incl_deleted=False):
         existing = (models.Copr.query
                     .filter(models.Copr.name == coprname)
-                    .filter(models.Copr.owner_id == user.id))
+                    .filter(models.Copr.user_id == user.id))
 
         if not incl_deleted:
             existing = existing.filter(models.Copr.deleted == False)
@@ -314,7 +314,7 @@ class CoprsLogic(object):
         by given user. Return None otherwise.
         """
 
-        if not user.admin and user != copr.owner:
+        if not user.admin and user != copr.user:
             raise exceptions.InsufficientRightsException(
                 "Only owners may delete their projects.")
 
@@ -388,7 +388,7 @@ def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
     if not old_value_acr and value_acr:
         #  re-enabled
         ActionsLogic.send_createrepo(
-            target_copr.owner.name,
+            target_copr.user.name,
             target_copr.name,
             chroots=[chroot.name for chroot in target_copr.active_chroots]
         )

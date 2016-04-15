@@ -166,7 +166,7 @@
 
 {% macro copr_permissions_form(form, copr, permissions) %}
   {% if permissions %}
-    <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.owner.name, coprname=copr.name) }}" method=post>
+    <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.user.name, coprname=copr.name) }}" method=post>
       {{ form.csrf_token }}
       <table class="table table-striped table-bordered">
         <thead>

@@ -461,11 +461,11 @@ def copr_url(view, copr, **kwargs):
     """
     if copr.is_a_group_project:
         return url_for(view, group_name=copr.group.name, coprname=copr.name, **kwargs)
-    return url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs)
+    return url_for(view, username=copr.user.name, coprname=copr.name, **kwargs)
 
 
 def url_for_copr_view(view, group_view, copr, **kwargs):
     if copr.is_a_group_project:
         return url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs)
     else:
-        return url_for(view, username=copr.owner.name, coprname=copr.name, **kwargs)
+        return url_for(view, username=copr.user.name, coprname=copr.name, **kwargs)

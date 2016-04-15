@@ -120,7 +120,7 @@ class BuildsLogic(object):
         form the copr owned by `user`
         """
         return cls.get_multiple().join(models.Build.copr).filter(
-            models.Copr.owner == user)
+            models.Copr.user == user)
 
     @classmethod
     def get_copr_builds_list(cls, copr):
@@ -136,7 +136,7 @@ LEFT OUTER JOIN (SELECT build_chroot.build_id, started_on, ended_on, status_to_o
 LEFT OUTER JOIN copr
     ON copr.id = build.copr_id
 LEFT OUTER JOIN "user"
-    ON copr.owner_id = "user".id
+    ON copr.user_id = "user".id
 LEFT OUTER JOIN "group"
     ON copr.group_id = "group".id
 WHERE build.copr_id = {copr_id}
@@ -197,7 +197,7 @@ GROUP BY
         query = cls.get_multiple()
         return (query.join(models.Build.copr)
                 .options(db.contains_eager(models.Build.copr))
-                .join(models.Copr.owner)
+                .join(models.Copr.user)
                 .filter(models.Copr.name == coprname)
                 .filter(models.User.username == username))
 
@@ -210,7 +210,7 @@ GROUP BY
                  .join(models.User)
                  .join(models.BuildChroot)
                  .options(db.contains_eager(models.Build.copr))
-                 .options(db.contains_eager("copr.owner"))
+                 .options(db.contains_eager("copr.user"))
                  .filter((models.BuildChroot.started_on == None)
                          | (models.BuildChroot.started_on < int(time.time() - 7200)))
                  .filter(models.BuildChroot.ended_on == None)
@@ -230,7 +230,7 @@ GROUP BY
         query = (models.Build.query.join(models.Build.copr)
                  .join(models.User).join(models.BuildChroot)
                  .options(db.contains_eager(models.Build.copr))
-                 .options(db.contains_eager("copr.owner"))
+                 .options(db.contains_eager("copr.user"))
                  .filter((models.BuildChroot.started_on.is_(None))
                          | (models.BuildChroot.started_on < int(time.time() - 7200)))
                  .filter(models.BuildChroot.ended_on.is_(None))
@@ -778,7 +778,7 @@ class BuildChrootsLogic(object):
             .join(models.BuildChroot.build)
             .join(models.BuildChroot.mock_chroot)
             .join(models.Build.copr)
-            .join(models.Copr.owner)
+            .join(models.Copr.user)
             .outerjoin(models.Group)
         )
         return query

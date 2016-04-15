@@ -50,7 +50,7 @@ class TestProjectResource(CoprsTestCase):
     def test_project_list_by_user(self, f_users, f_mock_chroots, f_coprs, f_db):
         expected_id_set = set(
             c.id for c in self.basic_coprs_list
-            if c.owner == self.u1
+            if c.user == self.u1
         )
         href = "/api_2/projects?owner={}".format(self.u1.username)
         r = self.tc.get(href)
@@ -92,15 +92,15 @@ class TestProjectResource(CoprsTestCase):
     def test_project_list_search(self, f_users, f_mock_chroots, f_coprs, f_db):
         self.prefix = u"prefix"
         self.s_coprs = []
-        c1_username = self.c1.owner.username
+        c1_username = self.c1.user.username
 
         k1 = 3
         k2 = 5
         for x in range(k1):
-            self.s_coprs.append(Copr(name=self.prefix + str(x), owner=self.u1))
+            self.s_coprs.append(Copr(name=self.prefix + str(x), user=self.u1))
 
         for x in range(k2):
-            self.s_coprs.append(Copr(name=self.prefix + str(x), owner=self.u2))
+            self.s_coprs.append(Copr(name=self.prefix + str(x), user=self.u2))
 
         self.db.session.add_all(self.s_coprs)
         self.db.session.commit()

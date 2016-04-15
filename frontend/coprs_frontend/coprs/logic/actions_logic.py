@@ -97,7 +97,7 @@ class ActionsLogic(object):
             return
 
         data_dict = {
-            "username": build.copr.owner.name,
+            "username": build.copr.user.name,
             "projectname": build.copr.name,
             "chroots": chroots_to_delete
         }
@@ -127,7 +127,7 @@ class ActionsLogic(object):
         """
 
         data_dict = {
-            "username": chroot.copr.owner.name,
+            "username": chroot.copr.user.name,
             "projectname": chroot.copr.name,
             "chroot": chroot.name,
             "comps_present": chroot.comps_zlib is not None,
@@ -148,7 +148,7 @@ class ActionsLogic(object):
         """
 
         data_dict = {
-            "username": copr.owner.name,
+            "username": copr.user.name,
             "projectname": copr.name,
         }
 

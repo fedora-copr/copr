@@ -1,11 +1,11 @@
 {% macro permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, permissions_form) %}
-  {% if permissions or g.user != copr.owner %} {# display the whole table if there are permissions or user can ask for them #}
+  {% if permissions or g.user != copr.user %} {# display the whole table if there are permissions or user can ask for them #}
     {% if permissions_applier_form and g.user %}
-  <form action="{{ url_for('coprs_ns.copr_permissions_applier_change', username=copr.owner.name, coprname=copr.name)}}" method=post>
+  <form action="{{ url_for('coprs_ns.copr_permissions_applier_change', username=copr.user.name, coprname=copr.name)}}" method=post>
       {{ permissions_applier_form.csrf_token }}
     {% endif %}
     {% if permissions_form and g.user %}
-  <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.owner.name, coprname=copr.name)}}" method=post>
+  <form action="{{ url_for('coprs_ns.copr_update_permissions', username=copr.user.name, coprname=copr.name)}}" method=post>
       {{ permissions_form.csrf_token }}
     {% endif %}
     <!--permissions-table-->

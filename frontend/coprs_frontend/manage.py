@@ -146,7 +146,7 @@ class RawhideToReleaseCommand(Command):
                 continue
 
             data = {"copr": copr.name,
-                    "user": copr.owner.name,
+                    "user": copr.user.name,
                     "rawhide_chroot": rawhide_chroot,
                     "dest_chroot": dest_chroot,
                     "builds": []}
@@ -183,7 +183,7 @@ class RawhideToReleaseCommand(Command):
             "comps": rawhide_chroot.comps,
             "comps_name": rawhide_chroot.comps_name,
         }
-        coprs_logic.CoprChrootsLogic.create_chroot(copr.owner, copr, mock_chroot, **create_kwargs)
+        coprs_logic.CoprChrootsLogic.create_chroot(copr.user, copr, mock_chroot, **create_kwargs)
 
     def has_rawhide(self, copr):
         return any(filter(lambda ch: ch.os_version == "rawhide", copr.mock_chroots))

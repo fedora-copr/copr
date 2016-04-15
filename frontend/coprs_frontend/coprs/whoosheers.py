@@ -32,8 +32,8 @@ class CoprUserWhoosheer(AbstractWhoosheer):
     @classmethod
     def update_copr(cls, writer, copr):
         writer.update_document(copr_id=copr.id,
-                               user_id=copr.owner.id,
-                               username=copr.owner.name,
+                               user_id=copr.user.id,
+                               username=copr.user.name,
                                coprname=copr.name,
                                chroots=cls.get_chroot_info(copr),
                                description=copr.description,
@@ -47,8 +47,8 @@ class CoprUserWhoosheer(AbstractWhoosheer):
     @classmethod
     def insert_copr(cls, writer, copr):
         writer.add_document(copr_id=copr.id,
-                            user_id=copr.owner.id,
-                            username=copr.owner.name,
+                            user_id=copr.user.id,
+                            username=copr.user.name,
                             coprname=copr.name,
                             chroots=cls.get_chroot_info(copr),
                             description=copr.description,

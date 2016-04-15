@@ -138,8 +138,8 @@ def main():
                     logexception(e)
                     continue
                 if args.backend.lower() == 'pypi':
-                    loginfo('Launching pypi build for package of source name: {0}, package_id: {1}, copr_id: {2}, user_id: {3}'.format(source_package_name, row.package_id, copr.id, copr.owner.id))
-                    build = BuildsLogic.create_new_from_pypi(copr.owner, copr, source_package_name, new_updated_version, source_python_versions, chroot_names=None)
+                    loginfo('Launching pypi build for package of source name: {0}, package_id: {1}, copr_id: {2}, user_id: {3}'.format(source_package_name, row.package_id, copr.id, copr.user.id))
+                    build = BuildsLogic.create_new_from_pypi(copr.user, copr, source_package_name, new_updated_version, source_python_versions, chroot_names=None)
                 else:
                     raise Exception('Unsupported backend {0} passed as command-line argument'.format(args.backend))
                 db.session.commit()

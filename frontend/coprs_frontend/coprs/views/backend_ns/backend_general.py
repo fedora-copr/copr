@@ -34,7 +34,7 @@ def dist_git_importing_queue():
         if copr.is_a_group_project:
             user_name = u"@{}".format(copr.group.name)
         else:
-            user_name = copr.owner.name
+            user_name = copr.user.name
         task_dict = {
             "task_id": task.import_task_id,
             "user": user_name,
@@ -81,7 +81,7 @@ def dist_git_upload_completed():
             # Now I need to assign a package to this build
             package = PackagesLogic.get(build.copr.id, pkg_name).first()
             if not package:
-                package = PackagesLogic.add(build.copr.owner, build.copr, pkg_name, build.source_type, build.source_json)
+                package = PackagesLogic.add(build.copr.user, build.copr, pkg_name, build.source_type, build.source_json)
                 db.session.add(package)
                 db.session.flush()
 
@@ -140,7 +140,7 @@ def waiting():
             if copr.is_a_group_project:
                 user_name = u"@{}".format(copr.group.name)
             else:
-                user_name = copr.owner.name
+                user_name = copr.user.name
 
             record = {
                 "task_id": task.task_id,

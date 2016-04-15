@@ -10,10 +10,10 @@
 <h2> Project Permissions </h2>
 <p>This view shows permissions of other users to build or manage this project.</p>
 
-{% if (g.user and g.user != copr.owner) or permissions %}
+{% if (g.user and g.user != copr.user) or permissions %}
   {# the table is displayed only if there are some permissions or a non-owner is viewing the page (then display at least his applier form #}
 
-  {% if g.user.id != copr.owner_id %}
+  {% if g.user.id != copr.user_id %}
     <div class="clearfix">
       <h3>Request Permissions</h3>
       {{ permissions_table(permissions, current_user_permissions, copr, permissions_applier_form, None) }}

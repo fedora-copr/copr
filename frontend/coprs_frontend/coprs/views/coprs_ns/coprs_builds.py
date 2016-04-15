@@ -30,7 +30,7 @@ def url_for_copr_builds(copr):
                        group_name=copr.group.name, coprname=copr.name)
     else:
         return url_for("coprs_ns.copr_builds",
-                       username=copr.owner.username, coprname=copr.name)
+                       username=copr.user.username, coprname=copr.name)
 
 
 @coprs_ns.route("/build/<int:build_id>/")
@@ -46,7 +46,7 @@ def copr_build_redirect(build_id):
     else:
         return flask.redirect(url_for(
             "coprs_ns.copr_build",
-            username=build.copr.owner.name,
+            username=build.copr.user.name,
             coprname=build.copr.name,
             build_id=build_id))
 
@@ -124,7 +124,7 @@ def copr_new_build(copr):
         copr,
         "coprs_ns.copr_new_build",
         url_on_success=url_for("coprs_ns.copr_builds",
-                               username=copr.owner.username, coprname=copr.name)
+                               username=copr.user.username, coprname=copr.name)
     )
 
 
@@ -213,7 +213,7 @@ def render_add_build_tito(copr, form, view, package=None):
 def copr_new_build_tito(copr):
     view = 'coprs_ns.copr_new_build_tito'
     url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.owner.username, coprname=copr.name)
+                             username=copr.user.username, coprname=copr.name)
     return process_new_build_tito(copr, view, url_on_success)
 
 
@@ -290,7 +290,7 @@ def render_add_build_mock(copr, form, view, package=None):
 def copr_new_build_mock(copr):
     view = 'coprs_ns.copr_new_build_mock'
     url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.owner.username, coprname=copr.name)
+                             username=copr.user.username, coprname=copr.name)
     return process_new_build_mock(copr, view, url_on_success)
 
 
@@ -367,7 +367,7 @@ def render_add_build_pypi(copr, form, view, package=None):
 def copr_new_build_pypi(copr):
     view = 'coprs_ns.copr_new_build_pypi'
     url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.owner.username, coprname=copr.name)
+                             username=copr.user.username, coprname=copr.name)
     return process_new_build_pypi(copr, view, url_on_success)
 
 
@@ -443,7 +443,7 @@ def render_add_build_upload(copr, form, view):
 def copr_new_build_upload(copr):
     view = 'coprs_ns.copr_new_build_upload'
     url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.owner.username, coprname=copr.name)
+                             username=copr.user.username, coprname=copr.name)
     return process_new_build_upload(copr, view, url_on_success)
 
 
@@ -494,7 +494,7 @@ def copr_new_build_rebuild(copr, build_id):
     view='coprs_ns.copr_new_build'
     url_on_success = url_for(
         "coprs_ns.copr_builds",
-        username=copr.owner.username, coprname=copr.name)
+        username=copr.user.username, coprname=copr.name)
 
     return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
 

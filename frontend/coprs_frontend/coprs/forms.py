@@ -89,16 +89,16 @@ class SrpmValidator(object):
 
 class CoprUniqueNameValidator(object):
 
-    def __init__(self, message=None, owner=None, group=None):
+    def __init__(self, message=None, user=None, group=None):
         if not message:
             if group is None:
                 message = "You already have project named '{}'."
             else:
                 message = "Group {} ".format(group) + "already have project named '{}'."
         self.message = message
-        if not owner:
-            owner = flask.g.user
-        self.owner = owner
+        if not user:
+            user = flask.g.user
+        self.user = user
         self.group = group
 
     def __call__(self, form, field):
@@ -107,7 +107,7 @@ class CoprUniqueNameValidator(object):
                 self.group, field.data).first()
         else:
             existing = CoprsLogic.exists_for_user(
-                self.owner, field.data).first()
+                self.user, field.data).first()
 
         if existing and str(existing.id) != form.id.data:
             raise wtforms.ValidationError(self.message.format(field.data))
@@ -115,7 +115,7 @@ class CoprUniqueNameValidator(object):
 
 class NameNotNumberValidator(object):
 
-    def __init__(self, message=None, owner=None):
+    def __init__(self, message=None):
         if not message:
             message = "Project's name can not be just number."
         self.message = message
@@ -127,7 +127,7 @@ class NameNotNumberValidator(object):
 
 class EmailOrURL(object):
 
-    def __init__(self, message=None, owner=None):
+    def __init__(self, message=None):
         if not message:
             message = "{} must be email address or URL"
         self.message = message
@@ -166,7 +166,7 @@ class ValueToPermissionNumberFilter(object):
 class CoprFormFactory(object):
 
     @staticmethod
-    def create_form_cls(mock_chroots=None, owner=None, group=None):
+    def create_form_cls(mock_chroots=None, user=None, group=None):
         class F(wtf.Form):
             # also use id here, to be able to find out whether user
             # is updating a copr if so, we don't want to shout
@@ -182,7 +182,7 @@ class CoprFormFactory(object):
                         re.compile(r"^[\w.-]+$"),
                         message="Name must contain only letters,"
                         "digits, underscores, dashes and dots."),
-                    CoprUniqueNameValidator(owner=owner, group=group),
+                    CoprUniqueNameValidator(user=user, group=group),
                     NameNotNumberValidator()
                 ])
 

@@ -28,7 +28,7 @@ class ProjectListR(Resource):
         """
         Creates new copr
         """
-        owner = flask.g.user
+        user = flask.g.user
         result = mm_deserialize(ProjectCreateSchema(), flask.request.data.decode("utf-8"))
 
         req = result.data
@@ -44,7 +44,7 @@ class ProjectListR(Resource):
 
         try:
             project = CoprsLogic.add(
-                user=owner, check_for_duplicates=True,
+                user=user, check_for_duplicates=True,
                 name=name,
                 selected_chroots=selected_chroots,
                 group=group,
