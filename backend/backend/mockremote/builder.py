@@ -147,7 +147,7 @@ class Builder(object):
         }
         buildroot_cmd = (
             "dest=/etc/mock/{chroot}.cfg"
-            " line=\"config_opts['chroot_setup_cmd'] = 'install \1 {pkgs}'\""
+            " line=\"config_opts['chroot_setup_cmd'] = 'install \\1 {pkgs}'\""
             " regexp=\"^.*chroot_setup_cmd.*(@buildsys-build|buildsys-build buildsys-macros).*$\""
             " backrefs=yes"
         )
