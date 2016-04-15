@@ -131,7 +131,7 @@ class BuildHandle(AbstractHandle):
         :rtype: :py:class:`~.resources.Build`
         """
 
-        chroots = map(str, chroots or list())
+        chroots = list(map(str, chroots or list()))
         content = {
             "project_id": int(project_id),
             "srpm_url": str(srpm_url),
@@ -167,7 +167,7 @@ class BuildHandle(AbstractHandle):
         :rtype: :py:class:`~.resources.Build`
         """
 
-        chroots = map(str, chroots or list())
+        chroots = list(map(str, chroots or list()))
         content = {
             "project_id": int(project_id),
             "chroots": chroots,
