@@ -187,8 +187,8 @@ class ProjectForking(object):
         if not fcopr:
             fcopr = self.create_object(models.Copr, copr, exclude=["id", "group_id"])
             fcopr.forked_from_id = copr.id
-            fcopr.owner = self.user
-            fcopr.owner_id = self.user.id
+            fcopr.user = self.user
+            fcopr.user_id = self.user.id
             if name:
                 fcopr.name = name
             if self.group:

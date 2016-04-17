@@ -12,7 +12,7 @@
       {% if not flag.copr.deleted %}
       <a href={{ url_for('coprs_ns.copr_detail', username=flag.copr.user.name, coprname=flag.copr.name) }}>
       {% endif %}
-        {{ flag.copr.owner.name }}/{{ flag.copr.name }}
+        {{ flag.copr.full_name }}
       {% if not flag.copr.deleted %}
       </a>
       {% else %}
@@ -20,7 +20,7 @@
       {% endif %}
 
       <small>
-        Submitted <b>{{ flag.raised_on | time_ago() }} ago </b> by <a href="{{ url_for('coprs_ns.coprs_by_owner', username=flag.reporter.name) }}"> {{ flag.reporter.name }}</a>.
+        Submitted <b>{{ flag.raised_on | time_ago() }} ago </b> by <a href="{{ url_for('coprs_ns.coprs_by_user', username=flag.reporter.name) }}"> {{ flag.reporter.name }}</a>.
       </small>
     </h3>
     <p>

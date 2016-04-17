@@ -90,7 +90,7 @@ class TestBuildTaskResource(CoprsTestCase):
         assert parse_qs(urlparse(obj["_links"]["self"]["href"]).query) \
             == parse_qs(urlparse(href).query)
 
-    def test_collection_ok_by_owner(
+    def test_collection_ok_by_user(
             self, f_users, f_coprs, f_mock_chroots, f_builds,
            f_users_api, f_db):
 
@@ -98,7 +98,7 @@ class TestBuildTaskResource(CoprsTestCase):
         bc_list_len = sum(
             len(b.build_chroots)
             for b in self.basic_builds
-            if b.copr.owner == self.u2
+            if b.copr.user == self.u2
         )
 
         self.db.session.commit()

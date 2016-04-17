@@ -58,7 +58,7 @@ class TestBuildResource(CoprsTestCase):
         assert expected_ids_a == self.extract_build_ids(obj_a)
         assert expected_ids_b == self.extract_build_ids(obj_b)
 
-    def test_build_collection_by_owner(self, f_users, f_coprs, f_builds, f_db,
+    def test_build_collection_by_user(self, f_users, f_coprs, f_builds, f_db,
                            f_users_api, f_mock_chroots):
 
         names_list = [user.username for user in self.basic_user_list]

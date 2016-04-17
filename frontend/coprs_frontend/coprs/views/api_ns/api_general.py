@@ -221,7 +221,7 @@ def api_coprs_by_owner(username=None):
                                 "description": repo.description,
                                 "instructions": repo.instructions})
 
-    return  flask.jsonify(output)
+    return flask.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/detail/")
@@ -476,7 +476,7 @@ def build_detail(build_id):
         "output": "ok",
         "status": build.state,
         "project": build.copr.name,
-        "owner": build.copr.user.name,
+        "owner": build.copr.owner_name,
         "results": build.results,
         "built_pkgs": built_packages,
         "src_version": build.pkg_version,
@@ -605,7 +605,7 @@ def playground_list():
     repos = query.all()
     output = {"output": "ok", "repos": []}
     for repo in repos:
-        output["repos"].append({"username": repo.owner.name,
+        output["repos"].append({"username": repo.owner_name,
                                 "coprname": repo.name,
                                 "chroots": [chroot.name for chroot in repo.active_chroots]})
 

@@ -178,7 +178,7 @@
     {% set projects_list_href=url_for('groups_ns.list_projects_by_group', group_name=copr.group.name) %}
     {% set projects_list_name="@" + copr.group.name  %}
   {% else %}
-    {% set projects_list_href=url_for('coprs_ns.coprs_by_owner', username=copr.user.name) %}
+    {% set projects_list_href=url_for('coprs_ns.coprs_by_user', username=copr.user.name) %}
     {% set projects_list_name=copr.user.username  %}
   {% endif %}
 
@@ -189,11 +189,7 @@
 
 
 {% macro copr_name(copr) %}
-  {% if copr.is_a_group_project %}
-      @{{ copr.group.name }}/{{ copr.name }}
-  {% else %}
-      {{ copr.owner.name }}/{{ copr.name }}
-  {% endif %}
+  {{ copr.full_name }}
 {% endmacro %}
 
 
@@ -231,7 +227,7 @@
       <img class="avatar" src="{{ g.user.gravatar_url }}" alt="User Image">
     </div>
     <div class="list-group">
-      <a href="{{ url_for('coprs_ns.coprs_by_owner', username=g.user.name) }}" class="list-group-item">
+      <a href="{{ url_for('coprs_ns.coprs_by_user', username=g.user.name) }}" class="list-group-item">
         <span class="badge">{{ g.user.coprs_count }}</span>
         My projects
       </a>

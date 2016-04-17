@@ -30,16 +30,10 @@ def dist_git_importing_queue():
     for task in BuildsLogic.get_build_importing_queue().limit(200):
         copr = task.build.copr
 
-        # we are using fake username's here
-        if copr.is_a_group_project:
-            user_name = u"@{}".format(copr.group.name)
-        else:
-            user_name = copr.user.name
         task_dict = {
             "task_id": task.import_task_id,
-            "user": user_name,
+            "user": copr.owner_name, # TODO: user -> owner
             "project": task.build.copr.name,
-
             "branch": helpers.chroot_to_branch(task.mock_chroot.name),
             "source_type": task.build.source_type,
             "source_json": task.build.source_json,
@@ -136,16 +130,10 @@ def waiting():
         try:
             copr = task.build.copr
 
-            # we are using fake username's here
-            if copr.is_a_group_project:
-                user_name = u"@{}".format(copr.group.name)
-            else:
-                user_name = copr.user.name
-
             record = {
                 "task_id": task.task_id,
                 "build_id": task.build.id,
-                "project_owner": user_name,
+                "project_owner": copr.owner_name,
                 "project_name": task.build.copr.name,
                 "submitter": task.build.user.name if task.build.user else None, # there is no user for webhook builds
                 "pkgs": task.build.pkgs,  # TODO to be removed

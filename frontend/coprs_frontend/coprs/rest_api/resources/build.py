@@ -38,7 +38,7 @@ class BuildListR(Resource):
             query = BuildsLogic.get_multiple_by_copr(project)
         elif req_args["owner"] is not None:
             user = get_user_safe(req_args["owner"])
-            query = BuildsLogic.get_multiple_by_owner(user)
+            query = BuildsLogic.get_multiple_by_user(user)
         else:
             query = BuildsLogic.get_multiple()
 

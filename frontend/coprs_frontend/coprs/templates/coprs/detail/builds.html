@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% block title %}Builds for {{ copr.owner.name }}/{{ copr.name }}{% endblock %}
+{% block title %}Builds for {{ copr.full_name }}{% endblock %}
 
 {% from "_helpers.html" import render_pagination %}
 {% from "coprs/detail/_builds_table.html" import builds_table with context %}

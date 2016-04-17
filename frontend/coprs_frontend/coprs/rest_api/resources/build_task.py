@@ -55,7 +55,7 @@ class BuildTaskListR(Resource):
             query = BuildChrootsLogic.filter_by_project_id(
                 query, self_params["project_id"])
         elif self_params.get("owner") is not None:
-            query = BuildChrootsLogic.filter_by_project_owner_name(
+            query = BuildChrootsLogic.filter_by_project_user_name(
                 query, self_params["owner"])
         elif self_params.get("group") is not None:
             query = BuildChrootsLogic.filter_by_group_name(query, req_args["group"])

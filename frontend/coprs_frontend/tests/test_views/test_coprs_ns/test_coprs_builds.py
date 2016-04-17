@@ -17,7 +17,7 @@ class TestCoprShowBuilds(CoprsTestCase):
 class TestCoprAddBuild(CoprsTestCase):
 
     @TransactionDecorator("u1")
-    def test_copr_owner_can_add_build(self, f_users, f_coprs,
+    def test_copr_user_can_add_build(self, f_users, f_coprs,
                                       f_mock_chroots, f_db):
 
         self.db.session.add_all([self.u1, self.c1])

@@ -600,7 +600,7 @@ class TestCoprDelete(CoprsTestCase):
             self.models.Copr.id == self.c1.id).first()
 
     @TransactionDecorator("u2")
-    def test_non_owner_cant_delete(self, f_users, f_coprs, f_db):
+    def test_non_user_cant_delete(self, f_users, f_coprs, f_db):
         self.db.session.add_all([self.u1, self.u2, self.c1])
         r = self.test_client.post("/coprs/{0}/{1}/delete/"
                                   .format(self.u1.name, self.c1.name),

@@ -86,7 +86,7 @@
           </dd>
           <dt> Built by: </dt>
           <dd>
-            <a href="{{ url_for('coprs_ns.coprs_by_owner', username=build.user.name) }}">
+            <a href="{{ url_for('coprs_ns.coprs_by_user', username=build.user.name) }}">
               {{ build.user.name }}
             </a>
           </dd>

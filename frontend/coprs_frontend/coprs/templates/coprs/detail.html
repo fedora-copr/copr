@@ -11,7 +11,7 @@
   {% if copr.is_a_group_project %}
     {{ render_crumb(url_for('groups_ns.list_projects_by_group', group_name=copr.group.name), copr.group.at_name) }}
   {% else %}
-    {{ render_crumb(url_for('coprs_ns.coprs_by_owner', username=copr.user.name), copr.user.name)}}
+    {{ render_crumb(url_for('coprs_ns.coprs_by_user', username=copr.user.name), copr.user.name)}}
   {% endif %}
   {{ render_crumb(copr_url('coprs_ns.copr_detail', copr), copr.name)}}
 

@@ -75,7 +75,7 @@ class PackagesLogic(object):
         if cls.exists(copr.id, package_name).all():
             raise exceptions.DuplicateException(
                 "Project {}/{} already has a package '{}'"
-                .format(copr.owner.name, copr.name, package_name))
+                .format(copr.owner_name, copr.name, package_name))
 
         package = models.Package(
             name=package_name,

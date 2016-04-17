@@ -78,7 +78,7 @@ def coprs_show(page=1):
 
 @coprs_ns.route("/<username>/", defaults={"page": 1})
 @coprs_ns.route("/<username>/<int:page>/")
-def coprs_by_owner(username=None, page=1):
+def coprs_by_user(username=None, page=1):
     user = users_logic.UsersLogic.get(username).first()
     if not user:
         return page_not_found(
@@ -296,7 +296,7 @@ def render_copr_detail(copr):
                 "os_release": chroot.os_release,
                 "os_version": chroot.os_version,
                 "arch_list": [chroot.arch],
-                "repo_file": "{}-{}-{}.repo".format(copr.group.name if copr.is_a_group_project else copr.user.name, copr.name, chroot.name_release),
+                "repo_file": "{}-{}.repo".format(copr.repo_id, chroot.name_release),
                 "dl_stat": repo_dl_stat[chroot.name_release],
                 "rpm_dl_stat": {
                     chroot.arch: chroot_rpms_dl_stat
@@ -585,7 +585,7 @@ def copr_createrepo(copr_id):
 
     chroots = [c.name for c in copr.active_chroots]
     actions_logic.ActionsLogic.send_createrepo(
-        username=('@'+copr.group.name if copr.is_a_group_project else copr.user.name), coprname=copr.name,
+        username=copr.owner_name, coprname=copr.name,
         chroots=chroots)
 
     db.session.commit()
@@ -621,7 +621,7 @@ def copr_delete(copr):
         copr,
         url_on_error=url_for("coprs_ns.copr_detail",
                              username=copr.user.name, coprname=copr.name),
-        url_on_success=url_for("coprs_ns.coprs_by_owner", username=copr.user.username)
+        url_on_success=url_for("coprs_ns.coprs_by_user", username=copr.user.username)
     )
 
 

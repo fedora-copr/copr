@@ -7,7 +7,7 @@
 <ol class="breadcrumb">
   <li><a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a></li>
   {% if user %}
-    <li><a href="{{ url_for('coprs_ns.coprs_by_owner', username=user.name) }}">{{ user.name }}</a></li>
+    <li><a href="{{ url_for('coprs_ns.coprs_by_user', username=user.name) }}">{{ user.name }}</a></li>
   {% else %}
     <li><a href="{{ url_for('groups_ns.list_projects_by_group', group_name=group.name) }}">{{ group.name }}</a></li>
   {% endif %}

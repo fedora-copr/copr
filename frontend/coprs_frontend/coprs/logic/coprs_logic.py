@@ -131,7 +131,7 @@ class CoprsLogic(object):
         return query.filter(models.Copr.name == name)
 
     @classmethod
-    def filter_by_owner_name(cls, query, username):
+    def filter_by_user_name(cls, query, username):
         # should be already joined with the User table
         return query.filter(models.User.username == username)
 
@@ -252,8 +252,7 @@ class CoprsLogic(object):
         action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
                                object_type="copr",
                                object_id=copr.id,
-                               old_value="{0}/{1}".format(copr.user.name,
-                                                          copr.name),
+                               old_value=copr.full_name,
                                new_value="",
                                created_on=int(time.time()))
         db.session.add(action)

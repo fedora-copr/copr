@@ -115,9 +115,9 @@ class BuildsLogic(object):
         return cls.get_multiple().filter(models.Build.copr == copr)
 
     @classmethod
-    def get_multiple_by_owner(cls, user):
+    def get_multiple_by_user(cls, user):
         """ Get collection of builds in copr sorted by build_id descending
-        form the copr owned by `user`
+        form the copr belonging to `user`
         """
         return cls.get_multiple().join(models.Build.copr).filter(
             models.Copr.user == user)
@@ -792,7 +792,7 @@ class BuildChrootsLogic(object):
         return query.filter(models.Copr.id == project_id)
 
     @classmethod
-    def filter_by_project_owner_name(cls, query, username):
+    def filter_by_project_user_name(cls, query, username):
         return query.filter(models.User.username == username)
 
     @classmethod

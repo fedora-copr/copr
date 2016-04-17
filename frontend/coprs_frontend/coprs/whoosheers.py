@@ -11,7 +11,8 @@ class CoprUserWhoosheer(AbstractWhoosheer):
     schema = whoosh.fields.Schema(
         copr_id=whoosh.fields.NUMERIC(stored=True, unique=True),
         user_id=whoosh.fields.NUMERIC(stored=True),
-        username=whoosh.fields.TEXT(field_boost=2),
+        group_id=whoosh.fields.NUMERIC(stored=True),
+        ownername=whoosh.fields.TEXT(field_boost=2),
         # treat dash as a normal character - so searching for example
         # "copr-dev" will really search for "copr-dev"
         coprname=whoosh.fields.TEXT(
@@ -33,7 +34,8 @@ class CoprUserWhoosheer(AbstractWhoosheer):
     def update_copr(cls, writer, copr):
         writer.update_document(copr_id=copr.id,
                                user_id=copr.user.id,
-                               username=copr.user.name,
+                               group_id=copr.group.id if copr.group else None,
+                               ownername=copr.owner_name,
                                coprname=copr.name,
                                chroots=cls.get_chroot_info(copr),
                                description=copr.description,
@@ -48,7 +50,8 @@ class CoprUserWhoosheer(AbstractWhoosheer):
     def insert_copr(cls, writer, copr):
         writer.add_document(copr_id=copr.id,
                             user_id=copr.user.id,
-                            username=copr.user.name,
+                            group_id=copr.group.id if copr.group else None,
+                            ownername=copr.owner_name,
                             coprname=copr.name,
                             chroots=cls.get_chroot_info(copr),
                             description=copr.description,

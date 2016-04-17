@@ -78,7 +78,7 @@ class ProjectListR(Resource):
         query = CoprsLogic.set_query_order(query)
 
         if req_args["owner"]:
-            query = CoprsLogic.filter_by_owner_name(query, req_args["owner"])
+            query = CoprsLogic.filter_by_user_name(query, req_args["owner"])
 
         if req_args["group"]:
             query = CoprsLogic.filter_by_group_name(query, req_args["group"])

@@ -211,7 +211,7 @@ def create_or_login(resp):
         flask.g.user = user
 
         if flask.request.url_root == oid.get_next_url():
-            return flask.redirect(flask.url_for("coprs_ns.coprs_by_owner",
+            return flask.redirect(flask.url_for("coprs_ns.coprs_by_user",
                                                 username=user.name))
         return flask.redirect(oid.get_next_url())
     else:

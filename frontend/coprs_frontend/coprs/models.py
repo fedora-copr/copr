@@ -211,11 +211,24 @@ class Copr(db.Model, helpers.Serializer):
 
     @property
     def is_a_group_project(self):
+        """
+        Return True if copr belongs to a group
+        """
         return self.group_id is not None
 
     @property
     def owner(self):
+        """
+        Return owner (user or group) of this copr
+        """
         return self.group if self.is_a_group_project else self.user
+
+    @property
+    def owner_name(self):
+        """
+        Return @group.name for a copr owned by a group and user.name otherwise
+        """
+        return self.group.at_name if self.is_a_group_project else self.user.name
 
     @property
     def repos_list(self):
@@ -297,17 +310,11 @@ class Copr(db.Model, helpers.Serializer):
 
     @property
     def full_name(self):
-        if self.is_a_group_project:
-            return "@{}/{}".format(self.group.name, self.name)
-        else:
-            return "{}/{}".format(self.user.name, self.name)
+        return "{}/{}".format(self.owner_name, self.name)
 
     @property
     def repo_name(self):
-        if self.is_a_group_project:
-            return "@{}-{}".format(self.group.name, self.name)
-        else:
-            return "{}-{}".format(self.user.name, self.name)
+        return "{}-{}".format(self.owner_name, self.name)
 
     @property
     def repo_url(self):
@@ -326,7 +333,7 @@ class Copr(db.Model, helpers.Serializer):
         result = {}
         for key in ["id", "name", "description", "instructions"]:
             result[key] = str(copy.copy(getattr(self, key)))
-        result["owner"] = self.owner.name
+        result["owner"] = self.owner_name
         return result
 
     @property
@@ -387,14 +394,7 @@ class Package(db.Model, helpers.Serializer):
 
     @property
     def dist_git_repo(self):
-        if self.copr.is_a_group_project:
-            return "@{}/{}/{}".format(self.copr.group.name,
-                                      self.copr.name,
-                                      self.name)
-        else:
-            return "{}/{}/{}".format(self.copr.user.name,
-                                     self.copr.name,
-                                     self.name)
+        return "{}/{}".format(self.copr.full_name, self.name)
 
     @property
     def source_json_dict(self):
@@ -470,7 +470,7 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def group_name(self):
-        return self.copr.group_name
+        return self.copr.group.name
 
     @property
     def copr_name(self):
@@ -867,11 +867,7 @@ class BuildChroot(db.Model, helpers.Serializer):
         # old: results/valtri/ruby/fedora-rawhide-x86_64/rubygem-aws-sdk-resources-2.1.11-1.fc24/
         # new: results/asamalik/rh-perl520/epel-7-x86_64/00000187-rh-perl520/
 
-        parts = []
-        if self.build.copr.is_a_group_project:
-            parts.append(u"@{}".format(self.build.copr.group.name))
-        else:
-            parts.append(self.build.copr.user.username)
+        parts = [self.build.copr.owner_name]
 
         parts.extend([
             self.build.copr.name,
