@@ -16,21 +16,24 @@
 
 
 {% macro monitor_tab(tab_name, tab_title, href) %}
-<li class="{% if selected_monitor_tab == tab_name %}active{% endif %}">
-  <a href="{{ href }}">
+  <a href="{{ href }}" class="btn btn-default btn-sm {% if selected_monitor_tab == tab_name %}active{% endif %}">
     {{ tab_title }}
   </a>
-</li>
 {% endmacro %}
 
 
 {% block detail_body %}
 
-<ul class="nav nav-tabs nav-tabs-pf">
-  {{ monitor_tab("simple", "Simple", copr_url(monitor_view, copr)) }}
-  {{ monitor_tab("detailed", "Detailed", copr_url(monitor_view, copr, detailed="detailed")) }}
-</ul>
+<h2 class="section-heading"> Build Monitor </h2>
 
+<div class="panel panel-default panel-monitor-menu">
+  <div class="panel-body">
+    <div class="btn-group" role="group">
+      {{ monitor_tab("simple", "Simple", copr_url(monitor_view, copr)) }}
+      {{ monitor_tab("detailed", "Detailed", copr_url(monitor_view, copr, detailed="detailed")) }}
+    </div>
+  </div>
+</div>
 
 {% block monitor_table %}{% endblock %}
 

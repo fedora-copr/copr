@@ -14,6 +14,21 @@ footer dt h3 {
   margin-top: 0px;
 }
 
+h2.section-heading {
+    margin-bottom: 20px;
+}
+
+div.panel-monitor-menu {
+    margin-bottom: 0;
+    border-bottom: 0;
+    background-color: #f6f6f6;
+}
+
+div.panel-monitor-menu div.panel-body {
+    padding-bottom: 4px;
+    padding-top: 4px;
+}
+
 div.panel-default div.list-group:first-child {
   border-top: 0px!important;
 }
