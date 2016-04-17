@@ -41,7 +41,7 @@ BuildRequires: python-setproctitle
 # missing python3
 BuildRequires: python-retask
 BuildRequires: python-copr >= 1.60
-BuildRequires: ansible >= 1.2
+BuildRequires: ansible1.9
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
 BuildRequires: python-psutil
@@ -56,7 +56,7 @@ BuildRequires: sphinx
 BuildRequires: python-sphinx
 
 Requires:   obs-signd
-Requires:   ansible >= 1.2
+Requires:   ansible1.9
 Requires:   lighttpd
 Requires:   euca2ools
 Requires:   rsync
