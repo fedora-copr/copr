@@ -6,10 +6,15 @@ from pip._vendor.packaging.version import parse
 import subprocess
 import argparse
 import time
+import os
 from copr import create_client2_from_params
 
 URL_PATTERN = 'https://pypi.python.org/pypi/{package}/json'
-CONFIG = "/home/msuchy/.config/copr-dev"
+CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr-dev")
+
+COPR_URL = "http://copr-fe-dev.cloud.fedoraproject.org/"
+USER = "msuchy"
+COPR = "PyPi-2"
 
 
 parser = argparse.ArgumentParser(prog = "pypi")
@@ -53,7 +58,7 @@ def submit_all_pypi_modules():
     #print(packages[0:10])
     for module in packages:
         print("Submitting module {0}".format(module))
-        submit_build("msuchy/PyPi-2", module, "2")
+        submit_build("{}/{}".format(USER, COPR), module, "2")
         time.sleep(4)
 
 
@@ -63,8 +68,8 @@ def parse_succeeded_packages():
     If you are looking into this code because you think, that the script froze, be cool. It is just very slow, because
     it iterates 100 results from copr-fe per one result.
     """
-    cl = create_client2_from_params(root_url="http://copr-fe-dev.cloud.fedoraproject.org/")
-    copr = list(cl.projects.get_list(owner="msuchy", name="PyPi-2", limit=1))[0]
+    cl = create_client2_from_params(root_url=COPR_URL)
+    copr = list(cl.projects.get_list(owner=USER, name=COPR, limit=1))[0]
     packages = {}
 
     limit = 100
