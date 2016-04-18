@@ -703,7 +703,7 @@ GROUP BY
                 chroot.ended_on = time.time()
 
     @classmethod
-    def delete_build(cls, user, build):
+    def delete_build(cls, user, build, send_delete_action=True):
         """
         :type user: models.User
         :type build: models.Build
@@ -718,8 +718,7 @@ GROUP BY
                 "You can not delete build `{}` which is not finished.".format(build.id),
                 "Unfinished build")
 
-        # Only failed, finished, succeeded  get here.
-        if build.state not in ["canceled"]:  # has nothing in backend to delete
+        if send_delete_action and build.state not in ["canceled"]: # cancelled builds should have nothing in backend to delete
             ActionsLogic.send_delete_build(build)
 
         for build_chroot in build.build_chroots:

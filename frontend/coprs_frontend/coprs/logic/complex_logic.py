@@ -35,7 +35,7 @@ class ComplexLogic(object):
         builds_query = BuildsLogic.get_multiple_by_copr(copr=copr)
 
         for build in builds_query:
-            BuildsLogic.delete_build(flask.g.user, build)
+            BuildsLogic.delete_build(flask.g.user, build, send_delete_action=False)
 
         CoprsLogic.delete_unsafe(flask.g.user, copr)
 
