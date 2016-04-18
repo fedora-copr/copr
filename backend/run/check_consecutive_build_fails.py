@@ -19,7 +19,7 @@ from backend.constants import CONSECUTIVE_FAILURE_REDIS_KEY
 
 def main():
     opts = BackendConfigReader().read()
-    conn = get_redis_connection()
+    conn = get_redis_connection(opts)
 
     key = CONSECUTIVE_FAILURE_REDIS_KEY
 
