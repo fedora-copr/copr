@@ -468,6 +468,12 @@ class CollectionResource(Iterable, UnicodeMixin):
 
         return self._individuals[item]
 
+    def __unicode__(self):
+        out = u"<{}: [".format(self.__class__.__name__)
+        out += u", ".join([str(x) for x in self])
+        out += u"]>"
+        return out
+
     @classmethod
     def from_response(cls, handle, response, options):
         raise NotImplementedError
