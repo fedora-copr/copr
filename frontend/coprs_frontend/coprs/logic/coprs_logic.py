@@ -267,7 +267,7 @@ class CoprsLogic(object):
         if not incl_deleted:
             existing = existing.filter(models.Copr.deleted == False)
 
-        return existing
+        return cls.filter_without_group_projects(existing)
 
     @classmethod
     def exists_for_group(cls, group, coprname, incl_deleted=False):
