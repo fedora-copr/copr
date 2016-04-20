@@ -439,7 +439,7 @@ def process_copr_update(copr, form):
 @login_required
 @req_with_copr
 def group_copr_update(copr):
-    form = forms.CoprFormFactory.create_form_cls()()
+    form = forms.CoprFormFactory.create_form_cls(group=copr.group)()
 
     if form.validate_on_submit():
         process_copr_update(copr, form)
@@ -449,7 +449,7 @@ def group_copr_update(copr):
         ))
 
     else:
-        return group_copr_edit(copr.group.name, copr.name, form)
+        return group_copr_edit(group_name=copr.group.name, coprname=copr.name, form=form)
 
 
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
