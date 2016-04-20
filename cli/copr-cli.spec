@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.49
+Version:    1.50
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -124,6 +124,21 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %endif
 
 %changelog
+* Wed Apr 20 2016 Miroslav Suchý <msuchy@redhat.com> 1.50-1
+- use python3 on Fedora24+
+- better error message
+- document --git-branch and --scm-branch options
+- fix download-build for dist-git era file structure (RhBug: 1324847)
+- implement building via mock
+- document buildtito in manpage
+- change build-tito command to buildtito
+- implement building via tito
+- buildpypi command documented in man pages + slightly improved
+  --help description of the command
+- add group support for modifying and deleting projects
+- fix expected warning in failing unit tests
+- refactor owner name parsing
+
 * Sun Mar 20 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.49-1
 - allow creating group projects
 - bug 1309101 - copr-cli doesn't handle string input for 'status'
