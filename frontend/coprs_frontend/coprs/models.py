@@ -645,21 +645,9 @@ class Build(db.Model, helpers.Serializer):
         """
         Find out if this build is deletable.
 
-        Build is deletable only when it's finished. (also means cancelled)
-        It is important to remember that "failed" state doesn't ultimately
-        mean it's finished - so we need to check whether the "ended_on"
-        property has been set.
+        Build is deletable only when all its build_chroots are in finished state.
         """
-
-        # build failed due to import error
-        if self.state == "failed" and self.min_started_on is None:
-            return True
-
-        # build failed and all chroots are finished
-        if self.state == "failed" and self.max_ended_on is not None:
-            return True
-
-        return self.state in ["succeeded", "canceled", "skipped"]
+        return all([(chroot.state in ["succeeded", "canceled", "skipped", "failed"]) for chroot in self.build_chroots])
 
     @property
     def src_pkg_name(self):
