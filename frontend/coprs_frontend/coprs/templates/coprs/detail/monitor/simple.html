@@ -1,6 +1,6 @@
 {% extends "coprs/detail/monitor.html" %}
 
-{% from "_helpers.html" import package_href, build_href, build_state_text %}
+{% from "_helpers.html" import package_href, build_href, build_state_text, render_monitor_table %}
 {% from "coprs/detail/_build_states.html" import build_states %}
 
 {% set selected_monitor_tab = "simple" %}
@@ -14,50 +14,5 @@
 {% block monitor_simple_selected %}active{% endblock %}
 
 {% block monitor_table %}
-
-<table class="table table-striped table-bordered">
-  <thead>
-    <tr>
-      <th rowspan="2">Package</th>
-      {% for i, chroot in oses %}
-      <th colspan="{{i}}"> {{ chroot|capitalize }}</th>
-      {% endfor %}
-    </tr>
-    <tr>
-      {% for chroot in archs %}
-      <th> {{ chroot }} </th>
-      {% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for package_dict in monitor %}
-      {% set package = package_dict["package"] %}
-      {% set build_chroots = package_dict["build_chroots"] %}
-      <tr>
-        <td style="white-space:nowrap">
-          <b><a href="{{  package_href(package) }}">
-            {{ package.name }}
-          </a></b>
-        </td>
-        {% for chroot in copr.active_chroots_sorted %}
-        <td>
-          {% if chroot.name in build_chroots %}
-            {% set build_chroot = build_chroots[chroot.name] %}
-            {% if build_chroot %}
-              {% set build = build_chroot.build %}
-              <a href="{{ build_href(build) }}">
-                {{ build_state_text(build_chroot.state) }}
-              </a>
-            {% else %}
-            -
-            {% endif %}
-          {% else %}
-            -
-          {% endif %}
-        </td>
-        {% endfor %}
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{{ render_monitor_table(copr, monitor, oses, archs, simple=True) }}
 {% endblock %}

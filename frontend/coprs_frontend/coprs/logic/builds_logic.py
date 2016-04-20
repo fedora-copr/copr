@@ -1,4 +1,3 @@
-from collections import defaultdict
 import tempfile
 import shutil
 import json
@@ -14,6 +13,8 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false
 from werkzeug.utils import secure_filename
+from sqlalchemy import desc,asc
+from collections import defaultdict
 
 from coprs import app
 from coprs import db
@@ -27,7 +28,7 @@ from coprs.helpers import StatusEnum
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.models import BuildChroot
+from coprs.models import BuildChroot,Build,Package,MockChroot
 from .coprs_logic import MockChrootsLogic
 
 log = app.logger
@@ -806,18 +807,32 @@ class BuildChrootsLogic(object):
 class BuildsMonitorLogic(object):
     @classmethod
     def get_monitor_data(cls, copr):
-        copr_packages = sorted(copr.packages, key=lambda pkg: pkg.name)
-        packages = []
-        for pkg in copr_packages:
-            chroots = {}
-            for ch in copr.active_chroots:
-                # todo: move to ComplexLogic
-                query = (
-                    models.BuildChroot.query.join(models.Build)
-                    .filter(models.Build.package_id == pkg.id)
-                    .filter(models.BuildChroot.mock_chroot_id == ch.id)
-                    .filter(models.BuildChroot.status != helpers.StatusEnum("canceled")))
-                build = query.order_by(models.BuildChroot.build_id.desc()).first()
-                chroots[ch.name] = build
-            packages.append({"package": pkg, "build_chroots": chroots})
-        return packages
+        subquery = (
+            db.session.query(
+                db.func.max(Build.id).label("max_build_id_for_chroot"),
+                Build.package_id,
+                BuildChroot.mock_chroot_id)
+            .join(BuildChroot, and_(Build.id == BuildChroot.build_id))
+            .filter(Build.copr_id == copr.id)
+            .filter(BuildChroot.status != 2)
+            .group_by(Build.package_id, BuildChroot.mock_chroot_id)
+            .subquery("max_build_ids_for_a_chroot")
+        )
+        query = (
+            db.session.query(Package, Build, BuildChroot, MockChroot)
+            .join(subquery, and_(Package.id == subquery.c.package_id))
+            .join(Build, and_(Build.id == subquery.c.max_build_id_for_chroot))
+            .join(BuildChroot, and_(
+                BuildChroot.mock_chroot_id == subquery.c.mock_chroot_id,
+                BuildChroot.build_id == subquery.c.max_build_id_for_chroot
+            ))
+            .join(MockChroot, and_(MockChroot.id == subquery.c.mock_chroot_id))
+            .order_by(
+                asc(Package.name),
+                asc(Package.id), # in case there are two packages with the same name
+                asc(MockChroot.os_release),
+                asc(MockChroot.os_version),
+                asc(MockChroot.arch)
+            )
+        )
+        return query.all()
