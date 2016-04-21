@@ -1,5 +1,5 @@
 Name:           fedpkg-copr
-Version:        0.2
+Version:        0.3
 Release:        1%{?dist}
 Summary:        Fedpkg modified to work with copr dist git
 
@@ -40,6 +40,9 @@ cp -a fedpkg-copr.conf    %{buildroot}%{_sysconfdir}/rpkg/
 
 
 %changelog
+* Thu Apr 21 2016 Miroslav Suchý <msuchy@redhat.com> 0.3-1
+- rebuild from new location
+
 * Thu Jun 11 2015 Adam Samalik <asamalik@redhat.com> 0
 - initial pacakge
 
