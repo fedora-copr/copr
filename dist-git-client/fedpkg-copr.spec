@@ -3,18 +3,19 @@ Version:        0.3
 Release:        1%{?dist}
 Summary:        Fedpkg modified to work with copr dist git
 
-Group:          Applications/Productivity
 License:        GPLv2+
-URL:            http://nothing.example.com
+URL:            https://fedorahosted.org/copr/
+# Source is created by
+# git clone https://git.fedorahosted.org/git/copr.git
+# cd copr/dist-git-client
+# tito build --tgz
 Source0:        %{name}-%{version}.tar.gz
 BuildArch:      noarch
-
 Requires:       fedpkg
-Requires:       pyrpkg
 
 %description
-This is a quick and dirty solution. It's a modified version of
-fedpkg that works with repos named user/project/package
+Script and configuration built on top of fedpkg to work
+with Copr dist-git and repos named user/project/package.
 
 
 %prep
