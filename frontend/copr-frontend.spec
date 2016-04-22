@@ -104,6 +104,7 @@ BuildRequires: python-flask-restful
 BuildRequires: python-marshmallow >= 2.0.0
 BuildRequires: python-sphinx
 BuildRequires: python-sphinxcontrib-httpdomain
+BuildRequires: python-whoosh
 
 %if 0%{?with_python3}
 Requires:   dnf
