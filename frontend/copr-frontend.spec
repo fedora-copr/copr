@@ -105,6 +105,7 @@ BuildRequires: python-marshmallow >= 2.0.0
 BuildRequires: python-sphinx
 BuildRequires: python-sphinxcontrib-httpdomain
 BuildRequires: python-whoosh
+BuildRequires: python-blinker
 
 %if 0%{?with_python3}
 Requires:   dnf
@@ -122,6 +123,7 @@ Requires:   python3-wtforms
 Requires:   python3-flask-wtf
 Requires:   python3-flask-restful
 Requires:   python3-marshmallow
+Requires:   python3-blinker
 
 # Not packaged yet:
 # Requires:   python3-flask-openid    # https://bugzilla.redhat.com/show_bug.cgi?id=1010810
