@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.82
+Version:    1.83
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,22 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.83-1
+- run createrepo on forked project (RhBug: 1329076)
+- Bug 1327852 - /usr/bin/check_consecutive_build_fails.py errors
+- we need to stick to ansible1.9
+- more escaping
+- prunning down testresults :)
+- a few unittests for copr_prune_results.py script
+- unit test "fixes"
+- fix error when forking into existing project
+- (mockremote): improve chroot_setup_cmd replacement for EL-5
+- copr_prune_results.py - python path fix
+- Bug 1324514 - copr createrepo error messages - fix for errors of
+  type one
+- Bug 1324514 - copr createrepo error messages - fix for errors of
+  type 2
+
 * Thu Mar 24 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.82-1
 - use timeout variable from config
 
