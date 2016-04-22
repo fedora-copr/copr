@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.16
+Version:    0.17
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -110,6 +110,13 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 0.17-1
+- support for pyrpkg-1.43
+- typo in method name
+- use os.listdir instead of Popen
+- sort imports
+- more verbose logging of exception
+
 * Tue Apr 12 2016 Miroslav Suchý <msuchy@redhat.com> 0.16-1
 - clean up after dist-git import
 - assure python_versions type for pypi builds
