@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.87
+Version:    1.88
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,9 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.88-1
+- add BR python-whoosh
+
 * Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.87-1
 - run createrepo on forked project (RhBug: 1329076)
 - search-bar placeholder update to reflect search improvements
