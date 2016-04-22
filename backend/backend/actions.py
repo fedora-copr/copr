@@ -107,6 +107,7 @@ class Action(object):
 
     def handle_fork(self, result):
         self.log.info("Action fork {}".format(self.data["object_type"]))
+        data = json.loads(self.data["data"])
         old_path = os.path.join(self.destdir, self.data["old_value"])
         new_path = os.path.join(self.destdir, self.data["new_value"])
         builds_map = json.loads(self.data["data"])["builds_map"]
@@ -115,9 +116,11 @@ class Action(object):
             result.result = ActionResult.FAILURE
             return
 
+        chroots = set()
         for new_id, old_dir_name in builds_map.items():
             for build_folder in glob.glob(os.path.join(old_path, "*", old_dir_name)):
                 new_chroot_folder = os.path.dirname(build_folder.replace(old_path, new_path))
+                chroots.add(new_chroot_folder)
 
                 # We can remove this ugly condition after migrating Copr to new machines
                 # It is throw-back from era before dist-git
@@ -130,6 +133,11 @@ class Action(object):
                 copy_tree(build_folder, new_build_folder)
 
                 self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
+
+        for chroot in chroots:
+            createrepo(path=chroot, front_url=self.front_url,
+                       username=data["user"], projectname=data["copr"],
+                       override_acr_flag=True)
 
         result.result = ActionResult.SUCCESS
         result.ended_on = time.time()
