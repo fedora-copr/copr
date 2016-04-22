@@ -1,0 +1,12 @@
+[
+{
+  "action_type": 0,
+  "created_on": 1461315232,
+  "data": "{\"username\": \"clime\", \"projectname\": \"spaceshiftx\", \"chroots\": [\"fedora-23-x86_64\"], \"result_dir_name\": \"00179350-python-flask-whooshee\"}",
+  "id": 84116,
+  "new_value": null,
+  "object_id": 179350,
+  "object_type": "build",
+  "old_value": "clime/spaceshiftx"
+}
+]

@@ -20,7 +20,8 @@ if len(sys.argv) > 2:
 app = flask.Flask(__name__, static_path=static_path, static_folder=static_dir)
 
 import_task_dict = {}
-waiting_task_dict = {}
+build_task_dict = {}
+action_dict = {}
 
 distgit_responses = []
 backend_builds = []
@@ -80,7 +81,7 @@ def backend_auto_createrepo_status(path):
 
 @app.route('/backend/waiting/', methods=['GET'])
 def backend_waiting_queue():
-    response = {'actions': [], 'builds': list(waiting_task_dict.values())}
+    response = {'actions': list(action_dict.values()), 'builds': list(build_task_dict.values())}
     debug_output(response, 'SENDING:')
     return flask.jsonify(response)
 
@@ -91,7 +92,7 @@ def backend_starting_build():
     update = flask.request.json
     task_id = '{0}-{1}'.format(update['build_id'], update['chroot'])
 
-    waiting_task_dict.pop(task_id, None)
+    build_task_dict.pop(task_id, None)
 
     response = {'can_start': True}
     debug_output(response, 'SENDING BACK:', delim=False)
@@ -103,10 +104,14 @@ def backend_update():
     debug_output(flask.request.json, 'RECEIVED:')
     update = flask.request.json
 
-    for build in update['builds']:
+    for build in update.get('builds', []):
         if build['status'] == BuildStatus.FAILURE or build['status'] == BuildStatus.SUCCEEDED: # if build is finished
             backend_builds.append(build)
             test_for_server_end()
+
+    for action in update.get('actions', []):
+        action_dict.pop(action['id'], None)
+        test_for_server_end()
 
     response = {}
     debug_output(response, 'SENDING BACK:', delim=False)
@@ -124,32 +129,20 @@ def backend_reschedule_build_chroot():
 
 ########################### helpers ###########################
 
-def load_import_tasks():
-    inputfile = '{0}/in/import-tasks.json'.format(data_dir)
+def load_data_dict(filename, task_id_key='task_id'):
+    filepath = '{0}/in/{1}'.format(data_dir, filename)
+    task_dict = {}
     try:
-        with open(inputfile, 'r') as f:
+        with open(filepath, 'r') as f:
             task_queue = json.loads(f.read())
             for task in task_queue:
-                import_task_dict[task['task_id']] = task
-        debug_output(import_task_dict, 'LOADED IMPORT TASKS:', delim=False)
+                task_dict[task[task_id_key]] = task
+        debug_output(task_dict, filename.upper()+':', delim=False)
     except Exception as e:
-        print('Could not load in/import-tasks.json from data directory {0}'.format(data_dir))
+        print('Could not load in/{0} from data directory {1}'.format(filename, data_dir))
         print(str(e))
         print('---------------')
-
-
-def load_waiting_tasks():
-    inputfile = '{0}/in/waiting-tasks.json'.format(data_dir)
-    try:
-        with open(inputfile, 'r') as f:
-            task_queue = json.loads(f.read())
-            for task in task_queue:
-                waiting_task_dict[task['task_id']] = task
-        debug_output(waiting_task_dict, 'LOADED WAITING TASKS:', delim=False)
-    except Exception as e:
-        print('Could not load in/waiting-tasks.json from data directory {0}'.format(data_dir))
-        print(str(e))
-        print('---------------')
+    return task_dict
 
 
 def dump_responses():
@@ -169,7 +162,7 @@ def dump_responses():
 
 
 def test_for_server_end():
-    if not import_task_dict and not waiting_task_dict:
+    if not import_task_dict and not build_task_dict and not action_dict:
         dump_responses()
         shutdown_server()
 
@@ -191,7 +184,9 @@ def debug_output(data, label='RECEIVED:', delim=True):
 ########################### main ###########################
 
 if __name__ == '__main__':
-    load_import_tasks()
-    load_waiting_tasks()
-    if import_task_dict or waiting_task_dict:
+    import_task_dict = load_data_dict('import-tasks.json', 'task_id')
+    build_task_dict = load_data_dict('build-tasks.json', 'task_id')
+    action_dict = load_data_dict('action-tasks.json', 'id')
+
+    if import_task_dict or build_task_dict or action_dict:
         app.run()
