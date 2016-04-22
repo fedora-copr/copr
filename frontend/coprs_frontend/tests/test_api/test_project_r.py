@@ -318,14 +318,13 @@ class TestProjectResource(CoprsTestCase):
     def test_project_delete_fail_unfinished_build(
             self, f_users, f_mock_chroots,
             f_coprs, f_builds, f_users_api, f_db):
-
         href = "/api_2/projects/{}".format(self.c1.id)
 
         r0 = self.request_rest_api_with_auth(
             href,
             method="delete"
         )
-        assert r0.status_code == 400
+        assert r0.status_code == 204
 
     def test_project_delete_fail_unfinished_project_action(
             self, f_users, f_mock_chroots,

@@ -21,7 +21,7 @@ app = flask.Flask(__name__, static_path=static_path, static_folder=static_dir)
 
 import_task_dict = {}
 build_task_dict = {}
-action_dict = {}
+action_task_dict = {}
 
 distgit_responses = []
 backend_builds = []
@@ -81,7 +81,7 @@ def backend_auto_createrepo_status(path):
 
 @app.route('/backend/waiting/', methods=['GET'])
 def backend_waiting_queue():
-    response = {'actions': list(action_dict.values()), 'builds': list(build_task_dict.values())}
+    response = {'actions': list(action_task_dict.values()), 'builds': list(build_task_dict.values())}
     debug_output(response, 'SENDING:')
     return flask.jsonify(response)
 
@@ -110,7 +110,7 @@ def backend_update():
             test_for_server_end()
 
     for action in update.get('actions', []):
-        action_dict.pop(action['id'], None)
+        action_task_dict.pop(action['id'], None)
         test_for_server_end()
 
     response = {}
@@ -162,7 +162,7 @@ def dump_responses():
 
 
 def test_for_server_end():
-    if not import_task_dict and not build_task_dict and not action_dict:
+    if not import_task_dict and not build_task_dict and not action_task_dict:
         dump_responses()
         shutdown_server()
 
@@ -186,7 +186,7 @@ def debug_output(data, label='RECEIVED:', delim=True):
 if __name__ == '__main__':
     import_task_dict = load_data_dict('import-tasks.json', 'task_id')
     build_task_dict = load_data_dict('build-tasks.json', 'task_id')
-    action_dict = load_data_dict('action-tasks.json', 'id')
+    action_task_dict = load_data_dict('action-tasks.json', 'id')
 
-    if import_task_dict or build_task_dict or action_dict:
+    if import_task_dict or build_task_dict or action_task_dict:
         app.run()
