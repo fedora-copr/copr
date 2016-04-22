@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.88
+Version:    1.89
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,10 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.89-1
+- requires python3* packages which are finally packaged
+- add BR python-blinker
+
 * Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.88-1
 - add BR python-whoosh
 
