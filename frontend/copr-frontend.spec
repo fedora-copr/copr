@@ -124,10 +124,8 @@ Requires:   python3-flask-wtf
 Requires:   python3-flask-restful
 Requires:   python3-marshmallow
 Requires:   python3-blinker
-
-# Not packaged yet:
-# Requires:   python3-flask-openid    # https://bugzilla.redhat.com/show_bug.cgi?id=1010810
-# Requires:   python3-openid-teams    # https://bugzilla.redhat.com/show_bug.cgi?id=1271176
+Requires:   python3-flask-openid
+Requires:   python3-openid-teams
 
 %if 0%{?fedora} >= 23
 Requires: python3-dnf
