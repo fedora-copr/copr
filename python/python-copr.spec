@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.67
+Version:    1.68
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,16 @@ popd
 %endif
 
 %changelog
+* Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.68-1
+- Add unicode representation for collections (RhBug: 1327597)
+- handlers: use list() after map() for chroots
+- fix download-build for dist-git era file structure (RhBug:
+  1324847)
+- implement building via mock
+- refactor building via tito
+- implement building via tito
+- assure python_versions type for pypi builds
+
 * Sun Mar 20 2016 Jakub Kadlčík <jkadlcik@redhat.com> 1.67-1
 - allow creating group projects
 
