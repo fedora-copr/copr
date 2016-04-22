@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.86
+Version:    1.87
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -268,6 +268,26 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.87-1
+- run createrepo on forked project (RhBug: 1329076)
+- search-bar placeholder update to reflect search improvements
+- changed build deletion check for unfinished builds
+- builds monitor (performance) optimization (both frontend and API)
+- fix error when editing group project
+- search only for non-group projects (RhBug: 1328122) (RhBug:
+  1328129)
+- Bug 1327598 - RFE: Deleting project should be faster
+- code clarifications, simplications & fixes related to copr.owner
+  to copr.user rename
+- tabs on the monitor page are more visible
+- owner renamed to user in Copr model
+- when reference /api page, use current hostname
+- search improvements
+- change order of ordering on status page
+- indicate if we reached limit on status page
+- implement building via mock
+- Bug 1325515 - rebuild repository on group project does not work
+
 * Fri Apr 08 2016 Miroslav Suchý <msuchy@redhat.com> 1.86-1
 - temporary disable this test
 - tests: base url is now in config not taken from results
