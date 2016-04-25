@@ -4,6 +4,7 @@ import shutil
 import time
 import glob
 from urllib import urlretrieve
+from distutils.dir_util import mkpath
 
 from munch import Munch
 from distutils.dir_util import copy_tree
@@ -13,6 +14,7 @@ from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError
 from .helpers import get_redis_logger, silent_remove
+from .sign import sign_rpms_in_dir, get_pubkey
 
 
 class Action(object):
@@ -116,6 +118,10 @@ class Action(object):
             result.result = ActionResult.FAILURE
             return
 
+        pubkey_path = os.path.join(new_path, "pubkey.gpg")
+        mkpath(new_path)
+        get_pubkey(data["user"], data["copr"], pubkey_path)
+
         chroots = set()
         for new_id, old_dir_name in builds_map.items():
             for build_folder in glob.glob(os.path.join(old_path, "*", old_dir_name)):
@@ -131,6 +137,7 @@ class Action(object):
                 if not os.path.exists(new_chroot_folder):
                     os.makedirs(new_chroot_folder)
                 copy_tree(build_folder, new_build_folder)
+                sign_rpms_in_dir(data["user"], data["copr"], new_build_folder, opts=self.opts, log=self.log)
 
                 self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
 
