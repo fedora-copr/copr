@@ -158,8 +158,7 @@ def dump_responses():
         if not data:
             continue
         with open(os.path.join(outputdir, filename), 'w') as f:
-            f.write(json.dumps(data))
-
+            f.write(json.dumps(data, indent=2, sort_keys=True))
 
 def test_for_server_end():
     if not import_task_dict and not build_task_dict and not action_task_dict:
