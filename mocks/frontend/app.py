@@ -150,8 +150,8 @@ def dump_responses():
     os.makedirs(outputdir, exist_ok=True)
 
     output = {
-        'distgit-responses': distgit_responses,
-        'backend-builds': backend_builds,
+        'distgit-responses.json': distgit_responses,
+        'backend-builds.json': backend_builds,
     }
 
     for filename, data in output.items():
@@ -159,6 +159,7 @@ def dump_responses():
             continue
         with open(os.path.join(outputdir, filename), 'w') as f:
             f.write(json.dumps(data, indent=2, sort_keys=True))
+
 
 def test_for_server_end():
     if not import_task_dict and not build_task_dict and not action_task_dict:
