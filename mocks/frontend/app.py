@@ -9,7 +9,6 @@ import os
 
 data_dir = './data'
 static_dir = './static'
-static_path = '/static'
 
 if len(sys.argv) > 1:
     data_dir = os.path.abspath(sys.argv[1])
@@ -17,22 +16,15 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     static_dir = os.path.abspath(sys.argv[2])
 
-app = flask.Flask(__name__, static_path=static_path, static_folder=static_dir)
+app = flask.Flask(__name__, static_path='/static', static_folder=static_dir)
 
 import_task_dict = {}
 build_task_dict = {}
 action_task_dict = {}
 
-distgit_responses = []
-backend_builds = []
-
-# from in backend/constants.py
-class BuildStatus(object):
-    FAILURE = 0
-    SUCCEEDED = 1
-    RUNNING = 3
-    PENDING = 4
-    SKIPPED = 5
+import_results = []
+build_results = []
+action_results = []
 
 ########################### error handling ###########################
 
@@ -65,7 +57,7 @@ def distgit_importing_queue():
 @app.route('/backend/import-completed/', methods=['POST', 'PUT'])
 def distgit_upload_completed():
     debug_output(flask.request.json, 'RECEIVED:')
-    distgit_responses.append(flask.request.json)
+    import_results.append(flask.request.json)
     import_task_dict.pop(flask.request.json['task_id'])
     test_for_server_end()
     return flask.jsonify({'updated': True})
@@ -105,12 +97,13 @@ def backend_update():
     update = flask.request.json
 
     for build in update.get('builds', []):
-        if build['status'] == BuildStatus.FAILURE or build['status'] == BuildStatus.SUCCEEDED: # if build is finished
-            backend_builds.append(build)
+        if build['status'] == 0 or build['status'] == 1: # if build is finished
+            build_results.append(build)
             test_for_server_end()
 
     for action in update.get('actions', []):
         action_task_dict.pop(action['id'], None)
+        action_results.append(action)
         test_for_server_end()
 
     response = {}
@@ -150,8 +143,9 @@ def dump_responses():
     os.makedirs(outputdir, exist_ok=True)
 
     output = {
-        'distgit-responses.json': distgit_responses,
-        'backend-builds.json': backend_builds,
+        'import-results.json': import_results,
+        'build-results.json': build_results,
+        'action-results.json': action_results,
     }
 
     for filename, data in output.items():
