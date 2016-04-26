@@ -25,6 +25,7 @@ class SourceType:
     GIT_AND_TITO = 3
     MOCK_SCM = 4
     PYPI = 5
+    RUBYGEMS = 6
 
 
 class ImportTask(object):
@@ -64,6 +65,9 @@ class ImportTask(object):
         self.pypi_package_name = None
         self.pypi_package_version = None
         self.pypi_python_versions = None
+
+        # For RubyGems
+        self.gem_name = None
 
     @property
     def reponame(self):
@@ -110,6 +114,9 @@ class ImportTask(object):
             task.pypi_package_version = task.source_data["pypi_package_version"]
             task.pypi_python_versions = task.source_data["python_versions"]
 
+        elif task.source_type == SourceType.RUBYGEMS:
+            task.rubygems_gem_name = task.source_data["gem_name"]
+
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
 
@@ -147,6 +154,8 @@ class SourceProvider(object):
             self.provider_class = MockScmProvider
         elif task.source_type == SourceType.PYPI:
             self.provider_class = PyPIProvider
+        elif task.source_type == SourceType.RUBYGEMS:
+            self.provider_class = RubyGemsProvider
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
         self.provider = self.provider_class(self.task, self.target_path)
@@ -342,6 +351,34 @@ class PyPIProvider(SrpmBuilderProvider):
         try:
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
+        except OSError as e:
+            raise SrpmBuilderException(str(e))
+        if proc.returncode != 0:
+            raise SrpmBuilderException(error)
+
+        log.info(output)
+        log.info(error)
+        self.copy()
+
+
+class RubyGemsProvider(SrpmBuilderProvider):
+    """
+    Used for RUBYGEMS
+    """
+    def get_srpm(self):
+        log.debug("BUILDER: 3. build via gem2rpm")
+
+        # @TODO Use -C argument to specify output directory
+        # https://github.com/fedora-ruby/gem2rpm/issues/60
+        cmd = ["gem2rpm", self.task.rubygems_gem_name, "--fetch", "--srpm"]
+        try:
+            cwd = os.getcwd()
+            os.chdir(self.tmp_dest)
+            log.debug("Setting working directory for the following command to: {}".format(self.tmp_dest))
+            log.debug(" ".join(cmd))
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            output, error = proc.communicate()
+            os.chdir(cwd)
         except OSError as e:
             raise SrpmBuilderException(str(e))
         if proc.returncode != 0:

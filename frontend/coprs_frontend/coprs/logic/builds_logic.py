@@ -459,6 +459,44 @@ GROUP BY
         return build
 
     @classmethod
+    def create_new_from_rubygems(cls, user, copr, gem_name,
+                             chroot_names=None, **build_options):
+        """
+        :type user: models.User
+        :type copr: models.Copr
+        :type gem_name: str
+
+        :type chroot_names: List[str]
+
+        :rtype: models.Build
+        """
+        if chroot_names is None:
+            chroots = [c for c in copr.active_chroots]
+        else:
+            chroots = []
+            for chroot in copr.active_chroots:
+                if chroot.name in chroot_names:
+                    chroots.append(chroot)
+
+        source_type = helpers.BuildSourceEnum("rubygems")
+        source_json = json.dumps({"gem_name": gem_name})
+
+        build = cls.add(
+            user=user,
+            pkgs="",
+            copr=copr,
+            chroots=chroots,
+            source_type=source_type,
+            source_json=source_json,
+            enable_net=build_options.get("enable_net", copr.build_enable_net))
+
+        if user.proven:
+            if "timeout" in build_options:
+                build.timeout = build_options["timeout"]
+
+        return build
+
+    @classmethod
     def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
                                chroot_names=None, **build_options):
         """

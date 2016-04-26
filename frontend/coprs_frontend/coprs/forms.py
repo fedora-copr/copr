@@ -402,6 +402,16 @@ class PackageFormPyPI(BasePackageForm):
         default=['3', '2'])
 
 
+class PackageFormRubyGems(BasePackageForm):
+    source_type = wtforms.HiddenField(
+        "Source Type",
+        validators=[wtforms.validators.AnyOf(["rubygems"])])
+
+    gem_name = wtforms.StringField(
+        "Gem Name",
+        validators=[wtforms.validators.DataRequired()])
+
+
 class BaseBuildFormFactory(object):
     def __new__(cls, active_chroots, form):
         class F(form):
@@ -460,6 +470,11 @@ class BuildFormMockFactory(object):
 class BuildFormPyPIFactory(object):
     def __new__(cls, active_chroots):
         return BaseBuildFormFactory(active_chroots, PackageFormPyPI)
+
+
+class BuildFormRubyGemsFactory(object):
+    def __new__(cls, active_chroots):
+        return BaseBuildFormFactory(active_chroots, PackageFormRubyGems)
 
 
 class BuildFormUploadFactory(object):
