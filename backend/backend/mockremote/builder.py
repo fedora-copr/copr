@@ -143,7 +143,8 @@ class Builder(object):
 
         kwargs = {
             "chroot": self.job.chroot,
-            "pkgs": self.buildroot_pkgs
+            "pkgs": self.buildroot_pkgs,
+            "net_enabled": "True" if self.job.enable_net else "False",
         }
         buildroot_cmd = (
             "dest=/etc/mock/{chroot}.cfg"
@@ -151,18 +152,16 @@ class Builder(object):
             " regexp=\"^.*chroot_setup_cmd.*(@buildsys-build|buildsys-build buildsys-macros).*$\""
             " backrefs=yes"
         )
-
-        disable_networking_cmd = (
+        set_networking_cmd = (
             "dest=/etc/mock/{chroot}.cfg"
-            " line=\"config_opts['use_host_resolv'] = False\""
-            " regexp=\"^.*user_host_resolv.*$\""
+            " line=\"config_opts['use_host_resolv'] = {net_enabled}\""
+            " regexp=\"^.*use_host_resolv.*$\""
         )
         try:
             self.run_ansible_with_check(buildroot_cmd.format(**kwargs),
                                         module_name="lineinfile", as_root=True)
-            if not self.job.enable_net:
-                self.run_ansible_with_check(disable_networking_cmd.format(**kwargs),
-                                            module_name="lineinfile", as_root=True)
+            self.run_ansible_with_check(set_networking_cmd.format(**kwargs),
+                                        module_name="lineinfile", as_root=True)
         except BuilderError as err:
             self.log.exception(err)
             raise
