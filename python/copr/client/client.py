@@ -498,6 +498,32 @@ class CoprClient(UnicodeMixin):
         api_endpoint = "new_build_mock"
         return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
 
+    def create_new_build_rubygems(self, projectname, gem_name, username=None,
+                              timeout=None, memory=None, chroots=None, progress_callback=None):
+        """ Creates new build from RubyGems.org
+
+            :param projectname: name of Copr project (without user namespace)
+            :param gem_name: name of the gem located on rubygems.org
+            :param username: [optional] use alternative username
+            :param timeout: [optional] build timeout
+            :param memory: [optional] amount of required memory for build process
+            :param chroots: [optional] build only with given chroots
+            :param progress_callback: [optional] a function that received a
+            MultipartEncoderMonitor instance for each chunck of uploaded data
+
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
+        """
+        data = {
+            "memory_reqs": memory,
+            "timeout": timeout,
+            "gem_name": gem_name,
+            "source_type": "rubygems",
+        }
+        api_endpoint = "new_build_rubygems"
+        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
+
     def process_creating_new_build(self, projectname, data, api_endpoint, username=None, chroots=None):
         if not username:
             username = self.username
