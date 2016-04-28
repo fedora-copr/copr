@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.83
+Version:    1.84
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Apr 28 2016 Miroslav Suchý <msuchy@redhat.com> 1.84-1
+- Bug 1327996 - config_opts['use_host_resolv'] is not set back to
+  True if it was False before
+
 * Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.83-1
 - run createrepo on forked project (RhBug: 1329076)
 - Bug 1327852 - /usr/bin/check_consecutive_build_fails.py errors
