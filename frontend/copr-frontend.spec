@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.89
+Version:    1.90
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,11 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Thu Apr 28 2016 Miroslav Suchý <msuchy@redhat.com> 1.90-1
+- comment in unittests after some _serious_ investigation
+- monitor unittest removed (output of get_monitor_data changed),
+  expected response for delete_fail_unfinished_build test changed to 204
+
 * Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.89-1
 - requires python3* packages which are finally packaged
 - add BR python-blinker
