@@ -45,7 +45,7 @@ def user_exists(app, mail):
     """
     cmd = [app.config["GPG_BINARY"],
            "--homedir", app.config["GNUPG_HOMEDIR"],
-           "--list-secret-keys", "--with-colons", mail]
+           "--list-secret-keys", "--with-colons", "<{0}>".format(mail)]
 
     try:
         handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
