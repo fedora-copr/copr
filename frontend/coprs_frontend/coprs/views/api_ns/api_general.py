@@ -528,6 +528,8 @@ def copr_modify(copr):
 
     try:
         CoprsLogic.update(flask.g.user, copr)
+        if copr.group: # load group.id
+            _ = copr.group.id
         db.session.commit()
     except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
         db.session.rollback()
