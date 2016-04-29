@@ -202,8 +202,7 @@ class CoprsLogic(object):
             copr.group = group
 
         # form validation checks for duplicates
-        CoprsLogic.new(user, copr,
-                       check_for_duplicates=check_for_duplicates)
+        cls.new(user, copr, check_for_duplicates=check_for_duplicates)
         CoprChrootsLogic.new_from_names(copr, selected_chroots)
 
         db.session.flush()
@@ -213,9 +212,16 @@ class CoprsLogic(object):
 
     @classmethod
     def new(cls, user, copr, check_for_duplicates=True):
-        if check_for_duplicates and cls.exists_for_user(user, copr.name).all():
-            raise exceptions.DuplicateException(
-                "Copr: '{0}' already exists".format(copr.name))
+        if check_for_duplicates:
+            if copr.group is None and cls.exists_for_user(user, copr.name).all():
+                raise exceptions.DuplicateException(
+                    "Copr: '{0}/{1}' already exists".format(user.name, copr.name))
+            elif copr.group:
+                db.session.flush()  # otherwise copr.id is not set from sequence
+                if cls.exists_for_group(copr.group, copr.name).filter(models.Copr.id != copr.id).all():
+                    db.session.rollback()
+                    raise exceptions.DuplicateException(
+                        "Copr: '@{0}/{1}' already exists".format(copr.group.name, copr.name))
         db.session.add(copr)
 
     @classmethod

@@ -114,7 +114,7 @@ def api_new_copr(username):
                 selected_chroots=form.selected_chroots,
                 description=form.description.data,
                 instructions=form.instructions.data,
-                check_for_duplicates=False,
+                check_for_duplicates=True,
                 auto_createrepo=True,
                 group=group,
             )
