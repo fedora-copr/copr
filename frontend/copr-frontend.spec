@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.90
+Version:    1.91
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,10 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Fri Apr 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.91-1
+- check for duplicities during creating
+- toggle-all button for chroot selection
+
 * Thu Apr 28 2016 Miroslav Suchý <msuchy@redhat.com> 1.90-1
 - comment in unittests after some _serious_ investigation
 - monitor unittest removed (output of get_monitor_data changed),
