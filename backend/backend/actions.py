@@ -14,7 +14,7 @@ from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError
 from .helpers import get_redis_logger, silent_remove
-from .sign import sign_rpms_in_dir, get_pubkey
+from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 
 class Action(object):
@@ -136,7 +136,9 @@ class Action(object):
 
                 if not os.path.exists(new_chroot_folder):
                     os.makedirs(new_chroot_folder)
+
                 copy_tree(build_folder, new_build_folder)
+                unsign_rpms_in_dir(new_build_folder, opts=self.opts, log=self.log)
                 sign_rpms_in_dir(data["user"], data["copr"], new_build_folder, opts=self.opts, log=self.log)
 
                 self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
