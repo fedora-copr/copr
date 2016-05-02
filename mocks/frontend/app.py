@@ -123,7 +123,7 @@ def backend_reschedule_build_chroot():
 ########################### helpers ###########################
 
 def load_data_dict(filename, task_id_key='task_id'):
-    filepath = '{0}/in/{1}'.format(data_dir, filename)
+    filepath = '{0}/{1}'.format(data_dir, filename)
     task_dict = {}
     try:
         with open(filepath, 'r') as f:
@@ -132,26 +132,23 @@ def load_data_dict(filename, task_id_key='task_id'):
                 task_dict[task[task_id_key]] = task
         debug_output(task_dict, filename.upper()+':', delim=False)
     except Exception as e:
-        print('Could not load in/{0} from data directory {1}'.format(filename, data_dir))
+        print('Could not load {0} from data directory {1}'.format(filename, data_dir))
         print(str(e))
         print('---------------')
     return task_dict
 
 
 def dump_responses():
-    outputdir = '{0}/out'.format(data_dir)
-    os.makedirs(outputdir, exist_ok=True)
-
     output = {
-        'import-results.json': import_results,
-        'build-results.json': build_results,
-        'action-results.json': action_results,
+        'import-results.out.json': import_results,
+        'build-results.out.json': build_results,
+        'action-results.out.json': action_results,
     }
 
     for filename, data in output.items():
         if not data:
             continue
-        with open(os.path.join(outputdir, filename), 'w') as f:
+        with open(os.path.join(data_dir, filename), 'w') as f:
             f.write(json.dumps(data, indent=2, sort_keys=True))
 
 
