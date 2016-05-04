@@ -165,3 +165,51 @@ def create_user_keys(username, projectname, opts):
             msg="Failed to create key-pair for user: {}, project:{}, status_code: {}, response: {}"
             .format(username, projectname, response.status_code, response.text),
             request=query, response=response)
+
+
+def _unsign_one(path):
+    # Requires rpm-sign package
+    cmd = ["/usr/bin/rpm", "--delsign", path]
+    handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = handle.communicate()
+
+    if handle.returncode != 0:
+        err = CoprSignError(
+            msg="Failed to unsign ".format(path),
+            return_code=handle.returncode,
+            cmd=cmd, stdout=stdout, stderr=stderr)
+
+        raise err
+
+    return stdout, stderr
+
+
+def unsign_rpms_in_dir(path, opts, log):
+    """
+    :param path: directory with rpms to be signed
+    :param Munch opts: backend config
+    :type log: logging.Logger
+    :raises: :py:class:`backend.exceptions.CoprSignError` failed to sign at least one package
+    """
+    rpm_list = [
+        os.path.join(path, filename)
+        for filename in os.listdir(path)
+        if filename.endswith(".rpm")
+        ]
+
+    if not rpm_list:
+        return
+
+    errors = []  # tuples (rpm_filepath, exception)
+    for rpm in rpm_list:
+        try:
+            _unsign_one(rpm)
+            log.info("unsigned rpm: {}".format(rpm))
+
+        except CoprSignError as e:
+            log.exception("failed to unsign rpm: {}".format(rpm))
+            errors.append((rpm, e))
+
+    if errors:
+        raise CoprSignError("Rpm unsign failed, affected rpms: {}"
+                            .format([err[0] for err in errors]))
