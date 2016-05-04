@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.91
+Version:    1.92
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,9 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Wed May 04 2016 Miroslav Suchý <msuchy@redhat.com> 1.92-1
+- load group.id before we commit the session
+
 * Fri Apr 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.91-1
 - check for duplicities during creating
 - toggle-all button for chroot selection
