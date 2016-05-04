@@ -393,7 +393,7 @@ def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
     if not old_value_acr and value_acr:
         #  re-enabled
         ActionsLogic.send_createrepo(
-            target_copr.user.name,
+            target_copr.owner_name,
             target_copr.name,
             chroots=[chroot.name for chroot in target_copr.active_chroots]
         )
