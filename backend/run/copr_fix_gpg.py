@@ -44,6 +44,10 @@ def fix_copr(opts, copr_full_name):
     owner, coprname = tuple(copr_full_name.split('/'))
     copr_path = os.path.abspath(os.path.join(opts.destdir, owner, coprname))
 
+    if not os.path.isdir(copr_path):
+        log.info('Ignoring {}. Directory does not exist.'.format(copr_path))
+        return
+
     log.info('> Generate key-pair on copr-keygen (if not generated) for email {}.'.format(create_gpg_email(owner, coprname)))
     create_user_keys(owner, coprname, opts)
 
