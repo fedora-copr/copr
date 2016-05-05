@@ -80,7 +80,10 @@ def main():
     opts = BackendConfigReader().read()
     with open(args.coprs_file_path) as coprs_file:
         for copr_full_name in coprs_file:
-            fix_copr(opts, copr_full_name.strip())
+            try:
+                fix_copr(opts, copr_full_name.strip())
+            except Exception as e:
+                log.exception(str(e))
 
 
 if __name__ == "__main__":
