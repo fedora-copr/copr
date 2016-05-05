@@ -62,7 +62,9 @@ rlJournalStart
         rlRun "copr-cli create --chroot wrong-chroot-name ${NAME_PREFIX}Project2" 1
         # create second project
         rlRun "copr-cli create --chroot fedora-23-x86_64 --repo 'copr://${NAME_PREFIX}Project1' ${NAME_PREFIX}Project2"
-        ### left after this section: Project1, Project2
+        # create third project
+        rlRun "copr-cli create --chroot fedora-23-x86_64 --repo 'copr://${NAME_PREFIX}Project1' ${NAME_PREFIX}Project3"
+        ### left after this section: Project1, Project2, Project3
 
         ### ---- BUILDING --------------- ###
         # build - wrong project name
@@ -111,12 +113,23 @@ rlJournalStart
         # trying to install
         rlRun "dnf install -y --refresh hello_beaker_test_2"
 
+        ## test build watching using Project3
+        # build 1st package without waiting
+        rlRun "copr-cli build --nowait ${NAME_PREFIX}Project3 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm > hello_p3.out"
+        rlRun "awk '/Created build/ { print \$3 }' hello_p3.out > hello_p3.id"
+        # initial status should be in progress, e.g. pending/running
+        rlRun "xargs copr-cli status < hello_p3.id | grep -v succeeded"
+        # wait for the build to complete and ensure it succeeded
+        rlRun "xargs copr-cli watch-build < hello_p3.id"
+        rlRun "xargs copr-cli status < hello_p3.id | grep succeeded"
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
         # delete the projects
         rlRun "copr-cli delete ${NAME_PREFIX}Project1"
         rlRun "copr-cli delete ${NAME_PREFIX}Project2"
+        rlRun "copr-cli delete ${NAME_PREFIX}Project3"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

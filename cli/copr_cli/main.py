@@ -93,16 +93,16 @@ class Commands(object):
         wrapper.__name__ = func.__name__
         return wrapper
 
-    def _watch_builds(self, builds_list):
+    def _watch_builds(self, build_ids):
         """
-         :param builds_list: list of BuildWrapper
+         :param build_ids: list of build IDs
          """
         print("Watching build(s): (this may be safely interrupted)")
 
         prevstatus = defaultdict(lambda: None)
         failed_ids = []
 
-        watched = set([bw.build_id for bw in builds_list])
+        watched = set(build_ids)
         done = set()
 
         try:
@@ -246,7 +246,7 @@ class Commands(object):
         print("Created builds: {0}".format(" ".join(map(str, build_ids))))
 
         if not args.nowait:
-            self._watch_builds(result.builds_list)
+            self._watch_builds(build_ids)
 
 
     @requires_api_auth
@@ -351,6 +351,9 @@ class Commands(object):
             self.client.add_package_tito(owner_name=owner_name, project_name=copr_name, **data)
         else:
             self.client.edit_package_tito(owner_name=owner_name, project_name=copr_name, **data)
+
+    def action_watch_build(self, args):
+        self._watch_builds(args.build_id)
 
 def setup_parser():
     """
@@ -496,6 +499,14 @@ def setup_parser():
     parser_cancel = subparsers.add_parser("cancel", help="Cancel build specified by its ID")
     parser_cancel.add_argument("build_id", help="Build ID")
     parser_cancel.set_defaults(func="action_cancel")
+
+    # create the parser for the "watch-build" command
+    parser_watch = subparsers.add_parser("watch-build",
+                                         help="Watch status and progress of build(s)"
+                                              " specified by their ID")
+    parser_watch.add_argument("build_id", nargs="+",
+                              help="Build ID", type=int)
+    parser_watch.set_defaults(func="action_watch_build")
 
     ################################################
 
