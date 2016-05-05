@@ -403,7 +403,7 @@ class Worker(multiprocessing.Process):
         while vmd is None:
             try:
                 self.update_process_title(suffix="trying to acquire VM for job {} for {}s"
-                                          .format(job.task_id, time.time() - start_vm_wait_time))
+                                          .format(job.task_id, int(time.time() - start_vm_wait_time)))
                 vmd = self.vmm.acquire_vm(self.group_id, job.project_owner, os.getpid(),
                                           job.task_id, job.build_id, job.chroot)
             except NoVmAvailable as error:
