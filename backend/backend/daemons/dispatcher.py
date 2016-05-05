@@ -407,7 +407,7 @@ class Worker(multiprocessing.Process):
                 vmd = self.vmm.acquire_vm(self.group_id, job.project_owner, os.getpid(),
                                           job.task_id, job.build_id, job.chroot)
             except NoVmAvailable as error:
-                self.log.debug("No VM yet: {}".format(error))
+                self.log.info("No VM yet: {}".format(error))
                 time.sleep(self.opts.sleeptime)
                 continue
             except Exception as error:
