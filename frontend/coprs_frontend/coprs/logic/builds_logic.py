@@ -13,7 +13,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false
 from werkzeug.utils import secure_filename
-from sqlalchemy import desc,asc
+from sqlalchemy import desc,asc, bindparam, Integer
 from collections import defaultdict
 
 from coprs import app
@@ -140,10 +140,10 @@ LEFT OUTER JOIN "user"
     ON copr.user_id = "user".id
 LEFT OUTER JOIN "group"
     ON copr.group_id = "group".id
-WHERE build.copr_id = {copr_id}
+WHERE build.copr_id = :copr_id
 GROUP BY
     build.id;
-""".format(copr_id=copr.id)
+"""
 
         if db.engine.url.drivername == "sqlite":
             def sqlite_status_to_order(x):
@@ -183,9 +183,13 @@ GROUP BY
             conn = db.engine.connect()
             conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
             conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
-            result = conn.execute(text(query_select))
+            statement = text(query_select)
+            statement.bindparams(bindparam("copr_id", Integer))
+            result = conn.execute(statement, {"copr_id": copr.id})
         else:
-            result = db.engine.execute(text(query_select))
+            statement = text(query_select)
+            statement.bindparams(bindparam("copr_id", Integer))
+            result = db.engine.execute(statement, {"copr_id": copr.id})
 
         return result
 

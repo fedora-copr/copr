@@ -1,7 +1,7 @@
 import json
 import time
 from sqlalchemy import or_
-from sqlalchemy import and_
+from sqlalchemy import and_, bindparam, Integer
 from sqlalchemy.sql import false, true, text
 
 from coprs import app
@@ -42,11 +42,11 @@ WHERE build.id IN
   (select id from (select MAX(build.id) as id, package.name as pkg_name
   from package
   left outer join build on build.package_id = package.id
-  where build.copr_id = {copr_id}
+  where build.copr_id = :copr_id
   group by package.name) as foo )
 GROUP BY package.name, build.pkg_version, build.submitted_on, package.webhook_rebuild
 ORDER BY package.name ASC;
-""".format(copr_id=copr.id)
+"""
 
         if db.engine.url.drivername == "sqlite":
             def sqlite_status_to_order(x):
@@ -86,9 +86,13 @@ ORDER BY package.name ASC;
             conn = db.engine.connect()
             conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
             conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
-            result = conn.execute(text(query_select))
+            statement = text(query_select)
+            statement.bindparams(bindparam("copr_id", Integer))
+            result = conn.execute(statement, {"copr_id": copr.id})
         else:
-            result = db.engine.execute(text(query_select))
+            statement = text(query_select)
+            statement.bindparams(bindparam("copr_id", Integer))
+            result = db.engine.execute(statement, {"copr_id": copr.id})
 
         return result
 
