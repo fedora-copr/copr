@@ -41,7 +41,6 @@ BuildRequires: python-setproctitle
 # missing python3
 BuildRequires: python-retask
 BuildRequires: python-copr >= 1.60
-BuildRequires: ansible1.9
 BuildRequires: python-IPy
 BuildRequires: python-paramiko
 BuildRequires: python-psutil
@@ -51,12 +50,19 @@ BuildRequires: pytz
 # BuildRequires: python-plumbum
 # BuildRequires: wget -- ???
 
+%if 0%{?fedora} >= 24
+BuildRequires: ansible1.9
+Requires:   ansible1.9
+%else
+BuildRequires: ansible
+Requires:   ansible
+%endif
+
 #for doc package
 BuildRequires: sphinx
 BuildRequires: python-sphinx
 
 Requires:   obs-signd
-Requires:   ansible1.9
 Requires:   lighttpd
 Requires:   euca2ools
 Requires:   rsync
