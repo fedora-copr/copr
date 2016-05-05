@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.84
+Version:    1.85
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -254,6 +254,20 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu May 05 2016 Miroslav Suchý <msuchy@redhat.com> 1.85-1
+- also be tolerant about sign/unsign failures on particular rpm
+- just log errors (exception) during particular copr fixing, do not
+  interrupt the whole process
+- added additional check on copr path existence into copr_fix_gpg.py
+- allow sudo /usr/bin/rpm for `copr` user
+- look into build dirs (subdirs of a chroot) for rpms to be re-signed
+- on F24+ use just ansible
+- Run rpm-sign with sudo when unsigning
+- script to fix gpg keys & rpm signatures
+- define functions for deleting gpg signatures from packages
+- removed temporary mock workaround from Dockerfile (no
+  longer needed)
+
 * Thu Apr 28 2016 Miroslav Suchý <msuchy@redhat.com> 1.84-1
 - Bug 1327996 - config_opts['use_host_resolv'] is not set back to
   True if it was False before
