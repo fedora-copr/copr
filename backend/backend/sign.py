@@ -169,7 +169,7 @@ def create_user_keys(username, projectname, opts):
 
 def _unsign_one(path):
     # Requires rpm-sign package
-    cmd = ["/usr/bin/rpm", "--delsign", path]
+    cmd = ["sudo", "/usr/bin/rpm", "--delsign", path]
     handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
     stdout, stderr = handle.communicate()
 
