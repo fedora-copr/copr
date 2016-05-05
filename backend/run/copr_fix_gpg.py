@@ -57,9 +57,13 @@ def fix_copr(opts, copr_full_name):
             log.info('> > Ignoring {}'.format(dir_path))
             continue
 
-        log.info('> > Processing rpms in dir (chroot) {}:'.format(dir_path))
-        unsign_rpms_in_dir(dir_path, opts, log) # first we need to unsign by using rpm-sign before we sign with obs-sign
-        sign_rpms_in_dir(owner, coprname, dir_path, opts, log)
+        for builddir_name in os.listdir(dir_path):
+            builddir_path = os.path.join(dir_path, builddir_name)
+            if not os.path.isdir(builddir_path):
+                continue
+            log.info('> > Processing rpms in builddir {}:'.format(builddir_path))
+            unsign_rpms_in_dir(builddir_path, opts, log) # first we need to unsign by using rpm-sign before we sign with obs-sign
+            sign_rpms_in_dir(owner, coprname, builddir_path, opts, log)
 
         log.info("> > Running createrepo_unsafe for {}".format(dir_path))
         createrepo_unsafe(dir_path)
