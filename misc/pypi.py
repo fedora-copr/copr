@@ -10,11 +10,11 @@ import os
 from copr import create_client2_from_params
 
 URL_PATTERN = 'https://pypi.python.org/pypi/{package}/json'
-CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr-dev")
+CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
 
-COPR_URL = "http://copr-fe-dev.cloud.fedoraproject.org/"
-USER = "msuchy"
-COPR = "PyPi-2"
+COPR_URL = "https://copr.fedorainfracloud.org/"
+USER = "@copr"
+COPR = "PyPI2"
 
 
 parser = argparse.ArgumentParser(prog = "pypi")
@@ -59,7 +59,7 @@ def submit_all_pypi_modules():
     for module in packages:
         print("Submitting module {0}".format(module))
         submit_build("{}/{}".format(USER, COPR), module, "2")
-        time.sleep(4)
+        time.sleep(15)
 
 
 def parse_succeeded_packages():
