@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.85
+Version:    1.86
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -254,6 +254,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri May 06 2016 Miroslav Suchý <msuchy@redhat.com> 1.86-1
+- more info in logs by default
+- unsign gpg from forked packages before signing them with new key
+
 * Thu May 05 2016 Miroslav Suchý <msuchy@redhat.com> 1.85-1
 - also be tolerant about sign/unsign failures on particular rpm
 - just log errors (exception) during particular copr fixing, do not
