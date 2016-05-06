@@ -141,45 +141,42 @@ def group_copr_new_build(copr):
 
 
 def process_new_build_url(copr, add_view, url_on_success):
-    form = forms.BuildFormUrlFactory(copr.active_chroots)()
-
-    if form.validate_on_submit():
+    def factory(**build_options):
         pkgs = form.pkgs.data.split("\n")
+        for pkg in pkgs:
+            BuildsLogic.create_new_from_url(
+                flask.g.user, copr, pkg,
+                chroot_names=form.selected_chroots,
+                **build_options
+            )
+        for pkg in pkgs:
+            flask.flash("New build has been created: {}".format(pkg), "success")
 
-        if not pkgs:
-            flask.flash("No builds submitted")
+    form = forms.BuildFormUrlFactory(copr.active_chroots)()
+    return process_new_build(copr, form, factory, render_add_build,
+                             add_view, url_on_success, msg_on_success=False)
+
+
+def process_new_build(copr, form, create_new_build_factory, add_function, add_view, url_on_success, msg_on_success=True):
+    if form.validate_on_submit():
+        build_options = {
+            "enable_net": form.enable_net.data,
+            "timeout": form.timeout.data,
+        }
+
+        try:
+            create_new_build_factory(**build_options)
+            db.session.commit()
+        except (ActionInProgressException, InsufficientRightsException) as e:
+            db.session.rollback()
+            flask.flash(str(e), "error")
         else:
-            # # check which chroots we need
-            # chroots = []
-            # for chroot in copr.active_chroots:
-            #     if chroot.name in form.selected_chroots:
-            #         chroots.append(chroot)
-
-            # build each package as a separate build
-            try:
-                for pkg in pkgs:
-                    build_options = {
-                        "enable_net": form.enable_net.data,
-                        "timeout": form.timeout.data,
-                    }
-                    BuildsLogic.create_new_from_url(
-                        flask.g.user, copr, pkg,
-                        chroot_names=form.selected_chroots,
-                        **build_options
-                    )
-
-            except (ActionInProgressException, InsufficientRightsException) as e:
-                flask.flash(str(e), "error")
-                db.session.rollback()
-            else:
-                for pkg in pkgs:
-                    flask.flash("New build has been created: {}".format(pkg))
-
-                db.session.commit()
+            if msg_on_success:
+                flask.flash("New build has been created.", "success")
 
         return flask.redirect(url_on_success)
     else:
-        return render_add_build(copr, form, add_view)
+        return add_function(copr, form, add_view)
 
 
 ################################ Tito builds ################################
@@ -228,35 +225,19 @@ def group_copr_new_build_tito(copr):
 
 
 def process_new_build_tito(copr, add_view, url_on_success):
+    def factory(**build_options):
+        BuildsLogic.create_new_from_tito(
+            flask.g.user,
+            copr,
+            form.git_url.data,
+            form.git_directory.data,
+            form.git_branch.data,
+            form.tito_test.data,
+            form.selected_chroots,
+            **build_options
+        )
     form = forms.BuildFormTitoFactory(copr.active_chroots)()
-
-    if form.validate_on_submit():
-        build_options = {
-            "enable_net": form.enable_net.data,
-            "timeout": form.timeout.data,
-        }
-
-        try:
-            BuildsLogic.create_new_from_tito(
-                flask.g.user,
-                copr,
-                form.git_url.data,
-                form.git_directory.data,
-                form.git_branch.data,
-                form.tito_test.data,
-                form.selected_chroots,
-                **build_options
-            )
-            db.session.commit()
-        except (ActionInProgressException, InsufficientRightsException) as e:
-            db.session.rollback()
-            flask.flash(str(e), "error")
-        else:
-            flask.flash("New build has been created.")
-
-        return flask.redirect(url_on_success)
-    else:
-        return render_add_build_tito(copr, form, add_view)
+    return process_new_build(copr, form, factory, render_add_build_tito, add_view, url_on_success)
 
 
 ################################ Mock builds ################################
@@ -305,35 +286,19 @@ def group_copr_new_build_mock(copr):
 
 
 def process_new_build_mock(copr, add_view, url_on_success):
+    def factory(**build_options):
+        BuildsLogic.create_new_from_mock(
+            flask.g.user,
+            copr,
+            form.scm_type.data,
+            form.scm_url.data,
+            form.scm_branch.data,
+            form.spec.data,
+            form.selected_chroots,
+            **build_options
+        )
     form = forms.BuildFormMockFactory(copr.active_chroots)()
-
-    if form.validate_on_submit():
-        build_options = {
-            "enable_net": form.enable_net.data,
-            "timeout": form.timeout.data,
-        }
-
-        try:
-            BuildsLogic.create_new_from_mock(
-                flask.g.user,
-                copr,
-                form.scm_type.data,
-                form.scm_url.data,
-                form.scm_branch.data,
-                form.spec.data,
-                form.selected_chroots,
-                **build_options
-            )
-            db.session.commit()
-        except (ActionInProgressException, InsufficientRightsException) as e:
-            db.session.rollback()
-            flask.flash(str(e), "error")
-        else:
-            flask.flash("New build has been created.")
-
-        return flask.redirect(url_on_success)
-    else:
-        return render_add_build_mock(copr, form, add_view)
+    return process_new_build(copr, form, factory, render_add_build_mock, add_view, url_on_success)
 
 
 ################################ PyPI builds ################################
@@ -382,34 +347,76 @@ def group_copr_new_build_pypi(copr):
 
 
 def process_new_build_pypi(copr, add_view, url_on_success):
+    def factory(**build_options):
+        BuildsLogic.create_new_from_pypi(
+            flask.g.user,
+            copr,
+            form.pypi_package_name.data,
+            form.pypi_package_version.data,
+            form.python_versions.data,
+            form.selected_chroots,
+            **build_options
+        )
     form = forms.BuildFormPyPIFactory(copr.active_chroots)()
+    return process_new_build(copr, form, factory, render_add_build_pypi, add_view, url_on_success)
 
-    if form.validate_on_submit():
-        build_options = {
-            "enable_net": form.enable_net.data,
-            "timeout": form.timeout.data,
-        }
 
-        try:
-            BuildsLogic.create_new_from_pypi(
-                flask.g.user,
-                copr,
-                form.pypi_package_name.data,
-                form.pypi_package_version.data,
-                form.python_versions.data,
-                form.selected_chroots,
-                **build_options
-            )
-            db.session.commit()
-        except (ActionInProgressException, InsufficientRightsException) as e:
-            db.session.rollback()
-            flask.flash(str(e), "error")
-        else:
-            flask.flash("New build has been created.")
+############################### RubyGems builds ###############################
 
-        return flask.redirect(url_on_success)
-    else:
-        return render_add_build_pypi(copr, form, add_view)
+@coprs_ns.route("/<username>/<coprname>/add_build_rubygems/")
+@login_required
+@req_with_copr
+def copr_add_build_rubygems(copr, form=None):
+    return render_add_build_rubygems(
+        copr, form, view='coprs_ns.copr_new_build_rubygems')
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/add_build_rubygems/")
+@login_required
+@req_with_copr
+def group_copr_add_build_rubygems(copr, form=None):
+    return render_add_build_rubygems(
+        copr, form, view='coprs_ns.copr_new_build_rubygems')
+
+
+def render_add_build_rubygems(copr, form, view, package=None):
+    if not form:
+        form = forms.BuildFormRubyGemsFactory(copr.active_chroots)()
+    return flask.render_template("coprs/detail/add_build/rubygems.html",
+                                 copr=copr, form=form, view=view, package=package)
+
+
+@coprs_ns.route("/<username>/<coprname>/new_build_rubygems/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_new_build_rubygems(copr):
+    view = 'coprs_ns.copr_new_build_rubygems'
+    url_on_success = url_for("coprs_ns.copr_builds",
+                             username=copr.user.username, coprname=copr.name)
+    return process_new_build_rubygems(copr, view, url_on_success)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_rubygems/", methods=["POST"])
+@login_required
+@req_with_copr
+def group_copr_new_build_rubygems(copr):
+    view = 'coprs_ns.copr_new_build_rubygems'
+    url_on_success = url_for("coprs_ns.group_copr_builds",
+                             group_name=copr.group.name, coprname=copr.name)
+    return process_new_build_rubygems(copr, view, url_on_success)
+
+
+def process_new_build_rubygems(copr, add_view, url_on_success):
+    def factory(**build_options):
+        BuildsLogic.create_new_from_rubygems(
+            flask.g.user,
+            copr,
+            form.gem_name.data,
+            form.selected_chroots,
+            **build_options
+        )
+    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)()
+    return process_new_build(copr, form, factory, render_add_build_rubygems, add_view, url_on_success)
 
 
 ################################ Upload builds ################################
@@ -458,31 +465,16 @@ def group_copr_new_build_upload(copr):
 
 
 def process_new_build_upload(copr, add_view, url_on_success):
+    def factory(**build_options):
+        BuildsLogic.create_new_from_upload(
+            flask.g.user, copr,
+            f_uploader=lambda path: form.pkgs.data.save(path),
+            orig_filename=form.pkgs.data.filename,
+            chroot_names=form.selected_chroots,
+            **build_options
+        )
     form = forms.BuildFormUploadFactory(copr.active_chroots)()
-    if form.validate_on_submit():
-        build_options = {
-            "enable_net": form.enable_net.data,
-            "timeout": form.timeout.data,
-        }
-
-        try:
-            BuildsLogic.create_new_from_upload(
-                flask.g.user, copr,
-                f_uploader=lambda path: form.pkgs.data.save(path),
-                orig_filename=form.pkgs.data.filename,
-                chroot_names=form.selected_chroots,
-                **build_options
-            )
-            db.session.commit()
-        except (ActionInProgressException, InsufficientRightsException) as e:
-            db.session.rollback()
-            flask.flash(str(e), "error")
-        else:
-            flask.flash("New build has been created.")
-
-        return flask.redirect(url_on_success)
-    else:
-        return render_add_build_upload(copr, form, add_view)
+    return process_new_build(copr, form, factory, render_add_build_upload, add_view, url_on_success)
 
 
 ################################ Builds rebuilds ################################
@@ -512,33 +504,15 @@ def group_copr_new_build_rebuild(copr, build_id):
 
 
 def process_rebuild(copr, build_id, view, url_on_success):
-    source_build = ComplexLogic.get_build_safe(build_id)
+    def factory(**build_options):
+        source_build = ComplexLogic.get_build_safe(build_id)
+        BuildsLogic.create_new_from_other_build(
+            flask.g.user, copr, source_build,
+            chroot_names=form.selected_chroots,
+            **build_options
+        )
     form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)()
-
-    if form.validate_on_submit():
-        try:
-            build_options = {
-                "enable_net": form.enable_net.data,
-                "timeout": form.timeout.data,
-            }
-
-            BuildsLogic.create_new_from_other_build(
-                flask.g.user, copr, source_build,
-                chroot_names=form.selected_chroots,
-                **build_options
-            )
-
-        except (ActionInProgressException, InsufficientRightsException) as e:
-            flask.flash(str(e), "error")
-            db.session.rollback()
-        else:
-            flask.flash("New build has been created", "success")
-
-            db.session.commit()
-
-        return flask.redirect(url_on_success)
-    else:
-        return render_add_build(copr, form, view)
+    return process_new_build(copr, form, factory, render_add_build, view, url_on_success)
 
 
 ################################ Repeat ################################

@@ -14,30 +14,30 @@
       </tr>
     </thead>
     <tbody>
+    {# packages here is not a package object #}
     {% for package in packages %}
-      {% set build = package.builds[-1] if package.builds else empty_build %}
       <tr>
         <td data-order="{{ package.name }}">
           <b><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></b>
         </td>
 
-        <td data-order="{{ build.pkg_version }}">
-          {% if build.pkg_version %}
-            {{ build.pkg_version }}
+        <td data-order="{{ package.pkg_version }}">
+          {% if package.pkg_version %}
+            {{ package.pkg_version }}
           {% else %}
             -
           {% endif %}
         </td>
 
-        <td data-order="{{ build.submitted_on }}">
-          {% if build.submitted_on  %}
-            {{ build['submitted_on']|time_ago() }} ago
+        <td data-order="{{ package.submitted_on }}">
+          {% if package.submitted_on  %}
+            {{ package.submitted_on|time_ago() }} ago
           {% else %}
             -
           {% endif %}
         </td>
         <td>
-          {{ build_state(build) }}
+          {{ build_state(package) }}
         </td>
 
         <td data-order="{{ package.webhook_rebuild }}">
@@ -52,7 +52,7 @@
           {% if g.user and g.user.can_build_in(copr) %}
           <a class="btn btn-default btn-sm"
              href="{{ copr_url('coprs_ns.copr_rebuild_package', copr, package_name=package.name) }}">
-            <span class="{% if package.source_type %}pficon pficon-restart{% else %}fa fa-wrench{% endif %}"></span> Rebuild
+            <span class="pficon pficon-restart"></span> Rebuild
           </a>
           {% else %}
             -

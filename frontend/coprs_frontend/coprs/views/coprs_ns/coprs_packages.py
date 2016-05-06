@@ -20,8 +20,14 @@ from coprs.exceptions import (ActionInProgressException,
 @coprs_ns.route("/g/<group_name>/<coprname>/packages/")
 @req_with_copr
 def copr_packages(copr):
-    packages = PackagesLogic.get_all(copr.id)
-    return flask.render_template("coprs/detail/packages.html", packages=packages, copr=copr, empty_build=Build())
+    packages_query = PackagesLogic.get_copr_packages_list(copr)
+    return flask.render_template("coprs/detail/packages.html",
+                                 copr=copr,
+                                 packages=packages_query)
+
+    #old code:
+    #packages = PackagesLogic.get_all(copr.id)
+    #return flask.render_template("coprs/detail/packages.html", packages=packages, copr=copr, empty_build=Build())
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/")

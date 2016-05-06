@@ -13,7 +13,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false
 from werkzeug.utils import secure_filename
-from sqlalchemy import desc,asc
+from sqlalchemy import desc,asc, bindparam, Integer
 from collections import defaultdict
 
 from coprs import app
@@ -140,10 +140,10 @@ LEFT OUTER JOIN "user"
     ON copr.user_id = "user".id
 LEFT OUTER JOIN "group"
     ON copr.group_id = "group".id
-WHERE build.copr_id = {copr_id}
+WHERE build.copr_id = :copr_id
 GROUP BY
     build.id;
-""".format(copr_id=copr.id)
+"""
 
         if db.engine.url.drivername == "sqlite":
             def sqlite_status_to_order(x):
@@ -183,9 +183,13 @@ GROUP BY
             conn = db.engine.connect()
             conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
             conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
-            result = conn.execute(text(query_select))
+            statement = text(query_select)
+            statement.bindparams(bindparam("copr_id", Integer))
+            result = conn.execute(statement, {"copr_id": copr.id})
         else:
-            result = db.engine.execute(text(query_select))
+            statement = text(query_select)
+            statement.bindparams(bindparam("copr_id", Integer))
+            result = db.engine.execute(statement, {"copr_id": copr.id})
 
         return result
 
@@ -249,13 +253,7 @@ GROUP BY
 
     @classmethod
     def create_new_from_other_build(cls, user, copr, source_build,
-                            chroot_names=None, **build_options):
-        # check which chroots we need
-        chroots = []
-        for chroot in copr.active_chroots:
-            if chroot.name in chroot_names:
-                chroots.append(chroot)
-
+                                    chroot_names=None, **build_options):
         skip_import = False
         git_hashes = {}
 
@@ -274,25 +272,10 @@ GROUP BY
                     break
                 git_hashes[chroot.name] = chroot.git_hash
 
-        # try:
-        build = cls.add(
-            user=user,
-            pkgs=source_build.pkgs,
-            copr=copr,
-            chroots=chroots,
-            source_type=source_build.source_type,
-            source_json=source_build.source_json,
-            enable_net=build_options.get("enable_net", source_build.enable_net),
-            git_hashes=git_hashes,
-            skip_import=skip_import)
-
+        build = cls.create_new_from(user, copr, source_build.source_type, source_build.source_json, chroot_names,
+                                    pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import, **build_options)
         build.package_id = source_build.package_id
         build.pkg_version = source_build.pkg_version
-
-        if user.proven:
-            if "timeout" in build_options:
-                build.timeout = build_options["timeout"]
-
         return build
 
     @classmethod
@@ -306,32 +289,9 @@ GROUP BY
 
         :rtype: models.Build
         """
-        if chroot_names is None:
-            chroots = [c for c in copr.active_chroots]
-        else:
-            chroots = []
-            for chroot in copr.active_chroots:
-                if chroot.name in chroot_names:
-                    chroots.append(chroot)
-
         source_type = helpers.BuildSourceEnum("srpm_link")
         source_json = json.dumps({"url": srpm_url})
-
-        # try:
-        build = cls.add(
-            user=user,
-            pkgs=srpm_url,
-            copr=copr,
-            chroots=chroots,
-            source_type=source_type,
-            source_json=source_json,
-            enable_net=build_options.get("enable_net", copr.build_enable_net))
-
-        if user.proven:
-            if "timeout" in build_options:
-                build.timeout = build_options["timeout"]
-
-        return build
+        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, pkgs=srpm_url, **build_options)
 
     @classmethod
     def create_new_from_tito(cls, user, copr, git_url, git_dir, git_branch, tito_test,
@@ -344,35 +304,12 @@ GROUP BY
 
         :rtype: models.Build
         """
-        if chroot_names is None:
-            chroots = [c for c in copr.active_chroots]
-        else:
-            chroots = []
-            for chroot in copr.active_chroots:
-                if chroot.name in chroot_names:
-                    chroots.append(chroot)
-
         source_type = helpers.BuildSourceEnum("git_and_tito")
         source_json = json.dumps({"git_url": git_url,
                                   "git_dir": git_dir,
                                   "git_branch": git_branch,
                                   "tito_test": tito_test})
-
-        # try:
-        build = cls.add(
-            user=user,
-            pkgs="",
-            copr=copr,
-            chroots=chroots,
-            source_type=source_type,
-            source_json=source_json,
-            enable_net=build_options.get("enable_net", copr.build_enable_net))
-
-        if user.proven:
-            if "timeout" in build_options:
-                build.timeout = build_options["timeout"]
-
-        return build
+        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
     def create_new_from_mock(cls, user, copr, scm_type, scm_url, scm_branch, spec,
@@ -385,40 +322,16 @@ GROUP BY
 
         :rtype: models.Build
         """
-        if chroot_names is None:
-            chroots = [c for c in copr.active_chroots]
-        else:
-            chroots = []
-            for chroot in copr.active_chroots:
-                if chroot.name in chroot_names:
-                    chroots.append(chroot)
-
         source_type = helpers.BuildSourceEnum("mock_scm")
         source_json = json.dumps({"scm_type": scm_type,
                                   "scm_url": scm_url,
                                   "scm_branch": scm_branch,
                                   "spec": spec})
-
-        # try:
-        build = cls.add(
-            user=user,
-            pkgs="",
-            copr=copr,
-            chroots=chroots,
-            source_type=source_type,
-            source_json=source_json,
-            enable_net=build_options.get("enable_net", copr.build_enable_net))
-
-        if user.proven:
-            if "timeout" in build_options:
-                build.timeout = build_options["timeout"]
-
-        return build
-
+        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
     def create_new_from_pypi(cls, user, copr, pypi_package_name, pypi_package_version, python_versions,
-                            chroot_names=None, **build_options):
+                             chroot_names=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -430,33 +343,25 @@ GROUP BY
 
         :rtype: models.Build
         """
-        if chroot_names is None:
-            chroots = [c for c in copr.active_chroots]
-        else:
-            chroots = []
-            for chroot in copr.active_chroots:
-                if chroot.name in chroot_names:
-                    chroots.append(chroot)
-
         source_type = helpers.BuildSourceEnum("pypi")
         source_json = json.dumps({"pypi_package_name": pypi_package_name,
                                   "pypi_package_version": pypi_package_version,
                                   "python_versions": python_versions})
+        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, **build_options)
 
-        build = cls.add(
-            user=user,
-            pkgs="",
-            copr=copr,
-            chroots=chroots,
-            source_type=source_type,
-            source_json=source_json,
-            enable_net=build_options.get("enable_net", copr.build_enable_net))
-
-        if user.proven:
-            if "timeout" in build_options:
-                build.timeout = build_options["timeout"]
-
-        return build
+    @classmethod
+    def create_new_from_rubygems(cls, user, copr, gem_name,
+                                 chroot_names=None, **build_options):
+        """
+        :type user: models.User
+        :type copr: models.Copr
+        :type gem_name: str
+        :type chroot_names: List[str]
+        :rtype: models.Build
+        """
+        source_type = helpers.BuildSourceEnum("rubygems")
+        source_json = json.dumps({"gem_name": gem_name})
+        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
     def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
@@ -479,32 +384,54 @@ GROUP BY
             tmp_dir=tmp_name,
             srpm=filename)
 
-        # check which chroots we need
-        chroots = []
-        for chroot in copr.active_chroots:
-            if chroot.name in chroot_names:
-                chroots.append(chroot)
-
         # create json describing the build source
         source_type = helpers.BuildSourceEnum("srpm_upload")
         source_json = json.dumps({"tmp": tmp_name, "pkg": filename})
         try:
-            build = cls.add(
-                user=user,
-                pkgs=pkg_url,
-                copr=copr,
-                chroots=chroots,
-                source_type=source_type,
-                source_json=source_json,
-                enable_net=build_options.get("enable_net", copr.build_enable_net))
-
-            if user.proven:
-                if "timeout" in build_options:
-                    build.timeout = build_options["timeout"]
-
+            build = cls.create_new_from(user, copr, source_type, source_json,
+                                        chroot_names, pkgs=pkg_url, **build_options)
         except Exception:
             shutil.rmtree(tmp)  # todo: maybe we should delete in some cleanup procedure?
             raise
+
+        return build
+
+    @classmethod
+    def create_new_from(cls, user, copr, source_type, source_json, chroot_names=None,
+                        pkgs="", git_hashes=None, skip_import=False, **build_options):
+        """
+        :type user: models.User
+        :type copr: models.Copr
+        :type chroot_names: List[str]
+        :type source_type: int value from helpers.BuildSourceEnum
+        :type source_json: str in json format
+        :type pkgs: str
+        :type git_hashes: dict
+        :type skip_import: bool
+        :rtype: models.Build
+        """
+        if chroot_names is None:
+            chroots = [c for c in copr.active_chroots]
+        else:
+            chroots = []
+            for chroot in copr.active_chroots:
+                if chroot.name in chroot_names:
+                    chroots.append(chroot)
+
+        build = cls.add(
+            user=user,
+            pkgs=pkgs,
+            copr=copr,
+            chroots=chroots,
+            source_type=source_type,
+            source_json=source_json,
+            enable_net=build_options.get("enable_net", copr.build_enable_net),
+            git_hashes=git_hashes,
+            skip_import=skip_import)
+
+        if user.proven:
+            if "timeout" in build_options:
+                build.timeout = build_options["timeout"]
 
         return build
 

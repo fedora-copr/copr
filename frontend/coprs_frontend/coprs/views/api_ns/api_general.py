@@ -423,6 +423,22 @@ def copr_new_build_mock(copr):
     return process_creating_new_build(copr, form, create_new_build)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/new_build_rubygems/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_new_build_rubygems(copr):
+    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(csrf_enabled=False)
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_rubygems(
+            flask.g.user,
+            copr,
+            form.gem_name.data,
+            form.selected_chroots,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
 def process_creating_new_build(copr, form, create_new_build):
 
     # are there any arguments in POST which our form doesn't know?

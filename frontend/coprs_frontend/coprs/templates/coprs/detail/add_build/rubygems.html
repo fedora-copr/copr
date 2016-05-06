@@ -1,0 +1,10 @@
+{% extends "coprs/detail/add_build.html" %}
+{% from "coprs/detail/_builds_forms.html" import copr_build_form_rubygems with context %}
+
+{% set add_build_tab = "rubygems" %}
+
+{% block build_form %}
+
+{{ copr_build_form_rubygems(form, view, copr) }}
+
+{% endblock %}

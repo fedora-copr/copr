@@ -4,6 +4,7 @@ import shutil
 import time
 import glob
 from urllib import urlretrieve
+from distutils.dir_util import mkpath
 
 from munch import Munch
 from distutils.dir_util import copy_tree
@@ -116,6 +117,10 @@ class Action(object):
         if not os.path.exists(old_path):
             result.result = ActionResult.FAILURE
             return
+
+        pubkey_path = os.path.join(new_path, "pubkey.gpg")
+        mkpath(new_path)
+        get_pubkey(data["user"], data["copr"], pubkey_path)
 
         chroots = set()
         for new_id, old_dir_name in builds_map.items():

@@ -244,6 +244,16 @@ class Commands(object):
         }
         return self.process_build(args, self.client.create_new_build_mock, data)
 
+    @requires_api_auth
+    def action_build_rubygems(self, args):
+        """
+        Method called when the 'buildgem' action has been selected by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        data = {"gem_name": args.gem_name}
+        return self.process_build(args, self.client.create_new_build_rubygems, data)
+
     def process_build(self, args, build_function, data):
         username, copr = parse_name(args.copr)
 
@@ -448,6 +458,12 @@ def setup_parser():
                                    help="Name of the PyPI package to be built, required.")
     parser_build_pypi.set_defaults(func="action_build_pypi")
 
+    # create the parser for the "buildgem" command
+    parser_build_rubygems = subparsers.add_parser("buildgem", parents=[parser_build_parent],
+                                                  help="Build gem from rubygems.org to a specified copr")
+    parser_build_rubygems.add_argument("--gem", metavar="GEM", dest="gem_name", help="Specify gem name")
+    parser_build_rubygems.set_defaults(func="action_build_rubygems")
+
     # create the parser for the "buildtito" command
     parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_build_parent],
                                               help="submit a build from Git repository via Tito to a specified copr")
@@ -516,7 +532,7 @@ def parse_name(name):
 def enable_debug():
     logging.basicConfig(
         level=logging.DEBUG,
-        format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+        mock_format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
         datefmt='%H:%M:%S'
     )
     log.debug("#  Debug log enabled  #")

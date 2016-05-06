@@ -201,6 +201,18 @@
 {% endmacro %}
 
 
+{% macro copr_build_form_rubygems(form, view, copr) %}
+  {{ copr_build_form_begin(form, view, copr) }}
+
+    {{ source_description('This method uses <a href="https://github.com/fedora-ruby/gem2rpm">gem2rpm</a> to create the RPM for you automatically from RubyGems.org. Please provide the gem name.')}}
+
+    {{ render_field(form.gem_name, placeholder="Gem name from RubyGems.org") }}
+
+    <input type="hidden" name="source_type" value="rubygems" />
+  {{ copr_build_form_end(form, view, copr) }}
+{% endmacro %}
+
+
 {% macro copr_build_form_rebuild(form, view, copr, build) %}
   {{ copr_build_form_begin(form, view, copr, build, hide_panels=True) }}
   {{ copr_build_form_end(form, view, copr, hide_panels=True) }}

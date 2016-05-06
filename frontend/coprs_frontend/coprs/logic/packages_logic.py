@@ -1,8 +1,8 @@
 import json
 import time
 from sqlalchemy import or_
-from sqlalchemy import and_
-from sqlalchemy.sql import false, true
+from sqlalchemy import and_, bindparam, Integer
+from sqlalchemy.sql import false, true, text
 
 from coprs import app
 from coprs import db
@@ -29,6 +29,72 @@ class PackagesLogic(object):
     def get_all(cls, copr_id):
         return (models.Package.query
                 .filter(models.Package.copr_id == copr_id))
+
+    @classmethod
+    def get_copr_packages_list(cls, copr):
+        query_select = """
+SELECT package.name, build.pkg_version, build.submitted_on, package.webhook_rebuild, order_to_status(MIN(statuses.st)) AS status
+FROM build
+LEFT OUTER JOIN package ON build.package_id = package.id
+LEFT OUTER JOIN (SELECT build_chroot.build_id, started_on, ended_on, status_to_order(status) AS st FROM build_chroot) AS statuses
+  ON statuses.build_id=build.id
+WHERE build.id IN
+  (select id from (select MAX(build.id) as id, package.name as pkg_name
+  from package
+  left outer join build on build.package_id = package.id
+  where build.copr_id = :copr_id
+  group by package.name) as foo )
+GROUP BY package.name, build.pkg_version, build.submitted_on, package.webhook_rebuild
+ORDER BY package.name ASC;
+"""
+
+        if db.engine.url.drivername == "sqlite":
+            def sqlite_status_to_order(x):
+                if x == 0:
+                    return 0
+                elif x == 3:
+                    return 1
+                elif x == 6:
+                    return 2
+                elif x == 7:
+                    return 3
+                elif x == 4:
+                    return 4
+                elif x == 1:
+                    return 5
+                elif x == 5:
+                    return 6
+                return 1000
+
+            def sqlite_order_to_status(x):
+                if x == 0:
+                    return 0
+                elif x == 1:
+                    return 3
+                elif x == 2:
+                    return 6
+                elif x == 3:
+                    return 7
+                elif x == 4:
+                    return 4
+                elif x == 5:
+                    return 1
+                elif x == 6:
+                    return 5
+                return 1000
+
+            conn = db.engine.connect()
+            conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
+            conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
+            statement = text(query_select)
+            statement.bindparams(bindparam("copr_id", Integer))
+            result = conn.execute(statement, {"copr_id": copr.id})
+        else:
+            statement = text(query_select)
+            statement.bindparams(bindparam("copr_id", Integer))
+            result = db.engine.execute(statement, {"copr_id": copr.id})
+
+        return result
 
     @classmethod
     def get(cls, copr_id, package_name):
