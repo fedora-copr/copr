@@ -381,7 +381,15 @@ class RubyGemsProvider(SrpmBuilderProvider):
             os.chdir(cwd)
         except OSError as e:
             raise SrpmBuilderException(str(e))
-        if proc.returncode != 0:
+
+        if "Empty tag: License" in error:
+            raise SrpmBuilderException("{}\n{}\n{}".format(
+                error, "Not specifying a license means all rights are reserved; others have no rights to use the code for any purpose.",
+                "See http://guides.rubygems.org/specification-reference/#license="))
+
+        # Checking return code is not good enough because of
+        # https://github.com/fedora-ruby/gem2rpm/pull/64https://github.com/fedora-ruby/gem2rpm/pull/64
+        if proc.returncode != 0 or error:
             raise SrpmBuilderException(error)
 
         log.info(output)
