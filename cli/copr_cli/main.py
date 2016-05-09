@@ -450,7 +450,7 @@ def setup_parser():
     # create the parser for the "buildpypi" command
     parser_build_pypi = subparsers.add_parser("buildpypi", parents=[parser_build_parent],
                                               help="Build PyPI package to a specified copr")
-    parser_build_pypi.add_argument("--pythonversions", nargs="*", type=int, metavar="VERSION",
+    parser_build_pypi.add_argument("--pythonversions", nargs="*", type=int, metavar="VERSION", default=[3, 2],
                                    help="For what Python versions to build (by default: 3 2)")
     parser_build_pypi.add_argument("--packageversion", metavar = "PYPIVERSION",
                                    help="Version of the PyPI package to be built (by default latest)")
