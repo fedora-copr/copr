@@ -4,6 +4,7 @@ import argparse
 import os
 import subprocess
 import datetime
+import sqlalchemy
 
 import flask
 from flask_script import Manager, Command, Option, Group
@@ -12,6 +13,7 @@ from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
+from coprs import helpers
 from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprUserWhoosheer
@@ -342,6 +344,28 @@ class AlterUserCommand(Command):
     )
 
 
+class FailBuildCommand(Command):
+
+    """
+    Marks build as failed on all its chroots
+    """
+
+    option_list = [Option("build_id")]
+
+    def run(self, build_id, **kwargs):
+
+        try:
+            build = builds_logic.BuildsLogic.get(build_id).one()
+            for chroot in build.build_chroots:
+                chroot.status = helpers.StatusEnum("failed")
+            print("Marking build {} as failed".format(build.id))
+            db.session.commit()
+
+        except (sqlalchemy.exc.DataError, sqlalchemy.orm.exc.NoResultFound) as e:
+            print("Error: No such build {}".format(build_id))
+            return 1
+
+
 class UpdateIndexesCommand(Command):
     """
     recreates whoosh indexes for all projects
@@ -384,6 +408,7 @@ manager.add_command("display_chroots", DisplayChrootsCommand())
 manager.add_command("drop_chroot", DropChrootCommand())
 manager.add_command("alter_user", AlterUserCommand())
 manager.add_command("add_debug_user", AddDebugUserCommand())
+manager.add_command("fail_build", FailBuildCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
 manager.add_command("generate_repo_packages", GenerateRepoPackagesCommand())
 manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
