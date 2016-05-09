@@ -123,7 +123,13 @@ class CoprClient(UnicodeMixin):
         if not filepath:
             filepath = os.path.join(os.path.expanduser("~"), ".config", "copr")
         config = {}
-        if not raw_config.read(filepath):
+
+        try:
+            exists = raw_config.read(filepath)
+        except configparser.Error as e:
+            raise CoprConfigException()
+
+        if not exists:
             log.warning(
                 "No configuration file '~/.config/copr' found. "
                 "See man copr-cli for more information")
