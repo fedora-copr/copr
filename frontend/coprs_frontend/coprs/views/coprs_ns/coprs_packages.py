@@ -157,6 +157,7 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
 
     if "reset" in flask.request.form:
         package = PackagesLogic.get(copr.id, package_name).first()
+        package.source_json = json.dumps({})
         package.source_type = helpers.BuildSourceEnum("unset")
         db.session.add(package)
         db.session.commit()
