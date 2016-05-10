@@ -270,7 +270,11 @@
     </div>
     <div class="list-group">
       {% for build in builds %}
+        {% if build.copr.is_a_group_project %}
+        <a href="{{url_for("coprs_ns.group_copr_build", group_name = build.copr.group.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
+        {% else %}
         <a href="{{url_for("coprs_ns.copr_build", username = build.copr.user.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
+        {% endif %}
           <h4 class="list-group-item-heading">{{build.pkgs | pkg_name}}</h4>
           <p class="list-group-item-text">
             <small>Project:</small>
