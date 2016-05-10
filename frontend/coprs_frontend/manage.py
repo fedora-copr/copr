@@ -16,7 +16,7 @@ from coprs import models
 from coprs import helpers
 from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic
 from coprs.views.misc import create_user_wrapper
-from coprs.whoosheers import CoprUserWhoosheer
+from coprs.whoosheers import CoprWhoosheer
 from run import generate_repo_packages
 
 
@@ -372,18 +372,18 @@ class UpdateIndexesCommand(Command):
     """
 
     def run(self):
-        writer = CoprUserWhoosheer.index.writer()
+        writer = CoprWhoosheer.index.writer()
         for copr in coprs_logic.CoprsLogic.get_all():
-            CoprUserWhoosheer.delete_copr(writer, copr)
+            CoprWhoosheer.delete_copr(writer, copr)
         writer.commit(optimize=True)
 
-        writer = CoprUserWhoosheer.index.writer()
-        writer.schema = CoprUserWhoosheer.schema
+        writer = CoprWhoosheer.index.writer()
+        writer.schema = CoprWhoosheer.schema
         writer.commit(optimize=True)
 
-        writer = CoprUserWhoosheer.index.writer()
+        writer = CoprWhoosheer.index.writer()
         for copr in coprs_logic.CoprsLogic.get_all():
-            CoprUserWhoosheer.insert_copr(writer, copr)
+            CoprWhoosheer.insert_copr(writer, copr)
         writer.commit(optimize=True)
 
 

@@ -14,6 +14,7 @@ from coprs import helpers
 from coprs import models
 from coprs.exceptions import MalformedArgumentException
 from coprs.logic import users_logic
+from coprs.whoosheers import CoprWhoosheer
 
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.users_logic import UsersLogic
@@ -175,7 +176,7 @@ class CoprsLogic(object):
 
     @classmethod
     def get_multiple_fulltext(cls, search_string):
-        query = (models.Copr.query.join(models.User).outerjoin(models.Group)
+        query = (models.Copr.query.join(models.User)
                  .filter(models.Copr.deleted == False))
         if "/" in search_string: # copr search by its full name
             if search_string[0] == '@': # searching for @group/project
@@ -193,7 +194,7 @@ class CoprsLogic(object):
                                           models.User.id == models.Copr.user_id))
                 query = query.order_by(asc(func.length(models.User.username)+func.length(models.Copr.name)))
         else: # fulltext search
-            query = query.whooshee_search(search_string)
+            query = query.whooshee_search(search_string, whoosheer=CoprWhoosheer)
         return query
 
     @classmethod

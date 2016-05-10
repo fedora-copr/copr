@@ -7,7 +7,7 @@ from coprs import whooshee
 from coprs import db
 
 @whooshee.register_whoosheer
-class CoprUserWhoosheer(AbstractWhoosheer):
+class CoprWhoosheer(AbstractWhoosheer):
     schema = whoosh.fields.Schema(
         copr_id=whoosh.fields.NUMERIC(stored=True, unique=True),
         user_id=whoosh.fields.NUMERIC(stored=True),
@@ -19,12 +19,15 @@ class CoprUserWhoosheer(AbstractWhoosheer):
                 expression=r"@?\w+(-\.?\w+)*"), field_boost=2),
         coprname=whoosh.fields.TEXT(
             analyzer=whoosh.analysis.StandardAnalyzer(
-                expression=r"\w+(-\.?\w+)*"), field_boost=2),
+                expression=r"\w+(-\.?\w+)*"), field_boost=3),
         chroots=whoosh.fields.TEXT(field_boost=2),
+        packages=whoosh.fields.TEXT(
+            analyzer=whoosh.analysis.StandardAnalyzer(
+                expression=r"\s+", gaps=True), field_boost=2),
         description=whoosh.fields.TEXT(),
         instructions=whoosh.fields.TEXT())
 
-    models = [models.Copr, models.User, models.Group]
+    models = [models.Copr, models.User, models.Group, models.Package]
 
     @classmethod
     def update_user(cls, writer, user):
@@ -40,8 +43,13 @@ class CoprUserWhoosheer(AbstractWhoosheer):
                                ownername=copr.owner_name,
                                coprname=copr.name,
                                chroots=cls.get_chroot_info(copr),
+                               packages=cls.get_package_names(copr),
                                description=copr.description,
                                instructions=copr.instructions)
+
+    @classmethod
+    def update_package(cls, writer, package):
+        writer.update_document(copr_id=package.copr.id, packages=cls.get_package_names(package.copr))
 
     @classmethod
     def insert_user(cls, writer, user):
@@ -56,13 +64,21 @@ class CoprUserWhoosheer(AbstractWhoosheer):
                             ownername=copr.owner_name,
                             coprname=copr.name,
                             chroots=cls.get_chroot_info(copr),
+                            packages=cls.get_package_names(copr),
                             description=copr.description,
                             instructions=copr.instructions)
+
+    @classmethod
+    def insert_package(cls, writer, package):
+        writer.update_document(copr_id=package.copr.id, packages=cls.get_package_names(package.copr))
 
     @classmethod
     def delete_copr(cls, writer, copr):
         writer.delete_by_term("copr_id", copr.id)
 
+    @classmethod
+    def delete_package(cls, writer, package):
+        writer.update_document(copr_id=package.copr.id, packages=cls.get_package_names(package.copr))
 
     @classmethod
     def get_chroot_info(cls, copr):
@@ -78,3 +94,13 @@ class CoprUserWhoosheer(AbstractWhoosheer):
         )
         return ["{}-{}-{}".format(t[0], t[1], t[2]) for t in result.fetchall()]
 
+    @classmethod
+    def get_package_names(cls, copr):
+        result = db.engine.execute(
+            """
+            SELECT name
+            FROM package
+            WHERE copr_id={0}
+            """.format(copr.id)
+        )
+        return [row[0] for row in result.fetchall()]
