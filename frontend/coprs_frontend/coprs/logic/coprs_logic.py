@@ -175,14 +175,20 @@ class CoprsLogic(object):
     def get_multiple_fulltext(cls, search_string):
         query = (models.Copr.query.join(models.User)
                  .filter(models.Copr.deleted == False))
-        if "/" in search_string:
-            # searching for user/project
-            name = "%{}%".format(search_string.split("/")[0])
-            project = "%{}%".format(search_string.split("/")[1])
-            query = query.filter(and_(models.User.username.ilike(name),
-                                      models.Copr.name.ilike(project)))
-        else:
-            # fulltext search
+        if "/" in search_string: # copr search by its full name
+            if search_string[0] == '@': # searching for @group/project
+                name = "%{}".format(search_string.split("/")[0][1:])
+                project = "%{}%".format(search_string.split("/")[1])
+                query = query.filter(and_(models.Group.name.ilike(name),
+                                          models.Copr.name.ilike(project),
+                                          models.Group.id == models.Copr.group_id))
+            else: # searching for user/project
+                name = "%{}%".format(search_string.split("/")[0])
+                project = "%{}%".format(search_string.split("/")[1])
+                query = query.filter(and_(models.User.username.ilike(name),
+                                          models.Copr.name.ilike(project),
+                                          models.User.id == models.Copr.user_id))
+        else: # fulltext search
             query = query.whooshee_search(search_string)
         return query
 
