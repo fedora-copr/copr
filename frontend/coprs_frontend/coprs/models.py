@@ -150,6 +150,7 @@ class User(db.Model, helpers.Serializer):
 
         return (Copr.query.filter_by(user=self).
                 filter_by(deleted=False).
+                filter_by(group_id=None).
                 count())
 
     @property
