@@ -7,6 +7,7 @@ from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic
 
 from coprs import models
+from coprs.whoosheers import CoprWhoosheer
 from coprs.logic.users_logic import UsersLogic
 from tests.coprs_test_case import CoprsTestCase
 
@@ -47,7 +48,7 @@ class TestCoprsLogic(CoprsTestCase):
         # query = CoprsLogic.get_multiple_fulltext("prefix")
         pre_query = models.Copr.query.join(models.User).filter(models.Copr.deleted == False)
 
-        query = pre_query.whooshee_search(self.prefix)
+        query = pre_query.whooshee_search(self.prefix, whoosheer=CoprWhoosheer) # needs flask-whooshee-0.2.0
 
         results = query.all()
         for obj in results:
