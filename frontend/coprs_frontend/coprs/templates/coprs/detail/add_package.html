@@ -1,7 +1,7 @@
 {% extends "coprs/detail.html" %}
 {% from "_helpers.html" import copr_name %}
 {% from "coprs/detail/_package_helpers.html" import nav_element, badge with context %}
-{% from "coprs/detail/_package_forms.html" import copr_package_form_tito, copr_package_form_mock, copr_package_form_pypi with context %}
+{% from "coprs/detail/_package_forms.html" import copr_package_form_tito, copr_package_form_mock, copr_package_form_pypi, copr_package_form_rubygems with context %}
 
 {% block title %}New package in {{ copr_name(copr) }}{% endblock %}
 {% set selected_tab = "packages" %}
@@ -26,6 +26,7 @@ create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>
   {{ nav_element("git_and_tito", "Git and Tito", copr_url('coprs_ns.copr_add_package', copr, source_type="git_and_tito")) }}
   {{ nav_element("mock_scm", "Mock SCM", copr_url('coprs_ns.copr_add_package', copr, source_type="mock_scm")) }}
   {{ nav_element("pypi", "PyPI", copr_url('coprs_ns.copr_add_package', copr, source_type="pypi")) }}
+  {{ nav_element("rubygems", "RubyGems", copr_url('coprs_ns.copr_add_package', copr, source_type="rubygems")) }}
 </ul>
 
 {% if source_type == "git_and_tito" %}
@@ -39,6 +40,10 @@ create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>
 {% elif source_type == "pypi" %}
     <h3>PyPI {{ badge('pypi') }}</h3>
     {{ copr_package_form_pypi(form_pypi, view, copr, package) }}
+
+{% elif source_type == "rubygems" %}
+    <h3>RubyGems {{ badge('rubygems') }}</h3>
+    {{ copr_package_form_rubygems(form_rubygems, view, copr, package) }}
 
 {% else %}
   <h3>Wrong source type</h3>

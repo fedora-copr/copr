@@ -78,6 +78,7 @@ def copr_add_package(copr, source_type="git_and_tito", **kwargs):
         "git_and_tito": forms.PackageFormTito(),
         "mock_scm": forms.PackageFormMock(),
         "pypi": forms.PackageFormPyPI(),
+        "rubygems": forms.PackageFormRubyGems(),
     }
 
     if "form" in kwargs:
@@ -85,7 +86,8 @@ def copr_add_package(copr, source_type="git_and_tito", **kwargs):
 
     return flask.render_template("coprs/detail/add_package.html", copr=copr, package=None,
                                  source_type=source_type, view="coprs_ns.copr_new_package",
-                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"])
+                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"],
+                                 form_rubygems=form["rubygems"])
 
 
 @coprs_ns.route("/<username>/<coprname>/package/new", methods=["POST"])
@@ -117,6 +119,7 @@ def copr_edit_package(copr, package_name, source_type=None, **kwargs):
         "git_and_tito": forms.PackageFormTito,
         "mock_scm": forms.PackageFormMock,
         "pypi": forms.PackageFormPyPI,
+        "rubygems": forms.PackageFormRubyGems,
     }
     form = {k: v(formdata=None) for k, v in form_classes.items()}
 
@@ -129,7 +132,8 @@ def copr_edit_package(copr, package_name, source_type=None, **kwargs):
 
     return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr,
                                  source_type=source_type, view="coprs_ns.copr_edit_package",
-                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"])
+                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"],
+                                 form_rubygems=form["rubygems"])
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit", methods=["POST"])
@@ -152,6 +156,8 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
         form = forms.PackageFormMock()
     elif flask.request.form["source_type"] == "pypi":
         form = forms.PackageFormPyPI()
+    elif flask.request.form["source_type"] == "rubygems":
+        form = forms.PackageFormRubyGems()
     else:
         raise Exception("Wrong source type")
 
@@ -189,6 +195,9 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
             package.source_json = json.dumps({
                 "pypi_package_name": form.pypi_package_name.data,
                 "python_versions": form.python_versions.data})
+        elif package.source_type == helpers.BuildSourceEnum("rubygems"):
+            package.source_json = json.dumps({
+                "gem_name": form.gem_name.data})
 
         try:
             db.session.add(package)

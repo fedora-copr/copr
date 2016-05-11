@@ -107,3 +107,11 @@
 
   </form>
 {% endmacro %}
+
+
+{% macro copr_package_form_rubygems(form, view, copr, package) %}
+  {{ copr_package_form_begin(form, view, copr, package) }}
+  {{ render_field(form.gem_name, placeholder="Gem name from RubyGems.org") }}
+  <input type="hidden" name="source_type" value="rubygems" />
+  {{ copr_package_form_end(form, package, 'rubygems') }}
+{% endmacro %}

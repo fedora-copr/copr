@@ -175,6 +175,7 @@ def build_source_description(state):
         "git_and_tito": "Tito build from a Git repository",
         "mock_scm": "Mock build from a SCM repository",
         "pypi": "Build from PyPI",
+        "rubygems": "Build from RubyGems",
     }
 
     return description_map.get(state, "")

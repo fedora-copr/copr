@@ -51,4 +51,9 @@
   <dd>{{ ', '.join(build.source_json_dict["python_versions"]).strip(', ') }}</dd>
   {% endif %}
 
+  {% if build.source_type_text == "rubygems" %}
+  <dt>Gem name:</dt>
+  <dd>{{ build.source_json_dict["gem_name"] }}</dd>
+  {% endif %}
+
 {% endmacro %}
