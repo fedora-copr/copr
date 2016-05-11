@@ -192,7 +192,7 @@ Vagrant.configure(2) do |config|
   ###  DIST-GIT  ###################################################
   config.vm.define "distgit" do |distgit|
 
-    distgit.vm.box = "centos/7"
+    distgit.vm.box = "fedora/23-cloud-base"
 
     distgit.vm.network "forwarded_port", guest: 80, host: 5001
 
@@ -205,8 +205,6 @@ Vagrant.configure(2) do |config|
 #      inline: "sudo yum -y update"
 
     # ...
-    distgit.vm.provision "shell",
-      inline: "sudo yum -y install epel-release"
 
     # ..
     distgit.vm.provision "shell",
