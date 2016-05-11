@@ -74,4 +74,5 @@ COPY backend/docker/files/ /
 RUN chmod 700 /root && chmod 700 /home/copr && chown copr:copr /home/copr # fix permission after COPY
 
 RUN dnf -y downgrade fedpkg # temporary fix cause fedpkg-copr doesn't work with the new version of fedpkg
+RUN dnf install ansible1.9 --allowerasing # copr does not support ansible2 yet
 CMD ["/bin/run.sh"]
