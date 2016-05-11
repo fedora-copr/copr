@@ -44,6 +44,7 @@ RUN dnf -y install ca-certificates
 RUN dnf -y install scl-utils-build
 RUN dnf -y install ethtool
 
+RUN export LANG=en_US.utf8
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
 
 RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
