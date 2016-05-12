@@ -14,6 +14,13 @@
 
 
 {% macro copr_package_form_end(form, package, source_type) %}
+  {{ form.csrf_token }}
+  <input class="btn btn-primary pull-right" type="submit" value="Submit">
+  {% if package.name %}<input class="btn btn-default pull-right" type="submit" name="reset" value="Reset">{% endif %}
+</form>
+{% endmacro %}
+
+{% macro render_webhook_rebuild(form) %}
   <div class="form-group">
     <label class="col-sm-2 control-label" for="textInput-markup">
       Webhook rebuild
@@ -29,10 +36,18 @@
       | See <a href="{{ copr_url('coprs_ns.copr_webhooks', copr) }}">Webhooks Settings</a>
     </div>
   </div>
-  {{ form.csrf_token }}
-  <input class="btn btn-primary pull-right" type="submit" value="Submit">
-  {% if package.name %}<input class="btn btn-default pull-right" type="submit" name="reset" value="Reset">{% endif %}
-</form>
+{% endmacro %}
+
+{% macro render_anitya_autorebuild(form) %}
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="textInput-markup">
+      Anitya autorebuild:
+    </label>
+    <div class="col-sm-10 anitya-rebuild">
+      <input type="checkbox" name="webhook_rebuild" id="anitya_rebuild" {% if form.webhook_rebuild.data == True %}checked="checked"{% endif %}/>
+      <label for="webhook_rebuild" style="display:inline">Use Anitya emitted message to rebuild this package (you also need to register respective PyPI package on <a href="https://release-monitoring.org/">release-monitoring.org</a>). At the current state, Anitya update messages are emitted twice a day but you can also trigger a manual emission.</label>
+    </div>
+  </div>
 {% endmacro %}
 
 {% macro copr_package_delete_form(package, page, class="") %}
@@ -60,6 +75,7 @@
   </div>
   <input type="hidden" name="source_type" value="git_and_tito" />
 
+  {{ render_webhook_rebuild(form) }}
   {{ copr_package_form_end(form, package, 'git_and_tito') }}
 {% endmacro %}
 
@@ -73,6 +89,7 @@
   {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
   <input type="hidden" name="source_type" value="mock_scm" />
 
+  {{ render_webhook_rebuild(form) }}
   {{ copr_package_form_end(form, package, 'mock_scm') }}
 {% endmacro %}
 
@@ -90,16 +107,7 @@
 
     {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
     {{ render_pypi_python_versions_field(form.python_versions) }}
-
-    <div class="form-group">
-      <label class="col-sm-2 control-label" for="textInput-markup">
-        Anitya autorebuild:
-      </label>
-      <div class="col-sm-10 anitya-rebuild">
-        <input type="checkbox" name="webhook_rebuild" id="anitya_rebuild" {% if form.webhook_rebuild.data == True %}checked="checked"{% endif %}/>
-        <label for="webhook_rebuild" style="display:inline">Use Anitya emitted message to rebuild this package (you also need to register respective PyPI package on <a href="https://release-monitoring.org/">release-monitoring.org</a>). At the current state, Anitya update messages are emitted twice a day but you can also trigger a manual emission.</label>
-      </div>
-    </div>
+    {{ render_anitya_autorebuild(form) }}
     <input type="hidden" name="source_type" value="pypi" />
     {{ form.csrf_token }}
     <input class="btn btn-primary pull-right" type="submit" value="Submit">
@@ -113,5 +121,6 @@
   {{ copr_package_form_begin(form, view, copr, package) }}
   {{ render_field(form.gem_name, placeholder="Gem name from RubyGems.org") }}
   <input type="hidden" name="source_type" value="rubygems" />
+  {{ render_anitya_autorebuild(form) }}
   {{ copr_package_form_end(form, package, 'rubygems') }}
 {% endmacro %}
