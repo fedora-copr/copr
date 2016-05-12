@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='Fetch package version updates by using datagrepper log of anitya emitted messages and issue rebuilds of the respective COPR packages for each such update. Requires httpie package.')
 
-parser.add_argument('--backend', action='store', default='pypi',
+parser.add_argument('--backend', action='store', default='pypi', choices=['pypi', 'rubygems'],
                    help='only check for updates from backend BACKEND, default pypi')
 parser.add_argument('--delta', action='store', type=int, metavar='SECONDS', default=86400,
                    help='ignore updates older than SECONDS, default 86400')
@@ -118,30 +118,59 @@ def get_copr_package_info_rows():
     )
     return rows
 
+
+class RubyGemsPackage(object):
+    def __init__(self, source_json):
+        self.name = source_json['gem_name'].lower()
+
+    def build(self, copr, new_update_version):
+        return BuildsLogic.create_new_from_rubygems(copr.user, copr, self.name, chroot_names=None)
+
+
+class PyPIPackage(object):
+    def __init__(self, source_json):
+        self.name = source_json['pypi_package_name'].lower()
+        self.python_versions = source_json['python_versions']
+
+    def build(self, copr, new_updated_version):
+        return BuildsLogic.create_new_from_pypi(copr.user, copr, self.name, new_updated_version, self.python_versions, chroot_names=None)
+
+
+def package_from_source(backend, source_json):
+    try:
+        return {
+            'pypi': PyPIPackage,
+            'rubygems': RubyGemsPackage,
+        }[backend](source_json)
+    except KeyError:
+        raise Exception('Unsupported backend {0} passed as command-line argument'.format(args.backend))
+
+
 def main():
     updated_packages = get_updated_packages(get_updates_messages())
     loginfo('Updated packages according to datagrepper: {0}'.format(updated_packages))
 
     for row in get_copr_package_info_rows():
         source_json = json.loads(row.source_json)
-        source_package_name = source_json['pypi_package_name'].lower()
-        source_python_versions = source_json['python_versions']
+        package = package_from_source(args.backend.lower(), source_json)
+
         latest_build_version = row.pkg_version
-        loginfo('candidate package for rebuild: {0}, package_id: {1}, copr_id: {2}'.format(source_package_name, row.package_id, row.copr_id))
-        if source_package_name in updated_packages:
-            new_updated_version = updated_packages[source_package_name]
-            logdebug('source_package_name: {0}, latest_build_version: {1}, new_updated_version {2}'.format(source_package_name, latest_build_version, new_updated_version))
-            if not latest_build_version or not re.match(new_updated_version, latest_build_version): # if the last build's package version is "different" from new remote package version, rebuild
+        loginfo('candidate package for rebuild: {0}, package_id: {1}, copr_id: {2}'.format(package.name, row.package_id, row.copr_id))
+        if package.name in updated_packages:
+            new_updated_version = updated_packages[package.name]
+            logdebug('name: {0}, latest_build_version: {1}, new_updated_version {2}'.format(package.name, latest_build_version, new_updated_version))
+
+            # if the last build's package version is "different" from new remote package version, rebuild
+            if not latest_build_version or not re.match(new_updated_version, latest_build_version):
                 try:
                     copr = CoprsLogic.get_by_id(row.copr_id)[0]
                 except Exception as e:
                     logexception(e)
                     continue
-                if args.backend.lower() == 'pypi':
-                    loginfo('Launching pypi build for package of source name: {0}, package_id: {1}, copr_id: {2}, user_id: {3}'.format(source_package_name, row.package_id, copr.id, copr.user.id))
-                    build = BuildsLogic.create_new_from_pypi(copr.user, copr, source_package_name, new_updated_version, source_python_versions, chroot_names=None)
-                else:
-                    raise Exception('Unsupported backend {0} passed as command-line argument'.format(args.backend))
+
+                loginfo('Launching {} build for package of source name: {}, package_id: {}, copr_id: {}, user_id: {}'
+                        .format(args.backend.lower(), package.name, row.package_id, copr.id, copr.user.id))
+                build = package.build(copr, new_updated_version)
                 db.session.commit()
                 loginfo('Launched build id {0}'.format(build.id))
 
