@@ -114,8 +114,8 @@ def prune_packages():
     to_remove_rpms = set(all_rpms) - set(latest_rpms)
     for rpm in to_remove_rpms:
         if time.time() - get_package_build_time(rpm) > args.days * 24 * 3600:
-            rm_file(rpm)
             rm_srpm(rpm)
+            rm_file(rpm)
 
 
 def recreate_repo():
