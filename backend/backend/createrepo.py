@@ -77,7 +77,8 @@ def createrepo_unsafe(path, dest_dir=None, base_url=None):
 
 
 APPDATA_CMD_TEMPLATE = \
-    """/usr/bin/appstream-builder \
+    """/usr/bin/timeout --kill-after=240 180 \
+/usr/bin/appstream-builder \
 --api-version=0.8 \
 --add-cache-id \
 --max-threads=4 \
@@ -90,6 +91,7 @@ APPDATA_CMD_TEMPLATE = \
 --min-icon-size=48 \
 --enable-hidpi \
 --origin={username}/{projectname}
+--log-dir=/dev/null
 """
 INCLUDE_APPSTREAM = \
     """/usr/bin/modifyrepo_c \
