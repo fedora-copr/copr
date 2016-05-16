@@ -216,7 +216,7 @@ class ProjectForking(object):
         fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "package_id"])
         fbuild.copr = fcopr
         fbuild.package = fpackage
-        fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id"]) for c in build.build_chroots]
+        fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id", "build_id"]) for c in build.build_chroots]
         db.session.add(fbuild)
         return fbuild
 
