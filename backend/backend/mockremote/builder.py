@@ -152,16 +152,25 @@ class Builder(object):
             " regexp=\"^.*chroot_setup_cmd.*(@buildsys-build|buildsys-build buildsys-macros).*$\""
             " backrefs=yes"
         )
+        buildroot_custom_cmd = (
+            "dest=/etc/mock/{chroot}.cfg"
+            " line=\"config_opts['chroot_setup_cmd'] = 'install {pkgs}'\""
+            " regexp=\"config_opts['chroot_setup_cmd'] = ''$\""
+            " backrefs=yes"
+        )
         set_networking_cmd = (
             "dest=/etc/mock/{chroot}.cfg"
             " line=\"config_opts['use_host_resolv'] = {net_enabled}\""
             " regexp=\"^.*use_host_resolv.*$\""
         )
         try:
-            self.run_ansible_with_check(buildroot_cmd.format(**kwargs),
-                                        module_name="lineinfile", as_root=True)
             self.run_ansible_with_check(set_networking_cmd.format(**kwargs),
                                         module_name="lineinfile", as_root=True)
+            if self.buildroot_pkgs:
+                self.run_ansible_with_check(buildroot_cmd.format(**kwargs),
+                                            module_name="lineinfile", as_root=True)
+                self.run_ansible_with_check(buildroot_custom_cmd.format(**kwargs),
+                                            module_name="lineinfile", as_root=True)
         except BuilderError as err:
             self.log.exception(err)
             raise
