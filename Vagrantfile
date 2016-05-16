@@ -47,7 +47,7 @@ Vagrant.configure(2) do |config|
 
     # Build Copr Frontend
     frontend.vm.provision "shell",
-      inline: "cd /vagrant/frontend/ && tito build --test --rpm",
+      inline: "cd /vagrant/frontend/ && tito build --test --rpm --rpmbuild-options='--nocheck'",
       run: "always"
 
     # Install the Copr Frontend build
@@ -254,7 +254,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "cd /vagrant/dist-git/ && tito build --test --rpm",
+      inline: "cd /vagrant/dist-git/ && tito build --test --rpm --rpmbuild-options='--nocheck'",
       run: "always"
 
     # ...
