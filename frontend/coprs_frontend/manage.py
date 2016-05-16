@@ -13,7 +13,6 @@ from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
-from coprs import helpers
 from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
@@ -353,13 +352,9 @@ class FailBuildCommand(Command):
     option_list = [Option("build_id")]
 
     def run(self, build_id, **kwargs):
-
         try:
-            build = builds_logic.BuildsLogic.get(build_id).one()
-            chroots = filter(lambda x: x.status != helpers.StatusEnum("succeeded"), build.build_chroots)
-            for chroot in chroots:
-                chroot.status = helpers.StatusEnum("failed")
-            print("Marking non-finished chroots of build {} as failed".format(build.id))
+            builds_logic.BuildsLogic.mark_as_failed(build_id)
+            print("Marking non-finished chroots of build {} as failed".format(build_id))
             db.session.commit()
 
         except (sqlalchemy.exc.DataError, sqlalchemy.orm.exc.NoResultFound) as e:

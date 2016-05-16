@@ -654,6 +654,17 @@ GROUP BY
         db.session.delete(build)
 
     @classmethod
+    def mark_as_failed(cls, build_id):
+        """
+        Marks build as failed on all its non-finished chroots
+        """
+        build = cls.get(build_id).one()
+        chroots = filter(lambda x: x.status != helpers.StatusEnum("succeeded"), build.build_chroots)
+        for chroot in chroots:
+            chroot.status = helpers.StatusEnum("failed")
+        return build
+
+    @classmethod
     def last_modified(cls, copr):
         """ Get build datetime (as epoch) of last successful build
 
