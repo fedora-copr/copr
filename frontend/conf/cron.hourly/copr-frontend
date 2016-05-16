@@ -1,3 +1,4 @@
 #!/usr/bin/sh
 
-runuser -c '/usr/share/copr/coprs_frontend/run/check_for_anitya_version_updates.py --delta=172800 &> /dev/null' - copr-fe
+runuser -c '/usr/share/copr/coprs_frontend/run/check_for_anitya_version_updates.py --backend pypi --delta=172800 &> /dev/null' - copr-fe
+runuser -c '/usr/share/copr/coprs_frontend/run/check_for_anitya_version_updates.py --backend rubygems --delta=172800 &> /dev/null' - copr-fe
