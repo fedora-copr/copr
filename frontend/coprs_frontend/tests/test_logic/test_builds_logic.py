@@ -4,7 +4,7 @@ import json
 import pytest
 import time
 from sqlalchemy.orm.exc import NoResultFound
-from coprs import helpers
+from coprs import helpers, models
 from coprs.constants import MAX_BUILD_TIMEOUT
 
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, MalformedArgumentException
@@ -258,3 +258,20 @@ class TestBuildsLogic(CoprsTestCase):
 
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b1.id).one()
+
+    def test_mark_as_failed(self, f_users, f_coprs, f_builds, f_mock_chroots, f_db):
+
+        url = "http://example.com/foo.src.rpm"
+        b1 = BuildsLogic.create_new_from_url(self.c1.user, self.c1, url)
+        b2 = BuildsLogic.create_new_from_url(self.c1.user, self.c1, url)
+
+        for chroot in b2.build_chroots:
+            chroot.status = helpers.StatusEnum("succeeded")
+        self.db.session.commit()
+
+        BuildsLogic.mark_as_failed(b1.id)
+        BuildsLogic.mark_as_failed(b2.id)
+
+        assert b1.status == helpers.StatusEnum("failed")
+        assert b2.status == helpers.StatusEnum("succeeded")
+        assert type(BuildsLogic.mark_as_failed(b2.id)) == models.Build
