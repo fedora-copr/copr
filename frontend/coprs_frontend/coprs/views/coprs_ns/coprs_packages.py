@@ -130,7 +130,7 @@ def copr_edit_package(copr, package_name, source_type=None, **kwargs):
             data["git_directory"] = data["git_dir"]  # @FIXME workaround
         form[package.source_type_text] = form_classes[package.source_type_text](data=data)
 
-    return flask.render_template("coprs/detail/package_edit.html", package=package, copr=copr,
+    return flask.render_template("coprs/detail/edit_package.html", package=package, copr=copr,
                                  source_type=source_type, view="coprs_ns.copr_edit_package",
                                  form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"])
