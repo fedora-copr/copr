@@ -1,0 +1,3 @@
+PURPOSE of /tools/tests/Install/Config-copr-cli
+Description: Install copr-cli and configure it.
+Author: Miroslav Suchy <msuchy@redhat.com>

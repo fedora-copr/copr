@@ -1,0 +1,3 @@
+PURPOSE of /tools/copr/Regression/frontend-api
+Description: Test copr-frontend-api features such as importing public or uploaded srpm into frontend
+Author: clime <clime@redhat.com>

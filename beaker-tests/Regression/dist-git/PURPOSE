@@ -1,0 +1,3 @@
+PURPOSE of /tools/copr/Regression/dist-git
+Description: Test copr-dist-git features such as importing public or uploaded srpm into dist-git
+Author: clime <clime@redhat.com>

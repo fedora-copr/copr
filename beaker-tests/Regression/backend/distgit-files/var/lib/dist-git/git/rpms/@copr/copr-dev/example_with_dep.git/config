@@ -1,0 +1,10 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+	sharedrepository = 1
+[receive]
+	denyNonFastforwards = true
+[hooks]
+	mailinglist = @copr/copr-dev/example_with_dep-owner@fedoraproject.org,scm-commits@lists.fedoraproject.org
+	maildomain = fedoraproject.org

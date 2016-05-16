@@ -1,0 +1,28 @@
+[
+{
+  "_description": "Test copr deletion", 
+  "_expected_outcome": "success",
+
+  "action_type": 0,
+  "created_on": 1461911566,
+  "data": null,
+  "id": 1,
+  "new_value": "",
+  "object_id": 1,
+  "object_type": "copr",
+  "old_value": "@actions/copr-to-be-deleted"
+},
+{
+  "_description": "Test createrepo",
+  "_expected_outcome": "success",
+
+  "action_type": 3,
+  "created_on": 1462513764,
+  "data": "{\"username\": \"@actions\", \"projectname\": \"test-createrepo\", \"chroots\": [\"chroot-without-repodata\"]}",
+  "id": 2,
+  "new_value": null,
+  "object_id": 0,
+  "object_type": "None",
+  "old_value": ""
+}
+]

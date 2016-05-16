@@ -1,0 +1,28 @@
+How to run the tests:
+./runtest.sh : run tests (with system setup)
+./runtest.sh -x : just run tests (no system setup)
+./runtest.sh -r <test_suite_name> : run just one test-suite (<test_suite_name> is some subdirectory of ./tests/), you can also add -x option to avoid system setup
+
+How to write a new one:
+If you want to test that COPR builds a build-task with some specific params successfully (or unsuccessfully), you can use already created test-suite
+tests/builds. The same goes for actions and the suite tests/actions. If, on the other hand, you want to make a test for a particular bug (to test
+that your fix actually fixes it) or for a very specific feature of the system (no idea what that would be), there is tests/test-template that you 
+can copy and work from there on. It is really a simple template containing just the test itself (the run.sh script) and no input data 
+(i.e. builds-tasks.json or action-tasks.json used by copr-mocks-frontend to produce *-results.out.json file on which the actual tests are run) but it should 
+help you (together with other already made test-suites) get started.
+
+Very often, you don't actually need to write a new test-suite. In an ideal case (if the test runs the same checks for each processed task in the input
+data), you can just extend the input data for the test with a new json record that describes/specifies your feature (ideally you are doing this before
+the actual feature implementation). Look into tests/batch1/import-tasks.json for inspiration. In a slightly inferior case, when your feature specification
+is not covered by a generic check in an existing test-suite, you will want to add some nice rlAsserts or rlRuns into the run.sh script of the respective
+suite that you would like to use. And, in the worst case (which is the best fun, in fact), you will use the test-template to make a new suite.
+
+If your test needs some special tools (like for example jq, which is a bash tool for json manipulation and which some of the suites use), you can
+put the instalation directive for it (dnf -y install ...) into the setup.sh script, which is called by ./runtest.sh before executing the actual suites
+under the ./tests subdirectory. Note that the ./runtest.sh script does really nothing else than setting up the system and executing the _actual_ tests.
+You might also need some files being present for the backend (running in a docker container) or for dist-git (running in a Vagrant virtual machine). 
+An example of such files would be /etc/copr/copr-be.conf for the copr-backend service and the initial repository setup for the dist-git service. If you need
+something like this for your test, you can put it under ./backend-files and ./distgit-files, respectively. The content of this directories is layed over the 
+content of root filesystem during test setup phase (defined in setup.sh), which is one of the reasons why it is good to use ../DockerTestEnv/Dockerfile and 
+the associated ../DockerTestEnv/Makefile ;). You can also specify what files should be present on the actual host running the tests. These are put into
+./files subdirectory.

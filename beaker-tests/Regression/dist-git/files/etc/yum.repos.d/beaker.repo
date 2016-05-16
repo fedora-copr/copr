@@ -1,0 +1,13 @@
+[beaker-client]
+name=Beaker Client - Fedora$releasever
+baseurl=http://beaker-project.org/yum/client/Fedora$releasever/
+enabled=1
+gpgcheck=0
+skip_if_unavailable = 1
+keepcache = 0
+
+[beaker-client-testing]
+name=Beaker Client - Fedora$releasever - Testing
+baseurl=http://beaker-project.org/yum/client-testing/Fedora$releasever/
+enabled=0
+gpgheck=0

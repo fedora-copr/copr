@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# Block pushes to branches if their name starts with `origin/`
+# https://fedorahosted.org/rel-eng/ticket/4071
+
+refname="${1}"
+
+echo "${refname}" | grep -qE '^refs/heads/origin/'
+
+if [ $? == 0 ]; then
+    echo "Can't push a branch named $refname"
+    exit 1
+fi
+
+exit 0

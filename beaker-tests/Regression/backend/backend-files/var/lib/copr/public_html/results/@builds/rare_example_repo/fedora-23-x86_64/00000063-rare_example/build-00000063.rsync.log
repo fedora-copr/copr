@@ -1,0 +1,12 @@
+stty: standard input: Inappropriate ioctl for device
+receiving incremental file list
+build.log.gz
+rare_example-1.0.3-2.fc23.src.rpm
+rare_example-1.0.3-2.fc23.x86_64.rpm
+rare_example-debuginfo-1.0.3-2.fc23.x86_64.rpm
+root.log.gz
+state.log.gz
+success
+
+sent 497 bytes  received 32,266 bytes  65,526.00 bytes/sec
+total size is 54,664  speedup is 1.67

@@ -1,0 +1,12 @@
+stty: standard input: Inappropriate ioctl for device
+receiving incremental file list
+build.log.gz
+example-1.0.5-1.git.0.78e06da.fc23.src.rpm
+example-1.0.5-1.git.0.78e06da.fc23.x86_64.rpm
+example-debuginfo-1.0.5-1.git.0.78e06da.fc23.x86_64.rpm
+root.log.gz
+state.log.gz
+success
+
+sent 413 bytes  received 32,653 bytes  66,132.00 bytes/sec
+total size is 45,287  speedup is 1.37
