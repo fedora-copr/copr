@@ -1,7 +1,6 @@
 {% extends "coprs/detail.html" %}
 {% from "_helpers.html" import copr_name %}
-{% from "coprs/detail/_package_helpers.html" import nav_element, badge with context %}
-{% from "coprs/detail/_package_forms.html" import copr_package_form_tito, copr_package_form_mock, copr_package_form_pypi, copr_package_form_rubygems with context %}
+{% from "coprs/detail/_package_helpers.html" import show_navigation, show_package_form with context %}
 
 {% block title %}New package in {{ copr_name(copr) }}{% endblock %}
 {% set selected_tab = "packages" %}
@@ -14,7 +13,6 @@
 
 <h2>Add Package</h2>
 
-
 <p>In this view, you can create package entities for this Copr repository. Such a package can have predefined default
 source and can be automatically build from it via webhook. If you just want to build a package from SRPM, please
 create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>.
@@ -22,33 +20,7 @@ create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>
 
 <p>You can choose and configure <b>exactly one</b> default source for the {{ package.name }} package.</p>
 
-<ul class="nav nav-tabs nav-tabs-pf">
-  {{ nav_element("git_and_tito", "Git and Tito", copr_url('coprs_ns.copr_add_package', copr, source_type="git_and_tito")) }}
-  {{ nav_element("mock_scm", "Mock SCM", copr_url('coprs_ns.copr_add_package', copr, source_type="mock_scm")) }}
-  {{ nav_element("pypi", "PyPI", copr_url('coprs_ns.copr_add_package', copr, source_type="pypi")) }}
-  {{ nav_element("rubygems", "RubyGems", copr_url('coprs_ns.copr_add_package', copr, source_type="rubygems")) }}
-</ul>
-
-{% if source_type == "git_and_tito" %}
-    <h3>Tito {{ badge('git_and_tito') }}</h3>
-    {{ copr_package_form_tito(form_tito, view, copr, package) }}
-
-{% elif source_type == "mock_scm" %}
-    <h3>Mock {{ badge('mock_scm') }}</h3>
-    {{ copr_package_form_mock(form_mock, view, copr, package) }}
-
-{% elif source_type == "pypi" %}
-    <h3>PyPI {{ badge('pypi') }}</h3>
-    {{ copr_package_form_pypi(form_pypi, view, copr, package) }}
-
-{% elif source_type == "rubygems" %}
-    <h3>RubyGems {{ badge('rubygems') }}</h3>
-    {{ copr_package_form_rubygems(form_rubygems, view, copr, package) }}
-
-{% else %}
-  <h3>Wrong source type</h3>
-
-{% endif %}
-
+{{ show_navigation(copr, 'coprs_ns.copr_add_package') }}
+{{ show_package_form(source_type, package) }}
 
 {% endblock %}
