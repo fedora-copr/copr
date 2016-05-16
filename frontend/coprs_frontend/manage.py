@@ -347,7 +347,7 @@ class AlterUserCommand(Command):
 class FailBuildCommand(Command):
 
     """
-    Marks build as failed on all its chroots
+    Marks build as failed on all its non-finished chroots
     """
 
     option_list = [Option("build_id")]
@@ -356,9 +356,10 @@ class FailBuildCommand(Command):
 
         try:
             build = builds_logic.BuildsLogic.get(build_id).one()
-            for chroot in build.build_chroots:
+            chroots = filter(lambda x: x.status != helpers.StatusEnum("succeeded"), build.build_chroots)
+            for chroot in chroots:
                 chroot.status = helpers.StatusEnum("failed")
-            print("Marking build {} as failed".format(build.id))
+            print("Marking non-finished chroots of build {} as failed".format(build.id))
             db.session.commit()
 
         except (sqlalchemy.exc.DataError, sqlalchemy.orm.exc.NoResultFound) as e:
