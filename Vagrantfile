@@ -202,7 +202,7 @@ Vagrant.configure(2) do |config|
 
     # ...
 #    distgit.vm.provision "shell",
-#      inline: "sudo yum -y update"
+#      inline: "sudo dnf -y update"
 
     # ...
 
@@ -210,18 +210,9 @@ Vagrant.configure(2) do |config|
     distgit.vm.provision "shell",
       inline: <<-FOO
   echo \"
-[asamalik-dist-git]
-name=Copr repo for dist-git owned by asamalik
-baseurl=https://copr-be.cloud.fedoraproject.org/results/asamalik/dist-git/epel-7-x86_64/
-skip_if_unavailable=True
-gpgcheck=1
-gpgkey=https://copr-be.cloud.fedoraproject.org/results/asamalik/dist-git/pubkey.gpg
-enabled=1
-enabled_metadata=1
-
 [msuchy-copr]
 name=Copr repo for copr owned by msuchy
-baseurl=https://copr-be.cloud.fedoraproject.org/results/msuchy/copr/epel-7-x86_64/
+baseurl=https://copr-be.cloud.fedoraproject.org/results/msuchy/copr/fedora-23-x86_64/
 skip_if_unavailable=True
 gpgcheck=1
 gpgkey=https://copr-be.cloud.fedoraproject.org/results/msuchy/copr/pubkey.gpg
@@ -230,22 +221,22 @@ enabled_metadata=1
 
 [group_copr-copr-dev]
 name=Copr repo for copr-dev owned by clime
-baseurl=https://copr-be.cloud.fedoraproject.org/results/@copr/copr-dev/epel-7-x86_64/
+baseurl=https://copr-be.cloud.fedoraproject.org/results/@copr/copr-dev/fedora-23-x86_64/
 skip_if_unavailable=True
 gpgcheck=1
 gpgkey=https://copr-be.cloud.fedoraproject.org/results/@copr/copr-dev/pubkey.gpg
 enabled=1
 enabled_metadata=1
-  \" | sudo tee /etc/yum.repos.d/dist-git-epel-7.repo
+  \" | sudo tee /etc/yum.repos.d/dist-git-fedora-23.repo
   FOO
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg || sudo yum -y install tito cgit dist-git dist-git-selinux pyrpkg"
+      inline: "sudo dnf -y install tito cgit dist-git dist-git-selinux pyrpkg || sudo dnf -y install tito cgit dist-git dist-git-selinux pyrpkg"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo yum-builddep -y /vagrant/dist-git/copr-dist-git.spec"
+      inline: "sudo dnf builddep -y /vagrant/dist-git/copr-dist-git.spec"
 
     # ...
     distgit.vm.provision "shell",
@@ -259,7 +250,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo yum -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || sudo yum -y upgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm || sudo yum -y downgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm",
+      inline: "sudo dnf -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || sudo dnf -y upgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm || sudo dnf -y downgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm",
       run: "always"
 
     # ...
