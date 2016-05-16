@@ -13,7 +13,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.exceptions import (ActionInProgressException,
-                              InsufficientRightsException,)
+                              InsufficientRightsException,UnknownSourceTypeException)
 
 
 @coprs_ns.route("/<username>/<coprname>/packages/")
@@ -150,16 +150,7 @@ def copr_edit_package_post(copr, package_name):
 
 
 def process_save_package(copr, package_name, view, view_method, url_on_success):
-    if flask.request.form["source_type"] == "git_and_tito":
-        form = forms.PackageFormTito()
-    elif flask.request.form["source_type"] == "mock_scm":
-        form = forms.PackageFormMock()
-    elif flask.request.form["source_type"] == "pypi":
-        form = forms.PackageFormPyPI()
-    elif flask.request.form["source_type"] == "rubygems":
-        form = forms.PackageFormRubyGems()
-    else:
-        raise Exception("Wrong source type")
+    form = forms.get_package_form_cls_by_source_type(flask.request.form["source_type"])()
 
     if "reset" in flask.request.form:
         package = PackagesLogic.get(copr.id, package_name).first()
@@ -171,38 +162,19 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
         return flask.redirect(url_on_success)
 
     if form.validate_on_submit():
-        if package_name:
-            package = PackagesLogic.get(copr.id, package_name).first()
-        else:
-            package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
-
-        package.source_type = helpers.BuildSourceEnum(form.source_type.data)
-        package.webhook_rebuild = form.webhook_rebuild.data
-
-        if package.source_type == helpers.BuildSourceEnum("git_and_tito"):
-            package.source_json = json.dumps({
-                "git_url": form.git_url.data,
-                "git_branch": form.git_branch.data,
-                "git_dir": form.git_directory.data,
-                "tito_test": form.tito_test.data})
-        elif package.source_type == helpers.BuildSourceEnum("mock_scm"):
-            package.source_json = json.dumps({
-                "scm_type": form.scm_type.data,
-                "scm_url": form.scm_url.data,
-                "scm_branch": form.scm_branch.data,
-                "spec": form.spec.data})
-        elif package.source_type == helpers.BuildSourceEnum("pypi"):
-            package.source_json = json.dumps({
-                "pypi_package_name": form.pypi_package_name.data,
-                "python_versions": form.python_versions.data})
-        elif package.source_type == helpers.BuildSourceEnum("rubygems"):
-            package.source_json = json.dumps({
-                "gem_name": form.gem_name.data})
-
         try:
+            if package_name:
+                package = PackagesLogic.get(copr.id, package_name)[0]
+            else:
+                package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
+
+            package.source_type = helpers.BuildSourceEnum(form.source_type.data)
+            package.webhook_rebuild = form.webhook_rebuild.data
+            package.source_json = form.source_json
+
             db.session.add(package)
             db.session.commit()
-        except (ActionInProgressException, InsufficientRightsException) as e:
+        except (InsufficientRightsException, IndexError) as e:
             db.session.rollback()
             flask.flash(str(e), "error")
         else:

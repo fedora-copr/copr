@@ -336,6 +336,21 @@ class Commands(object):
         result = self.client.cancel_build(args.build_id)
         print(result.status)
 
+    @requires_api_auth
+    def action_add_or_edit_package_tito(self, args):
+        owner_name, copr_name = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "git_url": args.git_url,
+            "git_dir": args.git_dir,
+            "git_branch": args.git_branch,
+            "tito_test": args.tito_test == 'on',
+            #"webhook_rebuild": args.webhook_rebuild,
+        }
+        if args.create:
+            self.client.add_package_tito(owner_name=owner_name, project_name=copr_name, **data)
+        else:
+            self.client.edit_package_tito(owner_name=owner_name, project_name=copr_name, **data)
 
 def setup_parser():
     """
@@ -366,8 +381,7 @@ def setup_parser():
     parser_list.set_defaults(func="action_list")
 
     # create the parser for the "create" command
-    parser_create = subparsers.add_parser("create",
-                                          help="Create a new copr")
+    parser_create = subparsers.add_parser("create", help="Create a new copr")
     parser_create.add_argument("name",
                                help="The name of the copr to create")
     parser_create.add_argument("--chroot", dest="chroots", action="append",
@@ -399,10 +413,8 @@ def setup_parser():
     parser_modify.set_defaults(func="action_modify_project")
 
     # create the parser for the "delete" command
-    parser_delete = subparsers.add_parser("delete",
-                                          help="Deletes the entire project")
-    parser_delete.add_argument("copr",
-                               help="Name of your project to be deleted.")
+    parser_delete = subparsers.add_parser("delete", help="Deletes the entire project")
+    parser_delete.add_argument("copr", help="Name of your project to be deleted.")
     parser_delete.set_defaults(func="action_delete")
 
     # parent parser for the builds commands below
@@ -467,32 +479,45 @@ def setup_parser():
     parser_build_mock.set_defaults(func="action_build_mock")
 
     # create the parser for the "status" command
-    parser_status = subparsers.add_parser("status",
-                                         help="Get build status of build"
-                                              " specified by its ID")
-    parser_status.add_argument("build_id",
-                              help="Build ID", type=int)
+    parser_status = subparsers.add_parser("status", help="Get build status of build specified by its ID")
+    parser_status.add_argument("build_id", help="Build ID", type=int)
     parser_status.set_defaults(func="action_status")
 
     # create the parser for the "download-build" command
     parser_download_build = subparsers.add_parser("download-build", help="Fetches built packages")
-    parser_download_build.add_argument("build_id",
-                              help="Build ID")
-    parser_download_build.add_argument(
-        "-r", "--chroot", dest="chroots", action="append",
-        help="Select chroots to fetch"
-    )
+    parser_download_build.add_argument("build_id", help="Build ID")
+    parser_download_build.add_argument("-r", "--chroot", dest="chroots", action="append",
+                                       help="Select chroots to fetch")
     parser_download_build.add_argument("--dest", "-d", dest="dest",
-                              help="Base directory to store packages", default=".")
-
+                                       help="Base directory to store packages", default=".")
     parser_download_build.set_defaults(func="action_download_build")
 
     # create the parser for the "cancel" command
-    parser_cancel = subparsers.add_parser("cancel",
-                                         help="Cancel build specified by its ID")
-    parser_cancel.add_argument("build_id",
-                              help="Build ID")
+    parser_cancel = subparsers.add_parser("cancel", help="Cancel build specified by its ID")
+    parser_cancel.add_argument("build_id", help="Build ID")
     parser_cancel.set_defaults(func="action_cancel")
+
+    ################################################
+
+    parser_package_action_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_package_action_args_parent.add_argument("--name", help="Name of the package to be edited or created", metavar="PKGNAME", required=True)
+    parser_package_action_args_parent.add_argument("copr", help="The copr repo for the package. Can be just name of project or even in format username/project.")
+
+    parser_tito_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_tito_args_parent.add_argument("--git-url", metavar="URL", dest="git_url", required=True,
+                                         help="URL to a project managed by Tito")
+    parser_tito_args_parent.add_argument("--git-dir", metavar="DIRECTORY", dest="git_dir",
+                                         help="Relative path from Git root to directory containing .spec file")
+    parser_tito_args_parent.add_argument("--git-branch", metavar="BRANCH", dest="git_branch",
+                                         help="Git branch that you want to build from")
+    parser_tito_args_parent.add_argument("--test", dest="tito_test",
+                                         help="Build the last commit instead of the last release tag")
+
+    parser_add_package_tito = subparsers.add_parser("add-package-tito", help="Creates a new Tito package", parents=[parser_tito_args_parent, parser_package_action_args_parent])
+    parser_add_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=True)
+
+    parser_edit_package_tito = subparsers.add_parser("edit-package-tito", help="Edits an existing Tito package", parents=[parser_tito_args_parent, parser_package_action_args_parent])
+    parser_edit_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=False)
 
     return parser
 

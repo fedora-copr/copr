@@ -3,6 +3,8 @@ from six.moves.urllib.parse import urlparse
 
 import flask
 import wtforms
+import json
+
 from flask_wtf.file import FileAllowed, FileRequired, FileField
 
 from flask.ext import wtf
@@ -12,6 +14,35 @@ from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.models import Package
+from exceptions import UnknownSourceTypeException
+
+def get_package_form_cls_by_source_type(source_type):
+    """
+    Params
+    ------
+    source_type : str
+        name of the source type (tito/mock/pypi/rubygems/upload/srpm-link/...)
+
+    Returns
+    -------
+    BasePackageForm child
+        based on source_type input
+    """
+    if source_type == 'git_and_tito':
+        return PackageFormTito
+    elif source_type == 'mock_scm':
+        return PackageFormMock
+    elif source_type == 'pypi':
+        return PackageFormPyPI
+    elif source_type == 'rubygems':
+        return PackageFormRubyGems
+    elif source_type == 'srpm_link':
+        return None # TODO
+    elif source_type == 'srpm_upload':
+        return None # TODO
+    else:
+        raise UnknownSourceTypeException("Wrong source type")
 
 
 class MultiCheckboxField(wtforms.SelectMultipleField):
@@ -349,6 +380,15 @@ class PackageFormTito(BasePackageForm):
 
     tito_test = wtforms.BooleanField(default=False)
 
+    @property
+    def source_json(self):
+        return json.dumps({
+            "git_url": self.git_url.data,
+            "git_branch": self.git_branch.data,
+            "git_dir": self.git_directory.data,
+            "tito_test": self.tito_test.data
+        })
+
 
 class PackageFormMock(BasePackageForm):
     source_type = wtforms.HiddenField(
@@ -377,6 +417,15 @@ class PackageFormMock(BasePackageForm):
                 "^.+\.spec$",
                 message="RPM spec file must end with .spec")])
 
+    @property
+    def source_json(self):
+        return json.dumps({
+            "scm_type": self.scm_type.data,
+            "scm_url": self.scm_url.data,
+            "scm_branch": self.scm_branch.data,
+            "spec": self.spec.data
+        })
+
 
 class PackageFormPyPI(BasePackageForm):
     source_type = wtforms.HiddenField(
@@ -401,6 +450,13 @@ class PackageFormPyPI(BasePackageForm):
         ],
         default=['3', '2'])
 
+    @property
+    def source_json(self):
+        return json.dumps({
+            "pypi_package_name": self.pypi_package_name.data,
+            "python_versions": self.python_versions.data
+        })
+
 
 class PackageFormRubyGems(BasePackageForm):
     source_type = wtforms.HiddenField(
@@ -410,6 +466,12 @@ class PackageFormRubyGems(BasePackageForm):
     gem_name = wtforms.StringField(
         "Gem Name",
         validators=[wtforms.validators.DataRequired()])
+
+    @property
+    def source_json(self):
+        return json.dumps({
+            "gem_name": self.gem_name.data
+        })
 
 
 class BaseBuildFormFactory(object):

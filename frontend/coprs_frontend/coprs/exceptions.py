@@ -74,3 +74,5 @@ class ActionInProgressException(CoprHttpException):
         return self.msg.format(action=self.action)
 
 
+class UnknownSourceTypeException(Exception):
+    pass

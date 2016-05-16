@@ -60,6 +60,13 @@ from ..util import UnicodeMixin
 # """
 
 
+SOURCE_TYPE_SRPM_LINK = 'srpm_link'
+SOURCE_TYPE_SRPM_UPLOAD = 'srpm_upload'
+SOURCE_TYPE_GIT_AND_TITO = 'git_and_tito'
+SOURCE_TYPE_MOCK_SCM = 'mock_scm'
+SOURCE_TYPE_PYPI = 'pypi'
+SOURCE_TYPE_RUBYGEMS = 'rubygems'
+
 class CoprClient(UnicodeMixin):
     """ Main interface to the copr service
 
@@ -226,6 +233,10 @@ class CoprClient(UnicodeMixin):
         if output is None:
             raise CoprUnknownResponseException("No response from the server.")
         return output
+
+    #########################################################
+    ###                    Build actions                  ###
+    #########################################################
 
     def get_build_details(self, build_id, projectname=None, username=None):
         """ Returns build details.
@@ -506,6 +517,76 @@ class CoprClient(UnicodeMixin):
 
         return response
 
+    #########################################################
+    ###                   Package actions                 ###
+    #########################################################
+
+    def get_package_edit_url(self, owner_name, project_name, package_name, source_type):
+        return "{0}/coprs/{1}/{2}/package/{3}/edit/{4}/".format(
+            self.api_url, owner_name or self.username, project_name, package_name, source_type
+        )
+
+    def get_package_add_url(self, owner_name, project_name, source_type):
+        return "{0}/coprs/{1}/{2}/package/add/{3}/".format(
+            self.api_url, owner_name or self.username, project_name, source_type
+        )
+
+    def get_package_delete_url(self, owner_name, project_name, package_name):
+        return "{0}/coprs/{1}/{2}/package/{3}/delete/".format(
+            self.api_url, owner_name or self.username, project_name, package_name
+        )
+
+    def edit_package_tito(self, package_name, project_name, git_url, git_dir=None, git_branch=None, tito_test=None, owner_name=None):
+        request_url = self.get_package_edit_url(owner_name, project_name, package_name, SOURCE_TYPE_GIT_AND_TITO)
+        self.process_package_action(request_url, owner_name, project_name, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_GIT_AND_TITO,
+            "git_url": git_url,
+            "git_directory": git_dir,
+            "git_branch": git_branch,
+            "tito_test": 'y' if tito_test else '', # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
+            #"webhook_rebuild": webhook_rebuild,
+        })
+
+    def add_package_tito(self, package_name, project_name, git_url, git_dir=None, git_branch=None, tito_test=None, owner_name=None):
+        request_url = self.get_package_add_url(owner_name, project_name, SOURCE_TYPE_GIT_AND_TITO)
+        self.process_package_action(request_url, owner_name, project_name, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_GIT_AND_TITO,
+            "git_url": git_url,
+            "git_directory": git_dir,
+            "git_branch": git_branch,
+            "tito_test": 'y' if tito_test else '', # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
+            #"webhook_rebuild": webhook_rebuild,
+        })
+
+    def process_package_action(self, request_url, owner_name, project_name, data):
+        if not owner_name:
+            owner_name = self.username
+
+        resp_data = self._fetch(request_url, data, method="post")
+
+        response = CoprResponse(
+            client=self,
+            method="post",
+            data=resp_data,
+            request_kwargs={
+                "projectname": project_name,
+                "username": owner_name
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=project_name, username=owner_name)
+
+        return response
+
+    #########################################################
+    ###                   Project actions                 ###
+    #########################################################
 
     def get_project_details(self, projectname, username=None):
         """ Returns project details

@@ -49,6 +49,9 @@ rlJournalStart
             "enable_net": true
         }'
         curl -X POST -H "Content-Type: application/json" --user $login:$token --data "$build_data" $copr_url/api_2/builds
+
+        #EXAMPLE:
+        #curl -X POST --user Y29wcg==##sizmfpcjiqrbddbcjbfq:idcwdnpgjeqvhfejtqmaxtytabyqko --form "name=foobar" http://localhost:8080/api/coprs/clime/test/create_new_package_tito/
     rlPhaseEnd
 
     rlPhaseStartCleanup

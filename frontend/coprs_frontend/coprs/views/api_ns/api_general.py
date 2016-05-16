@@ -15,6 +15,7 @@ from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.logic.packages_logic import PackagesLogic
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -26,13 +27,11 @@ from coprs.logic.coprs_logic import CoprsLogic
 
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
+                              DuplicateException,
                               LegacyApiError)
 
 
 def api_req_with_copr(f):
-    """
-    Dirty code, using until we migrate to the API 2
-    """
     @wraps(f)
     def wrapper(username, coprname, **kwargs):
         if username.startswith("@"):
@@ -572,3 +571,57 @@ def monitor(copr):
     monitor_data = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
     output = MonitorWrapper(copr, monitor_data).to_dict()
     return flask.jsonify(output)
+
+###############################################################################
+
+@api_ns.route("/coprs/<username>/<coprname>/package/add/<source_type>/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_add_package(copr, source_type):
+    return process_package_add_or_edit(copr, source_type)
+
+
+@api_ns.route("/coprs/<username>/<coprname>/package/<package_name>/edit/<source_type>/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_edit_package(copr, package_name, source_type):
+    try:
+        package = PackagesLogic.get(copr.id, package_name).first()
+    except:
+        raise LegacyApiError("Package {name} does not exists in copr {copr}.".format(name=package_name, copr=copr.full_name))
+    return process_package_add_or_edit(copr, source_type, package=package)
+
+
+def process_package_add_or_edit(copr, source_type, package=None):
+    """
+    TODO: data format of returned data
+    """
+    try:
+        form = forms.get_package_form_cls_by_source_type(source_type)(csrf_enabled=False)
+    except UnknownSourceTypeException:
+        raise LegacyApiError("Unsupported package source type {source_type}".format(source_type=source_type))
+
+    if form.validate_on_submit():
+        if not package:
+            try:
+                package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
+            except InsufficientRightsException:
+                raise LegacyApiError("Insufficient permissions.")
+            except DuplicateException:
+                raise LegacyApiError("Package {0} already exists in copr {1}.".format(form.package_name.data, copr.full_name))
+
+        package.source_type = helpers.BuildSourceEnum(form.source_type.data)
+        package.webhook_rebuild = form.webhook_rebuild.data
+        package.source_json = form.source_json
+
+        db.session.add(package)
+        db.session.commit()
+    else:
+        raise LegacyApiError(form.errors)
+
+    return flask.jsonify({
+        'pkg_id': package.id,
+        'pkg_name': package.name,
+        'copr': copr.full_name,
+        'message': "Create or edit operation was successful."
+    })
