@@ -378,7 +378,7 @@ def process_creating_new_build(copr, form, create_new_build):
 
     if not flask.g.user.can_build_in(copr):
         raise LegacyApiError("Invalid request: user {} is not allowed to build in the copr: {}"
-                             .format(flask.g.user.username, copr))
+                             .format(flask.g.user.username, copr.full_name))
 
     # create a new build
     try:
