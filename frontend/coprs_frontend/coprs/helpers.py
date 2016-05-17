@@ -222,6 +222,12 @@ def branch_to_os_version(branch):
     elif branch[:4] == "epel" or branch[:2] == "el":
         os = "epel"
         version = branch[-1:]
+    elif branch[:6] == "custom"
+        os = "custom"
+        version = branch[-1:]
+    elif branch[:6] == "mageia"
+        os = "mageia"
+        version = branch[6:]
     return os, version
 
 
