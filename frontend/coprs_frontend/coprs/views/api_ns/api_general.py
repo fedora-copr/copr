@@ -261,88 +261,33 @@ def api_coprs_by_owner_detail(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build(copr):
-
     form = forms.BuildFormUrlFactory(copr.active_chroots)(csrf_enabled=False)
 
-    # are there any arguments in POST which our form doesn't know?
-    if any([post_key not in form.__dict__.keys()
-            for post_key in flask.request.form.keys()]):
-        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
-
-    if not form.validate_on_submit():
-        raise LegacyApiError("Invalid request: bad request parameters")
-
-    if not flask.g.user.can_build_in(copr):
-        raise LegacyApiError("Invalid request: user {} is not allowed to build in the copr: {}"
-                             .format(flask.g.user.username, copr))
-
-    # we're checking authorization above for now
-    # and also creating separate build for each package
-    pkgs = form.pkgs.data.split("\n")
-
-    ids = []
-    for pkg in pkgs:
-        try:
-            build = BuildsLogic.create_new_from_url(
-                flask.g.user, copr,
-                srpm_url=pkg,
-                chroot_names=form.selected_chroots,
-            )
-            db.session.commit()
-        except ActionInProgressException as err:
-            db.session.rollback()
-
-            raise LegacyApiError("Cannot create new build due to: {}".format(err))
-        except InsufficientRightsException as err:
-            db.session.rollback()
-            raise LegacyApiError("User {} cannot create build in project {}: {}"
-                                 .format(flask.g.user.username, copr.full_name, err))
-
-        ids.append(build.id)
-
-    output = {"output": "ok",
-              "ids": ids,
-              "message": "Build was added to {0}.".format(copr.name)}
-
-    return flask.jsonify(output)
+    def create_new_build():
+        # create separate build for each package
+        pkgs = form.pkgs.data.split("\n")
+        return [BuildsLogic.create_new_from_url(
+            flask.g.user, copr,
+            srpm_url=pkg,
+            chroot_names=form.selected_chroots,
+        ) for pkg in pkgs]
+    return process_creating_new_build(copr, form, create_new_build)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/new_build_upload/", methods=["POST"])
 @api_login_required
 @api_req_with_copr
 def copr_new_build_upload(copr):
-
     form = forms.BuildFormUploadFactory(copr.active_chroots)(csrf_enabled=False)
 
-    # are there any arguments in POST which our form doesn't know?
-    if any([post_key not in form.__dict__.keys()
-            for post_key in flask.request.form.keys()]):
-        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
-
-    if not form.validate_on_submit():
-        raise LegacyApiError("Invalid request: bad request parameters")
-
-    filename = secure_filename(form.pkgs.data.filename)
-
-    # create a new build
-    try:
-        build = BuildsLogic.create_new_from_upload(
+    def create_new_build():
+        return BuildsLogic.create_new_from_upload(
             flask.g.user, copr,
             f_uploader=lambda path: form.pkgs.data.save(path),
-            orig_filename=filename,
+            orig_filename=secure_filename(form.pkgs.data.filename),
             chroot_names=form.selected_chroots,
         )
-
-        db.session.commit()
-
-    except (ActionInProgressException, InsufficientRightsException) as e:
-        raise LegacyApiError("Invalid request: {}".format(e))
-
-    output = {"output": "ok",
-              "ids": [build.id],
-              "message": "Build was added to {0}.".format(copr.name)}
-
-    return flask.jsonify(output)
+    return process_creating_new_build(copr, form, create_new_build)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/new_build_pypi/", methods=["POST"])
@@ -355,17 +300,8 @@ def copr_new_build_pypi(copr):
     if not form.python_versions.data:
         form.python_versions.data = form.python_versions.default
 
-    # are there any arguments in POST which our form doesn't know?
-    if any([post_key not in form.__dict__.keys()
-            for post_key in flask.request.form.keys()]):
-        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
-
-    if not form.validate_on_submit():
-        raise LegacyApiError("Invalid request: bad request parameters: {0}".format(form.errors))
-
-    # create a new build
-    try:
-        build = BuildsLogic.create_new_from_pypi(
+    def create_new_build():
+        return BuildsLogic.create_new_from_pypi(
             flask.g.user,
             copr,
             form.pypi_package_name.data,
@@ -373,16 +309,7 @@ def copr_new_build_pypi(copr):
             form.python_versions.data,
             form.selected_chroots,
         )
-        db.session.commit()
-
-    except (ActionInProgressException, InsufficientRightsException) as e:
-        raise LegacyApiError("Invalid request: {}".format(e))
-
-    output = {"output": "ok",
-              "ids": [build.id],
-              "message": "Build was added to {0}.".format(copr.name)}
-
-    return flask.jsonify(output)
+    return process_creating_new_build(copr, form, create_new_build)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/new_build_tito/", methods=["POST"])
@@ -449,16 +376,23 @@ def process_creating_new_build(copr, form, create_new_build):
     if not form.validate_on_submit():
         raise LegacyApiError("Invalid request: bad request parameters: {0}".format(form.errors))
 
+    if not flask.g.user.can_build_in(copr):
+        raise LegacyApiError("Invalid request: user {} is not allowed to build in the copr: {}"
+                             .format(flask.g.user.username, copr))
+
     # create a new build
     try:
+        # From URLs it can be created multiple builds at once
+        # so it can return a list
         build = create_new_build()
         db.session.commit()
+        ids = [build.id] if type(build) != list else [b.id for b in build]
 
     except (ActionInProgressException, InsufficientRightsException) as e:
         raise LegacyApiError("Invalid request: {}".format(e))
 
     output = {"output": "ok",
-              "ids": [build.id],
+              "ids": ids,
               "message": "Build was added to {0}.".format(copr.name)}
 
     return flask.jsonify(output)

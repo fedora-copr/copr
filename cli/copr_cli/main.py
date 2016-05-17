@@ -155,7 +155,8 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        username, copr = parse_name(args.copr)
+        bar = None
+        progress_callback = None
 
         if os.path.exists(args.pkgs[0]):
             bar = ProgressBar(max=os.path.getsize(args.pkgs[0]))
@@ -164,28 +165,13 @@ class Commands(object):
                 bar.next(n=8192)
 
             print('Uploading package {0}'.format(args.pkgs[0]))
-        else:
-            bar = None
-            progress_callback = None
 
-        result = self.client.create_new_build(
-            projectname=copr, chroots=args.chroots, pkgs=args.pkgs,
-            memory=args.memory, timeout=args.timeout,
-            username=username, progress_callback=progress_callback)
+        data = {
+            "pkgs": args.pkgs,
+            "progress_callback": progress_callback,
+        }
 
-        if bar:
-            bar.finish()
-
-        if result.output != "ok":
-            print(result.error)
-            return
-        print(result.message)
-
-        build_ids = [bw.build_id for bw in result.builds_list]
-        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
-
-        if not args.nowait:
-            self._watch_builds(result.builds_list)
+        return self.process_build(args, self.client.create_new_build, data, bar=bar)
 
     @requires_api_auth
     def action_build_pypi(self, args):
@@ -196,23 +182,12 @@ class Commands(object):
         """
         username, copr = parse_name(args.copr)
 
-        result = self.client.create_new_build_pypi(
-            projectname=copr, pypi_package_name=args.packagename,
-            pypi_package_version=args.packageversion, python_versions=args.pythonversions,
-            chroots=args.chroots, memory=args.memory, timeout=args.timeout,
-            username=username)
-
-        if result.output != "ok":
-            print(result.error)
-            return
-        print(result.message)
-
-        build_ids = [bw.build_id for bw in result.builds_list]
-        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
-
-        if not args.nowait:
-            self._watch_builds(result.builds_list)
-
+        data = {
+            "pypi_package_name": args.packagename,
+            "pypi_package_version": args.packageversion,
+            "python_versions": args.pythonversions,
+        }
+        return self.process_build(args, self.client.create_new_build_pypi, data)
 
     @requires_api_auth
     def action_build_tito(self, args):
@@ -254,11 +229,14 @@ class Commands(object):
         data = {"gem_name": args.gem_name}
         return self.process_build(args, self.client.create_new_build_rubygems, data)
 
-    def process_build(self, args, build_function, data):
+    def process_build(self, args, build_function, data, bar=None):
         username, copr = parse_name(args.copr)
 
         result = build_function(username=username, projectname=copr, chroots=args.chroots,
                                             memory=args.memory, timeout= args.timeout, **data)
+        if bar:
+            bar.finish()
+
         if result.output != "ok":
             print(result.error)
             return

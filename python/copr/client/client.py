@@ -326,8 +326,6 @@ class CoprClient(UnicodeMixin):
 
                 - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
         """
-        if not username:
-            username = self.username
         data = {
             "memory_reqs": memory,
             "timeout": timeout
@@ -344,40 +342,8 @@ class CoprClient(UnicodeMixin):
             except IOError as e:
                 raise CoprRequestException(e)
 
-        url = "{0}/coprs/{1}/{2}/{3}/".format(
-            self.api_url, username, projectname, api_endpoint
-        )
-
-        for chroot in chroots or []:
-            data[chroot] = "y"
-
-        m = MultipartEncoder(data)
-
-        callback = progress_callback or (lambda x: x)
-
-        monit = MultipartEncoderMonitor(m, callback)
-        data = self._fetch(url, monit, method="post",
-                           headers={'Content-Type': monit.content_type})
-
-        response = CoprResponse(
-            client=self,
-            method="cancel_build",
-            data=data,
-            request_kwargs={
-                "projectname": projectname,
-                "username": username
-            },
-            parsers=[
-                CommonMsgErrorOutParser,
-                NewBuildListParser,
-            ]
-        )
-        response.handle = BaseHandle(
-            self, response=response,
-            projectname=projectname, username=username)
-
-        return response
-
+        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots,
+                                               progress_callback=progress_callback, multipart=True)
 
     def create_new_build_pypi(self, projectname, pypi_package_name, pypi_package_version=None,
                          python_versions=[3, 2], username=None, timeout=None, memory=None,
@@ -399,9 +365,6 @@ class CoprClient(UnicodeMixin):
 
                 - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
         """
-        if not username:
-            username = self.username
-
         data = {
             "memory_reqs": memory,
             "timeout": timeout,
@@ -410,36 +373,8 @@ class CoprClient(UnicodeMixin):
             "python_versions": [str(version) for version in python_versions],
             "source_type": "pypi",
         }
-
         api_endpoint = "new_build_pypi"
-
-        url = "{0}/coprs/{1}/{2}/{3}/".format(
-            self.api_url, username, projectname, api_endpoint
-        )
-
-        for chroot in chroots or []:
-            data[chroot] = "y"
-
-        data = self._fetch(url, data, method="post")
-
-        response = CoprResponse(
-            client=self,
-            method="cancel_build",
-            data=data,
-            request_kwargs={
-                "projectname": projectname,
-                "username": username
-            },
-            parsers=[
-                CommonMsgErrorOutParser,
-                NewBuildListParser,
-            ]
-        )
-        response.handle = BaseHandle(
-            self, response=response,
-            projectname=projectname, username=username)
-
-        return response
+        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
 
     def create_new_build_tito(self, projectname, git_url, git_dir=None, git_branch=None, tito_test=None, username=None,
                               timeout=None, memory=None, chroots=None, progress_callback=None):
@@ -531,7 +466,8 @@ class CoprClient(UnicodeMixin):
         api_endpoint = "new_build_rubygems"
         return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
 
-    def process_creating_new_build(self, projectname, data, api_endpoint, username=None, chroots=None):
+    def process_creating_new_build(self, projectname, data, api_endpoint, username=None, chroots=None,
+                                   progress_callback=None, multipart=False):
         if not username:
             username = self.username
 
@@ -542,7 +478,14 @@ class CoprClient(UnicodeMixin):
         for chroot in chroots or []:
             data[chroot] = "y"
 
-        data = self._fetch(url, data, method="post")
+        if not multipart:
+            data = self._fetch(url, data, method="post")
+        else:
+            m = MultipartEncoder(data)
+            callback = progress_callback or (lambda x: x)
+            monit = MultipartEncoderMonitor(m, callback)
+            data = self._fetch(url, monit, method="post",
+                               headers={'Content-Type': monit.content_type})
 
         response = CoprResponse(
             client=self,
