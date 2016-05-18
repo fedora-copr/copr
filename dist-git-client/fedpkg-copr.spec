@@ -1,5 +1,5 @@
 Name:           fedpkg-copr
-Version:        0.3
+Version:        0.4
 Release:        1%{?dist}
 Summary:        Fedpkg modified to work with copr dist git
 
@@ -41,6 +41,12 @@ cp -a fedpkg-copr.conf    %{buildroot}%{_sysconfdir}/rpkg/
 
 
 %changelog
+* Wed May 18 2016 Miroslav Suchý <msuchy@redhat.com> 0.4-1
+- sort imports
+- fedpkg-copr: workaround till this get into propper fedora
+- clean it up for inclusion in Fedora
+- remove left over from import
+
 * Thu Apr 21 2016 Miroslav Suchý <msuchy@redhat.com> 0.3-1
 - rebuild from new location
 
