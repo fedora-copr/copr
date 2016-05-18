@@ -92,7 +92,7 @@ Requires:   prunerepo
 Requires:   python-paramiko
 Requires:   python-lockfile
 # Requires:   python-ipdb
-Requires:   logstash
+Suggests:   logstash
 Requires:   libappstream-glib-builder >= 0.4.0
 # Requires:   python-plumbum
 Requires:   rpm-sign
