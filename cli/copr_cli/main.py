@@ -525,6 +525,10 @@ def main(argv=sys.argv[1:]):
         if arg.debug:
             enable_debug()
 
+        if not "func" in arg:
+            parser.print_help()
+            return
+
         commands = Commands(arg.config)
         getattr(commands, arg.func)(arg)
 
