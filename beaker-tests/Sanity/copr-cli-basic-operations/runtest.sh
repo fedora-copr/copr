@@ -123,6 +123,10 @@ rlJournalStart
         rlRun "xargs copr-cli watch-build < hello_p3.id"
         rlRun "xargs copr-cli status < hello_p3.id | grep succeeded"
 
+        ## test package creation and editing
+        rlRun "copr-cli add-package-tito --git-url https://github.com/clime/example.git --name foobar ${NAME_PREFIX}Project3 --test on"
+        rlRun "copr-cli edit-package-tito --git-dir xxx --git-branch xxx --name foobar ${NAME_PREFIX}Project3 --test off" # TODO: test state & presence in list-packages when implemented
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
