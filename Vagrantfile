@@ -403,4 +403,78 @@ echo \"Host *
       echo "#########################################################"
     EOF
   end
+
+  ###  BACKEND   ###################################################
+  config.vm.define "backend" do |backend|
+
+    backend.vm.box = "fedora/23-cloud-base"
+
+    backend.vm.network "forwarded_port", guest: 5002, host: 5002
+
+    backend.vm.synced_folder ".", "/vagrant", type: "nfs"
+
+    backend.vm.network "private_network", ip: "192.168.242.53"
+
+    backend.vm.provision "shell",
+      inline: <<-SHELL
+        sudo dnf -y copr enable @copr/copr-dev
+        sudo rpm --nodeps -e vim-minimal
+        sudo dnf -y install dnf-plugins-core htop tito wget net-tools iputils vim mlocate git sudo python-nova openssh-server supervisor psmisc
+
+        # Builder packages
+        sudo dnf -y install fedpkg-copr packagedb-cli fedora-cert mock mock-lvm createrepo yum-utils pyliblzma rsync openssh-clients libselinux-python libsemanage-python rpm glib2 ca-certificates scl-utils-build ethtool
+      SHELL
+
+    backend.vm.provision "shell", run: "always", inline: <<-SHELL
+        sudo dnf builddep -y /vagrant/backend/copr-backend.spec
+        sudo rm -rf /tmp/tito/*
+        cd /vagrant/backend/ && tito build --test --rpm --rpmbuild-options='--nocheck'
+        sudo dnf -y install /tmp/tito/noarch/copr-backend*.noarch.rpm || sudo dnf -y upgrade /tmp/tito/noarch/copr-backend*.noarch.rpm || sudo dnf -y downgrade /tmp/tito/noarch/copr-backend*.noarch.rpm
+    SHELL
+
+    backend.vm.provision "shell",
+      inline: <<-SHELL
+        echo 'root:passwd' | sudo chpasswd
+        sudo mkdir /root/.ssh &&  sudo chmod 700 /root /root/.ssh
+        sudo touch /root/.ssh/authorized_keys && sudo chmod 600 /root/.ssh/authorized_keys
+        sudo ssh-keygen -f /root/.ssh/id_rsa -N '' -q -C root@locahost
+        sudo bash -c "cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys"
+
+        echo 'copr:passwd' | sudo chpasswd
+        sudo bash -c "echo 'copr ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers"
+        sudo mkdir -p /home/copr/.ssh && sudo chmod 700 /home/copr /home/copr/.ssh
+        sudo ssh-keygen -f /home/copr/.ssh/id_rsa -N '' -q -C copr@locahost
+        sudo touch /home/copr/.ssh/authorized_keys && sudo chmod 600 /home/copr/.ssh/authorized_keys
+        sudo bash -c "cat /home/copr/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys"
+        sudo bash -c "cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys"
+        sudo chown copr:copr -R /home/copr
+        sudo usermod -a -G mock copr
+
+        sudo cp -r /vagrant/backend/docker/files/* /
+        sudo chmod 700 /root && sudo chmod 700 /home/copr && sudo chown copr:copr /home/copr # fix permission after COPY
+
+        sudo dnf -y downgrade fedpkg # temporary fix cause fedpkg-copr doesn't work with the new version of fedpkg
+        sudo dnf -y install ansible1.9 --allowerasing # copr does not support ansible2 yet
+      SHELL
+
+    backend.vm.provision "shell",
+      inline: <<-SHELL
+        sudo sed -i s/localhost:5000/192.168.242.51/ /etc/copr/copr-be.conf
+        sudo sed -i s/localhost:5001/192.168.242.52/ /etc/copr/copr-be.conf
+        sudo sed -i s/localhost:5001/192.168.242.52/ /etc/rpkg/fedpkg-copr.conf
+      SHELL
+
+    backend.vm.provision "shell",
+      inline: "sudo /usr/bin/supervisord -c /etc/supervisord.conf",
+      run: "always"
+
+    backend.vm.provision "shell", run: "always", inline: <<-EOF
+      echo "#########################################################"
+      echo "###   Your development instance of Copr Backend       ###"
+      echo "###   is now running at: http://localhost:5002        ###"
+      echo "#########################################################"
+    EOF
+
+  end
+
 end
