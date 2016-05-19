@@ -232,7 +232,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo dnf -y install tito cgit dist-git dist-git-selinux pyrpkg || sudo dnf -y install tito cgit dist-git dist-git-selinux pyrpkg"
+      inline: "sudo dnf -y install tito cgit dist-git dist-git-selinux pyrpkg || sudo dnf -y upgrade tito cgit dist-git dist-git-selinux pyrpkg"
 
     # ...
     distgit.vm.provision "shell",
