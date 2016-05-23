@@ -71,7 +71,7 @@ def parse_succeeded_packages():
     it iterates 100 results from copr-fe per one result.
     """
     cl = create_client2_from_params(root_url=COPR_URL)
-    copr = list(cl.projects.get_list(owner=USER, name=COPR, limit=1))[0]
+    copr = filter(lambda copr: copr.owner == USER, cl.projects.get_list(name=COPR))[0]
     packages = {}
 
     limit = 100
