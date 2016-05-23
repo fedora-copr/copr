@@ -100,8 +100,12 @@ def rm_srpm(rpm):
     If there is matching srpm in the same directory as given rpm (described by its absolute path), delete it
     """
     get_srpm_cmd = get_all_packages_cmd + [ '--srpm', os.path.splitext(os.path.basename(rpm))[0] ]
-    srpm_name = os.path.basename(run_cmd(get_srpm_cmd, silent=True)[0])
-    rm_file(os.path.abspath(os.path.join(os.path.dirname(rpm), srpm_name)))
+    try:
+        srpm_name = os.path.basename(run_cmd(get_srpm_cmd, silent=True)[0])
+        rm_file(os.path.abspath(os.path.join(os.path.dirname(rpm), srpm_name)))
+    except IndexError:
+        # no srpm found, just skip it
+        pass
 
 
 def prune_packages():
