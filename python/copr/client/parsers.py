@@ -1,6 +1,6 @@
 __docformat__ = "restructuredtext en"
 
-from .responses import ProjectWrapper, BuildWrapper, ProjectChrootWrapper
+from .responses import ProjectWrapper, BuildWrapper, ProjectChrootWrapper, PackageWrapper
 
 
 class IParser(object):
@@ -144,3 +144,36 @@ class NewBuildListParser(IParser):
         else:
             raise KeyError("Field `{}` not supported by parser".
                            format(field))
+
+
+class PackageListParser(IParser):
+    provided_fields = set(["packages_list"])
+
+    @staticmethod
+    def parse(data, field, client=None, **kwargs):
+        request_kwargs = kwargs.get("request_kwargs")
+        if field == "packages_list":
+            if "packages" in data:
+                ownername=request_kwargs["ownername"]
+                projectname=request_kwargs["projectname"]
+                return [PackageWrapper(client=client, ownername=ownername, projectname=projectname, **package) for package in data["packages"]]
+            else:
+                raise KeyError("Response missing data about projects")
+        else:
+            raise KeyError("Field `{}` not supported by parser".format(field))
+
+class PackageParser(IParser):
+    provided_fields = set(["package"])
+
+    @staticmethod
+    def parse(data, field, client=None, **kwargs):
+        request_kwargs = kwargs.get("request_kwargs")
+        if field == "package":
+            if "package" in data:
+                ownername=request_kwargs["ownername"]
+                projectname=request_kwargs["projectname"]
+                return PackageWrapper(client=client, ownername=ownername, projectname=projectname, **data['package'])
+            else:
+                raise KeyError("Response missing data about projects")
+        else:
+            raise KeyError("Field `{}` not supported by parser".format(field))

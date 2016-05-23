@@ -417,6 +417,11 @@ class Package(db.Model, helpers.Serializer):
                 return build
         return None
 
+    def to_dict(self):
+        package_dict = super(Package, self).to_dict()
+        package_dict['source_type'] = helpers.BuildSourceEnum(package_dict['source_type'])
+        return package_dict
+
 
 class Build(db.Model, helpers.Serializer):
 

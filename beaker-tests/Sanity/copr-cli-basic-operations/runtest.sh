@@ -25,6 +25,8 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+dnf install jq
+
 # Include Beaker environment
 . /usr/bin/rhts-environment.sh || exit 1
 . /usr/share/beakerlib/beakerlib.sh || exit 1
@@ -124,8 +126,39 @@ rlJournalStart
         rlRun "xargs copr-cli status < hello_p3.id | grep succeeded"
 
         ## test package creation and editing
-        rlRun "copr-cli add-package-tito --git-url https://github.com/clime/example.git --name foobar ${NAME_PREFIX}Project3 --test on"
-        rlRun "copr-cli edit-package-tito --git-dir xxx --git-branch xxx --name foobar ${NAME_PREFIX}Project3 --test off" # TODO: test state & presence in list-packages when implemented
+        OUTPUT=`mktemp`
+        SOURCE_JSON=`mktemp`
+
+        # create special repo for our test
+        rlRun "copr-cli create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project4"
+
+        # invalid package data
+        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package --git-url invalid_url" 1
+
+        # package creation
+        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package --git-url http://github.com/clime/example.git --test on --webhook-rebuild on --git-branch foo --git-dir bar"
+        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"test_package\"" `cat $OUTPUT | jq '.name'` '"test_package"'
+        rlAssertEquals "package.webhook_rebuild == \"true\"" `cat $OUTPUT | jq '.webhook_rebuild'` 'true'
+        rlAssertEquals "package.source_json.tito_test == true" `cat $SOURCE_JSON | jq '.tito_test'` 'true'
+        rlAssertEquals "package.source_json.git_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.git_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_json.git_branch == \"foo\"" `cat $SOURCE_JSON | jq '.git_branch'` '"foo"'
+        rlAssertEquals "package.source_json.git_dir == \"bar\"" `cat $SOURCE_JSON | jq '.git_dir'` '"bar"'
+
+        # package editing
+        rlRun "copr-cli edit-package-tito ${NAME_PREFIX}Project4 --name test_package --git-url http://github.com/clime/example2.git --test off --webhook-rebuild off --git-branch bar --git-dir foo"
+        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"test_package\"" `cat $OUTPUT | jq '.name'` '"test_package"'
+        rlAssertEquals "package.webhook_rebuild == \"false\"" `cat $OUTPUT | jq '.webhook_rebuild'` 'false'
+        rlAssertEquals "package.source_json.tito_test == false" `cat $SOURCE_JSON | jq '.tito_test'` 'false'
+        rlAssertEquals "package.source_json.git_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.git_url'` '"http://github.com/clime/example2.git"'
+        rlAssertEquals "package.source_json.git_branch == \"bar\"" `cat $SOURCE_JSON | jq '.git_branch'` '"bar"'
+        rlAssertEquals "package.source_json.git_dir == \"foo\"" `cat $SOURCE_JSON | jq '.git_dir'` '"foo"'
+
+        # package listing
+        rlAssertEquals "len(package_list) == 1" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 1
 
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name

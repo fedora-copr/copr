@@ -40,11 +40,11 @@ from ..exceptions import CoprConfigException, CoprNoConfException, \
     CoprUnknownResponseException
 
 from .responses import ProjectHandle, \
-    CoprResponse, BuildHandle, BaseHandle, ProjectChrootHandle
+    CoprResponse, BuildHandle, BaseHandle, ProjectChrootHandle, PackageHandle
 
 from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     CommonMsgErrorOutParser, NewBuildListParser, ProjectChrootsParser, \
-    ProjectDetailsFieldsParser
+    ProjectDetailsFieldsParser, PackageListParser, PackageParser
 
 from ..util import UnicodeMixin
 
@@ -521,48 +521,50 @@ class CoprClient(UnicodeMixin):
     ###                   Package actions                 ###
     #########################################################
 
-    def get_package_edit_url(self, owner_name, project_name, package_name, source_type):
+    def get_package_edit_url(self, ownername, projectname, package_name, source_type):
         return "{0}/coprs/{1}/{2}/package/{3}/edit/{4}/".format(
-            self.api_url, owner_name or self.username, project_name, package_name, source_type
+            self.api_url, ownername or self.username, projectname, package_name, source_type
         )
 
-    def get_package_add_url(self, owner_name, project_name, source_type):
+    def get_package_add_url(self, ownername, projectname, source_type):
         return "{0}/coprs/{1}/{2}/package/add/{3}/".format(
-            self.api_url, owner_name or self.username, project_name, source_type
+            self.api_url, ownername or self.username, projectname, source_type
         )
 
-    def get_package_delete_url(self, owner_name, project_name, package_name):
+    def get_package_delete_url(self, ownername, projectname, package_name):
         return "{0}/coprs/{1}/{2}/package/{3}/delete/".format(
-            self.api_url, owner_name or self.username, project_name, package_name
+            self.api_url, ownername or self.username, projectname, package_name
         )
 
-    def edit_package_tito(self, package_name, project_name, git_url, git_dir=None, git_branch=None, tito_test=None, owner_name=None):
-        request_url = self.get_package_edit_url(owner_name, project_name, package_name, SOURCE_TYPE_GIT_AND_TITO)
-        self.process_package_action(request_url, owner_name, project_name, data={
+    def edit_package_tito(self, package_name, projectname, git_url, git_dir=None, git_branch=None, tito_test=None, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_GIT_AND_TITO)
+        response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
             "source_type": SOURCE_TYPE_GIT_AND_TITO,
             "git_url": git_url,
             "git_directory": git_dir,
             "git_branch": git_branch,
             "tito_test": 'y' if tito_test else '', # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
-            #"webhook_rebuild": webhook_rebuild,
+            "webhook_rebuild": 'y' if webhook_rebuild else '', # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
         })
+        return response
 
-    def add_package_tito(self, package_name, project_name, git_url, git_dir=None, git_branch=None, tito_test=None, owner_name=None):
-        request_url = self.get_package_add_url(owner_name, project_name, SOURCE_TYPE_GIT_AND_TITO)
-        self.process_package_action(request_url, owner_name, project_name, data={
+    def add_package_tito(self, package_name, projectname, git_url, git_dir=None, git_branch=None, tito_test=None, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_GIT_AND_TITO)
+        response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
             "source_type": SOURCE_TYPE_GIT_AND_TITO,
             "git_url": git_url,
             "git_directory": git_dir,
             "git_branch": git_branch,
             "tito_test": 'y' if tito_test else '', # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
-            #"webhook_rebuild": webhook_rebuild,
+            "webhook_rebuild": 'y' if webhook_rebuild else '', # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
         })
+        return response
 
-    def process_package_action(self, request_url, owner_name, project_name, data):
-        if not owner_name:
-            owner_name = self.username
+    def process_package_action(self, request_url, ownername, projectname, data):
+        if not ownername:
+            ownername = self.username
 
         resp_data = self._fetch(request_url, data, method="post")
 
@@ -571,8 +573,8 @@ class CoprClient(UnicodeMixin):
             method="post",
             data=resp_data,
             request_kwargs={
-                "projectname": project_name,
-                "username": owner_name
+                "projectname": projectname,
+                "ownername": ownername
             },
             parsers=[
                 CommonMsgErrorOutParser,
@@ -580,7 +582,72 @@ class CoprClient(UnicodeMixin):
         )
         response.handle = BaseHandle(
             self, response=response,
-            projectname=project_name, username=owner_name)
+            projectname=projectname,
+            username=ownername
+        )
+
+        return response
+
+    def get_packages_list(self, projectname, ownername=None):
+        """Returns list of packages for the given copr or just one package if pkg_name is given."""
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/package/list/".format(
+            self.api_url, ownername, projectname
+        )
+
+        resp_data = self._fetch(url)
+        response = CoprResponse(
+            client=self,
+            method="post",
+            data=resp_data,
+            request_kwargs={
+                "projectname": projectname,
+                "ownername": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+                PackageListParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname,
+            username=ownername
+        )
+
+        return response
+
+    def get_package(self, projectname, pkg_name, ownername=None):
+        """Returns list of packages for the given copr or just one package if pkg_name is given."""
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/package/get/{3}".format(
+            self.api_url, ownername, projectname, pkg_name
+        )
+
+        resp_data = self._fetch(url)
+        response = CoprResponse(
+            client=self,
+            method="post",
+            data=resp_data,
+            request_kwargs={
+                "projectname": projectname,
+                "ownername": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+                PackageParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname, username=ownername
+        )
 
         return response
 

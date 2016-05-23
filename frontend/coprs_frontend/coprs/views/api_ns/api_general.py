@@ -593,9 +593,6 @@ def copr_edit_package(copr, package_name, source_type):
 
 
 def process_package_add_or_edit(copr, source_type, package=None):
-    """
-    TODO: data format of returned data
-    """
     try:
         form = forms.get_package_form_cls_by_source_type(source_type)(csrf_enabled=False)
     except UnknownSourceTypeException:
@@ -620,8 +617,24 @@ def process_package_add_or_edit(copr, source_type, package=None):
         raise LegacyApiError(form.errors)
 
     return flask.jsonify({
-        'pkg_id': package.id,
-        'pkg_name': package.name,
-        'copr': copr.full_name,
-        'message': "Create or edit operation was successful."
+        "output": "ok",
+        "message": "Create or edit operation was successful.",
+        "package": package.to_dict(),
     })
+
+
+@api_ns.route("/coprs/<username>/<coprname>/package/list/", methods=["GET"])
+@api_req_with_copr
+def copr_list_packages(copr):
+    packages = PackagesLogic.get_all(copr.id)
+    return flask.jsonify({"packages": [package.to_dict() for package in packages]})
+
+
+@api_ns.route("/coprs/<username>/<coprname>/package/get/<package_name>/", methods=["GET"])
+@api_req_with_copr
+def copr_get_package(copr, package_name):
+    try:
+        package = PackagesLogic.get(copr.id, package_name)[0]
+    except IndexError:
+        raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
+    return flask.jsonify({'package': package.to_dict()})

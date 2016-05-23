@@ -9,6 +9,7 @@ import sys
 import datetime
 import time
 import six
+import simplejson
 from collections import defaultdict
 
 import logging
@@ -336,24 +337,41 @@ class Commands(object):
         result = self.client.cancel_build(args.build_id)
         print(result.status)
 
+    def action_watch_build(self, args):
+        self._watch_builds(args.build_id)
+
+    #########################################################
+    ###                   Package actions                 ###
+    #########################################################
+
     @requires_api_auth
     def action_add_or_edit_package_tito(self, args):
-        owner_name, copr_name = parse_name(args.copr)
+        ownername, projectname = parse_name(args.copr)
         data = {
             "package_name": args.name,
             "git_url": args.git_url,
             "git_dir": args.git_dir,
             "git_branch": args.git_branch,
             "tito_test": args.tito_test == 'on',
-            #"webhook_rebuild": args.webhook_rebuild,
+            "webhook_rebuild": args.webhook_rebuild == 'on',
         }
         if args.create:
-            self.client.add_package_tito(owner_name=owner_name, project_name=copr_name, **data)
+            result = self.client.add_package_tito(ownername=ownername, projectname=projectname, **data)
         else:
-            self.client.edit_package_tito(owner_name=owner_name, project_name=copr_name, **data)
+            result = self.client.edit_package_tito(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
 
-    def action_watch_build(self, args):
-        self._watch_builds(args.build_id)
+    def action_list_packages(self, args):
+        ownername, projectname = parse_name(args.copr)
+        result = self.client.get_packages_list(ownername=ownername, projectname=projectname)
+        print(simplejson.dumps(result.packages_list, indent=4, sort_keys=True, for_json=True))
+
+    def action_get_package(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = { "pkg_name": args.name }
+        result = self.client.get_package(ownername=ownername, projectname=projectname, **data)
+        print(simplejson.dumps(result.package, indent=4, sort_keys=True, for_json=True))
+
 
 def setup_parser():
     """
@@ -510,9 +528,10 @@ def setup_parser():
 
     ################################################
 
-    parser_package_action_args_parent = argparse.ArgumentParser(add_help=False)
-    parser_package_action_args_parent.add_argument("--name", help="Name of the package to be edited or created", metavar="PKGNAME", required=True)
-    parser_package_action_args_parent.add_argument("copr", help="The copr repo for the package. Can be just name of project or even in format username/project.")
+    parser_add_or_edit_package_parent = argparse.ArgumentParser(add_help=False)
+    parser_add_or_edit_package_parent.add_argument("--name", help="Name of the package to be edited or created", metavar="PKGNAME", required=True)
+    parser_add_or_edit_package_parent.add_argument("copr", help="The copr repo for the package. Can be just name of project or even in format username/project.")
+    parser_add_or_edit_package_parent.add_argument("--webhook-rebuild", choices=["on", "off"], help="Enable auto-rebuilding with webhooks.")
 
     parser_tito_args_parent = argparse.ArgumentParser(add_help=False)
     parser_tito_args_parent.add_argument("--git-url", metavar="URL", dest="git_url", required=True,
@@ -521,14 +540,23 @@ def setup_parser():
                                          help="Relative path from Git root to directory containing .spec file")
     parser_tito_args_parent.add_argument("--git-branch", metavar="BRANCH", dest="git_branch",
                                          help="Git branch that you want to build from")
-    parser_tito_args_parent.add_argument("--test", dest="tito_test",
+    parser_tito_args_parent.add_argument("--test", dest="tito_test", choices=["on", "off"],
                                          help="Build the last commit instead of the last release tag")
 
-    parser_add_package_tito = subparsers.add_parser("add-package-tito", help="Creates a new Tito package", parents=[parser_tito_args_parent, parser_package_action_args_parent])
+    parser_add_package_tito = subparsers.add_parser("add-package-tito", help="Creates a new Tito package", parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=True)
 
-    parser_edit_package_tito = subparsers.add_parser("edit-package-tito", help="Edits an existing Tito package", parents=[parser_tito_args_parent, parser_package_action_args_parent])
+    parser_edit_package_tito = subparsers.add_parser("edit-package-tito", help="Edits an existing Tito package", parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=False)
+
+    parser_list_packages = subparsers.add_parser("list-packages", help="Returns list of packages in the given copr")
+    parser_list_packages.add_argument("copr", help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_list_packages.set_defaults(func="action_list_packages")
+
+    parser_get_package = subparsers.add_parser("get-package", help="Returns package of the given name in the given copr")
+    parser_get_package.add_argument("copr", help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_get_package.add_argument("--name", help="Name of a single package to be displayed", metavar="PKGNAME", required=True)
+    parser_get_package.set_defaults(func="action_get_package")
 
     return parser
 

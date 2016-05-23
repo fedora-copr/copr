@@ -11,6 +11,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import weakref
+import json
 
 #
 # TODO:  Add Response for collections?
@@ -224,6 +225,17 @@ class ProjectChrootHandle(BaseHandle):
             self.projectname, self.chrootname, pkgs=pkgs)
 
 
+class PackageHandle(BaseHandle):
+    def __init__(self, client, ownername, projectname, name, *args, **kwargs):
+        super(PackageHandle, self).__init__(client, *args, **kwargs)
+
+        self.ownername = ownername
+        self.projectname = projectname
+        self.name = name
+
+
+############################################################
+
 class ProjectWrapper(UnicodeMixin):
     """
         Helper class to represent project objects
@@ -315,3 +327,28 @@ class ProjectChrootWrapper(object):
             projectname=projectname,
             username=username, response=None
         )
+
+
+class PackageWrapper(UnicodeMixin):
+    def __init__(self, client, ownername, projectname, **data):
+        self.client = client
+        self.ownername = ownername
+        self.projectname = projectname
+        self.data = data
+        self.handle = PackageHandle(
+            client=self.client,
+            ownername=self.ownername, projectname=self.projectname,
+            copr_id=self.copr_id, enable_net=self.enable_net, name=self.name,
+            id=self.id, old_status=self.old_status,
+            source_json=self.source_json, source_type=self.source_type,
+            webhook_rebuild=self.webhook_rebuild
+        )
+
+    def __getattr__(self, item):
+        try:
+            return self.data[item]
+        except KeyError as e:
+            return AttributeError()
+
+    def for_json(self):
+        return self.data
