@@ -14,7 +14,7 @@ CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
 
 COPR_URL = "https://copr.fedorainfracloud.org/"
 USER = "@copr"
-COPR = "PyPI3"
+COPR = "PyPI2"
 
 
 parser = argparse.ArgumentParser(prog = "pypi")
@@ -57,11 +57,11 @@ def submit_all_pypi_modules():
     packages = client.list_packages()
     #print(packages[0:10])
     for module in packages:
-        if module <= "civeng":
-            continue
+        #if module <= "xxx":
+        #    continue
         print("Submitting module {0}".format(module))
-        submit_build("{}/{}".format(USER, COPR), module, "3")
-        time.sleep(8)
+        submit_build("{}/{}".format(USER, COPR), module, "2")
+        time.sleep(4)
 
 
 def parse_succeeded_packages():
