@@ -135,7 +135,7 @@ rlJournalStart
         # invalid package data
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url invalid_url" 1
 
-        # tito package creation
+        # Tito package creation
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url http://github.com/clime/example.git --test on --webhook-rebuild on --git-branch foo --git-dir bar"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_tito > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
@@ -146,7 +146,7 @@ rlJournalStart
         rlAssertEquals "package.source_json.git_branch == \"foo\"" `cat $SOURCE_JSON | jq '.git_branch'` '"foo"'
         rlAssertEquals "package.source_json.git_dir == \"bar\"" `cat $SOURCE_JSON | jq '.git_dir'` '"bar"'
 
-        # tito package editing
+        # Tito package editing
         rlRun "copr-cli edit-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url http://github.com/clime/example2.git --test off --webhook-rebuild off --git-branch bar --git-dir foo"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_tito > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
@@ -160,7 +160,7 @@ rlJournalStart
         # package listing
         rlAssertEquals "len(package_list) == 1" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 1
 
-        # pypi package creation
+        # PyPI package creation
         rlRun "./copr add-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename pyp2rpm --packageversion 1.5 --pythonversions 3 2"
         rlRun "./copr get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
@@ -168,8 +168,8 @@ rlJournalStart
         rlRun `cat $SOURCE_JSON | jq '.python_versions == ["3", "2"]'` 0 "package.source_json.python_versions == [\"3\", \"2\"]"
         rlAssertEquals "package.source_json.pypi_package_name == \"pyp2rpm\"" `cat $SOURCE_JSON | jq '.pypi_package_name'` '"pyp2rpm"'
         rlAssertEquals "package.source_json.pypi_package_version == \"bar\"" `cat $SOURCE_JSON | jq '.pypi_package_version'` '"1.5"'
-        
-        # pypi package editing
+ 
+        # PyPI package editing
         rlRun "./copr edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename motionpaint --packageversion 1.4 --pythonversions 2 3"
         rlRun "./copr get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
@@ -178,8 +178,75 @@ rlJournalStart
         rlAssertEquals "package.source_json.pypi_package_name == \"motionpaint\"" `cat $SOURCE_JSON | jq '.pypi_package_name'` '"motionpaint"'
         rlAssertEquals "package.source_json.pypi_package_version == \"bar\"" `cat $SOURCE_JSON | jq '.pypi_package_version'` '"1.4"'
 
-        # package listing
         rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
+
+        # MockSCM package creation
+        rlRun "./copr add-package-mockscm ${NAME_PREFIX}Project4 --name test_package_mockscm --scm-type git --scm-url http://github.com/clime/example.git --scm-branch foo --spec example.spec"
+        rlRun "./copr get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
+        rlAssertEquals "package.source_json.scm_type == \"git\"" `cat $SOURCE_JSON | jq '.scm_type'` '"git"'
+        rlAssertEquals "package.source_json.scm_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.scm_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_json.scm_branch == \"foo\"" `cat $SOURCE_JSON | jq '.scm_branch'` '"foo"'
+        rlAssertEquals "package.source_json.spec == \"example.spec\"" `cat $SOURCE_JSON | jq '.spec'` '"example.spec"'
+ 
+        # MockSCM package editing
+        rlRun "./copr edit-package-mockscm ${NAME_PREFIX}Project4 --name test_package_mockscm --scm-type svn --scm-url http://github.com/clime/example2.git --scm-branch bar --spec example2.spec"
+        rlRun "./copr get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
+        rlAssertEquals "package.source_json.scm_type == \"svn\"" `cat $SOURCE_JSON | jq '.scm_type'` '"svn"'
+        rlAssertEquals "package.source_json.scm_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.scm_url'` '"http://github.com/clime/example2.git"'
+        rlAssertEquals "package.source_json.scm_branch == \"bar\"" `cat $SOURCE_JSON | jq '.scm_branch'` '"bar"'
+        rlAssertEquals "package.source_json.spec == \"example2.spec\"" `cat $SOURCE_JSON | jq '.spec'` '"example2.spec"'
+
+        rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
+
+        # SRPM_URL package creation
+        rlRun "./copr add-package-urls ${NAME_PREFIX}Project4 --name test_package_urls --urls 'http://github.com/clime/example.src.rpm'"
+        rlRun "./copr get-package ${NAME_PREFIX}Project4 --name test_package_urls > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"test_package_urls\"" `cat $OUTPUT | jq '.name'` '"test_package_urls"'
+        rlRun `cat $SOURCE_JSON | jq '.pkgs == "http://github.com/clime/example.src.rpm"'` 0 "package.source_json.pkgs == \"http://github.com/clime/example.src.rpm\""
+ 
+        # SRPM_URL package editing
+        rlRun "./copr edit-package-urls ${NAME_PREFIX}Project4 --name test_package_urls --urls 'http://github.com/clime/example.src.rpm,http://github.com/clime/example2.src.rpm'"
+        rlRun "./copr get-package ${NAME_PREFIX}Project4 --name test_package_urls > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"test_package_urls\"" `cat $OUTPUT | jq '.name'` '"test_package_urls"'
+        rlRun `cat $SOURCE_JSON | jq '.pkgs == "http://github.com/clime/example.src.rpm\nhttp://github.com/clime/example2.src.rpm"'` 0 "package.source_json.pkgs == \"http://github.com/clime/example.src.rpm\nhttp://github.com/clime/example2.src.rpm"
+
+        rlAssertEquals "len(package_list) == 4" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 4
+
+        # Upload package creation
+        rlRun "./copr add-package-upload ${NAME_PREFIX}Project4 --name test_package_upload "
+        rlRun "./copr get-package ${NAME_PREFIX}Project4 --name test_package_upload > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"test_package_upload\"" `cat $OUTPUT | jq '.name'` '"test_package_upload"'
+ 
+        # Upload package editing (nothing can be modified for upload package cause it has no attributes atm)
+        rlRun "./copr edit-package-upload ${NAME_PREFIX}Project4 --name test_package_upload "
+        rlRun "./copr get-package ${NAME_PREFIX}Project4 --name test_package_upload > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"test_package_upload\"" `cat $OUTPUT | jq '.name'` '"test_package_upload"'
+
+        rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
+
+        # RubyGems package creation
+        rlRun "./copr add-package-rubygems Project4 --name xxx --gem yyy"
+        rlRun "./copr get-package ${NAME_PREFIX}Project4 --name xxx > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"xxx\"" `cat $OUTPUT | jq '.name'` '"xxx"'
+        rlAssertEquals "package.source_json.gem_name == \"yyy\"" `cat $SOURCE_JSON | jq '.gem_name'` '"yyy"'
+
+        # RubyGems package editing
+        rlRun "./copr edit-package-rubygems Project4 --name xxx --gem zzz"
+        rlRun "./copr get-package ${NAME_PREFIX}Project4 --name xxx > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.name == \"xxx\"" `cat $OUTPUT | jq '.name'` '"xxx"'
+        rlAssertEquals "package.source_json.gem_name == \"zzz\"" `cat $SOURCE_JSON | jq '.gem_name'` '"zzz"'
+
+        rlAssertEquals "len(package_list) == 6" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 6
 
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name

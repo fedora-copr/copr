@@ -584,6 +584,89 @@ class CoprClient(UnicodeMixin):
             "python_versions": python_versions,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
+
+    def edit_package_mockscm(self, package_name, projectname, scm_type, scm_url, scm_branch, spec, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_MOCK_SCM)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_MOCK_SCM,
+            "scm_type": scm_type,
+            "scm_url": scm_url,
+            "scm_branch": scm_branch,
+            "spec": spec,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def add_package_mockscm(self, package_name, projectname, scm_type, scm_url, scm_branch, spec, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_MOCK_SCM)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_MOCK_SCM,
+            "scm_type": scm_type,
+            "scm_url": scm_url,
+            "scm_branch": scm_branch,
+            "spec": spec,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def edit_package_urls(self, package_name, projectname, urls, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_SRPM_LINK)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_SRPM_LINK,
+            "pkgs": urls,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def add_package_urls(self, package_name, projectname, urls, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_SRPM_LINK)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_SRPM_LINK,
+            "pkgs": urls,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def edit_package_upload(self, package_name, projectname, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_SRPM_UPLOAD)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_SRPM_UPLOAD,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def add_package_upload(self, package_name, projectname, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_SRPM_UPLOAD)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_SRPM_UPLOAD,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def edit_package_rubygems(self, package_name, projectname, gem_name, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_RUBYGEMS)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_RUBYGEMS,
+            "gem_name": gem_name,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def add_package_rubygems(self, package_name, projectname, gem_name, ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_RUBYGEMS)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_RUBYGEMS,
+            "gem_name": gem_name,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
         return response
 
     def process_package_action(self, request_url, ownername, projectname, data):

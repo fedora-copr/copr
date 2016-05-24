@@ -111,7 +111,7 @@ def group_copr_add_build(copr, form=None):
 
 def render_add_build(copr, form, view):
     if not form:
-        form = forms.BuildFormUrlFactory(copr.active_chroots)()
+        form = forms.BuildFormUrlsFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/url.html",
                                  copr=copr, view=view, form=form)
 
@@ -152,7 +152,7 @@ def process_new_build_url(copr, add_view, url_on_success):
         for pkg in pkgs:
             flask.flash("New build has been created: {}".format(pkg), "success")
 
-    form = forms.BuildFormUrlFactory(copr.active_chroots)()
+    form = forms.BuildFormUrlsFactory(copr.active_chroots)()
     return process_new_build(copr, form, factory, render_add_build,
                              add_view, url_on_success, msg_on_success=False)
 

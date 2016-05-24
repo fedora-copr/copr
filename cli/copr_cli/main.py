@@ -377,6 +377,64 @@ class Commands(object):
             result = self.client.edit_package_pypi(ownername=ownername, projectname=projectname, **data)
         print(result.message)
 
+    @requires_api_auth
+    def action_add_or_edit_package_mockscm(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "scm_type": args.scm_type,
+            "scm_url": args.scm_url,
+            "scm_branch": args.scm_branch,
+            "spec": args.spec,
+            "webhook_rebuild": args.webhook_rebuild == 'on',
+        }
+        if args.create:
+            result = self.client.add_package_mockscm(ownername=ownername, projectname=projectname, **data)
+        else:
+            result = self.client.edit_package_mockscm(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
+    @requires_api_auth
+    def action_add_or_edit_package_urls(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "urls": '\n'.join(args.urls.split(',')),
+            "webhook_rebuild": args.webhook_rebuild == 'on',
+        }
+        if args.create:
+            result = self.client.add_package_urls(ownername=ownername, projectname=projectname, **data)
+        else:
+            result = self.client.edit_package_urls(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
+    @requires_api_auth
+    def action_add_or_edit_package_upload(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "webhook_rebuild": args.webhook_rebuild == 'on',
+        }
+        if args.create:
+            result = self.client.add_package_upload(ownername=ownername, projectname=projectname, **data)
+        else:
+            result = self.client.edit_package_upload(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
+    @requires_api_auth
+    def action_add_or_edit_package_rubygems(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "gem_name": args.gem_name,
+            "webhook_rebuild": args.webhook_rebuild == 'on',
+        }
+        if args.create:
+            result = self.client.add_package_rubygems(ownername=ownername, projectname=projectname, **data)
+        else:
+            result = self.client.edit_package_rubygems(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
     def action_list_packages(self, args):
         ownername, projectname = parse_name(args.copr)
         result = self.client.get_packages_list(ownername=ownername, projectname=projectname)
@@ -542,12 +600,18 @@ def setup_parser():
                               help="Build ID", type=int)
     parser_watch.set_defaults(func="action_watch_build")
 
-    ################################################
+    #########################################################
+    ###                   Package options                 ###
+    #########################################################
 
     parser_add_or_edit_package_parent = argparse.ArgumentParser(add_help=False)
-    parser_add_or_edit_package_parent.add_argument("--name", help="Name of the package to be edited or created", metavar="PKGNAME", required=True)
-    parser_add_or_edit_package_parent.add_argument("copr", help="The copr repo for the package. Can be just name of project or even in format username/project.")
-    parser_add_or_edit_package_parent.add_argument("--webhook-rebuild", choices=["on", "off"], help="Enable auto-rebuilding with webhooks.")
+    parser_add_or_edit_package_parent.add_argument("--name",
+                                                   help="Name of the package to be edited or created",
+                                                   metavar="PKGNAME", required=True)
+    parser_add_or_edit_package_parent.add_argument("copr",
+                                                   help="The copr repo for the package. Can be just name of project or even in format username/project.")
+    parser_add_or_edit_package_parent.add_argument("--webhook-rebuild",
+                                                   choices=["on", "off"], help="Enable auto-rebuilding with webhooks.")
 
     parser_tito_args_parent = argparse.ArgumentParser(add_help=False)
     parser_tito_args_parent.add_argument("--git-url", metavar="URL", dest="git_url", required=True,
@@ -576,44 +640,99 @@ def setup_parser():
     parser_mockscm_args_parent.add_argument("--spec", dest="spec", metavar="FILE",
                                             help="relative path from SCM root to .spec file, required")
 
-    parser_url_args_parent = argparse.ArgumentParser(add_help=False)
-    parser_url_args_parent.add_argument("--url", metavar="urls", nargs="+",
-                                        help="Specify the srpm urls")
+    parser_urls_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_urls_args_parent.add_argument("--urls", metavar="urls",
+                                         help="Specify the srpm urls")
 
     parser_upload_args_parent = argparse.ArgumentParser(add_help=False)
 
-    parser_add_package_tito = subparsers.add_parser("add-package-tito", help="Creates a new Tito package", parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
+    parser_rubygems_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_rubygems_args_parent.add_argument("--gem", metavar="GEM", dest="gem_name",
+                                             help="Specify gem name")
+
+    # Tito
+    parser_add_package_tito = subparsers.add_parser("add-package-tito",
+                                                    help="Creates a new Tito package",
+                                                    parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=True)
-    parser_edit_package_tito = subparsers.add_parser("edit-package-tito", help="Edits an existing Tito package", parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
+
+    parser_edit_package_tito = subparsers.add_parser("edit-package-tito",
+                                                     help="Edits an existing Tito package",
+                                                     parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=False)
 
-    parser_add_package_pypi = subparsers.add_parser("add-package-pypi", help="Creates a new PyPI package", parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
+    # PyPI
+    parser_add_package_pypi = subparsers.add_parser("add-package-pypi",
+                                                    help="Creates a new PyPI package",
+                                                    parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_pypi.set_defaults(func="action_add_or_edit_package_pypi", create=True)
-    parser_edit_package_pypi = subparsers.add_parser("edit-package-pypi", help="Edits an existing PyPI package", parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
+
+    parser_edit_package_pypi = subparsers.add_parser("edit-package-pypi",
+                                                     help="Edits an existing PyPI package",
+                                                     parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_pypi.set_defaults(func="action_add_or_edit_package_pypi", create=False)
 
-    parser_add_package_mockscm = subparsers.add_parser("add-package-mockscm", help="Creates a new Mock-SCM package", parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
+    # MockSCM
+    parser_add_package_mockscm = subparsers.add_parser("add-package-mockscm",
+                                                       help="Creates a new Mock-SCM package",
+                                                       parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=True)
-    parser_edit_package_mockscm = subparsers.add_parser("edit-package-mockscm", help="Edits an existing Mock-SCM package", parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
+
+    parser_edit_package_mockscm = subparsers.add_parser("edit-package-mockscm",
+                                                        help="Edits an existing Mock-SCM package",
+                                                        parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=False)
 
-    parser_add_package_upload = subparsers.add_parser("add-package-upload", help="Creates a new upload package", parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
+    # upload
+    parser_add_package_upload = subparsers.add_parser("add-package-upload",
+                                                      help="Creates a new upload package",
+                                                      parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_upload.set_defaults(func="action_add_or_edit_package_upload", create=True)
-    parser_edit_package_upload = subparsers.add_parser("edit-package-upload", help="Edits an existing upload package", parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
+
+    parser_edit_package_upload = subparsers.add_parser("edit-package-upload",
+                                                       help="Edits an existing upload package",
+                                                       parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_upload.set_defaults(func="action_add_or_edit_package_upload", create=False)
 
-    parser_add_package_url = subparsers.add_parser("add-package-url", help="Creates a new url package", parents=[parser_url_args_parent, parser_add_or_edit_package_parent])
-    parser_add_package_url.set_defaults(func="action_add_or_edit_package_url", create=True)
-    parser_edit_package_url = subparsers.add_parser("edit-package-url", help="Edits an existing url package", parents=[parser_url_args_parent, parser_add_or_edit_package_parent])
-    parser_edit_package_url.set_defaults(func="action_add_or_edit_package_url", create=False)
+    # urls
+    parser_add_package_urls = subparsers.add_parser("add-package-urls",
+                                                    help="Creates a new url package",
+                                                    parents=[parser_urls_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_urls.set_defaults(func="action_add_or_edit_package_urls", create=True)
 
-    parser_list_packages = subparsers.add_parser("list-packages", help="Returns list of packages in the given copr")
-    parser_list_packages.add_argument("copr", help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_edit_package_urls = subparsers.add_parser("edit-package-urls",
+                                                     help="Edits an existing url package",
+                                                     parents=[parser_urls_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_urls.set_defaults(func="action_add_or_edit_package_urls", create=False)
+
+    # rubygems
+    parser_add_package_rubygems = subparsers.add_parser("add-package-rubygems",
+                                                        help="Creates a new RubyGems package",
+                                                        parents=[parser_rubygems_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_rubygems.set_defaults(func="action_add_or_edit_package_rubygems", create=True)
+
+    parser_edit_package_rubygems = subparsers.add_parser("edit-package-rubygems",
+                                                         help="Edits a new RubyGems package",
+                                                         parents=[parser_rubygems_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_rubygems.set_defaults(func="action_add_or_edit_package_rubygems", create=False)
+
+
+    # package listing
+    parser_list_packages = subparsers.add_parser("list-packages",
+                                                 help="Returns list of packages in the given copr")
+    parser_list_packages.add_argument("copr",
+                                      help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
     parser_list_packages.set_defaults(func="action_list_packages")
 
-    parser_get_package = subparsers.add_parser("get-package", help="Returns package of the given name in the given copr")
-    parser_get_package.add_argument("copr", help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
-    parser_get_package.add_argument("--name", help="Name of a single package to be displayed", metavar="PKGNAME", required=True)
+
+    # single package fetching
+    parser_get_package = subparsers.add_parser("get-package",
+                                               help="Returns package of the given name in the given copr")
+    parser_get_package.add_argument("copr",
+                                    help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_get_package.add_argument("--name",
+                                    help="Name of a single package to be displayed",
+                                    metavar="PKGNAME", required=True)
     parser_get_package.set_defaults(func="action_get_package")
 
     return parser
