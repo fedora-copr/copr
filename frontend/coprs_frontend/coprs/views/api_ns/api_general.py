@@ -585,9 +585,8 @@ def copr_add_package(copr, source_type):
 @api_login_required
 @api_req_with_copr
 def copr_edit_package(copr, package_name, source_type):
-    try:
-        package = PackagesLogic.get(copr.id, package_name).first()
-    except:
+    package = PackagesLogic.get(copr.id, package_name).first()
+    if not package:
         raise LegacyApiError("Package {name} does not exists in copr {copr}.".format(name=package_name, copr=copr.full_name))
     return process_package_add_or_edit(copr, source_type, package=package)
 
