@@ -361,6 +361,22 @@ class Commands(object):
             result = self.client.edit_package_tito(ownername=ownername, projectname=projectname, **data)
         print(result.message)
 
+    @requires_api_auth
+    def action_add_or_edit_package_pypi(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "pypi_package_name": args.packagename,
+            "pypi_package_version": args.packageversion,
+            "python_versions": args.pythonversions,
+            "webhook_rebuild": args.webhook_rebuild == 'on',
+        }
+        if args.create:
+            result = self.client.add_package_pypi(ownername=ownername, projectname=projectname, **data)
+        else:
+            result = self.client.edit_package_pypi(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
     def action_list_packages(self, args):
         ownername, projectname = parse_name(args.copr)
         result = self.client.get_packages_list(ownername=ownername, projectname=projectname)
@@ -543,11 +559,53 @@ def setup_parser():
     parser_tito_args_parent.add_argument("--test", dest="tito_test", choices=["on", "off"],
                                          help="Build the last commit instead of the last release tag")
 
+    parser_pypi_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_pypi_args_parent.add_argument("--pythonversions", nargs="*", type=int, metavar="VERSION", default=[3, 2],
+                                         help="For what Python versions to build (by default: 3 2)")
+    parser_pypi_args_parent.add_argument("--packageversion", metavar = "PYPIVERSION",
+                                         help="Version of the PyPI package to be built (by default latest)")
+    parser_pypi_args_parent.add_argument("--packagename", required=True, metavar="PYPINAME",
+                                         help="Name of the PyPI package to be built, required.")
+
+    parser_mockscm_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_mockscm_args_parent.add_argument("--scm-type", metavar="TYPE", dest="scm_type", choices=["git", "svn"], default="git",
+                                            help="specify versioning tool, default is 'git'")
+    parser_mockscm_args_parent.add_argument("--scm-url", metavar="URL", dest="scm_url",
+                                            help="url to a project versioned by Git or SVN, required")
+    parser_mockscm_args_parent.add_argument("--scm-branch", metavar="BRANCH", dest="scm_branch", help="")
+    parser_mockscm_args_parent.add_argument("--spec", dest="spec", metavar="FILE",
+                                            help="relative path from SCM root to .spec file, required")
+
+    parser_url_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_url_args_parent.add_argument("--url", metavar="urls", nargs="+",
+                                        help="Specify the srpm urls")
+
+    parser_upload_args_parent = argparse.ArgumentParser(add_help=False)
+
     parser_add_package_tito = subparsers.add_parser("add-package-tito", help="Creates a new Tito package", parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=True)
-
     parser_edit_package_tito = subparsers.add_parser("edit-package-tito", help="Edits an existing Tito package", parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=False)
+
+    parser_add_package_pypi = subparsers.add_parser("add-package-pypi", help="Creates a new PyPI package", parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_pypi.set_defaults(func="action_add_or_edit_package_pypi", create=True)
+    parser_edit_package_pypi = subparsers.add_parser("edit-package-pypi", help="Edits an existing PyPI package", parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_pypi.set_defaults(func="action_add_or_edit_package_pypi", create=False)
+
+    parser_add_package_mockscm = subparsers.add_parser("add-package-mockscm", help="Creates a new Mock-SCM package", parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=True)
+    parser_edit_package_mockscm = subparsers.add_parser("edit-package-mockscm", help="Edits an existing Mock-SCM package", parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=False)
+
+    parser_add_package_upload = subparsers.add_parser("add-package-upload", help="Creates a new upload package", parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_upload.set_defaults(func="action_add_or_edit_package_upload", create=True)
+    parser_edit_package_upload = subparsers.add_parser("edit-package-upload", help="Edits an existing upload package", parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_upload.set_defaults(func="action_add_or_edit_package_upload", create=False)
+
+    parser_add_package_url = subparsers.add_parser("add-package-url", help="Creates a new url package", parents=[parser_url_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_url.set_defaults(func="action_add_or_edit_package_url", create=True)
+    parser_edit_package_url = subparsers.add_parser("edit-package-url", help="Edits an existing url package", parents=[parser_url_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_url.set_defaults(func="action_add_or_edit_package_url", create=False)
 
     parser_list_packages = subparsers.add_parser("list-packages", help="Returns list of packages in the given copr")
     parser_list_packages.add_argument("copr", help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")

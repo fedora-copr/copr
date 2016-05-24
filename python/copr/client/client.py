@@ -562,6 +562,30 @@ class CoprClient(UnicodeMixin):
         })
         return response
 
+    def edit_package_pypi(self, package_name, projectname, pypi_package_name, pypi_package_version, python_versions=[3, 2], ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_PYPI)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_PYPI,
+            "pypi_package_name": pypi_package_name,
+            "pypi_package_version": pypi_package_version,
+            "python_versions": python_versions,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def add_package_pypi(self, package_name, projectname, pypi_package_name, pypi_package_version, python_versions=[3, 2], ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_PYPI)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "source_type": SOURCE_TYPE_PYPI,
+            "pypi_package_name": pypi_package_name,
+            "pypi_package_version": pypi_package_version,
+            "python_versions": python_versions,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
     def process_package_action(self, request_url, ownername, projectname, data):
         if not ownername:
             ownername = self.username
