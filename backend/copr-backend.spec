@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.88
+Version:    1.89
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -254,6 +254,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Tue May 24 2016 Miroslav Suchý <miroslav@suchy.cz> 1.89-1
+- use correct conditional in requires
+
 * Mon May 23 2016 Miroslav Suchý <msuchy@redhat.com> 1.88-1
 - backend: change logstash requires to soft requires
 - 1336360 - allow custom chroots
