@@ -454,6 +454,7 @@ class PackageFormPyPI(BasePackageForm):
     def source_json(self):
         return json.dumps({
             "pypi_package_name": self.pypi_package_name.data,
+            "pypi_package_version": self.pypi_package_version.data,
             "python_versions": self.python_versions.data
         })
 
