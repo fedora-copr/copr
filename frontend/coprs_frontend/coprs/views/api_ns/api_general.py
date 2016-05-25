@@ -586,8 +586,9 @@ def copr_add_package(copr, source_type):
 @api_login_required
 @api_req_with_copr
 def copr_edit_package(copr, package_name, source_type):
-    package = PackagesLogic.get(copr.id, package_name).first()
-    if not package:
+    try:
+        package = PackagesLogic.get(copr.id, package_name)[0]
+    except IndexError:
         raise LegacyApiError("Package {name} does not exists in copr {copr}.".format(name=package_name, copr=copr.full_name))
     return process_package_add_or_edit(copr, source_type, package=package)
 
@@ -638,3 +639,47 @@ def copr_get_package(copr, package_name):
     except IndexError:
         raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
     return flask.jsonify({'package': package.to_dict()})
+
+
+@api_ns.route("/coprs/<username>/<coprname>/package/delete/<package_name>/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_delete_package(copr, package_name):
+    try:
+        package = PackagesLogic.get(copr.id, package_name)[0]
+    except IndexError:
+        raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
+
+    try:
+        PackagesLogic.delete_package(flask.g.user, package)
+        db.session.commit()
+    except (InsufficientRightsException, ActionInProgressException) as e:
+        raise LegacyApiError(str(e))
+
+    return flask.jsonify({
+        "output": "ok",
+        "message": "Package was successfully deleted.",
+        'package': package.to_dict(),
+    })
+
+
+@api_ns.route("/coprs/<username>/<coprname>/package/reset/<package_name>/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_reset_package(copr, package_name):
+    try:
+        package = PackagesLogic.get(copr.id, package_name)[0]
+    except IndexError:
+        raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
+
+    try:
+        PackagesLogic.reset_package(flask.g.user, package)
+        db.session.commit()
+    except InsufficientRightsException as e:
+        raise LegacyApiError(str(e))
+
+    return flask.jsonify({
+        "output": "ok",
+        "message": "Package's default source was successfully reseted.",
+        'package': package.to_dict(),
+    })

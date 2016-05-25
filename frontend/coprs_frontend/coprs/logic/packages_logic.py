@@ -171,3 +171,15 @@ ORDER BY package.name ASC;
             builds_logic.BuildsLogic.delete_build(user, build)
 
         db.session.delete(package)
+
+
+    @classmethod
+    def reset_package(cls, user, package):
+        if not user.can_edit(package.copr):
+            raise exceptions.InsufficientRightsException(
+                "You are not allowed to reset package `{}`.".format(package.id))
+
+        package.source_json = json.dumps({})
+        package.source_type = helpers.BuildSourceEnum("unset")
+
+        db.session.add(package)

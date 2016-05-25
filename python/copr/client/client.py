@@ -696,7 +696,7 @@ class CoprClient(UnicodeMixin):
         return response
 
     def get_packages_list(self, projectname, ownername=None):
-        """Returns list of packages for the given copr or just one package if pkg_name is given."""
+        """Returns list of packages for the given copr."""
 
         if not ownername:
             ownername = self.username
@@ -728,12 +728,12 @@ class CoprClient(UnicodeMixin):
         return response
 
     def get_package(self, projectname, pkg_name, ownername=None):
-        """Returns list of packages for the given copr or just one package if pkg_name is given."""
+        """Returns single package if pkg_name."""
 
         if not ownername:
             ownername = self.username
 
-        url = "{0}/coprs/{1}/{2}/package/get/{3}".format(
+        url = "{0}/coprs/{1}/{2}/package/get/{3}/".format(
             self.api_url, ownername, projectname, pkg_name
         )
 
@@ -749,6 +749,66 @@ class CoprClient(UnicodeMixin):
             parsers=[
                 CommonMsgErrorOutParser,
                 PackageParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname, username=ownername
+        )
+
+        return response
+
+    def delete_package(self, projectname, pkg_name, ownername=None):
+        """Deletes the given package."""
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/package/delete/{3}/".format(
+            self.api_url, ownername, projectname, pkg_name
+        )
+
+        resp_data = self._fetch(url, method="post")
+        response = CoprResponse(
+            client=self,
+            method="post",
+            data=resp_data,
+            request_kwargs={
+                "projectname": projectname,
+                "ownername": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname, username=ownername
+        )
+
+        return response
+
+    def reset_package(self, projectname, pkg_name, ownername=None):
+        """Resets default source of the given package."""
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/package/reset/{3}/".format(
+            self.api_url, ownername, projectname, pkg_name
+        )
+
+        resp_data = self._fetch(url, method="post")
+        response = CoprResponse(
+            client=self,
+            method="post",
+            data=resp_data,
+            request_kwargs={
+                "projectname": projectname,
+                "ownername": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
             ]
         )
         response.handle = BaseHandle(

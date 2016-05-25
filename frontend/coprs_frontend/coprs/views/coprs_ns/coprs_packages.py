@@ -153,12 +153,20 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
     form = forms.get_package_form_cls_by_source_type(flask.request.form["source_type"])()
 
     if "reset" in flask.request.form:
-        package = PackagesLogic.get(copr.id, package_name).first()
-        package.source_json = json.dumps({})
-        package.source_type = helpers.BuildSourceEnum("unset")
-        db.session.add(package)
-        db.session.commit()
-        flask.flash("Package default source successfully reset")
+        try:
+            package = PackagesLogic.get(copr.id, package_name)[0]
+        except IndexError:
+            flask.flash("Package {package_name} does not exist in copr {copr}.".format(package_name, copr.full_name))
+            return flask.redirect(url_on_success) # should be url_on_fail
+
+        try:
+            PackagesLogic.reset_package(package)
+            db.session.commit()
+        except InsufficientRightsException as e:
+            flask.flash(str(e))
+            return flask.redirect(url_on_success) # should be url_on_fail
+
+        flask.flash("Package default source successfully reset.")
         return flask.redirect(url_on_success)
 
     if form.validate_on_submit():

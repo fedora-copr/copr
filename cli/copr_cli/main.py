@@ -446,11 +446,27 @@ class Commands(object):
         result = self.client.get_package(ownername=ownername, projectname=projectname, **data)
         print(simplejson.dumps(result.package, indent=4, sort_keys=True, for_json=True))
 
+    def action_delete_package(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = { "pkg_name": args.name }
+        result = self.client.delete_package(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
+    def action_reset_package(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = { "pkg_name": args.name }
+        result = self.client.reset_package(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
 
 def setup_parser():
     """
     Set the main arguments.
     """
+    #########################################################
+    ###                    General options                ###
+    #########################################################
+
     parser = argparse.ArgumentParser(prog="copr")
     # General connection options
 
@@ -461,6 +477,10 @@ def setup_parser():
                         help="Path to an alternative configuration file")
 
     subparsers = parser.add_subparsers(title="actions")
+
+    #########################################################
+    ###                    Project options                ###
+    #########################################################
 
     # create the parser for the "list" command
     parser_list = subparsers.add_parser(
@@ -512,106 +532,9 @@ def setup_parser():
     parser_delete.add_argument("copr", help="Name of your project to be deleted.")
     parser_delete.set_defaults(func="action_delete")
 
-    # parent parser for the builds commands below
-    parser_build_parent = argparse.ArgumentParser(add_help=False)
-    parser_build_parent.add_argument("copr",
-                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project.")
-    parser_build_parent.add_argument("--memory", dest="memory",
-                                     help="")
-    parser_build_parent.add_argument("--timeout", dest="timeout",
-                                     help="")
-    parser_build_parent.add_argument("--nowait", action="store_true", default=False,
-                                     help="Don't wait for build")
-    parser_build_parent.add_argument("-r", "--chroot", dest="chroots", action="append",
-                                     help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
-
-    # create the parser for the "build" (url/upload) command
-    parser_build = subparsers.add_parser("build", parents=[parser_build_parent],
-                                         help="Build packages to a specified copr")
-    parser_build.add_argument("pkgs", nargs="+",
-                              help="filename of SRPM or URL of packages to build")
-    parser_build.set_defaults(func="action_build")
-
-    # create the parser for the "buildpypi" command
-    parser_build_pypi = subparsers.add_parser("buildpypi", parents=[parser_build_parent],
-                                              help="Build PyPI package to a specified copr")
-    parser_build_pypi.add_argument("--pythonversions", nargs="*", type=int, metavar="VERSION", default=[3, 2],
-                                   help="For what Python versions to build (by default: 3 2)")
-    parser_build_pypi.add_argument("--packageversion", metavar = "PYPIVERSION",
-                                   help="Version of the PyPI package to be built (by default latest)")
-    parser_build_pypi.add_argument("--packagename", required=True, metavar="PYPINAME",
-                                   help="Name of the PyPI package to be built, required.")
-    parser_build_pypi.set_defaults(func="action_build_pypi")
-
-    # create the parser for the "buildgem" command
-    parser_build_rubygems = subparsers.add_parser("buildgem", parents=[parser_build_parent],
-                                                  help="Build gem from rubygems.org to a specified copr")
-    parser_build_rubygems.add_argument("--gem", metavar="GEM", dest="gem_name", help="Specify gem name")
-    parser_build_rubygems.set_defaults(func="action_build_rubygems")
-
-    # create the parser for the "buildtito" command
-    parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_build_parent],
-                                              help="submit a build from Git repository via Tito to a specified copr")
-    parser_build_tito.add_argument("--git-url", metavar="URL", dest="git_url",
-                                   help="url to a project managed by Tito")
-    parser_build_tito.add_argument("--git-dir", metavar="DIRECTORY", dest="git_dir",
-                                   help="relative path from Git root to directory containing .spec file")
-    parser_build_tito.add_argument("--git-branch", metavar="BRANCH", dest="git_branch", help="")
-    parser_build_tito.add_argument("--test", dest="tito_test", action="store_true",
-                                   help="build the last commit instead of the last release tag")
-    parser_build_tito.set_defaults(func="action_build_tito")
-
-    # create the parser for the "buildmock" command
-    parser_build_mock = subparsers.add_parser("buildmock", parents=[parser_build_parent],
-                                              help="submit a build from SCM repository via Mock to a specified copr")
-    parser_build_mock.add_argument("--scm-type", metavar="TYPE", dest="scm_type", choices=["git", "svn"], default="git",
-                                   help="specify versioning tool, default is 'git'")
-    parser_build_mock.add_argument("--scm-url", metavar="URL", dest="scm_url",
-                                   help="url to a project versioned by Git or SVN, required")
-    parser_build_mock.add_argument("--scm-branch", metavar="BRANCH", dest="scm_branch", help="")
-    parser_build_mock.add_argument("--spec", dest="spec", metavar="FILE",
-                                   help="relative path from SCM root to .spec file, required")
-    parser_build_mock.set_defaults(func="action_build_mock")
-
-    # create the parser for the "status" command
-    parser_status = subparsers.add_parser("status", help="Get build status of build specified by its ID")
-    parser_status.add_argument("build_id", help="Build ID", type=int)
-    parser_status.set_defaults(func="action_status")
-
-    # create the parser for the "download-build" command
-    parser_download_build = subparsers.add_parser("download-build", help="Fetches built packages")
-    parser_download_build.add_argument("build_id", help="Build ID")
-    parser_download_build.add_argument("-r", "--chroot", dest="chroots", action="append",
-                                       help="Select chroots to fetch")
-    parser_download_build.add_argument("--dest", "-d", dest="dest",
-                                       help="Base directory to store packages", default=".")
-    parser_download_build.set_defaults(func="action_download_build")
-
-    # create the parser for the "cancel" command
-    parser_cancel = subparsers.add_parser("cancel", help="Cancel build specified by its ID")
-    parser_cancel.add_argument("build_id", help="Build ID")
-    parser_cancel.set_defaults(func="action_cancel")
-
-    # create the parser for the "watch-build" command
-    parser_watch = subparsers.add_parser("watch-build",
-                                         help="Watch status and progress of build(s)"
-                                              " specified by their ID")
-    parser_watch.add_argument("build_id", nargs="+",
-                              help="Build ID", type=int)
-    parser_watch.set_defaults(func="action_watch_build")
-
     #########################################################
-    ###                   Package options                 ###
+    ###             Source-type related options           ###
     #########################################################
-
-    parser_add_or_edit_package_parent = argparse.ArgumentParser(add_help=False)
-    parser_add_or_edit_package_parent.add_argument("--name",
-                                                   help="Name of the package to be edited or created",
-                                                   metavar="PKGNAME", required=True)
-    parser_add_or_edit_package_parent.add_argument("copr",
-                                                   help="The copr repo for the package. Can be just name of project or even in format username/project.")
-    parser_add_or_edit_package_parent.add_argument("--webhook-rebuild",
-                                                   choices=["on", "off"], help="Enable auto-rebuilding with webhooks.")
 
     parser_tito_args_parent = argparse.ArgumentParser(add_help=False)
     parser_tito_args_parent.add_argument("--git-url", metavar="URL", dest="git_url", required=True,
@@ -650,7 +573,92 @@ def setup_parser():
     parser_rubygems_args_parent.add_argument("--gem", metavar="GEM", dest="gem_name",
                                              help="Specify gem name")
 
-    # Tito
+    #########################################################
+    ###                    Build options                  ###
+    #########################################################
+
+    # parent parser for the builds commands below
+    parser_build_parent = argparse.ArgumentParser(add_help=False)
+    parser_build_parent.add_argument("copr",
+                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project.")
+    parser_build_parent.add_argument("--memory", dest="memory",
+                                     help="")
+    parser_build_parent.add_argument("--timeout", dest="timeout",
+                                     help="")
+    parser_build_parent.add_argument("--nowait", action="store_true", default=False,
+                                     help="Don't wait for build")
+    parser_build_parent.add_argument("-r", "--chroot", dest="chroots", action="append",
+                                     help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
+
+    # create the parser for the "build" (url/upload) command
+    parser_build = subparsers.add_parser("build", parents=[parser_build_parent],
+                                         help="Build packages to a specified copr")
+    parser_build.add_argument("pkgs", nargs="+",
+                              help="filename of SRPM or URL of packages to build")
+    parser_build.set_defaults(func="action_build")
+
+    # create the parser for the "buildpypi" command
+    parser_build_pypi = subparsers.add_parser("buildpypi", parents=[parser_pypi_args_parent, parser_build_parent],
+                                              help="Build PyPI package to a specified copr")
+    parser_build_pypi.set_defaults(func="action_build_pypi")
+
+    # create the parser for the "buildgem" command
+    parser_build_rubygems = subparsers.add_parser("buildgem", parents=[parser_rubygems_args_parent, parser_build_parent],
+                                                  help="Build gem from rubygems.org to a specified copr")
+    parser_build_rubygems.set_defaults(func="action_build_rubygems")
+
+    # create the parser for the "buildtito" command
+    parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_tito_args_parent, parser_build_parent],
+                                              help="submit a build from Git repository via Tito to a specified copr")
+    parser_build_tito.set_defaults(func="action_build_tito")
+
+    # create the parser for the "buildmock" command
+    parser_build_mock = subparsers.add_parser("buildmock", parents=[parser_mockscm_args_parent, parser_build_parent],
+                                              help="submit a build from SCM repository via Mock to a specified copr")
+    parser_build_mock.set_defaults(func="action_build_mock")
+
+    # create the parser for the "status" command
+    parser_status = subparsers.add_parser("status", help="Get build status of build specified by its ID")
+    parser_status.add_argument("build_id", help="Build ID", type=int)
+    parser_status.set_defaults(func="action_status")
+
+    # create the parser for the "download-build" command
+    parser_download_build = subparsers.add_parser("download-build", help="Fetches built packages")
+    parser_download_build.add_argument("build_id", help="Build ID")
+    parser_download_build.add_argument("-r", "--chroot", dest="chroots", action="append",
+                                       help="Select chroots to fetch")
+    parser_download_build.add_argument("--dest", "-d", dest="dest",
+                                       help="Base directory to store packages", default=".")
+    parser_download_build.set_defaults(func="action_download_build")
+
+    # create the parser for the "cancel" command
+    parser_cancel = subparsers.add_parser("cancel", help="Cancel build specified by its ID")
+    parser_cancel.add_argument("build_id", help="Build ID")
+    parser_cancel.set_defaults(func="action_cancel")
+
+    # create the parser for the "watch-build" command
+    parser_watch = subparsers.add_parser("watch-build",
+                                         help="Watch status and progress of build(s)"
+                                              " specified by their ID")
+    parser_watch.add_argument("build_id", nargs="+",
+                              help="Build ID", type=int)
+    parser_watch.set_defaults(func="action_watch_build")
+
+    #########################################################
+    ###                   Package options                 ###
+    #########################################################
+
+    # package edit/create parent
+    parser_add_or_edit_package_parent = argparse.ArgumentParser(add_help=False)
+    parser_add_or_edit_package_parent.add_argument("--name",
+                                                   help="Name of the package to be edited or created",
+                                                   metavar="PKGNAME", required=True)
+    parser_add_or_edit_package_parent.add_argument("copr",
+                                                   help="The copr repo for the package. Can be just name of project or even in format username/project.")
+    parser_add_or_edit_package_parent.add_argument("--webhook-rebuild",
+                                                   choices=["on", "off"], help="Enable auto-rebuilding with webhooks.")
+
+    # Tito edit/create
     parser_add_package_tito = subparsers.add_parser("add-package-tito",
                                                     help="Creates a new Tito package",
                                                     parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
@@ -661,7 +669,7 @@ def setup_parser():
                                                      parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=False)
 
-    # PyPI
+    # PyPI edit/create
     parser_add_package_pypi = subparsers.add_parser("add-package-pypi",
                                                     help="Creates a new PyPI package",
                                                     parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
@@ -672,7 +680,7 @@ def setup_parser():
                                                      parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_pypi.set_defaults(func="action_add_or_edit_package_pypi", create=False)
 
-    # MockSCM
+    # MockSCM edit/create
     parser_add_package_mockscm = subparsers.add_parser("add-package-mockscm",
                                                        help="Creates a new Mock-SCM package",
                                                        parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
@@ -683,7 +691,7 @@ def setup_parser():
                                                         parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=False)
 
-    # upload
+    # Upload edit/create
     parser_add_package_upload = subparsers.add_parser("add-package-upload",
                                                       help="Creates a new upload package",
                                                       parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
@@ -694,7 +702,7 @@ def setup_parser():
                                                        parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_upload.set_defaults(func="action_add_or_edit_package_upload", create=False)
 
-    # urls
+    # Urls edit/create
     parser_add_package_urls = subparsers.add_parser("add-package-urls",
                                                     help="Creates a new url package",
                                                     parents=[parser_urls_args_parent, parser_add_or_edit_package_parent])
@@ -705,7 +713,7 @@ def setup_parser():
                                                      parents=[parser_urls_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_urls.set_defaults(func="action_add_or_edit_package_urls", create=False)
 
-    # rubygems
+    # Rubygems edit/create
     parser_add_package_rubygems = subparsers.add_parser("add-package-rubygems",
                                                         help="Creates a new RubyGems package",
                                                         parents=[parser_rubygems_args_parent, parser_add_or_edit_package_parent])
@@ -734,6 +742,26 @@ def setup_parser():
                                     help="Name of a single package to be displayed",
                                     metavar="PKGNAME", required=True)
     parser_get_package.set_defaults(func="action_get_package")
+
+    # package deletion
+    parser_delete_package = subparsers.add_parser("delete-package",
+                                                  help="Deletes the specified package")
+    parser_delete_package.add_argument("copr",
+                                    help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_delete_package.add_argument("--name",
+                                    help="Name of a package to be deleted",
+                                    metavar="PKGNAME", required=True)
+    parser_delete_package.set_defaults(func="action_delete_package")
+
+    # package reseting
+    parser_reset_package = subparsers.add_parser("reset-package",
+                                                  help="Resets default source of the specified package")
+    parser_reset_package.add_argument("copr",
+                                    help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_reset_package.add_argument("--name",
+                                    help="Name of a package to be resetd",
+                                    metavar="PKGNAME", required=True)
+    parser_reset_package.set_defaults(func="action_reset_package")
 
     return parser
 
