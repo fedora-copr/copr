@@ -398,7 +398,7 @@ GROUP BY
 
     @classmethod
     def create_new_from(cls, user, copr, source_type, source_json, chroot_names=None,
-                        pkgs="", git_hashes=None, skip_import=False, **build_options):
+                        pkgs="", git_hashes=None, skip_import=False, **build_options): # TODO: create_new_from_what?
         """
         :type user: models.User
         :type copr: models.Copr

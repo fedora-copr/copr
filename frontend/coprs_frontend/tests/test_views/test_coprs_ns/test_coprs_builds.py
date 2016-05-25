@@ -23,12 +23,9 @@ class TestCoprAddBuild(CoprsTestCase):
         self.db.session.add_all([self.u1, self.c1])
         x = self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u1.name, self.c1.name),
-                              data={"pkgs": "http://example.com/testing.src.rpm"},
+                              data={"pkgs": "http://example.com/testing.src.rpm", "source_type": "srpm_link"},
                               follow_redirects=True)
 
-        print('hello world')
-        print("/coprs/{0}/{1}/new_build/".format(self.u1.name, self.c1.name))
-        print(x)
         assert self.models.Build.query.first().pkgs == "http://example.com/testing.src.rpm"
 
     @TransactionDecorator("u1")
@@ -39,7 +36,7 @@ class TestCoprAddBuild(CoprsTestCase):
         self.db.session.add_all([self.u2, self.c2])
         self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u2.name, self.c2.name),
-                              data={"pkgs": "http://example.com/testing.src.rpm"},
+                              data={"pkgs": "http://example.com/testing.src.rpm", "source_type": "srpm_link"},
                               follow_redirects=True)
 
         assert self.models.Build.query.first().pkgs == "http://example.com/testing.src.rpm"
@@ -305,7 +302,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
         r = []
         route = "/coprs/{0}/{1}/new_build/".format(self.u1.name, self.c1.name)
         for i, url in enumerate(urls):
-            r.insert(i, self.test_client.post(route, data={"pkgs": url}, follow_redirects=True))
+            r.insert(i, self.test_client.post(route, data={"pkgs": url, "source_type": "srpm_link"}, follow_redirects=True))
 
         assert b"New build has been created" in r[0].data
         assert b"doesn&#39;t seem to be a valid URL" in r[1].data
