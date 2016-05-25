@@ -21,11 +21,14 @@ class TestCoprAddBuild(CoprsTestCase):
                                       f_mock_chroots, f_db):
 
         self.db.session.add_all([self.u1, self.c1])
-        self.test_client.post("/coprs/{0}/{1}/new_build/"
+        x = self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u1.name, self.c1.name),
                               data={"pkgs": "http://example.com/testing.src.rpm"},
                               follow_redirects=True)
 
+        print('hello world')
+        print("/coprs/{0}/{1}/new_build/".format(self.u1.name, self.c1.name))
+        print(x)
         assert self.models.Build.query.first().pkgs == "http://example.com/testing.src.rpm"
 
     @TransactionDecorator("u1")
