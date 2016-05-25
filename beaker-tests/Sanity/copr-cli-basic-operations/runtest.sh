@@ -190,7 +190,7 @@ rlJournalStart
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
         rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
-        rlAssertEquals "package.source_type == \"mockscm\"" `cat $OUTPUT | jq '.source_type'` '"mockscm"'
+        rlAssertEquals "package.source_type == \"mock_scm\"" `cat $OUTPUT | jq '.source_type'` '"mock_scm"'
         rlAssertEquals "package.source_json.scm_type == \"git\"" `cat $SOURCE_JSON | jq '.scm_type'` '"git"'
         rlAssertEquals "package.source_json.scm_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.scm_url'` '"http://github.com/clime/example.git"'
         rlAssertEquals "package.source_json.scm_branch == \"foo\"" `cat $SOURCE_JSON | jq '.scm_branch'` '"foo"'
@@ -201,7 +201,7 @@ rlJournalStart
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
         rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
-        rlAssertEquals "package.source_type == \"mockscm\"" `cat $OUTPUT | jq '.source_type'` '"mockscm"'
+        rlAssertEquals "package.source_type == \"mock_scm\"" `cat $OUTPUT | jq '.source_type'` '"mock_scm"'
         rlAssertEquals "package.source_json.scm_type == \"svn\"" `cat $SOURCE_JSON | jq '.scm_type'` '"svn"'
         rlAssertEquals "package.source_json.scm_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.scm_url'` '"http://github.com/clime/example2.git"'
         rlAssertEquals "package.source_json.scm_branch == \"bar\"" `cat $SOURCE_JSON | jq '.scm_branch'` '"bar"'
