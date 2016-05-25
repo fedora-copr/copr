@@ -584,6 +584,7 @@ class CoprClient(UnicodeMixin):
             "python_versions": python_versions,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
+        return response
 
     def edit_package_mockscm(self, package_name, projectname, scm_type, scm_url, scm_branch, spec, ownername=None, webhook_rebuild=None):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_MOCK_SCM)
