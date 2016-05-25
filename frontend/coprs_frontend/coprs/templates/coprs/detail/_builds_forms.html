@@ -127,6 +127,7 @@
 
     {{ render_field(form.pkgs, label='URLs to SRPM Files', rows = 10, cols = 50) }}
 
+   <input type="hidden" name="source_type" value="srpm_link" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
@@ -145,6 +146,7 @@
         </div>
       </div>
 
+   <input type="hidden" name="source_type" value="srpm_upload" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
