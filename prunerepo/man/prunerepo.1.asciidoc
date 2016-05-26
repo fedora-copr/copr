@@ -37,7 +37,8 @@ path::
 OPTIONS
 -------
 --days DAYS::
-	only remove packages that are DAYS old or older (by their build date)
+    only remove packages that are DAYS old or older by their build date. This option also affects subsequent deletion of build directories with no rpm or srpm inside when --cleancopr is used.
+    These directories are deleted only if their latest modification time is more than DAYS in past.
 
 --cleancopr::
 	additionaly remove whole copr build dirs (contain 'build.info' file) and logs if the associated package gets deleted
