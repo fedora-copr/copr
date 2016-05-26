@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.17
+Version:    0.18
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -111,6 +111,9 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Thu May 26 2016 clime <clime@redhat.com> 0.18-1
+- implemented building from rubygems
+
 * Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 0.17-1
 - support for pyrpkg-1.43
 - typo in method name
