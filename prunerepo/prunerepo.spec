@@ -1,6 +1,6 @@
 Summary: Remove old packages from rpm-md repository
 Name: prunerepo
-Version: 1.8
+Version: 1.9
 Release: 1%{?dist}
 
 # Source is created by:
@@ -55,6 +55,9 @@ install -p -m 644 man/prunerepo.1 %{buildroot}/%{_mandir}/man1/
 %{_mandir}/man1/prunerepo.1*
 
 %changelog
+* Thu May 26 2016 clime <clime@redhat.com> 1.9-1
+- --days now also influences --cleancopr
+
 * Mon May 23 2016 Miroslav Suchý <msuchy@redhat.com> 1.8-1
 - just skip the missing srpm
 - first remove srpm and then the rpm
