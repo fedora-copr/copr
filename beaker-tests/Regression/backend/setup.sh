@@ -43,6 +43,9 @@ sudo find /var/lib/dist-git/cache/lookaside -type f -print0 | xargs -0 -n100 sud
 sudo chown copr-service:packager -R /var/lib/dist-git/git
 sudo find /var/lib/dist-git/git -type d -print0 | xargs -0 -n100 sudo chmod 2775
 sudo find /var/lib/dist-git/git -type f -print0 | xargs -0 -n100 sudo chmod 664
+
+sudo restorecon -r /var/lib/copr-dist-git
+sudo restorecon -r /var/lib/dist-git
 ' distgit
 
 # setup backend
