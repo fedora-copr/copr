@@ -1,6 +1,6 @@
 Summary: COPR system components mocks
 Name: copr-mocks
-Version: 1.2
+Version: 1.3
 Release: 1%{?dist}
 
 # Source is created by:
@@ -49,6 +49,11 @@ useradd -r -g copr-mocks -G copr-mocks -d %{_datadir}/copr/mocks -s /bin/bash -c
 %{_unitdir}/copr-mocks-frontend.service
 
 %changelog
+* Thu May 26 2016 clime <clime@redhat.com> 1.3-1
+- task files are now directly under batch (data) dir, no in/out subdirs
+- action result storing fixed + code improvements
+- make dump files with .json extension for syntax highlightning to kick in
+- pretty-print dist-git/backend responses
 * Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.2-1
 - support for feeding actions to backend
 - added debug output
