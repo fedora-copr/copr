@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.68
+Version:    1.69
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,13 @@ popd
 %endif
 
 %changelog
+* Thu May 26 2016 clime <clime@redhat.com> 1.69-1
+- package manip implemented in Client
+- refactored building via url and pypi; see df6ad16
+- connection error message simplified
+- print user-friendly error for broken config
+- implemented rubygems CLI support
+
 * Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.68-1
 - Add unicode representation for collections (RhBug: 1327597)
 - handlers: use list() after map() for chroots
