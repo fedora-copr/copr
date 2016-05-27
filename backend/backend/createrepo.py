@@ -91,7 +91,6 @@ APPDATA_CMD_TEMPLATE = \
 --min-icon-size=48 \
 --enable-hidpi \
 --origin={username}/{projectname}
---log-dir=/dev/null
 """
 INCLUDE_APPSTREAM = \
     """/usr/bin/modifyrepo_c \
