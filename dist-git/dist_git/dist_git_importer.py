@@ -370,7 +370,8 @@ class RubyGemsProvider(SrpmBuilderProvider):
 
         # @TODO Use -C argument to specify output directory
         # https://github.com/fedora-ruby/gem2rpm/issues/60
-        cmd = ["gem2rpm", self.task.rubygems_gem_name, "--fetch", "--srpm"]
+        cmd = ["gem2rpm", self.task.rubygems_gem_name.strip(), "--fetch", "--srpm"]
+        log.info(' '.join(cmd))
         try:
             cwd = os.getcwd()
             os.chdir(self.tmp_dest)
