@@ -345,11 +345,13 @@ class CoprClient(UnicodeMixin):
         if urlparse(pkgs[0]).scheme != "":
             api_endpoint = "new_build"
             data["pkgs"] = " ".join(pkgs)
+            data["source_type"] = SOURCE_TYPE_SRPM_LINK
         else:
             try:
                 api_endpoint = "new_build_upload"
                 f = open(pkgs[0], "rb")
                 data["pkgs"] = (os.path.basename(f.name), f, "application/x-rpm")
+                data["source_type"] = SOURCE_TYPE_SRPM_UPLOAD
             except IOError as e:
                 raise CoprRequestException(e)
 
