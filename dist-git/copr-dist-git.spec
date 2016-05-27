@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.18
+Version:    0.19
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -111,6 +111,9 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Fri May 27 2016 clime <clime@redhat.com> 0.19-1
+- strip whitespaces from the gem name
+
 * Thu May 26 2016 clime <clime@redhat.com> 0.18-1
 - implemented building from rubygems
 
