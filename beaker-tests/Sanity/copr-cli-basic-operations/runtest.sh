@@ -25,8 +25,6 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-dnf install jq
-
 # Include Beaker environment
 . /usr/bin/rhts-environment.sh || exit 1
 . /usr/share/beakerlib/beakerlib.sh || exit 1
@@ -52,6 +50,7 @@ rlJournalStart
         /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
         sed -i "s/https:\/\/copr.fedoraproject.org/http:\/\/copr-fe-dev.cloud.fedoraproject.org/g" \
         /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
+        dnf -y install jq
     rlPhaseEnd
 
     rlPhaseStartTest
