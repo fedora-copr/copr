@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.89
+Version:    1.90
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -254,6 +254,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri May 27 2016 Miroslav Suchý <msuchy@redhat.com> 1.90-1
+- do not use --log-dir in appstream-builder
+
 * Tue May 24 2016 Miroslav Suchý <miroslav@suchy.cz> 1.89-1
 - use correct conditional in requires
 
