@@ -43,6 +43,10 @@ RUN dnf -y install glib2
 RUN dnf -y install ca-certificates
 RUN dnf -y install scl-utils-build
 RUN dnf -y install ethtool
+RUN dnf -y install copr-keygen
+RUN dnf -y install nginx
+
+RUN echo '127.0.0.1 keygen' > /etc/hosts
 
 RUN export LANG=en_US.utf8
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
@@ -65,6 +69,19 @@ RUN cat /home/copr/.ssh/id_rsa.pub >> /home/copr/.ssh/authorized_keys
 RUN chown copr:copr -R /home/copr
 RUN usermod -a -G mock copr
 
+RUN dnf -y install uwsgi
+RUN dnf -y install uwsgi-plugin-python
+RUN mkdir /var/log/uwsgi
+RUN chown apache:apache /var/log/uwsgi
+
+# perhaps change umask instead of this
+RUN chmod 775 /var/log/uwsgi
+
+RUN chown apache:apache /var/run/uwsgi
+RUN chmod 775 /var/run/uwsgi
+
+RUN usermod copr-signer -G apache
+
 COPY . /copr
 RUN dnf -y builddep /copr/backend/copr-backend.spec
 RUN rm -rf /tmp/tito && cd /copr/backend && LANG=en_US.UTF-8 tito build --test --rpm
@@ -73,6 +90,12 @@ RUN dnf -y install /tmp/tito/noarch/copr-backend*.noarch.rpm
 COPY backend/docker/files/ /
 RUN chmod 700 /root && chmod 700 /home/copr && chown copr:copr /home/copr # fix permission after COPY
 
+RUN chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini
+
 RUN dnf -y downgrade fedpkg # temporary fix cause fedpkg-copr doesn't work with the new version of fedpkg
 RUN dnf -y install ansible1.9 --allowerasing # copr does not support ansible2 yet
+
+# todo: it seems config in /etc/sysctl.conf is not taken into account
+RUN echo 4096 > /proc/sys/net/core/somaxconn
+
 CMD ["/bin/run.sh"]
