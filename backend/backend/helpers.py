@@ -226,7 +226,7 @@ class BackendConfigReader(object):
             cp, "builder", "consecutive_failure_threshold",
             DEF_CONSECUTIVE_FAILURE_THRESHOLD, mode="int")
         opts.log_dir = _get_conf(
-            cp, "backend", "log_dir", "/var/log/copr/")
+            cp, "backend", "log_dir", "/var/log/copr-backend/")
         opts.log_level = _get_conf(
             cp, "backend", "log_level", "info")
         opts.verbose = _get_conf(
