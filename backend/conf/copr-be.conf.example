@@ -85,7 +85,7 @@ sleeptime=30
 prune_days=14
 
 # logging settings
-# log_dir=/var/log/copr/
+# log_dir=/var/log/copr-backend/
 # log_level=info
 
 # verbose=False
