@@ -35,7 +35,7 @@ FRONTEND_URL = "{}://{}".format(scheme, hostname)
 FRONTEND_DIR = os.path.dirname(here)
 PACKAGES_DIR = os.path.join(app.config["DATA_DIR"], "repo-rpm-packages")
 RPMBUILD = os.path.join(os.path.expanduser("~"), "rpmbuild")
-LOG_FILE = "/var/log/copr/repo-packages.log"
+LOG_FILE = "/var/log/copr-frontend/repo-packages.log"
 
 VERSION = 1
 RELEASE = 1
