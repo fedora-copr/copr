@@ -4,7 +4,7 @@
 
 Name:       copr-backend
 Version:    1.87
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    Backend for Copr
 
 Group:      Applications/Productivity
@@ -136,13 +136,12 @@ popd
 install -d %{buildroot}%{_sharedstatedir}/copr
 install -d %{buildroot}%{_sharedstatedir}/copr/jobs
 install -d %{buildroot}%{_sharedstatedir}/copr/public_html/results
-install -d %{buildroot}%{_var}/log/copr
+install -d %{buildroot}%{_var}/log/copr-backend
 install -d %{buildroot}%{_pkgdocdir}/lighttpd/
 install -d %{buildroot}%{_datadir}/copr/backend
 install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 install -d %{buildroot}%{_unitdir}
-install -d %{buildroot}/%{_var}/log/copr-backend
 install -d %{buildroot}/%{_var}/run/copr-backend/
 install -d %{buildroot}/%{_tmpfilesdir}
 install -d %{buildroot}/%{_sbindir}
@@ -162,8 +161,8 @@ cp -a conf/logrotate/* %{buildroot}%{_sysconfdir}/logrotate.d/
 cp -a conf/tmpfiles.d/* %{buildroot}/%{_tmpfilesdir}
 
 # for ghost files
-touch %{buildroot}%{_var}/log/copr/copr.log
-touch %{buildroot}%{_var}/log/copr/prune_old.log
+touch %{buildroot}%{_var}/log/copr-backend/copr.log
+touch %{buildroot}%{_var}/log/copr-backend/prune_old.log
 
 touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 
@@ -222,10 +221,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/jobs/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/results
-%dir %attr(0755, copr, copr) %{_var}/log/copr
 %dir %attr(0755, copr, copr) %{_var}/run/copr-backend
 
-%ghost %{_var}/log/copr/*.log
+%ghost %{_var}/log/copr-backend/*.log
 %ghost %{_var}/run/copr-backend/copr-be.pid
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-backend
@@ -254,6 +252,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Sun May 29 2016 Pete Travis <me@petetravis.com> - 1.87-2
+- Change log file paths to /var/log/copr-backend/
+
 * Fri May 13 2016 Miroslav Suchý <msuchy@redhat.com> 1.87-1
 - workaround for BZ 1334200
 - more info in logs by default
