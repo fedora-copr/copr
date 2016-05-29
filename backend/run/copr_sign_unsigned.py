@@ -17,7 +17,7 @@ import pwd
 
 
 logging.basicConfig(
-    filename="/var/log/copr/onetime_signer.log",
+    filename="/var/log/copr-backend/onetime_signer.log",
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
     level=logging.DEBUG)
 log = logging.getLogger(__name__)
