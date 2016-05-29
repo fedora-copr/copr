@@ -175,7 +175,7 @@ Vagrant.configure(2) do |config|
 
     # ..
     frontend.vm.provision "shell",
-      inline: "sudo chown -R copr-fe:copr-fe /var/log/copr-frontend
+      inline: "sudo chown -R copr-fe:copr-fe /var/log/copr-frontend"
 
     # ..
     frontend.vm.provision "shell",
