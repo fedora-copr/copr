@@ -69,6 +69,6 @@ alias p3packs='cd /usr/lib/python2.7/site-packages'
 export p2packs=/usr/lib/python2.7/site-packages
 export p3packs=/usr/lib/python3.4/site-packages
 
-alias cdlog='cd /var/log/copr'
+alias cdlog='cd /var/log/copr-backend'
 
 source ~/.alias_autocomplete.sh
