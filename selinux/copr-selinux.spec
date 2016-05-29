@@ -9,7 +9,7 @@
 
 Name:       copr-selinux
 Version:    1.40
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    SELinux module for COPR
 
 Group:      Applications/Productivity
@@ -111,6 +111,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Sun May 29 2016 Pete Travis <me@petetravis.com> - 1.40-2
+- separate log file paths for backend and frontend
+
 * Mon Mar 14 2016 Miroslav Suchý <miroslav@suchy.cz> 1.40-1
 - add missing types to requires section
 
