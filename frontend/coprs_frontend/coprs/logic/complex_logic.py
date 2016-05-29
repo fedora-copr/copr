@@ -42,8 +42,8 @@ class ComplexLogic(object):
     @classmethod
     def fork_copr(cls, copr, user, dstname, dstgroup=None):
         forking = ProjectForking(user, dstgroup)
+        created = (not bool(forking.get(copr, dstname)))
         fcopr = forking.fork_copr(copr, dstname)
-        created = fcopr in db.session.new
 
         if fcopr.full_name == copr.full_name:
             raise exceptions.DuplicateException("Source project should not be same as destination")
@@ -181,10 +181,12 @@ class ProjectForking(object):
             raise exceptions.InsufficientRightsException(
                 "Only members may create projects in the particular groups.")
 
-    def fork_copr(self, copr, name):
-        fcopr = CoprsLogic.get_by_group_id(self.group.id, name).first() if self.group \
+    def get(self, copr, name):
+        return CoprsLogic.get_by_group_id(self.group.id, name).first() if self.group \
             else CoprsLogic.filter_without_group_projects(CoprsLogic.get(flask.g.user.name, name)).first()
 
+    def fork_copr(self, copr, name):
+        fcopr = self.get(copr, name)
         if not fcopr:
             fcopr = self.create_object(models.Copr, copr, exclude=["id", "group_id"])
             fcopr.forked_from_id = copr.id
