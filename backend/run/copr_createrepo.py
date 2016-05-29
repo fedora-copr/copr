@@ -8,7 +8,7 @@ import sys
 import pwd
 
 logging.basicConfig(
-    filename="/var/log/copr/copr_createrepo.log",
+    filename="/var/log/copr-backend/copr_createrepo.log",
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
     level=logging.INFO)
 log = logging.getLogger(__name__)

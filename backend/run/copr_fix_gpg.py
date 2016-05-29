@@ -18,7 +18,7 @@ from backend.sign import get_pubkey, unsign_rpms_in_dir, sign_rpms_in_dir, creat
 from backend.createrepo import createrepo_unsafe, add_appdata
 
 logging.basicConfig(
-    filename="/var/log/copr/fix_gpg.log",
+    filename="/var/log/copr-backend/fix_gpg.log",
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
     level=logging.DEBUG)
 log = logging.getLogger(__name__)

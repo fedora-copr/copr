@@ -130,7 +130,7 @@ class Cleaner(object):
 
 if __name__ == "__main__":
     logging.basicConfig(
-        filename="/var/log/copr/cleanup_vms.log",
+        filename="/var/log/copr-backend/cleanup_vms.log",
         # filename="/tmp/cleanup_vms.log",
         # stream=sys.stdout,
         format='[%(asctime)s][%(thread)s][%(levelname)6s]: %(message)s',

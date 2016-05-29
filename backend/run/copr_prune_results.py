@@ -125,7 +125,7 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         logging.basicConfig(
-            filename="/var/log/copr/copr_prune_results.log",
+            filename="/var/log/copr-backend/copr_prune_results.log",
             format='[%(asctime)s][%(levelname)6s]: %(message)s',
             level=logging.INFO)
         main()
