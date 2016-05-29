@@ -1,6 +1,6 @@
 # logrotation file for Copr backend
 
-/var/log/copr/*.log {
+/var/log/copr-backend/*.log {
     weekly
     rotate 5
     copytruncate
@@ -10,7 +10,7 @@
     create 640 copr copr
 }
 
-/var/log/copr/workers/worker-*.log {
+/var/log/copr-backend/workers/worker-*.log {
     weekly
     rotate 5
     copytruncate
