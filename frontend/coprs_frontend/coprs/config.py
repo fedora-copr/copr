@@ -45,7 +45,7 @@ class Config(object):
     COPR_DIST_GIT_LOGS_URL = None
 
     # primary log file
-    LOG_FILENAME = "/var/log/copr/frontend.log"
+    LOG_FILENAME = "/var/log/copr-frontend/frontend.log"
 
     INTRANET_IPS = ["127.0.0.1"]
     DEBUG = True
