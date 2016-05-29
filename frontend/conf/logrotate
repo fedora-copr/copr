@@ -1,6 +1,6 @@
 # logrotation file for Copr frontend
 
-/var/log/copr/*.log {
+/var/log/copr-frontend/*.log {
     weekly
     rotate 5
     copytruncate
