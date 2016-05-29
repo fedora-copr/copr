@@ -289,6 +289,17 @@ class Commands(object):
         result = self.client.delete_project(username=username, projectname=copr)
         print(result.message)
 
+    @requires_api_auth
+    def action_fork(self, args):
+        """ Method called when the 'fork' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+        """
+        username, copr = parse_name(args.dst)
+        result = self.client.fork_project(source=args.src, username=username, projectname=copr, confirm=args.confirm)
+        print(result.message)
+
     @check_username_presence
     def action_list(self, args):
         """ Method called when the 'list' action has been selected by the
@@ -531,6 +542,13 @@ def setup_parser():
     parser_delete = subparsers.add_parser("delete", help="Deletes the entire project")
     parser_delete.add_argument("copr", help="Name of your project to be deleted.")
     parser_delete.set_defaults(func="action_delete")
+
+    # create the parser for the "fork" command
+    parser_delete = subparsers.add_parser("fork", help="Fork the project and builds in it")
+    parser_delete.add_argument("src", help="Which project should be forked")
+    parser_delete.add_argument("dst", help="Name of the new project")
+    parser_delete.add_argument("--confirm", action="store_true", help="Confirm forking into existing project")
+    parser_delete.set_defaults(func="action_fork")
 
     #########################################################
     ###             Source-type related options           ###

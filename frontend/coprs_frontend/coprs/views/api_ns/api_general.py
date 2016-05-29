@@ -176,6 +176,48 @@ def api_copr_delete(copr):
     return flask.jsonify(output)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/fork/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def api_copr_fork(copr):
+    """ Fork the project and builds in it
+    """
+    form = forms.CoprForkFormFactory\
+        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(csrf_enabled=False)
+
+    # I have no idea why there is by default form.confirm.data equal to True
+    form.confirm.data = flask.request.form["confirm"] == "True"
+
+    if form.validate_on_submit() and copr:
+        try:
+            dstgroup = ([g for g in flask.g.user.user_groups if g.at_name == form.owner.data] or [None])[0]
+            if flask.g.user.name != form.owner.data and not dstgroup:
+                return LegacyApiError("There is no such group: {}".format(form.owner.data))
+
+            fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup)
+            if created:
+                msg = ("Forking project {} for you into {}.\nPlease be aware that it may take a few minutes "
+                       "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+            elif not created and form.confirm.data == True:
+                msg = ("Updating packages in {} from {}.\nPlease be aware that it may take a few minutes "
+                       "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+            else:
+                raise LegacyApiError("You are about to fork into existing project: {}\n"
+                                     "Please use --confirm if you really want to do this".format(fcopr.full_name))
+
+            output = {"output": "ok", "message": msg}
+            db.session.commit()
+
+        except (exceptions.ActionInProgressException,
+                exceptions.InsufficientRightsException) as err:
+            db.session.rollback()
+            raise LegacyApiError(str(err))
+    else:
+        raise LegacyApiError("Invalid request")
+
+    return flask.jsonify(output)
+
+
 @api_ns.route("/coprs/")
 @api_ns.route("/coprs/<username>/")
 def api_coprs_by_owner(username=None):

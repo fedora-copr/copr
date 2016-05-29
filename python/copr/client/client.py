@@ -903,6 +903,47 @@ class CoprClient(UnicodeMixin):
                                         username=username)
         return response
 
+    def fork_project(self, source, projectname, username=None, confirm=False):
+        """ Fork the project and builds in it
+        Auth required.
+
+        :param source: source Copr name or full_name
+        :param projectname: destination Copr projectname
+        :param username: [optional] use alternative username as owner of forked project
+        :param confirm: [optional] need to pass True when forking into existing project
+
+        :return: :py:class:`~.responses.CoprResponse`
+        with additional fields:
+
+        - text fields: "message"
+        """
+        if not username:
+            username = self.username
+        url = "{0}/coprs/{1}/fork/".format(
+            self.api_url, source
+        )
+
+        post_data = {
+            "name": projectname,
+            "owner": username,
+            "source": source,
+            "confirm": confirm,
+        }
+        data = self._fetch(url, data=post_data, method="post")
+
+        response = CoprResponse(
+            client=self,
+            method="fork_project",
+            data=data,
+            parsers=[
+                CommonMsgErrorOutParser,
+            ]
+        )
+        response.handle = ProjectHandle(client=self, response=response,
+                                        projectname=projectname,
+                                        username=username)
+        return response
+
     def create_project(
             self, username, projectname, chroots,
             description=None, instructions=None,
