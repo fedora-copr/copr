@@ -222,6 +222,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/
 %dir %attr(0755, copr, copr) %{_sharedstatedir}/copr/public_html/results
 %dir %attr(0755, copr, copr) %{_var}/run/copr-backend
+%dir %attr(0755, copr, copr) %{_var}/log/copr-backend
 
 %ghost %{_var}/log/copr-backend/*.log
 %ghost %{_var}/run/copr-backend/copr-be.pid
