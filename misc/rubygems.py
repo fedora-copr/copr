@@ -4,9 +4,9 @@ from subprocess import PIPE, Popen, call
 
 
 SLEEP = 4
-CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr-dev")
-USER = "frostyx"
-COPR = "RubyGems"
+CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
+USER = "@rubygems"
+COPR = "rubygems"
 
 
 def all_gems():
