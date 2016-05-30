@@ -5,8 +5,8 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.92
-Release:    2%{?dist}
+Version:    1.93
+Release:    1%{?dist}
 Summary:    Frontend for Copr
 
 Group:      Applications/Productivity
@@ -205,12 +205,12 @@ mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdi
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
 touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 
-install -d %{buildroot}%{_var}/log/copr-frontend
+install -d %{buildroot}%{_var}/log/copr
 install -d %{buildroot}%{_sysconfdir}/logrotate.d
 install -d %{buildroot}%{_sysconfdir}/logstash.d
 cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 cp -a conf/logstash.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_frontend.conf
-touch %{buildroot}%{_var}/log/copr-frontend/frontend.log
+touch %{buildroot}%{_var}/log/copr/frontend.log
 
 %check
 %if %{with_test} && "%{_arch}" == "x86_64"
@@ -254,8 +254,8 @@ service logstash condrestart
 %ghost %{_sharedstatedir}/copr/data/copr.db
 
 %defattr(644, copr-fe, copr-fe, 755)
-%dir %{_var}/log/copr-frontend
-%ghost %{_var}/log/copr-frontend/*.log
+%dir %{_var}/log/copr
+%ghost %{_var}/log/copr/*.log
 
 %defattr(600, copr-fe, copr-fe, 700)
 %config(noreplace)  %{_sysconfdir}/copr/copr.conf
@@ -269,8 +269,29 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
-* Sun May 29 2016 Pete Travis <me@petetravis.com> - 1.92-2
-- Change log file paths to /var/log/copr-frontend/
+* Thu May 26 2016 clime <clime@redhat.com> 1.93-1
+- added source_type to URL and Upload UI build forms
+- support for creating/editing/deleting/listing packages implemented
+- Bug 1337446 - Broken links to builds in package tab
+- action to create gpg key is now always sent
+- added tests for projects forking
+- building via url and pypi refactoring; see df6ad16
+- Bug 1336360 - reverse naming for custom and mageia chroots
+- Rubygems building support with Anitya autorebuilds
+- ./manage.py mark_as_failed command added
+- build timeout increased to 24 hours
+- added missing group insert/update hooks into CoprWhoosheer
+- added package names into search index + field boosts tweaking
+- fixed search for just a group name
+- Bug 1333792 - do not count group projects
+- Bug 1334625 - Search for coprs owned by a group does not work
+- Bug 1334575 - Missing package name in "Recent builds" tab for
+  upload/url builds
+- Bug 1334390 - Bad link in Recent Builds for group project
+- reset button also sets source_json to {}
+- speeding up of Packages view
+- enable other group users to edit the project settings
+- Bug 1333082 - Disable createrepo does not work on group project
 
 * Wed May 04 2016 Miroslav Suchý <msuchy@redhat.com> 1.92-1
 - load group.id before we commit the session
