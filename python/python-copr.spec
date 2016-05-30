@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.69
+Version:    1.70
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -178,6 +178,10 @@ popd
 %endif
 
 %changelog
+* Mon May 30 2016 clime <clime@redhat.com> 1.70-1
+- [cli][python][frontend] support forking via CLI
+- [python-copr] added missing source_type specification for upload & url builds
+
 * Thu May 26 2016 clime <clime@redhat.com> 1.69-1
 - package manip implemented in Client
 - refactored building via url and pypi; see df6ad16
