@@ -297,6 +297,52 @@ rlJournalStart
         ## Package listing
         rlAssertEquals "len(package_list) == 7" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 7
 
+        ## Test package listing attributes
+        rlRun "./copr create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project5"
+        rlRun "./copr add-package-tito ${NAME_PREFIX}Project5 --name example --git-url http://github.com/clime/example.git"
+
+        BUILDS=`mktemp`
+        LATEST_BUILD=`mktemp`
+        LATEST_SUCCEEDED_BUILD=`mktemp`
+
+        # run the tests before build
+        rlRun "./copr get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
+        cat $OUTPUT | jq '.builds' > $BUILDS
+        cat $OUTPUT | jq '.latest_build' > $LATEST_BUILD
+        cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
+
+        rlAssertEquals "Builds are empty" `cat $BUILDS` '[]'
+        rlAssertEquals "There is no latest build." `cat $LATEST_BUILD` 'null'
+        rlAssertEquals "And there is no latest succeeded build." `cat $LATEST_SUCCEEDED_BUILD` 'null'
+
+        # run the build and wait
+        rlRun "./copr buildtito --git-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > succeeded_example_build_id"
+
+        # cancel the next build so that it is failed
+        rlRun "./copr buildtito --git-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 --nowait | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > failed_example_build_id"
+        # the build needs to be already imported, otherwise there it hasn't been assigned to the example package yet
+        while true; do if [[ `cat failed_example_build_id | xargs ./copr status` == "pending" ]]; then cat failed_example_build_id | xargs ./copr cancel; break; fi; done;
+
+        # run the tests after build
+        rlRun "./copr get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
+        cat $OUTPUT | jq '.builds' > $BUILDS
+        cat $OUTPUT | jq '.latest_build' > $LATEST_BUILD
+        cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
+
+        rlAssertEquals "Build list contain two builds" `cat $BUILDS | jq '. | length'` 2
+        rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat failed_example_build_id`
+        rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat succeeded_example_build_id`
+
+        # run the same tests for list-packages cmd and its first (should be the only one) result
+        rlRun "./copr list-packages ${NAME_PREFIX}Project5 --with-all-builds --with-latest-build --with-latest-succeeded-build | jq '.[0]' > $OUTPUT"
+        cat $OUTPUT | jq '.builds' > $BUILDS
+        cat $OUTPUT | jq '.latest_build' > $LATEST_BUILD
+        cat $OUTPUT | jq '.latest_succeeded_build' > $LATEST_SUCCEEDED_BUILD
+
+        rlAssertEquals "Build list contain two builds" `cat $BUILDS | jq '. | length'` 2
+        rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat failed_example_build_id`
+        rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat succeeded_example_build_id`
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1

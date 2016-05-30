@@ -158,7 +158,7 @@ class CoprClient(UnicodeMixin):
         return CoprClient(**config)
 
     def _fetch(self, url, data=None, username=None, method=None,
-               skip_auth=False, on_error_response=None, headers=None):
+               skip_auth=False, on_error_response=None, headers=None, params=None):
         """ Fetches data from server,
         checks response and raises a CoprRequestException with nice error message
         or CoprUnknownResponseException in case of some some error. \n
@@ -171,6 +171,7 @@ class CoprClient(UnicodeMixin):
             :param on_error_response: [optional] function to handle responses
                 with bad status code
             :param headers: [optional] custom request headers
+            :param params: [optional] data for GET requests
 
             :return: deserialized response
             :rtype: dict
@@ -190,6 +191,8 @@ class CoprClient(UnicodeMixin):
             kwargs["data"] = data
         if headers is not None:
             kwargs["headers"] = headers
+        if params is not None:
+            kwargs["params"] = params
 
         if method not in ["get", "post", "head", "delete", "put"]:
             raise Exception("Method {0} not allowed".format(method))
@@ -698,7 +701,7 @@ class CoprClient(UnicodeMixin):
 
         return response
 
-    def get_packages_list(self, projectname, ownername=None):
+    def get_packages_list(self, projectname, with_latest_build=False, with_latest_succeeded_build=False, with_all_builds=False, ownername=None):
         """Returns list of packages for the given copr."""
 
         if not ownername:
@@ -708,10 +711,14 @@ class CoprClient(UnicodeMixin):
             self.api_url, ownername, projectname
         )
 
-        resp_data = self._fetch(url)
+        resp_data = self._fetch(url, params={
+            "with_latest_build": 'y' if with_latest_build else '',
+            "with_latest_succeeded_build": 'y' if with_latest_succeeded_build else '',
+            "with_all_builds": 'y' if with_all_builds else '',
+        })
         response = CoprResponse(
             client=self,
-            method="post",
+            method="get",
             data=resp_data,
             request_kwargs={
                 "projectname": projectname,
@@ -730,7 +737,7 @@ class CoprClient(UnicodeMixin):
 
         return response
 
-    def get_package(self, projectname, pkg_name, ownername=None):
+    def get_package(self, projectname, pkg_name, with_latest_build=False, with_latest_succeeded_build=False, with_all_builds=False, ownername=None):
         """Returns single package if pkg_name."""
 
         if not ownername:
@@ -740,10 +747,14 @@ class CoprClient(UnicodeMixin):
             self.api_url, ownername, projectname, pkg_name
         )
 
-        resp_data = self._fetch(url)
+        resp_data = self._fetch(url, params={
+            "with_latest_build": 'y' if with_latest_build else '',
+            "with_latest_succeeded_build": 'y' if with_latest_succeeded_build else '',
+            "with_all_builds": 'y' if with_all_builds else '',
+        })
         response = CoprResponse(
             client=self,
-            method="post",
+            method="get",
             data=resp_data,
             request_kwargs={
                 "projectname": projectname,

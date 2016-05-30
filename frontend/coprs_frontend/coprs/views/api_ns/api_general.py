@@ -666,11 +666,23 @@ def process_package_add_or_edit(copr, source_type, package=None):
     })
 
 
+def get_package_record_params():
+    params = {}
+    if flask.request.args.get('with_latest_build'):
+        params['with_latest_build'] = True
+    if flask.request.args.get('with_latest_succeeded_build'):
+        params['with_latest_succeeded_build'] = True
+    if flask.request.args.get('with_all_builds'):
+        params['with_all_builds'] = True
+    return params
+
+
 @api_ns.route("/coprs/<username>/<coprname>/package/list/", methods=["GET"])
 @api_req_with_copr
 def copr_list_packages(copr):
     packages = PackagesLogic.get_all(copr.id)
-    return flask.jsonify({"packages": [package.to_dict() for package in packages]})
+    params = get_package_record_params()
+    return flask.jsonify({"packages": [package.to_dict(**params) for package in packages]})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/package/get/<package_name>/", methods=["GET"])
@@ -680,7 +692,9 @@ def copr_get_package(copr, package_name):
         package = PackagesLogic.get(copr.id, package_name)[0]
     except IndexError:
         raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
-    return flask.jsonify({'package': package.to_dict()})
+
+    params = get_package_record_params()
+    return flask.jsonify({'package': package.to_dict(**params)})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/package/delete/<package_name>/", methods=["POST"])

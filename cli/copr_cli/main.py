@@ -448,12 +448,22 @@ class Commands(object):
 
     def action_list_packages(self, args):
         ownername, projectname = parse_name(args.copr)
-        result = self.client.get_packages_list(ownername=ownername, projectname=projectname)
+        data = {
+            "with_latest_build": args.with_latest_build,
+            "with_latest_succeeded_build": args.with_latest_succeeded_build,
+            "with_all_builds": args.with_all_builds,
+        }
+        result = self.client.get_packages_list(ownername=ownername, projectname=projectname, **data)
         print(simplejson.dumps(result.packages_list, indent=4, sort_keys=True, for_json=True))
 
     def action_get_package(self, args):
         ownername, projectname = parse_name(args.copr)
-        data = { "pkg_name": args.name }
+        data = {
+            "pkg_name": args.name,
+            "with_latest_build": args.with_latest_build,
+            "with_latest_succeeded_build": args.with_latest_succeeded_build,
+            "with_all_builds": args.with_all_builds,
+        }
         result = self.client.get_package(ownername=ownername, projectname=projectname, **data)
         print(simplejson.dumps(result.package, indent=4, sort_keys=True, for_json=True))
 
@@ -748,6 +758,12 @@ def setup_parser():
                                                  help="Returns list of packages in the given copr")
     parser_list_packages.add_argument("copr",
                                       help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_list_packages.add_argument("--with-latest-build", action="store_true",
+                                      help="Also display data related to the latest build for the package.")
+    parser_list_packages.add_argument("--with-latest-succeeded-build", action="store_true",
+                                      help="Also display data related to the latest succeeded build for the package.")
+    parser_list_packages.add_argument("--with-all-builds", action="store_true",
+                                      help="Also display data related to the builds for the package.")
     parser_list_packages.set_defaults(func="action_list_packages")
 
 
@@ -759,26 +775,32 @@ def setup_parser():
     parser_get_package.add_argument("--name",
                                     help="Name of a single package to be displayed",
                                     metavar="PKGNAME", required=True)
+    parser_get_package.add_argument("--with-latest-build", action="store_true",
+                                    help="Also display data related to the latest build for each package.")
+    parser_get_package.add_argument("--with-latest-succeeded-build", action="store_true",
+                                    help="Also display data related to the latest succeeded build for each package.")
+    parser_get_package.add_argument("--with-all-builds", action="store_true",
+                                    help="Also display data related to the builds for each package.")
     parser_get_package.set_defaults(func="action_get_package")
 
     # package deletion
     parser_delete_package = subparsers.add_parser("delete-package",
                                                   help="Deletes the specified package")
     parser_delete_package.add_argument("copr",
-                                    help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+                                       help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
     parser_delete_package.add_argument("--name",
-                                    help="Name of a package to be deleted",
-                                    metavar="PKGNAME", required=True)
+                                       help="Name of a package to be deleted",
+                                       metavar="PKGNAME", required=True)
     parser_delete_package.set_defaults(func="action_delete_package")
 
     # package reseting
     parser_reset_package = subparsers.add_parser("reset-package",
-                                                  help="Resets default source of the specified package")
+                                                 help="Resets default source of the specified package")
     parser_reset_package.add_argument("copr",
-                                    help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+                                      help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
     parser_reset_package.add_argument("--name",
-                                    help="Name of a package to be resetd",
-                                    metavar="PKGNAME", required=True)
+                                      help="Name of a package to be resetd",
+                                      metavar="PKGNAME", required=True)
     parser_reset_package.set_defaults(func="action_reset_package")
 
     return parser
