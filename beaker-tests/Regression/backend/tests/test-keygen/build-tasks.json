@@ -1,0 +1,24 @@
+[
+{
+    "_description": "test that rpms are signed by a key created by copr-keygen for user clime",
+    "_expected_outcome": "success",
+
+    "build_id": 10,
+    "buildroot_pkgs": null,
+    "chroot": "fedora-23-x86_64",
+    "enable_net": true,
+    "git_branch": "f23",
+    "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
+    "git_repo": "@copr/copr-dev/example",
+    "memory_reqs": 2048,
+    "package_name": "example",
+    "package_version": "1.0.5-1.git.0.78e06da.fc23",
+    "pkgs": "",
+    "project_name": "copr-dev",
+    "project_owner": "@copr",
+    "repos": "",
+    "submitter": "clime",
+    "task_id": "10-fedora-23-x86_64",
+    "timeout": 21600
+}
+]
