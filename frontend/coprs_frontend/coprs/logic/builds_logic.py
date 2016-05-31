@@ -272,7 +272,7 @@ GROUP BY
                     break
                 git_hashes[chroot.name] = chroot.git_hash
 
-        build = cls.create_new_from(user, copr, source_build.source_type, source_build.source_json, chroot_names,
+        build = cls.create_new(user, copr, source_build.source_type, source_build.source_json, chroot_names,
                                     pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import, **build_options)
         build.package_id = source_build.package_id
         build.pkg_version = source_build.pkg_version
@@ -291,7 +291,7 @@ GROUP BY
         """
         source_type = helpers.BuildSourceEnum("srpm_link")
         source_json = json.dumps({"url": srpm_url})
-        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, pkgs=srpm_url, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, pkgs=srpm_url, **build_options)
 
     @classmethod
     def create_new_from_tito(cls, user, copr, git_url, git_dir, git_branch, tito_test,
@@ -309,7 +309,7 @@ GROUP BY
                                   "git_dir": git_dir,
                                   "git_branch": git_branch,
                                   "tito_test": tito_test})
-        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
     def create_new_from_mock(cls, user, copr, scm_type, scm_url, scm_branch, spec,
@@ -327,7 +327,7 @@ GROUP BY
                                   "scm_url": scm_url,
                                   "scm_branch": scm_branch,
                                   "spec": spec})
-        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
     def create_new_from_pypi(cls, user, copr, pypi_package_name, pypi_package_version, python_versions,
@@ -347,7 +347,7 @@ GROUP BY
         source_json = json.dumps({"pypi_package_name": pypi_package_name,
                                   "pypi_package_version": pypi_package_version,
                                   "python_versions": python_versions})
-        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
     def create_new_from_rubygems(cls, user, copr, gem_name,
@@ -361,7 +361,7 @@ GROUP BY
         """
         source_type = helpers.BuildSourceEnum("rubygems")
         source_json = json.dumps({"gem_name": gem_name})
-        return cls.create_new_from(user, copr, source_type, source_json, chroot_names, **build_options)
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
     def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
@@ -388,7 +388,7 @@ GROUP BY
         source_type = helpers.BuildSourceEnum("srpm_upload")
         source_json = json.dumps({"tmp": tmp_name, "pkg": filename})
         try:
-            build = cls.create_new_from(user, copr, source_type, source_json,
+            build = cls.create_new(user, copr, source_type, source_json,
                                         chroot_names, pkgs=pkg_url, **build_options)
         except Exception:
             shutil.rmtree(tmp)  # todo: maybe we should delete in some cleanup procedure?
@@ -397,8 +397,8 @@ GROUP BY
         return build
 
     @classmethod
-    def create_new_from(cls, user, copr, source_type, source_json, chroot_names=None,
-                        pkgs="", git_hashes=None, skip_import=False, **build_options): # TODO: create_new_from_what?
+    def create_new(cls, user, copr, source_type, source_json, chroot_names=None,
+                        pkgs="", git_hashes=None, skip_import=False, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
