@@ -488,8 +488,19 @@ class Commands(object):
     def action_build_package(self, args):
         ownername, projectname = parse_name(args.copr)
         data = { "pkg_name": args.name }
+
         result = self.client.build_package(ownername=ownername, projectname=projectname, **data)
+
+        if result.output != "ok":
+            print(result.error)
+            return
         print(result.message)
+
+        build_ids = [bw.build_id for bw in result.builds_list]
+        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
+
+        if not args.nowait:
+            self._watch_builds(build_ids)
 
 def setup_parser():
     """
@@ -820,14 +831,12 @@ def setup_parser():
     parser_reset_package.set_defaults(func="action_reset_package")
 
     # package building
-    parser_build_package = subparsers.add_parser("build-package",
-                                                 help="Builds the package from its default source")
-    parser_build_package.add_argument("copr",
-                                      help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_build_package = subparsers.add_parser("build-package", parents=[parser_build_parent],
+                                                 help="Builds the package from its default source (EXPERIMENTAL)")
     parser_build_package.add_argument("--name",
                                       help="Name of a package to be built",
                                       metavar="PKGNAME", required=True)
-    parser_reset_package.set_defaults(func="action_build_package")
+    parser_build_package.set_defaults(func="action_build_package")
 
     return parser
 

@@ -832,6 +832,37 @@ class CoprClient(UnicodeMixin):
 
         return response
 
+    def build_package(self, projectname, pkg_name, ownername=None):
+        """Builds the package from its default source."""
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/package/build/{3}/".format(
+            self.api_url, ownername, projectname, pkg_name
+        )
+
+        resp_data = self._fetch(url, method="post")
+        response = CoprResponse(
+            client=self,
+            method="post",
+            data=resp_data,
+            request_kwargs={
+                "projectname": projectname,
+                "username": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+                NewBuildListParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname, username=ownername
+        )
+
+        return response
+
     #########################################################
     ###                   Project actions                 ###
     #########################################################

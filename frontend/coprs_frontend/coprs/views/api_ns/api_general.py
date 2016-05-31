@@ -739,3 +739,30 @@ def copr_reset_package(copr, package_name):
         "message": "Package's default source was successfully reseted.",
         'package': package.to_dict(),
     })
+
+
+@api_ns.route("/coprs/<username>/<coprname>/package/build/<package_name>/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_build_package(copr, package_name):
+    form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)(csrf_enabled=False)
+
+    try:
+        package = PackagesLogic.get(copr.id, package_name)[0]
+    except IndexError:
+        raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
+
+    if form.validate_on_submit():
+        try:
+            build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots, **form.data)
+            db.session.commit()
+        except (InsufficientRightsException, ActionInProgressException, NoPackageSourceException) as e:
+            raise LegacyApiError(str(e))
+    else:
+        raise LegacyApiError(form.errors)
+
+    return flask.jsonify({
+        "output": "ok",
+        "ids": [build.id],
+        "message": "Build was added to {0}.".format(copr.name)
+    })

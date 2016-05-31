@@ -76,3 +76,6 @@ class ActionInProgressException(CoprHttpException):
 
 class UnknownSourceTypeException(Exception):
     pass
+
+class NoPackageSourceException(Exception):
+    pass

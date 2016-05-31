@@ -9,6 +9,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs import helpers
+from coprs import forms
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
@@ -183,3 +184,10 @@ ORDER BY package.name ASC;
         package.source_type = helpers.BuildSourceEnum("unset")
 
         db.session.add(package)
+
+
+    @classmethod
+    def build_package(cls, user, copr, package, chroot_names=None, **build_options):
+        if not package.source_type or not package.source_json:
+            raise NoPackageSourceException('Invalid default source for package {package}'.format(package.name))
+        return builds_logic.BuildsLogic.create_new(user, copr, package.source_type, package.source_json, chroot_names, **build_options)
