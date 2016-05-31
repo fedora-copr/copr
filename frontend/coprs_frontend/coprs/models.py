@@ -423,12 +423,12 @@ class Package(db.Model, helpers.Serializer):
 
         if with_latest_build:
             build = self.last_build(successful=False)
-            package_dict['latest_build'] = build.to_dict() if build else None
+            package_dict['latest_build'] = build.to_dict(with_chroot_states=True) if build else None
         if with_latest_succeeded_build:
             build = self.last_build(successful=True)
-            package_dict['latest_succeeded_build'] = build.to_dict() if build else None
+            package_dict['latest_succeeded_build'] = build.to_dict(with_chroot_states=True) if build else None
         if with_all_builds:
-            package_dict['builds'] = [build.to_dict() for build in reversed(self.builds)]
+            package_dict['builds'] = [build.to_dict(with_chroot_states=True) for build in reversed(self.builds)]
 
         return package_dict
 
@@ -687,7 +687,7 @@ class Build(db.Model, helpers.Serializer):
         except:
             return None
 
-    def to_dict(self, options=None):
+    def to_dict(self, options=None, with_chroot_states=False):
         result = super(Build, self).to_dict(options)
         result["src_pkg"] = result["pkgs"]
         del result["pkgs"]
@@ -695,6 +695,10 @@ class Build(db.Model, helpers.Serializer):
 
         result['source_type'] = helpers.BuildSourceEnum(result['source_type'])
         result["state"] = self.state
+
+        if with_chroot_states:
+            result["chroots"] = {b.name: b.state for b in self.build_chroots}
+
         return result
 
 
