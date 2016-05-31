@@ -456,6 +456,12 @@ class Commands(object):
         result = self.client.get_packages_list(ownername=ownername, projectname=projectname, **data)
         print(simplejson.dumps(result.packages_list, indent=4, sort_keys=True, for_json=True))
 
+    def action_list_package_names(self, args):
+        ownername, projectname = parse_name(args.copr)
+        result = self.client.get_packages_list(ownername=ownername, projectname=projectname)
+        for package in result.packages_list:
+            print(package.name)
+
     def action_get_package(self, args):
         ownername, projectname = parse_name(args.copr)
         data = {
@@ -479,6 +485,11 @@ class Commands(object):
         result = self.client.reset_package(ownername=ownername, projectname=projectname, **data)
         print(result.message)
 
+    def action_build_package(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = { "pkg_name": args.name }
+        result = self.client.build_package(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
 
 def setup_parser():
     """
@@ -752,7 +763,6 @@ def setup_parser():
                                                          parents=[parser_rubygems_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_rubygems.set_defaults(func="action_add_or_edit_package_rubygems", create=False)
 
-
     # package listing
     parser_list_packages = subparsers.add_parser("list-packages",
                                                  help="Returns list of packages in the given copr")
@@ -766,6 +776,12 @@ def setup_parser():
                                       help="Also display data related to the builds for the package.")
     parser_list_packages.set_defaults(func="action_list_packages")
 
+    # package names listing
+    parser_list_package_names = subparsers.add_parser("list-package-names",
+                                                      help="Returns list of package names in the given copr")
+    parser_list_package_names.add_argument("copr",
+                                           help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_list_package_names.set_defaults(func="action_list_package_names")
 
     # single package fetching
     parser_get_package = subparsers.add_parser("get-package",
@@ -799,9 +815,19 @@ def setup_parser():
     parser_reset_package.add_argument("copr",
                                       help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
     parser_reset_package.add_argument("--name",
-                                      help="Name of a package to be resetd",
+                                      help="Name of a package to be reseted",
                                       metavar="PKGNAME", required=True)
     parser_reset_package.set_defaults(func="action_reset_package")
+
+    # package building
+    parser_build_package = subparsers.add_parser("build-package",
+                                                 help="Builds the package from its default source")
+    parser_build_package.add_argument("copr",
+                                      help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
+    parser_build_package.add_argument("--name",
+                                      help="Name of a package to be built",
+                                      metavar="PKGNAME", required=True)
+    parser_reset_package.set_defaults(func="action_build_package")
 
     return parser
 
