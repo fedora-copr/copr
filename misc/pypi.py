@@ -9,6 +9,7 @@ import time
 import os
 from copr import create_client2_from_params
 from copr import CoprClient
+import json
 
 URL_PATTERN = 'https://pypi.python.org/pypi/{package}/json'
 CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
@@ -17,9 +18,11 @@ COPR_URL = "https://copr.fedorainfracloud.org/"
 USER = "@copr"
 COPR = "PyPI2"
 
+cl = CoprClient.create_from_file_config(CONFIG)
 
 parser = argparse.ArgumentParser(prog = "pypi")
 parser.add_argument("-s", "--submit-pypi-modules", dest="submit_pypi_modules", action="store_true")
+parser.add_argument("-u", "--submit-unbuilt-pypi-modules", dest="submit_unbuilt_pypi_modules", action="store_true")
 parser.add_argument("-p", "--parse-succeeded-packages", dest="parse_succeeded_packages", action="store_true")
 parser.add_argument("-o", "--parse-succeeded-packages-v1client", dest="parse_succeeded_packages_v1client", action="store_true")
 args = parser.parse_args()
@@ -53,14 +56,25 @@ def submit_build(copr_name, module_name, python_version):
     subprocess.call(command)
 
 
-def submit_all_pypi_modules():
+def get_all_pypi_modules():
     client = xmlrpclib.ServerProxy('https://pypi.python.org/pypi')
-    # get a list of package names
-    packages = client.list_packages()
-    #print(packages[0:10])
-    for module in packages:
-        #if module <= "xxx":
-        #    continue
+    modules = client.list_packages()
+    return modules
+
+
+def submit_all_pypi_modules():
+    for module in get_all_pypi_modules():
+        print("Submitting module {0}".format(module))
+        submit_build("{}/{}".format(USER, COPR), module, "2")
+        time.sleep(4)
+
+
+def submit_unbuilt_pypi_modules():
+    succeeded_modules = get_succeeded_modules()
+    for module in get_all_pypi_modules():
+        if module in succeeded_modules:
+            print("PyPI module '{0}' already built. Skipping.".format(module))
+            continue
         print("Submitting module {0}".format(module))
         submit_build("{}/{}".format(USER, COPR), module, "2")
         time.sleep(4)
@@ -94,11 +108,24 @@ def parse_succeeded_packages():
 
 
 def parse_succeeded_packages_v1client():
-    cl = CoprClient.create_from_file_config(CONFIG)
+    for package in get_succeeded_packages():
+        print(package.name)
+
+
+def get_succeeded_packages():
+    succeeded_packages = []
     result = cl.get_packages_list(projectname=COPR, ownername=USER, with_latest_succeeded_build=True)
     for package in result.packages_list:
         if package.latest_succeeded_build:
-            print(package.name)
+            succeeded_packages.append(package)
+    return succeeded_packages
+
+
+def get_succeeded_modules():
+    succeeded_modules = []
+    for package in get_succeeded_packages():
+        succeeded_modules.append(json.loads(package.source_json)['pypi_package_name'])
+    return succeeded_modules
 
 
 if __name__ == "__main__":
@@ -108,6 +135,10 @@ if __name__ == "__main__":
         parse_succeeded_packages()
     elif args.parse_succeeded_packages_v1client:
         parse_succeeded_packages_v1client()
+    elif args.submit_unbuilt_pypi_modules:
+        submit_unbuilt_pypi_modules()
+    elif args.rebuild_failed_packages:
+        rebuild_failed_packages()
     else:
         print("Specify action: See --help")
         parser.print_usage()
