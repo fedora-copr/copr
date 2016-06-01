@@ -127,7 +127,6 @@
 
     {{ render_field(form.pkgs, label='URLs to SRPM Files', rows = 10, cols = 50) }}
 
-   <input type="hidden" name="source_type" value="srpm_link" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
@@ -146,7 +145,6 @@
         </div>
       </div>
 
-   <input type="hidden" name="source_type" value="srpm_upload" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
@@ -168,7 +166,6 @@
       </div>
     </div>
 
-    <input type="hidden" name="source_type" value="git_and_tito" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
@@ -184,7 +181,6 @@
     {{ render_field(form.spec, placeholder="Path from repository root directory to your .spec file") }}
     {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
 
-    <input type="hidden" name="source_type" value="mock_scm" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
@@ -198,7 +194,6 @@
     {{ render_field(form.pypi_package_version, placeholder="Optional - Version of the package PyPI") }}
     {{ render_pypi_python_versions_field(form.python_versions) }}
 
-    <input type="hidden" name="source_type" value="pypi" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 
@@ -210,7 +205,6 @@
 
     {{ render_field(form.gem_name, placeholder="Gem name from RubyGems.org") }}
 
-    <input type="hidden" name="source_type" value="rubygems" />
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
 

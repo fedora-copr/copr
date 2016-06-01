@@ -617,29 +617,29 @@ def monitor(copr):
 
 ###############################################################################
 
-@api_ns.route("/coprs/<username>/<coprname>/package/add/<source_type>/", methods=["POST"])
+@api_ns.route("/coprs/<username>/<coprname>/package/add/<source_type_text>/", methods=["POST"])
 @api_login_required
 @api_req_with_copr
-def copr_add_package(copr, source_type):
-    return process_package_add_or_edit(copr, source_type)
+def copr_add_package(copr, source_type_text):
+    return process_package_add_or_edit(copr, source_type_text)
 
 
-@api_ns.route("/coprs/<username>/<coprname>/package/<package_name>/edit/<source_type>/", methods=["POST"])
+@api_ns.route("/coprs/<username>/<coprname>/package/<package_name>/edit/<source_type_text>/", methods=["POST"])
 @api_login_required
 @api_req_with_copr
-def copr_edit_package(copr, package_name, source_type):
+def copr_edit_package(copr, package_name, source_type_text):
     try:
         package = PackagesLogic.get(copr.id, package_name)[0]
     except IndexError:
         raise LegacyApiError("Package {name} does not exists in copr {copr}.".format(name=package_name, copr=copr.full_name))
-    return process_package_add_or_edit(copr, source_type, package=package)
+    return process_package_add_or_edit(copr, source_type_text, package=package)
 
 
-def process_package_add_or_edit(copr, source_type, package=None):
+def process_package_add_or_edit(copr, source_type_text, package=None):
     try:
-        form = forms.get_package_form_cls_by_source_type(source_type)(csrf_enabled=False)
+        form = forms.get_package_form_cls_by_source_type_text(source_type_text)(csrf_enabled=False)
     except UnknownSourceTypeException:
-        raise LegacyApiError("Unsupported package source type {source_type}".format(source_type=source_type))
+        raise LegacyApiError("Unsupported package source type {source_type_text}".format(source_type_text=source_type_text))
 
     if form.validate_on_submit():
         if not package:
@@ -650,7 +650,7 @@ def process_package_add_or_edit(copr, source_type, package=None):
             except DuplicateException:
                 raise LegacyApiError("Package {0} already exists in copr {1}.".format(form.package_name.data, copr.full_name))
 
-        package.source_type = helpers.BuildSourceEnum(form.source_type.data)
+        package.source_type = helpers.BuildSourceEnum(source_type_text)
         package.webhook_rebuild = form.webhook_rebuild.data
         package.source_json = form.source_json
 

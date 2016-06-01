@@ -68,12 +68,12 @@ def copr_rebuild_package(copr, package_name):
 
 
 @coprs_ns.route("/<username>/<coprname>/package/add")
-@coprs_ns.route("/<username>/<coprname>/package/add/<source_type>")
+@coprs_ns.route("/<username>/<coprname>/package/add/<source_type_text>")
 @coprs_ns.route("/g/<group_name>/<coprname>/package/add")
-@coprs_ns.route("/g/<group_name>/<coprname>/package/add/<source_type>")
+@coprs_ns.route("/g/<group_name>/<coprname>/package/add/<source_type_text>")
 @login_required
 @req_with_copr
-def copr_add_package(copr, source_type="git_and_tito", **kwargs):
+def copr_add_package(copr, source_type_text="git_and_tito", **kwargs):
     form = {
         "git_and_tito": forms.PackageFormTito(),
         "mock_scm": forms.PackageFormMock(),
@@ -82,38 +82,38 @@ def copr_add_package(copr, source_type="git_and_tito", **kwargs):
     }
 
     if "form" in kwargs:
-        form[kwargs["form"].source_type.data] = kwargs["form"]
+        form[source_type_text] = kwargs["form"]
 
     return flask.render_template("coprs/detail/add_package.html", copr=copr, package=None,
-                                 source_type=source_type, view="coprs_ns.copr_new_package",
+                                 source_type_text=source_type_text, view="coprs_ns.copr_new_package",
                                  form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"])
 
 
-@coprs_ns.route("/<username>/<coprname>/package/new", methods=["POST"])
-@coprs_ns.route("/g/<group_name>/<coprname>/package/new", methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/package/new/<source_type_text>", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/package/new/<source_type_text>", methods=["POST"])
 @login_required
 @req_with_copr
-def copr_new_package(copr):
+def copr_new_package(copr, source_type_text):
     url_on_success = helpers.copr_url("coprs_ns.copr_packages", copr)
-    return process_save_package(copr, package_name=None, view="coprs_ns.copr_new_package",
+    return process_save_package(copr, source_type_text, package_name=None, view="coprs_ns.copr_new_package",
                                 view_method=copr_add_package, url_on_success=url_on_success)
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit")
-@coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit/<source_type>")
+@coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit/<source_type_text>")
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit")
-@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit/<source_type>")
+@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit/<source_type_text>")
 @req_with_copr
-def copr_edit_package(copr, package_name, source_type=None, **kwargs):
+def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     package = ComplexLogic.get_package_safe(copr, package_name)
     data = package.source_json_dict
     data["webhook_rebuild"] = package.webhook_rebuild
 
-    if package.source_type and not source_type:
-        source_type = package.source_type_text
-    elif not source_type:
-        source_type = "git_and_tito"
+    if package.source_type and not source_type_text:
+        source_type_text = package.source_type_text
+    elif not source_type_text:
+        source_type_text = "git_and_tito"
 
     form_classes = {
         "git_and_tito": forms.PackageFormTito,
@@ -124,33 +124,33 @@ def copr_edit_package(copr, package_name, source_type=None, **kwargs):
     form = {k: v(formdata=None) for k, v in form_classes.items()}
 
     if "form" in kwargs:
-        form[kwargs["form"].source_type.data] = kwargs["form"]
+        form[source_type_text] = kwargs["form"]
     elif package.source_type:
         if package.source_type_text == "git_and_tito" and "git_dir" in data:
             data["git_directory"] = data["git_dir"]  # @FIXME workaround
         form[package.source_type_text] = form_classes[package.source_type_text](data=data)
 
     return flask.render_template("coprs/detail/edit_package.html", package=package, copr=copr,
-                                 source_type=source_type, view="coprs_ns.copr_edit_package",
+                                 source_type_text=source_type_text, view="coprs_ns.copr_edit_package",
                                  form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"])
 
 
-@coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit", methods=["POST"])
-@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit", methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit/<source_type_text>", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/edit/<source_type_text>", methods=["POST"])
 @login_required
 @req_with_copr
-def copr_edit_package_post(copr, package_name):
+def copr_edit_package_post(copr, package_name, source_type_text):
     UsersLogic.raise_if_cant_build_in_copr(
         flask.g.user, copr, "You don't have permissions to edit this package.")
 
     url_on_success = helpers.copr_url("coprs_ns.copr_packages", copr)
-    return process_save_package(copr, package_name, view="coprs_ns.copr_edit_package",
+    return process_save_package(copr, source_type_text, package_name, view="coprs_ns.copr_edit_package",
                                 view_method=copr_edit_package, url_on_success=url_on_success)
 
 
-def process_save_package(copr, package_name, view, view_method, url_on_success):
-    form = forms.get_package_form_cls_by_source_type(flask.request.form["source_type"])()
+def process_save_package(copr, source_type_text, package_name, view, view_method, url_on_success):
+    form = forms.get_package_form_cls_by_source_type_text(source_type_text)()
 
     if "reset" in flask.request.form:
         try:
@@ -160,7 +160,7 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
             return flask.redirect(url_on_success) # should be url_on_fail
 
         try:
-            PackagesLogic.reset_package(package)
+            PackagesLogic.reset_package(flask.g.user, package)
             db.session.commit()
         except InsufficientRightsException as e:
             flask.flash(str(e))
@@ -176,7 +176,7 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
             else:
                 package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
 
-            package.source_type = helpers.BuildSourceEnum(form.source_type.data)
+            package.source_type = helpers.BuildSourceEnum(source_type_text)
             package.webhook_rebuild = form.webhook_rebuild.data
             package.source_json = form.source_json
 
@@ -193,9 +193,10 @@ def process_save_package(copr, package_name, view, view_method, url_on_success):
     kwargs = {
         "coprname": copr.name,
         "package_name": package_name,
-        "source_type": form.source_type.data,
+        "source_type_text": source_type_text,
         "form": form,
     }
+
     kwargs.update({"group_name": copr.group.name} if copr.is_a_group_project else {"username": copr.user.name})
     return view_method(**kwargs)
 

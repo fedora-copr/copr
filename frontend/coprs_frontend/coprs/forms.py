@@ -17,32 +17,32 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.models import Package
 from exceptions import UnknownSourceTypeException
 
-def get_package_form_cls_by_source_type(source_type):
+def get_package_form_cls_by_source_type_text(source_type_text):
     """
     Params
     ------
-    source_type : str
+    source_type_text : str
         name of the source type (tito/mock/pypi/rubygems/upload/srpm-link/...)
 
     Returns
     -------
     BasePackageForm child
-        based on source_type input
+        based on source_type_text input
     """
-    if source_type == 'git_and_tito':
+    if source_type_text == 'git_and_tito':
         return PackageFormTito
-    elif source_type == 'mock_scm':
+    elif source_type_text == 'mock_scm':
         return PackageFormMock
-    elif source_type == 'pypi':
+    elif source_type_text == 'pypi':
         return PackageFormPyPI
-    elif source_type == 'rubygems':
+    elif source_type_text == 'rubygems':
         return PackageFormRubyGems
-    elif source_type == 'srpm_link':
+    elif source_type_text == 'srpm_link':
         return PackageFormUrls
-    elif source_type == 'srpm_upload':
+    elif source_type_text == 'srpm_upload':
         return PackageFormUpload
     else:
-        raise UnknownSourceTypeException("Wrong source type")
+        raise UnknownSourceTypeException("Invalid source type")
 
 
 class MultiCheckboxField(wtforms.SelectMultipleField):
@@ -358,10 +358,6 @@ class BasePackageForm(wtf.Form):
 
 
 class PackageFormTito(BasePackageForm):
-    source_type = wtforms.HiddenField(
-        "Source Type",
-        validators=[wtforms.validators.AnyOf(["git_and_tito"])])
-
     git_url = wtforms.StringField(
         "Git URL",
         validators=[
@@ -391,10 +387,6 @@ class PackageFormTito(BasePackageForm):
 
 
 class PackageFormMock(BasePackageForm):
-    source_type = wtforms.HiddenField(
-        "Source Type",
-        validators=[wtforms.validators.AnyOf(["mock_scm"])])
-
     scm_type = wtforms.SelectField(
         "SCM Type",
         choices=[("git", "Git"), ("svn", "SVN")])
@@ -428,10 +420,6 @@ class PackageFormMock(BasePackageForm):
 
 
 class PackageFormPyPI(BasePackageForm):
-    source_type = wtforms.HiddenField(
-        "Source Type",
-        validators=[wtforms.validators.AnyOf(["pypi"])])
-
     pypi_package_name = wtforms.StringField(
         "PyPI package name",
         validators=[wtforms.validators.DataRequired()])
@@ -460,10 +448,6 @@ class PackageFormPyPI(BasePackageForm):
 
 
 class PackageFormRubyGems(BasePackageForm):
-    source_type = wtforms.HiddenField(
-        "Source Type",
-        validators=[wtforms.validators.AnyOf(["rubygems"])])
-
     gem_name = wtforms.StringField(
         "Gem Name",
         validators=[wtforms.validators.DataRequired()])
@@ -476,10 +460,6 @@ class PackageFormRubyGems(BasePackageForm):
 
 
 class PackageFormUrls(BasePackageForm):
-    source_type = wtforms.HiddenField(
-        "Source Type",
-        validators=[wtforms.validators.AnyOf(["srpm_link"])])
-
     pkgs = wtforms.TextAreaField(
         "Pkgs",
         validators=[
@@ -496,10 +476,6 @@ class PackageFormUrls(BasePackageForm):
 
 
 class PackageFormUpload(BasePackageForm):
-    source_type = wtforms.HiddenField(
-        "Source Type",
-        validators=[wtforms.validators.AnyOf(["srpm_upload"])])
-
     @property
     def source_json(self):
         return json.dumps({})

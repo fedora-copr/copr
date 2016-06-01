@@ -348,13 +348,11 @@ class CoprClient(UnicodeMixin):
         if urlparse(pkgs[0]).scheme != "":
             api_endpoint = "new_build"
             data["pkgs"] = " ".join(pkgs)
-            data["source_type"] = SOURCE_TYPE_SRPM_LINK
         else:
             try:
                 api_endpoint = "new_build_upload"
                 f = open(pkgs[0], "rb")
                 data["pkgs"] = (os.path.basename(f.name), f, "application/x-rpm")
-                data["source_type"] = SOURCE_TYPE_SRPM_UPLOAD
             except IOError as e:
                 raise CoprRequestException(e)
 
@@ -387,7 +385,6 @@ class CoprClient(UnicodeMixin):
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
             "python_versions": [str(version) for version in python_versions],
-            "source_type": "pypi",
         }
         api_endpoint = "new_build_pypi"
         return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
@@ -419,7 +416,6 @@ class CoprClient(UnicodeMixin):
             "git_directory": git_dir,  # @FIXME
             "git_branch": git_branch,
             "tito_test": tito_test,
-            "source_type": "git_and_tito",
         }
         api_endpoint = "new_build_tito"
         return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
@@ -451,7 +447,6 @@ class CoprClient(UnicodeMixin):
             "scm_url": scm_url,
             "scm_branch": scm_branch,
             "spec": spec,
-            "source_type": "mock_scm",
         }
         api_endpoint = "new_build_mock"
         return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
@@ -477,7 +472,6 @@ class CoprClient(UnicodeMixin):
             "memory_reqs": memory,
             "timeout": timeout,
             "gem_name": gem_name,
-            "source_type": "rubygems",
         }
         api_endpoint = "new_build_rubygems"
         return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
@@ -545,7 +539,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_GIT_AND_TITO)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_GIT_AND_TITO,
             "git_url": git_url,
             "git_directory": git_dir,
             "git_branch": git_branch,
@@ -558,7 +551,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_GIT_AND_TITO)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_GIT_AND_TITO,
             "git_url": git_url,
             "git_directory": git_dir,
             "git_branch": git_branch,
@@ -571,7 +563,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_PYPI)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_PYPI,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
             "python_versions": python_versions,
@@ -583,7 +574,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_PYPI)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_PYPI,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
             "python_versions": python_versions,
@@ -595,7 +585,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_MOCK_SCM)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_MOCK_SCM,
             "scm_type": scm_type,
             "scm_url": scm_url,
             "scm_branch": scm_branch,
@@ -608,7 +597,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_MOCK_SCM)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_MOCK_SCM,
             "scm_type": scm_type,
             "scm_url": scm_url,
             "scm_branch": scm_branch,
@@ -621,7 +609,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_SRPM_LINK)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_SRPM_LINK,
             "pkgs": urls,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
@@ -631,7 +618,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_SRPM_LINK)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_SRPM_LINK,
             "pkgs": urls,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
@@ -641,7 +627,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_SRPM_UPLOAD)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_SRPM_UPLOAD,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
         return response
@@ -650,7 +635,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_SRPM_UPLOAD)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_SRPM_UPLOAD,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
         return response
@@ -659,7 +643,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_RUBYGEMS)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_RUBYGEMS,
             "gem_name": gem_name,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
@@ -669,7 +652,6 @@ class CoprClient(UnicodeMixin):
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_RUBYGEMS)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
-            "source_type": SOURCE_TYPE_RUBYGEMS,
             "gem_name": gem_name,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
