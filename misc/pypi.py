@@ -8,6 +8,7 @@ import argparse
 import time
 import os
 from copr import create_client2_from_params
+from copr import CoprClient
 
 URL_PATTERN = 'https://pypi.python.org/pypi/{package}/json'
 CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
@@ -20,6 +21,7 @@ COPR = "PyPI2"
 parser = argparse.ArgumentParser(prog = "pypi")
 parser.add_argument("-s", "--submit-pypi-modules", dest="submit_pypi_modules", action="store_true")
 parser.add_argument("-p", "--parse-succeeded-packages", dest="parse_succeeded_packages", action="store_true")
+parser.add_argument("-o", "--parse-succeeded-packages-v1client", dest="parse_succeeded_packages_v1client", action="store_true")
 args = parser.parse_args()
 
 
@@ -91,11 +93,21 @@ def parse_succeeded_packages():
         print(package)
 
 
+def parse_succeeded_packages_v1client():
+    cl = CoprClient.create_from_file_config(CONFIG)
+    result = cl.get_packages_list(projectname=COPR, ownername=USER, with_latest_succeeded_build=True)
+    for package in result.packages_list:
+        if package.latest_succeeded_build:
+            print(package.name)
+
+
 if __name__ == "__main__":
     if args.submit_pypi_modules:
         submit_all_pypi_modules()
     elif args.parse_succeeded_packages:
         parse_succeeded_packages()
+    elif args.parse_succeeded_packages_v1client:
+        parse_succeeded_packages_v1client()
     else:
         print("Specify action: See --help")
         parser.print_usage()
