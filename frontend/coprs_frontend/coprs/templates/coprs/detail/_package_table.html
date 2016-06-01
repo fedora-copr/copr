@@ -2,6 +2,7 @@
 {% from "_helpers.html" import build_href_from_sql, build_state %}
 
 {% macro package_table(builds) %}
+<noscript><p>WARNING!! This page is using JavaScript to filter and sort the table.</p></noscript>
 {% if builds %} 
  <table class="datatable table table-striped table-bordered">
     <thead>
