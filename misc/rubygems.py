@@ -3,7 +3,7 @@ import time
 from subprocess import PIPE, Popen, call
 
 
-SLEEP = 4
+SLEEP = 60
 CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
 USER = "@rubygems"
 COPR = "rubygems"
