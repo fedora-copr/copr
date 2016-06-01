@@ -21,8 +21,8 @@ COPR = "PyPI2"
 cl = CoprClient.create_from_file_config(CONFIG)
 
 parser = argparse.ArgumentParser(prog = "pypi")
-parser.add_argument("-s", "--submit-pypi-modules", dest="submit_pypi_modules", action="store_true")
-parser.add_argument("-u", "--submit-unbuilt-pypi-modules", dest="submit_unbuilt_pypi_modules", action="store_true")
+parser.add_argument("-s", "--submit-pypi-modules", dest="submit_pypi_modules", metavar='PYTHON_VERSION', action="store")
+parser.add_argument("-u", "--submit-unbuilt-pypi-modules", dest="submit_unbuilt_pypi_modules", metavar='PYTHON_VERSION', action="store")
 parser.add_argument("-p", "--parse-succeeded-packages", dest="parse_succeeded_packages", action="store_true")
 parser.add_argument("-o", "--parse-succeeded-packages-v1client", dest="parse_succeeded_packages_v1client", action="store_true")
 args = parser.parse_args()
@@ -62,21 +62,21 @@ def get_all_pypi_modules():
     return modules
 
 
-def submit_all_pypi_modules():
-    for module in get_all_pypi_modules():
+def submit_all_pypi_modules(python_version):
+    for module in get_all_pypi_modules(python_version):
         print("Submitting module {0}".format(module))
-        submit_build("{}/{}".format(USER, COPR), module, "2")
+        submit_build("{}/{}".format(USER, COPR), module, python_version)
         time.sleep(4)
 
 
-def submit_unbuilt_pypi_modules():
-    succeeded_modules = get_succeeded_modules()
+def submit_unbuilt_pypi_modules(python_version):
+    succeeded_modules = get_succeeded_modules(python_version)
     for module in get_all_pypi_modules():
         if module in succeeded_modules:
             print("PyPI module '{0}' already built. Skipping.".format(module))
             continue
         print("Submitting module {0}".format(module))
-        submit_build("{}/{}".format(USER, COPR), module, "2")
+        submit_build("{}/{}".format(USER, COPR), module, python_version)
         time.sleep(4)
 
 
@@ -121,24 +121,24 @@ def get_succeeded_packages():
     return succeeded_packages
 
 
-def get_succeeded_modules():
+def get_succeeded_modules(python_version):
     succeeded_modules = []
     for package in get_succeeded_packages():
-        succeeded_modules.append(json.loads(package.source_json)['pypi_package_name'])
+        source_json = json.loads(package.source_json)
+        if python_version in source_json['python_versions']:
+            succeeded_modules.append(json.loads(package.source_json)['pypi_package_name'])
     return succeeded_modules
 
 
 if __name__ == "__main__":
     if args.submit_pypi_modules:
-        submit_all_pypi_modules()
+        submit_all_pypi_modules(args.submit_pypi_modules)
     elif args.parse_succeeded_packages:
         parse_succeeded_packages()
     elif args.parse_succeeded_packages_v1client:
         parse_succeeded_packages_v1client()
     elif args.submit_unbuilt_pypi_modules:
-        submit_unbuilt_pypi_modules()
-    elif args.rebuild_failed_packages:
-        rebuild_failed_packages()
+        submit_unbuilt_pypi_modules(args.submit_unbuilt_pypi_modules)
     else:
         print("Specify action: See --help")
         parser.print_usage()
