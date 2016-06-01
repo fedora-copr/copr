@@ -1,0 +1,54 @@
+{% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
+{% from "_helpers.html" import build_href_from_sql, build_state %}
+
+{% macro package_table(builds) %}
+{% if builds %} 
+ <table class="datatable table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Build ID</th>
+        <th>Package Version</th>
+        <th>Submitted</th>
+        <th>Build Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+    {# builds here is not a build object #}
+    {% for build in builds %}
+      <tr class="build-row" >
+        <td data-order="{{ build.id }}">
+          <b><a href="{{ build_href_from_sql(build) }}">
+            {{ build.id }}
+          </a></b>
+        </td>
+        <td>
+            {% if build.pkg_version %}
+                {{ build.pkg_version}}
+            {% else %}
+                 -
+            {% endif %}
+        </td>
+        <td data-order="{{build.submitted_on}}"> {{ build.submitted_on|time_ago() }} ago </td>
+        <td data-order="{{build.started_on|timestamp_diff(build.ended_on)}}"> {{ build.started_on|time_ago(build.ended_on) }} </td>
+        <td>
+          {{ build_state(build) }}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <h3>No builds so far</h3>
+{% endif %}
+
+<script>
+  // Initialize Datatables
+  $(document).ready(function() {
+    $('.datatable').dataTable({
+      "order": [[ 0, "desc" ]]
+    });
+  });
+</script>
+
+{% endmacro %}
