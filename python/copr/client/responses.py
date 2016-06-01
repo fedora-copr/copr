@@ -348,7 +348,7 @@ class PackageWrapper(UnicodeMixin):
         try:
             return self.data[item]
         except KeyError as e:
-            return AttributeError()
+            raise AttributeError()
 
     def for_json(self):
         return self.data
