@@ -105,9 +105,9 @@ Don't wait for build completion
 
 project::
 The project build the package in. This can be a simple name of some of
-your projects. Alternatively, you can specify it as username/project. This
-way you can build into the project of another user provided you have the
-permissions to do so.
+your projects. Alternatively, you can specify it as username/project or
+@groupname/project. This way you can build into the project of another
+user or group, provided you have the permissions to do so.
 
 PKG::
 This can be either file on your local workstation or URL of the package to build. When URL is used, then the package must be placed on a public web or
