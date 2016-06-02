@@ -22,7 +22,7 @@ def get_package_form_cls_by_source_type_text(source_type_text):
     Params
     ------
     source_type_text : str
-        name of the source type (tito/mock/pypi/rubygems/upload/srpm-link/...)
+        name of the source type (tito/mock/pypi/rubygems/upload)
 
     Returns
     -------
@@ -37,10 +37,6 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         return PackageFormPyPI
     elif source_type_text == 'rubygems':
         return PackageFormRubyGems
-    elif source_type_text == 'srpm_link':
-        return PackageFormUrls
-    elif source_type_text == 'srpm_upload':
-        return PackageFormUpload
     else:
         raise UnknownSourceTypeException("Invalid source type")
 
@@ -459,28 +455,6 @@ class PackageFormRubyGems(BasePackageForm):
         })
 
 
-class PackageFormUrls(BasePackageForm):
-    pkgs = wtforms.TextAreaField(
-        "Pkgs",
-        validators=[
-            wtforms.validators.DataRequired(message="URLs to packages are required"),
-            UrlListValidator(),
-            UrlSrpmListValidator()],
-        filters=[StringListFilter()])
-
-    @property
-    def source_json(self):
-        return json.dumps({
-            "pkgs": self.pkgs.data
-        })
-
-
-class PackageFormUpload(BasePackageForm):
-    @property
-    def source_json(self):
-        return json.dumps({})
-
-
 class BaseBuildFormFactory(object):
     def __new__(cls, active_chroots, form):
         class F(form):
@@ -548,16 +522,24 @@ class BuildFormRubyGemsFactory(object):
 
 class BuildFormUploadFactory(object):
     def __new__(cls, active_chroots):
-        form = BaseBuildFormFactory(active_chroots, PackageFormUpload)
+        form = BaseBuildFormFactory(active_chroots, wtf.Form)
         form.pkgs = FileField('srpm', validators=[
             FileRequired(),
             SrpmValidator()])
         return form
 
 
-class BuildFormUrlsFactory(object):
+class BuildFormUrlFactory(object):
     def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormUrls)
+        form = BaseBuildFormFactory(active_chroots, wtf.Form)
+        form.pkgs = wtforms.TextAreaField(
+            "Pkgs",
+            validators=[
+                wtforms.validators.DataRequired(message="URLs to packages are required"),
+                UrlListValidator(),
+                UrlSrpmListValidator()],
+            filters=[StringListFilter()])
+        return form
 
 
 class ChrootForm(wtf.Form):

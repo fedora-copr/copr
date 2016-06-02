@@ -406,33 +406,6 @@ class Commands(object):
         print(result.message)
 
     @requires_api_auth
-    def action_add_or_edit_package_urls(self, args):
-        ownername, projectname = parse_name(args.copr)
-        data = {
-            "package_name": args.name,
-            "urls": '\n'.join(args.urls.split(',')),
-            "webhook_rebuild": args.webhook_rebuild == 'on',
-        }
-        if args.create:
-            result = self.client.add_package_urls(ownername=ownername, projectname=projectname, **data)
-        else:
-            result = self.client.edit_package_urls(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
-
-    @requires_api_auth
-    def action_add_or_edit_package_upload(self, args):
-        ownername, projectname = parse_name(args.copr)
-        data = {
-            "package_name": args.name,
-            "webhook_rebuild": args.webhook_rebuild == 'on',
-        }
-        if args.create:
-            result = self.client.add_package_upload(ownername=ownername, projectname=projectname, **data)
-        else:
-            result = self.client.edit_package_upload(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
-
-    @requires_api_auth
     def action_add_or_edit_package_rubygems(self, args):
         ownername, projectname = parse_name(args.copr)
         data = {
@@ -613,12 +586,6 @@ def setup_parser():
     parser_mockscm_args_parent.add_argument("--spec", dest="spec", metavar="FILE",
                                             help="relative path from SCM root to .spec file, required")
 
-    parser_urls_args_parent = argparse.ArgumentParser(add_help=False)
-    parser_urls_args_parent.add_argument("--urls", metavar="urls",
-                                         help="Specify the srpm urls")
-
-    parser_upload_args_parent = argparse.ArgumentParser(add_help=False)
-
     parser_rubygems_args_parent = argparse.ArgumentParser(add_help=False)
     parser_rubygems_args_parent.add_argument("--gem", metavar="GEM", dest="gem_name",
                                              help="Specify gem name")
@@ -740,28 +707,6 @@ def setup_parser():
                                                         help="Edits an existing Mock-SCM package",
                                                         parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=False)
-
-    # Upload edit/create
-    parser_add_package_upload = subparsers.add_parser("add-package-upload",
-                                                      help="Creates a new upload package",
-                                                      parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
-    parser_add_package_upload.set_defaults(func="action_add_or_edit_package_upload", create=True)
-
-    parser_edit_package_upload = subparsers.add_parser("edit-package-upload",
-                                                       help="Edits an existing upload package",
-                                                       parents=[parser_upload_args_parent, parser_add_or_edit_package_parent])
-    parser_edit_package_upload.set_defaults(func="action_add_or_edit_package_upload", create=False)
-
-    # Urls edit/create
-    parser_add_package_urls = subparsers.add_parser("add-package-urls",
-                                                    help="Creates a new url package",
-                                                    parents=[parser_urls_args_parent, parser_add_or_edit_package_parent])
-    parser_add_package_urls.set_defaults(func="action_add_or_edit_package_urls", create=True)
-
-    parser_edit_package_urls = subparsers.add_parser("edit-package-urls",
-                                                     help="Edits an existing url package",
-                                                     parents=[parser_urls_args_parent, parser_add_or_edit_package_parent])
-    parser_edit_package_urls.set_defaults(func="action_add_or_edit_package_urls", create=False)
 
     # Rubygems edit/create
     parser_add_package_rubygems = subparsers.add_parser("add-package-rubygems",

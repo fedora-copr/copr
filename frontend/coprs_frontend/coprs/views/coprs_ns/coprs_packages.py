@@ -110,7 +110,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     data = package.source_json_dict
     data["webhook_rebuild"] = package.webhook_rebuild
 
-    if package.source_type and not source_type_text:
+    if package.has_source_type_set and not source_type_text:
         source_type_text = package.source_type_text
     elif not source_type_text:
         source_type_text = "git_and_tito"
@@ -125,7 +125,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
 
     if "form" in kwargs:
         form[source_type_text] = kwargs["form"]
-    elif package.source_type:
+    elif package.has_source_type_set:
         if package.source_type_text == "git_and_tito" and "git_dir" in data:
             data["git_directory"] = data["git_dir"]  # @FIXME workaround
         form[package.source_type_text] = form_classes[package.source_type_text](data=data)

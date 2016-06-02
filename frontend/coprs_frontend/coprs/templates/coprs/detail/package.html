@@ -62,7 +62,7 @@
       <div class="panel-body">
         <dl class="dl-horizontal">
           <dd>
-            {{ describe_source(package) }}
+            {{ describe_source(package.source_type_text, package.source_json_dict, is_package=True) }}
           </dd>
         </dl>
       </div>

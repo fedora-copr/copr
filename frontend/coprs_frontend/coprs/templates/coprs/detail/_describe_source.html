@@ -1,59 +1,63 @@
-{% macro describe_source(build) %} {# also called from package.html as describe_source(package)...which works #}
+{% macro describe_source(source_type_text, source_json_dict, is_package=False) %}
   <dt>Source Type:</dt>
-  <dd>{{ build.source_type_text | build_source_description }} </dd>
+  {% if is_package and (source_type_text == "srpm_link" or source_type_text == "srpm_upload") %}
+    <dd>No default source</dd> {# source types srpm_link & srpm_upload only make sense for builds, not for packages #}
+  {% else %}
+    <dd>{{ source_type_text | build_source_description }}</dd>
+  {% endif %}
 
-  {% if build.source_type_text == "srpm_link" %}
+  {% if source_type_text == "srpm_link" and not is_package %}
   <dt>Package URL:</dt>
   <dd>
-    <a href="{{ build.source_json_dict["url"] }}">{{ build.source_json_dict["url"] }}</a>
+    <a href="{{ source_json_dict["url"] }}">{{ source_json_dict["url"] }}</a>
   </dd>
 
-  {% elif build.source_type_text == "srpm_upload" %}
+  {% elif source_type_text == "srpm_upload" and not is_package %}
   <dt>File Name:</dt>
-  <dd>{{ build.source_json_dict["pkg"] }}</dd>
+  <dd>{{ source_json_dict["pkg"] }}</dd>
 
-  {% elif build.source_type_text == "git_and_tito" %}
+  {% elif source_type_text == "git_and_tito" %}
   <dt>Git URL:</dt>
-  <dd>{{ build.source_json_dict["git_url"] }}</dd>
+  <dd>{{ source_json_dict["git_url"] }}</dd>
 
   <dt>Local directory in Git:</dt>
-  <dd>{{ build.source_json_dict["git_dir"] }}</dd>
+  <dd>{{ source_json_dict["git_dir"] }}</dd>
 
   <dt>Git branch:</dt>
-  <dd>{{ build.source_json_dict["git_branch"] }}</dd>
+  <dd>{{ source_json_dict["git_branch"] }}</dd>
 
   <dt>Using --test:</dt>
-  <dd>{{ build.source_json_dict["tito_test"] }}</dd>
+  <dd>{{ source_json_dict["tito_test"] }}</dd>
 
-  {% elif build.source_type_text == "mock_scm" %}
+  {% elif source_type_text == "mock_scm" %}
   <dt>SCM type:</dt>
-  <dd>{{ build.source_json_dict["scm_type"] }}</dd>
+  <dd>{{ source_json_dict["scm_type"] }}</dd>
 
   <dt>SCM URL:</dt>
-  <dd>{{ build.source_json_dict["scm_url"] }}</dd>
+  <dd>{{ source_json_dict["scm_url"] }}</dd>
 
   <dt>SCM branch:</dt>
-  <dd>{{ build.source_json_dict["scm_branch"] }}</dd>
+  <dd>{{ source_json_dict["scm_branch"] }}</dd>
 
   <dt>Path to .spec file:</dt>
-  <dd>{{ build.source_json_dict["spec"] }}</dd>
+  <dd>{{ source_json_dict["spec"] }}</dd>
 
-  {% elif build.source_type_text == "pypi" %}
+  {% elif source_type_text == "pypi" %}
   <dt>PyPI package name</dt>
-  <dd>{{ build.source_json_dict["pypi_package_name"] }}</dd>
+  <dd>{{ source_json_dict["pypi_package_name"] }}</dd>
 
-  {% if build.source_json_dict["pypi_package_version"] %}
+  {% if source_json_dict["pypi_package_version"] %}
   <dt>PyPI package version</dt>
-  <dd>{{ build.source_json_dict["pypi_package_version"] }}</dd>
+  <dd>{{ source_json_dict["pypi_package_version"] }}</dd>
   {% endif %}
 
-  <dt>Build for Python</dt>
-  <dd>{{ ', '.join(build.source_json_dict["python_versions"]).strip(', ') }}</dd>
+  <dt>for Python</dt>
+  <dd>{{ ', '.join(source_json_dict["python_versions"]).strip(', ') }}</dd>
   {% endif %}
 
-  {% if build.source_type_text == "rubygems" %}
+  {% if source_type_text == "rubygems" %}
   <dt>Gem name:</dt>
-  <dd>{{ build.source_json_dict["gem_name"] }}</dd>
+  <dd>{{ source_json_dict["gem_name"] }}</dd>
   {% endif %}
 
 {% endmacro %}

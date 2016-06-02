@@ -209,41 +209,6 @@ rlJournalStart
         ## Package listing
         rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
 
-        # SRPM_URL package creation
-        rlRun "copr-cli add-package-urls ${NAME_PREFIX}Project4 --name test_package_urls --urls 'http://github.com/clime/example.src.rpm'"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_urls > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
-        rlAssertEquals "package.name == \"test_package_urls\"" `cat $OUTPUT | jq '.name'` '"test_package_urls"'
-        rlAssertEquals "package.source_type == \"srpm_link\"" `cat $OUTPUT | jq '.source_type'` '"srpm_link"'
-        rlRun `cat $SOURCE_JSON | jq '.pkgs == "http://github.com/clime/example.src.rpm"'` 0 "package.source_json.pkgs == \"http://github.com/clime/example.src.rpm\""
- 
-        # SRPM_URL package editing
-        rlRun "copr-cli edit-package-urls ${NAME_PREFIX}Project4 --name test_package_urls --urls 'http://github.com/clime/example.src.rpm,http://github.com/clime/example2.src.rpm'"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_urls > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
-        rlAssertEquals "package.name == \"test_package_urls\"" `cat $OUTPUT | jq '.name'` '"test_package_urls"'
-        rlAssertEquals "package.source_type == \"srpm_link\"" `cat $OUTPUT | jq '.source_type'` '"srpm_link"'
-        rlRun `cat $SOURCE_JSON | jq '.pkgs == "http://github.com/clime/example.src.rpm\nhttp://github.com/clime/example2.src.rpm"'` 0 "package.source_json.pkgs == \"http://github.com/clime/example.src.rpm\nhttp://github.com/clime/example2.src.rpm"
-
-        ## Package listing
-        rlAssertEquals "len(package_list) == 4" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 4
-
-        # Upload package creation
-        rlRun "copr-cli add-package-upload ${NAME_PREFIX}Project4 --name test_package_upload "
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_upload > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
-        rlAssertEquals "package.name == \"test_package_upload\"" `cat $OUTPUT | jq '.name'` '"test_package_upload"'
-        rlAssertEquals "package.source_type == \"srpm_upload\"" `cat $OUTPUT | jq '.source_type'` '"srpm_upload"'
- 
-        # Upload package editing (nothing can be modified for upload package cause it has no attributes atm)
-        rlRun "copr-cli edit-package-upload ${NAME_PREFIX}Project4 --name test_package_upload "
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_upload > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
-        rlAssertEquals "package.name == \"test_package_upload\"" `cat $OUTPUT | jq '.name'` '"test_package_upload"'
-        rlAssertEquals "package.source_type == \"srpm_upload\"" `cat $OUTPUT | jq '.source_type'` '"srpm_upload"'
-
-        rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
-
         # RubyGems package creation
         rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name xxx --gem yyy"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name xxx > $OUTPUT"
@@ -261,7 +226,7 @@ rlJournalStart
         rlAssertEquals "package.source_json.gem_name == \"zzz\"" `cat $SOURCE_JSON | jq '.gem_name'` '"zzz"'
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 6" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 6
+        rlAssertEquals "len(package_list) == 4" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 4
 
         ## Package reseting
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_reset --git-url http://github.com/clime/example.git"
@@ -282,20 +247,20 @@ rlJournalStart
         rlAssertEquals "package.source_json == \"{}\"" `cat $OUTPUT | jq '.source_json'` '"{}"'
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 7" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 7
+        rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
 
         ## Package deletion
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_delete --git-url http://github.com/clime/example.git"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_delete > /dev/null"
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 8" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 8
+        rlAssertEquals "len(package_list) == 6" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 6
 
         rlRun "copr-cli delete-package ${NAME_PREFIX}Project4 --name test_package_delete"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_delete" 1 # package cannot be fetched now (cause it is deleted)
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 7" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 7
+        rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
 
         ## Test package listing attributes
         rlRun "copr-cli create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project5"

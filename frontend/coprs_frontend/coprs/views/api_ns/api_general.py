@@ -303,7 +303,7 @@ def api_coprs_by_owner_detail(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build(copr):
-    form = forms.BuildFormUrlsFactory(copr.active_chroots)(csrf_enabled=False)
+    form = forms.BuildFormUrlFactory(copr.active_chroots)(csrf_enabled=False)
 
     def create_new_build():
         # create separate build for each package

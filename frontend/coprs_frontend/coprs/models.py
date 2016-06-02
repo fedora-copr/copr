@@ -406,6 +406,14 @@ class Package(db.Model, helpers.Serializer):
         return helpers.BuildSourceEnum(self.source_type)
 
     @property
+    def has_source_type_set(self):
+        """
+        Package's source type (and source_json) is being derived from its first build, which works except
+        for "srpm_link" and "srpm_upload" cases. Consider these being equivalent to source_type being unset.
+        """
+        return self.source_type and self.source_type_text != "srpm_link" and self.source_type_text != "srpm_upload"
+
+    @property
     def dist_git_url(self):
         if app.config["DIST_GIT_URL"]:
             return "{}/{}.git".format(app.config["DIST_GIT_URL"], self.dist_git_repo)

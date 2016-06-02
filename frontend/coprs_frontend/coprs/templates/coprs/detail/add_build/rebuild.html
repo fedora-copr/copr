@@ -45,7 +45,7 @@
              -
         {% endif %}
       </dd>
-      {{ describe_source(build) }}
+      {{ describe_source(build.source_type_text, build.source_json_dict) }}
     </dl>
     <h3> New Build Options </h3>
     {{ copr_build_form_rebuild(form, 'coprs_ns.copr_new_build_rebuild', copr, build) }}

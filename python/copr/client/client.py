@@ -605,40 +605,6 @@ class CoprClient(UnicodeMixin):
         })
         return response
 
-    def edit_package_urls(self, package_name, projectname, urls, ownername=None, webhook_rebuild=None):
-        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_SRPM_LINK)
-        response = self.process_package_action(request_url, ownername, projectname, data={
-            "package_name": package_name,
-            "pkgs": urls,
-            "webhook_rebuild": 'y' if webhook_rebuild else '',
-        })
-        return response
-
-    def add_package_urls(self, package_name, projectname, urls, ownername=None, webhook_rebuild=None):
-        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_SRPM_LINK)
-        response = self.process_package_action(request_url, ownername, projectname, data={
-            "package_name": package_name,
-            "pkgs": urls,
-            "webhook_rebuild": 'y' if webhook_rebuild else '',
-        })
-        return response
-
-    def edit_package_upload(self, package_name, projectname, ownername=None, webhook_rebuild=None):
-        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_SRPM_UPLOAD)
-        response = self.process_package_action(request_url, ownername, projectname, data={
-            "package_name": package_name,
-            "webhook_rebuild": 'y' if webhook_rebuild else '',
-        })
-        return response
-
-    def add_package_upload(self, package_name, projectname, ownername=None, webhook_rebuild=None):
-        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_SRPM_UPLOAD)
-        response = self.process_package_action(request_url, ownername, projectname, data={
-            "package_name": package_name,
-            "webhook_rebuild": 'y' if webhook_rebuild else '',
-        })
-        return response
-
     def edit_package_rubygems(self, package_name, projectname, gem_name, ownername=None, webhook_rebuild=None):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_RUBYGEMS)
         response = self.process_package_action(request_url, ownername, projectname, data={
