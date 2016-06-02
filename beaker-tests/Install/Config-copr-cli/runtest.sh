@@ -34,7 +34,11 @@ PACKAGE="tests"
 
 rlJournalStart
     rlPhaseStartSetup
-        cp ./copr-dev.repo /etc/yum.repos.d/
+        if [[ ! $RELEASETEST ]]; then
+            rlLog "Installing copr dev repos."
+            cp ./copr-dev.repo /etc/yum.repos.d/
+        fi
+        rlLog "Installing copr production repos."
         cp ./copr.repo /etc/yum.repos.d/
         mkdir -p ~/.config || :
         cp ./config ~/.config/copr
