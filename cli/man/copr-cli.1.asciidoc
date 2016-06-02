@@ -95,10 +95,10 @@ usage: copr-cli build [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout T
 If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.
 
 --memory::
-Override memory for this build
+Override memory for this build. This is actually not used and it have no effect.
 
 --timeout::
-Override timeout for this build
+Override timeout for this build. This is actually not used and it have no effect.
 
 --nowait::
 Don't wait for build completion
@@ -223,6 +223,14 @@ Instructions for the project.
 
 --disable_createrepo::
 Disables automatic repository metadata generation. Accepted values for DISABLE_CREATEREPO: true/false.
+
+
+EXAMPLES
+--------
+
+ copr-cli build myproject some.src.rpm
+ copr-cli build someone_else/project some.src.rpm
+ copr-cli build -r fedora-24-x86_64 -r fedora-24-i386 "@somegroup/project" some.src.rpm
 
 
 EXIT STATUS
