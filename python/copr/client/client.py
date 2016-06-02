@@ -780,17 +780,23 @@ class CoprClient(UnicodeMixin):
 
         return response
 
-    def build_package(self, projectname, pkg_name, ownername=None):
+    def build_package(self, projectname, pkg_name, ownername=None, chroots=None, timeout=None):
         """Builds the package from its default source."""
 
         if not ownername:
             ownername = self.username
 
-        url = "{0}/coprs/{1}/{2}/package/build/{3}/".format(
+        request_url = "{0}/coprs/{1}/{2}/package/build/{3}/".format(
             self.api_url, ownername, projectname, pkg_name
         )
 
-        resp_data = self._fetch(url, method="post")
+        data = {}
+        for chroot in chroots or []:
+            data[chroot] = "y"
+        if timeout:
+            data["timeout"] = timeout
+
+        resp_data = self._fetch(request_url, data, method="post")
         response = CoprResponse(
             client=self,
             method="post",

@@ -460,7 +460,12 @@ class Commands(object):
 
     def action_build_package(self, args):
         ownername, projectname = parse_name(args.copr)
-        data = { "pkg_name": args.name }
+        data = {
+            "pkg_name": args.name,
+            "chroots": args.chroots,
+            #"memory": args.memory,
+            "timeout": args.timeout
+        }
 
         result = self.client.build_package(ownername=ownername, projectname=projectname, **data)
 
@@ -777,7 +782,7 @@ def setup_parser():
 
     # package building
     parser_build_package = subparsers.add_parser("build-package", parents=[parser_build_parent],
-                                                 help="Builds the package from its default source (EXPERIMENTAL)")
+                                                 help="Builds the package from its default source")
     parser_build_package.add_argument("--name",
                                       help="Name of a package to be built",
                                       metavar="PKGNAME", required=True)

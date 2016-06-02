@@ -308,6 +308,16 @@ rlJournalStart
         rlAssertEquals "The latest build is the failed one." `cat $LATEST_BUILD | jq '.id'` `cat failed_example_build_id`
         rlAssertEquals "The latest succeeded build is also correctly returned." `cat $LATEST_SUCCEEDED_BUILD | jq '.id'` `cat succeeded_example_build_id`
 
+        ## test package building
+        # create special repo for our test
+        rlRun "copr-cli create --chroot fedora-23-x86_64 --chroot fedora-22-x86_64 ${NAME_PREFIX}Project6"
+
+        # create tito package
+        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project6 --name test_package_tito --git-url http://github.com/clime/example.git --test on"
+
+        # build the package
+        rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --nowait --timeout 10000 -r fedora-23-x86_64" # TODO: timeout not honored
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
