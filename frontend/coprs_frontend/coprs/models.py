@@ -399,6 +399,8 @@ class Package(db.Model, helpers.Serializer):
 
     @property
     def source_json_dict(self):
+        if not self.source_json:
+            return {}
         return json.loads(self.source_json)
 
     @property
@@ -528,6 +530,8 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def source_json_dict(self):
+        if not self.source_json:
+            return {}
         return json.loads(self.source_json)
 
     @property
