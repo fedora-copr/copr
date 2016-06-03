@@ -53,7 +53,7 @@ def runcmd(cmd):
     (stdout, stderr) = process.communicate()
     if process.returncode != 0:
         logerror(stderr)
-        sys.exit(1)
+        raise Exception("Got non-zero return code ({0}) from prunerepo with stderr: {1}".format(process.returncode, stderr))
     return stdout
 
 
