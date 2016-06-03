@@ -205,12 +205,12 @@ mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdi
 rm %{buildroot}%{_datadir}/copr/coprs_frontend/CONTRIBUTION_GUIDELINES
 touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 
-install -d %{buildroot}%{_var}/log/copr
+install -d %{buildroot}%{_var}/log/copr-frontend
 install -d %{buildroot}%{_sysconfdir}/logrotate.d
 install -d %{buildroot}%{_sysconfdir}/logstash.d
 cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 cp -a conf/logstash.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_frontend.conf
-touch %{buildroot}%{_var}/log/copr/frontend.log
+touch %{buildroot}%{_var}/log/copr-frontend/frontend.log
 
 %check
 %if %{with_test} && "%{_arch}" == "x86_64"
@@ -254,8 +254,8 @@ service logstash condrestart
 %ghost %{_sharedstatedir}/copr/data/copr.db
 
 %defattr(644, copr-fe, copr-fe, 755)
-%dir %{_var}/log/copr
-%ghost %{_var}/log/copr/*.log
+%dir %{_var}/log/copr-frontend
+%ghost %{_var}/log/copr-frontend/*.log
 
 %defattr(600, copr-fe, copr-fe, 700)
 %config(noreplace)  %{_sysconfdir}/copr/copr.conf
