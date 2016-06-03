@@ -95,15 +95,15 @@ def api_new_copr(username):
     """
 
     form = forms.CoprFormFactory.create_form_cls()(csrf_enabled=False)
+    infos = []
 
     # are there any arguments in POST which our form doesn't know?
     # TODO: don't use WTFform for parsing and validation here
-    if any([post_key not in form.__dict__.keys()
-            for post_key in flask.request.form.keys()]):
-        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
+    for post_key in flask.request.form.keys():
+        if post_key not in form.__dict__.keys():
+            infos.append("Unknown key '{key}' received.".format(key=post_key))
 
-    elif form.validate_on_submit():
-        infos = []
+    if form.validate_on_submit():
         group = ComplexLogic.get_group_by_name_safe(username[1:]) if username[0] == "@" else None
 
         try:
@@ -409,11 +409,12 @@ def copr_new_build_rubygems(copr):
 
 
 def process_creating_new_build(copr, form, create_new_build):
+    infos = []
 
     # are there any arguments in POST which our form doesn't know?
-    if any([post_key not in form.__dict__.keys()
-            for post_key in flask.request.form.keys()]):
-        raise LegacyApiError("Unknown arguments passed (non-existing chroot probably)")
+    for post_key in flask.request.form.keys():
+        if post_key not in form.__dict__.keys():
+            infos.append("Unknown key '{key}' received.".format(key=post_key))
 
     if not form.validate_on_submit():
         raise LegacyApiError("Invalid request: bad request parameters: {0}".format(form.errors))
@@ -429,13 +430,14 @@ def process_creating_new_build(copr, form, create_new_build):
         build = create_new_build()
         db.session.commit()
         ids = [build.id] if type(build) != list else [b.id for b in build]
+        infos.append("Build was added to {0}.".format(copr.name))
 
     except (ActionInProgressException, InsufficientRightsException) as e:
         raise LegacyApiError("Invalid request: {}".format(e))
 
     output = {"output": "ok",
               "ids": ids,
-              "message": "Build was added to {0}.".format(copr.name)}
+              "message": "\n".join(infos)}
 
     return flask.jsonify(output)
 
