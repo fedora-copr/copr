@@ -325,6 +325,9 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project1"
         rlRun "copr-cli delete ${NAME_PREFIX}Project2"
         rlRun "copr-cli delete ${NAME_PREFIX}Project3"
+        rlRun "copr-cli delete ${NAME_PREFIX}Project4"
+        rlRun "copr-cli delete ${NAME_PREFIX}Project5"
+        rlRun "copr-cli delete ${NAME_PREFIX}Project6"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

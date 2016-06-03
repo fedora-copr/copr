@@ -678,7 +678,7 @@ def setup_parser():
     parser_add_or_edit_package_parent.add_argument("copr",
                                                    help="The copr repo for the package. Can be just name of project or even in format username/project.")
     parser_add_or_edit_package_parent.add_argument("--webhook-rebuild",
-                                                   choices=["on", "off"], help="Enable auto-rebuilding with webhooks.")
+                                                   choices=["on", "off"], help="Enable auto-rebuilding.")
 
     # Tito edit/create
     parser_add_package_tito = subparsers.add_parser("add-package-tito",
@@ -772,7 +772,7 @@ def setup_parser():
 
     # package reseting
     parser_reset_package = subparsers.add_parser("reset-package",
-                                                 help="Resets default source of the specified package")
+                                                 help="Resets (clears) default source of the specified package")
     parser_reset_package.add_argument("copr",
                                       help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.")
     parser_reset_package.add_argument("--name",

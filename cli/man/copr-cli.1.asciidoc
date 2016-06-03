@@ -31,8 +31,9 @@ show the program's version number and exit
 --config::
 path to an alternative configuration file (default is ~/.config/copr).
 
-ACTIONS
--------
+
+ACTION LIST
+-----------
 
 list [username]::
 List all the projects of the provided username. If no username is provided,
@@ -59,6 +60,33 @@ Download a build to local directory.
 modify::
 Modify existing copr
 
+add-package-*::
+Add a new package of the specified source type (e.g. add-package-tito)
+
+edit-package-*::
+Edit source definition and type of an existing package (e.g. edit-package-tito)
+
+list-packages::
+List all packages from a copr in json format
+
+list-package-names::
+Output just the package names from the given copr
+
+get-package::
+Display details of a single package in json format
+
+delete-package::
+Remove package from a copr and all its builds as well
+
+reset-package::
+Clear source definition of a package and its source type
+
+build-package::
+Build package from its source definition
+
+
+PROJECT ACTIONS
+---------------
 
 `copr-cli create [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,6 +112,32 @@ Description of the project.
 --instructions::
 Instructions for the project.
 
+`copr-cli modify [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr-cli modify [-h] [--repo REPOS]
+                       [--description DESCRIPTION]
+                       [--instructions INSTRUCTIONS]
+                       [--disable_createrepo DISABLE_CREATEREPO]
+                       name
+
+Alters only specified project property.
+
+--repo::
+Repository to add to this project. Can be specified multiple times.
+
+--description::
+Description of the project.
+
+--instructions::
+Instructions for the project.
+
+--disable_createrepo::
+Disables automatic repository metadata generation. Accepted values for DISABLE_CREATEREPO: true/false.
+
+
+BUILD ACTIONS
+-------------
 
 `copr-cli build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -195,34 +249,9 @@ build_id::
 Download built packages for build identified by build_id.
 
 -d, --dest::
-Base directory to fetch files. Using `pwd` by default
 
 -r, --chroot::
 Fetch only selected chroots. Can be specified multiple times.\
-
-
-`copr-cli modify [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-usage: copr-cli modify [-h] [--repo REPOS]
-                       [--description DESCRIPTION]
-                       [--instructions INSTRUCTIONS]
-                       [--disable_createrepo DISABLE_CREATEREPO]
-                       name
-
-Alters only specified project property.
-
---repo::
-Repository to add to this project. Can be specified multiple times.
-
---description::
-Description of the project.
-
---instructions::
-Instructions for the project.
-
---disable_createrepo::
-Disables automatic repository metadata generation. Accepted values for DISABLE_CREATEREPO: true/false.
 
 
 EXAMPLES
@@ -231,6 +260,228 @@ EXAMPLES
  copr-cli build myproject some.src.rpm
  copr-cli build someone_else/project some.src.rpm
  copr-cli build -r fedora-24-x86_64 -r fedora-24-i386 "@somegroup/project" some.src.rpm
+
+
+PACKAGE ACTIONS
+---------------
+
+`copr-cli add-package-tito [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr add-package-tito [-h] --git-url URL [--git-dir DIRECTORY]
+                             [--git-branch BRANCH] [--test {on,off}] --name
+                             PKGNAME [--webhook-rebuild {on,off}]
+                             project
+
+Add package of 'Tito' source type.
+
+--git-url URL::
+URL to a project managed by Tito
+
+--git-dir DIRECTORY::
+Relative path from Git root to directory containing .spec file
+
+--git-branch BRANCH::   
+Git branch that you want to build from
+
+--test {on,off}::
+Build the last commit instead of the last release tag
+
+--name PKGNAME::
+Name of the package to be edited or created
+
+--webhook-rebuild {on,off}::
+Enable auto-rebuilding.
+
+
+`copr-cli edit-package-tito [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr edit-package-tito [-h] --git-url URL [--git-dir DIRECTORY]
+                              [--git-branch BRANCH] [--test {on,off}] --name
+                              PKGNAME [--webhook-rebuild {on,off}]
+                              project
+
+Edit source definition and type of an existing package. Options are shared with add-package-tito.
+
+
+`copr-cli add-package-pypi [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr add-package-pypi [-h] [--pythonversions [VERSION [VERSION ...]]]
+                             [--packageversion PYPIVERSION] --packagename
+                             PYPINAME --name PKGNAME
+                             [--webhook-rebuild {on,off}]
+                             project
+
+Add package of 'PyPI' source type.
+
+--pythonversions [VERSION [VERSION ...]]::
+For what Python versions to build (by default: 3 2)
+
+--packageversion PYPIVERSION::
+Version of the PyPI package to be built (by default latest)
+
+--packagename PYPINAME::
+Name of the PyPI package to be built, required
+
+--name PKGNAME::
+Name of the package to be edited or created
+
+--webhook-rebuild {on,off}::
+Enable auto-rebuilding
+
+
+`copr-cli edit-package-pypi [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr edit-package-pypi [-h] [--pythonversions [VERSION [VERSION ...]]]
+                             [--packageversion PYPIVERSION] --packagename
+                             PYPINAME --name PKGNAME
+                             [--webhook-rebuild {on,off}]
+                             project
+
+Edit source definition and type of an existing package. Options are shared with add-package-pypi.
+
+
+`copr-cli add-package-mockscm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr add-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
+                                [--scm-branch BRANCH] [--spec FILE] --name
+                                PKGNAME [--webhook-rebuild {on,off}]
+                                project
+
+Add package of 'MockSCM' source type.
+
+--scm-type TYPE::
+Specify versioning tool, default is 'git'
+
+--scm-url URL::
+Url to a project versioned by Git or SVN, required
+
+--scm-branch BRANCH::
+Branch in the target repository to build from
+
+--spec FILE::
+Relative path from SCM root to .spec file, required
+
+--name PKGNAME::
+Name of the package to be edited or created
+
+--webhook-rebuild {on,off}::
+Enable auto-rebuilding
+
+
+`copr-cli edit-package-mockscm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr edit-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
+                                [--scm-branch BRANCH] [--spec FILE] --name
+                                PKGNAME [--webhook-rebuild {on,off}]
+                                project
+
+Edit source definition and type of an existing package. Options are shared with add-package-mockscm.
+
+
+`copr-cli add-package-rubygems [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr add-package-rubygems [-h] [--gem GEM] --name PKGNAME
+                                 [--webhook-rebuild {on,off}]
+                                 project
+
+Add package of 'RubyGems' source type.
+
+--gem GEM::
+Specify gem name
+
+--name PKGNAME::
+Name of the package to be edited or created
+
+--webhook-rebuild {on,off}::
+Enable auto-rebuilding
+
+
+`copr-cli edit-package-rubygems [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr edit-package-rubygems [-h] [--gem GEM] --name PKGNAME
+                                 [--webhook-rebuild {on,off}]
+                                 project
+
+Edit source definition and type of an existing package. Options are shared with add-package-rubygems.
+
+
+`copr-cli list-packages [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr list-packages [-h] [--with-latest-build]
+                          [--with-latest-succeeded-build] [--with-all-builds]
+                          project
+
+Lists all packages in the given project in json format.
+
+--with-latest-build::   
+Also display data related to the latest build for each package.
+
+--with-latest-succeeded-build::
+Also display data related to the latest succeeded build for each package.
+
+--with-all-builds::     
+Also display data related to the builds for each package.
+
+
+`copr-cli list-package-names [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr list-package-names [-h] project
+
+Only list package names in the given project line by line.
+
+
+`copr-cli get-package [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr get-package [-h] --name PKGNAME [--with-latest-build]
+                        [--with-latest-succeeded-build] [--with-all-builds]
+                        project
+
+Similar to list-packages but returns just a single package directly as json structure (not wrapped in a list).
+
+
+`copr-cli delete-package [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr delete-package [-h] --name PKGNAME project
+
+Deletes package and all its builds from the given project.
+
+
+`copr-cli reset-package [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr reset-package [-h] --name PKGNAME project
+
+Clears default source of a package and its source type (all the package settings are lost after invoking this!). 
+
+
+`copr-cli build-package [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr build-package [-h] [--memory MEMORY] [--timeout TIMEOUT]
+                          [--nowait] [-r CHROOTS] --name PKGNAME
+                          project
+
+Creates a new build of the given package from its source definition.
+
+--name PKGNAME::
+Name of a package to be built
+
+
+For the rest of the arguments, see `copr-cli build` command above.
+
+
+EXAMPLES
+--------
+  copr-cli add-package-tito myproject --name pkgname --git-url http://github.com/clime/example.git --test on
+
+  copr-cli get-package myproject --name pkgname
+
+  copr-cli build-package myproject --name pkgname --nowait --timeout 10000 -r fedora-23-x86_64
+
+  copr-cli delete-package myproject --name pkgname
 
 
 EXIT STATUS
@@ -276,4 +527,4 @@ inserted into your profile.
 
 AUTHORS
 -------
-Miroslav Suchý <msuchy@redhat.com>
+Miroslav Suchý <msuchy@redhat.com>, clime <clime@redhat.com>
