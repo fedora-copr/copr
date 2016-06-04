@@ -3,7 +3,7 @@ import time
 from subprocess import PIPE, Popen, call
 
 
-SLEEP = 60
+SLEEP = 15
 CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
 USER = "@rubygems"
 COPR = "rubygems"
@@ -25,6 +25,8 @@ def submit_build(copr, gem):
 
 def main():
     for gem in all_gems():
+        if module <= "rubygem-alipay":
+            continue
         print("Submitting gem {0}".format(gem))
         submit_build("{}/{}".format(USER, COPR), gem)
         print("")
