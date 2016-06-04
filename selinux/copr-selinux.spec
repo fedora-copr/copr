@@ -8,8 +8,8 @@
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
-Version:    1.40
-Release:    2%{?dist}
+Version:    1.41
+Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
 Group:      Applications/Productivity
@@ -115,6 +115,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Sat Jun 04 2016 Miroslav Suchý <miroslav@suchy.cz> 1.41-1
+- adjust selinux policy generation for separated log file paths
+
 * Sun May 29 2016 Pete Travis <me@petetravis.com> - 1.40-2
 - separate log file paths for backend and frontend
 
