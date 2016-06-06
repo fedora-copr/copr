@@ -13,7 +13,21 @@ from backend.vm_manage import PUBSUB_MB, EventTopics
 from backend.vm_manage.executor import Executor
 from ..exceptions import CoprSpawnFailError
 from ..helpers import get_redis_logger
+from ..vm_manage import terminate
 
+def get_ip_from_log(ansible_output):
+    """ Parse IP address from ansible log """
+    match = re.search(r'IP=([^\{\}"\n\\]+)', ansible_output, re.MULTILINE)
+    if not match:
+        raise CoprSpawnFailError("No ip in the result, trying again")
+    return match.group(1)
+
+def get_vm_name_from_log(ansible_output):
+    """ Parse vm_name from ansible log """
+    match = re.search(r'vm_name=([^\{\}"\n\\]+)', ansible_output, re.MULTILINE)
+    if not match:
+        raise CoprSpawnFailError("No vm_name in the playbook output")
+    return match.group(1)
 
 def spawn_instance(spawn_playbook, log):
     """
@@ -37,21 +51,13 @@ def spawn_instance(spawn_playbook, log):
     try:
         result = run_ansible_playbook_cli(spawn_args, comment="spawning instance", log=log)
     except Exception as err:
-        raise CoprSpawnFailError("Error during ansible invocation: {}".format(err.__dict__))
+        raise CoprSpawnFailError(str(err.__dict__))
 
     if not result:
         raise CoprSpawnFailError("No result, trying again")
-    match = re.search(r'IP=([^\{\}"\n\\]+)', result, re.MULTILINE)
 
-    if not match:
-        raise CoprSpawnFailError("No ip in the result, trying again")
-    ipaddr = match.group(1)
-    match = re.search(r'vm_name=([^\{\}"\n\\]+)', result, re.MULTILINE)
-
-    if match:
-        vm_name = match.group(1)
-    else:
-        raise CoprSpawnFailError("No vm_name in the playbook output")
+    ipaddr = get_ip_from_log(result)
+    vm_name = get_vm_name_from_log(result)
 
     try:
         IP(ipaddr)
@@ -75,7 +81,18 @@ def do_spawn_and_publish(opts, spawn_playbook, group):
         spawn_result = spawn_instance(spawn_playbook, log)
         log.debug("Spawn finished")
     except CoprSpawnFailError as err:
-        log.exception("Failed to spawn builder: {}".format(err))
+        log.info("Spawning a builder with pb: {}".format(err.msg))
+        vm_ip = get_ip_from_log(err.msg)
+        vm_name = get_vm_name_from_log(err.msg)
+        if vm_ip and vm_name:
+            # VM started but failed later during ansible run.
+            try:
+                log.exception("Trying to terminate: {}({}).".format(vm_name, vm_ip))
+                terminate.terminate_vm(opts, opts.build_groups[int(group)]["terminate_playbook"], group, vm_name, vm_ip)
+            except Exception:
+                # ignore all errors
+                raise
+        log.exception("Error during ansible invocation: {}".format(err.msg))
         return
     except Exception as err:
         log.exception("[Unexpected] Failed to spawn builder: {}".format(err))
@@ -83,6 +100,7 @@ def do_spawn_and_publish(opts, spawn_playbook, group):
 
     spawn_result["group"] = group
     spawn_result["topic"] = EventTopics.VM_SPAWNED
+    del(spawn_result["output"])
     try:
         rc = get_redis_connection(opts)
         rc.publish(PUBSUB_MB, json.dumps(spawn_result))
