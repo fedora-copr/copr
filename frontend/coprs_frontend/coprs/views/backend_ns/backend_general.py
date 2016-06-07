@@ -126,7 +126,7 @@ def waiting():
 
     # tasks represented by models.BuildChroot with some other stuff
     builds_list = []
-    for task in BuildsLogic.get_build_task_queue().limit(200):
+    for task in BuildsLogic.get_build_task_queue().limit(1000):
         try:
             copr = task.build.copr
 
