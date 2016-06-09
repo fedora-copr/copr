@@ -4,7 +4,7 @@ import time
 from subprocess import PIPE, Popen, call
 
 
-SLEEP = 25
+SLEEP = 35
 CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
 USER = "@rubygems"
 COPR = "rubygems"
@@ -26,7 +26,7 @@ def submit_build(copr, gem):
 
 def main():
     for gem in all_gems():
-        if gem <= "batman-rails":
+        if gem <= "capistrano-srv_hosts":
             continue
         print("Submitting gem {0}".format(gem))
         submit_build("{}/{}".format(USER, COPR), gem)
