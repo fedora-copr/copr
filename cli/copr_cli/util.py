@@ -8,15 +8,15 @@ else:
     progress = True
 
 
-def format_size(bytes):
-    if bytes > 1000 * 1000:
-        return '%.1fMB' % (bytes / 1000.0 / 1000)
-    elif bytes > 10 * 1000:
-        return '%ikB' % (bytes / 1000)
-    elif bytes > 1000:
-        return '%.1fkB' % (bytes / 1000.0)
+def format_size(bytes_in):
+    if bytes_in > 1000 * 1000:
+        return '%.1fMB' % (bytes_in / 1000.0 / 1000)
+    elif bytes_in > 10 * 1000:
+        return '%ikB' % (bytes_in / 1000)
+    elif bytes_in > 1000:
+        return '%.1fkB' % (bytes_in / 1000.0)
     else:
-        return '%ibytes' % bytes
+        return '%ibytes' % bytes_in
 
 
 class ProgressMixin(object):
