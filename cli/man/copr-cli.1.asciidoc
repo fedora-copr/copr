@@ -143,6 +143,7 @@ BUILD ACTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr-cli build [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                      [--background]
                       project PKG [PKG ...]
 
 -r, --chroot::
@@ -155,7 +156,10 @@ Override memory for this build. This is actually not used and it have no effect.
 Override timeout for this build. This is actually not used and it have no effect.
 
 --nowait::
-Don't wait for build completion
+Don't wait for build completion.
+
+--background::
+Run the build at a lower priority.
 
 project::
 The project build the package in. This can be a simple name of some of
@@ -173,7 +177,8 @@ This limitation comes from the COPR API.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr buildpypi [-h] [-r, --chroot CHROOTS] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
-                      [--pythonversions [VERSION [VERSION ...]]] [--packageversion PYPIVERSION] 
+                      [--background]
+                      [--pythonversions [VERSION [VERSION ...]]] [--packageversion PYPIVERSION]
                       --packagename PYPINAME
                       project
 
@@ -194,6 +199,7 @@ For the rest of the arguments, see `copr-cli build` command above.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr buildtito [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                      [--background]
                       [-r CHROOTS] [--git-url URL] [--git-dir DIRECTORY]
                       [--git-branch BRANCH] [--test]
                       project
@@ -218,6 +224,7 @@ For the rest of the arguments, see `copr-cli build` command above.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr buildmock [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                      [--background]
                       [-r CHROOTS] [--scm-type TYPE] [--scm-url URL]
                       [--scm-branch BRANCH] [--spec FILE]
                       project
