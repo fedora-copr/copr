@@ -11,7 +11,7 @@ from sqlalchemy import or_
 from sqlalchemy import and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.sql import false
+from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc,asc, bindparam, Integer
 from collections import defaultdict
@@ -75,7 +75,7 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_build_task_queue(cls):
+    def get_build_task_queue(cls, is_background=False):
         """
         Returns BuildChroots which are - waiting to be built or
                                        - older than 2 hours and unfinished
@@ -83,6 +83,7 @@ class BuildsLogic(object):
         # todo: filter out build without package
         query = (models.BuildChroot.query.join(models.Build)
                  .filter(models.Build.canceled == false())
+                 .filter(models.Build.is_background == (true() if is_background else false()))
                  .filter(or_(
                      models.BuildChroot.status == helpers.StatusEnum("pending"),
                      models.BuildChroot.status == helpers.StatusEnum("starting"),

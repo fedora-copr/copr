@@ -124,9 +124,13 @@ def waiting():
         for action in actions_logic.ActionsLogic.get_waiting()
     ]
 
+    task_queue = BuildsLogic.get_build_task_queue(is_background=False).limit(1000).all()
+    if not task_queue:
+        task_queue = BuildsLogic.get_build_task_queue(is_background=True).limit(1000).all()
+
     # tasks represented by models.BuildChroot with some other stuff
     builds_list = []
-    for task in BuildsLogic.get_build_task_queue().limit(1000):
+    for task in task_queue:
         try:
             copr = task.build.copr
 
