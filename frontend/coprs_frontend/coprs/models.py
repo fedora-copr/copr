@@ -479,6 +479,8 @@ class Build(db.Model, helpers.Serializer):
     source_json = db.Column(db.Text)
     # Type of failure: type identifier
     fail_type = db.Column(db.Integer, default=helpers.FailTypeEnum("unset"))
+    # background builds has lesser priority than regular builds.
+    is_background = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
