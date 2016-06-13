@@ -29,6 +29,7 @@ BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
+BuildRequires: python3-pylint
 %if 0%{?use_python3}
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
@@ -103,6 +104,10 @@ ln -sf %{_bindir}/copr-cli %{buildroot}%{_bindir}/copr
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
+
+%check
+python3-pylint ./copr_cli/*.py || :
+./run_tests.sh || : 
 
 %files
 %{!?_licensedir:%global license %doc}
