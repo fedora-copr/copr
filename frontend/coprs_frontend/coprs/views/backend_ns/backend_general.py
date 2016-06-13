@@ -126,7 +126,7 @@ def waiting():
 
     task_queue = BuildsLogic.get_build_task_queue(is_background=False).limit(1000).all()
     if not task_queue:
-        task_queue = BuildsLogic.get_build_task_queue(is_background=True).limit(1000).all()
+        task_queue = BuildsLogic.get_build_task_queue(is_background=True).limit(10).all()
 
     # tasks represented by models.BuildChroot with some other stuff
     builds_list = []
