@@ -429,11 +429,13 @@ echo \"Host *
         sudo dnf -y install dnf-plugins-core htop tito wget net-tools iputils vim mlocate git sudo python-nova openssh-server supervisor psmisc
 
         # Builder packages
-        sudo dnf -y install fedpkg-copr packagedb-cli fedora-cert mock mock-lvm createrepo yum-utils pyliblzma rsync openssh-clients libselinux-python libsemanage-python rpm glib2 ca-certificates scl-utils-build ethtool
+        sudo dnf -y install fedpkg-copr packagedb-cli fedora-cert mock mock-lvm createrepo yum-utils pyliblzma rsync openssh-clients libselinux-python libsemanage-python rpm glib2 ca-certificates scl-utils-build ethtool copr-keygen nginx
+
+        echo '127.0.0.1 keygen' >> /etc/hosts
       SHELL
 
     backend.vm.provision "shell", run: "always", inline: <<-SHELL
-        sudo dnf builddep -y /vagrant/backend/copr-backend.spec
+        sudo dnf builddep -y /vagrant/backend/copr-backend.spec --allowerasing
         sudo rm -rf /tmp/tito/*
         cd /vagrant/backend/ && tito build --test --rpm --rpmbuild-options='--nocheck'
         sudo dnf -y install /tmp/tito/noarch/copr-backend*.noarch.rpm || sudo dnf -y upgrade /tmp/tito/noarch/copr-backend*.noarch.rpm || sudo dnf -y downgrade /tmp/tito/noarch/copr-backend*.noarch.rpm
@@ -457,8 +459,18 @@ echo \"Host *
         sudo chown copr:copr -R /home/copr
         sudo usermod -a -G mock copr
 
+        sudo dnf install -y uwsgi uwsgi-plugin-python
+        sudo mkdir /var/log/uwsgi
+        sudo chown apache:apache /var/log/uwsgi
+        sudo chmod 775 /var/log/uwsgi
+        sudo chown apache:apache /var/run/uwsgi
+        sudo chmod 775 /var/run/uwsgi
+        sudo usermod copr-signer -G apache
+
         sudo cp -r /vagrant/backend/docker/files/* /
         sudo chmod 700 /root && sudo chmod 700 /home/copr && sudo chown copr:copr /home/copr # fix permission after COPY
+
+        sudo chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini
 
         sudo dnf -y downgrade fedpkg # temporary fix cause fedpkg-copr doesn't work with the new version of fedpkg
         sudo dnf -y install ansible1.9 --allowerasing # copr does not support ansible2 yet
@@ -470,6 +482,10 @@ echo \"Host *
         sudo sed -i s/localhost:5001/192.168.242.52/ /etc/copr/copr-be.conf
         sudo sed -i s/localhost:5001/192.168.242.52/ /etc/rpkg/fedpkg-copr.conf
       SHELL
+
+    backend.vm.provision "shell",
+      inline: "sudo echo 4096 > /proc/sys/net/core/somaxconn",
+      run: "always"
 
     backend.vm.provision "shell",
       inline: "sudo /usr/bin/supervisord -c /etc/supervisord.conf",
