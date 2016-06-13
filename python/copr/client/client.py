@@ -324,7 +324,7 @@ class CoprClient(UnicodeMixin):
 
     def create_new_build(self, projectname, pkgs, username=None,
                          timeout=None, memory=None, chroots=None,
-                         progress_callback=None):
+                         background=False, progress_callback=None):
         """ Creates new build
 
             :param projectname: name of Copr project (without user namespace)
@@ -333,6 +333,7 @@ class CoprClient(UnicodeMixin):
             :param timeout: [optional] build timeout
             :param memory: [optional] amount of required memory for build process
             :param chroots: [optional] build only with given chroots
+            :param background: [optional] mark the build as a background job.
             :param progress_callback: [optional] a function that received a
             MultipartEncoderMonitor instance for each chunck of uploaded data
 
@@ -356,12 +357,12 @@ class CoprClient(UnicodeMixin):
             except IOError as e:
                 raise CoprRequestException(e)
 
-        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots,
+        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots, background=background,
                                                progress_callback=progress_callback, multipart=True)
 
     def create_new_build_pypi(self, projectname, pypi_package_name, pypi_package_version=None,
                          python_versions=[3, 2], username=None, timeout=None, memory=None,
-                         chroots=None, progress_callback=None):
+                         chroots=None, background=False, progress_callback=None):
         """ Creates new build from PyPI
 
             :param projectname: name of Copr project (without user namespace)
@@ -372,6 +373,7 @@ class CoprClient(UnicodeMixin):
             :param timeout: [optional] build timeout
             :param memory: [optional] amount of required memory for build process
             :param chroots: [optional] build only with given chroots
+            :param background: [optional] mark the build as a background job.
             :param progress_callback: [optional] a function that received a
             MultipartEncoderMonitor instance for each chunck of uploaded data
 
@@ -387,10 +389,11 @@ class CoprClient(UnicodeMixin):
             "python_versions": [str(version) for version in python_versions],
         }
         api_endpoint = "new_build_pypi"
-        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
+        return self.process_creating_new_build(projectname, data, api_endpoint, username,
+                                               chroots, background=background)
 
     def create_new_build_tito(self, projectname, git_url, git_dir=None, git_branch=None, tito_test=None, username=None,
-                              timeout=None, memory=None, chroots=None, progress_callback=None):
+                              timeout=None, memory=None, chroots=None, background=False, progress_callback=None):
         """ Creates new build from PyPI
 
             :param projectname: name of Copr project (without user namespace)
@@ -402,6 +405,7 @@ class CoprClient(UnicodeMixin):
             :param timeout: [optional] build timeout
             :param memory: [optional] amount of required memory for build process
             :param chroots: [optional] build only with given chroots
+            :param background: [optional] mark the build as a background job.
             :param progress_callback: [optional] a function that received a
             MultipartEncoderMonitor instance for each chunck of uploaded data
 
@@ -418,10 +422,11 @@ class CoprClient(UnicodeMixin):
             "tito_test": tito_test,
         }
         api_endpoint = "new_build_tito"
-        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
+        return self.process_creating_new_build(projectname, data, api_endpoint, username,
+                                               chroots, background=background)
 
     def create_new_build_mock(self, projectname, scm_url, spec, scm_type="git", scm_branch=None, username=None,
-                              timeout=None, memory=None, chroots=None, progress_callback=None):
+                              timeout=None, memory=None, chroots=None, background=False, progress_callback=None):
         """ Creates new build from PyPI
 
             :param projectname: name of Copr project (without user namespace)
@@ -433,6 +438,7 @@ class CoprClient(UnicodeMixin):
             :param timeout: [optional] build timeout
             :param memory: [optional] amount of required memory for build process
             :param chroots: [optional] build only with given chroots
+            :param background: [optional] mark the build as a background job.
             :param progress_callback: [optional] a function that received a
             MultipartEncoderMonitor instance for each chunck of uploaded data
 
@@ -449,10 +455,11 @@ class CoprClient(UnicodeMixin):
             "spec": spec,
         }
         api_endpoint = "new_build_mock"
-        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
+        return self.process_creating_new_build(projectname, data, api_endpoint, username,
+                                               chroots, background=background)
 
     def create_new_build_rubygems(self, projectname, gem_name, username=None,
-                              timeout=None, memory=None, chroots=None, progress_callback=None):
+                              timeout=None, memory=None, chroots=None, background=False, progress_callback=None):
         """ Creates new build from RubyGems.org
 
             :param projectname: name of Copr project (without user namespace)
@@ -461,6 +468,7 @@ class CoprClient(UnicodeMixin):
             :param timeout: [optional] build timeout
             :param memory: [optional] amount of required memory for build process
             :param chroots: [optional] build only with given chroots
+            :param background: [optional] mark the build as a background job.
             :param progress_callback: [optional] a function that received a
             MultipartEncoderMonitor instance for each chunck of uploaded data
 
@@ -474,16 +482,20 @@ class CoprClient(UnicodeMixin):
             "gem_name": gem_name,
         }
         api_endpoint = "new_build_rubygems"
-        return self.process_creating_new_build(projectname, data, api_endpoint, username, chroots)
+        return self.process_creating_new_build(projectname, data, api_endpoint, username,
+                                               chroots, background=background)
 
     def process_creating_new_build(self, projectname, data, api_endpoint, username=None, chroots=None,
-                                   progress_callback=None, multipart=False):
+                                   background=False, progress_callback=None, multipart=False):
         if not username:
             username = self.username
 
         url = "{0}/coprs/{1}/{2}/{3}/".format(
             self.api_url, username, projectname, api_endpoint
         )
+
+        if background:
+            data["background"] = "y"
 
         for chroot in chroots or []:
             data[chroot] = "y"

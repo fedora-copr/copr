@@ -486,6 +486,7 @@ class BaseBuildFormFactory(object):
 
 
         F.enable_net = wtforms.BooleanField()
+        F.background = wtforms.BooleanField(default=False)
         F.package_name = wtforms.StringField()
 
         F.chroots_list = map(lambda x: x.name, active_chroots)

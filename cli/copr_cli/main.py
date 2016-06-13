@@ -233,8 +233,8 @@ class Commands(object):
     def process_build(self, args, build_function, data, bar=None):
         username, copr = parse_name(args.copr)
 
-        result = build_function(username=username, projectname=copr, chroots=args.chroots,
-                                            memory=args.memory, timeout= args.timeout, **data)
+        result = build_function(username=username, projectname=copr, chroots=args.chroots, memory=args.memory,
+                                timeout=args.timeout, background=args.background, **data)
         if bar:
             bar.finish()
 
@@ -611,6 +611,8 @@ def setup_parser():
                                      help="Don't wait for build")
     parser_build_parent.add_argument("-r", "--chroot", dest="chroots", action="append",
                                      help="If you don't need this build for all the project's chroots. You can use it several times for each chroot you need.")
+    parser_build_parent.add_argument("--background", dest="background", action="store_true", default=False,
+                                     help="Mark the build as a background job. It will have lesser priority than regular builds.")
 
     # create the parser for the "build" (url/upload) command
     parser_build = subparsers.add_parser("build", parents=[parser_build_parent],

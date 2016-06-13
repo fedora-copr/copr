@@ -312,6 +312,7 @@ def copr_new_build(copr):
             flask.g.user, copr,
             srpm_url=pkg,
             chroot_names=form.selected_chroots,
+            background=form.background.data,
         ) for pkg in pkgs]
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -328,6 +329,7 @@ def copr_new_build_upload(copr):
             f_uploader=lambda path: form.pkgs.data.save(path),
             orig_filename=secure_filename(form.pkgs.data.filename),
             chroot_names=form.selected_chroots,
+            background=form.background.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -350,6 +352,7 @@ def copr_new_build_pypi(copr):
             form.pypi_package_version.data,
             form.python_versions.data,
             form.selected_chroots,
+            background=form.background.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -369,6 +372,7 @@ def copr_new_build_tito(copr):
             form.git_branch.data,
             form.tito_test.data,
             form.selected_chroots,
+            background=form.background.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -388,6 +392,7 @@ def copr_new_build_mock(copr):
             form.scm_branch.data,
             form.spec.data,
             form.selected_chroots,
+            background=form.background.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 
@@ -404,6 +409,7 @@ def copr_new_build_rubygems(copr):
             copr,
             form.gem_name.data,
             form.selected_chroots,
+            background=form.background.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
 

@@ -399,7 +399,7 @@ GROUP BY
 
     @classmethod
     def create_new(cls, user, copr, source_type, source_json, chroot_names=None,
-                        pkgs="", git_hashes=None, skip_import=False, **build_options):
+                        pkgs="", git_hashes=None, skip_import=False, background=False, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -409,6 +409,7 @@ GROUP BY
         :type pkgs: str
         :type git_hashes: dict
         :type skip_import: bool
+        :type background: bool
         :rtype: models.Build
         """
         if chroot_names is None:
@@ -427,6 +428,7 @@ GROUP BY
             source_type=source_type,
             source_json=source_json,
             enable_net=build_options.get("enable_net", copr.build_enable_net),
+            background=background,
             git_hashes=git_hashes,
             skip_import=skip_import)
 
@@ -439,7 +441,7 @@ GROUP BY
     @classmethod
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
-            git_hashes=None, skip_import=False):
+            git_hashes=None, skip_import=False, background=False):
         if chroots is None:
             chroots = []
 
@@ -471,6 +473,7 @@ GROUP BY
             source_json=source_json,
             submitted_on=int(time.time()),
             enable_net=bool(enable_net),
+            is_background=bool(background),
         )
 
         if timeout:
