@@ -185,9 +185,6 @@ def api_copr_fork(copr):
     form = forms.CoprForkFormFactory\
         .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(csrf_enabled=False)
 
-    # I have no idea why there is by default form.confirm.data equal to True
-    form.confirm.data = flask.request.form["confirm"] == "True"
-
     if form.validate_on_submit() and copr:
         try:
             dstgroup = ([g for g in flask.g.user.user_groups if g.at_name == form.owner.data] or [None])[0]

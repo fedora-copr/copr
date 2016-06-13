@@ -935,8 +935,9 @@ class CoprClient(UnicodeMixin):
             "name": projectname,
             "owner": username,
             "source": source,
-            "confirm": confirm,
         }
+        if confirm:
+            post_data["confirm"] = confirm
         data = self._fetch(url, data=post_data, method="post")
 
         response = CoprResponse(
