@@ -26,7 +26,7 @@ def submit_build(copr, gem):
 
 def main():
     for gem in all_gems():
-        if gem <= "capistrano-srv_hosts":
+        if gem <= "carrierwave-imagesorcery":
             continue
         print("Submitting gem {0}".format(gem))
         submit_build("{}/{}".format(USER, COPR), gem)
