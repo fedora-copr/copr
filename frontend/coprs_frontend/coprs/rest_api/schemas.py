@@ -33,7 +33,7 @@ class SpaceSeparatedList(fields.Field):
             return []
         return value.split()
 
-    def _deserialize(self, value):
+    def _deserialize(self, value, attr=None, data=None):
         if value is None:
             return ""
         elif not isinstance(value, Iterable) or isinstance(value, string_types):
