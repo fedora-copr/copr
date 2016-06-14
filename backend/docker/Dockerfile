@@ -83,7 +83,7 @@ RUN chmod 775 /var/run/uwsgi
 RUN usermod copr-signer -G apache
 
 COPY . /copr
-RUN dnf -y builddep /copr/backend/copr-backend.spec
+RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing # fix for python-requests package (the cmd is failing python2-requests is already installed)
 RUN rm -rf /tmp/tito && cd /copr/backend && LANG=en_US.UTF-8 tito build --test --rpm
 RUN dnf -y install /tmp/tito/noarch/copr-backend*.noarch.rpm
 
@@ -96,6 +96,6 @@ RUN dnf -y downgrade fedpkg # temporary fix cause fedpkg-copr doesn't work with 
 RUN dnf -y install ansible1.9 --allowerasing # copr does not support ansible2 yet
 
 # todo: it seems config in /etc/sysctl.conf is not taken into account
-RUN echo 4096 > /proc/sys/net/core/somaxconn
+#RUN echo 4096 > /proc/sys/net/core/somaxconn # moved to bin/run.sh due to "Read-only filesystem error"
 
 CMD ["/bin/run.sh"]
