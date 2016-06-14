@@ -70,8 +70,8 @@ rlJournalStart
         ### ---- BUILDING --------------- ###
         # build - wrong project name
         rlRun "copr-cli build ${NAME_PREFIX}wrong-name http://nowhere/nothing.src.rpm" 1
-        # build - wrong chroot name
-        rlRun "copr-cli build -r wrong-chroot-name ${NAME_PREFIX}Project1 http://nowhere/nothing.src.rpm" 1
+        # build - wrong chroot name and non-existent url (if url was correct, srpm would be currently built for all available chroots)
+        rlRun "copr-cli build -r wrong-chroot-name ${NAME_PREFIX}Project1 http://nowhere/nothing.src.rpm" 4
         # build - OK
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
         # build - the same version modified - SKIPPED
@@ -316,7 +316,7 @@ rlJournalStart
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project6 --name test_package_tito --git-url http://github.com/clime/example.git --test on"
 
         # build the package
-        rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --nowait --timeout 10000 -r fedora-23-x86_64" # TODO: timeout not honored
+        rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --timeout 10000 -r fedora-23-x86_64" # TODO: timeout not honored
 
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
