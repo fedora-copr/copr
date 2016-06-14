@@ -13,6 +13,7 @@ from coprs.logic.packages_logic import PackagesLogic
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
+from sqlalchemy.sql import true
 from whoosh.index import LockError
 
 import logging
@@ -27,7 +28,11 @@ def dist_git_importing_queue():
     Return list of builds that are waiting for dist git to import the sources.
     """
     builds_list = []
-    for task in BuildsLogic.get_build_importing_queue().limit(200):
+    builds_for_import = BuildsLogic.get_build_importing_queue().limit(200)
+    if not builds_for_import:
+        builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(60)
+
+    for task in builds_for_import:
         copr = task.build.copr
 
         task_dict = {
