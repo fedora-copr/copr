@@ -236,7 +236,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo dnf builddep -y /vagrant/dist-git/copr-dist-git.spec"
+      inline: "sudo dnf builddep -y /vagrant/dist-git/copr-dist-git.spec --allowerasing" # FIXME: remove --allowerasing, which was added due to this command failing on python-requests installation if python2-requests is already installed
 
     # ...
     distgit.vm.provision "shell",
