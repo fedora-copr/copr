@@ -29,6 +29,8 @@ oid = OpenID(
     extension_responses=[TeamsResponse]
 )
 
+app.config['WHOOSHEE_WRITER_TIMEOUT'] = 10
+
 db = SQLAlchemy(app)
 whooshee = Whooshee(app)
 
