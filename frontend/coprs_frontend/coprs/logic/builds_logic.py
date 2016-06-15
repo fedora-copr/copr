@@ -41,9 +41,16 @@ class BuildsLogic(object):
 
     # todo: move methods operating with BuildChroot to BuildChrootLogic
     @classmethod
-    def get_build_tasks(cls, status):
-        return models.BuildChroot.query.filter(models.BuildChroot.status == status) \
+    def get_build_tasks(cls, status, background=None):
+        """ Returns tasks with given status. If background is specified then
+            returns normal jobs (false) or background jobs (true)
+        """
+        result = models.BuildChroot.query.join(models.Build)\
+            .filter(models.BuildChroot.status == status)\
             .order_by(models.BuildChroot.build_id.asc())
+        if background is not None:
+            result = result.filter(models.Build.is_background == (true() if is_background else false()))
+        return result
 
     @classmethod
     def get_recent_tasks(cls, user=None, limit=None):

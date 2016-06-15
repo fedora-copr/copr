@@ -27,7 +27,13 @@ def running():
 @status_ns.route("/importing/")
 def importing():
     tasks = builds_logic.BuildsLogic.get_build_tasks(
-        helpers.StatusEnum("importing")).limit(200)
+        helpers.StatusEnum("importing"),
+        background=False).limit(200)
+    bg_tasks_cnt = builds_logic.BuildsLogic.get_build_tasks(
+        helpers.StatusEnum("importing"),
+        background=True).count()
+
     return flask.render_template("status/importing.html",
                                  number=len(list(tasks)),
+                                 bg_tasks_cnt=bg_tasks_cnt,
                                  tasks=tasks)

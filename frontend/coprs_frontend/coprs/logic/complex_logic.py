@@ -162,13 +162,17 @@ class ComplexLogic(object):
     def get_queues_size():
         # todo: check if count works slowly
 
-        waiting = BuildsLogic.get_build_task_queue().count()
+        waiting = BuildsLogic.get_build_task_queue(is_background=False).count()
+        waiting_bg = BuildsLogic.get_build_task_queue(is_background=True).count()
         running = BuildsLogic.get_build_tasks(StatusEnum("running")).count()
-        importing = BuildsLogic.get_build_tasks(helpers.StatusEnum("importing")).count()
+        importing = BuildsLogic.get_build_tasks(helpers.StatusEnum("importing"), background=False).count()
+        importing_bg = BuildsLogic.get_build_tasks(helpers.StatusEnum("importing"), background=True).count()
         return dict(
             waiting=waiting,
             running=running,
-            importing=importing
+            importing=importing,
+            waiting_bg=waiting_bg,
+            importing_bg=importing_bg
         )
 
 
