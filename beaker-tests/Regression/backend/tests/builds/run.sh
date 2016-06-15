@@ -9,6 +9,10 @@ export IN=$TESTPATH/build-tasks.json
 export OUT=$TESTPATH/build-results.out.json
 
 rlJournalStart
+    rlPhaseStartSetup
+        /usr/bin/mock --scrub=all
+    rlPhaseEnd
+
     rlPhaseStartTest Builds
         # input crunching
         rlRun "/usr/share/copr/mocks/frontend/app.py $TESTPATH $TESTPATH/static" 0
