@@ -10,7 +10,7 @@ export OUT=$TESTPATH/build-results.out.json
 
 rlJournalStart
     rlPhaseStartSetup
-        /usr/bin/mock --scrub=all
+        docker exec copr-backend /bin/mock --scrub=all
     rlPhaseEnd
 
     rlPhaseStartTest Builds
