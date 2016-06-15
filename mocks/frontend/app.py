@@ -73,7 +73,12 @@ def backend_auto_createrepo_status(path):
 
 @app.route('/backend/waiting/', methods=['GET'])
 def backend_waiting_queue():
-    response = {'actions': list(action_task_dict.values()[0]), 'builds': list(build_task_dict.values())[0]}
+    sorted_action_tasks = sorted(action_task_dict.values(), key=lambda x: x['id'])
+    sorted_build_tasks = sorted(build_task_dict.values(), key=lambda x: x['task_id'])
+    response = {
+        'actions': sorted_action_tasks[0:1] if sorted_action_tasks else [],
+        'builds': sorted_build_tasks[0:1] if sorted_build_tasks else []
+    }
     debug_output(response, 'SENDING:')
     return flask.jsonify(response)
 
