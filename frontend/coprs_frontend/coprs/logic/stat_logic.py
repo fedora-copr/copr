@@ -101,8 +101,9 @@ def handle_logstash(rc, ls_data):
         db.session.commit()
 
     if "backend" in tags and "repomdxml" in tags:
-        key = CHROOT_REPO_MD_DL_STAT_FMT.format(**ls_data)
-        TimedStatEvents.add_event(rc, key, timestamp=dt_unixtime)
+        if "copr_user" in ls_data:
+            key = CHROOT_REPO_MD_DL_STAT_FMT.format(**ls_data)
+            TimedStatEvents.add_event(rc, key, timestamp=dt_unixtime)
 
     if "backend" in tags and "rpm" in tags:
         key_chroot = CHROOT_RPMS_DL_STAT_FMT.format(**ls_data)
