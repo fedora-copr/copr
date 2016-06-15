@@ -46,7 +46,7 @@ RUN dnf -y install ethtool
 RUN dnf -y install copr-keygen
 RUN dnf -y install nginx
 
-RUN echo '127.0.0.1 keygen' > /etc/hosts
+#RUN echo '127.0.0.1 keygen' > /etc/hosts # the file seems to be overwritten later with new data, moved to /bin/run.sh
 
 RUN export LANG=en_US.utf8
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
