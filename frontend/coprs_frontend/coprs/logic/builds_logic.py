@@ -49,7 +49,7 @@ class BuildsLogic(object):
             .filter(models.BuildChroot.status == status)\
             .order_by(models.BuildChroot.build_id.asc())
         if background is not None:
-            result = result.filter(models.Build.is_background == (true() if is_background else false()))
+            result = result.filter(models.Build.is_background == (true() if background else false()))
         return result
 
     @classmethod
