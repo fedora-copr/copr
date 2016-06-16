@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.51
+Version:    1.52
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -131,6 +131,25 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Thu Jun 16 2016 Miroslav Suchý <msuchy@redhat.com> 1.52-1
+- configure more packages to run pylint
+- run checks for copr-cli
+- man page for --background of copr-cli
+- add --background option to new build in CLI
+- man entries for copr-cli package actions + tests update
+- Add syntax for working with group projects to the man page.
+- honor standard build options for build-package cmd + use
+  package.has_source_type_set in API
+- _No_ to Url & Upload package types
+- man: add examples
+- experimental support of building packages
+  with copr-cli
+- list-package-names cmd added + build-package cmd implementation thub
+- added --with-all-builds, --with-latest-
+  build and --with-latest-succeeded-build options for list-packages and get-
+  package cmds
+- support forking via CLI
+
 * Thu May 26 2016 clime <clime@redhat.com> 1.51-1
 - support for package manipulation
 - added watch-build subcommand
