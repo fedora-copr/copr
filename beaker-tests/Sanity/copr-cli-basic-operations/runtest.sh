@@ -318,6 +318,12 @@ rlJournalStart
         # build the package
         rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --timeout 10000 -r fedora-23-x86_64" # TODO: timeout not honored
 
+        # test unlisted_on_hp project attribute
+        rlRun "copr-cli create --unlisted-on-hp on --chroot fedora-23-x86_64 ${NAME_PREFIX}Project7"
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org --silent | grep Project7" 1 # project won't be present on hp
+        rlRun "copr-cli modify --unlisted-on-hp off ${NAME_PREFIX}Project7"
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org --silent | grep Project7" 0 # project should be visible on hp now
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
@@ -328,6 +334,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project4"
         rlRun "copr-cli delete ${NAME_PREFIX}Project5"
         rlRun "copr-cli delete ${NAME_PREFIX}Project6"
+        rlRun "copr-cli delete ${NAME_PREFIX}Project7"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed
