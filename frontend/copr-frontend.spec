@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.93
+Version:    1.94
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,48 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Thu Jun 16 2016 Miroslav Suchý <msuchy@redhat.com> 1.94-1
+- add mageia logo
+- mask traceback which can be waived out
+- only display normal tasks in status/importing
+- timeout value for whoosh search index update increased to address
+  LockError
+- deserialize in python-marshmallow 2.1+ need 4 params
+- lower priority for background task for dist-git import
+- only display normal tasks in status/waiting + bg tasks cnt
+- configure more packages to run pylint
+- send confirm only when it is True
+- add --background option to new build in CLI
+- only publish first 10 background jobs so that backend queue
+  doesn't get jammed
+- only publish background jobs on /backend/waiting if no normal jobs
+  are available
+- add is_background column for builds
+- send latest 1000 jobs to backend
+- just issue a warning msg when unknown form key was received
+  when creating new build or new copr
+- if source_json is None for Package or Build, then return {} from
+  source_json_dict prop
+- more of log file migration
+- Change log file paths in spec files
+- no script label
+- Editing a Table View for package, delete column Package name
+- honor standard build options for build-package cmd + use
+  package.has_source_type_set in API
+- _No_ to Url & Upload package types
+- removing need for source_type in package post data
+- experimental support of building packages
+  with copr-cli
+- rename of method for creating new builds
+- add with_chroot_states option for build.to_dict. Use this when
+  serializing builds through API.
+- added --with-all-builds, --with-latest-
+  build and --with-latest-succeeded-build options for list-packages and get-
+  package cmds
+- label no javascript (#8)
+- support forking via CLI
+- more reliable condition whether forking into existing project
+
 * Thu May 26 2016 clime <clime@redhat.com> 1.93-1
 - added source_type to URL and Upload UI build forms
 - support for creating/editing/deleting/listing packages implemented
