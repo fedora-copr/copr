@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.94
+Version:    1.95
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,10 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Thu Jun 16 2016 Miroslav Suchý <msuchy@redhat.com> 1.95-1
+- fix logic of dist-git import queue
+- typo
+
 * Thu Jun 16 2016 Miroslav Suchý <msuchy@redhat.com> 1.94-1
 - add mageia logo
 - mask traceback which can be waived out
