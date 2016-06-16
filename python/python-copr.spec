@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.70
+Version:    1.71
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -181,6 +181,21 @@ popd
 %endif
 
 %changelog
+* Thu Jun 16 2016 Miroslav Suchý <msuchy@redhat.com> 1.71-1
+- configure more packages to run pylint
+- send confirm only when it is True
+- add --background option to new build in CLI
+- honor standard build options for build-package cmd + use
+  package.has_source_type_set in API
+- _No_ to Url & Upload package types
+- removing need for source_type in package post data
+- fix non-existent attribute access for PackageWrapper
+- experimental support of building packages
+  with copr-cli
+- added --with-all-builds, --with-latest-
+  build and --with-latest-succeeded-build options for list-packages and get-
+  package cmds
+
 * Mon May 30 2016 clime <clime@redhat.com> 1.70-1
 - [cli][python][frontend] support forking via CLI
 - [python-copr] added missing source_type specification for upload & url builds
