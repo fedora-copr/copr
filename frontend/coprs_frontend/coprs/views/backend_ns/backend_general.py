@@ -28,9 +28,9 @@ def dist_git_importing_queue():
     Return list of builds that are waiting for dist git to import the sources.
     """
     builds_list = []
-    builds_for_import = BuildsLogic.get_build_importing_queue().limit(200)
+    builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == false()).limit(200)
     if not builds_for_import:
-        builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(60)
+        builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(30)
 
     for task in builds_for_import:
         copr = task.build.copr
