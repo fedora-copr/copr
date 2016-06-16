@@ -4,7 +4,7 @@ import time
 from subprocess import PIPE, Popen, call
 
 
-SLEEP = 35
+SLEEP = 20
 CONFIG = os.path.join(os.path.expanduser("~"), ".config/copr")
 USER = "@rubygems"
 COPR = "rubygems"
@@ -20,13 +20,13 @@ def all_gems():
 
 def submit_build(copr, gem):
     command = ["/usr/bin/copr-cli", "--config", CONFIG,
-               "buildgem", copr, "--gem", gem, "--nowait"]
+               "buildgem", copr, "--gem", gem, "--nowait", "--background"]
     call(command)
 
 
 def main():
     for gem in all_gems():
-        if gem <= "carrierwave-imagesorcery":
+        if gem <= "console-glitter":
             continue
         print("Submitting gem {0}".format(gem))
         submit_build("{}/{}".format(USER, COPR), gem)
