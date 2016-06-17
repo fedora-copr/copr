@@ -1,6 +1,4 @@
 import flask
-import sys
-import time
 
 from coprs import db, app
 from coprs import helpers
@@ -15,7 +13,6 @@ from coprs.logic.packages_logic import PackagesLogic
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 from sqlalchemy.sql import false, true
-from whoosh.index import LockError
 
 import logging
 log = logging.getLogger(__name__)
@@ -199,20 +196,7 @@ def update():
         for i, obj in existing.items():
             logic_cls.update_state_from_dict(obj, to_update[i])
 
-        i = 5
-        exc_info = None
-        while i > 0:
-            try:
-                db.session.commit()
-                i = -100
-            except LockError:
-                i -= 1
-                exc_info = sys.exc_info()[2]
-                time.sleep(5)
-
-        if i != -100:
-            raise LockError(None).with_traceback(exc_info)
-
+        db.session.commit()
         result.update({"updated_{0}_ids".format(typ): list(existing.keys()),
                        "non_existing_{0}_ids".format(typ): non_existing_ids})
 
