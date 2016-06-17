@@ -95,6 +95,7 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--initial-pkgs PKGS]
                        [--description DESCRIPTION]
                        [--instructions INSTRUCTIONS]
+                       [--unlisted-on-hp {on,off}]
                        name
 
 --chroot::
@@ -111,6 +112,10 @@ Description of the project.
 
 --instructions::
 Instructions for the project.
+
+--unlisted-on-hp::
+This project will not be listed on COPR home page.
+
 
 `copr-cli modify [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

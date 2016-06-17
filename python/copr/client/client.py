@@ -956,7 +956,7 @@ class CoprClient(UnicodeMixin):
     def create_project(
             self, username, projectname, chroots,
             description=None, instructions=None,
-            repos=None, initial_pkgs=None
+            repos=None, initial_pkgs=None, unlisted_on_hp=False
     ):
         """ Creates a new copr project
             Auth required.
@@ -966,6 +966,7 @@ class CoprClient(UnicodeMixin):
             :param chroots: List of target chroots
             :param description: [optional] Project description
             :param instructions: [optional] Instructions for end users
+            :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -997,7 +998,8 @@ class CoprClient(UnicodeMixin):
             "repos": repos,
             "initial_pkgs": initial_pkgs,
             "description": description,
-            "instructions": instructions
+            "instructions": instructions,
+            "unlisted_on_hp": "y" if unlisted_on_hp else "",
         }
         for chroot in chroots:
             request_data[chroot] = "y"
@@ -1019,7 +1021,7 @@ class CoprClient(UnicodeMixin):
 
     def modify_project(self, projectname, username=None,
                        description=None, instructions=None,
-                       repos=None, disable_createrepo=None):
+                       repos=None, disable_createrepo=None, unlisted_on_hp=None):
         """ Modifies main project configuration.
             Auth required.
 
@@ -1029,6 +1031,7 @@ class CoprClient(UnicodeMixin):
             :param instructions: [optional] instructions for end users
             :param repos: [optional] list of additional repos to be used during
                 the build process
+            :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1052,6 +1055,8 @@ class CoprClient(UnicodeMixin):
             data["repos"] = repos
         if disable_createrepo:
             data["disable_createrepo"] = disable_createrepo
+        if unlisted_on_hp != None:
+            data["unlisted_on_hp"] = "y" if unlisted_on_hp else ""
 
         result_data = self._fetch(url, data=data, method="post")
 

@@ -57,7 +57,7 @@ def url_for_copr_edit(copr):
 @coprs_ns.route("/", defaults={"page": 1})
 @coprs_ns.route("/<int:page>/")
 def coprs_show(page=1):
-    query = CoprsLogic.get_multiple()
+    query = CoprsLogic.get_multiple(include_unlisted_on_hp=False)
     query = CoprsLogic.set_query_order(query, desc=True)
 
     paginator = helpers.Paginator(query, query.count(), page)
@@ -163,6 +163,7 @@ def group_copr_new(group_name):
             instructions=form.instructions.data,
             disable_createrepo=form.disable_createrepo.data,
             build_enable_net=form.build_enable_net.data,
+            unlisted_on_hp=form.unlisted_on_hp.data,
             group=group
         )
 
@@ -196,6 +197,7 @@ def copr_new(username):
             instructions=form.instructions.data,
             disable_createrepo=form.disable_createrepo.data,
             build_enable_net=form.build_enable_net.data,
+            unlisted_on_hp=form.unlisted_on_hp.data,
         )
 
         db.session.commit()
@@ -419,6 +421,7 @@ def process_copr_update(copr, form):
     copr.instructions = form.instructions.data
     copr.disable_createrepo = form.disable_createrepo.data
     copr.build_enable_net = form.build_enable_net.data
+    copr.unlisted_on_hp = form.unlisted_on_hp.data
     coprs_logic.CoprChrootsLogic.update_from_names(
         flask.g.user, copr, form.selected_chroots)
     try:

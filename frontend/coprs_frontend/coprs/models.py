@@ -206,6 +206,8 @@ class Copr(db.Model, helpers.Serializer):
     build_enable_net = db.Column(db.Boolean, default=True,
                                  server_default="1", nullable=False)
 
+    unlisted_on_hp = db.Column(db.Boolean, default=False, nullable=False)
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }

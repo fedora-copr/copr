@@ -116,6 +116,7 @@ def api_new_copr(username):
                 instructions=form.instructions.data,
                 check_for_duplicates=True,
                 auto_createrepo=True,
+                unlisted_on_hp=form.unlisted_on_hp.data,
                 group=group,
             )
             infos.append("New project was successfully created.")
@@ -522,6 +523,9 @@ def copr_modify(copr):
         copr.repos = form.repos.data
     if form.disable_createrepo.raw_data and len(form.disable_createrepo.raw_data):
         copr.disable_createrepo = form.disable_createrepo.data
+
+    if "unlisted_on_hp" in flask.request.form != None:
+        copr.unlisted_on_hp = form.unlisted_on_hp.data
 
     try:
         CoprsLogic.update(flask.g.user, copr)

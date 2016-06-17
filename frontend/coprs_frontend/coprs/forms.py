@@ -243,6 +243,7 @@ class CoprFormFactory(object):
 
             disable_createrepo = wtforms.BooleanField(default=False)
             build_enable_net = wtforms.BooleanField(default=False)
+            unlisted_on_hp = wtforms.BooleanField("Do not display this project on home page", default=False)
 
             @property
             def selected_chroots(self):
@@ -632,6 +633,7 @@ class CoprModifyForm(wtf.Form):
                                   filters=[StringListFilter()])
 
     disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
+    unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
 
 
 class CoprForkFormFactory(object):

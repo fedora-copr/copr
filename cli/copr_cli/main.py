@@ -263,7 +263,7 @@ class Commands(object):
         result = self.client.create_project(
             username=username, projectname=copr, description=args.description,
             instructions=args.instructions, chroots=args.chroots,
-            repos=args.repos, initial_pkgs=args.initial_pkgs)
+            repos=args.repos, initial_pkgs=args.initial_pkgs, unlisted_on_hp=(args.unlisted_on_hp == 'on'))
         print(result.message)
 
     @requires_api_auth
@@ -277,7 +277,7 @@ class Commands(object):
         result = self.client.modify_project(
             username=username, projectname=copr,
             description=args.description, instructions=args.instructions,
-            repos=args.repos, disable_createrepo=args.disable_createrepo)
+            repos=args.repos, disable_createrepo=args.disable_createrepo, unlisted_on_hp=(args.unlisted_on_hp == 'on' if args.unlisted_on_hp else None))
 
     @requires_api_auth
     def action_delete(self, args):
@@ -533,6 +533,8 @@ def setup_parser():
                                help="Description of the copr")
     parser_create.add_argument("--instructions",
                                help="Instructions for the copr")
+    parser_create.add_argument("--unlisted-on-hp", choices=["on", "off"],
+                               help="The project will not be shown on COPR home page")
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
@@ -547,6 +549,8 @@ def setup_parser():
                                help="Repository to add to this copr")
     parser_modify.add_argument("--disable_createrepo",
                                help="Disable metadata auto generation")
+    parser_modify.add_argument("--unlisted-on-hp", choices=["on", "off"],
+                               help="The project will not be shown on COPR home page")
     parser_modify.set_defaults(func="action_modify_project")
 
     # create the parser for the "delete" command

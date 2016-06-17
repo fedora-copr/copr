@@ -102,7 +102,7 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def get_multiple(cls, include_deleted=False):
+    def get_multiple(cls, include_deleted=False, include_unlisted_on_hp=True):
         query = (
             db.session.query(models.Copr)
             .join(models.Copr.user)
@@ -112,6 +112,9 @@ class CoprsLogic(object):
 
         if not include_deleted:
             query = query.filter(models.Copr.deleted.is_(False))
+
+        if not include_unlisted_on_hp:
+            query = query.filter(models.Copr.unlisted_on_hp.is_(False))
 
         return query
 
