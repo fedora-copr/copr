@@ -6,6 +6,7 @@ import time
 import shutil
 import tempfile
 import logging
+from multiprocessing import Process
 from subprocess import PIPE, Popen, call
 
 from requests import get, post
@@ -436,13 +437,13 @@ class DistGitImporter(object):
 
         self.tmp_root = None
 
-    def try_to_obtain_new_task(self):
+    def try_to_obtain_new_task(self, exclude=[]):
         log.debug("1. Try to get task data")
         try:
             # get the data
             r = get(self.get_url)
             # take the first task
-            builds_list = r.json()["builds"]
+            builds_list = filter(lambda x: x["task_id"] not in exclude, r.json()["builds"])
             if len(builds_list) == 0:
                 log.debug("No new tasks to process")
                 return
@@ -566,10 +567,19 @@ class DistGitImporter(object):
     def run(self):
         log.info("DistGitImported initialized")
 
+        tasks = {}
         self.is_running = True
         while self.is_running:
-            mb_task = self.try_to_obtain_new_task()
+            mb_task = self.try_to_obtain_new_task(exclude=tasks.keys())
+
             if mb_task is None:
                 time.sleep(self.opts.sleep_time)
+
+            # There is running job on every core
+            elif len(filter(lambda x: x.is_alive(), tasks.values())) >= 3:
+                time.sleep(self.opts.sleep_time)
+
             else:
-                self.do_import(mb_task)
+                p = Process(target=self.do_import, args=[mb_task])
+                tasks[mb_task.task_id] = p
+                p.start()
