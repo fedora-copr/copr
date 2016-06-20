@@ -567,6 +567,7 @@ class DistGitImporter(object):
     def run(self):
         log.info("DistGitImported initialized")
 
+        # @TODO Finished tasks should be removed from this dict
         tasks = {}
         self.is_running = True
         while self.is_running:
