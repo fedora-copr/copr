@@ -4,6 +4,7 @@ import time
 
 from coprs import db, app
 from coprs import helpers
+from coprs import models
 from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
@@ -13,7 +14,7 @@ from coprs.logic.packages_logic import PackagesLogic
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
-from sqlalchemy.sql import true
+from sqlalchemy.sql import false, true
 from whoosh.index import LockError
 
 import logging
