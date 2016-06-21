@@ -6,7 +6,7 @@
 
 Name:       copr-frontend
 Version:    1.95
-Release:    2%{?dist}
+Release:    3%{?dist}
 Summary:    Frontend for Copr
 
 Group:      Applications/Productivity
@@ -269,6 +269,9 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Tue Jun 21 2016 clime <clime@redhat.com> 1.95-3
+- (hotfix) added missing imports
+
 * Tue Jun 21 2016 clime <clime@redhat.com> 1.95-2
 - (hotfix) remove unused methods from whoosheer so that flask_whooshee can avoid locking on these
 
