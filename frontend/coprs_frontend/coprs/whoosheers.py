@@ -30,16 +30,6 @@ class CoprWhoosheer(AbstractWhoosheer):
     models = [models.Copr, models.User, models.Group, models.Package]
 
     @classmethod
-    def update_user(cls, writer, user):
-        # TODO: this is not needed now, as users can't change names, but may be
-        # needed later
-        pass
-
-    @classmethod
-    def update_group(cls, writer, user):
-        pass
-
-    @classmethod
     def update_copr(cls, writer, copr):
         writer.update_document(copr_id=copr.id,
                                user_id=copr.user.id,
@@ -54,16 +44,6 @@ class CoprWhoosheer(AbstractWhoosheer):
     @classmethod
     def update_package(cls, writer, package):
         writer.update_document(copr_id=package.copr.id, packages=cls.get_package_names(package.copr))
-
-    @classmethod
-    def insert_user(cls, writer, user):
-        # nothing, user doesn't have coprs yet
-        pass
-
-    @classmethod
-    def insert_group(cls, writer, user):
-        # nothing, group doesn't have coprs yet
-        pass
 
     @classmethod
     def insert_copr(cls, writer, copr):
