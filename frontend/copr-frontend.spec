@@ -6,7 +6,7 @@
 
 Name:       copr-frontend
 Version:    1.95
-Release:    4%{?dist}
+Release:    5%{?dist}
 Summary:    Frontend for Copr
 
 Group:      Applications/Productivity
