@@ -579,7 +579,7 @@ class DistGitImporter(object):
                 time.sleep(self.opts.sleep_time)
 
             # There is running job on every core
-            elif len(filter(lambda x: x.is_alive(), tasks.values())) >= 3:
+            elif len(tasks) >= 3:
                 time.sleep(self.opts.sleep_time)
 
             else:
