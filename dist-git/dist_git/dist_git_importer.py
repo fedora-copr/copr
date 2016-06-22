@@ -602,7 +602,7 @@ class Worker(Process):
 
 def terminate_timeouted(tasks):
     # @TODO Log also into per-task log
-    for key, task in {k: v for k, v in tasks.items() if v.timeouted}.items():
-        task.terminate()
+    for key, worker in {k: v for k, v in tasks.items() if v.timeouted}.items():
+        worker.terminate()
         log.info("Worker '{}' with task '{}' was terminated due to exceeded timeout {} seconds"
-                 .format(task.name, key, 3600))
+                 .format(worker.name, key, worker.timeout))
