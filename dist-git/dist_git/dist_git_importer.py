@@ -13,7 +13,7 @@ from subprocess import PIPE, Popen, call
 from requests import get, post
 
 from .exceptions import CoprDistGitException, PackageImportException, PackageDownloadException, SrpmBuilderException, \
-        SrpmQueryException, GitCloneException, GitWrongDirectoryException, GitCheckoutException
+        SrpmQueryException, GitCloneException, GitWrongDirectoryException, GitCheckoutException, TimeoutException
 from .srpm_import import do_git_srpm_import
 
 from .helpers import FailTypeEnum
@@ -572,7 +572,7 @@ class DistGitImporter(object):
         tasks = {}
         self.is_running = True
         while self.is_running:
-            terminate_timeouted(tasks)
+            terminate_timeouted(tasks, callback=self.post_back_safe)
             remove_dead(tasks)
 
             mb_task = self.try_to_obtain_new_task(exclude=tasks.keys())
@@ -602,10 +602,11 @@ class Worker(Process):
         return datetime.datetime.now() >= self.timestamp + datetime.timedelta(seconds=self.timeout)
 
 
-def terminate_timeouted(tasks):
+def terminate_timeouted(tasks, callback):
     # @TODO Log also into per-task log
     for key, worker in {k: v for k, v in tasks.items() if v.timeouted}.items():
         worker.terminate()
+        callback({"task_id": key, "error": TimeoutException.strtype})
         log.info("Worker '{}' with task '{}' was terminated due to exceeded timeout {} seconds"
                  .format(worker.name, key, worker.timeout))
 

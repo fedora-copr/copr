@@ -31,3 +31,7 @@ class GitWrongDirectoryException(CoprDistGitException):
 
 class GitCheckoutException(CoprDistGitException):
     strtype = 'git_checkout_error'
+
+
+class TimeoutException(CoprDistGitException):
+    strtype = 'timeout_exceeded'
