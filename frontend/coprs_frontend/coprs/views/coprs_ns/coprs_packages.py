@@ -2,6 +2,7 @@ import flask
 import json
 
 from flask import url_for
+from flask import send_file
 from coprs import db
 from coprs import forms
 from coprs import helpers
@@ -12,7 +13,7 @@ from coprs.views.misc import login_required, page_not_found, req_with_copr, req_
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.exceptions import (ActionInProgressException,
+from coprs.exceptions import (ActionInProgressException,ObjectNotFound,
                               InsufficientRightsException,UnknownSourceTypeException)
 
 
@@ -29,13 +30,35 @@ def copr_packages(copr):
     #packages = PackagesLogic.get_all(copr.id)
     #return flask.render_template("coprs/detail/packages.html", packages=packages, copr=copr, empty_build=Build())
 
-
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/")
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/")
 @req_with_copr
 def copr_package(copr, package_name):
     package = ComplexLogic.get_package_safe(copr, package_name)
     return flask.render_template("coprs/detail/package.html", package=package, copr=copr)
+
+@coprs_ns.route("/<username>/<coprname>/package/<package_name>/status_image/last_build.png")
+@coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/status_image/last_build.png")
+@req_with_copr
+def copr_package_icon(copr, package_name):
+    try:
+        package = ComplexLogic.get_package_safe(copr, package_name)
+    except ObjectNotFound:
+        return send_file("static/status_images/bad_url.png", mimetype='image/gif')
+
+    last_build = package.last_build()
+    if last_build:
+        if last_build.state in ["importing", "pending", "starting", "running"]:
+            return send_file("static/status_images/in_progress.png", mimetype='image/gif')
+
+        if last_build.state in ["succeeded", "skipped"]:
+            return send_file("static/status_images/succeeded.png", mimetype='image/gif')
+
+        if last_build.state == "failed":
+            return send_file("static/status_images/failed.png", mimetype='image/gif')
+
+        else:
+            return send_file("static/status_images/unknown.png", mimetype='image/gif')
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/rebuild")
