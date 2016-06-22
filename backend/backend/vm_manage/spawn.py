@@ -100,7 +100,6 @@ def do_spawn_and_publish(opts, spawn_playbook, group):
 
     spawn_result["group"] = group
     spawn_result["topic"] = EventTopics.VM_SPAWNED
-    del(spawn_result["output"])
     try:
         rc = get_redis_connection(opts)
         rc.publish(PUBSUB_MB, json.dumps(spawn_result))
