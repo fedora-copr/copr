@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.90
+Version:    1.91
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -253,6 +253,17 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Jun 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.91-1
+- configure more packages to run pylint
+- terminate machine which was only partialy spawned
+- [copr-prune-results] do not sys.exit if prunerepo returns non-zero status,
+  just raise an exception
+- more of log file migration
+- claim /var/log/copr-backend in %%files
+- adjust log path in runtime files
+- update conf file log path directives
+- change logdir to /var/log/copr-backend/
+
 * Fri May 27 2016 Miroslav Suchý <msuchy@redhat.com> 1.90-1
 - do not use --log-dir in appstream-builder
 
