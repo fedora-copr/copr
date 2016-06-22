@@ -36,6 +36,9 @@ class Builder(object):
         self.conn = self._create_ans_conn()
         self.root_conn = self._create_ans_conn(username="root")
 
+    def get_chroot_config_path(self, chroot):
+        return "{tempdir}/{chroot}.cfg".format(tempdir=self.tempdir, chroot=chroot)
+
     @property
     def remote_build_dir(self):
         return self.tempdir + "/build/"
@@ -124,12 +127,20 @@ class Builder(object):
         return os.path.normpath(os.path.join(
             self.remote_build_dir, "results", self.job.chroot, self.remote_pkg_name))
 
-    def modify_mock_chroot_config(self):
+    def setup_mock_chroot_config(self):
         """
-        Modify mock config for current chroot.
+        Setup mock config for current chroot.
 
-        Packages in buildroot_pkgs are added to minimal buildroot
+        Packages in buildroot_pkgs are added to minimal buildroot.
         """
+        cfg_path = self.get_chroot_config_path(self.job.chroot)
+
+        try:
+            copy_cmd = "cp /etc/mock/{chroot}.cfg {dest}".format(chroot=self.job.chroot, dest=cfg_path)
+            self.run_ansible_with_check(copy_cmd, module_name="shell")
+        except BuilderError as err:
+            self.log.exception(err)
+            raise err
 
         if ("'{0} '".format(self.buildroot_pkgs) !=
                 pipes.quote(str(self.buildroot_pkgs) + ' ')):
@@ -142,35 +153,36 @@ class Builder(object):
                       .format(self.buildroot_pkgs, self.job.chroot))
 
         kwargs = {
+            "cfg_path": cfg_path,
             "chroot": self.job.chroot,
             "pkgs": self.buildroot_pkgs,
             "net_enabled": "True" if self.job.enable_net else "False",
         }
         buildroot_cmd = (
-            "dest=/etc/mock/{chroot}.cfg"
+            "dest={cfg_path}"
             " line=\"config_opts['chroot_setup_cmd'] = 'install \\1 {pkgs}'\""
             " regexp=\"^.*chroot_setup_cmd.*(@buildsys-build|buildsys-build buildsys-macros).*$\""
             " backrefs=yes"
         )
         buildroot_custom_cmd = (
-            "dest=/etc/mock/{chroot}.cfg"
+            "dest={cfg_path}"
             " line=\"config_opts['chroot_setup_cmd'] = 'install {pkgs}'\""
             " regexp=\"config_opts['chroot_setup_cmd'] = ''$\""
             " backrefs=yes"
         )
         set_networking_cmd = (
-            "dest=/etc/mock/{chroot}.cfg"
+            "dest={cfg_path}"
             " line=\"config_opts['use_host_resolv'] = {net_enabled}\""
             " regexp=\"^.*use_host_resolv.*$\""
         )
         try:
             self.run_ansible_with_check(set_networking_cmd.format(**kwargs),
-                                        module_name="lineinfile", as_root=True)
+                                        module_name="lineinfile")
             if self.buildroot_pkgs:
                 self.run_ansible_with_check(buildroot_cmd.format(**kwargs),
-                                            module_name="lineinfile", as_root=True)
+                                            module_name="lineinfile")
                 self.run_ansible_with_check(buildroot_custom_cmd.format(**kwargs),
-                                            module_name="lineinfile", as_root=True)
+                                            module_name="lineinfile")
         except BuilderError as err:
             self.log.exception(err)
             raise
@@ -248,7 +260,7 @@ class Builder(object):
 
     def gen_mockchain_command(self):
         buildcmd = "{} -r {} -l {} ".format(
-            mockchain, pipes.quote(self.job.chroot),
+            mockchain, pipes.quote(self.get_chroot_config_path(self.job.chroot)),
             pipes.quote(self.remote_build_dir))
         for repo in self.job.chroot_repos_extended:
             repo = self.pre_process_repo_url(repo)
@@ -307,7 +319,7 @@ class Builder(object):
     #     # check for success/failure of build
     #
     #     # build_details = {}
-    #     self.modify_mock_chroot_config()
+    #     self.setup_mock_chroot_config()
     #
     #     # check if pkg is local or http
     #     dest = self.check_if_pkg_local_or_http(pkg)
@@ -320,7 +332,7 @@ class Builder(object):
     #
 
     def build(self):
-        self.modify_mock_chroot_config()
+        self.setup_mock_chroot_config()
 
         # download the package to the builder
         self.download_job_pkg_to_builder()
