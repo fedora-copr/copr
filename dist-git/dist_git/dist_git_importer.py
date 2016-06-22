@@ -6,6 +6,7 @@ import time
 import shutil
 import tempfile
 import logging
+import datetime
 from multiprocessing import Process
 from subprocess import PIPE, Popen, call
 
@@ -567,12 +568,13 @@ class DistGitImporter(object):
     def run(self):
         log.info("DistGitImported initialized")
 
-        # @TODO Finished tasks should be removed from this dict
         tasks = {}
         self.is_running = True
         while self.is_running:
-            mb_task = self.try_to_obtain_new_task(exclude=tasks.keys())
+            terminate_timeouted(tasks)
+            tasks = {k: v for k, v in tasks.items() if v.is_alive()}
 
+            mb_task = self.try_to_obtain_new_task(exclude=tasks.keys())
             if mb_task is None:
                 time.sleep(self.opts.sleep_time)
 
@@ -581,6 +583,25 @@ class DistGitImporter(object):
                 time.sleep(self.opts.sleep_time)
 
             else:
-                p = Process(target=self.do_import, args=[mb_task])
+                p = Worker(target=self.do_import, args=[mb_task], timeout=3600)
                 tasks[mb_task.task_id] = p
                 p.start()
+
+
+class Worker(Process):
+    def __init__(self, timeout=None, *args, **kwargs):
+        super(Worker, self).__init__(*args, **kwargs)
+        self.timeout = timeout
+        self.timestamp = datetime.datetime.now()
+
+    @property
+    def timeouted(self):
+        return datetime.datetime.now() >= self.timestamp + datetime.timedelta(seconds=self.timeout)
+
+
+def terminate_timeouted(tasks):
+    # @TODO Log also into per-task log
+    for key, task in {k: v for k, v in tasks.items() if v.timeouted}.items():
+        task.terminate()
+        log.info("Worker '{}' with task '{}' was terminated due to exceeded timeout {} seconds"
+                 .format(task.name, key, 3600))
