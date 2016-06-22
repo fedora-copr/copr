@@ -303,6 +303,7 @@ class MockScmProvider(SrpmBuilderProvider):
 
         package_name = os.path.basename(self.task.mock_spec).replace(".spec", "")
         cmd = ["/usr/bin/mock", "-r", "epel-7-x86_64",
+               "--uniqueext", self.task.task_id,
                "--scm-enable",
                "--scm-option", "method={}".format(self.task.mock_scm_type),
                "--scm-option", "package={}".format(package_name),
