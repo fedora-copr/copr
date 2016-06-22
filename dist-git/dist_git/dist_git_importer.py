@@ -573,7 +573,7 @@ class DistGitImporter(object):
         self.is_running = True
         while self.is_running:
             terminate_timeouted(tasks)
-            tasks = {k: v for k, v in tasks.items() if v.is_alive()}
+            remove_dead(tasks)
 
             mb_task = self.try_to_obtain_new_task(exclude=tasks.keys())
             if mb_task is None:
@@ -586,6 +586,8 @@ class DistGitImporter(object):
             else:
                 p = Worker(target=self.do_import, args=[mb_task], timeout=3600)
                 tasks[mb_task.task_id] = p
+                log.info("Starting worker '{}' with task '{}' (timeout={})"
+                         .format(p.name, mb_task.task_id, p.timeout))
                 p.start()
 
 
@@ -606,3 +608,8 @@ def terminate_timeouted(tasks):
         worker.terminate()
         log.info("Worker '{}' with task '{}' was terminated due to exceeded timeout {} seconds"
                  .format(worker.name, key, worker.timeout))
+
+
+def remove_dead(tasks):
+    for key, worker in {k: v for k, v in tasks.items() if not v.is_alive() and v.exitcode == 0}.items():
+        log.info("Worker '{}' finished task '{}'".format(worker.name, key))
