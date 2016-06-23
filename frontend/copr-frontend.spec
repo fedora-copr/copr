@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.96
+Version:    1.97
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,19 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Thu Jun 23 2016 Miroslav Suchý <msuchy@redhat.com> 1.97-1
+- New Package view UI refresh
+- empty state in the Builds and Packages views
+- setting of WHOOSHEE_WRITER_TIMEOUT removed from code so that it is
+  configurable from the main frontend config file
+- remove unused methods from whoosheer so that flask_whooshee can
+  avoid locking on these
+- UI fix - project overview
+- Requires: python-requests -> python2-requests
+- Monitor - UI fix
+- --enable-net option added for create/modify commands
+  of copr-cli
+
 * Thu Jun 23 2016 Miroslav Suchý <msuchy@redhat.com> 1.96-1
 - package status image for CI
 - Revert "[frontend] try again if whoosh does not get lock"
