@@ -575,7 +575,7 @@ class DistGitImporter(object):
             pool.terminate_timeouted(callback=self.post_back_safe)
             pool.remove_dead()
 
-            mb_task = self.try_to_obtain_new_task(exclude=pool.keys())
+            mb_task = self.try_to_obtain_new_task(exclude=[w.id for w in pool])
             if mb_task is None:
                 time.sleep(self.opts.sleep_time)
 
@@ -583,16 +583,17 @@ class DistGitImporter(object):
                 time.sleep(self.opts.sleep_time)
 
             else:
-                p = Worker(target=self.do_import, args=[mb_task], timeout=3600)
-                pool[mb_task.task_id] = p
+                p = Worker(target=self.do_import, args=[mb_task], id=mb_task.task_id, timeout=3600)
+                pool.append(p)
                 log.info("Starting worker '{}' with task '{}' (timeout={})"
                          .format(p.name, mb_task.task_id, p.timeout))
                 p.start()
 
 
 class Worker(Process):
-    def __init__(self, timeout=None, *args, **kwargs):
+    def __init__(self, id=None, timeout=None, *args, **kwargs):
         super(Worker, self).__init__(*args, **kwargs)
+        self.id = id
         self.timeout = timeout
         self.timestamp = datetime.datetime.now()
 
@@ -601,7 +602,7 @@ class Worker(Process):
         return datetime.datetime.now() >= self.timestamp + datetime.timedelta(seconds=self.timeout)
 
 
-class Pool(dict):
+class Pool(list):
     def __init__(self, workers=None, *args, **kwargs):
         super(Pool, self).__init__(*args, **kwargs)
         self.workers = workers
@@ -613,15 +614,15 @@ class Pool(dict):
 
     def terminate_timeouted(self, callback):
         # @TODO Log also into per-task log
-        for key, worker in {k: v for k, v in self.items() if v.timeouted}.items():
+        for worker in filter(lambda w: w.timeouted, self):
             worker.terminate()
-            callback({"task_id": key, "error": TimeoutException.strtype})
+            callback({"task_id": worker.id, "error": TimeoutException.strtype})
             log.info("Worker '{}' with task '{}' was terminated due to exceeded timeout {} seconds"
-                     .format(worker.name, key, worker.timeout))
+                     .format(worker.name, worker.id, worker.timeout))
 
     def remove_dead(self):
-        for key, worker in {k: v for k, v in self.items() if not v.is_alive()}.items():
+        for worker in filter(lambda w: not w.is_alive(), self):
             if worker.exitcode == 0:
-                log.info("Worker '{}' finished task '{}'".format(worker.name, key))
-            log.info("Removing worker '{}' with task '{}' from pool".format(worker.name, key))
-            del self[key]
+                log.info("Worker '{}' finished task '{}'".format(worker.name, worker.id))
+            log.info("Removing worker '{}' with task '{}' from pool".format(worker.name, worker.id))
+            self.remove(worker)
