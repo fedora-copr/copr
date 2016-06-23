@@ -95,6 +95,7 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--initial-pkgs PKGS]
                        [--description DESCRIPTION]
                        [--instructions INSTRUCTIONS]
+                       [--enable-net {on,off}]
                        [--unlisted-on-hp {on,off}]
                        name
 
@@ -113,6 +114,9 @@ Description of the project.
 --instructions::
 Instructions for the project.
 
+--enable-net::
+If net should be enabled for builds in this project.
+
 --unlisted-on-hp::
 This project will not be listed on COPR home page.
 
@@ -124,6 +128,8 @@ usage: copr-cli modify [-h] [--repo REPOS]
                        [--description DESCRIPTION]
                        [--instructions INSTRUCTIONS]
                        [--disable_createrepo DISABLE_CREATEREPO]
+                       [--enable-net {on,off}]
+                       [--unlisted-on-hp {on,off}]
                        name
 
 Alters only specified project property.
@@ -139,6 +145,12 @@ Instructions for the project.
 
 --disable_createrepo::
 Disables automatic repository metadata generation. Accepted values for DISABLE_CREATEREPO: true/false.
+
+--enable-net::
+If net should be enabled for builds in this project.
+
+--unlisted-on-hp::
+This project will not be listed on COPR home page.
 
 
 BUILD ACTIONS

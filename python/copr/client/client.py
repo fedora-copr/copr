@@ -956,7 +956,7 @@ class CoprClient(UnicodeMixin):
     def create_project(
             self, username, projectname, chroots,
             description=None, instructions=None,
-            repos=None, initial_pkgs=None, unlisted_on_hp=False
+            repos=None, initial_pkgs=None, unlisted_on_hp=False, enable_net=True
     ):
         """ Creates a new copr project
             Auth required.
@@ -1000,6 +1000,7 @@ class CoprClient(UnicodeMixin):
             "description": description,
             "instructions": instructions,
             "unlisted_on_hp": "y" if unlisted_on_hp else "",
+            "build_enable_net": "y" if enable_net else "",
         }
         for chroot in chroots:
             request_data[chroot] = "y"
@@ -1021,7 +1022,7 @@ class CoprClient(UnicodeMixin):
 
     def modify_project(self, projectname, username=None,
                        description=None, instructions=None,
-                       repos=None, disable_createrepo=None, unlisted_on_hp=None):
+                       repos=None, disable_createrepo=None, unlisted_on_hp=None, enable_net=None):
         """ Modifies main project configuration.
             Auth required.
 
@@ -1057,6 +1058,8 @@ class CoprClient(UnicodeMixin):
             data["disable_createrepo"] = disable_createrepo
         if unlisted_on_hp != None:
             data["unlisted_on_hp"] = "y" if unlisted_on_hp else ""
+        if enable_net != None:
+            data["build_enable_net"] = "y" if enable_net else ""
 
         result_data = self._fetch(url, data=data, method="post")
 

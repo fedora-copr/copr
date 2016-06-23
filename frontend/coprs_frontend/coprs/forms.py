@@ -634,6 +634,7 @@ class CoprModifyForm(wtf.Form):
 
     disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
     unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
+    build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
 
 
 class CoprForkFormFactory(object):
