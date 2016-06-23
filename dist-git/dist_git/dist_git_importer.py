@@ -569,23 +569,22 @@ class DistGitImporter(object):
     def run(self):
         log.info("DistGitImported initialized")
 
-        tasks = {}
+        pool = Pool(workers=3)
         self.is_running = True
         while self.is_running:
-            terminate_timeouted(tasks, callback=self.post_back_safe)
-            remove_dead(tasks)
+            pool.terminate_timeouted(callback=self.post_back_safe)
+            pool.remove_dead()
 
-            mb_task = self.try_to_obtain_new_task(exclude=tasks.keys())
+            mb_task = self.try_to_obtain_new_task(exclude=pool.keys())
             if mb_task is None:
                 time.sleep(self.opts.sleep_time)
 
-            # There is running job on every core
-            elif len(tasks) >= 3:
+            elif pool.busy:
                 time.sleep(self.opts.sleep_time)
 
             else:
                 p = Worker(target=self.do_import, args=[mb_task], timeout=3600)
-                tasks[mb_task.task_id] = p
+                pool[mb_task.task_id] = p
                 log.info("Starting worker '{}' with task '{}' (timeout={})"
                          .format(p.name, mb_task.task_id, p.timeout))
                 p.start()
@@ -602,18 +601,27 @@ class Worker(Process):
         return datetime.datetime.now() >= self.timestamp + datetime.timedelta(seconds=self.timeout)
 
 
-def terminate_timeouted(tasks, callback):
-    # @TODO Log also into per-task log
-    for key, worker in {k: v for k, v in tasks.items() if v.timeouted}.items():
-        worker.terminate()
-        callback({"task_id": key, "error": TimeoutException.strtype})
-        log.info("Worker '{}' with task '{}' was terminated due to exceeded timeout {} seconds"
-                 .format(worker.name, key, worker.timeout))
+class Pool(dict):
+    def __init__(self, workers=None, *args, **kwargs):
+        super(Pool, self).__init__(*args, **kwargs)
+        self.workers = workers
 
+    @property
+    def busy(self):
+        # There is running job on every core
+        return len(self) >= self.workers
 
-def remove_dead(tasks):
-    for key, worker in {k: v for k, v in tasks.items() if not v.is_alive()}.items():
-        if worker.exitcode == 0:
-            log.info("Worker '{}' finished task '{}'".format(worker.name, key))
-        log.info("Removing worker '{}' with task '{}' from pool".format(worker.name, key))
-        del tasks[key]
+    def terminate_timeouted(self, callback):
+        # @TODO Log also into per-task log
+        for key, worker in {k: v for k, v in self.items() if v.timeouted}.items():
+            worker.terminate()
+            callback({"task_id": key, "error": TimeoutException.strtype})
+            log.info("Worker '{}' with task '{}' was terminated due to exceeded timeout {} seconds"
+                     .format(worker.name, key, worker.timeout))
+
+    def remove_dead(self):
+        for key, worker in {k: v for k, v in self.items() if not v.is_alive()}.items():
+            if worker.exitcode == 0:
+                log.info("Worker '{}' finished task '{}'".format(worker.name, key))
+            log.info("Removing worker '{}' with task '{}' from pool".format(worker.name, key))
+            del self[key]
