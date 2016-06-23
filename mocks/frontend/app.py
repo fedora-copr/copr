@@ -26,6 +26,8 @@ import_results = []
 build_results = []
 action_results = []
 
+started_build_tasks = [] # used to determine if server should terminate
+
 ########################### error handling ###########################
 
 @app.errorhandler(500)
@@ -90,6 +92,7 @@ def backend_starting_build():
     task_id = '{0}-{1}'.format(update['build_id'], update['chroot'])
 
     build_task_dict.pop(task_id, None)
+    started_build_tasks.append(task_id)
 
     response = {'can_start': True}
     debug_output(response, 'SENDING BACK:', delim=False)
@@ -104,6 +107,7 @@ def backend_update():
     for build in update.get('builds', []):
         if build['status'] == 0 or build['status'] == 1: # if build is finished
             build_results.append(build)
+            started_build_tasks.remove(build['task_id'])
             test_for_server_end()
 
     for action in update.get('actions', []):
@@ -158,7 +162,7 @@ def dump_responses():
 
 
 def test_for_server_end():
-    if not import_task_dict and not build_task_dict and not action_task_dict:
+    if not import_task_dict and not build_task_dict and not action_task_dict and not started_build_tasks:
         dump_responses()
         shutdown_server()
 
