@@ -612,5 +612,8 @@ def terminate_timeouted(tasks, callback):
 
 
 def remove_dead(tasks):
-    for key, worker in {k: v for k, v in tasks.items() if not v.is_alive() and v.exitcode == 0}.items():
-        log.info("Worker '{}' finished task '{}'".format(worker.name, key))
+    for key, worker in {k: v for k, v in tasks.items() if not v.is_alive()}.items():
+        if worker.exitcode == 0:
+            log.info("Worker '{}' finished task '{}'".format(worker.name, key))
+        log.info("Removing worker '{}' with task '{}' from pool".format(worker.name, key))
+        del tasks[key]
