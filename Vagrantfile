@@ -9,7 +9,8 @@ Vagrant.configure(2) do |config|
 
     frontend.vm.network "forwarded_port", guest: 80, host: 5000
 
-    frontend.vm.synced_folder ".", "/vagrant", type: "nfs"
+    #frontend.vm.synced_folder ".", "/vagrant", type: "nfs"
+    frontend.vm.synced_folder ".", "/vagrant", type: "rsync", rsync_exclude: "frontend/data/"
 
     frontend.vm.network "private_network", ip: "192.168.242.51"
 
@@ -188,6 +189,12 @@ Vagrant.configure(2) do |config|
       echo "###   is now running at: http://localhost:5000        ###"
       echo "#########################################################"
     EOF
+
+    # workaround
+    frontend.vm.provision "shell",
+      inline: "sudo setenforce 0 && sudo systemctl restart httpd",
+      run: "always"
+
   end
   ###  DIST-GIT  ###################################################
   config.vm.define "distgit" do |distgit|
