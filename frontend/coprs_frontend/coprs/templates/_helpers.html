@@ -410,7 +410,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
                 {{ build_state_text(build_chroot.state) }}
               {% else %}
                 <small> {{ build.id }} </small> <br>
-                {{ build_state_text(build_chroot.state) }}
+                {{ build_state_text(build_chroot.state) }} <br>
                 <small class="text-muted"> {{ build.pkg_version }} </small>
               {% endif %}
             </a>
