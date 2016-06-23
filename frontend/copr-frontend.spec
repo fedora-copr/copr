@@ -23,7 +23,7 @@ BuildArch:  noarch
 #BuildRequires: libxslt
 BuildRequires: util-linux
 BuildRequires: python-setuptools
-BuildRequires: python-requests
+BuildRequires: python2-requests
 BuildRequires: python2-devel
 BuildRequires: systemd
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
@@ -50,7 +50,7 @@ Requires:   python-blinker
 Requires:   python-markdown
 Requires:   python-psycopg2
 Requires:   python-pylibravatar
-Requires:   python-requests
+Requires:   python2-requests
 Requires:   python-whoosh >= 2.5.3
 Requires:   pytz
 Requires:   python-six
@@ -442,7 +442,7 @@ service logstash condrestart
   chroot for a build and hence build.status cannot be derived from chroot's
   statuses (also case for failes srpm imports)
 - fix 1297907 - Information about packages is not correct
-- fix 1300849 
+- fix 1300849
 - fix 1299159 - "Git & Tito" new build includes even deselected
   chroots
 - remove trailing and leading whitespaces in links (at least for
@@ -1348,5 +1348,3 @@ service logstash condrestart
 
 * Mon Jun 17 2013 Miroslav Suchý <msuchy@redhat.com> 1.1-1
 - new package built with tito
-
-
