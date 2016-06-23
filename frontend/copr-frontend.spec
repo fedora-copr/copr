@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.95
+Version:    1.96
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -269,6 +269,12 @@ service logstash condrestart
 #%doc documentation/python-doc
 
 %changelog
+* Thu Jun 23 2016 Miroslav Suchý <msuchy@redhat.com> 1.96-1
+- package status image for CI
+- Revert "[frontend] try again if whoosh does not get lock"
+- add missing imports
+- unlisted_on_hp attribute added to Copr model
+
 * Thu Jun 16 2016 Miroslav Suchý <msuchy@redhat.com> 1.95-1
 - fix logic of dist-git import queue
 - typo
