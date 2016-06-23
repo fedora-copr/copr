@@ -44,21 +44,21 @@ def copr_package_icon(copr, package_name):
     try:
         package = ComplexLogic.get_package_safe(copr, package_name)
     except ObjectNotFound:
-        return send_file("static/status_images/bad_url.png", mimetype='image/gif')
+        return send_file("static/status_images/bad_url.png", mimetype='image/png')
 
     last_build = package.last_build()
     if last_build:
         if last_build.state in ["importing", "pending", "starting", "running"]:
-            return send_file("static/status_images/in_progress.png", mimetype='image/gif')
+            return send_file("static/status_images/in_progress.png", mimetype='image/png')
 
         if last_build.state in ["succeeded", "skipped"]:
-            return send_file("static/status_images/succeeded.png", mimetype='image/gif')
+            return send_file("static/status_images/succeeded.png", mimetype='image/png')
 
         if last_build.state == "failed":
-            return send_file("static/status_images/failed.png", mimetype='image/gif')
+            return send_file("static/status_images/failed.png", mimetype='image/png')
 
         else:
-            return send_file("static/status_images/unknown.png", mimetype='image/gif')
+            return send_file("static/status_images/unknown.png", mimetype='image/png')
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/rebuild")
