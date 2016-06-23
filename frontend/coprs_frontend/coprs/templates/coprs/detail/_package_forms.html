@@ -4,18 +4,34 @@
   {{ render_form_errors(form) }}
       {% if not package.name %}  {# Add package #}
         <form class="form-horizontal" action="{{ copr_url(view, copr, source_type_text=source_type_text) }}" method="post" enctype="multipart/form-data">
-          {{ render_field(form.package_name) }}
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">2. Provide the source</h3>
+            </div>
+            <div class="panel-body">
+              {{ render_field(form.package_name) }}
       {% else %}  {# Edit package #}
         <form class="form-horizontal" action="{{ copr_url(view, copr, source_type_text=source_type_text, package_name=package.name) }}"
               method="post" enctype="multipart/form-data">
-          <input type="hidden" name="package_name" value="{{ package.name }}" />
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">2. Provide the source</h3>
+            </div>
+            <div class="panel-body">
+              <input type="hidden" name="package_name" value="{{ package.name }}" />
       {% endif %}
 {% endmacro %}
 
 
 {% macro copr_package_form_end(form, package, source_type_text) %}
   {{ form.csrf_token }}
-  <input class="btn btn-primary pull-right" type="submit" value="Submit">
+    </div>
+  </div>
+  <p>
+    You agree to build only <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">allowed content</a> in Copr.
+    Check if your <a href="https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing#Good_Licenses">license</a> is allowed.
+  </p>
+  <input class="btn btn-primary pull-left" type="submit" value="Submit">
   {% if package.name %}<input class="btn btn-default pull-right" type="submit" name="reset" value="Reset">{% endif %}
 </form>
 {% endmacro %}
@@ -88,24 +104,11 @@
 
 
 {% macro copr_package_form_pypi(form, view, copr, package) %}
-  {{ render_form_errors(form) }}
-
-  {% if not package.name %}  {# Add package #}
-  <form class="form-horizontal" action="{{ copr_url(view, copr, source_type_text=source_type_text) }}" method="post" enctype="multipart/form-data">
-    {{ render_field(form.package_name) }}
-  {% else %}  {# Edit package #}
-  <form class="form-horizontal" action="{{ copr_url(view, copr, source_type_text=source_type_text, package_name=package.name) }}" method="post" enctype="multipart/form-data">
-    <input type="hidden" name="package_name" value="{{ package.name }}" />
-  {% endif %}
-
+    {{ copr_package_form_begin(form, view, copr, package) }}
     {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
     {{ render_pypi_python_versions_field(form.python_versions) }}
     {{ render_anitya_autorebuild(form) }}
-    {{ form.csrf_token }}
-    <input class="btn btn-primary pull-right" type="submit" value="Submit">
-    {% if package.name %}<input class="btn btn-default pull-right" type="submit" name="reset" value="Reset">{% endif %}
-
-  </form>
+    {{ copr_package_form_end(form, package, 'rubygems') }}
 {% endmacro %}
 
 

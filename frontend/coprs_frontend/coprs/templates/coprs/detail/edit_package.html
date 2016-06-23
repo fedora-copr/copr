@@ -12,11 +12,19 @@
 
 {% block detail_body %}
 
-<h2> Package: <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></h2>
+<h2 class="page-title"> Package: <a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name) }}">{{ package.name }}</a></h2>
 
-<p>You can choose and configure <b>exactly one</b> default source for the {{ package.name }} package.</p>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">1. Select the source type - <a href="https://fedorahosted.org/copr/wiki/UserDocs#BuildSourceTypes">Learn More</a></h3>
+  </div>
+  <div class="panel-body">
+    <ul class="nav nav-tabs nav-tabs-pf">
+      {{ show_navigation(copr, 'coprs_ns.copr_edit_package', package_name=package.name) }}
+    </ul>
+  </div>
+</div>
 
-{{ show_navigation(copr, 'coprs_ns.copr_edit_package', package_name=package.name) }}
 {{ show_package_form(source_type_text, package) }}
 
 {% endblock %}

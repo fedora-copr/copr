@@ -6,11 +6,6 @@
    copr_package_form_rubygems,
 with context %}
 
-{% macro badge(source_type_text) %}
-  {% if package.source_type_text == source_type_text %}
-    <span class="badge"><span class="fa fa-check"></span></span>
-  {% endif %}
-{% endmacro %}
 
 {% macro nav_element(tab_name, tab_title, href) %}
   <li class="{% if source_type_text == tab_name %}active{% endif %}">
@@ -32,19 +27,15 @@ with context %}
 
 {% macro show_package_form(source_type_text, package) %}
   {% if source_type_text == "git_and_tito" %}
-    <h3>Tito {{ badge('git_and_tito') }}</h3>
     {{ copr_package_form_tito(form_tito, view, copr, package) }}
 
   {% elif source_type_text == "mock_scm" %}
-    <h3>Mock {{ badge('mock_scm') }}</h3>
     {{ copr_package_form_mock(form_mock, view, copr, package) }}
 
   {% elif source_type_text == "pypi" %}
-    <h3>PyPI {{ badge('pypi') }}</h3>
     {{ copr_package_form_pypi(form_pypi, view, copr, package) }}
 
   {% elif source_type_text == "rubygems" %}
-    <h3>RubyGems {{ badge('rubygems') }}</h3>
     {{ copr_package_form_rubygems(form_rubygems, view, copr, package) }}
 
   {% else %}

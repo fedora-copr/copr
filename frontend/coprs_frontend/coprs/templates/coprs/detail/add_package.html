@@ -11,16 +11,32 @@
 
 {% block detail_body %}
 
-<h2>Add Package</h2>
+<h2 class="page-title">New Package</h2>
 
+
+{#
 <p>In this view, you can create package entities for this Copr repository. Such a package can have predefined default
 source and can be automatically build from it via webhook. If you just want to build a package from SRPM, please
 create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>.
 </p>
-
 <p>You can choose and configure <b>exactly one</b> default source for the {{ package.name }} package.</p>
+#}
 
-{{ show_navigation(copr, 'coprs_ns.copr_add_package') }}
-{{ show_package_form(source_type_text, package) }}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">1. Select the source type - <a href="https://fedorahosted.org/copr/wiki/UserDocs#BuildSourceTypes">Learn More</a></h3>
+  </div>
+  <div class="panel-body">
+    <ul class="nav nav-tabs nav-tabs-pf">
+      {{ show_navigation(copr, 'coprs_ns.copr_add_package') }}
+    </ul>
+  </div>
+</div>
+
+
+    {{ show_package_form(source_type_text, package) }}
+
+
+
 
 {% endblock %}
