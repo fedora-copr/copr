@@ -18,8 +18,26 @@
 {% endif %}
 <h2 class="page-title">Project Packages</h2>
 
-
-{{ packages_table(packages) }}
-{{ build_states() }}
+{% if packages %}
+  {{ packages_table(packages) }}
+  {{ build_states() }}
+{% else %}
+<div class="blank-slate-pf">
+  <div class="blank-slate-pf-icon">
+    <span class="pficon pficon pficon-add-circle-o"></span>
+  </div>
+  <h1>
+    No Packages in This Project
+  </h1>
+  <p>
+    Packages can be used to create <strong>automatic builds</strong> from your git repository. To do this, create a new package and fill in its default source.
+  </p>
+  {% if g.user and g.user.can_edit(copr) %}
+  <div class="blank-slate-pf-main-action">
+    <a class="btn btn-primary btn-lg" href="{{ copr_url('coprs_ns.copr_add_package', copr) }}"> Create a New Package </a>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
 
 {% endblock %}

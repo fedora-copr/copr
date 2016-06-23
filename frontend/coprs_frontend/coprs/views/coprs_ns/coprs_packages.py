@@ -24,7 +24,7 @@ def copr_packages(copr):
     packages_query = PackagesLogic.get_copr_packages_list(copr)
     return flask.render_template("coprs/detail/packages.html",
                                  copr=copr,
-                                 packages=packages_query)
+                                 packages=list(packages_query))
 
     #old code:
     #packages = PackagesLogic.get_all(copr.id)

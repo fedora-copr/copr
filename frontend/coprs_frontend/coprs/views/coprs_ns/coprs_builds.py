@@ -88,7 +88,7 @@ def render_copr_builds(copr):
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr=copr)
     return flask.render_template("coprs/detail/builds.html",
                                  copr=copr,
-                                 builds=builds_query)
+                                 builds=list(builds_query))
 
 
 ################################ Url builds ################################
