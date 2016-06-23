@@ -168,17 +168,18 @@
           <a href="{{ copr_url('coprs_ns.copr_fork', copr) }}" class="btn btn-default">
             <i class="fa fa-code-fork"></i> Fork this project
           </a>
-          <br>
-          <br>
+        </div>
         {% endif %}
 
         <a href="{{ copr_url('coprs_ns.copr_report_abuse', copr) }}">
-          <small><span class="pficon pficon-warning-triangle-o"></span> Report Abuse </small></a>
+          <small><span class="pficon pficon-warning-triangle-o"></span> Report Abuse </small>
+        </a>
       </div>
 
     </div>
   </div>
 </div>
+
 
 
 {% for chroot in copr.modified_chroots %}
