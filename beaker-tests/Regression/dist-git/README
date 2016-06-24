@@ -1,9 +1,11 @@
-How to run the tests:
+How to run the tests
+--------------------
 ./runtest.sh : run tests (with system setup)
 ./runtest.sh -x : just run tests (no system setup)
 ./runtest.sh -r <test_suite_name> : run just one test-suite (<test_suite_name> is some subdirectory of ./tests/), you can also add -x option to avoid system setup
 
-How to write a new one:
+How to write a new one
+----------------------
 If you want to test that copr-dist-git imports an import-task with some specific params successfully (or unsuccessfully), you can use and already 
 created test-suite tests/batch1. If, on the other hand, you want to make a test for a particular bug (to test that your fix actually fixes it) or 
 for a very specific feature of the system (no idea what that would be), there is tests/test-template that you can copy and work from there on. 
