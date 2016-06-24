@@ -131,12 +131,11 @@ cd -
 
 # install copr-dist-git from sources
 cd $SCRIPTPATH/copr/dist-git
-dnf -y builddep copr-dist-git.spec
+dnf -y builddep copr-dist-git.spec --allowerasing
 tito build -i --test --rpm
 cd -
 
 sudo dnf -y downgrade fedpkg-1.20 # fedpkg-1.22-3 is unsupported (downgrade to 1.20)
-sudo dnf -y downgrade pyp2rpm # pyp2rpm-3.0.1 does not build srpms due to a bug
 
 # enable & start services
 systemctl daemon-reload
