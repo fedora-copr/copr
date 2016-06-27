@@ -11,7 +11,7 @@ import time
 import datetime
 from bunch import Bunch
 from pyrpkg import rpkgError
-from mock import Mock
+from mock import Mock, patch
 import pytest
 
 import six
@@ -320,7 +320,8 @@ class TestDistGitImporter(object):
 
             mc.side_effect = None
 
-    def test_run(self, mc_time):
+    @patch("dist_git.dist_git_importer.Worker")
+    def test_run(self, WorkerMock, mc_time):
         self.dgi.try_to_obtain_new_task = MagicMock()
         self.dgi.do_import = MagicMock()
 
@@ -331,12 +332,13 @@ class TestDistGitImporter(object):
 
         self.dgi.try_to_obtain_new_task.return_value = None
         self.dgi.run()
-        assert not self.dgi.do_import.called
+        assert not WorkerMock.called
 
         self.dgi.try_to_obtain_new_task.return_value = self.task_1
         self.dgi.do_import.side_effect = stop_run
         self.dgi.run()
-        assert self.dgi.do_import.call_args == mock.call(self.task_1)
+        WorkerMock.assert_called_with(target=self.dgi.do_import, args=[self.task_1],
+                                      id=self.task_1.task_id, timeout=mock.ANY)
 
     # def test_main(self, mc_dgi, mc_dgcr):
     #     # dummy test, just for coverage
