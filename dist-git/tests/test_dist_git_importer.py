@@ -8,8 +8,10 @@ import tarfile
 import tempfile
 import shutil
 import time
+import datetime
 from bunch import Bunch
 from pyrpkg import rpkgError
+from mock import Mock
 import pytest
 
 import six
@@ -21,7 +23,7 @@ else:
     import mock
     from mock import MagicMock
 
-from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask
+from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask, Worker, Pool
 from dist_git.exceptions import PackageImportException, PackageDownloadException, SrpmQueryException
 
 MODULE_REF = 'dist_git.dist_git_importer'
@@ -347,3 +349,57 @@ class TestDistGitImporter(object):
     #     with pytest.raises(SystemExit):
     #         main()
 
+
+class TestWorker(object):
+    def test_timeout(self):
+        w1 = Worker(timeout=5)
+        assert not w1.timeouted
+
+        w1.timestamp -= datetime.timedelta(seconds=1)
+        assert not w1.timeouted
+
+        w1.timestamp -= datetime.timedelta(seconds=4)
+        assert w1.timeouted
+
+        w2 = Worker(timeout=-1)
+        assert w2.timeouted
+
+
+class TestPool(object):
+    def test_busy(self):
+        pool = Pool(workers=3)
+        assert not pool.busy
+
+        pool.extend([None, None])
+        assert not pool.busy
+
+        pool.append(None)
+        assert pool.busy
+
+    def test_remove_dead(self):
+        w = Worker(target=time.sleep, args=[1000])
+        w.start()
+
+        pool = Pool(workers=3)
+        pool.append(w)
+        pool.remove_dead()
+        assert list(pool) == [w]
+
+        w.terminate()
+        w.join()
+        pool.remove_dead()
+        assert list(pool) == []
+
+    def test_terminate_timeouted(self):
+        w = Worker(target=time.sleep, args=[1000], timeout=-1, id="foo")
+        w.start()
+
+        pool = Pool()
+        pool.append(w)
+
+        send_to_fe = Mock().method
+        pool.terminate_timeouted(callback=send_to_fe)
+        w.join()
+
+        send_to_fe.assert_called_with({"task_id": "foo", "error": "import_timeout_exceeded"})
+        assert not pool[0].is_alive()
