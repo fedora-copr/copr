@@ -615,10 +615,11 @@ class Pool(list):
     def terminate_timeouted(self, callback):
         # @TODO Log also into per-task log
         for worker in filter(lambda w: w.timeouted, self):
+            log.info("Going to terminate worker '{}' with task '{}' due to exceeded timeout {} seconds"
+                     .format(worker.name, worker.id, worker.timeout))
             worker.terminate()
             callback({"task_id": worker.id, "error": TimeoutException.strtype})
-            log.info("Worker '{}' with task '{}' was terminated due to exceeded timeout {} seconds"
-                     .format(worker.name, worker.id, worker.timeout))
+            log.info("Worker '{}' with task '{}' was terminated".format(worker.name, worker.timeout))
 
     def remove_dead(self):
         for worker in filter(lambda w: not w.is_alive(), self):
