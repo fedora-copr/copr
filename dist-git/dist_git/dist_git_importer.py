@@ -7,6 +7,7 @@ import shutil
 import tempfile
 import logging
 import datetime
+import psutil
 from multiprocessing import Process
 from subprocess import PIPE, Popen, call
 
@@ -449,7 +450,14 @@ class DistGitImporter(object):
             if len(builds_list) == 0:
                 log.debug("No new tasks to process")
                 return
-            return ImportTask.from_dict(builds_list[0], self.opts)
+
+            build = Filters.get(builds_list)
+            if not build:
+                log.debug("No task meets the criteria to be imported now")
+                log.debug("Queued builds: {}".format(builds_list))
+                return
+
+            return ImportTask.from_dict(build, self.opts)
         except Exception as e:
             log.error("Failed acquire new packages for import:")
             log.exception(str(e))
@@ -626,3 +634,18 @@ class Pool(list):
                 log.info("Worker '{}' finished task '{}'".format(worker.name, worker.id))
             log.info("Removing worker '{}' with task '{}' from pool".format(worker.name, worker.id))
             self.remove(worker)
+
+
+class Filters(object):
+    sources = {
+        SourceType.MOCK_SCM: [
+            lambda x: psutil.disk_usage("/var/lib/mock")[2] / 1024 / 1024 / 1024 > 2,
+        ],
+    }
+
+    @staticmethod
+    def get(builds):
+        for build in builds:
+            if all([f(build) for f in Filters.sources.get(build["source_type"], [])]):
+                return build
+        return None
