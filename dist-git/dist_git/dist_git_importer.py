@@ -613,7 +613,6 @@ class Pool(list):
         return len(self) >= self.workers
 
     def terminate_timeouted(self, callback):
-        # @TODO Log also into per-task log
         for worker in filter(lambda w: w.timeouted, self):
             log.info("Going to terminate worker '{}' with task '{}' due to exceeded timeout {} seconds"
                      .format(worker.name, worker.id, worker.timeout))

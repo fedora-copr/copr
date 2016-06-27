@@ -110,6 +110,7 @@ class FailTypeEnum(with_metaclass(EnumType, object)):
             "srpm_import_failed": 3,
             "srpm_download_failed": 4,
             "srpm_query_failed": 5,
+            "import_timeout_exceeded": 6,
             # Git and Tito errors:
             "tito_general_error": 30,
             "git_clone_failed": 31,

@@ -34,4 +34,4 @@ class GitCheckoutException(CoprDistGitException):
 
 
 class TimeoutException(CoprDistGitException):
-    strtype = 'timeout_exceeded'
+    strtype = 'import_timeout_exceeded'
