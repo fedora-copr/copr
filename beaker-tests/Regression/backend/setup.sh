@@ -13,6 +13,7 @@ dnf -y install vagrant-libvirt
 dnf -y install git
 dnf -y install jq
 dnf -y install tito
+dnf -y install copr-mocks
 
 # enable libvirtd for Vagrant (distgit)
 systemctl enable libvirtd && systemctl start libvirtd
@@ -57,10 +58,12 @@ docker exec copr-backend /bin/rm -r /var/lib/copr/public_html
 docker cp backend-files/. copr-backend:/
 docker exec copr-backend /bin/chown -R copr:copr /var/lib/copr/public_html
 
-# install copr-mocks with deps
-dnf -y install python3-flask
-dnf -y install python3-flask-script
-cd $SCRIPTPATH/copr/mocks
-dnf -y builddep copr-mocks.spec
-tito build -i --test --rpm
-cd $SCRIPTPATH
+# install copr-mocks from sources
+if [[ ! $RELEASETEST ]]; then
+	dnf -y install python3-flask
+	dnf -y install python3-flask-script
+	cd $SCRIPTPATH/copr/mocks
+	dnf -y builddep copr-mocks.spec
+	tito build -i --test --rpm
+	cd $SCRIPTPATH
+fi

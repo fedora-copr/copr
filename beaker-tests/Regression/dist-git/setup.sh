@@ -2,7 +2,11 @@
 
 export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-dnf -y copr enable @copr/copr-dev
+dnf -y copr enable @copr/copr
+if [[ ! $RELEASETEST ]]; then
+	rlLog "Installing copr dev repos."
+	dnf -y copr enable @copr/copr-dev
+fi
 
 dnf -y update
 dnf -y install fedpkg-copr
@@ -11,6 +15,7 @@ dnf -y install tito
 dnf -y install pyp2rpm
 dnf -y install pyrpkg
 dnf -y install jq
+dnf -y install copr-mocks
 
 ssh-keygen -f /root/.ssh/id_rsa -N '' -q < /dev/zero &> /dev/null
 
@@ -123,17 +128,19 @@ if ! rpm -qa | grep copr-mocks; then
     dnf -y install python3-devel
 fi
 
-# install copr-mocks from sources
-cd $SCRIPTPATH/copr/mocks
-dnf -y builddep copr-mocks.spec
-tito build -i --test --rpm
-cd -
+if [[ ! $RELEASETEST ]]; then
+	# install copr-mocks from sources
+	cd $SCRIPTPATH/copr/mocks
+	dnf -y builddep copr-mocks.spec
+	tito build -i --test --rpm
+	cd -
 
-# install copr-dist-git from sources
-cd $SCRIPTPATH/copr/dist-git
-dnf -y builddep copr-dist-git.spec --allowerasing
-tito build -i --test --rpm
-cd -
+	# install copr-dist-git from sources
+	cd $SCRIPTPATH/copr/dist-git
+	dnf -y builddep copr-dist-git.spec
+	tito build -i --test --rpm
+	cd -
+fi
 
 sudo dnf -y downgrade fedpkg-1.20 # fedpkg-1.22-3 is unsupported (downgrade to 1.20)
 
