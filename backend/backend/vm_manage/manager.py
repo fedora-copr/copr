@@ -11,7 +11,7 @@ import time
 import weakref
 from cStringIO import StringIO
 import datetime
-from backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound
+from backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound, VmsPerUserLimitReached
 
 from backend.helpers import get_redis_connection
 from .models import VmDescriptor
@@ -130,11 +130,6 @@ class VmManager(object):
         self.rc = None
         self.log = logger or get_redis_logger(self.opts, "vmm.lib", "vmm")
 
-    def post_init(self):
-        """
-        Self configuration. Should be called before usage of some methods.
-        """
-
         self.rc = get_redis_connection(self.opts)
         self.lua_scripts["set_checking_state"] = self.rc.register_script(set_checking_state_lua)
         self.lua_scripts["acquire_vm"] = self.rc.register_script(acquire_vm_lua)
@@ -234,8 +229,8 @@ class VmManager(object):
         """
         vmd_list = self.get_all_vm_in_group(group)
         if not self.can_user_acquire_more_vm(username, group):
-            raise NoVmAvailable("No VM are available, user `{}` already acquired too much VMs"
-                                .format(username))
+            raise VmsPerUserLimitReached("No VM are available, user `{}` already acquired too much VMs"
+                                         .format(username))
 
         ready_vmd_list = [vmd for vmd in vmd_list if vmd.state == VmStates.READY]
         # trying to find VM used by this user

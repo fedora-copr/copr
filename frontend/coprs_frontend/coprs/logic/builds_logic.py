@@ -21,7 +21,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs import helpers
-from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
+from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT, DEFER_BUILD_SECONDS
 from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException
 from coprs.helpers import StatusEnum
 
@@ -82,7 +82,7 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_build_task_queue(cls, is_background=False):
+    def get_build_task_queue(cls, is_background=False): # deprecated
         """
         Returns BuildChroots which are - waiting to be built or
                                        - older than 2 hours and unfinished
@@ -112,6 +112,25 @@ class BuildsLogic(object):
         ))
         query = query.order_by(models.BuildChroot.build_id.asc())
         return query
+
+    @classmethod
+    def get_build_task(cls):
+        query = (models.BuildChroot.query.join(models.Build)
+                 .filter(models.Build.canceled == false())
+                 .filter(or_(
+                     models.BuildChroot.status == helpers.StatusEnum("pending"),
+                     and_(
+                         models.BuildChroot.status == helpers.StatusEnum("running"),
+                         models.BuildChroot.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
+                         models.BuildChroot.ended_on.is_(None)
+                     )
+                 ))
+                 .filter(or_(
+                     models.BuildChroot.last_deferred.is_(None),
+                     models.BuildChroot.last_deferred < int(time.time() - DEFER_BUILD_SECONDS)
+                 ))
+        ).order_by(models.Build.is_background.asc(), models.BuildChroot.build_id.asc())
+        return query.first()
 
     @classmethod
     def get_multiple(cls):
@@ -617,6 +636,9 @@ GROUP BY
 
                     if upd_dict.get("status") == StatusEnum("starting"):
                         build_chroot.started_on = upd_dict.get("started_on") or time.time()
+
+                    if "last_deferred" in upd_dict:
+                        build_chroot.last_deferred = upd_dict["last_deferred"]
 
                     db.session.add(build_chroot)
 

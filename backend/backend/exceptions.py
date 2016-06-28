@@ -145,6 +145,9 @@ class VmSpawnLimitReached(VmError):
     """
     pass
 
+class VmsPerUserLimitReached(VmError):
+    pass
+
 class CmdError(CoprBackendError):
     def __init__(self, msg, cmd, exit_code=None, stdout=None, stderr=None):
         super(CmdError, self).__init__(msg)
@@ -166,4 +169,8 @@ class CmdError(CoprBackendError):
 
 
 class CreateRepoError(CmdError):
+    pass
+
+
+class DispatchBuildError(CoprBackendError):
     pass

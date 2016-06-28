@@ -835,6 +835,8 @@ class BuildChroot(db.Model, helpers.Serializer):
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer)
 
+    last_deferred = db.Column(db.Integer)
+
     @property
     def name(self):
         """

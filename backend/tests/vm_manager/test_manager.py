@@ -85,7 +85,6 @@ class TestManager(object):
         self.queue = Queue()
         self.vmm = VmManager(self.opts)
 
-        self.vmm.post_init()
         self.vmm.log = MagicMock()
         self.pid = 12345
 

@@ -402,7 +402,6 @@ class TestDispatcher(object):
         self.worker.run()
 
         assert self.worker.init_fedmsg.called
-        assert self.worker.vmm.post_init.called
 
         assert mc_grc.called
         assert self.worker.run_cycle.called

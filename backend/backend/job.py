@@ -39,6 +39,7 @@ class BuildJob(object):
 
         self.status = None
         self.chroot = None
+        self.arch = None # parsed from chroot
 
         self.buildroot_pkgs = None
 
@@ -61,6 +62,8 @@ class BuildJob(object):
         for key, val in task_data.items():
             key = str(key)
             setattr(self, key, val)
+
+        self.arch = self.chroot.split("-")[2]
 
         self.repos = [r for r in task_data["repos"].split(" ") if r.strip()]
 

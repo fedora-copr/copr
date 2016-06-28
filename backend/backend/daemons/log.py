@@ -72,8 +72,8 @@ class RedisLogHandler(object):
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir, mode=0o750)
 
-        self.components = ["spawner", "terminator", "vmm", "job_grab",
-                           "backend", "actions", "worker"]
+        self.components = ["spawner", "terminator", "vmm", "build_dispatcher",
+                           "action_dispatcher", "backend", "actions", "worker"]
 
     def setup_logging(self):
 
@@ -114,7 +114,7 @@ class RedisLogHandler(object):
 
             who = event["who"]
             if who not in self.components:
-                raise Exception("Handler received msg with unknown `who` field, msg: {}".format(event))
+                raise Exception("Handler received msg with unknown `who` field: {}, msg: {}".format(who, event))
 
             level = level_map[event.pop("level", "info")]
             msg = event.pop("msg")

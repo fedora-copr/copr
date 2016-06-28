@@ -1,7 +1,7 @@
 [Unit]
 Description=Copr Backend service, Workers controller
 After=syslog.target network.target auditd.service
-Requires=copr-backend-vmm.service copr-backend-jobgrab.service copr-backend-log.service
+Requires=copr-backend-vmm.service copr-backend-log.service
 
 [Service]
 Type=simple

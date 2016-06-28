@@ -12,7 +12,6 @@ from setproctitle import setproctitle
 import traceback
 import psutil
 
-from ..constants import JOB_GRAB_TASK_END_PUBSUB
 from ..vm_manage import VmStates
 from ..exceptions import VmSpawnLimitReached
 
@@ -55,20 +54,6 @@ class VmMaster(Process):
                               .format(vmd.vm_name, not_re_acquired_in))
                 self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.READY)
 
-    def request_build_reschedule(self, vmd):
-        self.log.info("trying to publish reschedule")
-        vmd_dict = vmd.to_dict()
-        if all(x in vmd_dict for x in ["build_id", "task_id", "chroot"]):
-            request = {
-                "action": "reschedule",
-                "build_id": vmd.build_id,
-                "task_id": vmd.task_id,
-                "chroot": vmd.chroot,
-            }
-            self.log.info("trying to publish reschedule: {}".format(request))
-            self.vmm.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
-            # else:
-            # self.log.info("Failed to  release VM: {}".format(vmd.vm_name))
 
     def check_one_vm_for_dead_builder(self, vmd):
         # TODO: builder should renew lease periodically
@@ -122,8 +107,7 @@ class VmMaster(Process):
 
         self.log.info("Process `{}` not exists anymore, terminating VM: {} ".format(pid, vmd.vm_name))
         self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.IN_USE)
-        # cause race condition
-        #  self.request_build_reschedule(vmd)
+        # TODO: build rescheduling ?
 
     def remove_vm_with_dead_builder(self):
         # TODO: rewrite build manage at backend and move functionality there

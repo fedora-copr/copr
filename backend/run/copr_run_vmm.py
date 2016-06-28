@@ -36,7 +36,6 @@ class VmmRunner(object):
         self.vm_manager = VmManager(
             opts=self.opts, logger=self.log,
         )
-        self.vm_manager.post_init()
         self.log.info("Starting up VM EventHandler")
         self.event_handler = EventHandler(self.opts,
                                           vmm=self.vm_manager,

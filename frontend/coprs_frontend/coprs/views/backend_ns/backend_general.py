@@ -1,4 +1,5 @@
 import flask
+import time
 
 from coprs import db, app
 from coprs import helpers
@@ -116,31 +117,24 @@ def dist_git_upload_completed():
 #@misc.backend_authenticated
 def waiting():
     """
-    Return list of waiting actions and builds.
+    Return a single action and a single build.
     """
+    action_record = None
+    build_record = None
 
-    # models.Actions
-    actions_list = [
-        action.to_dict(options={
+    action = actions_logic.ActionsLogic.get_waiting().first()
+    if action:
+        action_record = action.to_dict(options={
             "__columns_except__": ["result", "message", "ended_on"]
         })
-        for action in actions_logic.ActionsLogic.get_waiting()
-    ]
 
-    task_queue = BuildsLogic.get_build_task_queue(is_background=False).limit(1000).all()
-    if not task_queue:
-        task_queue = BuildsLogic.get_build_task_queue(is_background=True).limit(10).all()
-
-    # tasks represented by models.BuildChroot with some other stuff
-    builds_list = []
-    for task in task_queue:
+    task = BuildsLogic.get_build_task()
+    if task:
         try:
-            copr = task.build.copr
-
-            record = {
+            build_record = {
                 "task_id": task.task_id,
                 "build_id": task.build.id,
-                "project_owner": copr.owner_name,
+                "project_owner": task.build.copr.owner_name,
                 "project_name": task.build.copr.name,
                 "submitter": task.build.user.name if task.build.user else None, # there is no user for webhook builds
                 "pkgs": task.build.pkgs,  # TODO to be removed
@@ -156,18 +150,17 @@ def waiting():
                 "package_name": task.build.package.name,
                 "package_version": task.build.pkg_version
             }
+
             copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
             if copr_chroot:
-                record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
+                build_record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
             else:
-                record["buildroot_pkgs"] = ""
-
-            builds_list.append(record)
+                build_record["buildroot_pkgs"] = ""
 
         except Exception as err:
             app.logger.exception(err)
 
-    response_dict = {"actions": actions_list, "builds": builds_list}
+    response_dict = {"action": action_record, "build": build_record}
     return flask.jsonify(response_dict)
 
 
@@ -224,6 +217,31 @@ def starting_build():
             })
             db.session.commit()
             result["can_start"] = True
+
+    return flask.jsonify(result)
+
+
+@backend_ns.route("/defer_build/", methods=["POST", "PUT"])
+@misc.backend_authenticated
+def defer_build():
+    """
+    Defer build (keep it out of waiting jobs for some time).
+    """
+
+    result = {"was_deferred": False}
+
+    if "build_id" in flask.request.json and "chroot" in flask.request.json:
+        build = ComplexLogic.get_build_safe(flask.request.json["build_id"])
+        chroot = flask.request.json.get("chroot")
+
+        if build and chroot:
+            log.info("Defer build {}, chroot {}".format(build.id, chroot))
+            BuildsLogic.update_state_from_dict(build, {
+                "chroot": chroot,
+                "last_deferred": int(time.time()),
+            })
+            db.session.commit()
+            result["was_deferred"] = True
 
     return flask.jsonify(result)
 

@@ -61,7 +61,6 @@ def get_managed_vms_names():
     if VmManager:
         opts = BackendConfigReader().read()
         vmm = VmManager(opts, log)
-        vmm.post_init()
         result.extend(vmd.vm_name for vmd in vmm.get_all_vm())
 
     return result

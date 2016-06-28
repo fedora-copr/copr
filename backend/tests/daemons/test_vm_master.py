@@ -135,7 +135,6 @@ class TestVmMaster(object):
 
         self.mc_logger = MagicMock()
         self.vmm = VmManager(self.opts, logger=self.mc_logger)
-        self.vmm.post_init()
 
         self.event_handler = MagicMock()
         self.vm_master = VmMaster(

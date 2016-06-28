@@ -7,14 +7,12 @@ import shutil
 import multiprocessing
 from setproctitle import setproctitle
 
-from ..vm_manage.manager import VmManager
 from ..exceptions import MockRemoteError, CoprWorkerError, VmError, NoVmAvailable
 from ..job import BuildJob
 from ..mockremote import MockRemote
-from ..constants import BuildStatus, JOB_GRAB_TASK_END_PUBSUB, build_log_format
+from ..constants import BuildStatus, build_log_format
 from ..helpers import register_build_result, get_redis_connection, get_redis_logger, \
     local_file_logger
-from .. import jobgrabcontrol
 
 
 # ansible_playbook = "ansible-playbook"
@@ -27,51 +25,30 @@ except ImportError:
 
 
 class Worker(multiprocessing.Process):
-    """
-    Worker process dispatches building tasks. Backend spin-up multiple workers, each
-    worker associated to one group_id and process one task at the each moment.
-
-    :param Munch opts: backend config
-    :param int worker_num: worker number
-    :param int group_id: group_id from the set of groups defined in config
-
-    """
-
-    def __init__(self, opts, frontend_client, worker_num, group_id):
-
-        # base class initialization
-        multiprocessing.Process.__init__(self, name="worker-builder")
+    def __init__(self, opts, frontend_client, vm_manager, worker_id, vm, job):
+        multiprocessing.Process.__init__(self, name="worker-{}".format(worker_id))
 
         self.opts = opts
-        self.worker_num = worker_num
-        self.group_id = group_id
-
-        self.log = get_redis_logger(self.opts, self.logger_name, "worker")
-
-        self.jg = jobgrabcontrol.Channel(self.opts, self.log)
-        # event queue for communicating back to dispatcher
-
-        self.kill_received = False
-
         self.frontend_client = frontend_client
-        self.vm_name = None
-        self.vm_ip = None
+        self.vm_manager = vm_manager
+        self.worker_id = worker_id
+        self.vm = vm
+        self.job = job
 
-        self.rc = None
-        self.vmm = VmManager(self.opts)
+        self.log = get_redis_logger(self.opts, self.name, "worker")
 
     @property
-    def logger_name(self):
-        return "backend.worker-{}-{}".format(self.group_name, self.worker_num)
+    def name(self):
+        return "backend.worker-{}-{}".format(self.worker_id, self.group_name)
 
     @property
     def group_name(self):
         try:
-            return self.opts.build_groups[self.group_id]["name"]
+            return self.opts.build_groups[self.vm.group]["name"]
         except Exception as error:
             self.log.exception("Failed to get builder group name from config, using group_id as name."
                                "Original error: {}".format(error))
-            return str(self.group_id)
+            return str(self.vm.group)
 
     def fedmsg_notify(self, topic, template, content=None):
         """
@@ -81,11 +58,8 @@ class Worker(multiprocessing.Process):
         :param content:
         """
         if self.opts.fedmsg_enabled and fedmsg:
-
-            who = "worker-{0}".format(self.worker_num)
-
             content = content or {}
-            content["who"] = who
+            content["who"] = self.name
             content["what"] = template.format(**content)
 
             try:
@@ -106,7 +80,7 @@ class Worker(multiprocessing.Process):
 
         content = dict(user=job.submitter, copr=job.project_name,
                        owner=job.project_owner, pkg=job.package_name,
-                       build=job.build_id, ip=self.vm_ip, pid=self.pid)
+                       build=job.build_id, ip=self.vm.vm_ip, pid=self.pid)
         self.fedmsg_notify("build.start", template, content)
 
         template = "chroot start: chroot:{chroot} user:{user}" \
@@ -115,7 +89,7 @@ class Worker(multiprocessing.Process):
         content = dict(chroot=job.chroot, user=job.submitter,
                        owner=job.project_owner, pkg=job.package_name,
                        copr=job.project_name, build=job.build_id,
-                       ip=self.vm_ip, pid=self.pid)
+                       ip=self.vm.vm_ip, pid=self.pid)
 
         self.fedmsg_notify("chroot.start", template, content)
 
@@ -126,14 +100,14 @@ class Worker(multiprocessing.Process):
         job.ended_on = time.time()
 
         self.return_results(job)
-        self.log.info("worker finished build: {0}".format(self.vm_ip))
+        self.log.info("worker finished build: {0}".format(self.vm.vm_ip))
         template = "build end: user:{user} copr:{copr} build:{build}" \
             "  pkg: {pkg}  version: {version} ip:{ip}  pid:{pid} status:{status}"
 
         content = dict(user=job.submitter, copr=job.project_name,
                        owner=job.project_owner,
                        pkg=job.package_name, version=job.package_version,
-                       build=job.build_id, ip=self.vm_ip, pid=self.pid,
+                       build=job.build_id, ip=self.vm.vm_ip, pid=self.pid,
                        status=job.status, chroot=job.chroot)
         self.fedmsg_notify("build.end", template, content)
 
@@ -141,7 +115,6 @@ class Worker(multiprocessing.Process):
         """
         Send data about started build to the frontend
         """
-
         job.status = BuildStatus.RUNNING
         build = job.to_dict()
         self.log.info("starting build: {}".format(build))
@@ -150,8 +123,7 @@ class Worker(multiprocessing.Process):
         try:
             self.frontend_client.update(data)
         except:
-            raise CoprWorkerError(
-                "Could not communicate to front end to submit status info")
+            raise CoprWorkerError("Could not communicate to front end to submit status info")
 
     def return_results(self, job):
         """
@@ -170,22 +142,6 @@ class Worker(multiprocessing.Process):
                 .format(err)
             )
 
-    def starting_build(self, job):
-        """
-        Announce to the frontend that a build is starting.
-        Checks if we can and/or should start job
-
-        :return True: if the build can start
-        :return False: if the build can not start (build is cancelled)
-        """
-
-        try:
-            return self.frontend_client.starting_build(job.build_id, job.chroot)
-        except Exception as err:
-            msg = "Could not communicate to front end to confirm build start"
-            self.log.exception(msg)
-            raise CoprWorkerError(msg)
-
     @classmethod
     def pkg_built_before(cls, pkg, chroot, destdir):
         """
@@ -201,10 +157,8 @@ class Worker(multiprocessing.Process):
 
     def init_fedmsg(self):
         """
-        Initialize Fedmsg
-        (this assumes there are certs and a fedmsg config on disk)
+        Initialize Fedmsg (this assumes there are certs and a fedmsg config on disk).
         """
-
         if not (self.opts.fedmsg_enabled and fedmsg):
             return
 
@@ -221,32 +175,7 @@ class Worker(multiprocessing.Process):
     #     self._announce_start(job)
     #     self.log.info("Skipping: package {} has been already built before.".format(job.pkg))
     #     job.status = BuildStatus.SKIPPED
-    #     self.notify_job_grab_about_task_end(job)
     #     self._announce_end(job)
-
-    def obtain_job(self):
-        """
-        Retrieves new build task from queue.
-        Checks if the new job can be started and not skipped.
-        """
-        # ToDo: remove retask, use redis lua fsm logic similiar to VMM
-        # this sometimes caused TypeError in random worker
-        # when another one  picekd up a task to build
-        # why?
-        # praiskup: not reproduced
-        try:
-            task = self.jg.get_build(self.group_id)
-        except TypeError as err:
-            self.log.warning(err)
-            return
-        if not task:
-            return
-
-        job = BuildJob(task, self.opts)
-        self.update_process_title(suffix="Task: {} chroot: {}, obtained at {}"
-                                  .format(job.build_id, job.chroot, str(datetime.now())))
-
-        return job
 
     def do_job(self, job):
         """
@@ -281,15 +210,15 @@ class Worker(multiprocessing.Process):
             # start the build - most importantly license checks.
 
             self.log.info("Starting build: id={} builder={} job: {}"
-                          .format(job.build_id, self.vm_ip, job))
+                          .format(job.build_id, self.vm.vm_ip, job))
 
             with local_file_logger(
-                "{}.builder.mr".format(self.logger_name),
+                "{}.builder.mr".format(self.name),
                 job.chroot_log_path,
                 fmt=build_log_format) as build_logger:
                 try:
                     mr = MockRemote(
-                        builder_host=self.vm_ip,
+                        builder_host=self.vm.vm_ip,
                         job=job,
                         logger=build_logger,
                         opts=self.opts
@@ -308,7 +237,7 @@ class Worker(multiprocessing.Process):
                     # record and break
                     self.log.exception(
                         "Error during the build, host={}, build_id={}, chroot={}, error: {}"
-                        .format(self.vm_ip, job.build_id, job.chroot, e)
+                        .format(self.vm.vm_ip, job.build_id, job.chroot, e)
                     )
                     status = BuildStatus.FAILURE
                     register_build_result(self.opts, failed=True)
@@ -316,7 +245,7 @@ class Worker(multiprocessing.Process):
             self.log.info(
                 "Finished build: id={} builder={} timeout={} destdir={}"
                 " chroot={} repos={}"
-                .format(job.build_id, self.vm_ip, job.timeout, job.destdir,
+                .format(job.build_id, self.vm.vm_ip, job.timeout, job.destdir,
                         job.chroot, str(job.repos)))
 
             self.copy_mock_logs(job)
@@ -372,97 +301,20 @@ class Worker(multiprocessing.Process):
                 shutil.rmtree(file_path)
 
     def update_process_title(self, suffix=None):
-        title = "worker-{} {} ".format(self.group_name, self.worker_num)
-        if self.vm_ip:
-            title += "VM_IP={} ".format(self.vm_ip)
-        if self.vm_name:
-            title += "VM_NAME={} ".format(self.vm_name)
+        title = "Worker-{}-{} ".format(self.worker_id, self.group_name)
+        title += "vm.vm_ip={} ".format(self.vm.vm_ip)
+        title += "vm.vm_name={} ".format(self.vm.vm_name)
         if suffix:
             title += str(suffix)
-
         setproctitle(title)
-
-    def notify_job_grab_about_task_end(self, job, do_reschedule=False):
-        # TODO: Current notification method is unreliable,
-        # we should retask and use redis + lua for atomic acquire/release tasks
-        request = {
-            "action": "reschedule" if do_reschedule else "remove",
-            "build_id": job.build_id,
-            "task_id": job.task_id,
-            "chroot": job.chroot,
-        }
-
-        self.rc.publish(JOB_GRAB_TASK_END_PUBSUB, json.dumps(request))
-
-    def acquire_vm_for_job(self, job):
-        # TODO: replace acquire/release with context manager
-
-        self.log.info("got job: {}, acquiring VM for build".format(str(job)))
-        start_vm_wait_time = time.time()
-        vmd = None
-        while vmd is None:
-            try:
-                self.update_process_title(suffix="trying to acquire VM for job {} for {}s"
-                                          .format(job.task_id, int(time.time() - start_vm_wait_time)))
-                vmd = self.vmm.acquire_vm(self.group_id, job.project_owner, os.getpid(),
-                                          job.task_id, job.build_id, job.chroot)
-            except NoVmAvailable as error:
-                self.log.info("No VM yet: {}".format(error))
-                time.sleep(self.opts.sleeptime)
-                continue
-            except Exception as error:
-                self.log.exception("Unhandled exception during VM acquire :{}".format(error))
-                break
-        return vmd
-
-    def run_cycle(self):
-        self.update_process_title(suffix="trying to acquire job")
-
-        time.sleep(self.opts.sleeptime)
-        job = self.obtain_job()
-        if not job:
-            return
-
-        try:
-            if not self.starting_build(job):
-                self.notify_job_grab_about_task_end(job)
-                return
-        except Exception:
-            self.log.exception("Failed to check if job can be started")
-            self.notify_job_grab_about_task_end(job)
-            return
-
-        vmd = self.acquire_vm_for_job(job)
-
-        if vmd is None:
-            self.notify_job_grab_about_task_end(job, do_reschedule=True)
-        else:
-            self.log.info("acquired VM: {} ip: {} for build {}".format(vmd.vm_name, vmd.vm_ip, job.task_id))
-            # TODO: store self.vmd = vmd and use it
-            self.vm_name = vmd.vm_name
-            self.vm_ip = vmd.vm_ip
-
-            try:
-                self.do_job(job)
-                self.notify_job_grab_about_task_end(job)
-            except VmError as error:
-                self.log.exception("Builder error, re-scheduling task: {}".format(error))
-                self.notify_job_grab_about_task_end(job, do_reschedule=True)
-            except Exception as error:
-                self.log.exception("Unhandled build error: {}".format(error))
-                self.notify_job_grab_about_task_end(job, do_reschedule=True)
-            finally:
-                # clean up the instance
-                self.vmm.release_vm(vmd.vm_name)
-                self.vm_ip = None
-                self.vm_name = None
 
     def run(self):
         self.log.info("Starting worker")
         self.init_fedmsg()
-        self.vmm.post_init()
 
-        self.rc = get_redis_connection(self.opts)
-        self.update_process_title(suffix="trying to acquire job")
-        while not self.kill_received:
-            self.run_cycle()
+        try:
+            self.do_job(self.job)
+        except VmError as error:
+            self.log.exception("Building error: {}".format(error))
+        finally:
+            self.vm_manager.release_vm(self.vm.vm_name)

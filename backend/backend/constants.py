@@ -26,7 +26,6 @@ class BuildStatus(object):
     SKIPPED = 5
 
 
-JOB_GRAB_TASK_END_PUBSUB = "copr:backend:daemons:job_grab:task_end:pubsub::"
 LOG_PUB_SUB = "copr:backend:log:pubsub::"
 
 from logging import Formatter
