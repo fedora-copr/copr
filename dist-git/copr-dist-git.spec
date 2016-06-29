@@ -26,12 +26,14 @@ BuildRequires: python-dateutil
 BuildRequires: pytest
 BuildRequires: python-pytest-cov
 BuildRequires: python-mock
+BuildRequires: python2-psutil
 BuildRequires: pytz
 
 Requires: systemd
 Requires: dist-git
 Requires: python-bunch
 Requires: python-requests
+Requires: python2-psutil
 Requires: pyrpkg
 Requires: mock-scm
 Requires: tito
