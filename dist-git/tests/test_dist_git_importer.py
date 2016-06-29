@@ -23,7 +23,7 @@ else:
     import mock
     from mock import MagicMock
 
-from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask, Worker, Pool
+from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask, Worker, Pool, Filters
 from dist_git.exceptions import PackageImportException, PackageDownloadException, SrpmQueryException
 
 MODULE_REF = 'dist_git.dist_git_importer'
@@ -405,3 +405,22 @@ class TestPool(object):
 
         send_to_fe.assert_called_with({"task_id": "foo", "error": "import_timeout_exceeded"})
         assert not pool[0].is_alive()
+
+
+class TestFilters(object):
+    class FiltersMock(Filters):
+        sources = {
+            4: [lambda x: False],
+            5: [
+                lambda x: x["id"] != 1,
+                lambda x: x["foo"] == "bar",
+            ],
+        }
+
+    def test_foo(self):
+        b1 = {"source_type": 4}
+        b2 = {"source_type": 5, "id": 1, "foo": "bar"}
+        b3 = {"source_type": 5, "id": 2, "foo": "bar"}
+
+        assert not self.FiltersMock.get([b1, b2])
+        assert self.FiltersMock.get([b1, b2, b3]) == b3

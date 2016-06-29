@@ -643,9 +643,9 @@ class Filters(object):
         ],
     }
 
-    @staticmethod
-    def get(builds):
+    @classmethod
+    def get(cls, builds):
         for build in builds:
-            if all([f(build) for f in Filters.sources.get(build["source_type"], [])]):
+            if all([f(build) for f in cls.sources.get(build["source_type"], [])]):
                 return build
         return None
