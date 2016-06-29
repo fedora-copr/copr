@@ -8,7 +8,7 @@
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
-Version:    1.41
+Version:    1.42
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -115,6 +115,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Wed Jun 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.42-1
+- add selinux rule for cgit
+
 * Sat Jun 04 2016 Miroslav Suchý <miroslav@suchy.cz> 1.41-1
 - adjust selinux policy generation for separated log file paths
 
