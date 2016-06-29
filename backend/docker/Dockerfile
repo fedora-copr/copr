@@ -23,7 +23,7 @@ RUN dnf -y copr enable @copr/copr-dev
 
 # preinstall backend and its builddeps to utilize most of Docker cache
 RUN dnf -y install copr-backend
-RUN cd `mktemp -d` && dnf -y download --source copr-backend && dnf -y builddep *.src.rpm
+RUN cd `mktemp -d` && dnf -y download --source copr-backend && dnf -y builddep *.src.rpm --allowerasing
 
 # builder packages
 RUN dnf -y install fedpkg-copr
