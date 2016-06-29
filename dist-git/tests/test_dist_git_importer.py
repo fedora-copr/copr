@@ -8,8 +8,10 @@ import tarfile
 import tempfile
 import shutil
 import time
+import datetime
 from bunch import Bunch
 from pyrpkg import rpkgError
+from mock import Mock, patch
 import pytest
 
 import six
@@ -21,7 +23,7 @@ else:
     import mock
     from mock import MagicMock
 
-from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask
+from dist_git.dist_git_importer import DistGitImporter, SourceType, ImportTask, Worker, Pool, Filters
 from dist_git.exceptions import PackageImportException, PackageDownloadException, SrpmQueryException
 
 MODULE_REF = 'dist_git.dist_git_importer'
@@ -318,7 +320,8 @@ class TestDistGitImporter(object):
 
             mc.side_effect = None
 
-    def test_run(self, mc_time):
+    @patch("dist_git.dist_git_importer.Worker")
+    def test_run(self, WorkerMock, mc_time):
         self.dgi.try_to_obtain_new_task = MagicMock()
         self.dgi.do_import = MagicMock()
 
@@ -329,12 +332,13 @@ class TestDistGitImporter(object):
 
         self.dgi.try_to_obtain_new_task.return_value = None
         self.dgi.run()
-        assert not self.dgi.do_import.called
+        assert not WorkerMock.called
 
         self.dgi.try_to_obtain_new_task.return_value = self.task_1
         self.dgi.do_import.side_effect = stop_run
         self.dgi.run()
-        assert self.dgi.do_import.call_args == mock.call(self.task_1)
+        WorkerMock.assert_called_with(target=self.dgi.do_import, args=[self.task_1],
+                                      id=self.task_1.task_id, timeout=mock.ANY)
 
     # def test_main(self, mc_dgi, mc_dgcr):
     #     # dummy test, just for coverage
@@ -347,3 +351,76 @@ class TestDistGitImporter(object):
     #     with pytest.raises(SystemExit):
     #         main()
 
+
+class TestWorker(object):
+    def test_timeout(self):
+        w1 = Worker(timeout=5)
+        assert not w1.timeouted
+
+        w1.timestamp -= datetime.timedelta(seconds=1)
+        assert not w1.timeouted
+
+        w1.timestamp -= datetime.timedelta(seconds=4)
+        assert w1.timeouted
+
+        w2 = Worker(timeout=-1)
+        assert w2.timeouted
+
+
+class TestPool(object):
+    def test_busy(self):
+        pool = Pool(workers=3)
+        assert not pool.busy
+
+        pool.extend([None, None])
+        assert not pool.busy
+
+        pool.append(None)
+        assert pool.busy
+
+    def test_remove_dead(self):
+        w = Worker(target=time.sleep, args=[1000])
+        w.start()
+
+        pool = Pool(workers=3)
+        pool.append(w)
+        pool.remove_dead()
+        assert list(pool) == [w]
+
+        w.terminate()
+        w.join()
+        pool.remove_dead()
+        assert list(pool) == []
+
+    def test_terminate_timeouted(self):
+        w = Worker(target=time.sleep, args=[1000], timeout=-1, id="foo")
+        w.start()
+
+        pool = Pool()
+        pool.append(w)
+
+        send_to_fe = Mock().method
+        pool.terminate_timeouted(callback=send_to_fe)
+        w.join()
+
+        send_to_fe.assert_called_with({"task_id": "foo", "error": "import_timeout_exceeded"})
+        assert not pool[0].is_alive()
+
+
+class TestFilters(object):
+    class FiltersMock(Filters):
+        sources = {
+            4: [lambda x: False],
+            5: [
+                lambda x: x["id"] != 1,
+                lambda x: x["foo"] == "bar",
+            ],
+        }
+
+    def test_foo(self):
+        b1 = {"source_type": 4}
+        b2 = {"source_type": 5, "id": 1, "foo": "bar"}
+        b3 = {"source_type": 5, "id": 2, "foo": "bar"}
+
+        assert not self.FiltersMock.get([b1, b2])
+        assert self.FiltersMock.get([b1, b2, b3]) == b3

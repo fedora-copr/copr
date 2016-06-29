@@ -6,12 +6,15 @@ import time
 import shutil
 import tempfile
 import logging
+import datetime
+import psutil
+from multiprocessing import Process
 from subprocess import PIPE, Popen, call
 
 from requests import get, post
 
 from .exceptions import CoprDistGitException, PackageImportException, PackageDownloadException, SrpmBuilderException, \
-        SrpmQueryException, GitCloneException, GitWrongDirectoryException, GitCheckoutException
+        SrpmQueryException, GitCloneException, GitWrongDirectoryException, GitCheckoutException, TimeoutException
 from .srpm_import import do_git_srpm_import
 
 from .helpers import FailTypeEnum
@@ -301,6 +304,7 @@ class MockScmProvider(SrpmBuilderProvider):
 
         package_name = os.path.basename(self.task.mock_spec).replace(".spec", "")
         cmd = ["/usr/bin/mock", "-r", "epel-7-x86_64",
+               "--uniqueext", self.task.task_id,
                "--scm-enable",
                "--scm-option", "method={}".format(self.task.mock_scm_type),
                "--scm-option", "package={}".format(package_name),
@@ -436,17 +440,24 @@ class DistGitImporter(object):
 
         self.tmp_root = None
 
-    def try_to_obtain_new_task(self):
+    def try_to_obtain_new_task(self, exclude=[]):
         log.debug("1. Try to get task data")
         try:
             # get the data
             r = get(self.get_url)
             # take the first task
-            builds_list = r.json()["builds"]
+            builds_list = filter(lambda x: x["task_id"] not in exclude, r.json()["builds"])
             if len(builds_list) == 0:
                 log.debug("No new tasks to process")
                 return
-            return ImportTask.from_dict(builds_list[0], self.opts)
+
+            build = Filters.get(builds_list)
+            if not build:
+                log.debug("No task meets the criteria to be imported now")
+                log.debug("Queued builds: {}".format(builds_list))
+                return
+
+            return ImportTask.from_dict(build, self.opts)
         except Exception as e:
             log.error("Failed acquire new packages for import:")
             log.exception(str(e))
@@ -566,10 +577,75 @@ class DistGitImporter(object):
     def run(self):
         log.info("DistGitImported initialized")
 
+        pool = Pool(workers=3)
         self.is_running = True
         while self.is_running:
-            mb_task = self.try_to_obtain_new_task()
+            pool.terminate_timeouted(callback=self.post_back_safe)
+            pool.remove_dead()
+
+            mb_task = self.try_to_obtain_new_task(exclude=[w.id for w in pool])
             if mb_task is None:
                 time.sleep(self.opts.sleep_time)
+
+            elif pool.busy:
+                time.sleep(self.opts.sleep_time)
+
             else:
-                self.do_import(mb_task)
+                p = Worker(target=self.do_import, args=[mb_task], id=mb_task.task_id, timeout=3600)
+                pool.append(p)
+                log.info("Starting worker '{}' with task '{}' (timeout={})"
+                         .format(p.name, mb_task.task_id, p.timeout))
+                p.start()
+
+
+class Worker(Process):
+    def __init__(self, id=None, timeout=None, *args, **kwargs):
+        super(Worker, self).__init__(*args, **kwargs)
+        self.id = id
+        self.timeout = timeout
+        self.timestamp = datetime.datetime.now()
+
+    @property
+    def timeouted(self):
+        return datetime.datetime.now() >= self.timestamp + datetime.timedelta(seconds=self.timeout)
+
+
+class Pool(list):
+    def __init__(self, workers=None, *args, **kwargs):
+        super(Pool, self).__init__(*args, **kwargs)
+        self.workers = workers
+
+    @property
+    def busy(self):
+        # There is running job on every core
+        return len(self) >= self.workers
+
+    def terminate_timeouted(self, callback):
+        for worker in filter(lambda w: w.timeouted, self):
+            log.info("Going to terminate worker '{}' with task '{}' due to exceeded timeout {} seconds"
+                     .format(worker.name, worker.id, worker.timeout))
+            worker.terminate()
+            callback({"task_id": worker.id, "error": TimeoutException.strtype})
+            log.info("Worker '{}' with task '{}' was terminated".format(worker.name, worker.timeout))
+
+    def remove_dead(self):
+        for worker in filter(lambda w: not w.is_alive(), self):
+            if worker.exitcode == 0:
+                log.info("Worker '{}' finished task '{}'".format(worker.name, worker.id))
+            log.info("Removing worker '{}' with task '{}' from pool".format(worker.name, worker.id))
+            self.remove(worker)
+
+
+class Filters(object):
+    sources = {
+        SourceType.MOCK_SCM: [
+            lambda x: psutil.disk_usage("/var/lib/mock")[2] / 1024 / 1024 / 1024 > 2,
+        ],
+    }
+
+    @classmethod
+    def get(cls, builds):
+        for build in builds:
+            if all([f(build) for f in cls.sources.get(build["source_type"], [])]):
+                return build
+        return None

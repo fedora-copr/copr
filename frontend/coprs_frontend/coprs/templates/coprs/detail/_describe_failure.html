@@ -20,6 +20,9 @@
   {% elif build.fail_type_text == "srpm_query_failed" %}
     RPM query failed. The file is probably not a SRPM.
 
+  {% elif build.fail_type_text == "import_timeout_exceeded" %}
+    Importing into Dist Git failed due to exceeded timeout
+
   {# Git section #}
   {% elif build.fail_type_text == "git_clone_failed" %}
     Git clone failed.
