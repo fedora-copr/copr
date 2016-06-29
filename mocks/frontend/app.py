@@ -78,8 +78,8 @@ def backend_waiting_queue():
     sorted_action_tasks = sorted(action_task_dict.values(), key=lambda x: x['id'])
     sorted_build_tasks = sorted(build_task_dict.values(), key=lambda x: x['task_id'])
     response = {
-        'actions': sorted_action_tasks[0:1] if sorted_action_tasks else [],
-        'builds': sorted_build_tasks[0:1] if sorted_build_tasks else []
+        'action': sorted_action_tasks[0] if sorted_action_tasks else None,
+        'build': sorted_build_tasks[0] if sorted_build_tasks else None
     }
     debug_output(response, 'SENDING:')
     return flask.jsonify(response)
