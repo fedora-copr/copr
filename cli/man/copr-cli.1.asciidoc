@@ -95,6 +95,7 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--initial-pkgs PKGS]
                        [--description DESCRIPTION]
                        [--instructions INSTRUCTIONS]
+                       [--disable_createrepo DISABLE_CREATEREPO]
                        [--enable-net {on,off}]
                        [--unlisted-on-hp {on,off}]
                        name
@@ -113,6 +114,9 @@ Description of the project.
 
 --instructions::
 Instructions for the project.
+
+--disable_createrepo::
+Disables automatic repository metadata generation. Accepted values for DISABLE_CREATEREPO: true/false.
 
 --enable-net::
 If net should be enabled for builds in this project.

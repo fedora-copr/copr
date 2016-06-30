@@ -115,7 +115,7 @@ def api_new_copr(username):
                 description=form.description.data,
                 instructions=form.instructions.data,
                 check_for_duplicates=True,
-                auto_createrepo=True,
+                disable_createrepo=form.disable_createrepo.data,
                 unlisted_on_hp=form.unlisted_on_hp.data,
                 build_enable_net=form.build_enable_net.data,
                 group=group,

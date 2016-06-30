@@ -264,6 +264,7 @@ class Commands(object):
             username=username, projectname=copr, description=args.description,
             instructions=args.instructions, chroots=args.chroots,
             repos=args.repos, initial_pkgs=args.initial_pkgs,
+            disable_createrepo=args.disable_createrepo,
             unlisted_on_hp=(args.unlisted_on_hp == 'on'),
             enable_net=(args.enable_net == 'on')
         )
@@ -539,6 +540,8 @@ def setup_parser():
                                help="Description of the copr")
     parser_create.add_argument("--instructions",
                                help="Instructions for the copr")
+    parser_create.add_argument("--disable_createrepo",
+                               help="Disable metadata auto generation")
     parser_create.add_argument("--enable-net", choices=["on", "off"], default="on",
                                help="If net should be enabled for builds in this project (default is on)")
     parser_create.add_argument("--unlisted-on-hp", choices=["on", "off"],
