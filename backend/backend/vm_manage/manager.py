@@ -11,7 +11,7 @@ import time
 import weakref
 from cStringIO import StringIO
 import datetime
-from backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound, VmsPerUserLimitReached
+from backend.exceptions import VmError, NoVmAvailable, VmDescriptorNotFound
 
 from backend.helpers import get_redis_connection
 from .models import VmDescriptor
@@ -229,8 +229,8 @@ class VmManager(object):
         """
         vmd_list = self.get_all_vm_in_group(group)
         if not self.can_user_acquire_more_vm(username, group):
-            raise VmsPerUserLimitReached("No VM are available, user `{}` already acquired too much VMs"
-                                         .format(username))
+            raise NoVmAvailable("No VM are available, user `{}` already acquired too much VMs"
+                                .format(username))
 
         ready_vmd_list = [vmd for vmd in vmd_list if vmd.state == VmStates.READY]
         # trying to find VM used by this user

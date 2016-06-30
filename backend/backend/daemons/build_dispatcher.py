@@ -15,7 +15,7 @@ from requests import get, RequestException
 from backend.frontend import FrontendClient
 
 from ..helpers import get_redis_logger
-from ..exceptions import DispatchBuildError, NoVmAvailable, VmsPerUserLimitReached
+from ..exceptions import DispatchBuildError, NoVmAvailable
 from ..job import BuildJob
 from ..vm_manage.manager import VmManager
 from .worker import Worker
@@ -94,21 +94,6 @@ class BuildDispatcher(multiprocessing.Process):
         return BuildJob(task, self.opts)
 
     def acquire_vm_for_job(self, job, vm_group_id):
-        self.log.info("Acquiring VM for job {}...".format(str(job)))
-        get_vm_init_time = time.time()
-
-        vm = None
-        while vm is None:
-            self.update_process_title("Trying to acquire VM for job {} for {} s"
-                                      .format(job.task_id, int(time.time() - get_vm_init_time)))
-            try:
-                vm = self.vm_manager.acquire_vm(vm_group_id, job.project_owner, os.getpid(),
-                                                job.task_id, job.build_id, job.chroot)
-            except NoVmAvailable as error:
-                self.log.info("No VM available yet: {}".format(error))
-                time.sleep(self.opts.sleeptime)
-
-        self.log.info("VM {} for job {} successfully acquired".format(vm.vm_name, job.task_id))
         return vm
 
     def can_build_start(self, job):
@@ -153,16 +138,22 @@ class BuildDispatcher(multiprocessing.Process):
             self.join_finished_workers(workers)
 
             job = self.load_job()
+
             try:
+                self.log.info("Acquiring VM for job {}...".format(str(job)))
                 vm_group_id = self.get_vm_group_id(job.arch)
-                vm = self.acquire_vm_for_job(job, vm_group_id)
-            except VmsPerUserLimitReached as error:
-                self.log.info("User {} has reached limit of {} assigned VMs. Deferring job {}."
-                              .format(job.project_owner, self.group_to_usermax[vm_group_id], job.task_id))
+                vm = self.vm_manager.acquire_vm(vm_group_id, job.project_owner, os.getpid(),
+                                                job.task_id, job.build_id, job.chroot)
+            except NoVmAvailable as error:
+                self.log.info("No available resources for task {} (Reason: {}). Deferring job."
+                              .format(job.task_id, error))
                 self.frontend_client.defer_build(job.build_id, job.chroot)
                 continue
+            else:
+                self.log.info("VM {} for job {} successfully acquired".format(vm.vm_name, job.task_id))
 
             if not self.can_build_start(job):
+                self.vm_manager.release_vm(vm.vm_name)
                 continue
 
             worker = Worker(
