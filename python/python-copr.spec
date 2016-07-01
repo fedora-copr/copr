@@ -151,7 +151,10 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %endif
 
 %check
+%if 0%{?with_python3}
 python3-pylint copr/*py copr/client/ copr/client_v2/ || :
+%endif
+
 %{__python2} -m pytest copr/test
 
 %if 0%{?with_python3}
