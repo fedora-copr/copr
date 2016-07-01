@@ -117,9 +117,6 @@ cp -rT files/ /
 # setting correct permissions
 chown -R git:git /home/git/
 
-# clone copr repository
-git clone https://github.com/fedora-copr/copr.git copr
-
 # install copr-mocks deps (why not covered by dnf -y builddep?)
 if ! rpm -qa | grep copr-mocks; then
     dnf -y install python3-flask
@@ -127,23 +124,25 @@ if ! rpm -qa | grep copr-mocks; then
     dnf -y install python3-devel
 fi
 
+export LANG=en_US.UTF-8
+
 # install copr-mocks from sources
-cd $SCRIPTPATH/copr/mocks
+cd $SCRIPTPATH/../../../mocks
 dnf -y builddep copr-mocks.spec
 if [[ ! $RELEASETEST ]]; then
 	tito build -i --test --rpm
 else
-	tito build -i --rpm
+	tito build -i --offline --rpm
 fi
 cd -
 
 # install copr-dist-git from sources
-cd $SCRIPTPATH/copr/dist-git
+cd $SCRIPTPATH/../../../dist-git
 dnf -y builddep copr-dist-git.spec --allowerasing
 if [[ ! $RELEASETEST ]]; then
 	tito build -i --test --rpm
 else
-	tito build -i --rpm
+	tito build -i --offline --rpm
 fi
 cd -
 
