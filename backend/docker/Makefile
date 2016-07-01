@@ -1,5 +1,5 @@
 build:
-	docker build -t copr-backend-image -f Dockerfile ../../
+	docker build -t copr-backend-image --build-arg=RELEASETEST="${RELEASETEST}" -f Dockerfile ../../
 
 run:
 	docker run --privileged --name="copr-backend" -dit --net="host" copr-backend-image

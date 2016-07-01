@@ -18,8 +18,12 @@ RUN dnf -y install openssh-server
 RUN dnf -y install supervisor
 RUN dnf -y install psmisc
 
+# TODO: move this as close to the bottom as possible
+ARG RELEASETEST
+
 # enable copr dev repo for package overrides
-RUN dnf -y copr enable @copr/copr-dev
+RUN dnf -y copr enable @copr/copr
+RUN if [ ! $RELEASETEST ]; then dnf -y copr enable @copr/copr-dev; fi
 
 # preinstall backend and its builddeps to utilize most of Docker cache
 RUN dnf -y install copr-backend
@@ -84,8 +88,7 @@ RUN usermod copr-signer -G apache
 
 COPY . /copr
 RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing # fix for python-requests package (the cmd is failing python2-requests is already installed)
-RUN rm -rf /tmp/tito && cd /copr/backend && LANG=en_US.UTF-8 tito build --test --rpm
-RUN dnf -y install /tmp/tito/noarch/copr-backend*.noarch.rpm
+#RUN cd /copr/backend && if [ ! $RELEASETEST ]; then LANG=en_US.UTF-8 tito build -i --test --rpm; else LANG=en_US.UTF-8 tito build -i --rpm; fi
 
 COPY backend/docker/files/ /
 RUN chmod 700 /root && chmod 700 /home/copr && chown copr:copr /home/copr # fix permission after COPY

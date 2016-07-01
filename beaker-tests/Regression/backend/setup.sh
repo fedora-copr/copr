@@ -59,11 +59,13 @@ docker cp backend-files/. copr-backend:/
 docker exec copr-backend /bin/chown -R copr:copr /var/lib/copr/public_html
 
 # install copr-mocks from sources
+dnf -y install python3-flask
+dnf -y install python3-flask-script
+cd $SCRIPTPATH/copr/mocks
+dnf -y builddep copr-mocks.spec
 if [[ ! $RELEASETEST ]]; then
-	dnf -y install python3-flask
-	dnf -y install python3-flask-script
-	cd $SCRIPTPATH/copr/mocks
-	dnf -y builddep copr-mocks.spec
 	tito build -i --test --rpm
-	cd $SCRIPTPATH
+else
+	tito build -i --rpm
 fi
+cd $SCRIPTPATH
