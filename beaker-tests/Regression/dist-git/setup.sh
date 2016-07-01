@@ -4,7 +4,6 @@ export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 dnf -y copr enable @copr/copr
 if [[ ! $RELEASETEST ]]; then
-	rlLog "Installing copr dev repos."
 	dnf -y copr enable @copr/copr-dev
 fi
 
@@ -128,19 +127,25 @@ if ! rpm -qa | grep copr-mocks; then
     dnf -y install python3-devel
 fi
 
+# install copr-mocks from sources
+cd $SCRIPTPATH/copr/mocks
+dnf -y builddep copr-mocks.spec
 if [[ ! $RELEASETEST ]]; then
-	# install copr-mocks from sources
-	cd $SCRIPTPATH/copr/mocks
-	dnf -y builddep copr-mocks.spec
 	tito build -i --test --rpm
-	cd -
-
-	# install copr-dist-git from sources
-	cd $SCRIPTPATH/copr/dist-git
-	dnf -y builddep copr-dist-git.spec
-	tito build -i --test --rpm
-	cd -
+else
+	tito build -i --rpm
 fi
+cd -
+
+# install copr-dist-git from sources
+cd $SCRIPTPATH/copr/dist-git
+dnf -y builddep copr-dist-git.spec --allowerasing
+if [[ ! $RELEASETEST ]]; then
+	tito build -i --test --rpm
+else
+	tito build -i --rpm
+fi
+cd -
 
 sudo dnf -y downgrade fedpkg-1.20 # fedpkg-1.22-3 is unsupported (downgrade to 1.20)
 
