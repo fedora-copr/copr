@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.71
+Version:    1.72
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -185,6 +185,11 @@ popd
 %endif
 
 %changelog
+* Fri Jul 01 2016 clime <clime@redhat.com> 1.72-1
+- run pylint check during build only if python3 is defined
+- Bug 1335237 - copr create command missing --disable_createrepo
+- --enable-net option added for create/modify commands of copr-cli
+- --unlisted-on-hp option add for create/modify commands of copr-cli
 * Thu Jun 16 2016 Miroslav Suchý <msuchy@redhat.com> 1.71-1
 - configure more packages to run pylint
 - send confirm only when it is True
