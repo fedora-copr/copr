@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.52
+Version:    1.53
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -134,6 +134,12 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Fri Jul 01 2016 clime <clime@redhat.com> 1.53-1
+- enable pylint checks only if python3 macro is enabled
+- Bug 1335237 - copr create command missing --disable_createrepo
+- --enable-net option added for create/modify commands of copr-cli
+- added man entry about --unlisted-on-hp option of create command
+
 * Thu Jun 16 2016 Miroslav Suchý <msuchy@redhat.com> 1.52-1
 - configure more packages to run pylint
 - run checks for copr-cli
