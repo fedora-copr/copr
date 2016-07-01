@@ -5,4 +5,3 @@
 /var/lib/dist-git/git/rpms(/.*)? gen_context(system_u:object_r:git_user_content_t,s0)
 /usr/libexec/git-core/git-http-backend gen_context(system_u:object_r:git_script_exec_t,s0)
 /var/lib/copr-keygen/gnupg/trustdb.gpg gen_context(system_u:object_r:httpd_var_lib_t,s0)
-/var/lib/dist-git/git/rpms(/.*)? gen_context(system_u:object_r:git_user_content_t,s0
