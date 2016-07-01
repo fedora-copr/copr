@@ -8,7 +8,7 @@
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
 
 Name:       copr-selinux
-Version:    1.42
+Version:    1.43
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -115,6 +115,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Fri Jul 01 2016 clime <clime@redhat.com> 1.43-1
+- Revert "add selinux rule for cgit"
+
 * Wed Jun 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.42-1
 - add selinux rule for cgit
 
