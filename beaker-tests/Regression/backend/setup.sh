@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export COPRROOTDIR=$SCRIPTPATH/../../../
 export LANG=en_US.utf8
 
 # install files from 'files'
@@ -13,7 +14,6 @@ dnf -y install vagrant-libvirt
 dnf -y install git
 dnf -y install jq
 dnf -y install tito
-dnf -y install copr-mocks
 
 # enable libvirtd for Vagrant (distgit)
 systemctl enable libvirtd && systemctl start libvirtd
@@ -22,12 +22,9 @@ systemctl enable libvirtd && systemctl start libvirtd
 ./create_loopback_devices_for_docker.sh # hack for running tests inside docker
 systemctl enable docker && systemctl start docker
 
-# clone copr repository
-git clone https://github.com/fedora-copr/copr.git copr
-
-# setup dist-git/copr-dist-git
-tar -C $SCRIPTPATH/distgit-files -cf $SCRIPTPATH/copr/distgit-files.tar .
-cd $SCRIPTPATH/copr/
+# setup dist-git & copr-dist-git
+tar -C $SCRIPTPATH/distgit-files -cf $COPRROOTDIR/distgit-files.tar .
+cd $COPRROOTDIR
 vagrant up distgit
 vagrant ssh -c '
 sudo rm -r /var/lib/copr-dist-git
@@ -48,9 +45,10 @@ sudo find /var/lib/dist-git/git -type f -print0 | xargs -0 -n100 sudo chmod 664
 sudo restorecon -r /var/lib/copr-dist-git
 sudo restorecon -r /var/lib/dist-git
 ' distgit
+rm $COPRROOTDIR/distgit-files.tar
 
 # setup backend
-cd $SCRIPTPATH/copr/backend/docker
+cd $COPRROOTDIR/backend/docker
 make del &> /dev/null # cleaning the previous instance (if any)
 make build && make run
 cd $SCRIPTPATH
@@ -59,13 +57,13 @@ docker cp backend-files/. copr-backend:/
 docker exec copr-backend /bin/chown -R copr:copr /var/lib/copr/public_html
 
 # install copr-mocks from sources
+cd $COPRROOTDIR/mocks
 dnf -y install python3-flask
 dnf -y install python3-flask-script
-cd $SCRIPTPATH/copr/mocks
 dnf -y builddep copr-mocks.spec
 if [[ ! $RELEASETEST ]]; then
 	tito build -i --test --rpm
 else
-	tito build -i --rpm
+	tito build -i --offline --rpm
 fi
 cd $SCRIPTPATH
