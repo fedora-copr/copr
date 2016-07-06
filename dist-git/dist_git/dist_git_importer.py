@@ -583,13 +583,13 @@ class DistGitImporter(object):
             pool.terminate_timeouted(callback=self.post_back_safe)
             pool.remove_dead()
 
+            if pool.busy:
+                time.sleep(0.5)
+                continue
+
             mb_task = self.try_to_obtain_new_task(exclude=[w.id for w in pool])
             if mb_task is None:
                 time.sleep(self.opts.sleep_time)
-
-            elif pool.busy:
-                time.sleep(self.opts.sleep_time)
-
             else:
                 p = Worker(target=self.do_import, args=[mb_task], id=mb_task.task_id, timeout=3600)
                 pool.append(p)
