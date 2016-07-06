@@ -440,7 +440,7 @@ class DistGitImporter(object):
 
         self.tmp_root = None
 
-    def try_to_obtain_new_task(self, exclude=[]):
+    def try_to_obtain_new_tasks(self, exclude=[], limit=1):
         log.debug("1. Try to get task data")
         try:
             # get the data
@@ -451,13 +451,13 @@ class DistGitImporter(object):
                 log.debug("No new tasks to process")
                 return
 
-            build = Filters.get(builds_list)
-            if not build:
+            builds = Filters.get_multiple(builds_list, limit)
+            if not builds:
                 log.debug("No task meets the criteria to be imported now")
                 log.debug("Queued builds: {}".format(builds_list))
                 return
 
-            return ImportTask.from_dict(build, self.opts)
+            return [ImportTask.from_dict(build, self.opts) for build in builds]
         except Exception as e:
             log.error("Failed acquire new packages for import:")
             log.exception(str(e))
@@ -587,10 +587,13 @@ class DistGitImporter(object):
                 time.sleep(0.5)
                 continue
 
-            mb_task = self.try_to_obtain_new_task(exclude=[w.id for w in pool])
-            if mb_task is None:
+            mb_tasks = self.try_to_obtain_new_tasks(exclude=[w.id for w in pool],
+                                                    limit=pool.workers - len(pool))
+            if not mb_tasks:
                 time.sleep(self.opts.sleep_time)
-            else:
+                continue
+
+            for mb_task in mb_tasks:
                 p = Worker(target=self.do_import, args=[mb_task], id=mb_task.task_id, timeout=3600)
                 pool.append(p)
                 log.info("Starting worker '{}' with task '{}' (timeout={})"
@@ -645,7 +648,16 @@ class Filters(object):
 
     @classmethod
     def get(cls, builds):
+        results = cls.get_multiple(builds, 1)
+        return results[0] if results else None
+
+    @classmethod
+    def get_multiple(cls, builds, limit):
+        results = []
         for build in builds:
             if all([f(build) for f in cls.sources.get(build["source_type"], [])]):
-                return build
-        return None
+                results.append(build)
+
+            if len(results) >= limit:
+                break
+        return results
