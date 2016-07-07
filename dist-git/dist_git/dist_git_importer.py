@@ -377,13 +377,8 @@ class RubyGemsProvider(SrpmBuilderProvider):
         cmd = ["gem2rpm", self.task.rubygems_gem_name.strip(), "--fetch", "--srpm"]
         log.info(' '.join(cmd))
         try:
-            cwd = os.getcwd()
-            os.chdir(self.tmp_dest)
-            log.debug("Setting working directory for the following command to: {}".format(self.tmp_dest))
-            log.debug(" ".join(cmd))
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp_dest)
             output, error = proc.communicate()
-            os.chdir(cwd)
         except OSError as e:
             raise SrpmBuilderException(str(e))
 
