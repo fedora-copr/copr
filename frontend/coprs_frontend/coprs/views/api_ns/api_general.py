@@ -173,7 +173,7 @@ def api_copr_delete(copr):
             output = {"output": "ok", "message": message}
             db.session.commit()
     else:
-        raise LegacyApiError("Invalid request")
+        raise LegacyApiError("Invalid request: {0}".format(form.errors))
 
     return flask.jsonify(output)
 
@@ -212,7 +212,7 @@ def api_copr_fork(copr):
             db.session.rollback()
             raise LegacyApiError(str(err))
     else:
-        raise LegacyApiError("Invalid request")
+        raise LegacyApiError("Invalid request: {0}".format(form.errors))
 
     return flask.jsonify(output)
 
@@ -512,7 +512,7 @@ def copr_modify(copr):
     form = forms.CoprModifyForm(csrf_enabled=False)
 
     if not form.validate_on_submit():
-        raise LegacyApiError("Invalid request: bad request parameters")
+        raise LegacyApiError("Invalid request: {0}".format(form.errors))
 
     # .raw_data needs to be inspected to figure out whether the field
     # was not sent or was sent empty
@@ -558,7 +558,7 @@ def copr_modify_chroot(copr, chrootname):
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
     if not form.validate_on_submit():
-        raise LegacyApiError("Invalid request: bad request parameters")
+        raise LegacyApiError("Invalid request: {0}".format(form.errors))
     else:
         coprs_logic.CoprChrootsLogic.update_chroot(flask.g.user, chroot, form.buildroot_pkgs.data)
         db.session.commit()
@@ -587,7 +587,7 @@ def api_coprs_search_by_project(project=None):
     """
     project = flask.request.args.get("project", None) or project
     if not project:
-        raise LegacyApiError("Invalid request")
+        raise LegacyApiError("No project found.")
 
     try:
         query = CoprsLogic.get_multiple_fulltext(project)
