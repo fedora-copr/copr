@@ -20,7 +20,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.coprs_logic import CoprsLogic
 
 logging.basicConfig(
-    filename="/var/log/copr-frontend/check_for_anitya_version_updates.log",
+    filename="{0}/check_for_anitya_version_updates.log".format(app.config.get("LOG_DIR")),
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
     level=logging.DEBUG)
 log = logging.getLogger(__name__)

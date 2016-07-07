@@ -30,8 +30,8 @@ BuildRequires: systemd
 BuildRequires: python-argparse
 %endif
 #for doc package
-#BuildRequires: epydoc
-#BuildRequires: graphviz
+BuildRequires: epydoc
+BuildRequires: graphviz
 
 Requires:   httpd
 Requires:   mod_wsgi
@@ -176,9 +176,9 @@ only.
 
 %build
 # build documentation
-#pushd documentation
-#make %{?_smp_mflags} python
-#popd
+pushd documentation
+COPR_CONFIG=../../documentation/copr-documentation.conf make %{?_smp_mflags} python
+popd
 
 %install
 
@@ -266,7 +266,7 @@ service logstash condrestart
 
 %files doc
 %license LICENSE
-#%doc documentation/python-doc
+%doc documentation/python-doc
 
 %changelog
 * Thu Jun 23 2016 Miroslav Suchý <msuchy@redhat.com> 1.97-1
