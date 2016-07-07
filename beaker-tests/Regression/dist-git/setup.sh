@@ -2,6 +2,15 @@
 
 export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+if [[ `pwd` =~ ^/mnt/testarea.*$ ]]; then
+    echo "Setting up native beaker environment."
+    git clone https://github.com/fedora-copr/copr.git copr
+    export COPRROOTDIR=$SCRIPTPATH/copr
+else
+    echo "Setting up from source tree."
+    export COPRROOTDIR=$SCRIPTPATH/../../../
+fi
+
 dnf -y copr enable @copr/copr
 if [[ ! $RELEASETEST ]]; then
 	dnf -y copr enable @copr/copr-dev
@@ -127,7 +136,7 @@ fi
 export LANG=en_US.UTF-8
 
 # install copr-mocks from sources
-cd $SCRIPTPATH/../../../mocks
+cd $COPRROOTDIR/mocks
 dnf -y builddep copr-mocks.spec
 if [[ ! $RELEASETEST ]]; then
 	tito build -i --test --rpm
@@ -137,7 +146,7 @@ fi
 cd -
 
 # install copr-dist-git from sources
-cd $SCRIPTPATH/../../../dist-git
+cd $COPRROOTDIR/dist-git
 dnf -y builddep copr-dist-git.spec --allowerasing
 if [[ ! $RELEASETEST ]]; then
 	tito build -i --test --rpm

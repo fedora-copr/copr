@@ -1,7 +1,16 @@
 #!/bin/bash
 
 export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export COPRROOTDIR=$SCRIPTPATH/../../../
+
+if [[ `pwd` =~ ^/mnt/testarea.*$ ]]; then
+    echo "Setting up native beaker environment."
+    git clone https://github.com/fedora-copr/copr.git copr
+    export COPRROOTDIR=$SCRIPTPATH/copr
+else
+    echo "Setting up from source tree."
+    export COPRROOTDIR=$SCRIPTPATH/../../../
+fi
+
 export LANG=en_US.utf8
 
 # install files from 'files'
