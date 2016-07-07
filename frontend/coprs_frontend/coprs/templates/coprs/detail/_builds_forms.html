@@ -67,7 +67,7 @@
               <label>
                 {{ form|attr(ch) }}
                 {{ form|attr(ch)|attr('label') }}
-                {% if outer_loop.last %}&nbsp;&nbsp;&nbsp;<a href="#" onclick="$('#chroots :checkbox').prop('checked', $('#chroots :checkbox').length != $('#chroots :checkbox:checked').length); return false;">...toggle all</a>{% endif %}
+                {% if outer_loop.last and loop.last %}&nbsp;&nbsp;&nbsp;<a href="#" onclick="$('#chroots :checkbox').prop('checked', $('#chroots :checkbox').length != $('#chroots :checkbox:checked').length); return false;">...toggle all</a>{% endif %}
               </label>
             </div>
           {% endfor %}
