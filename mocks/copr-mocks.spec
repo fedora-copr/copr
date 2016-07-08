@@ -1,6 +1,6 @@
 Summary: COPR system components mocks
 Name: copr-mocks
-Version: 1.3
+Version: 1.4
 Release: 1%{?dist}
 
 # Source is created by:
@@ -49,6 +49,12 @@ useradd -r -g copr-mocks -G copr-mocks -d %{_datadir}/copr/mocks -s /bin/bash -c
 %{_unitdir}/copr-mocks-frontend.service
 
 %changelog
+* Fri Jul 08 2016 clime <clime@redhat.com> 1.4-1
+- adjust to frontend now exposing only 1 build and 1 action on /backend/waiting at a time
+- wait with server termination until all the started build tasks have been finished
+- send builds & actions by the order they appear in the input files
+- just publish the first build tasks (also applies for actions) from the whole FE "queue"
+
 * Thu May 26 2016 clime <clime@redhat.com> 1.3-1
 - task files are now directly under batch (data) dir, no in/out subdirs
 - action result storing fixed + code improvements
