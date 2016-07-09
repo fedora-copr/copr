@@ -579,7 +579,7 @@ class DistGitImporter(object):
             pool.remove_dead()
 
             if pool.busy:
-                time.sleep(0.5)
+                time.sleep(self.opts.pool_busy_sleep_time)
                 continue
 
             mb_tasks = self.try_to_obtain_new_tasks(exclude=[w.id for w in pool],
