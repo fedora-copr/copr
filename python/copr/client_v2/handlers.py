@@ -288,7 +288,8 @@ class ProjectHandle(AbstractHandle):
         """
         options = {
             "search_query": search_query,
-            "owner": owner,
+            "owner": owner2user(owner),
+            "group": owner2group(owner),
             "name": name,
             "limit": limit,
             "offset": offset
@@ -551,3 +552,11 @@ class MockChrootHandle(AbstractHandle):
             response=response,
             options=options
         )
+
+
+def owner2user(owner):
+    return owner if owner[0] != "@" else None
+
+
+def owner2group(owner):
+    return owner[1:] if owner[0] == "@" else None
