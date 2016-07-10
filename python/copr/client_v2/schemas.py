@@ -21,7 +21,7 @@ class ProjectSchema(Schema):
 
     owner = fields.Str()
     # is_a_group_project = fields.Bool()
-    # group = fields.Str(allow_none=True)
+    group = fields.Str(allow_none=True)
 
     description = fields.Str()
     instructions = fields.Str()

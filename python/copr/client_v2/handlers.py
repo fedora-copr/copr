@@ -342,6 +342,7 @@ class ProjectHandle(AbstractHandle):
 
         new_entity = ProjectCreateEntity(
             owner=owner,
+            group=owner2group(owner),
             name=name,
             chroots=chroots,
             description=description,
