@@ -556,8 +556,8 @@ class MockChrootHandle(AbstractHandle):
 
 
 def owner2user(owner):
-    return owner if owner[0] != "@" else None
+    return owner and (owner if owner[0] != "@" else None)
 
 
 def owner2group(owner):
-    return owner[1:] if owner[0] == "@" else None
+    return owner and (owner[1:] if owner[0] == "@" else None)

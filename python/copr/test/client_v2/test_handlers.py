@@ -175,8 +175,11 @@ class TestProjectHandle(TestHandleBase):
         project_handle.get_list(**query_params)
         ca = self.nc.request.call_args
 
+        expected = query_params.copy()
+        expected["group"] = None
+
         assert ca[0][0] == self.root_url + "/api_2/projects"
-        assert ca[1]["query_params"] == query_params
+        assert ca[1]["query_params"] == expected
 
     @pytest.fixture
     def one_project(self, project_handle):
