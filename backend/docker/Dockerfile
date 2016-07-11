@@ -17,6 +17,7 @@ RUN dnf -y install python-nova
 RUN dnf -y install openssh-server
 RUN dnf -y install supervisor
 RUN dnf -y install psmisc
+RUN dnf -y install nginx
 
 # builder packages
 RUN dnf -y install packagedb-cli
@@ -35,7 +36,6 @@ RUN dnf -y install glib2
 RUN dnf -y install ca-certificates
 RUN dnf -y install scl-utils-build
 RUN dnf -y install ethtool
-RUN dnf -y install nginx
 
 # packages for copr-keygen
 RUN dnf -y install uwsgi
