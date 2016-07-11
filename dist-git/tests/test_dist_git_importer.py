@@ -105,6 +105,7 @@ class TestDistGitImporter(object):
 
             "cgit_pkg_list_location": self.tmp_dir_name,
             "sleep_time": 10,
+            "pool_busy_sleep_time": 0.5,
             "log_dir": self.tmp_dir_name,
             "per_task_log_dir": self.per_task_location
         })
@@ -159,16 +160,16 @@ class TestDistGitImporter(object):
 
     def test_try_to_obtain_new_task_empty(self, mc_get):
         mc_get.return_value.json.return_value = {"builds": []}
-        assert self.dgi.try_to_obtain_new_task() is None
+        assert self.dgi.try_to_obtain_new_tasks() is None
 
     def test_try_to_obtain_handle_error(self, mc_get):
         for err in [IOError, OSError, ValueError]:
             mc_get.side_effect = err
-            assert self.dgi.try_to_obtain_new_task() is None
+            assert self.dgi.try_to_obtain_new_tasks() is None
 
     def test_try_to_obtain_ok(self, mc_get):
         mc_get.return_value.json.return_value = {"builds": [self.task_data_1, self.task_data_2]}
-        task = self.dgi.try_to_obtain_new_task()
+        task = self.dgi.try_to_obtain_new_tasks()[0]
         assert task.task_id == self.task_data_1["task_id"]
         assert task.user == self.USER_NAME
         assert task.branch == self.BRANCH
@@ -176,7 +177,7 @@ class TestDistGitImporter(object):
 
     def test_try_to_obtain_ok_2(self, mc_get):
         mc_get.return_value.json.return_value = {"builds": [self.task_data_2, self.task_data_1]}
-        task = self.dgi.try_to_obtain_new_task()
+        task = self.dgi.try_to_obtain_new_tasks()[0]
         assert task.task_id == self.task_data_2["task_id"]
         assert task.user == self.USER_NAME
         assert task.branch == self.BRANCH
@@ -186,7 +187,7 @@ class TestDistGitImporter(object):
         task_data = copy.deepcopy(self.task_data_1)
         task_data["source_type"] = 999999
         mc_get.return_value.json.return_value = {"builds": [task_data]}
-        assert self.dgi.try_to_obtain_new_task() is None
+        assert self.dgi.try_to_obtain_new_tasks() is None
 
     # def test_my_upload(self):
     #     filename = "source"
@@ -322,7 +323,7 @@ class TestDistGitImporter(object):
 
     @patch("dist_git.dist_git_importer.Worker")
     def test_run(self, WorkerMock, mc_time):
-        self.dgi.try_to_obtain_new_task = MagicMock()
+        self.dgi.try_to_obtain_new_tasks = MagicMock()
         self.dgi.do_import = MagicMock()
 
         def stop_run(*args, **kwargs):
@@ -330,11 +331,11 @@ class TestDistGitImporter(object):
 
         mc_time.sleep.side_effect = stop_run
 
-        self.dgi.try_to_obtain_new_task.return_value = None
+        self.dgi.try_to_obtain_new_tasks.return_value = None
         self.dgi.run()
         assert not WorkerMock.called
 
-        self.dgi.try_to_obtain_new_task.return_value = self.task_1
+        self.dgi.try_to_obtain_new_tasks.return_value = [self.task_1]
         self.dgi.do_import.side_effect = stop_run
         self.dgi.run()
         WorkerMock.assert_called_with(target=self.dgi.do_import, args=[self.task_1],
