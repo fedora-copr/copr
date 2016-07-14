@@ -181,9 +181,6 @@ COPR_CONFIG=../../documentation/copr-documentation.conf make %{?_smp_mflags} pyt
 popd
 
 %install
-
-
-
 install -d %{buildroot}%{_sysconfdir}/copr
 install -d %{buildroot}%{_datadir}/copr/coprs_frontend
 install -d %{buildroot}%{_sharedstatedir}/copr/data/openid_store
@@ -194,6 +191,7 @@ install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee
 install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 install -d %{buildroot}%{_sharedstatedir}/copr/data/srpm_storage
 install -d %{buildroot}%{_sysconfdir}/cron.hourly
+install -d %{buildroot}/%{_bindir}
 
 install -p -m 755 conf/cron.hourly/copr-frontend %{buildroot}%{_sysconfdir}/cron.hourly/copr-frontend
 
@@ -211,6 +209,9 @@ install -d %{buildroot}%{_sysconfdir}/logstash.d
 cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 cp -a conf/logstash.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_frontend.conf
 touch %{buildroot}%{_var}/log/copr-frontend/frontend.log
+
+
+ln -fs /usr/share/copr/coprs_frontend/manage.py %{buildroot}/%{_bindir}/copr-frontend
 
 %check
 %if %{with_test} && "%{_arch}" == "x86_64"
@@ -240,6 +241,7 @@ service logstash condrestart
 %dir %{_sysconfdir}/copr
 %dir %{_sharedstatedir}/copr
 %{_datadir}/copr/coprs_frontend
+%{_bindir}/copr-frontend
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %config(noreplace) %{_sysconfdir}/logstash.d/copr_frontend.conf
