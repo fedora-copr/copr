@@ -8,7 +8,7 @@
 %endif
 
 %if 0%{?fedora} >= 24
-%global %{use_python3}
+%global use_python3 1
 %endif
 
 Name:       copr-cli
