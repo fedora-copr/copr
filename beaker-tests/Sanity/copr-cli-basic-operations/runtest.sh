@@ -318,6 +318,15 @@ rlJournalStart
         # build the package
         rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --timeout 10000 -r fedora-23-x86_64" # TODO: timeout not honored
 
+        # test disable_createrepo
+        rlRun "copr-cli create --chroot fedora-23-x86_64 --disable_createrepo false @copr/DisableCreaterepoFalse"
+        rlRun "copr-cli build @copr/DisableCreaterepoFalse http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "curl --silent http://copr-be-dev.cloud.fedoraproject.org/results/@copr/DisableCreaterepoFalse/fedora-23-x86_64/devel/repodata/ | grep \"404.*Not Found\"" 0
+
+        rlRun "copr-cli create --chroot fedora-23-x86_64 --disable_createrepo true @copr/DisableCreaterepoTrue"
+        rlRun "copr-cli build @copr/DisableCreaterepoTrue http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "curl --silent http://copr-be-dev.cloud.fedoraproject.org/results/@copr/DisableCreaterepoTrue/fedora-23-x86_64/devel/repodata/ | grep -E \"404.*Not Found\"" 1
+
         # test unlisted_on_hp project attribute
         rlRun "copr-cli create --unlisted-on-hp on --chroot fedora-23-x86_64 ${NAME_PREFIX}Project7"
         rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org --silent | grep Project7" 1 # project won't be present on hp
