@@ -789,8 +789,14 @@ class CoprChroot(db.Model, helpers.Serializer):
     comps_zlib = db.Column(db.LargeBinary(), nullable=True)
     comps_name = db.Column(db.String(127), nullable=True)
 
+    module_md_zlib = db.Column(db.LargeBinary(), nullable=True)
+    module_md_name = db.Column(db.String(127), nullable=True)
+
     def update_comps(self, comps_xml):
         self.comps_zlib = zlib.compress(comps_xml.encode("utf-8"))
+
+    def update_module_md(self, module_md_yaml):
+        self.module_md_zlib = zlib.compress(module_md_yaml.encode("utf-8"))
 
     @property
     def buildroot_pkgs_list(self):
@@ -802,9 +808,21 @@ class CoprChroot(db.Model, helpers.Serializer):
             return zlib.decompress(self.comps_zlib).decode("utf-8")
 
     @property
+    def module_md(self):
+        if self.module_md_zlib:
+            return zlib.decompress(self.module_md_zlib).decode("utf-8")
+
+    @property
     def comps_len(self):
         if self.comps_zlib:
             return len(zlib.decompress(self.comps_zlib))
+        else:
+            return 0
+
+    @property
+    def module_md_len(self):
+        if self.module_md_zlib:
+            return len(zlib.decompress(self.module_md_zlib))
         else:
             return 0
 

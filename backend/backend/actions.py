@@ -189,6 +189,35 @@ class Action(object):
 
         result.result = ActionResult.SUCCESS
 
+    def handle_module_md_update(self, result):
+        self.log.debug("Action module_md update")
+
+        ext_data = json.loads(self.data["data"])
+        username = ext_data["username"]
+        projectname = ext_data["projectname"]
+        chroot = ext_data["chroot"]
+
+        path = self.get_chroot_result_dir(chroot, projectname, username)
+        local_module_md_path = os.path.join(path, "module_md.yaml")
+        if not ext_data.get("module_md_present", True):
+            silent_remove(local_module_md_path)
+        else:
+            remote_module_md_url = "{}/coprs/{}/{}/chroot/{}/module_md/".format(
+                self.opts.frontend_base_url,
+                username,
+                projectname,
+                chroot
+            )
+            try:
+                urlretrieve(remote_module_md_url, local_module_md_path)
+                self.log.info("updated module_md.yaml for {}/{}/{} from {} "
+                              .format(username, projectname, chroot, remote_module_md_url))
+            except Exception:
+                self.log.exception("Failed to update module_md from {} at location {}"
+                                   .format(remote_module_md_url, local_module_md_path))
+
+        result.result = ActionResult.SUCCESS
+
     def handle_delete_build(self):
         self.log.debug("Action delete build")
         project = self.data["old_value"]
@@ -341,6 +370,9 @@ class Action(object):
         elif action_type == ActionType.RAWHIDE_TO_RELEASE:
             self.handle_rawhide_to_release(result)
 
+        elif action_type == ActionType.UPDATE_MODULE_MD:
+            self.handle_module_md_update(result)
+
         self.log.info("Action result: {}".format(result))
 
         if "result" in result:
@@ -360,6 +392,7 @@ class ActionType(object):
     GEN_GPG_KEY = 5
     RAWHIDE_TO_RELEASE = 6
     FORK = 7
+    UPDATE_MODULE_MD = 8
 
 
 class ActionResult(object):

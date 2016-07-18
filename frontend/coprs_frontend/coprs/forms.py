@@ -554,6 +554,8 @@ class ChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField(
         "Packages")
 
+    module_md = FileField("module_md")
+
     comps = FileField("comps_xml")
 
 

@@ -461,7 +461,7 @@ class CoprChrootsLogic(object):
 
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot,
-                      buildroot_pkgs=None, comps=None, comps_name=None):
+                      buildroot_pkgs=None, comps=None, comps_name=None, module_md=None, module_md_name=None):
         """
         :type user: models.User
         :type mock_chroot: models.MockChroot
@@ -473,12 +473,12 @@ class CoprChrootsLogic(object):
             "Only owners and admins may update their projects.")
 
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
-        cls._update_chroot(buildroot_pkgs, comps, comps_name, chroot)
+        cls._update_chroot(buildroot_pkgs, comps, comps_name, module_md, module_md_name, chroot)
         return chroot
 
     @classmethod
     def update_chroot(cls, user, copr_chroot,
-                      buildroot_pkgs, comps=None, comps_name=None):
+                      buildroot_pkgs, comps=None, comps_name=None, module_md=None, module_md_name=None):
         """
         :type user: models.User
         :type copr_chroot: models.CoprChroot
@@ -487,18 +487,24 @@ class CoprChrootsLogic(object):
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
-        cls._update_chroot(buildroot_pkgs, comps, comps_name, copr_chroot)
+        cls._update_chroot(buildroot_pkgs, comps, comps_name, module_md, module_md_name, copr_chroot)
         db.session.add(copr_chroot)
 
         return copr_chroot
 
     @classmethod
-    def _update_chroot(cls, buildroot_pkgs, comps, comps_name, copr_chroot):
+    def _update_chroot(cls, buildroot_pkgs, comps, comps_name, module_md, module_md_name, copr_chroot):
         copr_chroot.buildroot_pkgs = buildroot_pkgs
+
         if comps_name is not None:
             copr_chroot.update_comps(comps)
             copr_chroot.comps_name = comps_name
             ActionsLogic.send_update_comps(copr_chroot)
+
+        if module_md_name is not None:
+            copr_chroot.update_module_md(module_md)
+            copr_chroot.module_md_name = module_md_name
+            ActionsLogic.send_update_module_md(copr_chroot)
 
     @classmethod
     def update_from_names(cls, user, copr, names):
@@ -533,6 +539,17 @@ class CoprChrootsLogic(object):
         copr_chroot.comps_name = None
         copr_chroot.comps_zlib = None
         ActionsLogic.send_update_comps(copr_chroot)
+        db.session.add(copr_chroot)
+
+    @classmethod
+    def remove_module_md(cls, user, copr_chroot):
+        UsersLogic.raise_if_cant_update_copr(
+            user, copr_chroot.copr,
+            "Only owners and admins may update their projects.")
+
+        copr_chroot.module_md_name = None
+        copr_chroot.module_md_zlib = None
+        ActionsLogic.send_update_module_md(copr_chroot)
         db.session.add(copr_chroot)
 
     @classmethod

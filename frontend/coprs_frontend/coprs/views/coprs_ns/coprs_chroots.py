@@ -79,16 +79,27 @@ def process_chroot_update(copr, chroot_name):
             action = flask.request.form["submit"]
             if action == "update":
                 comps_name = comps_xml = None
+                module_md_name = module_md = None
+
                 if form.comps.has_file():
                     comps_xml = form.comps.data.stream.read()
                     comps_name = form.comps.data.filename
 
+                if form.module_md.has_file():
+                    module_md = form.module_md.data.stream.read()
+                    module_md_name = form.module_md.data.filename
+
                 coprs_logic.CoprChrootsLogic.update_chroot(
                     flask.g.user, chroot, form.buildroot_pkgs.data,
-                    comps=comps_xml, comps_name=comps_name)
+                    comps=comps_xml, comps_name=comps_name,
+                    module_md=module_md, module_md_name=module_md_name
+                )
 
             elif action == "delete_comps":
                 CoprChrootsLogic.remove_comps(flask.g.user, chroot)
+
+            elif action == "delete_module_md":
+                CoprChrootsLogic.remove_module_md(flask.g.user, chroot)
 
             flask.flash(
                 "Buildroot {0} in project {1} has been updated successfully.".format(
@@ -117,3 +128,20 @@ def group_chroot_view_comps(copr, chrootname):
 def render_chroot_view_comps(copr, chroot_name):
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
     return Response(chroot.comps or "", mimetype="text/plain; charset=utf-8")
+
+
+@coprs_ns.route("/<username>/<coprname>/chroot/<chrootname>/module_md/")
+@req_with_copr
+def chroot_view_module_md(copr, chrootname):
+    return render_chroot_view_module_md(copr, chrootname)
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/chroot/<chrootname>/module_md/")
+@req_with_copr
+def group_chroot_view_module_md(copr, chrootname):
+    return render_chroot_view_module_md(copr, chrootname)
+
+
+def render_chroot_view_module_md(copr, chroot_name):
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chroot_name)
+    return Response(chroot.module_md or "", mimetype="text/plain; charset=utf-8")
