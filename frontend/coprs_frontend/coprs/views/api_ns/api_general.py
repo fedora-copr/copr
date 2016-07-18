@@ -279,13 +279,21 @@ def api_coprs_by_owner_detail(copr):
 
     output = {"output": "ok", "detail": {}}
     yum_repos = {}
-    for build in copr.builds:
-        if build.results:
+    if copr.name == 'rubygems' and copr.owner_name == '@rubygems': # ...very ugly hotfix
+        build = BuildsLogic.get(386919).first()
+        if build and build.results:
             for chroot in copr.active_chroots:
                 release = release_tmpl.format(chroot=chroot)
                 yum_repos[release] = fix_protocol_for_backend(
                     os.path.join(build.results, release + '/'))
-            break
+    else:
+        for build in copr.builds:
+            if build.results:
+                for chroot in copr.active_chroots:
+                    release = release_tmpl.format(chroot=chroot)
+                    yum_repos[release] = fix_protocol_for_backend(
+                        os.path.join(build.results, release + '/'))
+                break
     output["detail"] = {
         "name": copr.name,
         "additional_repos": copr.repos,
