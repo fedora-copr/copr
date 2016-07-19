@@ -1,10 +1,12 @@
 import whoosh
+import time
 
 from flask.ext.whooshee import AbstractWhoosheer
 
 from coprs import models
 from coprs import whooshee
 from coprs import db
+
 
 @whooshee.register_whoosheer
 class CoprWhoosheer(AbstractWhoosheer):
@@ -27,7 +29,9 @@ class CoprWhoosheer(AbstractWhoosheer):
         description=whoosh.fields.TEXT(),
         instructions=whoosh.fields.TEXT())
 
-    models = [models.Copr, models.User, models.Group, models.Package]
+    models = [models.Copr, models.Package] # copr-specific: must inherit from CoprSearchRelatedData class
+
+    auto_update = False
 
     @classmethod
     def update_copr(cls, writer, copr):
@@ -93,3 +97,16 @@ class CoprWhoosheer(AbstractWhoosheer):
             """.format(copr.id)
         )
         return [row[0] for row in result.fetchall()]
+
+    @classmethod
+    def on_commit(cls, app, changes):
+        """Should be registered with flask.ext.sqlalchemy.models_committed."""
+        for change in changes:
+            if change[0].__class__ in cls.models:
+                copr_id = change[0].get_search_related_copr_id()
+                db.engine.execute(
+                    """
+                    UPDATE copr SET latest_indexed_data_update = {0}
+                    WHERE copr.id = {1}
+                    """.format(int(time.time()), copr_id)
+                )

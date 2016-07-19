@@ -18,6 +18,11 @@ import operator
 from coprs.helpers import BuildSourceEnum, StatusEnum, ActionTypeEnum, JSONEncodedDict
 
 
+class CoprSearchRelatedData(object):
+    def get_search_related_copr_id(self):
+        raise "Not Implemented"
+
+
 class User(db.Model, helpers.Serializer):
 
     """
@@ -165,7 +170,7 @@ class User(db.Model, helpers.Serializer):
             return ""
 
 
-class Copr(db.Model, helpers.Serializer):
+class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     """
     Represents a single copr (private repo with builds, mock chroots, etc.).
@@ -207,6 +212,9 @@ class Copr(db.Model, helpers.Serializer):
                                  server_default="1", nullable=False)
 
     unlisted_on_hp = db.Column(db.Boolean, default=False, nullable=False)
+
+    # information for search index updating
+    latest_indexed_data_update = db.Column(db.Integer)
 
     __mapper_args__ = {
         "order_by": created_on.desc()
@@ -345,6 +353,9 @@ class Copr(db.Model, helpers.Serializer):
                     .filter(Action.action_type == helpers.ActionTypeEnum("fork"))
                     .filter(Action.new_value == self.full_name).all())
 
+    def get_search_related_copr_id(self):
+        return self.id
+
 
 class CoprPermission(db.Model, helpers.Serializer):
 
@@ -365,7 +376,7 @@ class CoprPermission(db.Model, helpers.Serializer):
     copr = db.relationship("Copr", backref=db.backref("copr_permissions"))
 
 
-class Package(db.Model, helpers.Serializer):
+class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
     Represents a single package in a project.
     """
@@ -443,6 +454,9 @@ class Package(db.Model, helpers.Serializer):
             package_dict['builds'] = [build.to_dict(with_chroot_states=True) for build in reversed(self.builds)]
 
         return package_dict
+
+    def get_search_related_copr_id(self):
+        return self.copr.id
 
 
 class Build(db.Model, helpers.Serializer):

@@ -5,6 +5,7 @@ import os
 import subprocess
 import datetime
 import sqlalchemy
+import time
 
 import flask
 from flask_script import Manager, Command, Option, Group
@@ -17,6 +18,7 @@ from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
 from run import generate_repo_packages
+from sqlalchemy import or_
 
 
 class TestCommand(Command):
@@ -383,6 +385,25 @@ class UpdateIndexesCommand(Command):
         writer.commit(optimize=True)
 
 
+class UpdateIndexesQuickCommand(Command):
+    """
+    Recreates whoosh indexes for projects for which
+    indexed data were updated in last n minutes.
+    Doesn't update schema.
+    """
+
+    option_list = [Option("minutes_passed")]
+
+    def run(self, minutes_passed):
+        writer = CoprWhoosheer.index.writer()
+        query = db.session.query(models.Copr).filter(
+            models.Copr.latest_indexed_data_update >= time.time()-int(minutes_passed)*60
+        )
+        for copr in query.all():
+            CoprWhoosheer.update_copr(writer, copr)
+        writer.commit()
+
+
 class GenerateRepoPackagesCommand(Command):
     """
     go through all coprs and create configuration rpm packages
@@ -406,6 +427,7 @@ manager.add_command("alter_user", AlterUserCommand())
 manager.add_command("add_debug_user", AddDebugUserCommand())
 manager.add_command("fail_build", FailBuildCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
+manager.add_command("update_indexes_quick", UpdateIndexesQuickCommand())
 manager.add_command("generate_repo_packages", GenerateRepoPackagesCommand())
 manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
 
