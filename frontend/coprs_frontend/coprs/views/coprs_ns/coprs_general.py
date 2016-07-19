@@ -5,6 +5,7 @@ import time
 import os
 import re
 import uuid
+import subprocess
 from six.moves.urllib.parse import urljoin
 
 import flask
@@ -834,3 +835,9 @@ def copr_fork_post(copr):
 
         return flask.redirect(url_for_copr_details(fcopr))
     return render_copr_fork(copr, form)
+
+
+@coprs_ns.route("/update_search_index/", methods=["POST"])
+def copr_update_search_index():
+    subprocess.call(['/usr/share/copr/coprs_frontend/manage.py', 'update_indexes_quick', '1'])
+    return "OK"
