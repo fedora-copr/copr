@@ -366,6 +366,20 @@ rlJournalStart
         rlRun "copr-cli modify --unlisted-on-hp off ${NAME_PREFIX}Project7"
         rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org --silent | grep Project7" 0 # project should be visible on hp now
 
+        # test search index update by copr insertion
+        rlRun "copr-cli create --chroot fedora-23-x86_64 --chroot fedora-22-x86_64 ${NAME_PREFIX}Project8"
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project8 --silent | grep -E \"href=.*${NAME_PREFIX}Project8.*\"" 1 # search results _not_ returned
+        rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/"
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project8 --silent | grep -E \"href=.*${NAME_PREFIX}Project8.*\"" 0 # search results returned
+
+        # test search index update by package addition
+        rlRun "copr-cli create --chroot fedora-23-x86_64 --chroot fedora-22-x86_64 ${NAME_PREFIX}Project9" && sleep 65
+        rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/"
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project9 --silent | grep -E \"href=.*${NAME_PREFIX}Project9.*\"" 1 # search results _not_ returned
+        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project9 --name test_package_tito --git-url http://github.com/clime/example.git --test on" # insert package to the copr
+        rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/" # update the index again
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project9 --silent | grep -E \"href=.*${NAME_PREFIX}Project9.*\"" 0 # search results are returned now
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
