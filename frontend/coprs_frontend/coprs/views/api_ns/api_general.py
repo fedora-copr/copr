@@ -10,6 +10,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import forms
 from coprs import helpers
+from coprs import models
 from coprs.helpers import fix_protocol_for_backend
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
@@ -276,24 +277,16 @@ def api_coprs_by_owner_detail(copr):
 
     """
     release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
-
     output = {"output": "ok", "detail": {}}
     yum_repos = {}
-    if copr.name == 'rubygems' and copr.owner_name == '@rubygems': # ...very ugly hotfix
-        build = BuildsLogic.get(386919).first()
-        if build and build.results:
-            for chroot in copr.active_chroots:
-                release = release_tmpl.format(chroot=chroot)
-                yum_repos[release] = fix_protocol_for_backend(
-                    os.path.join(build.results, release + '/'))
-    else:
-        for build in copr.builds:
-            if build.results:
-                for chroot in copr.active_chroots:
-                    release = release_tmpl.format(chroot=chroot)
-                    yum_repos[release] = fix_protocol_for_backend(
-                        os.path.join(build.results, release + '/'))
-                break
+
+    build = models.Build.query.filter(models.Build.results != None).first()
+    if build:
+        for chroot in copr.active_chroots:
+            release = release_tmpl.format(chroot=chroot)
+            yum_repos[release] = fix_protocol_for_backend(
+                os.path.join(build.results, release + '/'))
+
     output["detail"] = {
         "name": copr.name,
         "additional_repos": copr.repos,
