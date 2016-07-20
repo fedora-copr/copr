@@ -3,6 +3,7 @@ import time
 from coprs import db
 from coprs import models
 from coprs import helpers
+from flask import url_for
 
 
 class ActionsLogic(object):
@@ -126,11 +127,23 @@ class ActionsLogic(object):
         :type copr_chroot: models.CoprChroot
         """
 
+        if chroot.copr.is_a_group_project:
+            url_path = url_for('coprs_ns.group_chroot_view_comps',
+                          group_name=chroot.copr.group.name,
+                          coprname=chroot.copr.name,
+                          chrootname=chroot.name)
+        else:
+            url_path = url_for('coprs_ns.chroot_view_comps',
+                          username=chroot.copr.user.username,
+                          coprname=chroot.copr.name,
+                          chrootname=chroot.name)
+
         data_dict = {
-            "username": chroot.copr.user.name,
+            "ownername": chroot.copr.owner_name,
             "projectname": chroot.copr.name,
             "chroot": chroot.name,
             "comps_present": chroot.comps_zlib is not None,
+            "url_path": url_path,
         }
 
         action = models.Action(
@@ -147,11 +160,23 @@ class ActionsLogic(object):
 
         :type copr_chroot: models.CoprChroot
         """
+        if chroot.copr.is_a_group_project:
+            url_path = url_for('coprs_ns.group_chroot_view_module_md',
+                          group_name=chroot.copr.group.name,
+                          coprname=chroot.copr.name,
+                          chrootname=chroot.name)
+        else:
+            url_path = url_for('coprs_ns.chroot_view_module_md',
+                          username=chroot.copr.user.username,
+                          coprname=chroot.copr.name,
+                          chrootname=chroot.name)
+
         data_dict = {
-            "username": chroot.copr.user.name,
+            "ownername": chroot.copr.owner_name,
             "projectname": chroot.copr.name,
             "chroot": chroot.name,
             "module_md_present": chroot.module_md_zlib is not None,
+            "url_path": url_path,
         }
 
         action = models.Action(

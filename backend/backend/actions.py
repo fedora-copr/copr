@@ -163,26 +163,23 @@ class Action(object):
         self.log.debug("Action delete build")
 
         ext_data = json.loads(self.data["data"])
-        username = ext_data["username"]
+        ownername = ext_data["ownername"]
         projectname = ext_data["projectname"]
         chroot = ext_data["chroot"]
+        url_path = ext_data["url_path"]
 
-        path = self.get_chroot_result_dir(chroot, projectname, username)
+        remote_comps_url = self.opts.frontend_base_url + url_path
+        self.log.info(remote_comps_url)
+
+        path = self.get_chroot_result_dir(chroot, projectname, ownername)
         local_comps_path = os.path.join(path, "comps.xml")
         if not ext_data.get("comps_present", True):
             silent_remove(local_comps_path)
         else:
-            remote_comps_url = "{}/coprs/{}/{}/chroot/{}/comps/".format(
-                self.opts.frontend_base_url,
-                username,
-                projectname,
-                chroot
-            )
             try:
-
                 urlretrieve(remote_comps_url, local_comps_path)
                 self.log.info("updated comps.xml for {}/{}/{} from {} "
-                              .format(username, projectname, chroot, remote_comps_url))
+                              .format(ownername, projectname, chroot, remote_comps_url))
             except Exception:
                 self.log.exception("Failed to update comps from {} at location {}"
                                    .format(remote_comps_url, local_comps_path))
@@ -193,25 +190,23 @@ class Action(object):
         self.log.debug("Action module_md update")
 
         ext_data = json.loads(self.data["data"])
-        username = ext_data["username"]
+        ownername = ext_data["ownername"]
         projectname = ext_data["projectname"]
         chroot = ext_data["chroot"]
+        url_path = ext_data["url_path"]
 
-        path = self.get_chroot_result_dir(chroot, projectname, username)
+        remote_module_md_url = self.opts.frontend_base_url + url_path
+        self.log.info(remote_module_md_url)
+
+        path = self.get_chroot_result_dir(chroot, projectname, ownername)
         local_module_md_path = os.path.join(path, "module_md.yaml")
         if not ext_data.get("module_md_present", True):
             silent_remove(local_module_md_path)
         else:
-            remote_module_md_url = "{}/coprs/{}/{}/chroot/{}/module_md/".format(
-                self.opts.frontend_base_url,
-                username,
-                projectname,
-                chroot
-            )
             try:
                 urlretrieve(remote_module_md_url, local_module_md_path)
                 self.log.info("updated module_md.yaml for {}/{}/{} from {} "
-                              .format(username, projectname, chroot, remote_module_md_url))
+                              .format(ownername, projectname, chroot, remote_module_md_url))
             except Exception:
                 self.log.exception("Failed to update module_md from {} at location {}"
                                    .format(remote_module_md_url, local_module_md_path))

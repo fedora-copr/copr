@@ -91,6 +91,7 @@ Requires:   crontabs
 Requires:   prunerepo
 Requires:   python-paramiko
 Requires:   python-lockfile
+Requires:   python2-modulemd
 # Requires:   python-ipdb
 Suggests:   logstash
 Requires:   libappstream-glib-builder >= 0.4.0

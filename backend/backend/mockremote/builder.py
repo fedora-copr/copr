@@ -13,6 +13,8 @@ from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, An
 
 from ..constants import mockchain, rsync, DEF_BUILD_TIMEOUT
 
+import modulemd
+
 
 class Builder(object):
 
@@ -35,6 +37,19 @@ class Builder(object):
         # if we're at this point we've connected and done stuff on the host
         self.conn = self._create_ans_conn()
         self.root_conn = self._create_ans_conn(username="root")
+
+        self.module_dist_tag = self._load_module_dist_tag()
+
+    def _load_module_dist_tag(self):
+        module_md_filepath = os.path.join(self.job.destdir, self.job.chroot, "module_md.yaml")
+        mmd = modulemd.ModuleMetadata()
+        try:
+            mmd.load(module_md_filepath)
+            #return ("." + mmd.name + '@' + mmd.version + '@' + mmd.release) # mock doesn't work with "@" atm
+            return ("." + mmd.name + '+' + mmd.version + '+' + mmd.release)
+        except Exception as e:
+            log.exception(e)
+            return None
 
     def get_chroot_config_path(self, chroot):
         return "{tempdir}/{chroot}.cfg".format(tempdir=self.tempdir, chroot=chroot)
@@ -175,6 +190,7 @@ class Builder(object):
             " line=\"config_opts['use_host_resolv'] = {net_enabled}\""
             " regexp=\"^.*use_host_resolv.*$\""
         )
+
         try:
             self.run_ansible_with_check(set_networking_cmd.format(**kwargs),
                                         module_name="lineinfile")
@@ -183,7 +199,17 @@ class Builder(object):
                                             module_name="lineinfile")
                 self.run_ansible_with_check(buildroot_custom_cmd.format(**kwargs),
                                             module_name="lineinfile")
-        except BuilderError as err:
+
+            if self.module_dist_tag:
+                set_dist_tag_cmd = (
+                    "dest={cfg_path}"
+                    " line=\"config_opts['macros']['%dist'] = '{dist_tag}'\""
+                    " regexp=\"^.*config_opts['macros']['%dist'].*$\""
+                )
+                self.run_ansible_with_check(set_dist_tag_cmd.format(
+                    cfg_path=cfg_path, dist_tag=self.module_dist_tag), module_name="lineinfile")
+
+        except Exception as err:
             self.log.exception(err)
             raise
 
