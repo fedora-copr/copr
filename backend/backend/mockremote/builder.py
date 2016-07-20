@@ -48,7 +48,7 @@ class Builder(object):
             #return ("." + mmd.name + '@' + mmd.version + '@' + mmd.release) # mock doesn't work with "@" atm
             return ("." + mmd.name + '+' + mmd.version + '+' + mmd.release)
         except Exception as e:
-            log.exception(e)
+            self.log.exception(e)
             return None
 
     def get_chroot_config_path(self, chroot):
