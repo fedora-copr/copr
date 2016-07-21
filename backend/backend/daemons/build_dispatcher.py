@@ -113,7 +113,7 @@ class BuildDispatcher(multiprocessing.Process):
             return False
 
         if not can_build_start:
-            self.log.exception("Frontend forbade to start the job {}".format(self.job.task_id))
+            self.log.exception("Frontend forbade to start the job {}".format(job.task_id))
 
         return can_build_start
 
