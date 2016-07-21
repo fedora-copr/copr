@@ -26,6 +26,7 @@ rlJournalStart
             read repo_name git_hash pkg_name task_id <<< `jq ".[$i] | .repo_name, .git_hash, .pkg_name, .task_id" $OUT`
             branch=`echo ${task_id//\"} | cut -d- -f2`
             if [[ git_hash != null ]]; then
+                rlLog "-------------- TASK: ${task_id//\"} --------------"
                 rlRun "git clone http://localhost/cgit/${repo_name}.git" 0
                 rlRun "cd $pkg_name" 0
                 rlRun "git checkout $git_hash" 0
