@@ -156,6 +156,7 @@ fi
 cd -
 
 sudo dnf -y downgrade fedpkg-1.20 # fedpkg-1.22-3 is unsupported (downgrade to 1.20)
+sudo dnf -y downgrade pyrpkg # pyrpkg-1.45 gives spec file parsing error
 
 # enable & start services
 systemctl daemon-reload
