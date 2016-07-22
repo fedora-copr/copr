@@ -30,11 +30,11 @@ rlJournalStart
 
         # get keyid of the key from pubkey.gpg file for the build task's project_owner and project_name
         rlRun "wget http://localhost:5002/results/$project_owner/$project_name/pubkey.gpg" 0
-        cat pubkey.gpg | gpg2 --list-packets | grep keyid: | sed 's/.*keyid: \(.*\)$/\1/' > pubkey.gpg.keyid # FIXME: better method to extract key id of the given public key?
+        cat pubkey.gpg | gpg2 --list-packets | grep keyid: | sed 's/.*keyid: \(.*\)$/\1/' > pubkey.gpg.keyid
 
         # get keyid of the key that was generated on copr-keygen server for the given project_owner and project_name
         docker exec copr-backend sign -p -u $project_owner#$project_name@copr.fedorahosted.org > signd.pubkey.gpg
-        cat signd.pubkey.gpg | gpg2 --list-packets | grep keyid: | sed 's/.*keyid: \(.*\)$/\1/' > signd.pubkey.gpg.keyid # FIXME: better method to extract key id of the given public key?
+        cat signd.pubkey.gpg | gpg2 --list-packets | grep keyid: | sed 's/.*keyid: \(.*\)$/\1/' > signd.pubkey.gpg.keyid
 
         rlAssertEquals "Check that pubkey.gpg matches the key generated on keygen server" `cat pubkey.gpg.keyid` `cat signd.pubkey.gpg.keyid`
 

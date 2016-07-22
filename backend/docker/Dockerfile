@@ -73,6 +73,7 @@ ARG RELEASETEST
 
 # enable appropriate copr repos
 RUN dnf -y copr enable @copr/copr
+RUN dnf -y copr enable @modularity/modulemd
 RUN if [ ! $RELEASETEST ]; then dnf -y copr enable @copr/copr-dev; fi
 
 # additional builder packages from COPR repos

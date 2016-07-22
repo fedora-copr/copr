@@ -24,5 +24,60 @@
   "object_id": 0,
   "object_type": "None",
   "old_value": ""
+},
+{
+  "_description": "Test rename",
+  "_expected_outcome": "success",
+
+  "action_type": 1,
+  "created_on": 1462513764,
+  "id": 3,
+  "old_value": "@actions/test-rename",
+  "new_value": "@actions/test-rename-renamed"
+},
+{
+  "_description": "Test generate gpg key (NOTE: do_sign config key must be true for this test to pass)",
+  "_expected_outcome": "success",
+
+  "action_type": 5,
+  "created_on": 1462513764,
+  "id": 4,
+  "data": "{\"username\": \"@actions\", \"projectname\": \"test-gen-pubkey\"}"
+},
+{
+  "_description": "Test delete comps.xml",
+  "_expected_outcome": "success",
+
+  "action_type": 4,
+  "created_on": 1462513764,
+  "id": 5,
+  "data": "{\"projectname\": \"test-delete-comps\", \"chroot\": \"fedora-23-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"\", \"comps_present\": false}"
+},
+{
+  "_description": "Test delete module_md.yaml",
+  "_expected_outcome": "success",
+
+  "action_type": 8,
+  "created_on": 1462513764,
+  "id": 6,
+  "data": "{\"projectname\": \"test-delete-module_md\", \"chroot\": \"fedora-23-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"\", \"module_md_present\": false}"
+},
+{
+  "_description": "Test upload comps.xml",
+  "_expected_outcome": "success",
+
+  "action_type": 4,
+  "created_on": 1462513764,
+  "id": 7,
+  "data": "{\"projectname\": \"test-upload-comps\", \"chroot\": \"fedora-23-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/comps.xml\", \"comps_present\": true}"
+},
+{
+  "_description": "Test upload module_md.yaml",
+  "_expected_outcome": "success",
+
+  "action_type": 8,
+  "created_on": 1462513764,
+  "id": 8,
+  "data": "{\"projectname\": \"test-upload-module_md\", \"chroot\": \"fedora-23-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/module_md.yaml\", \"module_md_present\": true}"
 }
 ]

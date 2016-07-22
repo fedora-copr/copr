@@ -13,6 +13,13 @@ rlJournalStart
         # pre-checks
         rlAssertEquals "Test that @actions/copr-to-be-deleted is accessible through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/copr-to-be-deleted/` 200
         rlRun "dnf repoquery --repofrompath=test-createrepo-repo,http://localhost:5002/results/@actions/test-createrepo/chroot-without-repodata/ --disablerepo=* --enablerepo=test-createrepo-repo --refresh --quiet --queryformat '%{reponame}' 2> /dev/null | grep test-createrepo-repo" 1 "Test that @actions/copr-without-repodata/chroot-without-repodata is not a valid repomd repository"
+        rlAssertEquals "Test that @actions/test-rename is accessible through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-rename/` 200
+        rlAssertEquals "Test that @actions/test-rename-renamed is not accessible through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-rename-renamed/` 404
+        rlRun "docker exec copr-backend sign -p -u @actions#test-gen-pubkey@copr.fedorahosted.org" 1 "Test that there is no key for @actions/test-gen-pubkey project"
+        rlAssertEquals "Test that there is no comps.xml file for @actions/test-upload-comps/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-upload-comps/fedora-23-x86_64/comps.xml` 404
+        rlAssertEquals "Test that there is no module_md.yaml file for @actions/test-upload-module_md/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-upload-module_md/fedora-23-x86_64/module_md.yaml` 404
+        rlAssertEquals "Test that there is comps.xml file uploaded for @actions/test-delete-comps/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-comps/fedora-23-x86_64/comps.xml` 200
+        rlAssertEquals "Test that there is module_md.yaml file uploaded for @actions/test-delete-module_md/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-module_md/fedora-23-x86_64/module_md.yaml` 200
 
         # input crunching
         rlRun "/usr/share/copr/mocks/frontend/app.py $TESTPATH $TESTPATH/static" 0
@@ -25,5 +32,12 @@ rlJournalStart
         # further tests
         rlAssertEquals "Test that @actions/copr-to-be-deleted was deleted (and is _not_ accessible now)" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/copr-to-be-deleted/` 404
         rlRun "dnf repoquery --repofrompath=test-createrepo-repo,http://localhost:5002/results/@actions/test-createrepo/chroot-without-repodata/ --disablerepo=* --enablerepo=test-createrepo-repo --refresh --quiet --queryformat '%{reponame}' 2> /dev/null | grep test-createrepo-repo" 0 "Test that @actions/copr-without-repodata/chroot-without-repodata is a valid repomd repository now"
+        rlAssertEquals "Test that @actions/test-rename is not accessible through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-rename/` 404
+        rlAssertEquals "Test that @actions/test-rename-renamed is accessible through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-rename-renamed/` 200
+        rlRun "docker exec copr-backend sign -p -u @actions#test-gen-pubkey@copr.fedorahosted.org" 0 "Test that the key for @actions/test-gen-pubkey project has been generated"
+        rlAssertEquals "Test that there is comps.xml file uploaded for @actions/test-upload-comps/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-upload-comps/fedora-23-x86_64/comps.xml` 200
+        rlAssertEquals "Test that there is module_md.yaml file uploaded for @actions/test-upload-module_md/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-upload-module_md/fedora-23-x86_64/module_md.yaml` 200
+        rlAssertEquals "Test that there is comps.xml file uploaded for @actions/test-delete-comps/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-comps/fedora-23-x86_64/comps.xml` 404
+        rlAssertEquals "Test that there is module_md.yaml file uploaded for @actions/test-delete-module_md/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-module_md/fedora-23-x86_64/module_md.yaml` 404
     rlPhaseEnd
 rlJournalEnd &> /dev/null
