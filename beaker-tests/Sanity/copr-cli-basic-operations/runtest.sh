@@ -203,7 +203,7 @@ rlJournalStart
         rlRun `cat $SOURCE_JSON | jq '.python_versions == ["3", "2"]'` 0 "package.source_json.python_versions == [\"3\", \"2\"]"
         rlAssertEquals "package.source_json.pypi_package_name == \"pyp2rpm\"" `cat $SOURCE_JSON | jq '.pypi_package_name'` '"pyp2rpm"'
         rlAssertEquals "package.source_json.pypi_package_version == \"bar\"" `cat $SOURCE_JSON | jq '.pypi_package_version'` '"1.5"'
- 
+
         # PyPI package editing
         rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename motionpaint --packageversion 1.4 --pythonversions 2 3"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
@@ -227,7 +227,7 @@ rlJournalStart
         rlAssertEquals "package.source_json.scm_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.scm_url'` '"http://github.com/clime/example.git"'
         rlAssertEquals "package.source_json.scm_branch == \"foo\"" `cat $SOURCE_JSON | jq '.scm_branch'` '"foo"'
         rlAssertEquals "package.source_json.spec == \"example.spec\"" `cat $SOURCE_JSON | jq '.spec'` '"example.spec"'
- 
+
         # MockSCM package editing
         rlRun "copr-cli edit-package-mockscm ${NAME_PREFIX}Project4 --name test_package_mockscm --scm-type svn --scm-url http://github.com/clime/example2.git --scm-branch bar --spec example2.spec"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
@@ -380,6 +380,44 @@ rlJournalStart
         rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/" # update the index again
         rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project9 --silent | grep -E \"href=.*${NAME_PREFIX}Project9.*\"" 0 # search results are returned now
 
+
+        ### ---- FORKING PROJECTS -------- ###
+        # default fork usage
+        OUTPUT=`mktemp`
+        rlRun "copr-cli create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project10"
+        rlRun "copr-cli build ${NAME_PREFIX}Project10 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork > $OUTPUT"
+        rlAssertEquals "Forking project" `grep -r 'Forking project' $OUTPUT |wc -l` 1
+        rlAssertEquals "Info about backend data" `grep -r 'Please be aware that it may take a few minutes to duplicate a backend data.' $OUTPUT |wc -l` 1
+
+        # attempt to fork into existing project
+        OUTPUT=`mktemp`
+        rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork &> $OUTPUT" 1
+        rlAssertEquals "Error existing project" `grep -r 'Error: You are about to fork into existing project' $OUTPUT |wc -l` 1
+        rlAssertEquals "Use --confirm" `grep -r 'Please use --confirm if you really want to do this' $OUTPUT |wc -l` 1
+
+        # fork into existing project
+        OUTPUT=`mktemp`
+        rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork --confirm > $OUTPUT"
+        rlAssertEquals "Updating packages" `grep -r 'Updating packages in' $OUTPUT |wc -l` 1
+
+        # use package from forked project
+        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10Fork fedora-23-x86_64"
+        rlRun "dnf remove -y hello"
+        rlRun "dnf install -y hello"
+
+        # check repo properties
+        REPOFILE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10Fork.repo |sed 's/\/TEST/-TEST/g')
+        rlAssertEquals "Baseurl should point to fork project" `grep -r "^baseurl=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1
+        rlAssertEquals "GPG pubkey should point to fork project" `grep -r "^gpgkey=" $REPOFILE |grep ${NAME_PREFIX} |wc -l` 1
+
+        # check whether pubkey.gpg exists
+        rlRun "curl -f $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g')"
+
+        # clean
+        rlRun "yes | dnf copr disable  ${NAME_PREFIX}Project10Fork"
+
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
@@ -393,6 +431,8 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project7"
         rlRun "copr-cli delete ${NAME_PREFIX}Project8"
         rlRun "copr-cli delete ${NAME_PREFIX}Project9"
+        rlRun "copr-cli delete ${NAME_PREFIX}Project10"
+        rlRun "copr-cli delete ${NAME_PREFIX}Project10Fork"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed
