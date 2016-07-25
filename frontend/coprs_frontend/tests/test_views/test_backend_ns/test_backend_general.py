@@ -1,6 +1,7 @@
 import json
 
 from tests.coprs_test_case import CoprsTestCase
+from coprs.logic.builds_logic import BuildsLogic
 
 
 class TestWaitingBuilds(CoprsTestCase):
@@ -19,6 +20,17 @@ class TestWaitingBuilds(CoprsTestCase):
 
         r = self.tc.get("/backend/waiting/", headers=self.auth_header)
         #assert len(json.loads(r.data.decode("utf-8"))["builds"]) == 5 #TODO: make the test useful ?
+
+    def test_waiting_bg_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        self.b2.is_background = True
+        for build_chroots in [self.b2_bc, self.b3_bc, self.b4_bc]:
+            for build_chroot in build_chroots:
+                build_chroot.status = 4  # pending
+        self.db.session.commit()
+
+        r = self.tc.get("/backend/waiting/")
+        data = json.loads(r.data)
+        assert data["build"]["build_id"] == 3
 
 
 # status = 0 # failure
@@ -218,3 +230,21 @@ class TestUpdateActions(CoprsTestCase):
         assert updated2.result == 2
         assert updated2.message == "problem!"
         assert updated2.ended_on == 139086644000
+
+
+class TestImportingBuilds(CoprsTestCase):
+    def test_bg_priority_in_queue(self, f_users, f_coprs, f_mock_chroots, f_db):
+        BuildsLogic.create_new_from_url(self.u1, self.c1, "foo", background=True)
+        BuildsLogic.create_new_from_url(self.u1, self.c1, "bar")
+
+        r = self.tc.get("/backend/importing/")
+        data = json.loads(r.data)
+        assert json.loads(data["builds"][0]["source_json"])["url"] == "bar"
+
+    def test_importing_queue_multiple_bg(self, f_users, f_coprs, f_mock_chroots, f_db):
+        BuildsLogic.create_new_from_url(self.u1, self.c1, "foo", background=True)
+        BuildsLogic.create_new_from_url(self.u1, self.c1, "bar", background=True)
+
+        r = self.tc.get("/backend/importing/")
+        data = json.loads(r.data)
+        assert json.loads(data["builds"][0]["source_json"])["url"] == "foo"
