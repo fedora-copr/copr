@@ -115,6 +115,7 @@ class Action(object):
         builds_map = json.loads(self.data["data"])["builds_map"]
 
         if not os.path.exists(old_path):
+            self.log.info("Source copr directory doesnt exist: {}".format(old_path))
             result.result = ActionResult.FAILURE
             return
 
