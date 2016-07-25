@@ -1,7 +1,7 @@
 """last_deferred column added for BuildChroot
 
 Revision ID: 1ff696f006f1
-Revises: 1c61e5b88e45
+Revises: 1ea00801be9e
 Create Date: 2016-06-28 21:04:27.036088
 
 """
