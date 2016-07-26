@@ -13,7 +13,7 @@ from copr.exceptions import CoprRequestException
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError
-from .helpers import get_redis_logger, silent_remove
+from .helpers import get_redis_logger, silent_remove, ensure_dir_exists
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 
@@ -172,6 +172,7 @@ class Action(object):
         self.log.info(remote_comps_url)
 
         path = self.get_chroot_result_dir(chroot, projectname, ownername)
+        ensure_dir_exists(path, self.log)
         local_comps_path = os.path.join(path, "comps.xml")
         if not ext_data.get("comps_present", True):
             silent_remove(local_comps_path)
@@ -183,8 +184,9 @@ class Action(object):
             except Exception:
                 self.log.exception("Failed to update comps from {} at location {}"
                                    .format(remote_comps_url, local_comps_path))
-
-        result.result = ActionResult.SUCCESS
+                result.result = ActionResult.FAILURE
+            else:
+                result.result = ActionResult.SUCCESS
 
     def handle_module_md_update(self, result):
         self.log.debug("Action module_md update")
@@ -199,6 +201,7 @@ class Action(object):
         self.log.info(remote_module_md_url)
 
         path = self.get_chroot_result_dir(chroot, projectname, ownername)
+        ensure_dir_exists(path, self.log)
         local_module_md_path = os.path.join(path, "module_md.yaml")
         if not ext_data.get("module_md_present", True):
             silent_remove(local_module_md_path)
@@ -210,8 +213,9 @@ class Action(object):
             except Exception:
                 self.log.exception("Failed to update module_md from {} at location {}"
                                    .format(remote_module_md_url, local_module_md_path))
-
-        result.result = ActionResult.SUCCESS
+                result.result = ActionResult.FAILURE
+            else:
+                result.result = ActionResult.SUCCESS
 
     def handle_delete_build(self):
         self.log.debug("Action delete build")

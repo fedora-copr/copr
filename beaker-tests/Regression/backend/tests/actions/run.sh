@@ -20,6 +20,8 @@ rlJournalStart
         rlAssertEquals "Test that there is no module_md.yaml file for @actions/test-upload-module_md/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-upload-module_md/fedora-23-x86_64/module_md.yaml` 404
         rlAssertEquals "Test that there is comps.xml file uploaded for @actions/test-delete-comps/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-comps/fedora-23-x86_64/comps.xml` 200
         rlAssertEquals "Test that there is module_md.yaml file uploaded for @actions/test-delete-module_md/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-module_md/fedora-23-x86_64/module_md.yaml` 200
+        rlAssertEquals "Test that there is no comps.xml file for @actions/test-save-comps-no-chroot/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-save-comps-no-chroot/fedora-23-x86_64/comps.xml` 404
+        rlAssertEquals "Test that there is no module_md.yaml file for @actions/test-save-module_md-no-chroot/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-save-module_md-no-chroot/fedora-23-x86_64/module_md.yaml` 404
 
         # input crunching
         rlRun "/usr/share/copr/mocks/frontend/app.py $TESTPATH $TESTPATH/static" 0
@@ -39,5 +41,7 @@ rlJournalStart
         rlAssertEquals "Test that there is module_md.yaml file uploaded for @actions/test-upload-module_md/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-upload-module_md/fedora-23-x86_64/module_md.yaml` 200
         rlAssertEquals "Test that there is comps.xml file uploaded for @actions/test-delete-comps/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-comps/fedora-23-x86_64/comps.xml` 404
         rlAssertEquals "Test that there is module_md.yaml file uploaded for @actions/test-delete-module_md/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-module_md/fedora-23-x86_64/module_md.yaml` 404
+        rlAssertEquals "Test that there exists comps.xml file for @actions/test-save-comps-no-chroot/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-save-comps-no-chroot/fedora-23-x86_64/comps.xml` 200
+        rlAssertEquals "Test that there exists module_md.yaml file for @actions/test-save-module_md-no-chroot/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-save-module_md-no-chroot/fedora-23-x86_64/module_md.yaml` 200
     rlPhaseEnd
 rlJournalEnd &> /dev/null

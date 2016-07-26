@@ -401,6 +401,14 @@ def get_backend_opts():
     return config_reader.read()
 
 
+def ensure_dir_exists(path, log):
+    if not os.path.isdir(path):
+        try:
+            os.makedirs(path)
+        except OSError as e:
+            log.exception(e)
+
+
 @contextmanager
 def local_file_logger(name, path, fmt):
     build_logger = create_file_logger(name, path, fmt)

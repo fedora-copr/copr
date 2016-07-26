@@ -1,0 +1,174 @@
+# Document type identifier
+document: modulemd
+# Module metadata format version
+version: 0
+data:
+        # Module name, required
+        # NOTE: Module names might be structured differently later to include the
+        # module's vendor ecosystem, e.g. org.fedoraproject.foo in this case.
+        # This would also affect the dependency sections defined furhter below.
+        name: foo
+        # NOTE: Module versioning is currently being investigated
+        # http://taiga.fedorainfracloud.org/project/modularity/us/175
+        # Module version, required
+        # Typically the same as the version of the main component, where applicable
+        version: 1.23
+        # Module release, required
+        # Version of the module itself
+        release: 4
+        # A short summary describing the module, required
+        summary: An example module
+        # A verbose description of the module, required
+        description: >
+                A module for the demonstration of the metadata format. Also,
+                the obligatory lorem ipsum dolor sit amet goes right here.
+        # Module and content licenses in the Fedora license identifier format, required
+        license:
+                # Module license, required
+                # This list covers licenses used for the module metadata,
+                # SPEC files or extra patches
+                module:
+                        - MIT
+                # Content license, optional
+                # A list of licenses used by the packages in the module.
+                # This should be populated by build tools.
+                content:
+                        - Beerware
+                        - GPLv2+
+                        - zlib
+        # Extensible metadata block
+        # http://taiga.fedorainfracloud.org/project/modularity/us/135
+        # A dictionary of user-defined keys and values.  May be null.
+        # Optional.  Defaults to null.
+        xmd: ~
+        # Module dependencies, if any.  Optional.
+        # NOTE: Module dependencies are currently being investigated
+        # http://taiga.fedorainfracloud.org/project/modularity/us/170
+        # TODO: Provides, conflicts, obsoletes, recommends, etc.
+        # TODO: Support for comparison operators
+        dependencies:
+                # Build dependencies of this module, optional
+                # Keys are module names, values are the minimum required versions
+                # These modules define the buildroot for this module
+                buildrequires:
+                        core: 23
+                        c-build: 6.0
+                # Run-time dependencies of this module, optional
+                # Keys are module names, values are the minimum required versions
+                requires:
+                        core: 23
+        # References to external resources, typically upstream, optional
+        references:
+                # Upstream community website, if it exists, optional
+                community: http://www.example.com/
+                # Upstream documentation, if it exists, optional
+                documentation: http://www.example.com/
+                # Upstream bug tracker, if it exists, optional
+                tracker: http://www.example.com/
+        # Profiles define the end user's use cases for the module
+        # and consist of package lists of components to
+        # be installed by default if this module is enabled.
+        # The keys here are the profile names and contain package
+        # lists by component type. See the example.
+        # Optional, defaults to no profile definitions.
+        # TODO: Profiles deserve detailed documentation.
+        profiles:
+                # The default profile, used unless any other
+                # profile was selected.
+                # Optional, defaults to empty lists.
+                default:
+                        rpms:
+                                - bar
+                                - bar-extras
+                                - baz
+                # An example minimal profile only installing one
+                # component.
+                # Optional, just like any other profile.
+                # XXX: What happens if the system wants to use
+                # an undefined profile name?  Should we fall back
+                # to "default" or just assume an empty list?
+                minimal:
+                        # A verbose description of the module, optional
+                        description: >
+                                Minimal profile installing only the bar package.
+                        rpms:
+                                - bar
+        # Functional components of the module, optional
+        components:
+                # RPM content of the module, optional
+                # NOTE: This is currently being investigated
+                # TODO: Package priority build order support (chainbuild)
+                # TODO: Component tags:
+                # http://taiga.fedorainfracloud.org/project/modularity/us/186
+                # http://taiga.fedorainfracloud.org/project/modularity/us/187
+                # http://taiga.fedorainfracloud.org/project/modularity/us/188
+                # TODO: Define architectures to build for
+                rpms:
+                        # Should this module include dependencies of its RPM packages
+                        # that are not provided by any of the modules it depends on at
+                        # runtime?
+                        # Optional, defaults to False
+                        # The module maintainer is responsible for declaring the
+                        # correct inter-modular dependencies and/or bundling all the
+                        # components they require.
+                        dependencies: False
+                        # The module's public RPM-level API.
+                        # A list of binary RPM names that are considered to be the
+                        # main and stable feature of the module; binary RPMs not
+                        # listed here are considered "unsupported" or "implementation
+                        # details".  In the example here we don't list the xyz package
+                        # as it's only included as a dependency of xxx.  However, we
+                        # list a subpackage of bar, bar-extras.
+                        # Optional, defaults to an empty list.
+                        api:
+                                - bar
+                                - bar-extras
+                                - baz
+                                - xxx
+                        # Binary RPM names not to be included in the module.
+                        # By default, all built binary RPMs are included.  In the
+                        # example we exclude a subpackage of bar, bar-nonfoo from
+                        # our module.
+                        # Optional, defaults to an empty list.
+                        filter:
+                                - bar-nonfoo
+                        # RPM-based packages of this module.
+                        # Keys are the VCS/SRPM names, values dictionaries holding
+                        # additional information.
+                        # Optional
+                        packages:
+                                bar:
+                                        # Why is this component present.
+                                        # A simple, free-form string.  This will most
+                                        # likely change in the future.
+                                        # http://taiga.fedorainfracloud.org/project/modularity/us/188
+                                        # Required.
+                                        rationale: We need this to demonstrate stuff.
+                                        # Use this repository if it's different from
+                                        # the build system configuration.
+                                        # Optional.
+                                        repository: https://pagure.io/bar.git
+                                        # Use this lookaside cache if it's different
+                                        # from the build system configuration.
+                                        # Optional.
+                                        cache: https://example.com/cache
+                                        # Use this specific commit ID for the build.
+                                        # If no commit ID is given, the latest master
+                                        # commit (HEAD) will be used.
+                                        # Optional.
+                                        commit: 26ca0c0
+                                # baz has no extra options
+                                baz:
+                                        rationale: This one is here to demonstrate other stuff.
+                                xxx:
+                                        rationale: xxx demonstrates arches and multilib.
+                                        # xxx is only available on the listed architectures.
+                                        # Optional, defaults to all available arches.
+                                        arches: [ i686, x86_64 ]
+                                        # a list of architectures with multilib
+                                        # installs, i.e. both i686 and x86_64
+                                        # versions will be installed on x86_64.
+                                        # Optional, defaults to no multilib.
+                                        multilib: [ x86_64 ]
+                                xyz:
+                                        rationale: xyz is a bundled dependency of xxx.
