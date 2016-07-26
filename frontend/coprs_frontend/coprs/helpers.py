@@ -527,3 +527,11 @@ def literal_query(statement):
         dialect=LiteralDialect(),
         compile_kwargs={'literal_binds': True},
     ).string
+
+
+def stream_template(template_name, **context):
+    app.update_template_context(context)
+    t = app.jinja_env.get_template(template_name)
+    rv = t.stream(context)
+    rv.enable_buffering(2)
+    return rv

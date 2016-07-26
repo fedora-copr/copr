@@ -1,5 +1,5 @@
 import flask
-from flask import request, render_template, url_for
+from flask import request, render_template, url_for, stream_with_context
 import re
 import os
 import shutil
@@ -86,9 +86,9 @@ def group_copr_builds(copr):
 
 def render_copr_builds(copr):
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr=copr)
-    return flask.render_template("coprs/detail/builds.html",
+    return flask.Response(stream_with_context(helpers.stream_template("coprs/detail/builds.html",
                                  copr=copr,
-                                 builds=list(builds_query))
+                                 builds=list(builds_query))))
 
 
 ################################ Url builds ################################

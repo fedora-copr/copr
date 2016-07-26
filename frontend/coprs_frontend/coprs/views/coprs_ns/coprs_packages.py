@@ -1,7 +1,7 @@
 import flask
 import json
 
-from flask import url_for
+from flask import Response, stream_with_context, url_for
 from flask import send_file
 from coprs import db
 from coprs import forms
@@ -22,13 +22,9 @@ from coprs.exceptions import (ActionInProgressException,ObjectNotFound,
 @req_with_copr
 def copr_packages(copr):
     packages_query = PackagesLogic.get_copr_packages_list(copr)
-    return flask.render_template("coprs/detail/packages.html",
+    return flask.Response(stream_with_context(helpers.stream_template("coprs/detail/packages.html",
                                  copr=copr,
-                                 packages=list(packages_query))
-
-    #old code:
-    #packages = PackagesLogic.get_all(copr.id)
-    #return flask.render_template("coprs/detail/packages.html", packages=packages, copr=copr, empty_build=Build())
+                                 packages=list(packages_query))))
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/")
 @coprs_ns.route("/g/<group_name>/<coprname>/package/<package_name>/")

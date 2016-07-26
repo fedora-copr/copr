@@ -9,7 +9,7 @@ import subprocess
 from six.moves.urllib.parse import urljoin
 
 import flask
-from flask import render_template, url_for
+from flask import render_template, url_for, stream_with_context
 import platform
 import smtplib
 import sqlalchemy
@@ -775,12 +775,12 @@ def render_monitor(copr, detailed=False):
         template = "coprs/detail/monitor/detailed.html"
     else:
         template = "coprs/detail/monitor/simple.html"
-    return flask.render_template(template,
+    return flask.Response(stream_with_context(helpers.stream_template(template,
                                  copr=copr,
                                  monitor=monitor,
                                  oses=oses_grouped,
                                  archs=archs,
-                                 status_enum_func=helpers.StatusEnum)
+                                 status_enum_func=helpers.StatusEnum)))
 
 
 @coprs_ns.route("/<username>/<coprname>/monitor/")
