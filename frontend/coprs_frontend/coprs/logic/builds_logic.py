@@ -778,32 +778,34 @@ class BuildChrootsLogic(object):
 class BuildsMonitorLogic(object):
     @classmethod
     def get_monitor_data(cls, copr):
-        subquery = (
-            db.session.query(
-                db.func.max(Build.id).label("max_build_id_for_chroot"),
-                Build.package_id,
-                BuildChroot.mock_chroot_id)
-            .join(BuildChroot, and_(Build.id == BuildChroot.build_id))
-            .filter(Build.copr_id == copr.id)
-            .filter(BuildChroot.status != 2)
-            .group_by(Build.package_id, BuildChroot.mock_chroot_id)
-            .subquery("max_build_ids_for_a_chroot")
-        )
-        query = (
-            db.session.query(Package, Build, BuildChroot, MockChroot)
-            .join(subquery, and_(Package.id == subquery.c.package_id))
-            .join(Build, and_(Build.id == subquery.c.max_build_id_for_chroot))
-            .join(BuildChroot, and_(
-                BuildChroot.mock_chroot_id == subquery.c.mock_chroot_id,
-                BuildChroot.build_id == subquery.c.max_build_id_for_chroot
-            ))
-            .join(MockChroot, and_(MockChroot.id == subquery.c.mock_chroot_id))
-            .order_by(
-                asc(Package.name),
-                asc(Package.id), # in case there are two packages with the same name
-                asc(MockChroot.os_release),
-                asc(MockChroot.os_version),
-                asc(MockChroot.arch)
-            )
-        )
-        return query.all()
+        query = """
+	SELECT
+	  package.id as package_id,
+	  package.name AS package_name,
+	  build.id AS build_id,
+	  build_chroot.status AS build_chroot_status,
+	  mock_chroot.id AS mock_chroot_id
+	FROM package
+	JOIN (SELECT
+	  MAX(build.id) AS max_build_id_for_chroot,
+	  build.package_id AS package_id,
+	  build_chroot.mock_chroot_id AS mock_chroot_id
+	FROM build
+	JOIN build_chroot
+	  ON build.id = build_chroot.build_id
+	WHERE build.copr_id = {copr_id}
+	AND build_chroot.status != 2
+	GROUP BY build.package_id,
+		 build_chroot.mock_chroot_id) AS max_build_ids_for_a_chroot
+	  ON package.id = max_build_ids_for_a_chroot.package_id
+	JOIN build
+	  ON build.id = max_build_ids_for_a_chroot.max_build_id_for_chroot
+	JOIN build_chroot
+	  ON build_chroot.mock_chroot_id = max_build_ids_for_a_chroot.mock_chroot_id
+	  AND build_chroot.build_id = max_build_ids_for_a_chroot.max_build_id_for_chroot
+	JOIN mock_chroot
+	  ON mock_chroot.id = max_build_ids_for_a_chroot.mock_chroot_id
+	ORDER BY package.name ASC, package.id ASC, mock_chroot.os_release ASC, mock_chroot.os_version ASC, mock_chroot.arch ASC
+	""".format(copr_id=copr.id)
+        rows = db.session.execute(query)
+        return rows

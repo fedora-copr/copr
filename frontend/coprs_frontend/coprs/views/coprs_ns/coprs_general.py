@@ -779,7 +779,8 @@ def render_monitor(copr, detailed=False):
                                  copr=copr,
                                  monitor=monitor,
                                  oses=oses_grouped,
-                                 archs=archs)
+                                 archs=archs,
+                                 status_enum_func=helpers.StatusEnum)
 
 
 @coprs_ns.route("/<username>/<coprname>/monitor/")
