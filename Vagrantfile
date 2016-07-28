@@ -425,6 +425,7 @@ echo \"Host *
     backend.vm.provision "shell",
       inline: <<-SHELL
         sudo dnf -y copr enable @copr/copr-dev
+        sudo dnf -y copr enable @modularity/modulemd
         sudo rpm --nodeps -e vim-minimal
         sudo dnf -y install dnf-plugins-core htop tito wget net-tools iputils vim mlocate git sudo python-nova openssh-server supervisor psmisc
 
