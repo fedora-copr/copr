@@ -58,7 +58,6 @@ class ComplexLogic(object):
             fbuild = forking.fork_build(build, fcopr, fpackage)
             builds_map[fbuild.id] = build.result_dir_name
 
-        ActionsLogic.send_create_gpg_key(fcopr)
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
         return fcopr, created
 

@@ -15,12 +15,6 @@ class TestComplexLogic(CoprsTestCase):
         fc1, created = ComplexLogic.fork_copr(self.c1, self.u2, u"dstname")
         self.db.session.commit()
 
-        actions = ActionsLogic.get_many(ActionTypeEnum("gen_gpg_key")).all()
-        assert len(actions) == 1
-        data = json.loads(actions[0].data)
-        assert data["username"] == self.u2.name
-        assert data["projectname"] == "dstname"
-
         actions = ActionsLogic.get_many(ActionTypeEnum("fork")).all()
         assert len(actions) == 1
         data = json.loads(actions[0].data)

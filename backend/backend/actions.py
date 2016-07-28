@@ -121,6 +121,7 @@ class Action(object):
 
         pubkey_path = os.path.join(new_path, "pubkey.gpg")
         mkpath(new_path)
+        self.generate_gpg_key(data["user"], data["copr"])
         get_pubkey(data["user"], data["copr"], pubkey_path)
 
         chroots = set()
@@ -298,16 +299,18 @@ class Action(object):
         username = ext_data["username"]
         projectname = ext_data["projectname"]
 
+        success = self.generate_gpg_key(username, projectname)
+        result.result = ActionResult.SUCCESS if success else ActionResult.FAILURE
+
+    def generate_gpg_key(self, owner, projectname):
         if self.opts.do_sign is False:
             # skip key creation, most probably sign component is unused
-            result.result = ActionResult.SUCCESS
-            return
-
+            return True
         try:
-            create_user_keys(username, projectname, self.opts)
-            result.result = ActionResult.SUCCESS
+            create_user_keys(owner, projectname, self.opts)
+            return True
         except CoprKeygenRequestError:
-            result.result = ActionResult.FAILURE
+            return False
 
     def handle_rawhide_to_release(self, result):
         data = json.loads(self.data["data"])
