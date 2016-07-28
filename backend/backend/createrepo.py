@@ -107,6 +107,7 @@ INCLUDE_ICONS = \
 
 INCLUDE_MODULE_MD = \
     """/usr/bin/modifyrepo_c \
+--mdtype module \
 {packages_dir}/module_md.yaml \
 {packages_dir}/repodata
 """
