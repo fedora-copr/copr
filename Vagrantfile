@@ -427,7 +427,7 @@ echo \"Host *
         sudo dnf -y copr enable @copr/copr-dev
         sudo dnf -y copr enable @modularity/modulemd
         sudo rpm --nodeps -e vim-minimal
-        sudo dnf -y install dnf-plugins-core htop tito wget net-tools iputils vim mlocate git sudo python-nova openssh-server supervisor psmisc
+        sudo dnf -y install dnf-plugins-core htop tito wget net-tools iputils vim mlocate git sudo python-nova openssh-server supervisor psmisc tmux
 
         # Builder packages
         sudo dnf -y install fedpkg-copr packagedb-cli fedora-cert mock mock-lvm createrepo yum-utils pyliblzma rsync openssh-clients libselinux-python libsemanage-python rpm glib2 ca-certificates scl-utils-build ethtool copr-keygen nginx
