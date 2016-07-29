@@ -42,14 +42,17 @@ class Builder(object):
 
     def _load_module_dist_tag(self):
         module_md_filepath = os.path.join(self.job.destdir, self.job.chroot, "module_md.yaml")
-        mmd = modulemd.ModuleMetadata()
         try:
+            mmd = modulemd.ModuleMetadata()
             mmd.load(module_md_filepath)
-            #return ("." + mmd.name + '@' + mmd.version + '@' + mmd.release) # mock doesn't work with "@" atm
-            return ("." + mmd.name + '+' + mmd.version + '+' + mmd.release)
-        except Exception as e:
-            self.log.exception(e)
+        except IOError as e:
             return None
+        except Exception as e:
+            log.exception(e)
+            return None
+        else:
+            self.log.info("Loaded {}".format(module_md_filepath))
+            return ("." + mmd.name + '+' + mmd.version + '+' + mmd.release)
 
     def get_chroot_config_path(self, chroot):
         return "{tempdir}/{chroot}.cfg".format(tempdir=self.tempdir, chroot=chroot)
