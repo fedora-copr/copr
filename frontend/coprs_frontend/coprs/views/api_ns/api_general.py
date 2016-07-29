@@ -261,7 +261,9 @@ def api_coprs_by_owner(username=None):
                                 "additional_repos": repo.repos,
                                 "yum_repos": yum_repos,
                                 "description": repo.description,
-                                "instructions": repo.instructions})
+                                "instructions": repo.instructions,
+                                "unlisted_on_hp": repo.unlisted_on_hp
+                               })
 
     return flask.jsonify(output)
 
@@ -295,6 +297,7 @@ def api_coprs_by_owner_detail(copr):
         "instructions": copr.instructions,
         "last_modified": builds_logic.BuildsLogic.last_modified(copr),
         "auto_createrepo": copr.auto_createrepo,
+        "unlisted_on_hp": copr.unlisted_on_hp
     }
     return flask.jsonify(output)
 
