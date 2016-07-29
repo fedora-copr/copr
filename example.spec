@@ -2,7 +2,6 @@ Name:       example
 Version:	1.0.5
 Release:	1%{?dist}
 Summary:	This is a simple example to test copr
-BuildArch:  x86_64
 
 Group:		Applications/File
 License:	GPLv2+
