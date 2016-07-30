@@ -141,9 +141,11 @@ def add_appdata(path, username, projectname, lock=None):
 
 
 def add_module_md(path):
-    return run_cmd_unsafe(
-        INCLUDE_MODULE_MD.format(packages_dir=path), os.path.join(path, "createrepo.lock")
-    )
+    if os.path.exists(os.path.join(path, "module_md.yaml")):
+        return run_cmd_unsafe(
+            INCLUDE_MODULE_MD.format(packages_dir=path), os.path.join(path, "createrepo.lock")
+        )
+    return ""
 
 
 def createrepo(path, front_url, username, projectname,
