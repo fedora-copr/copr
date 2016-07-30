@@ -380,12 +380,9 @@ rlJournalStart
         rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/" # update the index again
         rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project9 --silent | grep -E \"href=.*${NAME_PREFIX}Project9.*\"" 0 # search results are returned now
 
-        # Modularity integration tests
-        rlRun "copr-cli create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project11"
-        rlRun "curl -X POST --user aufnfpybzwwqjtalbial:qmxehlybyghkqlwmyumxuhahbhzxrq --form \"file=@metadata.yaml;filename=module_md\"  http://localhost:8080/api/coprs/${NAME_PREFIX}Project11/modify/fedora-23-x86_64/"
-
-        #/coprs/<username>/<coprname>/modify/<chrootname>/
-        #http://localhost:8080/coprs/g/copr/copr/update_chroot/fedora-23-x86_64/k 
+        # TODO: Modularity integration tests
+        #rlRun "copr-cli create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project11"
+        #rlRun "curl -X POST --user aufnfpybzwwqjtalbial:qmxehlybyghkqlwmyumxuhahbhzxrq --form \"file=@metadata.yaml;filename=module_md\"  http://localhost:8080/api/coprs/${NAME_PREFIX}Project11/modify/fedora-23-x86_64/"
 
         ### ---- FORKING PROJECTS -------- ###
         # default fork usage
@@ -422,9 +419,9 @@ rlJournalStart
 
         rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10 fedora-23-x86_64"
         REPOFILE_SOURCE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10.repo |sed 's/\/TEST/-TEST/g')
-        rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') pubkey_source.gpg"
-        rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') pubkey_fork.gpg"
-        rlAssertEquals "simple check that a new key was generated for the forked repo" `diff pubkey_source.gpg pubkey_fork.gpg` 1
+        rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O pubkey_source.gpg"
+        rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O pubkey_fork.gpg"
+        rlRun "diff pubkey_source.gpg pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo" 
 
         # clean
         rlRun "yes | dnf copr disable  ${NAME_PREFIX}Project10Fork"
