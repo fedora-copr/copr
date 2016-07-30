@@ -176,19 +176,20 @@ class Action(object):
         path = self.get_chroot_result_dir(chroot, projectname, ownername)
         ensure_dir_exists(path, self.log)
         local_comps_path = os.path.join(path, "comps.xml")
+        result.result = ActionResult.SUCCESS
         if not ext_data.get("comps_present", True):
             silent_remove(local_comps_path)
+            self.log.info("deleted comps.xml for {}/{}/{} from {} "
+                          .format(ownername, projectname, chroot, remote_comps_url))
         else:
             try:
                 urlretrieve(remote_comps_url, local_comps_path)
-                self.log.info("updated comps.xml for {}/{}/{} from {} "
+                self.log.info("saved comps.xml for {}/{}/{} from {} "
                               .format(ownername, projectname, chroot, remote_comps_url))
             except Exception:
                 self.log.exception("Failed to update comps from {} at location {}"
                                    .format(remote_comps_url, local_comps_path))
                 result.result = ActionResult.FAILURE
-            else:
-                result.result = ActionResult.SUCCESS
 
     def handle_module_md_update(self, result):
         self.log.debug("Action module_md update")
@@ -200,24 +201,24 @@ class Action(object):
         url_path = ext_data["url_path"]
 
         remote_module_md_url = self.opts.frontend_base_url + url_path
-        self.log.info(remote_module_md_url)
 
         path = self.get_chroot_result_dir(chroot, projectname, ownername)
         ensure_dir_exists(path, self.log)
         local_module_md_path = os.path.join(path, "module_md.yaml")
+        result.result = ActionResult.SUCCESS
         if not ext_data.get("module_md_present", True):
             silent_remove(local_module_md_path)
+            self.log.info("deleted module_md.yaml for {}/{}/{} from {} "
+                          .format(ownername, projectname, chroot, remote_module_md_url))
         else:
             try:
                 urlretrieve(remote_module_md_url, local_module_md_path)
-                self.log.info("updated module_md.yaml for {}/{}/{} from {} "
+                self.log.info("saved module_md.yaml for {}/{}/{} from {} "
                               .format(ownername, projectname, chroot, remote_module_md_url))
             except Exception:
                 self.log.exception("Failed to update module_md from {} at location {}"
                                    .format(remote_module_md_url, local_module_md_path))
                 result.result = ActionResult.FAILURE
-            else:
-                result.result = ActionResult.SUCCESS
 
     def handle_delete_build(self):
         self.log.debug("Action delete build")
