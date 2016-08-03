@@ -6,6 +6,8 @@
 %global moduletype apps
 %global modulename copr
 %{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
+%global file_context_file %{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
+%global file_context_file_pre %{_localstatedir}/lib/rpm-state/file_contexts.pre
 
 Name:       copr-selinux
 Version:    1.43
@@ -83,6 +85,11 @@ install -d %{buildroot}%{_mandir}/man8
 install -p -m 644 man/%{name}-enable.8 %{buildroot}/%{_mandir}/man8/
 install -p -m 644 man/%{name}-relabel.8 %{buildroot}/%{_mandir}/man8/
 
+%pre
+if /usr/sbin/selinuxenabled ; then
+   [ -f %{file_context_file_pre} ] || cp -f %{file_context_file} %{file_context_file_pre}
+fi
+
 %post
 if /usr/sbin/selinuxenabled ; then
    %{_sbindir}/%{name}-enable
@@ -90,7 +97,10 @@ fi
 
 %posttrans
 if /usr/sbin/selinuxenabled ; then
-   %{_sbindir}/%{name}-relabel
+   if [ -f %{file_context_file_pre} ]; then
+     /usr/sbin/fixfiles -C %{file_context_file_pre} restore
+     rm -f %{file_context_file_pre}
+   fi
 fi
 
 %postun
@@ -101,7 +111,6 @@ if [ $1 -eq 0 ]; then
         && /usr/sbin/semodule -s ${selinuxvariant} -r %{modulename} || :
     done
 fi
-%{_sbindir}/restorecon -rvvi %{_sharedstatedir}/copr
 
 %files
 %license LICENSE
