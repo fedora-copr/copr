@@ -12,7 +12,7 @@ from copr.exceptions import CoprRequestException
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
-from .exceptions import CreateRepoError
+from .exceptions import CreateRepoError, CoprSignError
 from .helpers import get_redis_logger, silent_remove, ensure_dir_exists
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
@@ -119,39 +119,45 @@ class Action(object):
             result.result = ActionResult.FAILURE
             return
 
-        pubkey_path = os.path.join(new_path, "pubkey.gpg")
-        mkpath(new_path)
-        self.generate_gpg_key(data["user"], data["copr"])
-        get_pubkey(data["user"], data["copr"], pubkey_path)
+        try:
+            pubkey_path = os.path.join(new_path, "pubkey.gpg")
+            mkpath(new_path)
+            self.generate_gpg_key(data["user"], data["copr"])
+            get_pubkey(data["user"], data["copr"], pubkey_path)
 
-        chroots = set()
-        for new_id, old_dir_name in builds_map.items():
-            for build_folder in glob.glob(os.path.join(old_path, "*", old_dir_name)):
-                new_chroot_folder = os.path.dirname(build_folder.replace(old_path, new_path))
-                chroots.add(new_chroot_folder)
+            chroots = set()
+            for new_id, old_dir_name in builds_map.items():
+                for build_folder in glob.glob(os.path.join(old_path, "*", old_dir_name)):
+                    new_chroot_folder = os.path.dirname(build_folder.replace(old_path, new_path))
+                    chroots.add(new_chroot_folder)
 
-                # We can remove this ugly condition after migrating Copr to new machines
-                # It is throw-back from era before dist-git
-                new_basename = old_dir_name if not os.path.basename(build_folder)[:8].isdigit() \
-                    else str(new_id).zfill(8) + os.path.basename(build_folder)[8:]
-                new_build_folder = os.path.join(new_chroot_folder, new_basename)
+                    # We can remove this ugly condition after migrating Copr to new machines
+                    # It is throw-back from era before dist-git
+                    new_basename = old_dir_name if not os.path.basename(build_folder)[:8].isdigit() \
+                        else str(new_id).zfill(8) + os.path.basename(build_folder)[8:]
+                    new_build_folder = os.path.join(new_chroot_folder, new_basename)
 
-                if not os.path.exists(new_chroot_folder):
-                    os.makedirs(new_chroot_folder)
+                    if not os.path.exists(new_chroot_folder):
+                        os.makedirs(new_chroot_folder)
 
-                copy_tree(build_folder, new_build_folder)
-                unsign_rpms_in_dir(new_build_folder, opts=self.opts, log=self.log)
-                sign_rpms_in_dir(data["user"], data["copr"], new_build_folder, opts=self.opts, log=self.log)
+                    copy_tree(build_folder, new_build_folder)
+                    unsign_rpms_in_dir(new_build_folder, opts=self.opts, log=self.log)
+                    sign_rpms_in_dir(data["user"], data["copr"], new_build_folder, opts=self.opts, log=self.log)
 
-                self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
+                    self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
 
-        for chroot in chroots:
-            createrepo(path=chroot, front_url=self.front_url,
-                       username=data["user"], projectname=data["copr"],
-                       override_acr_flag=True)
+            for chroot in chroots:
+                createrepo(path=chroot, front_url=self.front_url,
+                           username=data["user"], projectname=data["copr"],
+                           override_acr_flag=True)
 
-        result.result = ActionResult.SUCCESS
-        result.ended_on = time.time()
+            result.result = ActionResult.SUCCESS
+            result.ended_on = time.time()
+
+        except (CoprSignError, CreateRepoError) as ex:
+            self.log.error("Failure during project forking")
+            self.log.error(str(ex))
+            result.result = ActionResult.FAILURE
 
     def handle_delete_copr_project(self):
         self.log.debug("Action delete copr")
