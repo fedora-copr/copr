@@ -669,11 +669,11 @@ GROUP BY
         :type user: models.User
         :type build: models.Build
         """
-        if not user.can_edit(build.copr):
+        if not user.can_edit(build.copr) or build.persistent:
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to delete build `{}`.".format(build.id))
 
-        if not build.deletable:
+        if not build.finished:
             # from celery.contrib import rdb; rdb.set_trace()
             raise exceptions.ActionInProgressException(
                 "You can not delete build `{}` which is not finished.".format(build.id),

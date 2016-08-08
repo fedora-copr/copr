@@ -51,6 +51,11 @@ class DuplicateException(BadRequest):
     pass
 
 
+class NonAdminCannotCreatePersistentProject(CoprHttpException):
+    _default = "Non-admin cannot create persistent project."
+    _code = 403
+
+
 InsufficientRightsException = AccessRestricted
 
 

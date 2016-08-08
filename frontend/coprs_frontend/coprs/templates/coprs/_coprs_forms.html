@@ -129,6 +129,20 @@
         <div class="checkbox">
           {{ form.unlisted_on_hp }} Project will not be listed on home page
         </div>
+        {% if g.user.admin and not copr %} {# the following setting is available only for admins on creating a new project #}
+        <div class="checkbox">
+          {{ form.persistent }} Protect project and its builds against deletion
+          <br>
+          <small class="text-muted pficon pficon-info">
+            This project will not be auto-prunned. Its builds and the project itself cannot be deleted. This option is set once and for all.
+          </small>
+        </div>
+        {% endif %}
+        {% if g.user.admin and copr %} {# let an admin see the status of the 'Persistent builds' field but do not let him change the preset value #}
+        <div class="checkbox">
+          {{ form.persistent(disabled=True) }} Protect project and its builds against deletion
+        </div>
+        {% endif %}
       </div>
     </div>
 

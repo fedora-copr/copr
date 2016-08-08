@@ -120,6 +120,7 @@ def api_new_copr(username):
                 unlisted_on_hp=form.unlisted_on_hp.data,
                 build_enable_net=form.build_enable_net.data,
                 group=group,
+                persistent=form.persistent.data,
             )
             infos.append("New project was successfully created.")
 
@@ -136,7 +137,7 @@ def api_new_copr(username):
 
             output = {"output": "ok", "message": "\n".join(infos)}
             db.session.commit()
-        except exceptions.DuplicateException as err:
+        except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as err:
             db.session.rollback()
             raise LegacyApiError(str(err))
 
@@ -262,6 +263,7 @@ def api_coprs_by_owner(username=None):
                                 "yum_repos": yum_repos,
                                 "description": repo.description,
                                 "instructions": repo.instructions,
+                                "persistent": repo.persistent,
                                 "unlisted_on_hp": repo.unlisted_on_hp
                                })
 
@@ -297,6 +299,7 @@ def api_coprs_by_owner_detail(copr):
         "instructions": copr.instructions,
         "last_modified": builds_logic.BuildsLogic.last_modified(copr),
         "auto_createrepo": copr.auto_createrepo,
+        "persistent": copr.persistent,
         "unlisted_on_hp": copr.unlisted_on_hp
     }
     return flask.jsonify(output)

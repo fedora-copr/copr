@@ -244,6 +244,7 @@ class CoprFormFactory(object):
             disable_createrepo = wtforms.BooleanField(default=False)
             build_enable_net = wtforms.BooleanField(default=False)
             unlisted_on_hp = wtforms.BooleanField("Do not display this project on home page", default=False)
+            persistent = wtforms.BooleanField(default=False)
 
             @property
             def selected_chroots(self):

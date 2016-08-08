@@ -153,20 +153,25 @@ def group_copr_new(group_name):
     form = forms.CoprFormFactory.create_form_cls(group=group)()
 
     if form.validate_on_submit():
-        copr = coprs_logic.CoprsLogic.add(
-            flask.g.user,
-            name=form.name.data,
-            homepage=form.homepage.data,
-            contact=form.contact.data,
-            repos=form.repos.data.replace("\n", " "),
-            selected_chroots=form.selected_chroots,
-            description=form.description.data,
-            instructions=form.instructions.data,
-            disable_createrepo=form.disable_createrepo.data,
-            build_enable_net=form.build_enable_net.data,
-            unlisted_on_hp=form.unlisted_on_hp.data,
-            group=group
-        )
+        try:
+            copr = coprs_logic.CoprsLogic.add(
+                flask.g.user,
+                name=form.name.data,
+                homepage=form.homepage.data,
+                contact=form.contact.data,
+                repos=form.repos.data.replace("\n", " "),
+                selected_chroots=form.selected_chroots,
+                description=form.description.data,
+                instructions=form.instructions.data,
+                disable_createrepo=form.disable_createrepo.data,
+                build_enable_net=form.build_enable_net.data,
+                unlisted_on_hp=form.unlisted_on_hp.data,
+                group=group,
+                persistent=form.persistent.data,
+            )
+        except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
+            flask.flash(str(e), "error")
+            return flask.render_template("coprs/group_add.html", form=form, group=group)
 
         db.session.add(copr)
         db.session.commit()
@@ -187,19 +192,24 @@ def copr_new(username):
 
     form = forms.CoprFormFactory.create_form_cls()()
     if form.validate_on_submit():
-        copr = coprs_logic.CoprsLogic.add(
-            flask.g.user,
-            name=form.name.data,
-            homepage=form.homepage.data,
-            contact=form.contact.data,
-            repos=form.repos.data.replace("\n", " "),
-            selected_chroots=form.selected_chroots,
-            description=form.description.data,
-            instructions=form.instructions.data,
-            disable_createrepo=form.disable_createrepo.data,
-            build_enable_net=form.build_enable_net.data,
-            unlisted_on_hp=form.unlisted_on_hp.data,
-        )
+        try:
+            copr = coprs_logic.CoprsLogic.add(
+                flask.g.user,
+                name=form.name.data,
+                homepage=form.homepage.data,
+                contact=form.contact.data,
+                repos=form.repos.data.replace("\n", " "),
+                selected_chroots=form.selected_chroots,
+                description=form.description.data,
+                instructions=form.instructions.data,
+                disable_createrepo=form.disable_createrepo.data,
+                build_enable_net=form.build_enable_net.data,
+                unlisted_on_hp=form.unlisted_on_hp.data,
+                persistent=form.persistent.data,
+            )
+        except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
+            flask.flash(str(e), "error")
+            return flask.render_template("coprs/add.html", form=form)
 
         db.session.commit()
         after_the_project_creation(copr, form)

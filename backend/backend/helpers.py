@@ -257,6 +257,16 @@ def get_auto_createrepo_status(front_url, username, projectname):
         return True
 
 
+def get_persistent_status(front_url, username, projectname):
+    client = CoprClient(copr_url=front_url)
+    result = client.get_project_details(projectname, username)
+
+    if "persistent" in result.data["detail"]:
+        return bool(result.data["detail"]["persistent"])
+    else:
+        return True
+
+
 # def log(lf, msg, quiet=None):
 #     if lf:
 #         now = datetime.datetime.utcnow().isoformat()

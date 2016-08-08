@@ -216,6 +216,9 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # information for search index updating
     latest_indexed_data_update = db.Column(db.Integer)
 
+    # builds and the project are immune against deletion
+    persistent = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
@@ -687,13 +690,22 @@ class Build(db.Model, helpers.Serializer):
                                    StatusEnum("running"), ]
 
     @property
-    def deletable(self):
+    def finished(self):
         """
-        Find out if this build is deletable.
+        Find out if this build is in finished state.
 
-        Build is deletable only when all its build_chroots are in finished state.
+        Build is finished only if all its build_chroots are in finished state.
         """
         return all([(chroot.state in ["succeeded", "canceled", "skipped", "failed"]) for chroot in self.build_chroots])
+
+    @property
+    def persistent(self):
+        """
+        Find out if this build is persistent.
+
+        This property is inherited from the project.
+        """
+        return self.copr.persistent
 
     @property
     def src_pkg_name(self):

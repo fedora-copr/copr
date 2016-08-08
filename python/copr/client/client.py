@@ -956,7 +956,7 @@ class CoprClient(UnicodeMixin):
     def create_project(
             self, username, projectname, chroots,
             description=None, instructions=None,
-            repos=None, initial_pkgs=None, disable_createrepo=None, unlisted_on_hp=False, enable_net=True
+            repos=None, initial_pkgs=None, disable_createrepo=None, unlisted_on_hp=False, enable_net=True, persistent=False
     ):
         """ Creates a new copr project
             Auth required.
@@ -969,6 +969,7 @@ class CoprClient(UnicodeMixin):
             :param disable_createrepo: [optional] disables automatic repo meta-data regeneration, "true"/"false" string
             :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
             :param enable_net: [optional] If builder can access net for builds in this project
+            :param persistent: [optional] If builds and the project are undeletable
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1004,6 +1005,7 @@ class CoprClient(UnicodeMixin):
             "disable_createrepo": disable_createrepo,
             "unlisted_on_hp": "y" if unlisted_on_hp else "",
             "build_enable_net": "y" if enable_net else "",
+            "persistent": "y" if persistent else "",
         }
         for chroot in chroots:
             request_data[chroot] = "y"

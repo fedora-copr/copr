@@ -98,6 +98,7 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--disable_createrepo DISABLE_CREATEREPO]
                        [--enable-net {on,off}]
                        [--unlisted-on-hp {on,off}]
+                       [--persistent]
                        name
 
 --chroot::
@@ -123,6 +124,9 @@ If net should be enabled for builds in this project.
 
 --unlisted-on-hp::
 This project will not be listed on COPR home page.
+
+--persistent::
+Project and its builds will be undeletable. This option can only be spefified by a COPR admin.
 
 
 `copr-cli modify [options]`

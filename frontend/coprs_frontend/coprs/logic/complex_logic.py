@@ -34,6 +34,9 @@ class ComplexLogic(object):
         """
         builds_query = BuildsLogic.get_multiple_by_copr(copr=copr)
 
+        if copr.persistent:
+            raise exceptions.InsufficientRightsException("This project is protected against deletion.")
+
         for build in builds_query:
             BuildsLogic.delete_build(flask.g.user, build, send_delete_action=False)
 

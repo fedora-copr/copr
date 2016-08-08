@@ -202,13 +202,18 @@ class CoprsLogic(object):
 
     @classmethod
     def add(cls, user, name, selected_chroots, repos=None, description=None,
-            instructions=None, check_for_duplicates=False, group=None, **kwargs):
+            instructions=None, check_for_duplicates=False, group=None, persistent=False, **kwargs):
+
+        if not user.admin and persistent:
+            raise exceptions.NonAdminCannotCreatePersistentProject()
+
         copr = models.Copr(name=name,
                            repos=repos or u"",
                            user_id=user.id,
                            description=description or u"",
                            instructions=instructions or u"",
                            created_on=int(time.time()),
+                           persistent=persistent,
                            **kwargs)
 
         if group is not None:

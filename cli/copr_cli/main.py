@@ -266,7 +266,8 @@ class Commands(object):
             repos=args.repos, initial_pkgs=args.initial_pkgs,
             disable_createrepo=args.disable_createrepo,
             unlisted_on_hp=(args.unlisted_on_hp == 'on'),
-            enable_net=(args.enable_net == 'on')
+            enable_net=(args.enable_net == 'on'),
+            persistent=args.persistent
         )
         print(result.message)
 
@@ -546,6 +547,8 @@ def setup_parser():
                                help="If net should be enabled for builds in this project (default is on)")
     parser_create.add_argument("--unlisted-on-hp", choices=["on", "off"],
                                help="The project will not be shown on COPR home page")
+    parser_create.add_argument("--persistent", action="store_true",
+                               help="Project and its builds will be undeletable. This option can only be spefified by a COPR admin.")
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
