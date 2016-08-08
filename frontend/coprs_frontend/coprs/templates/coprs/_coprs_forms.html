@@ -3,7 +3,7 @@
 {% macro copr_form(form, view, copr = None, username = None, group = None) %}
   {# if using for updating, we need to pass name to url_for, but otherwise we need to pass nothing #}
 
-  {{ render_form_errors(form, [form._mock_chroots_error]) }}
+  {{ render_form_errors(form) }}
 
   <form action="
     {% if copr %}
@@ -54,7 +54,7 @@
     </div>
     <div class="panel-body">
 
-    {% if form._mock_chroots_error %}
+    {% if form.errors["chroots"] %}
     <div class="form-group has-error">
     {% else %}
     <div class="form-group">
@@ -77,8 +77,8 @@
           </label>
         </div>
       {% endfor %}{% endfor %}
-      {% if form._mock_chroots_error %}
-        <span class="help-block pficon pficon-warning-triangle-o"> {{ form._mock_chroots_error }}</span>
+      {% if form.errors["chroots"] %}
+        <span class="help-block pficon pficon-warning-triangle-o"> {{ form.errors["chroots"] |join(". ") }}</span>
       {% endif %}
       </div>
     </div>
