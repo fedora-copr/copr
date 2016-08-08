@@ -426,7 +426,8 @@ def test_create_project(mock_cc, capsys):
     mock_client.create_project.assert_called_with(
         username=None, projectname="foo", description="desc string",
         instructions="instruction string", chroots=["f20", "f21"],
-        repos=["repo1", "repo2"], initial_pkgs=["pkg1"])
+        repos=["repo1", "repo2"], initial_pkgs=["pkg1"],
+        unlisted_on_hp=False, disable_createrepo=None, enable_net=True)
 
     assert "{0}\n".format(response_message) in stdout
 
