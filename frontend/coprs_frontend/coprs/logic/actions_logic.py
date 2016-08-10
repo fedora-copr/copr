@@ -194,7 +194,7 @@ class ActionsLogic(object):
         """
 
         data_dict = {
-            "username": copr.user.name,
+            "username": copr.owner_name,
             "projectname": copr.name,
         }
 

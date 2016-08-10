@@ -30,8 +30,9 @@
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
 PACKAGE="copr"
-# we (the mankind) need the names to be unique
-NAME_PREFIX="@copr/TEST$(date +%s)"
+OWNER="@copr"
+NAME_VAR="TEST$(date +%s)" # we (the mankind) need the names to be unique
+NAME_PREFIX="$OWNER/$NAME_VAR"
 
 rlJournalStart
     rlPhaseStartSetup
@@ -426,6 +427,12 @@ rlJournalStart
         # clean
         rlRun "yes | dnf copr disable  ${NAME_PREFIX}Project10Fork"
 
+        # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
+        WAITING=`mktemp`
+        rlRun "copr-cli create ${NAME_PREFIX}Project12 --chroot fedora-23-x86_64" 0
+        while :; do curl --silent http://copr-fe-dev.cloud.fedoraproject.org/backend/waiting/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 4 ]; then break; fi; done
+        cat $WAITING # debug
+        rlRun "cat $WAITING | grep -E '.*data.*username.*' | grep $OWNER" 0
 
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
@@ -443,6 +450,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project10"
         rlRun "copr-cli delete ${NAME_PREFIX}Project10Fork"
         rlRun "copr-cli delete ${NAME_PREFIX}Project11"
+        rlRun "copr-cli delete ${NAME_PREFIX}Project12"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed
