@@ -27,8 +27,6 @@ class ActionDispatcher(multiprocessing.Process):
     def __init__(self, opts):
         multiprocessing.Process.__init__(self, name="action-dispatcher")
 
-        self.terminating = False
-
         self.opts = opts
         self.log = get_redis_logger(self.opts, "backend.action_dispatcher", "action_dispatcher")
         self.frontend_client = FrontendClient(self.opts, self.log)

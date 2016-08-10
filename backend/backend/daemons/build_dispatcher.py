@@ -93,9 +93,6 @@ class BuildDispatcher(multiprocessing.Process):
         self.log.info("Got new build job {}".format(task['task_id']))
         return BuildJob(task, self.opts)
 
-    def acquire_vm_for_job(self, job, vm_group_id):
-        return vm
-
     def can_build_start(self, job):
         """
         Announce to the frontend that the build is going to start so that
@@ -117,7 +114,7 @@ class BuildDispatcher(multiprocessing.Process):
 
         return can_build_start
 
-    def join_finished_workers(self, workers):
+    def clean_finished_workers(self, workers):
         for worker in workers:
             if not worker.is_alive():
                 worker.join(5)
@@ -135,7 +132,7 @@ class BuildDispatcher(multiprocessing.Process):
         workers = []
         next_worker_id = 1
         while True:
-            self.join_finished_workers(workers)
+            self.clean_finished_workers(workers)
 
             job = self.load_job()
 
@@ -163,8 +160,8 @@ class BuildDispatcher(multiprocessing.Process):
                 worker_id=next_worker_id,
                 vm=vm, job=job
             )
-            worker.start()
             workers.append(worker)
+            worker.start()
             self.log.info("Started new worker {} for job {}"
                           .format(worker.worker_id, worker.job.task_id))
             next_worker_id = (next_worker_id + 1) % 2**15
