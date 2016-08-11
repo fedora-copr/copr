@@ -114,6 +114,8 @@ rlJournalStart
         sleep 120
         # trying to install
         rlRun "dnf install -y --refresh hello_beaker_test_2"
+        # clean
+        rlRun "dnf remove -y hello_beaker_test_2"
 
         ## test build watching using Project3
         # build 1st package without waiting
@@ -353,13 +355,13 @@ rlJournalStart
         rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --timeout 10000 -r fedora-23-x86_64" # TODO: timeout not honored
 
         # test disable_createrepo
-        rlRun "copr-cli create --chroot fedora-23-x86_64 --disable_createrepo false @copr/DisableCreaterepoFalse"
-        rlRun "copr-cli build @copr/DisableCreaterepoFalse http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
-        rlRun "curl --silent http://copr-be-dev.cloud.fedoraproject.org/results/@copr/DisableCreaterepoFalse/fedora-23-x86_64/devel/repodata/ | grep \"404.*Not Found\"" 0
+        rlRun "copr-cli create --chroot fedora-23-x86_64 --disable_createrepo false ${NAME_PREFIX}DisableCreaterepoFalse"
+        rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoFalse http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "curl --silent http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}DisableCreaterepoFalse/fedora-23-x86_64/devel/repodata/ | grep \"404.*Not Found\"" 0
 
-        rlRun "copr-cli create --chroot fedora-23-x86_64 --disable_createrepo true @copr/DisableCreaterepoTrue"
-        rlRun "copr-cli build @copr/DisableCreaterepoTrue http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
-        rlRun "curl --silent http://copr-be-dev.cloud.fedoraproject.org/results/@copr/DisableCreaterepoTrue/fedora-23-x86_64/devel/repodata/ | grep -E \"404.*Not Found\"" 1
+        rlRun "copr-cli create --chroot fedora-23-x86_64 --disable_createrepo true ${NAME_PREFIX}DisableCreaterepoTrue"
+        rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoTrue http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        rlRun "curl --silent http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}DisableCreaterepoTrue/fedora-23-x86_64/devel/repodata/ | grep -E \"404.*Not Found\"" 1
 
         # test unlisted_on_hp project attribute
         rlRun "copr-cli create --unlisted-on-hp on --chroot fedora-23-x86_64 ${NAME_PREFIX}Project7"
@@ -369,20 +371,20 @@ rlJournalStart
 
         # test search index update by copr insertion
         rlRun "copr-cli create --chroot fedora-23-x86_64 --chroot fedora-22-x86_64 ${NAME_PREFIX}Project8"
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project8 --silent | grep -E \"href=.*${NAME_PREFIX}Project8.*\"" 1 # search results _not_ returned
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 1 # search results _not_ returned
         rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/"
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project8 --silent | grep -E \"href=.*${NAME_PREFIX}Project8.*\"" 0 # search results returned
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 0 # search results returned
 
         # test search index update by package addition
         rlRun "copr-cli create --chroot fedora-23-x86_64 --chroot fedora-22-x86_64 ${NAME_PREFIX}Project9" && sleep 65
         rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/"
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project9 --silent | grep -E \"href=.*${NAME_PREFIX}Project9.*\"" 1 # search results _not_ returned
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project9 --name test_package_tito --git-url http://github.com/clime/example.git --test on" # insert package to the copr
         rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/" # update the index again
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_PREFIX}Project9 --silent | grep -E \"href=.*${NAME_PREFIX}Project9.*\"" 0 # search results are returned now
+        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
 
         # TODO: Modularity integration tests
-        #rlRun "copr-cli create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project11"
+        rlRun "copr-cli create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project11"
         #rlRun "curl -X POST --user aufnfpybzwwqjtalbial:qmxehlybyghkqlwmyumxuhahbhzxrq --form \"file=@metadata.yaml;filename=module_md\"  http://localhost:8080/api/coprs/${NAME_PREFIX}Project11/modify/fedora-23-x86_64/"
 
         ### ---- FORKING PROJECTS -------- ###
@@ -407,7 +409,6 @@ rlJournalStart
 
         # use package from forked project
         rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10Fork fedora-23-x86_64"
-        rlRun "dnf remove -y hello"
         rlRun "dnf install -y hello"
 
         # check repo properties
@@ -425,6 +426,7 @@ rlJournalStart
         rlRun "diff pubkey_source.gpg pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo" 
 
         # clean
+        rlRun "dnf remove -y hello"
         rlRun "yes | dnf copr disable  ${NAME_PREFIX}Project10Fork"
 
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
@@ -444,6 +446,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project4"
         rlRun "copr-cli delete ${NAME_PREFIX}Project5"
         rlRun "copr-cli delete ${NAME_PREFIX}Project6"
+        rlRun "copr-cli delete ${NAME_PREFIX}DisableCreaterepoFalse"
         rlRun "copr-cli delete ${NAME_PREFIX}Project7"
         rlRun "copr-cli delete ${NAME_PREFIX}Project8"
         rlRun "copr-cli delete ${NAME_PREFIX}Project9"
