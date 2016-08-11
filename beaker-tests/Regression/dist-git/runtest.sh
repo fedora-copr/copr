@@ -76,5 +76,5 @@ rlJournalStart
 
     rlPhaseStartCleanup
     rlPhaseEnd
-#rlJournalPrintText
+rlJournalPrintText
 rlJournalEnd
