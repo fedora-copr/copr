@@ -189,4 +189,4 @@ if __name__ == '__main__':
     action_task_dict = load_data_dict('action-tasks.json', 'id')
 
     if import_task_dict or build_task_dict or action_task_dict:
-        app.run()
+        app.run(host='0.0.0.0')
