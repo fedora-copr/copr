@@ -64,6 +64,8 @@ cd $SCRIPTPATH
 docker exec copr-backend /bin/rm -r /var/lib/copr/public_html
 docker cp backend-files/. copr-backend:/
 docker exec copr-backend /bin/chown -R copr:copr /var/lib/copr/public_html
+docker exec copr-backend /bin/sh -c 'rm -r /var/lib/copr-keygen/gnupg/*'
+docker exec copr-backend /bin/sh -c 'rm -r /var/lib/copr-keygen/phrases/*'
 
 # install copr-mocks from sources
 cd $COPRROOTDIR/mocks
