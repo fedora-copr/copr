@@ -316,7 +316,8 @@ class Action(object):
         try:
             create_user_keys(owner, projectname, self.opts)
             return True
-        except CoprKeygenRequestError:
+        except CoprKeygenRequestError as e:
+            self.log.exception(e)
             return False
 
     def handle_rawhide_to_release(self, result):
