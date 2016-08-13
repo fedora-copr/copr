@@ -113,6 +113,9 @@ RUN cd /copr/keygen && export LANG=en_US.UTF-8 && if [ ! $RELEASETEST ]; then ti
 COPY backend/docker/files/ /
 RUN chmod 700 /root && chmod 700 /home/copr && chown copr:copr /home/copr
 RUN chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini
+# fix permissions on /var/log/copr-keygen/main.log which is
+# owned by root after copr-keygen installation tests are run
+RUN chown copr-signer:copr-signer /var/log/copr-keygen/main.log
 
 # workarounds
 RUN dnf -y downgrade fedpkg # temporary fix cause fedpkg-copr doesn't work with the new version of fedpkg
