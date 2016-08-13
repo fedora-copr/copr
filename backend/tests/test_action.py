@@ -20,6 +20,7 @@ else:
 
 from backend.actions import Action, ActionType, ActionResult
 from backend.exceptions import CreateRepoError, CoprKeygenRequestError
+from requests import RequestException
 
 RESULTS_ROOT_URL = "http://example.com/results"
 STDOUT = "stdout"
@@ -671,3 +672,27 @@ class TestAction(object):
         result_dict = mc_front_cb.update.call_args[0][0]["actions"][0]
         assert result_dict["id"] == 11
         assert result_dict["result"] == ActionResult.SUCCESS
+
+    def test_request_exception_is_taken_care_of_when_posting_to_frontend(self, mc_time):
+        mc_time.time.return_value = self.test_time
+        mc_frontend_client = MagicMock()
+        mc_frontend_client.update = MagicMock(side_effect=RequestException)
+
+        tmp_dir = self.make_temp_dir()
+        self.opts.destdir = os.path.join(tmp_dir, "dir-not-exists")
+
+        test_action = Action(
+            opts=self.opts,
+            action={
+                "action_type": ActionType.DELETE,
+                "object_type": "copr",
+                "id": 6,
+                "old_value": "old_dir",
+            },
+            frontend_client=mc_frontend_client,
+        )
+
+        try:
+            test_action.run()
+        except Exception as e:
+            assert False

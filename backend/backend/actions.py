@@ -9,6 +9,7 @@ from urllib import urlretrieve
 from munch import Munch
 from distutils.dir_util import copy_tree
 from copr.exceptions import CoprRequestException
+from requests import RequestException
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
@@ -394,7 +395,10 @@ class Action(object):
                     not getattr(result, "job_ended_on", None):
                 result.job_ended_on = time.time()
 
-            self.frontend_client.update({"actions": [result]})
+            try:
+                self.frontend_client.update({"actions": [result]})
+            except RequestException as e:
+                self.log.exception(e)
 
 
 class ActionType(object):
