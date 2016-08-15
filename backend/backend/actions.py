@@ -3,6 +3,7 @@ import os.path
 import shutil
 import time
 import glob
+import traceback
 from urllib import urlretrieve
 
 from munch import Munch
@@ -158,6 +159,7 @@ class Action(object):
         except (CoprSignError, CreateRepoError, IOError) as ex:
             self.log.error("Failure during project forking")
             self.log.error(str(ex))
+            self.log.error(traceback.format_exc())
             result.result = ActionResult.FAILURE
 
     def handle_delete_copr_project(self):
