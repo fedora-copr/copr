@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.98
+Version:    1.99
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -271,6 +271,9 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Mon Aug 15 2016 clime <clime@redhat.com> 1.99-1
+- disable unittests during package builds
+
 * Mon Aug 15 2016 clime <clime@redhat.com> 1.98-1
 - Bug 1365882 - on create group copr, gpg key is generated for user and not for group
 - Bug 1361344 - RFE: Allow denial of build deletion and resubmitting at project or group level
