@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.72
+Version:    1.73
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -185,6 +185,11 @@ popd
 %endif
 
 %changelog
+* Mon Aug 15 2016 clime <clime@redhat.com> 1.73-1
+- Bug 1361344 - RFE: Allow denial of build deletion and resubmitting at project or group level
+- fix creating group projects
+- fix search for projects within group (RhBug: 1337247)
+
 * Fri Jul 01 2016 clime <clime@redhat.com> 1.72-1
 - run pylint check during build only if python3 is defined
 - Bug 1335237 - copr create command missing --disable_createrepo
