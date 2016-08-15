@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.19
+Version:    0.20
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -113,6 +113,16 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Aug 15 2016 clime <clime@redhat.com> 0.20-1
+- try to obtain multiple tasks at once
+- Add python2-psutil requirement
+- inform frontend about terminated task
+- log when starting and finishing workers
+- log timeout value from worker
+- run mock with --uniqueext
+- implement timeout-based terminating
+- parallelization by pool of workers
+
 * Fri May 27 2016 clime <clime@redhat.com> 0.19-1
 - strip whitespaces from the gem name
 
