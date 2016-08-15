@@ -15,7 +15,7 @@ Vagrant.configure(2) do |config|
 
     # Update the system
     frontend.vm.provision "shell",
-      inline: "sudo dnf clean all && sudo dnf -y update || true" # || true cause dnf might return non-zero status (probly delta rpm rebuild failed)
+      inline: "sudo dnf clean all && sudo dnf -y update || true" # || true cause dnf might return non-zero status (probly delta rpm rebuilt failed)
 
     # Install packages to support Copr and building RPMs
     frontend.vm.provision "shell",
@@ -206,13 +206,10 @@ Vagrant.configure(2) do |config|
 
     distgit.vm.network "private_network", ip: "192.168.242.52"
 
-    # ...
-#    distgit.vm.provision "shell",
-#      inline: "sudo dnf -y update"
+    # Update the system
+    distgit.vm.provision "shell",
+      inline: "sudo dnf clean all && sudo dnf -y update || true" # || true cause dnf might return non-zero status (probly delta rpm rebuilt failed)
 
-    # ...
-
-    # ..
     distgit.vm.provision "shell",
       inline: <<-FOO
   echo \"
