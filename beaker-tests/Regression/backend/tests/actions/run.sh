@@ -45,5 +45,6 @@ rlJournalStart
         rlAssertEquals "Test that there exists module_md.yaml file for @actions/test-save-module_md-no-chroot/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-save-module_md-no-chroot/fedora-23-x86_64/module_md.yaml` 200
         rlAssertEquals "Test that pubkey is created in fork" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/foo/barFork/pubkey.gpg` 200
         rlAssertEquals "Test that build RPM file was forked" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/foo/barFork/fedora-23-x86_64/00000064-rare_example/rare_example-1.0.3-2.fc23.x86_64.rpm` 200
+        rlRun "dnf repoquery --repofrompath=test-createrepo-repo,http://localhost:5002/results/foo/barFork/fedora-23-x86_64/ --disablerepo=* --enablerepo=test-createrepo-repo --refresh --quiet --queryformat '%{reponame}' 2> /dev/null | grep test-createrepo-repo" 0 "Test that fork project has valid repomd repository"
     rlPhaseEnd
 rlJournalEnd &> /dev/null
