@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.54
+Version:    1.55
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -134,6 +134,9 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Mon Aug 15 2016 clime <clime@redhat.com> 1.55-1
+- Bug 1361344 - RFE: Allow denial of build deletion and resubmitting at project or group level
+
 * Fri Jul 15 2016 Miroslav Suchý <msuchy@redhat.com> 1.54-1
 - actually define use_python3 macro
 
