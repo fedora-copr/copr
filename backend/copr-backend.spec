@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.91
+Version:    1.92
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -260,6 +260,25 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Aug 15 2016 clime <clime@redhat.com> 1.92-1
+- wrap feedback about actions to frontend into try-except
+- log even the traceback from forking
+- use makedirs instead of mkpath in fork action
+- if anything bad happens, log exception in generate_gpg_key action
+- also restart copr-backend-vmm and copr-backend-log when (re)installing
+- Bug 1361344 - RFE: Allow denial of build deletion and resubmitting at project or group level
+- catch errors in fork action
+- set action result for comps.xml and module_md.yaml file deletion
+- backend fork action now takes care of new gpg-key generation instead of frontend
+- removed no longer supported --api-version=0.8 arg from appstream-builder command line
+- specify module_md as module type
+- fix saving comps.xml and module_md.yaml into empty copr (with no build)
+- module_md.yaml is added to repodata now similarly to appstream.xml
+- support for generation of module dist tags
+- module_md.yaml uploading for a chroot
+- simplified build and action task workflow
+- use copy of the mock (chroot) config, not the original in /etc/mock/
+
 * Wed Jun 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.91-1
 - configure more packages to run pylint
 - terminate machine which was only partialy spawned
