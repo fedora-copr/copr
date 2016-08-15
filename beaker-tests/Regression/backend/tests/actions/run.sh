@@ -43,5 +43,7 @@ rlJournalStart
         rlAssertEquals "Test that there is no module_md.yaml file present for @actions/test-delete-module_md/fedora-23-x86_64" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-delete-module_md/fedora-23-x86_64/module_md.yaml` 404
         rlAssertEquals "Test that there exists comps.xml file for @actions/test-save-comps-no-chroot/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-save-comps-no-chroot/fedora-23-x86_64/comps.xml` 200
         rlAssertEquals "Test that there exists module_md.yaml file for @actions/test-save-module_md-no-chroot/fedora-23-x86_64 through http" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/@actions/test-save-module_md-no-chroot/fedora-23-x86_64/module_md.yaml` 200
+        rlAssertEquals "Test that pubkey is created in fork" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/foo/barFork/pubkey.gpg` 200
+        rlAssertEquals "Test that build RPM file was forked" `curl -w '%{response_code}' -silent -o /dev/null http://localhost:5002/results/foo/barFork/fedora-23-x86_64/00000064-rare_example/rare_example-1.0.3-2.fc23.x86_64.rpm` 200
     rlPhaseEnd
 rlJournalEnd &> /dev/null

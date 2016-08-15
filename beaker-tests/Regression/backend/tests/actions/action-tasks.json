@@ -97,5 +97,17 @@
   "created_on": 1462513764,
   "id": 10,
   "data": "{\"projectname\": \"test-save-module_md-no-chroot\", \"chroot\": \"fedora-23-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/module_md.yaml\", \"module_md_present\": true}"
+},
+{
+  "_description": "Test fork action handles exceptions",
+  "_expected_outcome": "success",
+
+  "action_type": 7,
+  "created_on": 1462513764,
+  "id": 11,
+  "object_type": "copr",
+  "old_value": "@builds/rare_example_repo",
+  "new_value": "foo/barFork",
+  "data": "{\"user\": \"foo\", \"copr\": \"bar\", \"builds_map\": {\"64\": \"00000063-rare_example\"}}"
 }
 ]
