@@ -7,7 +7,7 @@ export IN=$TESTPATH/build-tasks.json
 export OUT=$TESTPATH/build-results.out.json
 
 rlJournalStart
-    rlPhaseStartTest Builds
+    rlPhaseStartTest GpgDupReproducer
         rlRun "/usr/share/copr/mocks/frontend/app.py $TESTPATH $TESTPATH/static" 0
     rlPhaseEnd
 rlJournalEnd &> /dev/null
