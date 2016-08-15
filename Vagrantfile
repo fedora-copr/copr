@@ -471,6 +471,7 @@ echo \"Host *
         sudo chmod 700 /root && sudo chmod 700 /home/copr && sudo chown copr:copr /home/copr # fix permission after COPY
 
         sudo chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini
+        sudo chown copr-signer:copr-signer /var/log/copr-keygen/main.log
 
         sudo dnf -y downgrade fedpkg # temporary fix cause fedpkg-copr doesn't work with the new version of fedpkg
         sudo dnf -y install ansible1.9 --allowerasing # copr does not support ansible2 yet
