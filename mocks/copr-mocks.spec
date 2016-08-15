@@ -1,6 +1,6 @@
 Summary: COPR system components mocks
 Name: copr-mocks
-Version: 1.4
+Version: 1.5
 Release: 1%{?dist}
 
 # Source is created by:
@@ -49,6 +49,9 @@ useradd -r -g copr-mocks -G copr-mocks -d %{_datadir}/copr/mocks -s /bin/bash -c
 %{_unitdir}/copr-mocks-frontend.service
 
 %changelog
+* Mon Aug 15 2016 clime <clime@redhat.com> 1.5-1
+- listen even on public IPs (0.0.0.0:5000)
+
 * Fri Jul 08 2016 clime <clime@redhat.com> 1.4-1
 - adjust to frontend now exposing only 1 build and 1 action on /backend/waiting at a time
 - wait with server termination until all the started build tasks have been finished
