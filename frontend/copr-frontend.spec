@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.97
+Version:    1.98
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -271,6 +271,28 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Mon Aug 15 2016 clime <clime@redhat.com> 1.98-1
+- Bug 1365882 - on create group copr, gpg key is generated for user and not for group
+- Bug 1361344 - RFE: Allow denial of build deletion and resubmitting at project or group level
+- do not use _mock_chroots_error property
+- added unlisted_on_hp field into copr detail output
+- do not care about generation of gpg keys on frontend while forking, delegate work to backend
+- stream content of long pages
+- monitor memory/speed optimization
+- sort packages from a to z
+- batch search indexing
+- out of memory fixes
+- module_md.yaml uploading for a chroot
+- executable copr-frontend as symlink to manage.py
+- fix incorrect build link from package tab when builder != owner (RhBug: 1354442)
+- Bug 1337171 - creating group projects doesn't work
+- fix multiple appearance of 'toggle all' button in build forms
+- more error output from api entry-points
+- generate again -doc subpackage
+- Bug 1335237 - copr create command missing --disable_createrepo
+- introduced parallel distgit
+- simplified build and action task workflow
+
 * Thu Jun 23 2016 Miroslav Suchý <msuchy@redhat.com> 1.97-1
 - New Package view UI refresh
 - empty state in the Builds and Packages views
