@@ -4,7 +4,6 @@ import shutil
 import time
 import glob
 from urllib import urlretrieve
-from distutils.dir_util import mkpath
 
 from munch import Munch
 from distutils.dir_util import copy_tree
@@ -121,7 +120,9 @@ class Action(object):
 
         try:
             pubkey_path = os.path.join(new_path, "pubkey.gpg")
-            mkpath(new_path)
+            if not os.path.exists(new_path):
+                os.makedirs(new_path)
+
             self.generate_gpg_key(data["user"], data["copr"])
             get_pubkey(data["user"], data["copr"], pubkey_path)
 
@@ -137,8 +138,8 @@ class Action(object):
                         else str(new_id).zfill(8) + os.path.basename(build_folder)[8:]
                     new_build_folder = os.path.join(new_chroot_folder, new_basename)
 
-                    if not os.path.exists(new_chroot_folder):
-                        os.makedirs(new_chroot_folder)
+                    if not os.path.exists(new_build_folder):
+                        os.makedirs(new_build_folder)
 
                     copy_tree(build_folder, new_build_folder)
                     unsign_rpms_in_dir(new_build_folder, opts=self.opts, log=self.log)
@@ -154,7 +155,7 @@ class Action(object):
             result.result = ActionResult.SUCCESS
             result.ended_on = time.time()
 
-        except (CoprSignError, CreateRepoError) as ex:
+        except (CoprSignError, CreateRepoError, IOError) as ex:
             self.log.error("Failure during project forking")
             self.log.error(str(ex))
             result.result = ActionResult.FAILURE
