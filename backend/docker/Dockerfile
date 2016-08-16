@@ -104,12 +104,14 @@ COPY . /copr
 # build copr-backend from sources
 RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing # fix for python-requests package (the cmd is failing python2-requests is already installed)
 RUN cd /copr/backend && export LANG=en_US.UTF-8 && if [ ! $RELEASETEST ]; then tito build --test --rpm; else tito build --rpm; fi
-RUN dnf -y install /tmp/tito/noarch/copr-backend*.noarch.rpm
+# upgrade the already pre-installed package if possible
+RUN dnf -y upgrade /tmp/tito/noarch/copr-backend*.noarch.rpm || true
 
 # build copr-keygen from sources
 RUN dnf -y builddep /copr/keygen/copr-keygen.spec --allowerasing
 RUN cd /copr/keygen && export LANG=en_US.UTF-8 && if [ ! $RELEASETEST ]; then tito build --test --rpm; else tito build --rpm; fi
-RUN dnf -y install /tmp/tito/noarch/copr-keygen*.noarch.rpm
+# upgrade the already pre-installed package if possible
+RUN dnf -y upgrade /tmp/tito/noarch/copr-keygen*.noarch.rpm || true
 
 # copy filesystem setup and setup ownership and permissions
 COPY backend/docker/files/ /
