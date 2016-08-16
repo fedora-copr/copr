@@ -40,6 +40,7 @@ RUN dnf -y install ethtool
 # packages for copr-keygen
 RUN dnf -y install uwsgi
 RUN dnf -y install uwsgi-plugin-python
+RUN dnf -y install rng-tools # to get more entropy for generation of gpg keys
 
 # needed to be able to ping
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
