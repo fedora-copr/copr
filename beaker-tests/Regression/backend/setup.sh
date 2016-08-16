@@ -1,6 +1,10 @@
 #!/bin/bash
 
 export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export LANG=en_US.utf8
+
+# primarily install git for the setup below
+dnf -y install git
 
 if [[ `pwd` =~ ^/mnt/tests.*$ ]]; then
     echo "Setting up native beaker environment."
@@ -11,8 +15,6 @@ else
     export COPRROOTDIR=$SCRIPTPATH/../../../
 fi
 
-export LANG=en_US.utf8
-
 # install files from 'files'
 cp -rT $SCRIPTPATH/files /
 
@@ -20,7 +22,6 @@ cp -rT $SCRIPTPATH/files /
 dnf -y install docker
 dnf -y install vagrant
 dnf -y install vagrant-libvirt
-dnf -y install git
 dnf -y install jq
 dnf -y install tito
 
