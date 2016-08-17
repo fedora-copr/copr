@@ -51,7 +51,7 @@ $(METADATA): Makefile
 	@echo "Path:            $(TEST_DIR)" >> $(METADATA)
 	@echo "Description:     Tests basic operations of copr using copr-cli." >> $(METADATA)
 	@echo "Type:            Sanity" >> $(METADATA)
-	@echo "TestTime:        30m" >> $(METADATA)
+	@echo "TestTime:        2h" >> $(METADATA)
 	@echo "RunFor:          copr" >> $(METADATA)
 	@echo "Requires:        copr" >> $(METADATA)
 	@echo "Priority:        Normal" >> $(METADATA)
