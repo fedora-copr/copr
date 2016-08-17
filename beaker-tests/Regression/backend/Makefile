@@ -51,7 +51,7 @@ $(METADATA): Makefile
 	@echo "Path:            $(TEST_DIR)" >> $(METADATA)
 	@echo "Description:     Tests backend functionality." >> $(METADATA)
 	@echo "Type:            Regression" >> $(METADATA)
-	@echo "TestTime:        3h" >> $(METADATA)
+	@echo "TestTime:        4h" >> $(METADATA)
 	@echo "RunFor:          copr" >> $(METADATA)
 	@echo "Requires:        copr" >> $(METADATA)
 	@echo "Priority:        Normal" >> $(METADATA)
