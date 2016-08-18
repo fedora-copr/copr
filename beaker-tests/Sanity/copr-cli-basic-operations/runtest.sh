@@ -450,11 +450,12 @@ rlJournalStart
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
         rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot fedora-23-x86_64" 0
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteGroupBuild --name example --git-url http://github.com/clime/example.git"
-        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild"
-        rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/` 200
+        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > TestDeleteGroupBuild_example_build_id.txt"
+        BUILD_ID=`cat TestDeleteGroupBuild_example_build_id.txt` 
+        rlAssertEquals "Test that the build directory (ideally with results) is present on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 200 # FIXME: 00 prefix might change
         rlRun "copr-cli delete-package --name example ${NAME_PREFIX}TestDeleteGroupBuild" # FIXME: We don't have copr-cli delete-build yet
         sleep 5
-        rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/` 404
+        rlAssertEquals "Test that the build directory was deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 404 # FIXME: 00 prefix might change
 
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
