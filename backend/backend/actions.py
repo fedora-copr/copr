@@ -157,7 +157,7 @@ class Action(object):
             result.result = ActionResult.SUCCESS
             result.ended_on = time.time()
 
-        except (CoprSignError, CreateRepoError, IOError) as ex:
+        except (CoprSignError, CreateRepoError, CoprRequestException, IOError) as ex:
             self.log.error("Failure during project forking")
             self.log.error(str(ex))
             self.log.error(traceback.format_exc())
@@ -291,6 +291,10 @@ class Action(object):
                         front_url=self.front_url, base_url=result_base_url,
                         username=username, projectname=projectname
                     )
+                except CoprRequestException:
+                    # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
+                    self.log.exception("Project {0}/{1} has been deleted on frontend".format(username, projectname))
+                    result.result = ActionResult.FAILURE
                 except CreateRepoError:
                     self.log.exception("Error making local repo: {}".format(createrepo_target))
 

@@ -436,6 +436,17 @@ rlJournalStart
         cat $WAITING # debug
         rlRun "cat $WAITING | grep -E '.*data.*username.*' | grep $OWNER" 0
 
+        # Bug 1368181 - delete-project action run just after delete-build action will bring action_dispatcher down
+        # FIXME: this test is not a reliable reproducer. Depends on timing as few others.
+        # TODO: Remove this.
+        rlRun "copr-cli create ${NAME_PREFIX}TestDeleteActions --chroot fedora-23-x86_64" 0
+        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteActions --name example --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteActions"
+        rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteActions/` 200
+        rlRun "python <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_PREFIX}TestDeleteActions', 'example'); client.delete_project('${NAME_PREFIX}TestDeleteActions', '$OWNER')\""
+        sleep 5
+        rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteActions/` 404
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
@@ -455,6 +466,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project10Fork"
         rlRun "copr-cli delete ${NAME_PREFIX}Project11"
         rlRun "copr-cli delete ${NAME_PREFIX}Project12"
+        rlRun "copr-cli delete ${NAME_PREFIX}TestDeleteActions"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

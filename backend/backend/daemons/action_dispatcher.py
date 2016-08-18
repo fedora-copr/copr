@@ -71,7 +71,10 @@ class ActionDispatcher(multiprocessing.Process):
 
         while True:
             action = self.load_action()
-            action.run()
+            try:
+                action.run()
+            except Exception as e: # dirty
+                self.log.exception(e)
             msg = "Started new action {} of type {}"\
                   .format(action.data["id"], action.data["action_type"])
             self.update_process_title(msg)
