@@ -439,13 +439,22 @@ rlJournalStart
         # Bug 1368181 - delete-project action run just after delete-build action will bring action_dispatcher down
         # FIXME: this test is not a reliable reproducer. Depends on timing as few others.
         # TODO: Remove this.
-        rlRun "copr-cli create ${NAME_PREFIX}TestDeleteActions --chroot fedora-23-x86_64" 0
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteActions --name example --git-url http://github.com/clime/example.git"
-        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteActions"
-        rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteActions/` 200
-        rlRun "python <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestDeleteActions', '$OWNER')\""
+        rlRun "copr-cli create ${NAME_PREFIX}TestConsequentDeleteActions --chroot fedora-23-x86_64" 0
+        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestConsequentDeleteActions --name example --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
+        rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
+        rlRun "python <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestConsequentDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestConsequentDeleteActions', '$OWNER')\""
         sleep 5
-        rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteActions/` 404
+        rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
+
+        # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
+        rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot fedora-23-x86_64" 0
+        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteGroupBuild --name example --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild"
+        rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/` 200
+        rlRun "copr-cli delete-package --name example ${NAME_PREFIX}TestDeleteGroupBuild" # FIXME: We don't have copr-cli delete-build yet
+        sleep 5
+        rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/` 404
 
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
@@ -466,7 +475,6 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project10Fork"
         rlRun "copr-cli delete ${NAME_PREFIX}Project11"
         rlRun "copr-cli delete ${NAME_PREFIX}Project12"
-        rlRun "copr-cli delete ${NAME_PREFIX}TestDeleteActions"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

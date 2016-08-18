@@ -98,7 +98,7 @@ class ActionsLogic(object):
             return
 
         data_dict = {
-            "username": build.copr.user.name,
+            "username": build.copr.owner_name,
             "projectname": build.copr.name,
             "chroots": chroots_to_delete
         }
