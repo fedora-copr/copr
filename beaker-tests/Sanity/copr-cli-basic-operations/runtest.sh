@@ -443,7 +443,7 @@ rlJournalStart
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteActions --name example --git-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteActions"
         rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteActions/` 200
-        rlRun "python <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_PREFIX}TestDeleteActions', 'example'); client.delete_project('${NAME_PREFIX}TestDeleteActions', '$OWNER')\""
+        rlRun "python <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestDeleteActions', '$OWNER')\""
         sleep 5
         rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteActions/` 404
 
