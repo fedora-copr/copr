@@ -7,7 +7,7 @@ from urlparse import urlparse
 
 from ansible.runner import Runner
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
-from ..helpers import get_redis_connection
+from ..helpers import get_redis_connection, ensure_dir_exists
 
 from ..exceptions import BuilderError, BuilderTimeOutError, AnsibleCallError, AnsibleResponseError, VmError
 
@@ -144,6 +144,9 @@ class Builder(object):
         # $tempdir/build/results/$chroot/$packagename
         return os.path.normpath(os.path.join(
             self.remote_build_dir, "results", self.job.chroot, self.remote_pkg_name))
+
+    def _get_remote_config_dir(self):
+        return os.path.normpath(os.path.join(self.remote_build_dir, "configs", self.job.chroot))
 
     def setup_mock_chroot_config(self):
         """
@@ -377,41 +380,44 @@ class Builder(object):
         self.check_build_success()
         return get_ans_results(ansible_build_results, self.hostname).get("stdout", "")
 
-    def download(self, target_dir):
+    def rsync_call(self, source_path, target_path):
+        ensure_dir_exists(target_path, self.log)
+
+        # make spaces work w/our rsync command below :(
+        target_path = "'" + target_path.replace("'", "'\\''") + "'"
+
+        ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
+        full_source_path = "{}@{}:{}/*".format(self.opts.build_user,
+                                               self.hostname,
+                                               source_path)
+        log_filepath = os.path.join(target_path, self.job.rsync_log_name)
+        command = "{} -rlptDvH -e {} {} {}/ &> {}".format(
+            rsync, ssh_opts, full_source_path, target_path, log_filepath)
+
+        # dirty magic with Popen due to IO buffering
+        # see http://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
+        # alternative: use tempfile.Tempfile as Popen stdout/stderr
+        try:
+            self.log.info("rsyncing of {0} started for job: {1}".format(full_source_path, self.job))
+            cmd = Popen(command, shell=True)
+            cmd.wait()
+            self.log.info("rsyncing finished.")
+        except Exception as error:
+            err_msg = "Failed to download data from builder due to rsync error, see the rsync log file for details. Original error: {}".format(error)
+            self.log.error(err_msg)
+            raise BuilderError(err_msg)
+
+        if cmd.returncode != 0:
+            err_msg = "Failed to download data from builder due to rsync error, see the rsync log file for details."
+            self.log.error(err_msg)
+            raise BuilderError(err_msg, return_code=cmd.returncode)
+
+    def download_results(self, target_path):
         if self._get_remote_results_dir():
-            self.log.info("Start retrieve results for: {0}".format(self.job))
-            # download the pkg to destdir using rsync + ssh
+            self.rsync_call(self._get_remote_results_dir(), target_path)
 
-            # # make spaces work w/our rsync command below :(
-            destdir = "'" + target_dir.replace("'", "'\\''") + "'"
-
-            # build rsync command line from the above
-            remote_src = "{}@{}:{}/*".format(self.opts.build_user,
-                                             self.hostname,
-                                             self._get_remote_results_dir())
-            ssh_opts = "'ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no'"
-
-            rsync_log_filepath = os.path.join(destdir, self.job.rsync_log_name)
-            command = "{} -rlptDvH -e {} {} {}/ &> {}".format(
-                rsync, ssh_opts, remote_src, destdir,
-                rsync_log_filepath)
-
-            # dirty magic with Popen due to IO buffering
-            # see http://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
-            # alternative: use tempfile.Tempfile as Popen stdout/stderr
-            try:
-                cmd = Popen(command, shell=True)
-                cmd.wait()
-                self.log.info("End retrieve results for: {0}".format(self.job))
-            except Exception as error:
-                err_msg = "Failed to download results from builder due to rsync error, see the rsync log file for details. Original error: {}".format(error)
-                self.log.error(err_msg)
-                raise BuilderError(err_msg)
-
-            if cmd.returncode != 0:
-                err_msg = "Failed to download results from builder due to rsync error, see the rsync log file for details."
-                self.log.error(err_msg)
-                raise BuilderError(err_msg, return_code=cmd.returncode)
+    def download_configs(self, target_path):
+        self.rsync_call(self._get_remote_config_dir(), target_path)
 
     def check(self):
         # do check of host

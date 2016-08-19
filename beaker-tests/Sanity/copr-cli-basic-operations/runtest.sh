@@ -457,6 +457,16 @@ rlJournalStart
         sleep 5
         rlAssertEquals "Test that the build directory was deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 404 # FIXME: 00 prefix might change
 
+        # test that results and configs are correctly retrieved from builders after build
+        rlRun "copr-cli create ${NAME_PREFIX}DownloadMockCfgs --chroot fedora-23-x86_64" 0
+        rlRun "copr-cli build ${NAME_PREFIX}DownloadMockCfgs http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
+        MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
+        wget -r -np http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}DownloadMockCfgs/fedora-23-x86_64/
+        rlRun "find . -type f | grep 'configs/fedora-23-x86_64.cfg'" 0
+        rlRun "find . -type f | grep 'mockchain.log'" 0
+        rlRun "find . -type f | grep 'root.log'" 0
+        cd - && rm -r $MYTMPDIR
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
@@ -476,6 +486,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project10Fork"
         rlRun "copr-cli delete ${NAME_PREFIX}Project11"
         rlRun "copr-cli delete ${NAME_PREFIX}Project12"
+        rlRun "copr-cli delete ${NAME_PREFIX}DownloadMockCfgs"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

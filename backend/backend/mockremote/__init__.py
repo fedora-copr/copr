@@ -303,7 +303,8 @@ class MockRemote(object):
             raise MockRemoteError("Error occurred during build {}: {}"
                                   .format(self.job, error))
         finally:
-            self.builder.download(self.job.results_dir)
+            self.builder.download_results(self.job.results_dir)
+            self.builder.download_configs(os.path.join(self.job.results_dir, "configs"))
             # self.add_log_symlinks()  # todo: add config option, need this for nginx
             self.log.info("End Build: {0}".format(self.job))
 
