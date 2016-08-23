@@ -751,7 +751,7 @@ def render_generate_repo_file(copr, name_release):
     if not mock_chroot:
         raise ObjectNotFound("Chroot {} does not exist".format(name_release))
 
-    url = os.path.join(copr.repo_url, '') # add trailing slash
+    url = os.path.join(copr.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, url)
     pubkey_url = urljoin(url, "pubkey.gpg")
     response = flask.make_response(
@@ -761,6 +761,30 @@ def render_generate_repo_file(copr, name_release):
         "filename={0}.repo".format(copr.repo_name)
     return response
 
+
+#########################################################
+###                Module repo files                  ###
+#########################################################
+
+@coprs_ns.route("/<username>/<coprname>/repo/modules/")
+@coprs_ns.route("/@<group_name>/<coprname>/repo/modules/")
+@coprs_ns.route("/g/<group_name>/<coprname>/repo/modules/")
+@req_with_copr
+def generate_module_repo_file(copr):
+    """ Generate module repo file for a given project. """
+    return render_generate_module_repo_file(copr)
+
+def render_generate_module_repo_file(copr):
+    url = os.path.join(copr.repo_url, '') # adds trailing slash
+    pubkey_url = urljoin(url, "pubkey.gpg")
+    response = flask.make_response(
+        flask.render_template("coprs/copr-modules.cfg", copr=copr, url=url, pubkey_url=pubkey_url))
+    response.mimetype = "text/plain"
+    response.headers["Content-Disposition"] = \
+        "filename={0}.cfg".format(copr.repo_name)
+    return response
+
+#########################################################
 
 @coprs_ns.route("/<username>/<coprname>/rpm/<name_release>/<rpmfile>")
 def copr_repo_rpm_file(username, coprname, name_release, rpmfile):
