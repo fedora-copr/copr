@@ -785,3 +785,22 @@ def copr_build_package(copr, package_name):
         "ids": [build.id],
         "message": "Build was added to {0}.".format(copr.name)
     })
+
+
+@api_ns.route("/coprs/<username>/<coprname>/module/build/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_build_module(copr):
+    form = forms.ModuleFormUploadFactory(csrf_enabled=False)
+    if not form.validate_on_submit():
+        # @TODO Prettier error
+        raise LegacyApiError(form.errors)
+
+    modulemd = form.modulemd.data.read()
+    # @TODO compress with zlib (see CoprChroot model)
+    # @TODO send build_module action
+    return flask.jsonify({
+        "output": "ok",
+        "message": "Module build was submitted",
+        "modulemd": modulemd,
+    })

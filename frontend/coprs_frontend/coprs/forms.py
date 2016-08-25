@@ -544,6 +544,13 @@ class BuildFormUrlFactory(object):
         return form
 
 
+class ModuleFormUploadFactory(wtf.Form):
+    modulemd = FileField("modulemd", validators=[
+        FileRequired(),
+        # @TODO Validate modulemd.yaml file
+    ])
+
+
 class ChrootForm(wtf.Form):
 
     """
