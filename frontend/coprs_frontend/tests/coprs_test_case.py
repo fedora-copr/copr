@@ -462,8 +462,9 @@ class TransactionDecorator(object):
     def __call__(self, fn):
         @wraps(fn)
         def wrapper(fn, fn_self, *args):
+            username = getattr(fn_self, self.user).username
             with fn_self.tc as fn_self.test_client:
                 with fn_self.test_client.session_transaction() as session:
-                    session["openid"] = getattr(fn_self, self.user).username
+                    session["openid"] = username
                 return fn(fn_self, *args)
         return decorator.decorator(wrapper, fn)
