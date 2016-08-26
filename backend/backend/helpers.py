@@ -419,6 +419,10 @@ def ensure_dir_exists(path, log):
             log.exception(e)
 
 
+def get_chroot_arch(chroot):
+    return chroot.split("-")[2]
+
+
 @contextmanager
 def local_file_logger(name, path, fmt):
     build_logger = create_file_logger(name, path, fmt)

@@ -1,0 +1,264 @@
+[2016-04-07 18:11:40,084][  INFO][PID:31942] Setting up builder: 127.0.0.1
+[2016-04-07 18:11:41,867][  INFO][PID:31942] marking build dir with build_id, 
+[2016-04-07 18:11:41,868][  INFO][PID:31942] Start build: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+[2016-04-07 18:11:41,868][  INFO][PID:31942] putting  into minimal buildroot of fedora-23-x86_64
+[2016-04-07 18:11:42,431][  INFO][PID:31942] Cloning Dist Git repo @copr/new_one/rare_example, branch f23, hash 2c6b09eb12777f13311683d632162e89b5d9f3cb
+[2016-04-07 18:11:43,426][  INFO][PID:31942] Got srpm to build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+[2016-04-07 18:11:44,554][  INFO][PID:31942] executing: /usr/bin/mockchain -r fedora-23-x86_64 -l /var/tmp/mockremote-MrtLW/build/ -a http://backend/results/@copr/new_one/fedora-23-x86_64 -a http://backend/results/@copr/new_one/fedora-23-x86_64/devel -m '--define=copr_username @copr' -m '--define=copr_projectname new_one' -m '--define=vendor Fedora Project COPR (@copr/new_one)' /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+[2016-04-07 18:12:50,469][  INFO][PID:31942] Listing built binary packages
+[2016-04-07 18:12:51,060][  INFO][PID:31942] Built packages:
+rare_example 1.0.3
+rare_example-debuginfo 1.0.3
+[2016-04-07 18:12:51,062][  INFO][PID:31942] builder.build finished; details: {u'built_packages': 'rare_example 1.0.3\nrare_example-debuginfo 1.0.3'}
+ stdout: starting logfile: None
+results dir: /var/tmp/mockremote-MrtLW/build/results/fedora-23-x86_64
+config dir: /var/tmp/mockremote-MrtLW/build/configs/fedora-23-x86_64
+Start build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+building rare_example-1.0.3-2.fc23.src.rpm
+End build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+Success building rare_example-1.0.3-2.fc23.src.rpm
+Results out to: /var/tmp/mockremote-MrtLW/build/results/fedora-23-x86_64
+Pkgs built: 1
+Packages successfully built in this order:
+/tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+[2016-04-07 18:12:51,063][  INFO][PID:31942] Start retrieve results for: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+[2016-04-07 18:12:51,349][  INFO][PID:31942] End retrieve results for: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+[2016-04-07 18:12:51,351][  INFO][PID:31942] End Build: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+[2016-04-07 18:12:51,352][  INFO][PID:31942] Success building rare_example
+[2016-04-07 18:12:51,352][  INFO][PID:31942] Going to sign pkgs from source: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 > in chroot: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64
+[2016-04-07 18:12:51,665][  INFO][PID:31942] signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.src.rpm
+[2016-04-07 18:12:51,699][  INFO][PID:31942] signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-debuginfo-1.0.3-2.fc23.x86_64.rpm
+[2016-04-07 18:12:51,730][  INFO][PID:31942] signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.x86_64.rpm
+[2016-04-07 18:12:51,731][  INFO][PID:31942] Sign done
+[2016-04-07 18:12:51,863][ ERROR][PID:31942] Error making local repo: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64
+Traceback (most recent call last):
+  File "/usr/share/copr/backend/mockremote/__init__.py", line 238, in do_createrepo
+    projectname=self.job.project_name,
+  File "/usr/share/copr/backend/createrepo.py", line 160, in createrepo
+    out_ad = add_appdata(path, username, projectname)
+  File "/usr/share/copr/backend/createrepo.py", line 131, in add_appdata
+    .format(**kwargs), os.path.join(path, "createrepo.lock"))
+  File "/usr/share/copr/backend/createrepo.py", line 34, in run_cmd_unsafe
+    stdout=out, stderr=err)
+CreateRepoError: exit code != 0
+return code 1 after invocation of: chmod -R +rX /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64 
+stderr: 
+(appstream-builder:7913): Asb-DEBUG: searching for plugins in /usr/lib64/asb-plugins-4
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_absorb.so: absorb
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_hardcoded.so: hardcoded
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_gir.so: gir
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_gettext.so: gettext
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_appdata.so: appdata
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_dbus.so: dbus
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_gstreamer.so: gstreamer
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_font.so: font
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_kde_services.so: kde-services
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_nm.so: nm
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_gresource.so: gresource
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_kde_notifyrc.so: kde-notifyrc
+(appstream-builder:7913): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_desktop.so: desktop
+Scanning packages...
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/createrepo.lock.lock: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/createrepo.lock.lock
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/state.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/state.log.gz
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build.info: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build.info
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build.log.gz
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/success: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/success
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build-00000063.rsync.log: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build-00000063.rsync.log
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/root.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/root.log.gz
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/repomd.xml: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/repomd.xml
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/d234b6578fc9449dbb14bacf99684194c622290c4e30834fbe080577e51ea91d-other.sqlite.bz2: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/d234b6578fc9449dbb14bacf99684194c622290c4e30834fbe080577e51ea91d-other.sqlite.bz2
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/abadfd5aa9426767326cf9a30885a4e887760533bae626655745fd5670d5a26b-primary.sqlite.bz2: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/abadfd5aa9426767326cf9a30885a4e887760533bae626655745fd5670d5a26b-primary.sqlite.bz2
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/6ff1d9c15be0734f76b900187d4ae5d3e00c1ed675ceaca1dd847b77c08cf1ee-filelists.sqlite.bz2: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/6ff1d9c15be0734f76b900187d4ae5d3e00c1ed675ceaca1dd847b77c08cf1ee-filelists.sqlite.bz2
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/023c9acfdc0c86b77e359e7ab921b2fb0ca634d9b7e3d5d1c58789cc7d3efa99-primary.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/023c9acfdc0c86b77e359e7ab921b2fb0ca634d9b7e3d5d1c58789cc7d3efa99-primary.xml.gz
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/48199a37c01a5e15c52be1802e73a09b2761956105d41857e1fdc6857187f80a-other.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/48199a37c01a5e15c52be1802e73a09b2761956105d41857e1fdc6857187f80a-other.xml.gz
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/b7e4fa369e130464bef1a02b7697817447fba53f311590f393bc8de19153ceae-filelists.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/b7e4fa369e130464bef1a02b7697817447fba53f311590f393bc8de19153ceae-filelists.xml.gz
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/build-00000063.log: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/build-00000063.log
+(appstream-builder:7913): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/coprbox.brq.redhat.com-55133700.31942-5381168244968818189: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/coprbox.brq.redhat.com-55133700.31942-5381168244968818189
+(appstream-builder:7913): Asb-DEBUG: disabling alternate-arch /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.src.rpm
+Processing packages...
+(appstream-builder:7913): Asb-DEBUG: DEBUG:   rare_example-1.0.3-2.fc23 is not enabled
+(appstream-builder:7913): Asb-DEBUG: starting: rare_example
+(appstream-builder:7913): Asb-DEBUG: starting: rare_example-debuginfo
+(appstream-builder:7913): Asb-DEBUG: DEBUG:   Getting filename match for rare_example-1.0.3-2.fc23.x86_64.rpm
+(appstream-builder:7913): Asb-DEBUG: DEBUG:   Getting filename match for rare_example-debuginfo-1.0.3-2.fc23.x86_64.rpm
+(appstream-builder:7913): As-DEBUG: Emitting ::changed() [add-app]
+Merging applications...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream.xml.gz...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-failed.xml.gz...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-ignore.xml.gz...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-icons.tar.gz...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-screenshots.tar...
+Done!
+
+
+Last command
+
+stdout: chmod: changing permissions of ‘/var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.src.rpm’: Operation not permitted
+chmod: changing permissions of ‘/var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-debuginfo-1.0.3-2.fc23.x86_64.rpm’: Operation not permitted
+chmod: changing permissions of ‘/var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.x86_64.rpm’: Operation not permitted
+
+
+[2016-04-07 18:12:51,864][  INFO][PID:31942] Retrieving pubkey 
+[2016-04-07 18:12:51,882][  INFO][PID:31942] Added pubkey for user @copr project new_one into: /var/lib/copr/public_html/results/@copr/new_one/pubkey.gpg
+[2016-04-07 18:13:21,973][  INFO][PID:31942] Setting up builder: 127.0.0.1
+2016-04-07 18:13:21,973 backend.worker-PC-1.builder.mr Setting up builder: 127.0.0.1
+[2016-04-07 18:13:23,748][  INFO][PID:31942] marking build dir with build_id, 
+2016-04-07 18:13:23,748 backend.worker-PC-1.builder.mr marking build dir with build_id, 
+[2016-04-07 18:13:23,749][  INFO][PID:31942] Start build: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+2016-04-07 18:13:23,749 backend.worker-PC-1.builder.mr Start build: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+[2016-04-07 18:13:23,749][  INFO][PID:31942] putting  into minimal buildroot of fedora-23-x86_64
+2016-04-07 18:13:23,749 backend.worker-PC-1.builder.mr putting  into minimal buildroot of fedora-23-x86_64
+[2016-04-07 18:13:24,320][  INFO][PID:31942] Cloning Dist Git repo @copr/new_one/rare_example, branch f23, hash 2c6b09eb12777f13311683d632162e89b5d9f3cb
+2016-04-07 18:13:24,320 backend.worker-PC-1.builder.mr Cloning Dist Git repo @copr/new_one/rare_example, branch f23, hash 2c6b09eb12777f13311683d632162e89b5d9f3cb
+[2016-04-07 18:13:25,238][  INFO][PID:31942] Got srpm to build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+2016-04-07 18:13:25,238 backend.worker-PC-1.builder.mr Got srpm to build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+[2016-04-07 18:13:26,390][  INFO][PID:31942] executing: /usr/bin/mockchain -r fedora-23-x86_64 -l /var/tmp/mockremote-5fhjr/build/ -a http://backend/results/@copr/new_one/fedora-23-x86_64 -a http://backend/results/@copr/new_one/fedora-23-x86_64/devel -m '--define=copr_username @copr' -m '--define=copr_projectname new_one' -m '--define=vendor Fedora Project COPR (@copr/new_one)' /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+2016-04-07 18:13:26,390 backend.worker-PC-1.builder.mr executing: /usr/bin/mockchain -r fedora-23-x86_64 -l /var/tmp/mockremote-5fhjr/build/ -a http://backend/results/@copr/new_one/fedora-23-x86_64 -a http://backend/results/@copr/new_one/fedora-23-x86_64/devel -m '--define=copr_username @copr' -m '--define=copr_projectname new_one' -m '--define=vendor Fedora Project COPR (@copr/new_one)' /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+[2016-04-07 18:14:32,390][  INFO][PID:31942] Listing built binary packages
+2016-04-07 18:14:32,390 backend.worker-PC-1.builder.mr Listing built binary packages
+[2016-04-07 18:14:33,048][  INFO][PID:31942] Built packages:
+rare_example 1.0.3
+rare_example-debuginfo 1.0.3
+2016-04-07 18:14:33,048 backend.worker-PC-1.builder.mr Built packages:
+rare_example 1.0.3
+rare_example-debuginfo 1.0.3
+[2016-04-07 18:14:33,049][  INFO][PID:31942] builder.build finished; details: {u'built_packages': 'rare_example 1.0.3\nrare_example-debuginfo 1.0.3'}
+ stdout: starting logfile: None
+results dir: /var/tmp/mockremote-5fhjr/build/results/fedora-23-x86_64
+config dir: /var/tmp/mockremote-5fhjr/build/configs/fedora-23-x86_64
+Start build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+building rare_example-1.0.3-2.fc23.src.rpm
+End build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+Success building rare_example-1.0.3-2.fc23.src.rpm
+Results out to: /var/tmp/mockremote-5fhjr/build/results/fedora-23-x86_64
+Pkgs built: 1
+Packages successfully built in this order:
+/tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+2016-04-07 18:14:33,049 backend.worker-PC-1.builder.mr builder.build finished; details: {u'built_packages': 'rare_example 1.0.3\nrare_example-debuginfo 1.0.3'}
+ stdout: starting logfile: None
+results dir: /var/tmp/mockremote-5fhjr/build/results/fedora-23-x86_64
+config dir: /var/tmp/mockremote-5fhjr/build/configs/fedora-23-x86_64
+Start build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+building rare_example-1.0.3-2.fc23.src.rpm
+End build: /tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+Success building rare_example-1.0.3-2.fc23.src.rpm
+Results out to: /var/tmp/mockremote-5fhjr/build/results/fedora-23-x86_64
+Pkgs built: 1
+Packages successfully built in this order:
+/tmp/build_package_repo/rare_example/rare_example-1.0.3-2.fc23.src.rpm
+[2016-04-07 18:14:33,049][  INFO][PID:31942] Start retrieve results for: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+2016-04-07 18:14:33,049 backend.worker-PC-1.builder.mr Start retrieve results for: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+[2016-04-07 18:14:33,347][  INFO][PID:31942] End retrieve results for: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+2016-04-07 18:14:33,347 backend.worker-PC-1.builder.mr End retrieve results for: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+[2016-04-07 18:14:33,348][  INFO][PID:31942] End Build: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+2016-04-07 18:14:33,348 backend.worker-PC-1.builder.mr End Build: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 >
+[2016-04-07 18:14:33,348][  INFO][PID:31942] Success building rare_example
+2016-04-07 18:14:33,348 backend.worker-PC-1.builder.mr Success building rare_example
+[2016-04-07 18:14:33,349][  INFO][PID:31942] Going to sign pkgs from source: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 > in chroot: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64
+2016-04-07 18:14:33,349 backend.worker-PC-1.builder.mr Going to sign pkgs from source: BuildJob<id: 63, owner: @copr, project: new_one, git branch: f23, git_hash: 2c6b09eb12777f13311683d632162e89b5d9f3cb, status: 3 > in chroot: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64
+[2016-04-07 18:14:33,400][  INFO][PID:31942] signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.src.rpm
+2016-04-07 18:14:33,400 backend.worker-PC-1.builder.mr signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.src.rpm
+[2016-04-07 18:14:33,434][  INFO][PID:31942] signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-debuginfo-1.0.3-2.fc23.x86_64.rpm
+2016-04-07 18:14:33,434 backend.worker-PC-1.builder.mr signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-debuginfo-1.0.3-2.fc23.x86_64.rpm
+[2016-04-07 18:14:33,464][  INFO][PID:31942] signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.x86_64.rpm
+2016-04-07 18:14:33,464 backend.worker-PC-1.builder.mr signed rpm: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.x86_64.rpm
+[2016-04-07 18:14:33,464][  INFO][PID:31942] Sign done
+2016-04-07 18:14:33,464 backend.worker-PC-1.builder.mr Sign done
+2016-04-07 18:14:33,465 copr.client.client Fetching url: http://localhost:8080/api/coprs/@copr/new_one/detail/, for login: None
+2016-04-07 18:14:33,466 requests.packages.urllib3.connectionpool Starting new HTTP connection (1): localhost
+2016-04-07 18:14:33,482 requests.packages.urllib3.connectionpool "GET /api/coprs/@copr/new_one/detail/ HTTP/1.1" 200 307
+2016-04-07 18:14:33,483 copr.client.client raw response: {
+  "detail": {
+    "additional_repos": "",
+    "auto_createrepo": true,
+    "description": "",
+    "instructions": "",
+    "last_modified": 1460045572,
+    "name": "new_one",
+    "yum_repos": {
+      "fedora-23-x86_64": "http://backend/results/@copr/new_one/fedora-23-x86_64/"
+    }
+  },
+  "output": "ok"
+}
+[2016-04-07 18:14:33,604][ ERROR][PID:31942] Error making local repo: /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64
+Traceback (most recent call last):
+  File "/usr/share/copr/backend/mockremote/__init__.py", line 238, in do_createrepo
+    projectname=self.job.project_name,
+  File "/usr/share/copr/backend/createrepo.py", line 160, in createrepo
+    out_ad = add_appdata(path, username, projectname)
+  File "/usr/share/copr/backend/createrepo.py", line 131, in add_appdata
+    .format(**kwargs), os.path.join(path, "createrepo.lock"))
+  File "/usr/share/copr/backend/createrepo.py", line 34, in run_cmd_unsafe
+    stdout=out, stderr=err)
+CreateRepoError: exit code != 0
+return code 1 after invocation of: chmod -R +rX /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64 
+stderr: 
+(appstream-builder:15844): Asb-DEBUG: searching for plugins in /usr/lib64/asb-plugins-4
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_absorb.so: absorb
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_hardcoded.so: hardcoded
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_gir.so: gir
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_gettext.so: gettext
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_appdata.so: appdata
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_dbus.so: dbus
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_gstreamer.so: gstreamer
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_font.so: font
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_kde_services.so: kde-services
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_nm.so: nm
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_gresource.so: gresource
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_kde_notifyrc.so: kde-notifyrc
+(appstream-builder:15844): Asb-DEBUG: opened plugin /usr/lib64/asb-plugins-4/libasb_plugin_desktop.so: desktop
+Scanning packages...
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/createrepo.lock.lock: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/createrepo.lock.lock
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-ignore.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-ignore.xml.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream.xml.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-failed.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-failed.xml.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/state.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/state.log.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build.info: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build.info
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build.log.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/success: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/success
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/mockchain.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/mockchain.log.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/state.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/state.log.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/build.info: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/build.info
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/build.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/build.log.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/build-00000063.rsync.log: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/build-00000063.rsync.log
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/root.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/prev_build_backup/root.log.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build-00000063.rsync.log: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/build-00000063.rsync.log
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/root.log.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/root.log.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/4fd427b754ba024f2f7d2bdbae48898e016166ea57ea04cb5334592fc5e6972e-filelists.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/4fd427b754ba024f2f7d2bdbae48898e016166ea57ea04cb5334592fc5e6972e-filelists.xml.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/repomd.xml: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/repomd.xml
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/7c110e0f61b9ec544795968b631a1043c772b23e099e5bcdcb2f5cc76628997a-primary.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/7c110e0f61b9ec544795968b631a1043c772b23e099e5bcdcb2f5cc76628997a-primary.xml.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/d120d012b72f80d03db9878b825d0193238ca39be303ae36059e2d405e868b38-other.sqlite.bz2: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/d120d012b72f80d03db9878b825d0193238ca39be303ae36059e2d405e868b38-other.sqlite.bz2
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/8bd834854813ada3a111a5765b507128b949bd6f78cf006f416ecebb78981624-primary.sqlite.bz2: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/8bd834854813ada3a111a5765b507128b949bd6f78cf006f416ecebb78981624-primary.sqlite.bz2
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/e5d3e74582afe2a0a1e97f1c6881f4f2b42a1bab938188df0530f00f9090a7aa-other.xml.gz: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/e5d3e74582afe2a0a1e97f1c6881f4f2b42a1bab938188df0530f00f9090a7aa-other.xml.gz
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/dda69ec33330d6f891399d842b2ce67c86536f55a606302c5a992a9b827a2872-filelists.sqlite.bz2: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/repodata/dda69ec33330d6f891399d842b2ce67c86536f55a606302c5a992a9b827a2872-filelists.sqlite.bz2
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/build-00000063.log: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/build-00000063.log
+(appstream-builder:15844): As-DEBUG: Failed to add package /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/coprbox.brq.redhat.com-55133700.31942-5381168244968818189: No idea how to handle /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/coprbox.brq.redhat.com-55133700.31942-5381168244968818189
+(appstream-builder:15844): Asb-DEBUG: disabling alternate-arch /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.src.rpm
+Processing packages...
+(appstream-builder:15844): Asb-DEBUG: DEBUG:   rare_example-1.0.3-2.fc23 is not enabled
+(appstream-builder:15844): Asb-DEBUG: starting: rare_example
+(appstream-builder:15844): Asb-DEBUG: starting: rare_example-debuginfo
+(appstream-builder:15844): Asb-DEBUG: DEBUG:   Getting filename match for rare_example-1.0.3-2.fc23.x86_64.rpm
+(appstream-builder:15844): Asb-DEBUG: DEBUG:   Getting filename match for rare_example-debuginfo-1.0.3-2.fc23.x86_64.rpm
+(appstream-builder:15844): As-DEBUG: Emitting ::changed() [add-app]
+Merging applications...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream.xml.gz...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-failed.xml.gz...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-ignore.xml.gz...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-icons.tar.gz...
+Writing /var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/appdata/appstream-screenshots.tar...
+Done!
+
+
+Last command
+
+stdout: chmod: changing permissions of ‘/var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.src.rpm’: Operation not permitted
+chmod: changing permissions of ‘/var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-debuginfo-1.0.3-2.fc23.x86_64.rpm’: Operation not permitted
+chmod: changing permissions of ‘/var/lib/copr/public_html/results/@copr/new_one/fedora-23-x86_64/00000063-rare_example/rare_example-1.0.3-2.fc23.x86_64.rpm’: Operation not permitted
+
+
+[2016-04-07 18:14:33,606][  INFO][PID:31942] Retrieving pubkey 
+2016-04-07 18:14:33,606 backend.worker-PC-1.builder.mr Retrieving pubkey 
+[2016-04-07 18:14:33,622][  INFO][PID:31942] Added pubkey for user @copr project new_one into: /var/lib/copr/public_html/results/@copr/new_one/pubkey.gpg
+2016-04-07 18:14:33,622 backend.worker-PC-1.builder.mr Added pubkey for user @copr project new_one into: /var/lib/copr/public_html/results/@copr/new_one/pubkey.gpg

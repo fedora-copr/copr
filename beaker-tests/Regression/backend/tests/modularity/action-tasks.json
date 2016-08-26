@@ -1,0 +1,14 @@
+[
+{
+  "_description": "Test build_module action",
+  "_expected_outcome": "success",
+
+  "id": 1,
+  "action_type": 9,
+  "created_on": 1462513764,
+  "object_type": "copr",
+  "old_value": "",
+  "new_value": "",
+  "data": "{\"ownername\": \"@modularity\", \"projectname\": \"template-project\", \"chroots\": [\"fedora-23-x86_64\"], \"modulemd_b64\": \"ZG9jdW1lbnQ6IG1vZHVsZW1kCnZlcnNpb246IDAKZGF0YToKICAgIG5hbWU6IHJhcmVfbW9kdWxlCiAgICB2ZXJzaW9uOiA0LjMuNDMKICAgIHJlbGVhc2U6IDMxCiAgICBzdW1tYXJ5OiBBIG1vZHVsZSBjb250YWluaW5nIHRoZSByYXJlIGV4YW1wbGUgcGFja2FnZQogICAgZGVzY3JpcHRpb246ID4KICAgICAgICBBIG1vZHVsZSBmb3IgdGhlIGRlbW9uc3RyYXRpb24gb2YgdGhlIG1ldGFkYXRhIGZvcm1hdC4gQWxzbywKICAgICAgICB0aGUgb2JsaWdhdG9yeSBsb3JlbSBpcHN1bSBkb2xvciBzaXQgYW1ldCBnb2VzIHJpZ2h0IGhlcmUuCiAgICBsaWNlbnNlOgogICAgICAgIG1vZHVsZToKICAgICAgICAgICAgLSBNSVQKICAgICAgICBjb250ZW50OiBbXQogICAgeG1kOiB+CiAgICBkZXBlbmRlbmNpZXM6CiAgICAgICAgYnVpbGRyZXF1aXJlczoKICAgICAgICAgICAgZmFrZW1vZHVsZWJ1aWxkOiAxLjAtMAogICAgcmVmZXJlbmNlczoKICAgICAgICBjb21tdW5pdHk6IGh0dHBzOi8vZmVkb3JhcHJvamVjdC5vcmcvd2lraS9Nb2R1bGFyaXR5CiAgICAgICAgdHJhY2tlcjogaHR0cHM6Ly90YWlnYS5mZWRvcmFpbmZyYWNsb3VkLm9yZy9wcm9qZWN0L21vZHVsYXJpdHkKICAgIHByb2ZpbGVzOgogICAgICAgIGRlZmF1bHQ6CiAgICAgICAgICAgIHJwbXM6CiAgICAgICAgICAgICAgICAtIHJhcmVfZXhhbXBsZQogICAgY29tcG9uZW50czoKICAgICAgICBycG1zOgogICAgICAgICAgICBhcGk6CiAgICAgICAgICAgICAgICAtIHJhcmVfZXhhbXBsZQogICAgICAgICAgICBwYWNrYWdlczoKICAgICAgICAgICAgICAgIGJhc2g6CiAgICAgICAgICAgICAgICAgICAgcmF0aW9uYWxlOiBJdCdzIGhlcmUgdG8gZ2l2ZSBhbiBleGFtcGxlLi4uYSByYXJlIGV4YW1wbGUhCg==\" }"
+}
+]
