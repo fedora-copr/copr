@@ -34,20 +34,17 @@ class PackagesLogic(object):
     @classmethod
     def get_copr_packages_list(cls, copr):
         query_select = """
-SELECT package.name, build.pkg_version, build.submitted_on, package.webhook_rebuild, order_to_status(MIN(statuses.st)) AS status
-FROM build
-LEFT OUTER JOIN package ON build.package_id = package.id
-LEFT OUTER JOIN (SELECT build_chroot.build_id, started_on, ended_on, status_to_order(status) AS st FROM build_chroot) AS statuses
-  ON statuses.build_id=build.id
-WHERE build.id IN
-  (select id from (select MAX(build.id) as id, package.name as pkg_name
-  from package
-  left outer join build on build.package_id = package.id
-  where build.copr_id = :copr_id
-  group by package.name) as foo )
-GROUP BY package.name, build.pkg_version, build.submitted_on, package.webhook_rebuild
-ORDER BY package.name ASC;
-"""
+SELECT package.name, build.pkg_version, build.submitted_on, package.webhook_rebuild, order_to_status(subquery2.min_order_for_a_build) AS status
+FROM package
+LEFT OUTER JOIN (select MAX(build.id) as max_build_id_for_a_package, package_id
+  FROM build
+  WHERE build.copr_id = :copr_id
+  GROUP BY package_id) as subquery1 ON subquery1.package_id = package.id
+LEFT OUTER JOIN build ON build.id = subquery1.max_build_id_for_a_package
+LEFT OUTER JOIN (select build_id, min(status_to_order(status)) as min_order_for_a_build
+  FROM build_chroot
+  GROUP BY build_id) as subquery2 ON subquery2.build_id = subquery1.max_build_id_for_a_package;
+        """
 
         if db.engine.url.drivername == "sqlite":
             def sqlite_status_to_order(x):
