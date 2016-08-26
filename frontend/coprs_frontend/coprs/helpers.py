@@ -68,7 +68,8 @@ class ActionTypeEnum(with_metaclass(EnumType, object)):
         "gen_gpg_key": 5,
         "rawhide_to_release": 6,
         "fork": 7,
-        "update_module_md": 8
+        "update_module_md": 8,
+        "build_module": 9,
     }
 
 

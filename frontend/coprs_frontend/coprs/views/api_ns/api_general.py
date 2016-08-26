@@ -25,6 +25,7 @@ from coprs.views.api_ns import api_ns
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.actions_logic import ActionsLogic
 
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
@@ -797,8 +798,9 @@ def copr_build_module(copr):
         raise LegacyApiError(form.errors)
 
     modulemd = form.modulemd.data.read()
-    # @TODO compress with zlib (see CoprChroot model)
-    # @TODO send build_module action
+    ActionsLogic.send_build_module(copr, modulemd)
+    db.session.commit()
+
     return flask.jsonify({
         "output": "ok",
         "message": "Module build was submitted",
