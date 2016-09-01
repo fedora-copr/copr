@@ -876,3 +876,47 @@ def copr_fork_post(copr):
 def copr_update_search_index():
     subprocess.call(['/usr/share/copr/coprs_frontend/manage.py', 'update_indexes_quick', '1'])
     return "OK"
+
+
+@coprs_ns.route("/<username>/<coprname>/create_module/")
+@coprs_ns.route("/g/<group_name>/<coprname>/create_module/")
+@login_required
+@req_with_copr
+def copr_create_module(copr):
+    form = forms.CreateModuleForm()
+    return flask.render_template("coprs/create_module.html", copr=copr, form=form)
+
+
+@coprs_ns.route("/<username>/<coprname>/create_module/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/create_module/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_create_module_post(copr):
+    form = forms.CreateModuleForm(csrf_enabled=False)
+    if not form.validate_on_submit():
+        return flask.render_template("coprs/create_module.html", copr=copr, form=form)
+
+    pkg_filter = form.filter.data
+    api = form.api.data
+    profile_names = form.profile_names.data
+    profile_pkgs = form.profile_pkgs.data
+
+    # @TODO Generate yaml file
+    s = "Package Filter: "
+    for package in pkg_filter:
+        s += "{}, ".format(package)
+
+    s += "| Module API: "
+    for package in api:
+        s += "{}, ".format(package)
+
+    s += "| Install Profiles: "
+    for i, values in enumerate(zip(profile_names, profile_pkgs)):
+        name, packages = values
+        s += "{}, ".format(name)
+        for package in packages:
+            s += "{}, ".format(package)
+
+    # @TODO Create build_module action (see API)
+
+    return s
