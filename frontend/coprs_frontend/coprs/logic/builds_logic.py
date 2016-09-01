@@ -784,7 +784,11 @@ class BuildsMonitorLogic(object):
 	  package.name AS package_name,
 	  build.id AS build_id,
 	  build_chroot.status AS build_chroot_status,
-	  mock_chroot.id AS mock_chroot_id
+	  build.pkg_version AS build_pkg_version,
+	  mock_chroot.id AS mock_chroot_id,
+          mock_chroot.os_release AS mock_chroot_os_release,
+          mock_chroot.os_version AS mock_chroot_os_version,
+          mock_chroot.arch AS mock_chroot_arch
 	FROM package
 	JOIN (SELECT
 	  MAX(build.id) AS max_build_id_for_chroot,
