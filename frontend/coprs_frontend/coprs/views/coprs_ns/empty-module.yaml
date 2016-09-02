@@ -1,0 +1,19 @@
+data:
+  components:
+    rpms:
+      api: []
+      dependencies: false
+      packages: {}
+  dependencies:
+    buildrequires: {}
+  description:
+  license:
+    module: []
+  name:
+  profiles: {}
+  references: {}
+  release:
+  summary:
+  version:
+document: modulemd
+version: 0

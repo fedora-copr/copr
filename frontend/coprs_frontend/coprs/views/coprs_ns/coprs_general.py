@@ -13,6 +13,7 @@ from flask import render_template, url_for, stream_with_context
 import platform
 import smtplib
 import sqlalchemy
+import modulemd
 from email.mime.text import MIMEText
 from itertools import groupby
 
@@ -25,6 +26,7 @@ from coprs import helpers
 from coprs import models
 from coprs.exceptions import ObjectNotFound
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.rmodels import TimedStatEvents
@@ -896,27 +898,23 @@ def copr_create_module_post(copr):
     if not form.validate_on_submit():
         return flask.render_template("coprs/create_module.html", copr=copr, form=form)
 
-    pkg_filter = form.filter.data
-    api = form.api.data
-    profile_names = form.profile_names.data
-    profile_pkgs = form.profile_pkgs.data
+    mmd = modulemd.ModuleMetadata()
+    mmd.load(os.path.join(os.path.dirname(__file__), "empty-module.yaml"))
 
-    # @TODO Generate yaml file
-    s = "Package Filter: "
-    for package in pkg_filter:
-        s += "{}, ".format(package)
+    for pkg_id in form.filter.data:
+        package = PackagesLogic.get_by_id(pkg_id).first()
+        mmd.components.rpms.add_filter(package.name)
 
-    s += "| Module API: "
-    for package in api:
-        s += "{}, ".format(package)
+    for pkg_id in form.api.data:
+        package = PackagesLogic.get_by_id(pkg_id).first()
+        mmd.components.rpms.add_api(package.name)
 
-    s += "| Install Profiles: "
-    for i, values in enumerate(zip(profile_names, profile_pkgs)):
+    for i, values in enumerate(zip(form.profile_names.data, form.profile_pkgs.data)):
         name, packages = values
-        s += "{}, ".format(name)
-        for package in packages:
-            s += "{}, ".format(package)
+        mmd.profiles[name] = modulemd.profile.ModuleProfile()
+        for pkg_id in packages:
+            package = PackagesLogic.get_by_id(pkg_id).first()
+            mmd.profiles[name].add_rpm(package.name)
 
     # @TODO Create build_module action (see API)
-
-    return s
+    return mmd.dumps()
