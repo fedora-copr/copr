@@ -886,7 +886,8 @@ def copr_update_search_index():
 @req_with_copr
 def copr_create_module(copr):
     form = forms.CreateModuleForm()
-    return flask.render_template("coprs/create_module.html", copr=copr, form=form)
+    packages = filter(lambda p: filter(lambda b: b.status == helpers.StatusEnum("succeeded"), p.builds), copr.packages)
+    return flask.render_template("coprs/create_module.html", copr=copr, form=form, packages=packages)
 
 
 @coprs_ns.route("/<username>/<coprname>/create_module/", methods=["POST"])

@@ -35,7 +35,7 @@
             <div class="panel-body">
 
               <label for="exampleInputEmail1">Packages <span class="text-muted">to be included:</span></label>
-              {% for package in copr.packages %}
+              {% for package in packages %}
               <div class="checkbox">
                 <label>
                   <input type="checkbox" name="filter-{{ loop.index0 }}" value="{{ package.id }}" checked="checked"> {{ package.name }}
@@ -57,7 +57,7 @@
             <div class="panel-body">
               <div class="form-group">
                 <label>Packages <span class="text-muted">defining API:</span></label>
-                {% for package in copr.packages %}
+                {% for package in packages %}
                 <div class="checkbox">
                   <label>
                     <input type="checkbox" name="api-{{ loop.index0 }}" value="{{ package.id }}"> {{ package.name }}
@@ -86,7 +86,7 @@
                 </div>
                 <div class="form-group">
                   <label for="exampleInputEmail1">Packages <span class="text-muted">installed by this profile:</span></label>
-                  {% for package in copr.packages %}
+                  {% for package in packages %}
                   <div class="checkbox">
                     <label>
                       <input type="checkbox" name="profile_pkgs-{{ i }}-{{ loop.index0 }}" value="{{ package.id }}"> {{ package.name }}
