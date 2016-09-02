@@ -304,6 +304,7 @@ class TestCoprRepeatBuild(CoprsTestCase):
         for i, url in enumerate(urls):
             r.insert(i, self.test_client.post(route, data={"pkgs": url, "source_type": "srpm_link"}, follow_redirects=True))
 
-        assert b"New build has been created" in r[0].data
+        assert b"doesn&#39;t seem to be a valid URL" not in r[0].data
+        assert b"doesn&#39;t seem to be a valid SRPM URL" not in r[0].data
         assert b"doesn&#39;t seem to be a valid URL" in r[1].data
         assert b"doesn&#39;t seem to be a valid SRPM URL" in r[2].data
