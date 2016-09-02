@@ -916,5 +916,7 @@ def copr_create_module_post(copr):
             package = PackagesLogic.get_by_id(pkg_id).first()
             mmd.profiles[name].add_rpm(package.name)
 
-    # @TODO Create build_module action (see API)
-    return mmd.dumps()
+    actions_logic.ActionsLogic.send_build_module(copr, mmd.dumps())
+    db.session.commit()
+    flask.flash("Modulemd yaml file successfully generated and submitted to build")
+    return flask.redirect(url_for_copr_details(copr))
