@@ -294,7 +294,6 @@ class Action(object):
                 except CoprRequestException:
                     # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
                     self.log.exception("Project {0}/{1} has been deleted on frontend".format(username, projectname))
-                    result.result = ActionResult.FAILURE
                 except CreateRepoError:
                     self.log.exception("Error making local repo: {}".format(createrepo_target))
 
