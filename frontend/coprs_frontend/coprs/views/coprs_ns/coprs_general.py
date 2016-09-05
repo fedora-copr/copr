@@ -886,7 +886,12 @@ def copr_update_search_index():
 @req_with_copr
 def copr_create_module(copr):
     form = forms.CreateModuleForm()
-    packages = filter(lambda p: filter(lambda b: b.status == helpers.StatusEnum("succeeded"), p.builds), copr.packages)
+
+    packages = []
+    for build in filter(None, [p.last_build(successful=True) for p in copr.packages]):
+        for package in build.built_packages.split("\n"):
+            packages.append(package.split()[0])
+
     return flask.render_template("coprs/create_module.html", copr=copr, form=form, packages=packages)
 
 
@@ -902,20 +907,17 @@ def copr_create_module_post(copr):
     mmd = modulemd.ModuleMetadata()
     mmd.load(os.path.join(os.path.dirname(__file__), "empty-module.yaml"))
 
-    for pkg_id in form.filter.data:
-        package = PackagesLogic.get_by_id(pkg_id).first()
-        mmd.components.rpms.add_filter(package.name)
+    for package in form.filter.data:
+        mmd.components.rpms.add_filter(package)
 
-    for pkg_id in form.api.data:
-        package = PackagesLogic.get_by_id(pkg_id).first()
-        mmd.components.rpms.add_api(package.name)
+    for package in form.api.data:
+        mmd.components.rpms.add_api(package)
 
     for i, values in enumerate(zip(form.profile_names.data, form.profile_pkgs.data)):
         name, packages = values
         mmd.profiles[name] = modulemd.profile.ModuleProfile()
-        for pkg_id in packages:
-            package = PackagesLogic.get_by_id(pkg_id).first()
-            mmd.profiles[name].add_rpm(package.name)
+        for package in packages:
+            mmd.profiles[name].add_rpm(package)
 
     actions_logic.ActionsLogic.send_build_module(copr, mmd.dumps())
     db.session.commit()

@@ -38,7 +38,7 @@
               {% for package in packages %}
               <div class="checkbox">
                 <label>
-                  <input type="checkbox" name="filter-{{ loop.index0 }}" value="{{ package.id }}" checked="checked"> {{ package.name }}
+                  <input type="checkbox" name="filter-{{ loop.index0 }}" value="{{ package }}" checked="checked"> {{ package }}
                 </label>
               </div>
               {% endfor %}
@@ -60,7 +60,7 @@
                 {% for package in packages %}
                 <div class="checkbox">
                   <label>
-                    <input type="checkbox" name="api-{{ loop.index0 }}" value="{{ package.id }}"> {{ package.name }}
+                    <input type="checkbox" name="api-{{ loop.index0 }}" value="{{ package }}"> {{ package }}
                   </label>
                 </div>
                 {% endfor %}
@@ -89,7 +89,7 @@
                   {% for package in packages %}
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" name="profile_pkgs-{{ i }}-{{ loop.index0 }}" value="{{ package.id }}"> {{ package.name }}
+                      <input type="checkbox" name="profile_pkgs-{{ i }}-{{ loop.index0 }}" value="{{ package }}"> {{ package }}
                     </label>
                   </div>
                   {% endfor %}
