@@ -907,6 +907,10 @@ def copr_create_module_post(copr):
     mmd = modulemd.ModuleMetadata()
     mmd.load(os.path.join(os.path.dirname(__file__), "empty-module.yaml"))
 
+    mmd.name = copr.name
+    mmd.version = form.version.data
+    mmd.release = form.release.data
+
     for package in form.filter.data:
         mmd.components.rpms.add_filter(package)
 
