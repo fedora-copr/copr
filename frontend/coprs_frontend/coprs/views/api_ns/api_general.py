@@ -1,6 +1,7 @@
 import base64
 import datetime
 from functools import wraps
+import json
 import os
 import flask
 
@@ -696,12 +697,36 @@ def get_package_record_params():
     return params
 
 
+def generate_package_list(query, params):
+    """
+    A lagging generator to stream JSON so we don't have to hold everything in memory
+    This is a little tricky, as we need to omit the last comma to make valid JSON,
+    thus we use a lagging generator, similar to http://stackoverflow.com/questions/1630320/
+    """
+    packages = query.__iter__()
+    try:
+        prev_package = next(packages)  # get first result
+    except StopIteration:
+        # StopIteration here means the length was zero, so yield a valid packages doc and stop
+        yield '{"packages": []}'
+        raise StopIteration
+    # We have some packages. First, yield the opening json
+    yield '{"packages": ['
+    # Iterate over the packages
+    for package in packages:
+        yield json.dumps(prev_package.to_dict(**params)) + ', '
+        prev_package = package
+    # Now yield the last iteration without comma but with the closing brackets
+    yield json.dumps(prev_package.to_dict(**params)) + ']}'
+
+
 @api_ns.route("/coprs/<username>/<coprname>/package/list/", methods=["GET"])
 @api_req_with_copr
 def copr_list_packages(copr):
     packages = PackagesLogic.get_all(copr.id)
     params = get_package_record_params()
-    return flask.jsonify({"packages": [package.to_dict(**params) for package in packages]})
+    return flask.Response(generate_package_list(packages, params), content_type='application/json')
+    #return flask.jsonify({"packages": [package.to_dict(**params) for package in packages]})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/package/get/<package_name>/", methods=["GET"])
