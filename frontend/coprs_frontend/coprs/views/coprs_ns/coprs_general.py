@@ -910,6 +910,7 @@ def copr_create_module_post(copr):
     mmd.name = copr.name
     mmd.version = form.version.data
     mmd.release = form.release.data
+    mmd.summary = "Module from Copr repository: {}".format(copr.full_name)
 
     for package in form.filter.data:
         mmd.components.rpms.add_filter(package)
