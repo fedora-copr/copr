@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.99
+Version:    1.100
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -271,6 +271,17 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Wed Sep 07 2016 clime <clime@redhat.com> 1.100-1
+- alembic revision to enable F25 chroots
+- script to deactivate fedora-22-* chroots
+- stream api call package/list
+- Add 'repo_gpgcheck=0' to .repo file template
+- Add 'type=rpm-md' to .repo file template
+- fixed the remaining unittest and reenabled tests during package build in .spec
+- fix for DetachedInstanceError in unittests
+- Bug 1369392 - package not listed in project page
+- Bug 1368259 - Deleting a build from a group project doesn't delete backend files
+
 * Mon Aug 15 2016 clime <clime@redhat.com> 1.99-1
 - disable unittests during package builds
 
