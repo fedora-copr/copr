@@ -31,15 +31,24 @@
 
 PACKAGE="copr"
 OWNER="@copr"
-NAME_VAR="TEST$(date +%s)" # we (the mankind) need the names to be unique
+NAME_VAR="TEST$(date +%s)" # names should be unique
 NAME_PREFIX="$OWNER/$NAME_VAR"
+if [[ ! $FRONTEND_URL ]]; then
+    FRONTEND_URL="http://copr-fe-dev.cloud.fedoraproject.org"
+fi
+if [[ ! $BACKEND_URL ]]; then
+    BACKEND_URL="http://copr-be-dev.cloud.fedoraproject.org"
+fi
+
+echo "FRONTEND_URL = $FRONTEND_URL"
+echo "BACKEND_URL = $BACKEND_URL"
 
 rlJournalStart
     rlPhaseStartSetup
         rlAssertRpm "copr-cli"
         rlAssertExists ~/.config/copr
         # testing instance?
-        rlAssertGrep "copr-fe-dev.cloud.fedoraproject.org" ~/.config/copr
+        rlAssertGrep "$FRONTEND_URL" ~/.config/copr
         # we don't need to be destroying the production instance
         rlAssertNotGrep "copr.fedoraproject.org" ~/.config/copr
         # token ok? communication ok?
@@ -47,9 +56,9 @@ rlJournalStart
         # and install... things
         yum -y install dnf dnf-plugins-core
         # use the dev instance
-        sed -i "s/http:\/\/copr.fedoraproject.org/http:\/\/copr-fe-dev.cloud.fedoraproject.org/g" \
+        sed -i "s+http://copr.fedoraproject.org+$FRONTEND_URL+g" \
         /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
-        sed -i "s/https:\/\/copr.fedoraproject.org/http:\/\/copr-fe-dev.cloud.fedoraproject.org/g" \
+        sed -i "s+https://copr.fedoraproject.org+$FRONTEND_URL+g" \
         /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
         dnf -y install jq
     rlPhaseEnd
@@ -134,9 +143,9 @@ rlJournalStart
         OUTPUT=`mktemp`
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --nowait > $OUTPUT"
-        rlAssertEquals "Background job should not be listed" `curl http://copr-fe-dev.cloud.fedoraproject.org/backend/importing/ |jq '.builds |length'` 1
+        rlAssertEquals "Background job should not be listed" `curl $FRONTEND_URL/backend/importing/ |jq '.builds |length'` 1
         rlAssertEquals "Non-background job should be imported first" \
-                       `curl http://copr-fe-dev.cloud.fedoraproject.org/backend/importing/ |jq '.builds[0].task_id' |awk -v FS="(\"|-)" '{print $2}'` \
+                       `curl $FRONTEND_URL/backend/importing/ |jq '.builds[0].task_id' |awk -v FS="(\"|-)" '{print $2}'` \
                        `tail -n1 $OUTPUT |cut -d' ' -f3`
 
         sleep 60
@@ -144,9 +153,9 @@ rlJournalStart
         OUTPUT=`mktemp`
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait > $OUTPUT"
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
-        rlAssertEquals "Both background builds should be listed" `curl http://copr-fe-dev.cloud.fedoraproject.org/backend/importing/ |jq '.builds |length'` 2
+        rlAssertEquals "Both background builds should be listed" `curl $FRONTEND_URL/backend/importing/ |jq '.builds |length'` 2
         rlAssertEquals "Build with lesser ID should be imported first" \
-                       `curl http://copr-fe-dev.cloud.fedoraproject.org/backend/importing/ |jq '.builds[0].task_id' |awk -v FS="(\"|-)" '{print $2}'` \
+                       `curl $FRONTEND_URL/backend/importing/ |jq '.builds[0].task_id' |awk -v FS="(\"|-)" '{print $2}'` \
                        `tail -n1 $OUTPUT |cut -d' ' -f3`
 
         sleep 60
@@ -156,7 +165,7 @@ rlJournalStart
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --nowait > $OUTPUT"
         # wait until the builds are imported
-        while :; do curl --silent http://copr-fe-dev.cloud.fedoraproject.org/backend/waiting/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 4 ]; then break; fi; done
+        while :; do curl --silent $FRONTEND_URL/backend/waiting/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 4 ]; then break; fi; done
         rlAssertEquals "Non-background build should be waiting on start of the queue" `cat $WAITING |jq '.build.build_id'` `tail -n1 $OUTPUT |cut -d' ' -f3`
 
 
@@ -357,31 +366,31 @@ rlJournalStart
         # test disable_createrepo
         rlRun "copr-cli create --chroot fedora-23-x86_64 --disable_createrepo false ${NAME_PREFIX}DisableCreaterepoFalse"
         rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoFalse http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
-        rlRun "curl --silent http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}DisableCreaterepoFalse/fedora-23-x86_64/devel/repodata/ | grep \"404.*Not Found\"" 0
+        rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoFalse/fedora-23-x86_64/devel/repodata/ | grep \"404.*Not Found\"" 0
 
         rlRun "copr-cli create --chroot fedora-23-x86_64 --disable_createrepo true ${NAME_PREFIX}DisableCreaterepoTrue"
         rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoTrue http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
-        rlRun "curl --silent http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}DisableCreaterepoTrue/fedora-23-x86_64/devel/repodata/ | grep -E \"404.*Not Found\"" 1
+        rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoTrue/fedora-23-x86_64/devel/repodata/ | grep -E \"404.*Not Found\"" 1
 
         # test unlisted_on_hp project attribute
         rlRun "copr-cli create --unlisted-on-hp on --chroot fedora-23-x86_64 ${NAME_PREFIX}Project7"
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org --silent | grep Project7" 1 # project won't be present on hp
+        rlRun "curl $FRONTEND_URL --silent | grep Project7" 1 # project won't be present on hp
         rlRun "copr-cli modify --unlisted-on-hp off ${NAME_PREFIX}Project7"
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org --silent | grep Project7" 0 # project should be visible on hp now
+        rlRun "curl $FRONTEND_URL --silent | grep Project7" 0 # project should be visible on hp now
 
         # test search index update by copr insertion
         rlRun "copr-cli create --chroot fedora-23-x86_64 --chroot fedora-22-x86_64 ${NAME_PREFIX}Project8"
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 1 # search results _not_ returned
-        rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/"
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 0 # search results returned
+        rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 1 # search results _not_ returned
+        rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
+        rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 0 # search results returned
 
         # test search index update by package addition
         rlRun "copr-cli create --chroot fedora-23-x86_64 --chroot fedora-22-x86_64 ${NAME_PREFIX}Project9" && sleep 65
-        rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/"
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
+        rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
+        rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project9 --name test_package_tito --git-url http://github.com/clime/example.git --test on" # insert package to the copr
-        rlRun "curl -X POST http://copr-fe-dev.cloud.fedoraproject.org/coprs/update_search_index/" # update the index again
-        rlRun "curl http://copr-fe-dev.cloud.fedoraproject.org/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
+        rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/" # update the index again
+        rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
 
         # TODO: Modularity integration tests
         rlRun "copr-cli create --chroot fedora-23-x86_64 ${NAME_PREFIX}Project11"
@@ -436,7 +445,7 @@ rlJournalStart
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
         WAITING=`mktemp`
         rlRun "copr-cli create ${NAME_PREFIX}Project12 --chroot fedora-23-x86_64" 0
-        while :; do curl --silent http://copr-fe-dev.cloud.fedoraproject.org/backend/waiting/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 4 ]; then break; fi; done
+        while :; do curl --silent $FRONTEND_URL/backend/waiting/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 4 ]; then break; fi; done
         cat $WAITING # debug
         rlRun "cat $WAITING | grep -E '.*data.*username.*' | grep $OWNER" 0
 
@@ -446,26 +455,26 @@ rlJournalStart
         rlRun "copr-cli create ${NAME_PREFIX}TestConsequentDeleteActions --chroot fedora-23-x86_64" 0
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestConsequentDeleteActions --name example --git-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
-        rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
+        rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
         rlRun "python <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestConsequentDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestConsequentDeleteActions', '$OWNER')\""
         sleep 5
-        rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
+        rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
 
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
         rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot fedora-23-x86_64" 0
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteGroupBuild --name example --git-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > TestDeleteGroupBuild_example_build_id.txt"
         BUILD_ID=`cat TestDeleteGroupBuild_example_build_id.txt` 
-        rlAssertEquals "Test that the build directory (ideally with results) is present on backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 200 # FIXME: 00 prefix might change
+        rlAssertEquals "Test that the build directory (ideally with results) is present on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 200 # FIXME: 00 prefix might change
         rlRun "copr-cli delete-package --name example ${NAME_PREFIX}TestDeleteGroupBuild" # FIXME: We don't have copr-cli delete-build yet
         sleep 5
-        rlAssertEquals "Test that the build directory was deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 404 # FIXME: 00 prefix might change
+        rlAssertEquals "Test that the build directory was deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 404 # FIXME: 00 prefix might change
 
         # test that results and configs are correctly retrieved from builders after build
         rlRun "copr-cli create ${NAME_PREFIX}DownloadMockCfgs --chroot fedora-23-x86_64" 0
         rlRun "copr-cli build ${NAME_PREFIX}DownloadMockCfgs http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
-        wget -r -np http://copr-be-dev.cloud.fedoraproject.org/results/${NAME_PREFIX}DownloadMockCfgs/fedora-23-x86_64/
+        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}DownloadMockCfgs/fedora-23-x86_64/
         rlRun "find . -type f | grep 'configs/fedora-23-x86_64.cfg'" 0
         rlRun "find . -type f | grep 'mockchain.log'" 0
         rlRun "find . -type f | grep 'root.log'" 0
