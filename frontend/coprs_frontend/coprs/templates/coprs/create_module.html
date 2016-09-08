@@ -10,6 +10,17 @@
 </li>
 {%endblock%}
 
+
+{% macro render_field(field) %}
+  {{ field(class="form-control", **kwargs)|safe }}
+{% endmacro %}
+
+
+{% macro render_checkbox(name, value, checked=False) %}
+  <input type="checkbox" name="{{ name }}" value="{{ value }}" {% if checked %}checked="checked"{% endif %}> {{ value }}
+{% endmacro %}
+
+
 {% block detail_body %}
 
   <div class="container">
@@ -24,6 +35,7 @@
 
       <div class="row">
 
+
         <div class="col-sm-12">
           <div class="panel panel-default">
             <div class="panel-body">
@@ -34,11 +46,11 @@
                 </div>
                 <div class="form-group col-sm-4">
                   <label for="moduleVersion">Version:</label>
-                  <input type="text" name="version" class="form-control" id="moduleVersion">
+                  {{ render_field(form.version, id="moduleVersion") }}
                 </div>
                 <div class="form-group col-sm-4">
                   <label for="moduleRelease">Release:</label>
-                  <input type="text" name="release" class="form-control" id="moduleRelease">
+                  {{ render_field(form.release, id="moduleRelease") }}
                 </div>
               </div>
             </div>
@@ -59,13 +71,14 @@
               {% for package in packages %}
               <div class="checkbox">
                 <label>
-                  <input type="checkbox" name="filter-{{ loop.index0 }}" value="{{ package }}" checked="checked"> {{ package }}
+                  {{ render_checkbox("filter-{}".format(loop.index0), package, (package in form.filter.data or not form.is_submitted())) }}
                 </label>
               </div>
               {% endfor %}
             </div>
           </div>
         </div>
+
 
         <div class="col-sm-4">
           <div class="panel panel-default">
@@ -81,7 +94,7 @@
                 {% for package in packages %}
                 <div class="checkbox">
                   <label>
-                    <input type="checkbox" name="api-{{ loop.index0 }}" value="{{ package }}"> {{ package }}
+                    {{ render_checkbox("api-{}".format(loop.index0), package, (package in form.api.data)) }}
                   </label>
                 </div>
                 {% endfor %}
@@ -103,14 +116,14 @@
               <li class="list-group-item">
                 <div class="form-group">
                   <label for="exampleInputEmail1">Profile Name:</label>
-                  <input type="text" name="profile_names-{{ i }}" class="form-control">
+                  {{ render_field(form.profile_names[i]) }}
                 </div>
                 <div class="form-group">
                   <label for="exampleInputEmail1">Packages <span class="text-muted">installed by this profile:</span></label>
                   {% for package in packages %}
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox" name="profile_pkgs-{{ i }}-{{ loop.index0 }}" value="{{ package }}"> {{ package }}
+                      {{ render_checkbox("profile_pkgs-{}-{}".format(i, loop.index0), package, (package in form.profile_pkgs[i].data)) }}
                     </label>
                   </div>
                   {% endfor %}

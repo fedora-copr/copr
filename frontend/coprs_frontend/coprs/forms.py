@@ -715,5 +715,5 @@ class CreateModuleForm(wtf.Form):
     release = wtforms.StringField("Release")
     filter = wtforms.FieldList(wtforms.StringField("Package Filter"))
     api = wtforms.FieldList(wtforms.StringField("Module API"))
-    profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"))
-    profile_pkgs = wtforms.FieldList(wtforms.FieldList(wtforms.StringField("Install Profiles")))
+    profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"), min_entries=2)
+    profile_pkgs = wtforms.FieldList(wtforms.FieldList(wtforms.StringField("Install Profiles")), min_entries=2)

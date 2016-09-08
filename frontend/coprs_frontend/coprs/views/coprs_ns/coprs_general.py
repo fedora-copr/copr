@@ -914,6 +914,9 @@ def copr_create_module_post(copr):
 
 def add_profile(copr, form):
     n = len(form.profile_names) + 1
+    form.profile_names.append_entry()
+    for i in range(2, n):
+        form.profile_pkgs.append_entry()
     return render_create_module(copr, form, profiles=n)
 
 
