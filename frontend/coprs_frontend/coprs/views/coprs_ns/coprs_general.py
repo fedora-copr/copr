@@ -886,13 +886,16 @@ def copr_update_search_index():
 @req_with_copr
 def copr_create_module(copr):
     form = forms.CreateModuleForm()
+    return render_create_module(copr, form)
 
+
+def render_create_module(copr, form, profiles=2):
     packages = []
     for build in filter(None, [p.last_build(successful=True) for p in copr.packages]):
         for package in build.built_packages.split("\n"):
             packages.append(package.split()[0])
 
-    return flask.render_template("coprs/create_module.html", copr=copr, form=form, packages=packages)
+    return flask.render_template("coprs/create_module.html", copr=copr, form=form, packages=packages, profiles=profiles)
 
 
 @coprs_ns.route("/<username>/<coprname>/create_module/", methods=["POST"])
@@ -901,8 +904,22 @@ def copr_create_module(copr):
 @req_with_copr
 def copr_create_module_post(copr):
     form = forms.CreateModuleForm(csrf_enabled=False)
+    args = [copr, form]
+    if "add_profile" in flask.request.values:
+        return add_profile(*args)
+    if "build_module" in flask.request.values:
+        return build_module(*args)
+    # @TODO Error
+
+
+def add_profile(copr, form):
+    n = len(form.profile_names) + 1
+    return render_create_module(copr, form, profiles=n)
+
+
+def build_module(copr, form):
     if not form.validate_on_submit():
-        return flask.render_template("coprs/create_module.html", copr=copr, form=form)
+        return render_create_module(copr, form, profiles=len(form.profile_names))
 
     mmd = modulemd.ModuleMetadata()
     mmd.load(os.path.join(os.path.dirname(__file__), "empty-module.yaml"))

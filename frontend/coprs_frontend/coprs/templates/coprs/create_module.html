@@ -98,7 +98,7 @@
             <div class="panel-body">
               <p class="text-muted"><span class="pficon pficon-info"></span> Module can provide more types of installation - by installing a specific set of packages - by defining install profiles. </p>
             </div>
-            {% for i in range(0, 2) %}
+            {% for i in range(0, profiles) %}
             <ul class="list-group">
               <li class="list-group-item">
                 <div class="form-group">
@@ -118,19 +118,16 @@
               </li>
             </ul>
             {% endfor %}
-            <!--
-            @TODO
             <div class="panel-body">
-                <a href="" class="btn btn-default" target="_blank">Add a Profile</a>
+              <input class="btn btn-default" type="submit" name="add_profile" value="Add a Profile">
             </div>
-            -->
           </div>
         </div>
 
       </div>
 
       <p> Copr will generate the modulemd yaml file and create a modular RPM repository for you. </p>
-      <input class="btn btn-primary" type="submit" value="Build Module">
+      <input class="btn btn-primary" type="submit" name="build_module" value="Build Module">
 
     </form>
   </div>
