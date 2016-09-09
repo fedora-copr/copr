@@ -457,7 +457,7 @@ rlJournalStart
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
         rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
         rlRun "python <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestConsequentDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestConsequentDeleteActions', '$OWNER')\""
-        sleep 5
+        sleep 11 # default sleeptime + 1
         rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
 
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
@@ -465,10 +465,16 @@ rlJournalStart
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteGroupBuild --name example --git-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > TestDeleteGroupBuild_example_build_id.txt"
         BUILD_ID=`cat TestDeleteGroupBuild_example_build_id.txt` 
-        rlAssertEquals "Test that the build directory (ideally with results) is present on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 200 # FIXME: 00 prefix might change
+        MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
+        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/
+        rlRun "find . -type d | grep '${BUILD_ID}-example'" 0 "Test that the build directory (ideally with results) is present on backend" 
+        cd - && rm -r $MYTMPDIR
+        MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         rlRun "copr-cli delete-package --name example ${NAME_PREFIX}TestDeleteGroupBuild" # FIXME: We don't have copr-cli delete-build yet
-        sleep 5
-        rlAssertEquals "Test that the build directory was deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/00${BUILD_ID}-example/` 404 # FIXME: 00 prefix might change
+        sleep 11 # default sleeptime + 1
+        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-23-x86_64/
+        rlRun "find . -type d | grep '${BUILD_ID}-example'" 1 "Test that the build directory is not present on backend" 
+        cd - && rm -r $MYTMPDIR
 
         # test that results and configs are correctly retrieved from builders after build
         rlRun "copr-cli create ${NAME_PREFIX}DownloadMockCfgs --chroot fedora-23-x86_64" 0
