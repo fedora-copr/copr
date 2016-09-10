@@ -33,7 +33,7 @@ class ProgressMixin(object):
 
 
 class DummyBar(object):
-    def __init__(self, maxval=None):
+    def __init__(self, max=None):
         pass
 
     def next(self, n=None):
