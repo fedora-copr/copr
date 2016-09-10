@@ -160,7 +160,7 @@ class Commands(object):
         progress_callback = None
 
         if os.path.exists(args.pkgs[0]):
-            bar = ProgressBar(maxval=os.path.getsize(args.pkgs[0]))
+            bar = ProgressBar(max=os.path.getsize(args.pkgs[0]))
 
             # pylint: disable=function-redefined
             def progress_callback(monitor):
