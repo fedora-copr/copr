@@ -43,7 +43,8 @@ LEFT OUTER JOIN (select MAX(build.id) as max_build_id_for_a_package, package_id
 LEFT OUTER JOIN build ON build.id = subquery1.max_build_id_for_a_package
 LEFT OUTER JOIN (select build_id, min(status_to_order(status)) as min_order_for_a_build
   FROM build_chroot
-  GROUP BY build_id) as subquery2 ON subquery2.build_id = subquery1.max_build_id_for_a_package;
+  GROUP BY build_id) as subquery2 ON subquery2.build_id = subquery1.max_build_id_for_a_package
+WHERE package.copr_id = :copr_id;
         """
 
         if db.engine.url.drivername == "sqlite":
