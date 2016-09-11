@@ -922,6 +922,9 @@ def add_profile(copr, form):
 
 def build_module(copr, form):
     if not form.validate_on_submit():
+        # WORKAROUND append those which are not in min_entries
+        for i in range(2, len(form.profile_names)):
+            form.profile_pkgs.append_entry()
         return render_create_module(copr, form, profiles=len(form.profile_names))
 
     mmd = modulemd.ModuleMetadata()

@@ -709,7 +709,6 @@ class ActivateFasGroupForm(wtf.Form):
 
 
 class CreateModuleForm(wtf.Form):
-    # @TODO Validation
     name = wtforms.StringField("Name")
     version = wtforms.StringField("Version")
     release = wtforms.StringField("Release")
@@ -717,3 +716,24 @@ class CreateModuleForm(wtf.Form):
     api = wtforms.FieldList(wtforms.StringField("Module API"))
     profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"), min_entries=2)
     profile_pkgs = wtforms.FieldList(wtforms.FieldList(wtforms.StringField("Install Profiles")), min_entries=2)
+
+    def validate(self):
+        if not wtf.Form.validate(self):
+            return False
+
+        # Profile names should be unique
+        names = filter(None, self.profile_names.data)
+        if len(set(names)) < len(names):
+            self.errors["profiles"] = ["Profile names must be unique"]
+            return False
+
+        # WORKAROUND
+        # profile_pkgs are somehow sorted so if I fill profile_name in the first box and
+        # profile_pkgs in seconds box, it is sorted and validated correctly
+        for i in range(0, len(self.profile_names.data)):
+            # If profile name is not set, then there should not be any packages in this profile
+            if not flask.request.form["profile_names-{}".format(i)]:
+                if [j for j in range(0, len(self.profile_names)) if "profile_pkgs-{}-{}".format(i, j) in flask.request.form]:
+                    self.errors["profiles"] = ["Missing profile name"]
+                    return False
+        return True

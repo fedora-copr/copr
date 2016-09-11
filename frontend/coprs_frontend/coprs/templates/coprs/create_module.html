@@ -1,5 +1,5 @@
 {% extends "coprs/detail.html" %}
-{% from "_helpers.html" import copr_name %}
+{% from "_helpers.html" import copr_name, render_form_errors %}
 {% block title %}Create module from {{ copr_name(copr) }}{% endblock %}
 {% block header %}Create Module{% endblock %}
 {% set selected_tab = "modules" %}
@@ -32,6 +32,8 @@
 
       <h2>Build Module</h2>
       <p> Build a module from your copr repository. Copr will generate a modulemd yaml for your module automatically. <a href="https://fedoraproject.org/wiki/Modularity" class="alert-link" target="_blank">Learn more about Modularity</a>.
+
+      {{ render_form_errors(form) }}
 
       <div class="row">
 
