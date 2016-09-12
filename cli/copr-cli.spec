@@ -37,6 +37,7 @@ BuildRequires: python3-pylint
 Requires:   python3-setuptools
 Requires:   python3-copr >= 1.63
 Requires:   python3-simplejson
+Recommends: python3-progress
 %else
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
@@ -44,6 +45,9 @@ BuildRequires: python-copr
 Requires:   python-setuptools
 Requires:   python-copr >= 1.63
 Requires:   python-simplejson
+%if 0%{?fedora}
+Recommends: python-progress
+%endif
 %endif
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
