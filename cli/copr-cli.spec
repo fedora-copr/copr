@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.55
+Version:    1.56
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -138,6 +138,10 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Mon Sep 12 2016 Miroslav Suchý <msuchy@redhat.com> 1.56-1
+- require python-progress on Fedora
+- fix for python-progress API
+
 * Mon Aug 15 2016 clime <clime@redhat.com> 1.55-1
 - Bug 1361344 - RFE: Allow denial of build deletion and resubmitting at project or group level
 
