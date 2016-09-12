@@ -33,6 +33,7 @@ class ProgressMixin(object):
 
 
 class DummyBar(object):
+    # pylint: disable=redefined-builtin
     def __init__(self, max=None):
         pass
 
