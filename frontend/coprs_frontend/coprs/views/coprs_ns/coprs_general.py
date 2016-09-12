@@ -253,12 +253,14 @@ def after_the_project_creation(copr, form):
 
 @coprs_ns.route("/<username>/<coprname>/report-abuse")
 @req_with_copr
+@login_required
 def copr_report_abuse(copr):
     return render_copr_report_abuse(copr)
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/report-abuse")
 @req_with_copr
+@login_required
 def group_copr_report_abuse(copr):
     return render_copr_report_abuse(copr)
 
