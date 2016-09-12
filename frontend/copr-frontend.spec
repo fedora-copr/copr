@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.100
+Version:    1.101
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -271,6 +271,9 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Mon Sep 12 2016 clime <clime@redhat.com> 1.101-1
+- package query fix
+
 * Wed Sep 07 2016 clime <clime@redhat.com> 1.100-1
 - alembic revision to enable F25 chroots
 - script to deactivate fedora-22-* chroots
