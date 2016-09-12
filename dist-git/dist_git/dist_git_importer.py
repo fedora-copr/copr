@@ -286,13 +286,7 @@ class GitAndTitoProvider(GitProvider):
         git_subdir = "{}/{}".format(self.git_dir, self.task.tito_git_dir)
 
         log.debug(' '.join(cmd))
-        try:
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=git_subdir)
-            output, error = proc.communicate()
-        except OSError as e:
-            raise SrpmBuilderException(str(e))
-        if proc.returncode != 0:
-            raise SrpmBuilderException(error)
+        run_in_vm(cmd, dst_dir=self.tmp_dest, src_dir=git_subdir, cwd=git_subdir)
 
 
 class MockScmProvider(SrpmBuilderProvider):
@@ -315,14 +309,7 @@ class MockScmProvider(SrpmBuilderProvider):
                "--buildsrpm", "--resultdir={}".format(self.tmp_dest)]
         log.debug(' '.join(cmd))
 
-        try:
-            proc = Popen(" ".join(cmd), shell=True, stdout=PIPE, stderr=PIPE)
-            output, error = proc.communicate()
-        except OSError as e:
-            raise SrpmBuilderException(str(e))
-        if proc.returncode != 0:
-            raise SrpmBuilderException(error)
-
+        run_in_vm(cmd, dst_dir=self.tmp_dest)
         self.copy()
 
     def scm_option_get(self, package_name, branch):
@@ -352,13 +339,7 @@ class PyPIProvider(SrpmBuilderProvider):
 
         log.debug(' '.join(cmd))
 
-        try:
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
-            output, error = proc.communicate()
-        except OSError as e:
-            raise SrpmBuilderException(str(e))
-        if proc.returncode != 0:
-            raise SrpmBuilderException(error)
+        output, error = run_in_vm(cmd, dst_dir=self.tmp_dest)
 
         log.info(output)
         log.info(error)
@@ -376,21 +357,12 @@ class RubyGemsProvider(SrpmBuilderProvider):
         # https://github.com/fedora-ruby/gem2rpm/issues/60
         cmd = ["gem2rpm", self.task.rubygems_gem_name.strip(), "--fetch", "--srpm"]
         log.info(' '.join(cmd))
-        try:
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp_dest)
-            output, error = proc.communicate()
-        except OSError as e:
-            raise SrpmBuilderException(str(e))
+        output, error = run_in_vm(cmd, dst_dir=self.tmp_dest, cwd=self.tmp_dest)
 
         if "Empty tag: License" in error:
             raise SrpmBuilderException("{}\n{}\n{}".format(
                 error, "Not specifying a license means all rights are reserved; others have no rights to use the code for any purpose.",
                 "See http://guides.rubygems.org/specification-reference/#license="))
-
-        # Checking return code is not good enough because of
-        # https://github.com/fedora-ruby/gem2rpm/pull/64https://github.com/fedora-ruby/gem2rpm/pull/64
-        if proc.returncode != 0 or error:
-            raise SrpmBuilderException(error)
 
         log.info(output)
         log.info(error)
@@ -656,3 +628,27 @@ class Filters(object):
             if len(results) >= limit:
                 break
         return results
+
+
+def run_in_vm(cmd, dst_dir, src_dir="/tmp", cwd="/"):
+    """
+    Run command in Virtual Machine (Docker)
+    :param cmd: list
+    :return: tuple output, error
+    """
+    try:
+        docker_cmd = ["docker", "run",
+                      "--privileged",
+                      "-v", "{}:{}".format(dst_dir, dst_dir),
+                      "-v", "{}:{}".format(src_dir, src_dir),
+                      "-w", cwd,
+                      "db5fc008909c"] + cmd  # @TODO fix container name
+        proc = Popen(docker_cmd, stdout=PIPE, stderr=PIPE)
+        output, error = proc.communicate()
+    except OSError as e:
+        raise SrpmBuilderException(str(e))
+
+    if proc.returncode != 0:
+        raise SrpmBuilderException(error)
+
+    return output, error
