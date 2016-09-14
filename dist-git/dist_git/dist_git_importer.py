@@ -642,7 +642,7 @@ def run_in_vm(cmd, dst_dir, src_dir="/tmp", cwd="/"):
                       "-v", "{}:{}".format(dst_dir, dst_dir),
                       "-v", "{}:{}".format(src_dir, src_dir),
                       "-w", cwd,
-                      "db5fc008909c"] + cmd  # @TODO fix container name
+                      "srpm-producer"] + cmd
         proc = Popen(docker_cmd, stdout=PIPE, stderr=PIPE)
         output, error = proc.communicate()
     except OSError as e:
