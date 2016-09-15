@@ -1,6 +1,8 @@
 FROM fedora:24
 MAINTAINER clime@redhat.com
 
+ENV LANG en_US.UTF-8
+
 RUN dnf -y install mock-scm
 RUN dnf -y install tito
 RUN dnf -y install pyp2rpm
