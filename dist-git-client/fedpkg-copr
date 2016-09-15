@@ -22,29 +22,31 @@ import re
 import sys
 import urlparse
 
-class CoprCommands(fedpkg.Commands):
-    def load_module_name(self):
-        """Loads a package module."""
+from pyrpkg.utils import cached_property
+from pyrpkg.lookaside import CGILookasideCache
 
+from fedpkg.lookaside import FedoraLookasideCache
+
+
+class CoprCommands(fedpkg.Commands):
+
+    @cached_property
+    def lookasidecache(self):
+        """A helper to interact with the lookaside cache
+
+        We override this because we need a different download path.
+        """
         try:
             if self.push_url:
-                parts = urlparse.urlparse(self.push_url)
-                #module_name = posixpath.basename(parts.path)
-                module_name = "/".join(posixpath.normpath(parts.path).split("/")[-3:])
-                if module_name.endswith('.git'):
-                    module_name = module_name[:-len('.git')]
-                self._module_name = module_name
-                return
+                parsed_url = urlparse.urlparse(self.push_url)
+                parts = posixpath.normpath(parsed_url.path).split("/")
+                username, projectname = parts[-3], parts[-2]
         except pyrpkg.rpkgError:
             self.log.info('Failed to get module name from Git url or pushurl')
 
-        self.load_nameverrel()
-        if self._module_name_spec:
-            self._module_name = self._module_name_spec
-            return
-
-        raise pyrpkg.rpkgError('Could not find current module name.'
-                        ' Use --module-name.')
+        return FedoraLookasideCache(
+            self.lookasidehash, os.path.join(self.lookaside, username, projectname), self.lookaside_cgi,
+            client_cert=self.cert_file, ca_cert=self.ca_cert)
 
     # this method can be removed once
     # https://pagure.io/fedpkg/pull-request/25
