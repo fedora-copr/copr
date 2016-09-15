@@ -1,0 +1,46 @@
+[
+{
+    "_description": "test mageia-6 chroot",
+    "_expected_outcome": "success",
+
+    "build_id": 100,
+    "buildroot_pkgs": null,
+    "chroot": "mageia-6-x86_64",
+    "enable_net": true,
+    "git_branch": "mga6",
+    "git_hash": "d19d24884c26aa037fc31606b9efb88dae83b273",
+    "git_repo": "@copr/copr-dev/example",
+    "memory_reqs": 2048,
+    "package_name": "example",
+    "package_version": "1.0.5-1.git.6.4278ca6.fc23",
+    "pkgs": "",
+    "project_name": "copr-dev",
+    "project_owner": "@copr",
+    "repos": "",
+    "submitter": "clime",
+    "task_id": "100-mageia-6-x86_64",
+    "timeout": 21600
+},
+{
+    "_description": "test mageia-cauldron chroot",
+    "_expected_outcome": "success",
+
+    "build_id": 110,
+    "buildroot_pkgs": null,
+    "chroot": "mageia-cauldron-x86_64",
+    "enable_net": true,
+    "git_branch": "cauldron",
+    "git_hash": "d19d24884c26aa037fc31606b9efb88dae83b273",
+    "git_repo": "@copr/copr-dev/example",
+    "memory_reqs": 2048,
+    "package_name": "example",
+    "package_version": "1.0.5-1.git.6.4278ca6.fc23",
+    "pkgs": "",
+    "project_name": "copr-dev",
+    "project_owner": "@copr",
+    "repos": "",
+    "submitter": "clime",
+    "task_id": "110-mageia-cauldron-x86_64",
+    "timeout": 21600
+}
+]
