@@ -284,7 +284,7 @@ enabled_metadata=1
     distgit.vm.provision "shell",
       inline: <<-SHELL
           echo "Building a docker image - it may take a while"
-          sudo docker build -q /vagrant/dist-git/docker/ | sudo docker tag `xargs` srpm-producer
+          sudo docker build -q /vagrant/dist-git/dist_git/docker/
       SHELL
 
     # ...
