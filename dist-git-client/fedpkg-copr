@@ -3,7 +3,7 @@
 # fedpkg - a script to interact with the Fedora Packaging system
 #
 # Copyright (C) 2011 Red Hat Inc.
-# Author(s): Jesse Keating <jkeating@redhat.com>
+# Author(s): clime <clime@redhat.com>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -57,17 +57,31 @@ class CoprCommands(fedpkg.Commands):
             return super(CoprCommands, self).load_rpmdefines()
         except pyrpkg.rpkgError:
             pass
-        if re.match(r'\D+\d+$', self.branch_merge):
-            m = re.match(r'(\D+)(\d+)$', self.branch_merge)
-            self._distval = m.group(2)
-            self._distvar = m.group(1)
-            self.dist = '%s%s' % (self._distvar[:2], self._distval)
-            self.mockconfig = '%s-%s-%s' % (self._distvar, self._distval, self.localarch)
+        if re.match(r'custom\d$', self.branch_merge):
+            self._distval = self.branch_merge[6]
+            self._distvar = 'custom'
+            self.dist = 'custom%s' % self._distval
+            self.mockconfig = 'custom-%s-%s' % (self._distval, self.localarch)
+            self.override = '%s-override' % self.branch_merge
+            self._distunset = 'rhel'
+        elif re.match(r'mga\d$', self.branch_merge):
+            self._distval = self.branch_merge[3]
+            self._distvar = 'mageia'
+            self.dist = 'mga%s' % self._distval
+            self.mockconfig = 'mageia-%s-%s' % (self._distval, self.localarch)
+            self.override = '%s-override' % self.branch_merge
+            self._distunset = 'rhel'
+        elif re.match(r'cauldron$', self.branch_merge):
+            self._distval = 'cauldron'
+            self._distvar = 'mageia'
+            self.dist = 'cauldron'
+            self.mockconfig = 'mageia-cauldron-%s' % self.localarch
             self.override = '%s-override' % self.branch_merge
             self._distunset = 'rhel'
         else:
-            raise pyrpkg.rpkgError('Could not find the dist from branch name'
+            raise pyrpkg.rpkgError('Could not find the dist from branch name '
                                    '%s' % self.branch_merge)
+
         self._rpmdefines = ["--define '_sourcedir %s'" % self.path,
                             "--define '_specdir %s'" % self.path,
                             "--define '_builddir %s'" % self.path,

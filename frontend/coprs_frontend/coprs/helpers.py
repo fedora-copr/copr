@@ -209,6 +209,11 @@ def chroot_to_branch(chroot):
         os = "f"
     elif os == "epel" and int(version) <= 6:
         os = "el"
+    elif os == "mageia" and version == "cauldron":
+        os = "cauldron"
+        version = ""
+    elif os == "mageia":
+        os = "mga"
     return "{}{}".format(os, version)
 
 
@@ -227,9 +232,12 @@ def branch_to_os_version(branch):
     elif branch[:6] == "custom":
         os = "custom"
         version = branch[-1:]
-    elif branch[:6] == "mageia":
+    elif branch[:3] == "mga":
         os = "mageia"
-        version = branch[6:]
+        version = branch[3:]
+    elif branch[:8] == "cauldron":
+        os = "mageia"
+        version = "cauldron"
     return os, version
 
 
