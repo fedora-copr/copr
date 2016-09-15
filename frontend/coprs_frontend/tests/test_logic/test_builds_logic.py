@@ -139,6 +139,13 @@ class TestBuildsLogic(CoprsTestCase):
         with pytest.raises(ActionInProgressException):
             BuildsLogic.delete_build(self.u1, self.b1)
 
+        self.copr_persistent = models.Copr(name=u"persistent_copr", user=self.u2, persistent=True)
+        self.build_persistent = models.Build(
+            copr=self.copr_persistent, package=self.p2, user=self.u2, submitted_on=100)
+        with pytest.raises(InsufficientRightsException):
+            BuildsLogic.delete_build(self.u2, self.build_persistent)
+
+
     def test_delete_build_as_admin(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
