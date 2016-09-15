@@ -286,7 +286,7 @@ class GitAndTitoProvider(GitProvider):
         git_subdir = "{}/{}".format(self.git_dir, self.task.tito_git_dir)
 
         log.debug(' '.join(cmd))
-        run_in_vm(cmd, dst_dir=self.tmp_dest, src_dir=git_subdir, cwd=git_subdir)
+        VM.run(cmd, dst_dir=self.tmp_dest, src_dir=git_subdir, cwd=git_subdir)
 
 
 class MockScmProvider(SrpmBuilderProvider):
@@ -309,7 +309,7 @@ class MockScmProvider(SrpmBuilderProvider):
                "--buildsrpm", "--resultdir={}".format(self.tmp_dest)]
         log.debug(' '.join(cmd))
 
-        run_in_vm(cmd, dst_dir=self.tmp_dest)
+        VM.run(cmd, dst_dir=self.tmp_dest)
         self.copy()
 
     def scm_option_get(self, package_name, branch):
@@ -339,7 +339,7 @@ class PyPIProvider(SrpmBuilderProvider):
 
         log.debug(' '.join(cmd))
 
-        output, error = run_in_vm(cmd, dst_dir=self.tmp_dest)
+        output, error = VM.run(cmd, dst_dir=self.tmp_dest)
 
         log.info(output)
         log.info(error)
@@ -357,7 +357,7 @@ class RubyGemsProvider(SrpmBuilderProvider):
         # https://github.com/fedora-ruby/gem2rpm/issues/60
         cmd = ["gem2rpm", self.task.rubygems_gem_name.strip(), "--fetch", "--srpm"]
         log.info(' '.join(cmd))
-        output, error = run_in_vm(cmd, dst_dir=self.tmp_dest, cwd=self.tmp_dest)
+        output, error = VM.run(cmd, dst_dir=self.tmp_dest, cwd=self.tmp_dest)
 
         if "Empty tag: License" in error:
             raise SrpmBuilderException("{}\n{}\n{}".format(
@@ -544,6 +544,7 @@ class DistGitImporter(object):
     def run(self):
         log.info("DistGitImported initialized")
 
+        VM.build_image()
         pool = Pool(workers=3)
         self.is_running = True
         while self.is_running:
@@ -630,25 +631,43 @@ class Filters(object):
         return results
 
 
-def run_in_vm(cmd, dst_dir, src_dir="/tmp", cwd="/"):
-    """
-    Run command in Virtual Machine (Docker)
-    :param cmd: list
-    :return: tuple output, error
-    """
-    try:
-        docker_cmd = ["docker", "run",
-                      "--privileged",
-                      "-v", "{}:{}".format(dst_dir, dst_dir),
-                      "-v", "{}:{}".format(src_dir, src_dir),
-                      "-w", cwd,
-                      "srpm-producer"] + cmd
-        proc = Popen(docker_cmd, stdout=PIPE, stderr=PIPE)
+class VM(object):
+    hash = None
+
+    @staticmethod
+    def run(cmd, dst_dir, src_dir="/tmp", cwd="/"):
+        """
+        Run command in Virtual Machine (Docker)
+        :param cmd: list
+        :return: tuple output, error
+        """
+        try:
+            docker_cmd = ["docker", "run",
+                          "--privileged",
+                          "-v", "{}:{}".format(dst_dir, dst_dir),
+                          "-v", "{}:{}".format(src_dir, src_dir),
+                          "-w", cwd,
+                          VM.hash] + cmd
+            log.debug("Running: {}".format(" ".join(docker_cmd)))
+            proc = Popen(docker_cmd, stdout=PIPE, stderr=PIPE)
+            output, error = proc.communicate()
+        except OSError as e:
+            raise SrpmBuilderException(str(e))
+
+        if proc.returncode != 0:
+            raise SrpmBuilderException(error)
+
+        return output, error
+
+    @staticmethod
+    def build_image():
+        cmd = ["docker", "build", "-q", os.path.join(os.path.dirname(__file__), "docker")]
+        log.debug("Building VM image: {}".format(" ".join(cmd)))
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
         output, error = proc.communicate()
-    except OSError as e:
-        raise SrpmBuilderException(str(e))
 
-    if proc.returncode != 0:
-        raise SrpmBuilderException(error)
+        if proc.returncode != 0 or error:
+            raise CoprDistGitException(error)
 
-    return output, error
+        VM.hash = output.split(":")[1][:12]
+        return output
