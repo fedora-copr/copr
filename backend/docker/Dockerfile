@@ -123,7 +123,6 @@ RUN chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini
 RUN chown copr-signer:copr-signer /var/log/copr-keygen/main.log
 
 # workarounds
-RUN dnf -y downgrade fedpkg # temporary fix cause fedpkg-copr doesn't work with the new version of fedpkg
 RUN dnf -y install ansible1.9 --allowerasing # copr does not support ansible2 yet
 
 CMD ["/bin/run.sh"]
