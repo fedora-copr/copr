@@ -13,6 +13,7 @@ from flask import render_template, url_for, stream_with_context
 import platform
 import smtplib
 import sqlalchemy
+import modulemd
 from email.mime.text import MIMEText
 from itertools import groupby
 
@@ -25,6 +26,7 @@ from coprs import helpers
 from coprs import models
 from coprs.exceptions import ObjectNotFound
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.rmodels import TimedStatEvents
@@ -753,7 +755,7 @@ def render_generate_repo_file(copr, name_release):
     if not mock_chroot:
         raise ObjectNotFound("Chroot {} does not exist".format(name_release))
 
-    url = os.path.join(copr.repo_url, '') # add trailing slash
+    url = os.path.join(copr.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, url)
     pubkey_url = urljoin(url, "pubkey.gpg")
     response = flask.make_response(
@@ -763,6 +765,30 @@ def render_generate_repo_file(copr, name_release):
         "filename={0}.repo".format(copr.repo_name)
     return response
 
+
+#########################################################
+###                Module repo files                  ###
+#########################################################
+
+@coprs_ns.route("/<username>/<coprname>/repo/modules/")
+@coprs_ns.route("/@<group_name>/<coprname>/repo/modules/")
+@coprs_ns.route("/g/<group_name>/<coprname>/repo/modules/")
+@req_with_copr
+def generate_module_repo_file(copr):
+    """ Generate module repo file for a given project. """
+    return render_generate_module_repo_file(copr)
+
+def render_generate_module_repo_file(copr):
+    url = os.path.join(copr.repo_url, '') # adds trailing slash
+    pubkey_url = urljoin(url, "pubkey.gpg")
+    response = flask.make_response(
+        flask.render_template("coprs/copr-modules.cfg", copr=copr, url=url, pubkey_url=pubkey_url))
+    response.mimetype = "text/plain"
+    response.headers["Content-Disposition"] = \
+        "filename={0}.cfg".format(copr.repo_name)
+    return response
+
+#########################################################
 
 @coprs_ns.route("/<username>/<coprname>/rpm/<name_release>/<rpmfile>")
 def copr_repo_rpm_file(username, coprname, name_release, rpmfile):
@@ -854,3 +880,76 @@ def copr_fork_post(copr):
 def copr_update_search_index():
     subprocess.call(['/usr/share/copr/coprs_frontend/manage.py', 'update_indexes_quick', '1'])
     return "OK"
+
+
+@coprs_ns.route("/<username>/<coprname>/create_module/")
+@coprs_ns.route("/g/<group_name>/<coprname>/create_module/")
+@login_required
+@req_with_copr
+def copr_create_module(copr):
+    form = forms.CreateModuleForm()
+    return render_create_module(copr, form)
+
+
+def render_create_module(copr, form, profiles=2):
+    packages = []
+    for build in filter(None, [p.last_build(successful=True) for p in copr.packages]):
+        for package in build.built_packages.split("\n"):
+            packages.append(package.split()[0])
+
+    return flask.render_template("coprs/create_module.html", copr=copr, form=form, packages=packages, profiles=profiles)
+
+
+@coprs_ns.route("/<username>/<coprname>/create_module/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/create_module/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_create_module_post(copr):
+    form = forms.CreateModuleForm(csrf_enabled=False)
+    args = [copr, form]
+    if "add_profile" in flask.request.values:
+        return add_profile(*args)
+    if "build_module" in flask.request.values:
+        return build_module(*args)
+    # @TODO Error
+
+
+def add_profile(copr, form):
+    n = len(form.profile_names) + 1
+    form.profile_names.append_entry()
+    for i in range(2, n):
+        form.profile_pkgs.append_entry()
+    return render_create_module(copr, form, profiles=n)
+
+
+def build_module(copr, form):
+    if not form.validate_on_submit():
+        # WORKAROUND append those which are not in min_entries
+        for i in range(2, len(form.profile_names)):
+            form.profile_pkgs.append_entry()
+        return render_create_module(copr, form, profiles=len(form.profile_names))
+
+    mmd = modulemd.ModuleMetadata()
+    mmd.load(os.path.join(os.path.dirname(__file__), "empty-module.yaml"))
+
+    mmd.name = copr.name
+    mmd.version = form.version.data
+    mmd.release = form.release.data
+    mmd.summary = "Module from Copr repository: {}".format(copr.full_name)
+
+    for package in form.filter.data:
+        mmd.components.rpms.add_filter(package)
+
+    for package in form.api.data:
+        mmd.components.rpms.add_api(package)
+
+    for i, values in enumerate(zip(form.profile_names.data, form.profile_pkgs.data)):
+        name, packages = values
+        mmd.profiles[name] = modulemd.profile.ModuleProfile()
+        for package in packages:
+            mmd.profiles[name].add_rpm(package)
+
+    actions_logic.ActionsLogic.send_build_module(copr, mmd.dumps())
+    db.session.commit()
+    flask.flash("Modulemd yaml file successfully generated and submitted to build")
+    return flask.redirect(url_for_copr_details(copr))

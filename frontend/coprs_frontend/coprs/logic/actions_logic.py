@@ -1,5 +1,6 @@
 import json
 import time
+import base64
 from coprs import db
 from coprs import models
 from coprs import helpers
@@ -230,6 +231,31 @@ class ActionsLogic(object):
             old_value="{0}".format(src.full_name),
             new_value="{0}".format(dst.full_name),
             data=json.dumps({"user": dst.owner_name, "copr": dst.name, "builds_map": builds_map}),
+            created_on=int(time.time()),
+        )
+        db.session.add(action)
+
+    @classmethod
+    def send_build_module(cls, copr, modulemd):
+        """
+        :type copr: models.Copr
+        :type modulemd: str content of module yaml file
+        """
+
+        modulemd_b64 = base64.b64encode(modulemd)
+        data = {
+            "ownername": copr.owner_name,
+            "projectname": copr.name,
+            "chroots": [c.name for c in copr.active_chroots],
+            "modulemd_b64": modulemd_b64,
+        }
+
+        action = models.Action(
+            action_type=helpers.ActionTypeEnum("build_module"),
+            object_type="copr",
+            old_value="",
+            new_value="",
+            data=json.dumps(data),
             created_on=int(time.time()),
         )
         db.session.add(action)

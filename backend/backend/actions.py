@@ -1,10 +1,14 @@
 import json
+import os
 import os.path
 import shutil
 import time
 import glob
 import traceback
 from urllib import urlretrieve
+import base64
+import modulemd
+import tempfile
 
 from munch import Munch
 from distutils.dir_util import copy_tree
@@ -14,7 +18,7 @@ from requests import RequestException
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError, CoprSignError
-from .helpers import get_redis_logger, silent_remove, ensure_dir_exists
+from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 
@@ -352,6 +356,64 @@ class Action(object):
 
         result.result = ActionResult.SUCCESS
 
+    def handle_build_module(self, result):
+        try:
+            data = json.loads(self.data["data"])
+            ownername = data["ownername"]
+            projectname = data["projectname"]
+            chroots = data["chroots"]
+            modulemd_data = base64.b64decode(data["modulemd_b64"])
+            project_path = os.path.join(self.opts.destdir, ownername, projectname)
+
+            try:
+                modules_file_read = open(os.path.join(project_path, "modules.json"), "r+")
+                modules = json.loads(modules_file_read.read())
+                modules_file_read.close()
+            except:
+                modules = []
+
+            mmd = modulemd.ModuleMetadata()
+            (fh, abspath) = tempfile.mkstemp()
+            f = open(abspath, "w+")
+            f.write(modulemd_data)
+            f.close()
+            mmd.load(abspath)
+
+            for chroot in chroots:
+                arch = get_chroot_arch(chroot)
+                srcdir = os.path.join(project_path, chroot)
+                module_tag = chroot + '+' + mmd.name + '-' + mmd.version + '-' + mmd.release
+                module_relpath = os.path.join(module_tag, "latest", arch)
+                destdir = os.path.join(project_path, module_relpath)
+
+                if os.path.exists(destdir):
+                    self.log.warning("Module {0} already exists. Ommitting.".format(destdir))
+                else:
+                    self.log.info("Copy directory: {} as {}".format(srcdir, destdir))
+                    shutil.copytree(srcdir, destdir)
+                    mmd.dump(os.path.join(destdir, "module_md.yaml"))
+                    modules.append({
+                        "url": module_relpath,
+                        "name": mmd.name,
+                        "release": mmd.release,
+                        "version": mmd.version,
+                        "requires": mmd.requires,
+                        "summary": mmd.summary,
+                    })
+                    createrepo(path=destdir, front_url=self.front_url,
+                               username=ownername, projectname=projectname,
+                               override_acr_flag=True)
+
+            modules_file_write = open(os.path.join(project_path, "modules.json"), "w+")
+            modules_file_write.write(json.dumps(modules, indent=4))
+            modules_file_write.close()
+
+            result.result = ActionResult.SUCCESS
+            os.unlink(abspath)
+        except Exception as e:
+            self.log.error(str(e))
+            result.result = ActionResult.FAILURE
+
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
         result = Munch()
@@ -391,6 +453,9 @@ class Action(object):
         elif action_type == ActionType.UPDATE_MODULE_MD:
             self.handle_module_md_update(result)
 
+        elif action_type == ActionType.BUILD_MODULE:
+            self.handle_build_module(result)
+
         self.log.info("Action result: {}".format(result))
 
         if "result" in result:
@@ -414,6 +479,7 @@ class ActionType(object):
     RAWHIDE_TO_RELEASE = 6
     FORK = 7
     UPDATE_MODULE_MD = 8
+    BUILD_MODULE = 9
 
 
 class ActionResult(object):

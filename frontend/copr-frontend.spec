@@ -57,6 +57,7 @@ Requires:   python-six
 Requires:   python-netaddr
 Requires:   python-flask-restful
 Requires:   python-marshmallow >= 2.0.0
+Requires:   python2-modulemd
 # for tests:
 Requires:   pytest
 Requires:   python-flexmock
@@ -126,6 +127,7 @@ Requires:   python3-marshmallow
 Requires:   python3-blinker
 Requires:   python3-flask-openid
 Requires:   python3-openid-teams
+Requires:   python3-modulemd
 
 %if 0%{?fedora} >= 23
 Requires: python3-dnf

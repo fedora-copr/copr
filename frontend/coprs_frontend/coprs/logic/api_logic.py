@@ -5,6 +5,7 @@
     to [de]serialize model instances for API views.
 """
 
+from coprs.helpers import StatusEnum
 
 class BuildWrapper(object):
     def __init__(self, build):
@@ -42,52 +43,26 @@ class MonitorWrapper(object):
         self.copr = copr
         self.monitor_data = monitor_data
 
-    def wrap_package(self, package, builds_data):
-        """Converts single package to the API format.
-
-        Params
-        ------
-        package : Package instance
-        builds_data : dict(build_chroot.name : dict(build, build_chroot, mock_chroot))
-
-        Returns
-        -------
-        dict(pkg_name, pkg_version, results)
-            pkg_name : name of package
-            pkg_version : None
-            results : dict(build_id, status, pkg_version)
-        """
-        results = {}
-
-        for chroot in self.copr.active_chroots:
-            if chroot.name in builds_data:
-                results[chroot.name] = {
-                    "build_id": builds_data[chroot.name]['build'].id,
-                    "status": builds_data[chroot.name]['build_chroot'].state,
-                    "pkg_version": builds_data[chroot.name]['build'].pkg_version
-                }
-            else:
-                results[chroot.name] = None
-
-        return {"pkg_name": package.name, "pkg_version": None, "results": results}
-
     def render_packages(self):
         """
-        NOTE: individual records for the same package in must be "grouped" together in self.monitor_data
+        NOTE: individual records for the same package must be "grouped" together in self.monitor_data
         """
         packages = []
-        builds_data = {}
-        current_package = None
+        results = {}
+        current_package_id = None
 
-        for package, build, build_chroot, mock_chroot in self.monitor_data:
-            if package != current_package:
-                if current_package:
-                    packages.append(self.wrap_package(current_package, builds_data))
-                current_package = package
-                builds_data = {}
-            builds_data[build_chroot.name] = {"build": build, "build_chroot": build_chroot, "mock_chroot": mock_chroot}
-        packages.append(self.wrap_package(current_package, builds_data))
+        for row in self.monitor_data:
+            if row["package_id"] != current_package_id:
+                if current_package_id:
+                    packages.append({ "pkg_name": row["package_name"], "pkg_version": None, "results": results })
+                current_package_id = row["package_id"]
+                results = {}
 
+            build_chroot_name = "{}-{}-{}".format(row["mock_chroot_os_release"], row["mock_chroot_os_version"], row["mock_chroot_arch"])
+            if build_chroot_name in [chroot.name for chroot in self.copr.active_chroots]:
+                results[build_chroot_name] = { "build_id": row["build_id"], "status": StatusEnum(row["build_chroot_status"]), "pkg_version": row["build_pkg_version"] }
+
+        packages.append({ "pkg_name": row["package_name"], "pkg_version": None, "results": results })
         return packages
 
     def to_dict(self):

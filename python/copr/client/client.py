@@ -528,6 +528,25 @@ class CoprClient(UnicodeMixin):
 
         return response
 
+    def create_new_build_module(self, projectname, modulemd, username=None):
+        api_endpoint = "module/build"
+        ownername = username if username else self.username
+        f = open(modulemd, "rb")
+        data = {"modulemd": (os.path.basename(f.name), f, "application/x-rpm")}
+
+        url = "{0}/coprs/{1}/{2}/{3}/".format(
+            self.api_url, ownername, projectname, api_endpoint
+        )
+
+        def fetch(url, data, method):
+            m = MultipartEncoder(data)
+            monit = MultipartEncoderMonitor(m, lambda x: x)
+            return self._fetch(url, monit, method="post", headers={'Content-Type': monit.content_type})
+
+        # @TODO Refactor process_package_action to be general general purpose
+        response = self.process_package_action(url, ownername, projectname, data=data, fetch_functor=fetch)
+        return response
+
     #########################################################
     ###                   Package actions                 ###
     #########################################################
@@ -635,11 +654,16 @@ class CoprClient(UnicodeMixin):
         })
         return response
 
-    def process_package_action(self, request_url, ownername, projectname, data):
+    def process_package_action(self, request_url, ownername, projectname, data, fetch_functor=None):
         if not ownername:
             ownername = self.username
 
-        resp_data = self._fetch(request_url, data, method="post")
+        # @TODO refactor this hacky part
+        # @TODO I want to have this function for various kind of actions, not only packages
+        if fetch_functor:
+            resp_data = fetch_functor(request_url, data, method="post")
+        else:
+            resp_data = self._fetch(request_url, data, method="post")
 
         response = CoprResponse(
             client=self,

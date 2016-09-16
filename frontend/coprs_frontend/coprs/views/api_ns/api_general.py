@@ -26,6 +26,7 @@ from coprs.views.api_ns import api_ns
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.actions_logic import ActionsLogic
 
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
@@ -809,4 +810,24 @@ def copr_build_package(copr, package_name):
         "output": "ok",
         "ids": [build.id],
         "message": "Build was added to {0}.".format(copr.name)
+    })
+
+
+@api_ns.route("/coprs/<username>/<coprname>/module/build/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_build_module(copr):
+    form = forms.ModuleFormUploadFactory(csrf_enabled=False)
+    if not form.validate_on_submit():
+        # @TODO Prettier error
+        raise LegacyApiError(form.errors)
+
+    modulemd = form.modulemd.data.read()
+    ActionsLogic.send_build_module(copr, modulemd)
+    db.session.commit()
+
+    return flask.jsonify({
+        "output": "ok",
+        "message": "Module build was submitted",
+        "modulemd": modulemd,
     })

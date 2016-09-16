@@ -486,6 +486,12 @@ rlJournalStart
         rlRun "find . -type f | grep 'root.log'" 0
         cd - && rm -r $MYTMPDIR
 
+        # Bug 1370704 - Internal Server Error (too many values to unpack)
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1370704 --chroot fedora-23-x86_64" 0
+        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestBug1370704 --name example --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
+        rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null http://copr-fe-dev.cloud.fedoraproject.org/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
@@ -506,6 +512,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project11"
         rlRun "copr-cli delete ${NAME_PREFIX}Project12"
         rlRun "copr-cli delete ${NAME_PREFIX}DownloadMockCfgs"
+        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1370704"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed
