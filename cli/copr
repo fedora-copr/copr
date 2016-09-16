@@ -18,5 +18,5 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 absdir="$(dirname "$(readlink -f "$0")")"
-export PYTHONPATH="$absdir:$absdir/../python"
+export PYTHONPATH="$absdir:$absdir/../python${PYTHONPATH+:$PYTHONPATH}"
 python3 -m copr_cli.main "$@"
