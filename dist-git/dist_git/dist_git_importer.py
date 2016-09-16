@@ -314,9 +314,9 @@ class MockScmProvider(SrpmBuilderProvider):
 
     def scm_option_get(self, package_name, branch):
         return {
-            "git": branch and "git_get='git clone --depth 1 --branch {branch} {0} {1}'" or \
-                   "git_get='git clone --depth 1 {0} {1}'",
-            "svn": "git_get='git svn clone {0} {1}'"
+            "git": branch and "git_get=git clone --depth 1 --branch {branch} {0} {1}" or \
+                   "git_get=git clone --depth 1 {0} {1}",
+            "svn": "git_get=git svn clone {0} {1}"
         }[self.task.mock_scm_type].format(self.task.mock_scm_url, package_name, branch=branch)
 
 
