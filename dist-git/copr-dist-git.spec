@@ -36,9 +36,7 @@ Requires: python-requests
 Requires: python2-psutil
 Requires: pyrpkg
 Requires: mock-scm
-Requires: tito
-Requires: pyp2rpm
-Requires: rubygem-gem2rpm >= 0.11.3
+Requires: docker
 Requires: httpd
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
