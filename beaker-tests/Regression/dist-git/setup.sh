@@ -16,6 +16,8 @@ if [[ ! $RELEASETEST ]]; then
 	dnf -y copr enable @copr/copr-dev
 fi
 
+./create_loopback_devices_for_docker.sh # hack for running tests inside docker
+
 dnf -y update
 dnf -y install fedpkg-copr
 dnf -y install git
@@ -47,6 +49,7 @@ alias /lookaside /var/lib/dist-git/cache/lookaside
 </Directory>
     " | tee /etc/httpd/conf.d/dist-git/lookaside.conf
     echo "\
+AliasMatch \"/repo(/.*)/md5(/.*)\" \"/var/lib/dist-git/cache/lookaside$1$2\"
 Alias /repo/ /var/lib/dist-git/cache/lookaside/
     " | tee /etc/httpd/conf.d/dist-git/lookaside-copr.conf
     echo "\
@@ -155,11 +158,7 @@ else
 fi
 cd -
 
-sudo dnf -y downgrade fedpkg-1.20 # fedpkg-1.22-3 is unsupported (downgrade to 1.20)
-
 # enable & start services
 systemctl daemon-reload
 systemctl enable httpd && systemctl start httpd
-systemctl enable copr-dist-git && systemctl start copr-dist-git
-systemctl enable dist-git.socket && systemctl start dist-git.socket
 systemctl enable copr-dist-git && systemctl start copr-dist-git
