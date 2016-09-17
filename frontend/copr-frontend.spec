@@ -26,6 +26,7 @@ BuildRequires: python-setuptools
 BuildRequires: python2-requests
 BuildRequires: python2-devel
 BuildRequires: systemd
+BuildRequires: python2-modulemd
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
