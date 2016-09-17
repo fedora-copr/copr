@@ -72,6 +72,12 @@ def mc_post():
 
 
 @pytest.yield_fixture
+def mc_vm():
+    with mock.patch("{}.VM".format(MODULE_REF)) as handle:
+        yield handle
+
+
+@pytest.yield_fixture
 def mc_urlretrieve():
     with mock.patch("{}.urlretrieve".format(MODULE_REF)) as handle:
         yield handle
@@ -322,7 +328,7 @@ class TestDistGitImporter(object):
             mc.side_effect = None
 
     @patch("dist_git.dist_git_importer.Worker")
-    def test_run(self, WorkerMock, mc_time):
+    def test_run(self, WorkerMock, mc_time, mc_vm):
         self.dgi.try_to_obtain_new_tasks = MagicMock()
         self.dgi.do_import = MagicMock()
 
