@@ -382,7 +382,7 @@ class Action(object):
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
                 srcdir = os.path.join(project_path, chroot)
-                module_tag = chroot + '+' + mmd.name + '-' + mmd.version + '-' + mmd.release
+                module_tag = chroot + '+' + mmd.name + '-' + (mmd.version or '1') + '-' + (mmd.release or '1')
                 module_relpath = os.path.join(module_tag, "latest", arch)
                 destdir = os.path.join(project_path, "modules", module_relpath)
 
