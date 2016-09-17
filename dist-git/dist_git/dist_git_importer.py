@@ -8,6 +8,8 @@ import tempfile
 import logging
 import datetime
 import psutil
+import subprocess
+
 from multiprocessing import Process
 from subprocess import PIPE, Popen, call
 
@@ -309,7 +311,14 @@ class MockScmProvider(SrpmBuilderProvider):
                "--buildsrpm", "--resultdir={}".format(self.tmp_dest)]
         log.debug(' '.join(cmd))
 
-        VM.run(cmd, dst_dir=self.tmp_dest)
+        try:
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            output, error = proc.communicate()
+        except OSError as e:
+            raise SrpmBuilderException(str(e))
+        if proc.returncode != 0:
+            raise SrpmBuilderException(error)
+
         self.copy()
 
     def scm_option_get(self, package_name, branch):
@@ -635,19 +644,22 @@ class VM(object):
     hash = None
 
     @staticmethod
-    def run(cmd, dst_dir, src_dir="/tmp", cwd="/"):
+    def run(cmd, dst_dir, src_dir=None, cwd="/"):
         """
         Run command in Virtual Machine (Docker)
         :param cmd: list
         :return: tuple output, error
         """
         try:
-            docker_cmd = ["docker", "run",
-                          "--privileged",
-                          "-v", "{}:{}".format(dst_dir, dst_dir),
-                          "-v", "{}:{}".format(src_dir, src_dir),
-                          "-w", cwd,
-                          VM.hash] + cmd
+            sandbox_chcon = ["chcon",  "-Rt", "svirt_sandbox_file_t"]
+            subprocess.call(sandbox_chcon + [dst_dir])
+            dest_mount = ["-v", "{}:{}".format(dst_dir, dst_dir)]
+            if src_dir:
+                subprocess.call(sandbox_chcon + [src_dir])
+                source_mount = ["-v", "{}:{}".format(src_dir, src_dir)]
+            else:
+                source_mount = []
+            docker_cmd = ["docker", "run"] + dest_mount + source_mount + ["-w", cwd, VM.hash] + cmd
             log.debug("Running: {}".format(" ".join(docker_cmd)))
             proc = Popen(docker_cmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
