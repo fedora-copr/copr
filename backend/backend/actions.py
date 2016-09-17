@@ -366,7 +366,7 @@ class Action(object):
             project_path = os.path.join(self.opts.destdir, ownername, projectname)
 
             try:
-                modules_file_read = open(os.path.join(project_path, "modules.json"), "r+")
+                modules_file_read = open(os.path.join(project_path, "modules", "modules.json"), "r+")
                 modules = json.loads(modules_file_read.read())
                 modules_file_read.close()
             except:
@@ -384,7 +384,7 @@ class Action(object):
                 srcdir = os.path.join(project_path, chroot)
                 module_tag = chroot + '+' + mmd.name + '-' + mmd.version + '-' + mmd.release
                 module_relpath = os.path.join(module_tag, "latest", arch)
-                destdir = os.path.join(project_path, module_relpath)
+                destdir = os.path.join(project_path, "modules", module_relpath)
 
                 if os.path.exists(destdir):
                     self.log.warning("Module {0} already exists. Ommitting.".format(destdir))
@@ -404,7 +404,7 @@ class Action(object):
                                username=ownername, projectname=projectname,
                                override_acr_flag=True)
 
-            modules_file_write = open(os.path.join(project_path, "modules.json"), "w+")
+            modules_file_write = open(os.path.join(project_path, "modules", "modules.json"), "w+")
             modules_file_write.write(json.dumps(modules, indent=4))
             modules_file_write.close()
 

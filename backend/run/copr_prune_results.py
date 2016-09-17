@@ -99,6 +99,10 @@ class Pruner(object):
 
         for sub_dir_name in os.listdir(project_path):
             chroot_path = os.path.join(project_path, sub_dir_name)
+
+            if sub_dir_name == 'modules':
+                continue
+
             if not os.path.isdir(chroot_path):
                 continue
 

@@ -337,6 +337,10 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
                          self.full_name])
 
     @property
+    def modules_url(self):
+        return "/".join([self.repo_url, "modules"])
+
+    @property
     def repo_id(self):
         if self.is_a_group_project:
             return "group_{}-{}".format(self.group.name, self.name)
