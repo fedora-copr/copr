@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.101
+Version:    1.102
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -274,6 +274,13 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Mon Sep 19 2016 clime <clime@redhat.com> 1.102-1
+- support for mageia chroots
+- add a note about Copr not being supported by Fedora Infra
+- Bug 1374906 - Login redirection for raising legal flag doesn't work
+- Modularity integration
+- Bug 1370704 - Internal Server Error (too many values to unpack)
+
 * Mon Sep 12 2016 clime <clime@redhat.com> 1.101-1
 - package query fix
 
