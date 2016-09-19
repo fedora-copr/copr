@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.92
+Version:    1.93
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -260,6 +260,13 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Sep 19 2016 clime <clime@redhat.com> 1.93-1
+- fix NameError: global name 'result' is not defined
+- fix exception logging
+- Modularity support
+- Bug 1357564 - RFE: allow downloading of mock profiles (reproducible builds)
+- "safer" exception handling for actions
+
 * Mon Aug 15 2016 clime <clime@redhat.com> 1.92-1
 - wrap feedback about actions to frontend into try-except
 - log even the traceback from forking
