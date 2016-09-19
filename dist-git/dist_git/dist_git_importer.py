@@ -288,7 +288,7 @@ class GitAndTitoProvider(GitProvider):
         git_subdir = "{}/{}".format(self.git_dir, self.task.tito_git_dir)
 
         log.debug(' '.join(cmd))
-        VM.run(cmd, dst_dir=self.tmp_dest, src_dir=git_subdir, cwd=git_subdir)
+        VM.run(cmd, dst_dir=self.tmp_dest, src_dir=self.git_dir, cwd=git_subdir)
 
 
 class MockScmProvider(SrpmBuilderProvider):
