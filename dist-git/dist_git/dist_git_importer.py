@@ -9,6 +9,7 @@ import logging
 import datetime
 import psutil
 import subprocess
+import hashlib
 
 from multiprocessing import Process
 from subprocess import PIPE, Popen, call
@@ -288,7 +289,7 @@ class GitAndTitoProvider(GitProvider):
         git_subdir = "{}/{}".format(self.git_dir, self.task.tito_git_dir)
 
         log.debug(' '.join(cmd))
-        VM.run(cmd, dst_dir=self.tmp_dest, src_dir=self.git_dir, cwd=git_subdir)
+        VM.run(cmd, dst_dir=self.tmp_dest, src_dir=self.git_dir, cwd=git_subdir, name=self.task.task_id)
 
 
 class MockScmProvider(SrpmBuilderProvider):
@@ -348,7 +349,7 @@ class PyPIProvider(SrpmBuilderProvider):
 
         log.debug(' '.join(cmd))
 
-        output, error = VM.run(cmd, dst_dir=self.tmp_dest)
+        output, error = VM.run(cmd, dst_dir=self.tmp_dest, name=self.task.task_id)
 
         log.info(output)
         log.info(error)
@@ -366,7 +367,7 @@ class RubyGemsProvider(SrpmBuilderProvider):
         # https://github.com/fedora-ruby/gem2rpm/issues/60
         cmd = ["gem2rpm", self.task.rubygems_gem_name.strip(), "--fetch", "--srpm"]
         log.info(' '.join(cmd))
-        output, error = VM.run(cmd, dst_dir=self.tmp_dest, cwd=self.tmp_dest)
+        output, error = VM.run(cmd, dst_dir=self.tmp_dest, cwd=self.tmp_dest, name=self.task.task_id)
 
         if "Empty tag: License" in error:
             raise SrpmBuilderException("{}\n{}\n{}".format(
@@ -650,25 +651,29 @@ class VM(object):
     hash = None
 
     @staticmethod
-    def run(cmd, dst_dir, src_dir=None, cwd="/"):
+    def run(cmd, dst_dir, src_dir=None, cwd="/", name=None, clean=True):
         """
         Run command in Virtual Machine (Docker)
         :param cmd: list
+        :param clean: bool whether to remove docker container
         :return: tuple output, error
         """
         try:
             sandbox_chcon = ["chcon",  "-Rt", "svirt_sandbox_file_t"]
             subprocess.call(sandbox_chcon + [dst_dir])
+            full_name = "-".join([name or "copr", hashlib.md5().hexdigest()])
+            name_cmd = ["--name", full_name]
             dest_mount = ["-v", "{}:{}".format(dst_dir, dst_dir)]
             if src_dir:
                 subprocess.call(sandbox_chcon + [src_dir])
                 source_mount = ["-v", "{}:{}".format(src_dir, src_dir)]
             else:
                 source_mount = []
-            docker_cmd = ["docker", "run"] + dest_mount + source_mount + ["-w", cwd, VM.hash] + cmd
+            docker_cmd = ["docker", "run"] + name_cmd + dest_mount + source_mount + ["-w", cwd, VM.hash] + cmd
             log.debug("Running: {}".format(" ".join(docker_cmd)))
             proc = Popen(docker_cmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
+            VM.clean(full_name)
         except OSError as e:
             raise SrpmBuilderException(str(e))
 
@@ -676,6 +681,15 @@ class VM(object):
             raise SrpmBuilderException(error)
 
         return output, error
+
+    @staticmethod
+    def clean(container):
+        cmd = ["docker", "rm", container]
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        output, error = proc.communicate()
+
+        if proc.returncode != 0 or error:
+            log.error("Failed to remove container: {}".format(container))
 
     @staticmethod
     def build_image():
