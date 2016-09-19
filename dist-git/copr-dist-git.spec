@@ -91,6 +91,13 @@ semanage fcontext -a -t httpd_sys_content_t '/var/lib/copr-dist-git(/.*)?'
 restorecon -rv /var/lib/copr-dist-git
 groupadd docker
 usermod -aG docker copr-service
+%systemd_post copr-dist-git.service
+
+%preun
+%systemd_preun copr-dist-git.service
+
+%postun
+%systemd_postun_with_restart copr-dist-git.service
 
 %files
 %license LICENSE
