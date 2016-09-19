@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.56
+Version:    1.57
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -138,6 +138,9 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Mon Sep 19 2016 Miroslav Suchý <msuchy@redhat.com> 1.57-1
+- re-use PYTHONPATH in cli wrapper
+
 * Mon Sep 12 2016 Miroslav Suchý <msuchy@redhat.com> 1.56-1
 - require python-progress on Fedora
 - fix for python-progress API
