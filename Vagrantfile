@@ -337,6 +337,7 @@ alias /lookaside        /var/lib/dist-git/cache/lookaside
     # ...
     distgit.vm.provision "shell", inline: <<-EOF
 echo \"
+AliasMatch \\"/repo(/.*)/md5(/.*)\\" \\"/var/lib/dist-git/cache/lookaside\\$1\\$2\\"
 Alias /repo/ /var/lib/dist-git/cache/lookaside/
 \" | sudo tee /etc/httpd/conf.d/dist-git/lookaside-copr.conf
     EOF
