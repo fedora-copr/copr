@@ -555,6 +555,7 @@ class DistGitImporter(object):
 
         VM.build_image()
         pool = Pool(workers=3)
+        worker = Worker if self.opts.multiple_threads else SingleThreadWorker
         self.is_running = True
         while self.is_running:
             pool.terminate_timeouted(callback=self.post_back_safe)
@@ -571,7 +572,7 @@ class DistGitImporter(object):
                 continue
 
             for mb_task in mb_tasks:
-                p = Worker(target=self.do_import, args=[mb_task], id=mb_task.task_id, timeout=3600)
+                p = worker(target=self.do_import, args=[mb_task], id=mb_task.task_id, timeout=3600)
                 pool.append(p)
                 log.info("Starting worker '{}' with task '{}' (timeout={})"
                          .format(p.name, mb_task.task_id, p.timeout))
@@ -588,6 +589,11 @@ class Worker(Process):
     @property
     def timeouted(self):
         return datetime.datetime.now() >= self.timestamp + datetime.timedelta(seconds=self.timeout)
+
+
+class SingleThreadWorker(Worker):
+    def start(self):
+        self.run()
 
 
 class Pool(list):

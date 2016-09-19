@@ -110,6 +110,13 @@ class DistGitConfigReader(object):
             cp, "dist-git", "sleep_time", 15, mode="int"
         )
 
+        # Whether to use multi-threaded dist-git or not
+        # It might be useful to set False for debugging
+        # while ipdb does not support multiple threads.
+        opts.multiple_threads = _get_conf(
+            cp, "dist-git", "multiple_threads", True, mode="bool"
+        )
+
         opts.pool_busy_sleep_time = _get_conf(
             cp, "dist-git", "pool_busy_sleep_time", 0.5, mode="float"
         )
