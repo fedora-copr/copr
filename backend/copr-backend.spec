@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.93
+Version:    1.94
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -260,6 +260,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Sep 19 2016 clime <clime@redhat.com> 1.94-1
+- also provide default version and release for generated modules.json
+
 * Mon Sep 19 2016 clime <clime@redhat.com> 1.93-1
 - fix NameError: global name 'result' is not defined
 - fix exception logging
