@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.21
+Version:    0.22
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -120,6 +120,9 @@ usermod -aG docker copr-service
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Sep 19 2016 clime <clime@redhat.com> 0.22-1
+- fix Git&Tito subdirectory use-case
+
 * Mon Sep 19 2016 clime <clime@redhat.com> 0.21-1
 - Git&Tito, pyp2rpm, gem2rpm now run in docker
 
