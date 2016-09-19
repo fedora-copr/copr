@@ -658,20 +658,28 @@ class VM(object):
         :param clean: bool whether to remove docker container
         :return: tuple output, error
         """
+        def sandbox(path):
+            cmd = ["chcon",  "-Rt", "svirt_sandbox_file_t"]
+            subprocess.call(cmd + [path])
+
         try:
-            sandbox_chcon = ["chcon",  "-Rt", "svirt_sandbox_file_t"]
-            subprocess.call(sandbox_chcon + [dst_dir])
+            sandbox(dst_dir)
+            dcmd = ["docker", "run"]
             full_name = "-".join([name or "copr", hashlib.md5().hexdigest()])
-            name_cmd = ["--name", full_name]
-            dest_mount = ["-v", "{}:{}".format(dst_dir, dst_dir)]
+
+            dcmd.extend(["--name", full_name])
+            dcmd.extend(["-v", "{}:{}".format(dst_dir, dst_dir)])
+
             if src_dir:
-                subprocess.call(sandbox_chcon + [src_dir])
-                source_mount = ["-v", "{}:{}".format(src_dir, src_dir)]
-            else:
-                source_mount = []
-            docker_cmd = ["docker", "run"] + name_cmd + dest_mount + source_mount + ["-w", cwd, VM.hash] + cmd
-            log.debug("Running: {}".format(" ".join(docker_cmd)))
-            proc = Popen(docker_cmd, stdout=PIPE, stderr=PIPE)
+                sandbox(src_dir)
+                dcmd.extend(["-v", "{}:{}".format(src_dir, src_dir)])
+
+            dcmd.extend(["-w", cwd])
+            dcmd.append(VM.hash)
+            dcmd.extend(cmd)
+
+            log.debug("Running: {}".format(" ".join(dcmd)))
+            proc = Popen(dcmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
             VM.clean(full_name)
         except OSError as e:
