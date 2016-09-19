@@ -10,6 +10,7 @@ export OUT=$TESTPATH/action-results.out.json
 
 rlJournalStart
     rlPhaseStartSetup
+        mkdir -p /etc/fm.modules.d
         dnf -y copr enable @modularity/fm
         dnf -y copr enable @modularity/modulemd
         dnf -y copr enable @modularity/modulemd-resolver
@@ -18,7 +19,7 @@ rlJournalStart
         cp _copr_@modularity-template-project.cfg /etc/fm.modules.d/
         dnf -y remove rare_example
         rm -r /var/cache/fm/
-        docker exec copr-backend /bin/sh -c 'rm -rf /var/lib/copr/public_html/results/@modularity/template-project/{*+*,modules.json}'
+        docker exec copr-backend /bin/sh -c 'rm -rf /var/lib/copr/public_html/results/@modularity/template-project/modules/{*+*,modules.json}'
     rlPhaseEnd
 
     rlPhaseStartTest Actions
