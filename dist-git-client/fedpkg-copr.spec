@@ -1,5 +1,5 @@
 Name:           fedpkg-copr
-Version:        0.4
+Version:        0.5
 Release:        1%{?dist}
 Summary:        Fedpkg modified to work with copr dist git
 
@@ -41,6 +41,10 @@ cp -a fedpkg-copr.conf    %{buildroot}%{_sysconfdir}/rpkg/
 
 
 %changelog
+* Mon Sep 19 2016 clime <clime@redhat.com> 0.5-1
+- support for mageia chroots
+- do not override module_name, override lookasidecache method instead
+
 * Wed May 18 2016 Miroslav Suchý <msuchy@redhat.com> 0.4-1
 - sort imports
 - fedpkg-copr: workaround till this get into propper fedora
