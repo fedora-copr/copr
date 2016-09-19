@@ -49,7 +49,7 @@ alias /lookaside /var/lib/dist-git/cache/lookaside
 </Directory>
     " | tee /etc/httpd/conf.d/dist-git/lookaside.conf
     echo "\
-AliasMatch \"/repo(/.*)/md5(/.*)\" \"/var/lib/dist-git/cache/lookaside$1$2\"
+AliasMatch \"/repo(/.*)/md5(/.*)\" \"/var/lib/dist-git/cache/lookaside\$1\$2\"
 Alias /repo/ /var/lib/dist-git/cache/lookaside/
     " | tee /etc/httpd/conf.d/dist-git/lookaside-copr.conf
     echo "\
