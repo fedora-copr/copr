@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.73
+Version:    1.74
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -185,6 +185,9 @@ popd
 %endif
 
 %changelog
+* Mon Sep 19 2016 clime <clime@redhat.com> 1.74-1
+- dummy api for submitting module builds
+
 * Mon Aug 15 2016 clime <clime@redhat.com> 1.73-1
 - Bug 1361344 - RFE: Allow denial of build deletion and resubmitting at project or group level
 - fix creating group projects
