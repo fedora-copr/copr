@@ -395,8 +395,8 @@ class Action(object):
                     modules.append({
                         "url": module_relpath,
                         "name": mmd.name,
-                        "release": mmd.release,
-                        "version": mmd.version,
+                        "release": (mmd.release or '1'),
+                        "version": (mmd.version or '1'),
                         "requires": mmd.requires,
                         "summary": mmd.summary,
                     })
