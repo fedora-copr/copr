@@ -188,8 +188,7 @@ class Builder(object):
         buildroot_custom_cmd = (
             "dest={cfg_path}"
             " line=\"config_opts['chroot_setup_cmd'] = 'install {pkgs}'\""
-            " regexp=\"config_opts['chroot_setup_cmd'] = ''$\""
-            " backrefs=yes"
+            " regexp=\"config_opts\\['chroot_setup_cmd'\\] = ''$\""
         )
         set_networking_cmd = (
             "dest={cfg_path}"
