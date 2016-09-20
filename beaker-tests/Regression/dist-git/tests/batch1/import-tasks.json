@@ -75,5 +75,27 @@
     "source_type": 4,
     "task_id": "7-f23",
     "user": "clime"
+},
+{
+    "_description": "tito-source test for a git repo subdirectory",
+    "_expected_outcome": "success",
+
+    "branch": "master",
+    "project": "example",
+    "source_json": "{\"tito_test\": true, \"git_dir\": \"subpkg\", \"git_url\": \"git@localhost:example2.git\", \"git_branch\": \"\"}",
+    "source_type": 3,
+    "task_id": "8-master",
+    "user": "clime"
+},
+{
+    "_description": "tito-source test for a different-than-master branch",
+    "_expected_outcome": "success",
+
+    "branch": "master",
+    "project": "example",
+    "source_json": "{\"tito_test\": true, \"git_dir\": \"subpkg\", \"git_url\": \"git@localhost:example2.git\", \"git_branch\": \"somebranch\"}",
+    "source_type": 3,
+    "task_id": "9-master",
+    "user": "clime"
 }
 ]
