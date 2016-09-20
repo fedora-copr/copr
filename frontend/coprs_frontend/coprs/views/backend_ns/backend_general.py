@@ -87,7 +87,8 @@ def dist_git_upload_completed():
             build.pkg_version = pkg_version
 
             for ch in build_chroots:
-                ch.status = helpers.StatusEnum("pending")
+                if ch.status == helpers.StatusEnum("importing"):
+                    ch.status = helpers.StatusEnum("pending")
                 ch.git_hash = git_hash
 
         # Failed?
