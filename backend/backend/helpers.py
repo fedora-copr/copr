@@ -416,7 +416,7 @@ def ensure_dir_exists(path, log):
         try:
             os.makedirs(path)
         except OSError as e:
-            log.exception(e)
+            log.exception(str(e))
 
 
 def get_chroot_arch(chroot):
