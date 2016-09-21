@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-frontend
-Version:    1.102
+Version:    1.103
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -274,6 +274,11 @@ service logstash condrestart
 %doc documentation/python-doc
 
 %changelog
+* Wed Sep 21 2016 clime <clime@redhat.com> 1.103-1
+- add migration to enable mageia chroots
+- fix Bug 1369763 - Cannot delete repo due to a canceled build
+- Fix a typo
+
 * Mon Sep 19 2016 clime <clime@redhat.com> 1.102-1
 - support for mageia chroots
 - add a note about Copr not being supported by Fedora Infra
