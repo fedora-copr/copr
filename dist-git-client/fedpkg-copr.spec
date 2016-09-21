@@ -23,6 +23,7 @@ with Copr dist-git and repos named user/project/package.
 
 
 %build
+a2x -d manpage -f manpage man/fedpkg-copr.1.asciidoc
 
 
 %install
@@ -31,12 +32,16 @@ install -d %{buildroot}%{_sysconfdir}/rpkg
 cp -a fedpkg-copr         %{buildroot}%{_bindir}/
 cp -a fedpkg-copr.conf    %{buildroot}%{_sysconfdir}/rpkg/
 
+install -d %{buildroot}%{_mandir}/man1
+install -p -m 644 man/fedpkg-copr.1 %{buildroot}/%{_mandir}/man1/
+
 
 %files
 %license LICENSE
 %doc README
 %config(noreplace)  %{_sysconfdir}/rpkg/fedpkg-copr.conf
 %{_bindir}/fedpkg-copr
+%{_mandir}/man1/fedpkg-copr.1*
 
 
 
