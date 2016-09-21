@@ -32,7 +32,10 @@ def my_upload_fabric(opts):
         destination = os.path.join(opts.lookaside_location, reponame,
                                    filename, filehash, filename)
         if not os.path.exists(destination):
-            os.makedirs(os.path.dirname(destination))
+            try:
+                os.makedirs(os.path.dirname(destination))
+            except OSError as e:
+                log.exception(str(e))
             shutil.copyfile(source, destination)
     return my_upload
 
