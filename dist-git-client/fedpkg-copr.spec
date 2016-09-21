@@ -1,5 +1,5 @@
 Name:           fedpkg-copr
-Version:        0.5
+Version:        0.6
 Release:        1%{?dist}
 Summary:        Fedpkg modified to work with copr dist git
 
@@ -46,6 +46,9 @@ install -p -m 644 man/fedpkg-copr.1 %{buildroot}/%{_mandir}/man1/
 
 
 %changelog
+* Wed Sep 21 2016 clime <clime@redhat.com> 0.6-1
+- basic man page
+
 * Mon Sep 19 2016 clime <clime@redhat.com> 0.5-1
 - support for mageia chroots
 - do not override module_name, override lookasidecache method instead
