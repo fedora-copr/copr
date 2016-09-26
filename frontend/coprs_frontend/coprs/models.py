@@ -3,7 +3,11 @@ import datetime
 import json
 import os
 import flask
+import json
+import base64
+import modulemd
 
+from sqlalchemy import orm
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
 import zlib
@@ -1083,3 +1087,26 @@ class Group(db.Model, helpers.Serializer):
 
     def __unicode__(self):
         return "{} (fas: {})".format(self.name, self.fas_name)
+
+
+class Module(Action):
+    """
+    Wrapper class for representing modules
+    Module builds are currently stored as Actions, so we are querying properties from action data
+    """
+    @orm.reconstructor
+    def init_on_load(self):
+        data = json.loads(self.data)
+        yaml = base64.b64decode(json.loads(self.data)["modulemd_b64"])
+
+        mmd = modulemd.ModuleMetadata()
+        mmd.loads(yaml)
+
+        attrs = ["name", "version", "release", "summary"]
+        for attr in attrs:
+            setattr(self, attr, getattr(mmd, attr))
+
+        self.ownername = data["ownername"]
+        self.projectname = data["projectname"]
+        self.modulemd = mmd
+        self.yaml = mmd.dumps()

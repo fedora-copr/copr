@@ -29,6 +29,7 @@ from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.logic.modules_logic import ModulesLogic
 from coprs.rmodels import TimedStatEvents
 
 from coprs.logic.complex_logic import ComplexLogic
@@ -953,3 +954,12 @@ def build_module(copr, form):
     db.session.commit()
     flask.flash("Modulemd yaml file successfully generated and submitted to build")
     return flask.redirect(url_for_copr_details(copr))
+
+
+@coprs_ns.route("/<username>/<coprname>/module/<id>")
+@coprs_ns.route("/g/<group_name>/<coprname>/module/<id>")
+@login_required
+@req_with_copr
+def copr_module(copr, id):
+    module = ModulesLogic.get(id).first()
+    return flask.render_template("coprs/detail/module.html", copr=copr, module=module)
