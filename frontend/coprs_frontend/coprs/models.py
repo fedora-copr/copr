@@ -1110,3 +1110,4 @@ class Module(Action):
         self.projectname = data["projectname"]
         self.modulemd = mmd
         self.yaml = mmd.dumps()
+        self.full_name = "-".join([self.name, self.version, self.release])

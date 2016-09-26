@@ -106,18 +106,46 @@
 
   <div class="col-sm-12">
     <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">How to use</h3>
+      </div>
+      <div class="panel-body">
+        First, see the documentation for <code>copr module</code> command on it's <a href="https://pagure.io/fm-dnf-plugin">project page</a>.<br>
+
+
+        To install this module, please run following commands as root:
+
+        <div class="highlight autumn">
+
+          <pre><span class="c1"># Add module repofile to your system (this will be automated by dnf in the future)</span>
+wget {{ copr_url('coprs_ns.generate_module_repo_file', copr, _external=True) }} -O <span class="se">\</span>
+     /etc/fm.modules.d/_copr_{{ module.full_name }}-{{ module.id }}.cfg
+
+<span class="c1"># Install the module</span>
+dnf module <span class="nb">enable</span> {{ module.name }}</pre>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="col-sm-12">
+    <div class="panel panel-default">
       <div class="panel-heading clearfix">
         <a href="{{ copr_url('coprs_ns.copr_module_raw', copr, id=module.id) }}" class="btn btn-default pull-right"><span class="pficon pficon-save"></span> Raw</a>
         <h3 class="panel-title">Modulemd</h3>
       </div>
       <div class="panel-body">
-        <pre>{{ yaml | safe }}</pre>
+        {{ yaml | safe }}
       </div>
     </div>
   </div>
 
 
 </div>
+
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/pygments-autumn.css') }}"/>
 
 {% endif %}
 {% endblock %}

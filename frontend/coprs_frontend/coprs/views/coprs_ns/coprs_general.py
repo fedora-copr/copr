@@ -966,7 +966,7 @@ def build_module(copr, form):
 @req_with_copr
 def copr_module(copr, id):
     module = ModulesLogic.get(id).first()
-    formatter = HtmlFormatter(style="perldoc", linenos=False, noclasses=True)
+    formatter = HtmlFormatter(style="autumn", linenos=False, noclasses=True)
     pretty_yaml = highlight(module.yaml, get_lexer_by_name("YAML"), formatter)
     return flask.render_template("coprs/detail/module.html", copr=copr, module=module, yaml=pretty_yaml)
 
