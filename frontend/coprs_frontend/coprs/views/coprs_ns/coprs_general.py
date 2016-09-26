@@ -969,3 +969,16 @@ def copr_module(copr, id):
     formatter = HtmlFormatter(style="perldoc", linenos=False, noclasses=True)
     pretty_yaml = highlight(module.yaml, get_lexer_by_name("YAML"), formatter)
     return flask.render_template("coprs/detail/module.html", copr=copr, module=module, yaml=pretty_yaml)
+
+
+@coprs_ns.route("/<username>/<coprname>/module/<id>/raw")
+@coprs_ns.route("/g/<group_name>/<coprname>/module/<id>/raw")
+@login_required
+@req_with_copr
+def copr_module_raw(copr, id):
+    module = ModulesLogic.get(id).first()
+    response = flask.make_response(module.yaml)
+    response.mimetype = "text/plain"
+    response.headers["Content-Disposition"] = \
+        "filename={}.yaml".format("-".join([str(module.id), module.name, module.version, module.release]))
+    return response
