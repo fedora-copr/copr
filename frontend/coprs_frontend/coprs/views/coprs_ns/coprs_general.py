@@ -952,7 +952,7 @@ def build_module(copr, form):
 
     actions_logic.ActionsLogic.send_build_module(copr, mmd.dumps())
     db.session.commit()
-    flask.flash("Modulemd yaml file successfully generated and submitted to build")
+    flask.flash("Modulemd yaml file successfully generated and submitted to be build", "success")
     return flask.redirect(url_for_copr_details(copr))
 
 
