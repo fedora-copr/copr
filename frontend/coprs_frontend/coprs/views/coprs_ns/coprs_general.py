@@ -17,6 +17,10 @@ import modulemd
 from email.mime.text import MIMEText
 from itertools import groupby
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+
 from coprs import app
 from coprs import db
 from coprs import rcp
@@ -962,4 +966,6 @@ def build_module(copr, form):
 @req_with_copr
 def copr_module(copr, id):
     module = ModulesLogic.get(id).first()
-    return flask.render_template("coprs/detail/module.html", copr=copr, module=module)
+    formatter = HtmlFormatter(style="perldoc", linenos=False, noclasses=True)
+    pretty_yaml = highlight(module.yaml, get_lexer_by_name("YAML"), formatter)
+    return flask.render_template("coprs/detail/module.html", copr=copr, module=module, yaml=pretty_yaml)

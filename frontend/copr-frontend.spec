@@ -59,6 +59,7 @@ Requires:   python-netaddr
 Requires:   python-flask-restful
 Requires:   python-marshmallow >= 2.0.0
 Requires:   python2-modulemd
+Requires:   python-pygments
 # for tests:
 Requires:   pytest
 Requires:   python-flexmock
@@ -108,6 +109,7 @@ BuildRequires: python-sphinx
 BuildRequires: python-sphinxcontrib-httpdomain
 BuildRequires: python-whoosh
 BuildRequires: python-blinker
+BuildRequires: python-pygments
 
 %if 0%{?with_python3}
 Requires:   dnf
@@ -129,6 +131,7 @@ Requires:   python3-blinker
 Requires:   python3-flask-openid
 Requires:   python3-openid-teams
 Requires:   python3-modulemd
+Requires:   python3-pygments
 
 %if 0%{?fedora} >= 23
 Requires: python3-dnf

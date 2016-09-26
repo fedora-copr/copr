@@ -192,3 +192,8 @@ img.avatar {
 table.permissions {
   margin-bottom: 0px;
 }
+
+.highlight pre {
+  border: 0 !important;
+  font-size: 12px !important;
+}
