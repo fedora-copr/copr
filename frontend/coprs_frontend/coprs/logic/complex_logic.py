@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import time
 import flask
 import sqlalchemy
 
@@ -194,10 +195,11 @@ class ProjectForking(object):
     def fork_copr(self, copr, name):
         fcopr = self.get(copr, name)
         if not fcopr:
-            fcopr = self.create_object(models.Copr, copr, exclude=["id", "group_id"])
+            fcopr = self.create_object(models.Copr, copr, exclude=["id", "group_id", "created_on"])
             fcopr.forked_from_id = copr.id
             fcopr.user = self.user
             fcopr.user_id = self.user.id
+            fcopr.created_on = int(time.time())
             if name:
                 fcopr.name = name
             if self.group:
