@@ -57,9 +57,12 @@ class BuildsLogic(object):
         if not limit:
             limit = 100
 
-        query = models.Build.query \
-            .join(models.BuildChroot).filter(models.BuildChroot.ended_on.isnot(None)) \
-            .order_by(models.BuildChroot.ended_on.desc())
+        query = models.Build.query.join(
+            models.BuildChroot.query\
+                .filter(models.BuildChroot.ended_on.isnot(None))\
+                .order_by(models.BuildChroot.ended_on.desc())\
+                .limit(limit).subquery()
+        )
 
         if user is not None:
             query = query.filter(models.Build.user_id == user.id)

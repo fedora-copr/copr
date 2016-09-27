@@ -885,7 +885,7 @@ class BuildChroot(db.Model, helpers.Serializer):
     status = db.Column(db.Integer, default=StatusEnum("importing"))
 
     started_on = db.Column(db.Integer)
-    ended_on = db.Column(db.Integer)
+    ended_on = db.Column(db.Integer, index=True)
 
     last_deferred = db.Column(db.Integer)
 
