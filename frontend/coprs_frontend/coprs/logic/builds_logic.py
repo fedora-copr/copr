@@ -62,9 +62,9 @@ class BuildsLogic(object):
             query = query.filter(models.Build.user_id == user.id)
 
         query = query.join(
-            models.BuildChroot.query\
-                .filter(models.BuildChroot.ended_on.isnot(None))\
-                .order_by(models.BuildChroot.ended_on.desc())\
+            models.BuildChroot.query
+                .filter(models.BuildChroot.ended_on.isnot(None))
+                .order_by(models.BuildChroot.ended_on.desc())
                 .subquery()
         ).order_by(models.Build.id.desc())
 
