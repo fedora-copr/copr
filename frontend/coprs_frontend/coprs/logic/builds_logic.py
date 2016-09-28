@@ -66,13 +66,11 @@ class BuildsLogic(object):
                 .filter(models.BuildChroot.ended_on.isnot(None))\
                 .order_by(models.BuildChroot.ended_on.desc())\
                 .subquery()
-        )
+        ).order_by(models.Build.id.desc())
 
-        query = query \
-            .order_by(models.Build.id.desc()) \
-            .limit(limit)
-
-        return query
+        # Workaround - otherwise it could take less records than `limit`even though there are more of them.
+        query = query.limit(limit if limit > 100 else 100)
+        return list(reversed(query.all()[:5]))
 
     @classmethod
     def get_build_importing_queue(cls):

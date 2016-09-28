@@ -271,7 +271,7 @@
       <h3 class="panel-title"> Recent Builds - <a href="{{ url_for('recent_ns.all') }}">View All</a></h3>
     </div>
     <div class="list-group">
-      {% for build in builds |reverse %}
+      {% for build in builds %}
         {% if build.copr.is_a_group_project %}
         <a href="{{url_for("coprs_ns.group_copr_build", group_name = build.copr.group.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
         {% else %}
