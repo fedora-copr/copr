@@ -11,6 +11,7 @@ URL:            https://fedorahosted.org/copr/
 # tito build --tgz
 Source0:        %{name}-%{version}.tar.gz
 BuildArch:      noarch
+BuildRequires:  asciidoc
 Requires:       fedpkg
 
 %description
