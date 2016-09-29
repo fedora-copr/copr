@@ -15,6 +15,14 @@ Learn [how to use Copr](https://developer.fedoraproject.org/deployment/copr/abou
 
 ## Status
 
+Copr builds of:
+
+* copr-backend ![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-backend/status_image/last_build.png)
+* copr-keygen ![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-keygen/status_image/last_build.png)
+* copr-frontend ![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-frontend/status_image/last_build.png)
+* python-copr ![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/python-copr/status_image/last_build.png)
+
+
 Documentation of:
 
 * copr-backend [![Documentation Status](https://readthedocs.org/projects/copr-backend/badge/?version=latest)](http://copr-backend.readthedocs.org/?badge=latest)
