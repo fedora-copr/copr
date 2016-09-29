@@ -91,6 +91,8 @@ class CoprCommands(fedpkg.Commands):
                             "--define '%s %s'" % (self._distvar,
                                                   self._distval),
                             "--eval '%%undefine %s'" % self._distunset,
+                            "--define '%mklibname(ds) %{_lib}%{1}%{?2:%{2}}%{?3:_%{3}}%{-s:-static}%{-d:-devel}'",
+                            "--define '%mkrel(c:) %{-c: 0.%{-c*}.}%{1}%{?subrel:.%subrel}%{?dist:%dist}'",
                             "--define '%s 1'" % self.dist]
         if self._runtime_disttag:
             if self.dist != self._runtime_disttag:
