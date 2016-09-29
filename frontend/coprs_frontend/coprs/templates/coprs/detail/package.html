@@ -70,6 +70,20 @@
 
     {{package_table(package.builds)}}
 
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Status Badge</h3>
+      </div>
+      <div class="panel-body">
+        <dl class="dl-horizontal">
+          <dt> HTML Code: </dt>
+          <dd>
+            <textarea class="form-control" rows="2" cols="50"><a href="{{ copr_url('coprs_ns.copr_package', copr, package_name=package.name, _external=True) }}"><img src="{{ copr_url('coprs_ns.copr_package_icon', copr, package_name=package.name, _external=True) }}" /></a></textarea>
+          </dd>
+        </dl>
+      </div>
+    </div>
+
   </div>
 </div>
 
