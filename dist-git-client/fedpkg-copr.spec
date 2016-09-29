@@ -1,5 +1,5 @@
 Name:           fedpkg-copr
-Version:        0.7
+Version:        0.8
 Release:        1%{?dist}
 Summary:        Fedpkg modified to work with copr dist git
 
@@ -47,6 +47,9 @@ install -p -m 644 man/fedpkg-copr.1 %{buildroot}/%{_mandir}/man1/
 
 
 %changelog
+* Thu Sep 29 2016 clime <clime@redhat.com> 0.8-1
+- missing BuildRequires: asciidoc added
+
 * Thu Sep 29 2016 clime <clime@redhat.com> 0.7-1
 - support for mageia-specific macros added
 
