@@ -176,9 +176,7 @@ GROUP BY
 
         if db.engine.url.drivername == "sqlite":
             def sqlite_status_to_order(x):
-                if x == 0:
-                    return 0
-                elif x == 3:
+                if x == 3:
                     return 1
                 elif x == 6:
                     return 2
@@ -186,16 +184,16 @@ GROUP BY
                     return 3
                 elif x == 4:
                     return 4
-                elif x == 1:
+                elif x == 0:
                     return 5
-                elif x == 5:
+                elif x == 1:
                     return 6
+                elif x == 5:
+                    return 7
                 return 1000
 
             def sqlite_order_to_status(x):
-                if x == 0:
-                    return 0
-                elif x == 1:
+                if x == 1:
                     return 3
                 elif x == 2:
                     return 6
@@ -204,8 +202,10 @@ GROUP BY
                 elif x == 4:
                     return 4
                 elif x == 5:
-                    return 1
+                    return 0
                 elif x == 6:
+                    return 1
+                elif x == 7:
                     return 5
                 return 1000
 
