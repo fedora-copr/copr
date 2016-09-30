@@ -97,5 +97,16 @@
     "source_type": 3,
     "task_id": "9-master",
     "user": "clime"
+},
+{
+    "_description": "RubyGem import test",
+    "_expected_outcome": "success",
+
+    "branch": "master",
+    "project": "example",
+    "source_json": "{\"gem_name\": \"A_123\"}",
+    "source_type": 6,
+    "task_id": "10-master",
+    "user": "clime"
 }
 ]
