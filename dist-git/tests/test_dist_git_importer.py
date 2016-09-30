@@ -113,7 +113,8 @@ class TestDistGitImporter(object):
             "sleep_time": 10,
             "pool_busy_sleep_time": 0.5,
             "log_dir": self.tmp_dir_name,
-            "per_task_log_dir": self.per_task_location
+            "per_task_log_dir": self.per_task_location,
+            "multiple_threads": True,
         })
 
         self.dgi = DistGitImporter(self.opts)
