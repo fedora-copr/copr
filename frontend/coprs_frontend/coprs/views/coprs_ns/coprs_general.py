@@ -887,6 +887,18 @@ def copr_update_search_index():
     return "OK"
 
 
+@coprs_ns.route("/<username>/<coprname>/modules/")
+@coprs_ns.route("/g/<group_name>/<coprname>/modules/")
+@req_with_copr
+def copr_modules(copr):
+    return render_copr_modules(copr)
+
+
+def render_copr_modules(copr):
+    query = ModulesLogic.get_multiple_by_copr(copr=copr)
+    return flask.render_template("coprs/detail/modules.html", copr=copr, modules=query)
+
+
 @coprs_ns.route("/<username>/<coprname>/create_module/")
 @coprs_ns.route("/g/<group_name>/<coprname>/create_module/")
 @login_required
