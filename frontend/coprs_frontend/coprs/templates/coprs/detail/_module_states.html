@@ -1,0 +1,18 @@
+{% macro module_states() %}
+{% from "_helpers.html" import build_state_text %}
+<dl class="aligned">
+    <div>
+        <dt> Possible module states: </dt>
+        {% for state in [
+        "pending",
+        "succeeded",
+        "failed",
+        ]%}
+        <dd>
+            {{ build_state_text(state) }}
+            - {{state|build_state_description}}
+        </dd>
+        {% endfor %}
+    </div>
+</dl>
+{% endmacro %}

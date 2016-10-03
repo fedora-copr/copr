@@ -1111,3 +1111,4 @@ class Module(Action):
         self.modulemd = mmd
         self.yaml = mmd.dumps()
         self.full_name = "-".join([self.name, self.version, self.release])
+        self.status = self.result

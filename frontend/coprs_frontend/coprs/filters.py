@@ -41,6 +41,13 @@ def state_from_num(num):
     return helpers.StatusEnum(num)
 
 
+@app.template_filter("module_state_from_num")
+def module_state_from_num(num):
+    if num is None:
+        return "unknown"
+    return ["pending", "succeeded", "failed"][num]
+
+
 @app.template_filter("os_name_short")
 def os_name_short(os_name, os_version):
     # TODO: make it models.MockChroot method or not?

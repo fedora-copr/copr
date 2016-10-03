@@ -130,6 +130,10 @@
   {% endif %}
 {% endmacro %}
 
+{% macro module_state(module) %}
+  {{ build_state_text(module.status | module_state_from_num) }}
+{% endmacro %}
+
 {% macro chroot_to_os_logo(chroot) %}
   {% if chroot.os_release == "fedora" %}
     <img style="height:1.8em" src="{{ url_for('static', filename='fedora_logo.png') }}" /> Fedora {{chroot.os_version}}
