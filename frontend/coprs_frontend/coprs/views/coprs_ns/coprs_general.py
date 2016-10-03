@@ -966,7 +966,7 @@ def build_module(copr, form):
         for package in packages:
             mmd.profiles[name].add_rpm(package)
 
-    actions_logic.ActionsLogic.send_build_module(copr, mmd.dumps())
+    actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, mmd.dumps())
     db.session.commit()
     flask.flash("Modulemd yaml file successfully generated and submitted to be build", "success")
     return flask.redirect(url_for_copr_details(copr))

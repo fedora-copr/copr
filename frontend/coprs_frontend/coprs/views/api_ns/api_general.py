@@ -823,7 +823,7 @@ def copr_build_module(copr):
         raise LegacyApiError(form.errors)
 
     modulemd = form.modulemd.data.read()
-    ActionsLogic.send_build_module(copr, modulemd)
+    ActionsLogic.send_build_module(flask.g.user, copr, modulemd)
     db.session.commit()
 
     return flask.jsonify({

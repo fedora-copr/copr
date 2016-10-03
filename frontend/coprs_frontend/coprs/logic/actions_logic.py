@@ -4,6 +4,7 @@ import base64
 from coprs import db
 from coprs import models
 from coprs import helpers
+from coprs import exceptions
 from flask import url_for
 
 
@@ -236,11 +237,14 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
-    def send_build_module(cls, copr, modulemd):
+    def send_build_module(cls, user, copr, modulemd):
         """
         :type copr: models.Copr
         :type modulemd: str content of module yaml file
         """
+
+        if not user.can_build_in(copr):
+            raise exceptions.InsufficientRightsException("You don't have permissions to build in this copr.")
 
         modulemd_b64 = base64.b64encode(modulemd)
         data = {
