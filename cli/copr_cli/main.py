@@ -543,8 +543,8 @@ def setup_parser():
                                help="Instructions for the copr")
     parser_create.add_argument("--disable_createrepo",
                                help="Disable metadata auto generation")
-    parser_create.add_argument("--enable-net", choices=["on", "off"], default="on",
-                               help="If net should be enabled for builds in this project (default is on)")
+    parser_create.add_argument("--enable-net", choices=["on", "off"], default="off",
+                               help="If net should be enabled for builds in this project (default is off)")
     parser_create.add_argument("--unlisted-on-hp", choices=["on", "off"],
                                help="The project will not be shown on COPR home page")
     parser_create.add_argument("--persistent", action="store_true",
@@ -564,7 +564,7 @@ def setup_parser():
     parser_modify.add_argument("--disable_createrepo",
                                help="Disable metadata auto generation")
     parser_modify.add_argument("--enable-net", choices=["on", "off"],
-                               help="If net should be enabled for builds in this project (default is on)")
+                               help="If net should be enabled for builds in this project (default is \"don't change\")")
     parser_modify.add_argument("--unlisted-on-hp", choices=["on", "off"],
                                help="The project will not be shown on COPR home page")
     parser_modify.set_defaults(func="action_modify_project")
