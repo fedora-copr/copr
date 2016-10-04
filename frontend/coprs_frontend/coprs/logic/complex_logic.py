@@ -55,7 +55,7 @@ class ComplexLogic(object):
         builds_map = {}
         for package in copr.packages:
             fpackage = forking.fork_package(package, fcopr)
-            build = package.last_build()
+            build = package.last_build(successful=True)
             if not build:
                 continue
 
