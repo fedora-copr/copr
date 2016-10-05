@@ -176,7 +176,7 @@ class Action(object):
             shutil.rmtree(path)
 
     def handle_comps_update(self, result):
-        self.log.debug("Action delete build")
+        self.log.debug("Action comps update")
 
         ext_data = json.loads(self.data["data"])
         ownername = ext_data["ownername"]
