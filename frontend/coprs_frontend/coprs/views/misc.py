@@ -145,7 +145,7 @@ def krb5_login(name):
         return flask.render_template("403.html", message=nocred), 403
 
     krb_username = flask.request.environ['REMOTE_USER']
-    app.logger.info("krb5 " + krb_username)
+    app.logger.debug("krb5 login attempt: " + krb_username)
     username = krb_straighten_username(krb_username)
     if not username:
         message = "invalid krb5 username: " + krb_username
