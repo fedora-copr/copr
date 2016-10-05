@@ -51,8 +51,18 @@ def fed_raw_name(oidname):
                   .replace("http://", "")
 
 
-def krb_strip_realm(fullname):
-    return re.sub(r'@.*', '', fullname)
+def krb_straighten_username(krb_remote_user):
+    # Input should look like 'USERNAME@REALM.TLD', strip realm.
+    username = re.sub(r'@.*', '', krb_remote_user)
+
+    # But USERNAME part can consist of USER/DOMAIN.TLD.
+    # TODO: Do we need more clever thing here?
+    username = re.sub('/', '_', username)
+
+    # Based on restrictions for project name: "letters, digits, underscores,
+    # dashes and dots", it is worth limitting the username here, too.
+    # TODO: Store this pattern on one place.
+    return username if re.match(r"^[\w.-]+$", username) else None
 
 
 @app.before_request
@@ -135,7 +145,11 @@ def krb5_login(name):
         return flask.render_template("403.html", message=nocred), 403
 
     krb_username = flask.request.environ['REMOTE_USER']
-    username = krb_strip_realm(krb_username)
+    app.logger.info("krb5 " + krb_username)
+    username = krb_straighten_username(krb_username)
+    if not username:
+        message = "invalid krb5 username: " + krb_username
+        return flask.render_template("403.html", message=message), 403
 
     krb_login = (
         models.Krb5Login.query
