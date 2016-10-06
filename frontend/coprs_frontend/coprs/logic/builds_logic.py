@@ -190,6 +190,8 @@ GROUP BY
                     return 6
                 elif x == 5:
                     return 7
+                elif x == 8:
+                    return 8
                 return 1000
 
             def sqlite_order_to_status(x):
@@ -207,6 +209,8 @@ GROUP BY
                     return 1
                 elif x == 7:
                     return 5
+                elif x == 8:
+                    return 8
                 return 1000
 
             conn = db.engine.connect()

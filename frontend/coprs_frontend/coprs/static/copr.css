@@ -149,6 +149,10 @@ div.breadcrumb-panel ol.breadcrumb {
   color: #272;
 }
 
+.build-forked,.build-forked>a {
+  color: #272;
+}
+
 .build-skipped,.build-skipped>a {
   color: #272;
 }

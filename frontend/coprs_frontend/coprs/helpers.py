@@ -89,7 +89,9 @@ class StatusEnum(with_metaclass(EnumType, object)):
             "pending": 4,
             "skipped": 5,  # if there was this package built already
             "starting": 6,  # build picked by worker but no VM initialized
-            "importing": 7} # SRPM is being imported to dist-git
+            "importing": 7, # SRPM is being imported to dist-git
+            "forked": 8, # build(-chroot) was forked
+           }
 
 
 class BuildSourceEnum(with_metaclass(EnumType, object)):

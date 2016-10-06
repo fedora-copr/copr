@@ -660,7 +660,7 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return StatusEnum("canceled")
 
-        for state in ["running", "starting", "importing", "pending", "failed", "succeeded", "skipped"]:
+        for state in ["running", "starting", "importing", "pending", "failed", "succeeded", "skipped", "forked"]:
             if StatusEnum(state) in self.chroot_states:
                 return StatusEnum(state)
 
@@ -695,7 +695,8 @@ class Build(db.Model, helpers.Serializer):
         """
         return self.status not in [StatusEnum("pending"),
                                    StatusEnum("starting"),
-                                   StatusEnum("running"), ]
+                                   StatusEnum("running"),
+                                   StatusEnum("forked")]
 
     @property
     def finished(self):
@@ -704,7 +705,7 @@ class Build(db.Model, helpers.Serializer):
 
         Build is finished only if all its build_chroots are in finished state.
         """
-        return all([(chroot.state in ["succeeded", "canceled", "skipped", "failed"]) for chroot in self.build_chroots])
+        return all([(chroot.state in ["succeeded", "forked", "canceled", "skipped", "failed"]) for chroot in self.build_chroots])
 
     @property
     def persistent(self):
@@ -919,9 +920,14 @@ class BuildChroot(db.Model, helpers.Serializer):
     @property
     def dist_git_url(self):
         if app.config["DIST_GIT_URL"]:
-            return "{}/{}.git/commit/?id={}".format(app.config["DIST_GIT_URL"],
-                                                    self.build.package.dist_git_repo,
-                                                    self.git_hash)
+            if self.state == "forked":
+                coprname = self.build.copr.forked_from.full_name
+            else:
+                coprname = self.build.copr.full_name
+            return "{}/{}/{}.git/commit/?id={}".format(app.config["DIST_GIT_URL"],
+                                                coprname,
+                                                self.build.package.name,
+                                                self.git_hash)
         return None
 
     @property
