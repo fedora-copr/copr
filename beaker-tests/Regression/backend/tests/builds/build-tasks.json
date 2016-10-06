@@ -240,5 +240,24 @@
     "submitter": "clime",
     "task_id": "90-fedora-23-x86_64",
     "timeout": 21600
+},
+{
+    "build_id": 340,
+    "buildroot_pkgs": "@buildsys-build",
+    "chroot": "custom-1-x86_64",
+    "enable_net": true,
+    "git_branch": "custom1",
+    "git_hash": "e9456be25fba2e18a8fbc78dd18d27ecc02b5197",
+    "git_repo": "@copr/copr-dev/example",
+    "memory_reqs": 2048,
+    "package_name": "example",
+    "package_version": "1.0.5-1.git.6.4278ca6.fc24",
+    "pkgs": "",
+    "project_name": "copr-dev",
+    "project_owner": "@copr",
+    "repos": "http://download.fedoraproject.org/pub/fedora/linux/releases/24/Everything/x86_64/os/",
+    "submitter": "clime",
+    "task_id": "340-custom-1-x86_64",
+    "timeout": 86400
 }
 ]
