@@ -228,6 +228,7 @@ class ProjectForking(object):
         for chroot in fbuild.build_chroots:
             chroot.status = StatusEnum("forked")
         db.session.add(fbuild)
+        db.session.commit()
         return fbuild
 
     def create_object(self, clazz, from_object, exclude=list()):
