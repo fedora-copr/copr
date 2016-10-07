@@ -27,9 +27,12 @@
 {% endif %}
 
 <!-- PROJECT NAME -->
-<h1 class="project-name">
-  {{ copr_title(copr) }}
-</h1>
+<div style="margin-bottom:11px;margin-top:11px">
+  <h1 class="project-name" style="display:inline;">{{ copr_title(copr) }}</h1>
+  {% if copr.forked_from %}
+  <small><i>( forked from {{ copr_title(copr.forked_from) }})</i></small>
+  {% endif %}
+</div>
 
 
 {% macro nav_element(tab_name, tab_title, icon,  href) %}
