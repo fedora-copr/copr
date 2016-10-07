@@ -514,6 +514,21 @@ def cancel_build(build_id):
     return flask.jsonify(output)
 
 
+@api_ns.route("/coprs/delete_build/<int:build_id>/", methods=["POST"])
+@api_login_required
+def delete_build(build_id):
+    build = ComplexLogic.get_build_safe(build_id)
+
+    try:
+        builds_logic.BuildsLogic.delete_build(flask.g.user, build)
+        db.session.commit()
+    except (exceptions.InsufficientRightsException,exceptions.ActionInProgressException) as e:
+        raise LegacyApiError("Invalid request: {}".format(e))
+
+    output = {'output': 'ok', 'status': "Build deleted"}
+    return flask.jsonify(output)
+
+
 @api_ns.route('/coprs/<username>/<coprname>/modify/', methods=["POST"])
 @api_login_required
 @api_req_with_copr

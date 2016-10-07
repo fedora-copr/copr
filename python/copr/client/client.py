@@ -322,6 +322,33 @@ class CoprClient(UnicodeMixin):
         )
         return response
 
+    def delete_build(self, build_id):
+        """ Deletes build.
+            Auth required.
+            If build can't be deleted, return an error.
+
+            :param build_id: Build identifier
+            :type build_id: int
+
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **handle:** :py:class:`~.responses.BuildHandle`
+                - text fields: "status"
+        """
+
+        url = "{0}/coprs/delete_build/{1}/".format(self.api_url, build_id)
+
+        data = self._fetch(url, skip_auth=False, method='post')
+        response = CoprResponse(
+            client=self,
+            method="delete_build",
+            data=data,
+            parsers=[
+                fabric_simple_fields_parser(["status", "output", "error"]),
+            ]
+        )
+        return response
+
     def create_new_build(self, projectname, pkgs, username=None,
                          timeout=None, memory=None, chroots=None,
                          background=False, progress_callback=None):

@@ -360,6 +360,10 @@ class Commands(object):
     def action_watch_build(self, args):
         self._watch_builds(args.build_id)
 
+    def action_delete_build(self, args):
+        result = self.client.delete_build(args.build_id)
+        print(result.status)
+
     #########################################################
     ###                   Package actions                 ###
     #########################################################
@@ -688,6 +692,13 @@ def setup_parser():
     parser_watch.add_argument("build_id", nargs="+",
                               help="Build ID", type=int)
     parser_watch.set_defaults(func="action_watch_build")
+
+    # create the parser for the "delete-build" command
+    parser_delete = subparsers.add_parser("delete-build",
+                                         help="Delete build specified by its ID")
+    parser_delete.add_argument("build_id", help="Build ID", type=int)
+    parser_delete.set_defaults(func="action_delete_build")
+
 
     #########################################################
     ###                   Package options                 ###

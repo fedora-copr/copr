@@ -126,7 +126,7 @@ rlJournalStart
         # clean
         rlRun "dnf remove -y hello_beaker_test_2"
 
-        ## test build watching using Project3
+        ## test build watching and deletion using Project3
         # build 1st package without waiting
         rlRun "copr-cli build --nowait ${NAME_PREFIX}Project3 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm > hello_p3.out"
         rlRun "awk '/Created build/ { print \$3 }' hello_p3.out > hello_p3.id"
@@ -135,6 +135,10 @@ rlJournalStart
         # wait for the build to complete and ensure it succeeded
         rlRun "xargs copr-cli watch-build < hello_p3.id"
         rlRun "xargs copr-cli status < hello_p3.id | grep succeeded"
+        # test build deletion
+        rlRun "copr-cli status `cat hello_p3.id`" 0
+        rlRun "cat hello_p3.id|xargs copr-cli delete-build"
+        rlRun "copr-cli status `cat hello_p3.id`" 1
 
         ## test background builds
 
