@@ -1,9 +1,11 @@
 import flask
 import time
+import sqlalchemy
 
 from coprs import db, app
 from coprs import helpers
 from coprs import models
+from coprs import exceptions
 from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic
@@ -77,12 +79,15 @@ def dist_git_upload_completed():
             pkg_version = flask.request.json["pkg_version"]
 
             # Now I need to assign a package to this build
-            package = PackagesLogic.get(build.copr.id, pkg_name).first()
-            if not package:
-                package = PackagesLogic.add(build.copr.user, build.copr, pkg_name, build.source_type, build.source_json)
-                db.session.add(package)
-                db.session.flush()
+            if not PackagesLogic.get(build.copr.id, pkg_name).first():
+                try:
+                    package = PackagesLogic.add(build.copr.user, build.copr, pkg_name, build.source_type, build.source_json)
+                    db.session.add(package)
+                    db.session.commit()
+                except (sqlalchemy.exc.IntegrityError, exceptions.DuplicateException) as e:
+                    db.session.rollback()
 
+            package = PackagesLogic.get(build.copr.id, pkg_name).first()
             build.package_id = package.id
             build.pkg_version = pkg_version
 
