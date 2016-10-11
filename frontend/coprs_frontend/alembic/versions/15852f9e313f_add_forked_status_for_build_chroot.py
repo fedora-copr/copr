@@ -1,14 +1,14 @@
 """add forked status for build_chroot
 
 Revision ID: 15852f9e313f
-Revises: 419a626c25e6
+Revises: 149da7c4ac2f
 Create Date: 2016-10-06 09:07:06.487213
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '15852f9e313f'
-down_revision = '419a626c25e6'
+down_revision = '149da7c4ac2f'
 
 from alembic import op
 import sqlalchemy as sa
