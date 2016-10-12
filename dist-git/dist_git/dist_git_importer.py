@@ -32,6 +32,7 @@ class SourceType:
     MOCK_SCM = 4
     PYPI = 5
     RUBYGEMS = 6
+    FORK = 7
 
 
 class ImportTask(object):
@@ -74,6 +75,10 @@ class ImportTask(object):
 
         # For RubyGems
         self.gem_name = None
+
+        # For Fork
+        self.fork_old_dist_git_url = None
+        self.fork_old_git_branch = None
 
     @property
     def reponame(self):
@@ -123,6 +128,10 @@ class ImportTask(object):
         elif task.source_type == SourceType.RUBYGEMS:
             task.rubygems_gem_name = task.source_data["gem_name"]
 
+        elif task.source_type == SourceType.FORK:
+            task.fork_old_dist_git_url = task.source_data["old_dist_git_url"]
+            task.fork_old_git_branch = task.source_data["old_dist_git_url"]
+
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
 
@@ -162,6 +171,8 @@ class SourceProvider(object):
             self.provider_class = PyPIProvider
         elif task.source_type == SourceType.RUBYGEMS:
             self.provider_class = RubyGemsProvider
+        elif task.source_type == SourceType.FORK:
+            self.provider_class = ForkProvider
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
         self.provider = self.provider_class(self.task, self.target_path)
@@ -403,6 +414,26 @@ class SrpmUrlProvider(BaseSourceProvider):
         else:
             raise PackageDownloadException("Failed to fetch: {0} with HTTP status: {1}"
                                            .format(self.task.package_url, r.status_code))
+
+
+class ForkProvider(GitProvider):
+    def __init__(self, task, *args, **kwargs):
+        task.git_url = task.fork_old_dist_git_url
+        task.git_branch = None  # @TODO probably use task.fork_old_git_branch
+        super(ForkProvider, self).__init__(task, *args, **kwargs)
+
+    def build(self):
+        # fedpkg sources has --outdir parameter but fedpkg srpm does not
+        self.tmp_dest = self.git_dir
+
+        cmd = ["fedpkg", "--dist", self.task.branch, "--path", self.git_dir, "srpm"]
+        log.debug(" ".join(cmd))
+
+        # @TODO use VM.run(...)
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
+        output, error = proc.communicate()
+        log.info(output)
+        log.info(error)
 
 
 class DistGitImporter(object):

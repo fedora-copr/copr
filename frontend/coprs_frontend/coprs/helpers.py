@@ -102,6 +102,7 @@ class BuildSourceEnum(with_metaclass(EnumType, object)):
             "mock_scm": 4, # scm_type, scm_url, spec, scm_branch
             "pypi": 5, # package_name, version, python_versions
             "rubygems": 6, # gem_name
+            "fork": 7,  # old_dist_git_url old_git_hash
            }
 
 

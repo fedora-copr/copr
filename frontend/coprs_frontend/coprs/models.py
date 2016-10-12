@@ -965,6 +965,14 @@ class BuildChroot(db.Model, helpers.Serializer):
 
         return os.path.join(*parts)
 
+    @property
+    def forked_from(self):
+        query = (BuildChroot.query.join(Build, Package, Copr)
+                             .filter(Package.name == self.build.package.name)
+                             .filter(Copr.id == self.build.copr.forked_from_id)
+                             .filter(BuildChroot.mock_chroot_id == self.mock_chroot_id))
+        return query.first()
+
     def __str__(self):
         return "<BuildChroot: {}>".format(self.to_dict())
 

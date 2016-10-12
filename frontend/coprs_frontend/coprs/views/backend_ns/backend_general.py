@@ -1,5 +1,6 @@
 import flask
 import time
+import json
 import sqlalchemy
 
 from coprs import db, app
@@ -44,6 +45,12 @@ def dist_git_importing_queue():
             "source_type": task.build.source_type,
             "source_json": task.build.source_json,
         }
+        if task.status == helpers.StatusEnum("forked"):
+            task_dict["source_type"] = helpers.BuildSourceEnum("fork")
+            task_dict["source_json"] = json.dumps({
+                "old_dist_git_url": task.forked_from.build.package.dist_git_url,
+                "old_git_hash": task.git_hash,
+            })
         if task_dict not in builds_list:
             builds_list.append(task_dict)
 
@@ -92,8 +99,11 @@ def dist_git_upload_completed():
             build.pkg_version = pkg_version
 
             for ch in build_chroots:
-                if ch.status == helpers.StatusEnum("importing"):
-                    ch.status = helpers.StatusEnum("pending")
+                state_map = {
+                    "importing": "pending",
+                    "forked": "succeeded",  # We can afford it since we fork only succeeded builds
+                }
+                ch.status = helpers.StatusEnum(state_map.get(ch.state, ch.state))
                 ch.git_hash = git_hash
 
         # Failed?
