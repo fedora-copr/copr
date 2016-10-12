@@ -325,14 +325,7 @@ class MockScmProvider(SrpmBuilderProvider):
                "--buildsrpm", "--resultdir={}".format(self.tmp_dest)]
         log.debug(' '.join(cmd))
 
-        try:
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
-            output, error = proc.communicate()
-        except OSError as e:
-            raise SrpmBuilderException(str(e))
-        if proc.returncode != 0:
-            raise SrpmBuilderException(error)
-
+        VM.run(cmd, dst_dir=self.tmp_dest, cwd=self.tmp_dest, name=self.task.task_id, sys_admin=True)
         self.copy()
 
     def scm_option_get(self, package_name, branch):
@@ -680,11 +673,12 @@ class VM(object):
     hash = None
 
     @staticmethod
-    def run(cmd, dst_dir, src_dir=None, cwd="/", name=None, clean=True):
+    def run(cmd, dst_dir, src_dir=None, cwd="/", name=None, clean=True, sys_admin=False):
         """
         Run command in Virtual Machine (Docker)
         :param cmd: list
         :param clean: bool whether to remove docker container
+        :param sys_admin: bool When se to True then container is run with SYS_ADMIN capability
         :return: tuple output, error
         """
         def sandbox(path):
@@ -696,6 +690,8 @@ class VM(object):
             dcmd = ["docker", "run"]
             full_name = "-".join([name or "copr", hashlib.md5().hexdigest()])
 
+            if sys_admin:
+                dcmd.extend(["--cap-add=SYS_ADMIN"])
             dcmd.extend(["--name", full_name])
             dcmd.extend(["-v", "{}:{}".format(dst_dir, dst_dir)])
 
