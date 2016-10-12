@@ -262,7 +262,7 @@ def api_login_required(f):
         if not token_auth:
             output = {
                 "output": "notok",
-                "error": "Login invalid/expired. Please visit {0}/api to get or renew your API token.".format(app.config["PUBLIC_COPR_HOSTNAME"]),
+                "error": "Login invalid/expired. Please visit {0}/api to get or renew your API token.".format(app.config["FRONTEND_BASE_URL"]),
             }
             jsonout = flask.jsonify(output)
             jsonout.status_code = 500
