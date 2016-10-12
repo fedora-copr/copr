@@ -920,12 +920,8 @@ class BuildChroot(db.Model, helpers.Serializer):
     @property
     def dist_git_url(self):
         if app.config["DIST_GIT_URL"]:
-            if self.state == "forking":
-                coprname = self.build.copr.forked_from.full_name
-            else:
-                coprname = self.build.copr.full_name
             return "{}/{}/{}.git/commit/?id={}".format(app.config["DIST_GIT_URL"],
-                                                coprname,
+                                                self.build.copr.full_name,
                                                 self.build.package.name,
                                                 self.git_hash)
         return None
