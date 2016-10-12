@@ -3,7 +3,10 @@ import random
 import string
 
 from six import with_metaclass
-from six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urljoin, urlparse
+import pipes
+from textwrap import dedent
+import re
 
 import flask
 from flask import url_for
@@ -548,3 +551,70 @@ def stream_template(template_name, **context):
     rv = t.stream(context)
     rv.enable_buffering(2)
     return rv
+
+
+def generate_repo_prefix(copr):
+    """ detect group/user repo and return appropriate prefix """
+    prefix = "group_" + copr.group.name if copr.group_id else copr.owner.username
+    return prefix + "-"
+
+
+def generate_repo_name(repo_url):
+    """ based on url, generate repo name """
+    repo_url = re.sub("[^a-zA-Z0-9]", '_', repo_url)
+    repo_url = re.sub("(__*)", '_', repo_url)
+    repo_url = re.sub("(_*$)|^_*", '', repo_url)
+    return repo_url
+
+
+def pre_process_repo_url(chroot, repo_url):
+    """
+    Expands variables and sanitize repo url to be used for mock config
+    """
+    parsed_url = urlparse(repo_url)
+    if parsed_url.scheme == "copr":
+        user = parsed_url.netloc
+        prj = parsed_url.path.split("/")[1]
+        repo_url = "/".join([
+            flask.current_app.config["BACKEND_BASE_URL"],
+            "results", user, prj, chroot
+        ]) + "/"
+
+    repo_url = repo_url.replace("$chroot", chroot)
+    repo_url = repo_url.replace("$distname", chroot.split("-")[0])
+
+    return pipes.quote(repo_url)
+
+
+def generate_mock_profile(copr, chroot_id):
+    """ Return string with proper mock profile contents """
+    chroot = None
+    for i in copr.copr_chroots:
+        if i.mock_chroot.name == chroot_id:
+            chroot = i
+    if not chroot:
+        return ""
+
+    packages = "" if not chroot.buildroot_pkgs else chroot.buildroot_pkgs
+
+    repos = [{
+        "id": "copr_base",
+        "url": copr.repo_url + "/{}/".format(chroot_id),
+        "name": "Copr repository",
+    }]
+    for repo in copr.repos_list:
+        repo_view = {
+            "id": generate_repo_name(repo),
+            "url": pre_process_repo_url(chroot_id, repo),
+            "name": "Additional repo " + generate_repo_name(repo),
+        }
+        repos.append(repo_view)
+
+    return flask.render_template(
+        "mock-profile.cfg",
+        prefix=generate_repo_prefix(copr),
+        name=copr.name,
+        chroot=chroot_id,
+        packages=packages,
+        repos=repos,
+    )

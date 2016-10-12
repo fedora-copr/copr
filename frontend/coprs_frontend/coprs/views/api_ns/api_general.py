@@ -13,7 +13,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
-from coprs.helpers import fix_protocol_for_backend
+from coprs.helpers import fix_protocol_for_backend, generate_mock_profile
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
@@ -884,3 +884,21 @@ def copr_build_module(copr):
 
     except sqlalchemy.exc.IntegrityError:
         raise LegacyApiError({"nvr": ["Module {} already exists".format(module.nvr)]})
+
+
+@api_ns.route("/coprs/<username>/<coprname>/mock-profile/<chroot>/", methods=["GET"])
+@api_ns.route("/g/<group_name>/<coprname>/mock-profile/<chroot>/", methods=["GET"])
+@api_req_with_copr
+def copr_mock_profile(copr, chroot):
+    """
+    Generate mock profile.
+    """
+    output = {
+        "output": "ok",
+        "mock_profile": generate_mock_profile(copr, chroot),
+    }
+
+    if not output['mock_profile']:
+        raise LegacyApiError('Chroot not found.')
+
+    return flask.jsonify(output)
