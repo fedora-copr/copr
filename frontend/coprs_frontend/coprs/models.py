@@ -660,7 +660,7 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return StatusEnum("canceled")
 
-        for state in ["running", "starting", "importing", "pending", "failed", "succeeded", "skipped", "forked"]:
+        for state in ["running", "starting", "importing", "pending", "failed", "succeeded", "skipped", "forking"]:
             if StatusEnum(state) in self.chroot_states:
                 return StatusEnum(state)
 
@@ -696,7 +696,7 @@ class Build(db.Model, helpers.Serializer):
         return self.status not in [StatusEnum("pending"),
                                    StatusEnum("starting"),
                                    StatusEnum("running"),
-                                   StatusEnum("forked")]
+                                   StatusEnum("forking")]
 
     @property
     def finished(self):
@@ -705,7 +705,7 @@ class Build(db.Model, helpers.Serializer):
 
         Build is finished only if all its build_chroots are in finished state.
         """
-        return all([(chroot.state in ["succeeded", "forked", "canceled", "skipped", "failed"]) for chroot in self.build_chroots])
+        return all([(chroot.state in ["succeeded", "forking", "canceled", "skipped", "failed"]) for chroot in self.build_chroots])
 
     @property
     def persistent(self):
@@ -920,7 +920,7 @@ class BuildChroot(db.Model, helpers.Serializer):
     @property
     def dist_git_url(self):
         if app.config["DIST_GIT_URL"]:
-            if self.state == "forked":
+            if self.state == "forking":
                 coprname = self.build.copr.forked_from.full_name
             else:
                 coprname = self.build.copr.full_name

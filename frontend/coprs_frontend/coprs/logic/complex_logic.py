@@ -226,7 +226,7 @@ class ProjectForking(object):
         fbuild.package = fpackage
         fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id", "build_id"]) for c in build.build_chroots]
         for chroot in fbuild.build_chroots:
-            chroot.status = StatusEnum("forked")
+            chroot.status = StatusEnum("forking")
         db.session.add(fbuild)
         db.session.commit()
         return fbuild

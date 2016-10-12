@@ -110,8 +110,8 @@
     <span class="pficon pficon-running"></span> {{ state }}
   {% elif state == "succeeded" %}
     <span class="pficon pficon-ok"></span> {{ state }}
-  {% elif state == "forked" %}
-    <span class="pficon pficon-ok"></span> {{ state }}
+  {% elif state == "forking" %}
+    <span class="pficon pficon-running"></span> {{ state }}
   {% elif state == "skipped" %}
     <span class="pficon pficon-ok"></span> {{ state }}
   {% elif state == "failed" %}

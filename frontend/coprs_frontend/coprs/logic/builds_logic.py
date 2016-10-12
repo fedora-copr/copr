@@ -80,7 +80,7 @@ class BuildsLogic(object):
         query = (models.BuildChroot.query.join(models.Build)
                  .filter(models.Build.canceled == false())
                  .filter(models.BuildChroot.status.in_([helpers.StatusEnum("importing"),
-                                                        helpers.StatusEnum("forked")])))
+                                                        helpers.StatusEnum("forking")])))
         query = query.order_by(models.BuildChroot.build_id.asc())
         return query
 

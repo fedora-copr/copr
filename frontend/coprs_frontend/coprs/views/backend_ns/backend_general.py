@@ -45,7 +45,7 @@ def dist_git_importing_queue():
             "source_type": task.build.source_type,
             "source_json": task.build.source_json,
         }
-        if task.status == helpers.StatusEnum("forked"):
+        if task.status == helpers.StatusEnum("forking"):
             task_dict["source_type"] = helpers.BuildSourceEnum("fork")
             task_dict["source_json"] = json.dumps({
                 "old_dist_git_url": task.forked_from.build.package.dist_git_url,
@@ -101,7 +101,7 @@ def dist_git_upload_completed():
             for ch in build_chroots:
                 state_map = {
                     "importing": "pending",
-                    "forked": "succeeded",  # We can afford it since we fork only succeeded builds
+                    "forking": "succeeded",  # We can afford it since we fork only succeeded builds
                 }
                 ch.status = helpers.StatusEnum(state_map.get(ch.state, ch.state))
                 ch.git_hash = git_hash
