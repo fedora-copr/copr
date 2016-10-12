@@ -429,9 +429,7 @@ class ForkProvider(GitProvider):
         cmd = ["fedpkg", "--dist", self.task.branch, "--path", self.git_dir, "srpm"]
         log.debug(" ".join(cmd))
 
-        # @TODO use VM.run(...)
-        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=self.tmp)
-        output, error = proc.communicate()
+        output, error = VM.run(cmd, self.git_dir, name=self.task.task_id, cwd=self.tmp)
         log.info(output)
         log.info(error)
 
