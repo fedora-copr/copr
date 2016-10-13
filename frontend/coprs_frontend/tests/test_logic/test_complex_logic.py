@@ -21,7 +21,7 @@ class TestComplexLogic(CoprsTestCase):
         assert data["user"] == self.u2.name
         assert data["copr"] == "dstname"
 
-        last_build, forked_build = self.c1.packages[0].builds[1], fc1.builds[0]
+        last_build, forked_build = self.c1.packages[0].last_build(successful=True), fc1.builds[0]
         assert data["builds_map"] == {str(forked_build.id): str(last_build.result_dir_name)}
 
 
@@ -47,7 +47,7 @@ class TestProjectForking(CoprsTestCase):
         fb1 = forking.fork_build(self.b1, self.c2, self.p2)
 
         assert fb1.id != self.b1.id
-        assert fb1.state == self.b1.state
+        assert fb1.state == 'forked'
         assert len(self.b1.build_chroots) == len(fb1.build_chroots)
 
         ch, fch = self.b1.build_chroots[0], fb1.build_chroots[0]
