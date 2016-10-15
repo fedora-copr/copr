@@ -46,6 +46,10 @@ CommonMsgErrorOutParser = fabric_simple_fields_parser(
     ["output", "message", "error"], "CommonMsgErrorOutParser"
 )
 
+MockProfileParser = fabric_simple_fields_parser(
+    ["mock_profile"], "MockProfileParser"
+)
+
 
 class ProjectDetailsFieldsParser(IParser):
     provided_fields = set(["description", "instructions", "last_modified", "name"])
