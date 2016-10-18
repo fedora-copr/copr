@@ -101,3 +101,29 @@ class TestCreateCopr(CoprsTestCase):
     #     self.db.session.add_all([self.u1, self.mc1])
     #
     #
+
+
+class TestModuleRepo(CoprsTestCase):
+    endpoint = "/api/module/repo/"
+
+    def test_api_module_repo(self, f_users, f_coprs, f_db):
+        self.db.session.add_all([self.u1, self.c1])
+
+        data = {"owner": self.u1.name, "nvr": self.c1.name}
+        r = self.tc.post(self.endpoint, data=data)
+        response = json.loads(r.data.decode("utf-8"))
+        assert response["output"] == "ok"
+        assert response["repo"] == "http://localhost/coprs/user1/foocopr/repo/modules/"
+
+        r = self.tc.get(response["repo"])
+        assert r.status_code == 200
+        assert "[{}-{}]".format(self.u1.name, self.c1.name) in r.data
+        assert "url = " in r.data
+
+    def test_api_module_repo_no_params(self):
+        error = "This field is required."
+        r = self.tc.post(self.endpoint, data={})
+        response = json.loads(r.data.decode("utf-8"))
+        assert response["output"] == "notok"
+        assert error in response["error"]["owner"]
+        assert error in response["error"]["nvr"]

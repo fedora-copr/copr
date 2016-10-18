@@ -774,3 +774,8 @@ class CreateModuleForm(wtf.Form):
                     self.errors["profiles"] = ["Missing profile name"]
                     return False
         return True
+
+
+class ModuleRepo(wtf.Form):
+    owner = wtforms.StringField("Owner Name", validators=[wtforms.validators.DataRequired()])
+    nvr = wtforms.StringField("Name-Version-Release", validators=[wtforms.validators.DataRequired()])

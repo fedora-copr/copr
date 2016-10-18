@@ -902,3 +902,24 @@ def copr_build_config(copr, chroot):
         raise LegacyApiError('Chroot not found.')
 
     return flask.jsonify(output)
+
+
+@api_ns.route("/module/repo/", methods=["POST"])
+def copr_module_repo():
+    """
+    :return: URL to a DNF repository for the module
+    """
+    # @TODO Current premise is that Copr's name == NVR
+    # @TODO Get rid of it after creating `module` database table
+
+    form = forms.ModuleRepo(csrf_enabled=False)
+    if not form.validate_on_submit():
+        raise LegacyApiError(form.errors)
+
+    if form.owner.data[0] == "@":
+        copr = ComplexLogic.get_group_copr_safe(form.owner.data[1:], form.nvr.data)
+    else:
+        copr = ComplexLogic.get_copr_safe(form.owner.data, form.nvr.data)
+
+    repo = helpers.copr_url("coprs_ns.generate_module_repo_file", copr, _external=True)
+    return flask.jsonify({"output": "ok", "repo": repo})
