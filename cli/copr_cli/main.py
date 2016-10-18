@@ -231,6 +231,16 @@ class Commands(object):
         data = {"gem_name": args.gem_name}
         return self.process_build(args, self.client.create_new_build_rubygems, data)
 
+    @requires_api_auth
+    def action_build_distgit(self, args):
+        """
+        Method called when the 'buildfedpkg' action has been selected by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        data = {"clone_url": args.clone_url, "branch": args.branch}
+        return self.process_build(args, self.client.create_new_build_distgit, data)
+
     def process_build(self, args, build_function, data, bar=None):
         username, copr = parse_name(args.copr)
 
@@ -620,6 +630,12 @@ def setup_parser():
     parser_rubygems_args_parent.add_argument("--gem", metavar="GEM", dest="gem_name",
                                              help="Specify gem name")
 
+    parser_distgit_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_distgit_args_parent.add_argument("--clone-url", metavar="URL", dest="clone_url", required=True,
+                                             help="Specify clone url for the distgit repository")
+    parser_distgit_args_parent.add_argument("--branch", metavar="BRANCH", dest="branch",
+                                             help="Specify branch to be used")
+
     #########################################################
     ###                    Build options                  ###
     #########################################################
@@ -655,6 +671,11 @@ def setup_parser():
     parser_build_rubygems = subparsers.add_parser("buildgem", parents=[parser_rubygems_args_parent, parser_build_parent],
                                                   help="Build gem from rubygems.org to a specified copr")
     parser_build_rubygems.set_defaults(func="action_build_rubygems")
+
+    # create the parser for the "buildfedpkg" command
+    parser_build_distgit = subparsers.add_parser("buildfedpkg", parents=[parser_distgit_args_parent, parser_build_parent],
+                                                  help="Build package from pkgs.fedoraproject.org")
+    parser_build_distgit.set_defaults(func="action_build_distgit")
 
     # create the parser for the "buildtito" command
     parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_tito_args_parent, parser_build_parent],

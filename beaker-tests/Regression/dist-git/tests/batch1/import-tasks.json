@@ -108,5 +108,16 @@
     "source_type": 6,
     "task_id": "10-master",
     "user": "clime"
+},
+{
+    "_description": "Dist-git import test",
+    "_expected_outcome": "success",
+
+    "branch": "master",
+    "project": "example",
+    "source_json": "{\"clone_url\": \"http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git\", \"branch\": \"f24\" }",
+    "source_type": 7,
+    "task_id": "10-master",
+    "user": "clime"
 }
 ]

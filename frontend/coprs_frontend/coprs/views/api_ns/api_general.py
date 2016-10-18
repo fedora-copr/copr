@@ -422,6 +422,24 @@ def copr_new_build_rubygems(copr):
     return process_creating_new_build(copr, form, create_new_build)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/new_build_distgit/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_new_build_distgit(copr):
+    form = forms.BuildFormDistGitFactory(copr.active_chroots)(csrf_enabled=False)
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_distgit(
+            flask.g.user,
+            copr,
+            form.clone_url.data,
+            form.branch.data,
+            form.selected_chroots,
+            background=form.background.data,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
 def process_creating_new_build(copr, form, create_new_build):
     infos = []
 

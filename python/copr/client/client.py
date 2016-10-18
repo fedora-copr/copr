@@ -512,6 +512,35 @@ class CoprClient(UnicodeMixin):
         return self.process_creating_new_build(projectname, data, api_endpoint, username,
                                                chroots, background=background)
 
+    def create_new_build_distgit(self, projectname, clone_url, branch=None, username=None,
+                              timeout=None, memory=None, chroots=None, background=False, progress_callback=None):
+        """ Creates new build from a dist-git repository
+
+            :param projectname: name of Copr project (without user namespace)
+            :param clone_url: url of the distgit repository to be cloned
+            :param branch: [optional] branch in the repository to be checked out
+            :param username: [optional] use alternative username
+            :param timeout: [optional] build timeout
+            :param memory: [optional] amount of required memory for build process
+            :param chroots: [optional] build only with given chroots
+            :param background: [optional] mark the build as a background job.
+            :param progress_callback: [optional] a function that received a
+            MultipartEncoderMonitor instance for each chunck of uploaded data
+
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
+        """
+        data = {
+            "memory_reqs": memory,
+            "timeout": timeout,
+            "clone_url": clone_url,
+            "branch": branch,
+        }
+        api_endpoint = "new_build_distgit"
+        return self.process_creating_new_build(projectname, data, api_endpoint, username,
+                                               chroots, background=background)
+
     def process_creating_new_build(self, projectname, data, api_endpoint, username=None, chroots=None,
                                    background=False, progress_callback=None, multipart=False):
         if not username:

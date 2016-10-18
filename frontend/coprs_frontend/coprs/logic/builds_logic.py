@@ -397,6 +397,24 @@ GROUP BY
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
+    def create_new_from_distgit(cls, user, copr, clone_url, branch,
+                                 chroot_names=None, **build_options):
+        """
+        :type user: models.User
+        :type copr: models.Copr
+        :type clone_url: str
+        :type branch: str
+        :type chroot_names: List[str]
+        :rtype: models.Build
+        """
+        source_type = helpers.BuildSourceEnum("distgit")
+        source_json = json.dumps({
+            "clone_url": clone_url,
+            "branch": branch
+        })
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
+
+    @classmethod
     def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
                                chroot_names=None, **build_options):
         """

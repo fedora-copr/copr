@@ -140,6 +140,10 @@ rlJournalStart
         rlRun "cat hello_p3.id|xargs copr-cli delete-build"
         rlRun "copr-cli status `cat hello_p3.id`" 1
 
+        ## test distgit builds
+        rlRun "copr-cli create --chroot fedora-24-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli buildfedpkg --clone-url http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git --branch f24 ${NAME_PREFIX}ProjectDistGitBuilds"
+
         ## test background builds
 
         # non-background build should be imported first
@@ -517,6 +521,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}Project12"
         rlRun "copr-cli delete ${NAME_PREFIX}DownloadMockCfgs"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1370704"
+        rlRun "copr-cli delete ${NAME_PREFIX}ProjectDistGitBuilds"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

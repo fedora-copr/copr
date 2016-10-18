@@ -456,6 +456,23 @@ class PackageFormRubyGems(BasePackageForm):
         })
 
 
+class PackageFormDistGit(BasePackageForm):
+    clone_url = wtforms.StringField(
+        "Clone Url",
+        validators=[wtforms.validators.DataRequired()])
+
+    branch = wtforms.StringField(
+        "Branch",
+        validators=[wtforms.validators.Optional()])
+
+    @property
+    def source_json(self):
+        return json.dumps({
+            "clone_url": self.clone_url.data,
+            "branch": self.branch.data
+        })
+
+
 class BaseBuildFormFactory(object):
     def __new__(cls, active_chroots, form):
         class F(form):
@@ -520,6 +537,11 @@ class BuildFormPyPIFactory(object):
 class BuildFormRubyGemsFactory(object):
     def __new__(cls, active_chroots):
         return BaseBuildFormFactory(active_chroots, PackageFormRubyGems)
+
+
+class BuildFormDistGitFactory(object):
+    def __new__(cls, active_chroots):
+        return BaseBuildFormFactory(active_chroots, PackageFormDistGit)
 
 
 class BuildFormUploadFactory(object):

@@ -32,6 +32,7 @@ class SourceType:
     MOCK_SCM = 4
     PYPI = 5
     RUBYGEMS = 6
+    DISTGIT = 7
 
 
 class ImportTask(object):
@@ -74,6 +75,11 @@ class ImportTask(object):
 
         # For RubyGems
         self.gem_name = None
+
+        # For Dist-git
+        self.distgit_clone_url = None
+        self.distgit_branch = None
+
 
     @property
     def reponame(self):
@@ -123,6 +129,10 @@ class ImportTask(object):
         elif task.source_type == SourceType.RUBYGEMS:
             task.rubygems_gem_name = task.source_data["gem_name"]
 
+        elif task.source_type == SourceType.DISTGIT:
+            task.distgit_clone_url = task.source_data["clone_url"]
+            task.distgit_branch = task.source_data["branch"]
+
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
 
@@ -162,6 +172,8 @@ class SourceProvider(object):
             self.provider_class = PyPIProvider
         elif task.source_type == SourceType.RUBYGEMS:
             self.provider_class = RubyGemsProvider
+        elif task.source_type == SourceType.DISTGIT:
+            self.provider_class = DistGitProvider
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
         self.provider = self.provider_class(self.task, self.target_path)
@@ -192,6 +204,7 @@ class BaseSourceProvider(object):
             except OSError as e:
                 pass #what else we can do? Hopefuly tmpreaper will clean it up
         self.dir_to_cleanup = []
+
 
 class SrpmBuilderProvider(BaseSourceProvider):
     def __init__(self, task, target_path):
@@ -403,6 +416,22 @@ class SrpmUrlProvider(BaseSourceProvider):
         else:
             raise PackageDownloadException("Failed to fetch: {0} with HTTP status: {1}"
                                            .format(self.task.package_url, r.status_code))
+
+
+class DistGitProvider(SrpmBuilderProvider):
+    def get_srpm(self):
+        cmd = ['git', 'clone', self.task.distgit_clone_url, self.tmp_dest]
+        output, error = VM.run(cmd, dst_dir=self.tmp_dest, name=self.task.task_id)
+        log.info(output)
+
+        if self.task.distgit_branch:
+            cmd = ['fedpkg', '--dist', self.task.distgit_branch, 'srpm']
+        else:
+            cmd = ['fedpkg', 'srpm']
+
+        output, error = VM.run(cmd, dst_dir=self.tmp_dest, name=self.task.task_id, cwd=self.tmp_dest)
+        log.info(output)
+        self.copy()
 
 
 class DistGitImporter(object):
