@@ -113,12 +113,7 @@ class TestModuleRepo(CoprsTestCase):
         r = self.tc.post(self.endpoint, data=data)
         response = json.loads(r.data.decode("utf-8"))
         assert response["output"] == "ok"
-        assert response["repo"] == "http://localhost/coprs/user1/foocopr/repo/modules/"
-
-        r = self.tc.get(response["repo"])
-        assert r.status_code == 200
-        assert "[{}-{}]".format(self.u1.name, self.c1.name) in r.data
-        assert "url = " in r.data
+        assert response["repo"] == "http://copr-be-dev.cloud.fedoraproject.org/results/user1/foocopr/modules"
 
     def test_api_module_repo_no_params(self):
         error = "This field is required."
