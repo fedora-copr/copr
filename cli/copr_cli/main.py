@@ -562,7 +562,7 @@ def setup_parser():
     parser_create.add_argument("--unlisted-on-hp", choices=["on", "off"],
                                help="The project will not be shown on COPR home page")
     parser_create.add_argument("--persistent", action="store_true",
-                               help="Project and its builds will be undeletable. This option can only be spefified by a COPR admin.")
+                               help="Project and its builds will be undeletable. This option can only be specified by a COPR admin.")
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command

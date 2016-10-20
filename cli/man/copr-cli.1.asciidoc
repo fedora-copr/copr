@@ -126,7 +126,7 @@ If net should be enabled for builds in this project.
 This project will not be listed on COPR home page.
 
 --persistent::
-Project and its builds will be undeletable. This option can only be spefified by a COPR admin.
+Project and its builds will be undeletable. This option can only be specified by a COPR admin.
 
 
 `copr-cli modify [options]`
