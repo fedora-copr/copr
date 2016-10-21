@@ -8,7 +8,7 @@
 
 Copr is a Fedora community build service in [Fedora](https://getfedora.org/) that builds your open-source project and creates your own RPM repository.
 
-<img src="https://pagure.io/copr/copr/raw/master/f/doc/img/copr-workflow.png" width="400px">
+[See Copr workflow.](https://pagure.io/copr/copr/raw/master/f/doc/img/copr-workflow.png)
 
 ## Using Copr
 Learn [how to use Copr](https://developer.fedoraproject.org/deployment/copr/about.html) and [how to create RPM packages](https://developer.fedoraproject.org/deployment/rpm/about.html) on the [Fedora Developer Portal](https://developer.fedoraproject.org).
@@ -35,7 +35,9 @@ You can use [Vagrant](https://developer.fedoraproject.org/tools/vagrant/about.ht
 
 ```
 $ git clone https://pagure.io/copr/copr.git
+
 $ cd copr
+
 $ vagrant up
 ```
 
