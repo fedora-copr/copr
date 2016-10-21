@@ -34,7 +34,7 @@ Documentation of:
 You can use [Vagrant](https://developer.fedoraproject.org/tools/vagrant/about.html) to run your local test environment. We currently support *frontend* and *dist-git*.
 
 ```
-$ git clone https://github.com/fedora-copr/copr.git
+$ git clone https://pagure.io/copr/copr.git
 $ cd copr
 $ vagrant up
 ```
