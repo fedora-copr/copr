@@ -1,4 +1,4 @@
-# Copr (moved to https://pagure.io/copr/copr)
+# Copr
 
 [**Project Page**](https://fedorahosted.org/copr/) | 
 [**Report a Bug**](https://bugzilla.redhat.com/enter_bug.cgi?product=Copr) | 
