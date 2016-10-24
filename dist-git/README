@@ -16,3 +16,23 @@ Alias /lookaside        /var/lib/dist-git/cache/lookaside
 9. configure git variables:
     git config --global user.email "copr-devel@lists.fedorahosted.org"
     git config --global user.name "Copr dist git"
+
+
+## Docker Images
+Copr-dist-git now builds SRPMs from various sources within containerized environment provided by Docker.
+Docker image is built from ./dist_git/docker/Dockerfile and is automatically re-built on `copr-dist-git` service (re)start.
+
+Which means that if you want to modify the Dockerfile, the only thing you need to do is
+
+    systemctl restart copr-dist-git
+
+and then all new SRPM builds will proceed in the modified environment.
+
+
+However if you want to build the image manually, please run
+
+    docker build ./dist_git/docker/
+
+and then you can use it as desired. For example run shell in it
+
+    docker run -it <image_hash> bash
