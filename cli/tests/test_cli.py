@@ -251,7 +251,7 @@ def test_list_project_error_msg(mock_cc, capsys):
     mock_client = MagicMock(no_config=False, username="dummy")
     mock_cc.create_from_file_config.return_value = mock_client
 
-    mock_response = MagicMock(CoprResponse(None, None, None),
+    mock_response = MagicMock(response=CoprResponse(None, None, None),
                               output="notok", error="error_msg",
                               projects_list=[])
 
@@ -268,7 +268,7 @@ def test_list_project_empty_list(mock_cc, capsys):
     mock_client = MagicMock(no_config=False, username="dummy")
     mock_cc.create_from_file_config.return_value = mock_client
 
-    mock_response = MagicMock(CoprResponse(None, None, None),
+    mock_response = MagicMock(response=CoprResponse(None, None, None),
                               output="ok", projects_list=[])
 
     mock_client.get_projects_list.return_value = mock_response
@@ -424,10 +424,10 @@ def test_create_project(mock_cc, capsys):
     stdout, stderr = capsys.readouterr()
 
     mock_client.create_project.assert_called_with(
-        username=None, projectname="foo", description="desc string",
+        username=None, persistent=False, projectname="foo", description="desc string",
         instructions="instruction string", chroots=["f20", "f21"],
         repos=["repo1", "repo2"], initial_pkgs=["pkg1"],
-        unlisted_on_hp=False, disable_createrepo=None, enable_net=True)
+        unlisted_on_hp=False, disable_createrepo=None, enable_net=False)
 
     assert "{0}\n".format(response_message) in stdout
 
