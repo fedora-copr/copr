@@ -84,6 +84,9 @@ Clear source definition of a package and its source type
 build-package::
 Build package from its source definition
 
+mock-config::
+Get the mock profile (similar to koji mock-config)
+
 
 PROJECT ACTIONS
 ---------------
@@ -534,6 +537,15 @@ Name of a package to be built
 
 For the rest of the arguments, see `copr-cli build` command above.
 
+`copr-cli mock-config [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr mock-config [-h] project chroot
+
+Get the mock profile (similar to koji mock-config), print it to standard
+output.  The configuration can be slightly different from the real mock
+configuration used by Copr Builders, but should be similar enough for basic
+debugging (e.g. by mock --shell).
+
 
 EXAMPLES
 --------
@@ -544,6 +556,8 @@ EXAMPLES
   copr-cli build-package myproject --name pkgname --nowait --timeout 10000 -r fedora-23-x86_64
 
   copr-cli delete-package myproject --name pkgname
+
+  copr-cli mock-config myproject fedora-rawhide-x86_64
 
 
 EXIT STATUS

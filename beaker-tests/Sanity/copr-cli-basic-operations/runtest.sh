@@ -150,6 +150,22 @@ rlJournalStart
         rlRun "copr-cli create --chroot fedora-24-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
         rlRun "copr-cli buildfedpkg --clone-url http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git --branch f24 ${NAME_PREFIX}ProjectDistGitBuilds"
 
+
+        ## test mock-config feature
+        mc_project=${NAME_PREFIX}MockConfig
+        mc_parent_project=${mc_project}Parent
+        mc_output=`mktemp`
+        mc_chroot=fedora-rawhide-x86_64
+
+        rlRun "copr-cli create --chroot $mc_chroot $mc_parent_project"
+        create_opts="--repo copr://$mc_parent_project"
+        rlRun "copr-cli create --chroot $mc_chroot $create_opts $mc_project"
+        rlRun "copr-cli mock-config $mc_project $mc_chroot > $mc_output"
+        rlRun "grep results/$mc_parent_project $mc_output"
+        # Non-existent project/chroot.
+        rlRun "copr-cli mock-config notexistent/notexistent $mc_chroot" 1
+        rlRun "copr-cli mock-config $mc_project fedora-14-x86_64" 1
+
         ## test background builds
 
         # non-background build should be imported first

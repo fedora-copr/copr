@@ -366,13 +366,6 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     )|fix_url_https_frontend -}}
 {% endmacro %}
 
-{% macro mock_config_href(copr, chroot) %}
-  {{- copr_url('coprs_ns.mock_profile',
-      copr,
-      chroot=chroot,
-      _external=True
-    )|fix_url_https_frontend -}}
-{% endmacro %}
 
 {% macro render_monitor_table(copr, monitor, oses, archs, status_enum_func, simple=True) %}
 <table class="table table-striped table-bordered">

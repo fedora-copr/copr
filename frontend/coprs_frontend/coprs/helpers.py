@@ -553,12 +553,6 @@ def stream_template(template_name, **context):
     return rv
 
 
-def generate_repo_prefix(copr):
-    """ detect group/user repo and return appropriate prefix """
-    prefix = "group_" + copr.group.name if copr.group_id else copr.owner.username
-    return prefix + "-"
-
-
 def generate_repo_name(repo_url):
     """ based on url, generate repo name """
     repo_url = re.sub("[^a-zA-Z0-9]", '_', repo_url)
@@ -586,8 +580,8 @@ def pre_process_repo_url(chroot, repo_url):
     return pipes.quote(repo_url)
 
 
-def generate_mock_profile(copr, chroot_id):
-    """ Return string with proper mock profile contents """
+def generate_build_config(copr, chroot_id):
+    """ Return dict with proper build config contents """
     chroot = None
     for i in copr.copr_chroots:
         if i.mock_chroot.name == chroot_id:
@@ -610,11 +604,9 @@ def generate_mock_profile(copr, chroot_id):
         }
         repos.append(repo_view)
 
-    return flask.render_template(
-        "mock-profile.cfg",
-        prefix=generate_repo_prefix(copr),
-        name=copr.name,
-        chroot=chroot_id,
-        packages=packages,
-        repos=repos,
-    )
+    return {
+        'project_id': copr.repo_id,
+        'additional_packages': packages.split(),
+        'repos': repos,
+        'chroot': chroot_id,
+    }

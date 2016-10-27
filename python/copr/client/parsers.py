@@ -46,8 +46,8 @@ CommonMsgErrorOutParser = fabric_simple_fields_parser(
     ["output", "message", "error"], "CommonMsgErrorOutParser"
 )
 
-MockProfileParser = fabric_simple_fields_parser(
-    ["mock_profile"], "MockProfileParser"
+BuildConfigParser = fabric_simple_fields_parser(
+    ["build_config"], "BuildConfigParser"
 )
 
 

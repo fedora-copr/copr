@@ -13,7 +13,7 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
-from coprs.helpers import fix_protocol_for_backend, generate_mock_profile
+from coprs.helpers import fix_protocol_for_backend, generate_build_config
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
@@ -886,19 +886,19 @@ def copr_build_module(copr):
         raise LegacyApiError({"nvr": ["Module {} already exists".format(module.nvr)]})
 
 
-@api_ns.route("/coprs/<username>/<coprname>/mock-profile/<chroot>/", methods=["GET"])
-@api_ns.route("/g/<group_name>/<coprname>/mock-profile/<chroot>/", methods=["GET"])
+@api_ns.route("/coprs/<username>/<coprname>/build-config/<chroot>/", methods=["GET"])
+@api_ns.route("/g/<group_name>/<coprname>/build-config/<chroot>/", methods=["GET"])
 @api_req_with_copr
-def copr_mock_profile(copr, chroot):
+def copr_build_config(copr, chroot):
     """
-    Generate mock profile.
+    Generate build configuration.
     """
     output = {
         "output": "ok",
-        "mock_profile": generate_mock_profile(copr, chroot),
+        "build_config": generate_build_config(copr, chroot),
     }
 
-    if not output['mock_profile']:
+    if not output['build_config']:
         raise LegacyApiError('Chroot not found.')
 
     return flask.jsonify(output)
