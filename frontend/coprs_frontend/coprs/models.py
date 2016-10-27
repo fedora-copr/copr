@@ -7,7 +7,7 @@ import json
 import base64
 import modulemd
 
-from sqlalchemy import orm
+from sqlalchemy import orm, UniqueConstraint
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
 import zlib
@@ -1095,26 +1095,47 @@ class Group(db.Model, helpers.Serializer):
         return "{} (fas: {})".format(self.name, self.fas_name)
 
 
-class Module(Action):
-    """
-    Wrapper class for representing modules
-    Module builds are currently stored as Actions, so we are querying properties from action data
-    """
-    @orm.reconstructor
-    def init_on_load(self):
-        data = json.loads(self.data)
-        yaml = base64.b64decode(json.loads(self.data)["modulemd_b64"])
+class Module(db.Model, helpers.Serializer):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    version = db.Column(db.String(100), nullable=False)
+    release = db.Column(db.Integer, nullable=False)
+    summary = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    created_on = db.Column(db.Integer, nullable=True)
 
+    __table_args__ = (
+        UniqueConstraint("name", "version", "release", "user_id"),
+    )
+
+    # When someone submits YAML (not generate one on the copr modules page), we might want to use that exact file.
+    # Yaml produced by deconstructing into pieces and constructed back can look differently,
+    # which is not desirable (Imo)
+    #
+    # Also if there are fields which are not covered by this model, we will be able to add them in the future
+    # and fill them with data from this blob
+    yaml_b64 = db.Column(db.Text)
+
+    # relations
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    copr = db.relationship("Copr", backref=db.backref("modules"))
+    user = db.relationship("User", backref=db.backref("modules"))
+
+    @property
+    def yaml(self):
+        return base64.b64decode(self.yaml_b64)
+
+    @property
+    def modulemd(self):
         mmd = modulemd.ModuleMetadata()
-        mmd.loads(yaml)
+        mmd.loads(self.yaml)
+        return mmd
 
-        attrs = ["name", "version", "release", "summary"]
-        for attr in attrs:
-            setattr(self, attr, getattr(mmd, attr))
+    @property
+    def nvr(self):
+        return "-".join([self.name, self.version, self.release])
 
-        self.ownername = data["ownername"]
-        self.projectname = data["projectname"]
-        self.modulemd = mmd
-        self.yaml = mmd.dumps()
-        self.full_name = "-".join([self.name, self.version, self.release])
-        self.status = self.result
+    @property
+    def full_name(self):
+        return "{}/{}".format(self.copr.owner_name, self.nvr)
