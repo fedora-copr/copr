@@ -45,7 +45,7 @@ from .responses import ProjectHandle, \
 from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     CommonMsgErrorOutParser, NewBuildListParser, ProjectChrootsParser, \
     ProjectDetailsFieldsParser, PackageListParser, PackageParser, \
-    MockProfileParser
+    BuildProfileParser
 
 from ..util import UnicodeMixin
 
@@ -1282,17 +1282,16 @@ class CoprClient(UnicodeMixin):
         response.handle = BaseHandle(client=self, response=response)
         return response
 
-    def get_mock_profile(self, project, chroot):
+    def get_build_config(self, project, chroot):
         """
-        Return mock profile for given project/chroot.
+        Return build configuration for given project/chroot.
         :param project: project name, e.g. USER/PROJ, or @GROUP/PROJ.
         :param chroot: chroot name, e.g. fedora-rawhide-x86_64
         :return: :py:class:`~.responses.CoprResponse`
             with additional fields:
-            - **mock_profile**: generated mock profile contents (multiline
-              string)
+            - **build_config**: generated build config contents (dict)
         """
-        url = "{0}/coprs/{1}/mock-profile/{2}".format(
+        url = "{0}/coprs/{1}/build-config/{2}".format(
             self.api_url,
             project,
             chroot,
@@ -1300,11 +1299,11 @@ class CoprClient(UnicodeMixin):
         data = self._fetch(url, skip_auth=True)
         response = CoprResponse(
             client=self,
-            method="get_mock_profile",
+            method="get_build_config",
             data=data,
             parsers=[
                 CommonMsgErrorOutParser,
-                MockProfileParser,
+                BuildProfileParser,
             ]
         )
         return response

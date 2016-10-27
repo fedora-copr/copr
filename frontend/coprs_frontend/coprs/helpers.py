@@ -584,8 +584,8 @@ def pre_process_repo_url(chroot, repo_url):
     return pipes.quote(repo_url)
 
 
-def generate_mock_profile(copr, chroot_id):
-    """ Return string with proper mock profile contents """
+def generate_build_config(copr, chroot_id):
+    """ Return dict with proper build config contents """
     chroot = None
     for i in copr.copr_chroots:
         if i.mock_chroot.name == chroot_id:
@@ -608,11 +608,9 @@ def generate_mock_profile(copr, chroot_id):
         }
         repos.append(repo_view)
 
-    return flask.render_template(
-        "mock-profile.cfg",
-        prefix=generate_repo_prefix(copr),
-        name=copr.name,
-        chroot=chroot_id,
-        packages=packages,
-        repos=repos,
-    )
+    return {
+        'project_id': generate_repo_prefix(copr) + copr.name,
+        'additional_packages': packages.split(),
+        'repos': repos,
+        'chroot': chroot_id,
+    }

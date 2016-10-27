@@ -1,8 +1,7 @@
 {% extends "coprs/detail.html" %}
 
 {% from "coprs/_coprs_forms.html" import copr_legal_flag_form with context %}
-{% from "_helpers.html" import chroot_to_os_logo, copr_name, copr_url, build_href,
-                               repo_file_href, mock_config_href  %}
+{% from "_helpers.html" import chroot_to_os_logo, copr_name, copr_url, build_href, repo_file_href %}
 
 {% set selected_tab = "overview" %}
 
@@ -42,7 +41,6 @@
         <tr>
           <th>Release</th>
           <th>Architectures</th>
-          <th>Mock Config</th>
           <th>Repo Download</th>
         </tr>
       </thead>
@@ -59,11 +57,6 @@
               <a id="modified-chroot-{{repo.name_release}}-{{arch}}">[modified]</a>
               {% endif %}
               <small class="text-muted"> ({{ repo.rpm_dl_stat[arch] }})*</small>{% if not loop.last %}, {% endif %}
-            {% endfor %}
-          </td>
-          <td>
-            {% for arch in repo.arch_list %}
-            <a href="{{ mock_config_href(copr, repo.name_release + "-" + arch) }}">[{{ arch }}]</a>
             {% endfor %}
           </td>
           <td class="rightmost">

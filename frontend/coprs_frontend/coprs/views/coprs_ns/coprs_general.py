@@ -840,16 +840,6 @@ def group_copr_build_monitor(copr, detailed=False):
     return render_monitor(copr, detailed == "detailed")
 
 
-@coprs_ns.route("/<username>/<coprname>/mock-profile/<chroot>.cfg")
-@coprs_ns.route("/g/<group_name>/<coprname>/mock-profile/<chroot>.cfg")
-@req_with_copr
-def mock_profile(copr, chroot):
-    return flask.Response(
-        response=helpers.generate_mock_profile(copr, chroot),
-        mimetype="text/plain",
-    )
-
-
 @coprs_ns.route("/<username>/<coprname>/fork/")
 @coprs_ns.route("/g/<group_name>/<coprname>/fork/")
 @login_required
