@@ -80,6 +80,12 @@ Requires: dnf
 BuildRequires: dnf
 %endif
 
+%if 0%{?fedora} >= 24
+Requires: python2-zmq
+%else
+Requires: python-zmq
+%endif
+
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -198,11 +204,14 @@ install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 install -d %{buildroot}%{_sharedstatedir}/copr/data/srpm_storage
 install -d %{buildroot}%{_sysconfdir}/cron.hourly
 install -d %{buildroot}/%{_bindir}
+install -d %{buildroot}%{_unitdir}
 
 install -p -m 755 conf/cron.hourly/copr-frontend %{buildroot}%{_sysconfdir}/cron.hourly/copr-frontend
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 sed -i "s/__RPM_BUILD_VERSION/%{version}-%{release}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
+
+cp -a copr-fedmsg-listener.service %{buildroot}%{_unitdir}/
 
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
@@ -239,6 +248,13 @@ useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash
 %post
 service httpd condrestart
 service logstash condrestart
+%systemd_post copr-fedmsg-listener.service
+
+%preun
+%systemd_preun copr-fedmsg-listener.service
+
+%postun
+%systemd_postun_with_restart copr-fedmsg-listener.service
 
 %files
 %license LICENSE
@@ -251,6 +267,8 @@ service logstash condrestart
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %config(noreplace) %{_sysconfdir}/logstash.d/copr_frontend.conf
+
+%{_unitdir}/copr-fedmsg-listener.service
 
 %defattr(-, copr-fe, copr-fe, -)
 %dir %{_sharedstatedir}/copr/data
