@@ -237,7 +237,7 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
-    def send_build_module(cls, user, copr, modulemd):
+    def send_build_module(cls, user, copr, module):
         """
         :type copr: models.Copr
         :type modulemd: str content of module yaml file
@@ -246,17 +246,14 @@ class ActionsLogic(object):
         if not user.can_build_in(copr):
             raise exceptions.InsufficientRightsException("You don't have permissions to build in this copr.")
 
-        modulemd_b64 = base64.b64encode(modulemd)
         data = {
-            "ownername": copr.owner_name,
-            "projectname": copr.name,
             "chroots": [c.name for c in copr.active_chroots],
-            "modulemd_b64": modulemd_b64,
         }
 
         action = models.Action(
             action_type=helpers.ActionTypeEnum("build_module"),
-            object_type="copr",
+            object_type="module",
+            object_id=module.id,
             old_value="",
             new_value="",
             data=json.dumps(data),

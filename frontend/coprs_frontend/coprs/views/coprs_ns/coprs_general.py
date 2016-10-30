@@ -895,8 +895,8 @@ def copr_modules(copr):
 
 
 def render_copr_modules(copr):
-    query = ModulesLogic.get_multiple_by_copr(copr=copr)
-    return flask.render_template("coprs/detail/modules.html", copr=copr, modules=query)
+    modules = ModulesLogic.get_multiple_by_copr(copr=copr).all()
+    return flask.render_template("coprs/detail/modules.html", copr=copr, modules=modules)
 
 
 @coprs_ns.route("/<username>/<coprname>/create_module/")
@@ -966,7 +966,8 @@ def build_module(copr, form):
         for package in packages:
             mmd.profiles[name].add_rpm(package)
 
-    actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, mmd.dumps())
+    module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
+    actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, module)
     db.session.commit()
     flask.flash("Modulemd yaml file successfully generated and submitted to be build", "success")
     return flask.redirect(url_for_copr_details(copr))

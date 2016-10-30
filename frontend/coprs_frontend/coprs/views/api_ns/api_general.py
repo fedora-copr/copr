@@ -18,6 +18,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.modules_logic import ModulesLogic
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -856,7 +857,8 @@ def copr_build_module(copr):
         raise LegacyApiError(form.errors)
 
     modulemd = form.modulemd.data.read()
-    ActionsLogic.send_build_module(flask.g.user, copr, modulemd)
+    module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(modulemd))
+    ActionsLogic.send_build_module(flask.g.user, copr, module)
     db.session.commit()
 
     return flask.jsonify({

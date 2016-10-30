@@ -1043,6 +1043,19 @@ class Action(db.Model, helpers.Serializer):
         return "Action {0} on {1}, old value: {2}, new value: {3}.".format(
             self.action_type, self.object_type, self.old_value, self.new_value)
 
+    def to_dict(self, **kwargs):
+        d = super(Action, self).to_dict()
+        if d.get("object_type") == "module":
+            module = Module.query.filter(Module.id == d["object_id"]).first()
+            data = json.loads(d["data"])
+            data.update({
+                "projectname": module.copr.name,
+                "ownername": module.copr.owner_name,
+                "modulemd_b64": module.yaml_b64,
+            })
+            d["data"] = json.dumps(data)
+        return d
+
 
 class Krb5Login(db.Model, helpers.Serializer):
     """
@@ -1139,3 +1152,7 @@ class Module(db.Model, helpers.Serializer):
     @property
     def full_name(self):
         return "{}/{}".format(self.copr.owner_name, self.nvr)
+
+    @property
+    def action(self):
+        return Action.query.filter(Action.object_type == "module").filter(Action.object_id == self.id).first()
