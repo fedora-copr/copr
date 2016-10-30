@@ -1134,7 +1134,7 @@ class Module(db.Model, helpers.Serializer):
 
     @property
     def nvr(self):
-        return "-".join([self.name, self.version, self.release])
+        return "-".join([self.name, self.version, str(self.release)])
 
     @property
     def full_name(self):

@@ -992,5 +992,5 @@ def copr_module_raw(copr, id):
     response = flask.make_response(module.yaml)
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
-        "filename={}.yaml".format("-".join([str(module.id), module.name, module.version, module.release]))
+        "filename={}.yaml".format("-".join([str(module.id), module.name, module.version, str(module.release)]))
     return response
