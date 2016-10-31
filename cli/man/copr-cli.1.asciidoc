@@ -35,7 +35,7 @@ path to an alternative configuration file (default is ~/.config/copr).
 ACTION LIST
 -----------
 
-list [username]::
+list [username|@groupname]::
 List all the projects of the provided username. If no username is provided,
 then your projects are listed.
 
@@ -128,6 +128,8 @@ This project will not be listed on COPR home page.
 --persistent::
 Project and its builds will be undeletable. This option can only be specified by a COPR admin.
 
+name::
+Can be just name of the project or in form username/projectname or @groupname/projectname.
 
 `copr-cli modify [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -160,6 +162,8 @@ If net should be enabled for builds in this project.
 --unlisted-on-hp::
 This project will not be listed on COPR home page.
 
+name::
+Can be just name of the project or in form username/projectname or @groupname/projectname.
 
 BUILD ACTIONS
 -------------

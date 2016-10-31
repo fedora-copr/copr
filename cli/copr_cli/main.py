@@ -533,9 +533,9 @@ def setup_parser():
              "provided "
     )
     parser_list.add_argument(
-        "username", nargs="?",
-        help="The username that you would like to "
-             "list the copr of (defaults to current user)"
+        "username", metavar="username|@groupname", nargs="?",
+        help="The username or @groupname that you would like to "
+             "list the coprs of (defaults to current user)"
     )
     parser_list.set_defaults(func="action_list")
 
@@ -643,7 +643,7 @@ def setup_parser():
     # parent parser for the builds commands below
     parser_build_parent = argparse.ArgumentParser(add_help=False)
     parser_build_parent.add_argument("copr",
-                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project.")
+                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project or @groupname/project.")
     parser_build_parent.add_argument("--memory", dest="memory",
                                      help="")
     parser_build_parent.add_argument("--timeout", dest="timeout",
@@ -731,7 +731,7 @@ def setup_parser():
                                                    help="Name of the package to be edited or created",
                                                    metavar="PKGNAME", required=True)
     parser_add_or_edit_package_parent.add_argument("copr",
-                                                   help="The copr repo for the package. Can be just name of project or even in format username/project.")
+                                                   help="The copr repo for the package. Can be just name of project or even in format username/project or @groupname/project.")
     parser_add_or_edit_package_parent.add_argument("--webhook-rebuild",
                                                    choices=["on", "off"], help="Enable auto-rebuilding.")
 
