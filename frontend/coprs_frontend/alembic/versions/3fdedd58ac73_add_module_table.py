@@ -20,6 +20,8 @@ import json
 import base64
 import modulemd
 from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.actions_logic import ActionsLogic
+from coprs.helpers import ActionTypeEnum
 
 
 def upgrade():
@@ -27,25 +29,21 @@ def upgrade():
     Session = sessionmaker()
     session = Session(bind=bind)
 
+    # Table schema is defined in the `Module` model, so the actual table can
+    # be created with only this one line
     Module.__table__.create(bind)
     session.commit()
 
-    all_coprs = session.query(Copr)
+    # Now, let's seed the table with existing modules which are violently stored in the `action` table
     added_modules = set()
-
-    for action in Action.query.filter(Action.action_type==9).all():
+    for action in ActionsLogic.get_many(ActionTypeEnum("build_module")).order_by(Action.id.desc()):
         data = json.loads(action.data)
+        copr = get_copr(session, data["ownername"], data["projectname"])
         yaml = base64.b64decode(data["modulemd_b64"])
         mmd = modulemd.ModuleMetadata()
         mmd.loads(yaml)
 
-        if data["ownername"][0] == "@":
-            coprs = CoprsLogic.filter_by_group_name(all_coprs, data["ownername"][1:])
-        else:
-            coprs = CoprsLogic.filter_by_user_name(all_coprs, data["ownername"])
-        copr = CoprsLogic.filter_by_name(coprs, data["projectname"]).first()
-
-        kwargs = {
+        module_kwargs = {
             "name": mmd.name,
             "version": mmd.version,
             "release": mmd.release,
@@ -58,11 +56,14 @@ def upgrade():
             "user_id": copr.user_id,
         }
 
+        # There is no constraint for currently existing modules, but in new table, there
+        # must be unique user/nvr. Therefore in the case of duplicit modules,
+        # we will add only the newest one
         if full_module_name(mmd, copr.owner_name) in added_modules:
             print("Skipping {}; Already exists".format(full_module_name(mmd, copr.owner_name)))
             continue
 
-        session.add(Module(**kwargs))
+        session.add(Module(**module_kwargs))
         added_modules.add(full_module_name(mmd, copr.owner_name))
 
 
@@ -74,3 +75,11 @@ def downgrade():
 
 def full_module_name(mmd, ownername):
     return "{}/{}-{}-{}".format(ownername, mmd.name, mmd.version, mmd.release)
+
+
+def get_copr(session, ownername, projectname):
+    if ownername[0] == "@":
+        coprs = CoprsLogic.filter_by_group_name(session.query(Copr), ownername[1:])
+    else:
+        coprs = CoprsLogic.filter_by_user_name(session.query(Copr), ownername)
+    return CoprsLogic.filter_by_name(coprs, projectname).first()
