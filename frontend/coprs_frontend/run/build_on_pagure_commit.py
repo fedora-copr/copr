@@ -15,8 +15,8 @@ from coprs import db, app
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
 
-MOCK_SCM_TYPE = '4'
 TITO_TYPE = '3'
+MOCK_SCM_TYPE = '4'
 
 logging.basicConfig(
     filename="{0}/build_on_pagure_commit.log".format(app.config.get("LOG_DIR")),
@@ -24,74 +24,77 @@ logging.basicConfig(
     level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-def logdebug(msg):
-    print msg
-    log.debug(msg)
 
-def loginfo(msg):
-    print msg
-    log.info(msg)
+class Package(object):
+    def build(self):
+        raise NotImplemented()
 
-def logerror(msg):
-    print >> sys.stderr, msg
-    log.error(msg)
+    @classmethod
+    def new_from_db_row(cls, source_type, row):
+        try:
+            return {
+                TITO_TYPE: GitAndTitoPackage,
+                MOCK_SCM_TYPE: MockSCMPackage,
+            }[source_type](row)
+        except KeyError:
+            raise Exception('Unsupported package type {}'.format(source_type))
 
-def logexception(msg):
-    print >> sys.stderr, msg
-    log.exception(msg)
+    @classmethod
+    def get_candidates_for_rebuild(cls, source_type, clone_url_subpart):
+        if db.engine.url.drivername == "sqlite":
+            placeholder = '?'
+            true = '1'
+        else:
+            placeholder = '%s'
+            true = 'true'
 
-def get_candidates_for_rebuild(source_type, clone_url_subpart):
-    if db.engine.url.drivername == "sqlite":
-        placeholder = '?'
-        true = '1'
-    else:
-        placeholder = '%s'
-        true = 'true'
-    rows = db.engine.execute(
-        """
-        SELECT package.id AS package_id, package.source_json AS source_json, package.copr_id AS copr_id
-        FROM package
-        WHERE package.source_type = '{0}' AND
-              package.webhook_rebuild = {1} AND
-              package.source_json ILIKE {placeholder}
-        """.format(source_type, true, placeholder=placeholder), '%'+clone_url_subpart+'%'
-    )
-    return rows
+        rows = db.engine.execute(
+            """
+            SELECT package.id AS package_id, package.source_json AS source_json, package.copr_id AS copr_id
+            FROM package
+            WHERE package.source_type = '{0}' AND
+                  package.webhook_rebuild = {1} AND
+                  package.source_json ILIKE {placeholder}
+            """.format(source_type, true, placeholder=placeholder), '%'+clone_url_subpart+'%'
+        )
+        return [Package.new_from_db_row(source_type, row) for row in rows]
 
 
-class GitAndTitoPackage(object):
-    def __init__(self, source_json):
+class GitAndTitoPackage(Package):
+    def __init__(self, db_row):
+        source_json = json.loads(db_row.source_json)
+        self.pkg_id = db_row.package_id
         self.git_url = source_json['git_url']
         self.git_branch = source_json['git_branch']
         self.git_dir = source_json['git_dir']
         self.tito_test = source_json['tito_test']
+        self.copr_id = db_row.copr_id
+        self.copr = CoprsLogic.get_by_id(self.copr_id).first()
+        self.source_json = db_row.source_json
 
-    def build(self, copr):
-        return BuildsLogic.create_new_from_tito(copr.user, copr, self.git_url, self.git_dir, self.git_branch, self.tito_test)
+    def build(self):
+        BuildsLogic.create_new_from_tito(self.copr.user, self.copr, self.git_url, self.git_dir, self.git_branch, self.tito_test)
+        db.session.commit()
 
 
-class MockSCMPackage(object):
-    def __init__(self, source_json):
+class MockSCMPackage(Package):
+    def __init__(self, db_row):
+        source_json = json.loads(db_row.source_json)
+        self.pkg_id = db_row.package_id
         self.scm_url = source_json['scm_url']
         self.scm_branch = source_json['scm_branch']
         self.scm_type = source_json['scm_type']
         self.spec = source_json['spec']
+        self.copr_id = db_row.copr_id
+        self.copr = CoprsLogic.get_by_id(self.copr_id).first()
+        self.source_json = db_row.source_json
 
-    def build(self, copr):
-        return BuildsLogic.create_new_from_mock(copr.user, copr, self.scm_type, self.scm_url, self.scm_branch, self.spec)
-
-
-def package_from_source(source_type, source_json):
-    try:
-        return {
-            TITO_TYPE: GitAndTitoPackage,
-            MOCK_SCM_TYPE: MockSCMPackage,
-        }[source_type](source_json)
-    except KeyError:
-        raise Exception('Unsupported backend {0} passed as command-line argument'.format(args.backend))
+    def build(self):
+        BuildsLogic.create_new_from_mock(self.copr.user, self.copr, self.scm_type, self.scm_url, self.scm_branch, self.spec)
+        db.session.commit()
 
 
-def exec_builds_on_fedmsg_loop():
+def build_on_fedmsg_loop():
     endpoint = 'tcp://hub.fedoraproject.org:9940'
     topic = 'io.pagure.prod.pagure.git.receive'
 
@@ -108,6 +111,7 @@ def exec_builds_on_fedmsg_loop():
         evts = poller.poll()  # This blocks until a message arrives
         topic, msg = s.recv_multipart()
         data = json.loads(msg)
+
         namespace = data['msg']['repo']['namespace']
         repo_name = data['msg']['repo']['name']
         branch = data['msg']['branch']
@@ -117,33 +121,27 @@ def exec_builds_on_fedmsg_loop():
 	else:
 	    clone_url_subpart = '/' + repo_name
 
-	loginfo("MSG:")
-	loginfo("\tclone_url_subpart = {}".format(clone_url_subpart))
-	loginfo("\tbranch = {}".format(branch))
+	log.info("MSG:")
+	log.info("\tclone_url_subpart = {}".format(clone_url_subpart))
+	log.info("\tbranch = {}".format(branch))
 
-        for candidate in get_candidates_for_rebuild(TITO_TYPE, clone_url_subpart):
-            project = CoprsLogic.get_by_id(candidate.copr_id)[0]
-            pkg = package_from_source(TITO_TYPE, json.loads(candidate.source_json))
-            loginfo("Considering candidate id:{}, source_json:{}".format(candidate.package_id, candidate.source_json))
+        for pkg in Package.get_candidates_for_rebuild(TITO_TYPE, clone_url_subpart):
+            log.info("Considering pkg id:{}, source_json:{}".format(pkg.pkg_id, pkg.source_json))
             if (pkg.git_url.endswith(clone_url_subpart) or pkg.git_url.endswith(clone_url_subpart+'.git')) \
                     and (not pkg.git_branch or branch.endswith('/'+pkg.git_branch)):
-                loginfo("\t -> rebuilding.")
-                pkg.build(project)
-                db.session.commit()
+                log.info("\t -> rebuilding.")
+                pkg.build()
             else:
-                loginfo("\t -> skipping.")
+                log.info("\t -> skipping.")
 
-        for candidate in get_candidates_for_rebuild(MOCK_SCM_TYPE, clone_url_subpart):
-            loginfo("Considering candidate id:{}, source_json:{}".format(candidate.package_id, candidate.source_json))
-            project = CoprsLogic.get_by_id(candidate.copr_id).first()
-            pkg = package_from_source(MOCK_SCM_TYPE, json.loads(candidate.source_json))
+        for pkg in Package.get_candidates_for_rebuild(MOCK_SCM_TYPE, clone_url_subpart):
+            log.info("Considering pkg id:{}, source_json:{}".format(pkg.pkg_id, pkg.source_json))
             if (pkg.scm_url.endswith(clone_url_subpart) or pkg.scm_url.endswith(clone_url_subpart+'.git')) \
                     and (not pkg.scm_branch or branch.endswith('/'+pkg.scm_branch)):
-                loginfo("\t -> rebuilding.")
-                pkg.build(project)
-                db.session.commit()
+                log.info("\t -> rebuilding.")
+                pkg.build()
             else:
-                loginfo("\t -> skipping.")
+                log.info("\t -> skipping.")
 
 if __name__ == '__main__':
-    exec_builds_on_fedmsg_loop()
+    build_on_fedmsg_loop()
