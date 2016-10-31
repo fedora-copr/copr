@@ -152,13 +152,14 @@ class SourceProvider(object):
     """
     Proxy to download sources and save them as SRPM
     """
-    def __init__(self, task, target_path):
+    def __init__(self, task, target_path, opts):
         """
         :param ImportTask task:
         :param str target_path:
         """
         self.task = task
         self.target_path = target_path
+        self.opts = opts
 
         if task.source_type == SourceType.SRPM_LINK:
             self.provider_class = SrpmUrlProvider
@@ -176,7 +177,7 @@ class SourceProvider(object):
             self.provider_class = DistGitProvider
         else:
             raise PackageImportException("Got unknown source type: {}".format(task.source_type))
-        self.provider = self.provider_class(self.task, self.target_path)
+        self.provider = self.provider_class(self.task, self.target_path, self.opts)
 
     def get_srpm(self):
         self.provider.get_srpm()
@@ -192,9 +193,10 @@ class SourceProvider(object):
 
 
 class BaseSourceProvider(object):
-    def __init__(self, task, target_path):
+    def __init__(self, task, target_path, opts):
         self.task = task
         self.target_path = target_path
+        self.opts = opts
         self.dir_to_cleanup = [self.target_path]
 
     def cleanup(self):
@@ -207,8 +209,8 @@ class BaseSourceProvider(object):
 
 
 class SrpmBuilderProvider(BaseSourceProvider):
-    def __init__(self, task, target_path):
-        super(SrpmBuilderProvider, self).__init__(task, target_path)
+    def __init__(self, task, target_path, opts):
+        super(SrpmBuilderProvider, self).__init__(task, target_path, opts)
         self.tmp = tempfile.mkdtemp()
         self.tmp_dest = tempfile.mkdtemp()
         self.dir_to_cleanup.extend([self.tmp, self.tmp_dest])
@@ -230,14 +232,14 @@ class SrpmBuilderProvider(BaseSourceProvider):
 
 
 class GitProvider(SrpmBuilderProvider):
-    def __init__(self, task, target_path):
+    def __init__(self, task, target_path, opts):
         """
         :param ImportTask task:
         :param str target_path:
         """
         # task.git_url
         # task.git_branch
-        super(GitProvider, self).__init__(task, target_path)
+        super(GitProvider, self).__init__(task, target_path, opts)
         self.git_dir = None
 
     def get_srpm(self):
@@ -313,7 +315,7 @@ class MockScmProvider(SrpmBuilderProvider):
         log.debug("Build via Mock")
 
         package_name = os.path.basename(self.task.mock_spec).replace(".spec", "")
-        cmd = ["/usr/bin/mock", "-r", "epel-7-x86_64",
+        cmd = ["/usr/bin/mock", "-r", self.opts.mock_scm_chroot,
                "--uniqueext", self.task.task_id,
                "--scm-enable",
                "--scm-option", "method={}".format(self.task.mock_scm_type),
@@ -543,7 +545,7 @@ class DistGitImporter(object):
         tmp_root = tempfile.mkdtemp()
         fetched_srpm_path = os.path.join(tmp_root, "package.src.rpm")
 
-        provider = SourceProvider(task, fetched_srpm_path)
+        provider = SourceProvider(task, fetched_srpm_path, self.opts)
         try:
             provider.get_srpm()
             task.package_name, task.package_version = self.pkg_name_evr(fetched_srpm_path)
