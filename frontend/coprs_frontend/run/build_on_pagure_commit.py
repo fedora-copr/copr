@@ -6,6 +6,8 @@ import zmq
 import sys
 import os
 import logging
+import requests
+import re
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -23,6 +25,8 @@ logging.basicConfig(
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
     level=logging.DEBUG)
 log = logging.getLogger(__name__)
+
+PAGURE_BASE_URL = "https://pagure.io/"
 
 
 class Package(object):
@@ -76,6 +80,29 @@ class GitAndTitoPackage(Package):
         BuildsLogic.create_new_from_tito(self.copr.user, self.copr, self.git_url, self.git_dir, self.git_branch, self.tito_test)
         db.session.commit()
 
+    def is_dir_in_commit(self, data, clone_url_subpart):
+        if not self.git_dir:
+            return True # simplest case
+
+        start_commit = data['msg']['start_commit']
+        end_commit = data['msg']['end_commit']
+
+        if start_commit != end_commit:
+            return True # more than one commit and no means to iterate over
+
+        raw_commit_url = PAGURE_BASE_URL + clone_url_subpart + '/raw/' + start_commit
+        r = requests.get(raw_commit_url)
+        if r.status_code != requests.codes.ok:
+            log.error("Bad http status {0} from url {1}".format(r.status_code, raw_commit_url))
+            return False
+
+        for line in r.text.split('\n'):
+            match = re.search(r'^(\+\+\+|---) [ab]/(\w*)/.*$', line)
+            if match and match.group(2).lower() == self.git_dir.lower():
+                return True
+
+        return False
+
 
 class MockSCMPackage(Package):
     def __init__(self, db_row):
@@ -128,7 +155,7 @@ def build_on_fedmsg_loop():
         for pkg in Package.get_candidates_for_rebuild(TITO_TYPE, clone_url_subpart):
             log.info("Considering pkg id:{}, source_json:{}".format(pkg.pkg_id, pkg.source_json))
             if (pkg.git_url.endswith(clone_url_subpart) or pkg.git_url.endswith(clone_url_subpart+'.git')) \
-                    and (not pkg.git_branch or branch.endswith('/'+pkg.git_branch)):
+                    and (not pkg.git_branch or branch.endswith('/'+pkg.git_branch)) and pkg.is_dir_in_commit(data, clone_url_subpart):
                 log.info("\t -> rebuilding.")
                 pkg.build()
             else:
