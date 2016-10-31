@@ -1,6 +1,7 @@
 import time
 import base64
 import modulemd
+from sqlalchemy import and_
 from coprs import models
 from coprs import db
 
@@ -12,6 +13,14 @@ class ModulesLogic(object):
         Return single module identified by `module_id`
         """
         return models.Module.query.filter(models.Module.id == module_id)
+
+    @classmethod
+    def get_by_nvr(cls, user, name, version, release):
+        return models.Module.query.filter(and_(
+            models.Module.user_id == user.id,
+            models.Module.name == name,
+            models.Module.version == version,
+            models.Module.release == release))
 
     @classmethod
     def get_multiple(cls):
