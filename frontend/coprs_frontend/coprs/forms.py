@@ -8,12 +8,14 @@ import json
 from flask_wtf.file import FileAllowed, FileRequired, FileField
 
 from flask.ext import wtf
+from jinja2 import Markup
 
 from coprs import constants
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.logic.modules_logic import ModulesLogic
 from coprs.models import Package
 from exceptions import UnknownSourceTypeException
 
@@ -741,6 +743,13 @@ class CreateModuleForm(wtf.Form):
 
     def validate(self):
         if not wtf.Form.validate(self):
+            return False
+
+        # User/nvr should be unique
+        module = ModulesLogic.get_by_nvr(flask.g.user, self.name.data, self.version.data, self.release.data).first()
+        if module:
+            self.errors["nvr"] = [Markup("Module <a href='{}'>{}</a> already exists".format(
+                helpers.copr_url("coprs_ns.copr_module", module.copr, id=module.id), module.full_name))]
             return False
 
         # Profile names should be unique
