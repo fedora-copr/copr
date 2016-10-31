@@ -270,6 +270,24 @@ Relative path from SCM root to .spec file, required.
 For the rest of the arguments, see `copr-cli build` command above.
 
 
+`copr-cli buildfedpkg [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr buildfedpkg [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                      [--background]
+                      [-r CHROOTS] [--clone-url URL] [--branch BRANCH]
+                      project
+
+--clone-url URL::
+Specify clone url to the dist-git project on pkgs.fedoraproject.org.
+
+--branch BRANCH::
+Specify branch in the dist-git project to be be built from.
+
+
+For the rest of the arguments, see `copr-cli build` command above.
+
+
 `copr-cli download-build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
