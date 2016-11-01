@@ -54,6 +54,7 @@ def upgrade():
 
             "copr_id": copr.id,
             "user_id": copr.user_id,
+            "group_id": copr.group_id,
         }
 
         # There is no constraint for currently existing modules, but in new table, there

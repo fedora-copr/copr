@@ -922,7 +922,7 @@ def render_create_module(copr, form, profiles=2):
 @login_required
 @req_with_copr
 def copr_create_module_post(copr):
-    form = forms.CreateModuleForm(csrf_enabled=False)
+    form = forms.CreateModuleForm(copr=copr, csrf_enabled=False)
     args = [copr, form]
     if "add_profile" in flask.request.values:
         return add_profile(*args)

@@ -741,12 +741,16 @@ class CreateModuleForm(wtf.Form):
     profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"), min_entries=2)
     profile_pkgs = wtforms.FieldList(wtforms.FieldList(wtforms.StringField("Install Profiles")), min_entries=2)
 
+    def __init__(self, copr=None, *args, **kwargs):
+        self.copr = copr
+        super(CreateModuleForm, self).__init__(*args, **kwargs)
+
     def validate(self):
         if not wtf.Form.validate(self):
             return False
 
         # User/nvr should be unique
-        module = ModulesLogic.get_by_nvr(flask.g.user, self.name.data, self.version.data, self.release.data).first()
+        module = ModulesLogic.get_by_nvr(self.copr.owner, self.name.data, self.version.data, self.release.data).first()
         if module:
             self.errors["nvr"] = [Markup("Module <a href='{}'>{}</a> already exists".format(
                 helpers.copr_url("coprs_ns.copr_module", module.copr, id=module.id), module.full_name))]

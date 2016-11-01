@@ -15,12 +15,17 @@ class ModulesLogic(object):
         return models.Module.query.filter(models.Module.id == module_id)
 
     @classmethod
-    def get_by_nvr(cls, user, name, version, release):
-        return models.Module.query.filter(and_(
-            models.Module.user_id == user.id,
-            models.Module.name == name,
-            models.Module.version == version,
-            models.Module.release == release))
+    def get_by_nvr(cls, owner, name, version, release):
+        return cls.filter_by_owner(models.Module.query, owner).filter(
+            and_(models.Module.name == name,
+                 models.Module.version == version,
+                 models.Module.release == release))
+
+    @classmethod
+    def filter_by_owner(cls, query, owner):
+        if isinstance(owner, models.Group):
+            return query.filter(models.Module.group_id == owner.id)
+        return query.filter(models.Module.user_id == owner.id)
 
     @classmethod
     def get_multiple(cls):
@@ -39,10 +44,14 @@ class ModulesLogic(object):
 
     @classmethod
     def add(cls, user, copr, module):
-        module.user_id = user.id
         module.copr_id = copr.id
+        module.user_id = user.id
         module.user = user
         module.copr = copr
+        if copr.group:
+            module.group_id = copr.group.id
+            module.group = copr.group
         module.created_on = time.time()
+
         db.session.add(module)
         return module
