@@ -29,6 +29,53 @@ from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
 from backend.exceptions import CoprBackendError
 
+import subprocess
+import logging
+import munch
+
+def run_cmd(cmd):
+    """Runs given command in a subprocess.
+
+    Params
+    ------
+    cmd: list(str)
+        command to be executed and its arguments
+
+    Returns
+    -------
+    munch.Munch(stdout, stderr, returncode)
+        executed cmd, standard output, error output, and the return code
+    """
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = process.communicate()
+
+    return munch.Munch(
+        cmd = cmd,
+        stdout = stdout,
+        stderr = stderr,
+        returncode = process.returncode
+    )
+
+
+def run_ssh(cmd, user, ip):
+    """Runs given command through ssh on a remote machine.
+
+    Params
+    ------
+    cmd : list(str)
+        command to be executed with ssh
+    user: str
+        user to connect with
+    ip: str
+        ip address of the remote machine
+
+    Returns
+    -------
+    munch.Munch(stdout, stderr, returncode)
+        standard output, error output, and the return code from ssh
+    """
+    return run_cmd(["ssh", "{0}@{1}".format(user, ip)] + cmd)
+
 
 def wait_log(log, reason="I don't know why.", timeout=5):
     """

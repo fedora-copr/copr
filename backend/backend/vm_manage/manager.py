@@ -333,6 +333,16 @@ class VmManager(object):
         """
         return VmDescriptor.load(self.rc, vm_name)
 
+    def get_vm_by_task_id(self, task_id):
+        """
+        :rtype: VmDescriptor
+        """
+        vmd_list = self.get_all_vm()
+        for vmd in vmd_list:
+            if vmd.task_id == task_id:
+                return vmd
+        return None
+
     def get_vm_by_group_and_state_list(self, group, state_list):
         """
         Select VM-s for the given group and allowed states

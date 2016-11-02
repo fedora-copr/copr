@@ -1,0 +1,11 @@
+[
+{
+  "_description": "Test cancel build",
+  "_expected_outcome": "success",
+
+  "action_type": 10,
+  "created_on": 1462513764,
+  "id": 42,
+  "data": "{\"task_id\": \"10-fedora-24-x86_64\"}"
+}
+]
