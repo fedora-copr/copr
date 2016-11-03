@@ -679,11 +679,15 @@ GROUP BY
             raise exceptions.InsufficientRightsException(
                 "You are not allowed to cancel this build.")
         if not build.cancelable:
-            if build.status == StatusEnum("starting") or build.status == StatusEnum("running"):
-                err_msg = "Cannot cancel build {} which is still running".format(build.id)
+            if build.status == StatusEnum("starting"):
+                err_msg = "Cannot cancel build {} in state 'starting'".format(build.id)
             else:
                 err_msg = "Cannot cancel build {}".format(build.id)
             raise exceptions.RequestCannotBeExecuted(err_msg)
+
+        if build.status == StatusEnum("running"): # otherwise the build is just in frontend
+            ActionsLogic.send_cancel_build(build)
+
         build.canceled = True
         for chroot in build.build_chroots:
             chroot.status = 2  # canceled

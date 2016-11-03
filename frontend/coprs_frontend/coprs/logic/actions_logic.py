@@ -123,6 +123,26 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
+    def send_cancel_build(cls, build):
+        """ Schedules build cancel action
+        :type build: models.Build
+        """
+        for chroot in build.build_chroots:
+            if chroot.state != "running":
+                continue
+
+            data_dict = {
+                "task_id": chroot.task_id,
+            }
+
+            action = models.Action(
+                action_type=helpers.ActionTypeEnum("cancel_build"),
+                data=json.dumps(data_dict),
+                created_on=int(time.time())
+            )
+            db.session.add(action)
+
+    @classmethod
     def send_update_comps(cls, chroot):
         """ Schedules update comps.xml action
 

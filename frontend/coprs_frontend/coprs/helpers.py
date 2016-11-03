@@ -70,6 +70,7 @@ class ActionTypeEnum(with_metaclass(EnumType, object)):
         "fork": 7,
         "update_module_md": 8,
         "build_module": 9,
+        "cancel_build": 10,
     }
 
 

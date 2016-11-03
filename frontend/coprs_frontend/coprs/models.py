@@ -688,7 +688,8 @@ class Build(db.Model, helpers.Serializer):
         """
 
         return self.status == StatusEnum("pending") or \
-            self.status == StatusEnum("importing")
+            self.status == StatusEnum("importing") or \
+            self.status == StatusEnum("running")
 
     @property
     def repeatable(self):
