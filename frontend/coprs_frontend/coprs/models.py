@@ -391,6 +391,10 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
     Represents a single package in a project.
     """
+    __table_args__ = (
+        db.UniqueConstraint('copr_id', 'name', name='packages_copr_pkgname'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     # Source of the build: type identifier
