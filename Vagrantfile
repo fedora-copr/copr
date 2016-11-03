@@ -22,10 +22,16 @@ Vagrant.configure(2) do |config|
       inline: "sudo dnf -y install dnf-plugins-core tito wget"
 
     # Enable the Copr repository for dependencies
-    frontend.vm.provision "shell",
+    #frontend.vm.provision "shell",
       # inline: "sudo dnf -y copr enable msuchy/copr"
       # WORKAROUND: old DNF plugin uses outdated .repo URL
-      inline: "sudo wget https://copr.fedoraproject.org/coprs/msuchy/copr/repo/fedora-21/msuchy-copr-fedora-21.repo -P /etc/yum.repos.d/"
+    #  inline: "sudo wget https://copr.fedoraproject.org/coprs/msuchy/copr/repo/fedora-21/msuchy-copr-fedora-21.repo -P /etc/yum.repos.d/"
+
+    frontend.vm.provision "shell",
+      inline: "sudo dnf -y copr enable @copr/copr"
+
+    frontend.vm.provision "shell",
+      inline: "sudo dnf -y copr enable @modularity/modulemd"
 
     # Install build dependencies for Copr Frontend
     frontend.vm.provision "shell",
