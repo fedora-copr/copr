@@ -129,4 +129,8 @@ class DistGitConfigReader(object):
             cp, "dist-git", "lookaside_location", "/var/lib/dist-git/cache/lookaside/pkgs/"
         )
 
+        opts.mock_scm_chroot = _get_conf(
+            cp, "dist-git", "mock_scm_chroot", "fedora-rawhide-x86_64"
+        )
+
         return opts
