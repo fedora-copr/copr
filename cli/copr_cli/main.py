@@ -32,6 +32,7 @@ from copr import CoprClient
 import copr.exceptions as copr_exceptions
 
 from .util import ProgressBar
+from .build_config import MockProfile
 
 
 no_config_warning = """
@@ -319,6 +320,27 @@ class Commands(object):
         result = self.client.fork_project(source=args.src, username=username, projectname=copr, confirm=args.confirm)
         print(result.message)
 
+
+    def action_mock_config(self, args):
+        """ Method called when the 'list' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+
+        """
+        username = self.client.username
+        project = args.project.split("/")
+        if len(project) != 2:
+            args.project = username + "/" + args.project
+
+        result = self.client.get_build_config(args.project, args.chroot)
+        if result.output != "ok":
+            print(result.error)
+            print("Un-expected data returned, please report this issue")
+
+        print(MockProfile(result.build_config))
+
+
     @check_username_presence
     def action_list(self, args):
         """ Method called when the 'list' action has been selected by the
@@ -538,6 +560,20 @@ def setup_parser():
              "list the copr of (defaults to current user)"
     )
     parser_list.set_defaults(func="action_list")
+
+    parser_mock_config = subparsers.add_parser(
+        "mock-config",
+        help="get the mock profile (similar to koji mock-config)"
+    )
+    parser_mock_config.add_argument(
+        "project",
+        help="Expected format is <user>/<project>, <group>/<project> (including '@') or <project> (name of project you own)."
+    )
+    parser_mock_config.add_argument(
+        "chroot",
+        help="chroot id, e.g. 'fedora-rawhide-x86_64'"
+    )
+    parser_mock_config.set_defaults(func="action_mock_config")
 
     # create the parser for the "create" command
     parser_create = subparsers.add_parser("create", help="Create a new copr")
