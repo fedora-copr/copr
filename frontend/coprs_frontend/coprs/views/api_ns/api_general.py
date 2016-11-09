@@ -286,7 +286,9 @@ def api_coprs_by_owner_detail(copr):
     output = {"output": "ok", "detail": {}}
     yum_repos = {}
 
-    build = models.Build.query.filter(models.Build.results != None).first()
+    build = models.Build.query.filter(
+        models.Build.copr_id == copr.id, models.Build.results != None).first()
+
     if build:
         for chroot in copr.active_chroots:
             release = release_tmpl.format(chroot=chroot)

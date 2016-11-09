@@ -500,6 +500,14 @@ rlJournalStart
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
         rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null http://copr-fe-dev.cloud.fedoraproject.org/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
 
+        # Bug 1393361 - get_project_details returns incorrect yum_repos
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot fedora-24-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-2 --chroot fedora-24-x86_64" 0
+        rlRun "copr-cli buildtito ${NAME_PREFIX}TestBug1393361-2 --git-url https://github.com/clime/example.git" 0
+        rlRun "copr-cli buildtito ${NAME_PREFIX}TestBug1393361-1 --git-url https://github.com/clime/example.git" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/fedora-24-x86_64" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/fedora-24-x86_64" 0
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
