@@ -34,6 +34,7 @@ Requires: dist-git
 Requires: python-bunch
 Requires: python-requests
 Requires: python2-psutil
+Requires: python-jinja2
 Requires: pyrpkg
 Requires: mock-scm
 Requires: docker

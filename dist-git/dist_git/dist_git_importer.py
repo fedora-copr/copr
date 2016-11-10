@@ -15,6 +15,8 @@ from multiprocessing import Process
 from subprocess import PIPE, Popen, call
 
 from requests import get, post
+from urlparse import urlparse
+from jinja2 import Environment,FileSystemLoader
 
 from .exceptions import CoprDistGitException, PackageImportException, PackageDownloadException, SrpmBuilderException, \
         SrpmQueryException, GitCloneException, GitWrongDirectoryException, GitCheckoutException, TimeoutException
@@ -419,8 +421,21 @@ class DistGitProvider(SrpmBuilderProvider):
         output, error = VM.run(cmd, dst_dir=self.tmp_dest, name=self.task.task_id)
         log.info(output)
 
+        jinja_env = Environment(loader=FileSystemLoader(
+            os.path.join(os.path.dirname(__file__), 'templates')))
+        template = jinja_env.get_template('fedpkg.conf.j2')
+
+        distgit_domain = urlparse(self.task.distgit_clone_url).netloc
+        cfg = template.render(distgit_domain=distgit_domain)
+        log.info(cfg)
+
+        config_path = os.path.join(self.tmp_dest, 'fedpkg.conf')
+        f = open(config_path, "w+")
+        f.write(cfg)
+        f.close()
+
         if self.task.distgit_branch:
-            cmd = ['fedpkg', '--dist', self.task.distgit_branch, 'srpm']
+            cmd = ['fedpkg', '--config', config_path, '--dist', self.task.distgit_branch, 'srpm']
         else:
             cmd = ['fedpkg', 'srpm']
 
