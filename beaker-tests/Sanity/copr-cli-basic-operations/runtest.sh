@@ -530,6 +530,8 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}DownloadMockCfgs"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1370704"
         rlRun "copr-cli delete ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-1"
+        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-2"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed
