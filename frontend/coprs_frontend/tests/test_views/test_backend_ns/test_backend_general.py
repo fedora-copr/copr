@@ -15,11 +15,25 @@ class TestWaitingBuilds(CoprsTestCase):
 
         for build_chroots in [self.b2_bc, self.b3_bc, self.b4_bc]:
             for build_chroot in build_chroots:
-                build_chroot.status = 4 # pending
+                build_chroot.status = 3 # running
+
+        for build_chroot in self.b1_bc:
+            build_chroot.status = 0 # failed
+
         self.db.session.commit()
 
         r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        #assert len(json.loads(r.data.decode("utf-8"))["builds"]) == 5 #TODO: make the test useful ?
+        assert json.loads(r.data.decode("utf-8"))["build"] == None
+
+        for build_chroot in self.b2_bc:
+            build_chroot.status = 4 # pending
+            self.db.session.add(build_chroot)
+
+        self.db.session.commit()
+
+        r = self.tc.get("/backend/waiting/", headers=self.auth_header)
+        assert json.loads(r.data.decode("utf-8"))["build"] != None
+
 
     def test_waiting_bg_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         self.b2.is_background = True
