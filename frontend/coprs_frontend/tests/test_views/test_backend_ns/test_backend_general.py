@@ -2,6 +2,7 @@ import json
 
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.builds_logic import BuildsLogic
+from coprs import helpers
 
 
 class TestWaitingBuilds(CoprsTestCase):
@@ -169,8 +170,21 @@ class TestWaitingActions(CoprsTestCase):
     def test_waiting_actions_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_actions, f_db):
 
+        for a in [self.a1, self.a2, self.a3]:
+            a.result = helpers.BackendResultEnum("success")
+
+        self.db.session.commit()
+
         r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        #assert len(json.loads(r.data.decode("utf-8"))["actions"]) == 2  #TODO: make the test useful ?
+        assert json.loads(r.data.decode("utf-8"))["action"] == None
+
+        for a in [self.a1, self.a2, self.a3]:
+            a.result = helpers.BackendResultEnum("waiting")
+            self.db.session.add(a)
+
+        self.db.session.commit()
+        r = self.tc.get("/backend/waiting/", headers=self.auth_header)
+        assert json.loads(r.data.decode("utf-8"))["action"] != None
 
 
 class TestUpdateActions(CoprsTestCase):
