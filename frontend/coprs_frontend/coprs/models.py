@@ -7,7 +7,6 @@ import json
 import base64
 import modulemd
 
-from sqlalchemy import orm, UniqueConstraint
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
 import zlib
@@ -1116,10 +1115,6 @@ class Module(db.Model, helpers.Serializer):
     summary = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     created_on = db.Column(db.Integer, nullable=True)
-
-    __table_args__ = (
-        UniqueConstraint("name", "version", "release", "copr_id"),
-    )
 
     # When someone submits YAML (not generate one on the copr modules page), we might want to use that exact file.
     # Yaml produced by deconstructing into pieces and constructed back can look differently,

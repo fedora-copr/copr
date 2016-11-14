@@ -29,9 +29,20 @@ def upgrade():
     Session = sessionmaker()
     session = Session(bind=bind)
 
-    # Table schema is defined in the `Module` model, so the actual table can
-    # be created with only this one line
-    Module.__table__.create(bind)
+    op.create_table(
+        "module",
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("name", sa.String(100), nullable=False),
+        sa.Column("version", sa.String(100), nullable=False),
+        sa.Column("release", sa.Integer, nullable=False),
+        sa.Column("summary", sa.String(100), nullable=False),
+        sa.Column("description", sa.Text),
+        sa.Column("created_on", sa.Integer, nullable=True),
+        sa.Column("yaml_b64", sa.Text),
+        sa.Column("copr_id", sa.Integer, sa.ForeignKey("copr.id")),
+    )
+    op.create_unique_constraint("pk_module", "module",
+                                ["name", "version", "release", "copr_id"])
     session.commit()
 
     # Now, let's seed the table with existing modules which are violently stored in the `action` table
