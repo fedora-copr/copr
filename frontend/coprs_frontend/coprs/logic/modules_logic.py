@@ -4,6 +4,7 @@ import modulemd
 from sqlalchemy import and_
 from coprs import models
 from coprs import db
+from coprs import exceptions
 
 
 class ModulesLogic(object):
@@ -39,6 +40,9 @@ class ModulesLogic(object):
 
     @classmethod
     def add(cls, user, copr, module):
+        if not user.can_build_in(copr):
+            raise exceptions.InsufficientRightsException("You don't have permissions to build in this copr.")
+
         module.copr_id = copr.id
         module.copr = copr
         module.created_on = time.time()
