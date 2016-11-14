@@ -750,7 +750,7 @@ class CreateModuleForm(wtf.Form):
             return False
 
         # User/nvr should be unique
-        module = ModulesLogic.get_by_nvr(self.copr.owner, self.name.data, self.version.data, self.release.data).first()
+        module = ModulesLogic.get_by_nvr(self.copr, self.name.data, self.version.data, self.release.data).first()
         if module:
             self.errors["nvr"] = [Markup("Module <a href='{}'>{}</a> already exists".format(
                 helpers.copr_url("coprs_ns.copr_module", module.copr, id=module.id), module.full_name))]
