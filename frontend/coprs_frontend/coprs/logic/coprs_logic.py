@@ -202,10 +202,14 @@ class CoprsLogic(object):
 
     @classmethod
     def add(cls, user, name, selected_chroots, repos=None, description=None,
-            instructions=None, check_for_duplicates=False, group=None, persistent=False, **kwargs):
+            instructions=None, check_for_duplicates=False, group=None, persistent=False,
+            auto_prune=True, **kwargs):
 
         if not user.admin and persistent:
             raise exceptions.NonAdminCannotCreatePersistentProject()
+
+        if not user.admin and not auto_prune:
+            raise exceptions.NonAdminCannotDisableAutoPrunning()
 
         copr = models.Copr(name=name,
                            repos=repos or u"",
@@ -214,6 +218,7 @@ class CoprsLogic(object):
                            instructions=instructions or u"",
                            created_on=int(time.time()),
                            persistent=persistent,
+                           auto_prune=auto_prune,
                            **kwargs)
 
         if group is not None:
@@ -252,6 +257,9 @@ class CoprsLogic(object):
 
         users_logic.UsersLogic.raise_if_cant_update_copr(
             user, copr, "Only owners and admins may update their projects.")
+
+        if not user.admin and not copr.auto_prune:
+            raise exceptions.NonAdminCannotDisableAutoPrunning()
 
         db.session.add(copr)
 

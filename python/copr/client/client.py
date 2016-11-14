@@ -1036,7 +1036,9 @@ class CoprClient(UnicodeMixin):
     def create_project(
             self, username, projectname, chroots,
             description=None, instructions=None,
-            repos=None, initial_pkgs=None, disable_createrepo=None, unlisted_on_hp=False, enable_net=True, persistent=False
+            repos=None, initial_pkgs=None, disable_createrepo=None,
+            unlisted_on_hp=False, enable_net=True, persistent=False,
+            auto_prune=True
     ):
         """ Creates a new copr project
             Auth required.
@@ -1050,6 +1052,7 @@ class CoprClient(UnicodeMixin):
             :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
             :param enable_net: [optional] If builder can access net for builds in this project
             :param persistent: [optional] If builds and the project are undeletable
+            :param auto_prune: [optional] If backend auto-deletion script should be run for the project
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1086,6 +1089,7 @@ class CoprClient(UnicodeMixin):
             "unlisted_on_hp": "y" if unlisted_on_hp else "",
             "build_enable_net": "y" if enable_net else "",
             "persistent": "y" if persistent else "",
+            "auto_prune": "y" if auto_prune else "",
         }
         for chroot in chroots:
             request_data[chroot] = "y"
@@ -1107,7 +1111,8 @@ class CoprClient(UnicodeMixin):
 
     def modify_project(self, projectname, username=None,
                        description=None, instructions=None,
-                       repos=None, disable_createrepo=None, unlisted_on_hp=None, enable_net=None):
+                       repos=None, disable_createrepo=None, unlisted_on_hp=None,
+                       enable_net=None, auto_prune=None):
         """ Modifies main project configuration.
             Auth required.
 
@@ -1121,6 +1126,7 @@ class CoprClient(UnicodeMixin):
             :param disable_createrepo: [optional] disables automatic repo meta-data regeneration
             :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
             :param enable_net: [optional] If builder can access net for builds in this project
+            :param auto_prune: [optional] If backend auto-deletion script should be run for the project
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1148,6 +1154,8 @@ class CoprClient(UnicodeMixin):
             data["unlisted_on_hp"] = "y" if unlisted_on_hp else ""
         if enable_net != None:
             data["build_enable_net"] = "y" if enable_net else ""
+        if auto_prune != None:
+            data["auto_prune"] = "y" if auto_prune else ""
 
         result_data = self._fetch(url, data=data, method="post")
 

@@ -313,6 +313,15 @@ def get_persistent_status(front_url, username, projectname):
     else:
         return True
 
+def get_auto_prune_status(front_url, username, projectname):
+    client = CoprClient(copr_url=front_url)
+    result = client.get_project_details(projectname, username)
+
+    if "auto_prune" in result.data["detail"]:
+        return bool(result.data["detail"]["auto_prune"])
+    else:
+        return True
+
 
 # def log(lf, msg, quiet=None):
 #     if lf:

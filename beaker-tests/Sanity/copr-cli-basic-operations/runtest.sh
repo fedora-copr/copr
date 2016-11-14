@@ -140,6 +140,12 @@ rlJournalStart
         rlRun "cat hello_p3.id|xargs copr-cli delete-build"
         rlRun "copr-cli status `cat hello_p3.id`" 1
 
+        ## test --auto-prune option
+        rlRun "copr-cli create --auto-prune off --chroot fedora-24-x86_64 ${NAME_PREFIX}AutoPrune"
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": false'" 0
+        rlRun "copr-cli modify --auto-prune on ${NAME_PREFIX}AutoPrune"
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": true'" 0
+
         ## test distgit builds
         rlRun "copr-cli create --chroot fedora-24-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
         rlRun "copr-cli buildfedpkg --clone-url http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git --branch f24 ${NAME_PREFIX}ProjectDistGitBuilds"
@@ -532,6 +538,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}ProjectDistGitBuilds"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-1"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-2"
+        rlRun "copr-cli delete ${NAME_PREFIX}AutoPrune"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

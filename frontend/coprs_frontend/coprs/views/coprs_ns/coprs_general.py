@@ -175,6 +175,7 @@ def group_copr_new(group_name):
                 unlisted_on_hp=form.unlisted_on_hp.data,
                 group=group,
                 persistent=form.persistent.data,
+                auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
             )
         except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
             flask.flash(str(e), "error")
@@ -213,6 +214,7 @@ def copr_new(username):
                 build_enable_net=form.build_enable_net.data,
                 unlisted_on_hp=form.unlisted_on_hp.data,
                 persistent=form.persistent.data,
+                auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
             )
         except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
             flask.flash(str(e), "error")
@@ -442,6 +444,10 @@ def process_copr_update(copr, form):
     copr.disable_createrepo = form.disable_createrepo.data
     copr.build_enable_net = form.build_enable_net.data
     copr.unlisted_on_hp = form.unlisted_on_hp.data
+    if flask.g.user.admin:
+        copr.auto_prune = form.auto_prune.data
+    else:
+        copr.auto_prune = True
     coprs_logic.CoprChrootsLogic.update_from_names(
         flask.g.user, copr, form.selected_chroots)
     try:

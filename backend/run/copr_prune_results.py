@@ -20,7 +20,7 @@ from copr.exceptions import CoprRequestException
 sys.path.append("/usr/share/copr/")
 
 from backend.helpers import BackendConfigReader
-from backend.helpers import get_auto_createrepo_status,get_persistent_status
+from backend.helpers import get_auto_createrepo_status,get_persistent_status,get_auto_prune_status
 
 DEF_DAYS = 14
 
@@ -90,6 +90,10 @@ class Pruner(object):
                 return
             if get_persistent_status(self.opts.frontend_base_url, username, projectname):
                 loginfo("Skipped {}/{} since the project is persistent"
+                          .format(username, projectname))
+                return
+            if not get_auto_prune_status(self.opts.frontend_base_url, username, projectname):
+                loginfo("Skipped {}/{} since auto-prunning is disabled for the project"
                           .format(username, projectname))
                 return
         except (CoprException, CoprRequestException) as exception:

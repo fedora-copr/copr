@@ -222,6 +222,9 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # builds and the project are immune against deletion
     persistent = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
 
+    # if backend deletion script should be run for the project's builds
+    auto_prune = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }

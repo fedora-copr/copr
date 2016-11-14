@@ -125,6 +125,7 @@ def api_new_copr(username):
                 build_enable_net=form.build_enable_net.data,
                 group=group,
                 persistent=form.persistent.data,
+                auto_prune=form.auto_prune.data,
             )
             infos.append("New project was successfully created.")
 
@@ -141,7 +142,9 @@ def api_new_copr(username):
 
             output = {"output": "ok", "message": "\n".join(infos)}
             db.session.commit()
-        except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as err:
+        except (exceptions.DuplicateException,
+                exceptions.NonAdminCannotCreatePersistentProject,
+                exceptions.NonAdminCannotDisableAutoPrunning) as err:
             db.session.rollback()
             raise LegacyApiError(str(err))
 
@@ -268,7 +271,8 @@ def api_coprs_by_owner(username=None):
                                 "description": repo.description,
                                 "instructions": repo.instructions,
                                 "persistent": repo.persistent,
-                                "unlisted_on_hp": repo.unlisted_on_hp
+                                "unlisted_on_hp": repo.unlisted_on_hp,
+                                "auto_prune": repo.auto_prune,
                                })
 
     return flask.jsonify(output)
@@ -306,7 +310,8 @@ def api_coprs_by_owner_detail(copr):
         "last_modified": builds_logic.BuildsLogic.last_modified(copr),
         "auto_createrepo": copr.auto_createrepo,
         "persistent": copr.persistent,
-        "unlisted_on_hp": copr.unlisted_on_hp
+        "unlisted_on_hp": copr.unlisted_on_hp,
+        "auto_prune": copr.auto_prune,
     }
     return flask.jsonify(output)
 
@@ -575,13 +580,17 @@ def copr_modify(copr):
         copr.unlisted_on_hp = form.unlisted_on_hp.data
     if "build_enable_net" in flask.request.form != None:
         copr.build_enable_net = form.build_enable_net.data
+    if "auto_prune" in flask.request.form != None:
+        copr.auto_prune = form.auto_prune.data
 
     try:
         CoprsLogic.update(flask.g.user, copr)
         if copr.group: # load group.id
             _ = copr.group.id
         db.session.commit()
-    except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
+    except (exceptions.ActionInProgressException,
+            exceptions.InsufficientRightsException,
+            exceptions.NonAdminCannotDisableAutoPrunning) as e:
         db.session.rollback()
         raise LegacyApiError("Invalid request: {}".format(e))
 

@@ -99,6 +99,7 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--enable-net {on,off}]
                        [--unlisted-on-hp {on,off}]
                        [--persistent]
+                       [--auto-prune {on,off}]
                        name
 
 --chroot::
@@ -128,6 +129,9 @@ This project will not be listed on COPR home page.
 --persistent::
 Project and its builds will be undeletable. This option can only be specified by a COPR admin.
 
+--auto-prune::
+If backend auto-prunning script should be run for this project. This option can only be specified by a COPR admin.
+
 name::
 Can be just name of the project or in form username/projectname or @groupname/projectname.
 
@@ -140,6 +144,7 @@ usage: copr-cli modify [-h] [--repo REPOS]
                        [--disable_createrepo DISABLE_CREATEREPO]
                        [--enable-net {on,off}]
                        [--unlisted-on-hp {on,off}]
+                       [--auto-prune {on,off}]
                        name
 
 Alters only specified project property.
@@ -161,6 +166,9 @@ If net should be enabled for builds in this project.
 
 --unlisted-on-hp::
 This project will not be listed on COPR home page.
+
+--auto-prune::
+If backend auto-prunning script should be run for this project. This option can only be specified by a COPR admin.
 
 name::
 Can be just name of the project or in form username/projectname or @groupname/projectname.

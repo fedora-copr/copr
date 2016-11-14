@@ -56,6 +56,10 @@ class NonAdminCannotCreatePersistentProject(CoprHttpException):
     _code = 403
 
 
+class NonAdminCannotDisableAutoPrunning(CoprHttpException):
+    _default = "Non-admin cannot disable auto-prunning."
+    _code = 403
+
 InsufficientRightsException = AccessRestricted
 
 
