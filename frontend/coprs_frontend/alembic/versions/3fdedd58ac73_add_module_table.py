@@ -51,21 +51,18 @@ def upgrade():
             "description": mmd.description,
             "yaml_b64": data["modulemd_b64"],
             "created_on": action.created_on,
-
             "copr_id": copr.id,
-            "user_id": copr.user_id,
-            "group_id": copr.group_id,
         }
 
         # There is no constraint for currently existing modules, but in new table, there
-        # must be unique user/nvr. Therefore in the case of duplicit modules,
+        # must be unique (copr, nvr). Therefore in the case of duplicit modules,
         # we will add only the newest one
-        if full_module_name(mmd, copr.owner_name) in added_modules:
-            print("Skipping {}; Already exists".format(full_module_name(mmd, copr.owner_name)))
+        if full_module_name(copr, mmd) in added_modules:
+            print("Skipping {}; Already exists".format(full_module_name(copr, mmd)))
             continue
 
         session.add(Module(**module_kwargs))
-        added_modules.add(full_module_name(mmd, copr.owner_name))
+        added_modules.add(full_module_name(copr, mmd))
 
 
 def downgrade():
@@ -74,8 +71,8 @@ def downgrade():
     ### end Alembic commands ###
 
 
-def full_module_name(mmd, ownername):
-    return "{}/{}-{}-{}".format(ownername, mmd.name, mmd.version, mmd.release)
+def full_module_name(copr, mmd):
+    return "{}/{}-{}-{}".format(copr.full_name, mmd.name, mmd.version, mmd.release)
 
 
 def get_copr(session, ownername, projectname):

@@ -1118,10 +1118,7 @@ class Module(db.Model, helpers.Serializer):
     created_on = db.Column(db.Integer, nullable=True)
 
     __table_args__ = (
-        # We need both, because group_id can be NULL and then SQL thinks that
-        # the combination is unique although it is not.
-        UniqueConstraint("name", "version", "release", "user_id"),
-        UniqueConstraint("name", "version", "release", "user_id", "group_id"),
+        UniqueConstraint("name", "version", "release", "copr_id"),
     )
 
     # When someone submits YAML (not generate one on the copr modules page), we might want to use that exact file.
@@ -1134,11 +1131,7 @@ class Module(db.Model, helpers.Serializer):
 
     # relations
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    group_id = db.Column(db.Integer, db.ForeignKey("group.id"))
     copr = db.relationship("Copr", backref=db.backref("modules"))
-    user = db.relationship("User", backref=db.backref("modules"))
-    group = db.relationship("Group", backref=db.backref("modules"))
 
     @property
     def yaml(self):
