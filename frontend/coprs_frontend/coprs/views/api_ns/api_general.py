@@ -861,6 +861,7 @@ def copr_build_module(copr):
     module = ModulesLogic.from_modulemd(modulemd)
     try:
         module = ModulesLogic.add(flask.g.user, copr, module)
+        db.session.flush()
         ActionsLogic.send_build_module(flask.g.user, copr, module)
         db.session.commit()
 
