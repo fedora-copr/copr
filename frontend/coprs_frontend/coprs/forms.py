@@ -8,12 +8,14 @@ import json
 from flask_wtf.file import FileAllowed, FileRequired, FileField
 
 from flask.ext import wtf
+from jinja2 import Markup
 
 from coprs import constants
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.logic.modules_logic import ModulesLogic
 from coprs.models import Package
 from exceptions import UnknownSourceTypeException
 
@@ -733,14 +735,25 @@ class ActivateFasGroupForm(wtf.Form):
 class CreateModuleForm(wtf.Form):
     name = wtforms.StringField("Name")
     version = wtforms.StringField("Version")
-    release = wtforms.StringField("Release")
+    release = wtforms.IntegerField("Release")
     filter = wtforms.FieldList(wtforms.StringField("Package Filter"))
     api = wtforms.FieldList(wtforms.StringField("Module API"))
     profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"), min_entries=2)
     profile_pkgs = wtforms.FieldList(wtforms.FieldList(wtforms.StringField("Install Profiles")), min_entries=2)
 
+    def __init__(self, copr=None, *args, **kwargs):
+        self.copr = copr
+        super(CreateModuleForm, self).__init__(*args, **kwargs)
+
     def validate(self):
         if not wtf.Form.validate(self):
+            return False
+
+        # User/nvr should be unique
+        module = ModulesLogic.get_by_nvr(self.copr, self.name.data, self.version.data, self.release.data).first()
+        if module:
+            self.errors["nvr"] = [Markup("Module <a href='{}'>{}</a> already exists".format(
+                helpers.copr_url("coprs_ns.copr_module", module.copr, id=module.id), module.full_name))]
             return False
 
         # Profile names should be unique

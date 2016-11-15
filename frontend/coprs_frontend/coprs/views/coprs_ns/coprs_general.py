@@ -895,8 +895,8 @@ def copr_modules(copr):
 
 
 def render_copr_modules(copr):
-    query = ModulesLogic.get_multiple_by_copr(copr=copr)
-    return flask.render_template("coprs/detail/modules.html", copr=copr, modules=query)
+    modules = ModulesLogic.get_multiple_by_copr(copr=copr).all()
+    return flask.render_template("coprs/detail/modules.html", copr=copr, modules=modules)
 
 
 @coprs_ns.route("/<username>/<coprname>/create_module/")
@@ -922,7 +922,7 @@ def render_create_module(copr, form, profiles=2):
 @login_required
 @req_with_copr
 def copr_create_module_post(copr):
-    form = forms.CreateModuleForm(csrf_enabled=False)
+    form = forms.CreateModuleForm(copr=copr, csrf_enabled=False)
     args = [copr, form]
     if "add_profile" in flask.request.values:
         return add_profile(*args)
@@ -966,7 +966,9 @@ def build_module(copr, form):
         for package in packages:
             mmd.profiles[name].add_rpm(package)
 
-    actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, mmd.dumps())
+    module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
+    db.session.flush()
+    actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, module)
     db.session.commit()
     flask.flash("Modulemd yaml file successfully generated and submitted to be build", "success")
     return flask.redirect(url_for_copr_details(copr))
@@ -992,5 +994,5 @@ def copr_module_raw(copr, id):
     response = flask.make_response(module.yaml)
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
-        "filename={}.yaml".format("-".join([str(module.id), module.name, module.version, module.release]))
+        "filename={}.yaml".format("-".join([str(module.id), module.name, module.version, str(module.release)]))
     return response

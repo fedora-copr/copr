@@ -133,7 +133,11 @@
 {% endmacro %}
 
 {% macro module_state(module) %}
-  {{ build_state_text(module.status | module_state_from_num) }}
+  {% if module.action %}
+    {{ build_state_text(module.action.result | module_state_from_num) }}
+  {% else %}
+    -
+  {% endif %}
 {% endmacro %}
 
 {% macro chroot_to_os_logo(chroot) %}

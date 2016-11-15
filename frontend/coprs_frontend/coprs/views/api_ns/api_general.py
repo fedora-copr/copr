@@ -4,6 +4,7 @@ from functools import wraps
 import json
 import os
 import flask
+import sqlalchemy
 
 from werkzeug import secure_filename
 
@@ -18,6 +19,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.modules_logic import ModulesLogic
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -858,11 +860,18 @@ def copr_build_module(copr):
         raise LegacyApiError(form.errors)
 
     modulemd = form.modulemd.data.read()
-    ActionsLogic.send_build_module(flask.g.user, copr, modulemd)
-    db.session.commit()
+    module = ModulesLogic.from_modulemd(modulemd)
+    try:
+        module = ModulesLogic.add(flask.g.user, copr, module)
+        db.session.flush()
+        ActionsLogic.send_build_module(flask.g.user, copr, module)
+        db.session.commit()
 
-    return flask.jsonify({
-        "output": "ok",
-        "message": "Module build was submitted",
-        "modulemd": modulemd,
-    })
+        return flask.jsonify({
+            "output": "ok",
+            "message": "Module build was submitted",
+            "modulemd": modulemd,
+        })
+
+    except sqlalchemy.exc.IntegrityError:
+        raise LegacyApiError({"nvr": ["Module {} already exists".format(module.nvr)]})

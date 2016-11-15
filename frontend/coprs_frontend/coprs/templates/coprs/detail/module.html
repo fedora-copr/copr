@@ -18,7 +18,7 @@
 
 {% block detail_body %}
 
-{% if copr.owner_name != module.ownername or copr.name != module.projectname %}
+{% if copr.id != module.copr.id %}
   <h2 class="build-detail"> Module {{ module.id }} doesn't belong to this project. </h2>
   <p> It belongs to {{ module.ownername }}/{{ module.projectname }} </p>
 {% else %}

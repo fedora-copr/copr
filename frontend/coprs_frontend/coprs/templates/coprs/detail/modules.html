@@ -34,7 +34,7 @@
     </p>
     {% if g.user and g.user.can_build_in(copr) %}
     <div class="blank-slate-pf-main-action">
-        <a class="btn btn-primary btn-lg" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}"> Create a New Module </a>
+        <a class="btn btn-primary btn-lg" href="{{ copr_url('coprs_ns.copr_create_module', copr) }}"> Create a New Module </a>
     </div>
     {% endif %}
 </div>
