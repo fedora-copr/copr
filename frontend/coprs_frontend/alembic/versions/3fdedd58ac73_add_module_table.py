@@ -34,7 +34,7 @@ def upgrade():
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.String(100), nullable=False),
         sa.Column("version", sa.String(100), nullable=False),
-        sa.Column("release", sa.Integer, nullable=False),
+        sa.Column("release", sa.String(100), nullable=False),
         sa.Column("summary", sa.String(100), nullable=False),
         sa.Column("description", sa.Text),
         sa.Column("created_on", sa.Integer, nullable=True),

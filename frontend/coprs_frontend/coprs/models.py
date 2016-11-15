@@ -1119,7 +1119,7 @@ class Module(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     version = db.Column(db.String(100), nullable=False)
-    release = db.Column(db.Integer, nullable=False)
+    release = db.Column(db.String(100), nullable=False)
     summary = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     created_on = db.Column(db.Integer, nullable=True)
