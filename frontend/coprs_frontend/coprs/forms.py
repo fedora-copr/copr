@@ -782,3 +782,4 @@ class ModuleRepo(wtf.Form):
     name = wtforms.StringField("Name", validators=[wtforms.validators.DataRequired()])
     version = wtforms.StringField("Version", validators=[wtforms.validators.DataRequired()])
     release = wtforms.StringField("Release", validators=[wtforms.validators.DataRequired()])
+    arch = wtforms.StringField("Arch", validators=[wtforms.validators.DataRequired()])
