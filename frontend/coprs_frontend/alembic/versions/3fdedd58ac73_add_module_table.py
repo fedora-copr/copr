@@ -1,14 +1,14 @@
 """add module table
 
 Revision ID: 3fdedd58ac73
-Revises: 414a86b37a0f
+Revises: 412c2c8d9da
 Create Date: 2016-10-26 22:01:09.361070
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '3fdedd58ac73'
-down_revision = '414a86b37a0f'
+down_revision = '412c2c8d9da'
 
 from alembic import op
 import sqlalchemy as sa
