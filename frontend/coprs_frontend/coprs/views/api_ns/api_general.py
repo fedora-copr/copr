@@ -916,4 +916,4 @@ def copr_module_repo():
     copr = ComplexLogic.get_copr_by_owner_safe(form.owner.data, form.copr.data)
     module = ModulesLogic.get_by_nvr(copr, form.name.data, form.version.data, form.release.data).first()
 
-    return flask.jsonify({"output": "ok", "repo": module.copr.modules_url})
+    return flask.jsonify({"output": "ok", "repo": module.repo_url})
