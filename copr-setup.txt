@@ -158,8 +158,8 @@ And then copy data from rawhide into them:
     python manage.py rawhide_to_release fedora-rawhide-i386 fedora-24-i386
     # similarly for fedora-24-x86_64
 
-DEBUGING
-========
+DEBUGGING
+=========
 
 Run mockremote as standalone process:
 su - copr
