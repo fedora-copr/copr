@@ -909,16 +909,11 @@ def copr_module_repo():
     """
     :return: URL to a DNF repository for the module
     """
-    # @TODO Current premise is that Copr's name == NVR
-    # @TODO Get rid of it after creating `module` database table
-
     form = forms.ModuleRepo(csrf_enabled=False)
     if not form.validate_on_submit():
         raise LegacyApiError(form.errors)
 
-    if form.owner.data[0] == "@":
-        copr = ComplexLogic.get_group_copr_safe(form.owner.data[1:], form.nvr.data)
-    else:
-        copr = ComplexLogic.get_copr_safe(form.owner.data, form.nvr.data)
+    copr = ComplexLogic.get_copr_by_owner_safe(form.owner.data, form.copr.data)
+    module = ModulesLogic.get_by_nvr(copr, form.name.data, form.version.data, form.release.data).first()
 
-    return flask.jsonify({"output": "ok", "repo": copr.modules_url})
+    return flask.jsonify({"output": "ok", "repo": module.copr.modules_url})

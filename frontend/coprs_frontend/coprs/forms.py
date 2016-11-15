@@ -778,4 +778,7 @@ class CreateModuleForm(wtf.Form):
 
 class ModuleRepo(wtf.Form):
     owner = wtforms.StringField("Owner Name", validators=[wtforms.validators.DataRequired()])
-    nvr = wtforms.StringField("Name-Version-Release", validators=[wtforms.validators.DataRequired()])
+    copr = wtforms.StringField("Copr Name", validators=[wtforms.validators.DataRequired()])
+    name = wtforms.StringField("Name", validators=[wtforms.validators.DataRequired()])
+    version = wtforms.StringField("Version", validators=[wtforms.validators.DataRequired()])
+    release = wtforms.StringField("Release", validators=[wtforms.validators.DataRequired()])

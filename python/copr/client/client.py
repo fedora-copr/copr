@@ -1345,11 +1345,14 @@ class CoprClient(UnicodeMixin):
         )
         return response
 
-    def get_module_repo(self, owner, nvr):
+    def get_module_repo(self, owner, copr, name, version, release):
         """ Gets URL to module DNF repository
 
             :param owner: str owner name (can be user or @group)
-            :param nvr: str module name-version-release
+            :param copr: str copr name
+            :param name: str module name
+            :param version: str module version
+            :param release: str module release
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1359,7 +1362,7 @@ class CoprClient(UnicodeMixin):
 
         """
         url = "{}/module/repo/".format(self.api_url)
-        data = {"owner": owner, "nvr": nvr}
+        data = {"owner": owner, "copr": copr, "name": name, "version": version, "release": release}
 
         fetch = self._fetch(url, data=data, skip_auth=True, method="post")
         response = CoprResponse(
