@@ -737,7 +737,7 @@ class ActivateFasGroupForm(wtf.Form):
 class CreateModuleForm(wtf.Form):
     name = wtforms.StringField("Name")
     version = wtforms.StringField("Version")
-    release = wtforms.IntegerField("Release")
+    release = wtforms.StringField("Release")
     filter = wtforms.FieldList(wtforms.StringField("Package Filter"))
     api = wtforms.FieldList(wtforms.StringField("Module API"))
     profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"), min_entries=2)
