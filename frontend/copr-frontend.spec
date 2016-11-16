@@ -66,11 +66,14 @@ Requires:   python-flexmock
 Requires:   python-mock
 Requires:   python-decorator
 Requires:   yum
-Suggests:   logstash
 Requires:   redis
 Requires:   python-redis
 Requires:   python-dateutil
 Requires:   crontabs
+
+%if 0%{?fedora}
+Suggests:   logstash
+%endif
 
 %if 0%{?fedora} >= 23
 Requires: python-dnf
