@@ -35,9 +35,7 @@ You can use [Vagrant](https://developer.fedoraproject.org/tools/vagrant/about.ht
 
 ```
 $ git clone https://pagure.io/copr/copr.git
-
 $ cd copr
-
 $ vagrant up
 ```
 
