@@ -238,7 +238,7 @@ class CoprsTestCase(object):
             status = None
             if build is self.b1:  # this build is going to be deleted
                 status = StatusEnum("succeeded")
-            for chroot in build.copr.active_chroots: # FIXME (in some way): build.copr.active_chroots is empty at this point so no chroots are added, tests passes but for a wrong reason
+            for chroot in build.copr.active_chroots:
                 buildchroot = models.BuildChroot(
                     build=build,
                     mock_chroot=chroot,
