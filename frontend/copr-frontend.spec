@@ -5,6 +5,31 @@
 %global __python2 %{__python}
 %endif
 
+# https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
+%global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
+
+
+%global design_files_list %_datadir/copr/copr-design-filelist
+%global design_generator  %_datadir/copr/coprs_frontend/generate_colorscheme
+%global static_files      %_datadir/copr/coprs_frontend/coprs/static
+
+%global design_files                            \
+%static_files/header_background.png             \
+%static_files/favicon.ico                       \
+%static_files/copr_logo.png                     \
+%static_files/css/style-overwrite.css
+
+%global devel_files \
+%design_generator
+
+%define exclude_files() %{lua:
+   macro = "%" .. rpm.expand("%1") .. "_files"
+   x = rpm.expand(macro)
+   for line in string.gmatch(x, "([^\\n]+)") do
+       print("%exclude " .. line .. "\\n")
+   end
+}
+
 Name:       copr-frontend
 Version:    1.103
 Release:    1%{?dist}
@@ -61,6 +86,7 @@ Requires:   python-flask-restful
 Requires:   python-marshmallow >= 2.0.0
 Requires:   python2-modulemd
 Requires:   python-pygments
+Requires:   %{name}-design = %{version}
 
 # for tests:
 Requires:   pytest
@@ -189,6 +215,26 @@ and submit new builds and COPR will create yum repository from latests builds.
 This package include documentation for COPR code. Mostly useful for developers
 only.
 
+
+%package design
+Summary: Template files for %{name}
+Requires: %{name} = %{version}
+
+%description design
+Template files for %{name} (basically colors, logo, etc.).  This package is
+designed to be replaced - build your replacement package against %{name}-devel
+to produce compatible {name}-design package, then use man dnf.conf(5) 'priority'
+option to prioritize your package against the default package we provide.
+
+
+%package devel
+Summary: Development files to build against %{name}
+
+%description devel
+Files which allow a build against %{name}, currently it's useful to build
+custom %{name}-design package.
+
+
 %prep
 %setup -q
 
@@ -198,6 +244,7 @@ only.
 pushd documentation
 COPR_CONFIG=../../documentation/copr-documentation.conf make %{?_smp_mflags} python
 popd
+
 
 %install
 install -d %{buildroot}%{_sysconfdir}/copr
@@ -232,8 +279,12 @@ cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 cp -a conf/logstash.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_frontend.conf
 touch %{buildroot}%{_var}/log/copr-frontend/frontend.log
 
-
 ln -fs /usr/share/copr/coprs_frontend/manage.py %{buildroot}/%{_bindir}/copr-frontend
+
+mkdir -p %buildroot/$(dirname %design_files)
+cat <<EOF > %buildroot%design_files_list
+%design_files
+EOF
 
 %check
 %if %{with check} && "%{_arch}" == "x86_64"
@@ -246,22 +297,35 @@ ln -fs /usr/share/copr/coprs_frontend/manage.py %{buildroot}/%{_bindir}/copr-fro
     popd
 %endif
 
+mkdir -p %buildroot%macrosdir
+cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
+%%copr_frontend_version %version
+%%copr_frontend_design_filelist %design_files_list
+%%copr_frontend_design_generator %design_generator
+%%copr_frontend_static_files %static_files
+EOF
+
+
 %pre
 getent group copr-fe >/dev/null || groupadd -r copr-fe
 getent passwd copr-fe >/dev/null || \
 useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash -c "COPR frontend user" copr-fe
 /usr/bin/passwd -l copr-fe >/dev/null
 
+
 %post
 service httpd condrestart
 service logstash condrestart
 %systemd_post copr-fedmsg-listener.service
 
+
 %preun
 %systemd_preun copr-fedmsg-listener.service
 
+
 %postun
 %systemd_postun_with_restart copr-fedmsg-listener.service
+
 
 %files
 %license LICENSE
@@ -296,10 +360,26 @@ service logstash condrestart
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
 
 %config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend
+%exclude_files design
+%exclude_files devel
+
+
+%files design
+%license LICENSE
+%design_files
+
+
+%files devel
+%license LICENSE
+%design_files_list
+%devel_files
+%macrosdir/*
+
 
 %files doc
 %license LICENSE
 %doc documentation/python-doc
+
 
 %changelog
 * Wed Sep 21 2016 clime <clime@redhat.com> 1.103-1
