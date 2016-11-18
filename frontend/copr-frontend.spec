@@ -1,4 +1,5 @@
-%global with_test 1
+%bcond_without check
+
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %global __python2 %{__python}
@@ -60,6 +61,7 @@ Requires:   python-flask-restful
 Requires:   python-marshmallow >= 2.0.0
 Requires:   python2-modulemd
 Requires:   python-pygments
+
 # for tests:
 Requires:   pytest
 Requires:   python-flexmock
@@ -92,7 +94,8 @@ Requires: python-zmq
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
-# check
+
+%if %{with check}
 BuildRequires: python-six
 BuildRequires: python-flask
 BuildRequires: python-flask-script
@@ -119,6 +122,7 @@ BuildRequires: python-sphinxcontrib-httpdomain
 BuildRequires: python-whoosh
 BuildRequires: python-blinker
 BuildRequires: python-pygments
+%endif
 
 %if 0%{?with_python3}
 Requires:   dnf
@@ -232,7 +236,7 @@ touch %{buildroot}%{_var}/log/copr-frontend/frontend.log
 ln -fs /usr/share/copr/coprs_frontend/manage.py %{buildroot}/%{_bindir}/copr-frontend
 
 %check
-%if %{with_test} && "%{_arch}" == "x86_64"
+%if %{with check} && "%{_arch}" == "x86_64"
     pushd coprs_frontend
     REDIS_PORT=7777
     redis-server --port $REDIS_PORT & #&> _redis.log &
