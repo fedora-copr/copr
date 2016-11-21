@@ -101,3 +101,25 @@ class TestCreateCopr(CoprsTestCase):
     #     self.db.session.add_all([self.u1, self.mc1])
     #
     #
+
+
+class TestModuleRepo(CoprsTestCase):
+    endpoint = "/api/module/repo/"
+
+    def test_api_module_repo(self, f_users, f_coprs, f_modules, f_db):
+        data = {"owner": self.u1.name, "copr": self.c1.name, "name": "first-module",
+                "version": "1", "release": "1", "arch": "x86_64"}
+
+        r = self.tc.post(self.endpoint, data=data)
+        response = json.loads(r.data.decode("utf-8"))
+        assert response["output"] == "ok"
+        assert response["repo"] == "http://copr-be-dev.cloud.fedoraproject.org/results/user1/foocopr/modules/"\
+                                   "fedora-rawhide-x86_64+first-module-1-1/latest/x86_64"
+
+    def test_api_module_repo_no_params(self):
+        error = "This field is required."
+        r = self.tc.post(self.endpoint, data={})
+        response = json.loads(r.data.decode("utf-8"))
+        assert response["output"] == "notok"
+        for key in ["owner", "copr", "name", "version", "release", "arch"]:
+            assert error in response["error"][key]

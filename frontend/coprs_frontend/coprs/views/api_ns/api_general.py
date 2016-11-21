@@ -902,3 +902,18 @@ def copr_build_config(copr, chroot):
         raise LegacyApiError('Chroot not found.')
 
     return flask.jsonify(output)
+
+
+@api_ns.route("/module/repo/", methods=["POST"])
+def copr_module_repo():
+    """
+    :return: URL to a DNF repository for the module
+    """
+    form = forms.ModuleRepo(csrf_enabled=False)
+    if not form.validate_on_submit():
+        raise LegacyApiError(form.errors)
+
+    copr = ComplexLogic.get_copr_by_owner_safe(form.owner.data, form.copr.data)
+    module = ModulesLogic.get_by_nvr(copr, form.name.data, form.version.data, form.release.data).first()
+
+    return flask.jsonify({"output": "ok", "repo": module.repo_url(form.arch.data)})

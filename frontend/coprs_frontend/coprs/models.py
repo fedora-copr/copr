@@ -343,10 +343,6 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
                          self.full_name])
 
     @property
-    def modules_url(self):
-        return "/".join([self.repo_url, "modules"])
-
-    @property
     def repo_id(self):
         if self.is_a_group_project:
             return "group_{}-{}".format(self.group.name, self.name)
@@ -1157,3 +1153,9 @@ class Module(db.Model, helpers.Serializer):
     @property
     def action(self):
         return Action.query.filter(Action.object_type == "module").filter(Action.object_id == self.id).first()
+
+    def repo_url(self, arch):
+        # @TODO Get rid of OS name from module path, see how koji does it
+        # https://kojipkgs.stg.fedoraproject.org/repos/module-base-runtime-0.25-9/latest/x86_64/toplink/packages/module-build-macros/0.1/
+        module_dir = "fedora-rawhide-{}+{}-{}-{}".format(arch, self.name, self.version, self.release)
+        return "/".join([self.copr.repo_url, "modules", module_dir, "latest", arch])
