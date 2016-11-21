@@ -385,6 +385,17 @@ class CoprsTestCase(object):
                                 created_on=int(time.time()))
         self.db.session.add_all([self.a1, self.a2, self.a3])
 
+    @pytest.fixture
+    def f_modules(self):
+        self.m1 = models.Module(name="first-module", version="1", release="1", copr_id=self.c1.id, copr=self.c1,
+                                summary="Sum 1", description="Desc 1", created_on=time.time())
+        self.m1 = models.Module(name="second-module", version="strver", release="3", copr_id=self.c1.id, copr=self.c1,
+                                summary="Sum 2", description="Desc 2", created_on=time.time())
+        self.m1 = models.Module(name="third-module", version="3", release="1", copr_id=self.c2.id, copr=self.c2,
+                                summary="Sum 3", description="Desc 3", created_on=time.time())
+        self.db.session.add_all([self.m1])
+
+
     def request_rest_api_with_auth(self, url,
                                    login=None, token=None,
                                    content=None, method="GET",
