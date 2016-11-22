@@ -27,8 +27,9 @@ mkdir -p "$opt_static_files/css"
 
 cat <<EOF | lessc -x - | tee $opt_static_files/css/style-overwrite.css
 @base: $opt_base_color;
+@lighten: lighten(@base, 10%);
 a {
-    color: lighten(@base, 10%);
+    color: @lighten;
 }
 a:hover, a:focus {
     color: @base;
@@ -38,6 +39,17 @@ a:hover, a:focus {
 }
 h3 a {
     color: @base!important;
+}
+
+.btn-primary {
+    background-color: @base;
+    background-image: linear-gradient(to bottom, @lighten 0px, @base 100%);
+    border-color: @lighten;
+}
+
+.btn-primary:hover {
+    background-color: lighten(@base, 25%);
+    border-color: lighten(@base, 25%);
 }
 EOF
 
