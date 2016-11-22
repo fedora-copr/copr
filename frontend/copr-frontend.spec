@@ -303,6 +303,7 @@ cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
 %%copr_frontend_design_filelist %design_files_list
 %%copr_frontend_design_generator %design_generator
 %%copr_frontend_static_files %static_files
+%%copr_frontend_chroot_logodir %%copr_frontend_static_files/chroot_logodir
 EOF
 
 

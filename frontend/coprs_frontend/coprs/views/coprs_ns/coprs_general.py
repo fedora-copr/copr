@@ -2,7 +2,7 @@
 
 import os
 import time
-import os
+import fnmatch
 import re
 import uuid
 import subprocess
@@ -313,12 +313,26 @@ def render_copr_detail(copr):
             name=chroot_rpms_dl_stat_key,
         )
 
+        logoset = set()
+        logodir = app.static_folder + "/chroot_logodir"
+        for logo in os.listdir(logodir):
+            # glob.glob() uses listdir() and fnmatch anyways
+            if fnmatch.fnmatch(logo, "*.png"):
+                logoset.add(logo.strip(".png"))
+
         if chroot.name_release not in repos_info:
+            logo = None
+            if chroot.name_release in logoset:
+                logo = chroot.name_release + ".png"
+            elif chroot.os_release in logoset:
+                logo = chroot.os_release + ".png"
+
             repos_info[chroot.name_release] = {
                 "name_release": chroot.name_release,
                 "name_release_human": chroot.name_release_human,
                 "os_release": chroot.os_release,
                 "os_version": chroot.os_version,
+                "logo": logo,
                 "arch_list": [chroot.arch],
                 "repo_file": "{}-{}.repo".format(copr.repo_id, chroot.name_release),
                 "dl_stat": repo_dl_stat[chroot.name_release],
