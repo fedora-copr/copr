@@ -112,7 +112,6 @@ class TestModuleRepo(CoprsTestCase):
 
         r = self.tc.post(self.endpoint, data=data)
         response = json.loads(r.data.decode("utf-8"))
-        assert False
         assert response["output"] == "ok"
         assert response["repo"] == "http://copr-be-dev.cloud.fedoraproject.org/results/user1/foocopr/modules/"\
                                    "fedora-rawhide-x86_64+first-module-foo-1/latest/x86_64"
