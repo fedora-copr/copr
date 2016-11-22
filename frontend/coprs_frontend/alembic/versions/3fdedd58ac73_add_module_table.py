@@ -19,6 +19,7 @@ from sqlalchemy.orm import sessionmaker
 import json
 import base64
 import modulemd
+import yaml
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.helpers import ActionTypeEnum
@@ -33,16 +34,16 @@ def upgrade():
         "module",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.String(100), nullable=False),
-        sa.Column("version", sa.String(100), nullable=False),
-        sa.Column("release", sa.String(100), nullable=False),
+        sa.Column("stream", sa.String(100), nullable=False),
+        sa.Column("version", sa.Integer, nullable=False),
         sa.Column("summary", sa.String(100), nullable=False),
         sa.Column("description", sa.Text),
         sa.Column("created_on", sa.Integer, nullable=True),
         sa.Column("yaml_b64", sa.Text),
         sa.Column("copr_id", sa.Integer, sa.ForeignKey("copr.id")),
     )
-    op.create_unique_constraint("pk_module", "module",
-                                ["name", "version", "release", "copr_id"])
+    op.create_unique_constraint("unique_name_stream_version_copr_id", "module",
+                                ["name", "stream", "version", "copr_id"])
     session.commit()
 
     # Now, let's seed the table with existing modules which are violently stored in the `action` table
@@ -50,27 +51,46 @@ def upgrade():
     for action in ActionsLogic.get_many(ActionTypeEnum("build_module")).order_by(Action.id.desc()):
         data = json.loads(action.data)
         copr = get_copr(session, data["ownername"], data["projectname"])
-        yaml = base64.b64decode(data["modulemd_b64"])
+        yml_str = base64.b64decode(data["modulemd_b64"])
+        yml = yaml.safe_load(yml_str)
+
         mmd = modulemd.ModuleMetadata()
-        mmd.loads(yaml)
+        mmd.name = yml["data"]["name"]
+        mmd.stream = ""
+        mmd.version = action.created_on
+        mmd.summary = yml["data"]["summary"]
+
+        if "filter" in yml["data"]["components"]["rpms"]:
+            for package in yml["data"]["components"]["rpms"]["filter"]:
+                mmd.filter.add_rpm(package)
+
+        for package in yml["data"]["components"]["rpms"]["api"]:
+            mmd.api.add_rpm(package)
+
+        for profile_name in yml["data"]["profiles"]:
+            mmd.profiles[profile_name] = modulemd.profile.ModuleProfile()
+            for package in yml["data"]["profiles"][profile_name]["rpms"]:
+                mmd.profiles[profile_name].add_rpm(package)
 
         module_kwargs = {
             "name": mmd.name,
+            "stream": mmd.stream,
             "version": mmd.version,
-            "release": mmd.release,
             "summary": mmd.summary,
             "description": mmd.description,
-            "yaml_b64": data["modulemd_b64"],
+            "yaml_b64": base64.b64encode(mmd.dumps()),
             "created_on": action.created_on,
             "copr_id": copr.id,
         }
 
         # There is no constraint for currently existing modules, but in new table, there
-        # must be unique (copr, nvr). Therefore in the case of duplicit modules,
+        # must be unique (copr, nsv). Therefore in the case of duplicit modules,
         # we will add only the newest one
         if full_module_name(copr, mmd) in added_modules:
             print("Skipping {}; Already exists".format(full_module_name(copr, mmd)))
             continue
+        else:
+            print("Adding {}".format(full_module_name(copr, mmd)))
 
         session.add(Module(**module_kwargs))
         added_modules.add(full_module_name(copr, mmd))
@@ -83,7 +103,9 @@ def downgrade():
 
 
 def full_module_name(copr, mmd):
-    return "{}/{}-{}-{}".format(copr.full_name, mmd.name, mmd.version, mmd.release)
+    return "{}/{}-{}-{}".format(
+        copr.full_name, mmd.name, mmd.stream, mmd.version
+    )
 
 
 def get_copr(session, ownername, projectname):

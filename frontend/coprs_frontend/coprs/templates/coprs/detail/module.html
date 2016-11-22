@@ -38,11 +38,11 @@
           <dt>Name:</dt>
           <dd>{{ module.name }}</dd>
 
+          <dt>Stream:</dt>
+          <dd>{{ module.stream }}</dd>
+
           <dt>Version:</dt>
           <dd>{{ module.version }}</dd>
-
-          <dt>Release:</dt>
-          <dd>{{ module.release }}</dd>
 
           <dt>License:</dt>
           <dd></dd>
@@ -61,7 +61,7 @@
       </div>
       <div class="panel-body">
         <ul>
-          {% for package in module.modulemd.components.rpms.filter %}
+          {% for package in module.modulemd.filter.rpms %}
             <li>{{ package }}</li>
           {% endfor %}
         </ul>
@@ -76,7 +76,7 @@
       </div>
       <div class="panel-body">
         <ul>
-        {% for package in module.modulemd.components.rpms.api %}
+        {% for package in module.modulemd.api.rpms %}
           <li>{{ package }}</li>
         {% endfor %}
         </ul>

@@ -349,6 +349,10 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         else:
             return "{}-{}".format(self.user.name, self.name)
 
+    @property
+    def modules_url(self):
+        return "/".join([self.repo_url, "modules"])
+
     def to_dict(self, private=False, show_builds=True, show_chroots=True):
         result = {}
         for key in ["id", "name", "description", "instructions"]:
@@ -1114,8 +1118,8 @@ class Group(db.Model, helpers.Serializer):
 class Module(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    version = db.Column(db.String(100), nullable=False)
-    release = db.Column(db.String(100), nullable=False)
+    stream = db.Column(db.String(100), nullable=False)
+    version = db.Column(db.Integer, nullable=False)
     summary = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     created_on = db.Column(db.Integer, nullable=True)
@@ -1143,12 +1147,12 @@ class Module(db.Model, helpers.Serializer):
         return mmd
 
     @property
-    def nvr(self):
-        return "-".join([self.name, self.version, str(self.release)])
+    def nsv(self):
+        return "-".join([self.name, self.stream, str(self.version)])
 
     @property
     def full_name(self):
-        return "{}/{}".format(self.copr.owner_name, self.nvr)
+        return "{}/{}".format(self.copr.full_name, self.nsv)
 
     @property
     def action(self):
@@ -1157,5 +1161,5 @@ class Module(db.Model, helpers.Serializer):
     def repo_url(self, arch):
         # @TODO Get rid of OS name from module path, see how koji does it
         # https://kojipkgs.stg.fedoraproject.org/repos/module-base-runtime-0.25-9/latest/x86_64/toplink/packages/module-build-macros/0.1/
-        module_dir = "fedora-rawhide-{}+{}-{}-{}".format(arch, self.name, self.version, self.release)
+        module_dir = "fedora-rawhide-{}+{}-{}-{}".format(arch, self.name, self.stream, self.version)
         return "/".join([self.copr.repo_url, "modules", module_dir, "latest", arch])

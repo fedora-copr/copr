@@ -16,11 +16,11 @@ class ModulesLogic(object):
         return models.Module.query.filter(models.Module.id == module_id)
 
     @classmethod
-    def get_by_nvr(cls, copr, name, version, release):
+    def get_by_nsv(cls, copr, name, stream, version):
         return models.Module.query.filter(
             and_(models.Module.name == name,
+                 models.Module.stream == stream,
                  models.Module.version == version,
-                 models.Module.release == release,
                  models.Module.copr_id == copr.id))
 
     @classmethod
@@ -35,7 +35,7 @@ class ModulesLogic(object):
     def from_modulemd(cls, yaml):
         mmd = modulemd.ModuleMetadata()
         mmd.loads(yaml)
-        return models.Module(name=mmd.name, version=mmd.version, release=mmd.release, summary=mmd.summary,
+        return models.Module(name=mmd.name, stream=mmd.stream, version=mmd.version, summary=mmd.summary,
                              description=mmd.description, yaml_b64=base64.b64encode(yaml))
 
     @classmethod

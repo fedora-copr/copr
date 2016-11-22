@@ -389,6 +389,7 @@ class Action(object):
             chroots = data["chroots"]
             modulemd_data = base64.b64decode(data["modulemd_b64"])
             project_path = os.path.join(self.opts.destdir, ownername, projectname)
+            self.log.info(modulemd_data)
 
             try:
                 modules_file_read = open(os.path.join(project_path, "modules", "modules.json"), "r+")
@@ -407,12 +408,12 @@ class Action(object):
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
                 srcdir = os.path.join(project_path, chroot)
-                module_tag = chroot + '+' + mmd.name + '-' + (mmd.version or '1') + '-' + (mmd.release or '1')
+                module_tag = chroot + '+' + mmd.name + '-' + (mmd.stream or '') + '-' + (str(mmd.version) or '1')
                 module_relpath = os.path.join(module_tag, "latest", arch)
                 destdir = os.path.join(project_path, "modules", module_relpath)
 
                 if os.path.exists(destdir):
-                    self.log.warning("Module {0} already exists. Ommitting.".format(destdir))
+                    self.log.warning("Module {0} already exists. Omitting.".format(destdir))
                 else:
                     self.log.info("Copy directory: {} as {}".format(srcdir, destdir))
                     shutil.copytree(srcdir, destdir)
@@ -420,7 +421,7 @@ class Action(object):
                     modules.append({
                         "url": module_relpath,
                         "name": mmd.name,
-                        "release": (mmd.release or '1'),
+                        "stream": (mmd.stream or ''),
                         "version": (mmd.version or '1'),
                         "requires": mmd.requires,
                         "summary": mmd.summary,

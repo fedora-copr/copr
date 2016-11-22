@@ -736,8 +736,8 @@ class ActivateFasGroupForm(wtf.Form):
 
 class CreateModuleForm(wtf.Form):
     name = wtforms.StringField("Name")
-    version = wtforms.StringField("Version")
-    release = wtforms.StringField("Release")
+    stream = wtforms.StringField("Stream")
+    version = wtforms.IntegerField("Version")
     filter = wtforms.FieldList(wtforms.StringField("Package Filter"))
     api = wtforms.FieldList(wtforms.StringField("Module API"))
     profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"), min_entries=2)
@@ -751,10 +751,9 @@ class CreateModuleForm(wtf.Form):
         if not wtf.Form.validate(self):
             return False
 
-        # User/nvr should be unique
-        module = ModulesLogic.get_by_nvr(self.copr, self.name.data, self.version.data, self.release.data).first()
+        module = ModulesLogic.get_by_nsv(self.copr, self.name.data, self.stream.data, self.version.data).first()
         if module:
-            self.errors["nvr"] = [Markup("Module <a href='{}'>{}</a> already exists".format(
+            self.errors["nsv"] = [Markup("Module <a href='{}'>{}</a> already exists".format(
                 helpers.copr_url("coprs_ns.copr_module", module.copr, id=module.id), module.full_name))]
             return False
 
@@ -780,6 +779,6 @@ class ModuleRepo(wtf.Form):
     owner = wtforms.StringField("Owner Name", validators=[wtforms.validators.DataRequired()])
     copr = wtforms.StringField("Copr Name", validators=[wtforms.validators.DataRequired()])
     name = wtforms.StringField("Name", validators=[wtforms.validators.DataRequired()])
-    version = wtforms.StringField("Version", validators=[wtforms.validators.DataRequired()])
-    release = wtforms.StringField("Release", validators=[wtforms.validators.DataRequired()])
+    stream = wtforms.StringField("Stream", validators=[wtforms.validators.DataRequired()])
+    version = wtforms.IntegerField("Version", validators=[wtforms.validators.DataRequired()])
     arch = wtforms.StringField("Arch", validators=[wtforms.validators.DataRequired()])

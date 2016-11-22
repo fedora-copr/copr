@@ -883,7 +883,7 @@ def copr_build_module(copr):
         })
 
     except sqlalchemy.exc.IntegrityError:
-        raise LegacyApiError({"nvr": ["Module {} already exists".format(module.nvr)]})
+        raise LegacyApiError({"nsv": ["Module {} already exists".format(module.nsv)]})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/build-config/<chroot>/", methods=["GET"])
@@ -914,6 +914,6 @@ def copr_module_repo():
         raise LegacyApiError(form.errors)
 
     copr = ComplexLogic.get_copr_by_owner_safe(form.owner.data, form.copr.data)
-    module = ModulesLogic.get_by_nvr(copr, form.name.data, form.version.data, form.release.data).first()
+    module = ModulesLogic.get_by_nsv(copr, form.name.data, form.stream.data, form.version.data).first()
 
     return flask.jsonify({"output": "ok", "repo": module.repo_url(form.arch.data)})

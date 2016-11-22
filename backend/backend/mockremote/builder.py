@@ -52,7 +52,7 @@ class Builder(object):
             return None
         else:
             self.log.info("Loaded {}".format(module_md_filepath))
-            return ("." + mmd.name + '+' + mmd.version + '+' + mmd.release)
+            return ("." + mmd.name + '+' + mmd.stream + '+' + str(mmd.release))
 
     def get_chroot_config_path(self, chroot):
         return "{tempdir}/{chroot}.cfg".format(tempdir=self.tempdir, chroot=chroot)

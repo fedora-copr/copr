@@ -387,13 +387,13 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_modules(self):
-        self.m1 = models.Module(name="first-module", version="1", release="1", copr_id=self.c1.id, copr=self.c1,
+        self.m1 = models.Module(name="first-module", stream="foo", version=1, copr_id=self.c1.id, copr=self.c1,
                                 summary="Sum 1", description="Desc 1", created_on=time.time())
-        self.m1 = models.Module(name="second-module", version="strver", release="3", copr_id=self.c1.id, copr=self.c1,
+        self.m2 = models.Module(name="second-module", stream="bar", version=3, copr_id=self.c1.id, copr=self.c1,
                                 summary="Sum 2", description="Desc 2", created_on=time.time())
-        self.m1 = models.Module(name="third-module", version="3", release="1", copr_id=self.c2.id, copr=self.c2,
+        self.m3 = models.Module(name="third-module", stream="baz", version=1, copr_id=self.c2.id, copr=self.c2,
                                 summary="Sum 3", description="Desc 3", created_on=time.time())
-        self.db.session.add_all([self.m1])
+        self.db.session.add_all([self.m1, self.m2, self.m3])
 
 
     def request_rest_api_with_auth(self, url,

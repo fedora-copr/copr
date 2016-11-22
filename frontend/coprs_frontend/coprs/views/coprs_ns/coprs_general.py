@@ -967,24 +967,22 @@ def build_module(copr, form):
         return render_create_module(copr, form, profiles=len(form.profile_names))
 
     mmd = modulemd.ModuleMetadata()
-    mmd.load(os.path.join(os.path.dirname(__file__), "empty-module.yaml"))
-
-    mmd.name = copr.name
+    mmd.name = str(copr.name)
+    mmd.stream = str(form.stream.data)
     mmd.version = form.version.data
-    mmd.release = form.release.data
     mmd.summary = "Module from Copr repository: {}".format(copr.full_name)
 
     for package in form.filter.data:
-        mmd.components.rpms.add_filter(package)
+        mmd.filter.add_rpm(str(package))
 
     for package in form.api.data:
-        mmd.components.rpms.add_api(package)
+        mmd.api.add_rpm(str(package))
 
     for i, values in enumerate(zip(form.profile_names.data, form.profile_pkgs.data)):
         name, packages = values
         mmd.profiles[name] = modulemd.profile.ModuleProfile()
         for package in packages:
-            mmd.profiles[name].add_rpm(package)
+            mmd.profiles[name].add_rpm(str(package))
 
     module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
     db.session.flush()
@@ -1014,5 +1012,5 @@ def copr_module_raw(copr, id):
     response = flask.make_response(module.yaml)
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
-        "filename={}.yaml".format("-".join([str(module.id), module.name, module.version, str(module.release)]))
+        "filename={}.yaml".format("-".join([str(module.id), module.name, module.stream, str(module.version)]))
     return response

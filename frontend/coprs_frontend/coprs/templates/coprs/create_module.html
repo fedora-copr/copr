@@ -48,12 +48,12 @@
                   <input type="hidden" value="{{ copr.name }}" name="name">
                 </div>
                 <div class="form-group col-sm-4">
-                  <label for="moduleVersion">Version:</label>
-                  {{ render_field(form.version, id="moduleVersion") }}
+                  <label for="moduleRelease">Stream:</label>
+                  {{ render_field(form.stream, id="moduleStream") }}
                 </div>
                 <div class="form-group col-sm-4">
-                  <label for="moduleRelease">Release:</label>
-                  {{ render_field(form.release, id="moduleRelease") }}
+                  <label for="moduleVersion">Version:</label>
+                  {{ render_field(form.version, id="moduleVersion") }}
                 </div>
               </div>
             </div>
