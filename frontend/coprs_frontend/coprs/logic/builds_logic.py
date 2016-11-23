@@ -152,6 +152,46 @@ class BuildsLogic(object):
         return cls.get_multiple().join(models.Build.copr).filter(
             models.Copr.user == user)
 
+
+    @classmethod
+    def init_db(cls):
+        if db.engine.url.drivername == "sqlite":
+            return
+
+        status_to_order = """
+        CREATE OR REPLACE FUNCTION status_to_order (x integer)
+        RETURNS integer AS $$ BEGIN
+                RETURN CASE WHEN x = 0 THEN 0
+                            WHEN x = 3 THEN 1
+                            WHEN x = 6 THEN 2
+                            WHEN x = 7 THEN 3
+                            WHEN x = 4 THEN 4
+                            WHEN x = 1 THEN 5
+                            WHEN x = 5 THEN 6
+                       ELSE 1000
+                END; END;
+            $$ LANGUAGE plpgsql;
+        """
+
+        order_to_status = """
+        CREATE OR REPLACE FUNCTION order_to_status (x integer)
+        RETURNS integer AS $$ BEGIN
+                RETURN CASE WHEN x = 0 THEN 0
+                            WHEN x = 1 THEN 3
+                            WHEN x = 2 THEN 6
+                            WHEN x = 3 THEN 7
+                            WHEN x = 4 THEN 4
+                            WHEN x = 5 THEN 1
+                            WHEN x = 6 THEN 5
+                       ELSE 1000
+                END; END;
+            $$ LANGUAGE plpgsql;
+        """
+
+        db.engine.connect()
+        db.engine.execute(status_to_order)
+        db.engine.execute(order_to_status)
+
     @classmethod
     def get_copr_builds_list(cls, copr):
         query_select = """
