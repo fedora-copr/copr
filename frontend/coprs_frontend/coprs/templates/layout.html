@@ -115,23 +115,14 @@
             <div class="row">
               <div class="col-sm-4">
                 <dl>
-                  <dt><h3>Copr Project</h3></dt>
-                  <dd>
-                    <ul class="list-unstyled">
-                      <li><a href="https://fedorahosted.org/copr/">Project Homepage</a></li>
-                      <li><a href="https://fedorahosted.org/copr/wiki/UserDocs">User Documentation</a></li>
-                      <li><a href="https://bugzilla.redhat.com/enter_bug.cgi?product=Copr">Report a Bug</a></li>
-                      <li><a href="https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=MODIFIED&bug_status=ON_QA&classification=Community&list_id=6150623&product=Copr&query_format=advanced">Known Issues</a></li>
-                      <li><a href="https://fedorahosted.org/copr/wiki/UserDocs#FAQ">FAQ</a></li>
-                    </ul>
-                  </dd>
+                  {% include 'project_info.html' %}
                 </dl>
               </div>
               <div class="col-sm-4">
                 <dl>
                   <dt><h3>Site Navigation</h3></dt>
                   <dd>
-                    <ul class="list-unstyled">
+                    <ul>
                       <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li>
                       <li> <a href="{{url_for('status_ns.importing')}}">Task Queue</a> </li>
                       <li> <a href="{{ url_for('api_ns.api_home') }}">API</a> </li>
@@ -143,7 +134,7 @@
                 <dl>
                   <dt><h3>Powered by</h3></dt>
                   <dd>
-                    <ul class="list-unstyled">
+                    <ul>
                       <li><a href="https://www.python.org">Python</a></li>
                       <li><a href="http://www.openstack.org">OpenStack</a></li>
                       <li><a href="https://www.patternfly.org">PatternFly</a></li>
