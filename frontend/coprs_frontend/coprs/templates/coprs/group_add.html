@@ -9,7 +9,7 @@
     <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
   </li>
   <li>
-    <a href="#">
+    <a href="{{ url_for('groups_ns.list_projects_by_group', group_name=group.name) }}">
       @ {{ group.name }}
     </a>
   </li>
