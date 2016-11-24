@@ -576,11 +576,11 @@ def copr_modify(copr):
     if form.disable_createrepo.raw_data and len(form.disable_createrepo.raw_data):
         copr.disable_createrepo = form.disable_createrepo.data
 
-    if "unlisted_on_hp" in flask.request.form != None:
+    if "unlisted_on_hp" in flask.request.form:
         copr.unlisted_on_hp = form.unlisted_on_hp.data
-    if "build_enable_net" in flask.request.form != None:
+    if "build_enable_net" in flask.request.form:
         copr.build_enable_net = form.build_enable_net.data
-    if "auto_prune" in flask.request.form != None:
+    if "auto_prune" in flask.request.form:
         copr.auto_prune = form.auto_prune.data
 
     try:
