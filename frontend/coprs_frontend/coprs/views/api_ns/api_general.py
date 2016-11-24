@@ -111,6 +111,10 @@ def api_new_copr(username):
     if form.validate_on_submit():
         group = ComplexLogic.get_group_by_name_safe(username[1:]) if username[0] == "@" else None
 
+        auto_prune = True
+        if "auto_prune" in flask.request.form:
+            auto_prune = form.auto_prune.data
+
         try:
             copr = CoprsLogic.add(
                 name=form.name.data.strip(),
@@ -125,7 +129,7 @@ def api_new_copr(username):
                 build_enable_net=form.build_enable_net.data,
                 group=group,
                 persistent=form.persistent.data,
-                auto_prune=form.auto_prune.data,
+                auto_prune=auto_prune,
             )
             infos.append("New project was successfully created.")
 
