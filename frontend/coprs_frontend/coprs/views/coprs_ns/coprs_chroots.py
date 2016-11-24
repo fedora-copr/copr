@@ -37,7 +37,7 @@ def render_chroot_edit(copr, chroot_name):
     # todo: get COPR_chroot, not mock chroot, WTF?!
     # form = forms.ChrootForm(buildroot_pkgs=copr.buildroot_pkgs(chroot))
 
-    form = forms.ChrootForm(buildroot_pkgs=chroot.buildroot_pkgs)
+    form = forms.ChrootForm(buildroot_pkgs=chroot.buildroot_pkgs, repos=chroot.repos)
     # FIXME - test if chroot belongs to copr
     if flask.g.user.can_build_in(copr):
         return render_template("coprs/detail/edit_chroot.html",
@@ -90,7 +90,9 @@ def process_chroot_update(copr, chroot_name):
                     module_md_name = form.module_md.data.filename
 
                 coprs_logic.CoprChrootsLogic.update_chroot(
-                    flask.g.user, chroot, form.buildroot_pkgs.data,
+                    flask.g.user, chroot,
+                    form.buildroot_pkgs.data,
+                    form.repos.data,
                     comps=comps_xml, comps_name=comps_name,
                     module_md=module_md, module_md_name=module_md_name
                 )
@@ -109,7 +111,7 @@ def process_chroot_update(copr, chroot_name):
         return flask.redirect(url_for_copr_edit(copr))
 
     else:
-        flask.flash("You are not allowed to modify chroots.")
+        flask.flash(form.errors, "error")
         return render_chroot_edit(copr, chroot_name)
 
 

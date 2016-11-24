@@ -188,6 +188,9 @@
         {% for pkg in chroot.buildroot_pkgs.split(" "): %}
         <li>{{ pkg }}</li>
         {% endfor %}
+        {% for repo in chroot.repos_list: %}
+        <li>{{ repo }}</li>
+        {% endfor %}
     </ul>
 </div>
 <script>

@@ -166,6 +166,29 @@ rlJournalStart
         rlRun "copr-cli mock-config notexistent/notexistent $mc_chroot" 1
         rlRun "copr-cli mock-config $mc_project fedora-14-x86_64" 1
 
+        ## test edit chroot
+        TMPCOMPS=`mktemp`
+        echo "
+        0 NFS File Server {
+          @ Network Server
+          nfs-utils
+        }
+        " > $TMPCOMPS
+        TMPCOMPS_BASENAME=`basename $TMPCOMPS`
+        rlRun "copr-cli create ${NAME_PREFIX}EditChrootProject --chroot fedora-24-x86_64"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 --upload-comps $TMPCOMPS"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"comps_name\": \"$TMPCOMPS_BASENAME\"'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 --delete-comps"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"comps_name\": null'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 --repos 'http://foo/repo http://bar/repo' --packages 'gcc'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"repos\": \"http://foo/repo http://bar/repo\"'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"buildroot_pkgs\": \"gcc\"'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 --repos '' --packages ''"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"repos\": \"\"'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"buildroot_pkgs\": \"\"'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_65" 1
+        rm $TMPCOMPS
+
         ## test background builds
 
         # non-background build should be imported first
@@ -555,6 +578,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-1"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-2"
         rlRun "copr-cli delete ${NAME_PREFIX}AutoPrune"
+        rlRun "copr-cli delete ${NAME_PREFIX}EditChrootProject"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

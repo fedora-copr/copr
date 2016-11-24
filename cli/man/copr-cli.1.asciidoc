@@ -327,6 +327,45 @@ EXAMPLES
  copr-cli build -r fedora-24-x86_64 -r fedora-24-i386 "@somegroup/project" some.src.rpm
 
 
+CHROOT ACTIONS
+--------------
+
+`copr-cli edit-chroot [options] coprchroot`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr edit-chroot [-h] [--upload-comps FILEPATH | --delete-comps]
+                        [--packages PACKAGES] [--repos REPOS]
+                        coprchroot
+
+Edit the specified coprchroot.
+
+coprchroot::            
+Path to a project chroot as owner/project/chroot or project/chroot
+
+--upload-comps FILEPATH::
+Filepath to the comps.xml file to be uploaded
+
+--delete-comps::
+Deletes already existing comps.xml for the chroot
+
+--packages PACKAGES::   
+space separated string of package names to be added to buildroot (e.g. "gcc ghc")
+
+--repos REPOS::
+space separated string of additional repo urls for chroot (e.g. "http://foo http://bar")
+
+
+`copr-cli get-chroot coprchroot`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr get-chroot [-h] coprchroot
+
+Print info of the given chroot.
+
+coprchroot::  
+Path to a project chroot as owner/project/chroot or project/chroot
+
+
 PACKAGE ACTIONS
 ---------------
 

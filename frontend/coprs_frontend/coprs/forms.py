@@ -586,6 +586,11 @@ class ChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField(
         "Packages")
 
+    repos = wtforms.TextAreaField('Repos',
+                                  validators=[UrlRepoListValidator(),
+                                              wtforms.validators.Optional()],
+                                  filters=[StringListFilter()])
+
     module_md = FileField("module_md")
 
     comps = FileField("comps_xml")
@@ -699,6 +704,12 @@ class CoprForkFormFactory(object):
 
 class ModifyChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
+    repos = wtforms.TextAreaField('Additional repos to be used for builds in chroot',
+                                  validators=[UrlRepoListValidator(),
+                                              wtforms.validators.Optional()],
+                                  filters=[StringListFilter()])
+    upload_comps = FileField("Upload comps.xml")
+    delete_comps = wtforms.BooleanField("Delete comps.xml")
 
 
 class AdminPlaygroundForm(wtf.Form):

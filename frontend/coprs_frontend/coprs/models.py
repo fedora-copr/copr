@@ -318,7 +318,8 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         modified_chroots = []
         for chroot in self.copr_chroots:
-            if chroot.buildroot_pkgs and chroot.is_active:
+            if ((chroot.buildroot_pkgs or chroot.repos)
+                    and chroot.is_active):
                 modified_chroots.append(chroot)
         return modified_chroots
 
@@ -817,6 +818,7 @@ class CoprChroot(db.Model, helpers.Serializer):
     """
 
     buildroot_pkgs = db.Column(db.Text)
+    repos = db.Column(db.Text, default="", server_default="", nullable=False)
     mock_chroot_id = db.Column(
         db.Integer, db.ForeignKey("mock_chroot.id"), primary_key=True)
     mock_chroot = db.relationship(
@@ -843,6 +845,10 @@ class CoprChroot(db.Model, helpers.Serializer):
     @property
     def buildroot_pkgs_list(self):
         return self.buildroot_pkgs.split()
+
+    @property
+    def repos_list(self):
+        return self.repos.split()
 
     @property
     def comps(self):
@@ -875,6 +881,14 @@ class CoprChroot(db.Model, helpers.Serializer):
     @property
     def is_active(self):
         return self.mock_chroot.is_active
+
+    def to_dict(self):
+        options = {"__columns_only__": [
+            "buildroot_pkgs", "repos", "comps_name", "copr_id"
+        ]}
+        d = super(CoprChroot, self).to_dict(options=options)
+        d["mock_chroot"] = self.mock_chroot.name
+        return d
 
 
 class BuildChroot(db.Model, helpers.Serializer):

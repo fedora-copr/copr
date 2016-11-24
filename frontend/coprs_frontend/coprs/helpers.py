@@ -603,6 +603,13 @@ def generate_build_config(copr, chroot_id):
             "name": "Additional repo " + generate_repo_name(repo),
         }
         repos.append(repo_view)
+    for repo in chroot.repos_list:
+        repo_view = {
+            "id": generate_repo_name(repo),
+            "url": pre_process_repo_url(chroot_id, repo),
+            "name": "Additional repo " + generate_repo_name(repo),
+        }
+        repos.append(repo_view)
 
     return {
         'project_id': copr.repo_id,

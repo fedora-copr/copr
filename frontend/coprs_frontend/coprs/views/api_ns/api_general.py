@@ -608,6 +608,7 @@ def copr_modify(copr):
 @api_login_required
 @api_req_with_copr
 def copr_modify_chroot(copr, chrootname):
+    """Deprecated to copr_edit_chroot"""
     form = forms.ModifyChrootForm(csrf_enabled=False)
     # chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
@@ -622,13 +623,52 @@ def copr_modify_chroot(copr, chrootname):
     return flask.jsonify(output)
 
 
+@api_ns.route('/coprs/<username>/<coprname>/chroot/edit/<chrootname>/', methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_edit_chroot(copr, chrootname):
+    form = forms.ModifyChrootForm(csrf_enabled=False)
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
+
+    if not form.validate_on_submit():
+        raise LegacyApiError("Invalid request: {0}".format(form.errors))
+    else:
+        buildroot_pkgs = repos = comps_xml = comps_name = None
+        if "buildroot_pkgs" in flask.request.form:
+            buildroot_pkgs = form.buildroot_pkgs.data
+        if "repos" in flask.request.form:
+            repos = form.repos.data
+        if form.upload_comps.has_file():
+            comps_xml = form.upload_comps.data.stream.read()
+            comps_name = form.upload_comps.data.filename
+        if form.delete_comps.data:
+            coprs_logic.CoprChrootsLogic.remove_comps(flask.g.user, chroot)
+        coprs_logic.CoprChrootsLogic.update_chroot(
+            flask.g.user, chroot, buildroot_pkgs, repos, comps=comps_xml, comps_name=comps_name)
+        db.session.commit()
+
+    output = {
+        "output": "ok",
+        "message": "Edit chroot operation was successful.",
+        "chroot": chroot.to_dict(),
+    }
+    return flask.jsonify(output)
+
+
 @api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["GET"])
 @api_req_with_copr
 def copr_chroot_details(copr, chrootname):
+    """Deprecated to copr_get_chroot"""
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
     output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
     return flask.jsonify(output)
 
+@api_ns.route('/coprs/<username>/<coprname>/chroot/get/<chrootname>/', methods=["GET"])
+@api_req_with_copr
+def copr_get_chroot(copr, chrootname):
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
+    output = {'output': 'ok', 'chroot': chroot.to_dict()}
+    return flask.jsonify(output)
 
 @api_ns.route("/coprs/search/")
 @api_ns.route("/coprs/search/<project>/")

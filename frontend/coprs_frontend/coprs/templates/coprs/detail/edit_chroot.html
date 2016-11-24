@@ -21,6 +21,7 @@
         enctype=multipart/form-data
       >
     {{ form.csrf_token }}
+
     {{ render_field(
         form.buildroot_pkgs,
         size=80,
@@ -28,6 +29,8 @@
         placeholder='Space separated list of packages. E.g.: scl-utils-build ruby193-build'
        )
     }}
+
+    {{ render_field(form.repos, rows=5, cols=50, placeholder='Optional - URL to additional yum repos, which can be used during build. Space separated. This should be baseurl from .repo file. E.g.: http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-$basearch/') }}
 
     <div class="form-group">
       <label class="col-sm-2 control-label" for="textInput-markup">

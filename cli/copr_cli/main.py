@@ -399,6 +399,37 @@ class Commands(object):
         print(result.status)
 
     #########################################################
+    ###                   Chroot actions                  ###
+    #########################################################
+
+    @requires_api_auth
+    def action_edit_chroot(self, args):
+        """ Method called when the 'edit-chroot' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+        """
+        owner, copr, chroot = parse_chroot_path(args.coprchroot)
+        result = self.client.edit_chroot(
+            ownername=owner, projectname=copr, chrootname=chroot,
+            upload_comps=args.upload_comps, delete_comps=args.delete_comps,
+            packages=args.packages, repos=args.repos
+        )
+        print(result.message)
+
+    def action_get_chroot(self, args):
+        """ Method called when the 'get-chroot' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+        """
+        owner, copr, chroot = parse_chroot_path(args.coprchroot)
+        result = self.client.get_chroot(
+            ownername=owner, projectname=copr, chrootname=chroot
+        )
+        print(simplejson.dumps(result.chroot, indent=4, sort_keys=True, for_json=True))
+
+    #########################################################
     ###                   Package actions                 ###
     #########################################################
 
@@ -766,6 +797,28 @@ def setup_parser():
 
 
     #########################################################
+    ###                   Chroot options                  ###
+    #########################################################
+
+    parser_edit_chroot = subparsers.add_parser("edit-chroot", help="Edit chroot of a project")
+    parser_edit_chroot.add_argument("coprchroot", help="Path to a project chroot as owner/project/chroot or project/chroot")
+    parser_edit_chroot_comps_group = parser_edit_chroot.add_mutually_exclusive_group()
+    parser_edit_chroot_comps_group.add_argument("--upload-comps", metavar="FILEPATH",
+                                                  help="filepath to the comps.xml file to be uploaded")
+    parser_edit_chroot_comps_group.add_argument("--delete-comps", action="store_true",
+                                                  help="deletes already existing comps.xml for the chroot")
+
+    parser_edit_chroot.add_argument("--packages",
+                                      help="space separated string of package names to be added to buildroot")
+    parser_edit_chroot.add_argument("--repos",
+                                      help="space separated string of additional repo urls for chroot")
+    parser_edit_chroot.set_defaults(func="action_edit_chroot")
+
+    parser_get_chroot = subparsers.add_parser("get-chroot", help="Get chroot of a project")
+    parser_get_chroot.add_argument("coprchroot", help="Path to a project chroot as owner/project/chroot or project/chroot")
+    parser_get_chroot.set_defaults(func="action_get_chroot")
+
+    #########################################################
     ###                   Package options                 ###
     #########################################################
 
@@ -898,6 +951,12 @@ def parse_name(name):
     else:
         owner = None
     return owner, name
+
+def parse_chroot_path(path):
+    m = re.match(r"(([^/]+)/)?([^/]+)/(.*)", path)
+    if m:
+        return m.group(2), m.group(3), m.group(4)
+    return None
 
 
 def enable_debug():

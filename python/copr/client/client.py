@@ -45,7 +45,7 @@ from .responses import ProjectHandle, \
 from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     CommonMsgErrorOutParser, NewBuildListParser, ProjectChrootsParser, \
     ProjectDetailsFieldsParser, PackageListParser, PackageParser, \
-    BuildConfigParser
+    BuildConfigParser, CoprChrootParser
 
 from ..util import UnicodeMixin
 
@@ -1205,6 +1205,107 @@ class CoprClient(UnicodeMixin):
                                      response=response)
         return response
 
+    def edit_chroot(self, projectname, chrootname, ownername=None,
+                      upload_comps=None, delete_comps=None, packages=None, repos=None):
+        """ Edits chroot settings.
+            Auth required.
+
+            :param projectname: Copr project name
+            :param chrootname: chroot name
+            :param ownername: [optional] owner of the project
+            :param upload_comps: file path to the comps.xml file
+            :param delete_comps: True if comps.xml should be removed
+            :param packages: buildroot packages for the chroot
+            :param repos: buildroot additional repos
+
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - **handle:** :py:class:`~.responses.ProjectHandle`
+                - text fields: "buildroot_pkgs"
+        """
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/chroot/edit/{3}/".format(
+            self.api_url, ownername, projectname, chrootname
+        )
+        multipart = False
+        headers = None
+        data = {}
+        if upload_comps:
+            try:
+                f = open(upload_comps, "rb")
+                data["upload_comps"] = (os.path.basename(f.name), f, "application/text")
+                multipart = True
+            except IOError as e:
+                raise CoprRequestException(e)
+        if delete_comps != None:
+            data["delete_comps"] = "y" if delete_comps else ""
+        if packages != None:
+            data["buildroot_pkgs"] = packages
+        if repos != None:
+            data["repos"] = repos
+
+        if multipart:
+            data = MultipartEncoder(data)
+            headers={'Content-Type': data.content_type}
+
+        result_data = self._fetch(url, data, method="post", headers=headers)
+
+        response = CoprResponse(
+            client=self,
+            method="post",
+            data=result_data,
+            request_kwargs={
+                "projectname": projectname,
+                "ownername": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+                CoprChrootParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname,
+            username=ownername
+        )
+        return response
+
+    def get_chroot(self, projectname, ownername, chrootname=None):
+        """Returns copr_chroot data"""
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/chroot/get/{3}/".format(
+            self.api_url, ownername, projectname, chrootname
+        )
+        resp_data = self._fetch(url)
+
+        response = CoprResponse(
+            client=self,
+            method="get",
+            data=resp_data,
+            request_kwargs={
+                "projectname": projectname,
+                "ownername": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+                CoprChrootParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname,
+            username=ownername
+        )
+
+        return response
+
     def get_project_chroot_details(self, projectname,
                                    chrootname, username=None):
         """ Returns details of chroot used in project
@@ -1246,7 +1347,8 @@ class CoprClient(UnicodeMixin):
 
     def modify_project_chroot_details(self, projectname, chrootname,
                                       pkgs=None, username=None):
-        """ Modifies chroot used in project
+        """ @deprecated to edit_chroot
+            Modifies chroot used in project
 
             :param projectname: Copr project name
             :param chrootname: chroot name

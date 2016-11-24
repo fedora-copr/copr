@@ -352,3 +352,21 @@ class PackageWrapper(UnicodeMixin):
 
     def for_json(self):
         return self.data
+
+
+class CoprChrootWrapper(UnicodeMixin):
+    def __init__(self, client, ownername, projectname, **data):
+        self.client = client
+        self.ownername = ownername
+        self.projectname = projectname
+        self.data = data
+        self.handle = None
+
+    def __getattr__(self, item):
+        try:
+            return self.data[item]
+        except KeyError as e:
+            raise AttributeError()
+
+    def for_json(self):
+        return self.data

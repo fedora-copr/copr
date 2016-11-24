@@ -214,7 +214,7 @@ class ProjectForking(object):
 
             for chroot in list(copr.copr_chroots):
                 CoprChrootsLogic.create_chroot(self.user, fcopr, chroot.mock_chroot, chroot.buildroot_pkgs,
-                                               comps=chroot.comps, comps_name=chroot.comps_name)
+                                               chroot.repos, comps=chroot.comps, comps_name=chroot.comps_name)
             db.session.add(fcopr)
         return fcopr
 

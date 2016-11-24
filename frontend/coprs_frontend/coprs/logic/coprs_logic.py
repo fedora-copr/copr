@@ -474,24 +474,26 @@ class CoprChrootsLogic(object):
 
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot,
-                      buildroot_pkgs=None, comps=None, comps_name=None, module_md=None, module_md_name=None):
+                      buildroot_pkgs=None, repos=None, comps=None, comps_name=None, module_md=None, module_md_name=None):
         """
         :type user: models.User
         :type mock_chroot: models.MockChroot
         """
         if buildroot_pkgs is None:
             buildroot_pkgs = ""
+        if repos is None:
+            repos = ""
         UsersLogic.raise_if_cant_update_copr(
             user, copr,
             "Only owners and admins may update their projects.")
 
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
-        cls._update_chroot(buildroot_pkgs, comps, comps_name, module_md, module_md_name, chroot)
+        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, chroot)
         return chroot
 
     @classmethod
     def update_chroot(cls, user, copr_chroot,
-                      buildroot_pkgs, comps=None, comps_name=None, module_md=None, module_md_name=None):
+                      buildroot_pkgs=None, repos=None, comps=None, comps_name=None, module_md=None, module_md_name=None):
         """
         :type user: models.User
         :type copr_chroot: models.CoprChroot
@@ -500,14 +502,16 @@ class CoprChrootsLogic(object):
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
-        cls._update_chroot(buildroot_pkgs, comps, comps_name, module_md, module_md_name, copr_chroot)
-        db.session.add(copr_chroot)
-
+        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, copr_chroot)
         return copr_chroot
 
     @classmethod
-    def _update_chroot(cls, buildroot_pkgs, comps, comps_name, module_md, module_md_name, copr_chroot):
-        copr_chroot.buildroot_pkgs = buildroot_pkgs
+    def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, copr_chroot):
+        if buildroot_pkgs is not None:
+            copr_chroot.buildroot_pkgs = buildroot_pkgs
+
+        if repos is not None:
+            copr_chroot.repos = repos.replace("\n", " ")
 
         if comps_name is not None:
             copr_chroot.update_comps(comps)
@@ -518,6 +522,8 @@ class CoprChrootsLogic(object):
             copr_chroot.update_module_md(module_md)
             copr_chroot.module_md_name = module_md_name
             ActionsLogic.send_update_module_md(copr_chroot)
+
+        db.session.add(copr_chroot)
 
     @classmethod
     def update_from_names(cls, user, copr, names):
