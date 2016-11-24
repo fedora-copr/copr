@@ -45,14 +45,15 @@ class Builder(object):
         try:
             mmd = modulemd.ModuleMetadata()
             mmd.load(module_md_filepath)
+            dist_tag = ("." + mmd.name + '+' + mmd.stream + '+' + str(mmd.version))
         except IOError as e:
             return None
         except Exception as e:
-            log.exception(e)
+            self.log.exception(str(e))
             return None
         else:
-            self.log.info("Loaded {}".format(module_md_filepath))
-            return ("." + mmd.name + '+' + mmd.stream + '+' + str(mmd.release))
+            self.log.info("Loaded {}, dist_tag {}".format(module_md_filepath, dist_tag))
+        return dist_tag
 
     def get_chroot_config_path(self, chroot):
         return "{tempdir}/{chroot}.cfg".format(tempdir=self.tempdir, chroot=chroot)
