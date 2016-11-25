@@ -56,6 +56,8 @@ class Config(object):
 
     SRPM_STORAGE_DIR = "/var/lib/copr/data/srpm_storage/"
 
+    LAYOUT_OVERVIEW_HIDE_QUICK_ENABLE = False
+
 
 class ProductionConfig(Config):
     DEBUG = False

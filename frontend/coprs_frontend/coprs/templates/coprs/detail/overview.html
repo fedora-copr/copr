@@ -130,6 +130,8 @@
       </div>
     {% endif %}
     </div>
+
+    {% if not config.LAYOUT_OVERVIEW_HIDE_QUICK_ENABLE %}
     <div class="panel panel-default">
       <div class="panel-heading">
         <h3 class="panel-title"> Quick Enable </h3>
@@ -142,6 +144,8 @@
           <small><span class="pficon pficon-info"></span> More info about enabling Copr repositories</small></a>
       </div>
     </div>
+    {% endif %}
+
     {% if g.user and g.user.can_edit(copr) and copr and copr.owner and not copr.auto_createrepo %}
     <div class="panel panel-default">
       <div class="panel-heading">
