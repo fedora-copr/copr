@@ -58,6 +58,14 @@ class Config(object):
 
     LAYOUT_OVERVIEW_HIDE_QUICK_ENABLE = False
 
+    # We enable authentication against FAS by default.
+    FAS_LOGIN = True
+
+    LOGIN_INFO = {
+        'user_link': 'https://admin.fedoraproject.org/accounts/user/view/{username}/',
+        # 'user_desc': 'FAS'
+    }
+
 
 class ProductionConfig(Config):
     DEBUG = False

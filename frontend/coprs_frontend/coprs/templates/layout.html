@@ -45,15 +45,12 @@
         </div>
         <div class="col-md-4 col-sm-5 col-xs-6">
           <div id="login-menu" class="text-right">
-          {% if g.user %}
-            <a href="https://admin.fedoraproject.org/accounts/user/view/{{ g.user.name }}">{{ g.user.name }}</a> | <a href="{{ url_for('misc.logout') }}">log out</a>
-          {% else %}
-            <a href="{{ url_for('misc.login') }}">log in</a> |
-            {% for key,val in config.KRB5_LOGIN.items() %}
-            <a href="{{ config.KRB5_LOGIN_BASEURI }}{{ val.URI }}/">{{ val.log_text }}</a> |
-            {% endfor %}
-            <a href="https://admin.fedoraproject.org/accounts/user/new">sign up</a>
-          {% endif %}
+
+          {% for item in login_menu %}
+          <a href="{{ item.link }}">{{ item.desc }}</a>
+          {% if not loop.last %}|{% endif %}
+          {% endfor %}
+
           </div>
           <form role="search" method="get" action="{{ url_for('coprs_ns.coprs_fulltext_search') }}">
             <div class="input-group menu-search">

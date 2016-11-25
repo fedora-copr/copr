@@ -21,8 +21,15 @@
       {% if g.user %}
         <a href="mailto:{{ user.mail }}" title="{{ user.mail }}">{{ user.mail }}</a> |
       {% endif %}
-      <a href="https://admin.fedoraproject.org/accounts/user/view/{{ user.name }}" title="{{ user.name}}'s FAS profile" target="_blank">FAS account</a> |
-      <a href="https://badges.fedoraproject.org/user/{{ user.name }}" title="{{ user.name }}'s badges" target="_blank">Fedora badges</a>
+
+      <a href="{{ config.LOGIN_INFO.user_link.format(username=user.name)}}">
+        {{ user.name }}
+        {% if config.LOGIN_INFO.user_desc %}
+        ({{ config.LOGIN_INFO.user_desc }})
+        {% endif %}
+      </a>
+
+      {% include "user_info.html" %}
   </p>
 </div>
 

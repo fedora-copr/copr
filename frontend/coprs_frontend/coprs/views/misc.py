@@ -184,6 +184,9 @@ def krb5_login(name):
 @misc.route("/login/", methods=["GET"])
 @oid.loginhandler
 def login():
+    if not app.config['FAS_LOGIN']:
+        return "FAS login not allowed", 403
+
     if flask.g.user is not None:
         return flask.redirect(oid.get_next_url())
     else:
