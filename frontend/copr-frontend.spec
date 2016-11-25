@@ -9,6 +9,7 @@
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
 
 
+%global flavor_guard      %name-flavor = %version
 %global flavor_files_list %_datadir/copr/copr-flavor-filelist
 %global flavor_generator  %_datadir/copr/coprs_frontend/generate_colorscheme
 %global staticdir         %_datadir/copr/coprs_frontend/coprs/static
@@ -88,7 +89,8 @@ Requires:   python-flask-restful
 Requires:   python-marshmallow >= 2.0.0
 Requires:   python2-modulemd
 Requires:   python-pygments
-Requires:   %{name}-flavor = %{version}
+
+Requires:   %flavor_guard
 
 # for tests:
 Requires:   pytest
@@ -218,11 +220,12 @@ This package include documentation for COPR code. Mostly useful for developers
 only.
 
 
-%package flavor
+%package fedora
 Summary: Template files for %{name}
 Requires: %{name} = %{version}
+Provides: %flavor_guard
 
-%description flavor
+%description fedora
 Template files for %{name} (basically colors, logo, etc.).  This package is
 designed to be replaced - build your replacement package against %{name}-devel
 to produce compatible {name}-flavor package, then use man dnf.conf(5) 'priority'
@@ -301,7 +304,7 @@ EOF
 
 mkdir -p %buildroot%macrosdir
 cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
-%%copr_frontend_version %version
+%%copr_frontend_flavor_guard      %flavor_guard
 %%copr_frontend_flavor_filelist   %flavor_files_list
 %%copr_frontend_flavor_generator  %flavor_generator
 %%copr_frontend_staticdir         %staticdir
@@ -368,7 +371,7 @@ service logstash condrestart
 %exclude_files devel
 
 
-%files flavor
+%files fedora
 %license LICENSE
 %flavor_files
 
