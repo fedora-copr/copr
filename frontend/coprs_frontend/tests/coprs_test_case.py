@@ -438,6 +438,15 @@ class CoprsTestCase(object):
         base64string = b"Basic " + base64string_user
         return base64string
 
+    def post_api_with_auth(self, url, content, user):
+        return self.tc.post(
+            url,
+            data=content,
+            headers={
+                "Authorization": self._get_auth_string(user.api_login, user.api_token)
+            }
+        )
+
 
 class TransactionDecorator(object):
 

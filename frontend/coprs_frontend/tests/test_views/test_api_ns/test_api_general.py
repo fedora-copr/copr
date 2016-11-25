@@ -8,6 +8,8 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
+import tempfile
+import os
 
 class TestCreateCopr(CoprsTestCase):
     copr_name = "copr_api_1"
@@ -123,3 +125,40 @@ class TestModuleRepo(CoprsTestCase):
         assert response["output"] == "notok"
         for key in ["owner", "copr", "name", "stream", "version", "arch"]:
             assert error in response["error"][key]
+
+
+class TestBuildModule(CoprsTestCase):
+    @TransactionDecorator("u1")
+    def test_api_build_module_basic(self, f_users, f_coprs, f_db):
+        self.db.session.add_all([self.u1, self.c1])
+        self.tc.post("/api/new/")
+
+        fd, filename = tempfile.mkstemp()
+        os.write(fd, """
+        data:
+          api:
+            rpms: [example-debuginfo]
+          components: {}
+          description: ''
+          filter:
+            rpms: [example-debuginfo, example]
+          license:
+            module: []
+          name: project
+          profiles:
+            default:
+              rpms: [example]
+          stream: test
+          summary: 'Module from Copr repository: clime/project'
+          version: 1
+        document: modulemd
+        version: 1
+        """)
+        os.close(fd)
+
+        f = open(filename, "rb")
+        data = {"modulemd": (filename, f, "application/yaml")}
+        api_endpoint = '/api/coprs/{}/{}/module/build/'.format(self.u1.name, self.c1.name)
+        r = self.post_api_with_auth(api_endpoint, content=data, user=self.u1)
+        assert r.status_code == 200
+        os.remove(filename)
