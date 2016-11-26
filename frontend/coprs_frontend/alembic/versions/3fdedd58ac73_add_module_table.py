@@ -50,6 +50,8 @@ def upgrade():
     added_modules = set()
     for action in ActionsLogic.get_many(ActionTypeEnum("build_module")).order_by(Action.id.desc()):
         data = json.loads(action.data)
+        if not "ownername" in data:
+            continue # already new action format
         copr = get_copr(session, data["ownername"], data["projectname"])
         yml_str = base64.b64decode(data["modulemd_b64"])
         yml = yaml.safe_load(yml_str)
