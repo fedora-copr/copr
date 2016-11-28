@@ -37,6 +37,7 @@ BuildRequires: python3-pylint
 Requires:   python3-setuptools
 Requires:   python3-copr >= 1.63
 Requires:   python3-simplejson
+Requires:   python3-jinja2
 Recommends: python3-progress
 %else
 BuildRequires: python2-devel
@@ -45,6 +46,11 @@ BuildRequires: python-copr
 Requires:   python-setuptools
 Requires:   python-copr >= 1.63
 Requires:   python-simplejson
+%if 0%{?fedora} > 23
+Requires:   python2-jinja2
+%else
+Requires:   python-jinja2
+%endif
 %if 0%{?fedora}
 Recommends: python-progress
 %endif
