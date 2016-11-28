@@ -18,9 +18,10 @@ from requests import RequestException
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError, CoprSignError
-from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch
+from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, run_ssh
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
+from .vm_manage.manager import VmManager
 
 class Action(object):
     """ Object to send data back to fronted
@@ -338,9 +339,6 @@ class Action(object):
             if not os.path.exists(chrootdir):
                 self.log.debug("Create directory: {}".format(chrootdir))
                 os.makedirs(chrootdir)
-                createrepo(path=chrootdir, front_url=self.front_url,
-                           username=data["user"], projectname=data["copr"],
-                           override_acr_flag=True)
 
             for build in data["builds"]:
                 srcdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["rawhide_chroot"], build)
@@ -351,10 +349,38 @@ class Action(object):
 
                     with open(os.path.join(destdir, "build.info"), "a") as f:
                         f.write("\nfrom_chroot={}".format(data["rawhide_chroot"]))
+
+            createrepo(path=chrootdir, front_url=self.front_url,
+                       username=data["user"], projectname=data["copr"],
+                       override_acr_flag=True)
         except:
             result.result = ActionResult.FAILURE
 
         result.result = ActionResult.SUCCESS
+
+    def handle_cancel_build(self, result):
+        data = json.loads(self.data["data"])
+        task_id = data["task_id"]
+
+        vmm = VmManager(self.opts)
+        vmd = vmm.get_vm_by_task_id(task_id)
+        if vmd:
+            self.log.info("Found VM {0} for task {1}".format(vmd.vm_ip, task_id))
+        else:
+            self.log.error("No VM found for task {0}".format(task_id))
+            result.result = ActionResult.FAILURE
+            return
+
+        cmd_result = run_ssh(["killall", "-9", "mockchain"], 'root', vmd.vm_ip)
+        if cmd_result.returncode == 0:
+            result.result = ActionResult.SUCCESS
+        else:
+            result.result = ActionResult.FAILURE
+
+        self.log.info("stdout: {}".format(cmd_result.stdout))
+        self.log.info("stderr: {}".format(cmd_result.stderr))
+        self.log.info("rc: {}".format(cmd_result.returncode))
+
 
     def handle_build_module(self, result):
         try:
@@ -364,6 +390,7 @@ class Action(object):
             chroots = data["chroots"]
             modulemd_data = base64.b64decode(data["modulemd_b64"])
             project_path = os.path.join(self.opts.destdir, ownername, projectname)
+            self.log.info(modulemd_data)
 
             try:
                 modules_file_read = open(os.path.join(project_path, "modules", "modules.json"), "r+")
@@ -382,12 +409,12 @@ class Action(object):
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
                 srcdir = os.path.join(project_path, chroot)
-                module_tag = chroot + '+' + mmd.name + '-' + (mmd.version or '1') + '-' + (mmd.release or '1')
+                module_tag = chroot + '+' + mmd.name + '-' + (mmd.stream or '') + '-' + (str(mmd.version) or '1')
                 module_relpath = os.path.join(module_tag, "latest", arch)
                 destdir = os.path.join(project_path, "modules", module_relpath)
 
                 if os.path.exists(destdir):
-                    self.log.warning("Module {0} already exists. Ommitting.".format(destdir))
+                    self.log.warning("Module {0} already exists. Omitting.".format(destdir))
                 else:
                     self.log.info("Copy directory: {} as {}".format(srcdir, destdir))
                     shutil.copytree(srcdir, destdir)
@@ -395,7 +422,7 @@ class Action(object):
                     modules.append({
                         "url": module_relpath,
                         "name": mmd.name,
-                        "release": (mmd.release or '1'),
+                        "stream": (mmd.stream or ''),
                         "version": (mmd.version or '1'),
                         "requires": mmd.requires,
                         "summary": mmd.summary,
@@ -456,6 +483,9 @@ class Action(object):
         elif action_type == ActionType.BUILD_MODULE:
             self.handle_build_module(result)
 
+        elif action_type == ActionType.CANCEL_BUILD:
+            self.handle_cancel_build(result)
+
         self.log.info("Action result: {}".format(result))
 
         if "result" in result:
@@ -480,6 +510,7 @@ class ActionType(object):
     FORK = 7
     UPDATE_MODULE_MD = 8
     BUILD_MODULE = 9
+    CANCEL_BUILD = 10
 
 
 class ActionResult(object):

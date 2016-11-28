@@ -2,7 +2,7 @@
 
 import os
 import time
-import os
+import fnmatch
 import re
 import uuid
 import subprocess
@@ -175,6 +175,7 @@ def group_copr_new(group_name):
                 unlisted_on_hp=form.unlisted_on_hp.data,
                 group=group,
                 persistent=form.persistent.data,
+                auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
             )
         except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
             flask.flash(str(e), "error")
@@ -213,6 +214,7 @@ def copr_new(username):
                 build_enable_net=form.build_enable_net.data,
                 unlisted_on_hp=form.unlisted_on_hp.data,
                 persistent=form.persistent.data,
+                auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
             )
         except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
             flask.flash(str(e), "error")
@@ -311,12 +313,26 @@ def render_copr_detail(copr):
             name=chroot_rpms_dl_stat_key,
         )
 
+        logoset = set()
+        logodir = app.static_folder + "/chroot_logodir"
+        for logo in os.listdir(logodir):
+            # glob.glob() uses listdir() and fnmatch anyways
+            if fnmatch.fnmatch(logo, "*.png"):
+                logoset.add(logo.strip(".png"))
+
         if chroot.name_release not in repos_info:
+            logo = None
+            if chroot.name_release in logoset:
+                logo = chroot.name_release + ".png"
+            elif chroot.os_release in logoset:
+                logo = chroot.os_release + ".png"
+
             repos_info[chroot.name_release] = {
                 "name_release": chroot.name_release,
                 "name_release_human": chroot.name_release_human,
                 "os_release": chroot.os_release,
                 "os_version": chroot.os_version,
+                "logo": logo,
                 "arch_list": [chroot.arch],
                 "repo_file": "{}-{}.repo".format(copr.repo_id, chroot.name_release),
                 "dl_stat": repo_dl_stat[chroot.name_release],
@@ -442,6 +458,10 @@ def process_copr_update(copr, form):
     copr.disable_createrepo = form.disable_createrepo.data
     copr.build_enable_net = form.build_enable_net.data
     copr.unlisted_on_hp = form.unlisted_on_hp.data
+    if flask.g.user.admin:
+        copr.auto_prune = form.auto_prune.data
+    else:
+        copr.auto_prune = True
     coprs_logic.CoprChrootsLogic.update_from_names(
         flask.g.user, copr, form.selected_chroots)
     try:
@@ -895,8 +915,8 @@ def copr_modules(copr):
 
 
 def render_copr_modules(copr):
-    query = ModulesLogic.get_multiple_by_copr(copr=copr)
-    return flask.render_template("coprs/detail/modules.html", copr=copr, modules=query)
+    modules = ModulesLogic.get_multiple_by_copr(copr=copr).all()
+    return flask.render_template("coprs/detail/modules.html", copr=copr, modules=modules)
 
 
 @coprs_ns.route("/<username>/<coprname>/create_module/")
@@ -922,7 +942,7 @@ def render_create_module(copr, form, profiles=2):
 @login_required
 @req_with_copr
 def copr_create_module_post(copr):
-    form = forms.CreateModuleForm(csrf_enabled=False)
+    form = forms.CreateModuleForm(copr=copr, csrf_enabled=False)
     args = [copr, form]
     if "add_profile" in flask.request.values:
         return add_profile(*args)
@@ -947,26 +967,26 @@ def build_module(copr, form):
         return render_create_module(copr, form, profiles=len(form.profile_names))
 
     mmd = modulemd.ModuleMetadata()
-    mmd.load(os.path.join(os.path.dirname(__file__), "empty-module.yaml"))
-
-    mmd.name = copr.name
+    mmd.name = str(copr.name)
+    mmd.stream = str(form.stream.data)
     mmd.version = form.version.data
-    mmd.release = form.release.data
     mmd.summary = "Module from Copr repository: {}".format(copr.full_name)
 
     for package in form.filter.data:
-        mmd.components.rpms.add_filter(package)
+        mmd.filter.add_rpm(str(package))
 
     for package in form.api.data:
-        mmd.components.rpms.add_api(package)
+        mmd.api.add_rpm(str(package))
 
     for i, values in enumerate(zip(form.profile_names.data, form.profile_pkgs.data)):
         name, packages = values
         mmd.profiles[name] = modulemd.profile.ModuleProfile()
         for package in packages:
-            mmd.profiles[name].add_rpm(package)
+            mmd.profiles[name].add_rpm(str(package))
 
-    actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, mmd.dumps())
+    module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
+    db.session.flush()
+    actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, module)
     db.session.commit()
     flask.flash("Modulemd yaml file successfully generated and submitted to be build", "success")
     return flask.redirect(url_for_copr_details(copr))
@@ -992,5 +1012,5 @@ def copr_module_raw(copr, id):
     response = flask.make_response(module.yaml)
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
-        "filename={}.yaml".format("-".join([str(module.id), module.name, module.version, module.release]))
+        "filename={}.yaml".format("-".join([str(module.id), module.name, module.stream, str(module.version)]))
     return response

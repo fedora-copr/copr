@@ -3,15 +3,20 @@
 {% set selected_monitor_tab = "webhooks" %}
 {%block settings_breadcrumb %}Webhooks{% endblock %}
 
-
 {% block tab_content %}
 
 <div class="row">
     <div class="col-sm-8 col-md-9">
         <h2> Webhooks </h2>
-        <p> You can set up automatic builds of your packages directly from
-            your git using webhooks.</p>
-        <h3> How does it work </h3>
+        <p>You can set up automatic builds of your packages coming from Pagure and Github repositories.</p>
+
+        <h3>How does it work for Pagure repositories</h3>
+        <ol>
+          <li>Activate Fedmsg in section 'Hooks' in the project settings.</li>
+        </ol>
+
+        <h3> How does it work for Github repositories</h3>
+
         <ol>
           <li> Set a default source of a package in this project. </li>
           <li> Enable automatic rebuilds for the package. </li>
@@ -20,7 +25,7 @@
         <p> Copr will now rebuild the package every time it receives the webhook
             call - usually with every commit. </p>
 
-        <h3> Webhook URL for GitHub </h3>
+        <h4> Webhook URL for GitHub </h4>
         <div class="well well-sm">
             {{ github_url }}
         </div>

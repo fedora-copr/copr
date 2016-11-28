@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from datetime import timedelta
+
 try:
     from progress.bar import Bar
 except ImportError:
@@ -23,9 +25,13 @@ class ProgressMixin(object):
 
     @property
     def download_speed(self):
-        if self.avg == 0.0:
-            return "..."
-        return format_size(1 / self.avg) + "/s"
+        if self.elapsed == 0:
+            return "0MB/s"
+        return format_size(self.index/self.elapsed) + "/s"
+
+    @property
+    def myeta_td(self):
+        return timedelta(seconds=int(self.remaining*self.elapsed/self.index))
 
     @property
     def downloaded(self):
@@ -47,6 +53,7 @@ class DummyBar(object):
 if progress:
     class ProgressBar(Bar, ProgressMixin):
         message = "%(percent)d%%"
-        suffix = "%(downloaded)s %(download_speed)s eta %(eta_td)s"
+        suffix = "%(downloaded)s %(download_speed)s eta %(myeta_td)s"
+
 else:
     ProgressBar = DummyBar

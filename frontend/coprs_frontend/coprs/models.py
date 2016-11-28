@@ -7,7 +7,6 @@ import json
 import base64
 import modulemd
 
-from sqlalchemy import orm
 from sqlalchemy.ext.associationproxy import association_proxy
 from libravatar import libravatar_url
 import zlib
@@ -223,6 +222,9 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # builds and the project are immune against deletion
     persistent = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
 
+    # if backend deletion script should be run for the project's builds
+    auto_prune = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
@@ -316,7 +318,8 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         modified_chroots = []
         for chroot in self.copr_chroots:
-            if chroot.buildroot_pkgs and chroot.is_active:
+            if ((chroot.buildroot_pkgs or chroot.repos)
+                    and chroot.is_active):
                 modified_chroots.append(chroot)
         return modified_chroots
 
@@ -341,15 +344,15 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
                          self.full_name])
 
     @property
-    def modules_url(self):
-        return "/".join([self.repo_url, "modules"])
-
-    @property
     def repo_id(self):
         if self.is_a_group_project:
             return "group_{}-{}".format(self.group.name, self.name)
         else:
             return "{}-{}".format(self.user.name, self.name)
+
+    @property
+    def modules_url(self):
+        return "/".join([self.repo_url, "modules"])
 
     def to_dict(self, private=False, show_builds=True, show_chroots=True):
         result = {}
@@ -391,6 +394,10 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
     Represents a single package in a project.
     """
+    __table_args__ = (
+        db.UniqueConstraint('copr_id', 'name', name='packages_copr_pkgname'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     # Source of the build: type identifier
@@ -684,7 +691,8 @@ class Build(db.Model, helpers.Serializer):
         """
 
         return self.status == StatusEnum("pending") or \
-            self.status == StatusEnum("importing")
+            self.status == StatusEnum("importing") or \
+            self.status == StatusEnum("running")
 
     @property
     def repeatable(self):
@@ -810,6 +818,7 @@ class CoprChroot(db.Model, helpers.Serializer):
     """
 
     buildroot_pkgs = db.Column(db.Text)
+    repos = db.Column(db.Text, default="", server_default="", nullable=False)
     mock_chroot_id = db.Column(
         db.Integer, db.ForeignKey("mock_chroot.id"), primary_key=True)
     mock_chroot = db.relationship(
@@ -836,6 +845,10 @@ class CoprChroot(db.Model, helpers.Serializer):
     @property
     def buildroot_pkgs_list(self):
         return self.buildroot_pkgs.split()
+
+    @property
+    def repos_list(self):
+        return self.repos.split()
 
     @property
     def comps(self):
@@ -868,6 +881,14 @@ class CoprChroot(db.Model, helpers.Serializer):
     @property
     def is_active(self):
         return self.mock_chroot.is_active
+
+    def to_dict(self):
+        options = {"__columns_only__": [
+            "buildroot_pkgs", "repos", "comps_name", "copr_id"
+        ]}
+        d = super(CoprChroot, self).to_dict(options=options)
+        d["mock_chroot"] = self.mock_chroot.name
+        return d
 
 
 class BuildChroot(db.Model, helpers.Serializer):
@@ -1043,6 +1064,19 @@ class Action(db.Model, helpers.Serializer):
         return "Action {0} on {1}, old value: {2}, new value: {3}.".format(
             self.action_type, self.object_type, self.old_value, self.new_value)
 
+    def to_dict(self, **kwargs):
+        d = super(Action, self).to_dict()
+        if d.get("object_type") == "module":
+            module = Module.query.filter(Module.id == d["object_id"]).first()
+            data = json.loads(d["data"])
+            data.update({
+                "projectname": module.copr.name,
+                "ownername": module.copr.owner_name,
+                "modulemd_b64": module.yaml_b64,
+            })
+            d["data"] = json.dumps(data)
+        return d
+
 
 class Krb5Login(db.Model, helpers.Serializer):
     """
@@ -1095,26 +1129,51 @@ class Group(db.Model, helpers.Serializer):
         return "{} (fas: {})".format(self.name, self.fas_name)
 
 
-class Module(Action):
-    """
-    Wrapper class for representing modules
-    Module builds are currently stored as Actions, so we are querying properties from action data
-    """
-    @orm.reconstructor
-    def init_on_load(self):
-        data = json.loads(self.data)
-        yaml = base64.b64decode(json.loads(self.data)["modulemd_b64"])
+class Module(db.Model, helpers.Serializer):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    stream = db.Column(db.String(100), nullable=False)
+    version = db.Column(db.Integer, nullable=False)
+    summary = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    created_on = db.Column(db.Integer, nullable=True)
 
+    # When someone submits YAML (not generate one on the copr modules page), we might want to use that exact file.
+    # Yaml produced by deconstructing into pieces and constructed back can look differently,
+    # which is not desirable (Imo)
+    #
+    # Also if there are fields which are not covered by this model, we will be able to add them in the future
+    # and fill them with data from this blob
+    yaml_b64 = db.Column(db.Text)
+
+    # relations
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
+    copr = db.relationship("Copr", backref=db.backref("modules"))
+
+    @property
+    def yaml(self):
+        return base64.b64decode(self.yaml_b64)
+
+    @property
+    def modulemd(self):
         mmd = modulemd.ModuleMetadata()
-        mmd.loads(yaml)
+        mmd.loads(self.yaml)
+        return mmd
 
-        attrs = ["name", "version", "release", "summary"]
-        for attr in attrs:
-            setattr(self, attr, getattr(mmd, attr))
+    @property
+    def nsv(self):
+        return "-".join([self.name, self.stream, str(self.version)])
 
-        self.ownername = data["ownername"]
-        self.projectname = data["projectname"]
-        self.modulemd = mmd
-        self.yaml = mmd.dumps()
-        self.full_name = "-".join([self.name, self.version, self.release])
-        self.status = self.result
+    @property
+    def full_name(self):
+        return "{}/{}".format(self.copr.full_name, self.nsv)
+
+    @property
+    def action(self):
+        return Action.query.filter(Action.object_type == "module").filter(Action.object_id == self.id).first()
+
+    def repo_url(self, arch):
+        # @TODO Get rid of OS name from module path, see how koji does it
+        # https://kojipkgs.stg.fedoraproject.org/repos/module-base-runtime-0.25-9/latest/x86_64/toplink/packages/module-build-macros/0.1/
+        module_dir = "fedora-rawhide-{}+{}-{}-{}".format(arch, self.name, self.stream, self.version)
+        return "/".join([self.copr.repo_url, "modules", module_dir, "latest", arch])

@@ -107,7 +107,10 @@ def backend_update():
     for build in update.get('builds', []):
         if build['status'] == 0 or build['status'] == 1: # if build is finished
             build_results.append(build)
-            started_build_tasks.remove(build['task_id'])
+            try:
+                started_build_tasks.remove(build['task_id'])
+            except ValueError:
+                pass
             test_for_server_end()
 
     for action in update.get('actions', []):

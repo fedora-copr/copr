@@ -45,14 +45,15 @@ class Builder(object):
         try:
             mmd = modulemd.ModuleMetadata()
             mmd.load(module_md_filepath)
+            dist_tag = ("." + mmd.name + '+' + mmd.stream + '+' + str(mmd.version))
         except IOError as e:
             return None
         except Exception as e:
-            log.exception(e)
+            self.log.exception(str(e))
             return None
         else:
-            self.log.info("Loaded {}".format(module_md_filepath))
-            return ("." + mmd.name + '+' + mmd.version + '+' + mmd.release)
+            self.log.info("Loaded {}, dist_tag {}".format(module_md_filepath, dist_tag))
+        return dist_tag
 
     def get_chroot_config_path(self, chroot):
         return "{tempdir}/{chroot}.cfg".format(tempdir=self.tempdir, chroot=chroot)
@@ -304,30 +305,9 @@ class Builder(object):
         buildcmd += self.remote_pkg_path
         return buildcmd
 
-    def run_build_and_wait(self, buildcmd):
+    def run_build(self, buildcmd):
         self.log.info("executing: {0}".format(buildcmd))
-        self.conn.module_name = "shell"
-        self.conn.module_args = buildcmd
-        _, poller = self.conn.run_async(self.timeout)
-        waited = 0
-        results = None
-
-        # self.setup_pubsub_handler()
-        while True:
-            # TODO rework Builder and extrace check_pubsub, add method to interrupt build process from dispatcher
-            # self.check_pubsub()
-            results = poller.poll()
-
-            if results["contacted"] or results["dark"]:
-                break
-
-            if waited >= self.timeout:
-                raise BuilderTimeOutError("Build timeout expired. Time limit: {}s, time spent: {}s"
-                                          .format(self.timeout, waited))
-
-            time.sleep(10)
-            waited += 10
-        return results
+        return self._run_ansible(buildcmd)
 
     def setup_pubsub_handler(self):
 
@@ -371,7 +351,7 @@ class Builder(object):
         # construct the mockchain command
         buildcmd = self.gen_mockchain_command()
         # run the mockchain command async
-        ansible_build_results = self.run_build_and_wait(buildcmd)  # now raises BuildTimeoutError
+        ansible_build_results = self.run_build(buildcmd)
         check_for_ans_error(ansible_build_results, self.hostname)  # on error raises AnsibleResponseError
 
         # we know the command ended successfully but not if the pkg built

@@ -4,6 +4,7 @@ from functools import wraps
 import json
 import os
 import flask
+import sqlalchemy
 
 from werkzeug import secure_filename
 
@@ -12,12 +13,13 @@ from coprs import exceptions
 from coprs import forms
 from coprs import helpers
 from coprs import models
-from coprs.helpers import fix_protocol_for_backend
+from coprs.helpers import fix_protocol_for_backend, generate_build_config
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.modules_logic import ModulesLogic
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -109,6 +111,10 @@ def api_new_copr(username):
     if form.validate_on_submit():
         group = ComplexLogic.get_group_by_name_safe(username[1:]) if username[0] == "@" else None
 
+        auto_prune = True
+        if "auto_prune" in flask.request.form:
+            auto_prune = form.auto_prune.data
+
         try:
             copr = CoprsLogic.add(
                 name=form.name.data.strip(),
@@ -123,6 +129,7 @@ def api_new_copr(username):
                 build_enable_net=form.build_enable_net.data,
                 group=group,
                 persistent=form.persistent.data,
+                auto_prune=auto_prune,
             )
             infos.append("New project was successfully created.")
 
@@ -139,7 +146,9 @@ def api_new_copr(username):
 
             output = {"output": "ok", "message": "\n".join(infos)}
             db.session.commit()
-        except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as err:
+        except (exceptions.DuplicateException,
+                exceptions.NonAdminCannotCreatePersistentProject,
+                exceptions.NonAdminCannotDisableAutoPrunning) as err:
             db.session.rollback()
             raise LegacyApiError(str(err))
 
@@ -266,7 +275,8 @@ def api_coprs_by_owner(username=None):
                                 "description": repo.description,
                                 "instructions": repo.instructions,
                                 "persistent": repo.persistent,
-                                "unlisted_on_hp": repo.unlisted_on_hp
+                                "unlisted_on_hp": repo.unlisted_on_hp,
+                                "auto_prune": repo.auto_prune,
                                })
 
     return flask.jsonify(output)
@@ -286,7 +296,9 @@ def api_coprs_by_owner_detail(copr):
     output = {"output": "ok", "detail": {}}
     yum_repos = {}
 
-    build = models.Build.query.filter(models.Build.results != None).first()
+    build = models.Build.query.filter(
+        models.Build.copr_id == copr.id, models.Build.results != None).first()
+
     if build:
         for chroot in copr.active_chroots:
             release = release_tmpl.format(chroot=chroot)
@@ -302,7 +314,8 @@ def api_coprs_by_owner_detail(copr):
         "last_modified": builds_logic.BuildsLogic.last_modified(copr),
         "auto_createrepo": copr.auto_createrepo,
         "persistent": copr.persistent,
-        "unlisted_on_hp": copr.unlisted_on_hp
+        "unlisted_on_hp": copr.unlisted_on_hp,
+        "auto_prune": copr.auto_prune,
     }
     return flask.jsonify(output)
 
@@ -567,17 +580,21 @@ def copr_modify(copr):
     if form.disable_createrepo.raw_data and len(form.disable_createrepo.raw_data):
         copr.disable_createrepo = form.disable_createrepo.data
 
-    if "unlisted_on_hp" in flask.request.form != None:
+    if "unlisted_on_hp" in flask.request.form:
         copr.unlisted_on_hp = form.unlisted_on_hp.data
-    if "build_enable_net" in flask.request.form != None:
+    if "build_enable_net" in flask.request.form:
         copr.build_enable_net = form.build_enable_net.data
+    if "auto_prune" in flask.request.form:
+        copr.auto_prune = form.auto_prune.data
 
     try:
         CoprsLogic.update(flask.g.user, copr)
         if copr.group: # load group.id
             _ = copr.group.id
         db.session.commit()
-    except (exceptions.ActionInProgressException, exceptions.InsufficientRightsException) as e:
+    except (exceptions.ActionInProgressException,
+            exceptions.InsufficientRightsException,
+            exceptions.NonAdminCannotDisableAutoPrunning) as e:
         db.session.rollback()
         raise LegacyApiError("Invalid request: {}".format(e))
 
@@ -595,6 +612,7 @@ def copr_modify(copr):
 @api_login_required
 @api_req_with_copr
 def copr_modify_chroot(copr, chrootname):
+    """Deprecated to copr_edit_chroot"""
     form = forms.ModifyChrootForm(csrf_enabled=False)
     # chroot = coprs_logic.MockChrootsLogic.get_from_name(chrootname, active_only=True).first()
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
@@ -609,13 +627,52 @@ def copr_modify_chroot(copr, chrootname):
     return flask.jsonify(output)
 
 
+@api_ns.route('/coprs/<username>/<coprname>/chroot/edit/<chrootname>/', methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_edit_chroot(copr, chrootname):
+    form = forms.ModifyChrootForm(csrf_enabled=False)
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
+
+    if not form.validate_on_submit():
+        raise LegacyApiError("Invalid request: {0}".format(form.errors))
+    else:
+        buildroot_pkgs = repos = comps_xml = comps_name = None
+        if "buildroot_pkgs" in flask.request.form:
+            buildroot_pkgs = form.buildroot_pkgs.data
+        if "repos" in flask.request.form:
+            repos = form.repos.data
+        if form.upload_comps.has_file():
+            comps_xml = form.upload_comps.data.stream.read()
+            comps_name = form.upload_comps.data.filename
+        if form.delete_comps.data:
+            coprs_logic.CoprChrootsLogic.remove_comps(flask.g.user, chroot)
+        coprs_logic.CoprChrootsLogic.update_chroot(
+            flask.g.user, chroot, buildroot_pkgs, repos, comps=comps_xml, comps_name=comps_name)
+        db.session.commit()
+
+    output = {
+        "output": "ok",
+        "message": "Edit chroot operation was successful.",
+        "chroot": chroot.to_dict(),
+    }
+    return flask.jsonify(output)
+
+
 @api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["GET"])
 @api_req_with_copr
 def copr_chroot_details(copr, chrootname):
+    """Deprecated to copr_get_chroot"""
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
     output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
     return flask.jsonify(output)
 
+@api_ns.route('/coprs/<username>/<coprname>/chroot/get/<chrootname>/', methods=["GET"])
+@api_req_with_copr
+def copr_get_chroot(copr, chrootname):
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
+    output = {'output': 'ok', 'chroot': chroot.to_dict()}
+    return flask.jsonify(output)
 
 @api_ns.route("/coprs/search/")
 @api_ns.route("/coprs/search/<project>/")
@@ -856,11 +913,51 @@ def copr_build_module(copr):
         raise LegacyApiError(form.errors)
 
     modulemd = form.modulemd.data.read()
-    ActionsLogic.send_build_module(flask.g.user, copr, modulemd)
-    db.session.commit()
+    module = ModulesLogic.from_modulemd(modulemd)
+    try:
+        module = ModulesLogic.add(flask.g.user, copr, module)
+        db.session.flush()
+        ActionsLogic.send_build_module(flask.g.user, copr, module)
+        db.session.commit()
 
-    return flask.jsonify({
+        return flask.jsonify({
+            "output": "ok",
+            "message": "Module build was submitted",
+            "modulemd": modulemd,
+        })
+
+    except sqlalchemy.exc.IntegrityError:
+        raise LegacyApiError({"nsv": ["Module {} already exists".format(module.nsv)]})
+
+
+@api_ns.route("/coprs/<username>/<coprname>/build-config/<chroot>/", methods=["GET"])
+@api_ns.route("/g/<group_name>/<coprname>/build-config/<chroot>/", methods=["GET"])
+@api_req_with_copr
+def copr_build_config(copr, chroot):
+    """
+    Generate build configuration.
+    """
+    output = {
         "output": "ok",
-        "message": "Module build was submitted",
-        "modulemd": modulemd,
-    })
+        "build_config": generate_build_config(copr, chroot),
+    }
+
+    if not output['build_config']:
+        raise LegacyApiError('Chroot not found.')
+
+    return flask.jsonify(output)
+
+
+@api_ns.route("/module/repo/", methods=["POST"])
+def copr_module_repo():
+    """
+    :return: URL to a DNF repository for the module
+    """
+    form = forms.ModuleRepo(csrf_enabled=False)
+    if not form.validate_on_submit():
+        raise LegacyApiError(form.errors)
+
+    copr = ComplexLogic.get_copr_by_owner_safe(form.owner.data, form.copr.data)
+    module = ModulesLogic.get_by_nsv(copr, form.name.data, form.stream.data, form.version.data).first()
+
+    return flask.jsonify({"output": "ok", "repo": module.repo_url(form.arch.data)})

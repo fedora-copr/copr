@@ -70,6 +70,10 @@ class CreateDBCommand(Command):
         alembic_cfg = Config(alembic_ini)
         command.stamp(alembic_cfg, "head")
 
+        # Functions are not covered by models.py, and no migrations are run
+        # by command.stamp() above.  Create functions explicitly:
+        builds_logic.BuildsLogic.init_db()
+
     option_list = (
         Option("--alembic",
                "-f",
@@ -191,6 +195,33 @@ class RawhideToReleaseCommand(Command):
     def has_rawhide(self, copr):
         return any(filter(lambda ch: ch.os_version == "rawhide", copr.mock_chroots))
 
+
+class BackendRawhideToReleaseCommand(RawhideToReleaseCommand):
+
+    "Copy backend data of the latest successful rawhide builds into a new chroot"
+
+    def run(self, rawhide_chroot, dest_chroot):
+        for copr in coprs_logic.CoprsLogic.get_all():
+            if not self.has_rawhide(copr):
+                continue
+
+            data = {"copr": copr.name,
+                    "user": copr.owner_name,
+                    "rawhide_chroot": rawhide_chroot,
+                    "dest_chroot": dest_chroot,
+                    "builds": []}
+
+            for package in packages_logic.PackagesLogic.get_all(copr.id):
+                last_build = package.last_build(successful=True)
+                if last_build:
+                    data["builds"].append(last_build.result_dir_name)
+
+            if len(data["builds"]):
+                actions_logic.ActionsLogic.send_rawhide_to_release(data)
+                print("Created copy action from {}/{} to {}/{}"
+                      .format(copr.full_name, rawhide_chroot, copr.full_name, dest_chroot))
+
+        db.session.commit()
 
 class AlterChrootCommand(ChrootCommand):
 
@@ -430,6 +461,7 @@ manager.add_command("update_indexes", UpdateIndexesCommand())
 manager.add_command("update_indexes_quick", UpdateIndexesQuickCommand())
 manager.add_command("generate_repo_packages", GenerateRepoPackagesCommand())
 manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
+manager.add_command("backend_rawhide_to_release", BackendRawhideToReleaseCommand())
 
 if __name__ == "__main__":
     manager.run()

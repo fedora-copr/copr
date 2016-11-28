@@ -101,26 +101,44 @@ WHERE package.copr_id = :copr_id;
                                            models.Package.name == package_name)
 
     @classmethod
-    def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, commits):
+    def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, payload):
         packages = (models.Package.query.join(models.Copr)
                     .filter(models.Copr.webhook_secret == webhook_secret)
                     .filter(models.Package.copr_id == copr_id)
                     .filter(models.Package.webhook_rebuild == true())
                     .filter(models.Package.source_json.contains(clone_url)))
+
         result = []
         for package in packages:
-            if cls.commits_belong_to_package(package, commits):
+            if cls.commits_belong_to_package(package, payload):
                 result += [package]
         return result
 
     @classmethod
-    def commits_belong_to_package(cls, package, commits):
+    def commits_belong_to_package(cls, package, payload):
+        ref = payload.get("ref", "")
+
         if package.source_type_text == "git_and_tito":
+            branch = package.source_json_dict["git_branch"]
+            if branch and not ref.endswith("/"+branch):
+                return False
+        elif package.source_type_text == "mock_scm":
+            branch = package.source_json_dict["scm_branch"]
+            if branch and not ref.endswith("/"+branch):
+                return False
+
+        commits = payload.get("commits", [])
+
+        if package.source_type_text == "git_and_tito":
+            path_match = False
             for commit in commits:
                 for file_path in commit['added'] + commit['removed'] + commit['modified']:
                     if cls.path_belong_to_package(package, file_path):
-                        return True
-            return False
+                        path_match = True
+                        break
+            if not path_match:
+                return False
+
         return True
 
     @classmethod

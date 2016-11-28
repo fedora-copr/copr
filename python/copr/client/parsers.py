@@ -1,6 +1,6 @@
 __docformat__ = "restructuredtext en"
 
-from .responses import ProjectWrapper, BuildWrapper, ProjectChrootWrapper, PackageWrapper
+from .responses import ProjectWrapper, BuildWrapper, ProjectChrootWrapper, PackageWrapper, CoprChrootWrapper
 
 
 class IParser(object):
@@ -44,6 +44,10 @@ def fabric_simple_fields_parser(fields, name=None):
 
 CommonMsgErrorOutParser = fabric_simple_fields_parser(
     ["output", "message", "error"], "CommonMsgErrorOutParser"
+)
+
+BuildConfigParser = fabric_simple_fields_parser(
+    ["build_config"], "BuildConfigParser"
 )
 
 
@@ -162,6 +166,7 @@ class PackageListParser(IParser):
         else:
             raise KeyError("Field `{}` not supported by parser".format(field))
 
+
 class PackageParser(IParser):
     provided_fields = set(["package"])
 
@@ -173,6 +178,23 @@ class PackageParser(IParser):
                 ownername=request_kwargs["ownername"]
                 projectname=request_kwargs["projectname"]
                 return PackageWrapper(client=client, ownername=ownername, projectname=projectname, **data['package'])
+            else:
+                raise KeyError("Response missing data about projects")
+        else:
+            raise KeyError("Field `{}` not supported by parser".format(field))
+
+
+class CoprChrootParser(IParser):
+    provided_fields = set(["chroot"])
+
+    @staticmethod
+    def parse(data, field, client=None, **kwargs):
+        request_kwargs = kwargs.get("request_kwargs")
+        if field == "chroot":
+            if "chroot" in data:
+                ownername=request_kwargs["ownername"]
+                projectname=request_kwargs["projectname"]
+                return CoprChrootWrapper(client=client, ownername=ownername, projectname=projectname, **data['chroot'])
             else:
                 raise KeyError("Response missing data about projects")
         else:

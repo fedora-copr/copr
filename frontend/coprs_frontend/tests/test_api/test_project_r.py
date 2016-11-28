@@ -12,6 +12,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.models import Copr
+from coprs.whoosheers import CoprWhoosheer
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -94,9 +95,10 @@ class TestProjectResource(CoprsTestCase):
         self.s_coprs = []
         c1_username = self.c1.user.username
 
+        writer = CoprWhoosheer.index.writer()
+
         k1 = 3
         k2 = 5
-        k1 = k2 = 0 # FIXME: test disable to make build passed (functionality covered by regtests)
         for x in range(k1):
             self.s_coprs.append(Copr(name=self.prefix + str(x), user=self.u1))
 
@@ -105,6 +107,10 @@ class TestProjectResource(CoprsTestCase):
 
         self.db.session.add_all(self.s_coprs)
         self.db.session.commit()
+
+        for copr in self.s_coprs:
+            CoprWhoosheer.insert_copr(writer, copr)
+        writer.commit(optimize=True)
 
         r0 = self.tc.get(u"/api_2/projects?search_query={}".format(self.prefix))
         assert r0.status_code == 200

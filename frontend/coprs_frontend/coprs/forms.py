@@ -8,12 +8,14 @@ import json
 from flask_wtf.file import FileAllowed, FileRequired, FileField
 
 from flask.ext import wtf
+from jinja2 import Markup
 
 from coprs import constants
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs.logic.modules_logic import ModulesLogic
 from coprs.models import Package
 from exceptions import UnknownSourceTypeException
 
@@ -245,6 +247,7 @@ class CoprFormFactory(object):
             build_enable_net = wtforms.BooleanField(default=False)
             unlisted_on_hp = wtforms.BooleanField("Do not display this project on home page", default=False)
             persistent = wtforms.BooleanField(default=False)
+            auto_prune = wtforms.BooleanField("If backend auto-prunning script should be run for this project", default=True)
 
             @property
             def selected_chroots(self):
@@ -583,6 +586,11 @@ class ChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField(
         "Packages")
 
+    repos = wtforms.TextAreaField('Repos',
+                                  validators=[UrlRepoListValidator(),
+                                              wtforms.validators.Optional()],
+                                  filters=[StringListFilter()])
+
     module_md = FileField("module_md")
 
     comps = FileField("comps_xml")
@@ -666,6 +674,7 @@ class CoprModifyForm(wtf.Form):
     disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
     unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
     build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
+    auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
 
 
 class CoprForkFormFactory(object):
@@ -695,6 +704,12 @@ class CoprForkFormFactory(object):
 
 class ModifyChrootForm(wtf.Form):
     buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
+    repos = wtforms.TextAreaField('Additional repos to be used for builds in chroot',
+                                  validators=[UrlRepoListValidator(),
+                                              wtforms.validators.Optional()],
+                                  filters=[StringListFilter()])
+    upload_comps = FileField("Upload comps.xml")
+    delete_comps = wtforms.BooleanField("Delete comps.xml")
 
 
 class AdminPlaygroundForm(wtf.Form):
@@ -732,15 +747,25 @@ class ActivateFasGroupForm(wtf.Form):
 
 class CreateModuleForm(wtf.Form):
     name = wtforms.StringField("Name")
-    version = wtforms.StringField("Version")
-    release = wtforms.StringField("Release")
+    stream = wtforms.StringField("Stream")
+    version = wtforms.IntegerField("Version")
     filter = wtforms.FieldList(wtforms.StringField("Package Filter"))
     api = wtforms.FieldList(wtforms.StringField("Module API"))
     profile_names = wtforms.FieldList(wtforms.StringField("Install Profiles"), min_entries=2)
     profile_pkgs = wtforms.FieldList(wtforms.FieldList(wtforms.StringField("Install Profiles")), min_entries=2)
 
+    def __init__(self, copr=None, *args, **kwargs):
+        self.copr = copr
+        super(CreateModuleForm, self).__init__(*args, **kwargs)
+
     def validate(self):
         if not wtf.Form.validate(self):
+            return False
+
+        module = ModulesLogic.get_by_nsv(self.copr, self.name.data, self.stream.data, self.version.data).first()
+        if module:
+            self.errors["nsv"] = [Markup("Module <a href='{}'>{}</a> already exists".format(
+                helpers.copr_url("coprs_ns.copr_module", module.copr, id=module.id), module.full_name))]
             return False
 
         # Profile names should be unique
@@ -759,3 +784,12 @@ class CreateModuleForm(wtf.Form):
                     self.errors["profiles"] = ["Missing profile name"]
                     return False
         return True
+
+
+class ModuleRepo(wtf.Form):
+    owner = wtforms.StringField("Owner Name", validators=[wtforms.validators.DataRequired()])
+    copr = wtforms.StringField("Copr Name", validators=[wtforms.validators.DataRequired()])
+    name = wtforms.StringField("Name", validators=[wtforms.validators.DataRequired()])
+    stream = wtforms.StringField("Stream", validators=[wtforms.validators.DataRequired()])
+    version = wtforms.IntegerField("Version", validators=[wtforms.validators.DataRequired()])
+    arch = wtforms.StringField("Arch", validators=[wtforms.validators.DataRequired()])

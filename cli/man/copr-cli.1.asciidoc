@@ -35,7 +35,7 @@ path to an alternative configuration file (default is ~/.config/copr).
 ACTION LIST
 -----------
 
-list [username]::
+list [username|@groupname]::
 List all the projects of the provided username. If no username is provided,
 then your projects are listed.
 
@@ -84,6 +84,9 @@ Clear source definition of a package and its source type
 build-package::
 Build package from its source definition
 
+mock-config::
+Get the mock profile (similar to koji mock-config)
+
 
 PROJECT ACTIONS
 ---------------
@@ -99,6 +102,7 @@ usage: copr-cli create [-h] --chroot CHROOTS [--repo REPOS]
                        [--enable-net {on,off}]
                        [--unlisted-on-hp {on,off}]
                        [--persistent]
+                       [--auto-prune {on,off}]
                        name
 
 --chroot::
@@ -128,6 +132,11 @@ This project will not be listed on COPR home page.
 --persistent::
 Project and its builds will be undeletable. This option can only be specified by a COPR admin.
 
+--auto-prune::
+If backend auto-prunning script should be run for this project. This option can only be specified by a COPR admin.
+
+name::
+Can be just name of the project or in form username/projectname or @groupname/projectname.
 
 `copr-cli modify [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -138,6 +147,7 @@ usage: copr-cli modify [-h] [--repo REPOS]
                        [--disable_createrepo DISABLE_CREATEREPO]
                        [--enable-net {on,off}]
                        [--unlisted-on-hp {on,off}]
+                       [--auto-prune {on,off}]
                        name
 
 Alters only specified project property.
@@ -160,6 +170,11 @@ If net should be enabled for builds in this project.
 --unlisted-on-hp::
 This project will not be listed on COPR home page.
 
+--auto-prune::
+If backend auto-prunning script should be run for this project. This option can only be specified by a COPR admin.
+
+name::
+Can be just name of the project or in form username/projectname or @groupname/projectname.
 
 BUILD ACTIONS
 -------------
@@ -270,6 +285,24 @@ Relative path from SCM root to .spec file, required.
 For the rest of the arguments, see `copr-cli build` command above.
 
 
+`copr-cli buildfedpkg [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr buildfedpkg [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                      [--background]
+                      [-r CHROOTS] [--clone-url URL] [--branch BRANCH]
+                      project
+
+--clone-url URL::
+Specify clone url to the dist-git project on pkgs.fedoraproject.org.
+
+--branch BRANCH::
+Specify branch in the dist-git project to be be built from.
+
+
+For the rest of the arguments, see `copr-cli build` command above.
+
+
 `copr-cli download-build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -292,6 +325,45 @@ EXAMPLES
  copr-cli build myproject some.src.rpm
  copr-cli build someone_else/project some.src.rpm
  copr-cli build -r fedora-24-x86_64 -r fedora-24-i386 "@somegroup/project" some.src.rpm
+
+
+CHROOT ACTIONS
+--------------
+
+`copr-cli edit-chroot [options] coprchroot`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr edit-chroot [-h] [--upload-comps FILEPATH | --delete-comps]
+                        [--packages PACKAGES] [--repos REPOS]
+                        coprchroot
+
+Edit the specified coprchroot.
+
+coprchroot::            
+Path to a project chroot as owner/project/chroot or project/chroot
+
+--upload-comps FILEPATH::
+Filepath to the comps.xml file to be uploaded
+
+--delete-comps::
+Deletes already existing comps.xml for the chroot
+
+--packages PACKAGES::   
+space separated string of package names to be added to buildroot (e.g. "gcc ghc")
+
+--repos REPOS::
+space separated string of additional repo urls for chroot (e.g. "http://foo http://bar")
+
+
+`copr-cli get-chroot coprchroot`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr get-chroot [-h] coprchroot
+
+Print info of the given chroot.
+
+coprchroot::  
+Path to a project chroot as owner/project/chroot or project/chroot
 
 
 PACKAGE ACTIONS
@@ -504,6 +576,15 @@ Name of a package to be built
 
 For the rest of the arguments, see `copr-cli build` command above.
 
+`copr-cli mock-config [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr mock-config [-h] project chroot
+
+Get the mock profile (similar to koji mock-config), print it to standard
+output.  The configuration can be slightly different from the real mock
+configuration used by Copr Builders, but should be similar enough for basic
+debugging (e.g. by mock --shell).
+
 
 EXAMPLES
 --------
@@ -514,6 +595,8 @@ EXAMPLES
   copr-cli build-package myproject --name pkgname --nowait --timeout 10000 -r fedora-23-x86_64
 
   copr-cli delete-package myproject --name pkgname
+
+  copr-cli mock-config myproject fedora-rawhide-x86_64
 
 
 EXIT STATUS

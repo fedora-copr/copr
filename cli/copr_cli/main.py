@@ -32,6 +32,7 @@ from copr import CoprClient
 import copr.exceptions as copr_exceptions
 
 from .util import ProgressBar
+from .build_config import MockProfile
 
 
 no_config_warning = """
@@ -277,7 +278,8 @@ class Commands(object):
             disable_createrepo=args.disable_createrepo,
             unlisted_on_hp=(args.unlisted_on_hp == 'on'),
             enable_net=(args.enable_net == 'on'),
-            persistent=args.persistent
+            persistent=args.persistent,
+            auto_prune=(args.auto_prune == 'on')
         )
         print(result.message)
 
@@ -294,7 +296,8 @@ class Commands(object):
             description=args.description, instructions=args.instructions,
             repos=args.repos, disable_createrepo=args.disable_createrepo,
             unlisted_on_hp=(args.unlisted_on_hp == 'on' if args.unlisted_on_hp else None),
-            enable_net=(args.enable_net == 'on' if args.enable_net else None)
+            enable_net=(args.enable_net == 'on' if args.enable_net else None),
+            auto_prune=(args.auto_prune == 'on' if args.auto_prune else None)
         )
 
     @requires_api_auth
@@ -318,6 +321,27 @@ class Commands(object):
         username, copr = parse_name(args.dst)
         result = self.client.fork_project(source=args.src, username=username, projectname=copr, confirm=args.confirm)
         print(result.message)
+
+
+    def action_mock_config(self, args):
+        """ Method called when the 'list' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+
+        """
+        username = self.client.username
+        project = args.project.split("/")
+        if len(project) != 2:
+            args.project = username + "/" + args.project
+
+        result = self.client.get_build_config(args.project, args.chroot)
+        if result.output != "ok":
+            print(result.error)
+            print("Un-expected data returned, please report this issue")
+
+        print(MockProfile(result.build_config))
+
 
     @check_username_presence
     def action_list(self, args):
@@ -373,6 +397,37 @@ class Commands(object):
     def action_delete_build(self, args):
         result = self.client.delete_build(args.build_id)
         print(result.status)
+
+    #########################################################
+    ###                   Chroot actions                  ###
+    #########################################################
+
+    @requires_api_auth
+    def action_edit_chroot(self, args):
+        """ Method called when the 'edit-chroot' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+        """
+        owner, copr, chroot = parse_chroot_path(args.coprchroot)
+        result = self.client.edit_chroot(
+            ownername=owner, projectname=copr, chrootname=chroot,
+            upload_comps=args.upload_comps, delete_comps=args.delete_comps,
+            packages=args.packages, repos=args.repos
+        )
+        print(result.message)
+
+    def action_get_chroot(self, args):
+        """ Method called when the 'get-chroot' action has been selected by the
+        user.
+
+        :param args: argparse arguments provided by the user
+        """
+        owner, copr, chroot = parse_chroot_path(args.coprchroot)
+        result = self.client.get_chroot(
+            ownername=owner, projectname=copr, chrootname=chroot
+        )
+        print(simplejson.dumps(result.chroot, indent=4, sort_keys=True, for_json=True))
 
     #########################################################
     ###                   Package actions                 ###
@@ -533,11 +588,25 @@ def setup_parser():
              "provided "
     )
     parser_list.add_argument(
-        "username", nargs="?",
-        help="The username that you would like to "
-             "list the copr of (defaults to current user)"
+        "username", metavar="username|@groupname", nargs="?",
+        help="The username or @groupname that you would like to "
+             "list the coprs of (defaults to current user)"
     )
     parser_list.set_defaults(func="action_list")
+
+    parser_mock_config = subparsers.add_parser(
+        "mock-config",
+        help="Get the mock profile (similar to koji mock-config)"
+    )
+    parser_mock_config.add_argument(
+        "project",
+        help="Expected format is <user>/<project>, <group>/<project> (including '@') or <project> (name of project you own)."
+    )
+    parser_mock_config.add_argument(
+        "chroot",
+        help="chroot id, e.g. 'fedora-rawhide-x86_64'"
+    )
+    parser_mock_config.set_defaults(func="action_mock_config")
 
     # create the parser for the "create" command
     parser_create = subparsers.add_parser("create", help="Create a new copr")
@@ -563,6 +632,9 @@ def setup_parser():
                                help="The project will not be shown on COPR home page")
     parser_create.add_argument("--persistent", action="store_true",
                                help="Project and its builds will be undeletable. This option can only be specified by a COPR admin.")
+    parser_create.add_argument("--auto-prune", choices=["on", "off"], default="on",
+                               help="If auto-deletion of project's obsoleted builds should be enabled (default is on).\
+                               This option can only be specified by a COPR admin.")
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
@@ -581,6 +653,9 @@ def setup_parser():
                                help="If net should be enabled for builds in this project (default is \"don't change\")")
     parser_modify.add_argument("--unlisted-on-hp", choices=["on", "off"],
                                help="The project will not be shown on COPR home page")
+    parser_modify.add_argument("--auto-prune", choices=["on", "off"],
+                               help="If auto-deletion of project's obsoleted builds should be enabled.\
+                               This option can only be specified by a COPR admin.")
     parser_modify.set_defaults(func="action_modify_project")
 
     # create the parser for the "delete" command
@@ -643,7 +718,7 @@ def setup_parser():
     # parent parser for the builds commands below
     parser_build_parent = argparse.ArgumentParser(add_help=False)
     parser_build_parent.add_argument("copr",
-                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project.")
+                                     help="The copr repo to build the package in. Can be just name of project or even in format username/project or @groupname/project.")
     parser_build_parent.add_argument("--memory", dest="memory",
                                      help="")
     parser_build_parent.add_argument("--timeout", dest="timeout",
@@ -722,6 +797,28 @@ def setup_parser():
 
 
     #########################################################
+    ###                   Chroot options                  ###
+    #########################################################
+
+    parser_edit_chroot = subparsers.add_parser("edit-chroot", help="Edit chroot of a project")
+    parser_edit_chroot.add_argument("coprchroot", help="Path to a project chroot as owner/project/chroot or project/chroot")
+    parser_edit_chroot_comps_group = parser_edit_chroot.add_mutually_exclusive_group()
+    parser_edit_chroot_comps_group.add_argument("--upload-comps", metavar="FILEPATH",
+                                                  help="filepath to the comps.xml file to be uploaded")
+    parser_edit_chroot_comps_group.add_argument("--delete-comps", action="store_true",
+                                                  help="deletes already existing comps.xml for the chroot")
+
+    parser_edit_chroot.add_argument("--packages",
+                                      help="space separated string of package names to be added to buildroot")
+    parser_edit_chroot.add_argument("--repos",
+                                      help="space separated string of additional repo urls for chroot")
+    parser_edit_chroot.set_defaults(func="action_edit_chroot")
+
+    parser_get_chroot = subparsers.add_parser("get-chroot", help="Get chroot of a project")
+    parser_get_chroot.add_argument("coprchroot", help="Path to a project chroot as owner/project/chroot or project/chroot")
+    parser_get_chroot.set_defaults(func="action_get_chroot")
+
+    #########################################################
     ###                   Package options                 ###
     #########################################################
 
@@ -731,7 +828,7 @@ def setup_parser():
                                                    help="Name of the package to be edited or created",
                                                    metavar="PKGNAME", required=True)
     parser_add_or_edit_package_parent.add_argument("copr",
-                                                   help="The copr repo for the package. Can be just name of project or even in format username/project.")
+                                                   help="The copr repo for the package. Can be just name of project or even in format username/project or @groupname/project.")
     parser_add_or_edit_package_parent.add_argument("--webhook-rebuild",
                                                    choices=["on", "off"], help="Enable auto-rebuilding.")
 
@@ -854,6 +951,12 @@ def parse_name(name):
     else:
         owner = None
     return owner, name
+
+def parse_chroot_path(path):
+    m = re.match(r"(([^/]+)/)?([^/]+)/(.*)", path)
+    if m:
+        return m.group(2), m.group(3), m.group(4)
+    return None
 
 
 def enable_debug():

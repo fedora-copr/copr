@@ -1,0 +1,71 @@
+#! /bin/sh -x
+
+opt_static_files=coprs_frontend/coprs/static
+opt_base_color='#214d8b'
+# opt_base_color='#900000' #  Red Hat Internal Copr
+
+# We don't have to be too much careful when arg-parsing ..
+while test $# -gt 0
+do
+    case $1 in
+        --*)
+            opt=${1##--}
+            opt=${opt//-/_}
+            echo $opt
+            shift
+            eval opt_$opt=\$1
+            shift
+            ;;
+        *)
+            shift
+            continue
+            ;;
+    esac
+done
+
+mkdir -p "$opt_static_files/css"
+
+cat <<EOF | lessc -x - | tee $opt_static_files/css/style-overwrite.css
+@base: $opt_base_color;
+@lighten: lighten(@base, 10%);
+a {
+    color: @lighten;
+}
+a:hover, a:focus {
+    color: @base;
+}
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active {
+    color: @base;
+}
+h3 a {
+    color: @base!important;
+}
+
+.btn-primary {
+    background-color: @base;
+    background-image: linear-gradient(to bottom, @lighten 0px, @base 100%);
+    border-color: @lighten;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: lighten(@base, 25%);
+    border-color: lighten(@base, 25%);
+}
+
+table.datatable thead .sorting_asc, table.datatable thead .sorting_desc {
+    color: @base !important;
+}
+EOF
+
+lighten_base ()
+{
+    lessc - <<EOF | grep unused-color | sed 's|.*unused-color: \(#.*\);.*|\1|'
+@background_light: lighten($opt_base_color, 10%);
+.unused-background-hack { unused-color: @background_light; };
+EOF
+}
+
+convert -size 1x81 \
+    gradient:"$(lighten_base)"-"$opt_base_color" \
+    -define png:exclude-chunks=date,time \
+    $opt_static_files/header_background.png

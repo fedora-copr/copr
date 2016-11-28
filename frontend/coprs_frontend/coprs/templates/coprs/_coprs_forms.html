@@ -126,6 +126,11 @@
         <div class="checkbox">
           {{ form.build_enable_net }} Enable internet access during builds
         </div>
+        {% if g.user.admin %}
+        <div class="checkbox">
+          {{ form.auto_prune }} Build auto-prunning script will be run for the project
+        </div>
+        {% endif %}
         <div class="checkbox">
           {{ form.unlisted_on_hp }} Project will not be listed on home page
         </div>

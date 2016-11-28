@@ -30,16 +30,12 @@ def webhooks_hello(copr_id, uuid):
         return access_restricted("This webhook is not valid")
 
     try:
-        request_json = flask.request.json
-        clone_url = request_json["repository"]["clone_url"]
+        payload = flask.request.json
+        clone_url = payload["repository"]["clone_url"]
     except KeyError:
         return "Bad Request", 400
-    if "commits" in request_json:
-        commits = request_json["commits"]
-    else:
-        commits = []
 
-    packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url, commits)
+    packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url, payload)
 
     for package in packages:
         BuildsLogic.rebuild_package(package)

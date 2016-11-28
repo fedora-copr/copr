@@ -238,7 +238,7 @@ class CoprsTestCase(object):
             status = None
             if build is self.b1:  # this build is going to be deleted
                 status = StatusEnum("succeeded")
-            for chroot in build.copr.active_chroots: # FIXME (in some way): build.copr.active_chroots is empty at this point so no chroots are added, tests passes but for a wrong reason
+            for chroot in build.copr.active_chroots:
                 buildchroot = models.BuildChroot(
                     build=build,
                     mock_chroot=chroot,
@@ -385,6 +385,17 @@ class CoprsTestCase(object):
                                 created_on=int(time.time()))
         self.db.session.add_all([self.a1, self.a2, self.a3])
 
+    @pytest.fixture
+    def f_modules(self):
+        self.m1 = models.Module(name="first-module", stream="foo", version=1, copr_id=self.c1.id, copr=self.c1,
+                                summary="Sum 1", description="Desc 1", created_on=time.time())
+        self.m2 = models.Module(name="second-module", stream="bar", version=3, copr_id=self.c1.id, copr=self.c1,
+                                summary="Sum 2", description="Desc 2", created_on=time.time())
+        self.m3 = models.Module(name="third-module", stream="baz", version=1, copr_id=self.c2.id, copr=self.c2,
+                                summary="Sum 3", description="Desc 3", created_on=time.time())
+        self.db.session.add_all([self.m1, self.m2, self.m3])
+
+
     def request_rest_api_with_auth(self, url,
                                    login=None, token=None,
                                    content=None, method="GET",
@@ -426,6 +437,15 @@ class CoprsTestCase(object):
         base64string_user = base64.b64encode(userstring)
         base64string = b"Basic " + base64string_user
         return base64string
+
+    def post_api_with_auth(self, url, content, user):
+        return self.tc.post(
+            url,
+            data=content,
+            headers={
+                "Authorization": self._get_auth_string(user.api_login, user.api_token)
+            }
+        )
 
 
 class TransactionDecorator(object):

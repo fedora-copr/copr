@@ -44,7 +44,8 @@ from .responses import ProjectHandle, \
 
 from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     CommonMsgErrorOutParser, NewBuildListParser, ProjectChrootsParser, \
-    ProjectDetailsFieldsParser, PackageListParser, PackageParser
+    ProjectDetailsFieldsParser, PackageListParser, PackageParser, \
+    BuildConfigParser, CoprChrootParser
 
 from ..util import UnicodeMixin
 
@@ -1036,7 +1037,9 @@ class CoprClient(UnicodeMixin):
     def create_project(
             self, username, projectname, chroots,
             description=None, instructions=None,
-            repos=None, initial_pkgs=None, disable_createrepo=None, unlisted_on_hp=False, enable_net=True, persistent=False
+            repos=None, initial_pkgs=None, disable_createrepo=None,
+            unlisted_on_hp=False, enable_net=True, persistent=False,
+            auto_prune=True
     ):
         """ Creates a new copr project
             Auth required.
@@ -1050,6 +1053,7 @@ class CoprClient(UnicodeMixin):
             :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
             :param enable_net: [optional] If builder can access net for builds in this project
             :param persistent: [optional] If builds and the project are undeletable
+            :param auto_prune: [optional] If backend auto-deletion script should be run for the project
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1086,6 +1090,7 @@ class CoprClient(UnicodeMixin):
             "unlisted_on_hp": "y" if unlisted_on_hp else "",
             "build_enable_net": "y" if enable_net else "",
             "persistent": "y" if persistent else "",
+            "auto_prune": "y" if auto_prune else "",
         }
         for chroot in chroots:
             request_data[chroot] = "y"
@@ -1107,7 +1112,8 @@ class CoprClient(UnicodeMixin):
 
     def modify_project(self, projectname, username=None,
                        description=None, instructions=None,
-                       repos=None, disable_createrepo=None, unlisted_on_hp=None, enable_net=None):
+                       repos=None, disable_createrepo=None, unlisted_on_hp=None,
+                       enable_net=None, auto_prune=None):
         """ Modifies main project configuration.
             Auth required.
 
@@ -1121,6 +1127,7 @@ class CoprClient(UnicodeMixin):
             :param disable_createrepo: [optional] disables automatic repo meta-data regeneration
             :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
             :param enable_net: [optional] If builder can access net for builds in this project
+            :param auto_prune: [optional] If backend auto-deletion script should be run for the project
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1148,6 +1155,8 @@ class CoprClient(UnicodeMixin):
             data["unlisted_on_hp"] = "y" if unlisted_on_hp else ""
         if enable_net != None:
             data["build_enable_net"] = "y" if enable_net else ""
+        if auto_prune != None:
+            data["auto_prune"] = "y" if auto_prune else ""
 
         result_data = self._fetch(url, data=data, method="post")
 
@@ -1196,6 +1205,107 @@ class CoprClient(UnicodeMixin):
                                      response=response)
         return response
 
+    def edit_chroot(self, projectname, chrootname, ownername=None,
+                      upload_comps=None, delete_comps=None, packages=None, repos=None):
+        """ Edits chroot settings.
+            Auth required.
+
+            :param projectname: Copr project name
+            :param chrootname: chroot name
+            :param ownername: [optional] owner of the project
+            :param upload_comps: file path to the comps.xml file
+            :param delete_comps: True if comps.xml should be removed
+            :param packages: buildroot packages for the chroot
+            :param repos: buildroot additional repos
+
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - **handle:** :py:class:`~.responses.ProjectHandle`
+                - text fields: "buildroot_pkgs"
+        """
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/chroot/edit/{3}/".format(
+            self.api_url, ownername, projectname, chrootname
+        )
+        multipart = False
+        headers = None
+        data = {}
+        if upload_comps:
+            try:
+                f = open(upload_comps, "rb")
+                data["upload_comps"] = (os.path.basename(f.name), f, "application/text")
+                multipart = True
+            except IOError as e:
+                raise CoprRequestException(e)
+        if delete_comps != None:
+            data["delete_comps"] = "y" if delete_comps else ""
+        if packages != None:
+            data["buildroot_pkgs"] = packages
+        if repos != None:
+            data["repos"] = repos
+
+        if multipart:
+            data = MultipartEncoder(data)
+            headers={'Content-Type': data.content_type}
+
+        result_data = self._fetch(url, data, method="post", headers=headers)
+
+        response = CoprResponse(
+            client=self,
+            method="post",
+            data=result_data,
+            request_kwargs={
+                "projectname": projectname,
+                "ownername": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+                CoprChrootParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname,
+            username=ownername
+        )
+        return response
+
+    def get_chroot(self, projectname, ownername, chrootname=None):
+        """Returns copr_chroot data"""
+
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/chroot/get/{3}/".format(
+            self.api_url, ownername, projectname, chrootname
+        )
+        resp_data = self._fetch(url)
+
+        response = CoprResponse(
+            client=self,
+            method="get",
+            data=resp_data,
+            request_kwargs={
+                "projectname": projectname,
+                "ownername": ownername
+            },
+            parsers=[
+                CommonMsgErrorOutParser,
+                CoprChrootParser,
+            ]
+        )
+        response.handle = BaseHandle(
+            self, response=response,
+            projectname=projectname,
+            username=ownername
+        )
+
+        return response
+
     def get_project_chroot_details(self, projectname,
                                    chrootname, username=None):
         """ Returns details of chroot used in project
@@ -1237,7 +1347,8 @@ class CoprClient(UnicodeMixin):
 
     def modify_project_chroot_details(self, projectname, chrootname,
                                       pkgs=None, username=None):
-        """ Modifies chroot used in project
+        """ @deprecated to edit_chroot
+            Modifies chroot used in project
 
             :param projectname: Copr project name
             :param chrootname: chroot name
@@ -1302,6 +1413,65 @@ class CoprClient(UnicodeMixin):
             client=self,
             method="search_projects",
             data=data,
+            parsers=[
+                CommonMsgErrorOutParser,
+                ProjectListParser
+            ]
+        )
+        response.handle = BaseHandle(client=self, response=response)
+        return response
+
+    def get_build_config(self, project, chroot):
+        """
+        Return build configuration for given project/chroot.
+        :param project: project name, e.g. USER/PROJ, or @GROUP/PROJ.
+        :param chroot: chroot name, e.g. fedora-rawhide-x86_64
+        :return: :py:class:`~.responses.CoprResponse`
+            with additional fields:
+            - **build_config**: generated build config contents (dict)
+        """
+        url = "{0}/coprs/{1}/build-config/{2}".format(
+            self.api_url,
+            project,
+            chroot,
+        )
+        data = self._fetch(url, skip_auth=True)
+        response = CoprResponse(
+            client=self,
+            method="get_build_config",
+            data=data,
+            parsers=[
+                CommonMsgErrorOutParser,
+                BuildConfigParser,
+            ]
+        )
+        return response
+
+    def get_module_repo(self, owner, copr, name, stream, version, arch):
+        """ Gets URL to module DNF repository
+
+            :param owner: str owner name (can be user or @group)
+            :param copr: str copr name
+            :param name: str module name
+            :param stream: str module stream
+            :param version: int module version
+            :param arch: str build architecture
+
+            :return: :py:class:`~.responses.CoprResponse`
+                with additional fields:
+
+                - **handle:** :py:class:`~.responses.BaseHandle`
+                - text fields: "repo"
+
+        """
+        url = "{}/module/repo/".format(self.api_url)
+        data = {"owner": owner, "copr": copr, "name": name, "stream": stream, "version": version, "arch": arch}
+
+        fetch = self._fetch(url, data=data, skip_auth=True, method="post")
+        response = CoprResponse(
+            client=self,
+            method="get_module_repo",
+            data=fetch,
             parsers=[
                 CommonMsgErrorOutParser,
                 ProjectListParser

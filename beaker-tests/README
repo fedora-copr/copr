@@ -2,3 +2,84 @@ This is a repo for tests for copr.
 
 See https://home.corp.redhat.com/wiki/using-dist-git#Working_with_tests for
 information on how to use this repo.
+
+****************************************************
+*                  Regression tests                *
+****************************************************
+
+How to run the tests
+--------------------
+Switch into the respective component directory you would like to test e.g.
+
+cd Regression/dist-git
+
+and then use the runtest.sh script to execute the tests.
+
+./runtest.sh : run tests with system setup (./setup.sh needs to be present)
+./runtest.sh -x : just run tests (without system setup)
+./runtest.sh -r <batch_name> : run just one batch (<batch_name> is some subdirectory of ./tests), you can also add -x option to avoid the system setup
+
+Tests are run from the tests subdirectory that contains individual test batches (collections).
+If you want to run just a single test batch, you can also do it in the following way:
+
+cd tests/<batch_name>/
+./run.sh
+
+Requirements to run the tests
+-----------------------------
+To run beaker tests locally (not on a Beaker machine), you need the following packages
+to be installed (from http://beaker-project.org/yum/client/Fedora$releasever/).
+
+- rhts-test-env
+- beakerlib
+
+If they are not installed, the runtest.sh script will attempt to install them with sudo.
+
+How to run tests in a container
+-------------------------------
+Run the following command to get the container shell:
+
+cd DockerTestEnv
+make build && make run
+make sh
+
+and then just continue with steps in "How to run the tests" ;).
+
+How to write a new test (batch)
+-------------------------------
+cd tests
+cp -r test-template ./new-batch
+...and edit new-batch/run.sh...
+
+Hints for writing a new test
+----------------------------
+Look into tests/* for examples of already written tests. They largely employ copr-mocks-frontend package which can supply
+import, build, and action tasks to backend based on the content of the repectively named input files. It also dumps results
+file, in the end, on which tests can be run. Often a new test can be done simply by adding a new task (import/build/action) 
+in an already existing test batch using copr-mocks-frontend.
+
+
+****************************************************
+*                    Sanity tests                  *
+****************************************************
+
+They should rather be called "Integration" tests as they mostly test the whole COPR stack from copr-cli to backend.
+Note that they are actually not isolated (you need a network) because they run against copr-*-dev.fedorainfracloud.org machines
+
+How to run the tests
+--------------------
+Go into Sanity/copr-cli-basic-operations and run the runtest.sh script:
+
+./runtest.sh
+
+Requirements to run the tests
+-----------------------------
+To run beaker tests locally (not on a Beaker machine), you need the following packages
+to be installed (from http://beaker-project.org/yum/client/Fedora$releasever/).
+
+- rhts-test-env
+- beakerlib
+
+Next, you cannot run Sanity/copr-cli-basic-operations/runtest.sh without first running
+Install/Config-copr-cli/runtest.sh which needs root access to setup the system into the
+required state. That's why you might want to run the test inside a container.

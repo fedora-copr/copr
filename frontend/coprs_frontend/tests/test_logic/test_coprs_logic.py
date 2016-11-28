@@ -31,6 +31,8 @@ class TestCoprsLogic(CoprsTestCase):
         self.prefix = u"prefix"
         self.s_coprs = []
 
+        writer = CoprWhoosheer.index.writer()
+
         u1_count = 150
         for x in range(u1_count):
             self.s_coprs.append(models.Copr(name=self.prefix + str(x), user=self.u1))
@@ -46,7 +48,11 @@ class TestCoprsLogic(CoprsTestCase):
         self.db.session.add_all(self.s_coprs)
         self.db.session.commit()
 
-        # query = CoprsLogic.get_multiple_fulltext("prefix")
+        for copr in self.s_coprs:
+            CoprWhoosheer.insert_copr(writer, copr)
+        writer.commit(optimize=True)
+
+        query = CoprsLogic.get_multiple_fulltext("prefix")
         pre_query = models.Copr.query.join(models.User).filter(models.Copr.deleted == False)
 
         query = pre_query.whooshee_search(self.prefix, whoosheer=CoprWhoosheer) # needs flask-whooshee-0.2.0
@@ -58,7 +64,6 @@ class TestCoprsLogic(CoprsTestCase):
         obtained = len(results)
         expected = u1_count + u2_count
 
-        expected = obtained = 0 # FIXME: test disabled to make this build (functionality is covered by regtests)
         assert obtained == expected
 
     def test_copr_logic_add_sends_create_gpg_key_action(self, f_users, f_mock_chroots, f_db):

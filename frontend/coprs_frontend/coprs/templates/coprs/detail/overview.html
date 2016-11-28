@@ -41,7 +41,7 @@
         <tr>
           <th>Release</th>
           <th>Architectures</th>
-          <th>Repo Download </th>
+          <th>Repo Download</th>
         </tr>
       </thead>
       <tbody>
@@ -187,6 +187,9 @@
     <ul>
         {% for pkg in chroot.buildroot_pkgs.split(" "): %}
         <li>{{ pkg }}</li>
+        {% endfor %}
+        {% for repo in chroot.repos_list: %}
+        <li>{{ repo }}</li>
         {% endfor %}
     </ul>
 </div>

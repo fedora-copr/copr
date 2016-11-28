@@ -91,6 +91,12 @@ class ComplexLogic(object):
                         .format(user_name, copr_name))
 
     @staticmethod
+    def get_copr_by_owner_safe(owner_name, copr_name, **kwargs):
+        if owner_name[0] == "@":
+            return ComplexLogic.get_group_copr_safe(owner_name[1:], copr_name, **kwargs)
+        return ComplexLogic.get_copr_safe(owner_name, copr_name, **kwargs)
+
+    @staticmethod
     def get_copr_by_id_safe(copr_id):
         try:
             return CoprsLogic.get_by_id(copr_id).one()
@@ -208,7 +214,7 @@ class ProjectForking(object):
 
             for chroot in list(copr.copr_chroots):
                 CoprChrootsLogic.create_chroot(self.user, fcopr, chroot.mock_chroot, chroot.buildroot_pkgs,
-                                               comps=chroot.comps, comps_name=chroot.comps_name)
+                                               chroot.repos, comps=chroot.comps, comps_name=chroot.comps_name)
             db.session.add(fcopr)
         return fcopr
 

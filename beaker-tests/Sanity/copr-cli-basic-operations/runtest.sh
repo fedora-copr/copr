@@ -140,9 +140,54 @@ rlJournalStart
         rlRun "cat hello_p3.id|xargs copr-cli delete-build"
         rlRun "copr-cli status `cat hello_p3.id`" 1
 
+        ## test --auto-prune option
+        rlRun "copr-cli create --auto-prune off --chroot fedora-24-x86_64 ${NAME_PREFIX}AutoPrune"
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": false'" 0
+        rlRun "copr-cli modify --auto-prune on ${NAME_PREFIX}AutoPrune"
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": true'" 0
+
         ## test distgit builds
         rlRun "copr-cli create --chroot fedora-24-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
         rlRun "copr-cli buildfedpkg --clone-url http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git --branch f24 ${NAME_PREFIX}ProjectDistGitBuilds"
+
+
+        ## test mock-config feature
+        mc_project=${NAME_PREFIX}MockConfig
+        mc_parent_project=${mc_project}Parent
+        mc_output=`mktemp`
+        mc_chroot=fedora-rawhide-x86_64
+
+        rlRun "copr-cli create --chroot $mc_chroot $mc_parent_project"
+        create_opts="--repo copr://$mc_parent_project"
+        rlRun "copr-cli create --chroot $mc_chroot $create_opts $mc_project"
+        rlRun "copr-cli mock-config $mc_project $mc_chroot > $mc_output"
+        rlRun "grep results/$mc_parent_project $mc_output"
+        # Non-existent project/chroot.
+        rlRun "copr-cli mock-config notexistent/notexistent $mc_chroot" 1
+        rlRun "copr-cli mock-config $mc_project fedora-14-x86_64" 1
+
+        ## test edit chroot
+        TMPCOMPS=`mktemp`
+        echo "
+        0 NFS File Server {
+          @ Network Server
+          nfs-utils
+        }
+        " > $TMPCOMPS
+        TMPCOMPS_BASENAME=`basename $TMPCOMPS`
+        rlRun "copr-cli create ${NAME_PREFIX}EditChrootProject --chroot fedora-24-x86_64"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 --upload-comps $TMPCOMPS"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"comps_name\": \"$TMPCOMPS_BASENAME\"'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 --delete-comps"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"comps_name\": null'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 --repos 'http://foo/repo http://bar/repo' --packages 'gcc'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"repos\": \"http://foo/repo http://bar/repo\"'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"buildroot_pkgs\": \"gcc\"'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 --repos '' --packages ''"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"repos\": \"\"'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_64 | grep '\"buildroot_pkgs\": \"\"'"
+        rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-24-x86_65" 1
+        rm $TMPCOMPS
 
         ## test background builds
 
@@ -500,6 +545,14 @@ rlJournalStart
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
         rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null http://copr-fe-dev.cloud.fedoraproject.org/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
 
+        # Bug 1393361 - get_project_details returns incorrect yum_repos
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot fedora-24-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-2 --chroot fedora-24-x86_64" 0
+        rlRun "copr-cli buildtito ${NAME_PREFIX}TestBug1393361-2 --git-url https://github.com/clime/example.git" 0
+        rlRun "copr-cli buildtito ${NAME_PREFIX}TestBug1393361-1 --git-url https://github.com/clime/example.git" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/fedora-24-x86_64" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/fedora-24-x86_64" 0
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
@@ -522,6 +575,10 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}DownloadMockCfgs"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1370704"
         rlRun "copr-cli delete ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-1"
+        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-2"
+        rlRun "copr-cli delete ${NAME_PREFIX}AutoPrune"
+        rlRun "copr-cli delete ${NAME_PREFIX}EditChrootProject"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed

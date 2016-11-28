@@ -133,17 +133,19 @@
 {% endmacro %}
 
 {% macro module_state(module) %}
-  {{ build_state_text(module.status | module_state_from_num) }}
+  {% if module.action %}
+    {{ build_state_text(module.action.result | module_state_from_num) }}
+  {% else %}
+    -
+  {% endif %}
 {% endmacro %}
 
 {% macro chroot_to_os_logo(chroot) %}
-  {% if chroot.os_release == "fedora" %}
-    <img style="height:1.8em" src="{{ url_for('static', filename='fedora_logo.png') }}" /> Fedora {{chroot.os_version}}
-  {% elif chroot.os_release == "epel" %}
-    Epel for <img style="height:1.8em" src="{{ url_for('static', filename='centos_logo.png') }}" /> CentOS {{chroot.os_version}}
-  {% elif chroot.os_release == "mageia" %}
-    <img style="height:1.8em" src="{{ url_for('static', filename='cauldron_logo.png') }}" /> Mageia {{chroot.os_version}}
-
+  {% if chroot.logo %}
+    <img style="height:1.8em" src="{{ url_for('static', filename="chroot_logodir/"+chroot.logo) }}" />
+  {% endif %}
+  {% if chroot.os_release == 'epel' %}
+    Epel for CentOS {{ chroot.os_version }}
   {% else %}
     {{ chroot.os_release | capitalize }} {{ chroot.os_version }}
   {% endif %}

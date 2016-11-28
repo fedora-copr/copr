@@ -160,6 +160,7 @@ def waiting():
             copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
             if copr_chroot:
                 build_record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
+                build_record["repos"] = build_record["repos"]+" "+copr_chroot.repos
             else:
                 build_record["buildroot_pkgs"] = ""
 

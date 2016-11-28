@@ -72,7 +72,7 @@ class CoprCommands(fedpkg.Commands):
             self.override = '%s-override' % self.branch_merge
             self._distunset = 'rhel'
         elif re.match(r'cauldron$', self.branch_merge):
-            self._distval = 'cauldron'
+            self._distval = '6'
             self._distvar = 'mageia'
             self.dist = 'cauldron'
             self.mockconfig = 'mageia-cauldron-%s' % self.localarch
