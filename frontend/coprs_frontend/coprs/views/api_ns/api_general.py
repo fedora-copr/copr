@@ -475,7 +475,11 @@ def process_creating_new_build(copr, form, create_new_build):
         build = create_new_build()
         db.session.commit()
         ids = [build.id] if type(build) != list else [b.id for b in build]
-        infos.append("Build was added to {0}.".format(copr.name))
+        infos.append("Build was added to {0}:".format(copr.name))
+        for build_id in ids:
+            infos.append("  " + flask.url_for("coprs_ns.copr_build_redirect",
+                                              build_id=build_id,
+                                              _external=True))
 
     except (ActionInProgressException, InsufficientRightsException) as e:
         raise LegacyApiError("Invalid request: {}".format(e))
