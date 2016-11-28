@@ -167,8 +167,7 @@ touch %{buildroot}%{_var}/log/copr-backend/prune_old.log
 
 touch %{buildroot}%{_var}/run/copr-backend/copr-be.pid
 
-#install -m 0644 copr-backend.service %{buildroot}/%{_unitdir}/
-cp -a run/systemd/*.service %{buildroot}/%{_unitdir}/
+cp -a units/*.service %{buildroot}/%{_unitdir}/
 install -m 0644 conf/copr.sudoers.d %{buildroot}%{_sysconfdir}/sudoers.d/copr
 
 
