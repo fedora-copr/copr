@@ -9,18 +9,21 @@
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
 
 
-%global design_files_list %_datadir/copr/copr-design-filelist
-%global design_generator  %_datadir/copr/coprs_frontend/generate_colorscheme
-%global static_files      %_datadir/copr/coprs_frontend/coprs/static
+%global flavor_guard      %name-flavor = %version
+%global flavor_files_list %_datadir/copr/copr-flavor-filelist
+%global flavor_generator  %_datadir/copr/coprs_frontend/generate_colorscheme
+%global staticdir         %_datadir/copr/coprs_frontend/coprs/static
+%global templatedir       %_datadir/copr/coprs_frontend/coprs/templates
 
-%global design_files                            \
-%static_files/header_background.png             \
-%static_files/favicon.ico                       \
-%static_files/copr_logo.png                     \
-%static_files/css/style-overwrite.css
+%global flavor_files                            \
+%staticdir/header_background.png                \
+%staticdir/favicon.ico                          \
+%staticdir/copr_logo.png                        \
+%staticdir/css/style-overwrite.css              \
+%templatedir/project_info.html
 
 %global devel_files \
-%design_generator
+%flavor_generator
 
 %define exclude_files() %{lua:
    macro = "%" .. rpm.expand("%1") .. "_files"
@@ -86,7 +89,8 @@ Requires:   python-flask-restful
 Requires:   python-marshmallow >= 2.0.0
 Requires:   python2-modulemd
 Requires:   python-pygments
-Requires:   %{name}-design = %{version}
+
+Requires:   %flavor_guard
 
 # for tests:
 Requires:   pytest
@@ -216,14 +220,15 @@ This package include documentation for COPR code. Mostly useful for developers
 only.
 
 
-%package design
+%package fedora
 Summary: Template files for %{name}
 Requires: %{name} = %{version}
+Provides: %flavor_guard
 
-%description design
+%description fedora
 Template files for %{name} (basically colors, logo, etc.).  This package is
 designed to be replaced - build your replacement package against %{name}-devel
-to produce compatible {name}-design package, then use man dnf.conf(5) 'priority'
+to produce compatible {name}-flavor package, then use man dnf.conf(5) 'priority'
 option to prioritize your package against the default package we provide.
 
 
@@ -232,7 +237,7 @@ Summary: Development files to build against %{name}
 
 %description devel
 Files which allow a build against %{name}, currently it's useful to build
-custom %{name}-design package.
+custom %{name}-flavor package.
 
 
 %prep
@@ -281,9 +286,9 @@ touch %{buildroot}%{_var}/log/copr-frontend/frontend.log
 
 ln -fs /usr/share/copr/coprs_frontend/manage.py %{buildroot}/%{_bindir}/copr-frontend
 
-mkdir -p %buildroot/$(dirname %design_files)
-cat <<EOF > %buildroot%design_files_list
-%design_files
+mkdir -p %buildroot/$(dirname %flavor_files_list)
+cat <<EOF > %buildroot%flavor_files_list
+%flavor_files
 EOF
 
 %check
@@ -299,11 +304,12 @@ EOF
 
 mkdir -p %buildroot%macrosdir
 cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
-%%copr_frontend_version %version
-%%copr_frontend_design_filelist %design_files_list
-%%copr_frontend_design_generator %design_generator
-%%copr_frontend_static_files %static_files
-%%copr_frontend_chroot_logodir %%copr_frontend_static_files/chroot_logodir
+%%copr_frontend_flavor_guard      %flavor_guard
+%%copr_frontend_flavor_filelist   %flavor_files_list
+%%copr_frontend_flavor_generator  %flavor_generator
+%%copr_frontend_staticdir         %staticdir
+%%copr_frontend_templatedir       %templatedir
+%%copr_frontend_chroot_logodir    %%copr_frontend_staticdir/chroot_logodir
 EOF
 
 
@@ -361,18 +367,18 @@ service logstash condrestart
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
 
 %config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend
-%exclude_files design
+%exclude_files flavor
 %exclude_files devel
 
 
-%files design
+%files fedora
 %license LICENSE
-%design_files
+%flavor_files
 
 
 %files devel
 %license LICENSE
-%design_files_list
+%flavor_files_list
 %devel_files
 %macrosdir/*
 
