@@ -994,7 +994,6 @@ def build_module(copr, form):
 
 @coprs_ns.route("/<username>/<coprname>/module/<id>")
 @coprs_ns.route("/g/<group_name>/<coprname>/module/<id>")
-@login_required
 @req_with_copr
 def copr_module(copr, id):
     module = ModulesLogic.get(id).first()
@@ -1005,7 +1004,6 @@ def copr_module(copr, id):
 
 @coprs_ns.route("/<username>/<coprname>/module/<id>/raw")
 @coprs_ns.route("/g/<group_name>/<coprname>/module/<id>/raw")
-@login_required
 @req_with_copr
 def copr_module_raw(copr, id):
     module = ModulesLogic.get(id).first()
