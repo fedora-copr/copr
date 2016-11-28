@@ -29,6 +29,15 @@ BuildRequires: python-mock
 BuildRequires: python2-psutil
 BuildRequires: pytz
 
+%if 0%{?fedora} > 23
+# BuildRequires also because of build-time tests
+BuildRequires: python2-jinja2
+Requires: python2-jinja2
+%else
+BuildRequires: python-jinja2
+Requires: python-jinja2
+%endif
+
 Requires: systemd
 Requires: dist-git
 Requires: python-bunch
