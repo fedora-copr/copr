@@ -16,10 +16,10 @@ rlJournalStart
         rlRun "/usr/share/copr/mocks/frontend/app.py $BUILDTASKSPATH $TESTPATH/static &" 0
 
         # terminate frontend-mock because we want to run actions now
-        sleep 15 && kill -9 `pgrep -f app.py`
+        sleep 20 && kill -9 `pgrep -f app.py`
 
         # test that the build is running
-        rlRun "copr_get_vm_info.py | grep -E 'task_id: 10-fedora-24-x86_64'" 0
+        rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E 'task_id: 10-fedora-24-x86_64'"
 
         # action input crunching
         rlRun "/usr/share/copr/mocks/frontend/app.py $TESTPATH $TESTPATH/static" 0
@@ -33,6 +33,6 @@ rlJournalStart
             (\$b | sort_by(.id) | map({id: .id, status: .result}))'" 0 "Compare expected and actual action outcomes (success/fail)."
 
         # test that the task has been killed and vm released for another job
-        rlRun "copr_get_vm_info.py | grep -E 'task_id: 10-fedora-24-x86_64'" 1
+        rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E 'task_id: 10-fedora-24-x86_64'" 1
     rlPhaseEnd
 rlJournalEnd &> /dev/null
