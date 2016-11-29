@@ -39,7 +39,7 @@ rlJournalStart
         rlRun "dnf module list | grep rare_module"
         rlRun "yes | dnf module enable rare_module"
         rlRun "rpm -qa | grep rare_example"
-        rlRun "dnf module disable rare_module"
+        rlRun "yes | dnf module disable rare_module"
         rlRun "rpm -qa | grep rare_example" 1
     rlPhaseEnd
 rlJournalEnd &> /dev/null
