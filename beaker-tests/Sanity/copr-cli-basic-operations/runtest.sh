@@ -155,7 +155,7 @@ rlJournalStart
         mc_project=${NAME_PREFIX}MockConfig
         mc_parent_project=${mc_project}Parent
         mc_output=`mktemp`
-        mc_chroot=fedora-rawhide-x86_64
+        mc_chroot=fedora-24-x86_64
 
         rlRun "copr-cli create --chroot $mc_chroot $mc_parent_project"
         create_opts="--repo copr://$mc_parent_project"
@@ -543,7 +543,7 @@ rlJournalStart
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1370704 --chroot fedora-23-x86_64" 0
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestBug1370704 --name example --git-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
-        rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null http://copr-fe-dev.cloud.fedoraproject.org/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
+        rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
 
         # Bug 1393361 - get_project_details returns incorrect yum_repos
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot fedora-24-x86_64" 0
