@@ -710,11 +710,11 @@ class VM(object):
             if sys_admin:
                 dcmd.extend(["--cap-add=SYS_ADMIN"])
             dcmd.extend(["--name", full_name])
-            dcmd.extend(["-v", "{}:{}".format(dst_dir, dst_dir)])
+            dcmd.extend(["-v", "{}:{}:shared".format(dst_dir, dst_dir)])
 
             if src_dir:
                 sandbox(src_dir)
-                dcmd.extend(["-v", "{}:{}".format(src_dir, src_dir)])
+                dcmd.extend(["-v", "{}:{}:shared".format(src_dir, src_dir)])
 
             dcmd.extend(["-w", cwd])
             dcmd.append(VM.hash)
