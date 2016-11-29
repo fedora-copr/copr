@@ -49,7 +49,7 @@
 
     "branch": "master",
     "project": "example",
-    "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"git@localhost:example.git\", \"scm_type\": \"git\", \"spec\": \"example.spec\"}",
+    "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"https://github.com/clime/example.git\", \"scm_type\": \"git\", \"spec\": \"example.spec\"}",
     "source_type": 4,
     "task_id": "5-master",
     "user": "clime"
@@ -71,7 +71,7 @@
 
     "branch": "f23",
     "project": "example",
-    "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"git@localhost:example2.git\", \"scm_type\": \"git\", \"spec\": \"subpkg/example.spec\"}",
+    "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"https://github.com/clime/example2.git\", \"scm_type\": \"git\", \"spec\": \"subpkg/example.spec\"}",
     "source_type": 4,
     "task_id": "7-f23",
     "user": "clime"
@@ -117,7 +117,7 @@
     "project": "example",
     "source_json": "{\"clone_url\": \"http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git\", \"branch\": \"f24\" }",
     "source_type": 7,
-    "task_id": "10-master",
+    "task_id": "11-master",
     "user": "clime"
 },
 {
