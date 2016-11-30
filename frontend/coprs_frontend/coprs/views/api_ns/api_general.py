@@ -962,6 +962,9 @@ def copr_module_repo():
         raise LegacyApiError(form.errors)
 
     copr = ComplexLogic.get_copr_by_owner_safe(form.owner.data, form.copr.data)
-    module = ModulesLogic.get_by_nsv(copr, form.name.data, form.stream.data, form.version.data).first()
+    nvs = [form.name.data, form.stream.data, form.version.data]
+    module = ModulesLogic.get_by_nsv(copr, *nvs).first()
+    if not module:
+        raise LegacyApiError("No module {}".format("-".join(nvs)))
 
     return flask.jsonify({"output": "ok", "repo": module.repo_url(form.arch.data)})
