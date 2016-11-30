@@ -4,7 +4,7 @@ export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [[ `pwd` =~ ^/mnt/tests.*$ ]]; then
     echo "Setting up native beaker environment."
-    git clone https://github.com/fedora-copr/copr.git copr
+    git clone https://pagure.io/copr/copr.git
     export COPRROOTDIR=$SCRIPTPATH/copr
 else
     echo "Setting up from source tree."
