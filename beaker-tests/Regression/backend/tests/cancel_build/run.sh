@@ -15,8 +15,13 @@ rlJournalStart
         # builds input crunching
         rlRun "/usr/share/copr/mocks/frontend/app.py $BUILDTASKSPATH $TESTPATH/static &" 0
 
-        # terminate frontend-mock because we want to run actions now
-        sleep 20 && kill -9 `pgrep -f app.py`
+        # wait until build has been retrieved by backend
+        while ! curl --silent http://localhost:5000/backend/waiting/ | grep '"build": null' ; do
+            sleep 1
+        done
+
+        kill -9 `pgrep -f app.py` # kill app.py so that it does not wait for build end
+        sleep 25 # sleep additional 25 seconds for the build to get actually started
 
         # test that the build is running
         rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E 'task_id: 10-fedora-24-x86_64'"
