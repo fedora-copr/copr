@@ -201,10 +201,12 @@ class Builder(object):
             self.run_ansible_with_check(set_networking_cmd.format(**kwargs),
                                         module_name="lineinfile")
             if self.buildroot_pkgs:
-                self.run_ansible_with_check(buildroot_cmd.format(**kwargs),
-                                            module_name="lineinfile")
-                self.run_ansible_with_check(buildroot_custom_cmd.format(**kwargs),
-                                            module_name="lineinfile")
+                if 'custom' in self.job.chroot:
+                    self.run_ansible_with_check(buildroot_custom_cmd.format(**kwargs),
+                                                module_name="lineinfile")
+                else:
+                    self.run_ansible_with_check(buildroot_cmd.format(**kwargs),
+                                                module_name="lineinfile")
 
             if self.module_dist_tag:
                 set_dist_tag_cmd = (
