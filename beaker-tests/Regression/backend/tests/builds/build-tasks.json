@@ -242,6 +242,9 @@
     "timeout": 21600
 },
 {
+    "_description": "custom chroot test",
+    "_expected_outcome": "success",
+
     "build_id": 340,
     "buildroot_pkgs": "@buildsys-build",
     "chroot": "custom-1-x86_64",
