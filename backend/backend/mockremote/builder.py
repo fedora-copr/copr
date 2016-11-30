@@ -291,8 +291,8 @@ class Builder(object):
             return None
 
     def gen_mockchain_command(self):
-        buildcmd = "{} -r {} -l {} ".format(
-            mockchain, pipes.quote(self.get_chroot_config_path(self.job.chroot)),
+        buildcmd = "timeout {} {} -r {} -l {} ".format(
+            self.timeout, mockchain, pipes.quote(self.get_chroot_config_path(self.job.chroot)),
             pipes.quote(self.remote_build_dir))
         for repo in self.job.chroot_repos_extended:
             repo = self.pre_process_repo_url(repo)
