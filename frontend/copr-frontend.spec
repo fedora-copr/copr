@@ -21,7 +21,8 @@
 %staticdir/copr_logo.png                        \
 %staticdir/css/style-overwrite.css              \
 %templatedir/project_info.html                  \
-%templatedir/user_info.html
+%templatedir/user_info.html                     \
+%templatedir/welcome.html
 
 %global devel_files \
 %flavor_generator
