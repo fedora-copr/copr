@@ -116,7 +116,7 @@ class TestModuleRepo(CoprsTestCase):
         response = json.loads(r.data.decode("utf-8"))
         assert response["output"] == "ok"
         assert response["repo"] == "http://copr-be-dev.cloud.fedoraproject.org/results/user1/foocopr/modules/"\
-                                   "fedora-rawhide-x86_64+first-module-foo-1/latest/x86_64"
+                                   "fedora-24-x86_64+first-module-foo-1/latest/x86_64"
 
     def test_api_module_repo_no_params(self):
         error = "This field is required."
