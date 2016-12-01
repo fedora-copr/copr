@@ -161,4 +161,5 @@ cd -
 # enable & start services
 systemctl daemon-reload
 systemctl enable httpd && systemctl start httpd
+systemctl enable docker && systemctl start docker
 systemctl enable copr-dist-git && systemctl start copr-dist-git
