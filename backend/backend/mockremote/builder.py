@@ -183,7 +183,7 @@ class Builder(object):
         buildroot_cmd = (
             "dest={cfg_path}"
             " line=\"config_opts['chroot_setup_cmd'] = 'install \\1 {pkgs}'\""
-            " regexp=\"^.*chroot_setup_cmd.*(@buildsys-build|buildsys-build buildsys-macros).*$\""
+            " regexp=\"^.*chroot_setup_cmd.*(@buildsys-build|@build|buildsys-build buildsys-macros).*$\""
             " backrefs=yes"
         )
         buildroot_custom_cmd = (
