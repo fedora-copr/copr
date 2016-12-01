@@ -1,5 +1,5 @@
 Name:           fedpkg-copr
-Version:        0.9
+Version:        0.10
 Release:        1%{?dist}
 Summary:        Fedpkg modified to work with copr dist git
 
@@ -47,6 +47,9 @@ install -p -m 644 man/fedpkg-copr.1 %{buildroot}/%{_mandir}/man1/
 
 
 %changelog
+* Thu Dec 01 2016 clime <clime@redhat.com> 0.10-1
+- Automatic commit of package [fedpkg-copr] release [0.9-1].
+
 * Thu Dec 01 2016 clime <clime@redhat.com> 0.9-1
 - Bug 1393460 - Copr chokes on %%mageia conditional in spec files for rebuilding SRPM
 - Add Mageia branches to the regex
