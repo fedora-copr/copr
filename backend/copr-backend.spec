@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.94
+Version:    1.95
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -259,6 +259,19 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Dec 01 2016 clime <clime@redhat.com> 1.95-1
+- use buildroot_pkgs substitution type according to job.chroot
+- use timeout command to respect timeout param coming from frontend
+- don't ship unitfiles in %%bindir
+- move createrepo to the end of the rawhide_to_release handler
+- modulemd 1.0.2 compatibility
+- Bug 1397119 - Error reading SSH protocol banner
+- added auto-prune project's option
+- Bug 1086139 - [RFE] provide UI to cancel a build
+- Fix misleading debug statement
+- fix exception logging in ensure_dir_exists helper
+- Fix chroot_setup_cmd regex for custom chroot
+
 * Mon Sep 19 2016 clime <clime@redhat.com> 1.94-1
 - also provide default version and release for generated modules.json
 
