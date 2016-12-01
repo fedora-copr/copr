@@ -17,7 +17,7 @@ rlJournalStart
         dnf -y copr enable @copr/copr-dev # only @copr repos now have modulemd 1.0.2 compatible packages
         dnf -y install python3-fm-dnf-plugin
         sed -i 's/enabled\s*=\s*1/enabled=0/' /etc/fm.modules.d/*
-        cp _copr_@modularity-template-project.cfg /etc/fm.modules.d/
+        cp $TESTPATH/_copr_@modularity-template-project.cfg /etc/fm.modules.d/
         dnf -y remove rare_example
         rm -r /var/cache/fm/
         docker exec copr-backend /bin/sh -c 'rm -rf /var/lib/copr/public_html/results/@modularity/template-project/modules/{*+*,modules.json}'
