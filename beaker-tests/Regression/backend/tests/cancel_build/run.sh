@@ -21,7 +21,7 @@ rlJournalStart
         done
 
         kill -9 `pgrep -f app.py` # kill app.py so that it does not wait for build end
-        sleep 25 # sleep additional 25 seconds for the build to get actually started
+        sleep 40 # sleep additional 40 seconds for the build to get actually started
 
         # test that the build is running
         rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E 'task_id: 10-fedora-24-x86_64'"
@@ -30,7 +30,7 @@ rlJournalStart
         rlRun "/usr/share/copr/mocks/frontend/app.py $TESTPATH $TESTPATH/static" 0
 
         # backend will attempt to contact us now before releasing the vm
-        rlRun "timeout 20 $TESTPATH/respond_200_to_backend.py" 124
+        rlRun "timeout 25 $TESTPATH/respond_200_to_backend.py" 124
 
         # basic outcomes test
         rlRun "jq -e -n --argfile a $IN --argfile b $OUT\
