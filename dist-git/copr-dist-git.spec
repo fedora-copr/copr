@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.22
+Version:    0.23
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -130,6 +130,19 @@ usermod -aG docker copr-service
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Thu Dec 01 2016 clime <clime@redhat.com> 0.23-1
+- use other than epel chroot for scm building
+- use newest mock
+- run mock-scm inside of docker
+- add README information about how docker image is built
+- stripped down impl of building from dist-git
+- fixed unittests
+- refactor VM.run method
+- remove exited containers
+- add possibility to run dist-git in single thread
+- refactor lookaside my_upload slightly
+- Bug 1377780 - Multiple failed tasks with: Importing SRPM into Dist Git failed.
+
 * Mon Sep 19 2016 clime <clime@redhat.com> 0.22-1
 - fix Git&Tito subdirectory use-case
 
