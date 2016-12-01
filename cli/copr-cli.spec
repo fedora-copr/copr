@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.57
+Version:    1.58
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -144,6 +144,17 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Thu Dec 01 2016 clime <clime@redhat.com> 1.58-1
+- `copr-cli edit-chroot` implemented (without modulemd uploading)
+- add 'mock-config' command
+- added auto-prune project's option
+- Bug 1390067 - Progress speed/estimates are completely incorrect
+- Bug 1389265 - Using groups with copr-cli is not easily discoverable
+- brought unittests into passing state
+- stripped down impl of building from dist-git
+- Bug 1335168 - Delete build(s) from CLI
+- disable network by default when creating new copr
+
 * Mon Sep 19 2016 Miroslav Suchý <msuchy@redhat.com> 1.57-1
 - re-use PYTHONPATH in cli wrapper
 
