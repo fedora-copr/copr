@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.74
+Version:    1.75
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -185,6 +185,15 @@ popd
 %endif
 
 %changelog
+* Thu Dec 01 2016 clime <clime@redhat.com> 1.75-1
+- edit_chroot implemented
+- modulemd 1.0.2 compatibility
+- add method for fetching /api/module/repo
+- add 'mock-config' command to CLI
+- added auto-prune project's option
+- stripped down impl of building from dist-git
+- Bug 1335168 - Delete build(s) from CLI
+
 * Mon Sep 19 2016 clime <clime@redhat.com> 1.74-1
 - dummy api for submitting module builds
 
