@@ -579,6 +579,9 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-2"
         rlRun "copr-cli delete ${NAME_PREFIX}AutoPrune"
         rlRun "copr-cli delete ${NAME_PREFIX}EditChrootProject"
+        rlRun "copr-cli delete ${NAME_PREFIX}TestDeleteGroupBuild"
+        rlRun "copr-cli delete ${NAME_PREFIX}MockConfig"
+        rlRun "copr-cli delete ${NAME_PREFIX}MockConfigParent"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed
