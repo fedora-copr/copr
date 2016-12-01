@@ -3,7 +3,7 @@
     "_description": "basic test",
     "_expected_outcome": "success",
 
-    "build_id": 10,
+    "build_id": 42,
     "buildroot_pkgs": null,
     "chroot": "fedora-24-x86_64",
     "enable_net": true,
@@ -18,7 +18,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "10-fedora-24-x86_64",
+    "task_id": "42-fedora-24-x86_64",
     "timeout": 21600
 }
 ]
