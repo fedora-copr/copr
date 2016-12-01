@@ -34,7 +34,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.103
+Version:    1.104
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -389,6 +389,50 @@ service logstash condrestart
 
 
 %changelog
+* Thu Dec 01 2016 clime <clime@redhat.com> 1.104-1
+- set default build timeout to 18 hours
+- allow hiding "quick enable" helper
+- login should not be required for viewing modules
+- (cli) inform user about build links
+- create backend_rawhide_to_release command
+- adding chroot repos implemented
+- group_add: make group in breadcrumb menu clickable - create status/order functions by 'create_db'
+- modularize design files
+- spec: allow 'rpmbuild --without check'
+- use "Suggests" tag only in Fedora
+- add api method for translating module NVR to DNF repo url
+- promptly generate mock profiles
+- added auto-prune project's option
+- Bug 1393361 - get_project_details returns incorrect yum_repos
+- Bug 1086139 - [RFE] provide UI to cancel a build
+- group support for modules
+- modularity 1.0.2 support
+- create proper module table
+- by pagure fedmsgs induced auto-rebuilds
+- Bug 1384923 - Ignore push events to other branches when one is
+  selected
+- stripped down impl of building from dist-git
+- fix unit tests
+- Bug 1377854 - provide functional URL when asking to renew token
+- Bug 1382243 - Multiple rows were found for one()
+- add link to all BZs to footer
+- Bug 1335168 - Delete build(s) from CLI
+- Bug 1380810 - [RFE] Show original repo when forking
+- Bug 1368458 - Resubmit does not work on forked projects.
+- FAS groups need re-login, inform user
+- Bug 1381790 - rename Rawhide to F26 in Copr and create F27 when Fedora branches instead
+- use 'debug' level for krb debug message
+- fix krb auth for services
+- fork only successful builds
+- check user permissions when building module
+- implement methods for querying multiple modules
+- Bug 1361641 - Status in build table shows wrong values
+- show html code for build badge
+- speed up querying for recent builds
+- modularity UI improvements
+- do not fork created_on from previous project
+- fix Bug 1376703 - Cannot cancel build and now explain
+
 * Wed Sep 21 2016 clime <clime@redhat.com> 1.103-1
 - add migration to enable mageia chroots
 - fix Bug 1369763 - Cannot delete repo due to a canceled build
