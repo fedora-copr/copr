@@ -14,6 +14,7 @@ rlJournalStart
         dnf -y copr enable @modularity/fm
         dnf -y copr enable @modularity/modulemd
         dnf -y copr enable @modularity/modulemd-resolver
+        dnf -y copr enable @copr/copr-dev # only @copr repos now have modulemd 1.0.2 compatible packages
         dnf -y install python3-fm-dnf-plugin
         sed -i 's/enabled\s*=\s*1/enabled=0/' /etc/fm.modules.d/*
         cp _copr_@modularity-template-project.cfg /etc/fm.modules.d/
@@ -41,5 +42,9 @@ rlJournalStart
         rlRun "rpm -qa | grep rare_example"
         rlRun "yes | dnf module disable rare_module"
         rlRun "rpm -qa | grep rare_example" 1
+    rlPhaseEnd
+
+    rlPhaseStartCleanup
+        dnf -y copr disable @copr/copr-dev
     rlPhaseEnd
 rlJournalEnd &> /dev/null
