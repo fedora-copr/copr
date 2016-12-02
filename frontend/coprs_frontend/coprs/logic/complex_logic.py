@@ -62,6 +62,7 @@ class ComplexLogic(object):
             fbuild = forking.fork_build(build, fcopr, fpackage)
             builds_map[fbuild.id] = build.result_dir_name
 
+        db.session.commit()
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
         return fcopr, created
 
@@ -234,7 +235,7 @@ class ProjectForking(object):
         for chroot in fbuild.build_chroots:
             chroot.status = StatusEnum("forked")
         db.session.add(fbuild)
-        db.session.commit()
+        db.session.flush()
         return fbuild
 
     def create_object(self, clazz, from_object, exclude=list()):
