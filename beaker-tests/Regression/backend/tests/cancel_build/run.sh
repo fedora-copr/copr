@@ -20,9 +20,9 @@ rlJournalStart
             sleep 1
         done
 
-        sleep 10 # sleep additional 10 seconds to confirm build start
+        sleep 20 # Here backend will attempt to contact us that the job's state changed to 'running'
         kill -9 `pgrep -f app.py` # kill app.py so that it does not wait for build end
-        sleep 60 # sleep additional 60 seconds for the build to get running
+        sleep 20 # downloading srpm to builder is taking place, mockchain is not running yet
 
         # test that the build is running
         rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E 'task_id: 42-fedora-24-x86_64'"
