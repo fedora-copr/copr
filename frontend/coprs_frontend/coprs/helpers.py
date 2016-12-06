@@ -95,6 +95,7 @@ class StatusEnum(with_metaclass(EnumType, object)):
             "starting": 6,  # build picked by worker but no VM initialized
             "importing": 7, # SRPM is being imported to dist-git
             "forked": 8, # build(-chroot) was forked
+            "unknown": 1000, # order_to_status/status_to_order issue
            }
 
 
