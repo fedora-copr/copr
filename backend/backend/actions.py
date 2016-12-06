@@ -114,6 +114,7 @@ class Action(object):
         result.job_ended_on = time.time()
 
     def handle_fork(self, result):
+        sign = self.opts.do_sign
         self.log.info("Action fork {}".format(self.data["object_type"]))
         data = json.loads(self.data["data"])
         old_path = os.path.join(self.destdir, self.data["old_value"])
@@ -130,8 +131,11 @@ class Action(object):
             if not os.path.exists(new_path):
                 os.makedirs(new_path)
 
-            self.generate_gpg_key(data["user"], data["copr"])
-            get_pubkey(data["user"], data["copr"], pubkey_path)
+            if sign:
+                # Generate brand new gpg key.
+                self.generate_gpg_key(data["user"], data["copr"])
+                # Put the new public key into forked build directory.
+                get_pubkey(data["user"], data["copr"], pubkey_path)
 
             chroots = set()
             for new_id, old_dir_name in builds_map.items():
@@ -149,8 +153,10 @@ class Action(object):
                         os.makedirs(new_build_folder)
 
                     copy_tree(build_folder, new_build_folder)
+                    # Drop old signatures coming from original repo and re-sign.
                     unsign_rpms_in_dir(new_build_folder, opts=self.opts, log=self.log)
-                    sign_rpms_in_dir(data["user"], data["copr"], new_build_folder, opts=self.opts, log=self.log)
+                    if sign:
+                        sign_rpms_in_dir(data["user"], data["copr"], new_build_folder, opts=self.opts, log=self.log)
 
                     self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
 
