@@ -14,17 +14,14 @@ from ..constants import BuildStatus, build_log_format
 from ..helpers import register_build_result, get_redis_connection, get_redis_logger, \
     local_file_logger
 
+from ..msgbus import MsgBusStomp, MsgBusFedmsg
+
 
 # ansible_playbook = "ansible-playbook"
 
-try:
-    import fedmsg
-except ImportError:
-    # fedmsg is optional
-    fedmsg = None
-
-
 class Worker(multiprocessing.Process):
+    msg_buses = []
+
     def __init__(self, opts, frontend_client, vm_manager, worker_id, vm, job):
         multiprocessing.Process.__init__(self, name="worker-{}".format(worker_id))
 
@@ -50,23 +47,15 @@ class Worker(multiprocessing.Process):
                                "Original error: {}".format(error))
             return str(self.vm.group)
 
-    def fedmsg_notify(self, topic, template, content=None):
-        """
-        Publish message to fedmsg bus when it is available
-        :param topic:
-        :param template:
-        :param content:
-        """
-        if self.opts.fedmsg_enabled and fedmsg:
-            content = content or {}
-            content["who"] = self.name
-            content["what"] = template.format(**content)
 
-            try:
-                fedmsg.publish(modname="copr", topic=topic, msg=content)
-            # pylint: disable=W0703
-            except Exception as e:
-                self.log.exception("failed to publish message: {0}".format(e))
+    def _announce(self, topic, job):
+        for bus in self.msg_buses:
+            bus.announce_job(topic, job, {
+                'who': self.name,
+                'ip': self.vm.vm_ip,
+                'pid': self.pid,
+            })
+
 
     def _announce_start(self, job):
         """
@@ -75,41 +64,19 @@ class Worker(multiprocessing.Process):
         job.started_on = time.time()
         self.mark_started(job)
 
-        template = "build start: user:{user} copr:{copr}" \
-            "pkg: {pkg} build:{build} ip:{ip}  pid:{pid}"
+        for bus in self.msg_buses:
+            for topic in ['build.start', 'chroot.start']:
+                self._announce(topic, job)
 
-        content = dict(user=job.submitter, copr=job.project_name,
-                       owner=job.project_owner, pkg=job.package_name,
-                       build=job.build_id, ip=self.vm.vm_ip, pid=self.pid)
-        self.fedmsg_notify("build.start", template, content)
-
-        template = "chroot start: chroot:{chroot} user:{user}" \
-            "copr:{copr} pkg: {pkg} build:{build} ip:{ip}  pid:{pid}"
-
-        content = dict(chroot=job.chroot, user=job.submitter,
-                       owner=job.project_owner, pkg=job.package_name,
-                       copr=job.project_name, build=job.build_id,
-                       ip=self.vm.vm_ip, pid=self.pid)
-
-        self.fedmsg_notify("chroot.start", template, content)
 
     def _announce_end(self, job):
         """
         Announce everywhere that a build process ended now.
         """
         job.ended_on = time.time()
-
         self.return_results(job)
         self.log.info("worker finished build: {0}".format(self.vm.vm_ip))
-        template = "build end: user:{user} copr:{copr} build:{build}" \
-            "  pkg: {pkg}  version: {version} ip:{ip}  pid:{pid} status:{status}"
-
-        content = dict(user=job.submitter, copr=job.project_name,
-                       owner=job.project_owner,
-                       pkg=job.package_name, version=job.package_version,
-                       build=job.build_id, ip=self.vm.vm_ip, pid=self.pid,
-                       status=job.status, chroot=job.chroot)
-        self.fedmsg_notify("build.end", template, content)
+        self._announce('build.end', job)
 
     def mark_started(self, job):
         """
@@ -155,17 +122,14 @@ class Worker(multiprocessing.Process):
             return True
         return False
 
-    def init_fedmsg(self):
-        """
-        Initialize Fedmsg (this assumes there are certs and a fedmsg config on disk).
-        """
-        if not (self.opts.fedmsg_enabled and fedmsg):
-            return
+    def init_buses(self):
 
-        try:
-            fedmsg.init(name="relay_inbound", cert_prefix="copr", active=True)
-        except Exception as e:
-            self.log.exception("Failed to initialize fedmsg: {}".format(e))
+        self.log.info(self.opts.msg_buses)
+        for bus_config in self.opts.msg_buses:
+            self.msg_buses.append(MsgBusStomp(bus_config, self.log))
+
+        if self.opts.fedmsg_enabled:
+            self.msg_buses.append(MsgBusFedmsg(self.log))
 
     # TODO: doing skip logic on fronted during @start_build query
     # def on_pkg_skip(self, job):
@@ -310,7 +274,7 @@ class Worker(multiprocessing.Process):
 
     def run(self):
         self.log.info("Starting worker")
-        self.init_fedmsg()
+        self.init_buses()
 
         try:
             self.do_job(self.job)

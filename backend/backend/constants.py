@@ -25,6 +25,14 @@ class BuildStatus(object):
     PENDING = 4
     SKIPPED = 5
 
+    @classmethod
+    def string(cls, number):
+        """ convert number to string """
+        for key, val in cls.__dict__.iteritems():
+            if isinstance(val, int) and number == val:
+                return key
+        raise AttributeError("no such status id: {0} ".format(number))
+
 
 LOG_PUB_SUB = "copr:backend:log:pubsub::"
 

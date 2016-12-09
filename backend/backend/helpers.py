@@ -13,6 +13,8 @@ import sys
 import errno
 import time
 from contextlib import contextmanager
+import types
+import glob
 
 import traceback
 
@@ -32,6 +34,22 @@ from backend.exceptions import CoprBackendError
 import subprocess
 import logging
 import munch
+
+def pyconffile(filename):
+    """
+    Load python file as configuration file, inspired by python-flask
+    "from_pyfile()
+    """
+    d = types.ModuleType(str('config'))
+    d.__file__ = filename
+    try:
+        with open(filename) as config_file:
+            exec(compile(config_file.read(), filename, 'exec'), d.__dict__)
+    except IOError as e:
+        e.strerror = 'Unable to load configuration file (%s)' % e.strerror
+        raise
+    return d
+
 
 def run_cmd(cmd):
     """Runs given command in a subprocess.
@@ -286,6 +304,10 @@ class BackendConfigReader(object):
         # TODO: ansible Runner show some magic bugs with transport "ssh", using paramiko
         opts.ssh.transport = _get_conf(
             cp, "ssh", "transport", "paramiko")
+
+        opts.msg_buses = []
+        for bus_config in glob.glob('/etc/copr/msgbuses/*.conf'):
+            opts.msg_buses.append(pyconffile(bus_config))
 
         # thoughts for later
         # ssh key for connecting to builders?
