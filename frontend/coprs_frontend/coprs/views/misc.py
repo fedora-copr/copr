@@ -190,7 +190,10 @@ def krb5_login(name):
 @oid.loginhandler
 def login():
     if not app.config['FAS_LOGIN']:
-        return "FAS login not allowed", 403
+        if app.config['KRB5_LOGIN']:
+            return krb5_login_redirect(next=oid.get_next_url())
+        flask.flash("No auth method available", "error")
+        return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
 
     if flask.g.user is not None:
         return flask.redirect(oid.get_next_url())
@@ -277,6 +280,17 @@ def api_login_required(f):
             return jsonout
         return f(*args, **kwargs)
     return decorated_function
+
+
+def krb5_login_redirect(next=None):
+    krbc = app.config['KRB5_LOGIN']
+    for key in krbc:
+        # Pick the first one for now.
+        return flask.redirect(flask.url_for("misc.krb5_login",
+                                            name=krbc[key]['URI'],
+                                            next=next))
+    flask.flash("Unable to pick krb5 login page", "error")
+    return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
 
 
 def login_required(role=helpers.RoleEnum("user")):
