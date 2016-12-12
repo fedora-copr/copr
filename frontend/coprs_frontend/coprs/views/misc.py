@@ -1,3 +1,4 @@
+import os
 import base64
 import datetime
 import functools
@@ -139,6 +140,10 @@ def krb5_login(name):
     if not found:
         # no KRB5_LOGIN.<name> configured in copr.conf
         return flask.render_template("404.html"), 404
+
+    if app.config["DEBUG"] and 'TEST_REMOTE_USER' in os.environ:
+        # For local testing (without krb5 keytab and other configuration)
+        flask.request.environ['REMOTE_USER'] = os.environ['TEST_REMOTE_USER']
 
     if 'REMOTE_USER' not in flask.request.environ:
         nocred = "Kerberos authentication failed (no credentials provided)"
