@@ -8,6 +8,7 @@ from coprs.helpers import Paginator
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
+from coprs import app
 
 from ... import db
 from ..misc import login_required
@@ -77,6 +78,9 @@ def list_projects_by_group(group_name, page=1):
 @groups_ns.route("/list/my")
 @login_required
 def list_user_groups():
+    if not app.config['FAS_LOGIN']:
+        return flask.render_template("404.html"), 404
+
     teams = flask.g.user.user_teams
     active_map = {
         group.fas_name: group.name for group in
