@@ -339,7 +339,7 @@ class VmManager(object):
         """
         vmd_list = self.get_all_vm()
         for vmd in vmd_list:
-            if vmd.task_id == task_id:
+            if getattr(vmd, "task_id", None) == task_id:
                 return vmd
         return None
 
