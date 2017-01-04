@@ -217,7 +217,7 @@
     {{- url_for(view, username=copr.user.name, coprname=copr.name, **kwargs) }}
   {%- else %}
     {#- Only the listed views have merged functions for regular and group projects. Once all views have it, @TODO remove the workaround #}
-    {%- if view in ["coprs_ns.copr_add_package", "coprs_ns.copr_new_package", "coprs_ns.copr_rebuild_package", "coprs_ns.copr_packages", "coprs_ns.copr_package", "coprs_ns.copr_edit_package", "coprs_ns.copr_fork", "coprs_ns.copr_delete_package", "coprs_ns.copr_create_module", "coprs_ns.copr_module_raw", "coprs_ns.generate_module_repo_file", "coprs_ns.copr_modules", "coprs_ns.copr_module"] %}
+    {%- if view in ["coprs_ns.copr_add_package", "coprs_ns.copr_new_package", "coprs_ns.copr_rebuild_package", "coprs_ns.copr_packages", "coprs_ns.copr_package", "coprs_ns.copr_edit_package", "coprs_ns.copr_fork", "coprs_ns.copr_delete_package", "coprs_ns.copr_create_module", "coprs_ns.copr_module_raw", "coprs_ns.generate_module_repo_file", "coprs_ns.copr_modules", "coprs_ns.copr_module", "coprs_ns.copr_package_icon"] %}
       {%- set group_view = view %}
     {%- else %}
       {%- set group_view = view.split(".")[0] + ".group_" + view.split(".")[-1] %}
