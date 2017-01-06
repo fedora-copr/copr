@@ -76,7 +76,7 @@ Requires:   python-openid-teams
 Requires:   python-flask-wtf
 Requires:   python-flask-sqlalchemy
 Requires:   python-flask-script
-Requires:   python-flask-whooshee
+Requires:   python2-flask-whooshee
 #Requires:   python-virtualenv
 Requires:   python-blinker
 Requires:   python-markdown
@@ -134,7 +134,7 @@ BuildRequires: python-flask-script
 BuildRequires: python-flask-sqlalchemy
 BuildRequires: python-flask-openid
 BuildRequires: python-openid-teams
-BuildRequires: python-flask-whooshee
+BuildRequires: python2-flask-whooshee
 BuildRequires: python-pylibravatar
 BuildRequires: python-flask-wtf
 BuildRequires: python-netaddr
