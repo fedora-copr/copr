@@ -22,13 +22,13 @@ log = logging.getLogger(__name__)
 
 
 def my_upload_fabric(opts):
-    def my_upload(repo_dir, reponame, filename, filehash):
+    def my_upload(repo_dir, reponame, abs_filename, filehash):
         """
         This is a replacement function for uploading sources.
         Rpkg uses upload.cgi for uploading which doesn't make sense
         on the local machine.
         """
-        source = os.path.join(repo_dir, filename)
+        filename = os.path.basename(abs_filename)
         destination = os.path.join(opts.lookaside_location, reponame,
                                    filename, filehash, filename)
 
@@ -39,7 +39,7 @@ def my_upload_fabric(opts):
                 log.exception(str(e))
 
         if not os.path.exists(destination):
-            shutil.copyfile(source, destination)
+            shutil.copyfile(abs_filename, destination)
 
     return my_upload
 

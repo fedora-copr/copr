@@ -18,7 +18,7 @@ BuildRequires: systemd
 BuildRequires: dist-git
 BuildRequires: python-bunch
 BuildRequires: python-requests
-BuildRequires: pyrpkg
+BuildRequires: pyrpkg >= 1.47
 # check
 BuildRequires: python-six
 BuildRequires: python-netaddr
@@ -44,7 +44,7 @@ Requires: python-bunch
 Requires: python-requests
 Requires: python2-psutil
 Requires: python-jinja2
-Requires: pyrpkg
+Requires: pyrpkg >= 1.47
 Requires: mock-scm
 %ifarch x86_64 i386 i486 i586 i686
 Requires: docker
