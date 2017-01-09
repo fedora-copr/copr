@@ -116,6 +116,9 @@ WHERE package.copr_id = :copr_id;
 
     @classmethod
     def commits_belong_to_package(cls, package, payload):
+        if payload.get("ref_type", None) == "tag":
+            return True
+
         ref = payload.get("ref", "")
 
         if package.source_type_text == "git_and_tito":

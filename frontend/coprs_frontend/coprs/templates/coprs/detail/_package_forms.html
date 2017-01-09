@@ -43,7 +43,7 @@
     </label>
     <div class="col-sm-10">
       <input type="checkbox" name="webhook_rebuild" {% if form.webhook_rebuild.data == True %}checked="checked"{% endif %}/>
-      Use webhook to rebuild package? (i.e. every commit in git repository)
+      Use webhook to rebuild package? (i.e. every commit or tag in git repository)
       | See <a href="{{ copr_url('coprs_ns.copr_webhooks', copr) }}">Webhooks Settings</a>
     </div>
   </div>
