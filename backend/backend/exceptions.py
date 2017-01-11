@@ -26,20 +26,18 @@ class BuilderError(MockRemoteError):
         return result
 
 
-class AnsibleResponseError(BuilderError):
-    pass
-
-
-class AnsibleCallError(BuilderError):
-    def __init__(self, msg, cmd, module_name, as_root, **kwargs):
-        self.msg = "{}\n Call cmd: `{}`, module: `{}`, as root: {}".format(
-            msg, cmd, module_name, as_root
+class RemoteCmdError(BuilderError):
+    def __init__(self, msg, cmd, as_root, rc, stderr, stdout):
+        self.msg = "{}\n cmd=`{}`, root=`{}`, rc=`{}`, stderr=`{}`, stdout=`{}`".format(
+            msg, cmd, as_root, rc, stderr, stdout
         )
-        super(AnsibleCallError, self).__init__(self.msg, **kwargs)
+        super(RemoteCmdError, self).__init__(self.msg, rc, stdout, stderr)
         self.call_args = dict(
             cmd=cmd,
-            module_name=module_name,
             as_root=as_root,
+            rc=rc,
+            stderr=stderr,
+            stdout=stdout
         )
 
 

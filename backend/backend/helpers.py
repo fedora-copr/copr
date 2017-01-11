@@ -299,12 +299,6 @@ class BackendConfigReader(object):
 
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
 
-        # ssh options
-        opts.ssh = Munch()
-        # TODO: ansible Runner show some magic bugs with transport "ssh", using paramiko
-        opts.ssh.transport = _get_conf(
-            cp, "ssh", "transport", "paramiko")
-
         opts.msg_buses = []
         for bus_config in glob.glob('/etc/copr/msgbuses/*.conf'):
             opts.msg_buses.append(pyconffile(bus_config))

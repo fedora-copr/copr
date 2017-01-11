@@ -280,5 +280,7 @@ class Worker(multiprocessing.Process):
             self.do_job(self.job)
         except VmError as error:
             self.log.exception("Building error: {}".format(error))
+        except Exception as e:
+            self.log.exception("Unexpected error: {}".format(e))
         finally:
             self.vm_manager.release_vm(self.vm.vm_name)

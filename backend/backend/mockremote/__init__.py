@@ -155,7 +155,10 @@ class MockRemote(object):
         if not self.job.chroot:
             raise MockRemoteError("No chroot specified!")
 
-        self.builder.check()
+        try:
+            self.builder.check()
+        except BuilderError as error:
+            raise MockRemoteError(str(error))
 
     @property
     def chroot_dir(self):
