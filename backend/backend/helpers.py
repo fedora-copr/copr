@@ -243,9 +243,6 @@ class BackendConfigReader(object):
                 "max_vm_per_user": _get_conf(
                     cp, "backend", "group{}_max_vm_per_user".format(group_id),
                     default=4, mode="int"),
-                "max_builds_per_vm": _get_conf(
-                    cp, "backend", "group{}_max_builds_per_vm".format(group_id),
-                    default=10, mode="int"),
                 "max_spawn_processes": _get_conf(
                     cp, "backend", "group{}_max_spawn_processes".format(group_id),
                     default=2, mode="int"),
