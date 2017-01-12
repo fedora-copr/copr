@@ -122,7 +122,4 @@ RUN chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini
 # owned by root after copr-keygen installation tests are run
 RUN chown copr-signer:copr-signer /var/log/copr-keygen/main.log
 
-# workarounds
-RUN dnf -y install ansible1.9 --allowerasing # copr does not support ansible2 yet
-
 CMD ["/bin/run.sh"]
