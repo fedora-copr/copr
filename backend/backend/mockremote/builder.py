@@ -159,14 +159,14 @@ class Builder(object):
             if 'custom' in self.job.chroot:
                 pattern = "^config_opts['chroot_setup_cmd'] = ''$"
                 replace_by = "config_opts['chroot_setup_cmd'] = 'install {pkgs}'".format(pkgs=self.buildroot_pkgs)
-                buildroot_custom_cmd = "sed -i \"s/{pattern}/{replace_by}/\" {path}".format(
+                buildroot_custom_cmd = "sed -i \"s+{pattern}+{replace_by}+\" {path}".format(
                     pattern=pattern, replace_by=replace_by, path=cfg_path
                 )
                 self._run_ssh_cmd(buildroot_custom_cmd)
             else:
                 pattern = "^.*chroot_setup_cmd.*\(@buildsys-build\|@build\|buildsys-build buildsys-macros\).*$"
                 replace_by = "config_opts['chroot_setup_cmd'] = 'install \\1 {pkgs}'".format(pkgs=self.buildroot_pkgs)
-                buildroot_cmd = "sed -i \"s/{pattern}/{replace_by}/\" {path}".format(
+                buildroot_cmd = "sed -i \"s+{pattern}+{replace_by}+\" {path}".format(
                     pattern=pattern, replace_by=replace_by, path=cfg_path
                 )
                 self._run_ssh_cmd(buildroot_cmd)
