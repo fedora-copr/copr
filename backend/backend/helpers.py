@@ -299,6 +299,11 @@ class BackendConfigReader(object):
 
         opts.prune_days = _get_conf(cp, "backend", "prune_days", None, mode="int")
 
+        # ssh options
+        opts.ssh = Munch()
+        opts.ssh.port = _get_conf(
+            cp, "ssh", "transport", "port", 22, mode="int")
+
         opts.msg_buses = []
         for bus_config in glob.glob('/etc/copr/msgbuses/*.conf'):
             opts.msg_buses.append(pyconffile(bus_config))
