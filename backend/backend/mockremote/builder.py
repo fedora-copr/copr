@@ -115,7 +115,7 @@ class Builder(object):
         if rc != 0:
             raise RemoteCmdError(
                 msg="Remote ssh command failed with status {0}".format(rc),
-                cmd=cmd, as_root=as_root, rc=rc, stderr=stderr, stdout=stdout
+                cmd=cmd, as_root=as_root, rc=rc, stderr=err, stdout=out
             )
 
         return out, err
