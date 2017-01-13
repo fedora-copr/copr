@@ -54,7 +54,7 @@ def createrepo_unsafe(path, dest_dir=None, base_url=None):
     comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock']
     if os.path.exists(path + '/repodata/repomd.xml'):
         comm.append("--update")
-    if "epel-5" in path:
+    if "epel-5" in path or "rhel-5" in path:
         # this is because rhel-5 doesn't know sha256
         comm.extend(['-s', 'sha', '--checksum', 'md5'])
 
