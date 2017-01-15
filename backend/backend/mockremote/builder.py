@@ -157,7 +157,7 @@ class Builder(object):
 
         if self.buildroot_pkgs:
             if 'custom' in self.job.chroot:
-                pattern = "^config_opts['chroot_setup_cmd'] = ''$"
+                pattern = "^config_opts\['chroot_setup_cmd'\] = ''$"
                 replace_by = "config_opts['chroot_setup_cmd'] = 'install {pkgs}'".format(pkgs=self.buildroot_pkgs)
                 buildroot_custom_cmd = "sed -i \"s+{pattern}+{replace_by}+\" {path}".format(
                     pattern=pattern, replace_by=replace_by, path=cfg_path
