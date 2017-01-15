@@ -301,8 +301,6 @@ class MockRemote(object):
             self.log.info("builder.build finished; details: {}\n stdout: {}"
                           .format(build_details, build_stdout))
         except BuilderError as error:
-            self.log.exception("builder.build error building pkg `{}`: {}"
-                               .format(self.job.package_name, error))
             raise MockRemoteError("Error occurred during build {}: {}"
                                   .format(self.job, error))
         finally:
