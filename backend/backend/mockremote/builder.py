@@ -106,18 +106,15 @@ class Builder(object):
         else:
             conn = self.conn
 
-        self.log.info("Running on builder: "+cmd)
+        self.log.info("BUILDER CMD: "+cmd)
 
         stdin, stdout, stderr = conn.exec_command(cmd)
         rc = stdout.channel.recv_exit_status() # blocks
         out, err = stdout.read(), stderr.read()
 
         if rc != 0:
-            raise RemoteCmdError(
-                msg="Remote ssh command failed with status {0}".format(rc),
-                cmd=cmd, as_root=as_root, rc=rc, stderr=err, stdout=out
-            )
-
+            raise RemoteCmdError("Error running remote ssh command.",
+                                 cmd, rc, as_root, err, out)
         return out, err
 
     def _get_remote_results_dir(self):
@@ -340,7 +337,7 @@ class Builder(object):
         if cmd.returncode != 0:
             err_msg = "Failed to download data from builder due to rsync error, see the rsync log file for details."
             self.log.error(err_msg)
-            raise BuilderError(err_msg, return_code=cmd.returncode)
+            raise BuilderError(err_msg)
 
     def download_results(self, target_path):
         if self._get_remote_results_dir():

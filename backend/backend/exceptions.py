@@ -1,45 +1,15 @@
 class MockRemoteError(Exception):
-    def __init__(self, msg):
-        super(MockRemoteError, self).__init__(msg)
-        self.msg = msg
-
-    def __str__(self):
-        return self.msg
-
+    pass
 
 class BuilderError(MockRemoteError):
-    def __init__(self, msg, return_code=None, stdout=None, stderr=None):
-        super(BuilderError, self).__init__(msg)
-
-        self.return_code = return_code
-        self.stdout = stdout
-        self.stderr = stderr
-
-    def __str__(self):
-        result = "BuildError: {}".format(self.msg)
-        if self.return_code:
-            result += "; return code: {}".format(self.return_code)
-        if self.stdout:
-            result += "; stdout: {}".format(self.stdout)
-        if self.stderr:
-            result += "; stderr: {}".format(self.stderr)
-        return result
-
+    pass
 
 class RemoteCmdError(BuilderError):
     def __init__(self, msg, cmd, as_root, rc, stderr, stdout):
-        self.msg = "{}\n cmd=`{}`, root=`{}`, rc=`{}`, stderr=`{}`, stdout=`{}`".format(
+        self.msg = "{}\nCMD:{}\nRC:{}\nAS_ROOT:{}\nSTDERR:{}\nSTDOUT:{}".format(
             msg, cmd, as_root, rc, stderr, stdout
         )
-        super(RemoteCmdError, self).__init__(self.msg, rc, stdout, stderr)
-        self.call_args = dict(
-            cmd=cmd,
-            as_root=as_root,
-            rc=rc,
-            stderr=stderr,
-            stdout=stdout
-        )
-
+        super(RemoteCmdError, self).__init__(self.msg)
 
 class BuilderTimeOutError(BuilderError):
     pass
