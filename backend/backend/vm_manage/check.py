@@ -34,7 +34,8 @@ def check_health(opts, vm_name, vm_ip):
         conn = paramiko.SSHClient()
         conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         conn.connect(hostname=vm_ip, port=opts.ssh.port,
-                     username=opts.build_user or "root")
+                     username=opts.build_user or "root",
+                     key_filename=opts.ssh.identity_file)
         stdin, stdout, stderr = conn.exec_command("echo hello")
         stdout.channel.recv_exit_status()
     except Exception as error:

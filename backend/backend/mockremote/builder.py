@@ -90,7 +90,8 @@ class Builder(object):
         conn = paramiko.SSHClient()
         conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         conn.connect(hostname=self.hostname, port=self.opts.ssh.port,
-                     username=username or self.opts.build_user)
+                     username=username or self.opts.build_user,
+                     key_filename=self.opts.ssh.identity_file)
         return conn
 
     def _run_ssh_cmd(self, cmd, as_root=False):
