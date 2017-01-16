@@ -200,8 +200,8 @@ class Worker(multiprocessing.Process):
                 except MockRemoteError as e:
                     # record and break
                     self.log.exception(
-                        "Error during the build, host={}, build_id={}, chroot={}, error: {}"
-                        .format(self.vm.vm_ip, job.build_id, job.chroot, e)
+                        "Error during the build, host={}, build_id={}, chroot={}"
+                        .format(self.vm.vm_ip, job.build_id, job.chroot)
                     )
                     status = BuildStatus.FAILURE
                     register_build_result(self.opts, failed=True)
@@ -280,5 +280,7 @@ class Worker(multiprocessing.Process):
             self.do_job(self.job)
         except VmError as error:
             self.log.exception("Building error: {}".format(error))
+        except Exception as e:
+            self.log.exception("Unexpected error: {}".format(e))
         finally:
             self.vm_manager.release_vm(self.vm.vm_name)

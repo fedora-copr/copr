@@ -155,7 +155,10 @@ class MockRemote(object):
         if not self.job.chroot:
             raise MockRemoteError("No chroot specified!")
 
-        self.builder.check()
+        try:
+            self.builder.check()
+        except BuilderError as error:
+            raise MockRemoteError(str(error))
 
     @property
     def chroot_dir(self):
@@ -294,14 +297,11 @@ class MockRemote(object):
         try:
             build_stdout = self.builder.build()
             build_details = {"built_packages": self.builder.collect_built_packages()}
-
             self.log.info("builder.build finished; details: {}\n stdout: {}"
                           .format(build_details, build_stdout))
         except BuilderError as error:
-            self.log.exception("builder.build error building pkg `{}`: {}"
-                               .format(self.job.package_name, error))
-            raise MockRemoteError("Error occurred during build {}: {}"
-                                  .format(self.job, error))
+            self.log.error(str(error))
+            raise MockRemoteError("Builder error during job {}.".format(self.job))
         finally:
             self.builder.download_results(self.job.results_dir)
             self.builder.download_configs(os.path.join(self.job.results_dir, "configs"))

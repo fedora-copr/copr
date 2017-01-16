@@ -50,13 +50,8 @@ BuildRequires: pytz
 # BuildRequires: python-plumbum
 # BuildRequires: wget -- ???
 
-%if 0%{?fedora} >= 24
 BuildRequires: ansible
 Requires:   ansible
-%else
-BuildRequires: ansible1.9
-Requires:   ansible1.9
-%endif
 
 #for doc package
 BuildRequires: sphinx

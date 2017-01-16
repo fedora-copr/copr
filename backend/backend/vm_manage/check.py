@@ -1,10 +1,9 @@
 # coding: utf-8
 import json
+import paramiko
 #from setproctitle import setproctitle
 # from multiprocessing import Process
 #from threading import Thread
-
-from ansible.runner import Runner
 
 from backend.helpers import get_redis_connection
 from backend.vm_manage import PUBSUB_MB, EventTopics
@@ -20,21 +19,7 @@ def check_health(opts, vm_name, vm_ip):
     :param vm_ip: ip address to the newly created VM
     :raises: :py:class:`~backend.exceptions.CoprWorkerSpawnFailError`: validation fails
     """
-    # setproctitle("check VM: {}".format(vm_ip))
-
     log = get_redis_logger(opts, "vmm.check_health.detached", "vmm")
-
-    runner_options = dict(
-        remote_user=opts.build_user or "root",
-        host_list="{},".format(vm_ip),
-        pattern=vm_ip,
-        forks=1,
-        transport=opts.ssh.transport,
-        timeout=opts.vm_ssh_check_timeout
-    )
-    connection = Runner(**runner_options)
-    connection.module_name = "shell"
-    connection.module_args = "echo hello"
 
     result = {
         "vm_ip": vm_ip,
@@ -43,17 +28,17 @@ def check_health(opts, vm_name, vm_ip):
         "result": "OK",
         "topic": EventTopics.HEALTH_CHECK
     }
+
     err_msg = None
     try:
-        res = connection.run()
-        if vm_ip not in res.get("contacted", {}):
-            err_msg = (
-                "VM is not responding to the testing playbook."
-                "Runner options: {}".format(runner_options) +
-                "Ansible raw response:\n{}".format(res))
-
+        conn = paramiko.SSHClient()
+        conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        conn.connect(hostname=vm_ip, port=opts.ssh.port,
+                     username=opts.build_user or "root")
+        stdin, stdout, stderr = conn.exec_command("echo hello")
+        stdout.channel.recv_exit_status()
     except Exception as error:
-        err_msg = "Failed to check  VM ({})due to ansible error: {}".format(vm_ip, error)
+        err_msg = "Healtcheck failed for VM {} with error {}".format(vm_ip, error)
         log.exception(err_msg)
 
     try:

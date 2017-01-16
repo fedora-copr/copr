@@ -1,47 +1,15 @@
 class MockRemoteError(Exception):
-    def __init__(self, msg):
-        super(MockRemoteError, self).__init__(msg)
-        self.msg = msg
-
-    def __str__(self):
-        return self.msg
-
-
-class BuilderError(MockRemoteError):
-    def __init__(self, msg, return_code=None, stdout=None, stderr=None):
-        super(BuilderError, self).__init__(msg)
-
-        self.return_code = return_code
-        self.stdout = stdout
-        self.stderr = stderr
-
-    def __str__(self):
-        result = "BuildError: {}".format(self.msg)
-        if self.return_code:
-            result += "; return code: {}".format(self.return_code)
-        if self.stdout:
-            result += "; stdout: {}".format(self.stdout)
-        if self.stderr:
-            result += "; stderr: {}".format(self.stderr)
-        return result
-
-
-class AnsibleResponseError(BuilderError):
     pass
 
+class BuilderError(MockRemoteError):
+    pass
 
-class AnsibleCallError(BuilderError):
-    def __init__(self, msg, cmd, module_name, as_root, **kwargs):
-        self.msg = "{}\n Call cmd: `{}`, module: `{}`, as root: {}".format(
-            msg, cmd, module_name, as_root
+class RemoteCmdError(BuilderError):
+    def __init__(self, msg, cmd, as_root, rc, stderr, stdout):
+        self.msg = "{}\nCMD:{}\nRC:{}\nAS_ROOT:{}\nSTDERR:{}\nSTDOUT:{}".format(
+            msg, cmd, as_root, rc, stderr, stdout
         )
-        super(AnsibleCallError, self).__init__(self.msg, **kwargs)
-        self.call_args = dict(
-            cmd=cmd,
-            module_name=module_name,
-            as_root=as_root,
-        )
-
+        super(RemoteCmdError, self).__init__(self.msg)
 
 class BuilderTimeOutError(BuilderError):
     pass
