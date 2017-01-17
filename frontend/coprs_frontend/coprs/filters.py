@@ -199,12 +199,18 @@ def fix_url_https_frontend(url):
 
 @app.template_filter("repo_url")
 def repo_url(url):
-    """ render copr://<user>/prj to be rendered as copr projects pages """
+    """
+    render copr://<user>/<prj> or copr://g/<group>/<prj>
+    to be rendered as copr projects pages
+    """
     parsed = urlparse(url)
     if parsed.scheme == "copr":
-        user = parsed.netloc
+        owner = parsed.netloc
         prj = parsed.path.split("/")[1]
-        url = url_for("coprs_ns.copr_detail", username=user, coprname=prj)
+        if owner[0] == '@':
+            url = url_for("coprs_ns.group_copr_detail", group_name=owner[1:], coprname=prj)
+        else:
+            url = url_for("coprs_ns.copr_detail", username=owner, coprname=prj)
 
     return helpers.fix_protocol_for_frontend(url)
 
