@@ -207,7 +207,7 @@ class CoprClient(UnicodeMixin):
             log.debug("raw response: {0}".format(response.text))
         except requests.ConnectionError as e:
             log.error(e)
-            raise CoprRequestException("Connection error {} {}".format(method.upper(), url))
+            raise CoprRequestException("Connection error {0} {1}".format(method.upper(), url))
 
         if "<title>Sign in Copr</title>" in response.text:
             raise CoprRequestException("Invalid API token\n")
