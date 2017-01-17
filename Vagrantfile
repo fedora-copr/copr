@@ -5,7 +5,7 @@ Vagrant.configure(2) do |config|
 
   ###  FRONTEND  ###################################################
   config.vm.define "frontend" do |frontend|
-    frontend.vm.box = "fedora/23-cloud-base"
+    frontend.vm.box = "fedora/25-cloud-base"
 
     frontend.vm.network "forwarded_port", guest: 80, host: 5000
 
@@ -204,7 +204,7 @@ Vagrant.configure(2) do |config|
   ###  DIST-GIT  ###################################################
   config.vm.define "distgit" do |distgit|
 
-    distgit.vm.box = "fedora/23-cloud-base"
+    distgit.vm.box = "fedora/25-cloud-base"
 
     distgit.vm.network "forwarded_port", guest: 80, host: 5001
 
@@ -432,7 +432,7 @@ echo \"Host *
   ###  BACKEND   ###################################################
   config.vm.define "backend" do |backend|
 
-    backend.vm.box = "fedora/23-cloud-base"
+    backend.vm.box = "fedora/25-cloud-base"
 
     backend.vm.network "forwarded_port", guest: 5002, host: 5002
 
