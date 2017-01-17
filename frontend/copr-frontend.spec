@@ -293,17 +293,6 @@ cat <<EOF > %buildroot%flavor_files_list
 %flavor_files
 EOF
 
-%check
-%if %{with check} && "%{_arch}" == "x86_64"
-    pushd coprs_frontend
-    REDIS_PORT=7777
-    redis-server --port $REDIS_PORT & #&> _redis.log &
-    rm -rf /tmp/copr.db /tmp/whooshee || :
-    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
-    redis-cli -p $REDIS_PORT shutdown
-    popd
-%endif
-
 mkdir -p %buildroot%macrosdir
 cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
 %%copr_frontend_flavor_guard      %flavor_guard
@@ -314,6 +303,16 @@ cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
 %%copr_frontend_chroot_logodir    %%copr_frontend_staticdir/chroot_logodir
 EOF
 
+%check
+%if %{with check} && "%{_arch}" == "x86_64"
+    pushd coprs_frontend
+    REDIS_PORT=7777
+    redis-server --port $REDIS_PORT & #&> _redis.log &
+    rm -rf /tmp/copr.db /tmp/whooshee || :
+    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
+    redis-cli -p $REDIS_PORT shutdown
+    popd
+%endif
 
 %pre
 getent group copr-fe >/dev/null || groupadd -r copr-fe
