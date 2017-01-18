@@ -115,9 +115,8 @@
 
         <div class="highlight autumn">
 
-          <pre><span class="c1"># Add module repofile to your system (this will be automated by dnf in the future)</span>
-wget {{ copr_url('coprs_ns.generate_module_repo_file', copr, _external=True) }} -O <span class="se">\</span>
-     /etc/fm.modules.d/_copr_{{ module.full_name |replace("/", "-") }}-{{ module.id }}.cfg
+          <pre><span class="c1"># Add module repofile to your system</span>
+dnf copr enable {{ module.copr.full_name }}
 
 <span class="c1"># Install the module</span>
 dnf module <span class="nb">enable</span> {{ module.name }}</pre>
