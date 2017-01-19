@@ -9,9 +9,11 @@
         {{ field(class="form-control", **kwargs)|safe }}
         <ul class="list-unstyled">
         {% if info %}
+          {% for line in (info if info is not string else [info]) %}
           <li class="help-block">
-            <small class="text-muted pficon pficon-info"></small> {{info|safe}}
+            <small class="text-muted pficon pficon-info"></small> {{line|safe}}
           </li>
+          {% endfor %}
         {% endif %}
         {% if field.errors %}
           {% for error in field.errors %}
