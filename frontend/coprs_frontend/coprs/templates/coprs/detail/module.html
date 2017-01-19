@@ -118,11 +118,18 @@
         <h3 class="panel-title">How to use</h3>
       </div>
       <div class="panel-body">
-        <p>First, see the documentation for <code>copr module</code> command on it's <a href="https://pagure.io/fm-dnf-plugin">project page</a>.<br>
-        To install this module, please run following commands as root:</p>
+        <p>First, see the documentation for <code>dnf module</code> command on it's <a href="https://pagure.io/fm-dnf-plugin">project page</a>.
+           Quick installation guide for this command:</p>
 
         <div class="highlight autumn">
+          <pre>dnf copr enable @modularity/fm
+dnf copr enable @modularity/modulemd
+dnf copr enable @modularity/modulemd-resolver
+dnf install python3-fm-dnf-plugin</pre>
+        </div>
 
+        <p>To install this module, please run following commands as root:</p>
+        <div class="highlight autumn">
           <pre><span class="c1"># Add module repofile to your system</span>
 dnf copr enable {{ module.copr.full_name }}
 
