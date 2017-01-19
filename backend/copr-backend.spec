@@ -88,7 +88,10 @@ Requires:   python-paramiko
 Requires:   python-lockfile
 Requires:   python2-modulemd
 # Requires:   python-ipdb
+# EL7 doesn't support "Suggests"
+%if 0%{?fedora}
 Suggests:   logstash
+%endif
 Requires:   libappstream-glib-builder >= 0.4.0
 # Requires:   python-plumbum
 Requires:   rpm-sign

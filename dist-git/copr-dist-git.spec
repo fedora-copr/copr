@@ -26,7 +26,11 @@ BuildRequires: python-dateutil
 BuildRequires: pytest
 BuildRequires: python-pytest-cov
 BuildRequires: python-mock
+%if 0%{?el7}
+BuildRequires: python-psutil
+%else
 BuildRequires: python2-psutil
+%endif
 BuildRequires: pytz
 
 %if 0%{?fedora} > 23
@@ -42,7 +46,11 @@ Requires: systemd
 Requires: dist-git
 Requires: python-bunch
 Requires: python-requests
+%if 0%{?el7}
+Requires: python-psutil
+%else
 Requires: python2-psutil
+%endif
 Requires: python-jinja2
 Requires: pyrpkg >= 1.47
 Requires: mock-scm
