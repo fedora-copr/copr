@@ -1,0 +1,7 @@
+This is just PoC and rather toy tool:
+
+./prep-srpm --config   config-copr.sh \
+            --module   praiskup/ping/quick-package
+            --revision 5ce6ec838e22df0c5dfbb3ca042347a04829f5c1
+
+(motivation https://bugzilla.redhat.com/show_bug.cgi?id=1410403)
