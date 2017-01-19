@@ -60,6 +60,8 @@
           </div>
         </div>
 
+        {% set no_packages = 'No successfully built packages in this project yet' %}
+
         <div class="col-sm-4">
           <div class="panel panel-default">
             <div class="panel-heading">
@@ -77,6 +79,8 @@
                   {{ render_checkbox("filter-{}".format(loop.index0), package, (package in form.filter.data or not form.is_submitted())) }}
                 </label>
               </div>
+              {% else %}
+                <p class="text-muted"><span class="pficon pficon-warning-triangle-o"></span> {{ no_packages }}</p>
               {% endfor %}
             </div>
           </div>
@@ -100,6 +104,8 @@
                     {{ render_checkbox("api-{}".format(loop.index0), package, (package in form.api.data)) }}
                   </label>
                 </div>
+                {% else %}
+                  <p class="text-muted"><span class="pficon pficon-warning-triangle-o"></span> {{ no_packages }}</p>
                 {% endfor %}
               </div>
             </div>
@@ -129,6 +135,8 @@
                       {{ render_checkbox("profile_pkgs-{}-{}".format(i, loop.index0), package, (package in form.profile_pkgs[i].data)) }}
                     </label>
                   </div>
+                  {% else %}
+                    <p class="text-muted"><span class="pficon pficon-warning-triangle-o"></span> {{ no_packages }}</p>
                   {% endfor %}
                 </div>
               </li>

@@ -54,6 +54,8 @@
     </div>
   </div>
 
+  {% set no_packages = 'No packages in module\'s %s' %}
+
   <div class="col-sm-4">
     <div class="panel panel-default">
       <div class="panel-heading">
@@ -63,6 +65,8 @@
         <ul>
           {% for package in module.modulemd.filter.rpms %}
             <li>{{ package }}</li>
+          {% else %}
+            <p>{{ no_packages | format('filter')}}</p>
           {% endfor %}
         </ul>
       </div>
@@ -78,6 +82,8 @@
         <ul>
         {% for package in module.modulemd.api.rpms %}
           <li>{{ package }}</li>
+        {% else %}
+          <p>{{ no_packages | format('API')}}</p>
         {% endfor %}
         </ul>
       </div>
@@ -98,6 +104,8 @@
                 <li>{{ package }}</li>
               {% endfor %}
             </ul>
+          {% else %}
+            <p>No profiles in module</p>
           {% endfor %}
         </ul>
       </div>
