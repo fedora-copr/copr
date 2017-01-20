@@ -766,6 +766,9 @@ class MockChroot(db.Model, helpers.Serializer):
     """
     Representation of mock chroot
     """
+    __table_args__ = (
+        db.UniqueConstraint('os_release', 'os_version', 'arch', name='mock_chroot_uniq'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     # fedora/epel/..., mandatory
