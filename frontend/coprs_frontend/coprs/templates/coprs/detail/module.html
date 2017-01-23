@@ -54,6 +54,8 @@
     </div>
   </div>
 
+  {% set no_packages = 'No packages in module\'s %s' %}
+
   <div class="col-sm-4">
     <div class="panel panel-default">
       <div class="panel-heading">
@@ -63,6 +65,8 @@
         <ul>
           {% for package in module.modulemd.filter.rpms %}
             <li>{{ package }}</li>
+          {% else %}
+            <p>{{ no_packages | format('filter')}}</p>
           {% endfor %}
         </ul>
       </div>
@@ -78,6 +82,8 @@
         <ul>
         {% for package in module.modulemd.api.rpms %}
           <li>{{ package }}</li>
+        {% else %}
+          <p>{{ no_packages | format('API')}}</p>
         {% endfor %}
         </ul>
       </div>
@@ -98,6 +104,8 @@
                 <li>{{ package }}</li>
               {% endfor %}
             </ul>
+          {% else %}
+            <p>No profiles in module</p>
           {% endfor %}
         </ul>
       </div>
@@ -110,14 +118,20 @@
         <h3 class="panel-title">How to use</h3>
       </div>
       <div class="panel-body">
-        <p>First, see the documentation for <code>copr module</code> command on it's <a href="https://pagure.io/fm-dnf-plugin">project page</a>.<br>
-        To install this module, please run following commands as root:</p>
+        <p>First, see the documentation for <code>dnf module</code> command on it's <a href="https://pagure.io/fm-dnf-plugin">project page</a>.
+           Quick installation guide for this command:</p>
 
         <div class="highlight autumn">
+          <pre>dnf copr enable @modularity/fm
+dnf copr enable @modularity/modulemd
+dnf copr enable @modularity/modulemd-resolver
+dnf install python3-fm-dnf-plugin</pre>
+        </div>
 
-          <pre><span class="c1"># Add module repofile to your system (this will be automated by dnf in the future)</span>
-wget {{ copr_url('coprs_ns.generate_module_repo_file', copr, _external=True) }} -O <span class="se">\</span>
-     /etc/fm.modules.d/_copr_{{ module.full_name |replace("/", "-") }}-{{ module.id }}.cfg
+        <p>To install this module, please run following commands as root:</p>
+        <div class="highlight autumn">
+          <pre><span class="c1"># Add module repofile to your system</span>
+dnf copr enable {{ module.copr.full_name }}
 
 <span class="c1"># Install the module</span>
 dnf module <span class="nb">enable</span> {{ module.name }}</pre>
@@ -135,6 +149,7 @@ dnf module <span class="nb">enable</span> {{ module.name }}</pre>
         <h3 class="panel-title">Modulemd</h3>
       </div>
       <div class="panel-body">
+        <p class="text-muted"><span class="pficon pficon-info"></span> You may want to use this modulemd as a template and then submit it via Copr API or <code>copr-cli</code> to be build.</p>
         {{ yaml | safe }}
       </div>
     </div>
