@@ -50,11 +50,12 @@ class Worker(multiprocessing.Process):
 
     def _announce(self, topic, job):
         for bus in self.msg_buses:
-            bus.announce_job(topic, job, {
-                'who': self.name,
-                'ip': self.vm.vm_ip,
-                'pid': self.pid,
-            })
+            bus.announce_job(
+                topic, job,
+                who=self.name,
+                ip=self.vm.vm_ip,
+                pid=self.pid
+            )
 
 
     def _announce_start(self, job):

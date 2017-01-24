@@ -56,7 +56,7 @@ class MsgBus(object):
             self.log.exception("Failed to publish message.")
 
 
-    def announce_job(self, topic, job, subst):
+    def announce_job(self, topic, job, **kwargs):
         """
         Announce everywhere that a build process started now.
         """
@@ -77,10 +77,7 @@ class MsgBus(object):
         }
 
         content['str_status'] = BuildStatus.string(content['status'])
-
-        # Additional replacements?
-        if subst:
-            content.update(subst)
+        content.update(kwargs)
 
         msg = {}
         try:
@@ -143,19 +140,16 @@ class MsgBusFedmsg(MsgBus):
     """
     messages = {
         'build.start': {
-            'who': '{who}',
             'what': "build start: user:{user} copr:{copr}" \
-                    "pkg: {pkg} build:{build} ip:{ip}  pid:{pid}"
+                    " pkg:{pkg} build:{build} ip:{ip} pid:{pid}",
         },
         'chroot.start': {
-            'who': '{who}',
             'what': "chroot start: chroot:{chroot} user:{user}" \
-                     "copr:{copr} pkg: {pkg} build:{build} ip:{ip}  pid:{pid}"
+                    " copr:{copr} pkg:{pkg} build:{build} ip:{ip} pid:{pid}",
         },
         'build.end': {
-            'who': '{who}',
             'what': "build end: user:{user} copr:{copr} build:{build}" \
-                    "  pkg: {pkg}  version: {version} ip:{ip}  pid:{pid} status:{status}"
+                    " pkg:{pkg} version:{version} ip:{ip} pid:{pid} status:{status}",
         },
     }
 
@@ -166,7 +160,29 @@ class MsgBusFedmsg(MsgBus):
 
         super(MsgBusFedmsg, self).__init__(opts, log)
 
-        fedmsg.init(name="relay_inbound", cert_prefix="copr", active=True)
+        fedmsg.init(name='relay_inbound', cert_prefix='copr', active=True)
 
-    def _send(self, topic, body, headers):
-        fedmsg.publish(modname="copr", topic=topic, content=body)
+    def announce_job(self, topic, job, **kwargs):
+        """
+        Announce everywhere that a build process started now.
+        """
+        content = {
+            'user': job.submitter,
+            'copr': job.project_name,
+            'owner': job.project_owner,
+            'pkg': job.package_name,
+            'build': job.build_id,
+            'chroot': job.chroot,
+            'version': job.package_version,
+            'status': job.status,
+        }
+        content.update(kwargs)
+
+        if topic in self.messages:
+            for key in self.messages[topic]:
+                content[key] = self.messages[topic][key].format(**content)
+
+        self.send(topic, content)
+
+    def _send(self, topic, content, headers):
+        fedmsg.publish(modname='copr', topic=topic, msg=content)
