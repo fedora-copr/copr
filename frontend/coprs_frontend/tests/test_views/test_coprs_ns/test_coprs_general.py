@@ -615,6 +615,9 @@ class TestCoprDelete(CoprsTestCase):
 
 class TestCoprRepoGeneration(CoprsTestCase):
 
+    """
+    Requires f_mock_chroots
+    """
     @pytest.fixture
     def f_custom_builds(self):
         """ Custom builds are used in order not to break the default ones """
@@ -626,9 +629,6 @@ class TestCoprRepoGeneration(CoprsTestCase):
         self.b7 = self.models.Build(
             copr=self.c1, user=self.u1, submitted_on=10,
             results="https://bar.baz")
-        self.mc1 = self.models.MockChroot(
-            os_release="fedora", os_version="18", arch="x86_64")
-        self.cc1 = self.models.CoprChroot(mock_chroot=self.mc1, copr=self.c1)
 
         # assign with chroots
         for build in [self.b5, self.b6, self.b7]:
@@ -640,7 +640,7 @@ class TestCoprRepoGeneration(CoprsTestCase):
             )
 
         self.db.session.add_all(
-            [self.b5, self.b6, self.b7, self.mc1, self.cc1])
+            [self.b5, self.b6, self.b7])
 
     @pytest.fixture
     def f_not_finished_builds(self):

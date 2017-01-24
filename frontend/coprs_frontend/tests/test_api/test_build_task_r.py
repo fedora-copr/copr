@@ -47,6 +47,7 @@ class TestBuildTaskResource(CoprsTestCase):
 
     def test_collection_ok_by_state(
             self, f_users, f_coprs,
+            f_mock_chroots,
             f_mock_chroots_many,
             f_build_many_chroots,
             f_db,

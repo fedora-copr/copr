@@ -183,10 +183,11 @@ class CoprsTestCase(object):
     def f_mock_chroots_many(self):
         """
         Adds more chroots to self.c1
+        Requires: f_mock_chroots
         """
         self.mc_list = []
         for arch in ["x86_64", "i386"]:
-            for os_version in range(17, 22):
+            for os_version in range(19, 24):
                 mc = models.MockChroot(
                     os_release="fedora", os_version=os_version,
                     arch=arch, is_active=True)
@@ -310,16 +311,17 @@ class CoprsTestCase(object):
             'epel-6-i386': 0,
             'epel-6-x86_64': 3,
             'epel-7-x86_64': 4,
-            'fedora-17-i386': 5,
-            'fedora-17-x86_64': 6,
-            'fedora-18-i386': 2,
-            'fedora-18-x86_64': 3,
-            'fedora-19-i386': 0,
-            'fedora-19-x86_64': 0,
-            'fedora-20-i386': 1,
-            'fedora-20-x86_64': 1,
-            'fedora-21-i386': 1,
-            'fedora-21-x86_64': 4
+            'fedora-18-x86_64': 5,
+            'fedora-19-i386': 5,
+            'fedora-19-x86_64': 6,
+            'fedora-20-i386': 2,
+            'fedora-20-x86_64': 3,
+            'fedora-21-i386': 0,
+            'fedora-21-x86_64': 0,
+            'fedora-22-i386': 1,
+            'fedora-22-x86_64': 1,
+            'fedora-23-i386': 1,
+            'fedora-23-x86_64': 4,
         }
 
         for chroot in self.b_many_chroots.copr.active_chroots:
