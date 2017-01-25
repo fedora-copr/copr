@@ -54,9 +54,7 @@ Requires: python2-psutil
 Requires: python-jinja2
 Requires: pyrpkg >= 1.47
 Requires: mock-scm
-%ifarch x86_64 i386 i486 i586 i686
 Requires: docker
-%endif
 Requires: httpd
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
