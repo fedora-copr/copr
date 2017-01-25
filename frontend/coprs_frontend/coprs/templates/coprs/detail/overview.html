@@ -146,7 +146,7 @@
     </div>
     {% endif %}
 
-    {% if g.user and g.user.can_edit(copr) and copr and copr.owner and not copr.auto_createrepo %}
+    {% if g.user and g.user.can_edit(copr) and copr and copr.owner %}
     <div class="panel panel-default">
       <div class="panel-heading">
         <h3 class="panel-title"> Regenerate Repositories </h3>
