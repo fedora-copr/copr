@@ -120,7 +120,7 @@
           {{ form.disable_createrepo }} Create repositories manually
           <br>
           <small class="text-muted pficon pficon-info">
-            Repository meta data is refreshed after each build. If you want to do this manually, check the option above.
+            Repository meta data is normally refreshed after each build. If you want to do this manually, check the option above.
           </small>
         </div>
         <div class="checkbox">
@@ -128,7 +128,10 @@
         </div>
         {% if g.user.admin %}
         <div class="checkbox">
-          {{ form.auto_prune }} Build auto-prunning script will be run for the project
+          {{ form.auto_prune }} Old builds will be deleted automatically
+          <small class="text-muted pficon pficon-info">
+            Build will be deleted only if there is a newer build (with respect to package version) and it is older than 14 days
+          </small>
         </div>
         {% endif %}
         <div class="checkbox">
@@ -139,13 +142,16 @@
           {{ form.persistent }} Protect project and its builds against deletion
           <br>
           <small class="text-muted pficon pficon-info">
-            This project will not be auto-prunned. Its builds and the project itself cannot be deleted. This option is set once and for all.
+            Project's builds and the project itself cannot be deleted by any means. This option is set once and for all.
           </small>
         </div>
         {% endif %}
         {% if g.user.admin and copr %} {# let an admin see the status of the 'Persistent builds' field but do not let him change the preset value #}
         <div class="checkbox">
           {{ form.persistent(disabled=True) }} Protect project and its builds against deletion
+          <br/><small class="text-muted pficon pficon-info">
+            This option cannot be altered after a project has been created.
+          </small>
         </div>
         {% endif %}
       </div>
