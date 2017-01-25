@@ -16,7 +16,7 @@ import sqlalchemy as sa
 import os
 import sys
 here = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.dirname(os.path.dirname(here)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(here))))
 from coprs.helpers import JSONEncodedDict
 
 def upgrade():

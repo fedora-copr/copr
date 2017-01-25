@@ -1,14 +1,14 @@
 """enabling fedora-25 chroots
 
 Revision ID: 8de41eec1d1
-Revises: 94975badc43
+Revises: 3341bf554454
 Create Date: 2016-09-07 15:41:35.130578
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '8de41eec1d1'
-down_revision = '94975badc43'
+down_revision = '3341bf554454'
 
 from alembic import op
 import sqlalchemy as sa

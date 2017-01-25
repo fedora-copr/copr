@@ -1,14 +1,14 @@
 """Rename rawhide to f26
 
 Revision ID: 419a626c25e6
-Revises: 149da7c4ac2f
+Revises: 8de41eec1d1
 Create Date: 2016-10-05 13:16:21.428071
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '419a626c25e6'
-down_revision = '149da7c4ac2f'
+down_revision = '8de41eec1d1'
 
 from alembic import op
 import sqlalchemy as sa
