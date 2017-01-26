@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.75
+Version:    1.76
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -185,6 +185,9 @@ popd
 %endif
 
 %changelog
+* Thu Jan 26 2017 clime <clime@redhat.com> 1.76-1
+- fix python 2.6 incompatibility
+
 * Thu Dec 01 2016 clime <clime@redhat.com> 1.75-1
 - edit_chroot implemented
 - modulemd 1.0.2 compatibility
