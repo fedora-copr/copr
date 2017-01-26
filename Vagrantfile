@@ -9,7 +9,8 @@ Vagrant.configure(2) do |config|
 
     frontend.vm.network "forwarded_port", guest: 80, host: 5000
 
-    frontend.vm.synced_folder ".", "/vagrant", type: "nfs"
+    #frontend.vm.synced_folder ".", "/vagrant", type: "nfs"
+    frontend.vm.synced_folder ".", "/vagrant", type: "rsync" # nfs sync does not with f25 currently due to Bug 1415496 - rpcbind fails at boot
 
     frontend.vm.network "private_network", ip: "192.168.242.51"
 
@@ -208,7 +209,8 @@ Vagrant.configure(2) do |config|
 
     distgit.vm.network "forwarded_port", guest: 80, host: 5001
 
-    distgit.vm.synced_folder ".", "/vagrant", type: "nfs"
+    #distgit.vm.synced_folder ".", "/vagrant", type: "nfs"
+    distgit.vm.synced_folder ".", "/vagrant", type: "rsync" # nfs sync does not with f25 currently due to Bug 1415496 - rpcbind fails at boot
 
     distgit.vm.network "private_network", ip: "192.168.242.52"
 
@@ -239,6 +241,7 @@ enabled_metadata=1
   \" | sudo tee /etc/yum.repos.d/dist-git-fedora-23.repo
   FOO
 
+    #
     # ...
     distgit.vm.provision "shell",
       inline: "sudo dnf -y install tito cgit dist-git dist-git-selinux pyrpkg docker || sudo dnf -y upgrade tito cgit dist-git dist-git-selinux pyrpkg docker"
@@ -436,7 +439,8 @@ echo \"Host *
 
     backend.vm.network "forwarded_port", guest: 5002, host: 5002
 
-    backend.vm.synced_folder ".", "/vagrant", type: "nfs"
+    #backend.vm.synced_folder ".", "/vagrant", type: "nfs"
+    backend.vm.synced_folder ".", "/vagrant", type: "rsync" # nfs sync does not with f25 currently due to Bug 1415496 - rpcbind fails at boot
 
     backend.vm.network "private_network", ip: "192.168.242.53"
 
