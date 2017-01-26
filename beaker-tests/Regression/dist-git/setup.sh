@@ -158,6 +158,8 @@ else
 fi
 cd -
 
+setenforce 0 # for mock-scm in docker, see https://bugzilla.redhat.com/show_bug.cgi?id=1416813
+
 # enable & start services
 systemctl daemon-reload
 systemctl enable httpd && systemctl start httpd
