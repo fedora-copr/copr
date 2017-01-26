@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.23
+Version:    0.24
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -138,6 +138,12 @@ usermod -aG docker copr-service
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Thu Jan 26 2017 clime <clime@redhat.com> 0.24-1
+- install mock-scm in docker image from official fedora repos
+- upgrade docker image to f25
+- Fixes for building COPR Backend and Dist-git on EL7
+- fix copy hack for new internal pyrpkg API
+
 * Thu Dec 01 2016 clime <clime@redhat.com> 0.23-1
 - use other than epel chroot for scm building
 - use newest mock
