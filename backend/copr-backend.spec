@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.95
+Version:    1.96
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -257,6 +257,19 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Jan 26 2017 clime <clime@redhat.com> 1.96-1
+- Fixes for building COPR Backend and Dist-git on EL7
+- simplified/improved logging of exceptions mainly
+- don't use sha256 checksum for rhel-5* repos, too
+- drop mentions of the max_builds_per_vm optoin
+- switched usage of deprecated ansible Runner for python-paramiko module
+- os_nova filter plugin fixed for python-novaclient 3
+- support for STOMP msg buses
+- fix Bug 1402689 regarding job cancellation
+- jobgrab service is no more
+- respect 'do_sign' option when forking
+- fix buildroot_cmd for rhel mock profiles
+
 * Thu Dec 01 2016 clime <clime@redhat.com> 1.95-1
 - use buildroot_pkgs substitution type according to job.chroot
 - use timeout command to respect timeout param coming from frontend
