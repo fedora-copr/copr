@@ -27,6 +27,7 @@ dnf -y install tito
 
 # enable libvirtd for Vagrant (distgit)
 systemctl enable libvirtd && systemctl start libvirtd
+systemctl start virtlogd.socket # this is currently needed in f25 for vagrant to work with libvirtd
 
 # enable docker (backend)
 ./create_loopback_devices_for_docker.sh # hack for running tests inside docker
