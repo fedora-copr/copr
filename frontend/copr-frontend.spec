@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.104
+Version:    1.105
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -390,6 +390,29 @@ service logstash condrestart
 
 
 %changelog
+* Sat Jan 28 2017 clime <clime@redhat.com> 1.105-1
+- separate schema and data (fedora) migrations
+- update option descriptions in project settings page
+- always show "Regenerate" button for recreating backend repodata
+- ensure mock triplets are unique
+- show a quick guide how to install 'dnf module' command
+- add info what to do with modulemd
+- allow to have multiple info lines per form field
+- print info when there are no packages in a module
+- suggest dnf to enable module
+- make repo filter support group coprs for copr:// scheme
+- move creation of copr-frontend-devel macro definition file from %%check to %%install
+- handle GitHub tag event webhooks
+- change dependency from python-flask-whooshee to python2-flask-whooshee
+- fix package icon for group projects (RhBug: 1403348)
+- return proper error when module not found
+- hide FAS groups for non-FAS deployments
+- provide functional API url to renew token
+- krb5 login
+- new replaceable welcome.html template
+- make FAS opt-out
+- fix traceback when forking
+
 * Thu Dec 01 2016 clime <clime@redhat.com> 1.104-1
 - set default build timeout to 18 hours
 - allow hiding "quick enable" helper
