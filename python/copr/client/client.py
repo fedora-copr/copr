@@ -21,9 +21,9 @@ from requests_toolbelt.multipart.encoder import (MultipartEncoder,
 # urlparse from six is not available on el7
 # because it requires at least python-six-1.4.1
 if sys.version_info[0] == 2:
-    from urlparse import urlparse
+    from urlparse import urlparse, urljoin
 else:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -1481,4 +1481,10 @@ class CoprClient(UnicodeMixin):
             ]
         )
         response.handle = BaseHandle(client=self, response=response)
+        return response
+
+    def build_module(self, modulemd, token):
+        endpoint = "/module/1/module-builds/"
+        response = requests.post(urljoin(self.copr_url, endpoint),
+                          json={"scmurl": modulemd}, cookies={"oidc_token": token})
         return response
