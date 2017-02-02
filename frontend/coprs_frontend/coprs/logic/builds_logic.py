@@ -801,6 +801,24 @@ GROUP BY
     def filter_by_group_name(cls, query, group_name):
         return query.filter(models.Group.name == group_name)
 
+    @classmethod
+    def build_upstream_tuple(cls, build):
+        """
+        Attempts to determine upstream project for given build and returns most specific build source
+        Returns: Tuple (url, ref)
+        """
+        if build.source_type == helpers.BuildSourceEnum("srpm_link"):
+            return build.source_json_dict["url"], None
+        if build.source_type == helpers.BuildSourceEnum("git_and_tito"):
+            return build.source_json_dict["git_url"], build.source_json_dict["git_branch"]
+        if build.source_type == helpers.BuildSourceEnum("mock_scm"):
+            return build.source_json_dict["scm_url"], build.source_json_dict["scm_branch"]
+        if build.source_type == helpers.BuildSourceEnum("pypi"):
+            return "https://pypi.python.org/pypi/{}/".format(build.source_json_dict["pypi_package_name"]), None
+        if build.source_type == helpers.BuildSourceEnum("rubygems"):
+            return "https://rubygems.org/gems/{}/".format(build.source_json_dict["gem_name"]), None
+        return None, None
+
 
 class BuildChrootsLogic(object):
     @classmethod

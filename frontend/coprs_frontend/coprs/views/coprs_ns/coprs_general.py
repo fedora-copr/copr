@@ -929,12 +929,12 @@ def copr_create_module(copr):
 
 
 def render_create_module(copr, form, profiles=2):
-    packages = []
+    built_packages = []
     for build in filter(None, [p.last_build(successful=True) for p in copr.packages]):
         for package in build.built_packages.split("\n"):
-            packages.append(package.split()[0])
+            built_packages.append((package.split()[0], build))
 
-    return flask.render_template("coprs/create_module.html", copr=copr, form=form, packages=packages, profiles=profiles)
+    return flask.render_template("coprs/create_module.html", copr=copr, form=form, built_packages=built_packages, profiles=profiles)
 
 
 @coprs_ns.route("/<username>/<coprname>/create_module/", methods=["POST"])
@@ -983,6 +983,14 @@ def build_module(copr, form):
         mmd.profiles[name] = modulemd.profile.ModuleProfile()
         for package in packages:
             mmd.profiles[name].add_rpm(str(package))
+
+    for package in form.filter.data:
+        build_id = form.builds.data[form.packages.data.index(package)]
+        build = builds_logic.BuildsLogic.get_by_id(build_id).first()
+
+        upstream_url, upstream_ref = builds_logic.BuildsLogic.build_upstream_tuple(build)
+        mmd.components.add_rpm(str(package), "User selected the package as a part of the module",
+                               buildorder=0, repository=upstream_url or "", ref=upstream_ref or "")
 
     module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
     db.session.flush()
