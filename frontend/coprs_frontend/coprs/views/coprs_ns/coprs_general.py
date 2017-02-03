@@ -984,14 +984,17 @@ def build_module(copr, form):
         for package in packages:
             mmd.profiles[name].add_rpm(str(package))
 
+    build_ids = sorted(list(set([int(id) for p, id in zip(form.packages.data, form.builds.data)
+                                 if p in form.filter.data])))
     for package in form.filter.data:
         build_id = form.builds.data[form.packages.data.index(package)]
         build = builds_logic.BuildsLogic.get_by_id(build_id).first()
 
         upstream_url, upstream_ref = builds_logic.BuildsLogic.build_upstream_tuple(build)
+
         mmd.components.add_rpm(str(package), "User selected the package as a part of the module",
-                               buildorder=sorted([int(id) for id in form.builds.data]).index(build.id),
-                               repository=str(upstream_url) or "", ref=str(upstream_ref) or "")
+                               repository=str(upstream_url) or "", ref=str(upstream_ref) or "",
+                               buildorder=build_ids.index(int(build.id)))
 
     module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
     db.session.flush()
