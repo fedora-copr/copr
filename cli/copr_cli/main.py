@@ -561,6 +561,17 @@ class Commands(object):
             self._watch_builds(build_ids)
 
     def action_build_module(self, args):
+        # Submit module directly to Copr
+        if not args.mbs:
+            if not args.copr:
+                print("Parameter --copr=<projectname> is required when not building via MBS")
+                return
+            ownername, projectname = parse_name(args.copr)
+            result = self.client.create_new_build_module(projectname, args.modulemd, username=ownername)
+            print(result.message if result.output == "ok" else result.error)
+            return
+
+        # Submit module to MBS
         token = args.token
         if not token:
             print("Provide token as command line argument or visit following URL to obtain the token:")
@@ -968,8 +979,13 @@ def setup_parser():
                                                 help="Builds a given module in Copr")
     parser_build_module.add_argument("modulemd",
                                      help="SCM with modulemd file in yaml format")
+    parser_build_module.add_argument("--copr",
+                                     help="The copr repo to build the module in. Can be just name of project or even in format username/project or @groupname/project.")
     parser_build_module.add_argument("--token",
                                      help="OIDC token for module build service")
+    parser_build_module.add_argument("--mbs",
+                                     help="Use Module Build Service to (only for development purposes, in the future all builds should be done via MBS)",
+                                     action="store_true")
     parser_build_module.set_defaults(func="action_build_module")
 
     return parser
