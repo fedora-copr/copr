@@ -332,6 +332,10 @@ class AlterUserCommand(Command):
             user.proven = True
         if kwargs["no_proven"]:
             user.proven = False
+        if kwargs["proxy"]:
+            user.proxy = True
+        if kwargs["no_proxy"]:
+            user.proxy = False
 
         db.session.add(user)
         db.session.commit()
@@ -349,6 +353,13 @@ class AlterUserCommand(Command):
             Option("--proven",
                    action="store_true"),
             Option("--no-proven",
+                   action="store_true"),
+            exclusive=True
+        ),
+        Group(
+            Option("--proxy",
+                   action="store_true"),
+            Option("--no-proxy",
                    action="store_true"),
             exclusive=True
         )
