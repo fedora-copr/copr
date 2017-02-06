@@ -293,25 +293,18 @@ class AddDebugUserCommand(Command):
     """
 
     def run(self, name, mail, **kwargs):
-        user = User(username=name, mail=mail)
+        user = models.User.query.filter(models.User.username == name).first()
+        if user:
+            print("User named {0} already exists.".format(name))
+            return
 
-        if kwargs["admin"]:
-            user.admin = True
-        if kwargs["no_admin"]:
-            user.admin = False
-        if kwargs["proven"]:
-            user.proven = True
-        if kwargs["no_proven"]:
-            user.proven = False
-        #
-        # if kwargs["api_token"]:
-        #     user.api_token = kwargs["api_token"]
-        #     user.api_token_expiration = datetime.date(2030, 1, 1)
-        # if kwargs["api_login"]:
-        #     user.api_token = kwargs["api_login"]
-        #
+        user = create_user_wrapper(name, mail)
+        if kwargs["api_token"]:
+            user.api_token = kwargs["api_token"]
+        if kwargs["api_login"]:
+            user.api_token = kwargs["api_login"]
 
-        db.session.add(create_user_wrapper(user, mail))
+        db.session.add(user)
         db.session.commit()
 
     option_list = (
@@ -319,20 +312,6 @@ class AddDebugUserCommand(Command):
         Option("mail"),
         Option("--api_token", default=None, required=False),
         Option("--api_login", default=None, required=False),
-        Group(
-            Option("--admin",
-                   action="store_true"),
-            Option("--no-admin",
-                   action="store_true"),
-            exclusive=True
-        ),
-        Group(
-            Option("--proven",
-                   action="store_true"),
-            Option("--no-proven",
-                   action="store_true"),
-            exclusive=True
-        ),
     )
 
 
