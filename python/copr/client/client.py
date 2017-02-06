@@ -189,8 +189,9 @@ class CoprClient(UnicodeMixin):
         if not skip_auth:
             kwargs["auth"] = (self.login, self.token)
         if data is not None:
+            if type(data) != MultipartEncoderMonitor:
+                data["username"] = username
             kwargs["data"] = data
-            kwargs["data"]["username"] = username
         if headers is not None:
             kwargs["headers"] = headers
         if params is not None:
@@ -547,6 +548,7 @@ class CoprClient(UnicodeMixin):
                                    background=False, progress_callback=None, multipart=False):
         if not username:
             username = self.username
+        data["username"] = username
 
         url = "{0}/coprs/{1}/{2}/{3}/".format(
             self.api_url, username, projectname, api_endpoint
