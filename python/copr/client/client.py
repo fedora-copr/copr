@@ -190,6 +190,7 @@ class CoprClient(UnicodeMixin):
             kwargs["auth"] = (self.login, self.token)
         if data is not None:
             kwargs["data"] = data
+            kwargs["data"]["username"] = username
         if headers is not None:
             kwargs["headers"] = headers
         if params is not None:
