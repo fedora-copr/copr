@@ -76,7 +76,6 @@ Requires:   python-openid-teams
 Requires:   python-flask-wtf
 Requires:   python-flask-sqlalchemy
 Requires:   python-flask-script
-Requires:   python2-flask-whooshee
 #Requires:   python-virtualenv
 Requires:   python-blinker
 Requires:   python-markdown
@@ -123,6 +122,14 @@ Requires: python2-zmq
 Requires: python-zmq
 %endif
 
+%if 0%{?fedora} >= 25
+Requires: python2-flask-whooshee
+BuildRequires: python2-flask-whooshee
+%else
+Requires: python-flask-whooshee
+BuildRequires: python-flask-whooshee
+%endif
+
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
@@ -134,7 +141,6 @@ BuildRequires: python-flask-script
 BuildRequires: python-flask-sqlalchemy
 BuildRequires: python-flask-openid
 BuildRequires: python-openid-teams
-BuildRequires: python2-flask-whooshee
 BuildRequires: python-pylibravatar
 BuildRequires: python-flask-wtf
 BuildRequires: python-netaddr
