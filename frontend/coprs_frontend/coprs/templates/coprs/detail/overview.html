@@ -157,7 +157,9 @@
             <span class="fa fa-refresh"> Regenerate</span></button>
         </form>
         <br>
+        {% if not copr.auto_createrepo %}
         <small><span class="pficon pficon-info text-muted"></span> Package repositories are not generated automatically after each build. You can change this setting on the Edit page</small>
+        {% endif %}
       </div>
     </div>
     {% endif %}
