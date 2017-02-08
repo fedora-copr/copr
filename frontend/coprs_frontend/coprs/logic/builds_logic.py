@@ -801,6 +801,18 @@ GROUP BY
     def filter_by_group_name(cls, query, group_name):
         return query.filter(models.Group.name == group_name)
 
+    @classmethod
+    def build_upstream_tuple(cls, build):
+        """
+        Return upstream SCM source tuple for given build
+        Returns: Tuple (url, ref)
+        """
+        if build.source_type == helpers.BuildSourceEnum("git_and_tito"):
+            return build.source_json_dict["git_url"], build.source_json_dict["git_branch"]
+        if build.source_type == helpers.BuildSourceEnum("mock_scm"):
+            return build.source_json_dict["scm_url"], build.source_json_dict["scm_branch"]
+        return None, None
+
 
 class BuildChrootsLogic(object):
     @classmethod
