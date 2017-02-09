@@ -285,11 +285,11 @@ class DisplayChrootsCommand(Command):
     )
 
 
-class AddDebugUserCommand(Command):
+class AddUserCommand(Command):
 
     """
-    Adds user for debug/testing purpose.
-    You shouldn't use this on production instance
+    You should not use regularly as that user will not be related to FAS account.
+    This should be used only for testing or adding special accounts e.g. proxy user.
     """
 
     def run(self, name, mail, **kwargs):
@@ -445,7 +445,7 @@ manager.add_command("alter_chroot", AlterChrootCommand())
 manager.add_command("display_chroots", DisplayChrootsCommand())
 manager.add_command("drop_chroot", DropChrootCommand())
 manager.add_command("alter_user", AlterUserCommand())
-manager.add_command("add_debug_user", AddDebugUserCommand())
+manager.add_command("add_user", AddUserCommand())
 manager.add_command("fail_build", FailBuildCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
 manager.add_command("update_indexes_quick", UpdateIndexesQuickCommand())
