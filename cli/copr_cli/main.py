@@ -588,7 +588,7 @@ class Commands(object):
         Fake module build
         """
         ownername, projectname = parse_name(args.copr)
-        result = self.client.create_new_build_module(projectname, args.yaml, username=ownername)
+        result = self.client.make_module(projectname, args.yaml, username=ownername)
         print(result.message if result.output == "ok" else result.error)
 
 

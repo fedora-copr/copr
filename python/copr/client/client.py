@@ -588,24 +588,6 @@ class CoprClient(UnicodeMixin):
 
         return response
 
-    def create_new_build_module(self, projectname, modulemd, username=None):
-        api_endpoint = "module/build"
-        ownername = username if username else self.username
-        f = open(modulemd, "rb")
-        data = {"modulemd": (os.path.basename(f.name), f, "application/x-rpm"), "username": ownername}
-
-        url = "{0}/coprs/{1}/{2}/{3}/".format(
-            self.api_url, ownername, projectname, api_endpoint
-        )
-
-        def fetch(url, data, method):
-            m = MultipartEncoder(data)
-            monit = MultipartEncoderMonitor(m, lambda x: x)
-            return self._fetch(url, monit, method="post", headers={'Content-Type': monit.content_type})
-
-        # @TODO Refactor process_package_action to be general general purpose
-        response = self.process_package_action(url, ownername, projectname, data=data, fetch_functor=fetch)
-        return response
 
     #########################################################
     ###                   Package actions                 ###
@@ -1487,4 +1469,23 @@ class CoprClient(UnicodeMixin):
         endpoint = "/module/1/module-builds/"
         response = requests.post(urljoin(self.copr_url, endpoint),
                           json={"scmurl": modulemd}, cookies={"oidc_token": token})
+        return response
+
+    def make_module(self, projectname, modulemd, username=None):
+        api_endpoint = "module/build"
+        ownername = username if username else self.username
+        f = open(modulemd, "rb")
+        data = {"modulemd": (os.path.basename(f.name), f, "application/x-rpm"), "username": ownername}
+
+        url = "{0}/coprs/{1}/{2}/{3}/".format(
+            self.api_url, ownername, projectname, api_endpoint
+        )
+
+        def fetch(url, data, method):
+            m = MultipartEncoder(data)
+            monit = MultipartEncoderMonitor(m, lambda x: x)
+            return self._fetch(url, monit, method="post", headers={'Content-Type': monit.content_type})
+
+        # @TODO Refactor process_package_action to be general general purpose
+        response = self.process_package_action(url, ownername, projectname, data=data, fetch_functor=fetch)
         return response
