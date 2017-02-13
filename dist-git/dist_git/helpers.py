@@ -126,7 +126,7 @@ class DistGitConfigReader(object):
         )
 
         opts.lookaside_location = _get_conf(
-            cp, "dist-git", "lookaside_location", "/var/lib/dist-git/cache/lookaside/pkgs/"
+            cp, "dist-git", "lookaside_location", "/srv/cache/lookaside/pkgs/"
         )
 
         opts.mock_scm_chroot = _get_conf(

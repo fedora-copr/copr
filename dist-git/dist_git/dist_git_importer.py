@@ -525,13 +525,13 @@ class DistGitImporter(object):
 
     def after_git_import(self):
         log.debug("refreshing cgit listing")
-        call(["/usr/share/dist-git/cgit_pkg_list.sh", self.opts.cgit_pkg_list_location])
+        call(["/usr/local/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
 
     @staticmethod
     def before_git_import(task):
         log.debug("make sure repos exist: {}".format(task.reponame))
-        call(["/usr/share/dist-git/git_package.sh", task.reponame])
-        call(["/usr/share/dist-git/git_branch.sh", task.branch, task.reponame])
+        call(["/usr/local/bin/setup_git_package", task.reponame])
+        call(["/usr/local/bin/mkbranch", task.branch, task.reponame])
 
     def post_back(self, data_dict):
         """
