@@ -51,6 +51,9 @@ class User(db.Model, helpers.Serializer):
     # is this user admin of the system?
     admin = db.Column(db.Boolean, default=False)
 
+    # can this user behave as someone else?
+    proxy = db.Column(db.Boolean, default=False)
+
     # stuff for the cli interface
     api_login = db.Column(db.String(40), nullable=False, default="abc")
     api_token = db.Column(db.String(40), nullable=False, default="abc")

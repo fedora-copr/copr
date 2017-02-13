@@ -285,33 +285,26 @@ class DisplayChrootsCommand(Command):
     )
 
 
-class AddDebugUserCommand(Command):
+class AddUserCommand(Command):
 
     """
-    Adds user for debug/testing purpose.
-    You shouldn't use this on production instance
+    You should not use regularly as that user will not be related to FAS account.
+    This should be used only for testing or adding special accounts e.g. proxy user.
     """
 
     def run(self, name, mail, **kwargs):
-        user = User(username=name, mail=mail)
+        user = models.User.query.filter(models.User.username == name).first()
+        if user:
+            print("User named {0} already exists.".format(name))
+            return
 
-        if kwargs["admin"]:
-            user.admin = True
-        if kwargs["no_admin"]:
-            user.admin = False
-        if kwargs["proven"]:
-            user.proven = True
-        if kwargs["no_proven"]:
-            user.proven = False
-        #
-        # if kwargs["api_token"]:
-        #     user.api_token = kwargs["api_token"]
-        #     user.api_token_expiration = datetime.date(2030, 1, 1)
-        # if kwargs["api_login"]:
-        #     user.api_token = kwargs["api_login"]
-        #
+        user = create_user_wrapper(name, mail)
+        if kwargs["api_token"]:
+            user.api_token = kwargs["api_token"]
+        if kwargs["api_login"]:
+            user.api_token = kwargs["api_login"]
 
-        db.session.add(create_user_wrapper(user, mail))
+        db.session.add(user)
         db.session.commit()
 
     option_list = (
@@ -319,20 +312,6 @@ class AddDebugUserCommand(Command):
         Option("mail"),
         Option("--api_token", default=None, required=False),
         Option("--api_login", default=None, required=False),
-        Group(
-            Option("--admin",
-                   action="store_true"),
-            Option("--no-admin",
-                   action="store_true"),
-            exclusive=True
-        ),
-        Group(
-            Option("--proven",
-                   action="store_true"),
-            Option("--no-proven",
-                   action="store_true"),
-            exclusive=True
-        ),
     )
 
 
@@ -353,6 +332,10 @@ class AlterUserCommand(Command):
             user.proven = True
         if kwargs["no_proven"]:
             user.proven = False
+        if kwargs["proxy"]:
+            user.proxy = True
+        if kwargs["no_proxy"]:
+            user.proxy = False
 
         db.session.add(user)
         db.session.commit()
@@ -370,6 +353,13 @@ class AlterUserCommand(Command):
             Option("--proven",
                    action="store_true"),
             Option("--no-proven",
+                   action="store_true"),
+            exclusive=True
+        ),
+        Group(
+            Option("--proxy",
+                   action="store_true"),
+            Option("--no-proxy",
                    action="store_true"),
             exclusive=True
         )
@@ -455,7 +445,7 @@ manager.add_command("alter_chroot", AlterChrootCommand())
 manager.add_command("display_chroots", DisplayChrootsCommand())
 manager.add_command("drop_chroot", DropChrootCommand())
 manager.add_command("alter_user", AlterUserCommand())
-manager.add_command("add_debug_user", AddDebugUserCommand())
+manager.add_command("add_user", AddUserCommand())
 manager.add_command("fail_build", FailBuildCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
 manager.add_command("update_indexes_quick", UpdateIndexesQuickCommand())
