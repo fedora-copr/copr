@@ -993,7 +993,7 @@ def build_module(copr, form):
         upstream_url, upstream_ref = builds_logic.BuildsLogic.build_upstream_tuple(build)
 
         mmd.components.add_rpm(str(package), "User selected the package as a part of the module",
-                               repository=str(upstream_url) or "", ref=str(upstream_ref) or "",
+                               repository=str(upstream_url or ""), ref=str(upstream_ref or ""),
                                buildorder=build_ids.index(int(build.id)))
 
     module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
