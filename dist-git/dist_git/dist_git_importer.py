@@ -720,7 +720,7 @@ class VM(object):
             dcmd.append(VM.hash)
             dcmd.extend(cmd)
 
-            log.debug("Running: {}".format(" ".join(dcmd)))
+            log.info("Running: Popen({})".format(dcmd))
             proc = Popen(dcmd, stdout=PIPE, stderr=PIPE)
             output, error = proc.communicate()
             VM.clean(full_name)
