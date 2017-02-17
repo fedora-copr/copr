@@ -1,0 +1,28 @@
+@import url("cloud.css");
+@import url("fonts.css");
+
+.copr-logo span {
+    background: url("copr-logo.png") no-repeat -10px transparent;
+    background-size: 270px;
+    display: block;
+    width: 270px;
+    height: 105px;
+    margin-top: 20px;
+  }
+
+h1.copr-logo {
+    font-family: 'Comfortaa', sans-serif;
+    margin-top: -10px;
+    margin-bottom: 12px;
+}
+
+div.body hr {
+    margin: 0px 1px 16px 0px;
+    background: none;
+    border: 1px dashed #888;
+    border-width: 1px 0 0 0;
+}
+
+div.sphinxsidebar input, h1#search-documentation ~ form > input {
+    border: 1px solid #b1a7a7;
+}

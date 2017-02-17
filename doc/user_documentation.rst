@@ -1,0 +1,308 @@
+.. _user_documentation:
+
+User Documentation
+==================
+
+This section contains information for users of Copr Build System. You can find a running Copr instance at http://copr.fedorainfracloud.org/.
+You may also be interested in :ref:`developer_documentation` and :ref:`downloads`.
+
+Tutorial
+--------
+
+See :ref:`screenshots_tutorial` for interacting with `copr.fedoraproject.org <http://copr.fedoraproject.org/>`_
+
+:ref:`how_to_enable_repo`
+
+Build Source Types
+------------------
+
+Copr supports several types of build sources.
+
+URL to a SRPM package
+^^^^^^^^^^^^^^^^^^^^^
+
+This is the only method to submit more builds at once. First, you need to upload your SRPM package(s) on a public server and then provide the URL(s).
+
+Direct Upload of a SRPM package
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Upload a SRPM package directly to Copr using the web interface or copr-cli command line client.
+
+.. _tito_ref:
+
+Tito
+^^^^
+
+This method builds Using `Tito <https://github.com/dgoodwin/tito>`_.
+It does these steps::
+
+1.  ``$ git clone <provided git url> result.git``
+2.  ``$ cd result.git``
+3.  ``$ git checkout <provided branch> # optional``
+4.  ``$ tito build --srpm``
+5.  import the resulting srpm into dist-git
+
+Then it continues as normally.
+
+.. _`Mock SCM`:
+
+Mock SCM
+^^^^^^^^
+
+This method builds Using `Mock SCM plugin <https://fedoraproject.org/wiki/Projects/Mock/Plugin/Scm>`_.
+It does::
+
+    /usr/bin/mock -r epel-7-x86_64 \
+        --scm-enable \ 
+        --scm-option method=[git,svn] \
+        --scm-option package=<name of package>
+        --scm-option branch=<name of branch>
+        --scm-option write_tar=True \
+        --scm-option spec=<spec file>
+        --scm-option", "git clone --depth 1" \ # similar command for SVN
+        --buildsrpm \
+        --resultdir=<some tmp dir>
+
+This will call git-archive and create tar file and SRPM. Resulting SRPM file is then imported into dist-git.
+Note that it does **not** bump up neither version nor release. It is your responsibility.
+
+GitHub Webhooks
+---------------
+
+Webhooks allows you to automatically trigger build.
+
+First you need to go to your Copr project and tab "Packages" and define some package. The methods which make sense together with webhooks are "mock-scm" and "tito". Check the "Webhook rebuild" option. You may hit "rebuild" and test the build actually works.
+
+Now you can navigate to "Setting" tab and then "Webhooks" There is your webhook url in the form of `https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/`.
+
+Then in your GitHub project, go to Settings / Webhooks and services. Click on the Add webhook button.
+Fill in the Payload URL field with the url you noted previously. Leave all other fields untouched (i.e. content: application/json; send just push event; no secret). Click the Add webhook button.
+
+And next time you push anything to your git, Copr will automatically rebuild your package.
+
+Pagure "Webhooks"
+-----------------
+
+Are not really webhooks but rather fedmsg binds. You also need to have webhook auto-rebuilding enabled for the package. 
+
+However, the only necessary thing on the Pagure side is to set Fedmsg to active in your project settings (in 'Hooks' section almost at the bottom). 
+
+Now your marked Tito and MockSCM packages will be rebuilt on specific commits.
+
+Links
+-----
+
+* For building package from git:
+
+1) `Tito <https://github.com/dgoodwin/tito>`_ (`blog post <http://miroslav.suchy.cz/blog/archives/2013/12/29/how_to_build_in_copr/index.html>`_ and `another about Tito+Git annex <http://m0dlx.com/blog/Reproducible_builds_on_Copr_with_tito_and_git_annex.html>`_) 
+
+2) `dgroc <https://github.com/pypingou/dgroc>`_ (`blog post <http://blog.pingoured.fr/index.php?post/2014/03/20/Introducing-dgroc>`_)
+
+* `Jenkins plugin <https://wiki.jenkins-ci.org/display/JENKINS/Copr+Plugin>`_ (`blog post <http://michal-srb.blogspot.cz/2014/04/jenkins-plugin-for-building-rpms-in-copr.html>`_)
+
+Multilib
+--------
+
+In Copr you cannot build multilib packages, i.e. build a i386 package in a x86_64 chroot. If you need to use multilib packages you will need to specify both repos on your x86_64 system. An example of the rhughes/f20-gnome-3-12 project follows:
+
+Install the repo file for this Copr by copying it to /etc/yum.repos.d and run yum update. If you have a multilib system (i.e. are running x86_64 but have i686 packages installed for flash / steam) then you'll need to modify the .repo file to include both i386 and x86_64 sources, e.g.::
+
+    $ cat rhughes-f20-gnome-3-12.repo
+    [rhughes-f20-gnome-3-12-i386]
+    name=Copr repo for f20-gnome-3-12 owned by rhughes (i386)
+    baseurl=http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-i386/
+    skip_if_unavailable=True
+    gpgcheck=0
+    cost=900
+    enabled=1
+
+    [rhughes-f20-gnome-3-12-x86_64]
+    name=Copr repo for f20-gnome-3-12 owned by rhughes (x86_64)
+    baseurl=http://copr-be.cloud.fedoraproject.org/results/rhughes/f20-gnome-3-12/fedora-$releasever-x86_64/
+    skip_if_unavailable=True
+    gpgcheck=0
+    cost=800
+    enabled=1
+
+Status Badges
+-------------
+
+Do you want to add such badge: 
+
+.. image:: https://copr.fedorainfracloud.org/coprs/g/mock/mock/package/mock/status_image/last_build.png
+
+to your page? E.g. to GitHub README.md? You can use those urls:
+
+- `https://copr.fedorainfracloud.org/coprs/<username>/<coprname>/package/<package_name>/status_image/last_build.png`
+- `https://copr.fedorainfracloud.org/coprs/g/<group_name>/<coprname>/package/<package_name>/status_image/last_build.png`
+
+And this badge will reflect current status of your package.
+
+FAQ
+---
+
+.. rubric:: What is the purpose of Copr?
+
+Copr is a build system available for everybody. You provide the src.rpm and Copr provides a yum repository. Copr can be used for upstream builds, for continuous integration, or to provide a yum repository for users of your project, if your project is not yet included in the standard Fedora repositories. 
+
+You will need a `FAS account <https://admin.fedoraproject.org/accounts>`_ in order to get started.
+
+.. rubric:: What I can build in Copr?
+
+You agree not to use Copr to upload software code or other material
+("Material") that:
+
+a. you do not have the right to upload or use, such as Material that
+   infringes the rights of any third party under intellectual
+   property or other applicable laws;
+
+b. is governed in whole or in part by a license not contained in the
+   list of acceptable licenses for Fedora, currently located at
+   https://fedoraproject.org/wiki/Licensing, as that list may be
+   revised from time to time by the Fedora Project Board;
+
+c. is categorized as a "Forbidden Item" at
+   https://fedoraproject.org/wiki/Forbidden_items,
+   as that page may be revised from time to time by the Fedora
+   Project Board;
+
+d. is designed to interfere with, disable, overburden, damage,
+   impair or disrupt Copr or Fedora Project infrastructure;
+
+e. violates any rules or guidelines of the Fedora Project; or
+
+f. violates any applicable laws and regulations.
+
+It is your responsibility to check licenses and to be sure you can make the resulting yum repo public.
+
+If you think that some repo may be violating a license, you can raise a legal flag - there is a dedicated text area in each project to do so. This will send a notification to the admins and we will act accordingly.
+
+It would be nice if you stated the license of your packages in the Description or Install instructions.
+
+.. rubric:: How can I enable a Copr repository?
+
+See :ref:`how_to_enable_repo`.
+
+.. rubric:: How can I package software as RPM?
+
+There are several tutorials:
+
+- `Packaging Workshop (video) <http://youtu.be/H4vxkuoimzc>`_ `(and the same workshop from different conference) <https://youtu.be/KdIsoYGSNS8>`_
+- `How to create an RPM package <https://fedoraproject.org/wiki/How_to_create_an_RPM_package>`_
+- `Creating and Building Packages <http://documentation-devel.engineering.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Packagers_Guide/chap-Red_Hat_Enterprise_Linux-Packagers_Guide-Creating_and_Building_Packages.html>`_
+- `How To Make An RPM With Red Hat Package Manager (video) <http://youtu.be/4J_Iksu1fgo>`_
+- http://www.rpm.org/max-rpm/
+- `Getting Started with RPMs (RH subscribers only) <https://access.redhat.com/videos/214983>`_
+- `Advanced packaging workshop (video) <https://youtu.be/vdWnyIbN8uw>`_
+
+
+Can I build for different versions of Fedora?
+
+Yes. Just hit the "Edit" tab in your project and select several chroots, e.g. "fedora-19-x86_64" and "fedora-18-x86_64". After doing so, when you submit the src.rpm, your package will be built for both of those selected versions of Fedora. 
+
+You can build for EPEL as well. 
+
+.. rubric:: Can I have more yum repositories?
+
+Yes. Each user can have more than one project and each project has one yum repository - to be more precise one repository per chroot.
+
+.. rubric:: Can I submit multiple builds at once?
+
+Yes. Just separate them by a space or a new line, but keep in mind that we do not guarantee build order.
+
+.. rubric:: What happens when I try to build a package with the same version number?
+
+Your package will just be rebuilt again.
+
+.. rubric:: Can I depend on other packages, which are not in Fedora/EPEL?
+
+Yes, they just need to be available in some yum repository. It can either be another Copr repo or a third-party yum repo (e.g jpackage). Click on "Edit" in your project and add the appropriate repositories into the "Repos" field.
+Packages from your project are available to be used at build time as well, but only for the project you are currently building and not from your other projects.
+
+.. rubric:: Can I give access to my repo to my team mate?
+
+Yes. If somebody wants to build into your project and you want give them access, just point them to your Copr project page. They should then click on the "Permission" tab, and request the permissions they want. "Builder" can only submit builds and "Admin" can approve permissions requests. You will then have to navigate to the same "Permission" tab and either approve or reject the request.
+
+.. rubric:: Do you have a command-line client?
+
+Yes. Just do ``dnf install copr-cli`` and learn more by ``man copr-cli``.
+
+.. rubric:: Do you have an API?
+
+Yes. See the link in the footer of every Copr page or jump directly to the `API page <http://copr-fe-dev.cloud.fedoraproject.org/api/>`_.
+
+.. rubric:: How long do you keep the builds?
+
+We keep the last successful build from each package indefinitely. All other builds (old packages, failed builds) are deleted after 14 days.
+
+.. rubric:: How is Copr pronounced?
+
+In American English Copr is pronounced /ˈkɑ.pɚ/ like the metallic element spelled "copper".
+
+.. rubric:: Why another buildsystem?
+
+We didn't start off to create another buildsystem. We originally just wanted to make building third party rpm repositories easier, but after talking to the koji developers and the developers who are building packages for CentOS we realized that there was a need for a maintainable, pluggable, and lightweight build system.
+
+.. rubric:: Did you consider OBS?
+
+Yes, we did. See `Copr and integration with Koji <http://miroslav.suchy.cz/blog/archives/2013/08/29/copr_and_integration_with_koji/index.html>`_ and `Copr Implemented using OBS <http://miroslav.suchy.cz/blog/archives/2013/08/30/copr_implemented_using_obs/index.html>`_. And the `mailing list discussion <https://lists.fedoraproject.org/pipermail/devel/2013-August/188575.html>`_, as well as the `conclusion <https://lists.fedoraproject.org/pipermail/devel/2013-September/188751.html>`_.
+
+.. rubric:: Can I get notifications from Copr builds?
+
+Yes, you can. Enable email/irc/android notifications at `Fedora notifications service <https://apps.fedoraproject.org/notifications/>`_.
+
+See this `example on how to process fedmsg notifications <http://miroslav.suchy.cz/blog/archives/2014/03/21/how_to_get_notification_about_your_builds_in_copr/index.html>`_.
+
+.. rubric:: What does Copr mean?
+
+Community projects (formerly Cool Other Package Repositories)
+
+.. rubric:: How can I tell yum to prefer Copr packages?
+
+Building a package with the same version-release number in Copr as the package distributed in the official Fedora repos is discouraged. You should instead bump the release number. Should you build with the same version-release number, you can tell yum to prefer the Copr packages over the distribution provided packages by adding cost=900 to the .repo file.
+
+.. rubric:: Can Copr build directly from git?
+
+Yes, it can. See :ref:`tito_ref` and `Mock SCM`_ build methods.
+
+If you want to know more about tools to generate srpm from a Git repo, see:
+
+1) `Tito <https://github.com/dgoodwin/tito>`_ (`blog post <http://miroslav.suchy.cz/blog/archives/2013/12/29/how_to_build_in_copr/index.html>`_)
+
+2) `dgroc <https://github.com/pypingou/dgroc>`_ (`blog post <http://blog.pingoured.fr/index.php?post/2014/03/20/Introducing-dgroc>`_)
+
+.. rubric:: How do I get notifications about finished builds?
+
+See this `blog post <http://miroslav.suchy.cz/blog/archives/2014/03/21/how_to_get_notification_about_your_builds_in_copr/index.html>`_.
+
+.. rubric:: Why doesn't Copr download my updated package?
+
+Sometimes people report that even though they have updated the src.rpm file and submitted the new build, Copr is still using the old src.rpm. This is typically caused when changes are made to the src.rpm file, but the release number was not bumped up accordingly. As a consequence the resulting files have the same URL, so your browser does not bother to fetch new log files and continues to show those files in its cache. Therefore you are still seeing old content from the previous task.
+
+You should press Ctrl+Shift+R to invalidate your cache and reload page
+
+.. rubric:: How can I create new group?
+
+Groups membership is handled by `FAS <https://admin.fedoraproject.org/accounts/>`_. It can add/remove members to existing group. However it cannot create new group. You can create new group by `creating new fedora-infra ticket <https://fedorahosted.org/fedora-infrastructure/newticket>`_. Here is one `existing ticket <https://fedorahosted.org/fedora-infrastructure/ticket/5222>`_, which you can use as example.
+
+Note that you have to log out and then log in again to Copr so Copr can read your new settings.
+
+.. rubric:: I see some strange error about /devel/repodata/ in logs.
+
+This is intended.
+In fact in next release there will be something like "Please ignore the error above".
+
+This is part of feature where you can check in your settings "Create repositories manually". This is intended for big
+projects like Gnome or KDE, which consist of hundreds of packages. And you want to release them all at the same time.
+But on the other hand it take days to build them. And of course during the buildtime you need to enable that repository,
+while at the same time have it disabled/frozen for users.
+
+So if you check "Create repositories manually", we do not run createrepo_c in normal directory, but in ./devel/ directory.
+This is directory is always passed to mock with ``skip_if_unavailable=1``.
+So if Copr have it, then it is used, otherwise ignored. But if it is missing DNF/YUM print the warning above even if it
+is ignored. Currently there is no way to tell DNF/YUM to not print this warning.
+
+.. rubric:: I have a problem and I need to talk to a human.
+
+We do not provide support per se, but try your luck here: :ref:`communication`
+
