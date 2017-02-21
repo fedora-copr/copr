@@ -2,7 +2,7 @@
 
 make html
 
-git clone "ssh://git@pagure.io/docs/copr-docs.git"
+git clone "ssh://git@pagure.io/docs/copr/copr.git" copr-docs
 cp -r _build/html/* copr-docs/
 (
     cd copr-docs
