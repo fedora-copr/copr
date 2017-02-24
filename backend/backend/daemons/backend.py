@@ -26,7 +26,7 @@ from .action_dispatcher import ActionDispatcher
 
 class CoprBackend(object):
     """
-    Core process - starts/stops dispatchers for actions and builds
+    COPR backend head process.
 
     :param config_file: path to the backend configuration file
     :param ext_opts: additional options for backend
@@ -65,12 +65,6 @@ class CoprBackend(object):
         except RequestException as err:
             self.log.exception(err)
             raise CoprBackendError(err)
-
-        build_dispatcher = BuildDispatcher(self.opts)
-        action_dispatcher = ActionDispatcher(self.opts)
-
-        build_dispatcher.start()
-        action_dispatcher.start()
 
 
 def run_backend(opts):
