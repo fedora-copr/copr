@@ -6,10 +6,9 @@ RUN dnf -y install pyp2rpm
 RUN dnf -y install rubygem-gem2rpm
 RUN dnf -y install mock mock-scm
 
-# source image contains only C/POSIX locales:
-# https://github.com/fedora-cloud/docker-brew-fedora/issues/39
+# ensure all possible locales are installed
 RUN truncate /etc/rpm/macros.image-language-conf --size=0
-RUN dnf -y reinstall glibc-all-langpacks # hacky workaround
+RUN dnf -y reinstall glibc-all-langpacks || dnf -y install glibc-all-langpacks --best
 
 ENV LANG en_US.UTF-8
 
