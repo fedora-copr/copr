@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.106
+Version:    1.107
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -396,6 +396,9 @@ service logstash condrestart
 
 
 %changelog
+* Tue Feb 28 2017 clime <clime@redhat.com> 1.107-1
+- [frontend] fix for python-flask-whooshee-0.4.1-2
+
 * Mon Feb 27 2017 clime <clime@redhat.com> 1.106-1
 - added alembic fedora revision to enable rawhide
 - rename add_debug_user command to add_user
