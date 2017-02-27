@@ -9,6 +9,7 @@ import time
 
 import flask
 from flask_script import Manager, Command, Option, Group
+from flask.ext.whooshee import Whooshee
 
 from coprs import app
 from coprs import db
@@ -391,16 +392,18 @@ class UpdateIndexesCommand(Command):
     """
 
     def run(self):
-        writer = CoprWhoosheer.index.writer()
+        index = Whooshee.get_or_create_index(app, CoprWhoosheer)
+
+        writer = index.writer()
         for copr in coprs_logic.CoprsLogic.get_all():
             CoprWhoosheer.delete_copr(writer, copr)
         writer.commit(optimize=True)
 
-        writer = CoprWhoosheer.index.writer()
+        writer = index.writer()
         writer.schema = CoprWhoosheer.schema
         writer.commit(optimize=True)
 
-        writer = CoprWhoosheer.index.writer()
+        writer = index.writer()
         for copr in coprs_logic.CoprsLogic.get_all():
             CoprWhoosheer.insert_copr(writer, copr)
         writer.commit(optimize=True)
@@ -416,7 +419,9 @@ class UpdateIndexesQuickCommand(Command):
     option_list = [Option("minutes_passed")]
 
     def run(self, minutes_passed):
-        writer = CoprWhoosheer.index.writer()
+        index = Whooshee.get_or_create_index(app, CoprWhoosheer)
+
+        writer = index.writer()
         query = db.session.query(models.Copr).filter(
             models.Copr.latest_indexed_data_update >= time.time()-int(minutes_passed)*60
         )

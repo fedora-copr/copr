@@ -2,6 +2,9 @@ import json
 import pytest
 import subprocess
 
+from flask.ext.whooshee import Whooshee
+
+from coprs import app
 from coprs.exceptions import ActionInProgressException
 from coprs.helpers import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
@@ -31,7 +34,8 @@ class TestCoprsLogic(CoprsTestCase):
         self.prefix = u"prefix"
         self.s_coprs = []
 
-        writer = CoprWhoosheer.index.writer()
+        index = Whooshee.get_or_create_index(app, CoprWhoosheer)
+        writer = index.writer()
 
         u1_count = 150
         for x in range(u1_count):

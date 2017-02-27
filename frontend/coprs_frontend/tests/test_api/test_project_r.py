@@ -4,6 +4,7 @@ import base64
 import copy
 import json
 from marshmallow import pprint
+from flask.ext.whooshee import Whooshee
 
 import pytest
 import sqlalchemy
@@ -13,6 +14,7 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.models import Copr
 from coprs.whoosheers import CoprWhoosheer
+from coprs import app
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
@@ -95,7 +97,8 @@ class TestProjectResource(CoprsTestCase):
         self.s_coprs = []
         c1_username = self.c1.user.username
 
-        writer = CoprWhoosheer.index.writer()
+        index = Whooshee.get_or_create_index(app, CoprWhoosheer)
+        writer = index.writer()
 
         k1 = 3
         k2 = 5
