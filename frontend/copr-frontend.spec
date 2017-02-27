@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.105
+Version:    1.106
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -396,6 +396,19 @@ service logstash condrestart
 
 
 %changelog
+* Mon Feb 27 2017 clime <clime@redhat.com> 1.106-1
+- added alembic fedora revision to enable rawhide
+- rename add_debug_user command to add_user
+- show info about auto-createrepo only when disabled
+- only require python2-flask-whooshee on f25+, require python-flask- whooshee otherwise
+- proxyuser feature (RhBug: 1381574)
+- allow setting proxy/no-proxy when altering user
+- rewrite broken add_debug_user command
+- add boolean proxy column to user table
+- care only about packages in filter
+- specify module components buildorder
+- fill module rpm components
+
 * Sat Jan 28 2017 clime <clime@redhat.com> 1.105-1
 - separate schema and data (fedora) migrations
 - update option descriptions in project settings page
