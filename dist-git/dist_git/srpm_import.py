@@ -95,7 +95,11 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     log.info("save the source files into lookaside cache")
     oldpath = os.getcwd()
     os.chdir(repo_dir) # we need to be in repo_dir for the following to work
-    commands.upload(upload_files, replace=True)
+    try:
+        commands.upload(upload_files, replace=True)
+    except:
+        log.exception("Error during source uploading")
+        raise e
     os.chdir(oldpath)
 
     log.debug("git push")
