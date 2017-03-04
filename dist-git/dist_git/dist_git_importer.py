@@ -525,13 +525,21 @@ class DistGitImporter(object):
 
     def after_git_import(self):
         log.debug("refreshing cgit listing")
-        call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
+        try:
+            call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
+        except Exception as e:
+            log.exception("Exception thrown during cgit pkg list refresh")
+            raise e
 
     @staticmethod
     def before_git_import(task):
         log.debug("make sure repos exist: {}".format(task.reponame))
-        call(["/usr/share/dist-git/setup_git_package", task.reponame])
-        call(["/usr/share/dist-git/mkbranch", task.branch, task.reponame])
+        try:
+            call(["/usr/share/dist-git/setup_git_package", task.reponame])
+            call(["/usr/share/dist-git/mkbranch", task.branch, task.reponame])
+        except Exception as e:
+            log.exception("Exception thrown during Git repo setup")
+            raise e
 
     def post_back(self, data_dict):
         """
