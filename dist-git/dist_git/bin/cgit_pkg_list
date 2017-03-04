@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# This simple script lists out the current pkgs git repos to a file.
+# This speeds up cgit as it doesn't have to recurse into all dirs
+# Looking for git repos.
+
+destination=/var/lib/copr-dist-git/cgit_pkg_list
+
+if [ -n "$1" ]
+then
+  destination=$1
+fi
+
+newfile=`mktemp`
+
+cd /var/lib/dist-git/git/repositories
+ls > $newfile
+cp -fZ $newfile $destination
+rm $newfile
+chmod 644 $destination

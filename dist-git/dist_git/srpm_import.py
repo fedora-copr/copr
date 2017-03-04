@@ -59,7 +59,7 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     # permissions with it's hook that relies on gitolite console
     # which is a default shell on SSH
 
-    git_base_url = "copr-dist-git@localhost:repositories/%(module)s"
+    git_base_url = "/var/lib/dist-git/git/repositories/%(module)s"
     repo_dir = os.path.join(tmp_dir, task.package_name)
     log.debug("repo_dir: {}".format(repo_dir))
     # use rpkg for importing the source rpm
