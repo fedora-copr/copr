@@ -141,13 +141,17 @@ And this badge will reflect current status of your package.
 FAQ
 ---
 
-.. rubric:: What is the purpose of Copr?
+.. _`What is the purpose of Copr?`:
+
+.. rubric:: What is the purpose of Copr? :ref:`¶ <What is the purpose of Copr?>`
 
 Copr is a build system available for everybody. You provide the src.rpm and Copr provides a yum repository. Copr can be used for upstream builds, for continuous integration, or to provide a yum repository for users of your project, if your project is not yet included in the standard Fedora repositories. 
 
 You will need a `FAS account <https://admin.fedoraproject.org/accounts>`_ in order to get started.
 
-.. rubric:: What I can build in Copr?
+.. _`What I can build in Copr?`:
+
+.. rubric:: What I can build in Copr? :ref:`¶ <What I can build in Copr?>`
 
 You agree not to use Copr to upload software code or other material
 ("Material") that:
@@ -179,11 +183,16 @@ If you think that some repo may be violating a license, you can raise a legal fl
 
 It would be nice if you stated the license of your packages in the Description or Install instructions.
 
-.. rubric:: How can I enable a Copr repository?
+
+.. _`How can I enable a Copr repository?`:
+
+.. rubric:: How can I enable a Copr repository? :ref:`¶ <How can I enable a Copr repository?>`
 
 See :ref:`how_to_enable_repo`.
 
-.. rubric:: How can I package software as RPM?
+.. _`How can I package software as RPM?`:
+
+.. rubric:: How can I package software as RPM? :ref:`¶ <How can I package software as RPM?>`
 
 There are several tutorials:
 
@@ -202,66 +211,96 @@ Yes. Just hit the "Edit" tab in your project and select several chroots, e.g. "f
 
 You can build for EPEL as well. 
 
-.. rubric:: Can I have more yum repositories?
+.. _`Can I have more yum repositories?`:
+
+.. rubric:: Can I have more yum repositories? :ref:`¶ <Can I have more yum repositories?>`
 
 Yes. Each user can have more than one project and each project has one yum repository - to be more precise one repository per chroot.
 
-.. rubric:: Can I submit multiple builds at once?
+.. _`Can I submit multiple builds at once?`:
+
+.. rubric:: Can I submit multiple builds at once? :ref:`¶ <Can I submit multiple builds at once?>`
 
 Yes. Just separate them by a space or a new line, but keep in mind that we do not guarantee build order.
 
-.. rubric:: What happens when I try to build a package with the same version number?
+.. _`What happens when I try to build a package with the same version number?`:
 
-Your package will just be rebuilt again.
+.. rubric:: What happens when I try to build a package with the same version number? :ref:`¶ <What happens when I try to build a package with the same version number?>`
 
-.. rubric:: Can I depend on other packages, which are not in Fedora/EPEL?
+Nothing special. Your package will just be rebuilt again.
+
+.. _`Can I depend on other packages, which are not in Fedora/EPEL?`:
+
+.. rubric:: Can I depend on other packages, which are not in Fedora/EPEL? :ref:`¶ <Can I depend on other packages, which are not in Fedora/EPEL?>`
 
 Yes, they just need to be available in some yum repository. It can either be another Copr repo or a third-party yum repo (e.g jpackage). Click on "Edit" in your project and add the appropriate repositories into the "Repos" field.
 Packages from your project are available to be used at build time as well, but only for the project you are currently building and not from your other projects.
 
-.. rubric:: Can I give access to my repo to my team mate?
+.. _`Can I give access to my repo to my team mate?`:
+
+.. rubric:: Can I give access to my repo to my team mate? :ref:`¶ <Can I give access to my repo to my team mate?>`
 
 Yes. If somebody wants to build into your project and you want give them access, just point them to your Copr project page. They should then click on the "Permission" tab, and request the permissions they want. "Builder" can only submit builds and "Admin" can approve permissions requests. You will then have to navigate to the same "Permission" tab and either approve or reject the request.
 
-.. rubric:: Do you have a command-line client?
+.. _`Do you have a command-line client?`:
+
+.. rubric:: Do you have a command-line client? :ref:`¶ <Do you have a command-line client?>`
 
 Yes. Just do ``dnf install copr-cli`` and learn more by ``man copr-cli``.
 
-.. rubric:: Do you have an API?
+.. _`Do you have an API?`:
+
+.. rubric:: Do you have an API? :ref:`¶ <Do you have an API?>`
 
 Yes. See the link in the footer of every Copr page or jump directly to the `API page <http://copr-fe-dev.cloud.fedoraproject.org/api/>`_.
 
-.. rubric:: How long do you keep the builds?
+.. _`How long do you keep the builds?`:
+
+.. rubric:: How long do you keep the builds? :ref:`¶ <How long do you keep the builds?>`
 
 We keep the last successful build from each package indefinitely. All other builds (old packages, failed builds) are deleted after 14 days.
 
-.. rubric:: How is Copr pronounced?
+.. _`How is Copr pronounced?`:
+
+.. rubric:: How is Copr pronounced? :ref:`¶ <How is Copr pronounced?>`
 
 In American English Copr is pronounced /ˈkɑ.pɚ/ like the metallic element spelled "copper".
 
-.. rubric:: Why another buildsystem?
+.. _`Why another buildsystem?`:
+
+.. rubric:: Why another buildsystem? :ref:`¶ <Why another buildsystem?>`
 
 We didn't start off to create another buildsystem. We originally just wanted to make building third party rpm repositories easier, but after talking to the koji developers and the developers who are building packages for CentOS we realized that there was a need for a maintainable, pluggable, and lightweight build system.
 
-.. rubric:: Did you consider OBS?
+.. _`Did you consider OBS?`:
+
+.. rubric:: Did you consider OBS? :ref:`¶ <Did you consider OBS?>`
 
 Yes, we did. See `Copr and integration with Koji <http://miroslav.suchy.cz/blog/archives/2013/08/29/copr_and_integration_with_koji/index.html>`_ and `Copr Implemented using OBS <http://miroslav.suchy.cz/blog/archives/2013/08/30/copr_implemented_using_obs/index.html>`_. And the `mailing list discussion <https://lists.fedoraproject.org/pipermail/devel/2013-August/188575.html>`_, as well as the `conclusion <https://lists.fedoraproject.org/pipermail/devel/2013-September/188751.html>`_.
 
-.. rubric:: Can I get notifications from Copr builds?
+.. _`Can I get notifications from Copr builds?`:
+
+.. rubric:: Can I get notifications from Copr builds? :ref:`¶ <Can I get notifications from Copr builds?>`
 
 Yes, you can. Enable email/irc/android notifications at `Fedora notifications service <https://apps.fedoraproject.org/notifications/>`_.
 
 See this `example on how to process fedmsg notifications <http://miroslav.suchy.cz/blog/archives/2014/03/21/how_to_get_notification_about_your_builds_in_copr/index.html>`_.
 
-.. rubric:: What does Copr mean?
+.. _`What does Copr mean?`:
+
+.. rubric:: What does Copr mean? :ref:`¶ <What does Copr mean?>`
 
 Community projects (formerly Cool Other Package Repositories)
 
-.. rubric:: How can I tell yum to prefer Copr packages?
+.. _`How can I tell yum to prefer Copr packages?`:
+
+.. rubric:: How can I tell yum to prefer Copr packages? :ref:`¶ <How can I tell yum to prefer Copr packages?>`
 
 Building a package with the same version-release number in Copr as the package distributed in the official Fedora repos is discouraged. You should instead bump the release number. Should you build with the same version-release number, you can tell yum to prefer the Copr packages over the distribution provided packages by adding cost=900 to the .repo file.
 
-.. rubric:: Can Copr build directly from git?
+.. _`Can Copr build directly from git?`:
+
+.. rubric:: Can Copr build directly from git? :ref:`¶ <Can Copr build directly from git?>`
 
 Yes, it can. See :ref:`tito_ref` and `Mock SCM`_ build methods.
 
@@ -271,23 +310,31 @@ If you want to know more about tools to generate srpm from a Git repo, see:
 
 2) `dgroc <https://github.com/pypingou/dgroc>`_ (`blog post <http://blog.pingoured.fr/index.php?post/2014/03/20/Introducing-dgroc>`_)
 
-.. rubric:: How do I get notifications about finished builds?
+.. _`How do I get notifications about finished builds?`:
+
+.. rubric:: How do I get notifications about finished builds? :ref:`¶ <How do I get notifications about finished builds?>`
 
 See this `blog post <http://miroslav.suchy.cz/blog/archives/2014/03/21/how_to_get_notification_about_your_builds_in_copr/index.html>`_.
 
-.. rubric:: Why doesn't Copr download my updated package?
+.. _`Why doesn't Copr download my updated package?`:
+
+.. rubric:: Why doesn't Copr download my updated package? :ref:`¶ <Why doesn't Copr download my updated package?>`
 
 Sometimes people report that even though they have updated the src.rpm file and submitted the new build, Copr is still using the old src.rpm. This is typically caused when changes are made to the src.rpm file, but the release number was not bumped up accordingly. As a consequence the resulting files have the same URL, so your browser does not bother to fetch new log files and continues to show those files in its cache. Therefore you are still seeing old content from the previous task.
 
 You should press Ctrl+Shift+R to invalidate your cache and reload page
 
-.. rubric:: How can I create new group?
+.. _`How can I create new group?`:
+
+.. rubric:: How can I create new group? :ref:`¶ <How can I create new group?>`
 
 Groups membership is handled by `FAS <https://admin.fedoraproject.org/accounts/>`_. It can add/remove members to existing group. However it cannot create new group. You can create new group by `creating new fedora-infra ticket <https://fedorahosted.org/fedora-infrastructure/newticket>`_. Here is one `existing ticket <https://fedorahosted.org/fedora-infrastructure/ticket/5222>`_, which you can use as example.
 
 Note that you have to log out and then log in again to Copr so Copr can read your new settings.
 
-.. rubric:: I see some strange error about /devel/repodata/ in logs.
+.. _`I see some strange error about /devel/repodata/ in logs.`:
+
+.. rubric:: I see some strange error about /devel/repodata/ in logs. :ref:`¶ <I see some strange error about /devel/repodata/ in logs.>`
 
 This is intended.
 In fact in next release there will be something like "Please ignore the error above".
@@ -302,7 +349,9 @@ This is directory is always passed to mock with ``skip_if_unavailable=1``.
 So if Copr have it, then it is used, otherwise ignored. But if it is missing DNF/YUM print the warning above even if it
 is ignored. Currently there is no way to tell DNF/YUM to not print this warning.
 
-.. rubric:: I have a problem and I need to talk to a human.
+.. _`I have a problem and I need to talk to a human.`:
+
+.. rubric:: I have a problem and I need to talk to a human.  :ref:`¶ <I have a problem and I need to talk to a human.>`
 
 We do not provide support per se, but try your luck here: :ref:`communication`
 
