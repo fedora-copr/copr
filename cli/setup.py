@@ -37,7 +37,7 @@ __version__ = find_version('copr-cli.spec')
 __description__ = "CLI tool to run copr"
 __author__ = "Pierre-Yves Chibon"
 __author_email__ = "pingou@pingoured.fr"
-__url__ = "http://fedorahosted.org/copr/"
+__url__ = "https://pagure.io/copr/copr"
 
 
 setup(

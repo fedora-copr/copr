@@ -50,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Copr Api 2'
-copyright = u'2015, https://fedorahosted.org/copr/'
+copyright = u'2017, https://pagure.io/copr/copr'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -203,7 +203,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'CoprApi2.tex', u'Copr Api 2 Documentation',
-   u'https://fedorahosted.org/copr/', 'manual'),
+   u'https://pagure.io/copr/copr', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -233,7 +233,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'coprapi2', u'Copr Api 2 Documentation',
-     [u'https://fedorahosted.org/copr/'], 1)
+     [u'https://pagure.io/copr/copr'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -247,7 +247,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'CoprApi2', u'Copr Api 2 Documentation',
-   u'https://fedorahosted.org/copr/', 'CoprApi2', 'One line description of project.',
+   u'https://pagure.io/copr/copr', 'CoprApi2', 'One line description of project.',
    'Miscellaneous'),
 ]
 

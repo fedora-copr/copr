@@ -40,7 +40,7 @@ __version__ = find_version('python-copr.spec')
 __description__ = "Python client for copr service."
 __author__ = "Valentin Gologuzov"
 __author_email__ = "vgologuz@redhat.com"
-__url__ = "http://fedorahosted.org/copr/"
+__url__ = "https://pagure.io/copr/copr"
 
 
 setup(

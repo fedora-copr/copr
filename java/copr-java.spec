@@ -3,10 +3,10 @@ Version:	0.2
 Release:	1%{?dist}
 Summary:	COPR Java client
 License:	ASL 2.0
-URL:		https://fedorahosted.org/copr/
+URL:		https://pagure.io/copr/copr
 
 # Source is created by
-# git clone https://git.fedorahosted.org/git/copr.git
+# git clone https://pagure.io/copr/copr.git
 # cd copr/java
 # tito build --tgz
 Source0:        %{name}-%{version}.tar.gz

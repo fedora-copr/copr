@@ -14,7 +14,7 @@ setup(
     long_description=spec_file.sourceHeader.description.decode("utf-8"),
     author='clime',
     author_email='clime@redhat.com',
-    download_url='https://git.fedorahosted.org/git/copr.git',
+    download_url='https://pagure.io/copr/copr.git',
     license='GPLv2+',
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",

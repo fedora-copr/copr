@@ -16,12 +16,12 @@ Summary:    SELinux module for COPR
 
 Group:      Applications/Productivity
 License:    GPLv2+
-URL:        https://fedorahosted.org/copr/
+URL:        https://pagure.io/copr/copr
 # Source is created by
-# git clone https://git.fedorahosted.org/git/copr.git
+# git clone https://pagure.io/copr/copr.git
 # cd copr/selinux
 # tito build --tgz
-# content is same as https://git.fedorahosted.org/cgit/copr.git/snapshot/%{name}-%{version}-1.tar.gz
+# content is same as https://pagure.io/copr/copr.git/snapshot/%{name}-%{version}-1.tar.gz
 # but checksum does not match due different metadata
 Source0: %{name}-%{version}.tar.gz
 

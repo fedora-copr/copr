@@ -4,7 +4,7 @@ Version: 1.9
 Release: 1%{?dist}
 
 # Source is created by:
-# git clone https://git.fedorahosted.org/git/copr.git
+# git clone https://pagure.io/copr/copr.git
 # cd copr/prunerepo
 # tito build --tgz
 Source0: %{name}-%{version}.tar.gz

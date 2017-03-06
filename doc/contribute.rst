@@ -22,7 +22,7 @@ Starting the frontend and dist-git
 
 To start your developer environment, simply run ``vagrant up`` command in the repository::
 
-    $ git clone https://git.fedorahosted.org/git/copr.git
+    $ git clone https://pagure.io/copr/copr.git
 
     $ cd copr
 

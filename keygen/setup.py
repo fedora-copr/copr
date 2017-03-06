@@ -22,7 +22,7 @@ __version__ = 0.01
 __description__ = description
 __author__ = "Valentin Gologuzov"
 __author_email__ = "vgologuz@redhat.com"
-__url__ = "http://fedorahosted.org/copr/"
+__url__ = "https://pagure.io/copr/copr"
 
 
 setup(

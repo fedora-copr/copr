@@ -5,9 +5,9 @@ Summary:    Copr services for Dist Git server
 
 Group:      Applications/Productivity
 License:    GPLv2+
-URL:        https://fedorahosted.org/copr/
+URL:        https://pagure.io/copr/copr
 # Source is created by
-# git clone https://git.fedorahosted.org/git/copr.git
+# git clone https://pagure.io/copr/copr.git
 # cd copr/dist-git
 # tito build --tgz
 Source0: %{name}-%{version}.tar.gz

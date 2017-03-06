@@ -12,7 +12,7 @@ Get rpm either from upstream copr: https://copr.fedoraproject.org/coprs/msuchy/c
 
 or checkout git repo and build latest release with tito::
 
-    git clone https://git.fedorahosted.org/cgit/copr.git
+    git clone https://pagure.io/copr/copr.git
     yum install -y tito yum-utils
     yum-builddep backend/copr-backend.spec
     yum-builddep selinux/copr-selinux.spec

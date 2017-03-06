@@ -10,7 +10,7 @@ This part is a command line interface to use copr.
 
 About this project:
 -------------------
-- Webiste:  https://fedorahosted.org/copr/
+- Webiste: https://pagure.io/copr/copr
 - Git: http://git.fedorahosted.org/cgit/copr.git
 - Test instance: http://copr-fe.cloud.fedoraproject.org/
 

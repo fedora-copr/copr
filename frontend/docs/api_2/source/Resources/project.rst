@@ -91,7 +91,7 @@ List projects
                 "contact": null,
                 "owner": "msuchy",
                 "build_enable_net": false,
-                "instructions": "See https://fedorahosted.org/copr/ for more details.",
+                "instructions": "See https://pagure.io/copr/copr for more details.",
                 "homepage": null,
                 "id": 1,
                 "name": "copr"

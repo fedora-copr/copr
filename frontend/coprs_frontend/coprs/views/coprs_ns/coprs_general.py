@@ -444,7 +444,7 @@ def copr_edit(copr, form=None):
 
 def _check_rpmfusion(repos):
     if "rpmfusion" in repos:
-        message = flask.Markup('Using rpmfusion as dependency is nearly always wrong. Please see <a href="https://fedorahosted.org/copr/wiki/UserDocs#WhatIcanbuildinCopr">What I can build in Copr</a>.')
+    message = flask.Markup('Using rpmfusion as dependency is nearly always wrong. Please see <a href="https://docs.pagure.org/copr.copr/user_documentation.html#what-i-can-build-in-copr">What I can build in Copr</a>.')
         flask.flash(message, "error")
 
 

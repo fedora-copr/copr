@@ -47,6 +47,6 @@ $ cd copr/backend/docker
 $ make build && make run
 ```
 
-For more information see [our wiki page](https://fedorahosted.org/copr/wiki/Contribute#LocalDevelopmentEnvironment).
+For more information see [our wiki page](https://docs.pagure.org/copr.copr/contribute.html?highlight=contribute).
 
 [Unreported tracebacks](https://retrace.fedoraproject.org/faf/problems/?component_names=copr-cli%2Cpython-copr) of client tools.

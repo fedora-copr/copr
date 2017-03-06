@@ -11,10 +11,10 @@ to provide access to all copr api methods.
 
 About this project:
 -------------------
-- Webiste:  https://fedorahosted.org/copr/
+- Webiste: https://pagure.io/copr/copr
 - Python-copr documentation: http://python-copr.readthedocs.org
-- Git: http://git.fedorahosted.org/cgit/copr.git
-- Test instance: http://copr-fe.cloud.fedoraproject.org/
+- Git: https://pagure.io/copr/copr.git
+- Test instance: http://copr-fe-dev.cloud.fedoraproject.org/
 
 Usage:
 ------

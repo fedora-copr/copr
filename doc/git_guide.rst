@@ -571,4 +571,4 @@ Other Resources
 Credits
 -------
 
-* Stolen from https://fedorahosted.org/spacewalk/wiki/GitGuide
+* Stolen from Git guide in spacewalk project

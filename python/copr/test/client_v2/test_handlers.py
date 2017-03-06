@@ -127,7 +127,7 @@ class TestProjectHandle(TestHandleBase):
 "projects": [{"project": {"group": "copr", "name": "copr", "disable_createrepo": false, "repos": [],
 "description": "Lightweight buildsystem -", "is_a_group_project": true, "contact": null, "owner": "msuchy",
 "build_enable_net": false, "homepage": null, "id": 1,
-"instructions": "See https://fedorahosted.org/copr/ for more details."},
+"instructions": "See https://pagure.io/copr/copr for more details."},
 "_links": {"self": {"href": "/api_2/projects/1"},
 "chroots": {"href": "/api_2/projects/1/chroots"},
 "build_tasks": {"href": "/api_2/build_tasks?project_id=1"},
