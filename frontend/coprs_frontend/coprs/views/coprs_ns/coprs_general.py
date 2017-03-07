@@ -990,10 +990,11 @@ def build_module(copr, form):
         build_id = form.builds.data[form.packages.data.index(package)]
         build = builds_logic.BuildsLogic.get_by_id(build_id).first()
 
-        upstream_url, upstream_ref = builds_logic.BuildsLogic.build_upstream_tuple(build)
+        chroot = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, "fedora-24-x86_64").first()
+        url = os.path.join(app.config["DIST_GIT_URL"], build.copr.full_name, "{}.git".format(build.package.name))
 
         mmd.components.add_rpm(str(package), "User selected the package as a part of the module",
-                               repository=str(upstream_url or ""), ref=str(upstream_ref or ""),
+                               repository=url, ref=str(chroot.git_hash),
                                buildorder=build_ids.index(int(build.id)))
 
     module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
