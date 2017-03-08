@@ -962,7 +962,7 @@ def parse_chroot_path(path):
 def enable_debug():
     logging.basicConfig(
         level=logging.DEBUG,
-        mock_format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+        format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
         datefmt='%H:%M:%S'
     )
     log.debug("#  Debug log enabled  #")
