@@ -109,7 +109,12 @@ class Builder(object):
 
         self.log.info("BUILDER CMD: "+cmd)
 
-        stdin, stdout, stderr = conn.exec_command(cmd)
+        try:
+            stdin, stdout, stderr = conn.exec_command(cmd)
+        except paramiko.SSHException as err:
+            raise RemoteCmdError("Paramiko failure.",
+                                 cmd, -1, as_root, str(err), "(none)")
+
         rc = stdout.channel.recv_exit_status() # blocks
         out, err = stdout.read(), stderr.read()
 
