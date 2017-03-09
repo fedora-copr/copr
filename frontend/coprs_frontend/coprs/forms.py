@@ -17,7 +17,7 @@ from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.modules_logic import ModulesLogic
 from coprs.models import Package
-from exceptions import UnknownSourceTypeException
+from coprs import exceptions
 
 def get_package_form_cls_by_source_type_text(source_type_text):
     """
@@ -40,7 +40,7 @@ def get_package_form_cls_by_source_type_text(source_type_text):
     elif source_type_text == 'rubygems':
         return PackageFormRubyGems
     else:
-        raise UnknownSourceTypeException("Invalid source type")
+        raise exceptions.UnknownSourceTypeException("Invalid source type")
 
 
 class MultiCheckboxField(wtforms.SelectMultipleField):
@@ -510,7 +510,7 @@ class BaseBuildFormFactory(object):
         F.background = wtforms.BooleanField(default=False)
         F.package_name = wtforms.StringField()
 
-        F.chroots_list = map(lambda x: x.name, active_chroots)
+        F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
         F.chroots_sets = {}
         for ch in F.chroots_list:

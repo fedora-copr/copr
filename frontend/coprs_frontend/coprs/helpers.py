@@ -1,3 +1,5 @@
+from __future__ import division
+
 import math
 import random
 import string
@@ -183,18 +185,18 @@ class Paginator(object):
 
     def border_url(self, request, start):
         if start:
-            if self.page - 1 > self.urls_count / 2:
+            if self.page - 1 > self.urls_count // 2:
                 return self.url_for_other_page(request, 1), 1
         else:
-            if self.page < self.pages - self.urls_count / 2:
+            if self.page < self.pages - self.urls_count // 2:
                 return self.url_for_other_page(request, self.pages), self.pages
 
         return None
 
     def get_urls(self, request):
-        left_border = self.page - self.urls_count / 2
+        left_border = self.page - self.urls_count // 2
         left_border = 1 if left_border < 1 else left_border
-        right_border = self.page + self.urls_count / 2
+        right_border = self.page + self.urls_count // 2
         right_border = self.pages if right_border > self.pages else right_border
 
         return [(self.url_for_other_page(request, i), i)
