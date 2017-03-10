@@ -1,10 +1,11 @@
 [Unit]
-Description=Copr Backend service, Workers controller
+Description=Copr Backend service
 After=syslog.target network.target auditd.service
-Requires=copr-backend-vmm.service copr-backend-log.service
+Requires=copr-backend-vmm.service copr-backend-log.service copr-backend-build.service copr-backend-action.service
 
 [Service]
-Type=simple
+Type=oneshot
+RemainAfterExit=True
 PIDFile=/var/run/copr-backend/copr-be.pid
 Environment="PYTHONPATH=/usr/share/copr/"
 User=copr

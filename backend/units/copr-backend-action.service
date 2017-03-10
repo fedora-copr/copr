@@ -1,5 +1,5 @@
 [Unit]
-Description=Copr Backend service, Virtual Machine Management component
+Description=Copr Backend service, Action Dispatcher component
 After=syslog.target network.target auditd.service
 Before=copr-backend.service
 PartOf=copr-backend.service
@@ -9,7 +9,7 @@ Type=simple
 Environment="PYTHONPATH=/usr/share/copr/"
 User=copr
 Group=copr
-ExecStart=/usr/bin/copr_run_vmm.py
+ExecStart=/usr/bin/copr_run_action_dispatcher.py
 
 [Install]
 WantedBy=multi-user.target
