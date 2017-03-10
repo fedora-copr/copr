@@ -592,7 +592,7 @@ class CoprClient(UnicodeMixin):
         api_endpoint = "module/build"
         ownername = username if username else self.username
         f = open(modulemd, "rb")
-        data = {"modulemd": (os.path.basename(f.name), f, "application/x-rpm")}
+        data = {"modulemd": (os.path.basename(f.name), f, "application/x-rpm"), "username": ownername}
 
         url = "{0}/coprs/{1}/{2}/{3}/".format(
             self.api_url, ownername, projectname, api_endpoint
