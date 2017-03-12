@@ -1,6 +1,5 @@
 # coding: utf-8
 import json
-import paramiko
 #from setproctitle import setproctitle
 # from multiprocessing import Process
 #from threading import Thread
@@ -10,6 +9,7 @@ from backend.vm_manage import PUBSUB_MB, EventTopics
 from backend.vm_manage.executor import Executor
 
 from ..helpers import get_redis_logger
+from ..sshcmd import SSHConnection
 
 
 def check_health(opts, vm_name, vm_ip):
@@ -31,13 +31,10 @@ def check_health(opts, vm_name, vm_ip):
 
     err_msg = None
     try:
-        conn = paramiko.SSHClient()
-        conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        conn.connect(hostname=vm_ip, port=opts.ssh.port,
-                     username=opts.build_user or "root",
-                     key_filename=opts.ssh.identity_file)
-        stdin, stdout, stderr = conn.exec_command("echo hello")
-        stdout.channel.recv_exit_status()
+        conn = SSHConnection(opts.build_user or "root", vm_ip)
+        rc, stdout, _ = conn.run_expensive("echo hello")
+        if rc != 0 or stdout != "hello\n":
+            err_msg = "Unexpected check output"
     except Exception as error:
         err_msg = "Healtcheck failed for VM {} with error {}".format(vm_ip, error)
         log.exception(err_msg)

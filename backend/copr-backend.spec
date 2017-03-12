@@ -42,7 +42,6 @@ BuildRequires: python-setproctitle
 BuildRequires: python-retask
 BuildRequires: python-copr >= 1.60
 BuildRequires: python-IPy
-BuildRequires: python-paramiko
 BuildRequires: python-psutil
 BuildRequires: python-futures
 BuildRequires: python-dateutil
@@ -83,7 +82,6 @@ Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
 Requires:   prunerepo
-Requires:   python-paramiko
 Requires:   python-lockfile
 Requires:   python2-modulemd
 # Requires:   python-ipdb

@@ -13,8 +13,10 @@ from ..mockremote import MockRemote
 from ..constants import BuildStatus, build_log_format
 from ..helpers import register_build_result, get_redis_connection, get_redis_logger, \
     local_file_logger
+from ..vm_manage import VmStates
 
 from ..msgbus import MsgBusStomp, MsgBusFedmsg
+from ..sshcmd import SSHConnectionError
 
 
 # ansible_playbook = "ansible-playbook"
@@ -218,6 +220,19 @@ class Worker(multiprocessing.Process):
                     )
                     status = BuildStatus.FAILURE
                     register_build_result(self.opts, failed=True)
+
+                except SSHConnectionError as err:
+                    self.log.exception(
+                        "SSH connection staled: {0}".format(str(err)))
+                    # The VM is unusable, don't wait for relatively slow
+                    # garbage collector.
+                    self.vm_manager.start_vm_termination(
+                            self.vm.vm_name,
+                            allowed_pre_state=VmStates.IN_USE)
+                    self.frontend_client.reschedule_build(
+                            job.build_id, job.chroot)
+                    raise VmError("SSH connection issue, build rescheduled")
+
                 except: # programmer's failures
                     self.log.exception("Unexpected error")
                     status = BuildStatus.FAILURE

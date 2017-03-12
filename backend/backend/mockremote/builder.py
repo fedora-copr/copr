@@ -4,7 +4,6 @@ import socket
 from subprocess import Popen
 import time
 from urlparse import urlparse
-import paramiko
 import glob
 
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
@@ -13,6 +12,7 @@ from ..helpers import get_redis_connection, ensure_dir_exists
 from ..exceptions import BuilderError, BuilderTimeOutError, RemoteCmdError, VmError
 
 from ..constants import mockchain, rsync, DEF_BUILD_TIMEOUT
+from ..sshcmd import SSHConnectionError, SSHConnection
 
 import modulemd
 
@@ -33,9 +33,8 @@ class Builder(object):
         self._remote_basedir = self.opts.remote_basedir
         self._remote_pkg_path = None
 
-        # if we're at this point we've connected and done stuff on the host
-        self.conn = self._create_ssh_conn(username=self.opts.build_user)
-        self.root_conn = self._create_ssh_conn(username="root")
+        self.root_conn = SSHConnection(host=self.hostname, config_file=self.opts.ssh.builder_config)
+        self.conn = SSHConnection(user=self.opts.build_user, host=self.hostname, config_file=self.opts.ssh.builder_config)
 
         self.module_dist_tag = self._load_module_dist_tag()
 
@@ -77,13 +76,6 @@ class Builder(object):
     def tempdir(self, value):
         self._remote_tempdir = value
 
-    def _create_ssh_conn(self, username):
-        conn = paramiko.SSHClient()
-        conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        conn.connect(hostname=self.hostname, port=self.opts.ssh.port,
-                     username=username, key_filename=self.opts.ssh.identity_file)
-        return conn
-
     def _run_ssh_cmd(self, cmd, as_root=False):
         """
         Executes single shell command remotely
@@ -99,17 +91,9 @@ class Builder(object):
 
         self.log.info("BUILDER CMD: "+cmd)
 
-        try:
-            stdin, stdout, stderr = conn.exec_command(cmd)
-        except paramiko.SSHException as err:
-            raise RemoteCmdError("Paramiko failure.",
-                                 cmd, -1, as_root, str(err), "(none)")
-
-        rc = stdout.channel.recv_exit_status()
-        out, err = stdout.read(), stderr.read()
-
+        rc, out, err = conn.run_expensive(cmd)
         if rc != 0:
-            raise RemoteCmdError("Remote command error occurred.",
+            raise RemoteCmdError("Error running remote ssh command.",
                                  cmd, rc, as_root, err, out)
         return out, err
 
