@@ -585,6 +585,9 @@ class ModuleFormUploadFactory(wtf.Form):
         # @TODO Validate modulemd.yaml file
     ])
 
+    create = wtforms.BooleanField("create", default=True)
+    build = wtforms.BooleanField("build", default=True)
+
 
 class ChrootForm(wtf.Form):
 

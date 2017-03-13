@@ -1479,11 +1479,16 @@ class CoprClient(UnicodeMixin):
         response = requests.post(url, headers=headers, **kwargs)
         return response
 
-    def make_module(self, projectname, modulemd, username=None):
-        api_endpoint = "module/build"
+    def make_module(self, projectname, modulemd, username=None, create=True, build=True):
+        api_endpoint = "module/make"
         ownername = username if username else self.username
         f = open(modulemd, "rb")
-        data = {"modulemd": (os.path.basename(f.name), f, "application/x-rpm"), "username": ownername}
+        data = {
+            "modulemd": (os.path.basename(f.name), f, "application/x-rpm"),
+            "username": ownername,
+            "create": "y" if create else "",
+            "build": "y" if build else "",
+        }
 
         url = "{0}/coprs/{1}/{2}/{3}/".format(
             self.api_url, ownername, projectname, api_endpoint

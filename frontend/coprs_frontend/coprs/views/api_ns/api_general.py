@@ -907,10 +907,10 @@ def copr_build_package(copr, package_name):
     })
 
 
-@api_ns.route("/coprs/<username>/<coprname>/module/build/", methods=["POST"])
+@api_ns.route("/coprs/<username>/<coprname>/module/make/", methods=["POST"])
 @api_login_required
 @api_req_with_copr
-def copr_build_module(copr):
+def copr_make_module(copr):
     form = forms.ModuleFormUploadFactory(csrf_enabled=False)
     if not form.validate_on_submit():
         # @TODO Prettier error
@@ -919,19 +919,30 @@ def copr_build_module(copr):
     modulemd = form.modulemd.data.read()
     module = ModulesLogic.from_modulemd(modulemd)
     try:
-        module = ModulesLogic.add(flask.g.user, copr, module)
-        db.session.flush()
-        ActionsLogic.send_build_module(flask.g.user, copr, module)
+        msg = "Nothing happened"
+        if form.create.data:
+            module = ModulesLogic.add(flask.g.user, copr, module)
+            db.session.flush()
+            msg = "Module was created"
+
+        if form.build.data:
+            if not module.id:
+                module = ModulesLogic.get_by_nsv(copr, module.name, module.stream, module.version).one()
+            ActionsLogic.send_build_module(flask.g.user, copr, module)
+            msg = "Module build was submitted"
         db.session.commit()
 
         return flask.jsonify({
             "output": "ok",
-            "message": "Module build was submitted",
+            "message": msg,
             "modulemd": modulemd,
         })
 
     except sqlalchemy.exc.IntegrityError:
         raise LegacyApiError({"nsv": ["Module {} already exists".format(module.nsv)]})
+
+    except sqlalchemy.orm.exc.NoResultFound:
+        raise LegacyApiError({"nsv": ["Module {} doesn't exist. You need to create it first".format(module.nsv)]})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/build-config/<chroot>/", methods=["GET"])
