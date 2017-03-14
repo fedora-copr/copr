@@ -1468,7 +1468,8 @@ class CoprClient(UnicodeMixin):
     def build_module(self, modulemd, token):
         endpoint = "/module/1/module-builds/"
         response = requests.post(urljoin(self.copr_url, endpoint),
-                          json={"scmurl": modulemd}, cookies={"oidc_token": token})
+                                 json={"scmurl": modulemd, "branch": "master"},
+                                 headers={"Authorization": "Bearer {}".format(token)})
         return response
 
     def make_module(self, projectname, modulemd, username=None):
