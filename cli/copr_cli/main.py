@@ -10,13 +10,14 @@ import datetime
 import time
 import six
 import simplejson
+import random
 from collections import defaultdict
 
 import logging
 if six.PY2:
-    from urlparse import urlparse
+    from urlparse import urlparse, urlencode
 else:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urlencode
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -567,8 +568,20 @@ class Commands(object):
         token = args.token
         if not token:
             print("Provide token as command line argument or visit following URL to obtain the token:")
-            print("https://id.stg.fedoraproject.org/openidc/Authorization?response_type=token&response_mode=form_post&nonce=1234&scope=openid%20profile%20email&client_id=mbs-authorizer&state=af0ifjsldkj&redirect_uri=http://localhost:13747/")
+            query = urlencode({
+                'response_type': 'token',
+                'response_mode': 'form_post',
+                'nonce': random.randint(100, 10000),
+                'scope': ' '.join([
+                    'openid',
+                    'https://id.fedoraproject.org/scope/groups',
+                    'https://mbs.fedoraproject.org/oidc/submit-build',
+                ]),
+                'client_id': 'mbs-authorizer',
+            }) + "&redirect_uri=http://localhost:13747/"
+            print("https://id.fedoraproject.org/openidc/Authorization?" + query)
             print("We are waiting for you to finish the token generation...")
+
             token = listen_for_token()
             print("Token: {}".format(token))
             print("")
@@ -577,6 +590,10 @@ class Commands(object):
             sys.exit(1)
 
         response = self.client.build_module(args.url, token)
+        if response.status_code == 500:
+            print(response.text)
+            sys.exit(1)
+
         data = response.json()
         if response.status_code != 201:
             print("Error: {}".format(data["message"]))
