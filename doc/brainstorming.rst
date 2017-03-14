@@ -39,6 +39,10 @@ Backend
   - disadvantage is that it includes quite some changes: keeping and maintaing jobs and their states + process with infinite loop that checkes status of the running jobs
   - you also need to run the mockchain job on background with stdin and stoud disattached so that it does not halt on SIGHUP
   - includes implementation of a nice way to check whether build is finished or not (e.g. check running processes for mockbuilder user could be ok)
+  - looks like all of this requires some `copr-builder` script to be run on builder?  Then `copr-builder` and `copr-backend` can have pre-defined API
+        - $ copr-builder --config /some/config.conf build <coprID>/<package> --chroot <chroot>
+        - the config.conf identifies where 'dist-git' and 'frontend' can be found to do `git clone PKG` and `copr-cli mock-config`
+        - outputs could look like /copr-builder/live-log (stdout + stderr), /copr-builder/results/, /copr-builder/build.running (status)
 * alternative to the prev approach:
   - run the builds remotely in background or in a terminal multiplexer
   - try to reconnect based on builder records on copr-be restart (involves setting up a new worker)
