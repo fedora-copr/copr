@@ -23,13 +23,13 @@ def run_ansible_playbook_cli(args, comment, log):
     if comment is None:
         comment = "running playbook"
 
-    command = "{} {}".format(ansible_playbook_bin, args)
+    command = "{} -v {}".format(ansible_playbook_bin, args)
     try:
-        log.debug("{}: begin: {}".format(comment, command))
-        result = subprocess.check_output(command, shell=True)
-        log.debug("Raw playbook output: {0}".format(result))
+        log.info("{}: begin: {}".format(comment, command))
+        result = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
     except CalledProcessError as e:
-        log.debug("CalledProcessError: {}".format(e.output))
+        log.info("CalledProcessError: {}".format(e.output))
+        log.info("Raw playbook output: {0}".format(result))
         raise
 
     log.debug(comment + ": end")
