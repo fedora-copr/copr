@@ -34,6 +34,15 @@ Backend
 * determine if it is properly checking the timeout from a dead instance
 * maybe dump out the PID of the worker that is running so we know which one to kill?
 
+* have jobs as static records in redis, drop workers for each build and only have process checking build status and downloading results in the end
+  - advantage is that you don't lose the already done work on builds that were running when copr-be is restarted (which happens on upgrades or a component failure)
+  - disadvantage is that it includes quite some changes: keeping and maintaing jobs and their states + process with infinite loop that checkes status of the running jobs
+  - you also need to run the mockchain job on background with stdin and stoud disattached so that it does not halt on SIGHUP
+  - includes implementation of a nice way to check whether build is finished or not (e.g. check running processes for mockbuilder user could be ok)
+* alternative to the prev approach:
+  - run the builds remotely in background or in a terminal multiplexer
+  - try to reconnect based on builder records on copr-be restart (involves setting up a new worker)
+
 Command line interface
 ----------------------
 
