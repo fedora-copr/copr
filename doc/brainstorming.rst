@@ -43,6 +43,9 @@ Backend
         - $ copr-builder --config /some/config.conf build <coprID>/<package> --chroot <chroot>
         - the config.conf identifies where 'dist-git' and 'frontend' can be found to do `git clone PKG` and `copr-cli mock-config`
         - outputs could look like /copr-builder/live-log (stdout + stderr), /copr-builder/results/, /copr-builder/build.running (status)
+
+  - clime: it can be done without `copr-builder` script ;)
+
 * alternative to the prev approach:
   - run the builds remotely in background or in a terminal multiplexer
   - try to reconnect based on builder records on copr-be restart (involves setting up a new worker)
