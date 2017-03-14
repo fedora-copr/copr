@@ -54,7 +54,6 @@ BuildRequires: ansible
 Requires:   ansible
 
 #for doc package
-BuildRequires: sphinx
 BuildRequires: python-sphinx
 
 Requires:   obs-signd
