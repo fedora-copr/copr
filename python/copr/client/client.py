@@ -10,6 +10,7 @@ import json
 import sys
 import os
 import logging
+import io
 
 import requests
 import six
@@ -1467,9 +1468,15 @@ class CoprClient(UnicodeMixin):
 
     def build_module(self, modulemd, token):
         endpoint = "/module/1/module-builds/"
-        response = requests.post(urljoin(self.copr_url, endpoint),
-                                 json={"scmurl": modulemd, "branch": "master"},
-                                 headers={"Authorization": "Bearer {}".format(token)})
+        url = urljoin(self.copr_url, endpoint)
+        headers = {"Authorization": "Bearer {}".format(token)}
+
+        if isinstance(modulemd, io.BufferedIOBase):
+            kwargs = {"files": {"yaml": modulemd}}
+        else:
+            kwargs = {"json": {"scmurl": modulemd, "branch": "master"}}
+
+        response = requests.post(url, headers=headers, **kwargs)
         return response
 
     def make_module(self, projectname, modulemd, username=None):

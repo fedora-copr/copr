@@ -589,7 +589,8 @@ class Commands(object):
             print("Failed to get a token from response")
             sys.exit(1)
 
-        response = self.client.build_module(args.url, token)
+        modulemd = open(args.yaml, "rb") if args.yaml else args.url
+        response = self.client.build_module(modulemd, token)
         if response.status_code == 500:
             print(response.text)
             sys.exit(1)
@@ -993,8 +994,9 @@ def setup_parser():
 
     # module building
     parser_build_module = subparsers.add_parser("build-module", help="Builds a given module in Copr")
-    parser_build_module.add_argument("--url",
-                                     help="SCM with modulemd file in yaml format")
+    parser_build_module_mmd_source = parser_build_module.add_mutually_exclusive_group()
+    parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
+    parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
     parser_build_module.add_argument("--token",
                                      help="OIDC token for module build service")
     parser_build_module.set_defaults(func="action_build_module")
