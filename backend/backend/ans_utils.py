@@ -29,7 +29,6 @@ def run_ansible_playbook_cli(args, comment, log):
         result = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
     except CalledProcessError as e:
         log.info("CalledProcessError: {}".format(e.output))
-        log.info("Raw playbook output: {0}".format(result))
         raise
 
     log.debug(comment + ": end")
