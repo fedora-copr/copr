@@ -230,7 +230,7 @@ class VmMaster(Process):
         self.check_vms_health()
         self.start_spawn_if_required()
 
-        self.remove_vm_with_dead_builder()
+        # self.remove_vm_with_dead_builder()
         self.finalize_long_health_checks()
         self.terminate_again()
 

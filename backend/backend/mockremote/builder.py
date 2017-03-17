@@ -5,6 +5,7 @@ from subprocess import Popen
 import time
 from urlparse import urlparse
 import paramiko
+import glob
 
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
 from ..helpers import get_redis_connection, ensure_dir_exists
@@ -30,12 +31,10 @@ class Builder(object):
         self.buildroot_pkgs = self.job.buildroot_pkgs or ""
         self._remote_tempdir = self.opts.remote_tempdir
         self._remote_basedir = self.opts.remote_basedir
-
-        self.remote_pkg_path = None
-        self.remote_pkg_name = None
+        self._remote_pkg_path = None
 
         # if we're at this point we've connected and done stuff on the host
-        self.conn = self._create_ssh_conn()
+        self.conn = self._create_ssh_conn(username=self.opts.build_user)
         self.root_conn = self._create_ssh_conn(username="root")
 
         self.module_dist_tag = self._load_module_dist_tag()
@@ -67,31 +66,22 @@ class Builder(object):
         if self._remote_tempdir:
             return self._remote_tempdir
 
-        create_tmpdir_cmd = "/bin/mktemp -d {0}/{1}-XXXXX".format(
-            self._remote_basedir, "mockremote")
+        tempdir_path = "{0}/{1}-{2}".format(
+            self._remote_basedir, "mockremote", self.job.task_id)
+        self._run_ssh_cmd("/bin/mkdir -m 755 -p {0}".format(tempdir_path))
 
-        tempdir = self._run_ssh_cmd(create_tmpdir_cmd)[0].strip()
-
-        # if still nothing then we"ve broken
-        if not tempdir:
-            raise BuilderError("Could not make tmpdir on {0}".format(
-                self.hostname))
-
-        self._run_ssh_cmd("/bin/chmod 755 {0}".format(tempdir))
-        self._remote_tempdir = tempdir
-
+        self._remote_tempdir = tempdir_path
         return self._remote_tempdir
 
     @tempdir.setter
     def tempdir(self, value):
         self._remote_tempdir = value
 
-    def _create_ssh_conn(self, username=None):
+    def _create_ssh_conn(self, username):
         conn = paramiko.SSHClient()
         conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         conn.connect(hostname=self.hostname, port=self.opts.ssh.port,
-                     username=username or self.opts.build_user,
-                     key_filename=self.opts.ssh.identity_file)
+                     username=username, key_filename=self.opts.ssh.identity_file)
         return conn
 
     def _run_ssh_cmd(self, cmd, as_root=False):
@@ -115,11 +105,11 @@ class Builder(object):
             raise RemoteCmdError("Paramiko failure.",
                                  cmd, -1, as_root, str(err), "(none)")
 
-        rc = stdout.channel.recv_exit_status() # blocks
+        rc = stdout.channel.recv_exit_status()
         out, err = stdout.read(), stderr.read()
 
         if rc != 0:
-            raise RemoteCmdError("Error running remote ssh command.",
+            raise RemoteCmdError("Remote command error occurred.",
                                  cmd, rc, as_root, err, out)
         return out, err
 
@@ -212,18 +202,26 @@ class Builder(object):
                     git_hash=self.job.git_hash,
                     branch=self.job.git_branch))
 
-        # expected output:
-        # ...
-        # Wrote: /tmp/.../copr-ping/copr-ping-1-1.fc21.src.rpm
+    @property
+    def remote_pkg_path(self):
+        if self._remote_pkg_path:
+            return self._remote_pkg_path
 
         try:
-            self.remote_pkg_path = stdout.split("Wrote: ")[1]
-            self.remote_pkg_name = os.path.basename(self.remote_pkg_path).replace(".src.rpm", "").strip()
-        except Exception:
-            self.log.exception("Failed to obtain srpm from dist-git")
-            raise BuilderError("Failed to obtain srpm from dist-git: stdout: {}, stderr: {}".format(stdout, stderr))
+            remote_path_pattern = "/tmp/build_package_repo/{0}/*.src.rpm".format(self.job.package_name)
+            stdout, stderr = self._run_ssh_cmd("/usr/bin/ls {0}".format(remote_path_pattern))
+        except RemoteCmdError:
+            return None
 
-        self.log.info("Got srpm to build: {}".format(self.remote_pkg_path))
+        self._remote_pkg_path = stdout.strip()
+        return self._remote_pkg_path
+
+    @property
+    def remote_pkg_name(self):
+        try:
+            return os.path.basename(self.remote_pkg_path).replace(".src.rpm", "")
+        except AttributeError:
+            return None
 
     def pre_process_repo_url(self, repo_url):
         """
@@ -248,10 +246,15 @@ class Builder(object):
             self.log.exception("Failed to pre-process repo url: {}".format(err))
             return None
 
-    def gen_mockchain_command(self):
+    @property
+    def livelog_name(self):
+        return pipes.quote('/tmp/{}.log'.format(self.job.task_id))
+
+    def run_mockchain_async(self):
         buildcmd = "timeout {} {} -r {} -l {} ".format(
             self.timeout, mockchain, pipes.quote(self.get_chroot_config_path(self.job.chroot)),
             pipes.quote(self.remote_build_dir))
+
         for repo in self.job.chroot_repos_extended:
             repo = self.pre_process_repo_url(repo)
             if repo is not None:
@@ -260,8 +263,13 @@ class Builder(object):
         for k, v in self.job.mockchain_macros.items():
             mock_opt = "--define={} {}".format(k, v)
             buildcmd += "-m {} ".format(pipes.quote(mock_opt))
+
         buildcmd += self.remote_pkg_path
-        return buildcmd
+
+        buildcmd_async = '{buildcmd} &>> {livelog} &'.format(
+            livelog=self.livelog_name, buildcmd=buildcmd)
+
+        self._run_ssh_cmd(buildcmd_async)
 
     def setup_pubsub_handler(self):
 
@@ -296,22 +304,37 @@ class Builder(object):
     #     buildcmd = self.gen_mockchain_command(dest)
     #
 
+    def attach_to_build(self):
+        try:
+            pidof_cmd = "/usr/bin/pgrep -u {user} {command}".format(
+                user=self.opts.build_user, command="mockchain")
+            out, err = self._run_ssh_cmd(pidof_cmd)
+        except RemoteCmdError as err:
+            self.log.info("Build is not running. Continuing...")
+            return None, None
+
+        self.log.info("Attaching to live build log...")
+        return self._run_ssh_cmd('/usr/bin/tail -f --pid={pid} {log}'
+                                 .format(pid=out.strip(), log=self.livelog_name))
+
     def build(self):
+        # make mock config
         self.setup_mock_chroot_config()
 
         # download the package to the builder
         self.download_job_pkg_to_builder()
 
-        # construct the mockchain command
-        buildcmd = self.gen_mockchain_command()
-        # run the mockchain command
-        stdout, stderr = self._run_ssh_cmd(buildcmd)
+        # run the build
+        self.run_mockchain_async()
 
-        # we know the command ended successfully but not if the pkg built
-        # successfully
-        self.check_build_success()
+        # attach to building output
+        stdout, stderr = self.attach_to_build()
 
-        return stdout
+        return stdout, stderr
+
+    def reattach(self):
+        stdout, stderr = self.attach_to_build()
+        return stdout, stderr
 
     def rsync_call(self, source_path, target_path):
         ensure_dir_exists(target_path, self.log)

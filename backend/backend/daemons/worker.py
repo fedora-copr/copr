@@ -22,7 +22,7 @@ from ..msgbus import MsgBusStomp, MsgBusFedmsg
 class Worker(multiprocessing.Process):
     msg_buses = []
 
-    def __init__(self, opts, frontend_client, vm_manager, worker_id, vm, job):
+    def __init__(self, opts, frontend_client, vm_manager, worker_id, vm, job, reattach=False):
         multiprocessing.Process.__init__(self, name="worker-{}".format(worker_id))
 
         self.opts = opts
@@ -31,6 +31,7 @@ class Worker(multiprocessing.Process):
         self.worker_id = worker_id
         self.vm = vm
         self.job = job
+        self.reattach = reattach
 
         self.log = get_redis_logger(self.opts, self.name, "worker")
 
@@ -62,7 +63,6 @@ class Worker(multiprocessing.Process):
         """
         Announce everywhere that a build process started now.
         """
-        job.started_on = time.time()
         self.mark_started(job)
 
         for bus in self.msg_buses:
@@ -83,6 +83,8 @@ class Worker(multiprocessing.Process):
         """
         Send data about started build to the frontend
         """
+        job.started_on = time.time()
+
         job.status = BuildStatus.RUNNING
         build = job.to_dict()
         self.log.info("starting build: {}".format(build))
@@ -148,11 +150,14 @@ class Worker(multiprocessing.Process):
 
         :param job: :py:class:`~backend.job.BuildJob`
         """
-
-        self._announce_start(job)
-        self.update_process_title(suffix="Task: {} chroot: {} build started"
-                                  .format(job.build_id, job.chroot))
         status = BuildStatus.SUCCEEDED
+        self.update_process_title(suffix="Task: {} chroot: {} build running"
+                                  .format(job.build_id, job.chroot))
+
+        if not self.reattach:
+            self._announce_start(job)
+        else:
+            self.mark_started(job)
 
         # setup our target dir locally
         if not os.path.exists(job.chroot_dir):
@@ -163,7 +168,8 @@ class Worker(multiprocessing.Process):
                                    .format(job.chroot_dir))
                 status = BuildStatus.FAILURE
 
-        self.clean_result_directory(job)
+        if not self.reattach:
+            self.clean_result_directory(job)
 
         if status == BuildStatus.SUCCEEDED:
             # FIXME
@@ -188,9 +194,15 @@ class Worker(multiprocessing.Process):
                         logger=build_logger,
                         opts=self.opts
                     )
-                    mr.check()
 
-                    build_details = mr.build_pkg_and_process_results()
+                    if self.reattach:
+                        mr.reattach_to_pkg_build()
+                    else:
+                        mr.check()
+                        mr.build_pkg()
+
+                    mr.check_build_success()
+                    build_details = mr.process_build_results()
                     job.update(build_details)
 
                     if self.opts.do_sign:
@@ -204,6 +216,10 @@ class Worker(multiprocessing.Process):
                         "Error during the build, host={}, build_id={}, chroot={}"
                         .format(self.vm.vm_ip, job.build_id, job.chroot)
                     )
+                    status = BuildStatus.FAILURE
+                    register_build_result(self.opts, failed=True)
+                except: # programmer's failures
+                    self.log.exception("Unexpected error")
                     status = BuildStatus.FAILURE
                     register_build_result(self.opts, failed=True)
 

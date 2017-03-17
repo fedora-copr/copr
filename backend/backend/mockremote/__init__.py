@@ -283,22 +283,49 @@ class MockRemote(object):
     #     except Exception as err:
     #         self.log.exception(err)
 
-    def build_pkg_and_process_results(self):
+    def build_pkg(self):
+        self.log.info("Start build: {}".format(self.job))
+
+        self.prepare_build_dir()
+
+        try:
+            stdout, stderr = self.builder.build()
+        except BuilderError as error:
+            self.log.error(str(error))
+            raise MockRemoteError("Builder error during job {}.".format(self.job))
+
+        self.log.info("builder.build stdout: {}, stderr: {}"
+                      .format(stdout, stderr))
+
+    def reattach_to_pkg_build(self):
+        """
+        :raises VmError, BuilderError
+        """
+        self.log.info("Reattach to build: {}".format(self.job))
+
+        try:
+            stdout, stderr = self.builder.reattach()
+        except BuilderError as error:
+            self.log.error(str(error))
+            raise MockRemoteError("Builder error during job {}.".format(self.job))
+
+        self.log.info("builder.reattach stdout: {}, stderr: {}"
+                      .format(stdout, stderr))
+
+    def check_build_success(self):
+        try:
+            self.builder.check_build_success()
+        except BuilderError as error:
+            raise MockRemoteError("Build {} failed".format(self.job))
+
+    def process_build_results(self):
         """
         :return: dict with build_details
         :raises MockRemoteError: Something happened with build itself
-        :raises VmError: Something happened with builder VM
         """
-        self.prepare_build_dir()
-
-        # building
-        self.log.info("Start build: {}".format(self.job))
-
         try:
-            build_stdout = self.builder.build()
             build_details = {"built_packages": self.builder.collect_built_packages()}
-            self.log.info("builder.build finished; details: {}\n stdout: {}"
-                          .format(build_details, build_stdout))
+            self.log.info("build details: {}".format(build_details))
         except BuilderError as error:
             self.log.error(str(error))
             raise MockRemoteError("Builder error during job {}.".format(self.job))

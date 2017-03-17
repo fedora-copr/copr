@@ -36,6 +36,8 @@ class BuildDispatcher(multiprocessing.Process):
         self.log = get_redis_logger(self.opts, "backend.build_dispatcher", "build_dispatcher")
         self.frontend_client = FrontendClient(self.opts, self.log)
         self.vm_manager = VmManager(self.opts)
+        self.workers = []
+        self.next_worker_id = 1
 
         # Maps e.g. x86_64 && i386 => PC
         self.arch_to_group = dict()
@@ -114,13 +116,27 @@ class BuildDispatcher(multiprocessing.Process):
 
         return can_build_start
 
-    def clean_finished_workers(self, workers):
-        for worker in workers:
+    def clean_finished_workers(self):
+        for worker in self.workers:
             if not worker.is_alive():
                 worker.join(5)
-                workers.remove(worker)
+                self.workers.remove(worker)
                 self.log.info("Removed finished worker {} for job {}"
                               .format(worker.worker_id, worker.job.task_id))
+
+    def start_worker(self, vm, job, reattach=False):
+        worker = Worker(
+            opts=self.opts,
+            frontend_client=self.frontend_client,
+            vm_manager=self.vm_manager,
+            worker_id=self.next_worker_id,
+            vm=vm, job=job, reattach=reattach
+        )
+        self.workers.append(worker)
+        self.next_worker_id = (self.next_worker_id + 1) % 2**15
+
+        worker.start()
+        return worker
 
     def run(self):
         """
@@ -129,13 +145,38 @@ class BuildDispatcher(multiprocessing.Process):
         self.log.info("Build dispatching started.")
         self.update_process_title()
 
-        workers = []
-        next_worker_id = 1
         while True:
-            self.clean_finished_workers(workers)
+            self.clean_finished_workers()
 
             job = self.load_job()
 
+            # first check if we do not have
+            # worker already running for the job
+            worker = None
+            for w in self.workers:
+                if job.task_id == w.job.task_id:
+                    worker = w
+                    break
+
+            if worker:
+                self.log.warning("Frontend asked to run already running task '{}'...skipping..."
+                                 .format(job.task_id))
+                worker.mark_started(job)
+                continue
+
+            # now search db builder records for the job and
+            # if we found it, just spawn a worker to reattach
+            vm = self.vm_manager.get_vm_by_task_id(job.task_id)
+            if vm and vm.state == 'in_use':
+                worker = self.start_worker(vm, job, reattach=True)
+                worker.mark_started(job)
+                vm.store_field(self.vm_manager.rc, "used_by_pid", os.getpid())
+                self.log.info("Reattached new worker {} for job {}"
+                              .format(worker.worker_id, worker.job.task_id))
+                continue
+
+            # ... and if the task is new to us,
+            # allocate new vm and run full build
             try:
                 self.log.info("Acquiring VM for job {}...".format(str(job)))
                 vm_group_id = self.get_vm_group_id(job.arch)
@@ -153,15 +194,6 @@ class BuildDispatcher(multiprocessing.Process):
                 self.vm_manager.release_vm(vm.vm_name)
                 continue
 
-            worker = Worker(
-                opts=self.opts,
-                frontend_client=self.frontend_client,
-                vm_manager=self.vm_manager,
-                worker_id=next_worker_id,
-                vm=vm, job=job
-            )
-            workers.append(worker)
-            worker.start()
+            worker = self.start_worker(vm, job)
             self.log.info("Started new worker {} for job {}"
                           .format(worker.worker_id, worker.job.task_id))
-            next_worker_id = (next_worker_id + 1) % 2**15
