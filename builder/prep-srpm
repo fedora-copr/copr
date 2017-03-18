@@ -63,22 +63,30 @@ while :; do
     esac
 done
 
-success=:
+opt_parse_error ()
+{
+    error "$*"
+    opt_parse_success=false
+}
+
+opt_parse_success=:
 for opt in module revision config; do
     eval "test -z \"\$opt_$opt\"" \
-        && error "missing argument --$opt" \
-        && success=false
+        && opt_parse_error "missing argument --$opt"
 done
-$success
+
+test -f "$opt_config" || opt_parse_error "Missing config file '$opt_config'"
+opt_config=$(readlink -f "$opt_config")
+
+$opt_parse_success
 
 # TODO: convert branch->dist? (best effort)
 dist=%nil
 
-# shellcheck source=./config.sh
-. "$(readlink -f "$opt_config")"
+eval "$(crudini --format=sh --get "$opt_config" copr_builder)"
 
 success=:
-for opt in RPKG_CONFIG BRANCHING
+for opt in branching
 do
     eval "test -z \"\$$opt\"" \
         && error "missing config option $opt" \
@@ -86,10 +94,8 @@ do
 done
 $success
 
-RPKG_CONFIG=$(readlink -f "$RPKG_CONFIG")
-
 # Construct 'rpkg' options, use them as '$@' later.
-set -- --verbose --debug --config "$RPKG_CONFIG"
+set -- --verbose --debug --config "$opt_config"
 # TODO: Rpkg requires --release, but it is not used for our case anywhere.
 # Some patch against pyrpkg is needed.
 set -- "$@" --release rhel-7.2
