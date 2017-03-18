@@ -22,30 +22,17 @@ set -e
 error() { echo >&2 " ! $*"; }
 die()   { error "$@"; exit 1; }
 
-my_rpmbuild()
-{
-    ${RPMBUILD-rpmbuild} \
-        --define "_sourcedir $PWD"                      \
-        --define "_rpmdir $PWD"                         \
-        --define "_builddir $PWD"                       \
-        --define "_specdir $PWD"                        \
-        --define "_srcrpmdir $PWD"                      \
-        --buildroot "$PWD/buildroot"                    \
-        --define "_source_filedigest_algorithm md5"     \
-        --define "_binary_filedigest_algorithm md5"     \
-        "$@"
-}
-
-ARGS=$(getopt -o "" -l "module:,revision:,config:,branch:" -n "getopt" -- "$@")
+ARGS=$(getopt -o "" -l "module:,revision:,config:,branch:,resultdir:" -n "getopt" -- "$@")
 eval set -- "$ARGS"
 
 opt_module=
 opt_revision=
 opt_config=
+opt_resultdir=:tmp:
 
 while :; do
     case "$1" in
-    --module|--revision|--config|--branch)
+    --module|--revision|--config|--branch|--resultdir)
         opt=${1##--}
         opt=${opt##-}
         opt=${opt//-/_}
@@ -78,6 +65,13 @@ done
 test -f "$opt_config" || opt_parse_error "Missing config file '$opt_config'"
 opt_config=$(readlink -f "$opt_config")
 
+if test "$opt_resultdir" = :tmp:
+then
+    opt_resultdir=$(mktemp -d)
+else
+    test -d "$opt_resultdir" || opt_parse_error "'$opt_resultdir' is not dir"
+fi
+
 $opt_parse_success
 
 # TODO: convert branch->dist? (best effort)
@@ -101,13 +95,10 @@ set -- --verbose --debug --config "$opt_config"
 set -- "$@" --release rhel-7.2
 
 olddir=$PWD
-cd "$(mktemp -d)"
-rpkg "$@" clone -a "$opt_module"
-cd "$(basename "$opt_module")"
-newdir=$PWD
+cd "$opt_resultdir"
+rpkg "$@" clone -a "$opt_module" .
 git checkout "$opt_revision"
 rpkg "$@" --module-name "$opt_module" sources
-my_rpmbuild -bs ./*.spec --define "dist $dist"
-cd "$olddir"
+cd "$opt_resultdir"
 
-echo "results are in $newdir"
+echo "results are in '$opt_resultdir'"
