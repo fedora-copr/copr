@@ -96,8 +96,8 @@ $success
 
 # Construct 'rpkg' options, use them as '$@' later.
 set -- --verbose --debug --config "$opt_config"
-# TODO: Rpkg requires --release, but it is not used for our case anywhere.
-# Some patch against pyrpkg is needed.
+
+# TODO: drop this hack after https://pagure.io/rpkg/pull-request/212
 set -- "$@" --release rhel-7.2
 
 olddir=$PWD
