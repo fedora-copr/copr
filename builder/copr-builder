@@ -45,6 +45,12 @@ destruct ()
     fi
 }
 
+stdout_wrap ()
+(
+    set -o pipefail
+    "$@" | col -b
+)
+
 trap destruct EXIT
 
 set -e
@@ -166,15 +172,15 @@ if $opt_download_mock_config; then
 fi
 
 info "Obtain sources from dist-git"
-rpkg "$@" clone -a "$opt_copr/$opt_package" pkg-git
+stdout_wrap rpkg "$@" clone -a "$opt_copr/$opt_package" pkg-git
 (
 cd pkg-git
 git checkout "$opt_revision"
-rpkg "$@" --module-name "$opt_copr/$opt_package" sources
+stdout_wrap rpkg "$@" --module-name "$opt_copr/$opt_package" sources
 )
 
 info "Generate SRPM in mock $opt_chroot"
-mock -r ./"$opt_chroot".cfg \
+stdout_wrap mock -r ./"$opt_chroot".cfg \
     --buildsrpm \
     --spec pkg-git/"$opt_package".spec \
     --sources pkg-git \
@@ -182,7 +188,7 @@ mock -r ./"$opt_chroot".cfg \
     --no-cleanup-after
 
 info "Generate RPM in cached mock chroot"
-mock -r ./"$opt_chroot".cfg \
+stdout_wrap mock -r ./"$opt_chroot".cfg \
     --rebuild intermediate-srpm/"$opt_package"*.src.rpm \
     --resultdir "$opt_resultdir" \
     --no-clean
