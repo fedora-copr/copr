@@ -1,0 +1,168 @@
+#! /bin/bash
+
+# Generate SRPM against Copr's dist-git instance.
+# Copyright (C) 2017 Red Hat, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+error() { echo >&2 " ! $*"; }
+die()   { error "$*"; exit 1; }
+info()  { echo 2>&1 " * $*"; exit 1; }
+debug() { echo 2>&1 " ~ $*"; }
+
+
+opt_copr=
+opt_package=
+opt_revision=
+opt_chroot=fedora-rawhide-x86_64
+opt_config=/etc/copr-builder/fedora-copr.conf
+opt_resultdir=:tmp:
+opt_workdir=
+opt_workdir_cleanup=false
+
+destruct ()
+{
+    debug "running script cleanup"
+    if $opt_workdir_cleanup && test -n "$opt_workdir" && test -d "$opt_workdir"
+    then
+        debug "cleaning workdir"
+        rm -rf "$opt_workdir"
+    fi
+}
+
+trap destruct EXIT
+
+set -e
+
+
+show_help()
+{
+cat <<EOHELP >&2
+Usage: $0 OPTION
+
+Build package against copr from copr dist-git.
+
+Options:
+  --copr                     copr; <user>/<project> or @<group>/<project>)
+  --package                  component (package name) in particular copr
+  --revision                 git commit reference in dist-git; git hash, tag,
+                             branch..
+  --chroot                   chroot, e.g. fedora-rawhide-x86_64
+  --config                   configuration file
+  --resultdir                directory to place build results
+  --workdir                  by default, temporary working directory under
+                             /var/lib/copr-builder is used
+EOHELP
+
+test -n "$1" && exit "$1"
+}
+
+ARGS=$(getopt -o "h" -l "copr:,package:,revision:,config:,resultdir:,workdir:,help" \
+              -n "getopt" -- "$@")
+eval set -- "$ARGS"
+
+while :; do
+    case "$1" in
+    --copr|--package|--revision|--config|--resultdir|--workdir)
+        opt=${1##--}
+        opt=${opt##-}
+        opt=${opt//-/_}
+        eval "opt_$opt=$2"
+        shift 2
+        ;;
+
+    --help)
+        show_help 0
+        ;;
+
+    --) # end!
+        shift
+        break
+        ;;
+
+    *)
+        echo "programmer mistake ($1)" >&2
+        exit 1
+        ;;
+    esac
+done
+
+opt_parse_error ()
+{
+    error "$*"
+    opt_parse_success=false
+}
+
+opt_parse_success=:
+for opt in copr package revision config chroot; do
+    eval "test -z \"\$opt_$opt\"" \
+        && opt_parse_error "missing argument --$opt"
+done
+
+test -r "$opt_config" \
+    || opt_parse_error "Missing or unreadable config file '$opt_config'"
+opt_config=$(readlink -f "$opt_config")
+
+if test "$opt_resultdir" = :tmp:
+then
+    opt_resultdir=$(mktemp -d)
+else
+    test -d "$opt_resultdir" || opt_parse_error "'$opt_resultdir' is not dir"
+fi
+
+if test -n "$opt_workdir"; then
+    if test -d "$opt_workdir"; then
+        test -w "$opt_workdir" || opt_parse_error "'$opt_workdir' is not a dir"
+    else
+        opt_parse_error "Directory '$opt_workdir' is not writeable."
+    fi
+else
+    opt_workdir_cleanup=:
+    opt_workdir=$(mktemp /var/lib/copr-builder/build-XXXXX) \
+        || opt_parse_error "can't create workdir"
+fi
+
+$opt_parse_success
+
+eval "$(crudini --format=sh --get "$opt_config" copr_builder)"
+
+success=:
+for opt in branching
+do
+    eval "test -z \"\$$opt\"" \
+        && error "missing config option $opt" \
+        && success=false
+done
+$success
+
+# Construct 'rpkg' options, use them as '$@' later.
+set -- --verbose --debug --config "$opt_config"
+
+# TODO: drop this hack after https://pagure.io/rpkg/pull-request/212
+set -- "$@" --release rhel-7.2
+
+cd "$opt_workdir"
+
+# Obtain sources
+rpkg "$@" clone -a "$opt_copr/$opt_package" .
+git checkout "$opt_revision"
+rpkg "$@" --module-name "$opt_copr/$opt_package" sources
+
+# Generate SRPM
+mock -r fedora-rawhide-x86_64 \
+    --buildsrpm \
+    --spec "$opt_package".spec \
+    --sources . \
+    --resultdir .
