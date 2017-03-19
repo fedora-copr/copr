@@ -121,6 +121,7 @@ opt_config=$(readlink -f "$opt_config")
 if test "$opt_resultdir" = :tmp:
 then
     opt_resultdir=$(mktemp -d)
+    info "Results to be placed into '$opt_resultdir'"
 else
     test -d "$opt_resultdir" || opt_parse_error "'$opt_resultdir' is not dir"
 fi
@@ -133,7 +134,7 @@ if test -n "$opt_workdir"; then
     fi
 else
     opt_workdir_cleanup=:
-    opt_workdir=$(mktemp /var/lib/copr-builder/build-XXXXX) \
+    opt_workdir=$(mktemp -d /var/lib/copr-builder/build-XXXXX) \
         || opt_parse_error "can't create workdir"
 fi
 
