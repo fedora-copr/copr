@@ -1,25 +1,19 @@
-This is just PoC and rather toy tool:
+Build package form copr dist-git.
 
-./prep-srpm --config   config/copr.conf \
-            --module   praiskup/ping/quick-package \
-            --revision 5ce6ec838e22df0c5dfbb3ca042347a04829f5c1
+    mkdir /tmp/results
+    ./copr-builder --copr      praiskup/ping \
+                   --package   quick-package \
+                   --revision  5ce6ec838e22d \
+                   --resultdir /tmp/results
 
-We heavily depend on `rpkg` for working with `dist-git`.  You can use `rpkg`
-directly like:
 
-    # generic options
-    set -- --config config/copr.conf
-
-    # anonymous clone only for now
-    rpkg "$@" clone -a praiskup/ping/quick-package
-
-    # checkout proper branch
-    cd quick-package && git checkout master
-
-    # download sources
-    rpkg "$@" --module-name "praiskup/ping/quick-package" sources
+We heavily depend on `rpkg` for working with `dist-git`, and on `copr-cli`
+package to obtain mock profile.
 
 Dependencies:
-    - crudiny
+    - copr-cli
+    - crudini
+    - mock
+    - rpkg
 
 (motivation https://bugzilla.redhat.com/show_bug.cgi?id=1410403)
