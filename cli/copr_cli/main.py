@@ -52,7 +52,7 @@ class Commands(object):
             self.client = CoprClient.create_from_file_config(config)
         except (copr_exceptions.CoprNoConfException,
                 copr_exceptions.CoprConfigException):
-            print(no_config_warning.format(config or "~/.config/copr"))
+            sys.stderr.write(no_config_warning.format(config or "~/.config/copr"))
             self.client = CoprClient(
                 copr_url=u"http://copr.fedoraproject.org",
                 no_config=True
@@ -64,8 +64,7 @@ class Commands(object):
 
         def wrapper(self, args):
             if self.client.no_config:
-                print("Error: Operation requires api authentication")
-                print(no_config_warning.format(self.config or "~/.config/copr"))
+                sys.stderr.write("Error: Operation requires api authentication\n")
                 sys.exit(6)
 
             return func(self, args)
@@ -80,13 +79,15 @@ class Commands(object):
 
         def wrapper(self, args):
             if self.client.no_config and args.username is None:
-                print("Error: Operation requires username\n"
-                      "Pass username to command or create `~/.config/copr`")
+                sys.stderr.write(
+                    "Error: Operation requires username\n"
+                    "Pass username to command or create `~/.config/copr`\n")
                 sys.exit(6)
 
             if args.username is None and self.client.username is None:
-                print("Error: Operation requires username\n"
-                      "Pass username to command or add it to `~/.config/copr`")
+                sys.stderr.write(
+                    "Error: Operation requires username\n"
+                    "Pass username to command or add it to `~/.config/copr`\n")
                 sys.exit(6)
 
             return func(self, args)
@@ -251,7 +252,7 @@ class Commands(object):
             bar.finish()
 
         if result.output != "ok":
-            print(result.error)
+            sys.stderr.write(result.error + "\n")
             return
         print(result.message)
 
@@ -337,8 +338,8 @@ class Commands(object):
 
         result = self.client.get_build_config(args.project, args.chroot)
         if result.output != "ok":
-            print(result.error)
-            print("Un-expected data returned, please report this issue")
+            sys.stderr.write(result.error + "\n")
+            sys.stderr.write("Un-expected data returned, please report this issue\n")
 
         print(MockProfile(result.build_config))
 
@@ -355,10 +356,10 @@ class Commands(object):
         result = self.client.get_projects_list(username)
         # import ipdb; ipdb.set_trace()
         if result.output != "ok":
-            print(result.error)
-            print("Un-expected data returned, please report this issue")
+            sys.stderr.write(result.error + "\n")
+            sys.stderr.write("Un-expected data returned, please report this issue\n")
         elif not result.projects_list:
-            print("No copr retrieved for user: '{0}'".format(username))
+            sys.stderr.write("No copr retrieved for user: '{0}'\n".format(username))
             return
 
         for prj in result.projects_list:
@@ -548,7 +549,7 @@ class Commands(object):
         result = self.client.build_package(ownername=ownername, projectname=projectname, **data)
 
         if result.output != "ok":
-            print(result.error)
+            sys.stderr.write(result.error + "\n")
             return
         print(result.message)
 
