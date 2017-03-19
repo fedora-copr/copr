@@ -31,6 +31,7 @@ opt_config=/etc/copr-builder/fedora-copr.conf
 opt_resultdir=:tmp:
 opt_workdir=
 opt_workdir_cleanup=false
+opt_download_mock_config=:
 
 destruct ()
 {
@@ -69,8 +70,8 @@ EOHELP
 test -n "$1" && exit "$1"
 }
 
-ARGS=$(getopt -o "h" -l "copr:,package:,revision:,config:,resultdir:,workdir:,help" \
-              -n "getopt" -- "$@")
+long_options=copr:,package:,revision:,config:,resultdir:,workdir:
+ARGS=$(getopt -o "h" -l "$long_options,help" -n "getopt" -- "$@")
 eval set -- "$ARGS"
 
 while :; do
@@ -155,14 +156,24 @@ set -- "$@" --release rhel-7.2
 
 cd "$opt_workdir"
 
+# Get/obtain mock profile
+if $opt_download_mock_config; then
+    copr --config "$opt_config" mock-config "$opt_copr" "$opt_chroot" \
+        > "$opt_chroot".cfg
+fi
+
 # Obtain sources
-rpkg "$@" clone -a "$opt_copr/$opt_package" .
+rpkg "$@" clone -a "$opt_copr/$opt_package" pkg-git
+(
+cd pkg-git
 git checkout "$opt_revision"
 rpkg "$@" --module-name "$opt_copr/$opt_package" sources
+)
 
 # Generate SRPM
-mock -r fedora-rawhide-x86_64 \
+mock -r ./"$opt_chroot".cfg \
     --buildsrpm \
-    --spec "$opt_package".spec \
-    --sources . \
-    --resultdir .
+    --spec pkg-git/"$opt_package".spec \
+    --sources pkg-git \
+    --resultdir "$opt_resultdir" \
+    --no-cleanup-after
