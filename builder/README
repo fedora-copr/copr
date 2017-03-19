@@ -1,7 +1,8 @@
 Build package form copr dist-git.
 
     mkdir /tmp/results
-    ./copr-builder --copr      praiskup/ping \
+    ./copr-builder --config    config/copr.conf \
+                   --copr      praiskup/ping \
                    --package   quick-package \
                    --revision  5ce6ec838e22d \
                    --resultdir /tmp/results
