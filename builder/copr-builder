@@ -175,5 +175,11 @@ mock -r ./"$opt_chroot".cfg \
     --buildsrpm \
     --spec pkg-git/"$opt_package".spec \
     --sources pkg-git \
-    --resultdir "$opt_resultdir" \
+    --resultdir intermediate-srpm \
     --no-cleanup-after
+
+# Generate RPM (and put results on expected place)
+mock -r ./"$opt_chroot".cfg \
+    --rebuild intermediate-srpm/"$opt_package"*.src.rpm \
+    --resultdir "$opt_resultdir" \
+    --no-clean
