@@ -1,0 +1,6 @@
+To have 1:1 replacement with current backend->builder build mechanism, we need
+to have those fixed:
+
+    - allow setting %dist in mock profile (backend's builder.module_dist_tag)
+    - allow using '--define rpm_macro value' (backend's
+      gen_mockchain_command()), can this be solved with previous item?
