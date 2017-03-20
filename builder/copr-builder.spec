@@ -2,7 +2,7 @@
 
 Name:		copr-builder
 Version:	0
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	Build package from copr dist-git
 
 License:	GPLv2+
@@ -17,6 +17,7 @@ Requires:	crudini
 Requires:	copr-cli
 Requires:	mock
 Requires:	rpkg
+Requires:	expect
 Requires:	util-linux
 
 BuildArch:	noarch
@@ -53,6 +54,9 @@ install -p -m 644 %SOURCE2 %buildroot%confdir
 
 
 %changelog
+* Mon Mar 20 2017 Pavel Raiskup <praiskup@redhat.com> - 0-3
+- filter both stderr and stdout through 'col -b' for sub-commands
+
 * Mon Mar 20 2017 Pavel Raiskup <praiskup@redhat.com> - 0-2
 - a bit nicer live logs in copr
 

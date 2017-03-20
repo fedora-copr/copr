@@ -48,7 +48,14 @@ destruct ()
 stdout_wrap ()
 (
     set -o pipefail
-    "$@" | col -b
+
+    # Normally, to have both stdout and stderr cleaned from backspaces, we would
+    # do '"$@" 2> >(col -b >&2) | col -b';  IOW attaching fifo to stderr and
+    # piping stdout through col -b.  But because we want to wrap some 'mock'
+    # calls too, and mock has the ugly hack with 'stderr.isatty()' (otherwise
+    # the output is very quiet, rhbz#1166609), we need to run through
+    # 'unbuffer' to fake the terminal.
+    unbuffer "$@" 2> >(col -b >&2) | col -b
 )
 
 trap destruct EXIT
