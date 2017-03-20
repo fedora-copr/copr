@@ -7,3 +7,5 @@ to have those fixed:
     - collect mock configuration into resultdir/configs so copr backend knows
       where to download them
     - add support for custom mock configs
+    - implement opt-out/in "Other options" from "New Build" form:
+        - Enable internet access during this build
