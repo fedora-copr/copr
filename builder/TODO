@@ -6,3 +6,4 @@ to have those fixed:
       gen_mockchain_command()), can this be solved with previous item?
     - collect mock configuration into resultdir/configs so copr backend knows
       where to download them
+    - add support for custom mock configs
