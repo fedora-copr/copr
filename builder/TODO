@@ -2,5 +2,3 @@ To have 1:1 replacement with current backend->builder build mechanism, we need
 to have those fixed:
 
     - add support for custom mock configs
-    - implement opt-out/in "Other options" from "New Build" form:
-        - Enable internet access during this build

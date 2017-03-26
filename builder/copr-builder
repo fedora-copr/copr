@@ -28,6 +28,7 @@ opt_workdir=
 opt_workdir_cleanup=false
 opt_download_mock_config=:
 opt_debug=false
+opt_host_resolv=
 
 
 error() { echo >&2 " ! $*"; }
@@ -81,19 +82,21 @@ Options:
   --workdir                  by default, temporary working directory under
                              /var/lib/copr-builder is used
   --define="ARG VALUE"       define rpm macro
+  --host-resolv=[0|1]        use host's resolv conf
 EOHELP
 
 test -n "$1" && exit "$1"
 }
 
 long_options=copr:,package:,revision:,config:,resultdir:,workdir:,define:
+long_options+=,host-resolv:
 ARGS=$(getopt -o "h" -l "$long_options,help" -n "getopt" -- "$@")
 mock=(mock)
 eval set -- "$ARGS"
 
 while :; do
     case "$1" in
-    --copr|--package|--revision|--config|--resultdir|--workdir)
+    --copr|--package|--revision|--config|--resultdir|--workdir|--host-resolv)
         opt=${1##--}
         opt=${opt##-}
         opt=${opt//-/_}
@@ -158,6 +161,13 @@ else
         || opt_parse_error "can't create workdir"
 fi
 
+case $opt_host_resolv in
+    1|yes|True|true)   opt_host_resolv=True  ;;
+    0|no|False|false)  opt_host_resolv=False ;;
+    '') ;; # default: unchanged
+    *) opt_parse_error "Use --host-resolv=1 (or 0)" ;;
+esac
+
 $opt_parse_success
 
 eval "$(crudini --format=sh --get "$opt_config" copr_builder)"
@@ -191,6 +201,11 @@ if $opt_download_mock_config; then
         > "$configs_dir"/changed.cfg
 fi
 mock+=(--configdir "$configs_dir" -r changed)
+
+if test -n "$opt_host_resolv"; then
+   echo "config_opts['use_host_resolv'] = $opt_host_resolv" \
+       >> "$configs_dir"/changed.cfg
+fi
 
 info "Obtain sources from dist-git"
 stdout_wrap rpkg "$@" clone -a "$opt_copr/$opt_package" pkg-git
