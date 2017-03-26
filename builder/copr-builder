@@ -95,7 +95,7 @@ while :; do
         opt=${1##--}
         opt=${opt##-}
         opt=${opt//-/_}
-        eval "opt_$opt=$2"
+        eval "opt_$opt=\$2"
         shift 2
         ;;
 
