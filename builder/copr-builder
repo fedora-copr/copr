@@ -179,11 +179,18 @@ set -- "$@" --release rhel-7.2
 
 cd "$opt_workdir"
 
-info "Downloading mock config from frontend"
+info "Copying system mock configuration"
+configs_dir=$opt_resultdir/configs
+mkdir -p "$configs_dir"
+cp /etc/mock/site-defaults.cfg "$configs_dir"
+cp "/etc/mock/$opt_chroot.cfg" "$configs_dir"
+
+info "Downloading changed mock config from frontend"
 if $opt_download_mock_config; then
     copr --config "$opt_config" mock-config "$opt_copr" "$opt_chroot" \
-        > "$opt_chroot".cfg
+        > "$configs_dir"/changed.cfg
 fi
+mock+=(--configdir "$configs_dir" -r changed)
 
 info "Obtain sources from dist-git"
 stdout_wrap rpkg "$@" clone -a "$opt_copr/$opt_package" pkg-git
@@ -194,7 +201,7 @@ stdout_wrap rpkg "$@" --module-name "$opt_copr/$opt_package" sources
 )
 
 info "Generate SRPM in mock $opt_chroot"
-stdout_wrap "${mock[@]}" -r ./"$opt_chroot".cfg \
+stdout_wrap "${mock[@]}" \
     --buildsrpm \
     --spec pkg-git/"$opt_package".spec \
     --sources pkg-git \
@@ -202,7 +209,7 @@ stdout_wrap "${mock[@]}" -r ./"$opt_chroot".cfg \
     --no-cleanup-after
 
 info "Generate RPM in cached mock chroot"
-stdout_wrap "${mock[@]}" -r ./"$opt_chroot".cfg \
+stdout_wrap "${mock[@]}" \
     --rebuild intermediate-srpm/"$opt_package"*.src.rpm \
     --resultdir "$opt_resultdir" \
     --no-clean
