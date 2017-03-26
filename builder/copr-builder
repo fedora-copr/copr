@@ -80,13 +80,15 @@ Options:
   --resultdir                directory to place build results
   --workdir                  by default, temporary working directory under
                              /var/lib/copr-builder is used
+  --define="ARG VALUE"       define rpm macro
 EOHELP
 
 test -n "$1" && exit "$1"
 }
 
-long_options=copr:,package:,revision:,config:,resultdir:,workdir:
+long_options=copr:,package:,revision:,config:,resultdir:,workdir:,define:
 ARGS=$(getopt -o "h" -l "$long_options,help" -n "getopt" -- "$@")
+mock=(mock)
 eval set -- "$ARGS"
 
 while :; do
@@ -96,6 +98,11 @@ while :; do
         opt=${opt##-}
         opt=${opt//-/_}
         eval "opt_$opt=\$2"
+        shift 2
+        ;;
+
+    --define)
+        mock+=(--define "$2")
         shift 2
         ;;
 
@@ -187,7 +194,7 @@ stdout_wrap rpkg "$@" --module-name "$opt_copr/$opt_package" sources
 )
 
 info "Generate SRPM in mock $opt_chroot"
-stdout_wrap mock -r ./"$opt_chroot".cfg \
+stdout_wrap "${mock[@]}" -r ./"$opt_chroot".cfg \
     --buildsrpm \
     --spec pkg-git/"$opt_package".spec \
     --sources pkg-git \
@@ -195,7 +202,7 @@ stdout_wrap mock -r ./"$opt_chroot".cfg \
     --no-cleanup-after
 
 info "Generate RPM in cached mock chroot"
-stdout_wrap mock -r ./"$opt_chroot".cfg \
+stdout_wrap "${mock[@]}" -r ./"$opt_chroot".cfg \
     --rebuild intermediate-srpm/"$opt_package"*.src.rpm \
     --resultdir "$opt_resultdir" \
     --no-clean
