@@ -76,7 +76,7 @@ First you need to go to your Copr project and tab "Packages" and define some pac
 Now you can navigate to "Setting" tab and then "Webhooks" There is your webhook url in the form of `https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/`.
 
 Then in your GitHub project, go to Settings / Webhooks and services. Click on the Add webhook button.
-Fill in the Payload URL field with the url you noted previously. Leave all other fields untouched (i.e. content: application/json; send just push event; no secret). Click the Add webhook button.
+Fill in the Payload URL field with the url you noted previously. Set the other fields to the values: `content: application/json; send just push event; no secret`. Click the Add webhook button.
 
 And next time you push anything to your git, Copr will automatically rebuild your package.
 
