@@ -25,9 +25,12 @@ config_opts['yum.conf'] += \"\"\"
 [{{ repo.id }}]
 name="{{ repo.name }}"
 baseurl={{ repo.url }}
-skip_if_unavailable=False
 gpgcheck=0
 enabled=1
+skip_if_unavailable=1
+metadata_expire=0
+cost=1
+best=1
 {% endfor %}
 \"\"\"
 {% endif %}
