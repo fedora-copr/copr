@@ -2,7 +2,7 @@
 
 Name:		copr-builder
 Version:	0
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	Build package from copr dist-git
 
 License:	GPLv2+
@@ -54,6 +54,9 @@ install -p -m 644 %SOURCE2 %buildroot%confdir
 
 
 %changelog
+* Mon Mar 27 2017 Pavel Raiskup <praiskup@redhat.com> - 0-4
+- several TODOs implemented
+
 * Mon Mar 20 2017 Pavel Raiskup <praiskup@redhat.com> - 0-3
 - filter both stderr and stdout through 'col -b' for sub-commands
 
