@@ -10,14 +10,13 @@ import datetime
 import time
 import six
 import simplejson
-import random
 from collections import defaultdict
 
 import logging
 if six.PY2:
-    from urlparse import urlparse, urlencode
+    from urlparse import urlparse
 else:
-    from urllib.parse import urlparse, urlencode
+    from urllib.parse import urlparse
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -30,10 +29,10 @@ log = logging.getLogger(__name__)
 log.addHandler(NullHandler())
 
 from copr import CoprClient
+from copr.client.responses import CoprResponse
 import copr.exceptions as copr_exceptions
 
 from .util import ProgressBar
-from .util import listen_for_token
 from .build_config import MockProfile
 
 
@@ -565,41 +564,9 @@ class Commands(object):
         """
         Build module via Copr MBS
         """
-        token = args.token
-        if not token:
-            print("Provide token as command line argument or visit following URL to obtain the token:")
-            query = urlencode({
-                'response_type': 'token',
-                'response_mode': 'form_post',
-                'nonce': random.randint(100, 10000),
-                'scope': ' '.join([
-                    'openid',
-                    'https://id.fedoraproject.org/scope/groups',
-                    'https://mbs.fedoraproject.org/oidc/submit-build',
-                ]),
-                'client_id': 'mbs-authorizer',
-            }) + "&redirect_uri=http://localhost:13747/"
-            print("https://id.fedoraproject.org/openidc/Authorization?" + query)
-            print("We are waiting for you to finish the token generation...")
-
-            token = listen_for_token()
-            print("Token: {}".format(token))
-            print("")
-        if not token:
-            print("Failed to get a token from response")
-            sys.exit(1)
-
         modulemd = open(args.yaml, "rb") if args.yaml else args.url
-        response = self.client.build_module(modulemd, token)
-        if response.status_code == 500:
-            print(response.text)
-            sys.exit(1)
-
-        data = response.json()
-        if response.status_code != 201:
-            print("Error: {}".format(data["message"]))
-            sys.exit(1)
-        print("Created module {}-{}-{}".format(data["name"], data["stream"], data["version"]))
+        response = self.client.build_module(modulemd)
+        print(response.message if response.output == "ok" else response.error)
 
     def action_make_module(self, args):
         """
@@ -997,8 +964,6 @@ def setup_parser():
     parser_build_module_mmd_source = parser_build_module.add_mutually_exclusive_group()
     parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
     parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
-    parser_build_module.add_argument("--token",
-                                     help="OIDC token for module build service")
     parser_build_module.set_defaults(func="action_build_module")
 
     parser_make_module = subparsers.add_parser("make-module", help="Makes a module in Copr")

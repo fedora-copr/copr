@@ -5,6 +5,8 @@ import json
 import os
 import flask
 import sqlalchemy
+import json
+import requests
 
 from werkzeug import secure_filename
 
@@ -905,6 +907,41 @@ def copr_build_package(copr, package_name):
         "ids": [build.id],
         "message": "Build was added to {0}.".format(copr.name)
     })
+
+
+@api_ns.route("/module/build/", methods=["POST"])
+@api_login_required
+def copr_build_module():
+    # @TODO move to the config file
+    MBS_URL = "https://172.16.2.10:5000"
+    endpoint = "module-build-service/1/module-builds/"
+    url = "{}/{}".format(MBS_URL, endpoint)
+
+    form = forms.ModuleBuildForm(csrf_enabled=False)
+    if not form.validate_on_submit():
+        raise LegacyApiError(form.errors)
+
+    try:
+        if form.scmurl.data:
+            kwargs = {"json": {"scmurl": form.scmurl.data, "branch": form.branch.data}}
+        else:
+            kwargs = {"data": {}, "files": {"yaml": form.modulemd.data}}
+
+        response = requests.post(url, verify=False, **kwargs)
+        if response.status_code == 500:
+            raise LegacyApiError("Error from MBS: {} - {}".format(response.status_code, response.reason))
+
+        resp = json.loads(response.content)
+        if response.status_code != 201:
+            raise LegacyApiError("Error from MBS: {}".format(resp["message"]))
+
+        return flask.jsonify({
+            "output": "ok",
+            "message": "Created module {}-{}-{}".format(resp["name"], resp["stream"], resp["version"]),
+        })
+
+    except requests.ConnectionError:
+        raise LegacyApiError("Can't connect to MBS instance")
 
 
 @api_ns.route("/coprs/<username>/<coprname>/module/make/", methods=["POST"])

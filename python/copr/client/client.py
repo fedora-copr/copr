@@ -1466,17 +1466,22 @@ class CoprClient(UnicodeMixin):
         response.handle = BaseHandle(client=self, response=response)
         return response
 
-    def build_module(self, modulemd, token):
-        endpoint = "/module/1/module-builds/"
-        url = urljoin(self.copr_url, endpoint)
-        headers = {"Authorization": "Bearer {}".format(token)}
+    def build_module(self, modulemd):
+        endpoint = "module/build"
+        url = "{}/{}/".format(self.api_url, endpoint)
 
         if isinstance(modulemd, io.BufferedIOBase):
-            kwargs = {"files": {"yaml": modulemd}}
+            data = {"modulemd": (os.path.basename(modulemd.name), modulemd, "application/x-rpm")}
         else:
-            kwargs = {"json": {"scmurl": modulemd, "branch": "master"}}
+            data = {"scmurl": modulemd, "branch": "master"}
 
-        response = requests.post(url, headers=headers, **kwargs)
+        def fetch(url, data, method):
+            m = MultipartEncoder(data)
+            monit = MultipartEncoderMonitor(m, lambda x: x)
+            return self._fetch(url, monit, method="post", headers={'Content-Type': monit.content_type})
+
+        # @TODO Refactor process_package_action to be general purpose
+        response = self.process_package_action(url, None, None, data=data, fetch_functor=fetch)
         return response
 
     def make_module(self, projectname, modulemd, username=None, create=True, build=True):

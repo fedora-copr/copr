@@ -589,6 +589,13 @@ class ModuleFormUploadFactory(wtf.Form):
     build = wtforms.BooleanField("build", default=True)
 
 
+class ModuleBuildForm(wtf.Form):
+    modulemd = FileField("modulemd")
+    scmurl = wtforms.StringField()
+    branch = wtforms.StringField()
+    # And optional
+
+
 class ChrootForm(wtf.Form):
 
     """
