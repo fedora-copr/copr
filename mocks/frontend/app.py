@@ -113,6 +113,11 @@ def backend_update():
                 pass
             test_for_server_end()
 
+        if build['status'] == 3: # running (e.g. from pending)
+            build_task_dict.pop(build['task_id'], None)
+            if not build['task_id'] in started_build_tasks:
+                started_build_tasks.append(build['task_id'])
+
     for action in update.get('actions', []):
         action_task_dict.pop(action['id'], None)
         action_results.append(action)
