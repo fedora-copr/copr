@@ -289,13 +289,10 @@ class MockRemote(object):
         self.prepare_build_dir()
 
         try:
-            stdout, stderr = self.builder.build()
+            self.builder.build()
         except BuilderError as error:
             self.log.error(str(error))
             raise MockRemoteError("Builder error during job {}.".format(self.job))
-
-        self.log.info("builder.build stdout: {}, stderr: {}"
-                      .format(stdout, stderr))
 
     def reattach_to_pkg_build(self):
         """
@@ -304,13 +301,10 @@ class MockRemote(object):
         self.log.info("Reattach to build: {}".format(self.job))
 
         try:
-            stdout, stderr = self.builder.reattach()
+            self.builder.reattach()
         except BuilderError as error:
             self.log.error(str(error))
             raise MockRemoteError("Builder error during job {}.".format(self.job))
-
-        self.log.info("builder.reattach stdout: {}, stderr: {}"
-                      .format(stdout, stderr))
 
     def check_build_success(self):
         try:

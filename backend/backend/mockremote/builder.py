@@ -250,7 +250,17 @@ class Builder(object):
 
         buildcmd += self.remote_pkg_path
 
-        buildcmd_async = '{buildcmd} &>> {livelog} &'.format(
+        # To run something on background, we need to:
+        # - ignore SIGHUP, 'nohup' is racy -> sighup'ed by ssh before signal
+        #   handler is actually set by nohup
+        # - make sure to not have attached std{out,err} descriptors to the pty
+        #   provided by 'ssh -t' (redirect or close them!); otherwise 'ssh -t'
+        #   hangs here till the command finishes, OTOH ...
+        # - doing &>{livelog} means that the mockchain command has no terminal
+        #   on std{out,err} which means that it's output are not line-buffered
+        #   (which wouldn't be very useful live-log), so let's use `unbuffer`
+        #   from expect.rpm to allocate _persistent_ server-side pseudo-terminal
+        buildcmd_async = 'trap "" SIGHUP; unbuffer {buildcmd} &>{livelog} &'.format(
             livelog=self.livelog_name, buildcmd=buildcmd)
 
         self._run_ssh_cmd(buildcmd_async)
@@ -292,14 +302,22 @@ class Builder(object):
         try:
             pidof_cmd = "/usr/bin/pgrep -u {user} {command}".format(
                 user=self.opts.build_user, command="mockchain")
-            out, err = self._run_ssh_cmd(pidof_cmd)
-        except RemoteCmdError as err:
+            out, _ = self._run_ssh_cmd(pidof_cmd)
+        except RemoteCmdError:
             self.log.info("Build is not running. Continuing...")
-            return None, None
+            return
 
-        self.log.info("Attaching to live build log...")
-        return self._run_ssh_cmd('/usr/bin/tail -f --pid={pid} {log}'
-                                 .format(pid=out.strip(), log=self.livelog_name))
+        ensure_dir_exists(self.job.results_dir, self.log)
+        live_log = os.path.join(self.job.results_dir, 'mockchain-live.log')
+
+        live_cmd = '/usr/bin/tail -f --pid={pid} {log}'.format(
+            pid=out.strip(), log=self.livelog_name)
+
+        self.log.info("Attaching to live build log: " + live_cmd)
+        with open(live_log, 'w') as logfile:
+            # Ignore the exit status.
+            self.conn.run(live_cmd, stdout=logfile, stderr=logfile)
+
 
     def build(self):
         # make mock config
@@ -312,13 +330,10 @@ class Builder(object):
         self.run_mockchain_async()
 
         # attach to building output
-        stdout, stderr = self.attach_to_build()
-
-        return stdout, stderr
+        self.attach_to_build()
 
     def reattach(self):
-        stdout, stderr = self.attach_to_build()
-        return stdout, stderr
+        self.attach_to_build()
 
     def rsync_call(self, source_path, target_path):
         ensure_dir_exists(target_path, self.log)
