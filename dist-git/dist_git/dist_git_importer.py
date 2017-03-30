@@ -12,7 +12,7 @@ import subprocess
 import hashlib
 
 from multiprocessing import Process
-from subprocess import PIPE, Popen, call
+from subprocess import PIPE, Popen, check_call
 
 from requests import get, post
 from urlparse import urlparse
@@ -526,7 +526,7 @@ class DistGitImporter(object):
     def after_git_import(self):
         log.debug("refreshing cgit listing")
         try:
-            call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
+            check_call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
         except Exception as e:
             log.exception("Exception thrown during cgit pkg list refresh")
             raise e
@@ -535,8 +535,8 @@ class DistGitImporter(object):
     def before_git_import(task):
         log.debug("make sure repos exist: {}".format(task.reponame))
         try:
-            call(["/usr/share/dist-git/setup_git_package", task.reponame])
-            call(["/usr/share/dist-git/mkbranch", task.branch, task.reponame])
+            check_call(["/usr/share/dist-git/setup_git_package", task.reponame])
+            check_call(["/usr/share/dist-git/mkbranch", task.branch, task.reponame])
         except Exception as e:
             log.exception("Exception thrown during Git repo setup")
             raise e

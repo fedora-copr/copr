@@ -55,10 +55,6 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     :param result: shared dict from Manager().dict()
     """
 
-    # I need to use git via SSH because of gitolite as it manages
-    # permissions with it's hook that relies on gitolite console
-    # which is a default shell on SSH
-
     git_base_url = "/var/lib/dist-git/git/repositories/%(module)s"
     repo_dir = os.path.join(tmp_dir, task.package_name)
     log.debug("repo_dir: {}".format(repo_dir))
@@ -81,16 +77,14 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     # here, I just copy the source files manually with custom function
     # I also add one parameter "repo_dir" to that function with this hack
     commands.lookasidecache.upload = types.MethodType(my_upload_fabric(opts), repo_dir)
-    log.debug("clone the pkg repository into tmp directory")
-    commands.clone(module, tmp_dir, task.branch)
-    log.debug("import the source rpm into git and save filenames of sources")
     try:
+        log.info("clone the pkg repository into tmp directory")
+        commands.clone(module, tmp_dir, task.branch)
+        log.info("import the source rpm into git and save filenames of sources")
         upload_files = commands.import_srpm(src_filepath)
-    except Exception:
-        log.exception("Original traceback: {0}".format(traceback.format_exc))
+    except:
         log.exception("Failed to import the source rpm: {}".format(src_filepath))
         return
-        # raise PackageImportException()
 
     log.info("save the source files into lookaside cache")
     oldpath = os.getcwd()
@@ -99,11 +93,11 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
         commands.upload(upload_files, replace=True)
     except:
         log.exception("Error during source uploading")
-        raise e
+        return
+
     os.chdir(oldpath)
 
     log.debug("git push")
-    #message = "Import of {} {}".format(task.package_name, task.package_version)
     message = "import_srpm"
     try:
         commands.commit(message)

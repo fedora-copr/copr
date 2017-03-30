@@ -54,8 +54,8 @@ def mc_popen():
 
 
 @pytest.yield_fixture
-def mc_call():
-    with mock.patch("{}.call".format(MODULE_REF)) as handle:
+def mc_check_call():
+    with mock.patch("{}.check_call".format(MODULE_REF)) as handle:
         yield handle
 
 
@@ -274,15 +274,15 @@ class TestDistGitImporter(object):
             with pytest.raises(SrpmQueryException):
                 self.dgi.pkg_name_evr("/dev/null")
 
-    def test_before_git_import(self, mc_call):
+    def test_before_git_import(self, mc_check_call):
         # dummy test, just for coverage
         self.dgi.before_git_import(self.task_1)
-        assert mc_call.called
+        assert mc_check_call.called
 
-    def test_after_git_import(self, mc_call):
+    def test_after_git_import(self, mc_check_call):
         # dummy test, just for coverage
         self.dgi.after_git_import()
-        assert mc_call.called
+        assert mc_check_call.called
 
     def test_past_back(self, mc_post):
         dd = {"foo": "bar"}
