@@ -7,6 +7,7 @@ After=dist-git.socket docker.service
 [Service]
 User=copr-dist-git
 Group=packager
+AmbientCapabilities=CAP_SETGID
 Environment="PYTHONPATH=/usr/share/copr/"
 ExecStart=/usr/bin/python2.7 /usr/bin/importer_runner.py
 
