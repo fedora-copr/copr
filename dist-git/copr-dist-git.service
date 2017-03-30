@@ -5,8 +5,8 @@ After=dist-git.socket docker.service
 
 
 [Service]
-User=copr-service
-Group=copr-service
+User=copr-dist-git
+Group=copr-dist-git
 Environment="PYTHONPATH=/usr/share/copr/"
 ExecStart=/usr/bin/python2.7 /usr/bin/importer_runner.py
 

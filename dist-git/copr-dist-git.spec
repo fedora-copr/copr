@@ -72,6 +72,15 @@ This package contains Copr services for Dist Git server.
 
 %build
 
+%pre
+getent group docker >/dev/null || groupadd -r docker
+getent group packager >/dev/null || groupadd -r packager
+getent group copr-dist-git >/dev/null || groupadd -r copr-dist-git
+getent passwd copr-dist-git >/dev/null || \
+useradd -r -g copr-dist-git -G packager -G docker -s /sbin/nologin -c "copr-dist-git user" copr-dist-git
+/usr/bin/passwd -l copr-dist-git >/dev/null
+
+exit 0
 
 %install
 
@@ -107,8 +116,6 @@ PYTHONPATH=.:$PYTHONPATH python -B -m pytest \
 # change context to be readable by cgit
 semanage fcontext -a -t httpd_sys_content_t '/var/lib/copr-dist-git(/.*)?'
 restorecon -rv /var/lib/copr-dist-git
-groupadd docker
-usermod -aG docker copr-service
 %systemd_post copr-dist-git.service
 
 %preun
@@ -124,17 +131,17 @@ usermod -aG docker copr-service
 %dir %{_datadir}/copr 
 %{_datadir}/copr/*
 %dir %{_sysconfdir}/copr
-%config(noreplace) %attr(0640, root, copr-service) %{_sysconfdir}/copr/copr-dist-git.conf
+%config(noreplace) %attr(0640, root, copr-dist-git) %{_sysconfdir}/copr/copr-dist-git.conf
 %config(noreplace) %attr(0644, root, root) %{_sysconfdir}/httpd/conf.d/copr-dist-git.conf
 
-%dir %attr(0755, copr-service, copr-service) %{_sharedstatedir}/copr-dist-git/
+%dir %attr(0755, copr-dist-git, copr-dist-git) %{_sharedstatedir}/copr-dist-git/
 
 %{_unitdir}/copr-dist-git.service
 
 %dir %{_sysconfdir}/logrotate.d
 %config(noreplace) %{_sysconfdir}/logrotate.d/copr-dist-git
-%attr(0755, copr-service, copr-service) %{_var}/log/copr-dist-git
-%attr(0644, copr-service, copr-service) %{_var}/log/copr-dist-git/main.log
+%attr(0755, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git
+%attr(0644, copr-dist-git, copr-dist-git) %{_var}/log/copr-dist-git/main.log
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
