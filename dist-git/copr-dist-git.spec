@@ -76,8 +76,9 @@ This package contains Copr services for Dist Git server.
 getent group docker >/dev/null || groupadd -r docker
 getent group packager >/dev/null || groupadd -r packager
 getent group copr-dist-git >/dev/null || groupadd -r copr-dist-git
+getent group apache >/dev/null || groupadd -r apache
 getent passwd copr-dist-git >/dev/null || \
-useradd -r -g copr-dist-git -G packager,docker -s /sbin/nologin -c "copr-dist-git user" copr-dist-git
+useradd -r -g copr-dist-git -G packager,docker,apache -s /sbin/nologin -c "copr-dist-git user" copr-dist-git
 /usr/bin/passwd -l copr-dist-git >/dev/null
 
 exit 0
