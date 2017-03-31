@@ -12,7 +12,7 @@ import subprocess
 import hashlib
 
 from multiprocessing import Process
-from subprocess import PIPE, Popen, check_call
+from subprocess import PIPE, Popen, check_call, CalledProcessError
 
 from requests import get, post
 from urlparse import urlparse
@@ -527,19 +527,33 @@ class DistGitImporter(object):
         log.debug("refreshing cgit listing")
         try:
             check_call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
-        except Exception as e:
+        except CalledProcessError as e:
             log.exception("Exception thrown during cgit pkg list refresh")
             raise e
 
     @staticmethod
     def before_git_import(task):
-        log.debug("make sure repos exist: {}".format(task.reponame))
+        log.info("make sure repos exist: {}".format(task.reponame))
+
         try:
             check_call(["/usr/share/dist-git/setup_git_package", task.reponame])
+        except CalledProcessError as e:
+            if e.returncode == 128:
+                log.info("Package already exists")
+                pass
+            else:
+                log.exception("Exception thrown during Git repo setup")
+                raise e
+
+        try:
             check_call(["/usr/share/dist-git/mkbranch", task.branch, task.reponame])
-        except Exception as e:
-            log.exception("Exception thrown during Git repo setup")
-            raise e
+        except CalledProcessError as e:
+            if e.returncode == 128:
+                log.info("Branch {} already exists in the package".format(task.branch))
+                pass
+            else:
+                log.exception("Exception thrown during Git repo setup")
+                raise e
 
     def post_back(self, data_dict):
         """
@@ -583,6 +597,8 @@ class DistGitImporter(object):
         except CoprDistGitException as e:
             log.exception("Exception raised during srpm import:")
             self.post_back_safe({"task_id": task.task_id, "error": e.strtype})
+        except Exception as e:
+            log.exception("Unexpected error")
 
         finally:
             provider.cleanup()
