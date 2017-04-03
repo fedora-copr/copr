@@ -1466,14 +1466,15 @@ class CoprClient(UnicodeMixin):
         response.handle = BaseHandle(client=self, response=response)
         return response
 
-    def build_module(self, modulemd):
+    def build_module(self, modulemd, ownername=None, projectname=None):
         endpoint = "module/build"
         url = "{}/{}/".format(self.api_url, endpoint)
 
+        data = {"copr_owner": ownername, "copr_project": projectname}
         if isinstance(modulemd, io.BufferedIOBase):
-            data = {"modulemd": (os.path.basename(modulemd.name), modulemd, "application/x-rpm")}
+            data.update({"modulemd": (os.path.basename(modulemd.name), modulemd, "application/x-rpm")})
         else:
-            data = {"scmurl": modulemd, "branch": "master"}
+            data.update({"scmurl": modulemd, "branch": "master"})
 
         def fetch(url, data, method):
             m = MultipartEncoder(data)

@@ -593,7 +593,8 @@ class ModuleBuildForm(wtf.Form):
     modulemd = FileField("modulemd")
     scmurl = wtforms.StringField()
     branch = wtforms.StringField()
-    # And optional
+    copr_owner = wtforms.StringField()
+    copr_project = wtforms.StringField()
 
 
 class ChrootForm(wtf.Form):

@@ -564,8 +564,9 @@ class Commands(object):
         """
         Build module via Copr MBS
         """
+        ownername, projectname = parse_name(args.copr or "")
         modulemd = open(args.yaml, "rb") if args.yaml else args.url
-        response = self.client.build_module(modulemd)
+        response = self.client.build_module(modulemd, ownername, projectname)
         print(response.message if response.output == "ok" else response.error)
 
     def action_make_module(self, args):
@@ -961,6 +962,7 @@ def setup_parser():
 
     # module building
     parser_build_module = subparsers.add_parser("build-module", help="Builds a given module in Copr")
+    parser_build_module.add_argument("copr", help="The copr repo to list the packages of. Can be just name of project or even in format owner/project.", nargs="?")
     parser_build_module_mmd_source = parser_build_module.add_mutually_exclusive_group()
     parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
     parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")

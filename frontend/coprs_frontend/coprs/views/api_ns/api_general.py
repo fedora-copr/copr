@@ -922,10 +922,13 @@ def copr_build_module():
         raise LegacyApiError(form.errors)
 
     try:
+        common = {"owner": flask.g.user.name,
+                  "copr_owner": form.copr_owner.data,
+                  "copr_project": form.copr_project.data}
         if form.scmurl.data:
-            kwargs = {"json": {"scmurl": form.scmurl.data, "branch": form.branch.data}}
+            kwargs = {"json": dict({"scmurl": form.scmurl.data, "branch": form.branch.data}, **common)}
         else:
-            kwargs = {"data": {}, "files": {"yaml": form.modulemd.data}}
+            kwargs = {"data": common, "files": {"yaml": form.modulemd.data}}
 
         response = requests.post(url, verify=False, **kwargs)
         if response.status_code == 500:
