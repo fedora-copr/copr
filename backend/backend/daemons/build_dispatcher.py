@@ -150,20 +150,6 @@ class BuildDispatcher(multiprocessing.Process):
 
             job = self.load_job()
 
-            # first check if we do not have
-            # worker already running for the job
-            worker = None
-            for w in self.workers:
-                if job.task_id == w.job.task_id:
-                    worker = w
-                    break
-
-            if worker:
-                self.log.warning("Frontend asked to run already running task '{}'...skipping..."
-                                 .format(job.task_id))
-                worker.mark_started(job)
-                continue
-
             # now search db builder records for the job and
             # if we found it, just spawn a worker to reattach
             vm = self.vm_manager.get_vm_by_task_id(job.task_id)
