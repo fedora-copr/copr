@@ -300,7 +300,7 @@ class Builder(object):
 
     def attach_to_build(self):
         try:
-            pidof_cmd = "/usr/bin/pgrep -u {user} {command}".format(
+            pidof_cmd = "/usr/bin/pgrep -o -u {user} {command}".format(
                 user=self.opts.build_user, command="mockchain")
             out, _ = self._run_ssh_cmd(pidof_cmd)
         except RemoteCmdError:
