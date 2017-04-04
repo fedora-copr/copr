@@ -66,9 +66,12 @@ class Builder(object):
         if self._remote_tempdir:
             return self._remote_tempdir
 
-        tempdir_path = "{0}/{1}-{2}".format(
-            self._remote_basedir, "mockremote", self.job.task_id)
-        self._run_ssh_cmd("/bin/mkdir -m 755 -p {0}".format(tempdir_path))
+        if self.opts.standalone_builder:
+            tempdir_path = "/var/lib/copr-builder"
+        else:
+            tempdir_path = "{0}/{1}-{2}".format(
+                self._remote_basedir, "mockremote", self.job.task_id)
+            self._run_ssh_cmd("/bin/mkdir -m 755 -p {0}".format(tempdir_path))
 
         self._remote_tempdir = tempdir_path
         return self._remote_tempdir
@@ -99,6 +102,9 @@ class Builder(object):
         return out, err
 
     def _get_remote_results_dir(self):
+        if self.opts.standalone_builder:
+            return os.path.join(self.tempdir, 'results')
+
         if any(x is None for x in [self.remote_build_dir,
                                    self.remote_pkg_name,
                                    self.job.chroot]):
@@ -233,9 +239,18 @@ class Builder(object):
 
     @property
     def livelog_name(self):
+        if self.opts.standalone_builder:
+            return "/var/lib/copr-builder/live-log"
         return pipes.quote('/tmp/{}.log'.format(self.job.task_id))
 
-    def run_mockchain_async(self):
+    def run_async_build(self):
+        if self.opts.standalone_builder:
+            cmd = self._copr_builder_cmd()
+            pid, _ = self._run_ssh_cmd(cmd)
+            self._build_pid =int(pid.strip())
+            return
+
+
         buildcmd = "timeout {} {} -r {} -l {} ".format(
             self.timeout, mockchain, pipes.quote(self.get_chroot_config_path(self.job.chroot)),
             pipes.quote(self.remote_build_dir))
@@ -306,12 +321,38 @@ class Builder(object):
         try:
             pidof_cmd = "/usr/bin/pgrep -o -u {user} {command}".format(
                 user=self.opts.build_user, command="mockchain")
+
+            if self.opts.standalone_builder:
+                pidof_cmd = "cat /var/lib/copr-builder/pid"
+
             out, _ = self._run_ssh_cmd(pidof_cmd)
         except:
             return None
 
         return int(out.strip())
 
+
+    def _copr_builder_cmd(self):
+        template = 'copr-builder --config {config} --copr {copr} ' \
+                 + '--package {package} --revision {revision} ' \
+                 + '--host-resolv {net} --timeout {timeout} ' \
+                 + '--chroot {chroot} --detached '
+
+        # Repo name like <user/group>/<copr>/<package>
+        git_repo_path = self.job.git_repo.split('/')
+
+        copr = '{0}/{1}'.format(git_repo_path[0], git_repo_path[1])
+        package = git_repo_path[2]
+
+        return template.format(
+            config=self.opts.standalone_builder_config,
+            copr=copr,
+            package=package,
+            revision=self.job.git_hash,
+            net="True" if self.job.enable_net else "False",
+            chroot=self.job.chroot,
+            timeout=self.timeout,
+        )
 
     def attach_to_build(self):
         if not self.build_pid:
@@ -321,7 +362,7 @@ class Builder(object):
         ensure_dir_exists(self.job.results_dir, self.log)
         live_log = os.path.join(self.job.results_dir, 'mockchain-live.log')
 
-        live_cmd = '/usr/bin/tail -f --pid={pid} {log}'.format(
+        live_cmd = '/usr/bin/tail -n +0 -f --pid={pid} {log}'.format(
             pid=self.build_pid, log=self.livelog_name)
 
         self.log.info("Attaching to live build log: " + live_cmd)
@@ -331,14 +372,15 @@ class Builder(object):
 
 
     def build(self):
-        # make mock config
-        self.setup_mock_chroot_config()
+        if not self.opts.standalone_builder:
+            # make mock config
+            self.setup_mock_chroot_config()
 
-        # download the package to the builder
-        self.download_job_pkg_to_builder()
+            # download the package to the builder
+            self.download_job_pkg_to_builder()
 
         # run the build
-        self.run_mockchain_async()
+        self.run_async_build()
 
         # attach to building output
         self.attach_to_build()
@@ -386,6 +428,11 @@ class Builder(object):
         self.rsync_call(self._get_remote_config_dir(), target_path)
 
     def check(self):
+        if self.opts.standalone_builder:
+            # We simply expect that 'copr-builder' package is installed on the
+            # builder machine.
+            return
+
         # do check of host
         try:
             # requires name resolve facility

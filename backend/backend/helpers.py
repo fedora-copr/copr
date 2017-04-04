@@ -287,6 +287,12 @@ class BackendConfigReader(object):
         opts.consecutive_failure_threshold = _get_conf(
             cp, "builder", "consecutive_failure_threshold",
             DEF_CONSECUTIVE_FAILURE_THRESHOLD, mode="int")
+        opts.standalone_builder = _get_conf(
+            cp, "builder", "standalone", False, mode="bool")
+        opts.standalone_builder_config = _get_conf(
+            cp, "builder", "config", "/etc/copr-builder/fedora-copr.conf")
+
+
         opts.log_dir = _get_conf(
             cp, "backend", "log_dir", "/var/log/copr-backend/")
         opts.log_level = _get_conf(
