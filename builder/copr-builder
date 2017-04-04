@@ -115,7 +115,7 @@ test -n "$1" && exit "$1"
 }
 
 long_options=copr:,package:,revision:,config:,resultdir:,workdir:,define:
-long_options+=,host-resolv:,detached,log-file:,timeout:
+long_options+=,host-resolv:,detached,log-file:,timeout:,chroot:
 oldargs=( "$@" )
 ARGS=$(getopt -o "h" -l "$long_options,help" -n "getopt" -- "$@")
 mock=(mock)
@@ -123,7 +123,7 @@ eval set -- "$ARGS"
 
 while :; do
     case "$1" in
-    --copr|--package|--revision|--config|--resultdir|--workdir|--host-resolv|--log-file|--timeout)
+    --copr|--package|--revision|--config|--resultdir|--workdir|--host-resolv|--log-file|--timeout|--chroot)
         opt=${1##--}
         opt=${opt##-}
         opt=${opt//-/_}
