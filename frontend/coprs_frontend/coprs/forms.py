@@ -142,6 +142,19 @@ class CoprUniqueNameValidator(object):
             raise wtforms.ValidationError(self.message.format(field.data))
 
 
+class NameCharactersValidator(object):
+    def __init__(self, message=None):
+        if not message:
+            message = "Name must contain only letters, digits, underscores, dashes and dots."
+        self.message = message
+
+    def __call__(self, form, field):
+        validator = wtforms.validators.Regexp(
+                        re.compile(r"^[\w.-]+$"),
+                        message=self.message)
+        validator(form, field)
+
+
 class NameNotNumberValidator(object):
 
     def __init__(self, message=None):
@@ -207,10 +220,7 @@ class CoprFormFactory(object):
                 "Name",
                 validators=[
                     wtforms.validators.DataRequired(),
-                    wtforms.validators.Regexp(
-                        re.compile(r"^[\w.-]+$"),
-                        message="Name must contain only letters,"
-                        "digits, underscores, dashes and dots."),
+                    NameCharactersValidator(),
                     CoprUniqueNameValidator(user=user, group=group),
                     NameNotNumberValidator()
                 ])
@@ -694,7 +704,7 @@ class CoprForkFormFactory(object):
             name = wtforms.StringField(
                 "Fork name",
                 default=copr.name,
-                validators=[wtforms.validators.DataRequired()])
+                validators=[wtforms.validators.DataRequired(), NameCharactersValidator()])
 
             confirm = wtforms.BooleanField(
                 "Confirm",
