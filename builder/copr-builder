@@ -305,3 +305,5 @@ stdout_wrap "${mock[@]}" \
     --rebuild intermediate-srpm/"$opt_package"*.src.rpm \
     --resultdir "$opt_resultdir" \
     --no-clean
+
+echo done > "$opt_resultdir"/success
