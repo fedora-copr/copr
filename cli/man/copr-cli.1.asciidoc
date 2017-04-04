@@ -621,15 +621,15 @@ Path to modulemd file in yaml format
 
 `copr-cli build-module [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-usage: copr build-module [-h] [--url URL] [--token TOKEN]
+usage: copr build-module [-h] [--url URL] [--token TOKEN] [copr]
 
 Build module via Copr MBS
 
 --url URL:
 SCM with modulemd file in yaml format
 
---token TOKEN:
-OIDC token for module build service
+--yaml YAML:
+Path to modulemd file in yaml format
 
 
 EXAMPLES
