@@ -2,7 +2,7 @@
 
 Name:		copr-builder
 Version:	0
-Release:	4%{?dist}
+Release:	5%{?dist}
 Summary:	Build package from copr dist-git
 
 License:	GPLv2+
@@ -54,6 +54,9 @@ install -p -m 644 %SOURCE2 %buildroot%confdir
 
 
 %changelog
+* Tue Apr 04 2017 Pavel Raiskup <praiskup@redhat.com> - 0-5
+- changes needed after copr PR 44
+
 * Mon Mar 27 2017 Pavel Raiskup <praiskup@redhat.com> - 0-4
 - several TODOs implemented
 

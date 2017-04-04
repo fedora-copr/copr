@@ -17,20 +17,37 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+#################################
+##### BACKEND / BUILDER API #####
+#################################
+
+# PID file of the main process is stored here.  Backend can read this file to
+# detect the last PID of copr-builder run.
+opt_pidfile=/var/lib/copr-builder/pid
+
+# Build results are stored here.
+opt_resultdir=/var/lib/copr-builder/results
+
+# This is to be read by 'tail -n +0 -f --pid=...' on backend side.
+opt_log_file=/var/lib/copr-builder/live-log
+
+#################################
+#################################
 
 opt_copr=
 opt_package=
 opt_revision=
 opt_chroot=fedora-rawhide-x86_64
 opt_config=/etc/copr-builder/fedora-copr.conf
-opt_resultdir=:tmp:
+opt_lockfile=/var/lib/copr-builder/lock
+
+
 opt_workdir=
 opt_workdir_cleanup=false
 opt_download_mock_config=:
 opt_debug=false
 opt_host_resolv=
 opt_detached=false
-opt_log_file=
 
 
 error() { echo >&2 " ! $*"; }
@@ -46,6 +63,11 @@ destruct ()
         debug "cleaning workdir"
         rm -rf "$opt_workdir"
     fi
+
+    if test -n "$opt_lockfile" && test -f "$opt_lockfile"
+    then
+        rm -rf "$opt_lockfile"
+    fi
 }
 
 stdout_wrap ()
@@ -60,11 +82,6 @@ stdout_wrap ()
     # 'unbuffer' to fake the terminal.
     unbuffer "$@" 2> >(col -b >&2) | col -b
 )
-
-trap destruct EXIT
-
-set -e
-
 
 show_help()
 {
@@ -154,14 +171,25 @@ if $opt_detached; then
     # which means that the following child process won't have chance to even
     # block SIGHUP signals;  so ignore it here.
     trap "" SIGHUP
-    "$0" "${new_args[@]}" &
+    "$0" "${new_args[@]}" &>/dev/null &
     echo $!
     exit 0
 fi
 
-if test -n "$opt_log_file"; then
-    exec &>"$opt_log_file" || die "can't redirect stdout/stderr"
-fi
+
+# Start doing the work, but ensure only one copr-builder at the same time!
+set -e
+exec 9>"$opt_lockfile"
+flock -n 9 || die "can't lock $opt_lockfile"
+
+# Ensure there are no leftovers.
+trap destruct EXIT
+
+# Make the "re-attaching" by 'tail -f' for Worker after copr-backend restart.
+echo $$ > "$opt_pidfile"
+
+# Duplicate all output to the log file.
+exec &> >(tee -i "$opt_log_file")
 
 opt_parse_error ()
 {
@@ -179,13 +207,19 @@ test -r "$opt_config" \
     || opt_parse_error "Missing or unreadable config file '$opt_config'"
 opt_config=$(readlink -f "$opt_config")
 
-if test "$opt_resultdir" = :tmp:
-then
+case $opt_resultdir in
+:tmp:)
     opt_resultdir=$(mktemp -d)
     info "Results to be placed into '$opt_resultdir'"
-else
-    test -d "$opt_resultdir" || opt_parse_error "'$opt_resultdir' is not dir"
-fi
+    ;;
+/var/lib/copr-builder/results)
+    # We know that it is safe to remove everything from here.
+    rm -rf "$opt_resultdir"
+    mkdir "$opt_resultdir"
+    ;;
+esac
+
+test -d "$opt_resultdir" || opt_parse_error "'$opt_resultdir' is not dir"
 
 if test -n "$opt_workdir"; then
     if test -d "$opt_workdir"; then
