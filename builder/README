@@ -1,4 +1,4 @@
-Build package form copr dist-git.
+Build package from copr dist-git.
 
 $ sudo dnf copr enable praiskup/copr-builder
 $ sudo dnf install copr-builder
