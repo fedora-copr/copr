@@ -43,6 +43,7 @@ opt_lockfile=/var/lib/copr-builder/lock
 
 
 opt_workdir=
+opt_timeout=
 opt_workdir_cleanup=false
 opt_download_mock_config=:
 opt_debug=false
@@ -107,13 +108,14 @@ Options:
                              always succeeds and prints PID of the child to
                              standard output
   --log-file=LOG             store stdout/stderr into LOG
+  --timeout=SECONDS          fail miserably after SECONDS timeout
 EOHELP
 
 test -n "$1" && exit "$1"
 }
 
 long_options=copr:,package:,revision:,config:,resultdir:,workdir:,define:
-long_options+=,host-resolv:,detached,log-file:
+long_options+=,host-resolv:,detached,log-file:,timeout:
 oldargs=( "$@" )
 ARGS=$(getopt -o "h" -l "$long_options,help" -n "getopt" -- "$@")
 mock=(mock)
@@ -121,7 +123,7 @@ eval set -- "$ARGS"
 
 while :; do
     case "$1" in
-    --copr|--package|--revision|--config|--resultdir|--workdir|--host-resolv|--log-file)
+    --copr|--package|--revision|--config|--resultdir|--workdir|--host-resolv|--log-file|--timeout)
         opt=${1##--}
         opt=${opt##-}
         opt=${opt//-/_}
@@ -176,6 +178,9 @@ if $opt_detached; then
     exit 0
 fi
 
+# Reexec ourselves if we want to timeout.
+test -n "$opt_timeout" && test -z "$TIMEOUT_SET" \
+    && TIMEOUT_SET=: exec timeout "$opt_timeout" "$0" "${oldargs[@]}"
 
 # Start doing the work, but ensure only one copr-builder at the same time!
 set -e
