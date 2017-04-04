@@ -2,12 +2,9 @@ Build package from copr dist-git.
 
 $ sudo dnf copr enable praiskup/copr-builder
 $ sudo dnf install copr-builder
-$ mkdir /tmp/results
 $ copr-builder --copr      praiskup/ping \
                --package   quick-package \
-               --revision  5ce6ec838e22d \
-               --resultdir /tmp/results
-
+               --revision  5ce6ec838e22d
 
 We heavily depend on `rpkg` for working with `dist-git`, on `copr-cli` package
 to obtain mock profile and on mock to do all the work.  Please make sure to have
