@@ -37,6 +37,7 @@ class Builder(object):
         self.conn = SSHConnection(user=self.opts.build_user, host=self.hostname, config_file=self.opts.ssh.builder_config)
 
         self.module_dist_tag = self._load_module_dist_tag()
+        self._build_pid = None
 
     def _load_module_dist_tag(self):
         module_md_filepath = os.path.join(self.job.destdir, self.job.chroot, "module_md.yaml")
@@ -260,10 +261,10 @@ class Builder(object):
         #   on std{out,err} which means that it's output are not line-buffered
         #   (which wouldn't be very useful live-log), so let's use `unbuffer`
         #   from expect.rpm to allocate _persistent_ server-side pseudo-terminal
-        buildcmd_async = 'trap "" SIGHUP; unbuffer {buildcmd} &>{livelog} &'.format(
+        buildcmd_async = 'trap "" SIGHUP; unbuffer {buildcmd} &>{livelog} & echo !$'.format(
             livelog=self.livelog_name, buildcmd=buildcmd)
-
-        self._run_ssh_cmd(buildcmd_async)
+        pid, _ = self._run_ssh_cmd(buildcmd_async)
+        self._build_pid =int(pid.strip())
 
     def setup_pubsub_handler(self):
 
@@ -298,12 +299,22 @@ class Builder(object):
     #     buildcmd = self.gen_mockchain_command(dest)
     #
 
-    def attach_to_build(self):
+    @property
+    def build_pid(self):
+        if self._build_pid:
+            return self._build_pid
         try:
             pidof_cmd = "/usr/bin/pgrep -o -u {user} {command}".format(
                 user=self.opts.build_user, command="mockchain")
             out, _ = self._run_ssh_cmd(pidof_cmd)
-        except RemoteCmdError:
+        except:
+            return None
+
+        return int(out.strip())
+
+
+    def attach_to_build(self):
+        if not self.build_pid:
             self.log.info("Build is not running. Continuing...")
             return
 
@@ -311,7 +322,7 @@ class Builder(object):
         live_log = os.path.join(self.job.results_dir, 'mockchain-live.log')
 
         live_cmd = '/usr/bin/tail -f --pid={pid} {log}'.format(
-            pid=out.strip(), log=self.livelog_name)
+            pid=self.build_pid, log=self.livelog_name)
 
         self.log.info("Attaching to live build log: " + live_cmd)
         with open(live_log, 'w') as logfile:
