@@ -29,6 +29,8 @@ opt_workdir_cleanup=false
 opt_download_mock_config=:
 opt_debug=false
 opt_host_resolv=
+opt_detached=false
+opt_log_file=
 
 
 error() { echo >&2 " ! $*"; }
@@ -83,25 +85,39 @@ Options:
                              /var/lib/copr-builder is used
   --define="ARG VALUE"       define rpm macro
   --host-resolv=[0|1]        use host's resolv conf
+
+  --detached                 fork the builder and run in background, this
+                             always succeeds and prints PID of the child to
+                             standard output
+  --log-file=LOG             store stdout/stderr into LOG
 EOHELP
 
 test -n "$1" && exit "$1"
 }
 
 long_options=copr:,package:,revision:,config:,resultdir:,workdir:,define:
-long_options+=,host-resolv:
+long_options+=,host-resolv:,detached,log-file:
+oldargs=( "$@" )
 ARGS=$(getopt -o "h" -l "$long_options,help" -n "getopt" -- "$@")
 mock=(mock)
 eval set -- "$ARGS"
 
 while :; do
     case "$1" in
-    --copr|--package|--revision|--config|--resultdir|--workdir|--host-resolv)
+    --copr|--package|--revision|--config|--resultdir|--workdir|--host-resolv|--log-file)
         opt=${1##--}
         opt=${opt##-}
         opt=${opt//-/_}
         eval "opt_$opt=\$2"
         shift 2
+        ;;
+
+    --detached)
+        opt=${1##--}
+        opt=${opt##-}
+        opt=${opt//-/_}
+        eval "opt_$opt=:"
+        shift 1
         ;;
 
     --define)
@@ -124,6 +140,28 @@ while :; do
         ;;
     esac
 done
+
+if $opt_detached; then
+    new_args=()
+    for arg in "${oldargs[@]}"
+    do
+        case $arg in
+        --detached) ;;
+        *) new_args+=( "$arg" ) ;;
+        esac
+    done
+    # In copr, we run over ssh ... which end's up as soon as this process ends,
+    # which means that the following child process won't have chance to even
+    # block SIGHUP signals;  so ignore it here.
+    trap "" SIGHUP
+    "$0" "${new_args[@]}" &
+    echo $!
+    exit 0
+fi
+
+if test -n "$opt_log_file"; then
+    exec &>"$opt_log_file" || die "can't redirect stdout/stderr"
+fi
 
 opt_parse_error ()
 {
