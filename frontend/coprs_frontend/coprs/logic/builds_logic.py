@@ -750,7 +750,7 @@ GROUP BY
                 "You can not delete build `{}` which is not finished.".format(build.id),
                 "Unfinished build")
 
-        if send_delete_action and build.state not in ["canceled"]: # cancelled builds should have nothing in backend to delete
+        if send_delete_action:
             ActionsLogic.send_delete_build(build)
 
         for build_chroot in build.build_chroots:
