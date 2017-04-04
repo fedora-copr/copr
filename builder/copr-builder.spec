@@ -2,7 +2,7 @@
 
 Name:		copr-builder
 Version:	0
-Release:	8%{?dist}
+Release:	9%{?dist}
 Summary:	Build package from copr dist-git
 
 License:	GPLv2+
@@ -24,6 +24,7 @@ Requires:	mock
 Requires:	rpkg
 Requires:	expect
 Requires:	util-linux
+Requires:	sed
 
 BuildArch:	noarch
 
@@ -62,6 +63,9 @@ install -p -m 644 %SOURCE7 %buildroot%confdir
 
 
 %changelog
+* Tue Apr 04 2017 Pavel Raiskup <praiskup@redhat.com> - 0-9
+- more lively logs with sed filtering
+
 * Tue Apr 04 2017 Pavel Raiskup <praiskup@redhat.com> - 0-8
 - touch 'success' file
 

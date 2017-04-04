@@ -71,17 +71,24 @@ destruct ()
     fi
 }
 
+filter_backpaces ()
+{
+    # Drop terminal sequences and strings terminated by CR (not CR LF)
+    sed -e 's|\x1B\[[0-9;]*[a-zA-Z]||g' \
+        -e 's/.*\x0D\([^\x0a]\)/\1/g' --unbuffered
+}
+
 stdout_wrap ()
 (
     set -o pipefail
 
     # Normally, to have both stdout and stderr cleaned from backspaces, we would
-    # do '"$@" 2> >(col -b >&2) | col -b';  IOW attaching fifo to stderr and
-    # piping stdout through col -b.  But because we want to wrap some 'mock'
-    # calls too, and mock has the ugly hack with 'stderr.isatty()' (otherwise
-    # the output is very quiet, rhbz#1166609), we need to run through
-    # 'unbuffer' to fake the terminal.
-    unbuffer "$@" 2> >(col -b >&2) | col -b
+    # do '"$@" 2> >(filter_backpaces >&2) | filter_backpaces -b';  IOW attaching
+    # fifo to stderr and piping stdout through col -b.  But because we want to
+    # wrap some 'mock' calls too, and mock has the ugly hack with
+    # 'stderr.isatty()' (otherwise the output is very quiet, rhbz#1166609), we
+    # need to run through 'unbuffer' to fake the terminal.
+    unbuffer "$@" 2> >(filter_backpaces >&2) | filter_backpaces
 )
 
 show_help()
