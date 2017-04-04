@@ -912,11 +912,6 @@ def copr_build_package(copr, package_name):
 @api_ns.route("/module/build/", methods=["POST"])
 @api_login_required
 def copr_build_module():
-    # @TODO move to the config file
-    MBS_URL = "https://172.16.2.10:5000"
-    endpoint = "module-build-service/1/module-builds/"
-    url = "{}/{}".format(MBS_URL, endpoint)
-
     form = forms.ModuleBuildForm(csrf_enabled=False)
     if not form.validate_on_submit():
         raise LegacyApiError(form.errors)
@@ -930,7 +925,7 @@ def copr_build_module():
         else:
             kwargs = {"data": common, "files": {"yaml": form.modulemd.data}}
 
-        response = requests.post(url, verify=False, **kwargs)
+        response = requests.post(flask.current_app.config["MBS_URL"], verify=False, **kwargs)
         if response.status_code == 500:
             raise LegacyApiError("Error from MBS: {} - {}".format(response.status_code, response.reason))
 

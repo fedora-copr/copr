@@ -43,6 +43,7 @@ class Config(object):
 
     DIST_GIT_URL = None
     COPR_DIST_GIT_LOGS_URL = None
+    MBS_URL = "http://copr-fe-dev.cloud.fedoraproject.org/module/1/module-builds/"
 
     # primary log file
     LOG_FILENAME = "/var/log/copr-frontend/frontend.log"
