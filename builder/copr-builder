@@ -130,7 +130,8 @@ eval set -- "$ARGS"
 
 while :; do
     case "$1" in
-    --copr|--package|--revision|--config|--resultdir|--workdir|--host-resolv|--log-file|--timeout|--chroot)
+    --copr|--package|--revision|--config|--resultdir|--workdir| \
+    --host-resolv|--log-file|--timeout|--chroot)
         opt=${1##--}
         opt=${opt##-}
         opt=${opt//-/_}
@@ -168,6 +169,8 @@ while :; do
 done
 
 if $opt_detached; then
+    # Parent process.  Re-exec ourselves in background, but now  _without_
+    # the --detached option.
     new_args=()
     for arg in "${oldargs[@]}"
     do
@@ -176,9 +179,17 @@ if $opt_detached; then
         *) new_args+=( "$arg" ) ;;
         esac
     done
-    # In copr, we run over ssh ... which end's up as soon as this process ends,
-    # which means that the following child process won't have chance to even
-    # block SIGHUP signals;  so ignore it here.
+    # Copr backend runs:
+    #   'ssh -t <opts> "copr-builder --detached"'
+    # This triggers those processes on builder-side:
+    #   (0) + bash -c 'copr-builder --detached'
+    #   (1)   + copr-builder --detached
+    #   (2)     + copr-builder ... (detached)
+    # The pseudo terminal allocated for this session is closed right after the
+    # 'exit 0' command below, which means SIGHUP is sent to (2) command.
+    # Ignoring the SIGHUP in (2) would be racy (signal can be delivered before
+    # the signal handler is actually installed) so we rather ignore it here
+    # already in process (1).
     trap "" SIGHUP
     "$0" "${new_args[@]}" &>/dev/null &
     echo $!
