@@ -526,33 +526,32 @@ class DistGitImporter(object):
     def after_git_import(self):
         log.debug("refreshing cgit listing")
         try:
-            check_call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
+            cmd = ["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location]
+            check_output(cmd, stderr=subprocess.STDOUT)
         except CalledProcessError as e:
-            log.exception("Exception thrown during cgit pkg list refresh")
+            log.error("cmd: {}, rc: {}, msg: {}".format(cmd, e.returncode, e.output))
             raise e
 
     @staticmethod
     def before_git_import(task):
         log.info("make sure repos exist: {}".format(task.reponame))
-
         try:
-            check_call(["/usr/share/dist-git/setup_git_package", task.reponame])
+            cmd = ["/usr/share/dist-git/setup_git_package", task.reponame]
+            check_output(cmd, stderr=subprocess.STDOUT)
         except CalledProcessError as e:
+            log.error("cmd: {}, rc: {}, msg: {}".format(cmd, e.returncode, e.output))
             if e.returncode == 128:
-                log.info("Package already exists")
-                pass
+                log.info("Package already exists...continuing")
             else:
-                log.exception("Exception thrown during Git repo setup")
                 raise e
-
         try:
-            check_call(["/usr/share/dist-git/mkbranch", task.branch, task.reponame])
+            cmd = ["/usr/share/dist-git/mkbranch", task.branch, task.reponame]
+            check_output(cmd, stderr=subprocess.STDOUT)
         except CalledProcessError as e:
+            log.error("cmd: {}, rc: {}, msg: {}".format(cmd, e.returncode, e.output))
             if e.returncode == 128:
-                log.info("Branch {} already exists in the package".format(task.branch))
-                pass
+                log.info("Branch already exists...continuing")
             else:
-                log.exception("Exception thrown during Git repo setup")
                 raise e
 
     def post_back(self, data_dict):
