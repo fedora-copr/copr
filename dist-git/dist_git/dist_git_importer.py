@@ -12,7 +12,7 @@ import subprocess
 import hashlib
 
 from multiprocessing import Process
-from subprocess import PIPE, Popen, check_call, CalledProcessError
+from subprocess import PIPE, Popen, check_output, CalledProcessError
 
 from requests import get, post
 from urlparse import urlparse
