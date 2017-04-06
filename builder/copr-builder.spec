@@ -10,9 +10,12 @@ URL:		https://pagure.io/copr/copr
 
 Source0:	copr-builder
 Source1:	LICENSE
-Source2:	fedora-copr.conf
 Source3:	README
 
+# Those could be dropped, but still we keep them at least for reference (those
+# files are not aimed to be used by production builders).  The real
+# configuration will be copied on builder via backend's VM spin-up playbook.
+Source2:	fedora-copr.conf
 Source4:	fedora-copr-dev.conf
 Source5:	rhcopr.conf
 Source6:	rhcopr-stg.conf
