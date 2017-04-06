@@ -215,8 +215,7 @@ Vagrant.configure(2) do |config|
     distgit.vm.network "private_network", ip: "192.168.242.52"
 
     distgit.vm.provision "shell",
-      inline: "sudo dnf -y copr enable clime/dist-git",
-      run: "always"
+      inline: "sudo dnf -y copr enable clime/dist-git"
 
     # Update the system
     distgit.vm.provision "shell",
@@ -252,7 +251,7 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo dnf builddep -y /vagrant/dist-git/copr-dist-git.spec --allowerasing" # FIXME: remove --allowerasing, which was added due to this command failing on python-requests installation if python2-requests is already installed
+      inline: "sudo dnf builddep -y /vagrant/dist-git/copr-dist-git.spec"
 
     # ...
     distgit.vm.provision "shell",
@@ -281,7 +280,7 @@ enabled_metadata=1
       SHELL
 
     # ...
-    distgit.vm.provision "shell", run: "always", inline: <<-EOF
+    distgit.vm.provision "shell", inline: <<-EOF
 echo \"[dist-git]
 frontend_base_url=http://192.168.242.51
 frontend_auth=1234
@@ -289,14 +288,14 @@ frontend_auth=1234
     EOF
 
     # ...
-    distgit.vm.provision "shell", run: "always",  inline: <<-EOF
+    distgit.vm.provision "shell", inline: <<-EOF
 echo \" [user]
         email = copr-devel@lists.fedorahosted.org
         name = Copr dist git\" | sudo tee /home/copr-dist-git/.gitconfig && sudo chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig
     EOF
 
     # ...
-    distgit.vm.provision "shell", run: "always", inline: <<-EOF
+    distgit.vm.provision "shell", inline: <<-EOF
 echo \"
 AliasMatch \\"/repo(/.*)/md5(/.*)\\" \\"/var/lib/dist-git/cache/lookaside\\$1\\$2\\"
 Alias /repo/ /var/lib/dist-git/cache/lookaside/
@@ -305,28 +304,23 @@ Alias /repo/ /var/lib/dist-git/cache/lookaside/
 
     # ...
     distgit.vm.provision "shell",
-      inline: "systemctl restart httpd && systemctl enable httpd",
-      run: "always"
+      inline: "systemctl restart httpd && systemctl enable httpd"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo sed -i s/^cache-size.*// /etc/cgitrc",
-      run: "always"
+      inline: "sudo sed -i s/^cache-size.*// /etc/cgitrc"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "echo 'scan-path=/var/lib/dist-git/git/rpms' | sudo tee -a /etc/cgitrc",
-      run: "always"
+      inline: "echo 'scan-path=/var/lib/dist-git/git/rpms' | sudo tee -a /etc/cgitrc"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo systemctl start dist-git.socket && sudo systemctl enable dist-git.socket",
-      run: "always"
+      inline: "sudo systemctl start dist-git.socket && sudo systemctl enable dist-git.socket"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo systemctl start copr-dist-git && sudo systemctl enable copr-dist-git",
-      run: "always"
+      inline: "sudo systemctl start copr-dist-git && sudo systemctl enable copr-dist-git"
 
     #...
     distgit.vm.provision "shell",
