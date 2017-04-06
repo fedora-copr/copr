@@ -214,6 +214,10 @@ Vagrant.configure(2) do |config|
 
     distgit.vm.network "private_network", ip: "192.168.242.52"
 
+    distgit.vm.provision "shell",
+      inline: "sudo dnf -y copr enable clime/dist-git",
+      run: "always"
+
     # Update the system
     distgit.vm.provision "shell",
       inline: "sudo dnf clean all && sudo dnf -y update || true" # || true cause dnf might return non-zero status (probly delta rpm rebuilt failed)
@@ -267,26 +271,6 @@ enabled_metadata=1
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo chown root:packager /var/lib/dist-git/git && sudo chmod 775 /var/lib/dist-git/git"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo groupadd cvsadmin"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo groupadd -f docker"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo useradd copr-dist-git -G cvsadmin,packager"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo useradd copr-service -G apache,packager,mock,docker"
-
-    # ...
-    distgit.vm.provision "shell",
       inline: "systemctl restart docker && systemctl enable docker"
 
     # ...
@@ -297,27 +281,7 @@ enabled_metadata=1
       SHELL
 
     # ...
-    distgit.vm.provision "shell",
-      inline: "sudo su - copr-service -c \"ssh-keygen -f ~/.ssh/id_rsa -q -N ''\""
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo su - copr-dist-git -c \"mkdir ~/.ssh\""
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "echo \"command=\\\"HOME=/var/lib/dist-git/git/ /usr/share/gitolite3/gitolite-shell copr-dist-git\\\" $(sudo cat /home/copr-service/.ssh/id_rsa.pub)\" | sudo su - copr-dist-git -c 'tee ~/.ssh/authorized_keys'"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo chmod 700 /home/copr-dist-git/.ssh"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo chmod 600 /home/copr-dist-git/.ssh/authorized_keys"
-
-    # ...
-    distgit.vm.provision "shell", inline: <<-EOF
+    distgit.vm.provision "shell", run: "always", inline: <<-EOF
 echo \"[dist-git]
 frontend_base_url=http://192.168.242.51
 frontend_auth=1234
@@ -325,26 +289,14 @@ frontend_auth=1234
     EOF
 
     # ...
-    distgit.vm.provision "shell", inline: <<-EOF
+    distgit.vm.provision "shell", run: "always",  inline: <<-EOF
 echo \" [user]
         email = copr-devel@lists.fedorahosted.org
-        name = Copr dist git\" | sudo tee /home/copr-service/.gitconfig && sudo chown copr-service:copr-service /home/copr-service/.gitconfig
+        name = Copr dist git\" | sudo tee /home/copr-dist-git/.gitconfig && sudo chown copr-dist-git:copr-dist-git /home/copr-dist-git/.gitconfig
     EOF
 
     # ...
-    distgit.vm.provision "shell", inline: <<-EOF
-echo \"
-alias /lookaside        /var/lib/dist-git/cache/lookaside
-<Directory /var/lib/dist-git/cache/lookaside>
-    Options Indexes FollowSymLinks
-    AllowOverride None
-    Require all granted
-</Directory>
-\" | sudo tee /etc/httpd/conf.d/dist-git/lookaside.conf
-    EOF
-
-    # ...
-    distgit.vm.provision "shell", inline: <<-EOF
+    distgit.vm.provision "shell", run: "always", inline: <<-EOF
 echo \"
 AliasMatch \\"/repo(/.*)/md5(/.*)\\" \\"/var/lib/dist-git/cache/lookaside\\$1\\$2\\"
 Alias /repo/ /var/lib/dist-git/cache/lookaside/
@@ -352,67 +304,29 @@ Alias /repo/ /var/lib/dist-git/cache/lookaside/
     EOF
 
     # ...
-    distgit.vm.provision "shell", inline: <<-EOF
-echo \"
-[acls]
-user_groups=cvsadmin
-admin_groups=cvsadmin
-active_branches=el5,el6,el7,epel7,f21,f22,f23,master
-reserved_branches=f[0-9][0-9],epel[0-9],epel[0-9][0-9],el[0-9],olpc[0-9]
-pkgdb_acls_url=
-pkgdb_groups_url=
-
-[notifications]
-email_domain=example.com
-pkg_owner_emails=$PACKAGE-owner@example.com,commits@lists.example.com
-
-[git]
-default_branch_author=Copr Dist Git <copr-devel@lists.fedoraproject.org>
-\" | sudo tee /etc/dist-git/dist-git.conf && sudo chmod 644 /etc/dist-git/dist-git.conf
-    EOF
-
-    # ...
-    distgit.vm.provision "shell", inline: <<-EOF
-echo \"Host *
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null\" | sudo tee /home/copr-service/.ssh/config && sudo chown copr-service:copr-service /home/copr-service/.ssh/config && sudo chmod 600 /home/copr-service/.ssh/config
-    EOF
+    distgit.vm.provision "shell",
+      inline: "systemctl restart httpd && systemctl enable httpd",
+      run: "always"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo chown copr-service:copr-service /var/log/copr-dist-git"
+      inline: "sudo sed -i s/^cache-size.*// /etc/cgitrc",
+      run: "always"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo chown copr-service:copr-service /var/lib/copr-dist-git"
+      inline: "echo 'scan-path=/var/lib/dist-git/git/rpms' | sudo tee -a /etc/cgitrc",
+      run: "always"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "systemctl restart httpd && systemctl enable httpd"
+      inline: "sudo systemctl start dist-git.socket && sudo systemctl enable dist-git.socket",
+      run: "always"
 
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo sed -i s/^cache-size.*// /etc/cgitrc"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "echo 'project-list=/var/lib/copr-dist-git/cgit_pkg_list' | sudo tee -a /etc/cgitrc"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "echo 'scan-path=/var/lib/dist-git/git/rpms' | sudo tee -a /etc/cgitrc"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo /usr/share/dist-git/dist_git_sync.sh"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo systemctl start dist-git.socket && sudo systemctl enable dist-git.socket"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "sudo systemctl start copr-dist-git && sudo systemctl enable copr-dist-git"
+      inline: "sudo systemctl start copr-dist-git && sudo systemctl enable copr-dist-git",
+      run: "always"
 
     #...
     distgit.vm.provision "shell",
