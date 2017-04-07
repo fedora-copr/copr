@@ -41,15 +41,15 @@ vagrant ssh -c '
 sudo rm -r /var/lib/copr-dist-git
 sudo tar -xf /vagrant/distgit-files.tar -C /
 
-sudo chown copr-service:copr-service -R /var/lib/copr-dist-git
+sudo chown copr-dist-git:copr-dist-git -R /var/lib/copr-dist-git
 sudo find /var/lib/copr-dist-git -type d -print0 | xargs -0 -n100 sudo chmod 775
 sudo find /var/lib/copr-dist-git -type f -print0 | xargs -0 -n100 sudo chmod 664
 
-sudo chown copr-service:copr-service -R /var/lib/dist-git/cache/lookaside
+sudo chown copr-dist-git:copr-dist-git -R /var/lib/dist-git/cache/lookaside
 sudo find /var/lib/dist-git/cache/lookaside -type d -print0 | xargs -0 -n100 sudo chmod 775
 sudo find /var/lib/dist-git/cache/lookaside -type f -print0 | xargs -0 -n100 sudo chmod 664
 
-sudo chown copr-service:packager -R /var/lib/dist-git/git
+sudo chown copr-dist-git:packager -R /var/lib/dist-git/git
 sudo find /var/lib/dist-git/git -type d -print0 | xargs -0 -n100 sudo chmod 2775
 sudo find /var/lib/dist-git/git -type f -print0 | xargs -0 -n100 sudo chmod 664
 
