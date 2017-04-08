@@ -63,7 +63,7 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     :param result: shared dict from Manager().dict()
     """
 
-    git_base_url = "/var/lib/dist-git/git/repositories/%(module)s"
+    git_base_url = "/var/lib/dist-git/git/%(module)s"
     repo_dir = os.path.join(tmp_dir, task.package_name)
     log.debug("repo_dir: {}".format(repo_dir))
     # use rpkg for importing the source rpm
