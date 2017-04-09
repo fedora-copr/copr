@@ -299,7 +299,7 @@ class BackendConfigReader(object):
         # ssh options
         opts.ssh = Munch()
         opts.ssh.builder_config = _get_conf(
-            cp, "builder_config", "builder_config", "/home/copr/.ssh/builder_config")
+            cp, "ssh", "builder_config", "/home/copr/.ssh/builder_config")
 
         opts.msg_buses = []
         for bus_config in glob.glob('/etc/copr/msgbuses/*.conf'):
