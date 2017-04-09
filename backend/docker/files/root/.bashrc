@@ -15,12 +15,6 @@ fi
 PS1='[\u@backend \W] \$ '
 GREP_OPTIONS='--color=auto'
 
-stty werase undef
-bind '"\C-w": unix-filename-rubout'
-bind '"\C-x": unix-filename-rubout'
-bind '"\C-k": history-search-backward'
-bind '"\C-j": history-search-forward'
-
 alias soba='source ~/.bashrc'
 
 alias suvim='sudo vim'
