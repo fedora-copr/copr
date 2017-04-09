@@ -93,7 +93,7 @@ UserKnownHostsFile /dev/null
 
 # cgit settings
 sed -e s/^cache-size.*// /etc/cgitrc | tee /etc/cgitrc
-echo 'scan-path=/var/lib/dist-git/git/repositories' | tee -a /etc/cgitrc
+echo 'scan-path=/var/lib/dist-git/git' | tee -a /etc/cgitrc
 
 # git settings
 if ! id -u git &>/dev/null; then
