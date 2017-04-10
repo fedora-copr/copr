@@ -189,7 +189,7 @@ class CoprClient(UnicodeMixin):
         if not skip_auth:
             kwargs["auth"] = (self.login, self.token)
         if data is not None:
-            if type(data) != MultipartEncoderMonitor:
+            if type(data) not in [MultipartEncoder, MultipartEncoderMonitor]:
                 data["username"] = username
             kwargs["data"] = data
         if headers is not None:
