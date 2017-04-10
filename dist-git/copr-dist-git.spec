@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.24
+Version:    0.25
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -146,6 +146,16 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Apr 10 2017 clime <clime@redhat.com> 0.25-1
+- compatibility fixes for the latest dist-git (upstream)
+- improved error logging and exception handling of external commands
+- improve repo creation & srpm import logging and exception handling
+- replace copr-service user by copr-dist-git and useradd the user
+- Bug 1426033 - git-annex missing, cannot use tito.builder.GitAnnexBuilder
+- replace fedorahosted links
+- error logging of pyrpkg upload into lookaside
+- update langpack hack in dist-git Dockerfile
+
 * Thu Jan 26 2017 clime <clime@redhat.com> 0.24-1
 - install mock-scm in docker image from official fedora repos
 - upgrade docker image to f25
