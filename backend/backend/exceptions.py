@@ -5,9 +5,9 @@ class BuilderError(MockRemoteError):
     pass
 
 class RemoteCmdError(BuilderError):
-    def __init__(self, msg, cmd, as_root, rc, stderr, stdout):
-        self.msg = "{}\nCMD:{}\nRC:{}\nAS_ROOT:{}\nSTDERR:{}\nSTDOUT:{}".format(
-            msg, cmd, as_root, rc, stderr, stdout
+    def __init__(self, msg, cmd, rc, stderr, stdout):
+        self.msg = "{}\nCMD:{}\nRC:{}\nSTDERR:{}\nSTDOUT:{}".format(
+            msg, cmd, rc, stderr, stdout
         )
         super(RemoteCmdError, self).__init__(self.msg)
 

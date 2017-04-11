@@ -33,8 +33,11 @@ class Builder(object):
         self.resultdir = os.path.join(self.builddir, 'results')
         self.pidfile = os.path.join(self.builddir, 'pid')
 
-        self.root_conn = SSHConnection(host=self.hostname, config_file=self.opts.ssh.builder_config)
-        self.conn = SSHConnection(user=self.opts.build_user, host=self.hostname, config_file=self.opts.ssh.builder_config)
+        self.conn = SSHConnection(
+            user=self.opts.build_user,
+            host=self.hostname,
+            config_file=self.opts.ssh.builder_config
+        )
 
         self.module_dist_tag = self._load_module_dist_tag()
         self._build_pid = None
@@ -54,25 +57,18 @@ class Builder(object):
             self.log.info("Loaded {}, dist_tag {}".format(module_md_filepath, dist_tag))
         return dist_tag
 
-    def _run_ssh_cmd(self, cmd, as_root=False):
+    def _run_ssh_cmd(self, cmd):
         """
         Executes single shell command remotely
 
         :param str cmd: shell command
-        :param bool as_root:
         :return: stdout, stderr as strings
         """
-        if as_root:
-            conn = self.root_conn
-        else:
-            conn = self.conn
-
         self.log.info("BUILDER CMD: "+cmd)
-
-        rc, out, err = conn.run_expensive(cmd)
+        rc, out, err = self.conn.run_expensive(cmd)
         if rc != 0:
             raise RemoteCmdError("Error running remote ssh command.",
-                                 cmd, rc, as_root, err, out)
+                                 cmd, rc, err, out)
         return out, err
 
     def collect_built_packages(self):
