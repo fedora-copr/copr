@@ -246,9 +246,9 @@ class Worker(multiprocessing.Process):
 
             self.log.info(
                 "Finished build: id={} builder={} timeout={} destdir={}"
-                " chroot={} repos={}"
+                " chroot={}"
                 .format(job.build_id, self.vm.vm_ip, job.timeout, job.destdir,
-                        job.chroot, str(job.repos)))
+                        job.chroot))
 
             self.copy_mock_logs(job)
 

@@ -39,7 +39,7 @@ import os
 from munch import Munch
 import time
 
-from ..constants import DEF_REMOTE_BASEDIR, DEF_BUILD_TIMEOUT, DEF_REPOS, \
+from ..constants import DEF_BUILD_TIMEOUT, DEF_REPOS, \
     DEF_BUILD_USER, DEF_MACROS
 from ..exceptions import MockRemoteError, BuilderError, CreateRepoError
 
@@ -80,7 +80,7 @@ class MockRemote(object):
     #   idea: send events according to the build progress to handler
 
     def __init__(self, builder_host, job, logger,
-                 repos=None, opts=None):
+                 opts=None):
 
         """
         :param builder_host: builder hostname or ip
@@ -90,13 +90,9 @@ class MockRemote(object):
             :ivar destdir: target directory to put built packages
             :ivar chroot: chroot config name/base to use in the mock build
                            (e.g.: fedora20_i386 )
-            :ivar buildroot_pkgs: whitespace separated string with additional
-                               packages that should present during build
             :ivar build_id: copr build.id
             :ivar pkg: pkg to build
 
-
-        :param repos: additional repositories for mock
 
         :param macros: {    "copr_username": ...,
                             "copr_projectname": ...,
@@ -108,8 +104,6 @@ class MockRemote(object):
                 signer host and correct /etc/sign.conf
             :ivar frontend_base_url: url to the copr frontend
             :ivar results_baseurl: base url for the built results
-            :ivar remote_basedir: basedir on builder
-            :ivar remote_tempdir: tempdir on builder
 
         # Removed:
         # :param cont: if a pkg fails to build, continue to the next one--
@@ -121,8 +115,6 @@ class MockRemote(object):
             frontend_base_url=None,
             results_baseurl=u"",
             build_user=DEF_BUILD_USER,
-            remote_basedir=DEF_REMOTE_BASEDIR,
-            remote_tempdir=None,
             timeout=DEF_BUILD_TIMEOUT,
         )
         if opts:

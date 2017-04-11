@@ -11,10 +11,6 @@ class RemoteCmdError(BuilderError):
         )
         super(RemoteCmdError, self).__init__(self.msg)
 
-class BuilderTimeOutError(BuilderError):
-    pass
-
-
 class CoprSignError(MockRemoteError):
     """
     Related to invocation of /bin/sign

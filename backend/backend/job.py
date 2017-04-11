@@ -11,7 +11,6 @@ class BuildJob(object):
                 (based frontend.models.Build)::
 
                 - pkgs: list of space separated urls of packages to build
-                - repos: list of space separated additional repos
                 - timeout: maximum allowed time of build, build will fail if exceeded # unused
                 - project_owner:
                 - project_name:
@@ -65,8 +64,6 @@ class BuildJob(object):
 
         self.arch = self.chroot.split("-")[2]
 
-        self.repos = [r for r in task_data["repos"].split(" ") if r.strip()]
-
         self.destdir = os.path.normpath(os.path.join(
             worker_opts.destdir,
             task_data["project_owner"],
@@ -81,13 +78,6 @@ class BuildJob(object):
         self.results_repo_url = self.results
 
         self.built_packages = ""
-
-    @property
-    def chroot_repos_extended(self):
-        repos = list(self.repos)
-        repos.append("{}/{}".format(self.results_repo_url, self.chroot))
-        repos.append("{}/{}/devel".format(self.results_repo_url, self.chroot))
-        return repos
 
     @property
     def chroot_dir(self):
