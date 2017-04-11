@@ -7,6 +7,7 @@ import flask
 import sqlalchemy
 import json
 import requests
+from wtforms import ValidationError
 
 from werkzeug import secure_filename
 
@@ -954,6 +955,7 @@ def copr_make_module(copr):
     modulemd = form.modulemd.data.read()
     module = ModulesLogic.from_modulemd(modulemd)
     try:
+        ModulesLogic.validate(modulemd)
         msg = "Nothing happened"
         if form.create.data:
             module = ModulesLogic.add(flask.g.user, copr, module)
@@ -978,6 +980,9 @@ def copr_make_module(copr):
 
     except sqlalchemy.orm.exc.NoResultFound:
         raise LegacyApiError({"nsv": ["Module {} doesn't exist. You need to create it first".format(module.nsv)]})
+
+    except ValidationError as ex:
+        raise LegacyApiError({"nsv": [ex.message]})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/build-config/<chroot>/", methods=["GET"])

@@ -5,6 +5,7 @@ from sqlalchemy import and_
 from coprs import models
 from coprs import db
 from coprs import exceptions
+from wtforms import ValidationError
 
 
 class ModulesLogic(object):
@@ -32,11 +33,22 @@ class ModulesLogic(object):
         return cls.get_multiple().filter(models.Module.copr_id == copr.id)
 
     @classmethod
-    def from_modulemd(cls, yaml):
+    def yaml2modulemd(cls, yaml):
         mmd = modulemd.ModuleMetadata()
         mmd.loads(yaml)
+        return mmd
+
+    @classmethod
+    def from_modulemd(cls, yaml):
+        mmd = cls.yaml2modulemd(yaml)
         return models.Module(name=mmd.name, stream=mmd.stream, version=mmd.version, summary=mmd.summary,
                              description=mmd.description, yaml_b64=base64.b64encode(yaml))
+
+    @classmethod
+    def validate(cls, yaml):
+        mmd = cls.yaml2modulemd(yaml)
+        if not all([mmd.name, mmd.stream, mmd.version]):
+            raise ValidationError("Module should contain name, stream and version")
 
     @classmethod
     def add(cls, user, copr, module):
