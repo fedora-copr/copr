@@ -1,22 +1,13 @@
-0. enable https://copr.fedoraproject.org/coprs/asamalik/dist-git/
+0. enable https://copr.fedoraproject.org/coprs/g/copr/copr
 1. install dist-git, copr-dist-git, cgit
-2. create user copr-dist-git in groups cvsadmin, packager (groups from dist-git)
-3. create user copr-service in groups packager, apache
-4. copy copr-service's id_rsa.pub to copr-dist-git's authorized keys and prepend it with 'command="HOME=/var/lib/dist-git/git/ /usr/share/gitolite3/gitolite-shell $USER"'
-5. create /etc/httpd/conf.d/dist-git/lookaside.conf containing:
-Alias /lookaside        /var/lib/dist-git/cache/lookaside
-<Directory /var/lib/dist-git/cache/lookaside>
-    Options Indexes FollowSymLinks
-    AllowOverride None
-    Require all granted
-</Directory>
-6. do steps 4 and 5 from https://github.com/release-engineering/dist-git
-7. run /usr/share/copr/dist-git/dist_git_importer.py
-8. edit /etc/copr/copr-dist-git.conf for frontend password
-9. configure git variables:
+2. create /etc/httpd/conf.d/dist-git/lookaside-copr.conf containing:
+AliasMatch "/repo(/.*)/md5(/.*)" "/var/lib/dist-git/cache/lookaside$1$2"
+3. edit /etc/copr/copr-dist-git.conf for frontend password
+4. configure git variables for copr-dist-git user:
     git config --global user.email "copr-devel@lists.fedorahosted.org"
     git config --global user.name "Copr dist git"
-
+5. Run:
+    echo "scan-path=/var/lib/dist-git/git/" >> /etc/cgitrc
 
 ## Docker Images
 Copr-dist-git now builds SRPMs from various sources within containerized environment provided by Docker.
