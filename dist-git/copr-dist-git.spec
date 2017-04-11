@@ -13,6 +13,7 @@ URL:        https://pagure.io/copr/copr
 Source0: %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
+ExclusiveArch: %{ix86} x86_64 %{arm} aarch64 ppc64le s390x %{mips}
 
 BuildRequires: systemd
 BuildRequires: dist-git
