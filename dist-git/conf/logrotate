@@ -7,5 +7,5 @@
     compress
     notifempty
     missingok
-    create 644 copr-service copr-service
+    create 644 copr-dist-git copr-dist-git
 }
