@@ -118,6 +118,15 @@
         <h3 class="panel-title">How to use</h3>
       </div>
       <div class="panel-body">
+        {% if module.state != 'succeeded' %}
+          <div class="well well-lg">
+            {% if module.state == 'failed' %}
+              The module failed and therefore it cannot be enabled
+            {% else %}
+              The module is not built yet and therefore it cannot be enabled
+            {% endif %}
+          </div>
+        {% else %}
         <p>To start working with modules, you first need to get modularity-enabled packages from <code>@copr/copr</code>: </p>
         <div class="highlight autumn">
           <pre>dnf install dnf-plugins-core       <span class="c1"># provides basic `dnf copr` command to enable COPR repos</span>
@@ -137,6 +146,7 @@ dnf copr enable {{ module.copr.full_name }}
 dnf module <span class="nb">enable</span> {{ module.name }}</pre>
 
         </div>
+        {% endif %}
       </div>
     </div>
   </div>

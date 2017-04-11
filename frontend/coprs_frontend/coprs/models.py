@@ -1178,6 +1178,15 @@ class Module(db.Model, helpers.Serializer):
     def action(self):
         return Action.query.filter(Action.object_type == "module").filter(Action.object_id == self.id).first()
 
+    @property
+    def state(self):
+        """
+        Return text representation of status of this build
+        """
+        if self.action is not None:
+            return helpers.ModuleStatusEnum(self.action.result)
+        return "-"
+
     def repo_url(self, arch):
         # @TODO Use custom chroot instead of fedora-24
         # @TODO Get rid of OS name from module path, see how koji does it

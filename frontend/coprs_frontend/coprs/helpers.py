@@ -101,6 +101,10 @@ class StatusEnum(with_metaclass(EnumType, object)):
            }
 
 
+class ModuleStatusEnum(with_metaclass(EnumType, object)):
+    vals = {"pending": 0, "succeeded": 1, "failed": 2}
+
+
 class BuildSourceEnum(with_metaclass(EnumType, object)):
     vals = {"unset": 0,
             "srpm_link": 1,  # url

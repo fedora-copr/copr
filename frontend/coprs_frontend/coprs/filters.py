@@ -45,7 +45,7 @@ def state_from_num(num):
 def module_state_from_num(num):
     if num is None:
         return "unknown"
-    return ["pending", "succeeded", "failed"][num]
+    return helpers.ModuleStatusEnum(num)
 
 
 @app.template_filter("os_name_short")
