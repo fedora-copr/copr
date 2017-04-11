@@ -28,7 +28,7 @@ opt_pidfile=/var/lib/copr-builder/pid
 # Build results are stored here.
 opt_resultdir=/var/lib/copr-builder/results
 
-# This is to be read by 'tail -n +0 -f --pid=...' on backend side.
+# This is to be read by 'tail -n --retry +0 -f --pid=...' on backend side.
 opt_log_file=/var/lib/copr-builder/live-log
 
 #################################
@@ -208,7 +208,8 @@ flock -n 9 || die "can't lock $opt_lockfile"
 # Ensure there are no leftovers.
 trap destruct EXIT
 
-# Make the "re-attaching" by 'tail -f' for Worker after copr-backend restart.
+# Make the "re-attaching" in copr-backend Worker convenient.  That's to be done
+# by 'tail --retry -f --pid=`cat pidfile`'.
 echo $$ > "$opt_pidfile"
 
 # Duplicate all output to the log file.
