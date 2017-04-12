@@ -200,7 +200,6 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 
 %post
 %systemd_post copr-backend.service
-%systemd_post logstash.service
 
 %preun
 %systemd_preun copr-backend.service
