@@ -1,4 +1,4 @@
-FROM fedora:23
+FROM fedora:24
 MAINTAINER clime@redhat.com
 
 ENV container docker
