@@ -569,14 +569,6 @@ class Commands(object):
         response = self.client.build_module(modulemd, ownername, projectname)
         print(response.message if response.output == "ok" else response.error)
 
-    def action_make_module(self, args):
-        """
-        Fake module build
-        """
-        ownername, projectname = parse_name(args.copr)
-        result = self.client.make_module(projectname, args.yaml, username=ownername)
-        print(result.message if result.output == "ok" else result.error)
-
 
 def setup_parser():
     """
@@ -967,13 +959,6 @@ def setup_parser():
     parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
     parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
     parser_build_module.set_defaults(func="action_build_module")
-
-    parser_make_module = subparsers.add_parser("make-module", help="Makes a module in Copr")
-    parser_make_module.add_argument("copr",
-                                    help="The copr repo to build the module in. Can be just name of project or even in format username/project or @groupname/project.")
-    parser_make_module.add_argument("--yaml",
-                                    help="Path to modulemd file in yaml format")
-    parser_make_module.set_defaults(func="action_make_module")
 
     return parser
 

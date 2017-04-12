@@ -87,9 +87,6 @@ Build package from its source definition
 mock-config::
 Get the mock profile (similar to koji mock-config)
 
-make-module::
-Create module in Copr project (do not properly build it via MBS)
-
 build-module::
 Build module via Copr MB
 
@@ -608,17 +605,6 @@ EXAMPLES
 MODULE ACTIONS
 --------------
 
-`copr-cli make-module [options]`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-usage: copr make-module [-h] [--yaml YAML] copr
-
-Create module in Copr project (do not properly build it via MBS)
-
---yaml YAML:
-Path to modulemd file in yaml format
-
-
 `copr-cli build-module [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 usage: copr build-module [-h] [--url URL] [--token TOKEN] [copr]
@@ -635,7 +621,6 @@ Path to modulemd file in yaml format
 EXAMPLES
 --------
 
- copr-cli make-module --yaml testmodule.yaml ownername/projectname
  copr-cli build-module --url git://pkgs.stg.fedoraproject.org/modules/testmodule.git?#620ec77
 
 
