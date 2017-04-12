@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.25
+Version:    0.26
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -147,6 +147,11 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Wed Apr 12 2017 clime <clime@redhat.com> 0.26-1
+- follow docker ExclusiveArches spec directive
+- replace leftover username in lograte config
+- fix README
+
 * Mon Apr 10 2017 clime <clime@redhat.com> 0.25-1
 - compatibility fixes for the latest dist-git (upstream)
 - improved error logging and exception handling of external commands
