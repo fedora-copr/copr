@@ -276,7 +276,7 @@ class Builder(object):
         #   on std{out,err} which means that it's output are not line-buffered
         #   (which wouldn't be very useful live-log), so let's use `unbuffer`
         #   from expect.rpm to allocate _persistent_ server-side pseudo-terminal
-        buildcmd_async = 'trap "" SIGHUP; unbuffer {buildcmd} &>{livelog} & echo !$'.format(
+        buildcmd_async = 'trap "" SIGHUP; unbuffer {buildcmd} &>{livelog} & echo $!'.format(
             livelog=self.livelog_name, buildcmd=buildcmd)
         pid, _ = self._run_ssh_cmd(buildcmd_async)
         self._build_pid =int(pid.strip())
