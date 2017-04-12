@@ -24,6 +24,7 @@ dnf -y install vagrant
 dnf -y install vagrant-libvirt
 dnf -y install jq
 dnf -y install tito
+dnf -y install wget
 
 # enable libvirtd for Vagrant (distgit)
 systemctl enable libvirtd && systemctl start libvirtd
