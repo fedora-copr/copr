@@ -116,13 +116,14 @@ Options:
                              standard output
   --log-file=LOG             store stdout/stderr into LOG
   --timeout=SECONDS          fail miserably after SECONDS timeout
+  --mock-opts=OPTS           additional mock options, shell-quote OPTS properly
 EOHELP
 
 test -n "$1" && exit "$1"
 }
 
 long_options=copr:,package:,revision:,config:,resultdir:,workdir:,define:
-long_options+=,host-resolv:,detached,log-file:,timeout:,chroot:
+long_options+=,host-resolv:,detached,log-file:,timeout:,chroot:,mock-opts:
 oldargs=( "$@" )
 ARGS=$(getopt -o "h" -l "$long_options,help" -n "getopt" -- "$@")
 mock=(mock)
@@ -145,6 +146,13 @@ while :; do
         opt=${opt//-/_}
         eval "opt_$opt=:"
         shift 1
+        ;;
+
+    --mock-opts)
+        # Eval is needed to keep the right number of arguments, e.g.
+        # --mock-opts='--rpmbuild-opts "-vv --fsmdebug -ddd --rpmiodebug"'
+        eval "mock+=( $2 )"
+        shift 2
         ;;
 
     --define)
