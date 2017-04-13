@@ -21,3 +21,7 @@ div.anitya-rebuild label {
 	margin-bottom: -5px;
 	vertical-align:middle;
 }
+
+code {
+    white-space: pre-wrap;
+}
