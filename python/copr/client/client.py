@@ -10,6 +10,7 @@ import json
 import sys
 import os
 import logging
+import io
 
 import requests
 import six
@@ -21,9 +22,9 @@ from requests_toolbelt.multipart.encoder import (MultipartEncoder,
 # urlparse from six is not available on el7
 # because it requires at least python-six-1.4.1
 if sys.version_info[0] == 2:
-    from urlparse import urlparse
+    from urlparse import urlparse, urljoin
 else:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -588,24 +589,6 @@ class CoprClient(UnicodeMixin):
 
         return response
 
-    def create_new_build_module(self, projectname, modulemd, username=None):
-        api_endpoint = "module/build"
-        ownername = username if username else self.username
-        f = open(modulemd, "rb")
-        data = {"modulemd": (os.path.basename(f.name), f, "application/x-rpm"), "username": ownername}
-
-        url = "{0}/coprs/{1}/{2}/{3}/".format(
-            self.api_url, ownername, projectname, api_endpoint
-        )
-
-        def fetch(url, data, method):
-            m = MultipartEncoder(data)
-            monit = MultipartEncoderMonitor(m, lambda x: x)
-            return self._fetch(url, monit, method="post", headers={'Content-Type': monit.content_type})
-
-        # @TODO Refactor process_package_action to be general general purpose
-        response = self.process_package_action(url, ownername, projectname, data=data, fetch_functor=fetch)
-        return response
 
     #########################################################
     ###                   Package actions                 ###
@@ -1481,4 +1464,36 @@ class CoprClient(UnicodeMixin):
             ]
         )
         response.handle = BaseHandle(client=self, response=response)
+        return response
+
+    def build_module(self, modulemd, token):
+        endpoint = "/module/1/module-builds/"
+        url = urljoin(self.copr_url, endpoint)
+        headers = {"Authorization": "Bearer {}".format(token)}
+
+        if isinstance(modulemd, io.BufferedIOBase):
+            kwargs = {"files": {"yaml": modulemd}}
+        else:
+            kwargs = {"json": {"scmurl": modulemd, "branch": "master"}}
+
+        response = requests.post(url, headers=headers, **kwargs)
+        return response
+
+    def make_module(self, projectname, modulemd, username=None):
+        api_endpoint = "module/build"
+        ownername = username if username else self.username
+        f = open(modulemd, "rb")
+        data = {"modulemd": (os.path.basename(f.name), f, "application/x-rpm"), "username": ownername}
+
+        url = "{0}/coprs/{1}/{2}/{3}/".format(
+            self.api_url, ownername, projectname, api_endpoint
+        )
+
+        def fetch(url, data, method):
+            m = MultipartEncoder(data)
+            monit = MultipartEncoderMonitor(m, lambda x: x)
+            return self._fetch(url, monit, method="post", headers={'Content-Type': monit.content_type})
+
+        # @TODO Refactor process_package_action to be general general purpose
+        response = self.process_package_action(url, ownername, projectname, data=data, fetch_functor=fetch)
         return response

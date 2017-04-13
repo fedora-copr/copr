@@ -10,13 +10,14 @@ import datetime
 import time
 import six
 import simplejson
+import random
 from collections import defaultdict
 
 import logging
 if six.PY2:
-    from urlparse import urlparse
+    from urlparse import urlparse, urlencode
 else:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urlencode
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -32,6 +33,7 @@ from copr import CoprClient
 import copr.exceptions as copr_exceptions
 
 from .util import ProgressBar
+from .util import listen_for_token
 from .build_config import MockProfile
 
 
@@ -559,6 +561,55 @@ class Commands(object):
         if not args.nowait:
             self._watch_builds(build_ids)
 
+    def action_build_module(self, args):
+        """
+        Build module via Copr MBS
+        """
+        token = args.token
+        if not token:
+            print("Provide token as command line argument or visit following URL to obtain the token:")
+            query = urlencode({
+                'response_type': 'token',
+                'response_mode': 'form_post',
+                'nonce': random.randint(100, 10000),
+                'scope': ' '.join([
+                    'openid',
+                    'https://id.fedoraproject.org/scope/groups',
+                    'https://mbs.fedoraproject.org/oidc/submit-build',
+                ]),
+                'client_id': 'mbs-authorizer',
+            }) + "&redirect_uri=http://localhost:13747/"
+            print("https://id.fedoraproject.org/openidc/Authorization?" + query)
+            print("We are waiting for you to finish the token generation...")
+
+            token = listen_for_token()
+            print("Token: {}".format(token))
+            print("")
+        if not token:
+            print("Failed to get a token from response")
+            sys.exit(1)
+
+        modulemd = open(args.yaml, "rb") if args.yaml else args.url
+        response = self.client.build_module(modulemd, token)
+        if response.status_code == 500:
+            print(response.text)
+            sys.exit(1)
+
+        data = response.json()
+        if response.status_code != 201:
+            print("Error: {}".format(data["message"]))
+            sys.exit(1)
+        print("Created module {}-{}-{}".format(data["name"], data["stream"], data["version"]))
+
+    def action_make_module(self, args):
+        """
+        Fake module build
+        """
+        ownername, projectname = parse_name(args.copr)
+        result = self.client.make_module(projectname, args.yaml, username=ownername)
+        print(result.message if result.output == "ok" else result.error)
+
+
 def setup_parser():
     """
     Set the main arguments.
@@ -940,6 +991,22 @@ def setup_parser():
                                       help="Name of a package to be built",
                                       metavar="PKGNAME", required=True)
     parser_build_package.set_defaults(func="action_build_package")
+
+    # module building
+    parser_build_module = subparsers.add_parser("build-module", help="Builds a given module in Copr")
+    parser_build_module_mmd_source = parser_build_module.add_mutually_exclusive_group()
+    parser_build_module_mmd_source.add_argument("--url", help="SCM with modulemd file in yaml format")
+    parser_build_module_mmd_source.add_argument("--yaml", help="Path to modulemd file in yaml format")
+    parser_build_module.add_argument("--token",
+                                     help="OIDC token for module build service")
+    parser_build_module.set_defaults(func="action_build_module")
+
+    parser_make_module = subparsers.add_parser("make-module", help="Makes a module in Copr")
+    parser_make_module.add_argument("copr",
+                                    help="The copr repo to build the module in. Can be just name of project or even in format username/project or @groupname/project.")
+    parser_make_module.add_argument("--yaml",
+                                    help="Path to modulemd file in yaml format")
+    parser_make_module.set_defaults(func="action_make_module")
 
     return parser
 
