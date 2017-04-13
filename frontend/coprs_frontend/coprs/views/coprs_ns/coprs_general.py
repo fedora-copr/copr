@@ -625,6 +625,10 @@ def copr_update_permissions(copr):
 @login_required
 def copr_createrepo(copr_id):
     copr = ComplexLogic.get_copr_by_id_safe(copr_id)
+    if not flask.g.user.can_edit(copr):
+        flask.flash(
+            "You are not allowed to recreate repository metadata of copr with id {}.".format(copr_id), "error")
+        return flask.redirect(url_for_copr_details(copr))
 
     chroots = [c.name for c in copr.active_chroots]
     actions_logic.ActionsLogic.send_createrepo(
