@@ -931,7 +931,7 @@ def copr_build_module():
         if form.scmurl.data:
             kwargs = {"json": dict({"scmurl": form.scmurl.data, "branch": form.branch.data}, **common)}
         else:
-            kwargs = {"data": common, "files": {"yaml": form.modulemd.data}}
+            kwargs = {"data": common, "files": {"yaml": (form.modulemd.data.filename, form.modulemd.data)}}
 
         response = requests.post(flask.current_app.config["MBS_URL"], verify=False, **kwargs)
         if response.status_code == 500:
