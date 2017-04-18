@@ -227,15 +227,15 @@ flock -n 9 || die "can't lock $opt_lockfile"
 # Ensure there are no leftovers.
 trap destruct EXIT
 
-quote_args copr-builder "${oldargs[@]}"
-info "running command: $quote_args_result"
-
 # Make the "re-attaching" in copr-backend Worker convenient.  That's to be done
 # by 'tail --retry -f --pid=`cat pidfile`'.
 echo $$ > "$opt_pidfile"
 
 # Duplicate all output to the log file.
 exec &> >(tee -i "$opt_log_file")
+
+quote_args copr-builder "${oldargs[@]}"
+info "running command: $quote_args_result"
 
 opt_parse_error ()
 {
