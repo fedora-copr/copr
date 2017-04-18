@@ -158,7 +158,7 @@ class TestBuildModule(CoprsTestCase):
 
         f = open(filename, "rb")
         data = {"modulemd": (filename, f, "application/yaml")}
-        api_endpoint = '/api/coprs/{}/{}/module/build/'.format(self.u1.name, self.c1.name)
+        api_endpoint = '/api/coprs/{}/{}/module/make/'.format(self.u1.name, self.c1.name)
         r = self.post_api_with_auth(api_endpoint, content=data, user=self.u1)
         assert r.status_code == 200
         os.remove(filename)
