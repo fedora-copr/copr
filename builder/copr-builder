@@ -71,6 +71,17 @@ destruct ()
     fi
 }
 
+quote_args ()
+{
+    quote_args_result=
+    local sp=
+    for arg
+    do
+        quote_args_result+=$sp$(printf %q "$arg")
+        sp=' '
+    done
+}
+
 filter_backpaces ()
 {
     # Drop terminal sequences and strings terminated by CR (not CR LF)
@@ -215,6 +226,9 @@ flock -n 9 || die "can't lock $opt_lockfile"
 
 # Ensure there are no leftovers.
 trap destruct EXIT
+
+quote_args copr-builder "${oldargs[@]}"
+info "running command: $quote_args_result"
 
 # Make the "re-attaching" in copr-backend Worker convenient.  That's to be done
 # by 'tail --retry -f --pid=`cat pidfile`'.
