@@ -1,0 +1,36 @@
+document: modulemd
+version: 1
+data:
+    name: testmodule
+    stream: beakertest
+    version: $VERSION
+    summary: A test module in all its beautiful beauty
+    description: This module demonstrates how to write simple modulemd files And can be used for testing the build and release pipeline.
+    license:
+        module: [ MIT ]
+    dependencies:
+        buildrequires:
+            base-runtime: master
+        requires:
+            base-runtime: master
+    references:
+        community: https://fedoraproject.org/wiki/Modularity
+        documentation: https://fedoraproject.org/wiki/Fedora_Packaging_Guidelines_for_Modules
+        tracker: https://taiga.fedorainfracloud.org/project/modularity
+    profiles:
+        default:
+            rpms:
+                - mksh
+    api:
+        rpms:
+            - ed
+            - mksh
+    components:
+        rpms:
+            ed:
+                rationale: A build dependency of mksh.
+                ref: master
+            mksh:
+                rationale: The main package of the module.
+                buildorder: 10
+                ref: master
