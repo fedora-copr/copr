@@ -86,6 +86,18 @@ def api_new_token():
     return flask.redirect(flask.url_for("api_ns.api_home"))
 
 
+def validate_post_keys(form):
+    infos = []
+    # TODO: don't use WTFform for parsing and validation here
+    # are there any arguments in POST which our form doesn't know?
+    proxyuser_keys = ["username"]  # When user is proxyuser, he can specify username of delegated author
+    allowed = form.__dict__.keys() + proxyuser_keys
+    for post_key in flask.request.form.keys():
+        if post_key not in allowed:
+            infos.append("Unknown key '{key}' received.".format(key=post_key))
+    return infos
+
+
 @api_ns.route("/coprs/<username>/new/", methods=["POST"])
 @api_login_required
 def api_new_copr(username):
@@ -106,10 +118,7 @@ def api_new_copr(username):
     infos = []
 
     # are there any arguments in POST which our form doesn't know?
-    # TODO: don't use WTFform for parsing and validation here
-    for post_key in flask.request.form.keys():
-        if post_key not in form.__dict__.keys():
-            infos.append("Unknown key '{key}' received.".format(key=post_key))
+    infos.extend(validate_post_keys(form))
 
     if form.validate_on_submit():
         group = ComplexLogic.get_group_by_name_safe(username[1:]) if username[0] == "@" else None
@@ -460,9 +469,7 @@ def process_creating_new_build(copr, form, create_new_build):
     infos = []
 
     # are there any arguments in POST which our form doesn't know?
-    for post_key in flask.request.form.keys():
-        if post_key not in form.__dict__.keys():
-            infos.append("Unknown key '{key}' received.".format(key=post_key))
+    infos.extend(validate_post_keys(form))
 
     if not form.validate_on_submit():
         raise LegacyApiError("Invalid request: bad request parameters: {0}".format(form.errors))
