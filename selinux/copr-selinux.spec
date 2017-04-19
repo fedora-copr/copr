@@ -30,6 +30,7 @@ BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires:  checkpolicy, selinux-policy-devel
 BuildRequires:  policycoreutils
+BuildRequires:  perl
 Requires(post): policycoreutils, libselinux-utils
 %if 0%{?rhel} <= 7
 Requires(post): policycoreutils-python
