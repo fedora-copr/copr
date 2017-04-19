@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.76
+Version:    1.77
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -185,6 +185,20 @@ popd
 %endif
 
 %changelog
+* Wed Apr 19 2017 clime <clime@redhat.com> 1.77-1
+- allow to submit optional params to mbs
+- frontend act as a gateway between user and mbs
+- allow to create module and it's action separately
+- possibility to submit yaml file to mbs
+- update auth for current MBS package
+- rename method for making module to match cli naming
+- add command for building modules
+- files can be uploaded via simple MultipartEncoder (RhBug: 1440480)
+- fix proxyuser when creating modules
+- replace fedorahosted links
+- fix setting username on multipart data
+- proxyuser feature (RhBug: 1381574)
+
 * Thu Jan 26 2017 clime <clime@redhat.com> 1.76-1
 - fix python 2.6 incompatibility
 
