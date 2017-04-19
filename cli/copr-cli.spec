@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.58
+Version:    1.59
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -144,6 +144,25 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Wed Apr 19 2017 clime <clime@redhat.com> 1.59-1
+- when building module --url or --yaml needs to be selected
+- remove make-module command
+- update man for build-module command
+- allow to submit optional params to mbs
+- frontend act as a gateway between user and mbs
+- possibility to submit yaml file to mbs
+- compose auth url more prettier
+- describe module actions in man
+- rename method for making module to match cli naming
+- split module building into two separate commands
+- add possibility to build module via MBS or not
+- add command for building modules
+- more similar mock-config with real builder's config
+- put errors/warnings on stderr
+- fix trace in 'copr-cli --debug'
+- replace fedorahosted links
+- use 'avg' api from python-progress
+
 * Thu Dec 01 2016 clime <clime@redhat.com> 1.58-1
 - `copr-cli edit-chroot` implemented (without modulemd uploading)
 - add 'mock-config' command
