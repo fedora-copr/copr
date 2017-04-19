@@ -10,7 +10,7 @@
 %global file_context_file_pre %{_localstatedir}/lib/rpm-state/file_contexts.pre
 
 Name:       copr-selinux
-Version:    1.44
+Version:    1.45
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -124,6 +124,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Wed Apr 19 2017 clime <clime@redhat.com> 1.45-1
+- replace fedorahosted links
+
 * Wed Aug 03 2016 Miroslav Suchý 1.44-1
 - restore context of only those files, which context changed
 
