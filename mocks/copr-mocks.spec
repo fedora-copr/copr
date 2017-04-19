@@ -1,6 +1,6 @@
 Summary: COPR system components mocks
 Name: copr-mocks
-Version: 1.6
+Version: 1.7
 Release: 1%{?dist}
 
 # Source is created by:
@@ -49,6 +49,10 @@ useradd -r -g copr-mocks -G copr-mocks -d %{_datadir}/copr/mocks -s /bin/bash -c
 %{_unitdir}/copr-mocks-frontend.service
 
 %changelog
+* Wed Apr 19 2017 clime <clime@redhat.com> 1.7-1
+- support detached builds (i.e. pending -> running build state transition)
+- replace fedorahosted links
+
 * Thu Dec 01 2016 clime <clime@redhat.com> 1.6-1
 - ignore ValueError exception
 
