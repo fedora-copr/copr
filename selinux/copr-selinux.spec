@@ -10,7 +10,7 @@
 %global file_context_file_pre %{_localstatedir}/lib/rpm-state/file_contexts.pre
 
 Name:       copr-selinux
-Version:    1.45
+Version:    1.46
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -125,6 +125,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Wed Apr 19 2017 clime <clime@redhat.com> 1.46-1
+- add perl as build dependency
+
 * Wed Apr 19 2017 clime <clime@redhat.com> 1.45-1
 - replace fedorahosted links
 
