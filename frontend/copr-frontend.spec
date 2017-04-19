@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.107
+Version:    1.108
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -396,6 +396,29 @@ service logstash condrestart
 
 
 %changelog
+* Wed Apr 19 2017 clime <clime@redhat.com> 1.108-1
+- use custom chroot for modules instead of F24
+- send the original filename to MBS
+- get rid of 'unknown key username' warning
+- fix modularity unit test
+- validate uploaded yaml file
+- dont print how to use a module when it is not succeeded
+- move MBS_URL to config
+- allow to submit optional params to mbs
+- frontend act as a gateway between user and mbs
+- allow to create module and it's action separately
+- make new-lines work in <code> blocks
+- Bug 1442047 - Regenerate action is not restricted to an owner of the project.
+- redirect output of update_indexes_quick in cron into /dev/null
+- validate fork name characters (RhBug: 1435123)
+- Bug 1433508 - Half-cancelled builds are not deleted correctly.
+- Add extra step for setting up GitHub Webhook
+- add "buildroot" repository into generated build-config
+- python3 compatibility fixes in frontend core
+- correctly set repo and ref to point to our dist-git
+- replace fedorahosted links
+- replace no-longer working fedorahosted links with the pagure ones
+
 * Tue Feb 28 2017 clime <clime@redhat.com> 1.107-1
 - [frontend] fix for python-flask-whooshee-0.4.1-2
 
