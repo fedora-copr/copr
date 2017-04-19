@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.96
+Version:    1.97
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,19 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Apr 19 2017 clime <clime@redhat.com> 1.97-1
+- do not condrestart optional logstash service
+- standalone builder option
+- build reattaching after copr-backend(-build) service restart
+- live mockchain log
+- use openssh instead of paramiko
+- update cleanup_vm_nova script
+- remove buggy logging
+- removed Sphinx as a dependency...
+- verbose log everything we have about failed playbook
+- replace fedorahosted links
+- make systemd services out of ActionDispatcher and BuildDispatcher
+
 * Thu Jan 26 2017 clime <clime@redhat.com> 1.96-1
 - Fixes for building COPR Backend and Dist-git on EL7
 - simplified/improved logging of exceptions mainly
