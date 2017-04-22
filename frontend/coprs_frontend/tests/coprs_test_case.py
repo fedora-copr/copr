@@ -215,7 +215,9 @@ class CoprsTestCase(object):
         self.p1 = models.Package(
             copr=self.c1, name="hello-world", source_type=0)
         self.p2 = models.Package(
-            copr=self.c2, name="hello-world", source_type=0)
+            copr=self.c2, name="whatsupthere-world", source_type=0)
+        self.p3 = models.Package(
+            copr=self.c2, name="goodbye-world", source_type=0)
 
         self.b1 = models.Build(
             copr=self.c1, package=self.p1, user=self.u1, submitted_on=50)

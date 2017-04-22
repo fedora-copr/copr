@@ -1,3 +1,4 @@
+import os
 import time
 import base64
 import modulemd
@@ -5,6 +6,7 @@ from sqlalchemy import and_
 from coprs import models
 from coprs import db
 from coprs import exceptions
+from coprs.logic import builds_logic
 from wtforms import ValidationError
 
 
@@ -61,3 +63,48 @@ class ModulesLogic(object):
 
         db.session.add(module)
         return module
+
+
+class ModulemdGenerator(object):
+    def __init__(self, name="", stream="", version=0, summary="", config=None):
+        self.config = config
+        self.mmd = modulemd.ModuleMetadata()
+        self.mmd.name = name
+        self.mmd.stream = stream
+        self.mmd.version = version
+        self.mmd.summary = summary
+
+    def add_api(self, packages):
+        for package in packages:
+            self.mmd.api.add_rpm(str(package))
+
+    def add_filter(self, packages):
+        for package in packages:
+            self.mmd.filter.add_rpm(str(package))
+
+    def add_profiles(self, profiles):
+        for i, values in profiles:
+            name, packages = values
+            self.mmd.profiles[name] = modulemd.profile.ModuleProfile()
+            for package in packages:
+                self.mmd.profiles[name].add_rpm(str(package))
+
+    def add_components(self, packages, filter_packages, builds, chroot="custom-1-x86_64"):
+        build_ids = sorted(list(set([int(id) for p, id in zip(packages, builds)
+                                     if p in filter_packages])))
+        for package in filter_packages:
+            build_id = builds[packages.index(package)]
+            build = builds_logic.BuildsLogic.get_by_id(build_id).first()
+            build_chroot = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, chroot).first()
+            buildorder = build_ids.index(int(build.id))
+            rationale = "User selected the package as a part of the module"
+            self.add_component(package, build, build_chroot, rationale, buildorder)
+
+    def add_component(self, package_name, build, chroot, rationale, buildorder=1):
+        url = os.path.join(self.config["DIST_GIT_URL"], build.copr.full_name, "{}.git".format(build.package.name))
+        self.mmd.components.add_rpm(str(package_name), rationale,
+                                    repository=url, ref=str(chroot.git_hash),
+                                    buildorder=buildorder)
+
+    def generate(self):
+        return self.mmd.dumps()
