@@ -103,7 +103,7 @@ class ModulemdGenerator(object):
     def _build_chroot(self, build):
         chroot = None
         for chroot in build.build_chroots:
-            if chroot.name == "cusotm-1-x86_64":
+            if chroot.name == "custom-1-x86_64":
                 break
         return chroot
 
