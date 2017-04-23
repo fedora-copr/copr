@@ -62,9 +62,22 @@ class TestModulemdGenerator(CoprsTestCase):
         generator = ModulemdGenerator(config=self.config)
 
         with patch("coprs.logic.modules_logic.ModulemdGenerator.add_component") as add_component:
-            generator.add_components(packages, filter_packages, builds, chroot=self.mc1.name)
-            add_component.assert_called_with(self.p1.name, self.b1, self.b1.build_chroots[0], ANY, 0)
+            generator.add_components(packages, filter_packages, builds)
+            add_component.assert_called_with(self.p2.name, self.b3, self.b3.build_chroots[-1], ANY, 1)
             assert add_component.call_count == 2
+
+    def test_components_different_chroots(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1444433
+        packages = [self.p1.name, self.p2.name, self.p3.name]
+        filter_packages = [self.p1.name, self.p2.name]
+        builds = [self.b1.id, self.b3.id]
+        generator = ModulemdGenerator(config=self.config)
+        generator.add_components(packages, filter_packages, builds)
+
+    def test_add_component_none_build_chroot(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+        # https://bugzilla.redhat.com/show_bug.cgi?id=1444433
+        generator = ModulemdGenerator(config=self.config)
+        generator.add_component(self.p1.name, self.b1, None, "Some reason")
 
     def test_generate(self):
         generator = ModulemdGenerator("testmodule", "master", 123, "Some testmodule summary", self.config)
