@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.97
+Version:    1.98
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Apr 24 2017 clime <clime@redhat.com> 1.98-1
+- Bug 1444804 - Logs are not present for failed builds
+
 * Wed Apr 19 2017 clime <clime@redhat.com> 1.97-1
 - do not condrestart optional logstash service
 - standalone builder option
