@@ -68,6 +68,8 @@ class TestModulemdGenerator(CoprsTestCase):
 
     def test_components_different_chroots(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         # https://bugzilla.redhat.com/show_bug.cgi?id=1444433
+        # Test that we can pass a list of builds to the add_components,
+        # that have no common chroots
         packages = [self.p1.name, self.p2.name, self.p3.name]
         filter_packages = [self.p1.name, self.p2.name]
         builds = [self.b1.id, self.b3.id]
