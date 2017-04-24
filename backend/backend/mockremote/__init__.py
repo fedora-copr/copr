@@ -312,6 +312,17 @@ class MockRemote(object):
         except BuilderError as error:
             raise MockRemoteError("Build {} failed".format(self.job))
 
+    def download_results(self):
+        try:
+            self.builder.download_results(self.job.results_dir)
+        except Exception as err:
+            self.log.exception(err)
+
+        try:
+            self.builder.download_configs(os.path.join(self.job.results_dir, "configs"))
+        except Exception as err:
+            self.log.exception(err)
+
     def process_build_results(self):
         """
         :return: dict with build_details
@@ -322,26 +333,8 @@ class MockRemote(object):
             self.log.info("build details: {}".format(build_details))
         except BuilderError as error:
             self.log.error(str(error))
-            raise MockRemoteError("Builder error during job {}.".format(self.job))
-        finally:
-            # Don't ever raise exception here because such exception could
-            # overwrite some more important - not yet handled - exception.  But
-            # anyways *do our best* to download the build results and mock
-            # configuration.
-            try:
-                self.builder.download_results(self.job.results_dir)
-            except Exception as err:
-                self.log.exception(err)
+            raise MockRemoteError("Error while collecting built packages for {}.".format(self.job))
 
-            try:
-                self.builder.download_configs(os.path.join(self.job.results_dir, "configs"))
-            except Exception as err:
-                self.log.exception(err)
-
-            # self.add_log_symlinks()  # todo: add config option, need this for nginx
-            self.log.info("End Build: {0}".format(self.job))
-
-        self.on_success_build()
         return build_details
 
     def mark_dir_with_build_id(self):

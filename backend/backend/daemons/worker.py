@@ -238,6 +238,9 @@ class Worker(multiprocessing.Process):
                     status = BuildStatus.FAILURE
                     register_build_result(self.opts, failed=True)
 
+                finally:
+                    mr.download_results()
+
             self.log.info(
                 "Finished build: id={} builder={} timeout={} destdir={}"
                 " chroot={} repos={}"

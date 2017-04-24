@@ -553,6 +553,17 @@ rlJournalStart
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/fedora-24-x86_64" 0
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/fedora-24-x86_64" 0
 
+        # Bug 1444804 - Logs are not present for failed builds
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1444804 --chroot fedora-25-x86_64" 0
+        rlRun "copr-cli build ${NAME_PREFIX}TestBug1444804 http://asamalik.fedorapeople.org/evilhello-2.8-1.fc20.src.rpm"
+        MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
+        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestBug1444804/fedora-25-x86_64/
+        rlRun "find . -type f | grep 'configs/fedora-25-x86_64.cfg'" 0
+        rlRun "find . -type f | grep 'mockchain.log'" 0
+        rlRun "find . -type f | grep 'root.log'" 0
+        rlRun "find . -type f | grep 'build.log'" 0
+        cd - && rm -r $MYTMPDIR
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
@@ -582,6 +593,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}TestDeleteGroupBuild"
         rlRun "copr-cli delete ${NAME_PREFIX}MockConfig"
         rlRun "copr-cli delete ${NAME_PREFIX}MockConfigParent"
+        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1444804"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed
