@@ -205,7 +205,9 @@ class Worker(multiprocessing.Process):
 
                     mr.check_build_success() # raises if build didn't succeed
 
+                    mr.download_results()
                     mr.on_success_build()
+
                     build_details = mr.process_build_results()
                     job.update(build_details)
 
@@ -222,6 +224,7 @@ class Worker(multiprocessing.Process):
                     )
                     status = BuildStatus.FAILURE
                     register_build_result(self.opts, failed=True)
+                    mr.download_results()
 
                 except SSHConnectionError as err:
                     self.log.exception(
@@ -240,8 +243,6 @@ class Worker(multiprocessing.Process):
                     status = BuildStatus.FAILURE
                     register_build_result(self.opts, failed=True)
 
-                finally:
-                    mr.download_results()
 
             self.log.info(
                 "Finished build: id={} builder={} timeout={} destdir={}"
