@@ -203,7 +203,9 @@ class Worker(multiprocessing.Process):
                         mr.check()
                         mr.build_pkg()
 
-                    mr.check_build_success()
+                    mr.check_build_success() # raises if build didn't succeed
+
+                    mr.on_success_build()
                     build_details = mr.process_build_results()
                     job.update(build_details)
 
