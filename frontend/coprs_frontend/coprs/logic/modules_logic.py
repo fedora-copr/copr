@@ -123,6 +123,9 @@ class ModulemdGenerator(object):
     def generate(self):
         return self.mmd.dumps()
 
+    def dump(self, handle):
+        return self.mmd.dump(handle)
+
 
 class MBSProxy(object):
     def __init__(self, mbs_url, user_name=None):
