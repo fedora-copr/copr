@@ -2,8 +2,8 @@
 
 Name:		copr-builder
 Version:	0
-Release:	12%{?dist}
-Summary:	Build package from copr dist-git
+Release:	13%{?dist}
+Summary:	Build package from Copr dist-git
 
 License:	GPLv2+
 URL:		https://pagure.io/copr/copr
@@ -20,6 +20,9 @@ Source4:	fedora-copr-dev.conf
 Source5:	rhcopr.conf
 Source6:	rhcopr-stg.conf
 Source7:	rhcopr-dev.conf
+
+# Ensure that 'mock' group is available for our installed files
+Requires(pre):	mock
 
 Requires:	crudini
 Requires:	copr-cli
@@ -38,8 +41,8 @@ package locally in mock.
 
 %prep
 %setup -q -c -T
-cp %SOURCE1 .
-cp %SOURCE3 .
+install -p -m 644 %SOURCE1 .
+install -p -m 644 %SOURCE3 .
 
 
 %build
@@ -50,6 +53,11 @@ install -d %buildroot%_bindir
 install -d %buildroot%_sysconfdir/copr-builder
 install -d %buildroot%_sharedstatedir/copr-builder
 
+install -d %buildroot%_sharedstatedir/copr-builder/results
+touch %buildroot%_sharedstatedir/copr-builder/pid
+touch %buildroot%_sharedstatedir/copr-builder/lock
+touch %buildroot%_sharedstatedir/copr-builder/live-log
+
 install -p -m 755 %SOURCE0 %buildroot%_bindir
 install -p -m 644 %SOURCE2 %buildroot%confdir
 install -p -m 644 %SOURCE4 %buildroot%confdir
@@ -59,13 +67,27 @@ install -p -m 644 %SOURCE7 %buildroot%confdir
 
 
 %files
-%doc LICENSE README
+%license LICENSE
+%doc README
 %_bindir/copr-builder
 %confdir
 %dir %attr(0775, root, mock) %_sharedstatedir/copr-builder
+%ghost %dir %verify(not mode mtime) %_sharedstatedir/copr-builder/results
+%ghost %verify(not md5 size mode mtime) %_sharedstatedir/copr-builder/pid
+%ghost %verify(not md5 size mode mtime) %_sharedstatedir/copr-builder/lock
+%ghost %verify(not md5 size mode mtime) %_sharedstatedir/copr-builder/live-log
 
 
 %changelog
+* Thu Apr 27 2017 Pavel Raiskup <praiskup@redhat.com> - 0-13
+- package review changes
+- use copr vs. Copr consistently; capitalize when we talk about Copr "service",
+  and don't for particular coprs (projects) maintained _in_ Copr service
+- use %%license properly
+- Requires(pre) mock
+- own some %%ghost files
+- ensure doc files have 644 mode
+
 * Tue Apr 18 2017 Pavel Raiskup <praiskup@redhat.com> - 0-12
 - dump command-line arguments to log (easier reproducibility)
 
