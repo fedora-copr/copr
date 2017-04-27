@@ -33,7 +33,7 @@ from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.logic.modules_logic import ModulesLogic
+from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator
 from coprs.rmodels import TimedStatEvents
 
 from coprs.logic.complex_logic import ComplexLogic
@@ -970,38 +970,16 @@ def build_module(copr, form):
             form.profile_pkgs.append_entry()
         return render_create_module(copr, form, profiles=len(form.profile_names))
 
-    mmd = modulemd.ModuleMetadata()
-    mmd.name = str(copr.name)
-    mmd.stream = str(form.stream.data)
-    mmd.version = form.version.data
-    mmd.summary = "Module from Copr repository: {}".format(copr.full_name)
+    summary = "Module from Copr repository: {}".format(copr.full_name)
+    generator = ModulemdGenerator(str(copr.name), str(form.stream.data),
+                                  form.version.data, summary, app.config)
+    generator.add_filter(form.filter.data)
+    generator.add_api(form.api.data)
+    generator.add_profiles(enumerate(zip(form.profile_names.data, form.profile_pkgs.data)))
+    generator.add_components(form.packages.data, form.filter.data, form.builds.data)
+    yml = generator.generate()
 
-    for package in form.filter.data:
-        mmd.filter.add_rpm(str(package))
-
-    for package in form.api.data:
-        mmd.api.add_rpm(str(package))
-
-    for i, values in enumerate(zip(form.profile_names.data, form.profile_pkgs.data)):
-        name, packages = values
-        mmd.profiles[name] = modulemd.profile.ModuleProfile()
-        for package in packages:
-            mmd.profiles[name].add_rpm(str(package))
-
-    build_ids = sorted(list(set([int(id) for p, id in zip(form.packages.data, form.builds.data)
-                                 if p in form.filter.data])))
-    for package in form.filter.data:
-        build_id = form.builds.data[form.packages.data.index(package)]
-        build = builds_logic.BuildsLogic.get_by_id(build_id).first()
-
-        chroot = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, "custom-1-x86_64").first()
-        url = os.path.join(app.config["DIST_GIT_URL"], build.copr.full_name, "{}.git".format(build.package.name))
-
-        mmd.components.add_rpm(str(package), "User selected the package as a part of the module",
-                               repository=url, ref=str(chroot.git_hash),
-                               buildorder=build_ids.index(int(build.id)))
-
-    module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(mmd.dumps()))
+    module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(yml))
     db.session.flush()
     actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, module)
     db.session.commit()
