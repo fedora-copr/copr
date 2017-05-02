@@ -54,17 +54,18 @@ cp -r test-template ./new-batch
 Hints for writing a new test
 ----------------------------
 Look into tests/* for examples of already written tests. They largely employ copr-mocks-frontend package which can supply
-import, build, and action tasks to backend based on the content of the repectively named input files. It also dumps results
-file, in the end, on which tests can be run. Often a new test can be done simply by adding a new task (import/build/action) 
-in an already existing test batch using copr-mocks-frontend.
+import, build, and action tasks based on the content of the repectively named input files. copr-mocks-frontend also dumps
+results file in the end, on which tests can be run afterwards. Often a new test can be done simply by adding a new task
+(import/build/action) in an already existing test batch.
 
 
 ****************************************************
 *                    Sanity tests                  *
 ****************************************************
 
-They should rather be called "Integration" tests as they mostly test the whole COPR stack from copr-cli to backend.
-Note that they are actually not isolated (you need a network) because they run against copr-*-dev.fedorainfracloud.org machines
+They should rather be called "Integration" tests as they mostly test the whole COPR stack starting from copr-cli down to backend.
+Note that those tests run against public copr-*-dev.fedorainfracloud.org machines as opposed to Regression tests that run
+against private, locally spawned containers and VMs.
 
 How to run the tests
 --------------------
@@ -82,4 +83,4 @@ to be installed (from http://beaker-project.org/yum/client/Fedora$releasever/).
 
 Next, you cannot run Sanity/copr-cli-basic-operations/runtest.sh without first running
 Install/Config-copr-cli/runtest.sh which needs root access to setup the system into the
-required state. That's why you might want to run the test inside a container.
+required state. That's why you might want to run the test inside a container or vm.
