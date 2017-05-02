@@ -435,7 +435,7 @@ class DistGitProvider(SrpmBuilderProvider):
         f.close()
 
         if self.task.distgit_branch:
-            cmd = ['fedpkg', '--config', config_path, '--dist', self.task.distgit_branch, 'srpm']
+            cmd = ['fedpkg', '--config', config_path, '--release', self.task.distgit_branch, 'srpm']
         else:
             cmd = ['fedpkg', 'srpm']
 

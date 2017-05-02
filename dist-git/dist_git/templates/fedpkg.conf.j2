@@ -1,6 +1,6 @@
 [fedpkg]
-lookaside = http://{{ distgit_domain }}/repo/pkgs
-lookasidehash = md5
+lookaside = https://{{ distgit_domain }}/repo/pkgs
+lookasidehash = sha512
 lookaside_cgi = https://{{ distgit_domain }}/repo/pkgs/upload.cgi
 gitbaseurl = ssh://%(user)s@{{ distgit_domain }}/%(module)s
 anongiturl = git://{{ distgit_domain }}/%(module)s
@@ -14,4 +14,5 @@ clone_config =
   bz.default-version rawhide
   bz.default-component %(module)s
   sendemail.to %(module)s-owner@fedoraproject.org
+  push.default simple
 distgit_namespaced = True

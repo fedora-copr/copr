@@ -130,5 +130,16 @@
     "source_type": 1,
     "task_id": "12-mga6",
     "user": "clime"
+},
+{
+    "_description": "Dist-git import test with src url",
+    "_expected_outcome": "success",
+
+    "branch": "master",
+    "project": "example",
+    "source_json": "{\"clone_url\": \"https://src.fedoraproject.org/git/rpms/golang.git\", \"branch\": \"f26\" }",
+    "source_type": 7,
+    "task_id": "13-master",
+    "user": "clime"
 }
 ]
