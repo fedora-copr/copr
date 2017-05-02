@@ -1,4 +1,4 @@
-FROM fedora:23
+FROM fedora:25
 MAINTAINER clime@redhat.com
 
 ENV container docker
@@ -28,6 +28,11 @@ RUN dnf -y install dnf-plugins-core
 RUN dnf -y install psmisc
 RUN dnf -y install python-jedi
 RUN dnf -y install procps-ng
+
+# Sanity tests
+RUN wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d
+RUN dnf -y install rhts-test-env beakerlib
+
 
 RUN echo "LANG=en_US.UTF-8" >> /etc/locale
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
