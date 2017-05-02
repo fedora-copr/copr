@@ -15,7 +15,6 @@ run:
 		-v $(mkfile_path)/../Install:/root/Install \
 		-v $(mkfile_path)/../Regression:/root/Regression \
 		-v $(mkfile_path)/../Sanity:/root/Sanity \
-		-v ~/.config/copr:/root/.config/copr \
 		--name="test-env" \
 		-h test-env \
 		-w /root/ \

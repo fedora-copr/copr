@@ -30,7 +30,6 @@ RUN dnf -y install python-jedi
 RUN dnf -y install procps-ng
 
 # Sanity tests
-RUN dnf -y install copr-cli
 RUN wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d
 RUN dnf -y install rhts-test-env beakerlib
 
