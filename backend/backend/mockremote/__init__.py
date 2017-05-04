@@ -310,11 +310,6 @@ class MockRemote(object):
         except Exception as err:
             self.log.exception(err)
 
-        try:
-            self.builder.download_configs(os.path.join(self.job.results_dir, "configs"))
-        except Exception as err:
-            self.log.exception(err)
-
     def process_build_results(self):
         """
         :return: dict with build_details
