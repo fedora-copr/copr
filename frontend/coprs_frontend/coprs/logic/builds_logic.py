@@ -606,7 +606,7 @@ GROUP BY
             source_type=package.source_type,
             source_json=package.source_json,
             submitted_on=int(time.time()),
-            enable_net=package.enable_net,
+            enable_net=package.copr.build_enable_net,
             timeout=DEFAULT_BUILD_TIMEOUT
         )
 
