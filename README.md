@@ -1,1 +1,1 @@
-# This project serves mainly as cheap RPM producer. And yet another one.
+# This project serves mainly as cheap RPM producer. And yet another two.
