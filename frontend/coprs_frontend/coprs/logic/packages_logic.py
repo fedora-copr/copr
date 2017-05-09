@@ -106,7 +106,7 @@ WHERE package.copr_id = :copr_id;
                     .filter(models.Copr.webhook_secret == webhook_secret)
                     .filter(models.Package.copr_id == copr_id)
                     .filter(models.Package.webhook_rebuild == true())
-                    .filter(models.Package.source_json.contains(clone_url)))
+                    .filter(models.Package.source_json.contains(clone_url.strip(".git"))))
 
         result = []
         for package in packages:
