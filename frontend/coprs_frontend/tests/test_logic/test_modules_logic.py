@@ -14,6 +14,7 @@ class TestModulemdGenerator(CoprsTestCase):
         assert generator.mmd.stream == "master"
         assert generator.mmd.version == 123
         assert generator.mmd.summary == "Some testmodule summary"
+        assert generator.nsv == "testmodule-master-123"
 
     def test_api(self):
         packages = {"foo", "bar", "baz"}

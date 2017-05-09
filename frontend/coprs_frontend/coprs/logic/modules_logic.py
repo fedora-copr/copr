@@ -76,6 +76,10 @@ class ModulemdGenerator(object):
         self.mmd.version = version
         self.mmd.summary = summary
 
+    @property
+    def nsv(self):
+        return "{}-{}-{}".format(self.mmd.name, self.mmd.stream, self.mmd.version)
+
     def add_api(self, packages):
         for package in packages:
             self.mmd.api.add_rpm(str(package))
@@ -118,6 +122,9 @@ class ModulemdGenerator(object):
 
     def generate(self):
         return self.mmd.dumps()
+
+    def dump(self, handle):
+        return self.mmd.dump(handle)
 
 
 class MBSProxy(object):

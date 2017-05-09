@@ -12,6 +12,7 @@ import flask
 from flask import render_template, url_for, stream_with_context
 import platform
 import smtplib
+import tempfile
 import sqlalchemy
 import modulemd
 from email.mime.text import MIMEText
@@ -33,7 +34,7 @@ from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator
+from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, MBSProxy
 from coprs.rmodels import TimedStatEvents
 
 from coprs.logic.complex_logic import ComplexLogic
@@ -977,12 +978,17 @@ def build_module(copr, form):
     generator.add_api(form.api.data)
     generator.add_profiles(enumerate(zip(form.profile_names.data, form.profile_pkgs.data)))
     generator.add_components(form.packages.data, form.filter.data, form.builds.data)
-    yml = generator.generate()
+    tmp = tempfile.mktemp()
+    generator.dump(tmp)
 
-    module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(yml))
-    db.session.flush()
-    actions_logic.ActionsLogic.send_build_module(flask.g.user, copr, module)
-    db.session.commit()
+    proxy = MBSProxy(mbs_url=flask.current_app.config["MBS_URL"], user_name=flask.g.user.name)
+    with open(tmp) as tmp_handle:
+        response = proxy.build_module(copr.owner_name, copr.name, generator.nsv, tmp_handle)
+    os.remove(tmp)
+
+    if response.failed:
+        flask.flash(response.message, "error")
+        return render_create_module(copr, form, len(form.profile_names))
     flask.flash("Modulemd yaml file successfully generated and submitted to be build", "success")
     return flask.redirect(url_for_copr_details(copr))
 
