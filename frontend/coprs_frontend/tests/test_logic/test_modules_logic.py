@@ -1,7 +1,8 @@
 import yaml
+from munch import Munch
 from mock import patch, ANY
 from tests.coprs_test_case import CoprsTestCase
-from coprs.logic.modules_logic import ModulemdGenerator
+from coprs.logic.modules_logic import ModulemdGenerator, MBSResponse, MBSProxy
 
 
 class TestModulemdGenerator(CoprsTestCase):
@@ -86,3 +87,37 @@ class TestModulemdGenerator(CoprsTestCase):
         generator.add_api(["foo", "bar", "baz"])
         generator.add_filter(["foo", "bar"])
         yaml.load(generator.generate())
+
+
+class TestMBSResponse(CoprsTestCase):
+    def test_status(self):
+        assert MBSResponse(Munch(status_code=500)).failed is True
+        assert MBSResponse(Munch(status_code=409)).failed is True
+        assert MBSResponse(Munch(status_code=201)).failed is False
+
+    def test_message(self):
+        req1 = Munch(status_code=500, reason="foo reason")
+        res1 = MBSResponse(req1)
+        assert res1.message == "Error from MBS: 500 - foo reason"
+
+        req2 = Munch(status_code=409, content='{"message": "foo message"}')
+        res2 = MBSResponse(req2)
+        assert res2.message == "Error from MBS: foo message"
+
+        con3 = '{"name": "testmodule", "stream": "master", "version": 123}'
+        req3 = Munch(status_code=201, content=con3)
+        res3 = MBSResponse(req3)
+        assert res3.message == "Created module testmodule-master-123"
+
+
+class TestMBSProxy(CoprsTestCase):
+
+    @patch("requests.post")
+    def test_post(self, post_mock):
+        url = "http://some-module-build-service.org"
+        proxy = MBSProxy(url)
+        response = proxy.post(None, None, None)
+        post_mock.assert_called()
+        args, kwargs = post_mock.call_args
+        assert args[0] == url
+        assert isinstance(response, MBSResponse)
