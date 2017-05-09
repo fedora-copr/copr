@@ -34,8 +34,6 @@ After deletion of obsoleted packages, the command
 "createrepo_c --database --update" is called
 to recreate the repository metadata.
 
-update
-
 %prep
 %setup -q
 
