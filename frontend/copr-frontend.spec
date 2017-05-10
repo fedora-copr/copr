@@ -160,6 +160,7 @@ BuildRequires: python-sphinxcontrib-httpdomain
 BuildRequires: python-whoosh
 BuildRequires: python-blinker
 BuildRequires: python-pygments
+BuildRequires: python-munch
 %endif
 
 %if 0%{?with_python3}
