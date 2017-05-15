@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.108
+Version:    1.109
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -397,6 +397,17 @@ service logstash condrestart
 
 
 %changelog
+* Mon May 15 2017 clime <clime@redhat.com> 1.109-1
+- debugging infos in build_on_pagure_commit.py
+- error handling in build_on_pagure_commit.py
+- Bug 1448333 - Unable to edit someone's else project settings
+- do not require .git suffix in Git repo URL for webhook rebuilds of Tito and MockSCM packages
+- use MBS for building modules via UI
+- add class for communicating with MBS
+- add NSV property for modulemd generator
+- #55 Builds triggered by GitHub WebHook (tag event) do not enable Internet during build
+- use ModulemdGenerator for construnting the yaml file
+
 * Wed Apr 19 2017 clime <clime@redhat.com> 1.108-1
 - use custom chroot for modules instead of F24
 - send the original filename to MBS
