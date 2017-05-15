@@ -122,6 +122,8 @@ class MockSCMPackage(Package):
 
 
 def build_on_fedmsg_loop():
+    log.debug("Setting up poller...")
+
     endpoint = 'tcp://hub.fedoraproject.org:9940'
     topic = 'io.pagure.prod.pagure.git.receive'
 
@@ -135,8 +137,13 @@ def build_on_fedmsg_loop():
     poller.register(s, zmq.POLLIN)
 
     while True:
+        log.debug("Polling...")
         evts = poller.poll()  # This blocks until a message arrives
+
+        log.debug("Receiving...")
         topic, msg = s.recv_multipart()
+
+        log.debug("Parsing...")
         data = json.loads(msg)
 
         namespace = data['msg']['repo']['namespace']
@@ -171,4 +178,8 @@ def build_on_fedmsg_loop():
                 log.info("\t -> skipping.")
 
 if __name__ == '__main__':
-    build_on_fedmsg_loop()
+    while True:
+        try:
+            build_on_fedmsg_loop()
+        except:
+            log.exception("Error in fedmsg loop. Restarting it.")
