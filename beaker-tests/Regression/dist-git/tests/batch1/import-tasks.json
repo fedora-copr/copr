@@ -115,7 +115,7 @@
 
     "branch": "master",
     "project": "example",
-    "source_json": "{\"clone_url\": \"http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git\", \"branch\": \"f24\" }",
+    "source_json": "{\"clone_url\": \"https://src.fedoraproject.org/git/rpms/389-admin-console.git\", \"branch\": \"f25\" }",
     "source_type": 7,
     "task_id": "11-master",
     "user": "clime"
