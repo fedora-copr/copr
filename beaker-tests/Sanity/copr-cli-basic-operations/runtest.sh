@@ -555,7 +555,7 @@ rlJournalStart
 
         # Bug 1444804 - Logs are not present for failed builds
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1444804 --chroot fedora-25-x86_64" 0
-        rlRun "copr-cli build ${NAME_PREFIX}TestBug1444804 http://asamalik.fedorapeople.org/evilhello-2.8-1.fc20.src.rpm"
+        copr-cli build ${NAME_PREFIX}TestBug1444804 http://asamalik.fedorapeople.org/evilhello-2.8-1.fc20.src.rpm
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestBug1444804/fedora-25-x86_64/
         rlRun "find . -type f | grep 'configs/fedora-25-x86_64.cfg'" 0
