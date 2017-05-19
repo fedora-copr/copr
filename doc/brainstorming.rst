@@ -5,6 +5,15 @@ Brainbox
 
 This is just a page to collect brainwaves/ideas/evil-thoughts for Copr. 
 
+Proposal of change
+------------------
+
+* move srpm-from-upstream generation (i.e. all build methods like URL, Tito, MockSCM, PyPI, Rubygems) to builders
+* basically meaning, getting rid of copr-dist-git importer
+* instead the builder would push built srpm into copr-dist-git through https with a client certificate
+* the copr-dist-git would now have only one purpose - serve as a build history
+* optionally setup another public dist-git where people can push and pull from freely as they are used to
+
 Frontend
 --------
 
@@ -34,6 +43,7 @@ Backend
 * determine if it is properly checking the timeout from a dead instance
 * maybe dump out the PID of the worker that is running so we know which one to kill?
 
+(Done)
 * have jobs as static records in redis, drop workers for each build and only have process checking build status and downloading results in the end
   - advantage is that you don't lose the already done work on builds that were running when copr-be is restarted (which happens on upgrades or a component failure)
   - disadvantage is that it includes quite some changes: keeping and maintaing jobs and their states + process with infinite loop that checkes status of the running jobs
