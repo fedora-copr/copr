@@ -10,6 +10,8 @@ import datetime
 import psutil
 import subprocess
 import hashlib
+import tarfile
+import rpm
 
 from multiprocessing import Process
 from subprocess import PIPE, Popen, check_output, CalledProcessError
@@ -20,7 +22,7 @@ from jinja2 import Environment,FileSystemLoader
 
 from .exceptions import CoprDistGitException, PackageImportException, PackageDownloadException, SrpmBuilderException, \
         SrpmQueryException, GitCloneException, GitWrongDirectoryException, GitCheckoutException, TimeoutException
-from .srpm_import import do_git_srpm_import
+from .srpm_import import do_git_srpm_import, do_distgit_import
 
 from .helpers import FailTypeEnum
 
@@ -309,35 +311,78 @@ class GitAndTitoProvider(GitProvider):
         VM.run(cmd, dst_dir=self.tmp_dest, src_dir=self.git_dir, cwd=git_subdir, name=self.task.task_id)
 
 
-class MockScmProvider(SrpmBuilderProvider):
-    """
-    Used for MOCK_SCM
-    """
-    def get_srpm(self):
-        log.debug("Build via Mock")
+class MockScmProvider(BaseSourceProvider):
+    def __init__(self, task, target_path, opts):
+        super(MockScmProvider, self).__init__(task, target_path, opts)
+        self.tmp_dest = tempfile.mkdtemp()
+        self.dir_to_cleanup.extend([self.tmp_dest])
 
+    def clone(self):
         package_name = os.path.basename(self.task.mock_spec).replace(".spec", "")
-        cmd = ["/usr/bin/mock", "-r", self.opts.mock_scm_chroot,
-               "--uniqueext", self.task.task_id,
-               "--scm-enable",
-               "--scm-option", "method={}".format(self.task.mock_scm_type),
-               "--scm-option", "package={}".format(package_name),
-               "--scm-option", "branch={}".format(self.task.mock_scm_branch),
-               "--scm-option", "write_tar=True",
-               "--scm-option", "spec={0}".format(self.task.mock_spec),
-               "--scm-option", self.scm_option_get(package_name, self.task.mock_scm_branch),
-               "--buildsrpm", "--resultdir={}".format(self.tmp_dest)]
-        log.debug(' '.join(cmd))
+        repo_path = os.path.join(self.tmp_dest, package_name)
 
-        VM.run(cmd, dst_dir=self.tmp_dest, cwd=self.tmp_dest, name=self.task.task_id, sys_admin=True)
-        self.copy()
+        if self.task.mock_scm_type == 'git':
+            cmd = ['git', 'clone', self.task.mock_scm_url, repo_path, '--depth', '1', '--branch', self.task.mock_scm_branch or 'master']
+        else:
+            cmd = ['git-svn', 'clone', self.task.mock_scm_url, repo_path, '--depth', '1', '--branch', self.task.mock_scm_branch or 'master']
 
-    def scm_option_get(self, package_name, branch):
-        return {
-            "git": branch and "git_get=git clone --depth 1 --branch {branch} {0} {1}" or \
-                   "git_get=git clone --depth 1 {0} {1}",
-            "svn": "git_get=git svn clone {0} {1}"
-        }[self.task.mock_scm_type].format(self.task.mock_scm_url, package_name, branch=branch)
+        log.info("Cloning remote repo...")
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        output, error = proc.communicate()
+        log.debug(output)
+        log.debug(error)
+
+        if proc.returncode != 0:
+            raise SrpmBuilderException("Error while cloning remote repo: {}".format(" ".join(cmd)))
+
+        return repo_path
+
+    def get_sources(self):
+        repo_path = self.clone()
+        repo_spec_path = repo_path + "/" + self.task.mock_spec
+        src_dir_path = os.path.dirname(repo_spec_path)
+
+        if not os.path.exists(repo_spec_path):
+            raise SrpmBuilderException("Can't find spec file at {}".format(repo_spec_path))
+
+        spec_path = self.tmp_dest + "/" + os.path.basename(self.task.mock_spec)
+        shutil.copy(repo_spec_path, spec_path)
+
+        ts = rpm.ts()
+        rpm_spec = ts.parseSpec(spec_path)
+        name = rpm.expandMacro("%{name}")
+        version = rpm.expandMacro("%{version}")
+
+        tarball = None
+        for (filename, num, flags) in rpm_spec.sources:
+            if num == 0 and flags == 1:
+                tarball = filename.split("/")[-1]
+                break
+
+        # Generate a tarball from the checked out sources
+        tardir = name + "-" + version
+        if tarball is None:
+            tarball = tardir + ".tar.gz"
+
+        tarball_path = self.tmp_dest + "/" + tarball
+
+        log.debug("Writing %s...", tarball_path)
+        cwd_dir = os.getcwd()
+        os.chdir(self.tmp_dest)
+
+        os.rename(src_dir_path, tardir)
+
+        cmd = ["tar", "caf", tarball, '--exclude-vcs', tardir]
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        output, error = proc.communicate()
+        log.debug(output)
+        log.debug(error)
+
+        os.chdir(cwd_dir)
+        if proc.returncode != 0:
+            raise SrpmBuilderException("Error while creating tar file at {}".format(tarball_path))
+
+        return (tarball_path, spec_path, name, version)
 
 
 class PyPIProvider(SrpmBuilderProvider):
@@ -495,6 +540,21 @@ class DistGitImporter(object):
         finally:
             shutil.rmtree(tmp)
 
+    def distgit_import(self, task, tarball_path, spec_path):
+        """
+        Imports a tarball and spec into local dist git.
+        Repository name is in the Copr Style: user/project/package
+
+        :type task: ImportTask
+        """
+        log.debug("importing srpm into the dist-git")
+
+        tmp = tempfile.mkdtemp()
+        try:
+            return do_distgit_import(self.opts, tarball_path, spec_path, task, tmp)
+        finally:
+            shutil.rmtree(tmp)
+
     @staticmethod
     def pkg_name_evr(srpm_path):
         """
@@ -581,14 +641,21 @@ class DistGitImporter(object):
         tmp_root = tempfile.mkdtemp()
         fetched_srpm_path = os.path.join(tmp_root, "package.src.rpm")
 
-        provider = SourceProvider(task, fetched_srpm_path, self.opts)
         try:
-            provider.get_srpm()
-            task.package_name, task.package_version = self.pkg_name_evr(fetched_srpm_path)
 
-            self.before_git_import(task)
-            task.git_hash = self.git_import_srpm(task, fetched_srpm_path)
-            self.after_git_import()
+            if task.source_type == SourceType.MOCK_SCM:
+                provider = MockScmProvider(task, fetched_srpm_path, self.opts)
+                tarball_path, spec_path, task.package_name, task.package_version = provider.get_sources()
+                self.before_git_import(task)
+                task.git_hash = self.distgit_import(task, tarball_path, spec_path)
+                self.after_git_import()
+            else:
+                provider = SourceProvider(task, fetched_srpm_path, self.opts)
+                provider.get_srpm()
+                task.package_name, task.package_version = self.pkg_name_evr(fetched_srpm_path)
+                self.before_git_import(task)
+                task.git_hash = self.git_import_srpm(task, fetched_srpm_path)
+                self.after_git_import()
 
             log.debug("sending a response - success")
             self.post_back(task.get_dict_for_frontend())
