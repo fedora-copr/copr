@@ -138,7 +138,9 @@ def build_on_fedmsg_loop():
 
     while True:
         log.debug("Polling...")
-        evts = poller.poll()  # This blocks until a message arrives
+        evts = poller.poll(10000)
+        if not evts:
+            continue
 
         log.debug("Receiving...")
         topic, msg = s.recv_multipart()
