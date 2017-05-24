@@ -101,7 +101,7 @@ WHERE package.copr_id = :copr_id;
                                            models.Package.name == package_name)
 
     @classmethod
-    def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, payload):
+    def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref):
         packages = (models.Package.query.join(models.Copr)
                     .filter(models.Copr.webhook_secret == webhook_secret)
                     .filter(models.Package.copr_id == copr_id)
@@ -110,16 +110,14 @@ WHERE package.copr_id = :copr_id;
 
         result = []
         for package in packages:
-            if cls.commits_belong_to_package(package, payload):
+            if cls.commits_belong_to_package(package, commits, ref_type, ref):
                 result += [package]
         return result
 
     @classmethod
-    def commits_belong_to_package(cls, package, payload):
-        if payload.get("ref_type", None) == "tag":
+    def commits_belong_to_package(cls, package, commits, ref_type, ref):
+        if ref_type == "tag":
             return True
-
-        ref = payload.get("ref", "")
 
         if package.source_type_text == "git_and_tito":
             branch = package.source_json_dict["git_branch"]
@@ -129,8 +127,6 @@ WHERE package.copr_id = :copr_id;
             branch = package.source_json_dict["scm_branch"]
             if branch and not ref.endswith("/"+branch):
                 return False
-
-        commits = payload.get("commits", [])
 
         if package.source_type_text == "git_and_tito":
             path_match = False
