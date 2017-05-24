@@ -7,12 +7,9 @@ This is just a page to collect brainwaves/ideas/evil-thoughts for Copr.
 
 Proposal of change
 ------------------
-
-* move srpm-from-upstream generation (i.e. all build methods like URL, Tito, MockSCM, PyPI, Rubygems) to builders
-* basically meaning, getting rid of copr-dist-git importer
-* instead the builder would push built srpm into copr-dist-git through https with a client certificate
-* the copr-dist-git would now have only one purpose - serve as a build history
-* optionally setup another public dist-git where people can push and pull from freely as they are used to
+* open copr-dist-git for user-interaction
+* do not store built srpm there anymore, instead build them on builders based on db data (git/svn hashes, gem/pip package versions)
+* potentially use copr-cli for building on builders by employing (--local --detached) switches
 
 Frontend
 --------
