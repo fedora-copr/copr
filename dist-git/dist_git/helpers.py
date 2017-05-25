@@ -133,4 +133,8 @@ class DistGitConfigReader(object):
             cp, "dist-git", "mock_scm_chroot", "fedora-rawhide-x86_64"
         )
 
+        opts.git_base_url = _get_conf(
+            cp, "dist-git", "git_base_url", "/var/lib/dist-git/git/%(module)s"
+        )
+
         return opts

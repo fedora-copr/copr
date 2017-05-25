@@ -130,7 +130,7 @@ class TestDistGitImporter(object):
             "user": self.USER_NAME,
             "project": self.PROJECT_NAME,
 
-            "branch": self.BRANCH,
+            "branches": [ self.BRANCH ],
             "source_type": SourceType.SRPM_LINK,
             "source_json": json.dumps({"url": "http://example.com/pkg.src.rpm"})
         }
@@ -139,7 +139,7 @@ class TestDistGitImporter(object):
             "user": self.USER_NAME,
             "project": self.PROJECT_NAME,
 
-            "branch": self.BRANCH,
+            "branches": [ self.BRANCH ],
             "source_type": SourceType.SRPM_UPLOAD,
             "source_json": json.dumps({"tmp": "tmp_2", "pkg": "pkg_2.src.rpm"})
         }
@@ -179,7 +179,7 @@ class TestDistGitImporter(object):
         task = self.dgi.try_to_obtain_new_tasks()[0]
         assert task.task_id == self.task_data_1["task_id"]
         assert task.user == self.USER_NAME
-        assert task.branch == self.BRANCH
+        assert self.BRANCH in task.branches
         assert task.package_url == "http://example.com/pkg.src.rpm"
 
     def test_try_to_obtain_ok_2(self, mc_get):
@@ -187,7 +187,7 @@ class TestDistGitImporter(object):
         task = self.dgi.try_to_obtain_new_tasks()[0]
         assert task.task_id == self.task_data_2["task_id"]
         assert task.user == self.USER_NAME
-        assert task.branch == self.BRANCH
+        assert self.BRANCH in task.branches
         assert task.package_url == "http://front/tmp/tmp_2/pkg_2.src.rpm"
 
     def test_try_to_obtain_new_task_unknown_source_type(self, mc_get):
@@ -313,12 +313,12 @@ class TestDistGitImporter(object):
             setattr(self.dgi, name, mc)
 
         mc_methods["pkg_name_evr"].return_value = self.PACKAGE_NAME, self.PACKAGE_VERSION
-        mc_methods["git_import_srpm"].return_value = self.FILE_HASH
+        mc_methods["git_import_srpm"].return_value = {'f22': self.FILE_HASH}
 
         self.dgi.do_import(self.task_1)
         assert self.task_1.package_name == self.PACKAGE_NAME
         assert self.task_1.package_version == self.PACKAGE_VERSION
-        assert self.task_1.git_hash == self.FILE_HASH
+        assert self.task_1.git_hashes['f22'] == self.FILE_HASH
 
         for name in internal_methods:
             mc = mc_methods[name]

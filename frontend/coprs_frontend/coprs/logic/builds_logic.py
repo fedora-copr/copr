@@ -75,11 +75,12 @@ class BuildsLogic(object):
     @classmethod
     def get_build_importing_queue(cls):
         """
-        Returns BuildChroots which are waiting to be uploaded to dist git
+        Returns Builds which are waiting to be uploaded to dist git
         """
-        query = (models.BuildChroot.query.join(models.Build)
+        query = (models.Build.query.join(models.BuildChroot)
                  .filter(models.Build.canceled == false())
-                 .filter(models.BuildChroot.status == helpers.StatusEnum("importing")))
+                 .filter(models.BuildChroot.status == helpers.StatusEnum("importing"))
+                )
         query = query.order_by(models.BuildChroot.build_id.asc())
         return query
 
@@ -643,21 +644,17 @@ GROUP BY
     terminal_states = {StatusEnum("failed"), StatusEnum("succeeded"), StatusEnum("canceled")}
 
     @classmethod
-    def get_chroots_from_dist_git_task_id(cls, task_id):
+    def get_buildchroots_by_build_id_and_branch(cls, build_id, branch):
         """
-        Returns a list of BuildChroots identified with task_id
-        task_id consists of a name of git branch + build id
-        Example: 42-f22 -> build id 42, chroots fedora-22-*
+        Returns a list of BuildChroots identified by build_id and dist-git
+        branch name.
         """
-        build_id, branch = task_id.split("-", 1)
-        build = cls.get_by_id(build_id).one()
-        build_chroots = build.build_chroots
-
-        # What chroots this branch is for?
-        branch_chroots = models.DistGitBranch.query.get(branch).chroots
-        branch_chroots = [x.name for x in branch_chroots]
-
-        return [ch for ch in build_chroots if ch.name in branch_chroots]
+        return (
+            models.BuildChroot.query
+            .join(models.MockChroot)
+            .filter(models.BuildChroot.build_id==build_id)
+            .filter(models.MockChroot.distgit_branch_name==branch)
+        ).all()
 
 
     @classmethod

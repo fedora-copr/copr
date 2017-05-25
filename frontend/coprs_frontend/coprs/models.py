@@ -559,6 +559,17 @@ class Build(db.Model, helpers.Serializer):
             return self.repos.split()
 
     @property
+    def import_task_id(self):
+        return str(self.id)
+
+    @property
+    def import_log_url(self):
+        if app.config["COPR_DIST_GIT_LOGS_URL"]:
+            return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
+                                      self.import_task_id.replace('/', '_'))
+        return None
+
+    @property
     def result_dir_name(self):
         # We can remove this ugly condition after migrating Copr to new machines
         # It is throw-back from era before dist-git
@@ -958,10 +969,6 @@ class BuildChroot(db.Model, helpers.Serializer):
         return "{}-{}".format(self.build_id, self.name)
 
     @property
-    def import_task_id(self):
-        return "{}-{}".format(self.build_id, self.mock_chroot.distgit_branch_name)
-
-    @property
     def dist_git_url(self):
         if app.config["DIST_GIT_URL"]:
             if self.state == "forked":
@@ -972,13 +979,6 @@ class BuildChroot(db.Model, helpers.Serializer):
                                                 coprname,
                                                 self.build.package.name,
                                                 self.git_hash)
-        return None
-
-    @property
-    def import_log_url(self):
-        if app.config["COPR_DIST_GIT_LOGS_URL"]:
-            return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
-                                      self.import_task_id.replace('/', '_'))
         return None
 
     @property

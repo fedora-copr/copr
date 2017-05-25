@@ -7,11 +7,11 @@ import shutil
 import traceback
 import types
 import grp
+import subprocess
 
 # pyrpkg uses os.getlogin(). It requires tty which is unavailable when we run this script as a daemon
 # very dirty solution for now
 import pwd
-from dist_git.exceptions import PackageImportException
 
 os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 # monkey patch end
@@ -20,7 +20,6 @@ from pyrpkg import Commands
 from pyrpkg.errors import rpkgError
 
 log = logging.getLogger(__name__)
-
 
 def my_upload_fabric(opts):
     def my_upload(repo_dir, reponame, abs_filename, filehash):
@@ -63,7 +62,6 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     :param result: shared dict from Manager().dict()
     """
 
-    git_base_url = "/var/lib/dist-git/git/%(module)s"
     repo_dir = os.path.join(tmp_dir, task.package_name)
     log.debug("repo_dir: {}".format(repo_dir))
     # use rpkg for importing the source rpm
@@ -71,7 +69,7 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
                         lookaside="",
                         lookasidehash="md5",
                         lookaside_cgi="",
-                        gitbaseurl=git_base_url,
+                        gitbaseurl=opts.git_base_url,
                         anongiturl="",
                         branchre="",
                         kojiconfig="",
@@ -86,35 +84,90 @@ def actual_do_git_srpm_import(opts, src_filepath, task, tmp_dir, result):
     # I also add one parameter "repo_dir" to that function with this hack
     commands.lookasidecache.upload = types.MethodType(my_upload_fabric(opts), repo_dir)
     try:
-        log.info("clone the pkg repository into tmp directory")
-        commands.clone(module, tmp_dir, task.branch)
-        log.info("import the source rpm into git and save filenames of sources")
-        upload_files = commands.import_srpm(src_filepath)
+        log.info("clone the '{0}' pkg repository into tmp directory".format(module))
+        commands.clone(module, tmp_dir)
     except:
-        log.exception("Failed to import the source rpm: {}".format(src_filepath))
+        log.exception("Failed to clone the repo.")
         return
 
-    log.info("save the source files into lookaside cache")
-    oldpath = os.getcwd()
-    os.chdir(repo_dir) # we need to be in repo_dir for the following to work
-    try:
-        commands.upload(upload_files, replace=True)
-    except:
-        log.exception("Error during source uploading")
-        return
-
-    os.chdir(oldpath)
-
-    log.debug("git push")
     message = "import_srpm"
-    try:
-        commands.commit(message)
-        commands.push()
-        log.debug("commit and push done")
-    except rpkgError:
-        log.exception("error during commit and push, ignored")
+    committed = set()
+    for branch in task.branches:
+        result[branch] = False # failure by default
+        log.info("checkout '{0}' branch".format(branch))
+        commands.switch_branch(branch)
 
-    result["hash"] = commands.commithash
+        oldpath = os.getcwd()
+        try:
+            os.chdir(repo_dir) # we need to be in repo_dir for the following to work
+            if not committed:
+                log.info("save the files from {0} into lookaside cache".format(src_filepath))
+                upload_files = commands.import_srpm(src_filepath)
+                commands.upload(upload_files, replace=True)
+                try:
+                    commands.commit(message)
+                except Exception:
+                    log.exception("error during commit (probably nothing to commit), ignored")
+            else:
+                sync_actual_branch(committed, branch, message)
+
+            # Mark the branch as committed.
+            committed.add(branch)
+        except:
+            log.exception("Error during upload, commit or merge.")
+            continue
+        finally:
+            os.chdir(oldpath)
+
+        log.debug("git push")
+        message = "import_srpm"
+        try:
+            commands.push()
+            log.debug("commit and push done")
+        except rpkgError:
+            log.exception("error during push, ignored")
+
+        try:
+            # Ensure that nothing was lost.
+            commands.check_repo(all_pushed=True)
+            # 'commands.commithash' is "cached" property, we need to re-fresh
+            # the actual commit id..
+            commands.load_commit()
+            result[branch] = commands.commithash
+        except:
+            pass
+
+
+def sync_actual_branch(committed_branches, actual_branch, message):
+    """
+    Reset the 'actual_branch' contents to contents of all branches in
+    already 'committed_branches' (param is set of strings).  But if possible,
+    try to fast-forward merge only to minimize the git payload and to keep the
+    git history as flatten as possible across all branches.
+    Before calling this method, ensure that you are in the git directory and the
+    'actual_branch' is checked out.
+    """
+    for branch in committed_branches:
+        # Try to fast-forward merge against any other already pushed branch.
+        # Note that if the branch is already there then merge request is no-op.
+        if not subprocess.call(['git', 'merge', branch, '--ff-only']):
+            log.debug("merged '{0}' fast forward into '{1}' or noop".format(branch, actual_branch))
+            return
+
+    # No --fast-forward merge possible -> reset to the first available one.
+    branch = next(iter(committed_branches))
+    log.debug("resetting branch '{0}' to contents of '{1}'".format(actual_branch, branch))
+    subprocess.check_call(['git', 'read-tree', '-m', '-u', branch])
+
+    # Get the AuthorDate from the original commit, to have consistent feeling.
+    date = subprocess.check_output(['git', 'show', branch, '-q', '--format=%ai'])
+
+    if subprocess.call(['git', 'diff', '--cached', '--exit-code']):
+        # There's something to commit.
+        subprocess.check_call(['git', 'commit', '--no-verify', '-m', message,
+            '--date', date])
+    else:
+        log.debug("nothing to commit into branch '{0}'".format(actual_branch))
 
 
 def do_git_srpm_import(opts, src_filepath, task, tmp_dir):
@@ -127,14 +180,9 @@ def do_git_srpm_import(opts, src_filepath, task, tmp_dir):
                    args=(opts, src_filepath, task, tmp_dir, result_dict))
     proc.start()
     proc.join()
-    if result_dict.get("hash") is None:
-        raise PackageImportException("Failed to import the source rpm: {}".format(src_filepath))
-
-    return str(result_dict["hash"])
+    return result_dict
 
 def do_distgit_import(opts, tarball_path, spec_path, task, tmp_dir):
-    git_base_url = "/var/lib/dist-git/git/%(module)s"
-
     repo_dir = os.path.join(tmp_dir, task.package_name)
     log.debug("repo_dir: {}".format(repo_dir))
 
@@ -143,7 +191,7 @@ def do_distgit_import(opts, tarball_path, spec_path, task, tmp_dir):
                         lookaside="",
                         lookasidehash="md5",
                         lookaside_cgi="",
-                        gitbaseurl=git_base_url,
+                        gitbaseurl=opts.git_base_url,
                         anongiturl="",
                         branchre="",
                         kojiconfig="",
@@ -160,41 +208,63 @@ def do_distgit_import(opts, tarball_path, spec_path, task, tmp_dir):
     # I also add one parameter "repo_dir" to that function with this hack
     commands.lookasidecache.upload = types.MethodType(my_upload_fabric(opts), repo_dir)
 
+    result = {}
+
     try:
         log.info("clone the pkg repository into tmp directory")
-        commands.clone(module, tmp_dir, task.branch)
-
-        shutil.copy(spec_path, repo_dir)
-
-        for f in ('.gitignore', 'sources'):
-            if not os.path.exists(repo_dir+"/"+f):
-                open(repo_dir+"/"+f, 'w').close()
-
-        commands.repo.index.add(('.gitignore', 'sources', os.path.basename(spec_path)))
+        commands.clone(module, tmp_dir)
     except:
         log.exception("Failed to clone the Git repository and add files.")
-        return
+        return result
 
-    oldpath = os.getcwd()
-    log.info(repo_dir)
+    message = "import_mock_scm"
+    committed = set()
+    for branch in task.branches:
+        result[branch] = False # failure by default
+        log.info("checkout '{0}' branch".format(branch))
+        commands.switch_branch(branch)
 
-    os.chdir(repo_dir) # we need to be in repo_dir for the following to work
-    try:
-        log.info("save the source files into lookaside cache")
-        commands.upload([tarball_path], replace=True)
-    except:
-        log.exception("Error during source uploading")
-        return
+        if not committed:
+            shutil.copy(spec_path, repo_dir)
+            for f in ('.gitignore', 'sources'):
+                if not os.path.exists(repo_dir+"/"+f):
+                    open(repo_dir+"/"+f, 'w').close()
+            commands.repo.index.add(('.gitignore', 'sources', os.path.basename(spec_path)))
 
-    os.chdir(oldpath)
+        oldpath = os.getcwd()
+        try:
+            os.chdir(repo_dir) # we need to be in repo_dir for the following to work
+            log.info("Working in: {0}".format(repo_dir))
 
-    log.debug("git push")
-    message = "import_srpm"
-    try:
-        commands.commit(message)
-        commands.push()
-        log.debug("commit and push done")
-    except rpkgError:
-        log.exception("error during commit and push, ignored")
+            if not committed:
+                log.info("save the source files into lookaside cache")
+                commands.upload([tarball_path], replace=True)
+                try:
+                    commands.commit(message)
+                except Exception:
+                    # Probably nothing to be committed.  We historically ignore isues here.
+                    log.exception("error during commit (probably nothing to commit), ignored")
+            else:
+                sync_actual_branch(committed, branch, message)
 
-    return commands.commithash
+            # Mark the branch as committed.
+            committed.add(branch)
+
+        except:
+            log.exception("Error during source uploading, merge, or commit")
+            continue
+        finally:
+            os.chdir(oldpath)
+
+
+        log.debug("git push")
+        try:
+            commands.push()
+            log.debug("commit and push done")
+        except rpkgError:
+            log.exception("error during push, ignored")
+
+        commands.load_commit()
+        result[branch] = commands.commithash
+
+    return result

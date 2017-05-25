@@ -178,9 +178,9 @@
                 {% endif %}
               </td>
               <td>
-                {% if chroot.import_log_url %}
-                    <a href="{{chroot.import_log_url}}">
-                      {{ chroot.import_task_id }}.log
+                {% if chroot.build.import_log_url %}
+                    <a href="{{chroot.build.import_log_url}}">
+                      {{ chroot.build.import_task_id }}.log
                     </a>
                 {% else %}
                   -

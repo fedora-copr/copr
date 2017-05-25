@@ -3,132 +3,132 @@
     "_description": "url-source test",
     "_expected_outcome": "success",
 
-    "branch": "f23",
+    "branches": ["f23"],
     "project": "example",
     "source_json": "{\"url\": \"http://localhost:5000/static/example-1.0.5-1.fc23.src.rpm\"}",
     "source_type": 1,
-    "task_id": "1-f23",
+    "task_id": "1",
     "user": "clime"
 },
 {
     "_description": "url-source test for a different branch",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"url\": \"http://localhost:5000/static/example-1.0.5-1.fc23.src.rpm\"}",
     "source_type": 1,
-    "task_id": "2-master",
+    "task_id": "2",
     "user": "clime"
 },
 {
     "_description": "upload-source test",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"tmp\": \"tmp2hagml\", \"pkg\": \"example-1.0.5-1.fc23.src.rpm\"}",
     "source_type": 2,
-    "task_id": "3-master",
+    "task_id": "3",
     "user": "clime"
 },
 {
     "_description": "tito-source test",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"tito_test\": true, \"git_dir\": \"\", \"git_url\": \"git@localhost:example.git\", \"git_branch\": \"\"}",
     "source_type": 3,
-    "task_id": "4-master",
+    "task_id": "4",
     "user": "clime"
 },
 {
     "_description": "MockSCM-source test",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"https://github.com/clime/example.git\", \"scm_type\": \"git\", \"spec\": \"example.spec\"}",
     "source_type": 4,
-    "task_id": "5-master",
+    "task_id": "5",
     "user": "clime"
 },
 {
     "_description": "PyPI-source test",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"pypi_package_version\": \"\", \"pypi_package_name\": \"motionpaint\", \"python_versions\": []}",
     "source_type": 5,
-    "task_id": "6-master",
+    "task_id": "6",
     "user": "clime"
 },
 {
     "_description": "MockSCM-source test for a spec file inside a subdirectory",
     "_expected_outcome": "success",
 
-    "branch": "f23",
+    "branches": ["f23"],
     "project": "example",
     "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"https://github.com/clime/example2.git\", \"scm_type\": \"git\", \"spec\": \"subpkg/example.spec\"}",
     "source_type": 4,
-    "task_id": "7-f23",
+    "task_id": "7",
     "user": "clime"
 },
 {
     "_description": "tito-source test for a git repo subdirectory",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"tito_test\": true, \"git_dir\": \"subpkg\", \"git_url\": \"git@localhost:example2.git\", \"git_branch\": \"\"}",
     "source_type": 3,
-    "task_id": "8-master",
+    "task_id": "8",
     "user": "clime"
 },
 {
     "_description": "tito-source test for a different-than-master branch",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"tito_test\": true, \"git_dir\": \"subpkg\", \"git_url\": \"git@localhost:example2.git\", \"git_branch\": \"somebranch\"}",
     "source_type": 3,
-    "task_id": "9-master",
+    "task_id": "9",
     "user": "clime"
 },
 {
     "_description": "RubyGem import test",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"gem_name\": \"A_123\"}",
     "source_type": 6,
-    "task_id": "10-master",
+    "task_id": "10",
     "user": "clime"
 },
 {
     "_description": "Dist-git import test",
     "_expected_outcome": "success",
 
-    "branch": "master",
+    "branches": ["master"],
     "project": "example",
     "source_json": "{\"clone_url\": \"https://src.fedoraproject.org/git/rpms/389-admin-console.git\", \"branch\": \"f25\" }",
     "source_type": 7,
-    "task_id": "11-master",
+    "task_id": "11",
     "user": "clime"
 },
 {
     "_description": "Mageia macros tests",
     "_expected_outcome": "success",
 
-    "branch": "mga6",
+    "branches": ["mga6"],
     "project": "example",
     "source_json": "{\"url\": \"http://localhost:5000/static/packagekit-1.1.3-2.mga6.src.rpm\"}",
     "source_type": 1,
-    "task_id": "12-mga6",
+    "task_id": "12",
     "user": "clime"
 }
 ]

@@ -34,15 +34,18 @@ def dist_git_importing_queue():
         builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(30)
 
     for task in builds_for_import:
-        copr = task.build.copr
+        copr = task.copr
+        branches = set()
+        for b_ch in task.build_chroots:
+            branches.add(b_ch.mock_chroot.distgit_branch_name)
 
         task_dict = {
             "task_id": task.import_task_id,
             "user": copr.owner_name, # TODO: user -> owner
-            "project": task.build.copr.name,
-            "branch": task.mock_chroot.distgit_branch_name,
-            "source_type": task.build.source_type,
-            "source_json": task.build.source_json,
+            "project": task.copr.name,
+            "branches": list(branches),
+            "source_type": task.source_type,
+            "source_json": task.source_json,
         }
         if task_dict not in builds_list:
             builds_list.append(task_dict)
@@ -66,10 +69,11 @@ def dist_git_upload_completed():
     """
     result = {"updated": False}
 
-    if "task_id" in flask.request.json:
+    if "task_id" in flask.request.json and 'branch' in flask.request.json:
         app.logger.debug(flask.request.data)
         task_id = flask.request.json["task_id"]
-        build_chroots = BuildsLogic.get_chroots_from_dist_git_task_id(task_id)
+        branch = flask.request.json["branch"]
+        build_chroots = BuildsLogic.get_buildchroots_by_build_id_and_branch(task_id, branch)
         build = build_chroots[0].build
 
         # Is it OK?

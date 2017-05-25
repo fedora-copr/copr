@@ -45,7 +45,7 @@ class ImportTask(object):
         self.task_id = None
         self.user = None
         self.project = None
-        self.branch = None
+        self.branches = []
 
         self.source_type = None
         self.source_json = None
@@ -53,7 +53,7 @@ class ImportTask(object):
 
         self.package_name = None
         self.package_version = None
-        self.git_hash = None
+        self.git_hashes = {}
 
         # For SRPM_LINK and SRPM_UPLOAD
         self.package_url = None
@@ -100,7 +100,7 @@ class ImportTask(object):
         task.user = dict_data["user"]
         task.project = dict_data["project"]
 
-        task.branch = dict_data["branch"]
+        task.branches = dict_data["branches"]
         task.source_type = dict_data["source_type"]
         task.source_json = dict_data["source_json"]
         task.source_data = json.loads(dict_data["source_json"])
@@ -142,13 +142,21 @@ class ImportTask(object):
 
         return task
 
-    def get_dict_for_frontend(self):
+    def get_dict_for_frontend(self, branch):
+        if not branch in self.git_hashes or not self.git_hashes[branch]:
+            return {
+                "task_id": self.task_id,
+                "error": "Could not import this branch.",
+                "branch": branch,
+            }
+
         return {
             "task_id": self.task_id,
             "pkg_name": self.package_name,
             "pkg_version": self.package_version,
             "repo_name": self.reponame,
-            "git_hash": self.git_hash
+            "git_hash": self.git_hashes[branch],
+            "branch": branch,
         }
 
 
@@ -618,15 +626,17 @@ class DistGitImporter(object):
                 log.info("Package already exists...continuing")
             else:
                 raise e
-        try:
-            cmd = ["/usr/share/dist-git/mkbranch", task.branch, task.reponame]
-            check_output(cmd, stderr=subprocess.STDOUT)
-        except CalledProcessError as e:
-            log.error("cmd: {}, rc: {}, msg: {}".format(cmd, e.returncode, e.output))
-            if e.returncode == 128:
-                log.info("Branch already exists...continuing")
-            else:
-                raise e
+
+        for branch in task.branches:
+            try:
+                cmd = ["/usr/share/dist-git/mkbranch", branch, task.reponame]
+                check_output(cmd, stderr=subprocess.STDOUT)
+            except CalledProcessError as e:
+                log.error("cmd: {}, rc: {}, msg: {}".format(cmd, e.returncode, e.output))
+                if e.returncode == 128:
+                    log.info("Branch already exists...continuing")
+                else:
+                    raise e
 
     def post_back(self, data_dict):
         """
@@ -661,22 +671,18 @@ class DistGitImporter(object):
                 provider = MockScmProvider(task, fetched_srpm_path, self.opts)
                 tarball_path, spec_path, task.package_name, task.package_version = provider.get_sources()
                 self.before_git_import(task)
-                task.git_hash = self.distgit_import(task, tarball_path, spec_path)
+                task.git_hashes = self.distgit_import(task, tarball_path, spec_path)
                 self.after_git_import()
             else:
                 provider = SourceProvider(task, fetched_srpm_path, self.opts)
                 provider.get_srpm()
                 task.package_name, task.package_version = self.pkg_name_evr(fetched_srpm_path)
                 self.before_git_import(task)
-                task.git_hash = self.git_import_srpm(task, fetched_srpm_path)
+                task.git_hashes = self.git_import_srpm(task, fetched_srpm_path)
                 self.after_git_import()
-
-            log.debug("sending a response - success")
-            self.post_back(task.get_dict_for_frontend())
 
         except CoprDistGitException as e:
             log.exception("Exception raised during srpm import:")
-            self.post_back_safe({"task_id": task.task_id, "error": e.strtype})
         except Exception as e:
             log.exception("Unexpected error")
             self.post_back_safe({"task_id": task.task_id, "error": "unknown"})
@@ -684,7 +690,12 @@ class DistGitImporter(object):
         finally:
             provider.cleanup()
             shutil.rmtree(tmp_root, ignore_errors=True)
-            self.teardown_per_task_logging(per_task_log_handler)
+
+        log.info("sending a responses for branches {0}".format(', '.join(task.branches)))
+        for branch in task.branches:
+            self.post_back_safe(task.get_dict_for_frontend(branch))
+        self.teardown_per_task_logging(per_task_log_handler)
+
 
     def setup_per_task_logging(self, task):
         # Avoid putting logs into subdirectories when dist git branch name
