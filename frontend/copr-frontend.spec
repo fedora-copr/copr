@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.109
+Version:    1.110
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -397,6 +397,10 @@ service logstash condrestart
 
 
 %changelog
+* Thu May 25 2017 clime <clime@redhat.com> 1.110-1
+- gitlab webhooks support
+- make pagure repo auto-rebuilding more error-prone
+
 * Mon May 15 2017 clime <clime@redhat.com> 1.109-1
 - debugging infos in build_on_pagure_commit.py
 - error handling in build_on_pagure_commit.py
