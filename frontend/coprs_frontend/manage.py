@@ -20,6 +20,7 @@ from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
 from run import generate_repo_packages
 from sqlalchemy import or_
+from coprs.helpers import chroot_to_branch
 
 
 class TestCommand(Command):
@@ -118,10 +119,21 @@ class CreateChrootCommand(ChrootCommand):
 
     "Creates a mock chroot in DB"
 
-    def run(self, chroot_names):
+    def __init__(self):
+        self.option_list += Option(
+               "--dist-git-branch",
+               "-b",
+               dest="branch",
+               help="Branch name for this set of new chroots"),
+
+    def run(self, chroot_names, branch=None):
         for chroot_name in chroot_names:
+            if not branch:
+                branch = chroot_to_branch(chroot_name)
+            branch_object = coprs_logic.BranchesLogic.get_or_create(branch)
             try:
-                coprs_logic.MockChrootsLogic.add(chroot_name)
+                chroot = coprs_logic.MockChrootsLogic.add(chroot_name)
+                chroot.distgit_branch = branch_object
                 db.session.commit()
             except exceptions.MalformedArgumentException:
                 self.print_invalid_format(chroot_name)

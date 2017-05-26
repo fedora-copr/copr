@@ -764,6 +764,15 @@ class Build(db.Model, helpers.Serializer):
         return result
 
 
+class DistGitBranch(db.Model, helpers.Serializer):
+    """
+    1:N mapping: branch -> chroots
+    """
+
+    # Name of the branch used on dist-git machine.
+    name = db.Column(db.String(50), primary_key=True)
+
+
 class MockChroot(db.Model, helpers.Serializer):
 
     """
@@ -781,6 +790,14 @@ class MockChroot(db.Model, helpers.Serializer):
     # x86_64/i686/..., mandatory
     arch = db.Column(db.String(50), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+
+    # Reference branch name
+    distgit_branch_name  = db.Column(db.String(50),
+                                     db.ForeignKey("dist_git_branch.name"),
+                                     nullable=False)
+
+    distgit_branch = db.relationship("DistGitBranch",
+            backref=db.backref("chroots"))
 
     @property
     def name(self):
@@ -942,7 +959,7 @@ class BuildChroot(db.Model, helpers.Serializer):
 
     @property
     def import_task_id(self):
-        return "{}-{}".format(self.build_id, helpers.chroot_to_branch(self.name))
+        return "{}-{}".format(self.build_id, self.mock_chroot.distgit_branch_name)
 
     @property
     def dist_git_url(self):
@@ -961,7 +978,7 @@ class BuildChroot(db.Model, helpers.Serializer):
     def import_log_url(self):
         if app.config["COPR_DIST_GIT_LOGS_URL"]:
             return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
-                                      self.import_task_id)
+                                      self.import_task_id.replace('/', '_'))
         return None
 
     @property

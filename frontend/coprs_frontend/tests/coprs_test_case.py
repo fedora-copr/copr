@@ -15,6 +15,7 @@ import coprs
 
 from coprs import helpers
 from coprs import models
+from coprs.logic.coprs_logic import BranchesLogic
 
 import six
 from coprs.helpers import StatusEnum
@@ -148,12 +149,19 @@ class CoprsTestCase(object):
     def f_mock_chroots(self):
         self.mc1 = models.MockChroot(
             os_release="fedora", os_version="18", arch="x86_64", is_active=True)
+        self.mc1.distgit_branch = models.DistGitBranch(name='f18')
+
         self.mc2 = models.MockChroot(
             os_release="fedora", os_version="17", arch="x86_64", is_active=True)
+        self.mc2.distgit_branch = models.DistGitBranch(name='fedora-17')
+
         self.mc3 = models.MockChroot(
             os_release="fedora", os_version="17", arch="i386", is_active=True)
+        self.mc3.distgit_branch = self.mc2.distgit_branch
+
         self.mc4 = models.MockChroot(
             os_release="fedora", os_version="rawhide", arch="i386", is_active=True)
+        self.mc4.distgit_branch = models.DistGitBranch(name='master')
 
         self.mc_basic_list = [self.mc1, self.mc2, self.mc3, self.mc4]
         # only bind to coprs if the test has used the f_coprs fixture
@@ -191,12 +199,20 @@ class CoprsTestCase(object):
                 mc = models.MockChroot(
                     os_release="fedora", os_version=os_version,
                     arch=arch, is_active=True)
+                # Let's try slashes now. for example.  Some copr instances use
+                # this pattern.
+                mc.distgit_branch = BranchesLogic.get_or_create(
+                        'fedora/{0}'.format(os_version),
+                        session=self.db.session)
                 self.mc_list.append(mc)
 
             for os_version in [5, 6, 7]:
                 mc = models.MockChroot(
                     os_release="epel", os_version=os_version,
                     arch=arch, is_active=True)
+                mc.distgit_branch = BranchesLogic.get_or_create(
+                        'el{0}'.format(os_version),
+                        session=self.db.session)
                 self.mc_list.append(mc)
 
         self.mc_list[-1].is_active = False
@@ -206,7 +222,8 @@ class CoprsTestCase(object):
             for mc in self.mc_list:
                 cc = models.CoprChroot()
                 cc.mock_chroot = mc
-                self.c1.copr_chroots.append(cc)
+                # TODO: why 'self.c1.copr_chroots.append(cc)' doesn't work here?
+                cc.copr = self.c1
 
         self.db.session.add_all(self.mc_list)
 

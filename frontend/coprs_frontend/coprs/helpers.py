@@ -232,30 +232,6 @@ def chroot_to_branch(chroot):
     return "{}{}".format(os, version)
 
 
-def branch_to_os_version(branch):
-    os = None
-    version = None
-    if branch == "master":
-        os = "fedora"
-        version = "rawhide"
-    elif branch[0] == "f":
-        os = "fedora"
-        version = branch[1:]
-    elif branch[:4] == "epel" or branch[:2] == "el":
-        os = "epel"
-        version = branch[-1:]
-    elif branch[:6] == "custom":
-        os = "custom"
-        version = branch[-1:]
-    elif branch[:3] == "mga":
-        os = "mageia"
-        version = branch[3:]
-    elif branch[:8] == "cauldron":
-        os = "mageia"
-        version = "cauldron"
-    return os, version
-
-
 def splitFilename(filename):
     """
     Pass in a standard style rpm fullname

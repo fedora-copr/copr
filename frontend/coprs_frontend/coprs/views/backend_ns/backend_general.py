@@ -40,7 +40,7 @@ def dist_git_importing_queue():
             "task_id": task.import_task_id,
             "user": copr.owner_name, # TODO: user -> owner
             "project": task.build.copr.name,
-            "branch": helpers.chroot_to_branch(task.mock_chroot.name),
+            "branch": task.mock_chroot.distgit_branch_name,
             "source_type": task.build.source_type,
             "source_json": task.build.source_json,
         }
@@ -152,7 +152,7 @@ def waiting():
                 "enable_net": task.build.enable_net,
                 "git_repo": task.build.package.dist_git_repo,
                 "git_hash": task.git_hash,
-                "git_branch": helpers.chroot_to_branch(task.mock_chroot.name),
+                "git_branch": task.mock_chroot.distgit_branch_name,
                 "package_name": task.build.package.name,
                 "package_version": task.build.pkg_version
             }

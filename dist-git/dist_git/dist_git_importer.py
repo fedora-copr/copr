@@ -672,7 +672,14 @@ class DistGitImporter(object):
             self.teardown_per_task_logging(per_task_log_handler)
 
     def setup_per_task_logging(self, task):
-        handler = logging.FileHandler(os.path.join(self.opts.per_task_log_dir, "{0}.log".format(task.task_id)))
+        # Avoid putting logs into subdirectories when dist git branch name
+        # contains slashes.
+        task_id = str(task.task_id).replace('/', '_')
+
+        handler = logging.FileHandler(
+            os.path.join(self.opts.per_task_log_dir,
+                         "{0}.log".format(task_id))
+        )
         handler.setLevel(logging.DEBUG)
         logging.getLogger('').addHandler(handler)
         return handler
@@ -796,6 +803,8 @@ class VM(object):
             sandbox(dst_dir)
             dcmd = ["docker", "run"]
             full_name = "-".join([name or "copr", hashlib.md5().hexdigest()])
+            # For dist-git branches containing slashes.
+            full_name = full_name.replace('/', '_')
 
             if sys_admin:
                 dcmd.extend(["--cap-add=SYS_ADMIN"])

@@ -430,6 +430,19 @@ listen(models.Copr.auto_createrepo, 'set', on_auto_createrepo_change,
        active_history=True, retval=False)
 
 
+class BranchesLogic(object):
+    @classmethod
+    def get_or_create(cls, name, session=db.session):
+        item = session.query(models.DistGitBranch).filter_by(name=name).first()
+        if item:
+            return item
+
+        branch = models.DistGitBranch()
+        branch.name = name
+        session.add(branch)
+        return branch
+
+
 class CoprChrootsLogic(object):
     @classmethod
     def mock_chroots_from_names(cls, names):

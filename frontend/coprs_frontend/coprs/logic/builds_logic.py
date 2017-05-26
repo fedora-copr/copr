@@ -638,13 +638,15 @@ GROUP BY
         task_id consists of a name of git branch + build id
         Example: 42-f22 -> build id 42, chroots fedora-22-*
         """
-        build_id, branch = task_id.split("-")
+        build_id, branch = task_id.split("-", 1)
         build = cls.get_by_id(build_id).one()
         build_chroots = build.build_chroots
-        os, version = helpers.branch_to_os_version(branch)
-        chroot_halfname = "{}-{}".format(os, version)
-        matching = [ch for ch in build_chroots if chroot_halfname in ch.name]
-        return matching
+
+        # What chroots this branch is for?
+        branch_chroots = models.DistGitBranch.query.get(branch).chroots
+        branch_chroots = [x.name for x in branch_chroots]
+
+        return [ch for ch in build_chroots if ch.name in branch_chroots]
 
 
     @classmethod
