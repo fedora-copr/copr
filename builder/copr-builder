@@ -138,6 +138,7 @@ long_options+=,host-resolv:,detached,log-file:,timeout:,chroot:,mock-opts:
 oldargs=( "$@" )
 ARGS=$(getopt -o "h" -l "$long_options,help" -n "getopt" -- "$@")
 mock=(mock)
+rpkg=copr-rpkg
 eval set -- "$ARGS"
 
 while :; do
@@ -326,11 +327,11 @@ if test -n "$opt_host_resolv"; then
 fi
 
 info "Obtain sources from dist-git"
-stdout_wrap rpkg "$@" clone -a "$opt_copr/$opt_package" pkg-git
+stdout_wrap "$rpkg" "$@" clone -a "$opt_copr/$opt_package" pkg-git
 (
 cd pkg-git
 git checkout "$opt_revision"
-stdout_wrap rpkg "$@" --module-name "$opt_copr/$opt_package" sources
+stdout_wrap "$rpkg" "$@" --module-name "$opt_copr/$opt_package" sources
 )
 
 info "Generate SRPM in mock $opt_chroot"

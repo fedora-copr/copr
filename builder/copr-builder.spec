@@ -1,8 +1,8 @@
 %global confdir %_sysconfdir/%name
 
 Name:		copr-builder
-Version:	0
-Release:	13%{?dist}
+Version:	1
+Release:	1%{?dist}
 Summary:	Build package from Copr dist-git
 
 License:	GPLv2+
@@ -20,6 +20,7 @@ Source4:	fedora-copr-dev.conf
 Source5:	rhcopr.conf
 Source6:	rhcopr-stg.conf
 Source7:	rhcopr-dev.conf
+Source8:	rpkg
 
 # Ensure that 'mock' group is available for our installed files
 Requires(pre):	mock
@@ -27,7 +28,6 @@ Requires(pre):	mock
 Requires:	crudini
 Requires:	copr-cli
 Requires:	mock
-Requires:	rpkg
 Requires:	expect
 Requires:	util-linux
 Requires:	sed
@@ -59,6 +59,10 @@ touch %buildroot%_sharedstatedir/copr-builder/lock
 touch %buildroot%_sharedstatedir/copr-builder/live-log
 
 install -p -m 755 %SOURCE0 %buildroot%_bindir
+
+# Ideally we would 'Require: rpkg' only, but 'rpkg' package has been
+# (temprorarily?) dropped from Fedora (rhbz#1452202).
+install -p -m 755 %SOURCE8 %buildroot%_bindir/copr-rpkg
 install -p -m 644 %SOURCE2 %buildroot%confdir
 install -p -m 644 %SOURCE4 %buildroot%confdir
 install -p -m 644 %SOURCE5 %buildroot%confdir
@@ -70,6 +74,7 @@ install -p -m 644 %SOURCE7 %buildroot%confdir
 %license LICENSE
 %doc README
 %_bindir/copr-builder
+%_bindir/copr-rpkg
 %confdir
 %dir %attr(0775, root, mock) %_sharedstatedir/copr-builder
 %ghost %dir %verify(not mode mtime) %_sharedstatedir/copr-builder/results
@@ -79,6 +84,9 @@ install -p -m 644 %SOURCE7 %buildroot%confdir
 
 
 %changelog
+* Sat May 27 2017 Pavel Raiskup <praiskup@redhat.com> - 1-1
+- package 'rpkg' script
+
 * Thu Apr 27 2017 Pavel Raiskup <praiskup@redhat.com> - 0-13
 - package review changes
 - use copr vs. Copr consistently; capitalize when we talk about Copr "service",
