@@ -1,0 +1,17 @@
+Requires:
+
+perl-Getopt-Long-Descriptive
+perl-Config-IniFiles
+perl-Text-Template-Simple
+perl-JSON-Tiny
+perl-Data-Types
+perl-HTTP-Tiny
+perl-IPC-Run
+perl-Time-Out
+perl-File-Tee
+perl-Proc-Fork
+
+mock
+git
+unbuffer (expect)
+curl

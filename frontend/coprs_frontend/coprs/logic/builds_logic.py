@@ -116,7 +116,7 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_build_task(cls):
+    def select_build_task(cls):
         query = (models.BuildChroot.query.join(models.Build)
                  .filter(models.Build.canceled == false())
                  .filter(or_(
@@ -133,6 +133,17 @@ class BuildsLogic(object):
                  ))
         ).order_by(models.Build.is_background.asc(), models.BuildChroot.build_id.asc())
         return query.first()
+
+    @classmethod
+    def get_build_task(cls, task_id):
+        try:
+            build_id, chroot_name = task_id.split("-", 1)
+        except ValueError:
+            raise MalformedArgumentException("Invalid task_id {}".format(task_id))
+
+        build_chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chroot_name)
+        return build_chroot.join(models.Build).first()
+
 
     @classmethod
     def get_multiple(cls):

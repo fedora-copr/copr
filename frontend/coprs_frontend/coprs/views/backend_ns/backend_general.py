@@ -118,6 +118,35 @@ def dist_git_upload_completed():
 
     return flask.jsonify(result)
 
+def get_build_record(task):
+    build_config = helpers.generate_build_config(task.build.copr, task.mock_chroot.name)
+
+    build_record = None
+    try:
+        build_record = {
+            "task_id": task.task_id,
+            "build_id": task.build.id,
+            "project_owner": task.build.copr.owner_name,
+            "project_name": task.build.copr.name,
+            "submitter": task.build.user.name if task.build.user else None, # there is no user for webhook builds
+            "chroot": task.mock_chroot.name,
+
+            "repos": task.build.repos,
+            "memory_reqs": task.build.memory_reqs,
+            "timeout": task.build.timeout,
+            "enable_net": task.build.enable_net,
+            "git_repo": task.build.package.dist_git_repo,
+            "git_hash": task.git_hash,
+            "git_branch": task.mock_chroot.distgit_branch_name,
+            "package_name": task.build.package.name,
+            "package_version": task.build.pkg_version,
+            "repos": build_config["repos"],
+            "buildroot_pkgs": build_config["additional_packages"]
+        }
+
+    except Exception as err:
+        app.logger.exception(err)
+    return build_record
 
 @backend_ns.route("/waiting/")
 #@misc.backend_authenticated
@@ -134,41 +163,28 @@ def waiting():
             "__columns_except__": ["result", "message", "ended_on"]
         })
 
-    task = BuildsLogic.get_build_task()
+    task = BuildsLogic.select_build_task()
     if task:
-        try:
-            build_record = {
-                "task_id": task.task_id,
-                "build_id": task.build.id,
-                "project_owner": task.build.copr.owner_name,
-                "project_name": task.build.copr.name,
-                "submitter": task.build.user.name if task.build.user else None, # there is no user for webhook builds
-                "pkgs": task.build.pkgs,  # TODO to be removed
-                "chroot": task.mock_chroot.name,
-
-                "repos": task.build.repos,
-                "memory_reqs": task.build.memory_reqs,
-                "timeout": task.build.timeout,
-                "enable_net": task.build.enable_net,
-                "git_repo": task.build.package.dist_git_repo,
-                "git_hash": task.git_hash,
-                "git_branch": task.mock_chroot.distgit_branch_name,
-                "package_name": task.build.package.name,
-                "package_version": task.build.pkg_version
-            }
-
-            copr_chroot = CoprChrootsLogic.get_by_name_safe(task.build.copr, task.mock_chroot.name)
-            if copr_chroot:
-                build_record["buildroot_pkgs"] = copr_chroot.buildroot_pkgs
-                build_record["repos"] = build_record["repos"]+" "+copr_chroot.repos
-            else:
-                build_record["buildroot_pkgs"] = ""
-
-        except Exception as err:
-            app.logger.exception(err)
+        build_record = get_build_record(task)
 
     response_dict = {"action": action_record, "build": build_record}
     return flask.jsonify(response_dict)
+
+
+@backend_ns.route("/get-build-task/<task_id>")
+def get_build_task(task_id):
+    try:
+        task = BuildsLogic.get_build_task(task_id)
+    except exceptions.MalformedArgumentException:
+        jsonout = flask.jsonify({'msg': 'Invalid task ID'})
+        jsonout.status_code = 500
+        return jsonout
+    except sqlalchemy.orm.exc.NoResultFound:
+        jsonout = flask.jsonify({'msg': 'Specified task ID not found'})
+        jsonout.status_code = 404
+        return jsonout
+    build_record = get_build_record(task)
+    return flask.jsonify(build_record)
 
 
 @backend_ns.route("/update/", methods=["POST", "PUT"])

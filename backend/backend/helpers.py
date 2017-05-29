@@ -281,6 +281,8 @@ class BackendConfigReader(object):
             cp, "builder", "standalone", False, mode="bool")
         opts.standalone_builder_config = _get_conf(
             cp, "builder", "config", "/etc/copr-builder/fedora-copr.conf")
+        opts.builder_perl = _get_conf(
+            cp, "builder", "builder_perl", False, mode="bool")
 
 
         opts.log_dir = _get_conf(

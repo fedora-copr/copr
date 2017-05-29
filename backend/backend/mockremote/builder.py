@@ -120,6 +120,9 @@ class Builder(object):
         return self._build_pid
 
     def _copr_builder_cmd(self):
+        if self.opts.builder_perl:
+            return 'main.pl -d {task_id}'.format(task_id=self.job.task_id)
+
         template = 'copr-builder --config {config} --copr {copr} ' \
                  + '--package {package} --revision {revision} ' \
                  + '--host-resolv {net} --timeout {timeout} ' \

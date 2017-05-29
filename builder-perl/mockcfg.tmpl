@@ -1,0 +1,23 @@
+<% my %p = @_; %>
+include('/etc/mock/<%= $p{chroot} %>.cfg')
+
+config_opts['root'] = '<%= $p{task_id} %>'
+config_opts['chroot_additional_packages'] = '<%= join(" ", @{$p{buildroot_pkgs}}) %>'
+
+config_opts['use_host_resolv'] = <%= $p{enable_net} ? 'True' : 'False' %>
+
+<% if (@{$p{repos}}) { %>
+config_opts['yum.conf'] += """
+<% foreach my $repo (@{$p{repos}}) { %>
+[<%= $repo->{id} %>]
+name="<%= $repo->{name} %>"
+baseurl=<%= $repo->{url} %>
+gpgcheck=0
+enabled=1
+skip_if_unavailable=1
+metadata_expire=0
+cost=1
+best=1
+<% } %>
+"""
+<% } %>
