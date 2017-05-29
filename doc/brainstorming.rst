@@ -9,7 +9,12 @@ Proposal of change
 ------------------
 * open copr-dist-git for user-interaction
 * do not store built srpm there anymore, instead build them on builders based on db data (git/svn hashes, gem/pip package versions)
-* potentially use copr-cli for building on builders by employing (--local --detached) switches
+* potentially use copr-cli for building on builders by employing (--local --detached) switches **
+
+** actually scratch the last point. What we need is a builder script that gets just task_id as input and downloads the build definition
+from frontend and based on that executes the whole build. The current copr-builder fixes some parts of build definition (most importantly
+the dist-git source args) on its command line which makes future changes like in point 2 basically a no-go. We need to keep our options
+open in this regard.
 
 Frontend
 --------
