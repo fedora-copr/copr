@@ -117,6 +117,10 @@ WHERE package.copr_id = :copr_id;
     @classmethod
     def commits_belong_to_package(cls, package, commits, ref_type, ref):
         if ref_type == "tag":
+            # way to exclude some packages from building for Tito method
+            if package.source_type_text == "git_and_tito" \
+                    and package.name not in ref:
+                return False
             return True
 
         if package.source_type_text == "git_and_tito":
