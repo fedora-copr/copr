@@ -1,5 +1,5 @@
 Name:       example
-Version:	1.0.5
+Version:	1.0.6
 Release:	1%{?dist}
 Summary:	This is a simple example to test copr
 
@@ -35,6 +35,23 @@ cp -a main %{buildroot}%{_sbindir}/main
 %{_sbindir}/main
 
 %changelog
+* Tue May 30 2017 clime <clime@redhat.com> 1.0.6-1
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- test (clime@redhat.com)
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- Remove BuildArch requirement (clime7@gmail.com)
+- and yet another (clime@redhat.com)
+- another webhook push try (clime@redhat.com)
+- another try (clime@redhat.com)
+- test change (clime@redhat.com)
+- Trying to reproduce Bug 1334102. (clime@redhat.com)
+
 * Wed Feb 24 2016 clime <clime@redhat.com> 1.0.5-1
 - subpkg removed (clime@redhat.com)
 
