@@ -99,7 +99,7 @@ my $mock_config = $tts->compile(
 my $configs_dir = $resultdir.'/configs';
 make_path($configs_dir);
 copy("/etc/mock/site-defaults.cfg", $configs_dir) or die "Copy of site-defaults.cfg failed: $!";
-copy("/etc/mock/$task->{chroot}.cfg", $configs_dir) or die "Copy fedora-25-x86_64.cfg failed: $!";
+copy("/etc/mock/$task->{chroot}.cfg", $configs_dir) or die "Copy $task->{chroot}.cfg failed: $!";
 open(my $changed_fh, ">", $configs_dir."/changed.cfg") or die "Can't open > changed.cfg: $!";
 print $changed_fh $mock_config;
 
@@ -117,20 +117,15 @@ my @sources = <$sources_fh>;
 my $lookasideurl = $cfg->val('builder', 'distgit_lookaside_url');
 $lookasideurl =~ s/^(.*)\/$/$1/;
 
-my $hashtype = undef;
-my $tarball = undef;
-my $hashval = undef;
+my ($hashtype, $tarball, $hashval);
 if ($sources[0] =~ /^(\S+)\s*(\S+)$/) { # old sources format
     # 33b5dd0543a5e02df22ac6b8c00538a5  example-1.0.4.tar.gz
-    $hashval = $1;
-    $tarball = $2;
+    ($hashval, $tarball) = ($1, $2);
     system("curl -L -H Pragma: -o $tarball -R -S --fail --retry 5 --max-time 15 '$lookasideurl/$task->{git_repo}/$tarball/$hashval/$tarball'");
     system("md5sum -c sources") and die "Tarball not present or invalid checksum: $!"; 
 } elsif ($sources[0] =~ /^(\S+)\s*\((\S+)\)\s*=\s*(\S+)$/) { # new sources format 
     # SHA512 (dist-git-1.2.tar.gz) = 0850e6955f875b942ca4e2802b750b2d4ccc349a51deae97fb0cfe21c41f5b01dfce4c1cf3fcd56c16062d57b0ccb75e3fa2f901c98a843bc3bf14141f427a03
-    $hashtype = lc $1;
-    $tarball = $2;
-    $hashval = $3;
+    ($hashtype, $tarball, $hashval) = (lc $1, $2, $3);
     system("curl -L -H Pragma: -o $tarball -R -S --fail --retry 5 --max-time 15 '$lookasideurl/$task->{git_repo}/$tarball/$hashtype/$hashval/$tarball'");
     system($hashtype."sum -c sources") and die "Tarball not present or invalid checksum: $!"; 
 } else {
