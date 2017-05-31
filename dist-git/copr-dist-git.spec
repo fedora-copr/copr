@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.27
+Version:    0.28
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -146,6 +146,13 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Wed May 31 2017 clime <clime@redhat.com> 0.28-1
+- add --depth 1 for git clone in GitProvider
+- add missing 'which' for tito && git-annex builds
+- arbitrary dist-git branching support
+- use MockScmProvider without mock-scm to solve performance problems
+- add "powerpc64le" into list of archs to allow building for
+
 * Mon May 15 2017 clime <clime@redhat.com> 0.27-1
 - Bug 1447102 - fedpkg build fail during import phase
 
