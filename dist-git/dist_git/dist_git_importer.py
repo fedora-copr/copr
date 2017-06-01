@@ -341,7 +341,6 @@ class MockScmProvider(BaseSourceProvider):
     def get_sources(self):
         repo_path = self.clone()
         repo_spec_path = repo_path + "/" + self.task.mock_spec
-        src_dir_path = os.path.dirname(repo_spec_path)
 
         if not os.path.exists(repo_spec_path):
             raise SrpmBuilderException("Can't find spec file at {}".format(repo_spec_path))
@@ -371,7 +370,7 @@ class MockScmProvider(BaseSourceProvider):
         cwd_dir = os.getcwd()
         os.chdir(self.tmp_dest)
 
-        os.rename(src_dir_path, tardir)
+        os.rename(repo_path, tardir)
 
         cmd = ["tar", "caf", tarball, '--exclude-vcs', tardir]
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
