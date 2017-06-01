@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.28
+Version:    0.29
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -146,6 +146,10 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Thu Jun 01 2017 clime <clime@redhat.com> 0.29-1
+- Bug 1457888 - Mock SCM method fails to build a package
+- increase depth for git clone so that required tags that tito needs are downloaded
+
 * Wed May 31 2017 clime <clime@redhat.com> 0.28-1
 - add --depth 1 for git clone in GitProvider
 - add missing 'which' for tito && git-annex builds
