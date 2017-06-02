@@ -22,6 +22,7 @@ use File::Tee qw(tee);
 use Fcntl qw(:DEFAULT :flock);
 use Proc::Fork;
 use POSIX;
+use URI;
 
 # Parse arguments
 my ($opt, $usage) = describe_options(
@@ -69,10 +70,12 @@ my $pidfile = '/var/lib/copr-builder/pid';
 open(my $pidfile_fh, ">", $pidfile) or die "Can't open pidfile: $!";
 print $pidfile_fh $$;
 
-my $cfg = Config::IniFiles->new( -file => "/usr/local/bin/builder.ini" ) or die;
+my $cfg = Config::IniFiles->new( -file => "builder.ini" ) or die;
 
 # Get task from frontend
-my $response = HTTP::Tiny->new->get($cfg->val('builder', 'frontend_url').'backend/get-build-task/'.$task_id);
+my $response = HTTP::Tiny->new->get(
+    URI->new_abs('/backend/get-build-task/'.$task_id, $cfg->val('builder', 'frontend_url'))
+);
 if (!$response->{success} or !$response->{content}) {
     print "$response->{status} $response->{reason}\n";
     print "$response->{content}\n";
@@ -107,10 +110,10 @@ print $changed_fh $mock_config;
 my $origdir = getcwd;
 my $workdir = File::Temp->newdir();
 chdir $workdir;
-print capture("git clone ".$cfg->val('builder', 'distgit_clone_url').$task->{git_repo}.".git");
+print capture("git", "clone", $cfg->val('builder', 'distgit_clone_url')."$task->{git_repo}.git");
 my $pkgname = basename $task->{git_repo};
 chdir $pkgname;
-print capture("git checkout $task->{git_hash}");
+print capture("git", "checkout", "$task->{git_hash}");
 open(my $sources_fh, "<", "sources") or die "Can't find 'sources' file: $!";
 my @sources = <$sources_fh>;
 
@@ -121,13 +124,29 @@ my ($hashtype, $tarball, $hashval);
 if ($sources[0] =~ /^(\S+)\s*(\S+)$/) { # old sources format
     # 33b5dd0543a5e02df22ac6b8c00538a5  example-1.0.4.tar.gz
     ($hashval, $tarball) = ($1, $2);
-    system("curl -L -H Pragma: -o $tarball -R -S --fail --retry 5 --max-time 15 '$lookasideurl/$task->{git_repo}/$tarball/$hashval/$tarball'");
-    system("md5sum -c sources") and die "Tarball not present or invalid checksum: $!"; 
+    system("curl", "-L",
+            "-H", "Pragma:",
+            "-o", "$tarball",
+            "-R",
+            "-S",
+            "--fail",
+            "--retry", "5",
+            "--max-time", "15",
+            "$lookasideurl/$task->{git_repo}/$tarball/$hashval/$tarball");
+    system("md5sum", "-c", "sources") and die "Tarball not present or invalid checksum: $!";
 } elsif ($sources[0] =~ /^(\S+)\s*\((\S+)\)\s*=\s*(\S+)$/) { # new sources format 
     # SHA512 (dist-git-1.2.tar.gz) = 0850e6955f875b942ca4e2802b750b2d4ccc349a51deae97fb0cfe21c41f5b01dfce4c1cf3fcd56c16062d57b0ccb75e3fa2f901c98a843bc3bf14141f427a03
     ($hashtype, $tarball, $hashval) = (lc $1, $2, $3);
-    system("curl -L -H Pragma: -o $tarball -R -S --fail --retry 5 --max-time 15 '$lookasideurl/$task->{git_repo}/$tarball/$hashtype/$hashval/$tarball'");
-    system($hashtype."sum -c sources") and die "Tarball not present or invalid checksum: $!"; 
+    system("curl", "-L",
+            "-H", "Pragma:",
+            "-o", "$tarball",
+            "-R",
+            "-S",
+            "--fail",
+            "--retry", "5",
+            "--max-time", "15",
+            "$lookasideurl/$task->{git_repo}/$tarball/$hashtype/$hashval/$tarball");
+    system($hashtype."sum", "-c", "sources") and die "Tarball not present or invalid checksum: $!";
 } else {
     die "Unexpected format of sources file!";
 }
