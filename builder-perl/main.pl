@@ -61,6 +61,7 @@ if ($opt->detached) {
     close $_ for *STDIN, *STDOUT, *STDERR;
     open(my $logfile_fh, '>', $logfile);
     open(STDOUT, '>&', $logfile_fh);
+    open(STDERR, '>&', \*STDOUT);
 } else {
     tee(STDOUT, '>>', $logfile);
     tee(STDERR, '>>', $logfile);
