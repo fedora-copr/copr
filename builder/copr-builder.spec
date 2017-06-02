@@ -1,5 +1,3 @@
-%global		confdir %_sysconfdir/%name
-
 Name:		copr-builder
 Version:	0
 Release:	13%{?dist}

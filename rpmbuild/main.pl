@@ -27,13 +27,14 @@ use URI;
 # Parse arguments
 my ($opt, $usage) = describe_options(
     '%c %o <task_id>',
-    [ 'detached|d', "run as a daemon" ],
+    [ 'detached|d', "run in background" ],
     [ 'verbose|v', "print debugging information" ],
     [ 'help|h', "print usage message and exit", { shortcircuit => 1 } ],
 );
 
 if ($opt->help or @ARGV != 1) {
-    print("Runs COPR build of the specified task ID, e.g. 551347-epel-7-x86_64.\n\n");
+    print("Runs COPR build of the specified task ID, e.g. 551347-epel-7-x86_64,
+           and puts results into /var/lib/copr-rpmbuild/results/.\n\n");
     print($usage->text);
     exit;
 }
@@ -42,15 +43,15 @@ if ($opt->help or @ARGV != 1) {
 my $task_id = $ARGV[0];
 
 # allow only one instance
-my $lockfile = "/var/lib/copr-builder/lock";
+my $lockfile = "/var/lib/copr-rpmbuild/lockfile";
 open(my $lockfile_fh, ">", $lockfile) or die "Can't open lockfile: $!";
 flock($lockfile_fh, LOCK_EX | LOCK_NB) or die "Only one instance allowed: $!";
 
 # Init
-my $resultdir = '/var/lib/copr-builder/results';
+my $resultdir = '/var/lib/copr-rpmbuild/results';
 remove_tree( $resultdir, {keep_root => 1} );
 
-my $logfile = '/var/lib/copr-builder/live-log';
+my $logfile = '/var/lib/copr-rpmbuild/main.log';
 
 if ($opt->detached) {
     # One-stop shopping: fork, die on error, parent process exits.
@@ -67,15 +68,15 @@ if ($opt->detached) {
     tee(STDERR, '>>', $logfile);
 }
 
-my $pidfile = '/var/lib/copr-builder/pid';
+my $pidfile = '/var/lib/copr-rpmbuild/pid';
 open(my $pidfile_fh, ">", $pidfile) or die "Can't open pidfile: $!";
 print $pidfile_fh $$;
 
-my $cfg = Config::IniFiles->new( -file => "builder.ini" ) or die;
+my $cfg = Config::IniFiles->new( -file => "/etc/copr-rpmbuild/main.ini" ) or die;
 
 # Get task from frontend
 my $response = HTTP::Tiny->new->get(
-    URI->new_abs('/backend/get-build-task/'.$task_id, $cfg->val('builder', 'frontend_url'))
+    URI->new_abs('/backend/get-build-task/'.$task_id, $cfg->val('main', 'frontend_url'))
 );
 if (!$response->{success} or !$response->{content}) {
     print "$response->{status} $response->{reason}\n";
@@ -95,7 +96,7 @@ if ($opt->verbose) {
 # Generate mock config
 my $tts = Text::Template::Simple->new();
 my $mock_config = $tts->compile(
-    '/usr/local/bin/mockcfg.tmpl',
+    '/etc/copr-rpmbuild/mockcfg.tmpl',
     [
     chroot => $task->{chroot},
     task_id => $task->{task_id},
@@ -110,14 +111,14 @@ my $configs_dir = $resultdir.'/configs';
 make_path($configs_dir);
 copy("/etc/mock/site-defaults.cfg", $configs_dir) or die "Copy of site-defaults.cfg failed: $!";
 copy("/etc/mock/$task->{chroot}.cfg", $configs_dir) or die "Copy $task->{chroot}.cfg failed: $!";
-open(my $changed_fh, ">", $configs_dir."/changed.cfg") or die "Can't open > changed.cfg: $!";
-print $changed_fh $mock_config;
+open(my $child_fh, ">", $configs_dir."/child.cfg") or die "Can't open > child.cfg: $!";
+print $child_fh $mock_config;
 
 # Get sources from dist-git
 my $origdir = getcwd;
 my $workdir = File::Temp->newdir();
 chdir $workdir;
-my $clone_url = URI->new_abs("$task->{git_repo}.git", $cfg->val('builder', 'distgit_clone_url'));
+my $clone_url = URI->new_abs("$task->{git_repo}.git", $cfg->val('main', 'distgit_clone_url'));
 print capture("git", "clone", $clone_url);
 my $pkgname = basename $task->{git_repo};
 chdir $pkgname;
@@ -125,7 +126,7 @@ print capture("git", "checkout", "$task->{git_hash}");
 open(my $sources_fh, "<", "sources") or die "Can't find 'sources' file: $!";
 my @sources = <$sources_fh>;
 
-my $lookasideurl = $cfg->val('builder', 'distgit_lookaside_url');
+my $lookasideurl = $cfg->val('main', 'distgit_lookaside_url');
 $lookasideurl =~ s/^(.*)\/$/$1/;
 
 my ($hashtype, $tarball, $hashval);
@@ -173,7 +174,7 @@ timeout $timeout => sub {
         "--resultdir", "intermediate-srpm",
         "--no-cleanup-after",
         "--configdir", "$configs_dir",
-        "-r", "changed",
+        "-r", "child",
     ] or die "Could not build srpm: $!";
 
     my @srpm = glob "intermediate-srpm/*.src.rpm";
@@ -185,7 +186,7 @@ timeout $timeout => sub {
         "--configdir", "$configs_dir",
         "--resultdir", "$resultdir",
         "--no-clean",
-        "-r", "changed",
+        "-r", "child",
     ] or die "Could not build rpm: $!";
 
 };

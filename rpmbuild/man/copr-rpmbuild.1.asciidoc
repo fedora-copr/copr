@@ -1,0 +1,42 @@
+copr-rpmbuild(1)
+================
+
+NAME
+----
+copr-rpmbuild - run COPR build tasks
+
+
+SYNOPSIS
+--------
+copr-rpmbuild [--detached|-d] [--verbose|-v] [--help|-h] task-id
+
+DESCRIPTION
+-----------
+Runs COPR build of the specified task-id and puts
+results into /var/lib/copr-rpmbuild/results/.
+
+ARGUMENTS
+---------
+task-id::
+	COPR task-id to be built (e.g. 551347-epel-7-x86_64)
+
+OPTIONS
+-------
+--detached::
+    Run build in background. Log into /var/lib/copr-rpmbuild/main.log.
+
+--verbose::
+    print debugging information
+
+--help::
+    display help
+
+
+EXAMPLES
+--------
+copr-rpmbuild -v 551347-epel-7-x86_64::
+    Run COPR build of id 551347 in epel-7-x86_64 mock chroot and print verbose information
+
+AUTHORS
+-------
+clime <clime@redhat.com>
