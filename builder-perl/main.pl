@@ -95,7 +95,13 @@ if ($opt->verbose) {
 my $tts = Text::Template::Simple->new();
 my $mock_config = $tts->compile(
     '/usr/local/bin/mockcfg.tmpl',
-    [ chroot => $task->{chroot}, task_id => $task->{task_id}, buildroot_pkgs => $task->{buildroot_pkgs}, repos => $task->{repos}, enable_net => $task->{enable_net} ]
+    [
+    chroot => $task->{chroot},
+    task_id => $task->{task_id},
+    buildroot_pkgs => $task->{buildroot_pkgs},
+    repos => $task->{repos},
+    enable_net => $task->{enable_net}
+    ]
 );
 
 # Copy all the mock configuration to the target configs directory
