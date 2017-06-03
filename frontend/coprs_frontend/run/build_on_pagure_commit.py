@@ -80,23 +80,11 @@ class GitAndTitoPackage(Package):
         BuildsLogic.create_new_from_tito(self.copr.user, self.copr, self.git_url, self.git_dir, self.git_branch, self.tito_test)
         db.session.commit()
 
-    def is_dir_in_commit(self, data, clone_url_subpart):
-        if not self.git_dir:
-            return True # simplest case
+    def is_dir_in_commit(self, raw_commit_text):
+        if not self.git_dir or not raw_commit_text:
+            return True
 
-        start_commit = data['msg']['start_commit']
-        end_commit = data['msg']['end_commit']
-
-        if start_commit != end_commit:
-            return True # more than one commit and no means to iterate over
-
-        raw_commit_url = PAGURE_BASE_URL + clone_url_subpart + '/raw/' + start_commit
-        r = requests.get(raw_commit_url)
-        if r.status_code != requests.codes.ok:
-            log.error("Bad http status {0} from url {1}".format(r.status_code, raw_commit_url))
-            return False
-
-        for line in r.text.split('\n'):
+        for line in raw_commit_text.split('\n'):
             match = re.search(r'^(\+\+\+|---) [ab]/(\w*)/.*$', line)
             if match and match.group(2).lower() == self.git_dir.lower():
                 return True
@@ -151,6 +139,8 @@ def build_on_fedmsg_loop():
         namespace = data['msg']['repo']['namespace']
         repo_name = data['msg']['repo']['name']
         branch = data['msg']['branch']
+        start_commit = data['msg']['start_commit']
+        end_commit = data['msg']['end_commit']
 
 	if namespace:
 	    clone_url_subpart = '/' + namespace + '/' + repo_name
@@ -161,16 +151,30 @@ def build_on_fedmsg_loop():
 	log.info("\tclone_url_subpart = {}".format(clone_url_subpart))
 	log.info("\tbranch = {}".format(branch))
 
-        for pkg in Package.get_candidates_for_rebuild(TITO_TYPE, clone_url_subpart):
+        tito_candidates = Package.get_candidates_for_rebuild(TITO_TYPE, clone_url_subpart)
+        scm_candidates = Package.get_candidates_for_rebuild(MOCK_SCM_TYPE, clone_url_subpart)
+
+        raw_commit_text = None
+        # if start_commit != end_commit, then more than one commit and no means to iterate over
+        if tito_candidates and start_commit == end_commit:
+            raw_commit_url = PAGURE_BASE_URL + clone_url_subpart + '/raw/' + start_commit
+            r = requests.get(raw_commit_url)
+            if r.status_code == requests.codes.ok:
+                raw_commit_text = r.text
+            else:
+                log.error("Bad http status {0} from url {1}".format(r.status_code, raw_commit_url))
+
+        for pkg in tito_candidates:
             log.info("Considering pkg id:{}, source_json:{}".format(pkg.pkg_id, pkg.source_json))
             if (pkg.git_url.endswith(clone_url_subpart) or pkg.git_url.endswith(clone_url_subpart+'.git')) \
-                    and (not pkg.git_branch or branch.endswith('/'+pkg.git_branch)) and pkg.is_dir_in_commit(data, clone_url_subpart):
+                    and (not pkg.git_branch or branch.endswith('/'+pkg.git_branch)) \
+                    and pkg.is_dir_in_commit(raw_commit_text):
                 log.info("\t -> rebuilding.")
                 pkg.build()
             else:
                 log.info("\t -> skipping.")
 
-        for pkg in Package.get_candidates_for_rebuild(MOCK_SCM_TYPE, clone_url_subpart):
+        for pkg in scm_candidates:
             log.info("Considering pkg id:{}, source_json:{}".format(pkg.pkg_id, pkg.source_json))
             if (pkg.scm_url.endswith(clone_url_subpart) or pkg.scm_url.endswith(clone_url_subpart+'.git')) \
                     and (not pkg.scm_branch or branch.endswith('/'+pkg.scm_branch)):
