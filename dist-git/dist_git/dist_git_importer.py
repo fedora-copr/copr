@@ -325,7 +325,7 @@ class MockScmProvider(BaseSourceProvider):
         if self.task.mock_scm_type == 'git':
             cmd = ['git', 'clone', self.task.mock_scm_url, repo_path, '--depth', '1', '--branch', self.task.mock_scm_branch or 'master']
         else:
-            cmd = ['git', 'svn', 'clone', self.task.mock_scm_url, repo_path, '--depth', '1', '--branch', self.task.mock_scm_branch or 'master']
+            cmd = ['git', 'svn', 'clone', self.task.mock_scm_url, repo_path, '--branch', self.task.mock_scm_branch or 'master']
 
         try:
             log.info("Cloning remote repo...")
