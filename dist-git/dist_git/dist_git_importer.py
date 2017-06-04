@@ -679,6 +679,7 @@ class DistGitImporter(object):
             self.post_back_safe({"task_id": task.task_id, "error": e.strtype})
         except Exception as e:
             log.exception("Unexpected error")
+            self.post_back_safe({"task_id": task.task_id, "error": "unknown"})
 
         finally:
             provider.cleanup()
