@@ -349,9 +349,12 @@ class MockScmProvider(BaseSourceProvider):
         shutil.copy(repo_spec_path, spec_path)
 
         ts = rpm.ts()
-        rpm_spec = ts.parseSpec(spec_path)
-        name = rpm.expandMacro("%{name}")
-        version = rpm.expandMacro("%{version}")
+        try:
+            rpm_spec = ts.parseSpec(spec_path)
+            name = rpm.expandMacro("%{name}")
+            version = rpm.expandMacro("%{version}")
+        except ValueError as e:
+            raise CoprDistGitException(str(e))
 
         tarball = None
         for (filename, num, flags) in rpm_spec.sources:
