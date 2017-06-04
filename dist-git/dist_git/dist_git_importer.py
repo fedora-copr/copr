@@ -363,7 +363,10 @@ class MockScmProvider(BaseSourceProvider):
         tarball = None
         for (filename, num, flags) in rpm_spec.sources:
             if num == 0 and flags == 1:
-                tarball = filename.split("/")[-1]
+                try:
+                    tarball = filename.split("/")[-1]
+                except IndexError:
+                    pass
                 break
 
         # Generate a tarball from the checked out sources
@@ -376,12 +379,16 @@ class MockScmProvider(BaseSourceProvider):
         log.debug("Writing %s...", tarball_path)
         cwd_dir = os.getcwd()
         os.chdir(self.tmp_dest)
-
         os.rename(repo_path, tardir)
 
         cmd = ["tar", "caf", tarball, '--exclude-vcs', tardir]
-        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        output, error = proc.communicate()
+
+        try:
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            output, error = proc.communicate()
+        except OSError as e:
+            raise SrpmBuilderException(str(e))
+
         log.debug(output)
         log.debug(error)
 
