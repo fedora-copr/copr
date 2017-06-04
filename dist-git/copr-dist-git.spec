@@ -56,6 +56,7 @@ Requires: python-jinja2
 Requires: pyrpkg >= 1.47
 Requires: docker
 Requires: httpd
+Requires: git-svn
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
 
