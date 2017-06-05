@@ -42,6 +42,28 @@ echo "BACKEND_URL = $BACKEND_URL"
 SCRIPT=`realpath $0`
 HERE=`dirname $SCRIPT`
 
+function wait_for_finished_module()
+{
+    # Wait until module packages are built or timeout
+    # $1 - project name
+    # $2 - expected number of packages
+    # $3 - timeout in seconds
+    # $4 - temporary file for output
+    local project=$1
+    local packages=$2
+    local timeout=$3
+    local tmp=$4
+    local started=$(date +%s)
+    while :; do
+        now=$(date +%s)
+        copr-cli list-packages $project --with-all-builds > $tmp
+        if [ `cat $tmp |grep state |grep "succeeded\|failed" |wc -l` -eq $packages ]; then break; fi;
+        if [ $(($now - $timeout)) -gt $started ]; then break; fi;
+        sleep 10
+    done
+}
+
+
 rlJournalStart
     rlPhaseStartSetup
         rlAssertRpm "copr-cli"
@@ -89,17 +111,7 @@ rlJournalStart
 
         # Test that module builds succeeded
         PACKAGES=`mktemp`
-        STARTED=$(date +%s)
-
-        # Wait until all module packages are built or timeout after 10 minutes
-        while :; do
-            now=$(date +%s)
-            copr-cli list-packages module-testmodule-beakertest-$DATE --with-all-builds > $PACKAGES
-            if [ `cat $PACKAGES |grep state |grep "succeeded\|failed" |wc -l` -eq 3 ]; then break; fi;
-            if [ $(($now - 600)) -gt $STARTED ]; then break; fi;
-            sleep 10
-        done
-
+        wait_for_finished_module "module-testmodule-beakertest-$DATE" 3 600 $PACKAGES
         rlAssertEquals "All packages should succeed" `cat $PACKAGES |grep "state" | grep "succeeded" |wc -l` 3
         for pkg in "module-build-macros" "ed" "mksh"; do
             rlAssertEquals "Package $pkg is missing" `cat $PACKAGES | grep "name" |grep "$pkg" |wc -l` 1
