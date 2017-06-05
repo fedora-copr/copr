@@ -121,6 +121,17 @@ class ModulemdGenerator(object):
                                     repository=url, ref=ref,
                                     buildorder=buildorder)
 
+    def add_requires(self, module, stream):
+        self.mmd.add_requires(module, stream)
+
+    def add_buildrequires(self, module, stream):
+        self.mmd.add_buildrequires(module, stream)
+
+    def add_base_runtime(self):
+        name, stream = "base-runtime", "master"
+        self.add_requires(name, stream)
+        self.add_buildrequires(name, stream)
+
     def generate(self):
         return self.mmd.dumps()
 

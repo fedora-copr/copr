@@ -983,6 +983,7 @@ def build_module(copr, form):
     generator.add_api(form.api.data)
     generator.add_profiles(enumerate(zip(form.profile_names.data, form.profile_pkgs.data)))
     generator.add_components(form.packages.data, form.filter.data, form.builds.data)
+    generator.add_base_runtime()
     tmp = tempfile.mktemp()
     generator.dump(tmp)
 
