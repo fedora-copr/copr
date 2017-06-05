@@ -776,8 +776,9 @@ def process_package_add_or_edit(copr, source_type_text, package=None):
                 raise LegacyApiError("Package {0} already exists in copr {1}.".format(form.package_name.data, copr.full_name))
 
         package.source_type = helpers.BuildSourceEnum(source_type_text)
-        package.webhook_rebuild = form.webhook_rebuild.data
         package.source_json = form.source_json
+        if "webhook_rebuild" in flask.request.form:
+            package.webhook_rebuild = form.webhook_rebuild.data
 
         db.session.add(package)
         db.session.commit()

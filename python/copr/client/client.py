@@ -611,14 +611,17 @@ class CoprClient(UnicodeMixin):
 
     def edit_package_tito(self, package_name, projectname, git_url, git_dir=None, git_branch=None, tito_test=None, ownername=None, webhook_rebuild=None):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_GIT_AND_TITO)
-        response = self.process_package_action(request_url, ownername, projectname, data={
+        data = {
             "package_name": package_name,
             "git_url": git_url,
             "git_directory": git_dir,
             "git_branch": git_branch,
             "tito_test": 'y' if tito_test else '', # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
-            "webhook_rebuild": 'y' if webhook_rebuild else '', # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
-        })
+        }
+        if webhook_rebuild != None:
+            data['webhook_rebuild'] = 'y' if webhook_rebuild else '' # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
+
+        response = self.process_package_action(request_url, ownername, projectname, data)
         return response
 
     def add_package_tito(self, package_name, projectname, git_url, git_dir=None, git_branch=None, tito_test=None, ownername=None, webhook_rebuild=None):
@@ -635,13 +638,16 @@ class CoprClient(UnicodeMixin):
 
     def edit_package_pypi(self, package_name, projectname, pypi_package_name, pypi_package_version, python_versions=[3, 2], ownername=None, webhook_rebuild=None):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_PYPI)
-        response = self.process_package_action(request_url, ownername, projectname, data={
+        data = {
             "package_name": package_name,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
             "python_versions": python_versions,
-            "webhook_rebuild": 'y' if webhook_rebuild else '',
-        })
+        }
+        if webhook_rebuild != None:
+            data['webhook_rebuild'] = 'y' if webhook_rebuild else '' # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
+
+        response = self.process_package_action(request_url, ownername, projectname, data)
         return response
 
     def add_package_pypi(self, package_name, projectname, pypi_package_name, pypi_package_version, python_versions=[3, 2], ownername=None, webhook_rebuild=None):
@@ -657,14 +663,17 @@ class CoprClient(UnicodeMixin):
 
     def edit_package_mockscm(self, package_name, projectname, scm_type, scm_url, scm_branch, spec, ownername=None, webhook_rebuild=None):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_MOCK_SCM)
-        response = self.process_package_action(request_url, ownername, projectname, data={
+        data = {
             "package_name": package_name,
             "scm_type": scm_type,
             "scm_url": scm_url,
             "scm_branch": scm_branch,
             "spec": spec,
-            "webhook_rebuild": 'y' if webhook_rebuild else '',
-        })
+        }
+        if webhook_rebuild != None:
+            data['webhook_rebuild'] = 'y' if webhook_rebuild else '' # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
+
+        response = self.process_package_action(request_url, ownername, projectname, data)
         return response
 
     def add_package_mockscm(self, package_name, projectname, scm_type, scm_url, scm_branch, spec, ownername=None, webhook_rebuild=None):
@@ -681,11 +690,14 @@ class CoprClient(UnicodeMixin):
 
     def edit_package_rubygems(self, package_name, projectname, gem_name, ownername=None, webhook_rebuild=None):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_RUBYGEMS)
-        response = self.process_package_action(request_url, ownername, projectname, data={
+        data = {
             "package_name": package_name,
             "gem_name": gem_name,
-            "webhook_rebuild": 'y' if webhook_rebuild else '',
-        })
+        }
+        if webhook_rebuild != None:
+            data['webhook_rebuild'] = 'y' if webhook_rebuild else '' # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
+
+        response = self.process_package_action(request_url, ownername, projectname, data)
         return response
 
     def add_package_rubygems(self, package_name, projectname, gem_name, ownername=None, webhook_rebuild=None):
