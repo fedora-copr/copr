@@ -35,6 +35,11 @@ import copr.exceptions as copr_exceptions
 from .util import ProgressBar
 from .build_config import MockProfile
 
+ON_OFF_MAP = {
+    'on': True,
+    'off': False,
+    None: None,
+}
 
 no_config_warning = """
 ================= WARNING: =======================
@@ -278,10 +283,10 @@ class Commands(object):
             instructions=args.instructions, chroots=args.chroots,
             repos=args.repos, initial_pkgs=args.initial_pkgs,
             disable_createrepo=args.disable_createrepo,
-            unlisted_on_hp=(args.unlisted_on_hp == 'on'),
-            enable_net=(args.enable_net == 'on'),
+            unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
+            enable_net=ON_OFF_MAP[args.enable_net],
             persistent=args.persistent,
-            auto_prune=(args.auto_prune == 'on')
+            auto_prune=ON_OFF_MAP[args.auto_prune]
         )
         print(result.message)
 
@@ -297,9 +302,9 @@ class Commands(object):
             username=username, projectname=copr,
             description=args.description, instructions=args.instructions,
             repos=args.repos, disable_createrepo=args.disable_createrepo,
-            unlisted_on_hp=(args.unlisted_on_hp == 'on' if args.unlisted_on_hp else None),
-            enable_net=(args.enable_net == 'on' if args.enable_net else None),
-            auto_prune=(args.auto_prune == 'on' if args.auto_prune else None)
+            unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
+            enable_net=ON_OFF_MAP[args.enable_net],
+            auto_prune=ON_OFF_MAP[args.auto_prune]
         )
 
     @requires_api_auth
@@ -443,8 +448,8 @@ class Commands(object):
             "git_url": args.git_url,
             "git_dir": args.git_dir,
             "git_branch": args.git_branch,
-            "tito_test": args.tito_test == 'on',
-            "webhook_rebuild": args.webhook_rebuild == 'on',
+            "tito_test": ON_OFF_MAP[args.tito_test],
+            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
             result = self.client.add_package_tito(ownername=ownername, projectname=projectname, **data)
@@ -460,7 +465,7 @@ class Commands(object):
             "pypi_package_name": args.packagename,
             "pypi_package_version": args.packageversion,
             "python_versions": args.pythonversions,
-            "webhook_rebuild": args.webhook_rebuild == 'on',
+            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
             result = self.client.add_package_pypi(ownername=ownername, projectname=projectname, **data)
@@ -477,7 +482,7 @@ class Commands(object):
             "scm_url": args.scm_url,
             "scm_branch": args.scm_branch,
             "spec": args.spec,
-            "webhook_rebuild": args.webhook_rebuild == 'on',
+            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
             result = self.client.add_package_mockscm(ownername=ownername, projectname=projectname, **data)
@@ -491,7 +496,7 @@ class Commands(object):
         data = {
             "package_name": args.name,
             "gem_name": args.gem_name,
-            "webhook_rebuild": args.webhook_rebuild == 'on',
+            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
             result = self.client.add_package_rubygems(ownername=ownername, projectname=projectname, **data)
