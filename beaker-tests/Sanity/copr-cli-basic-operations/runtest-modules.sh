@@ -121,6 +121,16 @@ rlJournalStart
         # We need to implement API for retrieving modules or at least
         # make a reliable way to fetch its state from web UI
 
+        # Test that it is possible to build module with package from copr
+        yes | cp $HERE/files/coprtestmodule.yaml /tmp
+        sed -i "s/\$VERSION/$DATE/g" /tmp/coprtestmodule.yaml
+        sed -i "s/\$OWNER/clime/g" /tmp/coprtestmodule.yaml
+        sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
+        rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml"
+        PACKAGES=`mktemp`
+        wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 2 600 $PACKAGES
+        rlAssertEquals "Package hello should succeed" `cat $PACKAGES |grep "state" |grep "hello" | grep "succeeded" |wc -l` 1
+
         # @TODO Test that it is possible to build module
         # with few hundreds of packages
 
