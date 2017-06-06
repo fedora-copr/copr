@@ -87,12 +87,35 @@ rlJournalStart
         # @TODO Test that MBS api is not accessible
         # Not yet configured
 
+        # Test that module builds succeeded
+        PACKAGES=`mktemp`
+        STARTED=$(date +%s)
+
+        # Wait until all module packages are built or timeout after 10 minutes
+        while :; do
+            now=$(date +%s)
+            copr-cli list-packages module-testmodule-beakertest-$DATE --with-all-builds > $PACKAGES
+            if [ `cat $PACKAGES |grep state |grep "succeeded\|failed" |wc -l` -eq 3 ]; then break; fi;
+            if [ $(($now - 600)) -gt $STARTED ]; then break; fi;
+            sleep 10
+        done
+
+        rlAssertEquals "All packages should succeed" `cat $PACKAGES |grep "state" | grep "succeeded" |wc -l` 3
+        for pkg in "module-build-macros" "ed" "mksh"; do
+            rlAssertEquals "Package $pkg is missing" `cat $PACKAGES | grep "name" |grep "$pkg" |wc -l` 1
+        done
+
         # @TODO Test that module succeeded
-        # We should wait in loop (with some timeout)
-        # and check builds and module state
+        # We need to implement API for retrieving modules or at least
+        # make a reliable way to fetch its state from web UI
+
+        # @TODO Test that it is possible to build module
+        # with few hundreds of packages
 
         # @TODO Test that module can be enabled with dnf
-        # Feature for enabling module from Copr is not in upstream
+        # We should test this against DNF from
+        # https://copr.fedorainfracloud.org/coprs/mhatina/DNF-Modules/
+        # Problem is that docker image is F25 and DNF is built only for F26
 
         # @TODO Test that enabled module info is correct
         # Feature for enabling module from Copr is not in upstream
