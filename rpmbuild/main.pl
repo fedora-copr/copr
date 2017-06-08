@@ -118,8 +118,10 @@ print $child_fh $mock_config;
 my $origdir = getcwd;
 my $workdir = File::Temp->newdir();
 chdir $workdir;
-my $clone_url = URI->new_abs("$task->{git_repo}.git", $cfg->val('main', 'distgit_clone_url'));
-print capture("git", "clone", $clone_url);
+
+my $distgit_clone_url = $cfg->val('main', 'distgit_clone_url');
+$distgit_clone_url =~ s/^(.*)\/$/$1/;
+print capture("git", "clone", "$distgit_clone_url/$task->{git_repo}.git");
 my $pkgname = basename $task->{git_repo};
 chdir $pkgname;
 print capture("git", "checkout", "$task->{git_hash}");
