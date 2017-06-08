@@ -22,6 +22,7 @@ Requires: perl-JSON-Tiny
 Requires: perl-Data-Types
 Requires: perl-HTTP-Tiny
 Requires: perl-IPC-Run
+Requires: perl-IPC-System-Simple
 Requires: perl-Time-Out
 Requires: perl-File-Tee
 Requires: perl-Proc-Fork
