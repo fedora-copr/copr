@@ -49,6 +49,8 @@ def origin(git_repos):
     cd work
     echo 'empty git repo' > README
     git add README
+    git config --global user.email "you@example.com"
+    git config --global user.name "Your Name"
     git commit -m 'initial commit'
     git push
     """.format(module=abspath)
