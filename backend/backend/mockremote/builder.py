@@ -221,8 +221,11 @@ class Builder(object):
         try:
             self._run_ssh_cmd("/bin/rpm -q copr-builder")
         except RemoteCmdError:
-            raise BuilderError(msg="Build host `{0}` does not have mock or rsync installed"
-                               .format(self.hostname))
+            try:
+                self._run_ssh_cmd("/bin/rpm -q copr-rpmbuild")
+            except RemoteCmdError:
+                raise BuilderError(msg="Build host `{0}` does not have a builder installed"
+                                   .format(self.hostname))
 
         # test for path existence for chroot config
         try:
