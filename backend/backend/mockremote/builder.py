@@ -28,8 +28,14 @@ class Builder(object):
         self.log = logger
 
         # BACKEND/BUILDER API
-        self.builddir = "/var/lib/copr-builder"
-        self.livelog_name = os.path.join(self.builddir, 'live-log')
+
+        if self.opts.builder_perl:
+            self.builddir = "/var/lib/copr-rpmbuild"
+            self.livelog_name = os.path.join(self.builddir, 'main.log')
+        else:
+            self.builddir = "/var/lib/copr-builder"
+            self.livelog_name = os.path.join(self.builddir, 'live-log')
+
         self.resultdir = os.path.join(self.builddir, 'results')
         self.pidfile = os.path.join(self.builddir, 'pid')
 
@@ -121,7 +127,7 @@ class Builder(object):
 
     def _copr_builder_cmd(self):
         if self.opts.builder_perl:
-            return 'main.pl -d {task_id}'.format(task_id=self.job.task_id)
+            return 'copr-rpmbuild -d {task_id}'.format(task_id=self.job.task_id)
 
         template = 'copr-builder --config {config} --copr {copr} ' \
                  + '--package {package} --revision {revision} ' \
@@ -154,7 +160,7 @@ class Builder(object):
             return
 
         ensure_dir_exists(self.job.results_dir, self.log)
-        live_log = os.path.join(self.job.results_dir, 'mockchain-live.log')
+        live_log = os.path.join(self.job.results_dir, 'builder-live.log')
 
         live_cmd = '/usr/bin/tail -F -n +0 --pid={pid} {log}'.format(
             pid=self.build_pid, log=self.livelog_name)
