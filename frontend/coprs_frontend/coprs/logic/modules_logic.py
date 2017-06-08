@@ -115,10 +115,22 @@ class ModulemdGenerator(object):
 
     def add_component(self, package_name, build, chroot, rationale, buildorder=1):
         ref = str(chroot.git_hash) if chroot else ""
-        url = os.path.join(self.config["DIST_GIT_URL"], build.copr.full_name, "{}.git".format(build.package.name))
+        distgit_url = self.config["DIST_GIT_URL"].replace("/cgit", "/git")
+        url = os.path.join(distgit_url, build.copr.full_name, "{}.git".format(build.package.name))
         self.mmd.components.add_rpm(str(package_name), rationale,
                                     repository=url, ref=ref,
                                     buildorder=buildorder)
+
+    def add_requires(self, module, stream):
+        self.mmd.add_requires(module, stream)
+
+    def add_buildrequires(self, module, stream):
+        self.mmd.add_buildrequires(module, stream)
+
+    def add_base_runtime(self):
+        name, stream = "base-runtime", "master"
+        self.add_requires(name, stream)
+        self.add_buildrequires(name, stream)
 
     def generate(self):
         return self.mmd.dumps()
