@@ -26,7 +26,7 @@ import_results = []
 build_results = []
 action_results = []
 
-started_build_tasks = {}
+started_build_task_dict = {}
 
 ########################### error handling ###########################
 
@@ -93,7 +93,7 @@ def backend_starting_build():
 
     build_task = build_task_dict.pop(task_id, None)
     if build_task:
-        started_build_tasks[task_id] = build_task
+        started_build_task_dict[task_id] = build_task
 
     response = {'can_start': True}
     debug_output(response, 'SENDING BACK:', delim=False)
@@ -108,12 +108,12 @@ def backend_update():
     for build in update.get('builds', []):
         if build['status'] == 0 or build['status'] == 1: # if build is finished
             build_results.append(build)
-            started_build_tasks.pop(build['task_id'], None)
+            started_build_task_dict.pop(build['task_id'], None)
             test_for_server_end()
 
         if build['status'] == 3: # running (e.g. from pending)
             build_task_dict.pop(build['task_id'], None)
-            started_build_tasks[build['task_id']] = build
+            started_build_task_dict[build['task_id']] = build
 
     for action in update.get('actions', []):
         action_task_dict.pop(action['id'], None)
@@ -178,7 +178,7 @@ def dump_responses():
 
 
 def test_for_server_end():
-    if not import_task_dict and not build_task_dict and not action_task_dict and not started_build_tasks:
+    if not import_task_dict and not build_task_dict and not action_task_dict and not started_build_task_dict:
         dump_responses()
         shutdown_server()
 
