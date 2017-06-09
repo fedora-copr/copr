@@ -70,7 +70,7 @@
     "_expected_outcome": "success",
 
     "build_id": 21,
-    "buildroot_pkgs": "http://localhost:5000/static/rare_example-1.0.3-2.fc23.x86_64.rpm",
+    "buildroot_pkgs": ["http://localhost:5000/static/rare_example-1.0.3-2.fc23.x86_64.rpm"],
     "chroot": "fedora-24-x86_64",
     "enable_net": false,
     "git_branch": "f23",
@@ -236,7 +236,7 @@
     "pkgs": "",
     "project_name": "copr-dev",
     "project_owner": "@copr",
-    "repos": "http://localhost:5002/results/@builds/rare_example_repo/fedora-23-x86_64",
+    "repos": [{"id": "foo", "name": "foo", "url": "http://localhost:5002/results/@builds/rare_example_repo/fedora-23-x86_64"}],
     "submitter": "clime",
     "task_id": "90-fedora-24-x86_64",
     "timeout": 21600
@@ -258,7 +258,7 @@
     "pkgs": "",
     "project_name": "copr-dev",
     "project_owner": "@copr",
-    "repos": "http://download.fedoraproject.org/pub/fedora/linux/releases/24/Everything/x86_64/os/",
+    "repos": [{"id": "foo", "name": "foo", "url": "http://download.fedoraproject.org/pub/fedora/linux/releases/24/Everything/x86_64/os/"}],
     "submitter": "clime",
     "task_id": "340-custom-1-x86_64",
     "timeout": 86400
