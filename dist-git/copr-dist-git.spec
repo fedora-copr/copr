@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.29
+Version:    0.30
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -147,6 +147,13 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Fri Jun 09 2017 clime <clime@redhat.com> 0.30-1
+- import build task only once
+- remove unsupported --depth from git svn command
+- add dep on git-svn
+- better exception handling in MockScmProvider
+- fix 'git svn clone' and add exception handling for clone part in MockScm provider
+
 * Thu Jun 01 2017 clime <clime@redhat.com> 0.29-1
 - Bug 1457888 - Mock SCM method fails to build a package
 - increase depth for git clone so that required tags that tito needs are downloaded
