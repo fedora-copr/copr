@@ -78,7 +78,7 @@ RUN dnf -y copr enable @modularity/modulemd
 RUN if [ ! $RELEASETEST ]; then dnf -y copr enable @copr/copr-dev; fi
 
 # additional builder packages from COPR repos
-RUN dnf -y install fedpkg-copr
+RUN dnf -y install copr-rpmbuild
 
 # preinstall copr-keygen and its builddeps to utilize most of Docker cache
 RUN cd `mktemp -d` && dnf -y download --source copr-keygen && dnf -y builddep *.src.rpm --allowerasing
