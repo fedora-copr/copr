@@ -137,6 +137,14 @@ def backend_reschedule_all_running():
 def backend_reschedule_build_chroot():
     return flask.jsonify({})
 
+
+@app.route("/backend/get-build-task/<task_id>")
+def get_build_task(task_id):
+    try:
+        return flask.jsonify(build_task_dict[task_id])
+    except KeyError:
+        return flask.jsonify({'msg': 'Specified task ID not found'})
+
 ########################### helpers ###########################
 
 def load_data_dict(filename, task_id_key='task_id'):
