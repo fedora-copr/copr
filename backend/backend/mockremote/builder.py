@@ -224,7 +224,7 @@ class Builder(object):
             try:
                 self._run_ssh_cmd("/bin/rpm -q copr-rpmbuild")
             except RemoteCmdError:
-                raise BuilderError(msg="Build host `{0}` does not have a builder installed"
+                raise BuilderError("Build host `{0}` does not have a builder installed"
                                    .format(self.hostname))
 
         # test for path existence for chroot config
