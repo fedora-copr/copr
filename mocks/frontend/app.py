@@ -26,7 +26,7 @@ import_results = []
 build_results = []
 action_results = []
 
-started_build_tasks = [] # used to determine if server should terminate
+started_build_tasks = {}
 
 ########################### error handling ###########################
 
@@ -91,8 +91,9 @@ def backend_starting_build():
     update = flask.request.json
     task_id = '{0}-{1}'.format(update['build_id'], update['chroot'])
 
-    build_task_dict.pop(task_id, None)
-    started_build_tasks.append(task_id)
+    build_task = build_task_dict.pop(task_id, None)
+    if build_task:
+        started_build_tasks[task_id] = build_task
 
     response = {'can_start': True}
     debug_output(response, 'SENDING BACK:', delim=False)
@@ -107,16 +108,12 @@ def backend_update():
     for build in update.get('builds', []):
         if build['status'] == 0 or build['status'] == 1: # if build is finished
             build_results.append(build)
-            try:
-                started_build_tasks.remove(build['task_id'])
-            except ValueError:
-                pass
+            started_build_tasks.pop(build['task_id'], None)
             test_for_server_end()
 
         if build['status'] == 3: # running (e.g. from pending)
             build_task_dict.pop(build['task_id'], None)
-            if not build['task_id'] in started_build_tasks:
-                started_build_tasks.append(build['task_id'])
+            started_build_tasks[build['task_id']] = build
 
     for action in update.get('actions', []):
         action_task_dict.pop(action['id'], None)
@@ -141,9 +138,12 @@ def backend_reschedule_build_chroot():
 @app.route("/backend/get-build-task/<task_id>")
 def get_build_task(task_id):
     try:
-        return flask.jsonify(build_task_dict[task_id])
+        return flask.jsonify(started_build_task_dict[task_id])
     except KeyError:
-        return flask.jsonify({'msg': 'Specified task ID not found'})
+        try: # useful when testing copr-rpmbuild by directly invoking it
+            return flask.jsonify(build_task_dict[task_id])
+        except KeyError:
+            return flask.jsonify({'msg': 'Specified task ID not found'})
 
 ########################### helpers ###########################
 
