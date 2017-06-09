@@ -2,7 +2,10 @@
 include('/etc/mock/<%= $p{chroot} %>.cfg')
 
 config_opts['root'] = '<%= $p{task_id} %>'
+
+<% if ($p{buildroot_pkgs}) { %>
 config_opts['chroot_additional_packages'] = '<%= join(" ", @{$p{buildroot_pkgs}}) %>'
+<% } %>
 
 config_opts['use_host_resolv'] = <%= $p{enable_net} ? 'True' : 'False' %>
 
