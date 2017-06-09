@@ -9,9 +9,10 @@ config_opts['chroot_additional_packages'] = '<%= join(" ", @{$p{buildroot_pkgs}}
 
 config_opts['use_host_resolv'] = <%= $p{enable_net} ? 'True' : 'False' %>
 
-<% if (@{$p{repos}}) { %>
+<% if ($p{repos}) { %>
+<% my @repos_arr = @{$p{repos}} %>
 config_opts['yum.conf'] += """
-<% foreach my $repo (@{$p{repos}}) { %>
+<% foreach my $repo (@repos_arr) { %>
 [<%= $repo->{id} %>]
 name="<%= $repo->{name} %>"
 baseurl=<%= $repo->{url} %>
