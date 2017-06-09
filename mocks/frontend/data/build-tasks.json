@@ -13,7 +13,7 @@
     "pkgs": "",
     "project_name": "copr-test",
     "project_owner": "@copr",
-    "repos": "",
+    "repos": [{"id": "foo", "name": "bar", "url": "http://foobar.cz"}],
     "submitter": "clime",
     "task_id": "1-fedora-26-x86_64",
     "timeout": 21600
