@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.110
+Version:    1.111
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -397,6 +397,15 @@ service logstash condrestart
 
 
 %changelog
+* Fri Jun 09 2017 clime <clime@redhat.com> 1.111-1
+- build_on_pagure_commit script refactoring
+- support for importing build task only once
+- modularity UI tweaks
+- #67 copr edit-package-tito nulls out fields not edited
+- fix Bug 1455249 - github webhook fires unnecessary builds
+- support for copr-rpmbuild
+- arbitrary dist-git branching
+
 * Thu May 25 2017 clime <clime@redhat.com> 1.110-1
 - gitlab webhooks support
 - make pagure repo auto-rebuilding more error-prone
