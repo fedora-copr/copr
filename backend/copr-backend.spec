@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.99
+Version:    1.100
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,12 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Jun 09 2017 clime <clime@redhat.com> 1.100-1
+- extend check for a builder package present on a builder machine
+- arbitrary dist-git branching
+- remove --add-cache-id from appstream-builder call, see Bug 1426166
+- change to using a standalone builder package
+
 * Wed May 03 2017 clime <clime@redhat.com> 1.99-1
 - missing on_success_build call added back to sign packages and recreate repo after each build
 
