@@ -2,9 +2,9 @@
 {
     "build_id": 1,
     "buildroot_pkgs": null,
-    "chroot": "fedora-23-x86_64",
+    "chroot": "fedora-26-x86_64",
     "enable_net": true,
-    "git_branch": "f23",
+    "git_branch": "f26",
     "git_hash": "0027345a083254b86377eeb18112e40a1669ccbf",
     "git_repo": "@copr/copr-test/example",
     "memory_reqs": 2048,
@@ -15,7 +15,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "1-fedora-23-x86_64",
+    "task_id": "1-fedora-26-x86_64",
     "timeout": 21600
 }
 ]
