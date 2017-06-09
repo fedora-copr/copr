@@ -685,8 +685,6 @@ class DistGitImporter(object):
             log.exception("Exception raised during srpm import:")
         except Exception as e:
             log.exception("Unexpected error")
-            self.post_back_safe({"task_id": task.task_id, "error": "unknown"})
-
         finally:
             provider.cleanup()
             shutil.rmtree(tmp_root, ignore_errors=True)
