@@ -145,7 +145,11 @@ foreach my $source (@sources) {
                 "--retry", "5",
                 "--max-time", "15",
                 "$lookasideurl/$task->{git_repo}/$tarball/$hashval/$tarball");
-        system("md5sum", "-c", "sources") and die "Tarball not present or invalid checksum: $!";
+
+        my $tmp = File::Temp->new();
+        print $tmp $source;
+        close $tmp;
+        system("md5sum", "-c", $tmp) and die "Tarball $tarball not present or invalid checksum: $!";
     } elsif ($source =~ /^(\S+)\s*\((\S+)\)\s*=\s*(\S+)$/) { # new sources format 
         # SHA512 (dist-git-1.2.tar.gz) = 0850e6955f875b942ca4e2802b750b2d4ccc349a51deae97fb0cfe21c41f5b01dfce4c1cf3fcd56c16062d57b0ccb75e3fa2f901c98a843bc3bf14141f427a03
         ($hashtype, $tarball, $hashval) = (lc $1, $2, $3);
@@ -158,7 +162,11 @@ foreach my $source (@sources) {
                 "--retry", "5",
                 "--max-time", "15",
                 "$lookasideurl/$task->{git_repo}/$tarball/$hashtype/$hashval/$tarball");
-        system($hashtype."sum", "-c", "sources") and die "Tarball not present or invalid checksum: $!";
+
+        my $tmp = File::Temp->new();
+        print $tmp $source;
+        close $tmp;
+        system($hashtype."sum", "-c", $tmp) and die "Tarball $tarball not present or invalid checksum: $!";
     } else {
         die "Unexpected format of sources file!";
     }
