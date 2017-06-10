@@ -131,35 +131,37 @@ my @sources = <$sources_fh>;
 my $lookasideurl = $cfg->val('main', 'distgit_lookaside_url');
 $lookasideurl =~ s/^(.*)\/$/$1/;
 
-my ($hashtype, $tarball, $hashval);
-if ($sources[0] =~ /^(\S+)\s*(\S+)$/) { # old sources format
-    # 33b5dd0543a5e02df22ac6b8c00538a5  example-1.0.4.tar.gz
-    ($hashval, $tarball) = ($1, $2);
-    system("curl", "-L",
-            "-H", "Pragma:",
-            "-o", "$tarball",
-            "-R",
-            "-S",
-            "--fail",
-            "--retry", "5",
-            "--max-time", "15",
-            "$lookasideurl/$task->{git_repo}/$tarball/$hashval/$tarball");
-    system("md5sum", "-c", "sources") and die "Tarball not present or invalid checksum: $!";
-} elsif ($sources[0] =~ /^(\S+)\s*\((\S+)\)\s*=\s*(\S+)$/) { # new sources format 
-    # SHA512 (dist-git-1.2.tar.gz) = 0850e6955f875b942ca4e2802b750b2d4ccc349a51deae97fb0cfe21c41f5b01dfce4c1cf3fcd56c16062d57b0ccb75e3fa2f901c98a843bc3bf14141f427a03
-    ($hashtype, $tarball, $hashval) = (lc $1, $2, $3);
-    system("curl", "-L",
-            "-H", "Pragma:",
-            "-o", "$tarball",
-            "-R",
-            "-S",
-            "--fail",
-            "--retry", "5",
-            "--max-time", "15",
-            "$lookasideurl/$task->{git_repo}/$tarball/$hashtype/$hashval/$tarball");
-    system($hashtype."sum", "-c", "sources") and die "Tarball not present or invalid checksum: $!";
-} else {
-    die "Unexpected format of sources file!";
+foreach my $source (@sources) {
+    my ($hashtype, $tarball, $hashval);
+    if ($source =~ /^(\S+)\s*(\S+)$/) { # old sources format
+        # 33b5dd0543a5e02df22ac6b8c00538a5  example-1.0.4.tar.gz
+        ($hashval, $tarball) = ($1, $2);
+        system("curl", "-L",
+                "-H", "Pragma:",
+                "-o", "$tarball",
+                "-R",
+                "-S",
+                "--fail",
+                "--retry", "5",
+                "--max-time", "15",
+                "$lookasideurl/$task->{git_repo}/$tarball/$hashval/$tarball");
+        system("md5sum", "-c", "sources") and die "Tarball not present or invalid checksum: $!";
+    } elsif ($source =~ /^(\S+)\s*\((\S+)\)\s*=\s*(\S+)$/) { # new sources format 
+        # SHA512 (dist-git-1.2.tar.gz) = 0850e6955f875b942ca4e2802b750b2d4ccc349a51deae97fb0cfe21c41f5b01dfce4c1cf3fcd56c16062d57b0ccb75e3fa2f901c98a843bc3bf14141f427a03
+        ($hashtype, $tarball, $hashval) = (lc $1, $2, $3);
+        system("curl", "-L",
+                "-H", "Pragma:",
+                "-o", "$tarball",
+                "-R",
+                "-S",
+                "--fail",
+                "--retry", "5",
+                "--max-time", "15",
+                "$lookasideurl/$task->{git_repo}/$tarball/$hashtype/$hashval/$tarball");
+        system($hashtype."sum", "-c", "sources") and die "Tarball not present or invalid checksum: $!";
+    } else {
+        die "Unexpected format of sources file!";
+    }
 }
 
 my $timeout = ($task->{timeout} or 1e6);
@@ -172,7 +174,7 @@ timeout $timeout => sub {
         "unbuffer", "/usr/bin/mock",
         "--buildsrpm",
         "--spec", "$pkgname.spec",
-        "--sources", "$tarball",
+        "--sources", ".",
         "--resultdir", "intermediate-srpm",
         "--no-cleanup-after",
         "--configdir", "$configs_dir",
