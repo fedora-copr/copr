@@ -134,6 +134,8 @@ rlJournalStart
         # @TODO Test that it is possible to build module
         # with few hundreds of packages
 
+        # @TODO Test that there are expected files for built modules on copr-backend
+
         # @TODO Test that module can be enabled with dnf
         # We should test this against DNF from
         # https://copr.fedorainfracloud.org/coprs/mhatina/DNF-Modules/
