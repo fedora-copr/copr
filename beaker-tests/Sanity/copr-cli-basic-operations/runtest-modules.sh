@@ -106,8 +106,9 @@ rlJournalStart
         # some time of using the MBS. See a related RFE
         # https://pagure.io/fm-orchestrator/issue/308
 
-        # @TODO Test that MBS api is not accessible
-        # Not yet configured
+        # Test that MBS api is not accessible
+        rlAssertEquals "MBS API should be directly accessible from copr-frontend only"\
+                       `curl -I -s -L $FRONTEND_URL/module/1/module-builds |grep 'HTTP/1.1' |cut -f2 -d ' '` 403
 
         # Test that module builds succeeded
         PACKAGES=`mktemp`
