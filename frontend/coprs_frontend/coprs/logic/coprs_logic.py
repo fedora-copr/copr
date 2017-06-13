@@ -203,7 +203,7 @@ class CoprsLogic(object):
     @classmethod
     def add(cls, user, name, selected_chroots, repos=None, description=None,
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
-            auto_prune=True, **kwargs):
+            auto_prune=True, use_bootstrap_container=False, **kwargs):
 
         if not user.admin and persistent:
             raise exceptions.NonAdminCannotCreatePersistentProject()
@@ -219,6 +219,7 @@ class CoprsLogic(object):
                            created_on=int(time.time()),
                            persistent=persistent,
                            auto_prune=auto_prune,
+                           use_bootstrap_container=use_bootstrap_container,
                            **kwargs)
 
         if group is not None:

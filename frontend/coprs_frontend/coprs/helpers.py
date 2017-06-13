@@ -607,4 +607,5 @@ def generate_build_config(copr, chroot_id):
         'additional_packages': packages.split(),
         'repos': repos,
         'chroot': chroot_id,
+        'use_bootstrap_container': copr.use_bootstrap_container
     }

@@ -177,6 +177,7 @@ def group_copr_new(group_name):
                 group=group,
                 persistent=form.persistent.data,
                 auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
+                use_bootstrap_container=form.use_bootstrap_container.data,
             )
         except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
             flask.flash(str(e), "error")
@@ -216,6 +217,7 @@ def copr_new(username):
                 unlisted_on_hp=form.unlisted_on_hp.data,
                 persistent=form.persistent.data,
                 auto_prune=(form.auto_prune.data if flask.g.user.admin else True),
+                use_bootstrap_container=form.use_bootstrap_container.data,
             )
         except (exceptions.DuplicateException, exceptions.NonAdminCannotCreatePersistentProject) as e:
             flask.flash(str(e), "error")
@@ -464,6 +466,7 @@ def process_copr_update(copr, form):
     copr.disable_createrepo = form.disable_createrepo.data
     copr.build_enable_net = form.build_enable_net.data
     copr.unlisted_on_hp = form.unlisted_on_hp.data
+    copr.use_bootstrap_container = form.use_bootstrap_container.data
     if flask.g.user.admin:
         copr.auto_prune = form.auto_prune.data
     else:

@@ -154,6 +154,12 @@
           </small>
         </div>
         {% endif %}
+        <div class="checkbox">
+          {{ form.use_bootstrap_container }} Enable mock's use_bootstrap_container experimental feature
+          <small class="text-muted pficon pficon-info">
+            This will make the build slower but it has an advantage that the dnf _from_ the given chroot will be used to setup the chroot (otherwise host system dnf and rpm is used)
+          </small>
+        </div>
       </div>
     </div>
 

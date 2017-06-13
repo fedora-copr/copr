@@ -258,6 +258,7 @@ class CoprFormFactory(object):
             unlisted_on_hp = wtforms.BooleanField("Do not display this project on home page", default=False)
             persistent = wtforms.BooleanField(default=False)
             auto_prune = wtforms.BooleanField("If backend auto-prunning script should be run for this project", default=True)
+            use_bootstrap_container = wtforms.BooleanField("Enable use_bootstrap_container mock's feature (experimental)", default=False)
 
             @property
             def selected_chroots(self):
@@ -696,6 +697,7 @@ class CoprModifyForm(wtf.Form):
     unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
     build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
     auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
+    use_bootstrap_container = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
 
 
 class CoprForkFormFactory(object):

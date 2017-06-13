@@ -228,6 +228,9 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # if backend deletion script should be run for the project's builds
     auto_prune = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
 
+    # use mock's bootstrap container feature
+    use_bootstrap_container = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
