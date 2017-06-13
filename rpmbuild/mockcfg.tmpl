@@ -8,6 +8,7 @@ config_opts['chroot_additional_packages'] = '<%= join(" ", @{$p{buildroot_pkgs}}
 <% } %>
 
 config_opts['use_host_resolv'] = <%= $p{enable_net} ? 'True' : 'False' %>
+config_opts['use_bootstrap_container'] = <%= $p{use_bootstrap_container} ? 'True' : 'False' %>
 
 <% if ($p{repos}) { %>
 <% my @repos_arr = @{$p{repos}} %>

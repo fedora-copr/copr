@@ -102,7 +102,8 @@ my $mock_config = $tts->compile(
     task_id => $task->{task_id},
     buildroot_pkgs => $task->{buildroot_pkgs},
     repos => $task->{repos},
-    enable_net => $task->{enable_net}
+    enable_net => $task->{enable_net},
+    use_bootstrap_container => $task->{use_bootstrap_container}
     ]
 );
 
