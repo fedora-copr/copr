@@ -18,10 +18,12 @@ from requests import RequestException
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError, CoprSignError
-from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, run_ssh
+from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, cmd_debug
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 from .vm_manage.manager import VmManager
+
+from sshcmd import SSHConnectionError, SSHConnection
 
 class Action(object):
     """ Object to send data back to fronted
@@ -365,6 +367,7 @@ class Action(object):
         result.result = ActionResult.SUCCESS
 
     def handle_cancel_build(self, result):
+        result.result = ActionResult.SUCCESS
         data = json.loads(self.data["data"])
         task_id = data["task_id"]
 
@@ -377,15 +380,43 @@ class Action(object):
             result.result = ActionResult.FAILURE
             return
 
-        cmd_result = run_ssh(["killall", "-9", "mockchain"], 'root', vmd.vm_ip)
-        if cmd_result.returncode == 0:
-            result.result = ActionResult.SUCCESS
-        else:
-            result.result = ActionResult.FAILURE
+        conn = SSHConnection(
+            user=self.opts.build_user,
+            host=vmd.vm_ip,
+            config_file=self.opts.ssh.builder_config
+        )
 
-        self.log.info("stdout: {}".format(cmd_result.stdout))
-        self.log.info("stderr: {}".format(cmd_result.stderr))
-        self.log.info("rc: {}".format(cmd_result.returncode))
+        cmd = "cat /var/lib/copr-rpmbuild/pid"
+        try:
+            rc, out, err = conn.run_expensive(cmd)
+        except SSHConnectionError:
+            self.log.exception("Error runing cmd: {}".format(cmd))
+            result.result = ActionResult.FAILURE
+            return
+
+        cmd_debug(cmd, rc, out, err, self.log)
+
+        if rc != 0:
+            result.result = ActionResult.FAILURE
+            return
+
+        try:
+            pid = int(out.strip())
+        except ValueError:
+            self.log.exception("Invalid pid {} received".format(out))
+            result.result = ActionResult.FAILURE
+            return
+
+        cmd = "kill -9 {}".format(pid)
+        try:
+            rc, out, err = conn.run_expensive(cmd)
+        except SSHConnectionError:
+            self.log.exception("Error runing cmd: {}".format(cmd))
+            result.result = ActionResult.FAILURE
+            return
+
+        cmd_debug(cmd, rc, out, err, self.log)
+        result.result = ActionResult.SUCCESS
 
 
     def handle_build_module(self, result):

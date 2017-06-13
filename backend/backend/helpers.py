@@ -50,6 +50,11 @@ def pyconffile(filename):
         raise
     return d
 
+def cmd_debug(cmd, rc, out, err, log):
+    log.info("cmd: {}".format(cmd))
+    log.info("rc: {}".format(rc))
+    log.info("stdout: {}".format(out))
+    log.info("stderr: {}".format(err))
 
 def run_cmd(cmd):
     """Runs given command in a subprocess.
