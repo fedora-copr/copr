@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.100
+Version:    1.101
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Jun 14 2017 clime <clime@redhat.com> 1.101-1
+- remove unused helpers.run_ssh + function spacing fixup
+- cancel-build action fix
+
 * Fri Jun 09 2017 clime <clime@redhat.com> 1.100-1
 - extend check for a builder package present on a builder machine
 - arbitrary dist-git branching
