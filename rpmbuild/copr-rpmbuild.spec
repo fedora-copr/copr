@@ -1,6 +1,6 @@
 Summary: Run COPR build tasks
 Name: copr-rpmbuild
-Version: 0.2
+Version: 0.3
 Release: 1%{?dist}
 
 # Source is created by:
@@ -68,6 +68,13 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 #%{perl_vendorlib}/*
 
 %changelog
+* Wed Jun 14 2017 clime <clime@redhat.com> 0.3-1
+- support for mock's bootstrap container
+- check each line of sources file separately
+- allow multiple sources and use current dir for mock as source dir
+- also check for value of repos first before array referencing in mockcfg.tmpl
+- handle null for buildroot_pkgs in mockcfg.tmpl
+
 * Fri Jun 09 2017 clime <clime@redhat.com> 0.2-1
 - new package built with tito
 
