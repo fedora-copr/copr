@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.111
+Version:    1.112
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -397,6 +397,9 @@ service logstash condrestart
 
 
 %changelog
+* Wed Jun 14 2017 clime <clime@redhat.com> 1.112-1
+- use_bootstrap_container frontend support
+
 * Fri Jun 09 2017 clime <clime@redhat.com> 1.111-1
 - build_on_pagure_commit script refactoring
 - support for importing build task only once
