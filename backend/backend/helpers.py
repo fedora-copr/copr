@@ -50,11 +50,13 @@ def pyconffile(filename):
         raise
     return d
 
+
 def cmd_debug(cmd, rc, out, err, log):
     log.info("cmd: {}".format(cmd))
     log.info("rc: {}".format(rc))
     log.info("stdout: {}".format(out))
     log.info("stderr: {}".format(err))
+
 
 def run_cmd(cmd):
     """Runs given command in a subprocess.
@@ -78,26 +80,6 @@ def run_cmd(cmd):
         stderr = stderr,
         returncode = process.returncode
     )
-
-
-def run_ssh(cmd, user, ip):
-    """Runs given command through ssh on a remote machine.
-
-    Params
-    ------
-    cmd : list(str)
-        command to be executed with ssh
-    user: str
-        user to connect with
-    ip: str
-        ip address of the remote machine
-
-    Returns
-    -------
-    munch.Munch(stdout, stderr, returncode)
-        standard output, error output, and the return code from ssh
-    """
-    return run_cmd(["ssh", "{0}@{1}".format(user, ip)] + cmd)
 
 
 def wait_log(log, reason="I don't know why.", timeout=5):
@@ -333,6 +315,7 @@ def get_persistent_status(front_url, username, projectname):
         return bool(result.data["detail"]["persistent"])
     else:
         return True
+
 
 def get_auto_prune_status(front_url, username, projectname):
     client = CoprClient(copr_url=front_url)
