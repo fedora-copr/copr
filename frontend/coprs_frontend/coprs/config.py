@@ -63,7 +63,7 @@ class Config(object):
 
     LOGIN_INFO = {
         'user_link': 'https://admin.fedoraproject.org/accounts/user/view/{username}/',
-        # 'user_desc': 'FAS'
+        'user_desc': 'fas'
     }
 
 

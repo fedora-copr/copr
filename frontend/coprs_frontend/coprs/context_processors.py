@@ -37,10 +37,9 @@ def login_menu():
     if flask.g.user:
         # User authenticated.
         user = flask.g.user
-        desc = " ({})".format(info['user_desc']) if 'user_desc' in info else ''
         menu.append({
-            'link': info['user_link'].format(username=user.name),
-            'desc': "{0}{1}".format(user.name, desc),
+            'link': flask.url_for('coprs_ns.coprs_by_user', username=user.name),
+            'desc': user.name,
         })
 
         menu.append({
