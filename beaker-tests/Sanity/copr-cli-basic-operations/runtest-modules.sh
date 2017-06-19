@@ -42,6 +42,28 @@ echo "BACKEND_URL = $BACKEND_URL"
 SCRIPT=`realpath $0`
 HERE=`dirname $SCRIPT`
 
+function wait_for_finished_module()
+{
+    # Wait until module packages are built or timeout
+    # $1 - project name
+    # $2 - expected number of packages
+    # $3 - timeout in seconds
+    # $4 - temporary file for output
+    local project=$1
+    local packages=$2
+    local timeout=$3
+    local tmp=$4
+    local started=$(date +%s)
+    while :; do
+        now=$(date +%s)
+        copr-cli list-packages $project --with-all-builds > $tmp
+        if [ `cat $tmp |grep state |grep "succeeded\|failed" |wc -l` -eq $packages ]; then break; fi;
+        if [ $(($now - $timeout)) -gt $started ]; then break; fi;
+        sleep 10
+    done
+}
+
+
 rlJournalStart
     rlPhaseStartSetup
         rlAssertRpm "copr-cli"
@@ -84,22 +106,13 @@ rlJournalStart
         # some time of using the MBS. See a related RFE
         # https://pagure.io/fm-orchestrator/issue/308
 
-        # @TODO Test that MBS api is not accessible
-        # Not yet configured
+        # Test that MBS api is not accessible
+        rlAssertEquals "MBS API should be directly accessible from copr-frontend only"\
+                       `curl -I -s -L $FRONTEND_URL/module/1/module-builds |grep 'HTTP/1.1' |cut -f2 -d ' '` 403
 
         # Test that module builds succeeded
         PACKAGES=`mktemp`
-        STARTED=$(date +%s)
-
-        # Wait until all module packages are built or timeout after 10 minutes
-        while :; do
-            now=$(date +%s)
-            copr-cli list-packages module-testmodule-beakertest-$DATE --with-all-builds > $PACKAGES
-            if [ `cat $PACKAGES |grep state |grep "succeeded\|failed" |wc -l` -eq 3 ]; then break; fi;
-            if [ $(($now - 600)) -gt $STARTED ]; then break; fi;
-            sleep 10
-        done
-
+        wait_for_finished_module "module-testmodule-beakertest-$DATE" 3 600 $PACKAGES
         rlAssertEquals "All packages should succeed" `cat $PACKAGES |grep "state" | grep "succeeded" |wc -l` 3
         for pkg in "module-build-macros" "ed" "mksh"; do
             rlAssertEquals "Package $pkg is missing" `cat $PACKAGES | grep "name" |grep "$pkg" |wc -l` 1
@@ -109,8 +122,20 @@ rlJournalStart
         # We need to implement API for retrieving modules or at least
         # make a reliable way to fetch its state from web UI
 
+        # Test that it is possible to build module with package from copr
+        yes | cp $HERE/files/coprtestmodule.yaml /tmp
+        sed -i "s/\$VERSION/$DATE/g" /tmp/coprtestmodule.yaml
+        sed -i "s/\$OWNER/clime/g" /tmp/coprtestmodule.yaml
+        sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
+        rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml"
+        PACKAGES=`mktemp`
+        wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 2 600 $PACKAGES
+        rlAssertEquals "Package hello should succeed" `cat $PACKAGES |grep "state" |grep "hello" | grep "succeeded" |wc -l` 1
+
         # @TODO Test that it is possible to build module
         # with few hundreds of packages
+
+        # @TODO Test that there are expected files for built modules on copr-backend
 
         # @TODO Test that module can be enabled with dnf
         # We should test this against DNF from

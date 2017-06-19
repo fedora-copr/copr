@@ -1,0 +1,32 @@
+document: modulemd
+version: 1
+data:
+    name: coprtestmodule
+    stream: beakertest
+    version: $VERSION
+    summary: A test module with copr packages
+    description: This module demonstrates how to have package from copr
+    license:
+        module: [ MIT ]
+    dependencies:
+        buildrequires:
+            base-runtime: master
+        requires:
+            base-runtime: master
+    references:
+        community: https://fedoraproject.org/wiki/Modularity
+        documentation: https://fedoraproject.org/wiki/Fedora_Packaging_Guidelines_for_Modules
+        tracker: https://taiga.fedorainfracloud.org/project/modularity
+    profiles:
+        default:
+            rpms:
+                - hello
+    api:
+        rpms:
+            - hello
+    components:
+        rpms:
+          ed:
+            rationale: An example of Copr package
+            ref: $REF
+            repository: 'http://copr-dist-git.fedorainfracloud.org/git/$OWNER/$PROJECT/ed.git'
