@@ -1,7 +1,8 @@
-Summary: Run COPR build tasks
 Name: copr-rpmbuild
+Summary: Run COPR build tasks
 Version: 0.3
 Release: 1%{?dist}
+URL: https://pagure.io/copr/copr
 
 # Source is created by:
 # git clone https://pagure.io/copr/copr.git
@@ -32,7 +33,9 @@ Requires: expect
 Requires: curl
 
 %description
-Provides command capable of running COPR build-task definitions.
+Provides command capable of running COPR build-tasks.
+Example: copr-rpmbuild 12345-epel-7-x86_64 will locally
+build build-id 12345 for chroot epel-7-x86_64.
 
 %prep
 %setup -q
@@ -64,8 +67,6 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/main.ini
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mockcfg.tmpl
-
-#%{perl_vendorlib}/*
 
 %changelog
 * Wed Jun 14 2017 clime <clime@redhat.com> 0.3-1
