@@ -144,7 +144,7 @@ foreach my $source (@sources) {
                 "-S",
                 "--fail",
                 "--retry", "5",
-                "--max-time", "15",
+                "--max-time", "360",
                 "$lookasideurl/$task->{git_repo}/$tarball/$hashval/$tarball");
 
         my $tmp = File::Temp->new();
@@ -161,7 +161,7 @@ foreach my $source (@sources) {
                 "-S",
                 "--fail",
                 "--retry", "5",
-                "--max-time", "15",
+                "--max-time", "360",
                 "$lookasideurl/$task->{git_repo}/$tarball/$hashtype/$hashval/$tarball");
 
         my $tmp = File::Temp->new();
