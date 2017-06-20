@@ -1,17 +1,16 @@
 FROM fedora:25
 MAINTAINER clime@redhat.com
 
-RUN dnf -y install tito
-RUN dnf -y install pyp2rpm
-RUN dnf -y install rubygem-gem2rpm
-RUN dnf -y install mock mock-scm
-
-# tito's GitAnnexBuilder needs '/bin/which' (rhbz#1450950)
-RUN dnf -y install git-annex which
+RUN dnf -y install tito \
+                   pyp2rpm \
+                   rubygem-gem2rpm \
+                   mock mock-scm \
+                   git-annex which
 
 # ensure all possible locales are installed
 RUN truncate /etc/rpm/macros.image-language-conf --size=0
-RUN dnf -y reinstall glibc-all-langpacks || dnf -y install glibc-all-langpacks --best
+RUN dnf -y reinstall glibc-all-langpacks || dnf -y install glibc-all-langpacks --best \
+    dnf clean all
 
 ENV LANG en_US.UTF-8
 
