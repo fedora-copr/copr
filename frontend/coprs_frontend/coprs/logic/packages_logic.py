@@ -1,5 +1,7 @@
 import json
 import time
+import re
+
 from sqlalchemy import or_
 from sqlalchemy import and_, bindparam, Integer
 from sqlalchemy.sql import false, true, text
@@ -118,9 +120,10 @@ WHERE package.copr_id = :copr_id;
     def commits_belong_to_package(cls, package, commits, ref_type, ref):
         if ref_type == "tag":
             # way to exclude some packages from building for Tito method
-            if package.source_type_text == "git_and_tito" \
-                    and package.name not in ref:
-                return False
+            if package.source_type_text == "git_and_tito":
+                matches = re.search(r'(.*)-[^-]+-[^-]+$', ref)
+                if matches and package.name != matches.group(1):
+                    return False
             return True
 
         if package.source_type_text == "git_and_tito":
