@@ -173,6 +173,9 @@ foreach my $source (@sources) {
     }
 }
 
+# Copy spec to the result directory for review purpose
+copy("$pkgname.spec", $resultdir) or die "Copy of .spec failed: $!";
+
 my $timeout = ($task->{timeout} or 1e6);
 
 # Do the build
