@@ -101,6 +101,7 @@ my $mock_config = $tts->compile(
     chroot => $task->{chroot},
     task_id => $task->{task_id},
     buildroot_pkgs => $task->{buildroot_pkgs},
+    pkg_manager_conf => $task->{chroot} =~ /custom-1/ ? "dnf" : "yum",
     repos => $task->{repos},
     enable_net => $task->{enable_net},
     use_bootstrap_container => $task->{use_bootstrap_container}
