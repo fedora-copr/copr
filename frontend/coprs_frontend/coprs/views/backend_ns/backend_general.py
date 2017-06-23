@@ -144,9 +144,9 @@ def get_build_record(task):
             "git_branch": task.mock_chroot.distgit_branch_name,
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
-            "repos": build_config["repos"],
-            "buildroot_pkgs": build_config["additional_packages"],
-            "use_bootstrap_container": build_config["use_bootstrap_container"]
+            "repos": build_config.get("repos"),
+            "buildroot_pkgs": build_config.get("additional_packages"),
+            "use_bootstrap_container": build_config.get("use_bootstrap_container")
         }
 
     except Exception as err:

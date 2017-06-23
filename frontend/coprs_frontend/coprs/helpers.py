@@ -570,7 +570,7 @@ def generate_build_config(copr, chroot_id):
         if i.mock_chroot.name == chroot_id:
             chroot = i
     if not chroot:
-        return ""
+        return {}
 
     packages = "" if not chroot.buildroot_pkgs else chroot.buildroot_pkgs
 
