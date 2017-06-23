@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.112
+Version:    1.113
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -397,6 +397,11 @@ service logstash condrestart
 
 
 %changelog
+* Fri Jun 23 2017 clime <clime@redhat.com> 1.113-1
+- fix for a case when build task is pending for chroot no longer enabled in the project
+- address Bug 1455249 - github webhook fires unnecessary builds
+- Bug 1461371 - Counterintuitive user link
+
 * Wed Jun 14 2017 clime <clime@redhat.com> 1.112-1
 - use_bootstrap_container frontend support
 
