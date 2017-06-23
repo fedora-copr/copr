@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.3
+Version: 0.4
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -70,6 +70,13 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mockcfg.tmpl
 
 %changelog
+* Fri Jun 23 2017 clime <clime@redhat.com> 0.4-1
+- use dnf.conf for custom-1 chroots
+- also copy .spec to the build result directory
+- raise curl timeout for downloading sources to be built
+- changes according to review bz#1460630
+- rpmbuild_networking option is now used to enable/disable net
+
 * Wed Jun 14 2017 clime <clime@redhat.com> 0.3-1
 - support for mock's bootstrap container
 - check each line of sources file separately
