@@ -65,6 +65,7 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %dir %attr(0775, root, mock) %{_sharedstatedir}/copr-rpmbuild
 %dir %attr(0775, root, mock) %{_sharedstatedir}/copr-rpmbuild/results
 
+%dir %{_sysconfdir}/copr-rpmbuild
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/main.ini
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mockcfg.tmpl
 
