@@ -122,6 +122,26 @@ rlJournalStart
         # We need to implement API for retrieving modules or at least
         # make a reliable way to fetch its state from web UI
 
+        # Test that user-defined macros are in the buildroot
+        yes | cp $HERE/files/test-macros-module.yaml /tmp
+        sed -i "s/\$VERSION/$DATE/g" /tmp/test-macros-module.yaml
+        copr-cli build-module --yaml /tmp/test-macros-module.yaml
+        PACKAGES=`mktemp`
+        wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 2 600 $PACKAGES
+
+        SRPM=`rpmbuild -bs files/test-macros.spec |grep Wrote: |cut -d ' ' -f2`
+        copr-cli build "module-test-macros-module-beakertest-$DATE" $SRPM
+        ID=`copr-cli get-package module-test-macros-module-beakertest-$DATE --name test-macros --with-all-builds | jq '.builds[0].id'`
+        TMP=`mktemp -d`
+        MACROS=`mktemp`
+        copr-cli download-build --dest $TMP $ID
+        rpm -qp --queryformat '%{DESCRIPTION}' $TMP/custom-1-x86_64/test-macros-1.0-*src.rpm |grep MACRO > $MACROS
+        rlAssertEquals "Both macros should be present" `cat $MACROS |wc -l` 2
+        rlAssertEquals "Macro should correctly expand" `cat $MACROS |grep "This is my module macro" |wc -l` 1
+        rlAssertEquals "Macro using nested macro shoud correctly expand" \
+                       `cat $MACROS |grep "My package is called test-macros" |wc -l` 1
+
+
         # Test that it is possible to build module with package from copr
         yes | cp $HERE/files/coprtestmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/coprtestmodule.yaml
