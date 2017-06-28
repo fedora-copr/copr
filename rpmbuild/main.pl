@@ -174,8 +174,11 @@ foreach my $source (@sources) {
     }
 }
 
+# Find out spec name
+my $spec_file = glob "*.spec";
+
 # Copy spec to the result directory for review purpose
-copy("$pkgname.spec", $resultdir) or die "Copy of .spec failed: $!";
+copy($spec_file, $resultdir) or die "Copy of .spec failed: $!";
 
 my $timeout = ($task->{timeout} or 1e6);
 
@@ -186,14 +189,14 @@ timeout $timeout => sub {
         "/usr/bin/spectool",
         "-g",
         "-f",
-        "$pkgname.spec",
-    ] or die "Could fetch additional sources: $!";
+        $spec_file,
+    ] or die "Could not fetch additional sources: $!";
 
     # Build srpm
     run [
         "unbuffer", "/usr/bin/mock",
         "--buildsrpm",
-        "--spec", "$pkgname.spec",
+        "--spec", $spec_file,
         "--sources", ".",
         "--resultdir", "intermediate-srpm",
         "--no-cleanup-after",
