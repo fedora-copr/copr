@@ -190,7 +190,7 @@ timeout $timeout => sub {
         "-g",
         "-f",
         $spec_file,
-    ] or die "Could not fetch additional sources: $!";
+    ];
 
     # Build srpm
     run [
