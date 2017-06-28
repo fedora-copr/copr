@@ -181,6 +181,13 @@ my $timeout = ($task->{timeout} or 1e6);
 
 # Do the build
 timeout $timeout => sub {
+    # First run spec through spectool
+    run [
+        "/usr/bin/spectool",
+        "-g",
+        "-f",
+        "$pkgname.spec",
+    ] or die "Could fetch additional sources: $!";
 
     # Build srpm
     run [
