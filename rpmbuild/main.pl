@@ -184,13 +184,19 @@ my $timeout = ($task->{timeout} or 1e6);
 
 # Do the build
 timeout $timeout => sub {
+
+    my $additional_source_dir = File::Temp->newdir();
+
     # First run spec through spectool
     run [
         "/usr/bin/spectool",
         "-g",
-        "-f",
+        "--directory", $additional_source_dir,
         $spec_file,
     ];
+
+    # Move anything downloaded into the current dir
+    move($_, '.') for grep { -f } glob("$additional_source_dir/*");
 
     # Build srpm
     run [
