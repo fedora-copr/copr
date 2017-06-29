@@ -6,7 +6,6 @@ import string
 
 from six import with_metaclass
 from six.moves.urllib.parse import urljoin, urlparse
-import pipes
 from textwrap import dedent
 import re
 
@@ -559,8 +558,7 @@ def pre_process_repo_url(chroot, repo_url):
 
     repo_url = repo_url.replace("$chroot", chroot)
     repo_url = repo_url.replace("$distname", chroot.split("-")[0])
-
-    return pipes.quote(repo_url)
+    return repo_url
 
 
 def generate_build_config(copr, chroot_id):
