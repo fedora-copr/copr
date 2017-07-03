@@ -5,8 +5,8 @@ import os
 import sys
 import logging
 
-from dist_git.helpers import DistGitConfigReader
-from dist_git.dist_git_importer import DistGitImporter
+from dist_git.helpers import ConfigReader
+from dist_git.importer import Importer
 
 log = logging.getLogger(__name__)
 
@@ -17,14 +17,13 @@ def main():
     if len(sys.argv) > 1:
         config_file = sys.argv[1]
 
-    config_reader = DistGitConfigReader(config_file)
+    config_reader = ConfigReader(config_file)
     try:
         opts = config_reader.read()
     except Exception:
         print("Failed to read config file, used file location: `{}`"
               .format(config_file))
         sys.exit(1)
-
 
     logging.basicConfig(
         filename=os.path.join(opts.log_dir, "main.log"),
@@ -48,8 +47,11 @@ def main():
     log.info("Logging configuration done")
     log.info("Using configuration: \n"
              "{}".format(opts))
-    importer = DistGitImporter(opts)
-    importer.run()
+    importer = Importer(opts)
+    try:
+        importer.run()
+    except:
+        log.exception("Unexpected exception raised")
 
 
 if __name__ == "__main__":

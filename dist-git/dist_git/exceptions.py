@@ -1,37 +1,31 @@
-from .helpers import FailTypeEnum
-
-
-class CoprDistGitException(Exception):
+class PackageImportException(Exception):
     strtype = 'unknown_error'
 
 
-class PackageImportException(CoprDistGitException):
-    strtype = 'srpm_import_failed'
+class RunCommandException(PackageImportException):
+    strtype = 'shell_command_failed'
 
 
-class PackageDownloadException(CoprDistGitException):
-    strtype = 'srpm_download_failed'
+class FileDownloadException(PackageImportException):
+    strtype = 'download_failed'
 
 
-class SrpmBuilderException(CoprDistGitException):
-    strtype = 'srpm_build_error'
-
-
-class SrpmQueryException(CoprDistGitException):
+class SrpmQueryException(PackageImportException):
     strtype = 'srpm_query_failed'
 
 
-class GitCloneException(CoprDistGitException):
+class GitCloneException(PackageImportException):
     strtype = 'git_clone_failed'
 
 
-class GitWrongDirectoryException(CoprDistGitException):
+class GitWrongDirectoryException(PackageImportException):
     strtype = 'git_wrong_directory'
 
 
-class GitCheckoutException(CoprDistGitException):
+class GitCheckoutException(PackageImportException):
     strtype = 'git_checkout_error'
 
 
-class TimeoutException(CoprDistGitException):
+class TimeoutException(PackageImportException):
     strtype = 'import_timeout_exceeded'
+

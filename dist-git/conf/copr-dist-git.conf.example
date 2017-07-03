@@ -10,6 +10,3 @@ frontend_auth=backend_password_from_fe_config
 log_dir=/tmp/copr-dist-git
 
 per_task_log_dir=/var/lib/copr-dist-git/per-task-logs/
-
-# which chroot to use for mock-scm builds
-mock_scm_chroot=fedora-rawhide-x86_64

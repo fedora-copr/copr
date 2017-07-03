@@ -152,7 +152,7 @@
 {% macro copr_build_form_tito(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
-    {{ source_description('This method uses <a href="https://github.com/dgoodwin/tito">Tito</a> in a Git repository to create the SRPM for you automatically. Please provide the Git URL.')}}
+    {{ source_description('In test mode, this method automatically tags srpms with commit hex (based on <a href="https://github.com/dgoodwin/tito">Tito</a>). Please provide the Git or SVN URL.')}}
 
     {{ render_field(form.git_url, placeholder="Public clone URL of your git repository.") }}
     {{ render_field(form.git_directory, placeholder="Optional - A directory in the git containing the spec file.") }}
@@ -173,7 +173,7 @@
 {% macro copr_build_form_mock(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
-    {{ source_description('This method uses an <a href="https://fedoraproject.org/wiki/Projects/Mock/Plugin/Scm">SCM plugin for Mock</a> in a Git or SVN repository to create the SRPM for you automatically. Please provide the Git or SVN URL.')}}
+  {{ source_description('This method is based on <a href="https://fedoraproject.org/wiki/Projects/Mock/Plugin/Scm">SCM plugin for Mock</a>. Please provide the Git or SVN URL.')}}
 
     {{ render_field(form.scm_type) }}
     {{ render_field(form.scm_url, placeholder="URL to your Git or SVN repository") }}

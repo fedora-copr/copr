@@ -63,7 +63,7 @@ def dist_git_upload_completed():
         - set it to pending state
         - set BuildChroot.git_hash
         - if it's the last BuildChroot in a Build:
-            - delete local srpm
+            - delete local source
     BuildChroot is identified with task_id which is build id + git branch name
         - For example: 56-f22 -> build 55, chroots fedora-22-*
     """
@@ -114,7 +114,7 @@ def dist_git_upload_completed():
 
         # is it the last chroot?
         if not build.has_importing_chroot:
-            BuildsLogic.delete_local_srpm(build)
+            BuildsLogic.delete_local_source(build)
 
         db.session.commit()
 

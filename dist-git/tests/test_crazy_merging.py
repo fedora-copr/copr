@@ -8,8 +8,10 @@ from bunch import Bunch
 import os
 from subprocess import call, check_output
 import mock
+import logging
 
-from dist_git.srpm_import import actual_do_git_srpm_import, do_distgit_import
+from dist_git.package_import import import_package
+from dist_git.providers import PackageContent
 
 def scriptdir():
     return os.path.dirname(os.path.realpath(__file__))
@@ -22,11 +24,13 @@ def mc_group():
 
 @pytest.yield_fixture(scope='module')
 def tmpdir():
+    origdir = os.getcwd()
     tdir = tempfile.mkdtemp()
     print("working in " + tdir)
     os.chdir(tdir)
     yield tdir
-    shutil.rmtree(tdir)
+    os.chdir(origdir)
+    shutil.rmtree(tdir, ignore_errors=True)
 
 
 @pytest.yield_fixture
@@ -34,7 +38,8 @@ def git_repos(tmpdir):
     dirname = 'git_repos'
     os.mkdir(dirname)
     yield os.path.join(tmpdir, dirname)
-    shutil.rmtree('git_repos')
+    shutil.rmtree('git_repos', ignore_errors=True)
+
 
 @pytest.yield_fixture
 def origin(git_repos):
@@ -43,6 +48,7 @@ def origin(git_repos):
     abspath = os.path.join(git_repos, modulename)
     assert 0 == os.system(
     """ set -e
+    rm -rf work
     mkdir -p {module}
     git init --bare {module}
     git clone {module} work
@@ -56,11 +62,11 @@ def origin(git_repos):
     """.format(module=abspath)
     )
     yield os.path.join(git_repos, modulename)
-    shutil.rmtree('work')
+    shutil.rmtree('work', ignore_errors=True)
+
 
 @pytest.yield_fixture
 def branches(origin):
-
     branches = ['f20', 'epel7', 'el6', 'fedora/26', 'rhel-7']
     middle_branches = ['el6', 'fedora/26']
     border_branches = ['f20', 'epel7', 'rhel-7']
@@ -83,11 +89,10 @@ def branches(origin):
 def lookaside(tmpdir):
     assert 0 == os.system(
     """ set -e
-    mkdir lookaside
+    mkdir -p lookaside
     """)
-    yield True
-    shutil.rmtree('lookaside')
-
+    yield 'lookaside'
+    shutil.rmtree('lookaside', ignore_errors=True)
 
 
 @pytest.yield_fixture
@@ -97,12 +102,16 @@ def opts_basic(tmpdir, lookaside):
     opts = _()
     opts.lookaside_location = os.path.join(tmpdir, 'lookaside')
     opts.git_base_url = os.path.join(tmpdir, 'git_repos/%(module)s')
+    opts.cgit_pkg_list_location = os.path.join(tmpdir, 'git_repos/cgit_list')
+    opts.git_user_name = os.path.join(tmpdir, 'git_user_name')
+    opts.git_user_email = os.path.join(tmpdir, 'git_user_email')
     yield opts
 
+package_content_cache = {}
 
-def trivial_spec_and_tarball(version):
-    if version in trivial_spec_and_tarball.map:
-        return trivial_spec_and_tarball.map[version]
+def get_package_content(version):
+    if version in package_content_cache:
+        return package_content_cache[version]
 
     where = os.path.join(os.getcwd(), 'raw_files', str(version))
 
@@ -115,46 +124,13 @@ def trivial_spec_and_tarball(version):
     find
     """.format(where=where, version=version, script_dir=scriptdir()))
 
-    result = (
-        os.path.join(where, './qiuck-package.spec'),
-        os.path.join(where, 'tarball.tar.gz'),
-        Bunch({
-            'package_name': 'quick-package',
-            'user': 'bob',
-            'project':'blah',
-        })
-    )
-    trivial_spec_and_tarball.map[version] = result
-    return result
-
-trivial_spec_and_tarball.map = {}
-
-
-def trivial_srpm(version):
-    if version in trivial_srpm.map:
-        return trivial_srpm.map[version]
-
-    assert 0 == os.system( """ set -e
-    mkdir -p srpm_dir && cd srpm_dir
-    export dummy_version={version}
-    {script_dir}/generate_qiuck_package
-    """.format(script_dir=scriptdir(), version=version)
-    )
-    srpm_path = os.path.join(os.getcwd(), 'srpm_dir',
-                             'quick-package-{0}-0.src.rpm'.format(version))
-    result = (
-        srpm_path,
-        Bunch({
-            'package_name': 'quick-package',
-            'user': 'bob',
-            'project':'blah',
-        })
+    package_content = PackageContent(
+        spec_path=os.path.join(where, './qiuck-package.spec'),
+        source_paths=[os.path.join(where, 'tarball.tar.gz')],
     )
 
-    trivial_srpm.map[version] = result
-    return result
-
-trivial_srpm.map = {}
+    package_content_cache[version] = package_content
+    return package_content
 
 
 def branch_hash(directory, branch):
@@ -189,32 +165,15 @@ def initial_commit_everywhere(request, branches, mc_group, opts_basic):
     return (branches, opts_basic, init_hash)
 
 
-class TestSrpmImport(object):
-    import_type = 'srpm'
+class TestMerging(object):
 
     def commit_to_branches(self, to_branches, opts, version):
-        workdir = os.path.join(os.getcwd(), 'workdir-for-import')
-        os.mkdir(workdir)
-
-        if self.import_type == 'srpm':
-            srpm, task = trivial_srpm(version)
-        else:
-            spec, tarball, task = trivial_spec_and_tarball(version)
-
-        task.branches = to_branches
-        result = {}
-
-        if self.import_type == 'srpm':
-            actual_do_git_srpm_import(opts, srpm, task, workdir, result)
-        else:
-            result = do_distgit_import(opts, tarball, spec, task, workdir)
-
-        shutil.rmtree(workdir)
-        return result
+        package_content = get_package_content(version)
+        import_result = import_package(opts, 'bob/blah', to_branches, package_content)
+        return import_result['branch_commits']
 
     def setup_method(self, method):
-        trivial_srpm.map = {}
-        trivial_spec_and_tarball.map = {}
+        package_content_cache = {}
 
     def test_merged_everything(self, initial_commit_everywhere):
         branches, opts, v1_hash = initial_commit_everywhere
@@ -290,7 +249,3 @@ class TestSrpmImport(object):
         v3_hash_b = compare_branches(border_branches, origin, result_hash=result)
         assert v3_hash_a != v3_hash_b
         assert v3_hash_a != v2_hash_a
-
-
-class TestRawImport(TestSrpmImport):
-    import_type = 'raw'

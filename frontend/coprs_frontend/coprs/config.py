@@ -39,6 +39,7 @@ class Config(object):
     # post-process url leading to frontend
     ENFORCE_PROTOCOL_FOR_FRONTEND_URL = None
 
+    PUBLIC_COPR_BASE_URL = "https://copr-fe-dev.cloud.fedoraproject.org"
     PUBLIC_COPR_HOSTNAME = "copr-fe-dev.cloud.fedoraproject.org"
 
     DIST_GIT_URL = None

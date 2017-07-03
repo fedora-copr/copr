@@ -482,14 +482,14 @@ GROUP BY
         f_uploader(file_path)
 
         # make the pkg public
-        pkg_url = "https://{hostname}/tmp/{tmp_dir}/{srpm}".format(
-            hostname=app.config["PUBLIC_COPR_HOSTNAME"],
+        pkg_url = "{baseurl}/tmp/{tmp_dir}/{filename}".format(
+            baseurl=app.config["PUBLIC_COPR_BASE_URL"],
             tmp_dir=tmp_name,
-            srpm=filename)
+            filename=filename)
 
         # create json describing the build source
         source_type = helpers.BuildSourceEnum("upload")
-        source_json = json.dumps({"tmp": tmp_name, "pkg": filename})
+        source_json = json.dumps({"url": pkg_url, "pkg": filename, "tmp": tmp_name})
         try:
             build = cls.create_new(user, copr, source_type, source_json,
                                         chroot_names, pkgs=pkg_url, **build_options)
@@ -658,9 +658,9 @@ GROUP BY
 
 
     @classmethod
-    def delete_local_srpm(cls, build):
+    def delete_local_source(cls, build):
         """
-        Deletes the source rpm locally stored for upload (if exists)
+        Deletes the source (rpm or .spec) locally stored for upload (if exists)
         """
         # is it hosted on the copr frontend?
         if build.source_type == helpers.BuildSourceEnum("upload"):

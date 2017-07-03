@@ -27,7 +27,7 @@
 
     "branches": ["master"],
     "project": "example",
-    "source_json": "{\"tmp\": \"tmp2hagml\", \"pkg\": \"example-1.0.5-1.fc23.src.rpm\"}",
+    "source_json": "{\"tmp\": \"tmp2hagml\", \"pkg\": \"example-1.0.5-1.fc23.src.rpm\", \"url\": \"http://localhost:5000/static/tmp2hagml/example-1.0.5-1.fc23.src.rpm\"}",
     "source_type": 2,
     "task_id": "3",
     "user": "clime"
@@ -129,6 +129,17 @@
     "source_json": "{\"url\": \"http://localhost:5000/static/packagekit-1.1.3-2.mga6.src.rpm\"}",
     "source_type": 1,
     "task_id": "12",
+    "user": "clime"
+},
+{
+    "_description": "Spec upload test",
+    "_expected_outcome": "success",
+
+    "branches": ["f23"],
+    "project": "example",
+    "source_json": "{\"url\": \"http://localhost:5000/static/vera.spec\"}",
+    "source_type": 1,
+    "task_id": "13",
     "user": "clime"
 }
 ]

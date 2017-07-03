@@ -123,6 +123,8 @@ setenforce 0 # for mock-scm in docker, see https://bugzilla.redhat.com/show_bug.
 
 rm -f /run/nologin # fix for docker environment
 
+echo "%_disable_source_fetch 0" > ~/.rpmmacros
+
 # enable & start services
 systemctl daemon-reload
 systemctl enable httpd && systemctl start httpd
