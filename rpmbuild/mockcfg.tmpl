@@ -7,7 +7,13 @@ config_opts['root'] = '<%= $p{task_id} %>'
 config_opts['chroot_additional_packages'] = '<%= join(" ", @{$p{buildroot_pkgs}}) %>'
 <% } %>
 
-config_opts['rpmbuild_networking'] = <%= $p{enable_net} ? 'True' : 'False' %>
+<% if ($p{enable_net}) { %>
+config_opts['rpmbuild_networking'] = True
+<% } else { %>
+# https://github.com/rpm-software-management/mock/issues/89
+config_opts['nspawn_args'] = ['--private-network']
+<% } %>
+
 config_opts['use_bootstrap_container'] = <%= $p{use_bootstrap_container} ? 'True' : 'False' %>
 
 <% if ($p{repos}) { %>

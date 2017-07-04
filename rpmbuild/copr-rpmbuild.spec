@@ -31,7 +31,6 @@ Requires: mock
 Requires: git
 Requires: expect
 Requires: curl
-Requires: rpmdevtools
 
 %description
 Provides command capable of running COPR build-tasks.
