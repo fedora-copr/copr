@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.113
+Version:    1.114
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -397,6 +397,10 @@ service logstash condrestart
 
 
 %changelog
+* Fri Jul 07 2017 clime <clime@redhat.com> 1.114-1
+- .spec build implemented
+- just return repo_url as it is in helpers.pre_process_repo_url
+
 * Fri Jun 23 2017 clime <clime@redhat.com> 1.113-1
 - fix for a case when build task is pending for chroot no longer enabled in the project
 - address Bug 1455249 - github webhook fires unnecessary builds
