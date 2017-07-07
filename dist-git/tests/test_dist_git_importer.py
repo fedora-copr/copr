@@ -48,6 +48,12 @@ def mc_SourceProvider():
 
 
 @pytest.yield_fixture
+def mc_UrlProvider():
+    with mock.patch("{}.UrlProvider".format(MODULE_REF)) as handle:
+        yield handle
+
+
+@pytest.yield_fixture
 def mc_popen():
     with mock.patch("{}.Popen".format(MODULE_REF)) as handle:
         yield handle
@@ -131,7 +137,7 @@ class TestDistGitImporter(object):
             "project": self.PROJECT_NAME,
 
             "branches": [ self.BRANCH ],
-            "source_type": SourceType.SRPM_LINK,
+            "source_type": SourceType.LINK,
             "source_json": json.dumps({"url": "http://example.com/pkg.src.rpm"})
         }
         self.task_data_2 = {
@@ -140,7 +146,7 @@ class TestDistGitImporter(object):
             "project": self.PROJECT_NAME,
 
             "branches": [ self.BRANCH ],
-            "source_type": SourceType.SRPM_UPLOAD,
+            "source_type": SourceType.UPLOAD,
             "source_json": json.dumps({"tmp": "tmp_2", "pkg": "pkg_2.src.rpm"})
         }
 
@@ -300,7 +306,7 @@ class TestDistGitImporter(object):
         self.dgi.post_back_safe(dd)
         assert mc_post.called
 
-    def test_do_import(self, mc_SourceProvider):
+    def test_do_import(self, mc_SourceProvider, mc_UrlProvider):
         internal_methods = [
             "pkg_name_evr",
             "before_git_import",

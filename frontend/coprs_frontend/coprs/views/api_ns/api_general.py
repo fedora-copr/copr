@@ -343,7 +343,7 @@ def copr_new_build(copr):
         pkgs = form.pkgs.data.split("\n")
         return [BuildsLogic.create_new_from_url(
             flask.g.user, copr,
-            srpm_url=pkg,
+            url=pkg,
             chroot_names=form.selected_chroots,
             background=form.background.data,
         ) for pkg in pkgs]

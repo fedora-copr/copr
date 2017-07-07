@@ -1,6 +1,9 @@
 import os
 import logging
 import ConfigParser
+import re
+import string
+import munch
 
 # todo: replace with munch, check availability in epel
 from bunch import Bunch
@@ -138,3 +141,93 @@ class DistGitConfigReader(object):
         )
 
         return opts
+
+
+def substitute_spec_macros(spec_data, elem):
+    """
+    Substitute spec variable with its value or
+    with empty string if definition is not found.
+
+    :param str spec_data: text of a spec file
+    :param str elem: value with macros in it
+
+    :returns str: elem with the macros substituted
+    """
+    macros = re.findall(r'%{([^}]*)}', elem)
+    if not macros:
+        return elem
+    for macro in macros:
+        flags = re.MULTILINE
+        pattern = r'^\s*(%global|%define)\s+{}\s+([^\s]*)'.format(macro)
+        pattern_c = re.compile(pattern, flags)
+        matches = pattern_c.search(spec_data)
+        if not matches:
+            substitution = ''
+        else:
+            substitution = substitute_spec_macros(spec_data, matches.group(2))
+        elem = string.replace(elem, '%{'+macro+'}', substitution)
+    return elem
+
+
+def get_pkg_info(spec_path):
+    """
+    Extract information from a spec file by using regular
+    expression parsing. We do not use rpm library here
+    because the spec to be parsed may contain constructs
+    supported only in the target build environment.
+
+    :param str spec_path: filesystem path to spec file
+
+    :return Munch: info about the package like name, version, ...
+    """
+    try:
+        spec_file = open(spec_path, 'r')
+        spec_data = spec_file.read()
+        spec_file.close()
+    except IOError as e:
+        raise PackageImportException(str(e))
+
+    flags = re.IGNORECASE | re.MULTILINE
+
+    pattern = re.compile('^name:\s*([^\s]*)', flags)
+    match = pattern.search(spec_data)
+    raw_name = match.group(1) if match else ''
+    name = substitute_spec_macros(spec_data, raw_name)
+
+    pattern = re.compile('^version:\s*([^\s]*)', flags)
+    match = pattern.search(spec_data)
+    raw_version = match.group(1) if match else ''
+    version = substitute_spec_macros(spec_data, raw_version)
+
+    pattern = re.compile('^release:\s*([^\s]*)', flags)
+    match = pattern.search(spec_data)
+    raw_release = match.group(1) if match else ''
+    release = substitute_spec_macros(spec_data, raw_release)
+
+    pattern = re.compile('^epoch:\s*([^\s]*)', flags)
+    match = pattern.search(spec_data)
+    raw_epoch = match.group(1) if match else ''
+    epoch = substitute_spec_macros(spec_data, raw_epoch)
+
+    nv = '{}-{}'.format(name, version)
+    vr = '{}-{}'.format(version, release)
+    nvr = '{}-{}'.format(name, vr)
+
+    if epoch:
+        evr = '{}:{}'.format(epoch, vr)
+        envr = '{}:{}'.format(epoch, nvr)
+    else:
+        evr = vr
+        envr = nvr
+
+    return munch.Munch(
+        name=name,
+        version=version,
+        release=release,
+        epoch=epoch,
+        nv=nv,
+        vr=vr,
+        evr=evr,
+        nvr=nvr,
+        envr=envr
+    )

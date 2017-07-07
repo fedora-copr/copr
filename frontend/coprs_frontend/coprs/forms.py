@@ -93,13 +93,13 @@ class UrlRepoListValidator(UrlListValidator):
 class UrlSrpmListValidator(UrlListValidator):
     def __init__(self, message=None):
         if not message:
-            message = ("URLs must end with .src.rpm"
-                       " ('{0}' doesn't seem to be a valid SRPM URL).")
+            message = ("URLs must end with .src.rpm, .nosrc.rpm, or .spec"
+                       " ('{0}' doesn't seem to be a valid URL).")
         super(UrlSrpmListValidator, self).__init__(message)
 
     def is_url(self, url):
         parsed = urlparse(url)
-        if not parsed.path.endswith((".src.rpm", ".nosrc.rpm")):
+        if not parsed.path.endswith((".src.rpm", ".nosrc.rpm", ".spec")):
             return False
         return True
 
@@ -107,12 +107,12 @@ class UrlSrpmListValidator(UrlListValidator):
 class SrpmValidator(object):
     def __init__(self, message=None):
         if not message:
-            message = "You can upload only .src.rpm and .nosrc.rpm files"
+            message = "You can upload only .src.rpm, .nosrc.rpm, and .spec files"
         self.message = message
 
     def __call__(self, form, field):
         filename = field.data.filename.lower()
-        if not filename.endswith((".src.rpm", ".nosrc.rpm")):
+        if not filename.endswith((".src.rpm", ".nosrc.rpm", ".spec")):
             raise wtforms.ValidationError(self.message)
 
 

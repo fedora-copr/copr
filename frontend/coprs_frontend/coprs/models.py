@@ -448,9 +448,9 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     def has_source_type_set(self):
         """
         Package's source type (and source_json) is being derived from its first build, which works except
-        for "srpm_link" and "srpm_upload" cases. Consider these being equivalent to source_type being unset.
+        for "link" and "upload" cases. Consider these being equivalent to source_type being unset.
         """
-        return self.source_type and self.source_type_text != "srpm_link" and self.source_type_text != "srpm_upload"
+        return self.source_type and self.source_type_text != "link" and self.source_type_text != "upload"
 
     @property
     def dist_git_url(self):

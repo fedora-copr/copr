@@ -123,9 +123,9 @@
 {% macro copr_build_form_url(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
-    {{ source_description('Please upload your SRPM(s) on a public server and provide link(s) to the form below. This is the only option to submit more builds at once.')}}
+    {{ source_description('Please upload your SRPM or .spec files on a public server and provide link(s) to the form below. This is the only option to submit more builds at once.')}}
 
-    {{ render_field(form.pkgs, label='URLs to SRPM Files', rows = 10, cols = 50) }}
+    {{ render_field(form.pkgs, label='URLs to files', rows = 10, cols = 50) }}
 
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}
@@ -134,11 +134,11 @@
 {% macro copr_build_form_upload(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
-      {{ source_description("Upload your SRPM directly to Copr.")}}
+      {{ source_description("Upload your SRPM or .spec directly to Copr.")}}
 
       <div class="form-group">
         <label class="col-sm-2 control-label" for="textInput-markup">
-        SRPM File:
+        File:
         </label>
         <div class="col-sm-10">
           {{ form.pkgs }}

@@ -1,18 +1,18 @@
 {% macro describe_source(source_type_text, source_json_dict, is_package=False) %}
   <dt>Source Type:</dt>
-  {% if is_package and (source_type_text == "srpm_link" or source_type_text == "srpm_upload") %}
-    <dd>No default source</dd> {# source types srpm_link & srpm_upload only make sense for builds, not for packages #}
+  {% if is_package and (source_type_text == "link" or source_type_text == "upload") %}
+    <dd>No default source</dd> {# source types link & upload only make sense for builds, not for packages #}
   {% else %}
     <dd>{{ source_type_text | build_source_description }}</dd>
   {% endif %}
 
-  {% if source_type_text == "srpm_link" and not is_package %}
+  {% if source_type_text == "link" and not is_package %}
   <dt>Package URL:</dt>
   <dd>
     <a href="{{ source_json_dict["url"] }}">{{ source_json_dict["url"] }}</a>
   </dd>
 
-  {% elif source_type_text == "srpm_upload" and not is_package %}
+  {% elif source_type_text == "upload" and not is_package %}
   <dt>File Name:</dt>
   <dd>{{ source_json_dict["pkg"] }}</dd>
 

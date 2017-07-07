@@ -195,7 +195,7 @@ class TestBuildResource(CoprsTestCase):
         build_dict = build_obj["build"]
         assert build_dict["source_metadata"]["url"] == \
             metadata["srpm_url"]
-        assert build_dict["source_type"] == "srpm_link"
+        assert build_dict["source_type"] == "link"
 
     def test_build_post_json_on_wrong_user(
             self, f_users, f_coprs, f_db, f_mock_chroots,
@@ -317,7 +317,7 @@ class TestBuildResource(CoprsTestCase):
         assert r1.status_code == 200
         build_obj = json.loads(r1.data.decode("utf-8"))
 
-        assert build_obj["build"]["source_type"] == "srpm_upload"
+        assert build_obj["build"]["source_type"] == "upload"
 
         tasks_href = build_obj["_links"]["build_tasks"]["href"]
         r2 = self.tc.get(tasks_href)

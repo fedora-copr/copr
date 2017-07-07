@@ -237,8 +237,9 @@ def do_distgit_import(opts, tarball_path, spec_path, task, tmp_dir):
             log.info("Working in: {0}".format(repo_dir))
 
             if not committed:
-                log.info("save the source files into lookaside cache")
-                commands.upload([tarball_path], replace=True)
+                if tarball_path:
+                    log.info("save the source files into lookaside cache")
+                    commands.upload([tarball_path], replace=True)
                 try:
                     commands.commit(message)
                 except Exception:

@@ -23,7 +23,7 @@ class TestCoprAddBuild(CoprsTestCase):
         self.db.session.add_all([self.u1, self.c1])
         x = self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u1.name, self.c1.name),
-                              data={"pkgs": "http://example.com/testing.src.rpm", "source_type": "srpm_link"},
+                              data={"pkgs": "http://example.com/testing.src.rpm", "source_type": "link"},
                               follow_redirects=True)
 
         assert self.models.Build.query.first().pkgs == "http://example.com/testing.src.rpm"
@@ -36,7 +36,7 @@ class TestCoprAddBuild(CoprsTestCase):
         self.db.session.add_all([self.u2, self.c2])
         self.test_client.post("/coprs/{0}/{1}/new_build/"
                               .format(self.u2.name, self.c2.name),
-                              data={"pkgs": "http://example.com/testing.src.rpm", "source_type": "srpm_link"},
+                              data={"pkgs": "http://example.com/testing.src.rpm", "source_type": "link"},
                               follow_redirects=True)
 
         assert self.models.Build.query.first().pkgs == "http://example.com/testing.src.rpm"
@@ -302,9 +302,9 @@ class TestCoprRepeatBuild(CoprsTestCase):
         r = []
         route = "/coprs/{0}/{1}/new_build/".format(self.u1.name, self.c1.name)
         for i, url in enumerate(urls):
-            r.insert(i, self.test_client.post(route, data={"pkgs": url, "source_type": "srpm_link"}, follow_redirects=True))
+            r.insert(i, self.test_client.post(route, data={"pkgs": url, "source_type": "link"}, follow_redirects=True))
 
         assert b"doesn&#39;t seem to be a valid URL" not in r[0].data
-        assert b"doesn&#39;t seem to be a valid SRPM URL" not in r[0].data
+        assert b"doesn&#39;t seem to be a valid URL" not in r[0].data
         assert b"doesn&#39;t seem to be a valid URL" in r[1].data
-        assert b"doesn&#39;t seem to be a valid SRPM URL" in r[2].data
+        assert b"doesn&#39;t seem to be a valid URL" in r[2].data

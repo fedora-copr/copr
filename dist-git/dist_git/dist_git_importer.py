@@ -24,14 +24,15 @@ from .exceptions import CoprDistGitException, PackageImportException, PackageDow
         SrpmQueryException, GitCloneException, GitWrongDirectoryException, GitCheckoutException, TimeoutException
 from .srpm_import import do_git_srpm_import, do_distgit_import
 
+import helpers
 from .helpers import FailTypeEnum
 
 log = logging.getLogger(__name__)
 
 
 class SourceType:
-    SRPM_LINK = 1
-    SRPM_UPLOAD = 2
+    LINK = 1
+    UPLOAD = 2
     GIT_AND_TITO = 3
     MOCK_SCM = 4
     PYPI = 5
@@ -55,7 +56,7 @@ class ImportTask(object):
         self.package_version = None
         self.git_hashes = {}
 
-        # For SRPM_LINK and SRPM_UPLOAD
+        # For LINK and UPLOAD
         self.package_url = None
 
         # For Git based providers (GIT_AND_TITO)
@@ -105,10 +106,10 @@ class ImportTask(object):
         task.source_json = dict_data["source_json"]
         task.source_data = json.loads(dict_data["source_json"])
 
-        if task.source_type == SourceType.SRPM_LINK:
+        if task.source_type == SourceType.LINK:
             task.package_url = json.loads(task.source_json)["url"]
 
-        elif task.source_type == SourceType.SRPM_UPLOAD:
+        elif task.source_type == SourceType.UPLOAD:
             json_tmp = task.source_data["tmp"]
             json_pkg = task.source_data["pkg"]
             task.package_url = "{}/tmp/{}/{}".format(opts.frontend_base_url, json_tmp, json_pkg)
@@ -173,10 +174,10 @@ class SourceProvider(object):
         self.target_path = target_path
         self.opts = opts
 
-        if task.source_type == SourceType.SRPM_LINK:
-            self.provider_class = SrpmUrlProvider
-        elif task.source_type == SourceType.SRPM_UPLOAD:
-            self.provider_class = SrpmUrlProvider
+        if task.source_type == SourceType.LINK:
+            self.provider_class = UrlProvider
+        elif task.source_type == SourceType.UPLOAD:
+            self.provider_class = UrlProvider
         elif task.source_type == SourceType.GIT_AND_TITO:
             self.provider_class = GitAndTitoProvider
         elif task.source_type == SourceType.MOCK_SCM:
@@ -456,10 +457,10 @@ class RubyGemsProvider(SrpmBuilderProvider):
         self.copy()
 
 
-class SrpmUrlProvider(BaseSourceProvider):
-    def get_srpm(self):
+class UrlProvider(BaseSourceProvider):
+    def get_sources(self):
         """
-        Used for SRPM_LINK and SRPM_UPLOAD
+        Used for LINK and UPLOAD
         :param ImportTask task:
         :param str target_path:
         :raises PackageDownloadException:
@@ -672,6 +673,21 @@ class DistGitImporter(object):
                 tarball_path, spec_path, task.package_name, task.package_version = provider.get_sources()
                 self.before_git_import(task)
                 task.git_hashes = self.distgit_import(task, tarball_path, spec_path)
+                self.after_git_import()
+            elif task.source_type == SourceType.UPLOAD or task.source_type == SourceType.LINK:
+                target_path = os.path.join(tmp_root, os.path.basename(task.package_url))
+                provider = UrlProvider(task, target_path, self.opts)
+                provider.get_sources()
+                if target_path.endswith('.spec'):
+                    pkg_info = helpers.get_pkg_info(target_path)
+                    task.package_name = pkg_info.name
+                    task.package_version = pkg_info.evr
+                    self.before_git_import(task)
+                    task.git_hashes = self.distgit_import(task, None, target_path)
+                else:
+                    task.package_name, task.package_version = self.pkg_name_evr(target_path)
+                    self.before_git_import(task)
+                    task.git_hashes = self.git_import_srpm(task, target_path)
                 self.after_git_import()
             else:
                 provider = SourceProvider(task, fetched_srpm_path, self.opts)

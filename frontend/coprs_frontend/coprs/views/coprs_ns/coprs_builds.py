@@ -538,8 +538,8 @@ def process_copr_repeat_build(build_id, copr):
     if not flask.g.user.can_build_in(build.copr):
         flask.flash("You are not allowed to repeat this build.")
 
-    if build.source_type == helpers.BuildSourceEnum('srpm_upload'):
-        # If the original build's source is 'srpm_upload', we will show only the
+    if build.source_type == helpers.BuildSourceEnum('upload'):
+        # If the original build's source is 'upload', we will show only the
         # original build's chroots and skip import.
         available_chroots = build.chroots
 

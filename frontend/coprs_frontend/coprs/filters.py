@@ -167,7 +167,7 @@ def build_state_decoration(state):
         "pending": "Your build is waiting for a builder.",
         "skipped": "This package has already been built previously.",
         "starting": "Trying to acquire and configure builder for task.",
-        "importing": "The SRPM is being imported into Dist Git."
+        "importing": "Package content is being imported into Dist Git."
     }
 
     return description_map.get(state, "")
@@ -177,8 +177,8 @@ def build_state_decoration(state):
 def build_source_description(state):
     description_map = {
         "unset": "No default source",
-        "srpm_link": "External link with SRPM",
-        "srpm_upload": "SRPM file upload",
+        "link": "External link to .spec or SRPM",
+        "upload": "SRPM or .spec file upload",
         "git_and_tito": "Tito build from a Git repository",
         "mock_scm": "Mock build from a SCM repository",
         "pypi": "Build from PyPI",

@@ -342,7 +342,7 @@ GROUP BY
         skip_import = False
         git_hashes = {}
 
-        if source_build.source_type == helpers.BuildSourceEnum('srpm_upload'):
+        if source_build.source_type == helpers.BuildSourceEnum('upload'):
             # I don't have the source
             # so I don't want to import anything, just rebuild what's in dist git
             skip_import = True
@@ -364,7 +364,7 @@ GROUP BY
         return build
 
     @classmethod
-    def create_new_from_url(cls, user, copr, srpm_url,
+    def create_new_from_url(cls, user, copr, url,
                             chroot_names=None, **build_options):
         """
         :type user: models.User
@@ -374,9 +374,9 @@ GROUP BY
 
         :rtype: models.Build
         """
-        source_type = helpers.BuildSourceEnum("srpm_link")
-        source_json = json.dumps({"url": srpm_url})
-        return cls.create_new(user, copr, source_type, source_json, chroot_names, pkgs=srpm_url, **build_options)
+        source_type = helpers.BuildSourceEnum("link")
+        source_json = json.dumps({"url": url})
+        return cls.create_new(user, copr, source_type, source_json, chroot_names, pkgs=url, **build_options)
 
     @classmethod
     def create_new_from_tito(cls, user, copr, git_url, git_dir, git_branch, tito_test,
@@ -488,7 +488,7 @@ GROUP BY
             srpm=filename)
 
         # create json describing the build source
-        source_type = helpers.BuildSourceEnum("srpm_upload")
+        source_type = helpers.BuildSourceEnum("upload")
         source_json = json.dumps({"tmp": tmp_name, "pkg": filename})
         try:
             build = cls.create_new(user, copr, source_type, source_json,
@@ -563,7 +563,7 @@ GROUP BY
 
         # just temporary to keep compatibility
         if not source_type or not source_json:
-            source_type = helpers.BuildSourceEnum("srpm_link")
+            source_type = helpers.BuildSourceEnum("link")
             source_json = json.dumps({"url":pkgs})
 
         build = models.Build(
@@ -663,7 +663,7 @@ GROUP BY
         Deletes the source rpm locally stored for upload (if exists)
         """
         # is it hosted on the copr frontend?
-        if build.source_type == helpers.BuildSourceEnum("srpm_upload"):
+        if build.source_type == helpers.BuildSourceEnum("upload"):
             data = json.loads(build.source_json)
             tmp = data["tmp"]
             storage_path = app.config["SRPM_STORAGE_DIR"]

@@ -87,7 +87,7 @@ class BuildListR(Resource):
         try:
             build = BuildsLogic.create_new_from_url(
                 flask.g.user, project,
-                srpm_url=srpm_url,
+                url=srpm_url,
                 chroot_names=chroot_names,
                 **build_params
             )
