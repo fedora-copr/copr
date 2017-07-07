@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.30
+Version:    0.31
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -149,6 +149,12 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Fri Jul 07 2017 clime <clime@redhat.com> 0.31-1
+- remove no longer required condition for a scm import to run
+- .spec build implemented
+- fedora:25 image offers the needed en_US.UTF-8 locale now
+- Dockerfile with less layers
+
 * Fri Jun 09 2017 clime <clime@redhat.com> 0.30-1
 - import build task only once
 - remove unsupported --depth from git svn command
