@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.5
+Version: 0.6
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -70,6 +70,9 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mockcfg.tmpl
 
 %changelog
+* Fri Jul 07 2017 clime <clime@redhat.com> 0.6-1
+- support for source downloading
+
 * Tue Jun 27 2017 clime <clime@redhat.com> 0.5-1
 - use Perl Virtual naming for Requires
 
