@@ -800,11 +800,7 @@ class Pool(list):
 
 
 class Filters(object):
-    sources = {
-        SourceType.MOCK_SCM: [
-            lambda x: psutil.disk_usage("/var/lib/mock")[2] / 1024 / 1024 / 1024 > 2,
-        ],
-    }
+    sources = {}
 
     @classmethod
     def get(cls, builds):
