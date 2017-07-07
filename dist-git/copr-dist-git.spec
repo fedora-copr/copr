@@ -19,6 +19,7 @@ BuildRequires: systemd
 BuildRequires: dist-git
 BuildRequires: python-bunch
 BuildRequires: python-requests
+BuildRequires: python-munch
 BuildRequires: pyrpkg >= 1.47
 # check
 BuildRequires: python-six
