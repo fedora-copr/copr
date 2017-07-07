@@ -58,6 +58,7 @@ Requires: pyrpkg >= 1.47
 Requires: docker
 Requires: httpd
 Requires: git-svn
+Requires: python-munch
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
 
