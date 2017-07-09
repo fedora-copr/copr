@@ -262,5 +262,16 @@
     "source_type": 3,
     "task_id": "24",
     "user": "clime"
+},
+{
+    "_description": "Dist-git import test from Copr distgit instance",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"clone_url\": \"http://copr-dist-git.fedorainfracloud.org/git/frostyx/hello/hello.git\", \"branch\": \"\"}",
+    "source_type": 7,
+    "task_id": "25",
+    "user": "clime"
 }
 ]
