@@ -125,13 +125,13 @@ Behavioral tests
 
 Currently, there are three test-suites: integration, backend and dist-git. Apart from being useful as an actual feature specification, these test suites are also used to verify COPR functionality before making a new release. The following code snippet shows the steps needed run the dist-git test-suite as an example::
 
-    $ cd tests/DockerTestEnv                # this is good for running the test in isolation (setup phase installs packages etc.)
+    $ cd copr/beaker-tests/DockerTestEnv    # this is good for running the test in isolation (setup phase installs packages etc.)
 
     $ make && make run                      # to build and run a test container
 
     $ make sh                               # to enter the container
 
-    $ cd ./Regression/dist-git
+    $ cd copr/beaker-tests/Regression/dist-git
 
     $ ./runtest.sh                          # run the test-suite (this will start with calling the setup.sh script), in the end you should see lots of GREEN checks saying: 'PASS'
 
