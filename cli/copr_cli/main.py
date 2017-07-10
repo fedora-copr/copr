@@ -35,6 +35,8 @@ import copr.exceptions as copr_exceptions
 from .util import ProgressBar
 from .build_config import MockProfile
 
+import pkg_resources
+
 ON_OFF_MAP = {
     'on': True,
     'off': False,
@@ -591,6 +593,9 @@ def setup_parser():
 
     parser.add_argument("--config", dest="config",
                         help="Path to an alternative configuration file")
+
+    parser.add_argument("--version", action="version",
+                        version="%(prog)s version " + pkg_resources.require('copr-cli')[0].version)
 
     subparsers = parser.add_subparsers(title="actions")
 
