@@ -126,6 +126,7 @@ class ScmProvider(PackageContentProvider):
             scm_config.scm_type = 'git'
             scm_config.spec_relpath = None
             scm_config.test = task.source_data.get('tito_test')
+            scm_config.create_source = True
         elif task.source_type == SourceType.MOCK_SCM:
             scm_config.url = task.source_data.get('scm_url')
             scm_config.subdir = None
@@ -133,6 +134,7 @@ class ScmProvider(PackageContentProvider):
             scm_config.scm_type = task.source_data.get('scm_type')
             scm_config.spec_relpath = task.source_data.get('spec')
             scm_config.test = True
+            scm_config.create_source = True
         else:
             raise PackageImportException("Incorrect scm_type for ScmProvider.")
 
@@ -222,8 +224,11 @@ class ScmProvider(PackageContentProvider):
         else:
             shutil.copy(spec_path, target_spec_path)
 
-        tarball_path = self.pack_sources(repo_subpath, target_spec_path)
-        return PackageContent(spec_path=target_spec_path, source_paths=[tarball_path])
+        source_paths = []
+        if scm_config.create_source:
+            source_paths.append(self.pack_sources(repo_subpath, target_spec_path))
+
+        return PackageContent(spec_path=target_spec_path, source_paths=source_paths)
 
 
 class PyPIProvider(PackageContentProvider):
