@@ -98,6 +98,8 @@ def refresh_cgit_listing(opts):
     try:
         cmd = ["/usr/share/copr/dist_git/bin/cgit_pkg_list", opts.cgit_pkg_list_location]
         subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+    except OSError as e:
+        log.error(str(e))
     except subprocess.CalledProcessError as e:
         log.error("cmd: {}, rc: {}, msg: {}".format(cmd, e.returncode, e.output.strip()))
 
