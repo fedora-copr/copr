@@ -28,6 +28,8 @@ import helpers
 
 log = logging.getLogger(__name__)
 
+# lock for a case when the same package in the same project
+# is imported at the same time (possibly in two different versions)
 import_lock = multiprocessing.Lock()
 
 def my_upload_fabric(opts):
@@ -136,6 +138,7 @@ def setup_git_repo(reponame, branches):
                 raise PackageImportException(e.output)
 
 
+@helpers.single_run(import_lock)
 def import_package(opts, namespace, branches, package_content):
     """
     Import package into a DistGit repo for the given branches.
@@ -147,10 +150,6 @@ def import_package(opts, namespace, branches, package_content):
 
     :return Munch: resulting import data (pkg_info, branch_commits, reponame)
     """
-    # lock here is for the case when parallel imports run for the same project
-    if not import_lock.acquire(timeout=120):
-        raise PackageImportException('import_package: lock could not be acquired.')
-
     log.debug("package_content: " + str(package_content))
     pkg_info = helpers.get_pkg_info(package_content.spec_path)
     log.debug("pkg_info: " + str(pkg_info))
@@ -250,7 +249,6 @@ def import_package(opts, namespace, branches, package_content):
     os.chdir(oldpath)
     shutil.rmtree(repo_dir)
     refresh_cgit_listing(opts)
-    import_lock.release()
 
     return munch.Munch(
         pkg_info=pkg_info,

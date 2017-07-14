@@ -15,10 +15,30 @@ import fileinput
 # todo: replace with munch, check availability in epel
 from bunch import Bunch
 from requests import get
+from functools import wraps
 
 log = logging.getLogger(__name__)
 
 from exceptions import PackageImportException, FileDownloadException, RunCommandException
+
+
+def single_run(lock):
+    """
+    Decorator to be used if you want to ensure
+    a function is not run in parallel from within
+    multiple threads.
+
+    :param lock: lock to be used for locking
+
+    :returns: wrapped function
+    """
+    def upper_wrapper(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            with lock:
+                return f(*args, **kwargs)
+        return wrapper
+    return upper_wrapper
 
 
 class ConfigReaderError(Exception):

@@ -15,7 +15,6 @@ from import_task import ImportTask
 
 log = logging.getLogger(__name__)
 
-
 class Importer(object):
     def __init__(self, opts):
         self.is_running = False
