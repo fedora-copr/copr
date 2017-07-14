@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.31
+Version:    0.32
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -150,6 +150,10 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Fri Jul 14 2017 clime <clime@redhat.com> 0.32-1
+- srpms are now not being built on dist-git
+- MockSCM and Tito methods unified into single source
+
 * Fri Jul 07 2017 clime <clime@redhat.com> 0.31-1
 - remove no longer required condition for a scm import to run
 - .spec build implemented
