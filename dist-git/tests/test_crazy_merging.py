@@ -119,9 +119,7 @@ def get_package_content(version):
     mkdir -p {where}
     cd {where}
     export dummy_version={version}
-    {script_dir}/generate_qiuck_package --nosrpm
-    pwd
-    find
+    {script_dir}/generate_qiuck_package
     """.format(where=where, version=version, script_dir=scriptdir()))
 
     package_content = PackageContent(
