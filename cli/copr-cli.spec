@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.60
+Version:    1.61
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -144,6 +144,9 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Fri Jul 14 2017 clime <clime@redhat.com> 1.61-1
+- Bug 1399817 - copr --version does not print version info
+
 * Fri Jun 09 2017 clime <clime@redhat.com> 1.60-1
 - use global const map for on/off command line switches value translation
 
