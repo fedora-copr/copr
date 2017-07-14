@@ -318,7 +318,8 @@ def substitute_spec_macros(spec_data, elem):
         return elem
     for macro in macros:
         flags = re.MULTILINE
-        pattern = r'^\s*(%global|%define)\s+{}\s+([^\s]*)'.format(macro.strip('%{}'))
+        filtered_macro = ''.join([c if re.match('\w', c) else '' for c in macro])
+        pattern = r'^\s*(%global|%define)\s+{}\s+([^\s]*)'.format(filtered_macro)
         pattern_c = re.compile(pattern, flags)
         matches = pattern_c.search(spec_data)
         if not matches:
