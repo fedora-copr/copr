@@ -186,10 +186,10 @@ class ScmProvider(PackageContentProvider):
         log.debug("Packing {} as {} into {}...".format(
             dir_to_pack, tardir_name, tarball_path))
 
-        symlink_cmd = ['ln', '-s', dir_to_pack, tardir_path]
-        helpers.run_cmd(symlink_cmd)
+        mv_cmd = ['mv', dir_to_pack, tardir_path]
+        helpers.run_cmd(mv_cmd)
 
-        pack_cmd = ['tar', 'hcaf', tarball_path, '--exclude-vcs', '-C', self.workdir, tardir_name]
+        pack_cmd = ['tar', 'caf', tarball_path, '--exclude-vcs', '-C', self.workdir, tardir_name]
         helpers.run_cmd(pack_cmd)
 
         return tarball_path
