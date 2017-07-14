@@ -17,6 +17,12 @@ def scriptdir():
     return os.path.dirname(os.path.realpath(__file__))
 
 @pytest.yield_fixture
+def mc_setup_git_repo():
+    with mock.patch("{}.setup_git_repo".format('dist_git.package_import')) as handle:
+        yield handle
+
+
+@pytest.yield_fixture
 def mc_group():
     with mock.patch("os.setgid") as handle:
         yield handle
@@ -153,7 +159,7 @@ def compare_branches(branches, remote, local=None, result_hash=None):
 
 
 @pytest.fixture
-def initial_commit_everywhere(request, branches, mc_group, opts_basic):
+def initial_commit_everywhere(request, branches, mc_group, opts_basic, mc_setup_git_repo):
     origin, all_branches, _, _ = branches
 
     # Commit first version and compare remote side with local side.
@@ -173,7 +179,7 @@ class TestMerging(object):
     def setup_method(self, method):
         package_content_cache = {}
 
-    def test_merged_everything(self, initial_commit_everywhere):
+    def test_merged_everything(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
 
@@ -192,7 +198,7 @@ class TestMerging(object):
         assert v3_hash != v1_hash
         assert v3_hash != v2_hash
 
-    def test_diverge_middle_branches(self, initial_commit_everywhere):
+    def test_diverge_middle_branches(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
 
@@ -214,7 +220,7 @@ class TestMerging(object):
         assert v3_hash_a != v1_hash
         assert v3_hash_b != v1_hash
 
-    def test_no_op_1(self, initial_commit_everywhere):
+    def test_no_op_1(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere
         origin, all_branches, middle_branches, border_branches = branches
 
