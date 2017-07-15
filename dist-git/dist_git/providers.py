@@ -126,6 +126,7 @@ class ScmProvider(PackageContentProvider):
             scm_config.scm_type = 'git'
             scm_config.spec_relpath = None
             scm_config.test = task.source_data.get('tito_test')
+            scm_config.setup_test_specfile = scm_config.test
             scm_config.create_source = True
         elif task.source_type == SourceType.MOCK_SCM:
             scm_config.url = task.source_data.get('scm_url')
@@ -134,6 +135,7 @@ class ScmProvider(PackageContentProvider):
             scm_config.scm_type = task.source_data.get('scm_type')
             scm_config.spec_relpath = task.source_data.get('spec')
             scm_config.test = True
+            scm_config.setup_test_specfile = False
             scm_config.create_source = True
         else:
             raise PackageImportException("Incorrect scm_type for ScmProvider.")
@@ -218,7 +220,7 @@ class ScmProvider(PackageContentProvider):
         target_spec_path = os.path.join(
             self.workdir, os.path.basename(spec_path))
 
-        if scm_config.test:
+        if scm_config.setup_test_specfile:
             helpers.setup_test_specfile(
                 spec_path, target_spec_path, repo_path, package_name)
         else:
