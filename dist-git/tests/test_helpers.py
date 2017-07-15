@@ -39,10 +39,10 @@ class TestHelpers(object):
 
     def test_get_pkg_evr(self):
         pkg_evr = helpers.get_pkg_evr('tests/specs/sample.spec')
-        assert pkg_evr.startswith('1.1-1')
+        assert pkg_evr == '1.1-1'
 
         pkg_evr = helpers.get_pkg_evr('tests/specs/epoch.spec')
-        assert pkg_evr.startswith('3:1.1-1')
+        assert pkg_evr == '3:1.1-1'
 
         pkg_evr = helpers.get_pkg_evr('tests/specs/unparsable.spec')
         assert not pkg_evr

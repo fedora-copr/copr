@@ -312,9 +312,12 @@ def get_package_name(spec_path):
 
 def get_pkg_evr(spec_path):
     try:
+        rpm.addMacro('dist', '')
         pkg_info = get_rpm_spec_info(spec_path)
     except RpmSpecParseException as e:
         return ''
+    finally:
+        rpm.reloadConfig()
 
     if pkg_info.epoch:
         return '{}:{}-{}'.format(
