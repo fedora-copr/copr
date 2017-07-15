@@ -8,8 +8,7 @@ import glob
 import os
 import rpm
 
-from exceptions import PackageImportException, SrpmQueryException, \
-        GitCloneException, GitWrongDirectoryException, GitCheckoutException, TimeoutException
+from exceptions import PackageImportException
 
 import helpers
 
