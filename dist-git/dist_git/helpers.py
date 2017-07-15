@@ -19,7 +19,8 @@ from functools import wraps
 
 log = logging.getLogger(__name__)
 
-from exceptions import PackageImportException, FileDownloadException, RunCommandException
+from exceptions import PackageImportException, FileDownloadException, RunCommandException, \
+        RpmSpecParseException, PackageNameCouldNotBeObtainedException
 
 
 def single_run(lock):
@@ -39,10 +40,6 @@ def single_run(lock):
                 return f(*args, **kwargs)
         return wrapper
     return upper_wrapper
-
-
-class ConfigReaderError(Exception):
-    pass
 
 
 class EnumType(type):
@@ -104,6 +101,10 @@ def _get_conf(cp, section, option, default, mode=None):
 
             return path
     return default
+
+
+class ConfigReaderError(Exception):
+    pass
 
 
 class ConfigReader(object):
@@ -277,136 +278,82 @@ def run_cmd(cmd, cwd='.', raise_on_error=True):
     return result
 
 
+def get_package_name(spec_path):
+    """
+    Obtain name of a package described by specfile
+    at spec_path.
+
+    :param str spec_path: path to a spec file
+
+    :returns str: package name
+
+    :raises PackageNameCouldNotBeObtainedException
+    """
+    ts = rpm.ts()
+
+    try:
+        rpm_spec = ts.parseSpec(spec_path)
+    except ValueError as e:
+        log.info("Could not parse {}".format(spec_path))
+    else:
+        return rpm.expandMacro("%{name}")
+
+    # regular expression fallback
+    with open(spec_path, 'r') as spec_file:
+        pattern = re.compile('^name:\s*([a-zA-Z0-9-._+]*)$', re.IGNORECASE)
+        for spec_line in spec_file.readlines():
+            match = pattern.match(spec_line)
+            if match:
+                return match.group(1)
+
+    raise PackageNameCouldNotBeObtainedException(
+        "Could not get package name from {}.".format(spec_path))
+
+
+def get_pkg_evr(spec_path):
+    try:
+        pkg_info = get_rpm_spec_info(spec_path)
+    except RpmSpecParseException as e:
+        return ''
+
+    if pkg_info.epoch:
+        return '{}:{}-{}'.format(
+            pkg_info.epoch, pkg_info.version, pkg_info.release)
+
+    return '{}-{}'.format(pkg_info.version, pkg_info.release)
+
+
 def get_rpm_spec_info(spec_path):
     """
-    Return basic information about an rpm package
+    Return information about an rpm package
     as read from a spec file.
 
     :param str spec_path: path to a spec file
 
-    :returns Munch: basic info about a package
+    :returns Munch: info about a package
+
+    :raises RpmSpecParseException
     """
     ts = rpm.ts()
+
     try:
         rpm_spec = ts.parseSpec(spec_path)
         name = rpm.expandMacro("%{name}")
         version = rpm.expandMacro("%{version}")
         release = rpm.expandMacro("%{release}")
+        epoch = rpm.expandMacro("%{epoch}")
+        if epoch == "%{epoch}":
+            epoch = None
     except ValueError as e:
-        raise PackageImportException(str(e))
-
-    return munch.Munch(
-        name=name,
-        version=version,
-        release=release,
-        sources=rpm_spec.sources
-    )
-
-
-def substitute_spec_macros(spec_data, elem):
-    """
-    Substitute spec variable with its value or
-    with empty string if definition is not found.
-
-    :param str spec_data: text of a spec file
-    :param str elem: value with macros in it
-
-    :returns str: elem with the macros substituted
-    """
-    macros = re.findall(r'%{?[^}]*}?', elem)
-    if not macros:
-        return elem
-    for macro in macros:
-        flags = re.MULTILINE
-        filtered_macro = ''.join([c if re.match('\w', c) else '' for c in macro])
-        pattern = r'^\s*(%global|%define)\s+{}\s+([^\s]*)'.format(filtered_macro)
-        pattern_c = re.compile(pattern, flags)
-        matches = pattern_c.search(spec_data)
-        if not matches:
-            substitution = ''
-        else:
-            substitution = substitute_spec_macros(spec_data, matches.group(2))
-        elem = string.replace(elem, macro, substitution)
-    return elem
-
-
-def get_pkg_info(spec_path):
-    """
-    Extract information from a spec file by using regular
-    expression parsing. We do not use rpm library here
-    because the spec to be parsed may contain constructs
-    supported only in the target build environment.
-
-    :param str spec_path: filesystem path to spec file
-
-    :returns Munch: info about the package like name, version, ...
-    """
-    try:
-        spec_data = get_spec_data(spec_path)
-    except IOError as e:
-        raise PackageImportException(str(e))
-
-    flags = re.IGNORECASE | re.MULTILINE
-
-    pattern = re.compile('^name:\s*([^\s]*)', flags)
-    match = pattern.search(spec_data)
-    raw_name = match.group(1) if match else ''
-    name = substitute_spec_macros(spec_data, raw_name)
-
-    pattern = re.compile('^version:\s*([^\s]*)', flags)
-    match = pattern.search(spec_data)
-    raw_version = match.group(1) if match else ''
-    version = substitute_spec_macros(spec_data, raw_version)
-
-    pattern = re.compile('^release:\s*([^\s]*)', flags)
-    match = pattern.search(spec_data)
-    raw_release = match.group(1) if match else ''
-    release = substitute_spec_macros(spec_data, raw_release)
-
-    pattern = re.compile('^epoch:\s*([^\s]*)', flags)
-    match = pattern.search(spec_data)
-    raw_epoch = match.group(1) if match else ''
-    epoch = substitute_spec_macros(spec_data, raw_epoch)
-
-    nv = '{}-{}'.format(name, version) if version else name
-    vr = '{}-{}'.format(version, release) if release else version
-    nvr = '{}-{}'.format(name, vr) if vr else name
-
-    if epoch:
-        evr = '{}:{}'.format(epoch, vr)
-        envr = '{}:{}'.format(epoch, nvr)
-    else:
-        evr = vr
-        envr = nvr
+        raise RpmSpecParseException(str(e))
 
     return munch.Munch(
         name=name,
         version=version,
         release=release,
         epoch=epoch,
-        nv=nv,
-        vr=vr,
-        evr=evr,
-        nvr=nvr,
-        envr=envr
+        sources=rpm_spec.sources
     )
-
-
-def get_spec_data(spec_path):
-    """
-    Extract spec data from a spec file and
-    return them as multiline string.
-
-    :param str spec_path: path to a spec file
-
-    :return str: text of the spec file
-
-    :raises IOError
-    """
-    spec_file = open(spec_path, 'r')
-    spec_data = spec_file.read()
-    spec_file.close()
-    return spec_data
 
 
 # origin: https://github.com/dgoodwin/tito/blob/e153a58611fc0cd198e9ae40c1033e51192a94a1/src/tito/common.py#L682

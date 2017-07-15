@@ -22,7 +22,7 @@ from pyrpkg import Commands
 from pyrpkg.errors import rpkgError
 
 from providers import PackageContent
-from exceptions import PackageImportException
+from exceptions import PackageImportException, RpmSpecParseException
 
 import helpers
 
@@ -148,16 +148,18 @@ def import_package(opts, namespace, branches, package_content):
     :param list(str) branches: list of branch names to import into
     :param PackageContent package_content: all the package content
 
-    :return Munch: resulting import data (pkg_info, branch_commits, reponame)
+    :return Munch: resulting import data:
+        (branch_commits, reponame, pkg_name, pkg_evr)
     """
     log.debug("package_content: " + str(package_content))
-    pkg_info = helpers.get_pkg_info(package_content.spec_path)
-    log.debug("pkg_info: " + str(pkg_info))
 
-    if not pkg_info.name:
-        raise PackageImportException('Could not determine package name.')
+    pkg_name = helpers.get_package_name(package_content.spec_path)
+    log.debug("pkg_name: " + str(pkg_name))
 
-    reponame = "{}/{}".format(namespace, pkg_info.name)
+    pkg_evr = helpers.get_pkg_evr(package_content.spec_path)
+    log.debug("pkg_evr: " + str(pkg_evr))
+
+    reponame = "{}/{}".format(namespace, pkg_name)
     setup_git_repo(reponame, branches)
 
     repo_dir = tempfile.mkdtemp()
@@ -199,7 +201,10 @@ def import_package(opts, namespace, branches, package_content):
     helpers.run_cmd(['git', 'config', 'user.name', opts.git_user_name])
     helpers.run_cmd(['git', 'config', 'user.email', opts.git_user_email])
 
-    message = "automatic import of {}".format(pkg_info.envr)
+    message = "automatic import of {}".format(pkg_name)
+    if pkg_evr:
+        message += " {}".format(pkg_evr)
+
     branch_commits = {}
     for branch in branches:
         log.debug("checkout '{0}' branch".format(branch))
@@ -251,7 +256,8 @@ def import_package(opts, namespace, branches, package_content):
     refresh_cgit_listing(opts)
 
     return munch.Munch(
-        pkg_info=pkg_info,
         branch_commits=branch_commits,
-        reponame=reponame
+        reponame=reponame,
+        pkg_name=pkg_name,
+        pkg_evr=pkg_evr,
     )

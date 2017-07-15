@@ -207,7 +207,7 @@ class ScmProvider(PackageContentProvider):
             repo_subpath = repo_path
 
         head_spec_path = self.locate_spec(scm_config, repo_subpath)
-        package_name = helpers.get_rpm_spec_info(head_spec_path).name
+        package_name = helpers.get_package_name(head_spec_path)
 
         if scm_config.test:
             target_commit_id = 'HEAD'

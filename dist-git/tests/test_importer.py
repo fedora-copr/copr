@@ -114,7 +114,8 @@ class TestImporter(Base):
     def test_do_import(self, mc_import_package, mc_providers_helpers):
         mc_providers_helpers.download_file = MagicMock(return_value='pkg.spec')
         mc_import_package.return_value = Munch(
-            pkg_info=Munch(name='foo', evr='1.2'),
+            pkg_name='foo',
+            pkg_evr='1.2',
             reponame='foo',
             branch_commits={self.BRANCH: '123', self.BRANCH2: '124'}
         )

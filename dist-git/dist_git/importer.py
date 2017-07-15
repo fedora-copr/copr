@@ -70,8 +70,8 @@ class Importer(object):
 
         return {
             "task_id": task_id,
-            "pkg_name": result.pkg_info.name,
-            "pkg_version": result.pkg_info.evr,
+            "pkg_name": result.pkg_name,
+            "pkg_version": result.pkg_evr,
             "repo_name": result.reponame,
             "git_hash": result.branch_commits[branch],
             "branch": branch,

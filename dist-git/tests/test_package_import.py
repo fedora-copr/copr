@@ -97,8 +97,8 @@ class TestPackageImport(Base):
         mc_pyrpkg_commands.return_value = mc_cmd
         mc_cmd.commithash = '1234'
 
-        mc_helpers.get_pkg_info = MagicMock()
-        mc_helpers.get_pkg_info.return_value = Munch(name='pkgname', envr='1.2')
+        mc_helpers.get_package_name = MagicMock(return_value = 'pkg_name')
+        mc_helpers.get_pkg_evr = MagicMock(return_value = '1.2')
 
         namespace = 'somenamespace'
         branches = ['f25', 'f26']
@@ -106,8 +106,9 @@ class TestPackageImport(Base):
         result = import_package(self.opts, namespace, branches, package_content)
         expected_result = Munch({
             'branch_commits': {'f26': '1234', 'f25': '1234'},
-            'reponame': 'somenamespace/pkgname',
-            'pkg_info': Munch({'envr': '1.2', 'name': 'pkgname'})
+            'reponame': 'somenamespace/pkg_name',
+            'pkg_name': 'pkg_name',
+            'pkg_evr': '1.2',
         })
         assert (result == expected_result)
 
@@ -115,8 +116,9 @@ class TestPackageImport(Base):
         result = import_package(self.opts, namespace, branches, package_content)
         expected_result = Munch({
             'branch_commits': {},
-            'reponame': 'somenamespace/pkgname',
-            'pkg_info': Munch({'envr': '1.2', 'name': 'pkgname'})
+            'reponame': 'somenamespace/pkg_name',
+            'pkg_name': 'pkg_name',
+            'pkg_evr': '1.2',
         })
         assert (result == expected_result)
 
