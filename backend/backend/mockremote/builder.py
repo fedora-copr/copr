@@ -232,5 +232,5 @@ class Builder(object):
             self._run_ssh_cmd("/usr/bin/test -f /etc/mock/{}.cfg"
                               .format(self.job.chroot))
         except RemoteCmdError:
-            raise BuilderError(msg="Build host `{}` missing mock config for chroot `{}`"
+            raise BuilderError("Build host `{}` missing mock config for chroot `{}`"
                                .format(self.hostname, self.job.chroot))
