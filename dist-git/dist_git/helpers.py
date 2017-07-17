@@ -280,7 +280,7 @@ def run_cmd(cmd, cwd='.', raise_on_error=True):
 
 def get_package_name(spec_path):
     """
-    Obtain name of a package described by specfile
+    Obtain name of a package described by spec
     at spec_path.
 
     :param str spec_path: path to a spec file
@@ -294,7 +294,8 @@ def get_package_name(spec_path):
     try:
         rpm_spec = ts.parseSpec(spec_path)
     except ValueError as e:
-        log.info("Could not parse {}".format(spec_path))
+        log.info("Could not parse {} with error {}"
+                 .format(spec_path, str(e)))
     else:
         return rpm.expandMacro("%{name}")
 
@@ -360,11 +361,7 @@ def get_rpm_spec_info(spec_path):
 
 
 # origin: https://github.com/dgoodwin/tito/blob/e153a58611fc0cd198e9ae40c1033e51192a94a1/src/tito/common.py#L682
-def munge_specfile(spec_file, commit_id, commit_count, tgz_filename=None):
-    # If making a test rpm we need to get a little crazy with the spec
-    # file we're building off. (Note we are modifying a temp copy of the
-    # spec) Swap out the actual release for one that includes the git
-    # SHA1 we're building for our test package.
+def munge_spec(spec_file, commit_id, commit_count, tgz_filename=None):
     sha = commit_id[:7]
 
     for line in fileinput.input(spec_file, inplace=True):
@@ -387,23 +384,23 @@ def munge_specfile(spec_file, commit_id, commit_count, tgz_filename=None):
         print(line.rstrip('\n'))
 
 
-def setup_test_specfile(source_spec_path, target_spec_path, repo_path, package_name, commit_id='HEAD'):
+def prepare_test_spec(source_spec_path, target_spec_path, repo_path, package_name, commit_id='HEAD'):
     """
     Save modified spec file under target_spec_path.
     """
-    try:
-        latest_package_tag = get_latest_package_tag(
-            package_name, repo_path, commit_id)
-    except RunCommandException:
-        start_commit_id = run_cmd([
-            'git', '-C', repo_path,
-            'rev-list', commit_id,
-            '--max-parents=0']).stdout
-    else:
+    latest_package_tag = get_latest_package_tag(
+        package_name, repo_path, commit_id)
+
+    if latest_package_tag:
         start_commit_id = run_cmd([
             'git', '-C', repo_path,
             'rev-list', latest_package_tag,
             '--max-count=1']).stdout
+    else:
+        start_commit_id = run_cmd([
+            'git', '-C', repo_path,
+            'rev-list', commit_id,
+            '--max-parents=0']).stdout
 
     commit_count_range = '{}..{}'.format(
         start_commit_id, commit_id)
@@ -426,7 +423,7 @@ def setup_test_specfile(source_spec_path, target_spec_path, repo_path, package_n
     except IOError as e:
         raise PackageImportException(str(e))
 
-    munge_specfile(
+    munge_spec(
         target_spec_path,
         commit_hex,
         commit_count,
@@ -435,9 +432,15 @@ def setup_test_specfile(source_spec_path, target_spec_path, repo_path, package_n
 
 
 def get_latest_package_tag(package_name, repo_path, from_commit_id='HEAD'):
-    return run_cmd([
-        'git', '-C', repo_path,
-        'describe', from_commit_id,
-        '--tags',
-        '--match', package_name+'*',
-        '--abbrev=0']).stdout
+    tag = None
+    try:
+        tag = run_cmd([
+            'git', '-C', repo_path,
+            'describe', from_commit_id,
+            '--tags',
+            '--match', package_name+'*',
+            '--abbrev=0']).stdout
+    except RunCommandException as e:
+        log.warning('No tag found.')
+
+    return tag

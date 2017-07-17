@@ -141,5 +141,126 @@
     "source_type": 1,
     "task_id": "13",
     "user": "clime"
+},
+{
+    "_description": "tito-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"tito_test\": false, \"git_dir\": \"selinux/oracle-instantclient-selinux\", \"git_url\": \"https://github.com/spacewalkproject/spacewalk.git\", \"git_branch\": \"master\"}",
+    "source_type": 3,
+    "task_id": "14",
+    "user": "clime"
+},
+{
+    "_description": "tito-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"tito_test\": false, \"git_dir\": \"spec-tree/spacewalk-repo\", \"git_url\": \"https://github.com/spacewalkproject/spacewalk.git\", \"git_branch\": \"master\"}",
+    "source_type": 3,
+    "task_id": "15",
+    "user": "clime"
+},
+{
+    "_description": "tito-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"tito_test\": true, \"git_dir\": \"spec-tree/spacewalk-repo\", \"git_url\": \"https://github.com/spacewalkproject/spacewalk.git\", \"git_branch\": \"master\"}",
+    "source_type": 3,
+    "task_id": "16",
+    "user": "clime"
+},
+{
+    "_description": "tito-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"tito_test\": false, \"git_dir\": \"python-distributed\", \"git_url\": \"https://gitlab.com/qulogic-rpms/dask.git\", \"git_branch\": \"master\"}",
+    "source_type": 3,
+    "task_id": "17",
+    "user": "clime"
+},
+{
+    "_description": "tito-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"tito_test\": true, \"git_dir\": \"Webapp/ghc-tagstream-conduit\", \"git_url\": \"https://gitlab.com/qulogic-rpms/git-annex.git\", \"git_branch\": \"master\"}",
+    "source_type": 3,
+    "task_id": "18",
+    "user": "clime"
+},
+{
+    "_description": "MockSCM-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"https://github.com/openshift/ansible-service-broker.git\", \"scm_type\": \"git\", \"spec\": \"ansible-service-broker.spec\"}",
+    "source_type": 4,
+    "task_id": "19",
+    "user": "clime"
+},
+{
+    "_description": "MockSCM-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"https://github.com/fusor/ansible-playbook-bundle.git\", \"scm_type\": \"git\", \"spec\": \"apb.spec\"}",
+    "source_type": 4,
+    "task_id": "20",
+    "user": "clime"
+},
+{
+    "_description": "MockSCM-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"scm_branch\": \"\", \"scm_url\": \"https://gitlab.com/osas/osas-infra-team-rpm-pkg.git\", \"scm_type\": \"git\", \"spec\": \"postsrsd/postsrsd.spec\"}",
+    "source_type": 4,
+    "task_id": "21",
+    "user": "clime"
+},
+{
+    "_description": "tito-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"tito_test\": false, \"git_dir\": \"Webapp/ghc-tagstream-conduit\", \"git_url\": \"https://gitlab.com/qulogic-rpms/git-annex.git\", \"git_branch\": \"master\"}",
+    "source_type": 3,
+    "task_id": "22",
+    "user": "clime"
+},
+{
+    "_description": "tito-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"tito_test\": false, \"git_dir\": \"python-urllib3\", \"git_url\": \"https://gitlab.com/osas/osas-infra-team-rpm-pkg.git\", \"git_branch\": \"master\"}",
+    "source_type": 3,
+    "task_id": "23",
+    "user": "clime"
+},
+{
+    "_description": "tito-source test",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"tito_test\": false, \"git_dir\": \"postsrsd\", \"git_url\": \"https://gitlab.com/osas/osas-infra-team-rpm-pkg.git\", \"git_branch\": \"master\"}",
+    "source_type": 3,
+    "task_id": "24",
+    "user": "clime"
 }
 ]

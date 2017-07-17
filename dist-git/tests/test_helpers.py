@@ -2,6 +2,7 @@
 
 import pytest
 import munch
+import rpm
 
 import six
 
@@ -22,7 +23,8 @@ MODULE_REF = 'dist_git.helpers'
 class TestHelpers(object):
     def test_get_rpm_spec_info(self):
         spec_info = helpers.get_rpm_spec_info('tests/specs/sample.spec')
-        assert spec_info == munch.Munch({'release': '1.fc25', 'sources': [], 'epoch': None, 'version': '1.1', 'name': 'sample'})
+        dist = rpm.expandMacro('%{dist}')
+        assert spec_info == munch.Munch({'release': '1'+dist, 'sources': [], 'epoch': None, 'version': '1.1', 'name': 'sample'})
 
         with pytest.raises(RpmSpecParseException):
             helpers.get_rpm_spec_info('tests/specs/unparsable.spec')

@@ -7,6 +7,8 @@ import shutil
 import glob
 import os
 import rpm
+import tarfile
+import re
 
 from exceptions import PackageImportException
 
@@ -125,8 +127,7 @@ class ScmProvider(PackageContentProvider):
             scm_config.scm_type = 'git'
             scm_config.spec_relpath = None
             scm_config.test = task.source_data.get('tito_test')
-            scm_config.setup_test_specfile = scm_config.test
-            scm_config.create_source = True
+            scm_config.prepare_test_spec = scm_config.test
         elif task.source_type == SourceType.MOCK_SCM:
             scm_config.url = task.source_data.get('scm_url')
             scm_config.subdir = None
@@ -134,8 +135,7 @@ class ScmProvider(PackageContentProvider):
             scm_config.scm_type = task.source_data.get('scm_type')
             scm_config.spec_relpath = task.source_data.get('spec')
             scm_config.test = True
-            scm_config.setup_test_specfile = False
-            scm_config.create_source = True
+            scm_config.prepare_test_spec = False
         else:
             raise PackageImportException("Incorrect scm_type for ScmProvider.")
 
@@ -165,35 +165,61 @@ class ScmProvider(PackageContentProvider):
     def checkout_sources(self, scm_config, repo_path, commit_id):
         helpers.run_cmd(['git', '-C', repo_path, 'checkout', commit_id])
 
-    def pack_sources(self, dir_to_pack, spec_path):
-        spec_info = helpers.get_rpm_spec_info(spec_path)
-
-        tarball_name = None
-        for (filename, num, flags) in spec_info.sources:
-            if num == 0 and flags == 1:
-                try:
-                    tarball_name = filename.split('/')[-1]
-                except IndexError:
-                    pass
-                break
-
+    def pack_sources(self, dir_to_pack, target_path, spec_info):
         tardir_name = spec_info.name + '-' + spec_info.version
-        if tarball_name is None:
-            tarball_name = tardir + '.tar.gz'
-
         tardir_path = os.path.join(self.workdir, tardir_name)
-        tarball_path = os.path.join(self.workdir, tarball_name)
 
         log.debug("Packing {} as {} into {}...".format(
-            dir_to_pack, tardir_name, tarball_path))
+            dir_to_pack, tardir_name, target_path))
 
-        mv_cmd = ['mv', dir_to_pack, tardir_path]
-        helpers.run_cmd(mv_cmd)
+        def exclude_vcs(tar_info):
+            exclude_pattern = r'(/.git|/.gitignore)'
+            if re.search(exclude_pattern, tar_info.name):
+                log.debug("Excluding {}".format(tar_info.name))
+                return None
+            return tar_info
 
-        pack_cmd = ['tar', 'caf', tarball_path, '--exclude-vcs', '-C', self.workdir, tardir_name]
-        helpers.run_cmd(pack_cmd)
+        tarball = tarfile.open(target_path, 'w:gz')
+        tarball.add(dir_to_pack, tardir_name, filter=exclude_vcs)
+        tarball.close()
 
-        return tarball_path
+    def prepare_sources(self, scm_config, repo_subpath, spec_path):
+        spec_info = helpers.get_rpm_spec_info(spec_path)
+        source_paths = []
+        extra_content = []
+        source_zero = None
+        downstream_repo = False
+
+        for (path, num, flags) in spec_info.sources:
+            filename = os.path.basename(path)
+
+            if num == 0 and flags == 1:
+                source_zero = filename
+
+            orig_path = os.path.join(repo_subpath, filename)
+            if not os.path.isfile(orig_path):
+                continue
+
+            downstream_repo = True
+
+            target_path = os.path.join(self.workdir, filename)
+            shutil.copy(orig_path, target_path)
+
+            if flags == 1:
+                source_paths.append(target_path)
+            else:
+                extra_content.append(target_path)
+
+        include = lambda f: not re.search('(^README|.spec$|^\.|tito.props)', f)
+        if not filter(include, os.listdir(repo_subpath)):
+            downstream_repo = True
+
+        if not downstream_repo and source_zero:
+            target_path = os.path.join(self.workdir, source_zero)
+            self.pack_sources(repo_subpath, target_path, spec_info)
+            source_paths.append(target_path)
+
+        return (source_paths, extra_content)
 
     def get_content(self, task):
         scm_config = self.get_config(task)
@@ -211,25 +237,27 @@ class ScmProvider(PackageContentProvider):
         if scm_config.test:
             target_commit_id = 'HEAD'
         else:
-            target_commit_id = helpers.get_latest_package_tag(package_name, repo_path)
+            target_commit_id = helpers.get_latest_package_tag(package_name, repo_path) or 'HEAD'
 
         self.checkout_sources(scm_config, repo_path, target_commit_id)
-        spec_path = self.locate_spec(scm_config, repo_subpath)
+        orig_spec_path = self.locate_spec(scm_config, repo_subpath)
 
-        target_spec_path = os.path.join(
-            self.workdir, os.path.basename(spec_path))
+        spec_path = os.path.join(
+            self.workdir, os.path.basename(orig_spec_path))
 
-        if scm_config.setup_test_specfile:
-            helpers.setup_test_specfile(
-                spec_path, target_spec_path, repo_path, package_name)
+        if scm_config.prepare_test_spec:
+            helpers.prepare_test_spec(
+                orig_spec_path, spec_path, repo_path, package_name)
         else:
-            shutil.copy(spec_path, target_spec_path)
+            shutil.copy(orig_spec_path, spec_path)
 
-        source_paths = []
-        if scm_config.create_source:
-            source_paths.append(self.pack_sources(repo_subpath, target_spec_path))
+        source_paths, extra_content = self.prepare_sources(
+            scm_config, repo_subpath, spec_path)
 
-        return PackageContent(spec_path=target_spec_path, source_paths=source_paths)
+        return PackageContent(
+            spec_path=spec_path,
+            source_paths=source_paths,
+            extra_content=extra_content)
 
 
 class PyPIProvider(PackageContentProvider):
