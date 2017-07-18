@@ -9,6 +9,7 @@ import os
 import rpm
 import tarfile
 import re
+import subprocess
 
 from exceptions import PackageImportException
 
