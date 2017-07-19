@@ -95,7 +95,8 @@
 
   {{ render_field(form.scm_type) }}
   {{ render_field(form.scm_url, placeholder="URL to your Git or SVN repository") }}
-  {{ render_field(form.spec, placeholder="Path from repository root directory to your .spec file") }}
+  {{ render_field(form.scm_subdir, placeholder="Optional - Subdirectory where source files and .spec are located.") }}
+  {{ render_field(form.spec, placeholder="Optional - Path to your .spec file under the specified subdirectory.") }}
   {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
 
   {{ render_webhook_rebuild(form) }}

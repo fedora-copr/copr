@@ -293,6 +293,7 @@ def process_new_build_mock(copr, add_view, url_on_success):
             form.scm_type.data,
             form.scm_url.data,
             form.scm_branch.data,
+            form.scm_subdir.data,
             form.spec.data,
             form.selected_chroots,
             **build_options

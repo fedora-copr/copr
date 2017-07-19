@@ -99,13 +99,14 @@ class MockSCMPackage(Package):
         self.scm_url = source_json['scm_url']
         self.scm_branch = source_json['scm_branch']
         self.scm_type = source_json['scm_type']
+        self.scm_subdir = source_json['scm_subdir']
         self.spec = source_json['spec']
         self.copr_id = db_row.copr_id
         self.copr = CoprsLogic.get_by_id(self.copr_id).first()
         self.source_json = db_row.source_json
 
     def build(self):
-        BuildsLogic.create_new_from_mock(self.copr.user, self.copr, self.scm_type, self.scm_url, self.scm_branch, self.spec)
+        BuildsLogic.create_new_from_mock(self.copr.user, self.copr, self.scm_type, self.scm_url, self.scm_branch, self.scm_subdir, self.spec)
         db.session.commit()
 
 

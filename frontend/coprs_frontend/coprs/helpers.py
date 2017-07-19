@@ -109,7 +109,7 @@ class BuildSourceEnum(with_metaclass(EnumType, object)):
             "link": 1,  # url
             "upload": 2,  # pkg, tmp
             "git_and_tito": 3, # git_url, git_dir, git_branch, tito_test
-            "mock_scm": 4, # scm_type, scm_url, spec, scm_branch
+            "mock_scm": 4, # scm_type, scm_url, spec, scm_branch, scm_subdir
             "pypi": 5, # package_name, version, python_versions
             "rubygems": 6, # gem_name
             "distgit": 7, # url, branch

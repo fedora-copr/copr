@@ -423,6 +423,7 @@ def copr_new_build_mock(copr):
             form.scm_type.data,
             form.scm_url.data,
             form.scm_branch.data,
+            form.scm_subdir.data,
             form.spec.data,
             form.selected_chroots,
             background=form.background.data,

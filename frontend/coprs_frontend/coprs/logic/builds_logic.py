@@ -397,7 +397,7 @@ GROUP BY
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
-    def create_new_from_mock(cls, user, copr, scm_type, scm_url, scm_branch, spec,
+    def create_new_from_mock(cls, user, copr, scm_type, scm_url, scm_branch, scm_subdir, spec,
                              chroot_names=None, **build_options):
         """
         :type user: models.User
@@ -411,6 +411,7 @@ GROUP BY
         source_json = json.dumps({"scm_type": scm_type,
                                   "scm_url": scm_url,
                                   "scm_branch": scm_branch,
+                                  "scm_subdir": scm_subdir,
                                   "spec": spec})
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 

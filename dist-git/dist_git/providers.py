@@ -131,7 +131,7 @@ class ScmProvider(PackageContentProvider):
             scm_config.prepare_test_spec = scm_config.test
         elif task.source_type == SourceType.MOCK_SCM:
             scm_config.url = task.source_data.get('scm_url')
-            scm_config.subdir = None
+            scm_config.subdir = task.source_data.get('scm_subdir')
             scm_config.branch = task.source_data.get('scm_branch')
             scm_config.scm_type = task.source_data.get('scm_type')
             scm_config.spec_relpath = task.source_data.get('spec')

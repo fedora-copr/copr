@@ -413,9 +413,15 @@ class PackageFormMock(BasePackageForm):
         validators=[
             wtforms.validators.Optional()])
 
+    scm_subdir = wtforms.StringField(
+        "Subdirectory",
+        validators=[
+            wtforms.validators.Optional()])
+
     spec = wtforms.StringField(
         "Spec File",
         validators=[
+            wtforms.validators.Optional(),
             wtforms.validators.Regexp(
                 "^.+\.spec$",
                 message="RPM spec file must end with .spec")])
