@@ -179,7 +179,7 @@ def process_new_build(copr, form, create_new_build_factory, add_function, add_vi
         return add_function(copr, form, add_view)
 
 
-################################ Tito builds ################################
+################################ SCM-1 (Tito) builds ################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_tito/")
 @login_required
@@ -240,7 +240,7 @@ def process_new_build_tito(copr, add_view, url_on_success):
     return process_new_build(copr, form, factory, render_add_build_tito, add_view, url_on_success)
 
 
-################################ Mock builds ################################
+################################ SCM-2 (Mock) builds ################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_mock/")
 @login_required

@@ -179,8 +179,8 @@ def build_source_description(state):
         "unset": "No default source",
         "link": "External link to .spec or SRPM",
         "upload": "SRPM or .spec file upload",
-        "git_and_tito": "Tito build from a Git repository",
-        "mock_scm": "Mock build from a SCM repository",
+        "git_and_tito": "SCM-1 build from a Git repository",
+        "mock_scm": "SCM-2 build from a SCM repository",
         "pypi": "Build from PyPI",
         "rubygems": "Build from RubyGems",
     }

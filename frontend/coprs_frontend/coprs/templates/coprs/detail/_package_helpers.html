@@ -18,8 +18,8 @@ with context %}
 {% macro show_navigation(copr, view) %}
   {# kwargs: pass package_name='...' when editing the package #}
   <ul class="nav nav-tabs nav-tabs-pf">
-    {{ nav_element("git_and_tito", "Git and Tito", copr_url(view, copr, source_type_text="git_and_tito", **kwargs)) }}
-    {{ nav_element("mock_scm", "Mock SCM", copr_url(view, copr, source_type_text="mock_scm", **kwargs)) }}
+    {{ nav_element("scm-1", "SCM-1", copr_url(view, copr, source_type_text="git_and_tito", **kwargs)) }}
+    {{ nav_element("scm-2", "SCM-2", copr_url(view, copr, source_type_text="mock_scm", **kwargs)) }}
     {{ nav_element("pypi", "PyPI", copr_url(view, copr, source_type_text="pypi", **kwargs)) }}
     {{ nav_element("rubygems", "RubyGems", copr_url(view, copr, source_type_text="rubygems", **kwargs)) }}
   </ul>
