@@ -18,8 +18,6 @@ fi
 
 dnf -y copr enable clime/dist-git
 
-./create_loopback_devices_for_docker.sh # hack for running tests inside docker
-
 dnf -y update
 dnf -y install fedpkg-copr
 dnf -y install git
@@ -119,8 +117,6 @@ if ! rpm -qa | grep copr-mocks; then
     dnf -y install python3-devel
 fi
 
-setenforce 0 # for mock-scm in docker, see https://bugzilla.redhat.com/show_bug.cgi?id=1416813
-
 rm -f /run/nologin # fix for docker environment
 
 echo "%_disable_source_fetch 0" > ~/.rpmmacros
@@ -128,5 +124,4 @@ echo "%_disable_source_fetch 0" > ~/.rpmmacros
 # enable & start services
 systemctl daemon-reload
 systemctl enable httpd && systemctl start httpd
-systemctl enable docker && systemctl start docker
 systemctl enable copr-dist-git && systemctl start copr-dist-git
