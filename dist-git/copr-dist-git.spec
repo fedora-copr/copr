@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.32
+Version:    0.33
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -149,6 +149,20 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Wed Jul 19 2017 clime <clime@redhat.com> 0.33-1
+- remove ExclusiveArch directive
+- add support for SCM Subdirectory parameter
+- remove docker related stuff
+- fix variable name
+- add missing import in providers.py
+- auto-differentiate between downstream and upstream repo in
+  SCMProvider
+- do not include dist information in displayed version
+- remove unused exceptions
+- get_package_name from spec_path is now a separate method
+- do not modify spec for MockScm method
+- use python's tarfile instead of tar shell cmd
+
 * Fri Jul 14 2017 clime <clime@redhat.com> 0.32-1
 - srpms are now not being built on dist-git
 - MockSCM and Tito methods unified into single source
