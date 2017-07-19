@@ -149,7 +149,7 @@ class ScmProvider(PackageContentProvider):
             spec_path = helpers.locate_spec(repo_subpath)
 
         if not os.path.exists(spec_path):
-            raise PackageImportException("Can't find spec file at {}".format(repo_spec_path))
+            raise PackageImportException("Can't find spec file at {}".format(spec_path))
 
         return spec_path
 
