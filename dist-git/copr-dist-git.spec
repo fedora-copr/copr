@@ -82,7 +82,7 @@ getent group packager >/dev/null || groupadd -r packager
 getent group copr-dist-git >/dev/null || groupadd -r copr-dist-git
 getent group apache >/dev/null || groupadd -r apache
 getent passwd copr-dist-git >/dev/null || \
-useradd -r -m -g copr-dist-git -G packager,docker,apache -c "copr-dist-git user" copr-dist-git
+useradd -r -m -g copr-dist-git -G packager,apache -c "copr-dist-git user" copr-dist-git
 /usr/bin/passwd -l copr-dist-git >/dev/null
 
 exit 0
