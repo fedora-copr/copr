@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.115
+Version:    1.116
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -397,6 +397,10 @@ service logstash condrestart
 
 
 %changelog
+* Wed Jul 19 2017 clime <clime@redhat.com> 1.116-1
+- in UI, rename Tito to SCM-1 and MockSCM to SCM-2
+- add support for SCM Subdirectory parameter
+
 * Fri Jul 14 2017 clime <clime@redhat.com> 1.115-1
 - small updates 
 
