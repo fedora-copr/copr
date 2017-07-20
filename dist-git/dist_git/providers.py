@@ -317,11 +317,8 @@ class SrpmUrlProvider(PackageContentProvider):
 
         spec_path = helpers.locate_spec(self.workdir)
         source_paths = helpers.locate_sources(self.workdir)
-
-        extra_content = []
-        for path in glob.glob(os.path.join(self.workdir, '*')):
-            if path != spec_path and path not in source_paths:
-               extra_content.append(path)
+        extra_content = helpers.locate_extra_content(
+            self.workdir, source_paths + [spec_path])
 
         return PackageContent(
             spec_path=spec_path,

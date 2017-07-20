@@ -247,6 +247,14 @@ def locate_spec(dirpath):
     return spec_path
 
 
+def locate_extra_content(dirpath, exclude):
+    extra_content = []
+    for path in glob.glob(os.path.join(dirpath, '*')):
+        if path not in exclude:
+            extra_content.append(path)
+    return extra_content
+
+
 def run_cmd(cmd, cwd='.', raise_on_error=True):
     """
     Runs given command in a subprocess.
