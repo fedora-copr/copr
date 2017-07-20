@@ -9,7 +9,7 @@
 
 {%block project_breadcrumb %}
 <li>
-  <a href="{{ url_for('coprs_ns.copr_builds', username=copr.user.name, coprname=copr.name) }}">Builds</a>
+  <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}">Builds</a>
 </li>
 <li class="active">
   {{build.id}}
