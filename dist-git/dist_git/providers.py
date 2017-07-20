@@ -361,9 +361,15 @@ class DistGitProvider(PackageContentProvider):
         result = helpers.run_cmd(cmd, cwd=self.workdir)
         log.info(result)
 
+        spec_path = helpers.locate_spec(self.workdir)
+        source_paths = helpers.locate_sources(self.workdir)
+        extra_content = helpers.locate_extra_content(
+            self.workdir, source_paths + [spec_path])
+
         return PackageContent(
-            spec_path= helpers.locate_spec(self.workdir),
-            source_paths=helpers.locate_sources(self.workdir))
+            spec_path=spec_path,
+            source_paths=source_paths,
+            extra_content=extra_content)
 
     def checkout(self, branch, cwd):
         cmd = ['git', 'checkout', branch]
