@@ -348,11 +348,7 @@ mkdir -p "$srpm_logs"
 cp intermediate-srpm/*.log* "$srpm_logs"
 
 set -- intermediate-srpm/*.src.rpm
-case $# in
-    0) die "no SRPM built from dist-git repo" ;;
-    1) ;;
-    *) die "multiple srpms: $* ; only one is allowed" ;;
-esac
+test $# -ne 1 && die "multiple srpms: $* ; only one is allowed"
 
 info "Generate RPM in cached mock chroot"
 stdout_wrap "${mock[@]}" \
