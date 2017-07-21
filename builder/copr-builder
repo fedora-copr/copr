@@ -342,9 +342,16 @@ stdout_wrap "${mock[@]}" \
     --resultdir intermediate-srpm \
     --no-cleanup-after
 
+set -- intermediate-srpm/*.src.rpm
+case $# in
+    0) die "no SRPM built from dist-git repo" ;;
+    1) ;;
+    *) die "multiple srpms: $* ; only one is allowed" ;;
+esac
+
 info "Generate RPM in cached mock chroot"
 stdout_wrap "${mock[@]}" \
-    --rebuild intermediate-srpm/"$opt_package"*.src.rpm \
+    --rebuild "$1" \
     --resultdir "$opt_resultdir" \
     --no-clean
 
