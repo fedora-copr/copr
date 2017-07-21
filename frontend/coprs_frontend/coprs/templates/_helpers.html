@@ -388,14 +388,14 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     <tr>
     {# The following code is optimized to pass (potentially large) monitor data just once. #}
     {# It expects results to be sorted by package.name and then mock_chroot.name. #}
-    {% set current_row = None %}
+    {% set current_row = [None] %}
     {% set copr_active_chroots_sorted = copr.active_chroots_sorted %}
     {% set copr_active_chroots_sorted_length = copr_active_chroots_sorted|length %}
     {#% set copr_active_chroots_sorted_index = copr_active_chroots_sorted_length %#} {# we need to set this var from an inner scope, which is unsupported, hence the following list-as-a-counter hacks: #}
     {% set copr_active_chroots_sorted_index = [1]*copr_active_chroots_sorted_length %}
 
     {% for row in monitor %}
-      {% if row.package_name != current_row %}
+      {% if row.package_name != current_row[0] %}
         {% for _ in range(copr_active_chroots_sorted_index|length, copr_active_chroots_sorted_length) %} {# "do" tag would help but just a tiny bit (so no enabling) #}
           <td>-</td>
         {% endfor %}
@@ -406,7 +406,8 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
             {{ row.package_name }}
           </a></b>
         </td>
-        {% set current_row = row.package_name %}
+        {% set _ = current_row.pop() %}
+        {% set _ = current_row.append(row.package_name) %}
         {#% set copr_active_chroots_sorted_index = 0 %#}
         {% for _ in range(copr_active_chroots_sorted_index|length) %}{% if copr_active_chroots_sorted_index.remove(1) %}{% endif %}{% endfor %}
       {% endif %}
