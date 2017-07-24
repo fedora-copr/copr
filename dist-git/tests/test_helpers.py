@@ -36,8 +36,8 @@ class TestHelpers(object):
         pkg_name = helpers.get_package_name('tests/specs/unparsable.spec')
         assert pkg_name == 'sample'
 
-        with pytest.raises(PackageNameCouldNotBeObtainedException):
-            helpers.get_package_name('tests/specs/unparsable_with_macro_in_name.spec')
+        pkg_name = helpers.get_package_name('tests/specs/unparsable_with_macro_in_name.spec')
+        assert pkg_name == 'sample-somename'
 
     def test_get_pkg_evr(self):
         pkg_evr = helpers.get_pkg_evr('tests/specs/sample.spec')

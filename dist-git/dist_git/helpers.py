@@ -302,21 +302,33 @@ def get_package_name(spec_path):
     try:
         rpm_spec = ts.parseSpec(spec_path)
     except ValueError as e:
-        log.info("Could not parse {} with error {}"
+        log.debug("Could not parse {} with error {}. Trying manual parsing."
                  .format(spec_path, str(e)))
-    else:
-        return rpm.expandMacro("%{name}")
 
-    # regular expression fallback
-    with open(spec_path, 'r') as spec_file:
-        pattern = re.compile('^name:\s*([a-zA-Z0-9-._+]*)$', re.IGNORECASE)
-        for spec_line in spec_file.readlines():
-            match = pattern.match(spec_line)
-            if match:
-                return match.group(1)
+        with open(spec_path, 'r') as spec_file:
+            spec_lines = spec_file.readlines()
 
-    raise PackageNameCouldNotBeObtainedException(
-        "Could not get package name from {}.".format(spec_path))
+        patterns = [
+            re.compile(r'^(name):\s*(\S*)$', re.IGNORECASE),
+            re.compile(r'^%global\s*(\S*)\s*(\S*)$'),
+            re.compile(r'^%define\s*(\S*)\s*(\S*)$')]
+
+        for spec_line in spec_lines:
+            for pattern in patterns:
+                match = pattern.match(spec_line)
+                if not match:
+                    continue
+                rpm.addMacro(
+                    match.group(1), match.group(2))
+
+    package_name = rpm.expandMacro("%{name}")
+    rpm.reloadConfig()
+
+    if not re.match(r'[a-zA-Z0-9-._+]*', package_name):
+        raise PackageNameCouldNotBeObtainedException(
+            "Got invalid package package name {} from {}.".format(package_name, spec_path))
+
+    return package_name
 
 
 def get_pkg_evr(spec_path):
