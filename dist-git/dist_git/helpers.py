@@ -324,9 +324,9 @@ def get_package_name(spec_path):
     package_name = rpm.expandMacro("%{name}")
     rpm.reloadConfig()
 
-    if not re.match(r'[a-zA-Z0-9-._+]*', package_name):
+    if not re.match(r'[a-zA-Z0-9-._+]+', package_name):
         raise PackageNameCouldNotBeObtainedException(
-            "Got invalid package package name {} from {}.".format(package_name, spec_path))
+            "Got invalid package package name '{}' from {}.".format(package_name, spec_path))
 
     return package_name
 
