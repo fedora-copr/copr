@@ -30,6 +30,10 @@ dnf -y install cgit
 dnf -y install dist-git
 dnf -y install dist-git-selinux
 
+# The current python2-rpkg package has a bug regarding --module-name
+# It is fixed in git, so we can upgrade once rpkg > 1.49-6 is released
+dnf -y install https://kojipkgs.fedoraproject.org//packages/rpkg/1.49/2.fc25/noarch/python2-rpkg-1.49-2.fc25.noarch.rpm
+
 export LANG=en_US.UTF-8
 
 # install copr-mocks from sources

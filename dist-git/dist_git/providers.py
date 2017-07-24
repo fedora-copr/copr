@@ -10,6 +10,12 @@ import rpm
 import tarfile
 import re
 import subprocess
+from jinja2 import Environment,FileSystemLoader
+
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 from exceptions import PackageImportException
 
@@ -311,11 +317,8 @@ class SrpmUrlProvider(PackageContentProvider):
 
         spec_path = helpers.locate_spec(self.workdir)
         source_paths = helpers.locate_sources(self.workdir)
-
-        extra_content = []
-        for path in glob.glob(os.path.join(self.workdir, '*')):
-            if path != spec_path and path not in source_paths:
-               extra_content.append(path)
+        extra_content = helpers.locate_extra_content(
+            self.workdir, source_paths + [spec_path])
 
         return PackageContent(
             spec_path=spec_path,
@@ -331,4 +334,49 @@ class SpecUrlProvider(PackageContentProvider):
 
 class DistGitProvider(PackageContentProvider):
     def get_content(self, task):
-        raise PackageImportException("Currently not implemented.")
+        cmd = ['git', 'clone', task.source_data['clone_url'], self.workdir]
+        result = helpers.run_cmd(cmd)
+        log.info(result)
+
+        jinja_env = Environment(loader=FileSystemLoader(
+            os.path.join(os.path.dirname(__file__), 'templates')))
+        template = jinja_env.get_template('fedpkg.conf.j2')
+
+        parse = urlparse(task.source_data['clone_url'])
+        distgit_domain = parse.netloc
+        cfg = template.render(distgit_domain=distgit_domain, scheme=parse.scheme)
+        log.info(cfg)
+
+        config_path = os.path.join(self.workdir, 'fedpkg.conf')
+        f = open(config_path, "w+")
+        f.write(cfg)
+        f.close()
+
+        if task.source_data['branch']:
+            self.checkout(task.source_data['branch'], self.workdir)
+
+        # Run distgit client to obtain package sources
+        cmd = ['fedpkg', '--config', 'fedpkg.conf',
+               '--module-name', self.module_name(parse.path), 'sources']
+        result = helpers.run_cmd(cmd, cwd=self.workdir)
+        log.info(result)
+
+        spec_path = helpers.locate_spec(self.workdir)
+        source_paths = helpers.locate_sources(self.workdir)
+        extra_content = helpers.locate_extra_content(
+            self.workdir, source_paths + [spec_path])
+
+        return PackageContent(
+            spec_path=spec_path,
+            source_paths=source_paths,
+            extra_content=extra_content)
+
+    def checkout(self, branch, cwd):
+        cmd = ['git', 'checkout', branch]
+        try:
+            helpers.run_cmd(cmd, cwd=cwd)
+        except OSError as e:
+            raise PackageImportException(str(e))
+
+    def module_name(self, url_path):
+        return re.sub(".git$", "", re.sub("^/c?git/", "", url_path))
