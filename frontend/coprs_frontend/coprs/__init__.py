@@ -22,7 +22,7 @@ if os.environ.get("COPR_CONFIG"):
 else:
     app.config.from_pyfile("/etc/copr/copr.conf", silent=True)
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 oid = OpenID(
     app, app.config["OPENID_STORE"],
