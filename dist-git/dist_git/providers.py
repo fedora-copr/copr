@@ -334,7 +334,8 @@ class SpecUrlProvider(PackageContentProvider):
 
 class DistGitProvider(PackageContentProvider):
     def get_content(self, task):
-        cmd = ['git', 'clone', task.source_data['clone_url'], self.workdir]
+        repodir = os.path.join(self.workdir, 'repo')
+        cmd = ['git', 'clone', task.source_data['clone_url'], repodir]
         result = helpers.run_cmd(cmd)
         log.info(result)
 
@@ -353,18 +354,18 @@ class DistGitProvider(PackageContentProvider):
         f.close()
 
         if task.source_data['branch']:
-            self.checkout(task.source_data['branch'], self.workdir)
+            self.checkout(task.source_data['branch'], repodir)
 
         # Run distgit client to obtain package sources
-        cmd = ['fedpkg', '--config', 'fedpkg.conf',
+        cmd = ['fedpkg', '--config', config_path,
                '--module-name', self.module_name(parse.path), 'sources']
-        result = helpers.run_cmd(cmd, cwd=self.workdir)
+        result = helpers.run_cmd(cmd, cwd=repodir)
         log.info(result)
 
-        spec_path = helpers.locate_spec(self.workdir)
-        source_paths = helpers.locate_sources(self.workdir)
+        spec_path = helpers.locate_spec(repodir)
+        source_paths = helpers.locate_sources(repodir)
         extra_content = helpers.locate_extra_content(
-            self.workdir, source_paths + [spec_path])
+            repodir, source_paths + [spec_path])
 
         return PackageContent(
             spec_path=spec_path,
