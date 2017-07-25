@@ -150,7 +150,10 @@ rlJournalStart
         rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 2 600 $PACKAGES
-        rlAssertEquals "Package hello should succeed" `cat $PACKAGES |grep "state" |grep "hello" | grep "succeeded" |wc -l` 1
+        rlAssertEquals "All packages should succeed" `cat $PACKAGES |grep "state" | grep "succeeded" |wc -l` 2
+        for pkg in "module-build-macros" "ed"; do
+            rlAssertEquals "Package $pkg is missing" `cat $PACKAGES | grep "name" |grep "$pkg" |wc -l` 1
+        done
 
         # @TODO Test that it is possible to build module
         # with few hundreds of packages
