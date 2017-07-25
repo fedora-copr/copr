@@ -9,7 +9,7 @@ import time
 
 import flask
 from flask_script import Manager, Command, Option, Group
-from flask.ext.whooshee import Whooshee
+from flask_whooshee import Whooshee
 
 from coprs import app
 from coprs import db

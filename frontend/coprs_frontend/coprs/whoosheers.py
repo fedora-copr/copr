@@ -1,7 +1,7 @@
 import whoosh
 import time
 
-from flask.ext.whooshee import AbstractWhoosheer
+from flask_whooshee import AbstractWhoosheer
 
 from coprs import models
 from coprs import whooshee
