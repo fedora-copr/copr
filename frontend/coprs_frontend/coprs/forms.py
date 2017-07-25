@@ -7,7 +7,7 @@ import json
 
 from flask_wtf.file import FileAllowed, FileRequired, FileField
 
-from flask_wtf import Form as wtf_form
+from flask_wtf import Form as FlaskForm
 from jinja2 import Markup
 
 from coprs import constants
@@ -209,7 +209,7 @@ class CoprFormFactory(object):
 
     @staticmethod
     def create_form_cls(mock_chroots=None, user=None, group=None):
-        class F(wtf_form):
+        class F(FlaskForm):
             # also use id here, to be able to find out whether user
             # is updating a copr if so, we don't want to shout
             # that name already exists
@@ -306,7 +306,7 @@ class CoprFormFactory(object):
         return F
 
 
-class CoprDeleteForm(wtf_form):
+class CoprDeleteForm(FlaskForm):
     verify = wtforms.TextField(
         "Confirm deleting by typing 'yes'",
         validators=[
@@ -321,7 +321,7 @@ class CoprDeleteForm(wtf_form):
 class BuildFormRebuildFactory(object):
     @staticmethod
     def create_form_cls(active_chroots):
-        class F(wtf_form):
+        class F(FlaskForm):
             @property
             def selected_chroots(self):
                 selected = []
@@ -361,7 +361,7 @@ class BuildFormRebuildFactory(object):
         return F
 
 
-class BasePackageForm(wtf_form):
+class BasePackageForm(FlaskForm):
     package_name = wtforms.StringField(
         "Package name",
         validators=[wtforms.validators.DataRequired()])
@@ -566,7 +566,7 @@ class BuildFormDistGitFactory(object):
 
 class BuildFormUploadFactory(object):
     def __new__(cls, active_chroots):
-        form = BaseBuildFormFactory(active_chroots, wtf_form)
+        form = BaseBuildFormFactory(active_chroots, FlaskForm)
         form.pkgs = FileField('srpm', validators=[
             FileRequired(),
             SrpmValidator()])
@@ -575,7 +575,7 @@ class BuildFormUploadFactory(object):
 
 class BuildFormUrlFactory(object):
     def __new__(cls, active_chroots):
-        form = BaseBuildFormFactory(active_chroots, wtf_form)
+        form = BaseBuildFormFactory(active_chroots, FlaskForm)
         form.pkgs = wtforms.TextAreaField(
             "Pkgs",
             validators=[
@@ -586,7 +586,7 @@ class BuildFormUrlFactory(object):
         return form
 
 
-class ModuleFormUploadFactory(wtf_form):
+class ModuleFormUploadFactory(FlaskForm):
     modulemd = FileField("modulemd", validators=[
         FileRequired(),
         # @TODO Validate modulemd.yaml file
@@ -596,7 +596,7 @@ class ModuleFormUploadFactory(wtf_form):
     build = wtforms.BooleanField("build", default=True)
 
 
-class ModuleBuildForm(wtf_form):
+class ModuleBuildForm(FlaskForm):
     modulemd = FileField("modulemd")
     scmurl = wtforms.StringField()
     branch = wtforms.StringField()
@@ -604,7 +604,7 @@ class ModuleBuildForm(wtf_form):
     copr_project = wtforms.StringField()
 
 
-class ChrootForm(wtf_form):
+class ChrootForm(FlaskForm):
 
     """
     Validator for editing chroots in project
@@ -624,7 +624,7 @@ class ChrootForm(wtf_form):
     comps = FileField("comps_xml")
 
 
-class CoprLegalFlagForm(wtf_form):
+class CoprLegalFlagForm(FlaskForm):
     comment = wtforms.TextAreaField("Comment")
 
 
@@ -632,7 +632,7 @@ class PermissionsApplierFormFactory(object):
 
     @staticmethod
     def create_form_cls(permission=None):
-        class F(wtf_form):
+        class F(FlaskForm):
             pass
 
         builder_default = False
@@ -662,7 +662,7 @@ class PermissionsFormFactory(object):
     """Creates a dynamic form for given set of copr permissions"""
     @staticmethod
     def create_form_cls(permissions):
-        class F(wtf_form):
+        class F(FlaskForm):
             pass
 
         for perm in permissions:
@@ -687,7 +687,7 @@ class PermissionsFormFactory(object):
         return F
 
 
-class CoprModifyForm(wtf_form):
+class CoprModifyForm(FlaskForm):
     description = wtforms.TextAreaField('Description',
                                         validators=[wtforms.validators.Optional()])
 
@@ -709,7 +709,7 @@ class CoprModifyForm(wtf_form):
 class CoprForkFormFactory(object):
     @staticmethod
     def create_form_cls(copr, user, groups):
-        class F(wtf_form):
+        class F(FlaskForm):
             source = wtforms.StringField(
                 "Source",
                 default=copr.full_name)
@@ -731,7 +731,7 @@ class CoprForkFormFactory(object):
         return F
 
 
-class ModifyChrootForm(wtf_form):
+class ModifyChrootForm(FlaskForm):
     buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
     repos = wtforms.TextAreaField('Additional repos to be used for builds in chroot',
                                   validators=[UrlRepoListValidator(),
@@ -741,11 +741,11 @@ class ModifyChrootForm(wtf_form):
     delete_comps = wtforms.BooleanField("Delete comps.xml")
 
 
-class AdminPlaygroundForm(wtf_form):
+class AdminPlaygroundForm(FlaskForm):
     playground = wtforms.BooleanField("Playground")
 
 
-class AdminPlaygroundSearchForm(wtf_form):
+class AdminPlaygroundSearchForm(FlaskForm):
     project = wtforms.TextField("Project")
 
 
@@ -761,7 +761,7 @@ class GroupUniqueNameValidator(object):
             raise wtforms.ValidationError(self.message.format(field.data))
 
 
-class ActivateFasGroupForm(wtf_form):
+class ActivateFasGroupForm(FlaskForm):
 
     name = wtforms.StringField(
         validators=[
@@ -774,7 +774,7 @@ class ActivateFasGroupForm(wtf_form):
     )
 
 
-class CreateModuleForm(wtf_form):
+class CreateModuleForm(FlaskForm):
     name = wtforms.StringField("Name")
     stream = wtforms.StringField("Stream")
     version = wtforms.IntegerField("Version")
@@ -790,7 +790,7 @@ class CreateModuleForm(wtf_form):
         super(CreateModuleForm, self).__init__(*args, **kwargs)
 
     def validate(self):
-        if not wtf_form.validate(self):
+        if not FlaskForm.validate(self):
             return False
 
         module = ModulesLogic.get_by_nsv(self.copr, self.name.data, self.stream.data, self.version.data).first()
@@ -817,7 +817,7 @@ class CreateModuleForm(wtf_form):
         return True
 
 
-class ModuleRepo(wtf_form):
+class ModuleRepo(FlaskForm):
     owner = wtforms.StringField("Owner Name", validators=[wtforms.validators.DataRequired()])
     copr = wtforms.StringField("Copr Name", validators=[wtforms.validators.DataRequired()])
     name = wtforms.StringField("Name", validators=[wtforms.validators.DataRequired()])
