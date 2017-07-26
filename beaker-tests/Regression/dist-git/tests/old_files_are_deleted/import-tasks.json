@@ -1,0 +1,24 @@
+[
+{
+    "_description": "srpm containing specfile named example.spec",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"url\": \"http://localhost:5000/static/example.src.rpm\"}",
+    "source_type": 1,
+    "task_id": "1",
+    "user": "clime"
+},
+{
+    "_description": "srpm containing specfile named foo.spec",
+    "_expected_outcome": "success",
+
+    "branches": ["master"],
+    "project": "example",
+    "source_json": "{\"url\": \"http://localhost:5000/static/foo.src.rpm\"}",
+    "source_type": 1,
+    "task_id": "2",
+    "user": "clime"
+}
+]

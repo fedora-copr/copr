@@ -138,6 +138,22 @@ def setup_git_repo(reponame, branches):
                 raise PackageImportException(e.output)
 
 
+def cleanup_repo(repo_path):
+    """
+    Remove all files from the given repository
+    except special ones.
+
+    :param str repo_path: path to the repository
+    """
+    to_remove = []
+    for f in os.listdir(repo_path):
+        if f not in ['.git', '.gitignore', 'sources']:
+            to_remove.append(f)
+    if to_remove:
+        helpers.run_cmd(
+            ['git', 'rm', '-r'] + to_remove)
+
+
 @helpers.single_run(import_lock)
 def import_package(opts, namespace, branches, package_content):
     """
@@ -212,6 +228,8 @@ def import_package(opts, namespace, branches, package_content):
 
         try:
             if not branch_commits:
+                cleanup_repo('.')
+
                 log.debug("add package content")
                 add_to_index = []
                 shutil.copy(package_content.spec_path, repo_dir)

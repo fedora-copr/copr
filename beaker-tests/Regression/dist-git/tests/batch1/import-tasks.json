@@ -192,7 +192,7 @@
 
     "branches": ["master"],
     "project": "example",
-    "source_json": "{\"tito_test\": true, \"git_dir\": \"Webapp/ghc-tagstream-conduit\", \"git_url\": \"https://gitlab.com/qulogic-rpms/git-annex.git\", \"git_branch\": \"master\"}",
+    "source_json": "{\"tito_test\": true, \"git_dir\": \"Webapp/ghc-yesod\", \"git_url\": \"https://gitlab.com/qulogic-rpms/git-annex.git\", \"git_branch\": \"master\"}",
     "source_type": 3,
     "task_id": "18",
     "user": "clime"
@@ -236,7 +236,7 @@
 
     "branches": ["master"],
     "project": "example",
-    "source_json": "{\"tito_test\": false, \"git_dir\": \"Webapp/ghc-tagstream-conduit\", \"git_url\": \"https://gitlab.com/qulogic-rpms/git-annex.git\", \"git_branch\": \"master\"}",
+    "source_json": "{\"tito_test\": false, \"git_dir\": \"Webapp/ghc-yesod\", \"git_url\": \"https://gitlab.com/qulogic-rpms/git-annex.git\", \"git_branch\": \"master\"}",
     "source_type": 3,
     "task_id": "22",
     "user": "clime"
