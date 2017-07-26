@@ -22,6 +22,7 @@ if os.environ.get("COPR_CONFIG"):
 else:
     app.config.from_pyfile("/etc/copr/copr.conf", silent=True)
 
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 oid = OpenID(
     app, app.config["OPENID_STORE"],
@@ -94,5 +95,5 @@ register_api_error_handler(app)
 app.register_blueprint(rest_api_bp, url_prefix=URL_PREFIX)
 # register_api(app, db)
 
-from flask.ext.sqlalchemy import models_committed
+from flask_sqlalchemy import models_committed
 models_committed.connect(coprs.whoosheers.CoprWhoosheer.on_commit, sender=app)
