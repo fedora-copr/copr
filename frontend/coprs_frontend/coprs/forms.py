@@ -431,6 +431,7 @@ class PackageFormMock(BasePackageForm):
         return json.dumps({
             "scm_type": self.scm_type.data,
             "scm_url": self.scm_url.data,
+            "scm_subdir": self.scm_subdir.data,
             "scm_branch": self.scm_branch.data,
             "spec": self.spec.data
         })
