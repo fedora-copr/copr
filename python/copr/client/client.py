@@ -549,7 +549,7 @@ class CoprClient(UnicodeMixin):
                                    background=False, progress_callback=None, multipart=False):
         if not username:
             username = self.username
-        data["username"] = username
+        data["username"] = self.username
 
         url = "{0}/coprs/{1}/{2}/{3}/".format(
             self.api_url, username, projectname, api_endpoint
@@ -1503,7 +1503,7 @@ class CoprClient(UnicodeMixin):
         f = open(modulemd, "rb")
         data = {
             "modulemd": (os.path.basename(f.name), f, "application/x-rpm"),
-            "username": ownername,
+            "username": self.username,
             "create": "y" if create else "",
             "build": "y" if build else "",
         }
