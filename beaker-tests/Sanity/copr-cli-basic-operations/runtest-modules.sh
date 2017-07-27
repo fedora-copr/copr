@@ -64,6 +64,20 @@ function wait_for_finished_module()
 }
 
 
+function test_successful_packages()
+{
+    # Find whether *only* specified packages were successfully built in the project
+    # $1 - list of packages, e.g. "foo bar baz"
+    # $2 - temporary file with `copr-cli list-packages ...` output of the project
+    local packages=$1
+    local tmp=$2
+    rlAssertEquals "All packages should succeed" `cat $tmp |grep "state" | grep "succeeded" |wc -l` `echo $packages |wc -w`
+    for pkg in $packages; do
+        rlAssertEquals "Package $pkg is missing" `cat $tmp | grep "name" |grep "$pkg" |wc -l` 1
+    done
+}
+
+
 rlJournalStart
     rlPhaseStartSetup
         rlAssertRpm "copr-cli"
@@ -113,10 +127,7 @@ rlJournalStart
         # Test that module builds succeeded
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmodule-beakertest-$DATE" 3 600 $PACKAGES
-        rlAssertEquals "All packages should succeed" `cat $PACKAGES |grep "state" | grep "succeeded" |wc -l` 3
-        for pkg in "module-build-macros" "ed" "mksh"; do
-            rlAssertEquals "Package $pkg is missing" `cat $PACKAGES | grep "name" |grep "$pkg" |wc -l` 1
-        done
+        test_successful_packages "module-build-macros ed mksh" $PACKAGES
 
         # @TODO Test that module succeeded
         # We need to implement API for retrieving modules or at least
@@ -150,7 +161,7 @@ rlJournalStart
         rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 2 600 $PACKAGES
-        rlAssertEquals "Package hello should succeed" `cat $PACKAGES |grep "state" |grep "hello" | grep "succeeded" |wc -l` 1
+        test_successful_packages "module-build-macros ed" $PACKAGES
 
         # @TODO Test that it is possible to build module
         # with few hundreds of packages

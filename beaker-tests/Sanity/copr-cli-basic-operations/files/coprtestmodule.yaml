@@ -28,5 +28,5 @@ data:
         rpms:
           ed:
             rationale: An example of Copr package
-            ref: $REF
-            repository: 'http://copr-dist-git.fedorainfracloud.org/git/$OWNER/$PROJECT/ed.git'
+            ref: custom1
+            repository: 'http://copr-dist-git-dev.fedorainfracloud.org/git/$OWNER/$PROJECT/ed.git'
