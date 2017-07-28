@@ -152,6 +152,14 @@ rlJournalStart
         rlAssertEquals "Macro using nested macro shoud correctly expand" \
                        `cat $MACROS |grep "My package is called test-macros" |wc -l` 1
 
+        # Test that it is possible to specify group and project name for the module
+        PACKAGES=`mktemp`
+        SUFFIX=2
+        yes | cp $HERE/files/testmodule.yaml /tmp
+        sed -i "s/\$VERSION/$DATE$SUFFIX/g" /tmp/testmodule.yaml
+        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml @copr/TestModule$DATE$SUFFIX"
+        wait_for_finished_module "@copr/TestModule$DATE$SUFFIX" 3 600 $PACKAGES
+        test_successful_packages "module-build-macros ed mksh" $PACKAGES
 
         # Test that it is possible to build module with package from copr
         yes | cp $HERE/files/coprtestmodule.yaml /tmp
