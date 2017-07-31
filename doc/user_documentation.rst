@@ -28,50 +28,27 @@ Direct Upload of a SRPM package
 
 Upload a SRPM package directly to Copr using the web interface or copr-cli command line client.
 
-.. _tito_ref:
+.. _scm_ref:
 
-Tito
-^^^^
+SCM
+^^^
 
-This method builds Using `Tito <https://github.com/dgoodwin/tito>`_.
-It does these steps::
+Currently, this is divided into two forms: SCM-1 and SCM-2. Both forms go through the same logic, they
+just offer a bit different form fields. SCM-2 offers possibility to specify name of the spec file that
+should be used for the build. SCM-1 form offers auto-tagging feature that tags Release and Source0 of the
+package with XX.commitId where XX is number of commits from the latest tagged commit for the given package.
+For SCM-1 source type, spec file is always autolocated based on .spec extension. For SCM-2 the spec file
+is auto-located only if the spec file name was not explictly specified.
 
-1.  ``$ git clone <provided git url> result.git``
-2.  ``$ cd result.git``
-3.  ``$ git checkout <provided branch> # optional``
-4.  ``$ tito build --srpm``
-5.  import the resulting srpm into dist-git
-
-Then it continues as normally.
-
-.. _`Mock SCM`:
-
-Mock SCM
-^^^^^^^^
-
-This method builds Using `Mock SCM plugin <https://fedoraproject.org/wiki/Projects/Mock/Plugin/Scm>`_.
-It does::
-
-    /usr/bin/mock -r epel-7-x86_64 \
-        --scm-enable \ 
-        --scm-option method=[git,svn] \
-        --scm-option package=<name of package>
-        --scm-option branch=<name of branch>
-        --scm-option write_tar=True \
-        --scm-option spec=<spec file>
-        --scm-option", "git clone --depth 1" \ # similar command for SVN
-        --buildsrpm \
-        --resultdir=<some tmp dir>
-
-This will call git-archive and create tar file and SRPM. Resulting SRPM file is then imported into dist-git.
-Note that it does **not** bump up neither version nor release. It is your responsibility.
+If you have any suggestions to improve the current situation, please, file a bug at https://pagure.io/copr/copr.
+We would _really_ appreciate it.
 
 GitHub Webhooks
 ---------------
 
 Webhooks allows you to automatically trigger build.
 
-First you need to go to your Copr project and tab "Packages" and define some package. The methods which make sense together with webhooks are "mock-scm" and "tito". Check the "Webhook rebuild" option. You may hit "rebuild" and test the build actually works.
+First you need to go to your Copr project and tab "Packages" and define some package. The only source type which make sense together with webhooks is "SCM". Check the "Webhook rebuild" option. You may hit "rebuild" and test the build actually works.
 
 Now you can navigate to "Setting" tab and then "Webhooks" There is your webhook url in the form of `https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/`.
 
@@ -87,7 +64,7 @@ Are not really webhooks but rather fedmsg binds. You also need to have webhook a
 
 However, the only necessary thing on the Pagure side is to set Fedmsg to active in your project settings (in 'Hooks' section almost at the bottom). 
 
-Now your marked Tito and MockSCM packages will be rebuilt on specific commits.
+Now your marked SCM packages will be rebuilt on specific commits.
 
 Links
 -----
@@ -302,7 +279,7 @@ Building a package with the same version-release number in Copr as the package d
 
 .. rubric:: Can Copr build directly from git? :ref:`¶ <Can Copr build directly from git?>`
 
-Yes, it can. See :ref:`tito_ref` and `Mock SCM`_ build methods.
+Yes, it can. See :ref:`scm_ref` source type.
 
 If you want to know more about tools to generate srpm from a Git repo, see:
 
