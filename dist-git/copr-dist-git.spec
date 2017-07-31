@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.33
+Version:    0.34
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -149,6 +149,14 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Jul 31 2017 clime <clime@redhat.com> 0.34-1
+- remove --global for git config in tests so that it does not
+  modify ~/.gitconfig
+- fix #106 Renaming a spec file in a newer version causes the
+  build to fail
+- make get_package_name more robust
+- add DistGitProvider with support for multiple distgits
+
 * Wed Jul 19 2017 clime <clime@redhat.com> 0.33-1
 - remove ExclusiveArch directive
 - add support for SCM Subdirectory parameter
