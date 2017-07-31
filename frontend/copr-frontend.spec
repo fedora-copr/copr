@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.116
+Version:    1.117
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -397,6 +397,13 @@ service logstash condrestart
 
 
 %changelog
+* Mon Jul 31 2017 clime <clime@redhat.com> 1.117-1
+- Bug 1473361 - New SCM 2 build does not recall the 'Subdirectory'
+  setting
+- Deprecation warnings on F25
+- hotfix for monitor page with jinja 2.9
+- bug 1460399 - Build breadcrumb incorrect for group project
+
 * Wed Jul 19 2017 clime <clime@redhat.com> 1.116-1
 - in UI, rename Tito to SCM-1 and MockSCM to SCM-2
 - add support for SCM Subdirectory parameter
