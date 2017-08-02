@@ -16,6 +16,9 @@
 {% if g.user and g.user.can_edit(copr) %}
   <a class="btn btn-primary button-new pull-right" href="{{ copr_url('coprs_ns.copr_add_package', copr) }}"><span class="pficon pficon-add-circle-o"></span> New package </a>
 {% endif %}
+{% if g.user and g.user.can_build_in(copr) %}
+  <a class="btn btn-default button-new pull-right" style="margin-right:5px" href="{{ copr_url('coprs_ns.copr_rebuild_all_packages', copr) }}"><span class="pficon pficon-restart"></span> Rebuild all </a>
+{% endif %}
 <h2 class="page-title">Project Packages</h2>
 
 {% if packages %}

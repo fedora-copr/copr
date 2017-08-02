@@ -445,3 +445,46 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
   </tbody>
 </table>
 {% endmacro %}
+
+
+{% macro render_additional_build_options(form, copr) %}
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
+      Chroots
+    </label>
+    <div class="col-sm-10" id="chroots">
+    {% for group_set, chs in form.chroots_sets.items() %}
+      {% set outer_loop = loop %}
+      {% for ch in chs %}
+        <div class="checkbox">
+          <label>
+            {{ form|attr(ch) }}
+            {{ form|attr(ch)|attr('label') }}
+            {% if outer_loop.last and loop.last %}&nbsp;&nbsp;&nbsp;<a href="#" onclick="$('#chroots :checkbox').prop('checked', $('#chroots :checkbox').length != $('#chroots :checkbox:checked').length); return false;">...toggle all</a>{% endif %}
+          </label>
+        </div>
+      {% endfor %}
+    {% endfor %}
+    </div>
+  </div>
+  {{ form.csrf_token }}
+  {% if g.user.proven %}
+    {{ render_field(form.memory_reqs) }}
+    {{ render_field(form.timeout) }}
+  {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #}
+    {{ render_field(form.memory_reqs, hidden = True) }}
+    {{ render_field(form.timeout, hidden = True) }}
+  {% endif %}
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
+    Other Options
+    </label>
+    <div class="col-sm-10">
+      <div class="checkbox">
+        <label>
+        {{ form.enable_net(checked=copr.build_enable_net) }}<label for="enable_net">Enable internet access during this build</label>
+        </label>
+      </div>
+    </div>
+  </div>
+{% endmacro %}

@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options %}
 
 {# This file contains forms for the "New Build" action
 
@@ -55,41 +55,7 @@
       </div>
       <div class="panel-body">
   {% endif %}
-      <div class="form-group">
-        <label class="col-sm-2 control-label" for="textInput-markup">
-          Chroots
-        </label>
-        <div class="col-sm-10" id="chroots">
-        {% for group_set, chs in form.chroots_sets.items() %}
-          {% set outer_loop = loop %}
-          {% for ch in chs %}
-            <div class="checkbox">
-              <label>
-                {{ form|attr(ch) }}
-                {{ form|attr(ch)|attr('label') }}
-                {% if outer_loop.last and loop.last %}&nbsp;&nbsp;&nbsp;<a href="#" onclick="$('#chroots :checkbox').prop('checked', $('#chroots :checkbox').length != $('#chroots :checkbox:checked').length); return false;">...toggle all</a>{% endif %}
-              </label>
-            </div>
-          {% endfor %}
-        {% endfor %}
-        </div>
-      </div>
-      {{ form.csrf_token }}
-      {% if g.user.proven %}
-        {{ render_field(form.memory_reqs) }}
-        {{ render_field(form.timeout) }}
-      {% else %} {# once we pass the hidden attribute, the field will just be hidden, it seems #}
-        {{ render_field(form.memory_reqs, hidden = True) }}
-        {{ render_field(form.timeout, hidden = True) }}
-      {% endif %}
-      <div class="form-group">
-        <label class="col-sm-2 control-label" for="textInput-markup">
-        Other Options
-        </label>
-        <div class="col-sm-10">
-        {{ form.enable_net(checked=copr.build_enable_net) }} Enable internet access during this build
-        </div>
-      </div>
+  {{ render_additional_build_options(form, copr) }}
   {% if not hide_panels %}
       </div>
     </div>

@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options %}
 
 {% macro copr_package_form_begin(form, view, copr, package) %}
   {{ render_form_errors(form) }}
@@ -118,4 +118,64 @@
   {{ render_field(form.gem_name, placeholder="Gem name from RubyGems.org") }}
   {{ render_anitya_autorebuild(form) }}
   {{ copr_package_form_end(form, package, 'rubygems') }}
+{% endmacro %}
+
+
+{% macro copr_packages_rebuild_all(form, view, copr) %}
+  {# TODO: try to clean the the markup up, move into common helper methods etc.
+     at least there should be a helper renderrer to render multicheckboxes,
+     see also render_pypi_python_versions_field in _helpers.py #}
+   {% if form.errors %}
+   <div class="alert alert-danger" role="alert" style="margin-top:0px">
+     <ul>
+       {% for error, msg in form.errors.items() %}
+       <li>{{ error }}: {{ msg[0] }}</li>
+       {% endfor %}
+     </ul>
+   </div>
+   {% endif %}
+   <form class="form-horizontal" action="{{ copr_url(view, copr, source_type_text=source_type_text) }}"
+        method="post" enctype="multipart/form-data">
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">1. Select packages for rebuild</h3>
+      </div>
+      <div class="panel-body">
+        <div class="form-group {% if form.errors %}has-error{% endif %}">
+          <label class="col-sm-2 control-label" for="textInput-markup" style="text-align: left">
+            Packages
+          </label>
+          <div class="col-sm-10" id="package-names">
+          {% for choice in form.packages.choices %}
+              <div class="checkbox">
+                <label>
+                <input id="{{ choice[0] }}" name="packages" value="{{ choice[1] }}" type="checkbox" {% if choice[1] in form.packages.data %}checked="checked"{% endif %}>
+                <label for="{{ choice[0] }}">{{ choice[0] }}</label>
+                </label>
+              </div>
+          {% endfor %}
+          {% if form.packages.errors %}
+            {% for error in form.packages.errors %}
+              <li class="help-block">
+                <span class="help-block">{{ error }}</span>
+              </li>
+            {% endfor %}
+          {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">2. Select chroots and other options</h3>
+      </div>
+      <div class="panel-body">
+      {{ render_additional_build_options(form, copr) }}
+      </div>
+    </div>
+
+    <input class="btn btn-primary" type="submit" value="Build">
+  </form>
 {% endmacro %}

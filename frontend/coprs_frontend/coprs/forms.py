@@ -494,6 +494,17 @@ class PackageFormDistGit(BasePackageForm):
         })
 
 
+class RebuildAllPackagesFormFactory(object):
+    def __new__(cls, active_chroots, package_names):
+        form_cls = BaseBuildFormFactory(active_chroots, FlaskForm)
+        form_cls.packages = MultiCheckboxField(
+            "Packages",
+            choices=[(name, name) for name in package_names],
+            default=package_names,
+            validators=[wtforms.validators.DataRequired()])
+        return form_cls
+
+
 class BaseBuildFormFactory(object):
     def __new__(cls, active_chroots, form):
         class F(form):
@@ -523,9 +534,10 @@ class BaseBuildFormFactory(object):
                     max=constants.MAX_BUILD_TIMEOUT)],
             default=constants.DEFAULT_BUILD_TIMEOUT)
 
-
         F.enable_net = wtforms.BooleanField()
         F.background = wtforms.BooleanField(default=False)
+
+        # overrides BasePackageForm.package_name and is unused for building
         F.package_name = wtforms.StringField()
 
         F.chroots_list = list(map(lambda x: x.name, active_chroots))

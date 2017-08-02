@@ -478,6 +478,15 @@ def url_for_copr_view(view, group_view, copr, **kwargs):
         return url_for(view, username=copr.user.name, coprname=copr.name, **kwargs)
 
 
+def url_for_copr_builds(copr):
+    if copr.is_a_group_project:
+        return url_for("coprs_ns.group_copr_builds",
+                       group_name=copr.group.name, coprname=copr.name)
+    else:
+        return url_for("coprs_ns.copr_builds",
+                       username=copr.user.username, coprname=copr.name)
+
+
 from sqlalchemy.engine.default import DefaultDialect
 from sqlalchemy.sql.sqltypes import String, DateTime, NullType
 

@@ -13,8 +13,8 @@ from coprs.views.misc import login_required, page_not_found, req_with_copr, req_
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.exceptions import (ActionInProgressException,ObjectNotFound,
-                              InsufficientRightsException,UnknownSourceTypeException)
+from coprs.exceptions import (ActionInProgressException,ObjectNotFound, NoPackageSourceException,
+                              InsufficientRightsException,UnknownSourceTypeException,MalformedArgumentException)
 
 
 @coprs_ns.route("/<username>/<coprname>/packages/")
@@ -55,6 +55,41 @@ def copr_package_icon(copr, package_name):
 
         else:
             return send_file("static/status_images/unknown.png", mimetype='image/png')
+
+
+@coprs_ns.route("/<username>/<coprname>/packages/rebuild-all/", methods=["GET", "POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/packages/rebuild-all/", methods=["GET", "POST"])
+@req_with_copr
+def copr_rebuild_all_packages(copr):
+    form = forms.RebuildAllPackagesFormFactory(
+        copr.active_chroots, [package.name for package in copr.packages])()
+
+    if flask.request.method == "POST" and form.validate_on_submit():
+        try:
+            packages = []
+            for package_name in form.packages.data:
+                packages.append(ComplexLogic.get_package_safe(copr, package_name))
+
+            PackagesLogic.batch_build(
+                flask.g.user,
+                copr,
+                packages,
+                form.selected_chroots,
+                enable_net=form.enable_net.data)
+
+        except (ObjectNotFound, ActionInProgressException, NoPackageSourceException, \
+                InsufficientRightsException, MalformedArgumentException) as e:
+            db.session.rollback()
+            flask.flash(str(e), "error")
+        else:
+            db.session.commit()
+            flask.flash("Batch build successfully started.", "success")
+            return flask.redirect(helpers.url_for_copr_builds(copr))
+
+    return flask.render_template(
+        "coprs/detail/packages_rebuild_all.html",
+        view="coprs_ns.copr_rebuild_all_packages",
+        form=form, copr=copr)
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/rebuild")
@@ -218,7 +253,6 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
 
     kwargs.update({"group_name": copr.group.name} if copr.is_a_group_project else {"username": copr.user.name})
     return view_method(**kwargs)
-
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<int:package_id>/delete", methods=["POST"])

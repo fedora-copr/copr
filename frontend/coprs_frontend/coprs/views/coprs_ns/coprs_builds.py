@@ -24,15 +24,6 @@ from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,)
 
 
-def url_for_copr_builds(copr):
-    if copr.is_a_group_project:
-        return url_for("coprs_ns.group_copr_builds",
-                       group_name=copr.group.name, coprname=copr.name)
-    else:
-        return url_for("coprs_ns.copr_builds",
-                       username=copr.user.username, coprname=copr.name)
-
-
 @coprs_ns.route("/build/<int:build_id>/")
 def copr_build_redirect(build_id):
     build = ComplexLogic.get_build_safe(build_id)
@@ -586,7 +577,7 @@ def process_cancel_build(build):
     else:
         db.session.commit()
         flask.flash("Build {} has been canceled successfully.".format(build.id), "success")
-    return flask.redirect(url_for_copr_builds(build.copr))
+    return flask.redirect(helpers.url_for_copr_builds(build.copr))
 
 
 @coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/",
@@ -622,4 +613,4 @@ def copr_delete_build(username, coprname, build_id):
         db.session.commit()
         flask.flash("Build has been deleted successfully.", "success")
 
-    return flask.redirect(url_for_copr_builds(build.copr))
+    return flask.redirect(helpers.url_for_copr_builds(build.copr))

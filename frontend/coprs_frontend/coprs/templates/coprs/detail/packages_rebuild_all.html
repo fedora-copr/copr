@@ -1,0 +1,23 @@
+{% extends "coprs/detail.html" %}
+{% from "_helpers.html" import build_href, package_href %}
+{% from "coprs/detail/_package_forms.html" import copr_packages_rebuild_all %}
+
+{% set selected_tab = "packages" %}
+
+{% block project_breadcrumb %}
+<li>
+  <a href="{{ copr_url('coprs_ns.copr_packages', copr) }}">Packages</a>
+</li>
+<li class="active">
+  Rebuild all
+</li>
+{% endblock %}
+
+{% block detail_body %}
+<h2 class="page-title">Rebuild all packages</h2>
+<div class="row">
+  <div class="col-sm-12">
+    {{ copr_packages_rebuild_all(form, view, copr) }}
+  </div>
+</div>
+{% endblock %}

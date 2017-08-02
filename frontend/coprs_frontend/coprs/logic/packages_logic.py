@@ -213,3 +213,42 @@ WHERE package.copr_id = :copr_id;
         if not package.has_source_type_set or not package.source_json:
             raise NoPackageSourceException('Unset default source for package {package}'.format(package.name))
         return builds_logic.BuildsLogic.create_new(user, copr, package.source_type, package.source_json, chroot_names, **build_options)
+
+
+    @classmethod
+    def batch_build(cls, user, copr, packages, chroot_names=None, **build_options):
+        new_builds = []
+
+        for package in packages:
+            git_hashes = {}
+            skip_import = False
+            source_build = None
+
+            if package.source_type == helpers.BuildSourceEnum('upload'):
+                source_build = package.last_build()
+
+                if not source_build or not source_build.build_chroots[0].git_hash:
+                    raise exceptions.NoPackageSourceException(
+                        "Could not get latest git hash for {}".format(package.name))
+
+                for chroot_name in chroot_names:
+                    git_hashes[chroot_name] = source_build.build_chroots[0].git_hash
+                skip_import = True
+
+            new_build = builds_logic.BuildsLogic.create_new(
+                user,
+                copr,
+                package.source_type,
+                package.source_json,
+                chroot_names,
+                git_hashes=git_hashes,
+                skip_import=skip_import,
+                **build_options)
+
+            if source_build:
+                new_build.package_id = source_build.package_id
+                new_build.pkg_version = source_build.pkg_version
+
+            new_builds.append(new_build)
+
+        return new_builds
