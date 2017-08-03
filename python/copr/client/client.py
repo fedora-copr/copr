@@ -1111,7 +1111,7 @@ class CoprClient(UnicodeMixin):
     def modify_project(self, projectname, username=None,
                        description=None, instructions=None,
                        repos=None, disable_createrepo=None, unlisted_on_hp=None,
-                       enable_net=None, auto_prune=None):
+                       enable_net=None, auto_prune=None, chroots=None):
         """ Modifies main project configuration.
             Auth required.
 
@@ -1126,6 +1126,7 @@ class CoprClient(UnicodeMixin):
             :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
             :param enable_net: [optional] If builder can access net for builds in this project
             :param auto_prune: [optional] If backend auto-deletion script should be run for the project
+            :param chroots : [optional] list of chroots that should be enabled in the project
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1155,6 +1156,8 @@ class CoprClient(UnicodeMixin):
             data["build_enable_net"] = "y" if enable_net else ""
         if auto_prune != None:
             data["auto_prune"] = "y" if auto_prune else ""
+        if chroots != None:
+            data["chroots"] = " ".join(chroots)
 
         result_data = self._fetch(url, data=data, method="post")
 

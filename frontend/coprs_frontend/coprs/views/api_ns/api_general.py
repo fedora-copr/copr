@@ -601,6 +601,9 @@ def copr_modify(copr):
         copr.build_enable_net = form.build_enable_net.data
     if "auto_prune" in flask.request.form:
         copr.auto_prune = form.auto_prune.data
+    if "chroots" in  flask.request.form:
+        coprs_logic.CoprChrootsLogic.update_from_names(
+            flask.g.user, copr, form.chroots.data)
 
     try:
         CoprsLogic.update(flask.g.user, copr)

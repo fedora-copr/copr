@@ -707,6 +707,9 @@ class CoprModifyForm(FlaskForm):
     instructions = wtforms.TextAreaField('Instructions',
                                          validators=[wtforms.validators.Optional()])
 
+    chroots = wtforms.TextAreaField('Chroots',
+                                    validators=[wtforms.validators.Optional()])
+
     repos = wtforms.TextAreaField('Repos',
                                   validators=[UrlRepoListValidator(),
                                               wtforms.validators.Optional()],
