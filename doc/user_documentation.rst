@@ -66,6 +66,11 @@ However, the only necessary thing on the Pagure side is to set Fedmsg to active 
 
 Now your marked SCM packages will be rebuilt on specific commits.
 
+Custom-location Webhooks
+------------------------
+
+You can look here for how to do this: :ref:`webhook_hacking`
+
 Links
 -----
 
