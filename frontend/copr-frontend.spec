@@ -89,7 +89,6 @@ Requires:   python-netaddr
 Requires:   python-flask-restful
 Requires:   python-marshmallow >= 2.0.0
 Requires:   python2-modulemd
-Requires:   python-pygments
 Requires:   python2-CommonMark
 Requires:   python2-pygments
 
@@ -161,7 +160,6 @@ BuildRequires: python-sphinx
 BuildRequires: python-sphinxcontrib-httpdomain
 BuildRequires: python-whoosh
 BuildRequires: python-blinker
-BuildRequires: python-pygments
 BuildRequires: python-munch
 BuildRequires: python2-CommonMark
 BuildRequires: python2-pygments
