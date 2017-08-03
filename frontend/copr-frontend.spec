@@ -90,6 +90,8 @@ Requires:   python-flask-restful
 Requires:   python-marshmallow >= 2.0.0
 Requires:   python2-modulemd
 Requires:   python-pygments
+Requires:   python2-CommonMark
+Requires:   python2-pygments
 
 Requires:   %flavor_guard
 
@@ -161,6 +163,8 @@ BuildRequires: python-whoosh
 BuildRequires: python-blinker
 BuildRequires: python-pygments
 BuildRequires: python-munch
+BuildRequires: python2-CommonMark
+BuildRequires: python2-pygments
 %endif
 
 %if 0%{?with_python3}
@@ -184,6 +188,7 @@ Requires:   python3-flask-openid
 Requires:   python3-openid-teams
 Requires:   python3-modulemd
 Requires:   python3-pygments
+Requires:   python3-CommonMark
 
 %if 0%{?fedora} >= 23
 Requires: python3-dnf
@@ -409,7 +414,7 @@ service logstash condrestart
 - add support for SCM Subdirectory parameter
 
 * Fri Jul 14 2017 clime <clime@redhat.com> 1.115-1
-- small updates 
+- small updates
 
 * Fri Jul 07 2017 clime <clime@redhat.com> 1.114-1
 - .spec build implemented

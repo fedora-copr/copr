@@ -2,7 +2,11 @@ import datetime
 from six.moves.urllib.parse import urlparse
 import pytz
 import time
-import markdown
+
+import CommonMark
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import HtmlFormatter
 
 import os
 import re
@@ -11,6 +15,25 @@ from flask import Markup, url_for
 
 from coprs import app
 from coprs import helpers
+
+class CoprHtmlRenderer(CommonMark.HtmlRenderer):
+    def code_block(self, node, entering):
+        info_words = node.info.split() if node.info else []
+        attrs = self.attrs(node)
+        if len(info_words) > 0 and len(info_words[0]) > 0:
+            attrs.append(['class', 'language-' +
+                          CommonMark.common.escape_xml(info_words[0], True)])
+
+        self.cr()
+        self.tag('pre')
+        self.tag('code', attrs)
+        code = highlight(node.literal, PythonLexer(), HtmlFormatter())
+        code = re.sub('<pre>', '', code)
+        code = re.sub('</pre>', '', code)
+        self.lit(code)
+        self.tag('/code')
+        self.tag('/pre')
+        self.cr()
 
 
 @app.template_filter("remove_anchor")
@@ -135,11 +158,10 @@ def markdown_filter(data):
     if not data:
         return ''
 
-    md = markdown.Markdown(
-        safe_mode="replace",
-        html_replacement_text="--RAW HTML NOT ALLOWED--")
+    parser = CommonMark.Parser()
+    renderer = CoprHtmlRenderer()
 
-    return Markup(md.convert(data))
+    return Markup(renderer.render(parser.parse(data)))
 
 
 @app.template_filter("pkg_name")
