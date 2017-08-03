@@ -306,7 +306,8 @@ class Commands(object):
             repos=args.repos, disable_createrepo=args.disable_createrepo,
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
-            auto_prune=ON_OFF_MAP[args.auto_prune]
+            auto_prune=ON_OFF_MAP[args.auto_prune],
+            chroots=args.chroots,
         )
 
     @requires_api_auth
@@ -663,6 +664,8 @@ def setup_parser():
     parser_modify = subparsers.add_parser("modify", help="Modify existing copr")
 
     parser_modify.add_argument("name", help="The name of the copr to modify")
+    parser_modify.add_argument("--chroot", dest="chroots", action="append",
+                               help="Chroot to use for this copr")
     parser_modify.add_argument("--description",
                                help="Description of the copr")
     parser_modify.add_argument("--instructions",
