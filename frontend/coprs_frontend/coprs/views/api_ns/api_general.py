@@ -539,7 +539,7 @@ def build_detail(build_id):
         "started_on": build.min_started_on,
         "ended_on": build.max_ended_on,
         "src_pkg": build.pkgs,
-        "submitted_by": build.user.name,
+        "submitted_by": build.user.name if build.user else None, # there is no user for webhook builds
         "results_by_chroot": results_by_chroot
     }
     return flask.jsonify(output)
