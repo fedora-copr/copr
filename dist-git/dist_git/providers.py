@@ -180,7 +180,7 @@ class ScmProvider(PackageContentProvider):
             dir_to_pack, tardir_name, target_path))
 
         def exclude_vcs(tar_info):
-            exclude_pattern = r'(/.git|/.gitignore)'
+            exclude_pattern = r'(/.git$|/.git/|/.gitignore$)'
             if re.search(exclude_pattern, tar_info.name):
                 log.debug("Excluding {}".format(tar_info.name))
                 return None
