@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.34
+Version:    0.35
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -149,6 +149,9 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Fri Aug 04 2017 clime <clime@redhat.com> 0.35-1
+- fix cvs-data ignore regular expression
+
 * Mon Jul 31 2017 clime <clime@redhat.com> 0.34-1
 - remove --global for git config in tests so that it does not
   modify ~/.gitconfig
