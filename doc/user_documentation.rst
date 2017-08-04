@@ -40,14 +40,14 @@ package with XX.commitId where XX is number of commits from the latest tagged co
 For SCM-1 source type, spec file is always autolocated based on .spec extension. For SCM-2 the spec file
 is auto-located only if the spec file name was not explictly specified.
 
-Note that for both SCM-1 and SCM-2 COPR auto-recognizes two types of repositories: upstream and downstream:
+Note that for both SCM-1 and SCM-2, COPR auto-recognizes two types of repositories: upstream and downstream:
 
 - Downstream repo: is empty (except .spec, README, tito.props, hidden files, currently) or contains at least one source or patch mentioned in the specfile
 
 - Upstream repo: is not a downstream repo, meaning it contains something significant not mentioned in .spec as source or patch
 
 For upstream repository, COPR will pack the content of the repository (subrooted by the specified 'Subdirectory' if specified)
-as Source0. For downstream repo, nothing is packaged and the content is expected to be obtained from from the supplied Source urls
+as Source0. For downstream repo, nothing is packed and the content is expected to be obtained from the supplied Source urls
 during build process (for both SCM-1 and SCM-2, you need to have network enabled for it to work, see https://bugzilla.redhat.com/show_bug.cgi?id=1473364,
 you can comment there if you feel this should be changed).
 
