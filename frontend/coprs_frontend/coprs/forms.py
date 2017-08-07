@@ -155,6 +155,18 @@ class NameCharactersValidator(object):
         validator(form, field)
 
 
+class ChrootsValidator(object):
+    def __call__(self, form, field):
+        selected = set(field.data.split())
+        enabled = set(self.chroots_list())
+
+        if not (selected <= enabled):
+            raise wtforms.ValidationError("Such chroot is not enabled: {}".format(", ".join(selected - enabled)))
+
+    def chroots_list(self):
+        return [c.name for c in models.MockChroot.query.filter(models.MockChroot.is_active).all()]
+
+
 class NameNotNumberValidator(object):
 
     def __init__(self, message=None):
@@ -708,7 +720,7 @@ class CoprModifyForm(FlaskForm):
                                          validators=[wtforms.validators.Optional()])
 
     chroots = wtforms.TextAreaField('Chroots',
-                                    validators=[wtforms.validators.Optional()])
+                                    validators=[wtforms.validators.Optional(), ChrootsValidator()])
 
     repos = wtforms.TextAreaField('Repos',
                                   validators=[UrlRepoListValidator(),
