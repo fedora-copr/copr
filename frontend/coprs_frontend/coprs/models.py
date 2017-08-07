@@ -484,7 +484,6 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
 
 class Build(db.Model, helpers.Serializer):
-
     """
     Representation of one build in one copr
     """
@@ -531,6 +530,9 @@ class Build(db.Model, helpers.Serializer):
     package = db.relationship("Package")
 
     chroots = association_proxy("build_chroots", "mock_chroot")
+
+    batch_id = db.Column(db.Integer, db.ForeignKey("batch.id"))
+    batch = db.relationship("Batch", backref=db.backref("builds"))
 
     @property
     def user_name(self):
@@ -1153,6 +1155,10 @@ class Group(db.Model, helpers.Serializer):
 
     def __unicode__(self):
         return "{} (fas: {})".format(self.name, self.fas_name)
+
+
+class Batch(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
 
 
 class Module(db.Model, helpers.Serializer):

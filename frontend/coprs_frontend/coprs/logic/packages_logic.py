@@ -219,6 +219,9 @@ WHERE package.copr_id = :copr_id;
     def batch_build(cls, user, copr, packages, chroot_names=None, **build_options):
         new_builds = []
 
+        batch = models.Batch()
+        db.session.add(batch)
+
         for package in packages:
             git_hashes = {}
             skip_import = False
@@ -243,6 +246,7 @@ WHERE package.copr_id = :copr_id;
                 chroot_names,
                 git_hashes=git_hashes,
                 skip_import=skip_import,
+                batch=batch,
                 **build_options)
 
             if source_build:
