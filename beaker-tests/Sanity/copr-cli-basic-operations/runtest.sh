@@ -146,6 +146,21 @@ rlJournalStart
         rlRun "copr-cli modify --auto-prune on ${NAME_PREFIX}AutoPrune"
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": true'" 0
 
+        ## test to modify list of enabled chroots in the project
+        # create project
+        rlRun "copr-cli create --chroot fedora-25-x86_64 ${NAME_PREFIX}ModifyProjectChroots"
+        # modify chroots
+        rlRun "copr-cli modify --chroot fedora-26-x86_64 --chroot fedora-rawhide-x86_64 ${NAME_PREFIX}ModifyProjectChroots"
+        # the old chroot should not be enabled anymore
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-25-x86_64" 1
+        # only F26 and rawhide from previous modify command should be enabled now
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-26-x86_64" 0
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}ModifyProjectChroots/fedora-rawhide-x86_64" 0
+        # it should not be possible to select non-existing chroot
+        OUTPUT=`mktemp`
+        rlRun "copr-cli modify --chroot non-existing-1 ${NAME_PREFIX}ModifyProjectChroots &> $OUTPUT" 1
+        rlAssertEquals "It is not possible to enable non-existing chroot " `cat $OUTPUT |grep "Such chroot is not enabled: non-existing-1" |wc -l` 1
+
         ## test distgit builds
         rlRun "copr-cli create --chroot fedora-24-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
         rlRun "copr-cli buildfedpkg --clone-url http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git --branch f24 ${NAME_PREFIX}ProjectDistGitBuilds"
@@ -589,6 +604,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-1"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1393361-2"
         rlRun "copr-cli delete ${NAME_PREFIX}AutoPrune"
+        rlRun "copr-cli delete ${NAME_PREFIX}ModifyProjectChroots"
         rlRun "copr-cli delete ${NAME_PREFIX}EditChrootProject"
         rlRun "copr-cli delete ${NAME_PREFIX}TestDeleteGroupBuild"
         rlRun "copr-cli delete ${NAME_PREFIX}MockConfig"
