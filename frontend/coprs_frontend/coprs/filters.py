@@ -5,7 +5,9 @@ import time
 
 import CommonMark
 from pygments import highlight
-from pygments.lexers import PythonLexer
+from pygments.lexers import get_lexer_by_name, guess_lexer
+from pygments.lexers.special import TextLexer
+from pygments.util import ClassNotFound
 from pygments.formatters import HtmlFormatter
 
 import os
@@ -20,14 +22,26 @@ class CoprHtmlRenderer(CommonMark.HtmlRenderer):
     def code_block(self, node, entering):
         info_words = node.info.split() if node.info else []
         attrs = self.attrs(node)
+        lexer = None
+
         if len(info_words) > 0 and len(info_words[0]) > 0:
             attrs.append(['class', 'language-' +
                           CommonMark.common.escape_xml(info_words[0], True)])
+            try:
+                lexer = get_lexer_by_name(info_words[0])
+            except ClassNotFound:
+                pass
+
+        if lexer is None:
+            try:
+                lexer = guess_lexer(node.literal)
+            except ClassNotFound:
+                lexer = TextLexer
 
         self.cr()
         self.tag('pre')
         self.tag('code', attrs)
-        code = highlight(node.literal, PythonLexer(), HtmlFormatter())
+        code = highlight(node.literal, lexer, HtmlFormatter())
         code = re.sub('<pre>', '', code)
         code = re.sub('</pre>', '', code)
         self.lit(code)
