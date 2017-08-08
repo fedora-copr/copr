@@ -145,6 +145,7 @@ Can be just name of the project or in form username/projectname or @groupname/pr
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 usage: copr-cli modify [-h] [--repo REPOS]
+                       [--chroot CHROOTS]
                        [--description DESCRIPTION]
                        [--instructions INSTRUCTIONS]
                        [--disable_createrepo DISABLE_CREATEREPO]
