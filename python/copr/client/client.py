@@ -1126,7 +1126,9 @@ class CoprClient(UnicodeMixin):
             :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
             :param enable_net: [optional] If builder can access net for builds in this project
             :param auto_prune: [optional] If backend auto-deletion script should be run for the project
-            :param chroots : [optional] list of chroots that should be enabled in the project
+            :param chroots: [optional] list of chroots that should be enabled in the project. When not ``None``,
+                selected chroots will be enabled while current chroots
+                will not remain enabled if they are not specified.
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:

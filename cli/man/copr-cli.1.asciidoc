@@ -159,6 +159,12 @@ Alters only specified project property.
 --repo::
 Repository to add to this project. Can be specified multiple times.
 
+--chroot::
+Chroot to use for this project. Can be specified multiple times.
+When this option is not used, chroots in the project remain unchanged.
+Once you specify a chroot, it is going to be enabled in the project, but
+current chroots will not be preserved if they are not specified.
+
 --description::
 Description of the project.
 
