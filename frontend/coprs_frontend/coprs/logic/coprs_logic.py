@@ -203,7 +203,7 @@ class CoprsLogic(object):
     @classmethod
     def add(cls, user, name, selected_chroots, repos=None, description=None,
             instructions=None, check_for_duplicates=False, group=None, persistent=False,
-            auto_prune=True, use_bootstrap_container=False, **kwargs):
+            auto_prune=True, use_bootstrap_container=False, follow_fedora_branching=False, **kwargs):
 
         if not user.admin and persistent:
             raise exceptions.NonAdminCannotCreatePersistentProject()
@@ -220,6 +220,7 @@ class CoprsLogic(object):
                            persistent=persistent,
                            auto_prune=auto_prune,
                            use_bootstrap_container=use_bootstrap_container,
+                           follow_fedora_branching=follow_fedora_branching,
                            **kwargs)
 
         if group is not None:

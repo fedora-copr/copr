@@ -160,6 +160,12 @@
             This will make the build slower but it has an advantage that the dnf _from_ the given chroot will be used to setup the chroot (otherwise host system dnf and rpm is used)
           </small>
         </div>
+        <div class="checkbox">
+          {{ form.follow_fedora_branching }} Follow Fedora branching
+          <small class="text-muted pficon pficon-info">
+            When Fedora is branched from rawhide, the respective chroots (for the new branch and each arch) are auto-enabled in your project and populated from your rawhide chroots' current content.
+          </small>
+        </div>
       </div>
     </div>
 

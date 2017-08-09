@@ -231,6 +231,9 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # use mock's bootstrap container feature
     use_bootstrap_container = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
 
+    # if chroots for the new branch should be auto-enabled and populated from rawhide ones
+    follow_fedora_branching = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
