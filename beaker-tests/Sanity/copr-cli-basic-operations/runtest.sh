@@ -43,6 +43,11 @@ fi
 echo "FRONTEND_URL = $FRONTEND_URL"
 echo "BACKEND_URL = $BACKEND_URL"
 
+# Some tests might want to install built packages
+# Therefore, these packages need to be built for the same fedora version
+# as this script is going to be run from
+CHROOT="fedora-26-x86_64"
+
 rlJournalStart
     rlPhaseStartSetup
         rlAssertRpm "copr-cli"
@@ -66,15 +71,15 @@ rlJournalStart
     rlPhaseStartTest
         ### ---- CREATING PROJECTS ------ ###
         # create - OK
-        rlRun "copr-cli create --chroot fedora-25-x86_64 ${NAME_PREFIX}Project1"
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project1"
         # create - the same name again
-        rlRun "copr-cli create --chroot fedora-25-x86_64 ${NAME_PREFIX}Project1" 1
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project1" 1
         # create - wrong chroot name
         rlRun "copr-cli create --chroot wrong-chroot-name ${NAME_PREFIX}Project2" 1
         # create second project
-        rlRun "copr-cli create --chroot fedora-25-x86_64 --repo 'copr://${NAME_PREFIX}Project1' ${NAME_PREFIX}Project2"
+        rlRun "copr-cli create --chroot $CHROOT --repo 'copr://${NAME_PREFIX}Project1' ${NAME_PREFIX}Project2"
         # create third project
-        rlRun "copr-cli create --chroot fedora-25-x86_64 --repo 'copr://${NAME_PREFIX}Project1' ${NAME_PREFIX}Project3"
+        rlRun "copr-cli create --chroot $CHROOT --repo 'copr://${NAME_PREFIX}Project1' ${NAME_PREFIX}Project3"
         ### left after this section: Project1, Project2, Project3
 
         ### ---- BUILDING --------------- ###
@@ -89,7 +94,7 @@ rlJournalStart
         # build - FAIL  (syntax error in source code)
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/evilhello-2.8-1.fc20.src.rpm" 4
         # enable Project1 repo
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project1 fedora-25-x86_64"
+        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project1 $CHROOT"
         # install hello package
         rlRun "dnf install -y hello"
         # and check wheter it's installed
@@ -110,7 +115,7 @@ rlJournalStart
         # build 1st package
         rlRun "copr-cli build ${NAME_PREFIX}Project2 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
         # enable Project2 repo
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project2 fedora-25-x86_64"
+        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project2 $CHROOT"
         # try to install - FAIL ( public project metadata not updated)
         rlRun "dnf install -y hello" 1
         # build 2nd package ( requires 1st package for the build)
@@ -242,7 +247,7 @@ rlJournalStart
         SOURCE_JSON=`mktemp`
 
         # create special repo for our test
-        rlRun "copr-cli create --chroot fedora-25-x86_64 ${NAME_PREFIX}Project4"
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project4"
 
         # invalid package data
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url invalid_url" 1
@@ -376,7 +381,7 @@ rlJournalStart
         rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
 
         ## Test package listing attributes
-        rlRun "copr-cli create --chroot fedora-25-x86_64 ${NAME_PREFIX}Project5"
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project5"
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project5 --name example --git-url http://github.com/clime/example.git"
 
         BUILDS=`mktemp`
@@ -423,37 +428,37 @@ rlJournalStart
 
         ## test package building
         # create special repo for our test
-        rlRun "copr-cli create --chroot fedora-25-x86_64 --chroot fedora-24-x86_64 ${NAME_PREFIX}Project6"
+        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-24-x86_64 ${NAME_PREFIX}Project6"
 
         # create tito package
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project6 --name test_package_tito --git-url http://github.com/clime/example.git --test on"
 
         # build the package
-        rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --timeout 10000 -r fedora-25-x86_64" # TODO: timeout not honored
+        rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
 
         # test disable_createrepo
-        rlRun "copr-cli create --chroot fedora-25-x86_64 --disable_createrepo false ${NAME_PREFIX}DisableCreaterepoFalse"
+        rlRun "copr-cli create --chroot $CHROOT --disable_createrepo false ${NAME_PREFIX}DisableCreaterepoFalse"
         rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoFalse http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
-        rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoFalse/fedora-25-x86_64/devel/repodata/ | grep \"404.*Not Found\"" 0
+        rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoFalse/$CHROOT/devel/repodata/ | grep \"404.*Not Found\"" 0
 
-        rlRun "copr-cli create --chroot fedora-25-x86_64 --disable_createrepo true ${NAME_PREFIX}DisableCreaterepoTrue"
+        rlRun "copr-cli create --chroot $CHROOT --disable_createrepo true ${NAME_PREFIX}DisableCreaterepoTrue"
         rlRun "copr-cli build ${NAME_PREFIX}DisableCreaterepoTrue http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
-        rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoTrue/fedora-25-x86_64/devel/repodata/ | grep -E \"404.*Not Found\"" 1
+        rlRun "curl --silent $BACKEND_URL/results/${NAME_PREFIX}DisableCreaterepoTrue/$CHROOT/devel/repodata/ | grep -E \"404.*Not Found\"" 1
 
         # test unlisted_on_hp project attribute
-        rlRun "copr-cli create --unlisted-on-hp on --chroot fedora-25-x86_64 ${NAME_PREFIX}Project7"
+        rlRun "copr-cli create --unlisted-on-hp on --chroot $CHROOT ${NAME_PREFIX}Project7"
         rlRun "curl $FRONTEND_URL --silent | grep Project7" 1 # project won't be present on hp
         rlRun "copr-cli modify --unlisted-on-hp off ${NAME_PREFIX}Project7"
         rlRun "curl $FRONTEND_URL --silent | grep Project7" 0 # project should be visible on hp now
 
         # test search index update by copr insertion
-        rlRun "copr-cli create --chroot fedora-25-x86_64 --chroot fedora-24-x86_64 ${NAME_PREFIX}Project8"
+        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-24-x86_64 ${NAME_PREFIX}Project8"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 1 # search results _not_ returned
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project8 --silent | grep -E \"href=.*${NAME_VAR}Project8.*\"" 0 # search results returned
 
         # test search index update by package addition
-        rlRun "copr-cli create --chroot fedora-25-x86_64 --chroot fedora-24-x86_64 ${NAME_PREFIX}Project9" && sleep 65
+        rlRun "copr-cli create --chroot $CHROOT --chroot fedora-24-x86_64 ${NAME_PREFIX}Project9" && sleep 65
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project9 --name test_package_tito --git-url http://github.com/clime/example.git --test on" # insert package to the copr
@@ -461,13 +466,13 @@ rlJournalStart
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
 
         # TODO: Modularity integration tests
-        rlRun "copr-cli create --chroot fedora-25-x86_64 ${NAME_PREFIX}Project11"
-        #rlRun "curl -X POST --user aufnfpybzwwqjtalbial:qmxehlybyghkqlwmyumxuhahbhzxrq --form \"file=@metadata.yaml;filename=module_md\"  http://localhost:8080/api/coprs/${NAME_PREFIX}Project11/modify/fedora-25-x86_64/"
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project11"
+        #rlRun "curl -X POST --user aufnfpybzwwqjtalbial:qmxehlybyghkqlwmyumxuhahbhzxrq --form \"file=@metadata.yaml;filename=module_md\"  http://localhost:8080/api/coprs/${NAME_PREFIX}Project11/modify/$CHROOT/"
 
         ### ---- FORKING PROJECTS -------- ###
         # default fork usage
         OUTPUT=`mktemp`
-        rlRun "copr-cli create --chroot fedora-25-x86_64 ${NAME_PREFIX}Project10"
+        rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project10"
         rlRun "copr-cli build ${NAME_PREFIX}Project10 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
         rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork > $OUTPUT"
         rlAssertEquals "Forking project" `grep -r 'Forking project' $OUTPUT |wc -l` 1
@@ -489,7 +494,7 @@ rlJournalStart
         sleep 60
 
         # use package from forked project
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10Fork fedora-25-x86_64"
+        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10Fork $CHROOT"
         rlRun "dnf install -y hello"
 
         # check repo properties
@@ -500,11 +505,11 @@ rlJournalStart
         # check whether pubkey.gpg exists
         rlRun "curl -f $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g')"
 
-        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10 fedora-25-x86_64"
+        rlRun "yes | dnf copr enable ${NAME_PREFIX}Project10 $CHROOT"
         REPOFILE_SOURCE=$(echo /etc/yum.repos.d/_copr_${NAME_PREFIX}Project10.repo |sed 's/\/TEST/-TEST/g')
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE_SOURCE} |sed 's/^gpgkey=//g') -O pubkey_source.gpg"
         rlRun "wget $(grep "^gpgkey=" ${REPOFILE} |sed 's/^gpgkey=//g') -O pubkey_fork.gpg"
-        rlRun "diff pubkey_source.gpg pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo" 
+        rlRun "diff pubkey_source.gpg pubkey_fork.gpg" 1 "simple check that a new key was generated for the forked repo"
 
         # clean
         rlRun "dnf remove -y hello"
@@ -512,7 +517,7 @@ rlJournalStart
 
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
         WAITING=`mktemp`
-        rlRun "copr-cli create ${NAME_PREFIX}Project12 --chroot fedora-25-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}Project12 --chroot $CHROOT" 0
         while :; do curl --silent $FRONTEND_URL/backend/waiting/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 4 ]; then break; fi; done
         cat $WAITING # debug
         rlRun "cat $WAITING | grep -E '.*data.*username.*' | grep $OWNER" 0
@@ -520,7 +525,7 @@ rlJournalStart
         # Bug 1368181 - delete-project action run just after delete-build action will bring action_dispatcher down
         # FIXME: this test is not a reliable reproducer. Depends on timing as few others.
         # TODO: Remove this.
-        rlRun "copr-cli create ${NAME_PREFIX}TestConsequentDeleteActions --chroot fedora-25-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestConsequentDeleteActions --chroot $CHROOT" 0
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestConsequentDeleteActions --name example --git-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
         rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
@@ -529,33 +534,33 @@ rlJournalStart
         rlAssertEquals "Test that the project was successfully deleted from backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 404
 
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
-        rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot fedora-25-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot $CHROOT" 0
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteGroupBuild --name example --git-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > TestDeleteGroupBuild_example_build_id.txt"
-        BUILD_ID=`cat TestDeleteGroupBuild_example_build_id.txt` 
+        BUILD_ID=`cat TestDeleteGroupBuild_example_build_id.txt`
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
-        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-25-x86_64/
-        rlRun "find . -type d | grep '${BUILD_ID}-example'" 0 "Test that the build directory (ideally with results) is present on backend" 
+        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/$CHROOT/
+        rlRun "find . -type d | grep '${BUILD_ID}-example'" 0 "Test that the build directory (ideally with results) is present on backend"
         cd - && rm -r $MYTMPDIR
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         rlRun "copr-cli delete-package --name example ${NAME_PREFIX}TestDeleteGroupBuild" # FIXME: We don't have copr-cli delete-build yet
         sleep 11 # default sleeptime + 1
-        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/fedora-25-x86_64/
-        rlRun "find . -type d | grep '${BUILD_ID}-example'" 1 "Test that the build directory is not present on backend" 
+        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestDeleteGroupBuild/$CHROOT/
+        rlRun "find . -type d | grep '${BUILD_ID}-example'" 1 "Test that the build directory is not present on backend"
         cd - && rm -r $MYTMPDIR
 
         # test that results and configs are correctly retrieved from builders after build
-        rlRun "copr-cli create ${NAME_PREFIX}DownloadMockCfgs --chroot fedora-25-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}DownloadMockCfgs --chroot $CHROOT" 0
         rlRun "copr-cli build ${NAME_PREFIX}DownloadMockCfgs http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
-        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}DownloadMockCfgs/fedora-25-x86_64/
-        rlRun "find . -type f | grep 'configs/fedora-25-x86_64.cfg'" 0
+        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}DownloadMockCfgs/$CHROOT/
+        rlRun "find . -type f | grep 'configs/$CHROOT.cfg'" 0
         rlRun "find . -type f | grep 'mockchain.log'" 0
         rlRun "find . -type f | grep 'root.log'" 0
         cd - && rm -r $MYTMPDIR
 
         # Bug 1370704 - Internal Server Error (too many values to unpack)
-        rlRun "copr-cli create ${NAME_PREFIX}TestBug1370704 --chroot fedora-25-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1370704 --chroot $CHROOT" 0
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestBug1370704 --name example --git-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
         rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
@@ -569,11 +574,11 @@ rlJournalStart
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/fedora-24-x86_64" 0
 
         # Bug 1444804 - Logs are not present for failed builds
-        rlRun "copr-cli create ${NAME_PREFIX}TestBug1444804 --chroot fedora-25-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1444804 --chroot $CHROOT" 0
         copr-cli build ${NAME_PREFIX}TestBug1444804 http://asamalik.fedorapeople.org/evilhello-2.8-1.fc20.src.rpm
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
-        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestBug1444804/fedora-25-x86_64/
-        rlRun "find . -type f | grep 'configs/fedora-25-x86_64.cfg'" 0
+        wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestBug1444804/$CHROOT/
+        rlRun "find . -type f | grep 'configs/$CHROOT.cfg'" 0
         rlRun "find . -type f | grep 'mockchain.log'" 0
         rlRun "find . -type f | grep 'root.log'" 0
         rlRun "find . -type f | grep 'build.log'" 0

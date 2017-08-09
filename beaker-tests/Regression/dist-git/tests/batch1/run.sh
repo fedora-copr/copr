@@ -23,7 +23,13 @@ rlJournalStart
         outsize=`jq '. | length' $OUT`
         for (( i = 0; i < $outsize; i++ )); do
             mkdir $MYTMPDIR && cd $MYTMPDIR
-            read branch repo_name git_hash pkg_name task_id <<< `jq ".[$i] | .branch, .repo_name, .git_hash, .pkg_name, .task_id" $OUT`
+
+            branch=`jq ".[$i] | .branch" $OUT`
+            repo_name=`jq ".[$i] | .repo_name" $OUT`
+            git_hash=`jq ".[$i] | .git_hash" $OUT`
+            pkg_name=`jq ".[$i] | .pkg_name" $OUT`
+            task_id=`jq ".[$i] | .task_id" $OUT`
+
             if [[ git_hash != null ]]; then
                 rlLog "-------------- TASK: ${task_id//\"} --------------"
                 rlRun "git clone http://localhost/cgit/${repo_name}.git" 0
