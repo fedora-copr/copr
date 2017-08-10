@@ -20,7 +20,7 @@ from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
 from run import generate_repo_packages
 from sqlalchemy import or_
-from coprs.helpers import chroot_to_branch
+from coprs.helpers import chroot_to_branch,StatusEnum
 
 
 class TestCommand(Command):
@@ -162,7 +162,7 @@ class RawhideToReleaseCommand(Command):
             return
 
         for copr in coprs_logic.CoprsLogic.get_all():
-            if not self.has_rawhide(copr):
+            if not self.has_rawhide(copr) or not copr.follow_fedora_branching:
                 continue
 
             data = {"copr": copr.name,
@@ -183,6 +183,7 @@ class RawhideToReleaseCommand(Command):
                         dest_build_chroot = models.BuildChroot(**rbc.to_dict())
                         dest_build_chroot.mock_chroot_id = mock_chroot.id
                         dest_build_chroot.mock_chroot = mock_chroot
+                        dest_build_chroot.status = StatusEnum("forked")
                         db.session.add(dest_build_chroot)
 
             if len(data["builds"]):
