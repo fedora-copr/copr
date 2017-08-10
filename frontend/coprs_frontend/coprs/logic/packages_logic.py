@@ -227,7 +227,8 @@ WHERE package.copr_id = :copr_id;
             skip_import = False
             source_build = None
 
-            if package.source_type == helpers.BuildSourceEnum('upload'):
+            if (package.source_type == helpers.BuildSourceEnum('upload') or
+                    package.source_type == helpers.BuildSourceEnum('link')):
                 source_build = package.last_build()
 
                 if not source_build or not source_build.build_chroots[0].git_hash:
