@@ -176,7 +176,7 @@ class RawhideToReleaseCommand(Command):
                     rbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, rawhide_chroot).first()
                     dbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, dest_chroot).first()
 
-                    if rbc.status != StatusEnum("succeeded"):
+                    if not rbc or rbc.status != StatusEnum("succeeded"):
                         continue
                     data["builds"].append(build.result_dir_name)
 
