@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.78
+Version:    1.79
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -185,6 +185,10 @@ popd
 %endif
 
 %changelog
+* Fri Aug 11 2017 clime <clime@redhat.com> 1.79-1
+- allow to modify copr chroots
+- always send name of the user
+
 * Fri Jun 09 2017 clime <clime@redhat.com> 1.78-1
 - pag#67 copr edit-package-tito nulls out fields not edited
 
