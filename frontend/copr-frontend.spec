@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.117
+Version:    1.118
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -400,6 +400,15 @@ service logstash condrestart
 
 
 %changelog
+* Fri Aug 11 2017 clime <clime@redhat.com> 1.118-1
+- fork all succeeded buildchroot in RawhideToRelease
+- follow Fedora branching project's option added
+- allow to modify copr chroots
+- syntax highlight in project description and instructions
+- fix 500 on /api/coprs/build/ for auto-rebuilds
+- Bug 1409894 - COPR invalidly renders markdown
+- basic rebuild all packages feature added
+
 * Mon Jul 31 2017 clime <clime@redhat.com> 1.117-1
 - Bug 1473361 - New SCM 2 build does not recall the 'Subdirectory'
   setting
