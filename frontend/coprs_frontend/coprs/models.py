@@ -953,6 +953,8 @@ class BuildChroot(db.Model, helpers.Serializer):
 
     last_deferred = db.Column(db.Integer)
 
+    build_requires = db.Column(db.Text)
+
     @property
     def name(self):
         """
