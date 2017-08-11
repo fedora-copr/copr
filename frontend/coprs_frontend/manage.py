@@ -171,14 +171,15 @@ class RawhideToReleaseCommand(Command):
                     "dest_chroot": dest_chroot,
                     "builds": []}
 
-            for package in packages_logic.PackagesLogic.get_all(copr.id):
-                last_build = package.last_build(successful=True)
-                if last_build:
-                    data["builds"].append(last_build.result_dir_name)
-
+            for build in builds_logic.BuildsLogic.get_multiple_by_copr(copr):
                     # rbc means rawhide_build_chroot (we needed short variable)
-                    rbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(last_build.id, rawhide_chroot).first()
-                    dbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(last_build.id, dest_chroot).first()
+                    rbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, rawhide_chroot).first()
+                    dbc = builds_logic.BuildChrootsLogic.get_by_build_id_and_name(build.id, dest_chroot).first()
+
+                    if rbc.status != StatusEnum("succeeded"):
+                        continue
+                    data["builds"].append(build.result_dir_name)
+
                     if rbc and not dbc:
                         dest_build_chroot = models.BuildChroot(**rbc.to_dict())
                         dest_build_chroot.mock_chroot_id = mock_chroot.id
