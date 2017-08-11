@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.61
+Version:    1.62
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -144,6 +144,9 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Fri Aug 11 2017 clime <clime@redhat.com> 1.62-1
+- allow to modify copr chroots with copr modify cmd
+
 * Fri Jul 14 2017 clime <clime@redhat.com> 1.61-1
 - Bug 1399817 - copr --version does not print version info
 
