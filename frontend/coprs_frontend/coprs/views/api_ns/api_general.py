@@ -98,6 +98,19 @@ def validate_post_keys(form):
     return infos
 
 
+@api_ns.route("/status")
+def api_status():
+    """
+    Receive information about queue
+    """
+    output = {
+        "importing": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("importing")).count(),
+        "waiting": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("pending")).count(),
+        "running": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("running")).count(),
+    }
+    return flask.jsonify(output)
+
+
 @api_ns.route("/coprs/<username>/new/", methods=["POST"])
 @api_login_required
 def api_new_copr(username):
