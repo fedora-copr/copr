@@ -38,19 +38,26 @@ BuildRequires: python2-devel
 BuildRequires: python-sphinx
 BuildRequires: python-docutils
 
+%global _description\
+COPR is lightweight build system. It allows you to create new project in WebUI,\
+and submit new builds and COPR will create yum repository from latest builds.\
+\
+This package contains python interface to access Copr service. Mostly useful\
+for developers only.\
+
+
+%description %_description
+
+%package -n python2-copr
+Summary: %summary
 Requires: python-setuptools
 Requires: python-six >= 1.9.0
 Requires: python-requests
 Requires: python-requests-toolbelt
 Requires: python-marshmallow
+%{?python_provide:%python_provide python2-copr}
 
-%description
-COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latest builds.
-
-This package contains python interface to access Copr service. Mostly useful
-for developers only.
-
+%description -n python2-copr %_description
 
 %if 0%{?with_python3}
 %package -n python3-copr
@@ -166,7 +173,7 @@ popd
 # compatibility for RHEL <= 6
 %{!?_licensedir:%global license %%doc}
 
-%files
+%files -n python2-copr
 %license LICENSE
 %doc README.rst
 %{python_sitelib}/*
