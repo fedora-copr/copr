@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.79
+Version:    1.80
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -192,6 +192,9 @@ popd
 %endif
 
 %changelog
+* Mon Aug 21 2017 Miroslav Suchý <msuchy@redhat.com> 1.80-1
+- rename python-copr to python2-copr
+
 * Fri Aug 11 2017 clime <clime@redhat.com> 1.79-1
 - allow to modify copr chroots
 - always send name of the user
