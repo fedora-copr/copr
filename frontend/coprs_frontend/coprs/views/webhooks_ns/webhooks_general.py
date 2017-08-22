@@ -14,6 +14,8 @@ from coprs.views.webhooks_ns import webhooks_ns
 from coprs.views.misc import page_not_found, access_restricted
 
 import logging
+import os
+
 log = logging.getLogger(__name__)
 
 
@@ -80,9 +82,10 @@ def webhooks_gitlab_push(copr_id, uuid):
             })
         if payload['object_kind'] == 'tag_push':
             ref_type = 'tag'
+            ref = os.path.basename(payload.get('ref', ''))
         else:
             ref_type = None
-        ref = payload.get('ref', '')
+            ref = payload.get('ref', '')
     except KeyError:
         return "Bad Request", 400
 
