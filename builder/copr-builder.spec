@@ -2,7 +2,7 @@
 
 Name:		copr-builder
 Version:	1
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	Build package from Copr dist-git
 
 License:	GPLv2+
@@ -84,6 +84,9 @@ install -p -m 644 %SOURCE7 %buildroot%confdir
 
 
 %changelog
+* Wed Aug 23 2017 Pavel Raiskup <praiskup@redhat.com> - 1-3
+- different spec file name from module name accepted
+
 * Fri Jul 21 2017 Pavel Raiskup <praiskup@redhat.com> - 1-2
 - copy srpmbuild logs into resultdir
 - different srpm name from spec name is allowed

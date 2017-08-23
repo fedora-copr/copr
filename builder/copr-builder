@@ -51,7 +51,8 @@ opt_host_resolv=
 opt_detached=false
 
 
-error() { echo >&2 " ! $*"; }
+error() { echo >&2 " # $*"; }
+warn () { echo >&2 " ! $*"; }
 die()   { error "$*"; exit 1; }
 info()  { echo 2>&1 " * $*"; }
 debug() { if $opt_debug; then echo 2>&1 " ~ $*"; fi ; }
@@ -334,10 +335,20 @@ git checkout "$opt_revision"
 stdout_wrap "$rpkg" "$@" --module-name "$opt_copr/$opt_package" sources
 )
 
+# Let's take properly named specfile preference before we fallback to
+# alphabetical order.
+specfile=pkg-git/"$opt_package".spec
+test -f "$specfile" || {
+    warn "guidelines: $opt_package.spec file is expected, but missing"
+    set -- pkg-git/*.spec
+    test $# = 1 || warn "multiple spec files $* in your package!"
+    test -f "$1" && specfile=$1
+}
+
 info "Generate SRPM in mock $opt_chroot"
 stdout_wrap "${mock[@]}" \
     --buildsrpm \
-    --spec pkg-git/"$opt_package".spec \
+    --spec "$specfile" \
     --sources pkg-git \
     --resultdir intermediate-srpm \
     --no-cleanup-after
