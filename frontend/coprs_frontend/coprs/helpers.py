@@ -345,7 +345,7 @@ class Serializer(object):
         Options can also contain two special values: __columns_only__
         and __columns_except__
 
-        If present, the first makes only specified fiels appear,
+        If present, the first makes only specified fields appear,
         the second removes specified fields. Both of these fields
         must be either strings (only works for one field) or lists
         (for one and more fields).

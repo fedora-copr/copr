@@ -41,7 +41,7 @@ OPTIONS
     These directories are deleted only if their latest modification time is more than DAYS in past.
 
 --cleancopr::
-	additionaly remove whole copr build dirs (contain 'build.info' file) and logs if the associated package gets deleted
+	additionally remove whole copr build dirs (contain 'build.info' file) and logs if the associated package gets deleted
 
 --nocreaterepo::
 	repository is not automatically recreated after deletion

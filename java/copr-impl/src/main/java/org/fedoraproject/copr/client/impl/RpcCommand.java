@@ -123,7 +123,7 @@ public abstract class RpcCommand<T>
             String rpcStatus = rpcResponse.get( "output" ).getAsString();
             if ( !rpcStatus.equals( "ok" ) )
             {
-                throw new CoprException( "Copr RPC returned failure reponse" );
+                throw new CoprException( "Copr RPC returned failure response" );
             }
 
             return parseResponse( rpcResponse );

@@ -71,7 +71,7 @@ useradd -r -g copr-mocks -G copr-mocks -d %{_datadir}/copr/mocks -s /bin/bash -c
 * Thu May 26 2016 clime <clime@redhat.com> 1.3-1
 - task files are now directly under batch (data) dir, no in/out subdirs
 - action result storing fixed + code improvements
-- make dump files with .json extension for syntax highlightning to kick in
+- make dump files with .json extension for syntax highlighting to kick in
 - pretty-print dist-git/backend responses
 * Fri Apr 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.2-1
 - support for feeding actions to backend

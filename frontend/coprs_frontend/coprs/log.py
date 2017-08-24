@@ -31,7 +31,7 @@ def setup_log():
             "copr-fe-error@{0}".format(
                 app.config["SERVER_NAME"] or "fedorahosted.org"),
             app.config.get("SEND_LOGS_TO"),
-            "Yay, error in copr frontend occured!")
+            "Yay, error in copr frontend occurred!")
 
         mail_handler.setFormatter(mail_error_formatter)
         mail_handler.setLevel(logging.CRITICAL)

@@ -104,7 +104,7 @@ class BuildsLogic(object):
                          # # Bug 1206562 - Cannot delete Copr because it incorrectly thinks
                          # # there are unfinished builds. Solution: `failed` but unfinished
                          # # (ended_on is null) builds should be rescheduled.
-                         # # todo: we need to be sure that correct `failed` set is set together wtih `ended_on`
+                         # # todo: we need to be sure that correct `failed` set is set together with `ended_on`
                          # helpers.StatusEnum("running"),
                          # helpers.StatusEnum("failed")
                          #]),

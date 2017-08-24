@@ -8,7 +8,7 @@ if [ -d $CHROOT_PATH ]
 then
     cd $CHROOT_PATH
 
-    # query latest (sucessfull) packages
+    # query latest (successful) packages
     LATEST_PKGS=$(mktemp)
     ERR_LOG=$(mktemp)
     # "yum clean metadata" does not work on this custom repos

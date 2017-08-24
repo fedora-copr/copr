@@ -38,7 +38,7 @@ just offer a bit different form fields. SCM-2 offers possibility to specify name
 should be used for the build. SCM-1 form offers auto-tagging feature that tags Release and Source0 of the
 package with XX.commitId where XX is number of commits from the latest tagged commit for the given package.
 For SCM-1 source type, spec file is always autolocated based on .spec extension. For SCM-2 the spec file
-is auto-located only if the spec file name was not explictly specified.
+is auto-located only if the spec file name was not explicitly specified.
 
 Note that for both SCM-1 and SCM-2, COPR auto-recognizes two types of repositories: upstream and downstream:
 

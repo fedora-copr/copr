@@ -101,7 +101,7 @@ class TimedStatEvents(GenericRedisModel):
     def trim_before(cls, rconnect, name, threshold_timestamp,
                     prefix=None):
         """
-        Removes all records occured before `threshold_timestamp`
+        Removes all records occurred before `threshold_timestamp`
         :param rconnect: StrictRedis
         :param name: statistics name
         :param threshold_timestamp: int

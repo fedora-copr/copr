@@ -151,7 +151,7 @@ class TestMockRemote(object):
 
     @mock.patch("backend.mockremote.createrepo")
     def test_do_createrepo_on_error(self, mc_createrepo, f_mock_remote):
-        err_msg = "error occured"
+        err_msg = "error occurred"
         mc_createrepo.return_value = ("", "", err_msg)
         # doesn't raise an error
         self.mr.do_createrepo()

@@ -54,7 +54,7 @@ cp -r test-template ./new-batch
 Hints for writing a new test
 ----------------------------
 Look into tests/* for examples of already written tests. They largely employ copr-mocks-frontend package which can supply
-import, build, and action tasks based on the content of the repectively named input files. copr-mocks-frontend also dumps
+import, build, and action tasks based on the content of the respectively named input files. copr-mocks-frontend also dumps
 results file in the end, on which tests can be run afterwards. Often a new test can be done simply by adding a new task
 (import/build/action) in an already existing test batch.
 

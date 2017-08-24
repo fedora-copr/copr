@@ -101,7 +101,7 @@ If you make any changes to the backend source and you want to run the new backen
 
     $ make update
 
-Note that the changes in the COPR git repo must be **commited** at this point.
+Note that the changes in the COPR git repo must be **committed** at this point.
 
 Testing
 -------

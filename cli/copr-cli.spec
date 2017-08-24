@@ -362,7 +362,7 @@ python3-pylint ./copr_cli/*.py || :
 - 1063311 - admin should be able to delete task
 - [frontend] Stray end tag h4.
 - [frontend] another s/coprs/projects/ rename
-- [frontend] provide info about last successfull build
+- [frontend] provide info about last successful build
 - [spec] rhel5 needs group definition even in subpackage
 - [frontend] move 'you agree' text to dd
 - [frontend] add margin to chroots-set
@@ -431,7 +431,7 @@ python3-pylint ./copr_cli/*.py || :
 - add build deletion
 - 1044158 - do not require fas username prior to login
 - replace http with https in copr-cli and in generated repo file
-- [cli] UX changes - explicitely state that pkgs is URL
+- [cli] UX changes - explicitly state that pkgs is URL
 - 1053142 - only build copr-cli on el6
 - [frontend] correctly handle mangled chroot
 - [frontend] do not traceback when user malform url
@@ -452,7 +452,7 @@ python3-pylint ./copr_cli/*.py || :
 
 * Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.21-1
 - 1049460 - correct error message
-- [cron] manualy clean /var/tmp after createrepo
+- [cron] manually clean /var/tmp after createrepo
 
 * Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.20-1
 - [cli] no need to set const with action=store_true

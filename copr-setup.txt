@@ -30,7 +30,7 @@ ansible playbook:
 - edit file /etc/lighttpd/lighttpd.conf as follows:
        -server.document-root = server_root + "/lighttpd"
        +server.document-root = "/var/lib/copr/public_html"
-   this is recomended to be separate mount point
+   this is recommended to be separate mount point
 
 FEDORA PLAYBOOK:
 1. spawn instance playbook - 

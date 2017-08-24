@@ -111,7 +111,7 @@ class PackageContentProvider(object):
             try:
                 shutil.rmtree(directory)
             except OSError as e:
-                pass #what else we can do? Hopefuly tmpreaper will clean it up
+                pass #what else we can do? Hopefully tmpreaper will clean it up
         self.dirs_to_cleanup = []
 
 

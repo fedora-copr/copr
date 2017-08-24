@@ -75,7 +75,7 @@ class CoprWhoosheer(AbstractWhoosheer):
 
     @classmethod
     def get_chroot_info(cls, copr):
-        # NOTE: orm db session for Copr model is already commited at the point insert_*/update_* methods are called.
+        # NOTE: orm db session for Copr model is already committed at the point insert_*/update_* methods are called.
         # Hence we use db.engine directly (for a new session).
         result = db.engine.execute(
             """

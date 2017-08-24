@@ -75,7 +75,7 @@ class IndividualResource(with_metaclass(EntityFieldsMetaClass, UnicodeMixin)):
     _schema = EmptySchema(strict=True)
 
     # todo:  this methods only serialize fields which can be modified by the user
-    # think about an apporach to override `load_only=True` fields in
+    # think about an approach to override `load_only=True` fields in
     #  our schemas during the dump function
     # _entity_methods = ["to_json", "to_dict"]
 

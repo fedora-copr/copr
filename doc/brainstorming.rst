@@ -48,7 +48,7 @@ Backend
 (Done)
 * have jobs as static records in redis, drop workers for each build and only have process checking build status and downloading results in the end
   - advantage is that you don't lose the already done work on builds that were running when copr-be is restarted (which happens on upgrades or a component failure)
-  - disadvantage is that it includes quite some changes: keeping and maintaing jobs and their states + process with infinite loop that checkes status of the running jobs
+  - disadvantage is that it includes quite some changes: keeping and maintaining jobs and their states + process with infinite loop that checkes status of the running jobs
   - you also need to run the mockchain job on background with stdin and stoud disattached so that it does not halt on SIGHUP
   - includes implementation of a nice way to check whether build is finished or not (e.g. check running processes for mockbuilder user could be ok)
   - looks like all of this requires some `copr-builder` script to be run on builder?  Then `copr-builder` and `copr-backend` can have pre-defined API
@@ -72,4 +72,4 @@ Other
 
 * Create CoprReleaser for `Tito <https://github.com/dgoodwin/tito>`_ (Done)
 * provide .repo file (not sure if backend or frontend). (Done)
-* Logo. We desperatly :) need logo. I was thinking about simplified picture of [http://en.wikipedia.org/wiki/Dill Dill] which is pronaunced in Czech (my native language) exactly same as Copr.
+* Logo. We desperately :) need logo. I was thinking about simplified picture of [http://en.wikipedia.org/wiki/Dill Dill] which is pronaunced in Czech (my native language) exactly same as Copr.

@@ -333,7 +333,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 
 * Wed Jun 22 2016 Miroslav Suchý <msuchy@redhat.com> 1.91-1
 - configure more packages to run pylint
-- terminate machine which was only partialy spawned
+- terminate machine which was only partially spawned
 - [copr-prune-results] do not sys.exit if prunerepo returns non-zero status,
   just raise an exception
 - more of log file migration
@@ -409,7 +409,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 - specify rawhide name when calling rawhide_to_release
 
 * Fri Jan 29 2016 Miroslav Suchý <msuchy@redhat.com> 1.80-1
-- do not fail when when you recieve job with architecture which does not have
+- do not fail when when you receive job with architecture which does not have
   queue
 - fix 1260780 - Build fails after successful package generation -
   just add a log error message pointing to an rsync log
@@ -444,7 +444,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 - [backend] run copr-backend-log service before other components
 
 * Mon Sep 21 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.74-1
-- [backend] add executible bit to run/copr_run_job_grab.py
+- [backend] add executable bit to run/copr_run_job_grab.py
 
 * Mon Sep 21 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.73-1
 - added context manager `local_file_logger`
@@ -786,7 +786,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 - 1063311 - admin should be able to delete task
 - [frontend] Stray end tag h4.
 - [frontend] another s/coprs/projects/ rename
-- [frontend] provide info about last successfull build
+- [frontend] provide info about last successful build
 - [spec] rhel5 needs group definition even in subpackage
 - [frontend] move 'you agree' text to dd
 - [frontend] add margin to chroots-set
@@ -855,7 +855,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 - add build deletion
 - 1044158 - do not require fas username prior to login
 - replace http with https in copr-cli and in generated repo file
-- [cli] UX changes - explicitely state that pkgs is URL
+- [cli] UX changes - explicitly state that pkgs is URL
 - 1053142 - only build copr-cli on el6
 - [frontend] correctly handle mangled chroot
 - [frontend] do not traceback when user malform url
@@ -876,7 +876,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 
 * Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.21-1
 - 1049460 - correct error message
-- [cron] manualy clean /var/tmp after createrepo
+- [cron] manually clean /var/tmp after createrepo
 
 * Wed Jan 08 2014 Miroslav Suchý <msuchy@redhat.com> 1.20-1
 - [cli] no need to set const with action=store_true

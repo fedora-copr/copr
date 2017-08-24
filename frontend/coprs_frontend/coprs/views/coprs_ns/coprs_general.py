@@ -545,7 +545,7 @@ def copr_permissions_applier_change(copr):
             flask.g.user, copr, permission, new_builder, new_admin)
         db.session.commit()
         flask.flash(
-            "Successfuly updated permissions for project '{0}'."
+            "Successfully updated permissions for project '{0}'."
             .format(copr.name))
         admin_mails = [copr.user.mail]
         for perm in copr.copr_permissions:
@@ -566,7 +566,7 @@ def copr_permissions_applier_change(copr):
                         helpers.PermissionEnum(new_admin),
                         copr.name, copr.user.name, flask.g.user.name))
 
-                msg["Subject"] = "[Copr] {0}: {1} is asking permissons".format(copr.name, flask.g.user.name)
+                msg["Subject"] = "[Copr] {0}: {1} is asking permissions".format(copr.name, flask.g.user.name)
                 msg["From"] = "root@{0}".format(platform.node())
                 msg["To"] = mail
                 s = smtplib.SMTP("localhost")

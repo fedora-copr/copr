@@ -390,7 +390,7 @@ class Action(object):
         try:
             rc, out, err = conn.run_expensive(cmd)
         except SSHConnectionError:
-            self.log.exception("Error runing cmd: {}".format(cmd))
+            self.log.exception("Error running cmd: {}".format(cmd))
             result.result = ActionResult.FAILURE
             return
 
@@ -411,7 +411,7 @@ class Action(object):
         try:
             rc, out, err = conn.run_expensive(cmd)
         except SSHConnectionError:
-            self.log.exception("Error runing cmd: {}".format(cmd))
+            self.log.exception("Error running cmd: {}".format(cmd))
             result.result = ActionResult.FAILURE
             return
 

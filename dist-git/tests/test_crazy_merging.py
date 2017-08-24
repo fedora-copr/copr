@@ -225,7 +225,7 @@ class TestMerging(object):
         origin, all_branches, middle_branches, border_branches = branches
 
         # This imports the same srpm, which means nothing should change in the
-        # git repostiory.
+        # git repository.
         result = self.commit_to_branches(all_branches, opts, 1)
         unchanged = compare_branches(all_branches, origin, result_hash=result)
         # Hash is unchanged, while still the 'result' above is fine!

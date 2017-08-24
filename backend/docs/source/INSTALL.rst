@@ -38,6 +38,6 @@ or checkout git repo and build latest release with tito::
 
 Side notes
 ----------
-It maybe usefull to look how copr-backend is deployed at fedora@infrastructure using ansible:
+It may be useful to look how copr-backend is deployed at fedora@infrastructure using ansible:
 http://infrastructure.fedoraproject.org/infra/ansible/playbooks/groups/copr-backend.yml
 

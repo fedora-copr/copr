@@ -116,7 +116,7 @@ def clean(db):
         db.session.query(model).delete()
 
 
-# Stage 1 - Copy data (projects, packages, last successfull build from each package)
+# Stage 1 - Copy data (projects, packages, last successful build from each package)
 def copy_data(cp):
     for model in mods:
         cp.copy_objects(model)
@@ -149,7 +149,7 @@ def main():
         dstdb.session.commit()
 
     if args.stage in [-1, 1]:
-        # Stage 1 - Copy data (projects, packages, last successfull build from each package)
+        # Stage 1 - Copy data (projects, packages, last successful build from each package)
         print("### Stage 1 - Copy data ##################################")
         cp = Copying(dstdb)
         copy_data(cp)

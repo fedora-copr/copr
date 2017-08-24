@@ -431,7 +431,7 @@ class TestCoprApplyForPermissions(CoprsTestCase):
                                   data={"copr_builder": "1"},
                                   follow_redirects=True)
 
-        assert b"Successfuly updated" in r.data
+        assert b"Successfully updated" in r.data
 
         self.u1 = self.db.session.merge(self.u1)
         self.u2 = self.db.session.merge(self.u2)
@@ -453,7 +453,7 @@ class TestCoprApplyForPermissions(CoprsTestCase):
                                   .format(self.u2.name, self.c2.name),
                                   data={"copr_builder": 1, "copr_admin": "1"},
                                   follow_redirects=True)
-        assert b"Successfuly updated" in r.data
+        assert b"Successfully updated" in r.data
 
         self.u1 = self.db.session.merge(self.u1)
         self.c2 = self.db.session.merge(self.c2)

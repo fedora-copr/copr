@@ -3,8 +3,8 @@
 How to install
 ==============
 
-Prerequisities
---------------
+Prerequisites
+-------------
 
 Currently Copr code base is tested and works only on Fedora 19+.
 

@@ -97,7 +97,7 @@ rlJournalStart
         rlRun "yes | dnf copr enable ${NAME_PREFIX}Project1 $CHROOT"
         # install hello package
         rlRun "dnf install -y hello"
-        # and check wheter it's installed
+        # and check whether it's installed
         rlAssertRpm "hello"
         # run it
         rlRun "hello"

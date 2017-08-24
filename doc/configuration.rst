@@ -354,7 +354,7 @@ Optional options
 SSH_KEYS
 ~~~~~~~~
 
-It is a good pratice to publish the fingerprint and public SSH key of a
+It is a good practice to publish the fingerprint and public SSH key of a
 server you provide access to.
 Pagure offers the possibility to expose this information based on the values
 set in the configuration file, in the ``SSH_KEYS`` configuration key.
