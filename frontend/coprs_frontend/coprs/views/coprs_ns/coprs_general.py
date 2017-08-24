@@ -3,7 +3,6 @@
 import os
 import time
 import fnmatch
-import re
 import uuid
 import subprocess
 from six.moves.urllib.parse import urljoin
@@ -242,7 +241,7 @@ def after_the_project_creation(copr, form):
         # validate (and skip bad) urls
         bad_urls = []
         for pkg in pkgs:
-            if not re.match("^.*\.src\.rpm$", pkg):
+            if not pkg.endswith(".src.rpm"):
                 bad_urls.append(pkg)
                 flask.flash("Bad url: {0} (skipped)".format(pkg))
         for bad_url in bad_urls:

@@ -436,7 +436,7 @@ class PackageFormMock(BasePackageForm):
         validators=[
             wtforms.validators.Optional(),
             wtforms.validators.Regexp(
-                "^.+\.spec$",
+                r"^.+\.spec$",
                 message="RPM spec file must end with .spec")])
 
     @property
