@@ -143,14 +143,14 @@ def build_on_fedmsg_loop():
         start_commit = data['msg']['start_commit']
         end_commit = data['msg']['end_commit']
 
-	if namespace:
-	    clone_url_subpart = '/' + namespace + '/' + repo_name
-	else:
-	    clone_url_subpart = '/' + repo_name
+        if namespace:
+            clone_url_subpart = '/' + namespace + '/' + repo_name
+        else:
+            clone_url_subpart = '/' + repo_name
 
-	log.info("MSG:")
-	log.info("\tclone_url_subpart = {}".format(clone_url_subpart))
-	log.info("\tbranch = {}".format(branch))
+        log.info("MSG:")
+        log.info("\tclone_url_subpart = {}".format(clone_url_subpart))
+        log.info("\tbranch = {}".format(branch))
 
         tito_candidates = Package.get_candidates_for_rebuild(TITO_TYPE, clone_url_subpart)
         scm_candidates = Package.get_candidates_for_rebuild(MOCK_SCM_TYPE, clone_url_subpart)
