@@ -19,9 +19,14 @@ from dist_git.exceptions import RpmSpecParseException, PackageNameCouldNotBeObta
 
 MODULE_REF = 'dist_git.helpers'
 
+@pytest.yield_fixture
+def mc_chroot():
+    with mock.patch("os.chroot") as handle:
+        yield handle
+
 
 class TestHelpers(object):
-    def test_get_rpm_spec_info(self):
+    def test_get_rpm_spec_info(self, mc_chroot):
         spec_info = helpers.get_rpm_spec_info('tests/specs/sample.spec')
         dist = rpm.expandMacro('%{dist}')
         assert spec_info == munch.Munch({'release': '1'+dist, 'sources': [], 'epoch': None, 'version': '1.1', 'name': 'sample'})
@@ -29,7 +34,7 @@ class TestHelpers(object):
         with pytest.raises(RpmSpecParseException):
             helpers.get_rpm_spec_info('tests/specs/unparsable.spec')
 
-    def test_get_package_name(self):
+    def test_get_package_name(self, mc_chroot):
         pkg_name = helpers.get_package_name('tests/specs/sample.spec')
         assert pkg_name == 'sample'
 
@@ -39,7 +44,7 @@ class TestHelpers(object):
         pkg_name = helpers.get_package_name('tests/specs/unparsable_with_macro_in_name.spec')
         assert pkg_name == 'sample-somename'
 
-    def test_get_pkg_evr(self):
+    def test_get_pkg_evr(self, mc_chroot):
         pkg_evr = helpers.get_pkg_evr('tests/specs/sample.spec')
         assert pkg_evr == '1.1-1'
 

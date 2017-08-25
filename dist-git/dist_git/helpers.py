@@ -11,6 +11,8 @@ import re
 import string
 import shutil
 import fileinput
+import tempfile
+import multiprocessing
 
 # todo: replace with munch, check availability in epel
 from bunch import Bunch
@@ -21,6 +23,45 @@ log = logging.getLogger(__name__)
 
 from exceptions import PackageImportException, FileDownloadException, RunCommandException, \
         RpmSpecParseException, PackageNameCouldNotBeObtainedException
+
+def spec_parse(f):
+    """
+    Decorator to run dangerous rpm.parseSpec in a chroot in a new process.
+    Requires process to have CAP_SYS_CHROOT capability.
+
+    :returns: wrapped function
+    """
+    @wraps(f)
+    def wrapper(spec_path):
+        tmpdir = tempfile.mkdtemp()
+
+        def inner_wrapper(conn, spec_path):
+            shutil.copy(spec_path, tmpdir)
+            os.chdir(tmpdir)
+            os.chroot(tmpdir)
+
+            try:
+                retval = f(os.path.basename(spec_path))
+            except RpmSpecParseException as e:
+                conn.send(e)
+            else:
+                conn.send(retval)
+
+            conn.close()
+
+        parent_conn, child_conn = multiprocessing.Pipe()
+        p = multiprocessing.Process(target=inner_wrapper, args=(child_conn, spec_path))
+        p.start()
+        retval = parent_conn.recv()
+        p.join()
+
+        shutil.rmtree(tmpdir)
+        if type(retval) == RpmSpecParseException:
+            raise retval
+
+        return retval
+
+    return wrapper
 
 
 def single_run(lock):
@@ -286,6 +327,7 @@ def run_cmd(cmd, cwd='.', raise_on_error=True):
     return result
 
 
+@spec_parse
 def get_package_name(spec_path):
     """
     Obtain name of a package described by spec
@@ -347,6 +389,7 @@ def get_pkg_evr(spec_path):
     return '{}-{}'.format(pkg_info.version, pkg_info.release)
 
 
+@spec_parse
 def get_rpm_spec_info(spec_path):
     """
     Return information about an rpm package

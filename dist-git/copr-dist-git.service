@@ -7,7 +7,7 @@ After=dist-git.socket
 [Service]
 User=copr-dist-git
 Group=packager
-AmbientCapabilities=CAP_SETGID
+AmbientCapabilities=CAP_SETGID CAP_SYS_CHROOT
 Environment="PYTHONPATH=/usr/share/copr/"
 ExecStart=/usr/bin/python2.7 /usr/bin/importer_runner.py
 

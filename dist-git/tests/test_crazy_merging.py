@@ -28,6 +28,12 @@ def mc_group():
         yield handle
 
 
+@pytest.yield_fixture
+def mc_chroot():
+    with mock.patch("os.chroot") as handle:
+        yield handle
+
+
 @pytest.yield_fixture(scope='module')
 def tmpdir():
     origdir = os.getcwd()
@@ -159,7 +165,7 @@ def compare_branches(branches, remote, local=None, result_hash=None):
 
 
 @pytest.fixture
-def initial_commit_everywhere(request, branches, mc_group, opts_basic, mc_setup_git_repo):
+def initial_commit_everywhere(request, branches, mc_group, mc_chroot, opts_basic, mc_setup_git_repo):
     origin, all_branches, _, _ = branches
 
     # Commit first version and compare remote side with local side.
