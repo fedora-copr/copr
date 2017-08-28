@@ -159,8 +159,8 @@ class CoprClient(UnicodeMixin):
                         "Bad configuration file: {0}".format(err))
         return CoprClient(**config)
 
-    def authentication_check(self, copr):
-        url = "{0}/coprs/{1}/auth/".format(self.api_url, copr)
+    def authentication_check(self):
+        url = "{0}/auth_check/".format(self.api_url)
 
         try:
             kwargs = {}
@@ -187,6 +187,7 @@ class CoprClient(UnicodeMixin):
                     " \n {1}".format(response.status_code, response.text))
             if response.status_code != 200:
                 raise CoprRequestException(output["error"])
+
 
     def _fetch(self, url, data=None, username=None, method=None,
                skip_auth=False, on_error_response=None, headers=None, params=None):
