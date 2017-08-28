@@ -166,6 +166,8 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
+        self.client.authentication_check(args.copr)
+
         bar = None
         progress_callback = None
 

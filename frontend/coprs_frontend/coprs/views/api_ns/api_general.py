@@ -345,6 +345,13 @@ def api_coprs_by_owner_detail(copr):
     return flask.jsonify(output)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/auth/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def api_hello_auth(copr):
+    return ("login")
+
+
 @api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
 @api_login_required
 @api_req_with_copr
