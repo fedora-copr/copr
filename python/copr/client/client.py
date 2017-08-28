@@ -185,8 +185,7 @@ class CoprClient(UnicodeMixin):
                 raise CoprUnknownResponseException(
                     "Unknown response from the server. Code: {0}, raw response:"
                     " \n {1}".format(response.status_code, response.text))
-            if response.status_code != 200:
-                raise CoprRequestException(output["error"])
+            raise CoprRequestException(output["error"])
 
 
     def _fetch(self, url, data=None, username=None, method=None,
