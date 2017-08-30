@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import subprocess
 import munch
 import logging
@@ -12,6 +13,10 @@ except ImportError:
     from urlparse import urlparse
 
 
+file_handler = logging.FileHandler(filename='builder-live.log')
+stdout_handler = logging.StreamHandler(sys.stdout)
+handlers = [file_handler, stdout_handler]
+logging.basicConfig(level=logging.DEBUG, handlers=handlers)
 log = logging.getLogger(__name__)
 
 
