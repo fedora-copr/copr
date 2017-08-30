@@ -79,7 +79,7 @@ class DistGitProvider(object):
         cfg = self.render_rpkg_template()
         log.info(cfg)
 
-        config_path = os.path.join(self.workdir, "fedpkg.conf")
+        config_path = os.path.join(self.workdir, "rpkg.conf")
         f = open(config_path, "w+")
         f.write(cfg)
         f.close()
@@ -101,7 +101,7 @@ class DistGitProvider(object):
 
     def render_rpkg_template(self):
         jinja_env = Environment(loader=FileSystemLoader("."))
-        template = jinja_env.get_template("fedpkg.conf.j2")
+        template = jinja_env.get_template("rpkg.conf.j2")
         parse = urlparse(self.clone_url)
         distgit_domain = parse.netloc
         return template.render(distgit_domain=distgit_domain, scheme=parse.scheme)
@@ -111,7 +111,7 @@ class DistGitProvider(object):
         return re.sub(".git$", "", re.sub("^/c?git/", "", parse.path))
 
     def produce_srpm(self, config, module_name, repodir):
-        cmd = ["fedpkg", "--config", config, "--module-name", module_name, "srpm"]
+        cmd = ["rpkg", "--config", config, "--module-name", module_name, "srpm"]
         return run_cmd(cmd, cwd=repodir)
 
 

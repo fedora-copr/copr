@@ -36,9 +36,9 @@ class TestDistGitProvider(unittest.TestCase):
         cfg = provider.render_rpkg_template()
         parser = ConfigParser.RawConfigParser()
         parser.readfp(StringIO.StringIO(cfg))
-        self.assertEqual(parser.get("fedpkg", "lookaside"), "https://src.fedoraproject.org/repo/pkgs")
-        self.assertEqual(parser.get("fedpkg", "lookaside_cgi"), "https://src.fedoraproject.org/repo/pkgs/upload.cgi")
-        self.assertEqual(parser.get("fedpkg", "anongiturl"), "git://src.fedoraproject.org/%(module)s")
+        self.assertEqual(parser.get("rpkg", "lookaside"), "https://src.fedoraproject.org/repo/pkgs")
+        self.assertEqual(parser.get("rpkg", "lookaside_cgi"), "https://src.fedoraproject.org/repo/pkgs/upload.cgi")
+        self.assertEqual(parser.get("rpkg", "anongiturl"), "git://src.fedoraproject.org/%(module)s")
 
     def test_module_name(self):
         provider = DistGitProvider(self.empty_source_json)
@@ -55,6 +55,6 @@ class TestDistGitProvider(unittest.TestCase):
     def test_produce_srpm(self, run_cmd):
         provider = DistGitProvider(self.source_json)
         provider.produce_srpm("/some/path/to/config", "myself/myproject/mypackage", "/some/repo/directory")
-        assert_cmd = ["fedpkg", "--config", "/some/path/to/config",
+        assert_cmd = ["rpkg", "--config", "/some/path/to/config",
                       "--module-name", "myself/myproject/mypackage", "srpm"]
         run_cmd.assert_called_with(assert_cmd, cwd="/some/repo/directory")
