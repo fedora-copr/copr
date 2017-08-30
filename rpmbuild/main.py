@@ -1,16 +1,20 @@
 import re
 import os
 import sys
+import argparse
 import subprocess
+import requests
+import json
 import munch
 import logging
 import tempfile
+import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 
 try:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
 except ImportError:
-    from urlparse import urlparse
+    from urlparse import urlparse, urljoin
 
 
 file_handler = logging.FileHandler(filename='builder-live.log')
@@ -112,9 +116,26 @@ class DistGitProvider(object):
 
 
 def main():
-    source_json = None
+    parser = argparse.ArgumentParser(description="Runs COPR build of the specified task ID,"
+                                                 "e.g. 551347-epel-7-x86_64, and puts results"
+                                                 "into /var/lib/copr-rpmbuild/results/.")
+    parser.add_argument("task_id", type=str, help="COPR task-id to be built (e.g. 551347-epel-7-x86_64)")
+    parser.add_argument("-d", "--detached", action="store_true", help="Run build in background."
+                                                                      "Log into /var/lib/copr-rpmbuild/main.log")
+    parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
+    args = parser.parse_args()
+
+    config = ConfigParser.RawConfigParser()
+    config.readfp(open("main.ini"))
+
+    url = urljoin(urljoin(config.get("main", "frontend_url"), "/get-build-task/"), args.task_id)
+    response = requests.get(url)
+    task = response.json()
+    source_json = json.loads(task["source_json"])
+
     workdir = tempfile.mkdtemp()
     provider = DistGitProvider(source_json, workdir)
+    provider.run()
 
 
 if __name__ == "__main__":
