@@ -115,6 +115,19 @@ class DistGitProvider(object):
         cmd = ["rpkg", "--config", config, "--module-name", module_name, "srpm"]
         return run_cmd(cmd, cwd=repodir)
 
+    @property
+    def srpm(self):
+        repodir = os.path.join(self.workdir, "repo")
+        dest_files = os.listdir(repodir)
+        dest_srpms = filter(lambda f: f.endswith(".src.rpm"), dest_files)
+
+        if len(dest_srpms) != 1:
+            log.debug("tmp_dest: {}".format(repodir))
+            log.debug("dest_files: {}".format(dest_files))
+            log.debug("dest_srpms: {}".format(dest_srpms))
+            raise RuntimeError("No srpm files were generated.")
+        return os.path.join(repodir, dest_srpms[0])
+
 
 class MockBuilder(object):
     def __init__(self, task, srpm):
