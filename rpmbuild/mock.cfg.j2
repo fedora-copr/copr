@@ -1,0 +1,32 @@
+include('/etc/mock/{{ chroot }}.cfg')
+
+config_opts['root'] = '{{ task_id }}'
+
+{% if buildroot_pkgs %}
+config_opts['chroot_additional_packages'] = '{{ buildroot_pkgs| join(" ") }}'
+{% endif %}
+
+{% if enable_net %}
+config_opts['rpmbuild_networking'] = True
+{% else %}
+# https://github.com/rpm-software-management/mock/issues/89
+config_opts['nspawn_args'] = ['--private-network']
+{% endif %}
+
+config_opts['use_bootstrap_container'] = {{ 'True' if use_bootstrap_container else 'False' }}
+
+{% if repos %}
+config_opts['{{ pkg_manager_conf }}.conf'] += """
+{% for repo in repos %}
+[{{ repo["id"] }}]
+name='{{ repo["name"] }}'
+baseurl={{ repo["url"] }}
+gpgcheck=0
+enabled=1
+skip_if_unavailable=1
+metadata_expire=0
+cost=1
+best=1
+{% endfor %}
+"""
+{% endif %}

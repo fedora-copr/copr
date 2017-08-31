@@ -8,6 +8,7 @@ import json
 import munch
 import logging
 import tempfile
+import shutil
 import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 
@@ -113,6 +114,46 @@ class DistGitProvider(object):
     def produce_srpm(self, config, module_name, repodir):
         cmd = ["rpkg", "--config", config, "--module-name", module_name, "srpm"]
         return run_cmd(cmd, cwd=repodir)
+
+
+class MockBuilder(object):
+    def __init__(self, task, srpm):
+        self.srpm = srpm
+        self.task_id = task["task_id"]
+        self.chroot = task["chroot"]
+        self.buildroot_pkgs = task["buildroot_pkgs"]
+        self.enable_net = task["enable_net"]
+        self.repos = None
+        self.use_bootstrap_container = None
+        self.pkg_manager_conf = "dnf"
+
+    def run(self):
+        resultdir = tempfile.mkdtemp()
+        configdir = os.path.join(resultdir, "configs")
+        os.makedirs(configdir)
+        shutil.copy2("/etc/mock/site-defaults.cfg", configdir)
+        shutil.copy2("/etc/mock/{0}.cfg".format(self.chroot), configdir)
+        cfg = self.render_config_template()
+        with open(os.path.join(configdir, "child.cfg"), "w") as child:
+            child.write(cfg)
+
+        result = self.produce_rpm(self.srpm, configdir, resultdir)
+        log.info(result)
+
+    def render_config_template(self):
+        jinja_env = Environment(loader=FileSystemLoader("."))
+        template = jinja_env.get_template("mock.cfg.j2")
+        return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
+                               enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
+                               repos=self.repos, pkg_manager_conf=self.pkg_manager_conf)
+
+    def produce_rpm(self, srpm, configdir, resultdir):
+        cmd = ["/usr/bin/mock",
+               "--rebuild", srpm,
+               "--configdir", configdir,
+               "--resultdir", resultdir,
+               "--no-clean", "-r", "child"]
+        return run_cmd(cmd)
 
 
 def main():
