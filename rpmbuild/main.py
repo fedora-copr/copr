@@ -177,19 +177,44 @@ def main():
     parser.add_argument("-d", "--detached", action="store_true", help="Run build in background."
                                                                       "Log into /var/lib/copr-rpmbuild/main.log")
     parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
+    parser_output = parser.add_mutually_exclusive_group(required=True)
+    parser_output.add_argument("--rpm", action="store_true")
+    parser_output.add_argument("--srpm", action="store_true")
     args = parser.parse_args()
 
     config = ConfigParser.RawConfigParser()
     config.readfp(open("main.ini"))
 
-    url = urljoin(urljoin(config.get("main", "frontend_url"), "/get-build-task/"), args.task_id)
-    response = requests.get(url)
-    task = response.json()
-    source_json = json.loads(task["source_json"])
+    action = build_srpm if args.srpm else build_rpm
+    action(args, config)
+
+
+def build_srpm(args, config):
+    task = get_task("/get-build-task/", args.task_id, config)
+
+    # @TODO Select the provider based on source_type
+    workdir = tempfile.mkdtemp()
+    provider = DistGitProvider(task["source_json"], workdir)
+    provider.run()
+
+
+def build_rpm(args, config):
+    task = get_task("/get-srpm-build-task/", args.task_id, config)
 
     workdir = tempfile.mkdtemp()
-    provider = DistGitProvider(source_json, workdir)
+    provider = DistGitProvider(task["source_json"], workdir)
     provider.run()
+
+    builder = MockBuilder(task, provider.srpm)
+    builder.run()
+
+
+def get_task(endpoint, id, config):
+    url = urljoin(urljoin(config.get("main", "frontend_url"), endpoint), id)
+    response = requests.get(url)
+    task = response.json()
+    task["source_json"] = json.loads(task["source_json"])
+    return task
 
 
 if __name__ == "__main__":
