@@ -130,7 +130,7 @@ class DistGitProvider(object):
 
 
 class MockBuilder(object):
-    def __init__(self, task, srpm):
+    def __init__(self, task, srpm, resultdir=None):
         self.srpm = srpm
         self.task_id = task["task_id"]
         self.chroot = task["chroot"]
@@ -139,10 +139,10 @@ class MockBuilder(object):
         self.repos = None
         self.use_bootstrap_container = None
         self.pkg_manager_conf = "dnf"
+        self.resultdir = resultdir
 
     def run(self):
-        resultdir = tempfile.mkdtemp()
-        configdir = os.path.join(resultdir, "configs")
+        configdir = os.path.join(self.resultdir, "configs")
         os.makedirs(configdir)
         shutil.copy2("/etc/mock/site-defaults.cfg", configdir)
         shutil.copy2("/etc/mock/{0}.cfg".format(self.chroot), configdir)
@@ -150,7 +150,7 @@ class MockBuilder(object):
         with open(os.path.join(configdir, "child.cfg"), "w") as child:
             child.write(cfg)
 
-        result = self.produce_rpm(self.srpm, configdir, resultdir)
+        result = self.produce_rpm(self.srpm, configdir, self.resultdir)
         log.info(result)
 
     def render_config_template(self):
@@ -185,8 +185,16 @@ def main():
     config = ConfigParser.RawConfigParser()
     config.readfp(open("main.ini"))
 
+    init(args,config)
     action = build_srpm if args.srpm else build_rpm
     action(args, config)
+
+
+def init(args, config):
+    resultdir = config.get("main", "resultdir")
+    if os.path.exists(resultdir):
+        shutil.rmtree(resultdir)
+    os.makedirs(resultdir)
 
 
 def build_srpm(args, config):
@@ -196,6 +204,7 @@ def build_srpm(args, config):
     workdir = tempfile.mkdtemp()
     provider = DistGitProvider(task["source_json"], workdir)
     provider.run()
+    shutil.copy2(provider.srpm, config.get("main", "resultdir"))
 
 
 def build_rpm(args, config):
@@ -205,7 +214,8 @@ def build_rpm(args, config):
     provider = DistGitProvider(task["source_json"], workdir)
     provider.run()
 
-    builder = MockBuilder(task, provider.srpm)
+    resultdir = config.get("main", "resultdir")
+    builder = MockBuilder(task, provider.srpm, resultdir=resultdir)
     builder.run()
 
 
