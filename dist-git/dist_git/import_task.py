@@ -23,7 +23,6 @@ class ImportTask(object):
             task.user = task_dict["user"]
             task.project = task_dict["project"]
             task.branches = task_dict["branches"]
-            task.source_type = task_dict["source_type"]
             task.source_data = json.loads(task_dict["source_json"])
         except (KeyError, ValueError) as e:
             raise PackageImportException(str(e))

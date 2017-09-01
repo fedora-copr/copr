@@ -11,7 +11,6 @@ import mock
 import logging
 
 from dist_git.package_import import import_package
-from dist_git.providers import PackageContent
 
 def scriptdir():
     return os.path.dirname(os.path.realpath(__file__))
@@ -97,6 +96,7 @@ def branches(origin):
 
     yield (origin, branches, middle_branches, border_branches)
 
+
 @pytest.yield_fixture
 def lookaside(tmpdir):
     assert 0 == os.system(
@@ -119,28 +119,31 @@ def opts_basic(tmpdir, lookaside):
     opts.git_user_email = os.path.join(tmpdir, 'git_user_email')
     yield opts
 
-package_content_cache = {}
+srpm_cache = {}
 
-def get_package_content(version):
-    if version in package_content_cache:
-        return package_content_cache[version]
+def get_srpm(version):
+    if version in srpm_cache:
+        return srpm_cache[version]
 
-    where = os.path.join(os.getcwd(), 'raw_files', str(version))
-
-    assert 0 == os.system(""" set -e
-    mkdir -p {where}
-    cd {where}
+    assert 0 == os.system("""set -e
+    mkdir -p srpm_dir && cd srpm_dir
     export dummy_version={version}
     {script_dir}/generate_qiuck_package
-    """.format(where=where, version=version, script_dir=scriptdir()))
+    """.format(script_dir=scriptdir(), version=version))
 
-    package_content = PackageContent(
-        spec_path=os.path.join(where, './qiuck-package.spec'),
-        source_paths=[os.path.join(where, 'tarball.tar.gz')],
+    srpm_path = os.path.join(os.getcwd(), 'srpm_dir',
+                             'quick-package-{0}-0.src.rpm'.format(version))
+    result = (
+        srpm_path,
+        Bunch({
+            'package_name': 'quick-package',
+            'user': 'bob',
+            'project':'blah',
+        })
     )
 
-    package_content_cache[version] = package_content
-    return package_content
+    srpm_cache[version] = result
+    return result
 
 
 def branch_hash(directory, branch):
@@ -178,12 +181,12 @@ def initial_commit_everywhere(request, branches, mc_group, mc_chroot, opts_basic
 class TestMerging(object):
 
     def commit_to_branches(self, to_branches, opts, version):
-        package_content = get_package_content(version)
-        import_result = import_package(opts, 'bob/blah', to_branches, package_content)
+        srpm_path, packge_desc = get_srpm(version)
+        import_result = import_package(opts, 'bob/blah', to_branches, srpm_path)
         return import_result['branch_commits']
 
     def setup_method(self, method):
-        package_content_cache = {}
+        srpm_cache = {}
 
     def test_merged_everything(self, initial_commit_everywhere, mc_setup_git_repo):
         branches, opts, v1_hash = initial_commit_everywhere

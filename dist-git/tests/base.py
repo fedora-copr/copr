@@ -7,7 +7,6 @@ import json
 
 from dist_git import importer
 from dist_git import import_task
-from dist_git import providers
 
 class Base(object):
 
@@ -49,7 +48,6 @@ class Base(object):
             "project": self.PROJECT_NAME,
 
             "branches": [ self.BRANCH ],
-            "source_type": providers.SourceType.LINK,
             "source_json": json.dumps({"url": "http://example.com/pkg.src.rpm"})
         }
         self.upload_task_data = {
@@ -58,7 +56,6 @@ class Base(object):
             "project": self.PROJECT_NAME,
 
             "branches": [ self.BRANCH ],
-            "source_type": providers.SourceType.UPLOAD,
             "source_json": json.dumps({"url": "http://front/tmp/tmp_2/pkg_2.src.rpm"})
         }
         self.spec_task_data = {
@@ -67,7 +64,6 @@ class Base(object):
             "project": self.PROJECT_NAME,
 
             "branches": [ self.BRANCH, self.BRANCH2 ],
-            "source_type": providers.SourceType.LINK,
             "source_json": json.dumps({"url": "http://example.com/pkg.spec"})
         }
 

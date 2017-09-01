@@ -14,9 +14,5 @@ class TimeoutException(PackageImportException):
     strtype = 'import_timeout_exceeded'
 
 
-class RpmSpecParseException(PackageImportException):
-    strtype = 'parse_spec_error'
-
-
-class PackageNameCouldNotBeObtainedException(PackageImportException):
-    strtype = 'obtain_package_name_error'
+class SrpmQueryException(PackageImportException):
+    strtype = 'srpm_query_exception'

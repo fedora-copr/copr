@@ -4,13 +4,15 @@ import os
 import json
 import time
 import logging
+import helpers
+import tempfile
+import shutil
 
 from requests import get, post
 
 from package_import import import_package
 from process_pool import Worker, Pool
 from exceptions import PackageImportException
-from providers import PackageContentProviderFactory
 from import_task import ImportTask
 
 log = logging.getLogger(__name__)
@@ -82,21 +84,24 @@ class Importer(object):
         :type task: ImportTask
         """
         per_task_log_handler = self.setup_per_task_logging(task)
+        workdir = tempfile.mkdtemp()
 
-        provider = PackageContentProviderFactory.getInstance(task, self.opts)
         result = None
         try:
-            package_content = provider.get_content(task)
+            srpm_path = helpers.download_file(
+                task.source_data['url'],
+                workdir
+            )
             result = import_package(
                 self.opts,
                 task.repo_namespace,
                 task.branches,
-                package_content
+                srpm_path
             )
         except PackageImportException as e:
             log.exception("Exception raised during package import.")
         finally:
-            provider.cleanup()
+            shutil.rmtree(workdir)
 
         log.info("sending a responses for branches {0}".format(', '.join(task.branches)))
         for branch in task.branches:

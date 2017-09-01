@@ -44,3 +44,11 @@ EOF
 
 echo "nothing special here" > README
 tar czf "$tarball" README
+
+rpmbuild --define "_sourcedir $PWD" \
+    --define "_rpmdir $PWD" \
+    --define "_specdir $PWD" \
+    --define "_builddir $PWD" \
+    --define "_srcrpmdir $PWD" \
+    --define "dist %{nil}" \
+    -bs "$spec"

@@ -20,8 +20,6 @@ else:
     import mock
     from mock import MagicMock
 
-from dist_git import providers
-
 
 MODULE_REF = 'dist_git.package_import'
 
@@ -97,13 +95,11 @@ class TestPackageImport(Base):
         mc_pyrpkg_commands.return_value = mc_cmd
         mc_cmd.commithash = '1234'
 
-        mc_helpers.get_package_name = MagicMock(return_value = 'pkg_name')
-        mc_helpers.get_pkg_evr = MagicMock(return_value = '1.2')
+        mc_helpers.pkg_name_evr = MagicMock(return_value = ('pkg_name', '1.2'))
 
         namespace = 'somenamespace'
         branches = ['f25', 'f26']
-        package_content = providers.PackageContent(spec_path='somepath')
-        result = import_package(self.opts, namespace, branches, package_content)
+        result = import_package(self.opts, namespace, branches, 'some_srpm_path')
         expected_result = Munch({
             'branch_commits': {'f26': '1234', 'f25': '1234'},
             'reponame': 'somenamespace/pkg_name',
@@ -113,7 +109,7 @@ class TestPackageImport(Base):
         assert (result == expected_result)
 
         mc_cmd.push.side_effect = rpkgError
-        result = import_package(self.opts, namespace, branches, package_content)
+        result = import_package(self.opts, namespace, branches, 'some_srpm_path')
         expected_result = Munch({
             'branch_commits': {},
             'reponame': 'somenamespace/pkg_name',

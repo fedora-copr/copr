@@ -7,7 +7,6 @@ import types
 import grp
 import subprocess
 import tempfile
-import re
 import munch
 import multiprocessing
 
@@ -21,8 +20,7 @@ os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 from pyrpkg import Commands
 from pyrpkg.errors import rpkgError
 
-from providers import PackageContent
-from exceptions import PackageImportException, RpmSpecParseException
+from exceptions import PackageImportException
 
 import helpers
 
@@ -155,24 +153,20 @@ def cleanup_repo(repo_path):
 
 
 @helpers.single_run(import_lock)
-def import_package(opts, namespace, branches, package_content):
+def import_package(opts, namespace, branches, srpm_path):
     """
     Import package into a DistGit repo for the given branches.
 
     :param Bunch opts: service configuration
     :param str namespace: repo name prefix
     :param list(str) branches: list of branch names to import into
-    :param PackageContent package_content: all the package content
+    :param str srpm_path: path to the srpm file
 
     :return Munch: resulting import data:
         (branch_commits, reponame, pkg_name, pkg_evr)
     """
-    log.debug("package_content: " + str(package_content))
-
-    pkg_name = helpers.get_package_name(package_content.spec_path)
+    pkg_name, pkg_evr = helpers.pkg_name_evr(srpm_path)
     log.debug("pkg_name: " + str(pkg_name))
-
-    pkg_evr = helpers.get_pkg_evr(package_content.spec_path)
     log.debug("pkg_evr: " + str(pkg_evr))
 
     reponame = "{}/{}".format(namespace, pkg_name)
@@ -228,25 +222,8 @@ def import_package(opts, namespace, branches, package_content):
 
         try:
             if not branch_commits:
-                cleanup_repo('.')
-
-                log.debug("add package content")
-                add_to_index = []
-                shutil.copy(package_content.spec_path, repo_dir)
-                add_to_index = [os.path.basename(package_content.spec_path)]
-
-                for path in package_content.extra_content:
-                    if os.path.isfile(path):
-                        shutil.copy(path, repo_dir)
-                    else:
-                        shutil.copytree(path, repo_dir)
-                    add_to_index.append(os.path.basename(path))
-
-                commands.repo.index.add(add_to_index)
-
-                log.debug("save the source files into lookaside cache")
-                commands.upload(package_content.source_paths, replace=True)
-
+                upload_files = commands.import_srpm(srpm_path)
+                commands.upload(upload_files, replace=True)
                 try:
                     log.debug("commit")
                     commands.commit(message)
