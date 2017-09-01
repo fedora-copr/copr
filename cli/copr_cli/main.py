@@ -170,26 +170,29 @@ class Commands(object):
         user.
 
         :param args: argparse arguments provided by the user
-
         """
         bar = None
         progress_callback = None
+        builds = []
 
-        if os.path.exists(args.pkgs[0]):
-            bar = ProgressBar(max=os.path.getsize(args.pkgs[0]))
+        for pkg in args.pkgs:
+            if os.path.exists(pkg):
+                bar = ProgressBar(max=os.path.getsize(pkg))
 
-            # pylint: disable=function-redefined
-            def progress_callback(monitor):
-                bar.next(n=8192)
+                # pylint: disable=function-redefined
+                def progress_callback(monitor):
+                    bar.next(n=8192)
 
-            print('Uploading package {0}'.format(args.pkgs[0]))
+                print('Uploading package {0}'.format(pkg))
 
-        data = {
-            "pkgs": args.pkgs,
-            "progress_callback": progress_callback,
-        }
+            data = {
+                "pkgs": [pkg],
+                "progress_callback": progress_callback,
+            }
 
-        return self.process_build(args, self.client.create_new_build, data, bar=bar)
+            builds.append(self.process_build(args, self.client.create_new_build, data, bar=bar))
+
+        return builds
 
     @requires_api_auth
     def action_build_pypi(self, args):
