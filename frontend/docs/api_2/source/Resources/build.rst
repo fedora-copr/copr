@@ -77,7 +77,7 @@ List builds
     :query str owner: select only builds from projects owned by this user
     :query str project_id: select only projects owned by this project
     :query int offset: offset number, default value is 0
-    :query int limit: limit number, default value is 100
+    :query int limit: limit number between 1 and 100, default value is 100
 
     :statuscode 200: no error
 

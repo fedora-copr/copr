@@ -57,7 +57,7 @@ List build tasks
         ``pending``, ``starting``, ``importing``
 
     :query int offset: offset number, default value is 0
-    :query int limit: limit number, default value is 100
+    :query int limit: limit number between 1 and 100, default value is 100
 
     :statuscode 200: no error
     :statuscode 404: build not found
