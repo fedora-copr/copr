@@ -168,6 +168,10 @@ class MockBuilder(object):
                "--no-clean", "-r", "child"]
         return run_cmd(cmd)
 
+    def touch_success_file(self):
+        with open(os.path.join(self.resultdir, "success"), "w") as success:
+            success.write("done")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Runs COPR build of the specified task ID,"
@@ -217,6 +221,7 @@ def build_rpm(args, config):
     resultdir = config.get("main", "resultdir")
     builder = MockBuilder(task, provider.srpm, resultdir=resultdir)
     builder.run()
+    builder.touch_success_file()
 
 
 def get_task(endpoint, id, config):

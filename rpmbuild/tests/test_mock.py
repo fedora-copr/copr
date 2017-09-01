@@ -70,3 +70,9 @@ class TestMockBuilder(unittest.TestCase):
                       "--resultdir", "/path/to/results",
                       "--no-clean", "-r", "child"]
         run_cmd.assert_called_with(assert_cmd)
+
+    @mock.patch('rpmbuild.main.open')
+    def test_touch_success_file(self, mock_open):
+        builder = MockBuilder(self.task, self.srpm, resultdir="/path/to/results")
+        builder.touch_success_file()
+        mock_open.assert_called_with("/path/to/results/success", "w")
