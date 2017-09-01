@@ -158,6 +158,12 @@ class Commands(object):
         except KeyboardInterrupt:
             pass
 
+    def action_whoami(self, args):
+        """
+        Simply print out the current user as defined in copr config.
+        """
+        print(self.client.username)
+
     @requires_api_auth
     def action_build(self, args):
         """ Method called when the 'build' action has been selected by the
@@ -603,6 +609,12 @@ def setup_parser():
     #########################################################
     ###                    Project options                ###
     #########################################################
+
+    parser_whoami = subparsers.add_parser(
+        "whoami",
+        help="Print username that the client authenticates with against copr-frontend"
+    )
+    parser_whoami.set_defaults(func="action_whoami")
 
     # create the parser for the "list" command
     parser_list = subparsers.add_parser(
