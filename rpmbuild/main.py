@@ -178,6 +178,7 @@ def main():
                                                  "e.g. 551347-epel-7-x86_64, and puts results"
                                                  "into /var/lib/copr-rpmbuild/results/.")
     parser.add_argument("task_id", type=str, help="COPR task-id to be built (e.g. 551347-epel-7-x86_64)")
+    parser.add_argument("-c", "--config", type=str, help="Use specific configuration .ini file")
     parser.add_argument("-d", "--detached", action="store_true", help="Run build in background."
                                                                       "Log into /var/lib/copr-rpmbuild/main.log")
     parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
@@ -187,7 +188,7 @@ def main():
     args = parser.parse_args()
 
     config = ConfigParser.RawConfigParser()
-    config.readfp(open("main.ini"))
+    config.readfp(open(args.config or "main.ini"))
 
     init(args,config)
     action = build_srpm if args.srpm else build_rpm
