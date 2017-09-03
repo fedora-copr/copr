@@ -20,9 +20,6 @@ except ImportError:
 
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
-log.addHandler(logging.StreamHandler(sys.stdout))
-log.addHandler(logging.FileHandler("builder-live.log"))
 
 
 def run_cmd(cmd, cwd=".", raise_on_error=True):
@@ -190,8 +187,13 @@ def main():
     config = ConfigParser.RawConfigParser(defaults={
         "resultdir": "/var/lib/copr-rpmbuild/results",
         "lockfile": "/var/lib/copr-rpmbuild/lockfile",
+        "logfile": "/var/lib/copr-rpmbuild/main.log",
     })
     config.readfp(open(args.config or "main.ini"))
+
+    log.setLevel(logging.DEBUG)
+    log.addHandler(logging.StreamHandler(sys.stdout))
+    log.addHandler(logging.FileHandler(config.get("main", "logfile")))
 
     try:
         # Allow only one instance
