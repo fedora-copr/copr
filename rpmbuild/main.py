@@ -9,6 +9,7 @@ import munch
 import logging
 import tempfile
 import shutil
+import lockfile
 import ConfigParser
 from jinja2 import Environment, FileSystemLoader
 
@@ -186,12 +187,22 @@ def main():
     parser_output.add_argument("--srpm", action="store_true")
     args = parser.parse_args()
 
-    config = ConfigParser.RawConfigParser()
+    config = ConfigParser.RawConfigParser(defaults={
+        "lockfile": "/var/lib/copr-rpmbuild/lockfile"
+    })
     config.readfp(open(args.config or "main.ini"))
 
-    init(args,config)
-    action = build_srpm if args.srpm else build_rpm
-    action(args, config)
+    try:
+        # Allow only one instance
+        lock = lockfile.LockFile(config.get("main", "lockfile"))
+        lock.acquire(timeout=0)
+
+        init(args,config)
+        action = build_srpm if args.srpm else build_rpm
+        action(args, config)
+        lock.release()
+    except lockfile.LockError as ex:
+        log.error(ex)
 
 
 def init(args, config):
