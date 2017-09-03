@@ -188,7 +188,8 @@ def main():
     args = parser.parse_args()
 
     config = ConfigParser.RawConfigParser(defaults={
-        "lockfile": "/var/lib/copr-rpmbuild/lockfile"
+        "resultdir": "/var/lib/copr-rpmbuild/results",
+        "lockfile": "/var/lib/copr-rpmbuild/lockfile",
     })
     config.readfp(open(args.config or "main.ini"))
 
