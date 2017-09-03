@@ -195,17 +195,18 @@ def main():
     log.addHandler(logging.StreamHandler(sys.stdout))
     log.addHandler(logging.FileHandler(config.get("main", "logfile")))
 
+    # Allow only one instance
+    lock = lockfile.LockFile(config.get("main", "lockfile"))
     try:
-        # Allow only one instance
-        lock = lockfile.LockFile(config.get("main", "lockfile"))
         lock.acquire(timeout=0)
-
         init(args,config)
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
-        lock.release()
     except lockfile.LockError as ex:
         log.error(ex)
+    finally:
+        if lock.i_am_locking():
+            lock.release()
 
 
 def init(args, config):
