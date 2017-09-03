@@ -1,6 +1,7 @@
 import re
 import unittest
 import mock
+from os.path import realpath, dirname
 from ..main import MockBuilder
 
 
@@ -42,7 +43,8 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(builder.use_bootstrap_container, None)
 
     def test_redner_config_template(self):
-        builder = MockBuilder(self.task, self.srpm)
+        confdirs = [dirname(dirname(realpath(__file__)))]
+        builder = MockBuilder(self.task, self.srpm, confdirs=confdirs)
         cfg = builder.render_config_template()
 
         # Parse the rendered config

@@ -19,7 +19,12 @@ except ImportError:
     from urlparse import urlparse, urljoin
 
 
+CONF_DIRS = [os.path.dirname(os.path.realpath(__file__)),
+             "/etc/copr-rpmbuild"]
+
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def run_cmd(cmd, cwd=".", raise_on_error=True):
@@ -64,10 +69,11 @@ class SourceType:
 
 
 class DistGitProvider(object):
-    def __init__(self, source_json, workdir=None):
+    def __init__(self, source_json, workdir=None, confdirs=None):
         self.clone_url = source_json["clone_url"]
         self.branch = source_json["branch"]
         self.workdir = workdir
+        self.confdirs = confdirs
 
     def run(self):
         repodir = os.path.join(self.workdir, "repo")
@@ -98,7 +104,7 @@ class DistGitProvider(object):
         return run_cmd(cmd, cwd=repodir)
 
     def render_rpkg_template(self):
-        jinja_env = Environment(loader=FileSystemLoader("."))
+        jinja_env = Environment(loader=FileSystemLoader(self.confdirs))
         template = jinja_env.get_template("rpkg.conf.j2")
         parse = urlparse(self.clone_url)
         distgit_domain = parse.netloc
@@ -127,7 +133,7 @@ class DistGitProvider(object):
 
 
 class MockBuilder(object):
-    def __init__(self, task, srpm, resultdir=None):
+    def __init__(self, task, srpm, resultdir=None, confdirs=None):
         self.srpm = srpm
         self.task_id = task["task_id"]
         self.chroot = task["chroot"]
@@ -137,6 +143,7 @@ class MockBuilder(object):
         self.use_bootstrap_container = None
         self.pkg_manager_conf = "dnf"
         self.resultdir = resultdir
+        self.confdirs = confdirs
 
     def run(self):
         configdir = os.path.join(self.resultdir, "configs")
@@ -151,7 +158,7 @@ class MockBuilder(object):
         log.info(result)
 
     def render_config_template(self):
-        jinja_env = Environment(loader=FileSystemLoader("."))
+        jinja_env = Environment(loader=FileSystemLoader(self.confdirs))
         template = jinja_env.get_template("mock.cfg.j2")
         return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
                                enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
@@ -189,10 +196,13 @@ def main():
         "lockfile": "/var/lib/copr-rpmbuild/lockfile",
         "logfile": "/var/lib/copr-rpmbuild/main.log",
     })
-    config.readfp(open(args.config or "main.ini"))
+    config_paths = [os.path.join(path, "main.ini") for path in CONF_DIRS]
+    config.read(args.config or reversed(config_paths))
+    if not config.sections():
+        log.error("No configuration file main.ini in: {}".format(" ".join(CONF_DIRS)))
+        sys.exit(1)
 
-    log.setLevel(logging.DEBUG)
-    log.addHandler(logging.StreamHandler(sys.stdout))
+    # Log also to a file
     log.addHandler(logging.FileHandler(config.get("main", "logfile")))
 
     # Allow only one instance
@@ -221,7 +231,7 @@ def build_srpm(args, config):
 
     # @TODO Select the provider based on source_type
     workdir = tempfile.mkdtemp()
-    provider = DistGitProvider(task["source_json"], workdir)
+    provider = DistGitProvider(task["source_json"], workdir, CONF_DIRS)
     provider.run()
     shutil.copy2(provider.srpm, config.get("main", "resultdir"))
 
@@ -230,11 +240,11 @@ def build_rpm(args, config):
     task = get_task("/get-srpm-build-task/", args.task_id, config)
 
     workdir = tempfile.mkdtemp()
-    provider = DistGitProvider(task["source_json"], workdir)
+    provider = DistGitProvider(task["source_json"], workdir, CONF_DIRS)
     provider.run()
 
     resultdir = config.get("main", "resultdir")
-    builder = MockBuilder(task, provider.srpm, resultdir=resultdir)
+    builder = MockBuilder(task, provider.srpm, resultdir=resultdir, confdirs=CONF_DIRS)
     builder.run()
     builder.touch_success_file()
 

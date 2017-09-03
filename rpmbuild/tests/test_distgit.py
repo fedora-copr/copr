@@ -2,6 +2,7 @@ import unittest
 import mock
 import ConfigParser
 import StringIO
+from os.path import realpath, dirname
 from ..main import DistGitProvider
 
 
@@ -32,7 +33,8 @@ class TestDistGitProvider(unittest.TestCase):
         run_cmd.assert_called_with(assert_cmd, cwd="/some/repo/directory")
 
     def test_render_rpkg_template(self):
-        provider = DistGitProvider(self.source_json)
+        confdirs = [dirname(dirname(realpath(__file__)))]
+        provider = DistGitProvider(self.source_json, confdirs=confdirs)
         cfg = provider.render_rpkg_template()
         parser = ConfigParser.RawConfigParser()
         parser.readfp(StringIO.StringIO(cfg))
