@@ -12,6 +12,7 @@ import shutil
 import lockfile
 import ConfigParser
 from jinja2 import Environment, FileSystemLoader
+from simplejson.scanner import JSONDecodeError
 
 try:
     from urllib.parse import urlparse, urljoin
@@ -212,8 +213,9 @@ def main():
         init(args,config)
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
-    except lockfile.LockError as ex:
+    except (lockfile.LockError, RuntimeError) as ex:
         log.error(ex)
+        sys.exit(1)
     finally:
         if lock.i_am_locking():
             lock.release()
@@ -250,11 +252,14 @@ def build_rpm(args, config):
 
 
 def get_task(endpoint, id, config):
-    url = urljoin(urljoin(config.get("main", "frontend_url"), endpoint), id)
-    response = requests.get(url)
-    task = response.json()
-    task["source_json"] = json.loads(task["source_json"])
-    return task
+    try:
+        url = urljoin(urljoin(config.get("main", "frontend_url"), endpoint), id)
+        response = requests.get(url)
+        task = response.json()
+        task["source_json"] = json.loads(task["source_json"])
+        return task
+    except JSONDecodeError:
+        raise RuntimeError("No valid task {}".format(url))
 
 
 if __name__ == "__main__":
