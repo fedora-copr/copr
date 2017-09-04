@@ -8,6 +8,7 @@ import base64
 import modulemd
 
 from sqlalchemy.ext.associationproxy import association_proxy
+from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
 
@@ -993,9 +994,9 @@ class BuildChroot(db.Model, helpers.Serializer):
 
     @property
     def result_dir_url(self):
-        return "/".join([app.config["BACKEND_BASE_URL"],
-                         u"results",
-                         self.result_dir])
+        return urljoin(app.config["BACKEND_BASE_URL"],
+                       os.path.join("results", self.result_dir, "")
+                      )
 
     @property
     def result_dir(self):
