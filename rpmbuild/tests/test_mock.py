@@ -78,3 +78,9 @@ class TestMockBuilder(unittest.TestCase):
         builder = MockBuilder(self.task, self.srpm, resultdir="/path/to/results")
         builder.touch_success_file()
         mock_open.assert_called_with("/path/to/results/success", "w")
+
+    def test_custom1_chroot_settings(self):
+        b1 = MockBuilder(self.task, self.srpm)
+        b2 = MockBuilder(dict(self.task, **{"chroot": "custom-1-x86_64"}), self.srpm)
+        self.assertEqual(b1.pkg_manager_conf, "dnf")
+        self.assertEqual(b2.pkg_manager_conf, "yum")
