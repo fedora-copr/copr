@@ -41,11 +41,10 @@ def dist_git_importing_queue():
 
         task_dict = {
             "task_id": task.import_task_id,
-            "user": copr.owner_name, # TODO: user -> owner
-            "project": task.copr.name,
+            "owner": copr.owner_name,
+            "project": copr.name,
             "branches": list(branches),
-            "source_type": task.source_type,
-            "source_json": task.source_json,
+            "srpm_url": task.srpm_url,
         }
         if task_dict not in builds_list:
             builds_list.append(task_dict)
@@ -122,9 +121,12 @@ def dist_git_upload_completed():
 
     return flask.jsonify(result)
 
-def get_build_record(task):
-    build_config = helpers.generate_build_config(task.build.copr, task.mock_chroot.name)
 
+def get_build_record(task):
+    if not task:
+        return None
+
+    build_config = helpers.generate_build_config(task.build.copr, task.mock_chroot.name)
     build_record = None
     try:
         build_record = {
@@ -151,7 +153,28 @@ def get_build_record(task):
 
     except Exception as err:
         app.logger.exception(err)
+
     return build_record
+
+
+def get_srpm_build_record(task):
+    if not task:
+        return None
+
+    try:
+        build_record = {
+            "build_id": task.id,
+            "project_owner": task.copr.owner_name,
+            "project_name": task.copr.name,
+            "source_type": task.source_type,
+            "source_json": task.source_json,
+        }
+
+    except Exception as err:
+        app.logger.exception(err)
+
+    return build_record
+
 
 @backend_ns.route("/waiting/")
 #@misc.backend_authenticated
@@ -169,8 +192,11 @@ def waiting():
         })
 
     task = BuildsLogic.select_build_task()
-    if task:
-        build_record = get_build_record(task)
+    build_record = get_build_record(task)
+
+    if not build_record:
+        task = BuildsLogic.select_srpm_build_task()
+        build_record = get_srpm_build_record(task)
 
     response_dict = {"action": action_record, "build": build_record}
     return flask.jsonify(response_dict)
@@ -189,6 +215,18 @@ def get_build_task(task_id):
         jsonout.status_code = 404
         return jsonout
     build_record = get_build_record(task)
+    return flask.jsonify(build_record)
+
+
+@backend_ns.route("/get-srpm-build-task/<build_id>")
+def get_srpm_build_task(build_id):
+    try:
+        task = BuildsLogic.get_srpm_build_task(build_id)
+    except sqlalchemy.orm.exc.NoResultFound:
+        jsonout = flask.jsonify({'msg': 'Specified task ID not found'})
+        jsonout.status_code = 404
+        return jsonout
+    build_record = get_srpm_build_record(task)
     return flask.jsonify(build_record)
 
 

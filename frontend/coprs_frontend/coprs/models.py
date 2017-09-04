@@ -525,6 +525,8 @@ class Build(db.Model, helpers.Serializer):
     # background builds has lesser priority than regular builds.
     is_background = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
+    srpm_url = db.Column(db.Text)
+
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User", backref=db.backref("builds"))

@@ -80,6 +80,7 @@ class BuildsLogic(object):
         query = (models.Build.query.join(models.BuildChroot)
                  .filter(models.Build.canceled == false())
                  .filter(models.BuildChroot.status == helpers.StatusEnum("importing"))
+                 .filter(models.Build.srpm_url.isnot(None))
                 )
         query = query.order_by(models.BuildChroot.build_id.asc())
         return query
@@ -117,8 +118,18 @@ class BuildsLogic(object):
         return query
 
     @classmethod
+    def select_srpm_build_task(cls):
+        query = (models.Build.query.join(models.BuildChroot)
+                 .filter(models.Build.srpm_url.is_(None))
+                 .filter(models.Build.canceled == false())
+                 .filter(models.BuildChroot.status == helpers.StatusEnum("importing"))
+                ).order_by(models.Build.is_background.asc(), models.Build.id.asc())
+        return query.first()
+
+    @classmethod
     def select_build_task(cls):
         query = (models.BuildChroot.query.join(models.Build)
+                 .filter(models.Build.srpm_url.isnot(None))
                  .filter(models.Build.canceled == false())
                  .filter(or_(
                      models.BuildChroot.status == helpers.StatusEnum("pending"),
@@ -145,6 +156,9 @@ class BuildsLogic(object):
         build_chroot = BuildChrootsLogic.get_by_build_id_and_name(build_id, chroot_name)
         return build_chroot.join(models.Build).first()
 
+    @classmethod
+    def get_srpm_build_task(cls, build_id):
+        return BuildsLogic.get_by_id(build_id).first()
 
     @classmethod
     def get_multiple(cls):
@@ -358,7 +372,8 @@ GROUP BY
                 git_hashes[chroot.name] = chroot.git_hash
 
         build = cls.create_new(user, copr, source_build.source_type, source_build.source_json, chroot_names,
-                                    pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import, **build_options)
+                                    pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import,
+                                    srpm_url=source_build.srpm_url, **build_options)
         build.package_id = source_build.package_id
         build.pkg_version = source_build.pkg_version
         return build
@@ -376,7 +391,9 @@ GROUP BY
         """
         source_type = helpers.BuildSourceEnum("link")
         source_json = json.dumps({"url": url})
-        return cls.create_new(user, copr, source_type, source_json, chroot_names, pkgs=url, **build_options)
+        srpm_url = None if url.endswith('.spec') else url
+        return cls.create_new(user, copr, source_type, source_json, chroot_names,
+                              pkgs=url, srpm_url=srpm_url, **build_options)
 
     @classmethod
     def create_new_from_tito(cls, user, copr, git_url, git_dir, git_branch, tito_test,
@@ -491,9 +508,11 @@ GROUP BY
         # create json describing the build source
         source_type = helpers.BuildSourceEnum("upload")
         source_json = json.dumps({"url": pkg_url, "pkg": filename, "tmp": tmp_name})
+        srpm_url = None if pkg_url.endswith('.spec') else pkg_url
+
         try:
             build = cls.create_new(user, copr, source_type, source_json,
-                                        chroot_names, pkgs=pkg_url, **build_options)
+                                   chroot_names, pkgs=pkg_url, srpm_url=srpm_url, **build_options)
         except Exception:
             shutil.rmtree(tmp)  # todo: maybe we should delete in some cleanup procedure?
             raise
@@ -502,7 +521,8 @@ GROUP BY
 
     @classmethod
     def create_new(cls, user, copr, source_type, source_json, chroot_names=None, pkgs="",
-                   git_hashes=None, skip_import=False, background=False, batch=None, **build_options):
+                   git_hashes=None, skip_import=False, background=False, batch=None,
+                   srpm_url=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -535,7 +555,9 @@ GROUP BY
             background=background,
             git_hashes=git_hashes,
             skip_import=skip_import,
-            batch=batch)
+            batch=batch,
+            srpm_url=srpm_url,
+        )
 
         if user.proven:
             if "timeout" in build_options:
@@ -546,7 +568,8 @@ GROUP BY
     @classmethod
     def add(cls, user, pkgs, copr, source_type=None, source_json=None,
             repos=None, chroots=None, timeout=None, enable_net=True,
-            git_hashes=None, skip_import=False, background=False, batch=None):
+            git_hashes=None, skip_import=False, background=False, batch=None,
+            srpm_url=None):
         if chroots is None:
             chroots = []
 
@@ -580,6 +603,7 @@ GROUP BY
             enable_net=bool(enable_net),
             is_background=bool(background),
             batch=batch,
+            srpm_url=srpm_url,
         )
 
         if timeout:

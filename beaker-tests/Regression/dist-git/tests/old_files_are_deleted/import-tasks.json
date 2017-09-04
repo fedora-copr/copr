@@ -5,10 +5,9 @@
 
     "branches": ["master"],
     "project": "example",
-    "source_json": "{\"url\": \"http://localhost:5000/static/example.src.rpm\"}",
-    "source_type": 1,
+    "srpm_url": "http://localhost:5000/static/example.src.rpm",
     "task_id": "1",
-    "user": "clime"
+    "owner": "clime"
 },
 {
     "_description": "srpm containing specfile named foo.spec",
@@ -16,9 +15,8 @@
 
     "branches": ["master"],
     "project": "example",
-    "source_json": "{\"url\": \"http://localhost:5000/static/foo.src.rpm\"}",
-    "source_type": 1,
+    "srpm_url": "http://localhost:5000/static/foo.src.rpm",
     "task_id": "2",
-    "user": "clime"
+    "owner": "clime"
 }
 ]

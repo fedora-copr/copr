@@ -1,0 +1,54 @@
+#! /bin/sh
+
+: ${dummy_version="$(date +"%Y%m%d_%H%M")"}
+
+spec=qiuck-package.spec
+tarball=tarball.tar.gz
+
+cat > "$spec" <<EOF
+Name:		quick-package
+Version:	$dummy_version
+Release:	0%{?dist}
+Summary:	dummy package
+
+Group:		NONE
+License:	GPL
+URL:		http://example.com/
+
+Source0:	$tarball
+
+%{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
+
+%description
+
+
+%prep
+
+
+%build
+
+
+%install
+rm -rf \$RPM_BUILD_ROOT
+mkdir -p \$RPM_BUILD_ROOT/%{_pkgdocdir}
+xz -d %{SOURCE0} --stdout > \$RPM_BUILD_ROOT/%{_pkgdocdir}/README
+
+
+%files
+%doc %{_pkgdocdir}/README
+
+%changelog
+* Thu Jun 05 2014 Pavel Raiskup <praiskup@redhat.com> - $dummy_version-1
+- does nothing!
+EOF
+
+echo "nothing special here" > README
+tar czf "$tarball" README
+
+rpmbuild --define "_sourcedir $PWD" \
+    --define "_rpmdir $PWD" \
+    --define "_specdir $PWD" \
+    --define "_builddir $PWD" \
+    --define "_srcrpmdir $PWD" \
+    --define "dist %{nil}" \
+    -bs "$spec"

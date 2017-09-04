@@ -5,10 +5,9 @@
 
     "branches": ["f23"],
     "project": "example",
-    "source_json": "{\"url\": \"http://localhost:5000/static/example-1.0.5-1.fc23.src.rpm\"}",
-    "source_type": 1,
+    "srpm_url": "http://localhost:5000/static/example-1.0.5-1.fc23.src.rpm",
     "task_id": "1",
-    "user": "clime"
+    "owner": "clime"
 },
 {
     "_description": "url-source test for a different branch",
@@ -16,10 +15,9 @@
 
     "branches": ["master"],
     "project": "example",
-    "source_json": "{\"url\": \"http://localhost:5000/static/example-1.0.5-1.fc23.src.rpm\"}",
-    "source_type": 1,
+    "srpm_url": "http://localhost:5000/static/example-1.0.5-1.fc23.src.rpm",
     "task_id": "2",
-    "user": "clime"
+    "owner": "clime"
 },
 {
     "_description": "upload-source test",
@@ -27,9 +25,8 @@
 
     "branches": ["master"],
     "project": "example",
-    "source_json": "{\"tmp\": \"tmp2hagml\", \"pkg\": \"example-1.0.5-1.fc23.src.rpm\", \"url\": \"http://localhost:5000/static/tmp2hagml/example-1.0.5-1.fc23.src.rpm\"}",
-    "source_type": 2,
+    "srpm_url": "http://localhost:5000/static/tmp2hagml/example-1.0.5-1.fc23.src.rpm",
     "task_id": "3",
-    "user": "clime"
+    "owner": "clime"
 }
 ]

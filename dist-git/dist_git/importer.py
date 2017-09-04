@@ -89,7 +89,7 @@ class Importer(object):
         result = None
         try:
             srpm_path = helpers.download_file(
-                task.source_data['url'],
+                task.srpm_url,
                 workdir
             )
             result = import_package(
