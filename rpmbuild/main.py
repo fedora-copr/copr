@@ -213,7 +213,7 @@ def main():
         init(args,config)
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
-    except (lockfile.LockError, RuntimeError) as ex:
+    except (lockfile.LockError, RuntimeError, IOError) as ex:
         log.error(ex)
         sys.exit(1)
     finally:
