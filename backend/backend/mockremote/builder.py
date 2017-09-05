@@ -228,12 +228,13 @@ class Builder(object):
                                    .format(self.hostname))
 
         # test for path existence for chroot config
-        try:
-            self._run_ssh_cmd("/usr/bin/test -f /etc/mock/{}.cfg"
-                              .format(self.job.chroot))
-        except RemoteCmdError:
-            raise BuilderError("Build host `{}` missing mock config for chroot `{}`"
-                               .format(self.hostname, self.job.chroot))
+        if self.job.chroot != "srpm-builds":
+            try:
+                self._run_ssh_cmd("/usr/bin/test -f /etc/mock/{}.cfg"
+                                  .format(self.job.chroot))
+            except RemoteCmdError:
+                raise BuilderError("Build host `{}` missing mock config for chroot `{}`"
+                                   .format(self.hostname, self.job.chroot))
 
 class SrpmBuilder(Builder):
     def _copr_builder_cmd(self):

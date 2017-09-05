@@ -127,8 +127,7 @@ class MockRemote(object):
         # TODO: add option "builder_log_level" to backend config
         self.log.setLevel(logging.INFO)
 
-        builder_cls = (SrpmBuilder if
-                       self.job.task_id == self.job.build_id else Builder)
+        builder_cls = (SrpmBuilder if self.job.chroot == 'srpm-builds' else Builder)
 
         self.builder = builder_cls(
             opts=self.opts,
