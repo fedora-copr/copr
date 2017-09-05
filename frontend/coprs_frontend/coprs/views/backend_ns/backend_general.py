@@ -17,6 +17,7 @@ from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 from sqlalchemy.sql import false, true
 
+import json
 import logging
 log = logging.getLogger(__name__)
 
@@ -144,6 +145,10 @@ def get_build_record(task):
             "git_repo": task.build.package.dist_git_repo,
             "git_hash": task.git_hash,
             "git_branch": task.mock_chroot.distgit_branch_name,
+            "source_type": helpers.BuildSourceEnum("distgit"),
+            "source_json": json.dumps(
+                {'clone_url': task.build.package.dist_git_repo, 'branch': task.git_hash}), # TODO: replace branch with ref
+
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
             "repos": build_config.get("repos"),

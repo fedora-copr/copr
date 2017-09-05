@@ -48,7 +48,7 @@ from ..exceptions import MockRemoteError, BuilderError, CreateRepoError
 from ..sign import sign_rpms_in_dir, get_pubkey
 from ..createrepo import createrepo
 
-from .builder import Builder
+from .builder import Builder, SrpmBuilder
 
 
 # class BuilderThread(object):
@@ -127,7 +127,10 @@ class MockRemote(object):
         # TODO: add option "builder_log_level" to backend config
         self.log.setLevel(logging.INFO)
 
-        self.builder = Builder(
+        builder_cls = (SrpmBuilder if
+                       self.job.task_id == self.job.build_id else Builder)
+
+        self.builder = builder_cls(
             opts=self.opts,
             hostname=builder_host,
             job=self.job,

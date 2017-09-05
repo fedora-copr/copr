@@ -234,3 +234,7 @@ class Builder(object):
         except RemoteCmdError:
             raise BuilderError("Build host `{}` missing mock config for chroot `{}`"
                                .format(self.hostname, self.job.chroot))
+
+class SrpmBuilder(Builder):
+    def _copr_builder_cmd(self):
+        return 'copr-rpmbuild -d --srpm {build_id}'.format(build_id=self.job.build_id)

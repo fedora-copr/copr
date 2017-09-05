@@ -92,7 +92,8 @@ class BuildDispatcher(multiprocessing.Process):
                 if not task:
                     time.sleep(self.opts.sleeptime)
 
-        self.log.info("Got new build job {}".format(task['task_id']))
+        self.log.info("Got new build job {}".format(task.get("task_id")))
+
         return BuildJob(task, self.opts)
 
     def can_build_start(self, job):
@@ -165,7 +166,7 @@ class BuildDispatcher(multiprocessing.Process):
             # allocate new vm and run full build
             try:
                 self.log.info("Acquiring VM for job {}...".format(str(job)))
-                vm_group_id = self.get_vm_group_id(job.arch)
+                vm_group_id = None if not job.arch else self.get_vm_group_id(job.arch)
                 vm = self.vm_manager.acquire_vm(vm_group_id, job.project_owner, os.getpid(),
                                                 job.task_id, job.build_id, job.chroot)
             except NoVmAvailable as error:

@@ -3,7 +3,6 @@ import os
 
 
 class BuildJob(object):
-
     def __init__(self, task_data, worker_opts):
         """
             Creates build job object
@@ -52,6 +51,9 @@ class BuildJob(object):
         self.git_hash = None
         self.git_branch = None
 
+        self.source_type = None
+        self.source_json = None
+
         self.pkg_main_version = None
         self.pkg_epoch = None
         self.pkg_release = None
@@ -62,7 +64,13 @@ class BuildJob(object):
             key = str(key)
             setattr(self, key, val)
 
-        self.arch = self.chroot.split("-")[2]
+        if self.chroot:
+            self.arch = self.chroot.split("-")[2]
+        else:
+            self.chroot = 'srpm-builds'
+
+        if not self.task_id:
+            self.task_id = self.build_id
 
         self.destdir = os.path.normpath(os.path.join(
             worker_opts.destdir,
@@ -89,6 +97,8 @@ class BuildJob(object):
 
     @property
     def target_dir_name(self):
+        if not self.package_name:
+            return "{:08d}".format(self.build_id)
         return "{:08d}-{}".format(self.build_id, self.package_name)
 
     @property
@@ -152,4 +162,4 @@ class BuildJob(object):
 
     def __unicode__(self):
         return u"BuildJob<id: {build_id}, owner: {project_owner}, project: {project_name}, " \
-               u"git branch: {git_branch}, git_hash: {git_hash}, status: {status} >".format(**self.__dict__)
+               u"git branch: {git_branch}, git hash: {git_hash}, status: {status} >".format(**self.__dict__)
