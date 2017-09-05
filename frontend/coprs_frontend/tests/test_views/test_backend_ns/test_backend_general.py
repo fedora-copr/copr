@@ -267,7 +267,7 @@ class TestImportingBuilds(CoprsTestCase):
 
         r = self.tc.get("/backend/importing/")
         data = json.loads(r.data)
-        assert json.loads(data["builds"][0]["source_json"])["url"] == "bar"
+        assert data["builds"][0]["srpm_url"] == "bar"
 
     def test_importing_queue_multiple_bg(self, f_users, f_coprs, f_mock_chroots, f_db):
         BuildsLogic.create_new_from_url(self.u1, self.c1, "foo", background=True)
@@ -275,4 +275,4 @@ class TestImportingBuilds(CoprsTestCase):
 
         r = self.tc.get("/backend/importing/")
         data = json.loads(r.data)
-        assert json.loads(data["builds"][0]["source_json"])["url"] == "foo"
+        assert data["builds"][0]["srpm_url"] == "foo"
