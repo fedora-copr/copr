@@ -1,5 +1,7 @@
 import unittest
-from ..copr_rpmbuild.providers import factory, DistGitProvider, RubyGemsProvider, PyPIProvider
+from ..copr_rpmbuild.providers import (factory, DistGitProvider, RubyGemsProvider, PyPIProvider,
+                                       SpecUrlProvider)
+
 from ..copr_rpmbuild.helpers import SourceType
 
 
@@ -11,5 +13,6 @@ class TestProvidersFactory(unittest.TestCase):
         self.assertEqual(factory(SourceType.DISTGIT), DistGitProvider)
         self.assertEqual(factory(SourceType.RUBYGEMS), RubyGemsProvider)
         self.assertEqual(factory(SourceType.PYPI), PyPIProvider)
+        self.assertEqual(factory(SourceType.LINK), SpecUrlProvider)
         with self.assertRaises(RuntimeError):
             factory(self.not_existing_source_type)
