@@ -315,7 +315,7 @@ class VmManager(object):
         """
         :rtype: list of VmDescriptor
         """
-        if not group:
+        if group == None:
             return self.get_all_vm()
         vm_name_list = self.rc.smembers(KEY_VM_POOL.format(group=group))
         return self._load_multi_safe(vm_name_list)
@@ -326,7 +326,7 @@ class VmManager(object):
         """
         vmd_list = []
         for group in self.vm_groups:
-            if not group:
+            if group == None:
                 continue
             vmd_list.extend(self.get_all_vm_in_group(group))
         return vmd_list
