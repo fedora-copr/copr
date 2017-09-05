@@ -79,7 +79,7 @@ def init(args, config):
 
 
 def build_srpm(args, config):
-    task = get_task("/get-build-task/", args.task_id, config)
+    task = get_task("/get-srpm-build-task/", args.task_id, config)
 
     # @TODO Select the provider based on source_type
     workdir = tempfile.mkdtemp()
@@ -89,7 +89,7 @@ def build_srpm(args, config):
 
 
 def build_rpm(args, config):
-    task = get_task("/get-srpm-build-task/", args.task_id, config)
+    task = get_task("/get-build-task/", args.task_id, config)
 
     workdir = tempfile.mkdtemp()
     provider = DistGitProvider(task["source_json"], workdir, CONF_DIRS)
