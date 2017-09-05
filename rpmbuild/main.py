@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import re
 import os
 import sys
@@ -27,6 +28,26 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
+def daemonize():
+    try:
+        pid = os.fork()
+    except OSError as e:
+        self.log.error("Unable to fork, errno: {0}".format(e.errno))
+        sys.exit(1)
+
+    if pid != 0:
+        print(pid)
+        os._exit(0)
+
+    process_id = os.setsid()
+    if process_id == -1:
+        sys.exit(1)
+
+    devnull_fd = os.open('/dev/null', os.O_RDWR)
+    os.dup2(devnull_fd, 0)
+    os.dup2(devnull_fd, 1)
+    os.dup2(devnull_fd, 2)
+    os.close(devnull_fd)
 
 def main():
     parser = argparse.ArgumentParser(description="Runs COPR build of the specified task ID,"
@@ -41,6 +62,9 @@ def main():
     parser_output.add_argument("--rpm", action="store_true")
     parser_output.add_argument("--srpm", action="store_true")
     args = parser.parse_args()
+
+    if args.detached:
+        daemonize()
 
     config = configparser.RawConfigParser(defaults={
         "resultdir": "/var/lib/copr-rpmbuild/results",
@@ -60,7 +84,7 @@ def main():
     lock = lockfile.LockFile(config.get("main", "lockfile"))
     try:
         lock.acquire(timeout=0)
-        init(args,config)
+        init(args, config)
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
     except (lockfile.LockError, RuntimeError, IOError) as ex:
