@@ -50,7 +50,8 @@ install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild/results
 install -d %{buildroot}%{_bindir}
 install -m 755 main.py %{buildroot}%{_bindir}/copr-rpmbuild
 install -m 644 main.ini %{buildroot}%{_sysconfdir}/copr-rpmbuild/main.ini
-install -m 644 mockcfg.tmpl %{buildroot}%{_sysconfdir}/copr-rpmbuild/mockcfg.tmpl
+install -m 644 mock.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
+install -m 644 rpkg.conf.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
@@ -70,7 +71,8 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 
 %dir %{_sysconfdir}/copr-rpmbuild
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/main.ini
-%config(noreplace) %{_sysconfdir}/copr-rpmbuild/mockcfg.tmpl
+%config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
+%config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 
 %changelog
 * Fri Jul 07 2017 clime <clime@redhat.com> 0.6-1
