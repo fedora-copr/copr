@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.6
+Version: 0.7
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -12,21 +12,14 @@ Source0: %{name}-%{version}.tar.gz
 
 License: GPLv2+
 BuildArch: noarch
-
+BuildRequires: python3-devel
+BuildRequires: rpm-python3
 BuildRequires: asciidoc
+Requires: createrepo_c
+Requires: dnf-plugins-core
+Requires: rpm-python3
+Requires: python3
 
-Requires: perl
-Requires: perl(Getopt::Long::Descriptive)
-Requires: perl(Config::IniFiles)
-Requires: perl(Text::Template::Simple)
-Requires: perl(JSON::Tiny)
-Requires: perl(Data::Types)
-Requires: perl(HTTP::Tiny)
-Requires: perl(IPC::Run)
-Requires: perl(IPC::System::Simple)
-Requires: perl(Time::Out)
-Requires: perl(File::Tee)
-Requires: perl(Proc::Fork)
 Requires: mock
 Requires: git
 Requires: expect
@@ -49,7 +42,7 @@ install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild
 install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild/results
 
 install -d %{buildroot}%{_bindir}
-install -m 755 main.pl %{buildroot}%{_bindir}/copr-rpmbuild
+install -m 755 main.py %{buildroot}%{_bindir}/copr-rpmbuild
 install -m 644 main.ini %{buildroot}%{_sysconfdir}/copr-rpmbuild/main.ini
 install -m 644 mockcfg.tmpl %{buildroot}%{_sysconfdir}/copr-rpmbuild/mockcfg.tmpl
 
