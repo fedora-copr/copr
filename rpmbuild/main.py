@@ -11,7 +11,7 @@ import logging
 import tempfile
 import shutil
 import lockfile
-import ConfigParser
+import configparser
 from jinja2 import Environment, FileSystemLoader
 from simplejson.scanner import JSONDecodeError
 
@@ -193,7 +193,7 @@ def main():
     parser_output.add_argument("--srpm", action="store_true")
     args = parser.parse_args()
 
-    config = ConfigParser.RawConfigParser(defaults={
+    config = configparser.RawConfigParser(defaults={
         "resultdir": "/var/lib/copr-rpmbuild/results",
         "lockfile": "/var/lib/copr-rpmbuild/lockfile",
         "logfile": "/var/lib/copr-rpmbuild/main.log",

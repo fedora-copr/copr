@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.7
+Version: 0.6
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -20,6 +20,10 @@ Requires: dnf-plugins-core
 Requires: rpm-python3
 Requires: python3
 Requires: python3-jinja2
+Requires: python3-munch
+Requires: python3-lockfile
+Requires: python3-configparser
+Requires: python3-simplejson
 
 Requires: mock
 Requires: git
