@@ -1,14 +1,14 @@
 import logging
 from ..helpers import run_cmd
+from .base import Provider
 
 
 log = logging.getLogger("__main__")
 
 
-class RubyGemsProvider(object):
+class RubyGemsProvider(Provider):
     def __init__(self, source_json, workdir=None, confdirs=None):
-        self.workdir = workdir
-        self.confdirs = confdirs
+        super(RubyGemsProvider, self).__init__(source_json, workdir, confdirs)
         self.gem_name = source_json["gem_name"]
 
     def run(self):

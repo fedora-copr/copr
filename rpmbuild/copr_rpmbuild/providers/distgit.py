@@ -3,6 +3,7 @@ import re
 import logging
 from jinja2 import Environment, FileSystemLoader
 from ..helpers import run_cmd
+from .base import Provider
 
 try:
     from urllib.parse import urlparse, urljoin
@@ -13,12 +14,12 @@ except ImportError:
 log = logging.getLogger("__main__")
 
 
-class DistGitProvider(object):
+class DistGitProvider(Provider):
     def __init__(self, source_json, workdir=None, confdirs=None):
+        super(DistGitProvider, self).__init__(source_json, workdir, confdirs)
+        self.resultdir = os.path.join(self.workdir, "repo")
         self.clone_url = source_json["clone_url"]
         self.branch = source_json["branch"]
-        self.workdir = workdir
-        self.confdirs = confdirs
 
     def run(self):
         repodir = os.path.join(self.workdir, "repo")
@@ -62,16 +63,3 @@ class DistGitProvider(object):
     def produce_srpm(self, config, module_name, repodir):
         cmd = ["rpkg", "--config", config, "--module-name", module_name, "srpm"]
         return run_cmd(cmd, cwd=repodir)
-
-    @property
-    def srpm(self):
-        repodir = os.path.join(self.workdir, "repo")
-        dest_files = os.listdir(repodir)
-        dest_srpms = list(filter(lambda f: f.endswith(".src.rpm"), dest_files))
-
-        if len(dest_srpms) != 1:
-            log.debug("tmp_dest: {}".format(repodir))
-            log.debug("dest_files: {}".format(dest_files))
-            log.debug("dest_srpms: {}".format(dest_srpms))
-            raise RuntimeError("No srpm files were generated.")
-        return os.path.join(repodir, dest_srpms[0])

@@ -1,14 +1,14 @@
 import logging
 from ..helpers import run_cmd
+from .base import Provider
 
 
 log = logging.getLogger("__main__")
 
 
-class PyPIProvider(object):
+class PyPIProvider(Provider):
     def __init__(self, source_json, workdir=None, confdirs=None):
-        self.workdir = workdir
-        self.confdirs = confdirs
+        super(PyPIProvider, self).__init__(source_json, workdir, confdirs)
         self.pypi_package_version = source_json["pypi_package_version"]
         self.pypi_package_name = source_json["pypi_package_name"]
         self.python_versions = source_json["python_versions"] or []
