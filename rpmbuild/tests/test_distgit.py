@@ -3,7 +3,7 @@ import mock
 import ConfigParser
 import StringIO
 from os.path import realpath, dirname
-from ..main import DistGitProvider
+from ..copr_rpmbuild.providers.distgit import DistGitProvider
 
 
 class TestDistGitProvider(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestDistGitProvider(unittest.TestCase):
         self.assertEqual(provider.clone_url, "https://src.fedoraproject.org/git/rpms/389-admin-console.git")
         self.assertEqual(provider.branch, "f25")
 
-    @mock.patch("rpmbuild.main.run_cmd")
+    @mock.patch("rpmbuild.copr_rpmbuild.providers.distgit.run_cmd")
     def test_clone(self, run_cmd):
         provider = DistGitProvider(self.source_json)
         provider.clone("/some/repo/directory")
@@ -25,7 +25,7 @@ class TestDistGitProvider(unittest.TestCase):
                       "/some/repo/directory"]
         run_cmd.assert_called_with(assert_cmd)
 
-    @mock.patch("rpmbuild.main.run_cmd")
+    @mock.patch("rpmbuild.copr_rpmbuild.providers.distgit.run_cmd")
     def test_checkout(self, run_cmd):
         provider = DistGitProvider(self.empty_source_json)
         provider.checkout("f25", "/some/repo/directory")
@@ -53,7 +53,7 @@ class TestDistGitProvider(unittest.TestCase):
         self.assertEqual(provider.module_name("https://src.fedoraproject.org/git/rpms/hello.git"),
                          "rpms/hello")
 
-    @mock.patch("rpmbuild.main.run_cmd")
+    @mock.patch("rpmbuild.copr_rpmbuild.providers.distgit.run_cmd")
     def test_produce_srpm(self, run_cmd):
         provider = DistGitProvider(self.source_json)
         provider.produce_srpm("/some/path/to/config", "myself/myproject/mypackage", "/some/repo/directory")
