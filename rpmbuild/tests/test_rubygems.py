@@ -4,7 +4,7 @@ from munch import Munch
 from ..copr_rpmbuild.providers.rubygems import RubyGemsProvider
 
 
-class TestDistGitProvider(unittest.TestCase):
+class TestRubyGemsProvider(unittest.TestCase):
     def setUp(self):
         self.source_json = {"gem_name": "A_123"}
 
