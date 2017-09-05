@@ -1,7 +1,7 @@
 import unittest
 import mock
-import ConfigParser
-import StringIO
+import configparser
+from io import StringIO
 from os.path import realpath, dirname
 from ..copr_rpmbuild.providers.distgit import DistGitProvider
 
@@ -36,8 +36,8 @@ class TestDistGitProvider(unittest.TestCase):
         confdirs = [dirname(dirname(realpath(__file__)))]
         provider = DistGitProvider(self.source_json, confdirs=confdirs)
         cfg = provider.render_rpkg_template()
-        parser = ConfigParser.RawConfigParser()
-        parser.readfp(StringIO.StringIO(cfg))
+        parser = configparser.RawConfigParser()
+        parser.readfp(StringIO(cfg))
         self.assertEqual(parser.get("rpkg", "lookaside"), "https://src.fedoraproject.org/repo/pkgs")
         self.assertEqual(parser.get("rpkg", "lookaside_cgi"), "https://src.fedoraproject.org/repo/pkgs/upload.cgi")
         self.assertEqual(parser.get("rpkg", "anongiturl"), "git://src.fedoraproject.org/%(module)s")

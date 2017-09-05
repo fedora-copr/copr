@@ -67,7 +67,7 @@ class DistGitProvider(object):
     def srpm(self):
         repodir = os.path.join(self.workdir, "repo")
         dest_files = os.listdir(repodir)
-        dest_srpms = filter(lambda f: f.endswith(".src.rpm"), dest_files)
+        dest_srpms = list(filter(lambda f: f.endswith(".src.rpm"), dest_files))
 
         if len(dest_srpms) != 1:
             log.debug("tmp_dest: {}".format(repodir))
