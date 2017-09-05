@@ -28,6 +28,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
+
 def daemonize():
     try:
         pid = os.fork()
@@ -48,6 +49,7 @@ def daemonize():
     os.dup2(devnull_fd, 1)
     os.dup2(devnull_fd, 2)
     os.close(devnull_fd)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Runs COPR build of the specified task ID,"
@@ -70,12 +72,18 @@ def main():
         "resultdir": "/var/lib/copr-rpmbuild/results",
         "lockfile": "/var/lib/copr-rpmbuild/lockfile",
         "logfile": "/var/lib/copr-rpmbuild/main.log",
+        "pidfile": "/var/lib/copr-rpmbuild/pid",
     })
     config_paths = [os.path.join(path, "main.ini") for path in CONF_DIRS]
     config.read(args.config or reversed(config_paths))
     if not config.sections():
         log.error("No configuration file main.ini in: {}".format(" ".join(CONF_DIRS)))
         sys.exit(1)
+
+    # Write pid
+    pidfile = open(config.get("main", "pidfile"), "w")
+    pidfile.write(str(os.getpid()))
+    pidfile.close()
 
     # Log also to a file
     log.addHandler(logging.FileHandler(config.get("main", "logfile")))
