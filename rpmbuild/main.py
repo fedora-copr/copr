@@ -81,9 +81,9 @@ def init(args, config):
 def build_srpm(args, config):
     task = get_task("/backend/get-srpm-build-task/", args.task_id, config)
 
-    # @TODO Select the provider based on source_type
     workdir = tempfile.mkdtemp()
-    provider = providers.DistGitProvider(task["source_json"], workdir, CONF_DIRS)
+    provider = providers.factory(task["source_type"])(
+        task["source_json"], workdir, CONF_DIRS)
     provider.run()
     shutil.copy2(provider.srpm, config.get("main", "resultdir"))
 
@@ -92,8 +92,7 @@ def build_rpm(args, config):
     task = get_task("/backend/get-build-task/", args.task_id, config)
 
     workdir = tempfile.mkdtemp()
-    provider = providers.factory(task["source_type"])(
-        task["source_json"], workdir, CONF_DIRS)
+    provider = providers.DistGitProvider(task["source_json"], workdir, CONF_DIRS)
     provider.run()
 
     resultdir = config.get("main", "resultdir")
