@@ -62,7 +62,7 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(config_opts["use_bootstrap_container"], False)
         self.assertEqual(config_opts["dnf.conf"], [])
 
-    @mock.patch("rpmbuild.main.run_cmd")
+    @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.run_cmd")
     def test_produce_rpm(self, run_cmd):
         builder = MockBuilder(self.task, self.srpm)
         builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/configs", "/path/to/results")
@@ -73,7 +73,7 @@ class TestMockBuilder(unittest.TestCase):
                       "--no-clean", "-r", "child"]
         run_cmd.assert_called_with(assert_cmd)
 
-    @mock.patch('rpmbuild.main.open')
+    @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.open")
     def test_touch_success_file(self, mock_open):
         builder = MockBuilder(self.task, self.srpm, resultdir="/path/to/results")
         builder.touch_success_file()
