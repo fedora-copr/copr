@@ -39,6 +39,7 @@ build build-id 12345 for chroot epel-7-x86_64.
 %setup -q
 
 %build
+%py3_build
 a2x -d manpage -f manpage man/copr-rpmbuild.1.asciidoc
 
 %install
@@ -54,8 +55,12 @@ install -m 644 mockcfg.tmpl %{buildroot}%{_sysconfdir}/copr-rpmbuild/mockcfg.tmp
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 
+%py3_install
+
 %files
 %license LICENSE
+
+%{python3_sitelib}/*
 
 %{_bindir}/copr-rpmbuild
 %{_mandir}/man1/copr-rpmbuild.1*
