@@ -17,9 +17,16 @@ log = logging.getLogger("__main__")
 class DistGitProvider(Provider):
     def __init__(self, source_json, workdir=None, confdirs=None):
         super(DistGitProvider, self).__init__(source_json, workdir, confdirs)
-        self.resultdir = os.path.join(self.workdir, "repo")
         self.clone_url = source_json["clone_url"]
         self.branch = source_json["branch"]
+
+    @property
+    def resultdir(self):
+        return os.path.join(self.workdir, "repo")
+
+    @resultdir.setter
+    def resultdir(self, value):
+        pass
 
     def run(self):
         repodir = os.path.join(self.workdir, "repo")
