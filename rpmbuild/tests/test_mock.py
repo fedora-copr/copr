@@ -2,7 +2,7 @@ import re
 import unittest
 import mock
 from os.path import realpath, dirname
-from ..main import MockBuilder
+from ..copr_rpmbuild.builders.mock import MockBuilder
 
 
 class TestMockBuilder(unittest.TestCase):
@@ -73,7 +73,7 @@ class TestMockBuilder(unittest.TestCase):
                       "--no-clean", "-r", "child"]
         run_cmd.assert_called_with(assert_cmd)
 
-    @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.open")
+    @mock.patch('builtins.open', new_callable=mock.mock_open())
     def test_touch_success_file(self, mock_open):
         builder = MockBuilder(self.task, self.srpm, resultdir="/path/to/results")
         builder.touch_success_file()
