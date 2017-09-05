@@ -202,10 +202,18 @@ class VmManager(object):
             vmd for vmd in vmd_list if
             vmd.bound_to_user == username and vmd.state == VmStates.IN_USE
         ])
+
+        if group == None:
+            limit = 0
+            for gid in range(len(self.opts.build_groups)):
+                limit += self.opts.build_groups[gid]["max_vm_per_user"]
+        else:
+            limit = self.opts.build_groups[group]["max_vm_per_user"]
+
         self.log.debug("# vm by user: {}, limit:{} ".format(
-            vm_count_used_by_user, self.opts.build_groups[group]["max_vm_per_user"]
+            vm_count_used_by_user, limit
         ))
-        if vm_count_used_by_user >= self.opts.build_groups[group]["max_vm_per_user"]:
+        if vm_count_used_by_user >= limit:
             # TODO: this check isn't reliable, if two (or more) processes check VM list
             # at the +- same time, they could acquire more VMs
             #  proper solution: do this check inside lua script
