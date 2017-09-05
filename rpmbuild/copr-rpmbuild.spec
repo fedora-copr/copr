@@ -19,6 +19,7 @@ Requires: createrepo_c
 Requires: dnf-plugins-core
 Requires: rpm-python3
 Requires: python3
+Requires: python3-jinja2
 
 Requires: mock
 Requires: git
