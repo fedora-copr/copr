@@ -37,7 +37,7 @@ def daemonize():
         sys.exit(1)
 
     if pid != 0:
-        print(pid)
+        log.info(pid)
         os._exit(0)
 
     process_id = os.setsid()
