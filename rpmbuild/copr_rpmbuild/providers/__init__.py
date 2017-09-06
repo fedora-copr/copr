@@ -14,6 +14,7 @@ def factory(source_type):
     try:
         return {
             SourceType.LINK: SpecUrlProvider,
+            SourceType.UPLOAD: SpecUrlProvider,
             SourceType.DISTGIT: DistGitProvider,
             SourceType.RUBYGEMS: RubyGemsProvider,
             SourceType.PYPI: PyPIProvider,
