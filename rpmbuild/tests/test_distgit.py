@@ -27,10 +27,12 @@ class TestDistGitProvider(unittest.TestCase):
 
     @mock.patch("rpmbuild.copr_rpmbuild.providers.distgit.run_cmd")
     def test_checkout(self, run_cmd):
-        provider = DistGitProvider(self.empty_source_json)
-        provider.checkout("f25", "/some/repo/directory")
-        assert_cmd = ["git", "checkout", "f25"]
-        run_cmd.assert_called_with(assert_cmd, cwd="/some/repo/directory")
+        #FIXME: uncomment when checkout is used again in the code
+        #provider = DistGitProvider(self.empty_source_json)
+        #provider.checkout("f25", "/some/repo/directory")
+        #assert_cmd = ["git", "checkout", "f25"]
+        #run_cmd.assert_called_with(assert_cmd, cwd="/some/repo/directory")
+        pass
 
     def test_render_rpkg_template(self):
         confdirs = [dirname(dirname(realpath(__file__)))]

@@ -10,7 +10,7 @@ log = logging.getLogger("__main__")
 
 
 class MockBuilder(object):
-    def __init__(self, task, srpm, logfile, resultdir=None, confdirs=None):
+    def __init__(self, task, srpm, logfile=None, resultdir=None, confdirs=None):
         self.srpm = srpm
         self.task_id = task["task_id"]
         self.chroot = task["chroot"]
@@ -49,6 +49,8 @@ class MockBuilder(object):
                "-r", "child"]
 
         def preexec_fn():
+            if not self.logfile:
+                return
             cmd = "tee {}".format(self.logfile)
             tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
             os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
