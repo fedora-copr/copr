@@ -458,9 +458,16 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def dist_git_url(self):
-        if app.config["DIST_GIT_URL"]:
+        if "DIST_GIT_URL" in app.config:
             return "{}/{}.git".format(app.config["DIST_GIT_URL"], self.dist_git_repo)
         return None
+
+    @property
+    def dist_git_clone_url(self):
+        if "DIST_GIT_CLONE_URL" in app.config:
+            return "{}/{}.git".format(app.config["DIST_GIT_CLONE_URL"], self.dist_git_repo)
+        else:
+            return self.dist_git_url
 
     def last_build(self, successful=False):
         for build in reversed(self.builds):

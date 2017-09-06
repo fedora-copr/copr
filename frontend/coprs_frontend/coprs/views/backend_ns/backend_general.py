@@ -147,7 +147,7 @@ def get_build_record(task):
             "git_branch": task.mock_chroot.distgit_branch_name,
             "source_type": helpers.BuildSourceEnum("distgit"),
             "source_json": json.dumps(
-                {'clone_url': task.build.package.dist_git_repo, 'branch': task.git_hash}), # TODO: replace branch with ref
+                {'clone_url': task.build.package.dist_git_clone_url, 'branch': task.git_hash}), # TODO: replace branch with ref
 
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
