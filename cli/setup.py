@@ -14,7 +14,10 @@ is used to allow packagers to create third party repositories.
 This part is a command line interface to use copr."""
 
 requires = [
-    'copr'
+    'copr',
+    'simplejson',
+    'jinja2',
+    'argparse'
 ]
 
 
