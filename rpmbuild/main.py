@@ -60,9 +60,8 @@ def main():
     parser.add_argument("-d", "--detached", action="store_true", help="Run build in background."
                                                                       "Log into /var/lib/copr-rpmbuild/main.log")
     parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
-    parser_output = parser.add_mutually_exclusive_group(required=True)
-    parser_output.add_argument("--rpm", action="store_true")
-    parser_output.add_argument("--srpm", action="store_true")
+    parser.add_argument("--rpm", action="store_true", help="Build rpms. This is a default action.")
+    parser.add_argument("--srpm", action="store_true", help="Build srpm.")
     args = parser.parse_args()
 
     if args.detached:
