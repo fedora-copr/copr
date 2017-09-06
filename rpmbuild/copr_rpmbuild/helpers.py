@@ -34,10 +34,10 @@ def run_cmd(cmd, cwd=".", raise_on_error=True):
         raise RuntimeError(str(e))
 
     result = munch.Munch(
-        cmd = cmd,
-        stdout = stdout.strip(),
-        stderr = stderr.strip(),
-        returncode = process.returncode
+        cmd=cmd,
+        stdout=stdout.decode(encoding='utf-8').strip(),
+        stderr=stderr.decode(encoding='utf-8').strip(),
+        returncode=process.returncode
     )
     log.debug(result)
 
