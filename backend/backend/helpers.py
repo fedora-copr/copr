@@ -58,27 +58,29 @@ def cmd_debug(cmd, rc, out, err, log):
     log.info("stderr: {}".format(err))
 
 
-def run_cmd(cmd):
+def run_cmd(cmd, shell=False):
     """Runs given command in a subprocess.
 
     Params
     ------
-    cmd: list(str)
+    cmd: list(str) or str if shell==True
         command to be executed and its arguments
+    shell: bool
+        if the command should be interpreted by shell
 
     Returns
     -------
     munch.Munch(stdout, stderr, returncode)
         executed cmd, standard output, error output, and the return code
     """
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
     (stdout, stderr) = process.communicate()
 
     return munch.Munch(
-        cmd = cmd,
-        stdout = stdout,
-        stderr = stderr,
-        returncode = process.returncode
+        cmd=cmd,
+        stdout=stdout,
+        stderr=stderr,
+        returncode=process.returncode
     )
 
 

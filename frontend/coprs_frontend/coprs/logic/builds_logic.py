@@ -744,7 +744,7 @@ GROUP BY
 
                     db.session.add(build_chroot)
 
-        for attr in ["results", "built_packages"]:
+        for attr in ["results", "built_packages", "srpm_url"]:
             value = upd_dict.get(attr, None)
             if value:
                 setattr(build, attr, value)

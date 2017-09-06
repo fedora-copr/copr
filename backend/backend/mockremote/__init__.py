@@ -312,20 +312,6 @@ class MockRemote(object):
         except Exception as err:
             self.log.exception(err)
 
-    def process_build_results(self):
-        """
-        :return: dict with build_details
-        :raises MockRemoteError: Something happened with build itself
-        """
-        try:
-            build_details = {"built_packages": self.builder.collect_built_packages()}
-            self.log.info("build details: {}".format(build_details))
-        except BuilderError as error:
-            self.log.error(str(error))
-            raise MockRemoteError("Error while collecting built packages for {}.".format(self.job))
-
-        return build_details
-
     def mark_dir_with_build_id(self):
         """
             Places "build.info" which contains job build_id

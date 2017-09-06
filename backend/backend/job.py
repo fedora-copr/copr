@@ -58,6 +58,7 @@ class BuildJob(object):
         self.pkg_epoch = None
         self.pkg_release = None
 
+        self.srpm_url = None
 
         # TODO: validate update data, user marshmallow
         for key, val in task_data.items():

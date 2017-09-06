@@ -5,6 +5,7 @@ import time
 import gzip
 import shutil
 import multiprocessing
+import pipes
 from setproctitle import setproctitle
 
 from ..exceptions import MockRemoteError, CoprWorkerError, VmError, NoVmAvailable
@@ -12,7 +13,7 @@ from ..job import BuildJob
 from ..mockremote import MockRemote
 from ..constants import BuildStatus, build_log_format
 from ..helpers import register_build_result, get_redis_connection, get_redis_logger, \
-    local_file_logger
+    local_file_logger, run_cmd
 from ..vm_manage import VmStates
 
 from ..msgbus import MsgBusStomp, MsgBusFedmsg
@@ -208,7 +209,7 @@ class Worker(multiprocessing.Process):
                     mr.download_results()
                     mr.on_success_build()
 
-                    build_details = mr.process_build_results()
+                    build_details = self.get_build_details(job)
                     job.update(build_details)
 
                     if self.opts.do_sign:
@@ -256,6 +257,33 @@ class Worker(multiprocessing.Process):
         self._announce_end(job)
         self.update_process_title(suffix="Task: {} chroot: {} done"
                                   .format(job.build_id, job.chroot))
+
+    def collect_built_packages(self, job):
+        self.log.info("Listing built binary packages in {}"
+                      .format(job.results_dir))
+
+        cmd = (
+            "cd {0} && "
+            "for f in `ls *.rpm |grep -v \"src.rpm$\"`; do"
+            "   rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
+            "done".format(pipes.quote(job.results_dir))
+        )
+        built_packages = run_cmd(cmd, shell=True)[0].strip()
+
+        self.log.info("Built packages:\n{}".format(built_packages))
+        return built_packages
+
+    def get_build_details(self, job):
+        """
+        :return: dict with build_details
+        :raises MockRemoteError: Something happened with build itself
+        """
+        try:
+            build_details = {"built_packages": self.collect_built_packages(job)}
+            self.log.info("build details: {}".format(build_details))
+        except Exception as e:
+            self.log.exception(str(e))
+            raise CoprWorkerError("Error while collecting built packages for {}.".format(job))
 
     def copy_mock_logs(self, job):
         if not os.path.isdir(job.results_dir):

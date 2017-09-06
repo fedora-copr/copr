@@ -77,18 +77,6 @@ class Builder(object):
                                  cmd, rc, err, out)
         return out, err
 
-    def collect_built_packages(self):
-        # TODO: cold we delegate this to copr-builder?
-        self.log.info("Listing built binary packages")
-        built_packages = self._run_ssh_cmd(
-            "cd {0} && "
-            "for f in `ls *.rpm |grep -v \"src.rpm$\"`; do"
-            "   rpm -qp --qf \"%{{NAME}} %{{VERSION}}\n\" $f; "
-            "done".format(pipes.quote(self.resultdir))
-        )[0].strip()
-        self.log.info("Built packages:\n{}".format(built_packages))
-        return built_packages
-
     def check_build_success(self):
         successfile = os.path.join(self.resultdir, "success")
         self._run_ssh_cmd("/usr/bin/test -f {0}".format(successfile))
