@@ -89,6 +89,10 @@ class BuildJob(object):
         self.built_packages = ""
 
     @property
+    def results_dir_url(self):
+        return os.path.join(self.results_repo_url, self.chroot, self.target_dir_name)
+
+    @property
     def chroot_dir(self):
         return os.path.normpath("{}/{}".format(self.destdir, self.chroot))
 
