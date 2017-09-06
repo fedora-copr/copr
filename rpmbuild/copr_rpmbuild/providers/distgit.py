@@ -53,7 +53,12 @@ class DistGitProvider(Provider):
         return run_cmd(cmd)
 
     def checkout(self, branch, repodir):
-        cmd = ["git", "checkout", branch]
+        #cmd = ["git", "checkout", branch]
+        # FIXME: checkouting detaches HEAD and pyrpkg
+        # is then unable to read out the current branch
+        # and complains when downloading sources to make srpm.
+        # Use this ugliness for the time begin.
+        cmd = ["git", "reset", "--hard", branch]
         return run_cmd(cmd, cwd=repodir)
 
     def render_rpkg_template(self):
