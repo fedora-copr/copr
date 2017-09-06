@@ -42,7 +42,7 @@ class MockBuilder(object):
                                repos=self.repos, pkg_manager_conf=self.pkg_manager_conf)
 
     def produce_rpm(self, srpm, configdir, resultdir):
-        cmd = ["/usr/bin/mock",
+        cmd = ["unbuffer", "/usr/bin/mock",
                "--rebuild", srpm,
                "--configdir", configdir,
                "--resultdir", resultdir,
