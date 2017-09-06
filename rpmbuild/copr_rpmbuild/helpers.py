@@ -5,6 +5,7 @@ import rpm
 import glob
 import os
 import re
+import shutil
 
 log = logging.getLogger("__main__")
 
