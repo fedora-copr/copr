@@ -64,7 +64,8 @@ class TestDistGitProvider(unittest.TestCase):
         run_cmd.assert_called_with(assert_cmd, cwd="/some/repo/directory")
 
     @mock.patch("os.listdir")
-    def test_srpm(self, listdir):
+    @mock.patch("builtins.open")
+    def test_srpm(self, mock_open, listdir):
         listdir.return_value = ["389-admin-console.spec", "389-admin-console-1.1.12.tar.bz2",
                                 "389-admin-console-1.1.12-1.fc26.src.rpm", "sources"]
         provider = DistGitProvider(self.empty_source_json, workdir="/some/repo/directory")

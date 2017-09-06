@@ -16,7 +16,8 @@ class TestPyPIProvider(unittest.TestCase):
        self.assertEqual(provider.python_versions, [2, 3])
 
     @mock.patch("rpmbuild.copr_rpmbuild.providers.pypi.run_cmd")
-    def test_produce_srpm(self, run_cmd):
+    @mock.patch("builtins.open")
+    def test_produce_srpm(self, mock_open, run_cmd):
         provider = PyPIProvider(self.source_json, workdir="/some/tmp/directory")
         provider.produce_srpm()
         assert_cmd = ["pyp2rpm", "motionpaint", "--srpm", "-d", "/some/tmp/directory",

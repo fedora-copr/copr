@@ -12,7 +12,8 @@ class TestSpecUrlProvider(unittest.TestCase):
         self.assertEqual(provider.url, "http://foo.ex/somepackage.spec")
 
     @mock.patch("rpmbuild.copr_rpmbuild.providers.spec.run_cmd")
-    def test_produce_srpm(self, run_cmd):
+    @mock.patch('builtins.open', new_callable=mock.mock_open())
+    def test_produce_srpm(self, mock_open, run_cmd):
         provider = SpecUrlProvider(self.source_json, workdir="/some/tmp/directory")
         provider.produce_srpm()
         run_cmd.assert_called_with(["rpkg", "srpm"], cwd="/some/tmp/directory")
