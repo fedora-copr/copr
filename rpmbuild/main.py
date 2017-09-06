@@ -86,6 +86,7 @@ def main():
     pidfile.close()
 
     # Log also to a file
+    open(config.get("main", "logfile"), 'w').close() # truncate log
     log.addHandler(logging.FileHandler(config.get("main", "logfile")))
 
     # Allow only one instance
