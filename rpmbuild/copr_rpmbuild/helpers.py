@@ -16,7 +16,7 @@ class SourceType:
     DISTGIT = 7
 
 
-def run_cmd(cmd, cwd=".", raise_on_error=True):
+def run_cmd(cmd, cwd=".", raise_on_error=True, preexec_fn=None):
     """
     Runs given command in a subprocess.
 
@@ -27,7 +27,8 @@ def run_cmd(cmd, cwd=".", raise_on_error=True):
     :raises PackageImportException
     :returns munch.Munch(cmd, stdout, stderr, returncode)
     """
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
     try:
         (stdout, stderr) = process.communicate()
     except OSError as e:

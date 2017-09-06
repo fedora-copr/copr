@@ -1,15 +1,16 @@
 import os
+import sys
 import logging
 import shutil
+import subprocess
 from jinja2 import Environment, FileSystemLoader
 from ..helpers import run_cmd
-
 
 log = logging.getLogger("__main__")
 
 
 class MockBuilder(object):
-    def __init__(self, task, srpm, resultdir=None, confdirs=None):
+    def __init__(self, task, srpm, logfile, resultdir=None, confdirs=None):
         self.srpm = srpm
         self.task_id = task["task_id"]
         self.chroot = task["chroot"]
@@ -20,6 +21,7 @@ class MockBuilder(object):
         self.pkg_manager_conf = "dnf" if "custom-1" not in task["chroot"] else "yum"
         self.resultdir = resultdir
         self.confdirs = confdirs
+        self.logfile = logfile
 
     def run(self):
         configdir = os.path.join(self.resultdir, "configs")
@@ -30,8 +32,7 @@ class MockBuilder(object):
         with open(os.path.join(configdir, "child.cfg"), "w") as child:
             child.write(cfg)
 
-        result = self.produce_rpm(self.srpm, configdir, self.resultdir)
-        log.info(result)
+        self.produce_rpm(self.srpm, configdir, self.resultdir)
 
     def render_config_template(self):
         jinja_env = Environment(loader=FileSystemLoader(self.confdirs))
@@ -46,7 +47,24 @@ class MockBuilder(object):
                "--configdir", configdir,
                "--resultdir", resultdir,
                "--no-clean", "-r", "child"]
-        return run_cmd(cmd)
+
+        def preexec_fn():
+            cmd = "tee {}".format(self.logfile)
+            tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
+            os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
+            os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
+
+        process = subprocess.Popen(
+            cmd, stdin=subprocess.PIPE, preexec_fn=preexec_fn)
+
+        try:
+            process.communicate()
+        except OSError as e:
+            raise RuntimeError(str(e))
+
+        if process.returncode != 0:
+            raise RuntimeError("Build failed")
+
 
     def touch_success_file(self):
         with open(os.path.join(self.resultdir, "success"), "w") as success:

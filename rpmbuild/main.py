@@ -137,7 +137,8 @@ def build_rpm(args, config):
     provider.run()
 
     resultdir = config.get("main", "resultdir")
-    builder = MockBuilder(task, provider.srpm, resultdir=resultdir, confdirs=CONF_DIRS)
+    builder = MockBuilder(task, provider.srpm, config.get("main", "logfile"),
+                          resultdir=resultdir, confdirs=CONF_DIRS)
     builder.run()
     builder.touch_success_file()
 
