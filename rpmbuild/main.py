@@ -119,6 +119,10 @@ def build_srpm(args, config):
     provider.run()
     shutil.copy2(provider.srpm, config.get("main", "resultdir"))
 
+    resultdir = config.get("main", "resultdir")
+    with open(os.path.join(resultdir, 'success'), "w") as success:
+        success.write("done")
+
 
 def build_rpm(args, config):
     task = get_task("/backend/get-build-task/", args.task_id, config)
