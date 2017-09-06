@@ -96,7 +96,10 @@ def main():
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
     except (lockfile.LockError, RuntimeError, IOError) as ex:
-        log.error(ex)
+        log.error(str(ex))
+        sys.exit(1)
+    except Exception as ex: # Programmer's mistake
+        log.error(str(ex))
         sys.exit(1)
     finally:
         if lock.i_am_locking():
@@ -116,7 +119,9 @@ def build_srpm(args, config):
     workdir = tempfile.mkdtemp()
     provider = providers.factory(task["source_type"])(
         task["source_json"], workdir, CONF_DIRS)
+
     provider.run()
+
     shutil.copy2(provider.srpm, config.get("main", "resultdir"))
 
     resultdir = config.get("main", "resultdir")
