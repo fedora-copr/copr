@@ -46,7 +46,7 @@ class MockBuilder(object):
                "--rebuild", srpm,
                "--configdir", configdir,
                "--resultdir", resultdir,
-               "--no-clean", "-r", "child"]
+               "-r", "child"]
 
         def preexec_fn():
             cmd = "tee {}".format(self.logfile)
