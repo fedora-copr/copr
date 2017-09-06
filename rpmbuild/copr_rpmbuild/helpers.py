@@ -6,6 +6,7 @@ import glob
 import os
 import re
 import shutil
+import fileinput
 
 log = logging.getLogger("__main__")
 
