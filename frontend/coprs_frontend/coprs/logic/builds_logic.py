@@ -727,7 +727,7 @@ GROUP BY
         log.info("Updating build: {} by: {}".format(build.id, upd_dict))
         if "chroot" in upd_dict:
             if upd_dict["chroot"] == "srpm-builds":
-                if upd_dict.get("status") == StatusEnum("failed"):
+                if upd_dict.get("status") == StatusEnum("failed") and not build.canceled:
                     build.fail_type = helpers.FailTypeEnum("srpm_build_error")
                     for ch in build.build_chroots:
                         ch.status = helpers.StatusEnum("failed")
