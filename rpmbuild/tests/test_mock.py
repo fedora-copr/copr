@@ -26,10 +26,11 @@ class TestMockBuilder(unittest.TestCase):
             "pkgs": "",
             "project_name": "copr-dev",
             "project_owner": "@copr",
-            "repos": "",
+            "repos": [],
             "submitter": "clime",
             "task_id": "10-fedora-24-x86_64",
-            "timeout": 21600
+            "timeout": 21600,
+            "use_bootstrap_container": False,
         }
         self.srpm = "/path/to/pkg.src.rpm"
 
@@ -39,8 +40,8 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(builder.chroot, "fedora-24-x86_64")
         self.assertEqual(builder.buildroot_pkgs, ["pkg1", "pkg2", "pkg3"])
         self.assertEqual(builder.enable_net, True)
-        self.assertEqual(builder.repos, None)
-        self.assertEqual(builder.use_bootstrap_container, None)
+        self.assertEqual(builder.repos, [])
+        self.assertEqual(builder.use_bootstrap_container, False)
 
     def test_redner_config_template(self):
         confdirs = [dirname(dirname(realpath(__file__)))]
@@ -51,7 +52,7 @@ class TestMockBuilder(unittest.TestCase):
         # This is how mock itself does it
         def include(*args, **kwargs):
             pass
-        config_opts = {"dnf.conf": []}
+        config_opts = {"yum.conf": []}
         cfg = re.sub(r'include\((.*)\)', r'include(\g<1>, config_opts, True)', cfg)
         code = compile(cfg, "/tmp/foobar", 'exec')
         exec(code)
@@ -60,7 +61,7 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(config_opts["chroot_additional_packages"], "pkg1 pkg2 pkg3")
         self.assertEqual(config_opts["rpmbuild_networking"], True)
         self.assertEqual(config_opts["use_bootstrap_container"], False)
-        self.assertEqual(config_opts["dnf.conf"], [])
+        self.assertEqual(config_opts["yum.conf"], [])
 
     @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.run_cmd")
     def test_produce_rpm(self, run_cmd):
@@ -84,5 +85,5 @@ class TestMockBuilder(unittest.TestCase):
     def test_custom1_chroot_settings(self):
         b1 = MockBuilder(self.task, self.srpm)
         b2 = MockBuilder(dict(self.task, **{"chroot": "custom-1-x86_64"}), self.srpm)
-        self.assertEqual(b1.pkg_manager_conf, "dnf")
-        self.assertEqual(b2.pkg_manager_conf, "yum")
+        self.assertEqual(b1.pkg_manager_conf, "yum")
+        self.assertEqual(b2.pkg_manager_conf, "dnf")

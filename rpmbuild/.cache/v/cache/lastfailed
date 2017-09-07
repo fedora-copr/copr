@@ -1,6 +1,1 @@
-{
-  "tests/test_mock.py::TestMockBuilder::test_custom1_chroot_settings": true,
-  "tests/test_mock.py::TestMockBuilder::test_init": true,
-  "tests/test_mock.py::TestMockBuilder::test_redner_config_template": true,
-  "tests/test_mock.py::TestMockBuilder::test_touch_success_file": true
-}
+{}
