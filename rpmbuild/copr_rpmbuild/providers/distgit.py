@@ -58,8 +58,15 @@ class DistGitProvider(Provider):
         # is then unable to read out the current branch
         # and complains when downloading sources to make srpm.
         # Use this ugliness for the time being.
-        cmd = ["git", "reset", "--hard", branch]
+        try:
+            cmd = ["git", "reset", "--hard", branch]
+            return run_cmd(cmd, cwd=repodir)
+        except Exception as e:
+            log.exception(str(e))
+
+        cmd = ["git", "checkout", branch]
         return run_cmd(cmd, cwd=repodir)
+
 
     def render_rpkg_template(self):
         jinja_env = Environment(loader=FileSystemLoader(self.confdirs))
