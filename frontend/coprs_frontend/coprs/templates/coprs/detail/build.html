@@ -131,6 +131,10 @@
       <div class="panel-body">
         <dl class="dl-horizontal">
         {{ describe_failure(build) }}
+        <dt>Import log:</dt>
+        <dd>
+          <a href="{{ build.import_log_url }}">{{ build.import_log_name }}</a>
+        </dd>
         <dt> Built Packages:</dt>
         {% if build.built_packages %}
           {% for pkg in build.built_packages.split("\n"): %}
@@ -146,7 +150,6 @@
             <tr>
               <th>Chroot Name</th>
               <th>Dist Git Source</th>
-              <th>Import log</th>
               <th>Build Time</th>
               <th>State</th>
             </tr>
@@ -173,15 +176,6 @@
                   {% else %}
                     {{ chroot.git_hash[:7] }}
                   {% endif %}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-              <td>
-                {% if chroot.build.import_log_url %}
-                    <a href="{{chroot.build.import_log_url}}">
-                      {{ chroot.build.import_task_id }}.log
-                    </a>
                 {% else %}
                   -
                 {% endif %}

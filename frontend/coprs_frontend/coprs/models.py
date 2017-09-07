@@ -577,15 +577,19 @@ class Build(db.Model, helpers.Serializer):
             return self.repos.split()
 
     @property
-    def import_task_id(self):
-        return str(self.id)
+    def id_fixed_width(self):
+        return "{:08d}".format(self.id)
+
+    @property
+    def import_log_name(self):
+        return os.path.join(self.id_fixed_width, "builder-live.log")
 
     @property
     def import_log_url(self):
-        if app.config["COPR_DIST_GIT_LOGS_URL"]:
-            return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
-                                      self.import_task_id.replace('/', '_'))
-        return None
+        parts = ["results", self.copr.owner_name, self.copr.name,
+                 "srpm-builds", self.id_fixed_width, "builder-live.log"]
+        path = os.path.normpath(os.path.join(*parts))
+        return urljoin(app.config["BACKEND_BASE_URL"], path)
 
     @property
     def result_dir_name(self):
@@ -593,8 +597,7 @@ class Build(db.Model, helpers.Serializer):
         # It is throw-back from era before dist-git
         if self.is_older_results_naming_used:
             return self.src_pkg_name
-
-        return "{:08d}-{}".format(self.id, self.package.name)
+        return "-".join([self.id_fixed_width, self.package.name])
 
     @property
     def source_json_dict(self):
