@@ -726,6 +726,14 @@ GROUP BY
         """
         log.info("Updating build: {} by: {}".format(build.id, upd_dict))
         if "chroot" in upd_dict:
+            if upd_dict["chroot"] == "srpm-builds":
+                if upd_dict.get("status") == StatusEnum("failed"):
+                    build.fail_type = helpers.FailTypeEnum("srpm_build_error")
+                    for ch in build.build_chroots:
+                        ch.status = helpers.StatusEnum("failed")
+                        ch.ended_on = upd_dict.get("ended_on") or time.time()
+                        db.session.add(ch)
+
             # update respective chroot status
             for build_chroot in build.build_chroots:
                 if build_chroot.name == upd_dict["chroot"]:
