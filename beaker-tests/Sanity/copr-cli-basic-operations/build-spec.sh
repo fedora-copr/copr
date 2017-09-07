@@ -52,11 +52,9 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "copr-cli create ${NAME_PREFIX}BuildSpec --enable-net on --chroot fedora-rawhide-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}BuildSpec --chroot fedora-26-x86_64" 0
         rlRun "copr-cli build ${NAME_PREFIX}BuildSpec files/vera.spec" 0
-        rlRun "copr-cli modify ${NAME_PREFIX}BuildSpec --enable-net off" 0
-        rlRun "copr-cli build ${NAME_PREFIX}BuildSpec files/vera.spec" 4
-        rlRun "copr-cli delete ${NAME_PREFIX}BuildSpec"
+        #rlRun "copr-cli delete ${NAME_PREFIX}BuildSpec"
     rlPhaseEnd
 
     rlPhaseStartCleanup

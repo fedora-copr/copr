@@ -49,6 +49,8 @@ class MockBuilder(object):
                "--resultdir", resultdir,
                "-r", "child"]
 
+        log.info(cmd.join(' '))
+
         def preexec_fn():
             if not self.logfile:
                 return
