@@ -27,6 +27,7 @@ Requires: python3-simplejson
 
 Requires: mock
 Requires: git
+Requires: git-svn
 Requires: expect
 Requires: rubygem-gem2rpm
 Requires: pyp2rpm
