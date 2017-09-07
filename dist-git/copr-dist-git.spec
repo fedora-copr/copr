@@ -55,10 +55,7 @@ Requires: python2-psutil
 Requires: python-jinja2
 Requires: pyrpkg >= 1.47
 Requires: httpd
-Requires: git-svn
 Requires: python-munch
-Requires: pyp2rpm
-Requires: rubygem-gem2rpm
 
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
