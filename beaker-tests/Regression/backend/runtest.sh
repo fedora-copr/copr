@@ -47,7 +47,7 @@ done
 # unnecessary on actual beaker machines but good for local docker testing
 if ! rpm -qa | grep -E '^rhts.*' &> /dev/null || ! rpm -qa | grep -E '.*beaker.*' &> /dev/null; then
     releasever=`cat /etc/redhat-release | awk '{print $3}'`
-    sudo dnf -y --repofrompath=beakerrepo,http://beaker-project.org/yum/client/Fedora$releasever/ \
+    sudo dnf -y --nogpgcheck --repofrompath=beakerrepo,http://beaker-project.org/yum/client/Fedora$releasever/ \
         --enablerepo=beakerrepo install rhts-test-env beakerlib
 fi
 
