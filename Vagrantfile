@@ -247,7 +247,7 @@ enabled_metadata=1
     #
     # ...
     distgit.vm.provision "shell",
-      inline: "sudo dnf -y install tito cgit dist-git dist-git-selinux pyrpkg docker || sudo dnf -y upgrade tito cgit dist-git dist-git-selinux pyrpkg docker"
+      inline: "sudo dnf -y install tito cgit dist-git dist-git-selinux pyrpkg || sudo dnf -y upgrade tito cgit dist-git dist-git-selinux pyrpkg"
 
     # ...
     distgit.vm.provision "shell",
@@ -267,17 +267,6 @@ enabled_metadata=1
     distgit.vm.provision "shell",
       inline: "sudo dnf -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || sudo dnf -y upgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm || sudo dnf -y downgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm",
       run: "always"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: "systemctl restart docker && systemctl enable docker"
-
-    # ...
-    distgit.vm.provision "shell",
-      inline: <<-SHELL
-          echo "Building a docker image - it may take a while"
-          sudo docker build -q /vagrant/dist-git/dist_git/docker/
-      SHELL
 
     # ...
     distgit.vm.provision "shell", inline: <<-EOF
