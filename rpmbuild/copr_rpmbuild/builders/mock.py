@@ -18,7 +18,7 @@ class MockBuilder(object):
         self.enable_net = task["enable_net"]
         self.repos = task["repos"]
         self.use_bootstrap_container = task["use_bootstrap_container"]
-        self.pkg_manager_conf = "dnf" if "custom-1" not in task["chroot"] else "yum"
+        self.pkg_manager_conf = "dnf" if "custom-1" in task["chroot"] else "yum"
         self.resultdir = resultdir
         self.confdirs = confdirs
         self.logfile = logfile
