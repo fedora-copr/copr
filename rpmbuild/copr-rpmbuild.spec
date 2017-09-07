@@ -28,7 +28,8 @@ Requires: python3-simplejson
 Requires: mock
 Requires: git
 Requires: expect
-Requires: curl
+Requires: rubygem-gem2rpm
+Requires: pyp2rpm
 
 %description
 Provides command capable of running COPR build-tasks.
