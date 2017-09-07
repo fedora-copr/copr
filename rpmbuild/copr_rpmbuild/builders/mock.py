@@ -49,7 +49,7 @@ class MockBuilder(object):
                "--resultdir", resultdir,
                "-r", "child"]
 
-        log.info(cmd.join(' '))
+        log.info(' '.join(cmd))
 
         def preexec_fn():
             if not self.logfile:
