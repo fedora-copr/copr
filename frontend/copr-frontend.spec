@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.118
+Version:    1.119
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -400,6 +400,19 @@ service logstash condrestart
 
 
 %changelog
+* Thu Sep 07 2017 clime <clime@redhat.com> 1.119-1
+- add dist_git_clone_url property of package and use it on /backend
+- #68 Building SRPMs on builder
+- append / to result_dir_url
+- #119 python-copr client_v2 BuildHandler limits builds to the 100 most
+  recent builds
+- Fix tab vs spaces errors
+- [*] Spelling fixes
+- Invalid escape sequence fixes
+- Bug 1471285 - Webhook triggers all changed specs even without new
+  tito tag
+- api for obtaining queue information
+
 * Fri Aug 11 2017 clime <clime@redhat.com> 1.118-1
 - fork all succeeded buildchroot in RawhideToRelease
 - follow Fedora branching project's option added
