@@ -586,7 +586,12 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def import_log_urls(self):
-        return filter(None, [self.import_log_url_backend, self.import_log_url_distgit])
+        backend_log = self.import_log_url_backend
+        types = [helpers.BuildSourceEnum("upload"), helpers.BuildSourceEnum("link")]
+        if self.source_type in types:
+            if json.loads(self.source_json)["url"].endswith(".src.rpm"):
+                backend_log = None
+        return filter(None, [backend_log, self.import_log_url_distgit])
 
     @property
     def import_log_url_distgit(self):
