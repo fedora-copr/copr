@@ -118,22 +118,6 @@ Vagrant.configure(2) do |config|
     frontend.vm.provision "shell",
       inline: "cd /usr/share/copr/coprs_frontend/ && sudo ./manage.py create_db --alembic alembic.ini"
 
-    # This is an ugly hack.
-    # The command above creates a new database from the database models.
-    # However, I need to run an alembic script to create the SQL functions
-    # for builds and monitor. Well, I just downgrade behind this point and
-    # back again. This way, I'll have my functions!
-    # TODO: we should put the functions separately and throw the current alembic history away
-    # as it is buggy (e.g. 'manage.py db migrate' was not called after adding legal_flag model).
-    # There should be probly an sql script (with the functions and perhaps other db stuff
-    # that cannot be kept 1:1 with models) and create_db cmd of manage.py will execute it.
-    # I don't see a better way. A new alembic history should be started.
-    frontend.vm.provision "shell",
-      inline: "cd /usr/share/copr/coprs_frontend/ && sudo alembic downgrade 3ec22e1db75a"
-
-    frontend.vm.provision "shell",
-      inline: "cd /usr/share/copr/coprs_frontend/ && sudo alembic upgrade head"
-
     # ..
     frontend.vm.provision "shell",
       inline: "sudo /usr/share/copr/coprs_frontend/manage.py create_chroot fedora-{22,23,rawhide}-{i386,x86_64,ppc64le} epel-{6,7}-x86_64 epel-6-i386"
