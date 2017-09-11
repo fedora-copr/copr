@@ -577,15 +577,26 @@ class Build(db.Model, helpers.Serializer):
             return self.repos.split()
 
     @property
+    def import_task_id(self):
+        return str(self.id)
+
+    @property
     def id_fixed_width(self):
         return "{:08d}".format(self.id)
 
     @property
-    def import_log_name(self):
-        return os.path.join(self.id_fixed_width, "builder-live.log")
+    def import_log_urls(self):
+        return filter(None, [self.import_log_url_backend, self.import_log_url_distgit])
 
     @property
-    def import_log_url(self):
+    def import_log_url_distgit(self):
+        if app.config["COPR_DIST_GIT_LOGS_URL"]:
+            return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
+                                      self.import_task_id.replace('/', '_'))
+        return None
+
+    @property
+    def import_log_url_backend(self):
         parts = ["results", self.copr.owner_name, self.copr.name,
                  "srpm-builds", self.id_fixed_width, "builder-live.log"]
         path = os.path.normpath(os.path.join(*parts))
