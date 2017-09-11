@@ -72,6 +72,18 @@ def locate_spec(dirpath):
     return spec_path
 
 
+def locate_srpm(dirpath):
+    srpm_path = None
+    path_matches = glob.glob(os.path.join(dirpath, '*.src.rpm'))
+    for path_match in path_matches:
+        if os.path.isfile(path_match):
+            srpm_path = path_match
+            break
+    if not srpm_path:
+        raise PackageImportException('No .src.rpm found at {}'.format(dirpath))
+    return srpm_path
+
+
 def locate_extra_content(dirpath, exclude):
     extra_content = []
     for path in glob.glob(os.path.join(dirpath, '*')):

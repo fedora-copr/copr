@@ -134,10 +134,10 @@ def build_rpm(args, config):
 
     workdir = tempfile.mkdtemp()
     provider = providers.DistGitProvider(task["source_json"], workdir, CONF_DIRS)
-    provider.run()
+    provider.run(produce_srpm=False)
 
     resultdir = config.get("main", "resultdir")
-    builder = MockBuilder(task, provider.srpm, config.get("main", "logfile"),
+    builder = MockBuilder(task, provider.resultdir, config.get("main", "logfile"),
                           resultdir=resultdir, confdirs=CONF_DIRS)
     builder.run()
     builder.touch_success_file()

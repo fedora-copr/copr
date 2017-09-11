@@ -28,7 +28,7 @@ class DistGitProvider(Provider):
     def resultdir(self, value):
         pass
 
-    def run(self):
+    def run(self, produce_srpm=True):
         repodir = os.path.join(self.workdir, "repo")
         result = self.clone(repodir)
         log.info(result)
@@ -45,8 +45,13 @@ class DistGitProvider(Provider):
             self.checkout(self.branch, repodir)
 
         module_name = self.module_name(self.clone_url)
-        result = self.produce_srpm(config_path, module_name, repodir)
-        log.info(result)
+
+        if produce_srpm:
+            result = self.produce_srpm(config_path, module_name, repodir)
+            log.info(result)
+        else:
+            result = self.download_sources(config_path, module_name, repodir)
+            log.info(result)
 
     def clone(self, repodir):
         cmd = ["git", "clone", self.clone_url, repodir]
@@ -67,7 +72,6 @@ class DistGitProvider(Provider):
         cmd = ["git", "checkout", branch]
         return run_cmd(cmd, cwd=repodir)
 
-
     def render_rpkg_template(self):
         jinja_env = Environment(loader=FileSystemLoader(self.confdirs))
         template = jinja_env.get_template("rpkg.conf.j2")
@@ -78,6 +82,10 @@ class DistGitProvider(Provider):
     def module_name(self, url):
         parse = urlparse(url)
         return re.sub(".git$", "", re.sub("^/c?git/", "", parse.path))
+
+    def download_sources(self, config, module_name, repodir):
+        cmd = ["rpkg", "--config", config, "--module-name", module_name, "sources"]
+        return run_cmd(cmd, cwd=repodir)
 
     def produce_srpm(self, config, module_name, repodir):
         cmd = ["rpkg", "--config", config, "--module-name", module_name, "srpm"]
