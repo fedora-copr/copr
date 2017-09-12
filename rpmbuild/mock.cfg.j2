@@ -10,8 +10,7 @@ config_opts['chroot_additional_packages'] = '{{ buildroot_pkgs| join(" ") }}'
 config_opts['rpmbuild_networking'] = True
 config_opts['use_host_resolv'] = True
 {% else %}
-# https://github.com/rpm-software-management/mock/issues/89
-config_opts['nspawn_args'] = ['--private-network']
+config_opts['rpmbuild_networking'] = False
 config_opts['use_host_resolv'] = False
 {% endif %}
 
