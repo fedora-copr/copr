@@ -581,11 +581,31 @@ class Build(db.Model, helpers.Serializer):
         return str(self.id)
 
     @property
-    def import_log_url(self):
+    def id_fixed_width(self):
+        return "{:08d}".format(self.id)
+
+    @property
+    def import_log_urls(self):
+        backend_log = self.import_log_url_backend
+        types = [helpers.BuildSourceEnum("upload"), helpers.BuildSourceEnum("link")]
+        if self.source_type in types:
+            if json.loads(self.source_json)["url"].endswith(".src.rpm"):
+                backend_log = None
+        return filter(None, [backend_log, self.import_log_url_distgit])
+
+    @property
+    def import_log_url_distgit(self):
         if app.config["COPR_DIST_GIT_LOGS_URL"]:
             return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
                                       self.import_task_id.replace('/', '_'))
         return None
+
+    @property
+    def import_log_url_backend(self):
+        parts = ["results", self.copr.owner_name, self.copr.name,
+                 "srpm-builds", self.id_fixed_width, "builder-live.log"]
+        path = os.path.normpath(os.path.join(*parts))
+        return urljoin(app.config["BACKEND_BASE_URL"], path)
 
     @property
     def result_dir_name(self):
@@ -593,8 +613,7 @@ class Build(db.Model, helpers.Serializer):
         # It is throw-back from era before dist-git
         if self.is_older_results_naming_used:
             return self.src_pkg_name
-
-        return "{:08d}-{}".format(self.id, self.package.name)
+        return "-".join([self.id_fixed_width, self.package.name])
 
     @property
     def source_json_dict(self):
