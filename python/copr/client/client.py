@@ -178,7 +178,7 @@ class CoprClient(UnicodeMixin):
             log.error(e)
             raise CoprRequestException("Connection error POST {0}".format(url))
 
-        if response.status_code != 200:
+        if not response.status_code in [200, 404]:
             try:
                 output = json.loads(response.text)
             except ValueError:
