@@ -159,6 +159,35 @@ class CoprClient(UnicodeMixin):
                         "Bad configuration file: {0}".format(err))
         return CoprClient(**config)
 
+    def authentication_check(self):
+        url = "{0}/auth_check/".format(self.api_url)
+
+        try:
+            kwargs = {}
+            kwargs["auth"] = (self.login, self.token)
+
+            response = requests.request(
+                method="POST",
+                url=url,
+                **kwargs
+            )
+
+            log.debug("raw response: {0}".format(response.text))
+
+        except requests.ConnectionError as e:
+            log.error(e)
+            raise CoprRequestException("Connection error POST {0}".format(url))
+
+        if not response.status_code in [200, 404]:
+            try:
+                output = json.loads(response.text)
+            except ValueError:
+                raise CoprUnknownResponseException(
+                    "Unknown response from the server. Code: {0}, raw response:"
+                    " \n {1}".format(response.status_code, response.text))
+            raise CoprRequestException(output["error"])
+
+
     def _fetch(self, url, data=None, username=None, method=None,
                skip_auth=False, on_error_response=None, headers=None, params=None):
         """ Fetches data from server,
