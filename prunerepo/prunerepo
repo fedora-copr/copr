@@ -35,7 +35,6 @@ get_all_packages_cmd = [
     'repoquery',
     '--disablerepo=*',
     '--repofrompath=prunerepo_query,'+os.path.abspath(args.path),
-    '--repoid=prunerepo_query',
     '--enablerepo=prunerepo_query',
     '--refresh',
     '--queryformat="%{location}"',
