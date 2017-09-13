@@ -157,7 +157,7 @@ class ScmProvider(Provider):
                 extra_content.append(target_path)
 
         include = lambda f: not re.search(r'(^README|.spec$|^\.|tito.props)', f)
-        if not filter(include, os.listdir(repo_subpath)):
+        if not list(filter(include, os.listdir(repo_subpath))):
             downstream_repo = True
 
         if not downstream_repo and source_zero:
