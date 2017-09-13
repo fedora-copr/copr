@@ -21,7 +21,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs import helpers
-from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT, DEFER_BUILD_SECONDS
+from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
 from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException
 from coprs.helpers import StatusEnum
 
@@ -141,7 +141,7 @@ class BuildsLogic(object):
                  ))
                  .filter(or_(
                      models.BuildChroot.last_deferred.is_(None),
-                     models.BuildChroot.last_deferred < int(time.time() - DEFER_BUILD_SECONDS)
+                     models.BuildChroot.last_deferred < int(time.time() - app.config["DEFER_BUILD_SECONDS"])
                  ))
         ).order_by(models.Build.is_background.asc(), models.BuildChroot.build_id.asc())
         return query.first()

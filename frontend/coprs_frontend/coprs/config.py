@@ -14,6 +14,8 @@ class Config(object):
     KRB5_LOGIN_BASEURI = "/krb5_login/"
     KRB5_LOGIN = {}
 
+    DEFER_BUILD_SECONDS = 80
+
     # restrict access to a set of users
     USE_ALLOWED_USERS = False
     ALLOWED_USERS = []
