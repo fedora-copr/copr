@@ -10,6 +10,8 @@
     "git_branch": "f23",
     "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
     "git_repo": "@copr/copr-dev/example",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example.git\", \"branch\": \"ab16523e02d730d63279f41ee6f31433fa6d593e\"}",
     "memory_reqs": 2048,
     "package_name": "example",
     "package_version": "1.0.5-1.git.0.78e06da.fc23",
@@ -19,6 +21,7 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "10-fedora-24-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 }
 ]

@@ -10,6 +10,8 @@
     "git_branch": "f23",
     "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
     "git_repo": "@copr/copr-dev/example",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example.git\", \"branch\": \"ab16523e02d730d63279f41ee6f31433fa6d593e\"}",
     "memory_reqs": 2048,
     "package_name": "example",
     "package_version": "1.0.5-1.git.0.78e06da.fc23",
@@ -19,7 +21,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "10-fedora-24-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "basic test for a different chroot (and hence also for a different dist-git branch)",
@@ -32,6 +35,8 @@
     "git_branch": "f24",
     "git_hash": "94a28c0412757a39697821e31ba38e5449441499",
     "git_repo": "@copr/copr-dev/example",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example.git\", \"branch\": \"94a28c0412757a39697821e31ba38e5449441499\"}",
     "memory_reqs": 2048,
     "package_name": "example",
     "package_version": "1.0.5-1.git.0.78e06da.fc23",
@@ -41,7 +46,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "11-fedora-24-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "buildroot_pkgs is unset but the package needs them",
@@ -54,6 +60,8 @@
     "git_branch": "f23",
     "git_hash": "de4a8245ce347d51815c8efecfbab18ab38123d7",
     "git_repo": "@copr/copr-dev/example_with_dep",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example_with_dep.git\", \"branch\": \"de4a8245ce347d51815c8efecfbab18ab38123d7\"}",
     "memory_reqs": 2048,
     "package_name": "example_with_dep",
     "package_version": "1.0.3-2.fc23",
@@ -63,7 +71,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "20-fedora-24-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "buildroot_pkgs is set correctly this time",
@@ -76,6 +85,8 @@
     "git_branch": "f23",
     "git_hash": "de4a8245ce347d51815c8efecfbab18ab38123d7",
     "git_repo": "@copr/copr-dev/example_with_dep",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example_with_dep.git\", \"branch\": \"de4a8245ce347d51815c8efecfbab18ab38123d7\"}",
     "memory_reqs": 2048,
     "package_name": "example_with_dep",
     "package_version": "1.0.3-2.fc23",
@@ -85,7 +96,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "21-fedora-24-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "EPEL7 chroot test",
@@ -98,6 +110,8 @@
     "git_branch": "epel7",
     "git_hash": "e261780f2578a4a2ce5e0f7cf10ef5b36ccd00ab",
     "git_repo": "@copr/copr-dev/example",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example.git\", \"branch\": \"e261780f2578a4a2ce5e0f7cf10ef5b36ccd00ab\"}",
     "memory_reqs": 2048,
     "package_name": "example",
     "package_version": "1.0.5-1.git.0.78e06da.fc23",
@@ -107,7 +121,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "30-epel-7-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "enable_net: false",
@@ -120,6 +135,8 @@
     "git_branch": "epel7",
     "git_hash": "36f2ccce5efd7ac0b2207a870cfef7ee98b61898",
     "git_repo": "@copr/copr-dev/pyp2rpm",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/pyp2rpm.git\", \"branch\": \"36f2ccce5efd7ac0b2207a870cfef7ee98b61898\"}",
     "memory_reqs": 2048,
     "package_name": "pyp2rpm",
     "package_version": "2.0.0-3",
@@ -129,7 +146,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "40-epel-7-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "enable_net: true",
@@ -142,6 +160,8 @@
     "git_branch": "epel7",
     "git_hash": "36f2ccce5efd7ac0b2207a870cfef7ee98b61898",
     "git_repo": "@copr/copr-dev/pyp2rpm",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/pyp2rpm.git\", \"branch\": \"36f2ccce5efd7ac0b2207a870cfef7ee98b61898\"}",
     "memory_reqs": 2048,
     "package_name": "pyp2rpm",
     "package_version": "2.0.0-3",
@@ -151,7 +171,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "50-epel-7-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "timeout test",
@@ -164,6 +185,8 @@
     "git_branch": "f23",
     "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
     "git_repo": "@copr/copr-dev/example",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example.git\", \"branch\": \"ab16523e02d730d63279f41ee6f31433fa6d593e\"}",
     "memory_reqs": 2048,
     "package_name": "example",
     "package_version": "1.0.5-1.git.0.78e06da.fc23",
@@ -173,7 +196,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "60-fedora-24-x86_64",
-    "timeout": 1
+    "timeout": 1,
+    "use_bootstrap_container": false
 },
 {
     "_description": "memory reqs test (build finishes successfully because this is just no-op)",
@@ -186,6 +210,8 @@
     "git_branch": "f23",
     "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
     "git_repo": "@copr/copr-dev/example",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example.git\", \"branch\": \"ab16523e02d730d63279f41ee6f31433fa6d593e\"}",
     "memory_reqs": 1,
     "package_name": "example",
     "package_version": "1.0.5-1.git.0.78e06da.fc23",
@@ -195,7 +221,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "70-fedora-24-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "external repos unset for the package",
@@ -208,6 +235,8 @@
     "git_branch": "f23",
     "git_hash": "de4a8245ce347d51815c8efecfbab18ab38123d7",
     "git_repo": "@copr/copr-dev/example_with_dep",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example_with_dep.git\", \"branch\": \"de4a8245ce347d51815c8efecfbab18ab38123d7\"}",
     "memory_reqs": 2048,
     "package_name": "example_with_dep",
     "package_version": "1.0.3-2.fc23",
@@ -217,7 +246,8 @@
     "repos": "",
     "submitter": "clime",
     "task_id": "80-fedora-24-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "external repos set correctly this time",
@@ -230,6 +260,8 @@
     "git_branch": "f23",
     "git_hash": "de4a8245ce347d51815c8efecfbab18ab38123d7",
     "git_repo": "@copr/copr-dev/example_with_dep",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example_with_dep.git\", \"branch\": \"de4a8245ce347d51815c8efecfbab18ab38123d7\"}",
     "memory_reqs": 2048,
     "package_name": "example_with_dep",
     "package_version": "1.0.3-2.fc23",
@@ -239,7 +271,8 @@
     "repos": [{"id": "foo", "name": "foo", "url": "http://localhost:5002/results/@builds/rare_example_repo/fedora-23-x86_64"}],
     "submitter": "clime",
     "task_id": "90-fedora-24-x86_64",
-    "timeout": 21600
+    "timeout": 21600,
+    "use_bootstrap_container": false
 },
 {
     "_description": "custom chroot test",
@@ -252,6 +285,8 @@
     "git_branch": "custom1",
     "git_hash": "e9456be25fba2e18a8fbc78dd18d27ecc02b5197",
     "git_repo": "@copr/copr-dev/example",
+    "source_type": 7,
+    "source_json": "{\"clone_url\": \"http://localhost:5001/cgit/@copr/copr-dev/example.git\", \"branch\": \"e9456be25fba2e18a8fbc78dd18d27ecc02b5197\"}",
     "memory_reqs": 2048,
     "package_name": "example",
     "package_version": "1.0.5-1.git.6.4278ca6.fc24",
@@ -261,6 +296,7 @@
     "repos": [{"id": "foo", "name": "foo", "url": "http://download.fedoraproject.org/pub/fedora/linux/releases/24/Everything/x86_64/os/"}],
     "submitter": "clime",
     "task_id": "340-custom-1-x86_64",
-    "timeout": 86400
+    "timeout": 86400,
+    "use_bootstrap_container": false
 }
 ]
