@@ -54,6 +54,17 @@ you can comment there if you feel this should be changed).
 In copr-cli, SCM-1 is referred by 'buildtito' command and SCM-2 is referred by 'buildmock' command. This is original, not yet
 updated, naming. We would like to unify SCM-1 and SCM-2 into single SCM source eventually.
 
+Additional note to SCM-1 option checkbox:
+
+"Build from HEAD instead of the latest package tag and mark the package with the commit ID"
+
+If checkbox is unchecked (default), then the latest tagged commit of the given subpackage (marked by 'Git Directory')
+is looked up and built. This is equivalent to using tito _without_ --test.
+
+If checkbox is checked, then the build is done directly from HEAD commit and Release and Source0 name in .spec
+is tagged with XX.<commit_short_hash> where XX is number of commits from the latest subpackage tag. This is equivalent
+to using tito _with_ --test.
+
 
 GitHub Webhooks
 ---------------
