@@ -18,6 +18,7 @@ class MockBuilder(object):
         self.repos = task["repos"]
         self.use_bootstrap_container = task["use_bootstrap_container"]
         self.pkg_manager_conf = "dnf" if "custom-1" in task["chroot"] else "yum"
+        self.timeout = task["timeout"]
         self.resultdir = resultdir
         self.confdirs = confdirs
         self.logfile = logfile
@@ -93,7 +94,7 @@ class MockBuilder(object):
             cmd, stdin=subprocess.PIPE, preexec_fn=self.preexec_fn_build_stream)
 
         try:
-            process.communicate()
+            process.communicate(timeout=self.timeout)
         except OSError as e:
             raise RuntimeError(str(e))
 
