@@ -279,7 +279,7 @@
     "_expected_outcome": "success",
 
     "build_id": 340,
-    "buildroot_pkgs": "@buildsys-build",
+    "buildroot_pkgs": ["@buildsys-build"],
     "chroot": "custom-1-x86_64",
     "enable_net": true,
     "git_branch": "custom1",
