@@ -96,10 +96,10 @@ def main():
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
     except (lockfile.LockError, RuntimeError, IOError) as ex:
-        log.error(str(ex))
+        log.exception("")
         sys.exit(1)
     except Exception as ex: # Programmer's mistake
-        log.error(str(ex))
+        log.exception("")
         sys.exit(1)
     finally:
         if lock.i_am_locking():
