@@ -48,8 +48,7 @@ Note that for both SCM-1 and SCM-2, COPR auto-recognizes two types of repositori
 
 For upstream repository, COPR will pack the content of the repository (subrooted by the specified 'Subdirectory' if specified)
 as Source0. For downstream repo, nothing is packed and the content is expected to be obtained from the supplied Source urls
-during build process (for both SCM-1 and SCM-2, you need to have network enabled for it to work, see https://bugzilla.redhat.com/show_bug.cgi?id=1473364,
-you can comment there if you feel this should be changed).
+during build process.
 
 In copr-cli, SCM-1 is referred by 'buildtito' command and SCM-2 is referred by 'buildmock' command. This is original, not yet
 updated, naming. We would like to unify SCM-1 and SCM-2 into single SCM source eventually.
