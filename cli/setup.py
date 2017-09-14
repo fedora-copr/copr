@@ -16,8 +16,7 @@ This part is a command line interface to use copr."""
 requires = [
     'copr',
     'simplejson',
-    'jinja2',
-    'argparse'
+    'jinja2'
 ]
 
 
