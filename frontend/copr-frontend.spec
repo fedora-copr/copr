@@ -105,23 +105,7 @@ Requires:   python-redis
 Requires:   python-dateutil
 Requires:   crontabs
 
-%if 0%{?fedora}
-Suggests:   logstash
-%endif
-
-%if 0%{?fedora} >= 23
-Requires: python-dnf
-BuildRequires: python-dnf
-%else
-Requires: dnf
-BuildRequires: dnf
-%endif
-
-%if 0%{?fedora} >= 24
 Requires: python2-zmq
-%else
-Requires: python-zmq
-%endif
 
 %if 0%{?fedora} >= 25
 Requires: python2-flask-whooshee
@@ -187,14 +171,6 @@ Requires:   python3-openid-teams
 Requires:   python3-modulemd
 Requires:   python3-pygments
 Requires:   python3-CommonMark
-
-%if 0%{?fedora} >= 23
-Requires: python3-dnf
-BuildRequires: python3-dnf
-%else
-Requires: dnf
-BuildRequires: dnf
-%endif
 
 %endif # with_python3
 
