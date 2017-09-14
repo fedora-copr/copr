@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.7
+Version: 0.8
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -78,6 +78,13 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 
 %changelog
+* Thu Sep 14 2017 clime <clime@redhat.com> 0.8-1
+- provide more verbose exception logging
+- take timeout into account
+- fix downstream/upstream condition
+- set also use_host_resolv to False if enable_net is False
+- when building rpms, prebuild srpm in mock chroot
+
 * Thu Sep 07 2017 clime <clime@redhat.com> 0.7-1
 - rewrite to python
 - build-srpm from upstream ability added
