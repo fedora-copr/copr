@@ -3,10 +3,10 @@
 shopt -s expand_aliases
 
 # repo build dirs:
-# 1-oldestbuild
-# 2-norpmsinside
-# 3-secondlatestpkg
-# 4-latestpkg
+# 0-oldestbuild
+# 1-norpmsinside
+# 2-secondlatestpkg
+# 3-latestpkg
 
 export testdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export origrepo=$testdir/repo-template

@@ -33,9 +33,8 @@ args = parser.parse_args()
 get_all_packages_cmd = [
     'dnf',
     'repoquery',
-    '--disablerepo=*',
     '--repofrompath=prunerepo_query,'+os.path.abspath(args.path),
-    '--enablerepo=prunerepo_query',
+    '--repo=prunerepo_query',
     '--refresh',
     '--queryformat="%{location}"',
     '--quiet',

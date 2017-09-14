@@ -9,7 +9,7 @@ function runcmd {
 }
 
 function listpkgsbyrepo {
-	dnf --disablerepo="*" repoquery --repofrompath=test_prunerepo,$testrepo --repoid=test_prunerepo --enablerepo=test_prunerepo --refresh --quiet --queryformat '%{location}' | sort
+	dnf repoquery --repofrompath=test_prunerepo,$testrepo --repo=test_prunerepo --refresh --quiet --queryformat '%{location}' | sort
 }
 
 function listpkgsbyfs {
