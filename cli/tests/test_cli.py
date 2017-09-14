@@ -109,7 +109,6 @@ def test_error_no_args(mock_cc, capsys):
 
         stdout, stderr = capsys.readouterr()
         assert "usage: copr" in stderr
-        assert "too few arguments" in stderr
 
 
 @mock.patch('copr_cli.main.CoprClient')
@@ -173,11 +172,11 @@ def test_cancel_build_no_config(mock_cc, capsys):
     assert err.value.code == 6
     out, err = capsys.readouterr()
 
-    assert "Error: Operation requires api authentication" in out
-    assert "File '~/.config/copr' is missing or incorrect" in out
+    assert "Error: Operation requires api authentication" in err
+    assert "File '~/.config/copr' is missing or incorrect" in err
 
     expected_warning = no_config_warning.format("~/.config/copr")
-    assert expected_warning in out
+    assert expected_warning in err
 
 
 @mock.patch('copr_cli.main.CoprClient')
@@ -219,7 +218,7 @@ def test_list_project(mock_cc, capsys):
     assert expected_output in out
 
     expected_warning = no_config_warning.format("~/.config/copr")
-    assert expected_warning in out
+    assert expected_warning in err
 
 
 @mock.patch('copr_cli.main.CoprClient')
@@ -231,7 +230,7 @@ def test_list_project_no_username(mock_cc, capsys):
 
     assert err.value.code == 6
     out, err = capsys.readouterr()
-    assert "Pass username to command or create `~/.config/copr`" in out
+    assert "Pass username to command or create `~/.config/copr`" in err
 
 
 @mock.patch('copr_cli.main.CoprClient')
@@ -243,7 +242,7 @@ def test_list_project_no_username2(mock_cc, capsys):
 
     assert err.value.code == 6
     out, err = capsys.readouterr()
-    assert "Pass username to command or add it to `~/.config/copr`" in out
+    assert "Pass username to command or add it to `~/.config/copr`" in err
 
 
 @mock.patch('copr_cli.main.CoprClient')
@@ -259,8 +258,7 @@ def test_list_project_error_msg(mock_cc, capsys):
     main.main(argv=["list", "projectname"])
 
     out, err = capsys.readouterr()
-    assert "error_msg" in out
-    assert "No copr retrieved for user: dummy"
+    assert "error_msg" in err
 
 
 @mock.patch('copr_cli.main.CoprClient')
@@ -320,7 +318,6 @@ def test_status_response_no_args(mock_cc, capsys):
 
     stdout, stderr = capsys.readouterr()
     assert "usage: copr" in stderr
-    assert "too few arguments" in stderr
 
 
 @mock.patch('copr_cli.main.CoprClient')
@@ -360,17 +357,18 @@ def test_download_build(mock_cc, mock_sp, capsys):
     expected_sp_call_args = [
         mock.call([
             'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
-            '-P', u'./epel-6-x86_64', '--cut-dirs', '6',
+            '-P', './epel-6-x86_64', '--cut-dirs', '6',
             'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20'
         ]),
         mock.call([
             'wget', '-r', '-nH', '--no-parent', '--reject', "'index.html*'",
-            '-P', u'./epel-6-i386', '--cut-dirs', '6',
+            '-P', './epel-6-i386', '--cut-dirs', '6',
             'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20'
         ])
     ]
 
-    assert mock_sp.call.call_args_list == expected_sp_call_args
+    for call_args_list in mock_sp.call.call_args_list:
+        assert call_args_list in expected_sp_call_args
 
 
 @mock.patch('copr_cli.main.subprocess')
@@ -423,11 +421,11 @@ def test_create_project(mock_cc, capsys):
 
     stdout, stderr = capsys.readouterr()
 
-    mock_client.create_project.assert_called_with(
+    mock_client.create_project.assert_called_with(auto_prune=True,
         username=None, persistent=False, projectname="foo", description="desc string",
         instructions="instruction string", chroots=["f20", "f21"],
         repos=["repo1", "repo2"], initial_pkgs=["pkg1"],
-        unlisted_on_hp=False, disable_createrepo=None, enable_net=False)
+        unlisted_on_hp=None, disable_createrepo=None, enable_net=False)
 
     assert "{0}\n".format(response_message) in stdout
 
@@ -468,7 +466,7 @@ def test_create_build_no_wait_error(mock_cc, capsys):
     ])
 
     stdout, stderr = capsys.readouterr()
-    assert response_message in stdout
+    assert response_message in stderr
 
     assert not mock_client._watch_build.called
 
