@@ -129,7 +129,6 @@ class BuildsLogic(object):
     @classmethod
     def select_build_task(cls):
         query = (models.BuildChroot.query.join(models.Build)
-                 .filter(models.Build.srpm_url.isnot(None))
                  .filter(models.Build.canceled == false())
                  .filter(or_(
                      models.BuildChroot.status == helpers.StatusEnum("pending"),
