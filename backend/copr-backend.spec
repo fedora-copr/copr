@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.102
+Version:    1.103
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -247,6 +247,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Sep 15 2017 clime <clime@redhat.com> 1.103-1
+- update fedora image version to 26
+- fixes for recent code
+
 * Thu Sep 07 2017 clime <clime@redhat.com> 1.102-1
 - srpms are now being built from upstream on builders
 
