@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.119
+Version:    1.120
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -376,6 +376,15 @@ service logstash condrestart
 
 
 %changelog
+* Fri Sep 15 2017 clime <clime@redhat.com> 1.120-1
+- fix build stucking with srpm url/upload resubmitted builds
+- .spec cleanup
+- move DEFER_BUILD_SECONDS to config values and set default to 80
+- show backend log for srpm builds
+- fix url to import log
+- Bug 1431035 - coprs should check credentials before uploading
+  source rpm
+
 * Thu Sep 07 2017 clime <clime@redhat.com> 1.119-1
 - add dist_git_clone_url property of package and use it on /backend
 - #68 Building SRPMs on builder
