@@ -37,6 +37,7 @@ class MockBuilder(object):
         open(self.logfile, 'w').close() # truncate logfile
 
         spec = locate_spec(self.sourcedir)
+        shutil.copy(spec, self.resultdir)
         self.produce_srpm(spec, self.sourcedir, configdir, self.resultdir)
 
         srpm = locate_srpm(self.resultdir)
