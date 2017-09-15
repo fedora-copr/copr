@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.62
+Version:    1.63
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -144,6 +144,16 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Fri Sep 15 2017 clime <clime@redhat.com> 1.63-1
+- fix unittests
+- run tests with python3
+- #130 update requirements
+- #125 copr build copr pkgs [pkgs ...] builds only the first SRPM
+- #112 [RFE] copr-cli whoami
+- Bug 1431035 - coprs should check credentials before uploading
+  source rpm
+- Spelling fixes
+
 * Fri Aug 11 2017 clime <clime@redhat.com> 1.62-1
 - allow to modify copr chroots with copr modify cmd
 
