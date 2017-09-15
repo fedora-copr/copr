@@ -11,9 +11,12 @@ Source0: %{name}-%{version}.tar.gz
 
 License: GPLv2+
 BuildArch: noarch
+BuildRequires: bash
 BuildRequires: python3-devel
 BuildRequires: rpm-python3
 BuildRequires: asciidoc
+BuildRequires: findutils
+BuildRequires: dnf-plugins-core
 Requires: createrepo_c
 Requires: dnf-plugins-core
 Requires: rpm-python3
@@ -36,6 +39,9 @@ to recreate the repository metadata.
 
 %prep
 %setup -q
+
+%check
+tests/run.sh
 
 %build
 %py3_build
