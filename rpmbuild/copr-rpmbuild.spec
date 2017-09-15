@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.8
+Version: 0.9
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -78,6 +78,10 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 
 %changelog
+* Fri Sep 15 2017 clime <clime@redhat.com> 0.9-1
+- copy spec file to the result dir to have a quick overview on the
+  package
+
 * Thu Sep 14 2017 clime <clime@redhat.com> 0.8-1
 - provide more verbose exception logging
 - take timeout into account
