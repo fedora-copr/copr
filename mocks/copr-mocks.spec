@@ -1,6 +1,6 @@
 Summary: COPR system components mocks
 Name: copr-mocks
-Version: 1.8
+Version: 1.9
 Release: 1%{?dist}
 
 # Source is created by:
@@ -49,6 +49,9 @@ useradd -r -g copr-mocks -G copr-mocks -d %{_datadir}/copr/mocks -s /bin/bash -c
 %{_unitdir}/copr-mocks-frontend.service
 
 %changelog
+* Fri Sep 15 2017 clime <clime@redhat.com> 1.9-1
+- Spelling fixes
+
 * Fri Jun 09 2017 clime <clime@redhat.com> 1.8-1
 - support for copr-rpmbuild
 
