@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.80
+Version:    1.81
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -192,6 +192,11 @@ popd
 %endif
 
 %changelog
+* Fri Sep 15 2017 clime <clime@redhat.com> 1.81-1
+- Bug 1431035 - coprs should check credentials before uploading
+  source rpm Remove unnecesary condition
+- Spelling fixes
+
 * Mon Aug 21 2017 Miroslav Suchý <msuchy@redhat.com> 1.80-1
 - rename python-copr to python2-copr
 
