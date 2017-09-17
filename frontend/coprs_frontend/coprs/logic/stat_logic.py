@@ -95,10 +95,6 @@ def handle_logstash(rc, ls_data):
         return
 
     tags = set(ls_data["tags"])
-    if "frontend" in tags and "repo_dl":
-        name = REPO_DL_STAT_FMT.format(**ls_data)
-        CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
-        db.session.commit()
 
     if "backend" in tags and "repomdxml" in tags:
         if "copr_user" in ls_data:

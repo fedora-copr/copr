@@ -45,8 +45,7 @@ from coprs.views.groups_ns import groups_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
 from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
-    str2bool, url_for_copr_view
-
+    str2bool, url_for_copr_view, REPO_DL_STAT_FMT, CounterStatType
 
 def url_for_copr_details(copr):
     return url_for_copr_view(
@@ -803,6 +802,15 @@ def render_generate_repo_file(copr, name_release):
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
         "filename={0}.repo".format(copr.repo_name)
+
+    name = REPO_DL_STAT_FMT.format(**{
+        'copr_user': copr.user.name,
+        'copr_project_name': copr.name,
+        'copr_name_release': name_release,
+    })
+    CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
+    db.session.commit()
+
     return response
 
 
