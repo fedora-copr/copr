@@ -444,7 +444,7 @@ class Action(object):
                 else:
                     self.log.info("Copy directory: {} as {}".format(srcdir, destdir))
                     shutil.copytree(srcdir, destdir)
-                    mmd.dump(os.path.join(destdir, "module_md.yaml"))
+                    modulemd.dump_all(os.path.join(destdir, "modules.yaml"), [mmd])
                     createrepo(path=destdir, front_url=self.front_url,
                                username=ownername, projectname=projectname,
                                override_acr_flag=True)
