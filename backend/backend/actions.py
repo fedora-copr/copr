@@ -437,11 +437,7 @@ class Action(object):
                 modules = []
 
             mmd = modulemd.ModuleMetadata()
-            (fh, abspath) = tempfile.mkstemp()
-            f = open(abspath, "w+")
-            f.write(modulemd_data)
-            f.close()
-            mmd.load(abspath)
+            mmd.loads(modulemd_data)
 
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
@@ -473,7 +469,6 @@ class Action(object):
             modules_file_write.close()
 
             result.result = ActionResult.SUCCESS
-            os.unlink(abspath)
         except Exception as e:
             self.log.error(str(e))
             result.result = ActionResult.FAILURE
