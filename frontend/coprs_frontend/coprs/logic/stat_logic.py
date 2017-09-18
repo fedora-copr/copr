@@ -1,3 +1,6 @@
+import time
+import json
+
 from collections import defaultdict
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -6,7 +9,7 @@ from coprs import app
 from coprs import db
 from coprs.models import CounterStat
 from coprs import helpers
-from coprs.helpers import REPO_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, string_dt_to_unixtime, \
+from coprs.helpers import REPO_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
     CHROOT_RPMS_DL_STAT_FMT, PROJECT_RPMS_DL_STAT_FMT, is_ip_from_builder_net
 from coprs.helpers import CounterStatType
 from coprs.rmodels import TimedStatEvents
@@ -75,34 +78,61 @@ class CounterStatLogic(object):
         return repo_dl_stats
 
 
-def handle_logstash(rc, ls_data):
+def handle_be_stat_message(rc, stat_data):
     """
     :param rc: connection to redis
     :type rc: StrictRedis
 
-    :param ls_data: log stash record
-    :type ls_data: dict
+    :param stat_data: stats from backend
+    :type stat_data: dict
     """
-    dt_unixtime = string_dt_to_unixtime(ls_data["@timestamp"])
-    app.logger.debug("got ls_data: {}".format(ls_data))
+    app.logger.debug('Got stat data: {}'.format(stat_data))
 
-    # don't count statistics from builders
-    if "clientip" in ls_data:
-        if is_ip_from_builder_net(ls_data["clientip"]):
-            return
+    ts_from = int(stat_data['ts_from'])
+    ts_to = int(stat_data['ts_to'])
+    hits = stat_data['hits']
 
-    if "tags" not in ls_data:
+    if not ts_from or not ts_to or ts_from > ts_to or not hits:
+        raise Exception("Invalid or empty data received.")
+
+    ts_from_stored = int(rc.get('handle_be_stat_message_ts_from') or 0)
+    ts_to_stored = int(rc.get('handle_be_stat_message_ts_to') or 0)
+
+    app.logger.debug('ts_from: {}'.format(ts_from))
+    app.logger.debug('ts_to: {}'.format(ts_to))
+    app.logger.debug('ts_from_stored: {}'.format(ts_from_stored))
+    app.logger.debug('ts_to_stored: {}'.format(ts_to_stored))
+
+    if (ts_from >= ts_from_stored and ts_from < ts_to_stored) or\
+            (ts_to > ts_from_stored and ts_to <= ts_to_stored) or\
+            (ts_from <= ts_from_stored and ts_to >= ts_to_stored):
+        app.logger.debug('Time overlap with already stored data. Skipping.')
         return
 
-    tags = set(ls_data["tags"])
+    hits_formatted = defaultdict(int)
+    for key_str, count in hits.items():
+        key = key_str.split('|')
+        if key[0] == 'chroot_repo_metadata_dl_stat':
+            redis_key = CHROOT_REPO_MD_DL_STAT_FMT.format(
+                copr_user=key[1],
+                copr_project_name=key[2],
+                copr_chroot=key[3])
+        elif key[0] == 'chroot_rpms_dl_stat':
+            redis_key = CHROOT_RPMS_DL_STAT_FMT.format(
+                copr_user=key[1],
+                copr_project_name=key[2],
+                copr_chroot=key[3])
+        elif key[0] == 'project_rpms_dl_stat':
+            redis_key = PROJECT_RPMS_DL_STAT_FMT.format(
+                copr_user=key[1],
+                copr_project_name=key[2])
+        else:
+            raise Exception('Unknown key {}'.format(key[0]))
 
-    if "backend" in tags and "repomdxml" in tags:
-        if "copr_user" in ls_data:
-            key = CHROOT_REPO_MD_DL_STAT_FMT.format(**ls_data)
-            TimedStatEvents.add_event(rc, key, timestamp=dt_unixtime)
+        hits_formatted[redis_key] += 1
 
-    if "backend" in tags and "rpm" in tags:
-        key_chroot = CHROOT_RPMS_DL_STAT_FMT.format(**ls_data)
-        key_project = PROJECT_RPMS_DL_STAT_FMT.format(**ls_data)
-        TimedStatEvents.add_event(rc, key_chroot, timestamp=dt_unixtime)
-        TimedStatEvents.add_event(rc, key_project, timestamp=dt_unixtime)
+    for redis_key, count in hits_formatted.items():
+        TimedStatEvents.add_event(rc, redis_key, count=count, timestamp=ts_to)
+
+    rc.set('handle_be_stat_message_ts_from', ts_from)
+    rc.set('handle_be_stat_message_ts_to', ts_to)
