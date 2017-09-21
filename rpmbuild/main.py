@@ -89,21 +89,21 @@ def main():
     log.addHandler(logging.FileHandler(config.get("main", "logfile")))
 
     # Allow only one instance
-    lock = lockfile.LockFile(config.get("main", "lockfile"))
+    lockfd = os.open(config.get("main", "lockfile"), os.O_RDWR)
     try:
-        lock.acquire(timeout=0)
+        os.lockf(lockfd, os.F_TLOCK, 1)
         init(args, config)
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
-    except (lockfile.LockError, RuntimeError, IOError) as ex:
+    except (BlockingIOError, RuntimeError, IOError) as ex:
         log.exception("")
         sys.exit(1)
     except Exception as ex: # Programmer's mistake
         log.exception("")
         sys.exit(1)
     finally:
-        if lock.i_am_locking():
-            lock.release()
+        os.lockf(lockfd, os.F_ULOCK, 1)
+        os.close(lockfd)
 
 
 def init(args, config):
