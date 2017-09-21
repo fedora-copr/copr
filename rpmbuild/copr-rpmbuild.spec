@@ -21,7 +21,6 @@ Requires: rpm-python3
 Requires: python3
 Requires: python3-jinja2
 Requires: python3-munch
-Requires: python3-lockfile
 Requires: python3-configparser
 Requires: python3-simplejson
 
