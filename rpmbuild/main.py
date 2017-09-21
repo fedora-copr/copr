@@ -54,13 +54,14 @@ def main():
     parser = argparse.ArgumentParser(description="Runs COPR build of the specified task ID,"
                                                  "e.g. 551347-epel-7-x86_64, and puts results"
                                                  "into /var/lib/copr-rpmbuild/results/.")
-    parser.add_argument("task_id", type=str, help="COPR task-id to be built (e.g. 551347-epel-7-x86_64)")
+    parser.add_argument("build_id", type=str, help="Build ID")
     parser.add_argument("-c", "--config", type=str, help="Use specific configuration .ini file")
     parser.add_argument("-d", "--detached", action="store_true", help="Run build in background."
                                                                       "Log into /var/lib/copr-rpmbuild/main.log")
     parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
     parser.add_argument("--rpm", action="store_true", help="Build rpms. This is a default action.")
     parser.add_argument("--srpm", action="store_true", help="Build srpm.")
+    parser.add_argument("--chroot", help="When building RPM package, chroot name needs to be specified")
     args = parser.parse_args()
 
     if args.detached:
@@ -113,7 +114,7 @@ def init(args, config):
 
 
 def build_srpm(args, config):
-    task = get_task("/backend/get-srpm-build-task/", args.task_id, config)
+    task = get_task("/backend/get-srpm-build-task/", args.build_id, config)
 
     workdir = tempfile.mkdtemp()
     provider = providers.factory(task["source_type"])(
@@ -129,7 +130,10 @@ def build_srpm(args, config):
 
 
 def build_rpm(args, config):
-    task = get_task("/backend/get-build-task/", args.task_id, config)
+    if not args.chroot:
+        raise RuntimeError("Missing --chroot parameter")
+    task_id = "-".join([args.build_id, args.chroot])
+    task = get_task("/backend/get-build-task/", task_id, config)
 
     workdir = tempfile.mkdtemp()
     provider = providers.DistGitProvider(task["source_json"], workdir, CONF_DIRS)
