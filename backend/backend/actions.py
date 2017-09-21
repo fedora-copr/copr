@@ -429,19 +429,8 @@ class Action(object):
             project_path = os.path.join(self.opts.destdir, ownername, projectname)
             self.log.info(modulemd_data)
 
-            try:
-                modules_file_read = open(os.path.join(project_path, "modules", "modules.json"), "r+")
-                modules = json.loads(modules_file_read.read())
-                modules_file_read.close()
-            except:
-                modules = []
-
             mmd = modulemd.ModuleMetadata()
-            (fh, abspath) = tempfile.mkstemp()
-            f = open(abspath, "w+")
-            f.write(modulemd_data)
-            f.close()
-            mmd.load(abspath)
+            mmd.loads(modulemd_data)
 
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
@@ -455,25 +444,12 @@ class Action(object):
                 else:
                     self.log.info("Copy directory: {} as {}".format(srcdir, destdir))
                     shutil.copytree(srcdir, destdir)
-                    mmd.dump(os.path.join(destdir, "module_md.yaml"))
-                    modules.append({
-                        "url": module_relpath,
-                        "name": mmd.name,
-                        "stream": (mmd.stream or ''),
-                        "version": (mmd.version or '1'),
-                        "requires": mmd.requires,
-                        "summary": mmd.summary,
-                    })
+                    modulemd.dump_all(os.path.join(destdir, "modules.yaml"), [mmd])
                     createrepo(path=destdir, front_url=self.front_url,
                                username=ownername, projectname=projectname,
                                override_acr_flag=True)
 
-            modules_file_write = open(os.path.join(project_path, "modules", "modules.json"), "w+")
-            modules_file_write.write(json.dumps(modules, indent=4))
-            modules_file_write.close()
-
             result.result = ActionResult.SUCCESS
-            os.unlink(abspath)
         except Exception as e:
             self.log.error(str(e))
             result.result = ActionResult.FAILURE

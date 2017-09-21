@@ -104,10 +104,10 @@ INCLUDE_ICONS = \
 {packages_dir}/repodata
 """
 
-INCLUDE_MODULE_MD = \
+INCLUDE_MODULES = \
     """/usr/bin/modifyrepo_c \
---mdtype module \
-{packages_dir}/module_md.yaml \
+--mdtype modules \
+{packages_dir}/modules.yaml \
 {packages_dir}/repodata
 """
 
@@ -140,10 +140,10 @@ def add_appdata(path, username, projectname, lock=None):
     return out
 
 
-def add_module_md(path):
-    if os.path.exists(os.path.join(path, "module_md.yaml")):
+def add_modules(path):
+    if os.path.exists(os.path.join(path, "modules.yaml")):
         return run_cmd_unsafe(
-            INCLUDE_MODULE_MD.format(packages_dir=path), os.path.join(path, "createrepo.lock")
+            INCLUDE_MODULES.format(packages_dir=path), os.path.join(path, "createrepo.lock")
         )
     return ""
 
@@ -171,7 +171,7 @@ def createrepo(path, front_url, username, projectname,
     if override_acr_flag or acr_flag:
         out_cr = createrepo_unsafe(path)
         out_ad = add_appdata(path, username, projectname)
-        out_md = add_module_md(path)
+        out_md = add_modules(path)
         return "\n".join([out_cr, out_ad, out_md])
     else:
         return createrepo_unsafe(path, base_url=base_url, dest_dir="devel")

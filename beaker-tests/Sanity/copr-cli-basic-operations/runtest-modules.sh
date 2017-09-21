@@ -176,10 +176,22 @@ rlJournalStart
 
         # @TODO Test that there are expected files for built modules on copr-backend
 
-        # @TODO Test that module can be enabled with dnf
-        # We should test this against DNF from
-        # https://copr.fedorainfracloud.org/coprs/mhatina/DNF-Modules/
-        # Problem is that docker image is F25 and DNF is built only for F26
+
+        # Test that module can be enabled with dnf
+        rlRun "dnf -y upgrade dnf --enablerepo mhatina-DNF-Modules"
+
+        # Module repository should be allowed via DNF, but the code isn't merged yet
+        # https://github.com/rpm-software-management/dnf-plugins-core/pull/214
+        rlRun "echo '[clime-module-testmodule-beakertest-$DATE]' >> /etc/yum.repos.d/testmodule.repo"
+        rlRun "echo 'name = Copr modules repo for clime/module-testmodule-beakertest-$DATE' >> /etc/yum.repos.d/testmodule.repo"
+        rlRun "echo 'baseurl = $BACKEND_URL/results/clime/module-testmodule-beakertest-$DATE/modules/custom-1-x86_64+testmodule-beakertest-$DATE/latest/x86_64/' >> /etc/yum.repos.d/testmodule.repo"
+        rlRun "echo 'enabled = 1' >> /etc/yum.repos.d/testmodule.repo"
+
+        rlAssertEquals "Module should be visible in the system" `dnf module list |grep testmodule |grep beakertest |grep $DATE |wc -l` 1
+        rlRun "dnf module enable testmodule:beakertest"
+        rlRun "dnf module install testmodule/default"
+        rlRun "dnf -y downgrade dnf"
+
 
         # @TODO Test that enabled module info is correct
         # Feature for enabling module from Copr is not in upstream

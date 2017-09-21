@@ -1,0 +1,10 @@
+[mhatina-DNF-Modules]
+name=Copr repo for DNF-Modules owned by mhatina
+baseurl=https://copr-be.cloud.fedoraproject.org/results/mhatina/DNF-Modules/fedora-$releasever-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/mhatina/DNF-Modules/pubkey.gpg
+repo_gpgcheck=0
+enabled=0
+enabled_metadata=1

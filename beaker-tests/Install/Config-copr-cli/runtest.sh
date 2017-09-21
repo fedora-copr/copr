@@ -45,6 +45,11 @@ rlJournalStart
         rlRun "dnf config-manager --set-enabled fedora --save"
         rlRun "dnf install -y python-copr  copr-cli"
         rlRun "dnf upgrade python-copr  copr-cli"
+
+        rlLog "Installing repo for DNF with modularity support."
+        rlLog "It is disabled though"
+        cp ./dnf-modules.repo /etc/yum.repos.d/
+
         rlAssertRpm copr-cli
     rlPhaseEnd
 
