@@ -9,7 +9,6 @@ import json
 import logging
 import tempfile
 import shutil
-import lockfile
 import configparser
 from simplejson.scanner import JSONDecodeError
 from copr_rpmbuild import providers
