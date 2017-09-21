@@ -95,10 +95,10 @@ def main():
         init(args, config)
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
-    except (BlockingIOError, RuntimeError, IOError) as ex:
+    except (BlockingIOError, RuntimeError, IOError):
         log.exception("")
         sys.exit(1)
-    except Exception as ex: # Programmer's mistake
+    except: # Programmer's mistake
         log.exception("")
         sys.exit(1)
     finally:
