@@ -1,12 +1,13 @@
 # coding: utf-8
 
 import flask
+import json
 from coprs import rcp
 from coprs import app
 from coprs import db
 from ..misc import intranet_required
 from . import stats_rcv_ns
-from ...logic.stat_logic import CounterStatLogic, handle_logstash
+from ...logic.stat_logic import CounterStatLogic, handle_be_stat_message
 
 
 @stats_rcv_ns.route("/")
@@ -24,12 +25,12 @@ def increment(counter_type, name):
     return "", 201
 
 
-@stats_rcv_ns.route("/from_logstash", methods=['POST'])
+@stats_rcv_ns.route("/from_backend", methods=['POST'])
 @intranet_required
-def logstash_handler():
+def backend_stat_message_handler():
     try:
-        handle_logstash(rcp.get_connection(), flask.request.json)
+        handle_be_stat_message(rcp.get_connection(), json.loads(flask.request.json))
     except Exception as err:
         app.logger.exception(err)
 
-    return "", 201
+    return "OK", 201
