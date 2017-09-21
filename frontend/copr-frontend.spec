@@ -91,6 +91,7 @@ Requires:   python-marshmallow >= 2.0.0
 Requires:   python2-modulemd
 Requires:   python2-CommonMark
 Requires:   python2-pygments
+Requires:   python2-flask-whooshee
 
 Requires:   %flavor_guard
 
@@ -106,14 +107,6 @@ Requires:   python-dateutil
 Requires:   crontabs
 
 Requires: python2-zmq
-
-%if 0%{?fedora} >= 25
-Requires: python2-flask-whooshee
-BuildRequires: python2-flask-whooshee
-%else
-Requires: python-flask-whooshee
-BuildRequires: python-flask-whooshee
-%endif
 
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
@@ -147,6 +140,7 @@ BuildRequires: python-blinker
 BuildRequires: python-munch
 BuildRequires: python2-CommonMark
 BuildRequires: python2-pygments
+BuildRequires: python2-flask-whooshee
 %endif
 
 %if 0%{?with_python3}
