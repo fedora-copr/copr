@@ -87,6 +87,7 @@ APPDATA_CMD_TEMPLATE = \
 --basename=appstream \
 --include-failed \
 --min-icon-size=48 \
+--veto-ignore=missing-parents \
 --enable-hidpi \
 --origin={username}/{projectname}
 """
