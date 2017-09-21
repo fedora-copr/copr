@@ -88,7 +88,7 @@ def main():
     log.addHandler(logging.FileHandler(config.get("main", "logfile")))
 
     # Allow only one instance
-    lockfd = os.open(config.get("main", "lockfile"), os.O_RDWR)
+    lockfd = os.open(config.get("main", "lockfile"), os.O_RDWR | os.O_CREAT)
     try:
         os.lockf(lockfd, os.F_TLOCK, 1)
         init(args, config)
