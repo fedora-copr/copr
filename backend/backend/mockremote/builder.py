@@ -115,8 +115,8 @@ class Builder(object):
 
     def _copr_builder_cmd(self):
         if self.opts.builder_perl:
-            return 'copr-rpmbuild -d {task_id} --chroot {chroot}'.format(
-                task_id=self.job.build_id, chroot=self.job.chroot)
+            return 'copr-rpmbuild --detached --build-id {build_id} --chroot {chroot}'.format(
+                build_id=self.job.build_id, chroot=self.job.chroot)
 
         template = 'copr-builder --config {config} --copr {copr} ' \
                  + '--package {package} --revision {revision} ' \
