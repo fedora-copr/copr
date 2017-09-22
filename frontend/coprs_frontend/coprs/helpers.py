@@ -292,13 +292,15 @@ def generate_repo_url(mock_chroot, url):
     """ Generates url with build results for .repo file.
     No checks if copr or mock_chroot exists.
     """
+    os_version = mock_chroot.os_version
+
     if mock_chroot.os_release == "fedora":
         if mock_chroot.os_version != "rawhide":
-            mock_chroot.os_version = "$releasever"
+            os_version = "$releasever"
 
     url = urljoin(
         url, "{0}-{1}-{2}/".format(mock_chroot.os_release,
-                                   mock_chroot.os_version, "$basearch"))
+                                   os_version, "$basearch"))
 
     return url
 
