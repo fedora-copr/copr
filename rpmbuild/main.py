@@ -157,8 +157,9 @@ def get_task(endpoint, id, config):
         task = response.json()
         task["source_json"] = json.loads(task["source_json"])
         return task
-    except JSONDecodeError:
-        raise RuntimeError("No valid task {}".format(url))
+    except (JSONDecodeError, TypeError):
+        log.error("Not a valid task at {}" .format(url, task))
+        os._exit(1)
 
 
 if __name__ == "__main__":
