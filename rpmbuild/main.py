@@ -51,17 +51,21 @@ def daemonize():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Runs COPR build of the specified task ID,"
-                                                 "e.g. 551347-epel-7-x86_64, and puts results"
-                                                 "into /var/lib/copr-rpmbuild/results/.")
-    parser.add_argument("build_id", type=str, help="Build ID")
+    parser = argparse.ArgumentParser(description="Runs COPR build of the specified build ID and chroot"
+                                                 "and puts results into /var/lib/copr-rpmbuild/results/")
+    parser.add_argument("--build-id", type=str, help="COPR build ID", required=True)
     parser.add_argument("-c", "--config", type=str, help="Use specific configuration .ini file")
     parser.add_argument("-d", "--detached", action="store_true", help="Run build in background."
                                                                       "Log into /var/lib/copr-rpmbuild/main.log")
     parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
-    parser.add_argument("--rpm", action="store_true", help="Build rpms. This is a default action.")
-    parser.add_argument("--srpm", action="store_true", help="Build srpm.")
-    parser.add_argument("--chroot", help="When building RPM package, chroot name needs to be specified")
+    parser.add_argument("-r", "--chroot", help="Name of the chroot to build rpm package in (e.g. epel-7-x86_64).")
+
+    product = parser.add_mutually_exclusive_group()
+    product.add_argument("--rpm", action="store_true", help="Build rpms. This is the default action.")
+    product.add_argument("--srpm", action="store_true", help="Build srpm.")
+    #product.add_argument("--tgz", action="store_true", help="Make tar.gz with build sources, spec and patches."
+    #                                                        "After unpacking, you can use this as an input for rpmbuild.")
+
     args = parser.parse_args()
 
     if args.detached:
