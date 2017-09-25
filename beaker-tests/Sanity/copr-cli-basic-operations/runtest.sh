@@ -48,6 +48,8 @@ echo "BACKEND_URL = $BACKEND_URL"
 # as this script is going to be run from
 CHROOT="fedora-26-x86_64"
 
+SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 rlJournalStart
     rlPhaseStartSetup
         rlAssertRpm "copr-cli"
@@ -621,6 +623,13 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartCleanup
+        rm $SCRIPTPATH/TestDeleteGroupBuild_example_build_id.txt
+        rm $SCRIPTPATH/failed_example_build_id
+        rm $SCRIPTPATH/hello_p3.id
+        rm $SCRIPTPATH/hello_p3.out
+        rm $SCRIPTPATH/pubkey_fork.gpg
+        rm $SCRIPTPATH/pubkey_source.gpg
+        rm $SCRIPTPATH/succeeded_example_build_id
     rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
