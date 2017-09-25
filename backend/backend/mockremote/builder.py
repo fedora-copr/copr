@@ -227,4 +227,4 @@ class Builder(object):
 
 class SrpmBuilder(Builder):
     def _copr_builder_cmd(self):
-        return 'copr-rpmbuild -d --srpm {build_id}'.format(build_id=self.job.build_id)
+        return 'copr-rpmbuild -d --srpm --build-id {build_id}'.format(build_id=self.job.build_id)
