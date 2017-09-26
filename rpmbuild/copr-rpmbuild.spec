@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.9
+Version: 0.10
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -77,6 +77,19 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 
 %changelog
+* Tue Sep 26 2017 clime <clime@redhat.com> 0.10-1
+- use https for copr frontend in default config
+- Make error message when the build task does not exist more user-
+  friendly
+- add --build-id switch instead of positional argument
+- do not fail when lockfile does not exist
+- change arguments to build_id and chroot
+- remove lockfile import
+- remove unused requires:
+- remove unused variables in try-excepts
+- #138 FileExistsError: [Errno 17] File exists: '/var/lib/copr-
+  rpmbuild/lockfile.lock'
+
 * Fri Sep 15 2017 clime <clime@redhat.com> 0.9-1
 - copy spec file to the result dir to have a quick overview on the
   package
