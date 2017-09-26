@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.120
+Version:    1.121
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -370,6 +370,13 @@ service logstash condrestart
 
 
 %changelog
+* Tue Sep 26 2017 clime <clime@redhat.com> 1.121-1
+- fix generate_repo_url method not to edit mock_chroot object
+  attributes
+- spec cleanup in regard to python-flask-whooshee
+- fix rpm download stats collection
+- fix 'Repo Downloads' counter
+
 * Fri Sep 15 2017 clime <clime@redhat.com> 1.120-1
 - fix build stucking with srpm url/upload resubmitted builds
 - .spec cleanup
