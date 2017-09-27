@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.121
+Version:    1.122
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -368,6 +368,9 @@ service logstash condrestart
 
 
 %changelog
+* Wed Sep 27 2017 clime <clime@redhat.com> 1.122-1
+- remove unneeded yum dep
+
 * Tue Sep 26 2017 clime <clime@redhat.com> 1.121-1
 - fix generate_repo_url method not to edit mock_chroot object
   attributes
