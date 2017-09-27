@@ -6,7 +6,10 @@ Summary:        A programmable tool for verification, analysis and transformatio
 License:        Boost
 %global commit0 cf13c413f641b5816a4fc9cd4b2fb248c81bf2bd
 URL:            https://github.com/verateam/%{name}
+
+%if 0%{?rhel}
 Source0:        https://github.com/verateam/%{name}/archive/%{commit0}.tar.gz
+%endif
 
 BuildRequires:  cmake
 BuildRequires:  luabind-devel

@@ -100,7 +100,6 @@ Requires:   pytest
 Requires:   python-flexmock
 Requires:   python-mock
 Requires:   python-decorator
-Requires:   yum
 Requires:   redis
 Requires:   python-redis
 Requires:   python-dateutil
@@ -126,7 +125,6 @@ BuildRequires: python-redis
 BuildRequires: redis
 BuildRequires: python-dateutil
 BuildRequires: pytest
-BuildRequires: yum
 BuildRequires: python-mock
 BuildRequires: python-decorator
 BuildRequires: python-markdown
