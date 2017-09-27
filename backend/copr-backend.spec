@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.104
+Version:    1.105
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -245,6 +245,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Sep 27 2017 clime <clime@redhat.com> 1.105-1
+- remove uneeded yum dep
+
 * Tue Sep 26 2017 clime <clime@redhat.com> 1.104-1
 - update copr-rpmbuild command for the new options
 - change arguments to build_id and chroot
