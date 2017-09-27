@@ -20,7 +20,6 @@ BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
-BuildRequires: yum-utils
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python2-devel
@@ -61,7 +60,6 @@ Requires:   euca2ools
 Requires:   rsync
 Requires:   openssh-clients
 Requires:   mock
-Requires:   yum-utils
 Requires:   createrepo_c >= 0.2.1-3
 Requires:   python-munch
 Requires:   python-daemon
