@@ -1,7 +1,6 @@
 {% from "_helpers.html" import copr_url %}
 {% from "coprs/detail/_package_forms.html" import
-   copr_package_form_tito,
-   copr_package_form_mock,
+   copr_package_form_scm,
    copr_package_form_pypi,
    copr_package_form_rubygems,
 with context %}
@@ -18,19 +17,15 @@ with context %}
 {% macro show_navigation(copr, view) %}
   {# kwargs: pass package_name='...' when editing the package #}
   <ul class="nav nav-tabs nav-tabs-pf">
-    {{ nav_element("scm-1", "SCM-1", copr_url(view, copr, source_type_text="git_and_tito", **kwargs)) }}
-    {{ nav_element("scm-2", "SCM-2", copr_url(view, copr, source_type_text="mock_scm", **kwargs)) }}
+    {{ nav_element("scm", "SCM", copr_url(view, copr, source_type_text="scm", **kwargs)) }}
     {{ nav_element("pypi", "PyPI", copr_url(view, copr, source_type_text="pypi", **kwargs)) }}
     {{ nav_element("rubygems", "RubyGems", copr_url(view, copr, source_type_text="rubygems", **kwargs)) }}
   </ul>
 {% endmacro %}
 
 {% macro show_package_form(source_type_text, package) %}
-  {% if source_type_text == "git_and_tito" %}
-    {{ copr_package_form_tito(form_tito, view, copr, package) }}
-
-  {% elif source_type_text == "mock_scm" %}
-    {{ copr_package_form_mock(form_mock, view, copr, package) }}
+  {% if source_type_text == "scm" %}
+    {{ copr_package_form_scm(form_scm, view, copr, package) }}
 
   {% elif source_type_text == "pypi" %}
     {{ copr_package_form_pypi(form_pypi, view, copr, package) }}

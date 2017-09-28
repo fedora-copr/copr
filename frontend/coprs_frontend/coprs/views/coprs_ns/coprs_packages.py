@@ -99,15 +99,10 @@ def copr_rebuild_package(copr, package_name):
     package = ComplexLogic.get_package_safe(copr, package_name)
     data = package.source_json_dict
 
-    if package.source_type_text == "git_and_tito":
-        data["git_directory"] = data["git_dir"]  # @FIXME workaround
-        form = forms.BuildFormTitoFactory
-        f = render_add_build_tito
-        view_suffix = "_tito"
-    elif package.source_type_text == "mock_scm":
-        form = forms.BuildFormMockFactory
+    if package.source_type_text == "scm":
+        form = forms.BuildFormSCMFactory
         f = render_add_build_scm
-        view_suffix = "_mock"
+        view_suffix = "_scm"
     elif package.source_type_text == "pypi":
         form = forms.BuildFormPyPIFactory
         f = render_add_build_pypi
@@ -127,10 +122,9 @@ def copr_rebuild_package(copr, package_name):
 @coprs_ns.route("/g/<group_name>/<coprname>/package/add/<source_type_text>")
 @login_required
 @req_with_copr
-def copr_add_package(copr, source_type_text="git_and_tito", **kwargs):
+def copr_add_package(copr, source_type_text="scm", **kwargs):
     form = {
-        "git_and_tito": forms.PackageFormTito(),
-        "mock_scm": forms.PackageFormMock(),
+        "scm": forms.PackageFormSCM(),
         "pypi": forms.PackageFormPyPI(),
         "rubygems": forms.PackageFormRubyGems(),
     }
@@ -140,7 +134,7 @@ def copr_add_package(copr, source_type_text="git_and_tito", **kwargs):
 
     return flask.render_template("coprs/detail/add_package.html", copr=copr, package=None,
                                  source_type_text=source_type_text, view="coprs_ns.copr_new_package",
-                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"],
+                                 form_scm=form["scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"])
 
 
@@ -167,11 +161,10 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     if package.has_source_type_set and not source_type_text:
         source_type_text = package.source_type_text
     elif not source_type_text:
-        source_type_text = "git_and_tito"
+        source_type_text = "scm"
 
     form_classes = {
-        "git_and_tito": forms.PackageFormTito,
-        "mock_scm": forms.PackageFormMock,
+        "scm": forms.PackageFormSCM,
         "pypi": forms.PackageFormPyPI,
         "rubygems": forms.PackageFormRubyGems,
     }
@@ -180,13 +173,11 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     if "form" in kwargs:
         form[source_type_text] = kwargs["form"]
     elif package.has_source_type_set:
-        if package.source_type_text == "git_and_tito" and "git_dir" in data:
-            data["git_directory"] = data["git_dir"]  # @FIXME workaround
         form[package.source_type_text] = form_classes[package.source_type_text](data=data)
 
     return flask.render_template("coprs/detail/edit_package.html", package=package, copr=copr,
                                  source_type_text=source_type_text, view="coprs_ns.copr_edit_package",
-                                 form_tito=form["git_and_tito"], form_mock=form["mock_scm"], form_pypi=form["pypi"],
+                                 form_scm=form["scm"], form_pypi=form["pypi"],
                                  form_rubygems=form["rubygems"])
 
 

@@ -31,9 +31,7 @@ def get_package_form_cls_by_source_type_text(source_type_text):
     BasePackageForm child
         based on source_type_text input
     """
-    if source_type_text == 'git_and_tito':
-        return PackageFormTito
-    elif source_type_text == 'mock_scm':
+    if source_type_text == 'scm':
         return PackageFormSCM
     elif source_type_text == 'pypi':
         return PackageFormPyPI

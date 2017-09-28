@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_method_box %}
 
 {% macro copr_package_form_begin(form, view, copr, package) %}
   {{ render_form_errors(form) }}
@@ -90,7 +90,7 @@
 {% endmacro %}
 
 
-{% macro copr_package_form_mock(form, view, copr, package) %}
+{% macro copr_package_form_scm(form, view, copr, package) %}
   {{ copr_package_form_begin(form, view, copr, package) }}
 
   {{ render_field(form.scm_type) }}
@@ -100,6 +100,7 @@
   {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
 
   {{ render_webhook_rebuild(form) }}
+  {{ render_srpm_method_box(form) }}
   {{ copr_package_form_end(form, package, 'mock_scm') }}
 {% endmacro %}
 
