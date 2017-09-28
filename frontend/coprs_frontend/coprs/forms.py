@@ -34,7 +34,7 @@ def get_package_form_cls_by_source_type_text(source_type_text):
     if source_type_text == 'git_and_tito':
         return PackageFormTito
     elif source_type_text == 'mock_scm':
-        return PackageFormMock
+        return PackageFormSCM
     elif source_type_text == 'pypi':
         return PackageFormPyPI
     elif source_type_text == 'rubygems':
@@ -381,7 +381,7 @@ class BasePackageForm(FlaskForm):
     webhook_rebuild = wtforms.BooleanField(default=False)
 
 
-class PackageFormMock(BasePackageForm):
+class PackageFormSCM(BasePackageForm):
     scm_type = wtforms.SelectField(
         "SCM Type",
         choices=[("git", "Git"), ("svn", "SVN")])
@@ -545,7 +545,7 @@ class BaseBuildFormFactory(object):
 
 class BuildFormSCMFactory(object):
     def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormMock)
+        return BaseBuildFormFactory(active_chroots, PackageFormSCM)
 
 
 class BuildFormPyPIFactory(object):
