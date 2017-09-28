@@ -395,24 +395,6 @@ GROUP BY
                               pkgs=url, srpm_url=srpm_url, **build_options)
 
     @classmethod
-    def create_new_from_tito(cls, user, copr, git_url, git_dir, git_branch, tito_test,
-                            chroot_names=None, **build_options):
-        """
-        :type user: models.User
-        :type copr: models.Copr
-
-        :type chroot_names: List[str]
-
-        :rtype: models.Build
-        """
-        source_type = helpers.BuildSourceEnum("git_and_tito")
-        source_json = json.dumps({"git_url": git_url,
-                                  "git_dir": git_dir,
-                                  "git_branch": git_branch,
-                                  "tito_test": tito_test})
-        return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
-
-    @classmethod
     def create_new_from_scm(cls, user, copr, scm_type, scm_url, scm_branch, scm_subdir, spec, srpm_method,
                             chroot_names=None, **build_options):
         """

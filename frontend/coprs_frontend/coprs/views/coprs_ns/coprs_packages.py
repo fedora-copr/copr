@@ -8,7 +8,7 @@ from coprs import forms
 from coprs import helpers
 from coprs.models import Package, Build
 from coprs.views.coprs_ns import coprs_ns
-from coprs.views.coprs_ns.coprs_builds import render_add_build_tito, render_add_build_scm, render_add_build_pypi
+from coprs.views.coprs_ns.coprs_builds import render_add_build_scm, render_add_build_pypi
 from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic

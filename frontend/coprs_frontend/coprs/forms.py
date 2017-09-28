@@ -381,35 +381,6 @@ class BasePackageForm(FlaskForm):
     webhook_rebuild = wtforms.BooleanField(default=False)
 
 
-class PackageFormTito(BasePackageForm):
-    git_url = wtforms.StringField(
-        "Git URL",
-        validators=[
-            wtforms.validators.DataRequired(),
-            wtforms.validators.URL()])
-
-    git_directory = wtforms.StringField(
-        "Git Directory",
-        validators=[
-            wtforms.validators.Optional()])
-
-    git_branch = wtforms.StringField(
-        "Git Branch",
-        validators=[
-            wtforms.validators.Optional()])
-
-    tito_test = wtforms.BooleanField(default=False)
-
-    @property
-    def source_json(self):
-        return json.dumps({
-            "git_url": self.git_url.data,
-            "git_branch": self.git_branch.data,
-            "git_dir": self.git_directory.data,
-            "tito_test": self.tito_test.data
-        })
-
-
 class PackageFormMock(BasePackageForm):
     scm_type = wtforms.SelectField(
         "SCM Type",
@@ -570,11 +541,6 @@ class BaseBuildFormFactory(object):
             else:
                 F.chroots_sets[ch[0]] = [ch]
         return F
-
-
-class BuildFormTitoFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormTito)
 
 
 class BuildFormSCMFactory(object):

@@ -170,67 +170,6 @@ def process_new_build(copr, form, create_new_build_factory, add_function, add_vi
         return add_function(copr, form, add_view)
 
 
-################################ SCM-1 (Tito) builds ################################
-
-@coprs_ns.route("/<username>/<coprname>/add_build_tito/")
-@login_required
-@req_with_copr
-def copr_add_build_tito(copr, form=None):
-    return render_add_build_tito(
-        copr, form, view='coprs_ns.copr_new_build_tito')
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/add_build_tito/")
-@login_required
-@req_with_copr
-def group_copr_add_build_tito(copr, form=None):
-    return render_add_build_tito(
-        copr, form, view='coprs_ns.copr_new_build_tito')
-
-
-def render_add_build_tito(copr, form, view, package=None):
-    if not form:
-        form = forms.BuildFormTitoFactory(copr.active_chroots)()
-    return flask.render_template("coprs/detail/add_build/tito.html",
-                                 copr=copr, form=form, view=view, package=package)
-
-
-@coprs_ns.route("/<username>/<coprname>/new_build_tito/", methods=["POST"])
-@login_required
-@req_with_copr
-def copr_new_build_tito(copr):
-    view = 'coprs_ns.copr_new_build_tito'
-    url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.user.username, coprname=copr.name)
-    return process_new_build_tito(copr, view, url_on_success)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_tito/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build_tito(copr):
-    view = 'coprs_ns.copr_new_build_tito'
-    url_on_success = url_for("coprs_ns.group_copr_builds",
-                             group_name=copr.group.name, coprname=copr.name)
-    return process_new_build_tito(copr, view, url_on_success)
-
-
-def process_new_build_tito(copr, add_view, url_on_success):
-    def factory(**build_options):
-        BuildsLogic.create_new_from_tito(
-            flask.g.user,
-            copr,
-            form.git_url.data,
-            form.git_directory.data,
-            form.git_branch.data,
-            form.tito_test.data,
-            form.selected_chroots,
-            **build_options
-        )
-    form = forms.BuildFormTitoFactory(copr.active_chroots)()
-    return process_new_build(copr, form, factory, render_add_build_tito, add_view, url_on_success)
-
-
 ################################ SCM builds #########################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_scm/")
