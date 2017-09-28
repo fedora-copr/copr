@@ -109,11 +109,19 @@ class BuildSourceEnum(with_metaclass(EnumType, object)):
             "link": 1,  # url
             "upload": 2,  # pkg, tmp
             "git_and_tito": 3, # git_url, git_dir, git_branch, tito_test
-            "mock_scm": 4, # scm_type, scm_url, spec, scm_branch, scm_subdir
+            "scm": 4, # scm_type, scm_url, spec, scm_branch, scm_subdir
             "pypi": 5, # package_name, version, python_versions
             "rubygems": 6, # gem_name
             "distgit": 7, # url, branch
            }
+
+
+class SrpmMethodEnum(with_metaclass(EnumType, object)):
+    vals = {"tito": 0,
+            "tito_test": 1,
+            "spectool": 2,
+            "mock_scm": 3,
+            }
 
 
 # The same enum is also in distgit's helpers.py

@@ -413,8 +413,8 @@ GROUP BY
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
-    def create_new_from_mock(cls, user, copr, scm_type, scm_url, scm_branch, scm_subdir, spec,
-                             chroot_names=None, **build_options):
+    def create_new_from_scm(cls, user, copr, scm_type, scm_url, scm_branch, scm_subdir, spec, srpm_method,
+                            chroot_names=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -423,12 +423,13 @@ GROUP BY
 
         :rtype: models.Build
         """
-        source_type = helpers.BuildSourceEnum("mock_scm")
+        source_type = helpers.BuildSourceEnum("scm")
         source_json = json.dumps({"scm_type": scm_type,
                                   "scm_url": scm_url,
                                   "scm_branch": scm_branch,
                                   "scm_subdir": scm_subdir,
-                                  "spec": spec})
+                                  "spec": spec,
+                                  "srpm_method": srpm_method})
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod

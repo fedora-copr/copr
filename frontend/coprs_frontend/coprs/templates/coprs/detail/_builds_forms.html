@@ -136,7 +136,7 @@
 {% endmacro %}
 
 
-{% macro copr_build_form_mock(form, view, copr) %}
+{% macro copr_build_form_scm(form, view, copr) %}
   {{ copr_build_form_begin(form, view, copr) }}
 
   {{ source_description('Build from Git or SVN repository. Please provide the Git or SVN URL.')}}
@@ -146,6 +146,41 @@
     {{ render_field(form.scm_subdir, placeholder="Optional - Subdirectory where source files and .spec are located.") }}
     {{ render_field(form.spec, placeholder="Optional - Path to your .spec file under the specified subdirectory.") }}
     {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
+
+      <!-- This closes "2. Provide the source" panel, so we can create a new one.
+           It is particularly ugly and needs to be changed -->
+      </div>
+    </div>
+
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">2.2. How to build SRPM from the source</h3>
+      </div>
+      <div class="panel-body">
+        <div class="list-group">
+          {% set srpm_methods = [('Tito', 'tito', 'This method can be used for upstream projects that are managed with <a href="https://github.com/dgoodwin/tito">Tito</a> packaging tool'),
+                                 ('Tito test', 'tito_test', 'Same as previous Tito method, but passes <code>--test</code> parameter to use current branch HEAD instead of last package tag'),
+                                 ('Spectool', 'spectool', 'Uses Spectool from <a href="https://fedoraproject.org/wiki/Rpmdevtools">rpmdevtools</a> to download <code>SourceX</code> sources defined as full URL'),
+                                 ('Mock SCM', 'mock_scm', 'This method is based on <a href="https://fedoraproject.org/wiki/Projects/Mock/Plugin/Scm">SCM plugin for Mock</a>'),
+                                ] %}
+
+          {% for title, name, description in srpm_methods %}
+          <div class="list-group-item">
+            <div class="radio">
+              <label>
+                {% set checked = 'checked="checked"' if (form.srpm_method.data or 'tito')  == name %}
+                <input id="{{ name }}" name="srpm_method" type="radio" value="{{ name }}" {{ checked }}>
+                <label for="{{ name }}">
+                  <strong>{{ title }}</strong>
+                  <br>
+                  {{ description |safe }}
+                </label>
+              </label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
 
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}

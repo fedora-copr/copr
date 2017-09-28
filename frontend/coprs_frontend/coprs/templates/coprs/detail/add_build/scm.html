@@ -1,0 +1,10 @@
+{% extends "coprs/detail/add_build.html" %}
+{% from "coprs/detail/_builds_forms.html" import copr_build_form_scm with context %}
+
+{% set add_build_tab = "scm" %}
+
+{% block build_form %}
+
+  {{ copr_build_form_scm(form, view, copr) }}
+
+{% endblock %}

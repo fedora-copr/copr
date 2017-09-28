@@ -437,7 +437,7 @@ def copr_new_build_mock(copr):
     form = forms.BuildFormMockFactory(copr.active_chroots)(csrf_enabled=False)
 
     def create_new_build():
-        return BuildsLogic.create_new_from_mock(
+        return BuildsLogic.create_new_from_scm(
             flask.g.user,
             copr,
             form.scm_type.data,

@@ -439,6 +439,13 @@ class PackageFormMock(BasePackageForm):
                 r"^.+\.spec$",
                 message="RPM spec file must end with .spec")])
 
+    srpm_method = wtforms.StringField(
+        "SRPM method",
+        validators=[
+            wtforms.validators.DataRequired(),
+            wtforms.validators.AnyOf(["tito", "tito_test", "spectool", "mock_scm"])
+        ])
+
     @property
     def source_json(self):
         return json.dumps({
@@ -570,7 +577,7 @@ class BuildFormTitoFactory(object):
         return BaseBuildFormFactory(active_chroots, PackageFormTito)
 
 
-class BuildFormMockFactory(object):
+class BuildFormSCMFactory(object):
     def __new__(cls, active_chroots):
         return BaseBuildFormFactory(active_chroots, PackageFormMock)
 

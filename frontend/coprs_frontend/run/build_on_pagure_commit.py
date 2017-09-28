@@ -106,7 +106,7 @@ class MockSCMPackage(Package):
         self.source_json = db_row.source_json
 
     def build(self):
-        BuildsLogic.create_new_from_mock(self.copr.user, self.copr, self.scm_type, self.scm_url, self.scm_branch, self.scm_subdir, self.spec)
+        BuildsLogic.create_new_from_scm(self.copr.user, self.copr, self.scm_type, self.scm_url, self.scm_branch, self.scm_subdir, self.spec)
         db.session.commit()
 
 
