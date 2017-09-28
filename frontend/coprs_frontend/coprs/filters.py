@@ -215,13 +215,17 @@ def build_source_description(state):
         "unset": "No default source",
         "link": "External link to .spec or SRPM",
         "upload": "SRPM or .spec file upload",
-        "git_and_tito": "SCM-1 build from a Git repository",
-        "mock_scm": "SCM-2 build from a SCM repository",
+        "scm": "SCM-2 build from a SCM repository",
         "pypi": "Build from PyPI",
         "rubygems": "Build from RubyGems",
     }
 
     return description_map.get(state, "")
+
+
+@app.template_filter("srpm_method_text")
+def srpm_method_text(num):
+    return helpers.SrpmMethodEnum(num)
 
 
 @app.template_filter("fix_url_https_backend")

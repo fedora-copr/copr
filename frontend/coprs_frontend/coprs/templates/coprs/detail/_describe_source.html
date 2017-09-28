@@ -16,20 +16,7 @@
   <dt>File Name:</dt>
   <dd>{{ source_json_dict["pkg"] }}</dd>
 
-  {% elif source_type_text == "git_and_tito" %}
-  <dt>Git URL:</dt>
-  <dd>{{ source_json_dict["git_url"] }}</dd>
-
-  <dt>Local directory in Git:</dt>
-  <dd>{{ source_json_dict["git_dir"] }}</dd>
-
-  <dt>Git branch:</dt>
-  <dd>{{ source_json_dict["git_branch"] }}</dd>
-
-  <dt>Using test mode:</dt>
-  <dd>{{ source_json_dict["tito_test"] }}</dd>
-
-  {% elif source_type_text == "mock_scm" %}
+  {% elif source_type_text == "scm" %}
   <dt>SCM type:</dt>
   <dd>{{ source_json_dict["scm_type"] }}</dd>
 
@@ -44,6 +31,9 @@
 
   <dt>Path to .spec file:</dt>
   <dd>{{ source_json_dict["spec"] }}</dd>
+
+  <dt>Build SRPM with:</dt>
+  <dd>{{ source_json_dict["srpm_method"] |srpm_method_text }}</dd>
 
   {% elif source_type_text == "pypi" %}
   <dt>PyPI package name</dt>
