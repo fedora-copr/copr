@@ -422,7 +422,8 @@ class PackageFormSCM(BasePackageForm):
             "scm_url": self.scm_url.data,
             "scm_subdir": self.scm_subdir.data,
             "scm_branch": self.scm_branch.data,
-            "spec": self.spec.data
+            "spec": self.spec.data,
+            "srpm_method": helpers.SrpmMethodEnum(self.srpm_method.data),
         })
 
 
