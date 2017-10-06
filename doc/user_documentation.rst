@@ -18,15 +18,22 @@ Build Source Types
 
 Copr supports several types of build sources.
 
-URL to a SRPM package
-^^^^^^^^^^^^^^^^^^^^^
+URLs
+^^^^
 
-This is the only method to submit more builds at once. First, you need to upload your SRPM package(s) on a public server and then provide the URL(s).
+This is currently the only method to submit multiple builds at once. First, you need to upload your SRPM
+package(s) on a public server and then provide the URL(s) separated by space or a newline. Note that the build
+order of the individual launched builds is not guaranteed.
 
-Direct Upload of a SRPM package
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+You can also just input a URL to an rpm .spec file (package metadata) that describe the package without
+including the actual build sources. The build sources, being again available on a public server under https,
+will be then downloaded by COPR automatically during the SRPM build process.
 
-Upload a SRPM package directly to Copr using the web interface or copr-cli command line client.
+Direct Upload
+^^^^^^^^^^^^^
+
+In case, you have your .spec file or srpm stored locally, you can use this method to upload it directly to
+COPR from a command-line (by using copr-cli tool) or through COPR web UI.
 
 .. _scm_ref:
 
@@ -63,6 +70,18 @@ is looked up and built. This is equivalent to using tito _without_ --test.
 If checkbox is checked, then the build is done directly from HEAD commit and Release and Source0 name in .spec
 is tagged with XX.<commit_short_hash> where XX is number of commits from the latest subpackage tag. This is equivalent
 to using tito _with_ --test.
+
+PyPI
+^^^^
+
+With this source type, you can build python packages directly from `<https://pypi.python.org/pypi>`_. COPR translates those
+packages to src.rpm packages automatically by using `pyp2rpm <https://github.com/fedora-python/pyp2rpm>`_ tool.
+
+RubyGems
+^^^^^^^^
+
+Similarly to PyPI source type, this allows building gems from `<https://rubygems.org/>`_. The tool for package translation
+here is `gem2rpm <https://github.com/fedora-ruby/gem2rpm>`_.
 
 
 GitHub Webhooks
