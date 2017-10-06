@@ -1,9 +1,9 @@
 import re
 import unittest
 import mock
+import configparser
 from os.path import realpath, dirname
 from ..copr_rpmbuild.builders.mock import MockBuilder
-
 
 class TestMockBuilder(unittest.TestCase):
     def setUp(self):
@@ -33,9 +33,13 @@ class TestMockBuilder(unittest.TestCase):
             "use_bootstrap_container": False,
         }
         self.sourcedir = "/path/to/sourcedir"
+        self.resultdir = "/path/to/resultdir"
+        self.config = configparser.RawConfigParser()
+        self.config.add_section('main')
+        self.config.set('main', 'logfile', '/path/to/logfile')
 
     def test_init(self):
-        builder = MockBuilder(self.task, self.sourcedir)
+        builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         self.assertEqual(builder.task_id, "10-fedora-24-x86_64")
         self.assertEqual(builder.chroot, "fedora-24-x86_64")
         self.assertEqual(builder.buildroot_pkgs, ["pkg1", "pkg2", "pkg3"])
@@ -43,9 +47,9 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(builder.repos, [])
         self.assertEqual(builder.use_bootstrap_container, False)
 
-    def test_redner_config_template(self):
+    def test_render_config_template(self):
         confdirs = [dirname(dirname(realpath(__file__)))]
-        builder = MockBuilder(self.task, self.sourcedir, confdirs=confdirs)
+        builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         cfg = builder.render_config_template()
 
         # Parse the rendered config
@@ -66,7 +70,7 @@ class TestMockBuilder(unittest.TestCase):
     @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.run_cmd")
     def test_produce_rpm(self, run_cmd):
         #FIXME:
-        #builder = MockBuilder(self.task, self.sourcedir)
+        #builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         #builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/configs", "/path/to/results")
         #assert_cmd = ["/usr/bin/mock",
         #              "--rebuild", "/path/to/pkg.src.rpm",
@@ -78,12 +82,12 @@ class TestMockBuilder(unittest.TestCase):
 
     @mock.patch('builtins.open', new_callable=mock.mock_open())
     def test_touch_success_file(self, mock_open):
-        builder = MockBuilder(self.task, self.sourcedir, resultdir="/path/to/results")
+        builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         builder.touch_success_file()
-        mock_open.assert_called_with("/path/to/results/success", "w")
+        mock_open.assert_called_with("/path/to/resultdir/success", "w")
 
     def test_custom1_chroot_settings(self):
-        b1 = MockBuilder(self.task, self.sourcedir)
-        b2 = MockBuilder(dict(self.task, **{"chroot": "custom-1-x86_64"}), self.sourcedir)
+        b1 = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
+        b2 = MockBuilder(dict(self.task, **{"chroot": "custom-1-x86_64"}), self.sourcedir, self.resultdir, self.config)
         self.assertEqual(b1.pkg_manager_conf, "yum")
         self.assertEqual(b2.pkg_manager_conf, "dnf")

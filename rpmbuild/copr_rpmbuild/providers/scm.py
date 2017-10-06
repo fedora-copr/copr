@@ -5,11 +5,12 @@ import munch
 import shutil
 import tarfile
 import re
+import tempfile
 
 from copr_rpmbuild import helpers
 
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import run_cmd, SourceType
+from ..helpers import run_cmd, SourceType, CONF_DIRS
 from .base import Provider
 
 try:
@@ -17,188 +18,140 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-
 log = logging.getLogger("__main__")
 
 
-class PackageContent(munch.Munch):
-    """
-    Class describing acquired package content.
-    """
-    def __init__(self, *args, **kwargs):
-        self.spec_path = None
-        self.source_paths = []
-        self.extra_content = []
-        super(PackageContent, self).__init__(*args, **kwargs)
-
-
 class ScmProvider(Provider):
-    def __init__(self, source_json, workdir=None, confdirs=None):
-        super(ScmProvider, self).__init__(source_json, workdir, confdirs)
+    def __init__(self, source_json, outdir, config):
+        super(ScmProvider, self).__init__(source_json, outdir, config)
         if 'scm_url' in source_json: # Mock-SCM
-            self.url = source_json.get('scm_url')
-            self.subdir = source_json.get('scm_subdir')
-            self.branch = source_json.get('scm_branch')
+            self.clone_url = source_json.get('scm_url')
+            self.repo_subdir = source_json.get('scm_subdir', '')
+            self.committish = source_json.get('scm_branch')
             self.scm_type = source_json.get('scm_type')
-            self.spec_relpath = source_json.get('spec')
+            self.spec_relpath = source_json.get('spec', '')
             self.test = True
             self.prepare_test_spec = False
-        else: # Git and Tito
-            self.url = source_json.get('git_url')
-            self.subdir = source_json.get('git_dir')
-            self.branch = source_json.get('git_branch')
+            self.srpm_build_method = source_json.get('srpm_method') or 'rpkg'
+        elif 'git_url' in source_json: # Git and Tito
+            self.clone_url = source_json.get('git_url')
+            self.repo_subdir = source_json.get('git_dir', '')
+            self.committish = source_json.get('git_branch')
             self.scm_type = 'git'
             self.spec_relpath = None
             self.test = source_json.get('tito_test')
             self.prepare_test_spec = self.test
+            self.srpm_build_method = source_json.get('srpm_method') or 'rpkg'
+        else:
+            self.clone_url = source_json.get('clone_url')
+            self.committish = source_json.get('branch')
+            self.srpm_build_method = 'rpkg'
+            self.scm_type = 'git'
+            self.repo_subdir = ''
 
-    @property
-    def resultdir(self):
-        return self.workdir
-
-    @resultdir.setter
-    def resultdir(self, value):
-        pass
+        self.repo_dirname = os.path.splitext(os.path.basename(self.clone_url))[0]
+        self.repo_path = os.path.join(self.workdir, self.repo_dirname)
 
     def run(self):
-        content = self.get_content()
-        log.info(content)
-
-        cfg = self.render_rpkg_template()
-        log.info(cfg)
-
-        config_path = os.path.join(self.workdir, "rpkg.conf")
-        f = open(config_path, "w+")
-        f.write(cfg)
-        f.close()
-
-        self.touch_sources()
         result = self.produce_srpm(config_path)
         log.info(result)
 
-    def render_rpkg_template(self):
-        jinja_env = Environment(loader=FileSystemLoader(self.confdirs))
+    def generate_rpkg_config(self):
+        clone_url_hostname = urlparse(self.clone_url).netloc
+        found_config_section = None
+
+        index = 0
+        config_section = 'distgit{index}'.format(index=index)
+        while self.config.has_section(config_section):
+            distgit_hostname_pattern = self.config.get(
+                config_section, 'distgit_hostname_pattern')
+            if re.match(distgit_hostname_pattern, clone_url_hostname):
+                found_config_section = config_section
+                break
+            index += 1
+            config_section = 'distgit{index}'.format(index=index)
+
+        if not found_config_section:
+            return '/etc/rpkg.conf'
+
+        distgit_lookaside_url = self.config.get(
+            found_config_section, 'distgit_lookaside_url')
+        distgit_clone_url = self.config.get(
+            found_config_section, 'distgit_clone_url')
+
+        jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
         template = jinja_env.get_template("rpkg.conf.j2")
-        parse = urlparse(self.url)
-        distgit_domain = parse.netloc
-        return template.render(distgit_domain=distgit_domain, scheme=parse.scheme)
+        config = template.render(lookaside_url=distgit_lookaside_url,
+                                 clone_url=distgit_clone_url)
+        log.debug(config+'\n')
+        config_path = os.path.join(self.workdir, "rpkg.conf")
 
-    def produce_srpm(self, config):
-        cmd = ["rpkg", "--config", config, "srpm"]
-        return run_cmd(cmd, cwd=self.workdir)
+        f = open(config_path, "w+")
+        f.write(config)
+        f.close()
 
-    def locate_spec(self, repo_subpath):
-        if self.spec_relpath:
-            spec_path = os.path.join(repo_subpath, self.spec_relpath)
-        else:
-            spec_path = helpers.locate_spec(repo_subpath)
+        return config_path
 
-        if not os.path.exists(spec_path):
-            raise PackageImportException("Can't find spec file at {}".format(spec_path))
+    def get_rpkg_command(self):
+        return ['rpkg', '-C', self.generate_rpkg_config(), 'srpm',
+                '--outdir', self.outdir] + (['--spec', self.spec_relpath]
+                                            if self.spec_relpath else [])
 
-        return spec_path
+    def get_tito_command(self):
+        return ['tito', 'build', '--srpm', '--output', self.outdir]
 
-    def clone_sources(self, repo_path):
+    def get_tito_test_command(self):
+        return ['tito', 'build', '--test', '--srpm', '--output', self.outdir]
+
+    def get_make_srpm_command(self):
+        mock_workdir = os.path.join('mnt', self.workdir)
+        mock_outdir = os.path.join('mnt', self.outdir)
+        mock_repodir = os.path.join(mock_workdir, self.repo_dirname)
+        mock_cwd = os.path.join(mock_repodir, self.repo_subdir)
+
+        mock_bind_mount_cmd_part = \
+            '--plugin-option=\'bind_mount:dirs=(("{0}, "{1}"), ("{2}", "{3}"))\''\
+            .format(self.workdir, mock_workdir, self.outdir, mock_outdir)
+
+        makefile_path = os.path.join(mock_repodir, '.copr', 'Makefile')
+        make_srpm_cmd_part = \
+            'cd {0}; make -f {1} srpm outdir="{2}" spec="{3}"'\
+            .format(mock_cwd, makefile_path, mock_outdir, self.spec_relpath or '')
+
+        return ['mock', '-r', '/etc/copr-rpmbuild/make_srpm_mock.cfg',
+                mock_bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]
+
+    def produce_srpm(self):
+        self.clone_and_checkout()
+        cwd = os.path.join(self.repo_path, self.repo_subdir)
+        cmd = {
+            'rpkg': self.get_rpkg_command,
+            'tito': self.get_tito_command,
+            'tito_test': self.get_tito_test_command,
+            'make_srpm': self.get_make_srpm_command,
+        }[self.srpm_build_method]()
+        return run_cmd(cmd, cwd=cwd)
+
+    def produce_sources(self):
+        self.clone_and_checkout()
+        cwd = os.path.join(self.repo_path, self.repo_subdir)
+
+        copy_cmd = ['cp', '-r', '.', self.outdir]
+        copy_cmd_result = run_cmd(copy_cmd, cwd=cwd)
+
+        cmd = ['rpkg', '-C', self.generate_rpkg_config(),
+               'sources', '--outdir', self.outdir]
+        return run_cmd(cmd, cwd=cwd)
+
+    def clone_and_checkout(self):
         if self.scm_type == 'git':
-            clone_cmd = ['git', 'clone', self.url, repo_path,
-                   '--depth', '500', '--branch', self.branch or 'master']
+            clone_cmd = ['git', 'clone', self.clone_url,
+                         self.repo_path, '--depth', '500']
         else:
-            clone_cmd = ['git', 'svn', 'clone', self.url, repo_path,
-                   '--branch', self.branch or 'master']
+            clone_cmd = ['git', 'svn', 'clone', self.clone_url,
+                         self.repo_path]
 
         helpers.run_cmd(clone_cmd)
 
-    def checkout_sources(self, repo_path, commit_id):
-        helpers.run_cmd(['git', '-C', repo_path, 'checkout', commit_id])
-
-    def pack_sources(self, dir_to_pack, target_path, spec_info):
-        tardir_name = spec_info.name + '-' + spec_info.version
-        tardir_path = os.path.join(self.workdir, tardir_name)
-
-        log.debug("Packing {} as {} into {}...".format(
-            dir_to_pack, tardir_name, target_path))
-
-        def exclude_vcs(tar_info):
-            exclude_pattern = r'(/.git$|/.git/|/.gitignore$)'
-            if re.search(exclude_pattern, tar_info.name):
-                log.debug("Excluding {}".format(tar_info.name))
-                return None
-            return tar_info
-
-        tarball = tarfile.open(target_path, 'w:gz')
-        tarball.add(dir_to_pack, tardir_name, filter=exclude_vcs)
-        tarball.close()
-
-    def prepare_sources(self, repo_subpath, spec_path):
-        spec_info = helpers.get_rpm_spec_info(spec_path)
-        source_paths = []
-        extra_content = []
-        source_zero = None
-        downstream_repo = False
-
-        for (path, num, flags) in spec_info.sources:
-            filename = os.path.basename(path)
-
-            if num == 0 and flags == 1:
-                source_zero = filename
-
-            orig_path = os.path.join(repo_subpath, filename)
-            if not os.path.isfile(orig_path):
-                continue
-
-            downstream_repo = True
-
-            target_path = os.path.join(self.workdir, filename)
-            shutil.copy(orig_path, target_path)
-
-            if flags == 1:
-                source_paths.append(target_path)
-            else:
-                extra_content.append(target_path)
-
-        include = lambda f: not re.search(r'(^README|.spec$|^\.|tito.props)', f)
-        if not list(filter(include, os.listdir(repo_subpath))):
-            downstream_repo = True
-
-        if not downstream_repo and source_zero:
-            target_path = os.path.join(self.workdir, source_zero)
-            self.pack_sources(repo_subpath, target_path, spec_info)
-            source_paths.append(target_path)
-
-        return (source_paths, extra_content)
-
-    def get_content(self):
-        repo_path = os.path.join(self.workdir, os.path.basename(self.url))
-        self.clone_sources(repo_path)
-
-        if self.subdir:
-            repo_subpath = os.path.join(repo_path, self.subdir)
-        else:
-            repo_subpath = repo_path
-
-        head_spec_path = self.locate_spec(repo_subpath)
-        package_name = helpers.get_package_name(head_spec_path)
-
-        if self.test:
-            target_commit_id = 'HEAD'
-        else:
-            target_commit_id = helpers.get_latest_package_tag(package_name, repo_path) or 'HEAD'
-
-        self.checkout_sources(repo_path, target_commit_id)
-        orig_spec_path = self.locate_spec(repo_subpath)
-
-        spec_path = os.path.join(
-            self.workdir, os.path.basename(orig_spec_path))
-
-        if self.prepare_test_spec:
-            helpers.prepare_test_spec(
-                orig_spec_path, spec_path, repo_path, package_name)
-        else:
-            shutil.copy(orig_spec_path, spec_path)
-
-        source_paths, extra_content = self.prepare_sources(repo_subpath, spec_path)
-
-        return PackageContent(
-            spec_path=spec_path,
-            source_paths=source_paths,
-            extra_content=extra_content)
+        checkout_cmd = ['git', 'checkout', self.committish]
+        helpers.run_cmd(checkout_cmd, cwd=self.repo_path)

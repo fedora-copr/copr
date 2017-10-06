@@ -1,18 +1,5 @@
 [rpkg]
-lookaside = {{ scheme }}://{{ distgit_domain }}/repo/pkgs
-lookasidehash = sha512
-lookaside_cgi = {{ scheme }}://{{ distgit_domain }}/repo/pkgs/upload.cgi
-gitbaseurl = ssh://%(user)s@{{ distgit_domain }}/%(module)s
-anongiturl = git://{{ distgit_domain }}/%(module)s
-tracbaseurl = https://%(user)s:%(password)s@fedorahosted.org/rel-eng/login/xmlrpc
-branchre = f\d$|f\d\d$|el\d$|olpc\d$|master$
-kojiconfig = /etc/koji.conf
-build_client = koji
-clone_config =
-  bz.default-tracker bugzilla.redhat.com
-  bz.default-product Fedora
-  bz.default-version rawhide
-  bz.default-component %(module)s
-  sendemail.to %(module)s-owner@fedoraproject.org
-  push.default simple
-distgit_namespaced = True
+lookaside = {{ lookaside_url }}
+lookaside_cgi = unused
+gitbaseurl = unused
+anongiturl = {{ clone_url }}/%(module)s

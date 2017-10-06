@@ -7,9 +7,12 @@ import os
 import re
 import shutil
 import fileinput
+import configparser
+import pprint
 
 log = logging.getLogger("__main__")
 
+CONF_DIRS = [os.getcwd(), "/etc/copr-rpmbuild"]
 
 class SourceType:
     LINK = 1
@@ -19,6 +22,7 @@ class SourceType:
     PYPI = 5
     RUBYGEMS = 6
     DISTGIT = 7
+    SCM = 8
 
 
 def run_cmd(cmd, cwd=".", preexec_fn=None):
@@ -32,6 +36,7 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
     :raises PackageImportException
     :returns munch.Munch(cmd, stdout, stderr, returncode)
     """
+    log.info('Running: {cmd}'.format(cmd=' '.join(cmd)))
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
     try:
@@ -43,21 +48,17 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
         cmd=cmd,
         stdout=stdout.decode(encoding='utf-8').strip(),
         stderr=stderr.decode(encoding='utf-8').strip(),
-        returncode=process.returncode
+        returncode=process.returncode,
+        cwd=cwd
     )
-    log.debug(result)
+
+    pp = pprint.PrettyPrinter(width=120)
+    log.debug(pp.pformat(result)+'\n')
 
     if result.returncode != 0:
         raise RuntimeError(result.stderr)
 
     return result
-
-
-def locate_sources(dirpath):
-    path_matches = []
-    for ext in pyrpkg.Commands.UPLOADEXTS:
-        path_matches += glob.glob(os.path.join(dirpath, '*.'+ext))
-    return filter(os.path.isfile, path_matches)
 
 
 def locate_spec(dirpath):
@@ -82,14 +83,6 @@ def locate_srpm(dirpath):
     if not srpm_path:
         raise PackageImportException('No .src.rpm found at {}'.format(dirpath))
     return srpm_path
-
-
-def locate_extra_content(dirpath, exclude):
-    extra_content = []
-    for path in glob.glob(os.path.join(dirpath, '*')):
-        if path not in exclude:
-            extra_content.append(path)
-    return extra_content
 
 
 def get_package_name(spec_path):
@@ -137,136 +130,16 @@ def get_package_name(spec_path):
     return package_name
 
 
-def get_pkg_evr(spec_path):
-    try:
-        rpm.addMacro('dist', '')
-        pkg_info = get_rpm_spec_info(spec_path)
-    except RpmSpecParseException as e:
-        return ''
-    finally:
-        rpm.reloadConfig()
-
-    if pkg_info.epoch:
-        return '{}:{}-{}'.format(
-            pkg_info.epoch, pkg_info.version, pkg_info.release)
-
-    return '{}-{}'.format(pkg_info.version, pkg_info.release)
-
-
-def get_rpm_spec_info(spec_path):
-    """
-    Return information about an rpm package
-    as read from a spec file.
-
-    :param str spec_path: path to a spec file
-
-    :returns Munch: info about a package
-
-    :raises RpmSpecParseException
-    """
-    ts = rpm.ts()
-
-    try:
-        rpm_spec = ts.parseSpec(spec_path)
-        name = rpm.expandMacro("%{name}")
-        version = rpm.expandMacro("%{version}")
-        release = rpm.expandMacro("%{release}")
-        epoch = rpm.expandMacro("%{epoch}")
-        if epoch == "%{epoch}":
-            epoch = None
-    except ValueError as e:
-        raise RpmSpecParseException(str(e))
-
-    return munch.Munch(
-        name=name,
-        version=version,
-        release=release,
-        epoch=epoch,
-        sources=rpm_spec.sources
-    )
-
-
-# origin: https://github.com/dgoodwin/tito/blob/e153a58611fc0cd198e9ae40c1033e51192a94a1/src/tito/common.py#L682
-def munge_spec(spec_file, commit_id, commit_count, tgz_filename=None):
-    sha = commit_id[:7]
-
-    for line in fileinput.input(spec_file, inplace=True):
-        m = re.match(r'^(\s*Release:\s*)(.+?)(%{\?dist})?\s*$', line)
-        if m:
-            print('%s%s.git.%s.%s%s' % (
-                m.group(1),
-                m.group(2),
-                commit_count,
-                sha,
-                m.group(3),
-            ))
-            continue
-
-        m = re.match(r'^(\s*Source0?):\s*(.+?)$', line)
-        if tgz_filename and m:
-            print('%s: %s' % (m.group(1), tgz_filename))
-            continue
-
-        print(line.rstrip('\n'))
-
-
-def prepare_test_spec(source_spec_path, target_spec_path, repo_path, package_name, commit_id='HEAD'):
-    """
-    Save modified spec file under target_spec_path.
-    """
-    latest_package_tag = get_latest_package_tag(
-        package_name, repo_path, commit_id)
-
-    if latest_package_tag:
-        start_commit_id = run_cmd([
-            'git', '-C', repo_path,
-            'rev-list', latest_package_tag,
-            '--max-count=1']).stdout
-    else:
-        start_commit_id = run_cmd([
-            'git', '-C', repo_path,
-            'rev-list', commit_id,
-            '--max-parents=0']).stdout
-
-    commit_count_range = '{}..{}'.format(
-        start_commit_id, commit_id)
-
-    commit_count = run_cmd([
-        'git', '-C', repo_path,
-        'rev-list', commit_count_range,
-        '--count']).stdout
-
-    commit_hex = run_cmd([
-        'git', '-C', repo_path,
-        'rev-list', commit_id,
-        '--max-count=1']).stdout
-
-    tag = "git-{}.{}".format(commit_count, commit_hex[:7])
-    tgz_filename = "{}-{}.tar.gz".format(package_name, tag)
-
-    try:
-        shutil.copy(source_spec_path, target_spec_path)
-    except IOError as e:
-        raise PackageImportException(str(e))
-
-    munge_spec(
-        target_spec_path,
-        commit_hex,
-        commit_count,
-        tgz_filename,
-    )
-
-
-def get_latest_package_tag(package_name, repo_path, from_commit_id='HEAD'):
-    tag = None
-    try:
-        tag = run_cmd([
-            'git', '-C', repo_path,
-            'describe', from_commit_id,
-            '--tags',
-            '--match', package_name+'*',
-            '--abbrev=0']).stdout
-    except RunCommandException as e:
-        log.warning('No tag found.')
-
-    return tag
+def read_config(config_path=None):
+    config = configparser.RawConfigParser(defaults={
+        "resultdir": "/var/lib/copr-rpmbuild/results",
+        "lockfile": "/var/lib/copr-rpmbuild/lockfile",
+        "logfile": "/var/lib/copr-rpmbuild/main.log",
+        "pidfile": "/var/lib/copr-rpmbuild/pid",
+    })
+    config_paths = [os.path.join(path, "main.ini") for path in CONF_DIRS]
+    config.read(config_path or reversed(config_paths))
+    if not config.sections():
+        log.error("No configuration file main.ini in: {}".format(" ".join(CONF_DIRS)))
+        sys.exit(1)
+    return config

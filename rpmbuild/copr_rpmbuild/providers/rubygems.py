@@ -2,13 +2,12 @@ import logging
 from ..helpers import run_cmd
 from .base import Provider
 
-
 log = logging.getLogger("__main__")
 
 
 class RubyGemsProvider(Provider):
-    def __init__(self, source_json, workdir=None, confdirs=None):
-        super(RubyGemsProvider, self).__init__(source_json, workdir, confdirs)
+    def __init__(self, source_json, outdir, config=None):
+        super(RubyGemsProvider, self).__init__(source_json, outdir, config)
         self.gem_name = source_json["gem_name"]
 
     def run(self):
@@ -21,5 +20,5 @@ class RubyGemsProvider(Provider):
                 "See http://guides.rubygems.org/specification-reference/#license="]))
 
     def produce_srpm(self):
-        cmd = ["gem2rpm", self.gem_name, "--srpm", "-C", self.workdir, "--fetch"]
+        cmd = ["gem2rpm", self.gem_name, "--srpm", "-C", self.outdir, "--fetch"]
         return run_cmd(cmd)

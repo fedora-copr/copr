@@ -9,22 +9,21 @@ import json
 import logging
 import tempfile
 import shutil
-import configparser
+import pprint
+
 from simplejson.scanner import JSONDecodeError
+
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
+from copr_rpmbuild.helpers import read_config
 
 try:
     from urllib.parse import urlparse, urljoin
 except ImportError:
     from urlparse import urlparse, urljoin
 
-
-CONF_DIRS = [os.path.dirname(os.path.realpath(__file__)),
-             "/etc/copr-rpmbuild"]
-
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 
@@ -68,20 +67,13 @@ def main():
 
     args = parser.parse_args()
 
+    if args.verbose:
+        log.setLevel(logging.DEBUG)
+
     if args.detached:
         daemonize()
 
-    config = configparser.RawConfigParser(defaults={
-        "resultdir": "/var/lib/copr-rpmbuild/results",
-        "lockfile": "/var/lib/copr-rpmbuild/lockfile",
-        "logfile": "/var/lib/copr-rpmbuild/main.log",
-        "pidfile": "/var/lib/copr-rpmbuild/pid",
-    })
-    config_paths = [os.path.join(path, "main.ini") for path in CONF_DIRS]
-    config.read(args.config or reversed(config_paths))
-    if not config.sections():
-        log.error("No configuration file main.ini in: {}".format(" ".join(CONF_DIRS)))
-        sys.exit(1)
+    config = read_config(args.config)
 
     # Write pid
     pidfile = open(config.get("main", "pidfile"), "w")
@@ -119,16 +111,13 @@ def init(args, config):
 
 def build_srpm(args, config):
     task = get_task("/backend/get-srpm-build-task/", args.build_id, config)
-
-    workdir = tempfile.mkdtemp()
-    provider = providers.factory(task["source_type"])(
-        task["source_json"], workdir, CONF_DIRS)
-
-    provider.run()
-
-    shutil.copy2(provider.srpm, config.get("main", "resultdir"))
-
     resultdir = config.get("main", "resultdir")
+
+    provider = providers.factory(task["source_type"])(
+        task["source_json"], resultdir, config)
+
+    provider.produce_srpm()
+
     with open(os.path.join(resultdir, 'success'), "w") as success:
         success.write("done")
 
@@ -139,27 +128,27 @@ def build_rpm(args, config):
     task_id = "-".join([args.build_id, args.chroot])
     task = get_task("/backend/get-build-task/", task_id, config)
 
-    workdir = tempfile.mkdtemp()
-    provider = providers.DistGitProvider(task["source_json"], workdir, CONF_DIRS)
-    provider.run(produce_srpm=False)
+    sourcedir = tempfile.mkdtemp()
+    scm_provider = providers.ScmProvider(task["source_json"], sourcedir, config)
+    scm_provider.produce_sources()
 
     resultdir = config.get("main", "resultdir")
-    builder = MockBuilder(task, provider.resultdir, config.get("main", "logfile"),
-                          resultdir=resultdir, confdirs=CONF_DIRS)
+    builder = MockBuilder(task, sourcedir, resultdir, config)
     builder.run()
     builder.touch_success_file()
-
+    shutil.rmtree(sourcedir)
 
 def get_task(endpoint, id, config):
     try:
         url = urljoin(urljoin(config.get("main", "frontend_url"), endpoint), id)
         response = requests.get(url)
         task = response.json()
+        pp = pprint.PrettyPrinter(width=120)
+        log.debug("Task:\n"+pp.pformat(task)+'\n')
         task["source_json"] = json.loads(task["source_json"])
-        return task
-    except (JSONDecodeError, TypeError):
-        log.error("Not a valid task at {}" .format(url, task))
-        os._exit(1)
+    except JSONDecodeError:
+        raise RuntimeError("No valid task at {}".format(url))
+    return task
 
 
 if __name__ == "__main__":

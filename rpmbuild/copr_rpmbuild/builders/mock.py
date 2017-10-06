@@ -3,14 +3,16 @@ import sys
 import logging
 import shutil
 import subprocess
+import datetime
+
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import run_cmd, locate_spec, locate_srpm
+from ..helpers import run_cmd, locate_spec, locate_srpm, CONF_DIRS
 
 log = logging.getLogger("__main__")
 
 
 class MockBuilder(object):
-    def __init__(self, task, sourcedir, logfile=None, resultdir=None, confdirs=None):
+    def __init__(self, task, sourcedir, resultdir, config):
         self.task_id = task["task_id"]
         self.chroot = task["chroot"]
         self.buildroot_pkgs = task["buildroot_pkgs"]
@@ -19,10 +21,10 @@ class MockBuilder(object):
         self.use_bootstrap_container = task["use_bootstrap_container"]
         self.pkg_manager_conf = "dnf" if "custom-1" in task["chroot"] else "yum"
         self.timeout = task["timeout"]
-        self.resultdir = resultdir
-        self.confdirs = confdirs
-        self.logfile = logfile
         self.sourcedir = sourcedir
+        self.resultdir = resultdir
+        self.config = config
+        self.logfile = self.config.get("main", "logfile")
         log.info(self.__dict__)
 
     def run(self):
@@ -44,7 +46,7 @@ class MockBuilder(object):
         self.produce_rpm(srpm, configdir, self.resultdir)
 
     def render_config_template(self):
-        jinja_env = Environment(loader=FileSystemLoader(self.confdirs))
+        jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
         template = jinja_env.get_template("mock.cfg.j2")
         return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
                                enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
@@ -69,9 +71,10 @@ class MockBuilder(object):
             "--configdir", configdir,
             "--resultdir", resultdir,
             "--define", "%_disable_source_fetch 0",
+            "--uniqueext", datetime.datetime.now().strftime('%s'),
             "-r", "child"]
 
-        log.info(' '.join(cmd))
+        log.info('Running: {}'.format(' '.join(cmd)))
 
         process = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, preexec_fn=self.preexec_fn_build_stream)
@@ -89,9 +92,10 @@ class MockBuilder(object):
                "--rebuild", srpm,
                "--configdir", configdir,
                "--resultdir", resultdir,
+               "--uniqueext", datetime.datetime.now().strftime('%s'),
                "-r", "child"]
 
-        log.info(' '.join(cmd))
+        log.info('Running: {}'.format(' '.join(cmd)))
 
         process = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, preexec_fn=self.preexec_fn_build_stream)

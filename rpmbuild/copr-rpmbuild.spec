@@ -31,6 +31,8 @@ Requires: expect
 Requires: rubygem-gem2rpm
 Requires: pyp2rpm
 Requires: rpkg
+Requires: tito
+Requires: make
 
 %description
 Provides command capable of running COPR build-tasks.
@@ -54,6 +56,7 @@ install -m 755 main.py %{buildroot}%{_bindir}/copr-rpmbuild
 install -m 644 main.ini %{buildroot}%{_sysconfdir}/copr-rpmbuild/main.ini
 install -m 644 mock.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 install -m 644 rpkg.conf.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
+install -m 644 make_srpm_mock.cfg %{buildroot}%{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
@@ -75,6 +78,7 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/main.ini
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
+%config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
 
 %changelog
 * Tue Sep 26 2017 clime <clime@redhat.com> 0.10-1
