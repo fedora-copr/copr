@@ -101,7 +101,7 @@ class ScmProvider(Provider):
     def clone_sources(self, repo_path):
         if self.scm_type == 'git':
             clone_cmd = ['git', 'clone', self.url, repo_path,
-                   '--depth', '100', '--branch', self.branch or 'master']
+                   '--depth', '500', '--branch', self.branch or 'master']
         else:
             clone_cmd = ['git', 'svn', 'clone', self.url, repo_path,
                    '--branch', self.branch or 'master']
