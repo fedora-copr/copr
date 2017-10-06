@@ -53,7 +53,9 @@ class MockBuilder(object):
     def preexec_fn_build_stream(self):
         if not self.logfile:
             return
-        cmd = "tee -a {}".format(self.logfile)
+        filter_continuing_lines = r"sed 's/.*\x0D\([^\x0a]\)/\1/g' --unbuffered"
+        tee_output = "tee -a {}".format(self.logfile)
+        cmd = filter_continuing_lines + "|" + tee_output
         tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
         os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
         os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
