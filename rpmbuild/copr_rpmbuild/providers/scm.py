@@ -137,7 +137,7 @@ class ScmProvider(Provider):
         cwd = os.path.join(self.repo_path, self.repo_subdir)
 
         copy_cmd = ['cp', '-r', '.', self.outdir]
-        copy_cmd_result = run_cmd(copy_cmd, cwd=cwd)
+        run_cmd(copy_cmd, cwd=cwd)
 
         cmd = ['rpkg', '-C', self.generate_rpkg_config(),
                'sources', '--outdir', self.outdir]
