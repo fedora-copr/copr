@@ -146,4 +146,7 @@ RUN chmod 700 /root && \
 # fix permissions for .ssh
 RUN chmod 700 /root/.ssh
 
+RUN echo '127.0.0.1 keygen' >> /etc/hosts
+RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
+
 CMD ["/bin/run.sh"]

@@ -51,5 +51,19 @@ RUN sed -i.bak -e "s/^COPR_DIST_GIT_LOGS_URL.*/COPR_DIST_GIT_LOGS_URL = 'http:\\
 RUN sed -i.bak -e "s/^SQLALCHEMY_DATABASE_URI.*/SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2:\\/\\/copr-fe:coprpass@database\\/coprdb'/g" /etc/copr/copr.conf
 
 
+RUN echo 'nameserver 8.8.8.8' | tee -a /etc/resolv.conf
+
+RUN echo $'\n\
+<VirtualHost 0.0.0.0>\n\
+    WSGIPassAuthorization On\n\
+    WSGIDaemonProcess 127.0.0.1 user=copr-fe group=copr-fe threads=5\n\
+    WSGIScriptAlias / /usr/share/copr/coprs_frontend/application\n\
+    WSGIProcessGroup 127.0.0.1\n\
+    <Directory /usr/share/copr>\n\
+        WSGIApplicationGroup %{GLOBAL}\n\
+        Require all granted\n\
+    </Directory>\n\
+</VirtualHost>\n '\
+>> /etc/httpd/conf.d/copr.conf
 
 CMD ["/bin/run.sh"]
