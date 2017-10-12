@@ -6,14 +6,14 @@ MAINTAINER jkadlcik@redhat.com
 RUN dnf -y update && \
     dnf -y install dnf-plugins-core \
                    htop \
-				   which \
+                   which \
                    tito \
                    wget \
-				   vim \
+                   vim \
                    supervisor \
                    copr-selinux \
-				   cgit \
-				   pyrpkg
+                   cgit \
+                   pyrpkg
 
 RUN dnf -y copr enable @copr/copr
 RUN dnf -y copr enable clime/dist-git
@@ -34,7 +34,7 @@ RUN chown copr-dist-git:packager /tmp/copr-dist-git
 RUN echo "[dist-git]" >> /etc/copr/copr-dist-git.conf && \
     echo "frontend_base_url=http://frontend" >> /etc/copr/copr-dist-git.conf && \
     echo "frontend_auth=1234"  >> /etc/copr/copr-dist-git.conf && \
-	chmod 644 /etc/copr/copr-dist-git.conf
+    chmod 644 /etc/copr/copr-dist-git.conf
 
 RUN echo " [user]" >> /home/copr-dist-git/.gitconfig && \
     echo " email = copr-devel@lists.fedorahosted.org" >> /home/copr-dist-git/.gitconfig && \

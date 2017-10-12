@@ -6,10 +6,10 @@ MAINTAINER jkadlcik@redhat.com
 RUN dnf -y update && \
     dnf -y install dnf-plugins-core \
                    htop \
-				   which \
+                   which \
                    tito \
                    wget \
-				   vim \
+                   vim \
                    supervisor \
                    copr-selinux \
                    postgresql-server \

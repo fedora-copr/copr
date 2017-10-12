@@ -19,10 +19,10 @@ chown -R copr-fe:copr-fe /var/log/copr-frontend
 chown -R copr-fe:copr-fe /usr/share/copr
 
 
-echo "#########################################################" && \
-    echo "###   Your development instance of Copr Frontend      ###" && \
-    echo "###   is now running at: http://localhost:5000        ###" && \
-    echo "#########################################################"
+echo "#########################################################"
+echo "###   Your development instance of Copr Frontend      ###"
+echo "###   is now running at: http://localhost:5000        ###"
+echo "#########################################################"
 
 # Workaround
 setenforce 0
