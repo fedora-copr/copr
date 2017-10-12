@@ -47,6 +47,9 @@ RUN sed -i.bak -e "s/^#BACKEND_PASSWORD.*/BACKEND_PASSWORD = \\'1234\\'/g" /etc/
 # Configure import logs url
 RUN sed -i.bak -e "s/^COPR_DIST_GIT_LOGS_URL.*/COPR_DIST_GIT_LOGS_URL = 'http:\\/\\/distgit\\/per-task-logs'/g" /etc/copr/copr.conf
 
+# Configure database URI
+RUN sed -i.bak -e "s/^SQLALCHEMY_DATABASE_URI.*/SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2:\\/\\/copr-fe:coprpass@database\\/coprdb'/g" /etc/copr/copr.conf
+
 
 
 CMD ["/bin/run.sh"]
