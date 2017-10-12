@@ -183,6 +183,10 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     Represents a single copr (private repo with builds, mock chroots, etc.).
     """
 
+    __table_args__ = (
+        db.Index('copr_webhook_secret', 'webhook_secret'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     # name of the copr, no fancy chars (checked by forms)
     name = db.Column(db.String(100), nullable=False)
@@ -406,6 +410,7 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
     __table_args__ = (
         db.UniqueConstraint('copr_id', 'name', name='packages_copr_pkgname'),
+        db.Index('package_webhook_sourcetype', 'webhook_rebuild', 'source_type'),
     )
 
     id = db.Column(db.Integer, primary_key=True)
