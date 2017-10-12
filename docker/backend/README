@@ -1,9 +1,0 @@
-Opens ports 2222 (sshd), 5002 (backend results), 6380 (redis) directly on the host.
-
-Basic usage:
-make - builds Dockerfile into an image
-make run - runs the image as daemon
-make sh - gives the container's shell
-make del - removes the container
-
-To have full copr stack (including frontend, distgit, and backend), you should first run "vagrant up" in the main project directory.
