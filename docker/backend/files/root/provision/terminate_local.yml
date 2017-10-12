@@ -1,0 +1,6 @@
+---
+- name: terminate instance
+  hosts: localhost
+  remote_user: root
+  gather_facts: False
+  # do nothing
