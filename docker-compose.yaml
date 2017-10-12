@@ -1,0 +1,53 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    command: /bin/run.sh
+    stdin_open: true
+    tty: true
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    volumes:
+      - .:/opt/copr:z
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    command: /bin/run.sh
+    depends_on:
+      - database
+    links:
+      - database
+    stdin_open: true
+    tty: true
+    ports:
+      - "5000:80"
+    volumes:
+      - .:/opt/copr:z
+
+  database:
+    build:
+      context: .
+      dockerfile: docker/database/Dockerfile
+    command: /bin/run.sh
+    stdin_open: true
+    tty: true
+    ports:
+      - 5432:5432
+
+  distgit:
+    build:
+      context: ~/git/copr
+      dockerfile: docker/distgit/Dockerfile
+    command: /bin/run.sh
+    stdin_open: true
+    tty: true
+    ports:
+      - "5001:80"
+    volumes:
+      - .:/opt/copr:z
