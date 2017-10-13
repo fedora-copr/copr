@@ -104,13 +104,13 @@ class ScmProvider(Provider):
         return ['tito', 'build', '--test', '--srpm', '--output', self.outdir]
 
     def get_make_srpm_command(self):
-        mock_workdir = os.path.join('mnt', self.workdir)
-        mock_outdir = os.path.join('mnt', self.outdir)
+        mock_workdir = '/mnt' + self.workdir
+        mock_outdir = '/mnt' + self.outdir
         mock_repodir = os.path.join(mock_workdir, self.repo_dirname)
         mock_cwd = os.path.join(mock_repodir, self.repo_subdir)
 
         mock_bind_mount_cmd_part = \
-            '--plugin-option=\'bind_mount:dirs=(("{0}, "{1}"), ("{2}", "{3}"))\''\
+            '--plugin-option=bind_mount:dirs=(("{0}", "{1}"), ("{2}", "{3}"))'\
             .format(self.workdir, mock_workdir, self.outdir, mock_outdir)
 
         makefile_path = os.path.join(mock_repodir, '.copr', 'Makefile')
