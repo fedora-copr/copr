@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_method_box %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_build_method_box %}
 
 {# This file contains forms for the "New Build" action
 
@@ -121,12 +121,12 @@
   {{ source_description('Build from Git or SVN repository. Please provide the Git or SVN URL.')}}
 
     {{ render_field(form.scm_type) }}
-    {{ render_field(form.scm_url, placeholder="URL to your Git or SVN repository") }}
-    {{ render_field(form.scm_subdir, placeholder="Optional - Subdirectory where source files and .spec are located.") }}
+    {{ render_field(form.clone_url, placeholder="URL to your Git or SVN repository") }}
+    {{ render_field(form.committish, placeholder="Optional - Branch, tag, or commit that you want to build.") }}
+    {{ render_field(form.subdirectory, placeholder="Optional - Subdirectory where source files and .spec are located.") }}
     {{ render_field(form.spec, placeholder="Optional - Path to your .spec file under the specified subdirectory.") }}
-    {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
 
-    {{ render_srpm_method_box(form) }}
+    {{ render_srpm_build_method_box(form) }}
 
   {{ copr_build_form_end(form, view, copr) }}
 {% endmacro %}

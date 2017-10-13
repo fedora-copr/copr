@@ -108,21 +108,10 @@ class BuildSourceEnum(with_metaclass(EnumType, object)):
     vals = {"unset": 0,
             "link": 1,  # url
             "upload": 2,  # pkg, tmp
-            "git_and_tito": 3, # git_url, git_dir, git_branch, tito_test
-            "scm": 4, # scm_type, scm_url, spec, scm_branch, scm_subdir
             "pypi": 5, # package_name, version, python_versions
             "rubygems": 6, # gem_name
-            "distgit": 7, # url, branch
+            "scm": 8, # type, clone_url, committish, subdirectory, spec, srpm_build_method
            }
-
-
-class SrpmMethodEnum(with_metaclass(EnumType, object)):
-    vals = {"tito": 0,
-            "tito_test": 1,
-            "spectool": 2,
-            "mock_scm": 3,
-            }
-
 
 # The same enum is also in distgit's helpers.py
 class FailTypeEnum(with_metaclass(EnumType, object)):
@@ -134,8 +123,6 @@ class FailTypeEnum(with_metaclass(EnumType, object)):
             "srpm_download_failed": 4,
             "srpm_query_failed": 5,
             "import_timeout_exceeded": 6,
-            # TODO: unused currently
-            "tito_general_error": 30,
             "git_clone_failed": 31,
             "git_wrong_directory": 32,
             "git_checkout_error": 33,

@@ -490,7 +490,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 {% endmacro %}
 
 
-{% macro render_srpm_method_box(form) %}
+{% macro render_srpm_build_method_box(form) %}
   <!-- This closes "2. Provide the source" panel, so we can create a new one.
        It is particularly ugly and needs to be changed -->
     </div>
@@ -502,18 +502,19 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
     </div>
     <div class="panel-body">
       <div class="list-group">
-        {% set srpm_methods = [('Tito', 'tito', 'This method can be used for upstream projects that are managed with <a href="https://github.com/dgoodwin/tito">Tito</a> packaging tool'),
-        ('Tito test', 'tito_test', 'Same as previous Tito method, but passes <code>--test</code> parameter to use current branch HEAD instead of last package tag'),
-        ('Spectool', 'spectool', 'Uses Spectool from <a href="https://fedoraproject.org/wiki/Rpmdevtools">rpmdevtools</a> to download <code>SourceX</code> sources defined as full URL'),
-        ('Mock SCM', 'mock_scm', 'This method is based on <a href="https://fedoraproject.org/wiki/Projects/Mock/Plugin/Scm">SCM plugin for Mock</a>'),
+        {% set srpm_build_methods = [
+        ('rpkg', 'rpkg', 'Uses <a href="https://pagure.io/rpkg-client">rpkg</a> utility to build an srpm. Supports unpacked (plain sources + .spec) as well as packed (tarballs + patches + .spec) content. Supports building directly from DistGit.'),
+        ('tito', 'tito', 'This method can be used for projects that are managed with <a href="https://github.com/dgoodwin/tito">Tito</a> packaging tool'),
+        ('tito test', 'tito_test', 'Same as previous Tito method, but passes <code>--test</code> parameter to use current branch HEAD instead of last package tag'),
+        ('make srpm', 'make_srpm', 'This method is allows unlimited customization. You need to provide .copr/Makefile with srpm target in your project and this target will be invoked inside a mock chroot to build the srpm. You can read more <a href="https://docs.pagure.org/copr.copr/">here</a>.'),
         ] %}
 
-        {% for title, name, description in srpm_methods %}
+        {% for title, name, description in srpm_build_methods %}
         <div class="list-group-item">
           <div class="radio">
             <label>
-              {% set checked = 'checked="checked"' if (form.srpm_method.data or 'tito')  == name %}
-              <input id="{{ name }}" name="srpm_method" type="radio" value="{{ name }}" {{ checked }}>
+              {% set checked = 'checked="checked"' if (form.srpm_build_method.data or 'tito')  == name %}
+              <input id="{{ name }}" name="srpm_build_method" type="radio" value="{{ name }}" {{ checked }}>
               <label for="{{ name }}">
                 <strong>{{ title }}</strong>
                 <br>

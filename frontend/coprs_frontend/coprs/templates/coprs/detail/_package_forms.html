@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_method_box %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_build_method_box %}
 
 {% macro copr_package_form_begin(form, view, copr, package) %}
   {{ render_form_errors(form) }}
@@ -70,41 +70,6 @@
   </form>
 {% endmacro %}
 
-{% macro copr_package_form_tito(form, view, copr, package) %}
-  {{ copr_package_form_begin(form, view, copr, package) }}
-
-  {{ render_field(form.git_url, placeholder="Public clone URL of your git repository.") }}
-  {{ render_field(form.git_directory, placeholder="Optional - A directory in the git containing the spec file.") }}
-  {{ render_field(form.git_branch, placeholder="Optional - A Git branch you want to build from.") }}
-  <div class="form-group">
-    <label class="col-sm-2 control-label" for="textInput-markup">
-      SCM-1 Options
-    </label>
-    <div class="col-sm-10">
-      {{ form.tito_test() }} Build from HEAD instead of the latest package tag and mark the package with the commit ID
-    </div>
-  </div>
-
-  {{ render_webhook_rebuild(form) }}
-  {{ copr_package_form_end(form, package, 'git_and_tito') }}
-{% endmacro %}
-
-
-{% macro copr_package_form_scm(form, view, copr, package) %}
-  {{ copr_package_form_begin(form, view, copr, package) }}
-
-  {{ render_field(form.scm_type) }}
-  {{ render_field(form.scm_url, placeholder="URL to your Git or SVN repository") }}
-  {{ render_field(form.scm_subdir, placeholder="Optional - Subdirectory where source files and .spec are located.") }}
-  {{ render_field(form.spec, placeholder="Optional - Path to your .spec file under the specified subdirectory.") }}
-  {{ render_field(form.scm_branch, placeholder="Optional - A branch you want to build from.") }}
-
-  {{ render_webhook_rebuild(form) }}
-  {{ render_srpm_method_box(form) }}
-  {{ copr_package_form_end(form, package, 'mock_scm') }}
-{% endmacro %}
-
-
 {% macro copr_package_form_pypi(form, view, copr, package) %}
     {{ copr_package_form_begin(form, view, copr, package) }}
     {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
@@ -121,6 +86,19 @@
   {{ copr_package_form_end(form, package, 'rubygems') }}
 {% endmacro %}
 
+{% macro copr_package_form_scm(form, view, copr, package) %}
+  {{ copr_package_form_begin(form, view, copr, package) }}
+
+  {{ render_field(form.scm_type) }}
+  {{ render_field(form.clone_url, placeholder="URL to your Git or SVN repository") }}
+  {{ render_field(form.committish, placeholder="Optional - Branch, tag, or commit that you want to build.") }}
+  {{ render_field(form.subdirectory, placeholder="Optional - Subdirectory where source files and .spec are located.") }}
+  {{ render_field(form.spec, placeholder="Optional - Path to your .spec file under the specified subdirectory.") }}
+
+  {{ render_webhook_rebuild(form) }}
+  {{ render_srpm_build_method_box(form) }}
+  {{ copr_package_form_end(form, package, 'mock_scm') }}
+{% endmacro %}
 
 {% macro copr_packages_rebuild_all(form, view, copr) %}
   {# TODO: try to clean the the markup up, move into common helper methods etc.

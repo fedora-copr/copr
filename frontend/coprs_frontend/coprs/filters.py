@@ -223,11 +223,6 @@ def build_source_description(state):
     return description_map.get(state, "")
 
 
-@app.template_filter("srpm_method_text")
-def srpm_method_text(num):
-    return helpers.SrpmMethodEnum(num)
-
-
 @app.template_filter("fix_url_https_backend")
 def fix_url_https_backend(url):
     return helpers.fix_protocol_for_backend(url)

@@ -18,22 +18,30 @@
 
   {% elif source_type_text == "scm" %}
   <dt>SCM type:</dt>
-  <dd>{{ source_json_dict["scm_type"] }}</dd>
+  <dd>{{ source_json_dict["type"] }}</dd>
 
-  <dt>SCM URL:</dt>
-  <dd>{{ source_json_dict["scm_url"] }}</dd>
+  <dt>Clone URL:</dt>
+  <dd>{{ source_json_dict["clone_url"] }}</dd>
 
-  <dt>SCM branch:</dt>
-  <dd>{{ source_json_dict["scm_branch"] }}</dd>
+  {% if source_json_dict["committish"] %}
+  <dt>Committish:</dt>
+  <dd>{{ source_json_dict["committish"] }}</dd>
+  {% endif %}
 
-  <dt>SCM subdirectory:</dt>
-  <dd>{{ source_json_dict["scm_subdir"] }}</dd>
+  {% if source_json_dict["subdirectory"] %}
+  <dt>Subdirectory:</dt>
+  <dd>{{ source_json_dict["subdirectory"] }}</dd>
+  {% endif %}
 
+  {% if source_json_dict["spec"] %}
   <dt>Path to .spec file:</dt>
   <dd>{{ source_json_dict["spec"] }}</dd>
+  {% endif %}
 
+  {% if source_json_dict["srpm_build_method"] %}
   <dt>Build SRPM with:</dt>
-  <dd>{{ source_json_dict["srpm_method"] |srpm_method_text }}</dd>
+  <dd>{{ source_json_dict["srpm_build_method"] }}</dd>
+  {% endif %}
 
   {% elif source_type_text == "pypi" %}
   <dt>PyPI package name</dt>

@@ -24,7 +24,7 @@ def get_package_form_cls_by_source_type_text(source_type_text):
     Params
     ------
     source_type_text : str
-        name of the source type (tito/mock/pypi/rubygems/upload)
+        name of the source type (scm/pypi/rubygems)
 
     Returns
     -------
@@ -381,21 +381,21 @@ class BasePackageForm(FlaskForm):
 
 class PackageFormSCM(BasePackageForm):
     scm_type = wtforms.SelectField(
-        "SCM Type",
+        "Type",
         choices=[("git", "Git"), ("svn", "SVN")])
 
-    scm_url = wtforms.StringField(
-        "SCM URL",
+    clone_url = wtforms.StringField(
+        "Clone url",
         validators=[
             wtforms.validators.DataRequired(),
             wtforms.validators.URL()])
 
-    scm_branch = wtforms.StringField(
-        "Git Branch",
+    committish = wtforms.StringField(
+        "Committish",
         validators=[
             wtforms.validators.Optional()])
 
-    scm_subdir = wtforms.StringField(
+    subdirectory = wtforms.StringField(
         "Subdirectory",
         validators=[
             wtforms.validators.Optional()])
@@ -408,22 +408,22 @@ class PackageFormSCM(BasePackageForm):
                 r"^.+\.spec$",
                 message="RPM spec file must end with .spec")])
 
-    srpm_method = wtforms.StringField(
-        "SRPM method",
+    srpm_build_method = wtforms.StringField(
+        "SRPM build method",
         validators=[
             wtforms.validators.DataRequired(),
-            wtforms.validators.AnyOf(["tito", "tito_test", "spectool", "mock_scm"])
+            wtforms.validators.AnyOf(["tito", "tito_test", "rpkg", "make_srpm"])
         ])
 
     @property
     def source_json(self):
         return json.dumps({
-            "scm_type": self.scm_type.data,
-            "scm_url": self.scm_url.data,
-            "scm_subdir": self.scm_subdir.data,
-            "scm_branch": self.scm_branch.data,
+            "type": self.scm_type.data,
+            "clone_url": self.clone_url.data,
+            "subdirectory": self.subdirectory.data,
+            "committish": self.committish.data,
             "spec": self.spec.data,
-            "srpm_method": helpers.SrpmMethodEnum(self.srpm_method.data),
+            "srpm_build_method": self.srpm_build_method.data,
         })
 
 
