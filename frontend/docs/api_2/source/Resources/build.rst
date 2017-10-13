@@ -294,10 +294,11 @@ MUST be uploaded as binary  ``srpm`` file.
         >>> }
         >>> files = {
         >>>     "srpm": ('pkg.src.rpm', open('/path/to/pkg.src.rpm'), 'application/x-rpm'),
-        >>>     "metadata": ('', json.dumps(metadata))
-        >>>     # here some requests specific, see http://stackoverflow.com/questions/12385179
         >>> }
-        >>> r = post(api_url, auth=(api_login, api_token), files=files)
+        >>> data = {
+        >>>     "metadata": (json.dumps(metadata), 'application/json'),
+        >>> }
+        >>> r = post(api_url, auth=(api_login, api_token), files=files, data=data)
         >>> r.status_code
         201
         >>> r.headers["Location"]
