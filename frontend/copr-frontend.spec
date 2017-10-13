@@ -37,7 +37,7 @@
 
 Name:       copr-frontend
 Version:    1.122
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    Frontend for Copr
 
 Group:      Applications/Productivity
