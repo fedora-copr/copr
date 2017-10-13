@@ -32,7 +32,6 @@ Requires: rubygem-gem2rpm
 Requires: pyp2rpm
 Requires: rpkg
 Requires: tito
-Requires: make
 
 %description
 Provides command capable of running COPR build-tasks.
