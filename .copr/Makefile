@@ -1,3 +1,3 @@
 srpm:
 	dnf -y install tito
-	tito build --test --srpm
+	tito build --test --srpm --output=$(outdir)
