@@ -146,7 +146,8 @@ class ScmProvider(Provider):
     def clone_and_checkout(self):
         if self.scm_type == 'git':
             clone_cmd = ['git', 'clone', self.clone_url,
-                         self.repo_path, '--depth', '500']
+                         self.repo_path, '--depth', '500',
+                         '--no-single-branch']
         else:
             clone_cmd = ['git', 'svn', 'clone', self.clone_url,
                          self.repo_path]
