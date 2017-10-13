@@ -594,7 +594,7 @@ class Build(db.Model, helpers.Serializer):
         backend_log = self.import_log_url_backend
         types = [helpers.BuildSourceEnum("upload"), helpers.BuildSourceEnum("link")]
         if self.source_type in types:
-            if json.loads(self.source_json)["url"].endswith(".src.rpm"):
+            if json.loads(self.source_json).get("url", "").endswith(".src.rpm"):
                 backend_log = None
         return filter(None, [backend_log, self.import_log_url_distgit])
 
