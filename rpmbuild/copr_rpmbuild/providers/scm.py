@@ -154,5 +154,5 @@ class ScmProvider(Provider):
 
         helpers.run_cmd(clone_cmd)
 
-        checkout_cmd = ['git', 'checkout', self.committish]
+        checkout_cmd = ['git', 'checkout', self.committish or 'master']
         helpers.run_cmd(checkout_cmd, cwd=self.repo_path)
