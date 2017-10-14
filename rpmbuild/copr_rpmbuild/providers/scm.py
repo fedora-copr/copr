@@ -24,37 +24,15 @@ log = logging.getLogger("__main__")
 class ScmProvider(Provider):
     def __init__(self, source_json, outdir, config):
         super(ScmProvider, self).__init__(source_json, outdir, config)
-        if 'scm_url' in source_json: # Mock-SCM
-            self.clone_url = source_json.get('scm_url')
-            self.repo_subdir = source_json.get('scm_subdir', '')
-            self.committish = source_json.get('scm_branch')
-            self.scm_type = source_json.get('scm_type')
-            self.spec_relpath = source_json.get('spec', '')
-            self.test = True
-            self.prepare_test_spec = False
-            self.srpm_build_method = source_json.get('srpm_method') or 'rpkg'
-        elif 'git_url' in source_json: # Git and Tito
-            self.clone_url = source_json.get('git_url')
-            self.repo_subdir = source_json.get('git_dir', '')
-            self.committish = source_json.get('git_branch')
-            self.scm_type = 'git'
-            self.spec_relpath = None
-            self.test = source_json.get('tito_test')
-            self.prepare_test_spec = self.test
-            self.srpm_build_method = source_json.get('srpm_method') or 'rpkg'
-        else:
-            self.clone_url = source_json.get('clone_url')
-            self.committish = source_json.get('branch')
-            self.srpm_build_method = 'rpkg'
-            self.scm_type = 'git'
-            self.repo_subdir = ''
-
+        self.scm_type = source_json.get('type', 'git')
+        self.clone_url = source_json.get('clone_url')
+        self.committish = source_json.get('committish', 'master')
+        self.repo_subdir = source_json.get('subdirectory', '').strip('/')
+        self.spec_relpath = source_json.get('spec', '').strip('/')
+        self.srpm_build_method = source_json.get('srpm_build_method', 'rpkg')
         self.repo_dirname = os.path.splitext(os.path.basename(self.clone_url))[0]
         self.repo_path = os.path.join(self.workdir, self.repo_dirname)
-
-    def run(self):
-        result = self.produce_srpm(config_path)
-        log.info(result)
+        self.repo_subpath = os.path.join(self.repo_path, self.repo_subdir)
 
     def generate_rpkg_config(self):
         clone_url_hostname = urlparse(self.clone_url).netloc
@@ -123,25 +101,23 @@ class ScmProvider(Provider):
 
     def produce_srpm(self):
         self.clone_and_checkout()
-        cwd = os.path.join(self.repo_path, self.repo_subdir)
         cmd = {
             'rpkg': self.get_rpkg_command,
             'tito': self.get_tito_command,
             'tito_test': self.get_tito_test_command,
             'make_srpm': self.get_make_srpm_command,
         }[self.srpm_build_method]()
-        return run_cmd(cmd, cwd=cwd)
+        return run_cmd(cmd, cwd=self.repo_subpath)
 
     def produce_sources(self):
         self.clone_and_checkout()
-        cwd = os.path.join(self.repo_path, self.repo_subdir)
 
         copy_cmd = ['cp', '-r', '.', self.outdir]
-        run_cmd(copy_cmd, cwd=cwd)
+        run_cmd(copy_cmd, cwd=self.repo_subpath)
 
         cmd = ['rpkg', '-C', self.generate_rpkg_config(),
                'sources', '--outdir', self.outdir]
-        return run_cmd(cmd, cwd=cwd)
+        return run_cmd(cmd, cwd=self.repo_subpath)
 
     def clone_and_checkout(self):
         if self.scm_type == 'git':
@@ -154,5 +130,5 @@ class ScmProvider(Provider):
 
         helpers.run_cmd(clone_cmd)
 
-        checkout_cmd = ['git', 'checkout', self.committish or 'master']
+        checkout_cmd = ['git', 'checkout', self.committish]
         helpers.run_cmd(checkout_cmd, cwd=self.repo_path)
