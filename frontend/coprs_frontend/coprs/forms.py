@@ -412,8 +412,9 @@ class PackageFormSCM(BasePackageForm):
         "SRPM build method",
         validators=[
             wtforms.validators.DataRequired(),
-            wtforms.validators.AnyOf(["tito", "tito_test", "rpkg", "make_srpm"])
-        ])
+            wtforms.validators.AnyOf(["rpkg", "tito", "tito_test", "make_srpm"])
+        ],
+        default='rpkg')
 
     @property
     def source_json(self):
