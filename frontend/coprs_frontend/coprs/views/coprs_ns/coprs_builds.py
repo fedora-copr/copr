@@ -221,11 +221,11 @@ def process_new_build_scm(copr, add_view, url_on_success):
             flask.g.user,
             copr,
             form.scm_type.data,
-            form.scm_url.data,
-            form.scm_branch.data,
-            form.scm_subdir.data,
+            form.clone_url.data,
+            form.committish.data,
+            form.subdirectory.data,
             form.spec.data,
-            helpers.SrpmMethodEnum(form.srpm_method.data),
+            form.srpm_build_method.data,
             form.selected_chroots,
             **build_options
         )

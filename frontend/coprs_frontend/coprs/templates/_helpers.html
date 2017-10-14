@@ -513,7 +513,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
         <div class="list-group-item">
           <div class="radio">
             <label>
-              {% set checked = 'checked="checked"' if (form.srpm_build_method.data or 'tito')  == name %}
+              {% set checked = 'checked="checked"' if (form.srpm_build_method.data or 'rpkg') == name %}
               <input id="{{ name }}" name="srpm_build_method" type="radio" value="{{ name }}" {{ checked }}>
               <label for="{{ name }}">
                 <strong>{{ title }}</strong>

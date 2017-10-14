@@ -395,7 +395,8 @@ GROUP BY
                               pkgs=url, srpm_url=srpm_url, **build_options)
 
     @classmethod
-    def create_new_from_scm(cls, user, copr, scm_type, scm_url, scm_branch, scm_subdir, spec, srpm_method,
+    def create_new_from_scm(cls, user, copr, scm_type, clone_url,
+                            committish, subdirectory, spec, srpm_build_method,
                             chroot_names=None, **build_options):
         """
         :type user: models.User
@@ -406,12 +407,12 @@ GROUP BY
         :rtype: models.Build
         """
         source_type = helpers.BuildSourceEnum("scm")
-        source_json = json.dumps({"scm_type": scm_type,
-                                  "scm_url": scm_url,
-                                  "scm_branch": scm_branch,
-                                  "scm_subdir": scm_subdir,
+        source_json = json.dumps({"type": scm_type,
+                                  "clone_url": clone_url,
+                                  "committish": committish,
+                                  "subdirectory": subdirectory,
                                   "spec": spec,
-                                  "srpm_method": srpm_method})
+                                  "srpm_build_method": srpm_build_method})
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
