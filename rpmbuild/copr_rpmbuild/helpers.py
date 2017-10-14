@@ -17,11 +17,8 @@ CONF_DIRS = [os.getcwd(), "/etc/copr-rpmbuild"]
 class SourceType:
     LINK = 1
     UPLOAD = 2
-    GIT_AND_TITO = 3
-    MOCK_SCM = 4
     PYPI = 5
     RUBYGEMS = 6
-    DISTGIT = 7
     SCM = 8
 
 

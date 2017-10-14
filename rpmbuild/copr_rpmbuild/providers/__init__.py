@@ -17,8 +17,6 @@ def factory(source_type):
             SourceType.RUBYGEMS: RubyGemsProvider,
             SourceType.PYPI: PyPIProvider,
             SourceType.SCM: ScmProvider,
-            SourceType.GIT_AND_TITO: ScmProvider,
-            SourceType.MOCK_SCM: ScmProvider,
         }[source_type]
     except KeyError:
         raise RuntimeError("No provider associated with this source type")
