@@ -107,7 +107,7 @@ class ModuleStatusEnum(with_metaclass(EnumType, object)):
 class BuildSourceEnum(with_metaclass(EnumType, object)):
     vals = {"unset": 0,
             "link": 1,  # url
-            "upload": 2,  # pkg, tmp
+            "upload": 2,  # pkg, tmp, url
             "pypi": 5, # package_name, version, python_versions
             "rubygems": 6, # gem_name
             "scm": 8, # type, clone_url, committish, subdirectory, spec, srpm_build_method
