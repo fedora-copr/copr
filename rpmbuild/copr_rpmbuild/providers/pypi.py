@@ -12,9 +12,6 @@ class PyPIProvider(Provider):
         self.pypi_package_name = source_json["pypi_package_name"]
         self.python_versions = source_json["python_versions"] or []
 
-    def run(self):
-        self.produce_srpm()
-
     def produce_srpm(self):
         cmd = ["pyp2rpm", self.pypi_package_name, "--srpm", "-d", self.outdir]
 

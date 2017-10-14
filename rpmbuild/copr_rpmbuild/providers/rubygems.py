@@ -10,15 +10,13 @@ class RubyGemsProvider(Provider):
         super(RubyGemsProvider, self).__init__(source_json, outdir, config)
         self.gem_name = source_json["gem_name"]
 
-    def run(self):
-        result = self.produce_srpm()
+    def produce_srpm(self):
+        cmd = ["gem2rpm", self.gem_name, "--srpm", "-C", self.outdir, "--fetch"]
+        result = run_cmd(cmd)
         if "Empty tag: License" in result.stderr:
             raise RuntimeError("\n".join([
                 result.stderr,
                 "Not specifying a license means all rights are reserved;"
                 "others have no rights to use the code for any purpose.",
                 "See http://guides.rubygems.org/specification-reference/#license="]))
-
-    def produce_srpm(self):
-        cmd = ["gem2rpm", self.gem_name, "--srpm", "-C", self.outdir, "--fetch"]
-        return run_cmd(cmd)
+        return result
