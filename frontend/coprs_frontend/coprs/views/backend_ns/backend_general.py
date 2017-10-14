@@ -142,6 +142,8 @@ def get_build_record(task):
             "memory_reqs": task.build.memory_reqs,
             "timeout": task.build.timeout,
             "enable_net": task.build.enable_net,
+            "git_repo": task.build.package.dist_git_repo,
+            "git_hash": task.git_hash,
             "source_type": helpers.BuildSourceEnum("scm"),
             "source_json": json.dumps(
                 {'clone_url': task.build.package.dist_git_clone_url, 'committish': task.git_hash}),
