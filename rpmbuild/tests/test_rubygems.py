@@ -30,5 +30,5 @@ class TestRubyGemsProvider(unittest.TestCase):
         run_cmd.return_value = Munch({"stderr": stderr})
         provider = RubyGemsProvider(self.source_json, self.resultdir)
         with self.assertRaises(RuntimeError) as ex:
-            provider.run()
+            provider.produce_srpm()
         self.assertIn("Not specifying a license means all rights are reserved", str(ex.exception))
