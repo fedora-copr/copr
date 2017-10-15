@@ -106,6 +106,7 @@ WHERE package.copr_id = :copr_id;
     def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref):
         packages = (models.Package.query.join(models.Copr)
                     .filter(models.Copr.webhook_secret == webhook_secret)
+                    .filter(models.Package.source_type == helpers.BuildSourceEnum("scm"))
                     .filter(models.Package.copr_id == copr_id)
                     .filter(models.Package.webhook_rebuild == true())
                     .filter(models.Package.source_json.contains(clone_url.strip(".git"))))
@@ -119,41 +120,32 @@ WHERE package.copr_id = :copr_id;
     @classmethod
     def commits_belong_to_package(cls, package, commits, ref_type, ref):
         if ref_type == "tag":
-            # way to exclude some packages from building for Tito method
-            if package.source_type_text == "git_and_tito":
-                matches = re.search(r'(.*)-[^-]+-[^-]+$', ref)
-                if matches and package.name != matches.group(1):
-                    return False
-            return True
-
-        if package.source_type_text == "git_and_tito":
-            branch = package.source_json_dict["git_branch"]
-            if branch and not ref.endswith("/"+branch):
-                return False
-        elif package.source_type_text == "mock_scm":
-            branch = package.source_json_dict["scm_branch"]
-            if branch and not ref.endswith("/"+branch):
+            matches = re.search(r'(.*)-[^-]+-[^-]+$', ref)
+            if matches and package.name != matches.group(1):
                 return False
 
-        if package.source_type_text == "git_and_tito":
-            path_match = False
-            for commit in commits:
-                for file_path in commit['added'] + commit['removed'] + commit['modified']:
-                    if cls.path_belong_to_package(package, file_path):
-                        path_match = True
-                        break
-            if not path_match:
-                return False
+        committish = package.source_json_dict.get("committish")
+        if committish and not ref.endswith("/"+committish):
+            return False
+
+        path_match = True
+        for commit in commits:
+            for file_path in commit['added'] + commit['removed'] + commit['modified']:
+                path_match = False
+                if cls.path_belong_to_package(package, file_path):
+                    path_match = True
+                    break
+        if not path_match:
+            return False
 
         return True
 
     @classmethod
     def path_belong_to_package(cls, package, file_path):
-        if package.source_type_text == "git_and_tito":
-            data = package.source_json_dict
-            return file_path.startswith(data["git_dir"] or '')
-        else:
-            return True
+        data = package.source_json_dict
+        norm_file_path = file_path.strip('./')
+        norm_package_subdir = data.get("subdirectory", '').strip('./')
+        return norm_file_path.startswith(norm_package_subdir or '')
 
     @classmethod
     def add(cls, user, copr, package_name, source_type=helpers.BuildSourceEnum("unset"), source_json=json.dumps({})):
