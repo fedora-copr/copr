@@ -33,7 +33,7 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
     :raises PackageImportException
     :returns munch.Munch(cmd, stdout, stderr, returncode)
     """
-    log.info('Running: {cmd}'.format(cmd=' '.join(cmd)))
+    log.info('Running: {cmd} (cwd: {cwd})'.format(cmd=' '.join(cmd), cwd=cwd))
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
     try:
