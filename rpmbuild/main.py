@@ -117,6 +117,8 @@ def build_srpm(args, config):
         task["source_json"], resultdir, config)
 
     provider.produce_srpm()
+    self.log.info("srpm produced: {}".format(
+        os.listdir(resultdir)))
 
     with open(os.path.join(resultdir, 'success'), "w") as success:
         success.write("done")
@@ -137,6 +139,7 @@ def build_rpm(args, config):
     builder.run()
     builder.touch_success_file()
     shutil.rmtree(sourcedir)
+
 
 def get_task(endpoint, id, config):
     try:
