@@ -16,18 +16,6 @@ class Provider(object):
         os.environ["HOME"] = self.workdir
         self.create_rpmmacros()
 
-    @property
-    def srpm(self):
-        dest_files = os.listdir(self.outdir)
-        dest_srpms = list(filter(lambda f: f.endswith(".src.rpm"), dest_files))
-
-        if len(dest_srpms) != 1:
-            log.debug("tmp_dest: {}".format(self.outdir))
-            log.debug("dest_files: {}".format(dest_files))
-            log.debug("dest_srpms: {}".format(dest_srpms))
-            raise RuntimeError("Expected one srpm file generated.")
-        return os.path.join(self.outdir, dest_srpms[0])
-
     def create_rpmmacros(self):
         path = os.path.join(self.workdir, ".rpmmacros")
         with open(path, "w") as rpmmacros:

@@ -117,7 +117,7 @@ def build_srpm(args, config):
         task["source_json"], resultdir, config)
 
     provider.produce_srpm()
-    self.log.info("srpm produced: {}".format(
+    log.info("Output: {}".format(
         os.listdir(resultdir)))
 
     with open(os.path.join(resultdir, 'success'), "w") as success:
