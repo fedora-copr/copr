@@ -23,9 +23,9 @@ def upgrade():
         source_dict = package.source_json_dict
         new_source_dict = {
             'type': 'git',
-            'clone_url': source_dict.get('git_url', ''),
-            'committish': source_dict.get('git_branch', ''),
-            'subdirectory': source_dict.get('git_dir', ''),
+            'clone_url': source_dict.get('git_url') or '',
+            'committish': source_dict.get('git_branch') or '',
+            'subdirectory': source_dict.get('git_dir') or '',
             'spec': '',
             'srpm_build_method': 'tito_test' if source_dict.get('tito_test') else 'tito',
         }
@@ -36,11 +36,11 @@ def upgrade():
     for package in session.query(models.Package).filter(models.Package.source_type == 4):
         source_dict = package.source_json_dict
         new_source_dict = {
-            'type': source_dict.get('scm_type', 'git'),
-            'clone_url': source_dict.get('scm_url', ''),
-            'committish': source_dict.get('scm_branch', ''),
+            'type': source_dict.get('scm_type') or 'git',
+            'clone_url': source_dict.get('scm_url') or '',
+            'committish': source_dict.get('scm_branch') or '',
             'subdirectory': '',
-            'spec': source_dict.get('spec', ''),
+            'spec': source_dict.get('spec') or '',
             'srpm_build_method': 'rpkg',
         }
         package.source_json = json.dumps(new_source_dict)
@@ -51,8 +51,8 @@ def upgrade():
         source_dict = package.source_json_dict
         new_source_dict = {
             'type': 'git',
-            'clone_url': source_dict.get('clone_url', ''),
-            'committish': source_dict.get('branch', ''),
+            'clone_url': source_dict.get('clone_url') or '',
+            'committish': source_dict.get('branch') or '',
             'subdirectory': '',
             'spec': '',
             'srpm_build_method': 'rpkg',
