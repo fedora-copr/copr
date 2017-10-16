@@ -1,5 +1,5 @@
 Name:       example
-Version:	1.0.7
+Version:	1.0.8
 Release:	1%{?dist}
 Summary:	This is a simple example to test copr
 
@@ -35,6 +35,13 @@ cp -a main %{buildroot}%{_sbindir}/main
 %{_sbindir}/main
 
 %changelog
+* Mon Oct 16 2017 clime <clime@redhat.com> 1.0.8-1
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+- update (clime@redhat.com)
+
 * Tue Jun 20 2017 clime <clime@redhat.com> 1.0.7-1
 - update (clime@redhat.com)
 - UPdate (clime@redhat.com)
