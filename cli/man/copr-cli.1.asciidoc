@@ -254,6 +254,8 @@ usage: copr buildtito [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       [--git-branch BRANCH] [--test]
                       project
 
+Deprecated by SCM source type.
+
 --git-url URL::
 Url to a project managed by Tito, required.
 
@@ -279,6 +281,8 @@ usage: copr buildmock [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       [--scm-branch BRANCH] [--spec FILE]
                       project
 
+Deprecated by SCM source type.
+
 --scm-type TYPE::
 Specify versioning tool, default is 'git'.
 
@@ -302,6 +306,8 @@ usage: copr buildfedpkg [-h] [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
                       [--background]
                       [-r CHROOTS] [--clone-url URL] [--branch BRANCH]
                       project
+
+Deprecated by SCM source type.
 
 --clone-url URL::
 Specify clone url to the dist-git project on pkgs.fedoraproject.org.
@@ -386,7 +392,7 @@ usage: copr add-package-tito [-h] --git-url URL [--git-dir DIRECTORY]
                              PKGNAME [--webhook-rebuild {on,off}]
                              project
 
-Add package of 'Tito' source type.
+Deprecated by SCM source type.
 
 --git-url URL::
 URL to a project managed by Tito
@@ -415,7 +421,7 @@ usage: copr edit-package-tito [-h] --git-url URL [--git-dir DIRECTORY]
                               PKGNAME [--webhook-rebuild {on,off}]
                               project
 
-Edit source definition and type of an existing package. Options are shared with add-package-tito.
+Deprecated by SCM source type.
 
 
 `copr-cli add-package-pypi [options]`
@@ -465,7 +471,7 @@ usage: copr add-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
                                 PKGNAME [--webhook-rebuild {on,off}]
                                 project
 
-Add package of 'MockSCM' source type.
+Deprecated by SCM source type.
 
 --scm-type TYPE::
 Specify versioning tool, default is 'git'
@@ -494,7 +500,7 @@ usage: copr edit-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
                                 PKGNAME [--webhook-rebuild {on,off}]
                                 project
 
-Edit source definition and type of an existing package. Options are shared with add-package-mockscm.
+Deprecated by SCM source type.
 
 
 `copr-cli add-package-rubygems [options]`

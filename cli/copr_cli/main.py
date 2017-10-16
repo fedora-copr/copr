@@ -791,17 +791,17 @@ def setup_parser():
 
     # create the parser for the "buildfedpkg" command
     parser_build_distgit = subparsers.add_parser("buildfedpkg", parents=[parser_distgit_args_parent, parser_build_parent],
-                                                  help="Build package from pkgs.fedoraproject.org")
+                                                  help="DEPRECATED. Use SCM source type instead.")
     parser_build_distgit.set_defaults(func="action_build_distgit")
 
     # create the parser for the "buildtito" command
     parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_tito_args_parent, parser_build_parent],
-                                              help="submit a build from Git repository via Tito to a specified copr")
+                                              help="DEPRECATED. Use SCM source type instead.")
     parser_build_tito.set_defaults(func="action_build_tito")
 
     # create the parser for the "buildmock" command
     parser_build_mock = subparsers.add_parser("buildmock", parents=[parser_mockscm_args_parent, parser_build_parent],
-                                              help="submit a build from SCM repository via Mock to a specified copr")
+                                              help="DEPRECATED. Use SCM source type instead.")
     parser_build_mock.set_defaults(func="action_build_mock")
 
     # create the parser for the "status" command
@@ -876,12 +876,12 @@ def setup_parser():
 
     # Tito edit/create
     parser_add_package_tito = subparsers.add_parser("add-package-tito",
-                                                    help="Creates a new Tito package",
+                                                    help="DEPRECATED. Use SCM source type instead.",
                                                     parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=True)
 
     parser_edit_package_tito = subparsers.add_parser("edit-package-tito",
-                                                     help="Edits an existing Tito package",
+                                                     help="DEPRECATED. Use SCM source type instead.",
                                                      parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=False)
 
@@ -898,12 +898,12 @@ def setup_parser():
 
     # MockSCM edit/create
     parser_add_package_mockscm = subparsers.add_parser("add-package-mockscm",
-                                                       help="Creates a new Mock-SCM package",
+                                                       help="DEPRECATED. Use SCM source type instead.",
                                                        parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_add_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=True)
 
     parser_edit_package_mockscm = subparsers.add_parser("edit-package-mockscm",
-                                                        help="Edits an existing Mock-SCM package",
+                                                        help="DEPRECATED. Use SCM source type instead.",
                                                         parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=False)
 
