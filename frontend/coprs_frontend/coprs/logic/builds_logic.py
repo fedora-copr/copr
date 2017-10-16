@@ -619,7 +619,11 @@ GROUP BY
         return build
 
     @classmethod
-    def rebuild_package(cls, package):
+    def rebuild_package(cls, package, source_dict_update):
+        source_dict = package.source_json_dict
+        source_dict.update(source_dict_update)
+        source_json = json.dumps(source_dict)
+
         build = models.Build(
             user=None,
             pkgs=None,
@@ -627,7 +631,7 @@ GROUP BY
             copr=package.copr,
             repos=package.copr.repos,
             source_type=package.source_type,
-            source_json=package.source_json,
+            source_json=source_json,
             submitted_on=int(time.time()),
             enable_net=package.copr.build_enable_net,
             timeout=DEFAULT_BUILD_TIMEOUT
