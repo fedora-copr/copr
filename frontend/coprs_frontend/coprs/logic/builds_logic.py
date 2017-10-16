@@ -619,7 +619,7 @@ GROUP BY
         return build
 
     @classmethod
-    def rebuild_package(cls, package, source_dict_update):
+    def rebuild_package(cls, package, source_dict_update={}):
         source_dict = package.source_json_dict
         source_dict.update(source_dict_update)
         source_json = json.dumps(source_dict)
