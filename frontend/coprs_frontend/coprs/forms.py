@@ -24,7 +24,7 @@ def get_package_form_cls_by_source_type_text(source_type_text):
     Params
     ------
     source_type_text : str
-        name of the source type (scm/pypi/rubygems)
+        name of the source type (scm/pypi/rubygems/git_and_tito/mock_scm)
 
     Returns
     -------
@@ -37,6 +37,10 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         return PackageFormPyPI
     elif source_type_text == 'rubygems':
         return PackageFormRubyGems
+    elif source_type_text == 'git_and_tito':
+        return PackageFormTito # deprecated
+    elif source_type_text == 'mock_scm':
+        return PackageFormMock # deprecated
     else:
         raise exceptions.UnknownSourceTypeException("Invalid source type")
 
@@ -493,10 +497,12 @@ class PackageFormTito(BasePackageForm):
     @property
     def source_json(self):
         return json.dumps({
-            "git_url": self.git_url.data,
-            "git_branch": self.git_branch.data,
-            "git_dir": self.git_directory.data,
-            "tito_test": self.tito_test.data
+            "type": 'git',
+            "clone_url": self.git_url.data,
+            "committish": self.git_branch.data,
+            "subdirectory": self.git_directory.data,
+            "spec": '',
+            "srpm_build_method": 'tito_test' if self.tito_test.data else 'tito',
         })
 
 
@@ -535,11 +541,12 @@ class PackageFormMock(BasePackageForm):
     @property
     def source_json(self):
         return json.dumps({
-            "scm_type": self.scm_type.data,
-            "scm_url": self.scm_url.data,
-            "scm_subdir": self.scm_subdir.data,
-            "scm_branch": self.scm_branch.data,
-            "spec": self.spec.data
+            "type": self.scm_type.data,
+            "clone_url": self.scm_url.data,
+            "committish": self.scm_branch.data,
+            "subdirectory": self.scm_subdir.data,
+            "spec": self.spec.data,
+            "srpm_build_method": 'rpkg',
         })
 
 
@@ -558,8 +565,12 @@ class PackageFormDistGit(BasePackageForm):
     @property
     def source_json(self):
         return json.dumps({
+            "type": 'git',
             "clone_url": self.clone_url.data,
-            "branch": self.branch.data
+            "committish": self.branch.data,
+            "subdirectory": '',
+            "spec": '',
+            "srpm_build_method": 'rpkg',
         })
 
 

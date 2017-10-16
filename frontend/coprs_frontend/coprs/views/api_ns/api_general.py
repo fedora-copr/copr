@@ -811,7 +811,12 @@ def process_package_add_or_edit(copr, source_type_text, package=None):
             except DuplicateException:
                 raise LegacyApiError("Package {0} already exists in copr {1}.".format(form.package_name.data, copr.full_name))
 
-        package.source_type = helpers.BuildSourceEnum(source_type_text)
+        try:
+            source_type = helpers.BuildSourceEnum(source_type_text)
+        except KeyError:
+            source_type = helpers.BuildSourceEnum("scm")
+
+        package.source_type = source_type
         package.source_json = form.source_json
         if "webhook_rebuild" in flask.request.form:
             package.webhook_rebuild = form.webhook_rebuild.data
