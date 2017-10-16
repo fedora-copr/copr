@@ -27,12 +27,12 @@ class ScmProvider(Provider):
         self.scm_type = source_json.get('type') or 'git'
         self.clone_url = source_json.get('clone_url')
         self.committish = source_json.get('committish') or 'master'
-        self.repo_subdir = source_json.get('subdirectory', '').strip('/')
-        self.spec_relpath = source_json.get('spec', '').strip('/')
+        self.repo_subdir = source_json.get('subdirectory') or ''
+        self.spec_relpath = source_json.get('spec') or ''
         self.srpm_build_method = source_json.get('srpm_build_method') or 'rpkg'
         self.repo_dirname = os.path.splitext(os.path.basename(self.clone_url))[0]
         self.repo_path = os.path.join(self.workdir, self.repo_dirname)
-        self.repo_subpath = os.path.join(self.repo_path, self.repo_subdir)
+        self.repo_subpath = os.path.join(self.repo_path, self.repo_subdir.strip('/'))
 
     def generate_rpkg_config(self):
         clone_url_hostname = urlparse(self.clone_url).netloc
@@ -85,7 +85,7 @@ class ScmProvider(Provider):
         mock_workdir = '/mnt' + self.workdir
         mock_outdir = '/mnt' + self.outdir
         mock_repodir = os.path.join(mock_workdir, self.repo_dirname)
-        mock_cwd = os.path.join(mock_repodir, self.repo_subdir)
+        mock_cwd = os.path.join(mock_repodir, self.repo_subdir.strip('/'))
 
         mock_bind_mount_cmd_part = \
             '--plugin-option=bind_mount:dirs=(("{0}", "{1}"), ("{2}", "{3}"))'\

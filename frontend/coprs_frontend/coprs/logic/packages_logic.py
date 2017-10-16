@@ -124,7 +124,7 @@ WHERE package.copr_id = :copr_id;
             if matches and package.name != matches.group(1):
                 return False
 
-        committish = package.source_json_dict.get("committish")
+        committish = package.source_json_dict.get("committish") or ''
         if committish and not ref.endswith("/"+committish):
             return False
 
@@ -144,8 +144,8 @@ WHERE package.copr_id = :copr_id;
     def path_belong_to_package(cls, package, file_path):
         data = package.source_json_dict
         norm_file_path = file_path.strip('./')
-        norm_package_subdir = data.get("subdirectory", '').strip('./')
-        return norm_file_path.startswith(norm_package_subdir or '')
+        package_subdir = data.get('subdirectory') or ''
+        return norm_file_path.startswith(package_subdir.strip('./'))
 
     @classmethod
     def add(cls, user, copr, package_name, source_type=helpers.BuildSourceEnum("unset"), source_json=json.dumps({})):
