@@ -19,6 +19,11 @@ from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs import helpers
 
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 SCM_SOURCE_TYPE = helpers.BuildSourceEnum("scm")
 
 logging.basicConfig(
@@ -28,6 +33,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 PAGURE_BASE_URL = "https://pagure.io/"
+PAGURE_HOSTNAME = "pagure.io"
 
 
 class ScmPackage(object):
@@ -135,7 +141,8 @@ def build_on_fedmsg_loop():
 
         for pkg in candidates:
             log.info("Considering pkg id: {}, source_json: {}".format(pkg.pkg_id, pkg.source_json_dict))
-            if (pkg.clone_url.endswith(clone_url_subpart) or pkg.clone_url.endswith(clone_url_subpart+'.git')) \
+            if PAGURE_HOSTNAME in urlparse(pkg.clone_url).netloc \
+                    and (pkg.clone_url.endswith(clone_url_subpart) or pkg.clone_url.endswith(clone_url_subpart+'.git')) \
                     and (not pkg.committish or branch.endswith('/'+pkg.committish)) \
                     and pkg.is_dir_in_commit(raw_commit_text):
                 log.info("\t -> rebuilding.")
