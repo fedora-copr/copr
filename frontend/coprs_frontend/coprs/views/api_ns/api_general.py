@@ -414,17 +414,21 @@ def copr_new_build_pypi(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build_tito(copr):
+    """
+    @deprecated
+    """
     form = forms.BuildFormTitoFactory(copr.active_chroots)(csrf_enabled=False)
 
     def create_new_build():
-        return BuildsLogic.create_new_from_tito(
+        return BuildsLogic.create_new_from_scm(
             flask.g.user,
             copr,
-            form.git_url.data,
-            form.git_directory.data,
-            form.git_branch.data,
-            form.tito_test.data,
-            form.selected_chroots,
+            scm_type='git',
+            clone_url=form.git_url.data,
+            subdirectory=form.git_directory.data,
+            committish=form.git_branch.data,
+            srpm_build_method=('tito_test' if form.tito_test.data else 'tito'),
+            chroot_names=form.selected_chroots,
             background=form.background.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
@@ -434,18 +438,21 @@ def copr_new_build_tito(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build_mock(copr):
+    """
+    @deprecated
+    """
     form = forms.BuildFormMockFactory(copr.active_chroots)(csrf_enabled=False)
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(
             flask.g.user,
             copr,
-            form.scm_type.data,
-            form.scm_url.data,
-            form.scm_branch.data,
-            form.scm_subdir.data,
-            form.spec.data,
-            form.selected_chroots,
+            scm_type=form.scm_type.data,
+            clone_url=form.scm_url.data,
+            committish=form.scm_branch.data,
+            subdirectory=form.scm_subdir.data,
+            spec=form.spec.data,
+            chroot_names=form.selected_chroots,
             background=form.background.data,
         )
     return process_creating_new_build(copr, form, create_new_build)
@@ -472,15 +479,19 @@ def copr_new_build_rubygems(copr):
 @api_login_required
 @api_req_with_copr
 def copr_new_build_distgit(copr):
+    """
+    @deprecated
+    """
     form = forms.BuildFormDistGitFactory(copr.active_chroots)(csrf_enabled=False)
 
     def create_new_build():
-        return BuildsLogic.create_new_from_distgit(
+        return BuildsLogic.create_new_from_scm(
             flask.g.user,
             copr,
-            form.clone_url.data,
-            form.branch.data,
-            form.selected_chroots,
+            scm_type='git',
+            clone_url=form.clone_url.data,
+            committish=form.branch.data,
+            chroot_names=form.selected_chroots,
             background=form.background.data,
         )
     return process_creating_new_build(copr, form, create_new_build)

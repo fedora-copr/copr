@@ -396,7 +396,7 @@ GROUP BY
 
     @classmethod
     def create_new_from_scm(cls, user, copr, scm_type, clone_url,
-                            committish, subdirectory, spec, srpm_build_method,
+                            committish='', subdirectory='', spec='', srpm_build_method='rpkg',
                             chroot_names=None, **build_options):
         """
         :type user: models.User
