@@ -243,6 +243,23 @@ class Commands(object):
         return self.process_build(args, self.client.create_new_build_mock, data)
 
     @requires_api_auth
+    def action_build_scm(self, args):
+        """
+        Method called when the 'buildscm' action has been selected by the user.
+
+        :param args: argparse arguments provided by the user
+        """
+        data = {
+            "clone_url": args.clone_url,
+            "committish": args.committish,
+            "subdirectory": args.subdirectory,
+            "spec": args.spec,
+            "scm_type": args.scm_type,
+            "srpm_build_method": args.srpm_build_method,
+        }
+        return self.process_build(args, self.client.create_new_build_scm, data)
+
+    @requires_api_auth
     def action_build_rubygems(self, args):
         """
         Method called when the 'buildgem' action has been selected by the user.
@@ -505,6 +522,25 @@ class Commands(object):
         print(result.message)
 
     @requires_api_auth
+    def action_add_or_edit_package_scm(self, args):
+        ownername, projectname = parse_name(args.copr)
+        data = {
+            "package_name": args.name,
+            "clone_url": args.clone_url,
+            "committish": args.committish,
+            "subdirectory": args.subdirectory,
+            "spec": args.spec,
+            "scm_type": args.scm_type,
+            "srpm_build_method": args.srpm_build_method,
+            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
+        }
+        if args.create:
+            result = self.client.add_package_scm(ownername=ownername, projectname=projectname, **data)
+        else:
+            result = self.client.edit_package_scm(ownername=ownername, projectname=projectname, **data)
+        print(result.message)
+
+    @requires_api_auth
     def action_add_or_edit_package_rubygems(self, args):
         ownername, projectname = parse_name(args.copr)
         data = {
@@ -743,6 +779,21 @@ def setup_parser():
     parser_mockscm_args_parent.add_argument("--spec", dest="spec", metavar="FILE",
                                             help="relative path from SCM root to .spec file, required")
 
+    parser_scm_args_parent = argparse.ArgumentParser(add_help=False)
+    parser_scm_args_parent.add_argument("--clone-url", required=True,
+                                        help="clone url to a project versioned by Git or SVN, required")
+    parser_scm_args_parent.add_argument("--commit", dest="committish", default="",
+                                        help="branch name, tag name, or git hash to be built")
+    parser_scm_args_parent.add_argument("--subdir", dest="subdirectory", default="",
+                                        help="relative path from the repo root to the package content")
+    parser_scm_args_parent.add_argument("--spec", default="",
+                                        help="relative path from the subdirectory to the .spec file")
+    parser_scm_args_parent.add_argument("--type", dest="scm_type", choices=["git", "svn"], default="git",
+                                        help="Specify versioning tool. Default is 'git'.")
+    parser_scm_args_parent.add_argument("--method", dest="srpm_build_method", default="rpkg",
+                                        choices=["rpkg", "tito", "tito_test", "make_srpm"],
+                                        help="Srpm build method. Default is 'rpkg'.")
+
     parser_rubygems_args_parent = argparse.ArgumentParser(add_help=False)
     parser_rubygems_args_parent.add_argument("--gem", metavar="GEM", dest="gem_name",
                                              help="Specify gem name")
@@ -803,6 +854,11 @@ def setup_parser():
     parser_build_mock = subparsers.add_parser("buildmock", parents=[parser_mockscm_args_parent, parser_build_parent],
                                               help="DEPRECATED. Use SCM source type instead.")
     parser_build_mock.set_defaults(func="action_build_mock")
+
+    # create the parser for the "buildscm" command
+    parser_build_scm = subparsers.add_parser("buildscm", parents=[parser_scm_args_parent, parser_build_parent],
+                                              help="Builds package from Git/DistGit/SVN repository.")
+    parser_build_scm.set_defaults(func="action_build_scm")
 
     # create the parser for the "status" command
     parser_status = subparsers.add_parser("status", help="Get build status of build specified by its ID")
@@ -907,6 +963,17 @@ def setup_parser():
                                                         parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=False)
 
+    # SCM edit/create
+    parser_add_package_scm = subparsers.add_parser("add-package-scm",
+                                                       help="Creates a new SCM package.",
+                                                       parents=[parser_scm_args_parent, parser_add_or_edit_package_parent])
+    parser_add_package_scm.set_defaults(func="action_add_or_edit_package_scm", create=True)
+
+    parser_edit_package_scm = subparsers.add_parser("edit-package-scm",
+                                                        help="Edits an existing SCM package.",
+                                                        parents=[parser_scm_args_parent, parser_add_or_edit_package_parent])
+    parser_edit_package_scm.set_defaults(func="action_add_or_edit_package_scm", create=False)
+
     # Rubygems edit/create
     parser_add_package_rubygems = subparsers.add_parser("add-package-rubygems",
                                                         help="Creates a new RubyGems package",
@@ -914,7 +981,7 @@ def setup_parser():
     parser_add_package_rubygems.set_defaults(func="action_add_or_edit_package_rubygems", create=True)
 
     parser_edit_package_rubygems = subparsers.add_parser("edit-package-rubygems",
-                                                         help="Edits a new RubyGems package",
+                                                         help="Edits an existing RubyGems package",
                                                          parents=[parser_rubygems_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_rubygems.set_defaults(func="action_add_or_edit_package_rubygems", create=False)
 

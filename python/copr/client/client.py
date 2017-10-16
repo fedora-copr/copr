@@ -68,6 +68,7 @@ SOURCE_TYPE_GIT_AND_TITO = 'git_and_tito'
 SOURCE_TYPE_MOCK_SCM = 'mock_scm'
 SOURCE_TYPE_PYPI = 'pypi'
 SOURCE_TYPE_RUBYGEMS = 'rubygems'
+SOURCE_TYPE_SCM = 'scm'
 
 class CoprClient(UnicodeMixin):
     """ Main interface to the copr service
@@ -522,6 +523,44 @@ class CoprClient(UnicodeMixin):
         return self.process_creating_new_build(projectname, data, api_endpoint, username,
                                                chroots, background=background)
 
+    def create_new_build_scm(self, projectname, clone_url, committish='', subdirectory='', spec='',
+                             scm_type='git', srpm_build_method='rpkg', username=None, timeout=None,
+                             memory=None, chroots=None, background=False, progress_callback=None):
+        """ Creates new build from SCM
+
+            :param projectname: name of Copr project (without user namespace)
+            :param clone_url: url to a project versioned by Git or SVN
+            :param committish [optional]: name of a branch, tag, or a git hash
+            :param subdirectory [optional]: repo subdirectory with package content
+            :param spec [optional]: path to spec file, relative to 'subdirectory'
+            :param scm_type [optional]: "git" or "svn"
+            :param srpm_build_method [optional]: tool to build srpm with. One of:
+                "rpkg", "tito", "tito_test", "make_srpm"
+            :param timeout: [optional] build timeout
+            :param memory: [optional] amount of required memory for build process
+            :param chroots: [optional] build only with given chroots
+            :param background: [optional] mark the build as a background job.
+            :param progress_callback: [optional] a function that received a
+            MultipartEncoderMonitor instance for each chunck of uploaded data
+
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
+        """
+        data = {
+            "memory_reqs": memory,
+            "timeout": timeout,
+            "clone_url": clone_url,
+            "committish": committish,
+            "subdirectory": subdirectory,
+            "spec": spec,
+            "scm_type": scm_type,
+            "srpm_build_method": srpm_build_method,
+        }
+        api_endpoint = "new_build_scm"
+        return self.process_creating_new_build(projectname, data, api_endpoint, username,
+                                               chroots, background=background)
+
     def create_new_build_rubygems(self, projectname, gem_name, username=None,
                               timeout=None, memory=None, chroots=None, background=False, progress_callback=None):
         """ Creates new build from RubyGems.org
@@ -721,6 +760,39 @@ class CoprClient(UnicodeMixin):
             "scm_url": scm_url,
             "scm_branch": scm_branch,
             "spec": spec,
+            "webhook_rebuild": 'y' if webhook_rebuild else '',
+        })
+        return response
+
+    def edit_package_scm(self, package_name, projectname, clone_url, committish='', subdirectory='', spec='',
+                         scm_type='git', srpm_build_method='rpkg', ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_SCM)
+        data = {
+            "package_name": package_name,
+            "clone_url": clone_url,
+            "committish": committish,
+            "subdirectory": subdirectory,
+            "spec": spec,
+            "scm_type": scm_type,
+            "srpm_build_method": srpm_build_method,
+        }
+        if webhook_rebuild != None:
+            data['webhook_rebuild'] = 'y' if webhook_rebuild else '' # TODO: False/True gets converted to 'False'/'True' in FE, try to solve better
+
+        response = self.process_package_action(request_url, ownername, projectname, data)
+        return response
+
+    def add_package_scm(self, package_name, projectname, clone_url, committish='', subdirectory='', spec='',
+                        scm_type='git', srpm_build_method='rpkg', ownername=None, webhook_rebuild=None):
+        request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_SCM)
+        response = self.process_package_action(request_url, ownername, projectname, data={
+            "package_name": package_name,
+            "clone_url": clone_url,
+            "committish": committish,
+            "subdirectory": subdirectory,
+            "spec": spec,
+            "scm_type": scm_type,
+            "srpm_build_method": srpm_build_method,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
         return response

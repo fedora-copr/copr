@@ -475,6 +475,28 @@ def copr_new_build_rubygems(copr):
     return process_creating_new_build(copr, form, create_new_build)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/new_build_scm/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_new_build_scm(copr):
+    form = forms.BuildFormScmFactory(copr.active_chroots)(csrf_enabled=False)
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_scm(
+            flask.g.user,
+            copr,
+            scm_type=form.scm_type.data,
+            clone_url=form.clone_url.data,
+            committish=form.committish.data,
+            subdirectory=form.subdirectory.data,
+            spec=form.spec.data,
+            srpm_build_method=form.srpm_build_method.data,
+            chroot_names=form.selected_chroots,
+            background=form.background.data,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
 @api_ns.route("/coprs/<username>/<coprname>/new_build_distgit/", methods=["POST"])
 @api_login_required
 @api_req_with_copr

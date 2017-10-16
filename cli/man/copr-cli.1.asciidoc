@@ -319,6 +319,40 @@ Specify branch in the dist-git project to be be built from.
 For the rest of the arguments, see `copr-cli build` command above.
 
 
+`copr-cli buildscm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+usage: copr buildscm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
+                     [--subdir SUBDIRECTORY] [--spec SPEC] [--type {git,svn}]
+                     [--method {rpkg,tito,tito_test,make_srpm}]
+                     [--memory MEMORY] [--timeout TIMEOUT] [--nowait]
+                     [-r CHROOTS] [--background]
+                     copr
+
+Build package from a Git/DistGit/SVN repository.
+
+--clone-url CLONE_URL::
+clone url to a project versioned by Git or SVN, required
+
+--commit COMMITISH::
+branch name, tag name, or git hash to be built
+
+--subdir SUBDIRECTORY::
+relative path from the repo root to the package content
+
+--spec SPEC::
+relative path from the subdirectory to the .spec file
+
+--type TYPE::
+Specify versioning tool. Default is 'git'.
+
+--method METHOD::
+Srpm build method. Default is 'rpkg'.
+
+
+For the rest of the arguments, see `copr-cli build` command above.
+
+
 `copr-cli download-build [options]`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -501,6 +535,54 @@ usage: copr edit-package-mockscm [-h] [--scm-type TYPE] [--scm-url URL]
                                 project
 
 Deprecated by SCM source type.
+
+
+`copr-cli add-package-scm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr add-package-scm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
+                            [--subdir SUBDIRECTORY] [--spec SPEC]
+                            [--type {git,svn}]
+                            [--method {rpkg,tito,tito_test,make_srpm}] --name
+                            PKGNAME [--webhook-rebuild {on,off}]
+                            copr
+
+Add package of SCM source type.
+
+--clone-url CLONE_URL::
+clone url to a project versioned by Git or SVN, required
+
+--commit COMMITISH::
+branch name, tag name, or git hash to be built
+
+--subdir SUBDIRECTORY::
+relative path from the repo root to the package content
+
+--spec SPEC::
+relative path from the subdirectory to the .spec file
+
+--type TYPE::
+Specify versioning tool. Default is 'git'.
+
+--method METHOD::
+Srpm build method. Default is 'rpkg'.
+
+--name PKGNAME::
+Name of the package to be edited or created
+
+--webhook-rebuild {on,off}::
+Enable auto-rebuilding
+
+
+`copr-cli edit-package-scm [options]`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+usage: copr edit-package-scm [-h] --clone-url CLONE_URL [--commit COMMITTISH]
+                             [--subdir SUBDIRECTORY] [--spec SPEC]
+                             [--type {git,svn}]
+                             [--method {rpkg,tito,tito_test,make_srpm}] --name
+                             PKGNAME [--webhook-rebuild {on,off}]
+                             copr
+
+Edit package of SCM source type.
 
 
 `copr-cli add-package-rubygems [options]`
