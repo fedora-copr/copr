@@ -20,7 +20,7 @@ def upgrade():
     session = sa.orm.sessionmaker(bind=op.get_bind())()
 
     for build in session.query(models.Build).filter(models.Build.source_type == 3):
-        source_dict = build.source_metadata
+        source_dict = build.source_json_dict
         new_source_dict = {
             'type': 'git',
             'clone_url': source_dict.get('git_url') or '',
@@ -34,7 +34,7 @@ def upgrade():
         session.add(build)
 
     for build in session.query(models.Build).filter(models.Build.source_type == 4):
-        source_dict = build.source_metadata
+        source_dict = build.source_json_dict
         new_source_dict = {
             'type': source_dict.get('scm_type') or 'git',
             'clone_url': source_dict.get('scm_url') or '',
@@ -48,7 +48,7 @@ def upgrade():
         session.add(build)
 
     for build in session.query(models.Build).filter(models.Build.source_type == 7):
-        source_dict = build.source_metadata
+        source_dict = build.source_json_dict
         new_source_dict = {
             'type': 'git',
             'clone_url': source_dict.get('clone_url') or '',
