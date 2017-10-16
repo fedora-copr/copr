@@ -473,6 +473,8 @@ class CoprClient(UnicodeMixin):
 
                 - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
         """
+        print('Deprecated method. Use generic "scm" methods instead.', file=sys.stderr)
+
         data = {
             "memory_reqs": memory,
             "timeout": timeout,
@@ -506,6 +508,8 @@ class CoprClient(UnicodeMixin):
 
                 - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
         """
+        print('Deprecated method. Use generic "scm" methods instead.', file=sys.stderr)
+
         data = {
             "memory_reqs": memory,
             "timeout": timeout,
@@ -639,6 +643,7 @@ class CoprClient(UnicodeMixin):
         )
 
     def edit_package_tito(self, package_name, projectname, git_url, git_dir=None, git_branch=None, tito_test=None, ownername=None, webhook_rebuild=None):
+        print('Deprecated method. Use generic "scm" methods instead.', file=sys.stderr)
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_GIT_AND_TITO)
         data = {
             "package_name": package_name,
@@ -654,6 +659,7 @@ class CoprClient(UnicodeMixin):
         return response
 
     def add_package_tito(self, package_name, projectname, git_url, git_dir=None, git_branch=None, tito_test=None, ownername=None, webhook_rebuild=None):
+        print('Deprecated method. Use generic "scm" methods instead.', file=sys.stderr)
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_GIT_AND_TITO)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
@@ -691,6 +697,7 @@ class CoprClient(UnicodeMixin):
         return response
 
     def edit_package_mockscm(self, package_name, projectname, scm_type, scm_url, scm_branch, spec, ownername=None, webhook_rebuild=None):
+        print('Deprecated method. Use generic "scm" methods instead.', file=sys.stderr)
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_MOCK_SCM)
         data = {
             "package_name": package_name,
@@ -706,6 +713,7 @@ class CoprClient(UnicodeMixin):
         return response
 
     def add_package_mockscm(self, package_name, projectname, scm_type, scm_url, scm_branch, spec, ownername=None, webhook_rebuild=None):
+        print('Deprecated method. Use generic "scm" methods instead.', file=sys.stderr)
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_MOCK_SCM)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
