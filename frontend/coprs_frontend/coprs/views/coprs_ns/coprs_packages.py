@@ -100,7 +100,7 @@ def copr_rebuild_package(copr, package_name):
     data = package.source_json_dict
 
     if package.source_type_text == "scm":
-        form = forms.BuildFormSCMFactory
+        form = forms.BuildFormScmFactory
         f = render_add_build_scm
         view_suffix = "_scm"
     elif package.source_type_text == "pypi":
@@ -124,7 +124,7 @@ def copr_rebuild_package(copr, package_name):
 @req_with_copr
 def copr_add_package(copr, source_type_text="scm", **kwargs):
     form = {
-        "scm": forms.PackageFormSCM(),
+        "scm": forms.PackageFormScm(),
         "pypi": forms.PackageFormPyPI(),
         "rubygems": forms.PackageFormRubyGems(),
     }
@@ -164,7 +164,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
         source_type_text = "scm"
 
     form_classes = {
-        "scm": forms.PackageFormSCM,
+        "scm": forms.PackageFormScm,
         "pypi": forms.PackageFormPyPI,
         "rubygems": forms.PackageFormRubyGems,
     }

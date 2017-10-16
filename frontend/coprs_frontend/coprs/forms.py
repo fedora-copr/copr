@@ -32,7 +32,7 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         based on source_type_text input
     """
     if source_type_text == 'scm':
-        return PackageFormSCM
+        return PackageFormScm
     elif source_type_text == 'pypi':
         return PackageFormPyPI
     elif source_type_text == 'rubygems':
@@ -379,7 +379,7 @@ class BasePackageForm(FlaskForm):
     webhook_rebuild = wtforms.BooleanField(default=False)
 
 
-class PackageFormSCM(BasePackageForm):
+class PackageFormScm(BasePackageForm):
     scm_type = wtforms.SelectField(
         "Type",
         choices=[("git", "Git"), ("svn", "SVN")])
@@ -468,7 +468,85 @@ class PackageFormRubyGems(BasePackageForm):
         })
 
 
+class PackageFormTito(BasePackageForm):
+    """
+    @deprecated
+    """
+    git_url = wtforms.StringField(
+        "Git URL",
+        validators=[
+            wtforms.validators.DataRequired(),
+            wtforms.validators.URL()])
+
+    git_directory = wtforms.StringField(
+        "Git Directory",
+        validators=[
+            wtforms.validators.Optional()])
+
+    git_branch = wtforms.StringField(
+        "Git Branch",
+        validators=[
+            wtforms.validators.Optional()])
+
+    tito_test = wtforms.BooleanField(default=False)
+
+    @property
+    def source_json(self):
+        return json.dumps({
+            "git_url": self.git_url.data,
+            "git_branch": self.git_branch.data,
+            "git_dir": self.git_directory.data,
+            "tito_test": self.tito_test.data
+        })
+
+
+class PackageFormMock(BasePackageForm):
+    """
+    @deprecated
+    """
+    scm_type = wtforms.SelectField(
+        "SCM Type",
+        choices=[("git", "Git"), ("svn", "SVN")])
+
+    scm_url = wtforms.StringField(
+        "SCM URL",
+        validators=[
+            wtforms.validators.DataRequired(),
+            wtforms.validators.URL()])
+
+    scm_branch = wtforms.StringField(
+        "Git Branch",
+        validators=[
+            wtforms.validators.Optional()])
+
+    scm_subdir = wtforms.StringField(
+        "Subdirectory",
+        validators=[
+            wtforms.validators.Optional()])
+
+    spec = wtforms.StringField(
+        "Spec File",
+        validators=[
+            wtforms.validators.Optional(),
+            wtforms.validators.Regexp(
+                r"^.+\.spec$",
+                message="RPM spec file must end with .spec")])
+
+    @property
+    def source_json(self):
+        return json.dumps({
+            "scm_type": self.scm_type.data,
+            "scm_url": self.scm_url.data,
+            "scm_subdir": self.scm_subdir.data,
+            "scm_branch": self.scm_branch.data,
+            "spec": self.spec.data
+        })
+
+
 class PackageFormDistGit(BasePackageForm):
+    """
+    @deprecated
+    """
     clone_url = wtforms.StringField(
         "Clone Url",
         validators=[wtforms.validators.DataRequired()])
@@ -543,9 +621,25 @@ class BaseBuildFormFactory(object):
         return F
 
 
-class BuildFormSCMFactory(object):
+class BuildFormScmFactory(object):
     def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormSCM)
+        return BaseBuildFormFactory(active_chroots, PackageFormScm)
+
+
+class BuildFormTitoFactory(object):
+    """
+    @deprecated
+    """
+    def __new__(cls, active_chroots):
+        return BaseBuildFormFactory(active_chroots, PackageFormTito)
+
+
+class BuildFormMockFactory(object):
+    """
+    @deprecated
+    """
+    def __new__(cls, active_chroots):
+        return BaseBuildFormFactory(active_chroots, PackageFormMock)
 
 
 class BuildFormPyPIFactory(object):

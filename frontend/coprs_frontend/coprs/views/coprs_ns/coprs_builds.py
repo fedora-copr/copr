@@ -190,7 +190,7 @@ def group_copr_add_build_scm(copr, form=None):
 
 def render_add_build_scm(copr, form, view, package=None):
     if not form:
-        form = forms.BuildFormSCMFactory(copr.active_chroots)()
+        form = forms.BuildFormScmFactory(copr.active_chroots)()
     return flask.render_template("coprs/detail/add_build/scm.html",
                                  copr=copr, form=form, view=view, package=package)
 
@@ -229,7 +229,7 @@ def process_new_build_scm(copr, add_view, url_on_success):
             form.selected_chroots,
             **build_options
         )
-    form = forms.BuildFormSCMFactory(copr.active_chroots)()
+    form = forms.BuildFormScmFactory(copr.active_chroots)()
     return process_new_build(copr, form, factory, render_add_build_scm, add_view, url_on_success)
 
 
