@@ -21,6 +21,8 @@ log = logging.getLogger(__name__)
 
 @webhooks_ns.route("/github/<copr_id>/<uuid>/", methods=["POST"])
 def webhooks_git_push(copr_id, uuid):
+    if flask.request.headers["X-GitHub-Event"] == "ping":
+        return "OK", 200
     # For the documentation of the data we receive see:
     # https://developer.github.com/v3/activity/events/types/#pushevent
     try:
