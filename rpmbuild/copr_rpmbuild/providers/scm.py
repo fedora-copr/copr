@@ -53,9 +53,9 @@ class ScmProvider(Provider):
             return '/etc/rpkg.conf'
 
         distgit_lookaside_url = self.config.get(
-            found_config_section, 'distgit_lookaside_url')
+            found_config_section, 'distgit_lookaside_url').strip('/')
         distgit_clone_url = self.config.get(
-            found_config_section, 'distgit_clone_url')
+            found_config_section, 'distgit_clone_url').strip('/')
 
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
         template = jinja_env.get_template("rpkg.conf.j2")
