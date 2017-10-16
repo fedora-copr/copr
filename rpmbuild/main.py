@@ -147,7 +147,7 @@ def get_task(endpoint, id, config):
         response = requests.get(url)
         task = response.json()
         pp = pprint.PrettyPrinter(width=120)
-        log.debug("Task:\n"+pp.pformat(task)+'\n')
+        log.info("Task:\n"+pp.pformat(task)+'\n')
         task["source_json"] = json.loads(task["source_json"])
     except JSONDecodeError:
         raise RuntimeError("No valid task at {}".format(url))
