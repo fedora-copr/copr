@@ -169,9 +169,8 @@ rlJournalStart
         rlAssertEquals "It is not possible to enable non-existing chroot " `cat $OUTPUT |grep "Such chroot is not enabled: non-existing-1" |wc -l` 1
 
         ## test distgit builds
-        rlRun "copr-cli create --chroot fedora-24-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
-        rlRun "copr-cli buildfedpkg --clone-url http://pkgs.fedoraproject.org/git/rpms/389-admin-console.git --branch f24 ${NAME_PREFIX}ProjectDistGitBuilds"
-
+        rlRun "copr-cli create --chroot fedora-26-x86_64 ${NAME_PREFIX}ProjectDistGitBuilds"
+        rlRun "copr-cli buildfedpkg --clone-url https://src.fedoraproject.org/rpms/389-admin-console.git --branch f26 ${NAME_PREFIX}ProjectDistGitBuilds"
 
         ## test mock-config feature
         mc_project=${NAME_PREFIX}MockConfig
