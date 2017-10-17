@@ -164,6 +164,7 @@ def api_new_copr(username):
                     builds_logic.BuildsLogic.add(
                         user=flask.g.user,
                         pkgs=pkg,
+                        srpm_url=pkg,
                         copr=copr)
 
                 infos.append("Initial packages were successfully "

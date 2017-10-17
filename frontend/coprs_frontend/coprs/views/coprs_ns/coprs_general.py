@@ -254,6 +254,7 @@ def after_the_project_creation(copr, form):
                 builds_logic.BuildsLogic.add(
                     flask.g.user,
                     pkgs=pkg,
+                    srpm_url=pkg,
                     copr=copr,
                     enable_net=form.build_enable_net.data
                 )
