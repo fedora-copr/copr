@@ -133,7 +133,7 @@ class ScmProvider(Provider):
         except RuntimeError as e:
             log.error(str(e))
             if self.scm_type == 'git' and \
-                    'fatal: dumb http transport does not support --depth' in str(e):
+                    'fatal: dumb http transport' in str(e):
                 helpers.run_cmd(['git', 'clone', self.clone_url, self.repo_path])
             else:
                 raise e
