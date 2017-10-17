@@ -115,7 +115,7 @@ class Builder(object):
 
     def _copr_builder_cmd(self):
         if self.opts.builder_perl:
-            return 'copr-rpmbuild --detached --build-id {build_id} --chroot {chroot}'.format(
+            return 'copr-rpmbuild --verbose --detached --build-id {build_id} --chroot {chroot}'.format(
                 build_id=self.job.build_id, chroot=self.job.chroot)
 
         template = 'copr-builder --config {config} --copr {copr} ' \
@@ -227,4 +227,4 @@ class Builder(object):
 
 class SrpmBuilder(Builder):
     def _copr_builder_cmd(self):
-        return 'copr-rpmbuild -d --srpm --build-id {build_id}'.format(build_id=self.job.build_id)
+        return 'copr-rpmbuild --verbose --detached --srpm --build-id {build_id}'.format(build_id=self.job.build_id)
