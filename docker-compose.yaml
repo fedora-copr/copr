@@ -42,7 +42,7 @@ services:
 
   distgit:
     build:
-      context: ~/git/copr
+      context: .
       dockerfile: docker/distgit/Dockerfile
     command: /bin/run.sh
     stdin_open: true

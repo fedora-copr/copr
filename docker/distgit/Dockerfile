@@ -19,7 +19,7 @@ RUN dnf -y copr enable @copr/copr
 RUN dnf -y copr enable clime/dist-git
 
 COPY . /copr
-COPY dist-git/docker/files/ /
+COPY docker/distgit/files/ /
 
 
 RUN dnf builddep -y /copr/dist-git/copr-dist-git.spec
