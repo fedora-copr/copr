@@ -10,6 +10,7 @@ RUN dnf -y update && \
                    tito \
                    wget \
                    vim \
+                   yum \
                    supervisor \
                    copr-selinux \
                    postgresql-server \
