@@ -260,11 +260,11 @@ rlJournalStart
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
         rlAssertEquals "package.name == \"test_package_tito\"" `cat $OUTPUT | jq '.name'` '"test_package_tito"'
         rlAssertEquals "package.webhook_rebuild == \"true\"" `cat $OUTPUT | jq '.webhook_rebuild'` 'true'
-        rlAssertEquals "package.source_type == \"git_and_tito\"" `cat $OUTPUT | jq '.source_type'` '"git_and_tito"'
-        rlAssertEquals "package.source_json.tito_test == true" `cat $SOURCE_JSON | jq '.tito_test'` 'true'
-        rlAssertEquals "package.source_json.git_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.git_url'` '"http://github.com/clime/example.git"'
-        rlAssertEquals "package.source_json.git_branch == \"foo\"" `cat $SOURCE_JSON | jq '.git_branch'` '"foo"'
-        rlAssertEquals "package.source_json.git_dir == \"bar\"" `cat $SOURCE_JSON | jq '.git_dir'` '"bar"'
+        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
+        rlAssertEquals "package.source_json.srpm_build_method == \"tito_test"\" `cat $SOURCE_JSON | jq '.srpm_build_method'` '"tito_test"'
+        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_json.committish == \"foo\"" `cat $SOURCE_JSON | jq '.committish'` '"foo"'
+        rlAssertEquals "package.source_json.subdirectory == \"bar\"" `cat $SOURCE_JSON | jq '.subdirectory'` '"bar"'
 
         # Tito package editing
         rlRun "copr-cli edit-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url http://github.com/clime/example2.git --test off --webhook-rebuild off --git-branch bar --git-dir foo"
@@ -272,11 +272,11 @@ rlJournalStart
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
         rlAssertEquals "package.name == \"test_package_tito\"" `cat $OUTPUT | jq '.name'` '"test_package_tito"'
         rlAssertEquals "package.webhook_rebuild == \"false\"" `cat $OUTPUT | jq '.webhook_rebuild'` 'false'
-        rlAssertEquals "package.source_type == \"git_and_tito\"" `cat $OUTPUT | jq '.source_type'` '"git_and_tito"'
-        rlAssertEquals "package.source_json.tito_test == false" `cat $SOURCE_JSON | jq '.tito_test'` 'false'
-        rlAssertEquals "package.source_json.git_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.git_url'` '"http://github.com/clime/example2.git"'
-        rlAssertEquals "package.source_json.git_branch == \"bar\"" `cat $SOURCE_JSON | jq '.git_branch'` '"bar"'
-        rlAssertEquals "package.source_json.git_dir == \"foo\"" `cat $SOURCE_JSON | jq '.git_dir'` '"foo"'
+        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
+        rlAssertEquals "package.source_json.srpm_build_method == \"tito\"" `cat $SOURCE_JSON | jq '.srpm_build_method'` '"tito"'
+        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example2.git"'
+        rlAssertEquals "package.source_json.committish == \"bar\"" `cat $SOURCE_JSON | jq '.committish'` '"bar"'
+        rlAssertEquals "package.source_json.subdirectory == \"foo\"" `cat $SOURCE_JSON | jq '.subdirectory'` '"foo"'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 1" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 1
@@ -309,22 +309,24 @@ rlJournalStart
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
         rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
-        rlAssertEquals "package.source_type == \"mock_scm\"" `cat $OUTPUT | jq '.source_type'` '"mock_scm"'
-        rlAssertEquals "package.source_json.scm_type == \"git\"" `cat $SOURCE_JSON | jq '.scm_type'` '"git"'
-        rlAssertEquals "package.source_json.scm_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.scm_url'` '"http://github.com/clime/example.git"'
-        rlAssertEquals "package.source_json.scm_branch == \"foo\"" `cat $SOURCE_JSON | jq '.scm_branch'` '"foo"'
+        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
+        rlAssertEquals "package.source_json.type == \"git\"" `cat $SOURCE_JSON | jq '.type'` '"git"'
+        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_json.committish == \"foo\"" `cat $SOURCE_JSON | jq '.committish'` '"foo"'
         rlAssertEquals "package.source_json.spec == \"example.spec\"" `cat $SOURCE_JSON | jq '.spec'` '"example.spec"'
+        rlAssertEquals "package.source_json.srpm_build_method == \"rpkg\"" `cat $SOURCE_JSON | jq '.srpm_build_method'` '"rpkg"'
 
         # MockSCM package editing
         rlRun "copr-cli edit-package-mockscm ${NAME_PREFIX}Project4 --name test_package_mockscm --scm-type svn --scm-url http://github.com/clime/example2.git --scm-branch bar --spec example2.spec"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
         rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
-        rlAssertEquals "package.source_type == \"mock_scm\"" `cat $OUTPUT | jq '.source_type'` '"mock_scm"'
-        rlAssertEquals "package.source_json.scm_type == \"svn\"" `cat $SOURCE_JSON | jq '.scm_type'` '"svn"'
-        rlAssertEquals "package.source_json.scm_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.scm_url'` '"http://github.com/clime/example2.git"'
-        rlAssertEquals "package.source_json.scm_branch == \"bar\"" `cat $SOURCE_JSON | jq '.scm_branch'` '"bar"'
+        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
+        rlAssertEquals "package.source_json.type == \"svn\"" `cat $SOURCE_JSON | jq '.type'` '"svn"'
+        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example2.git"'
+        rlAssertEquals "package.source_json.committish == \"bar\"" `cat $SOURCE_JSON | jq '.committish'` '"bar"'
         rlAssertEquals "package.source_json.spec == \"example2.spec\"" `cat $SOURCE_JSON | jq '.spec'` '"example2.spec"'
+        rlAssertEquals "package.source_json.srpm_build_method == \"rpkg\"" `cat $SOURCE_JSON | jq '.srpm_build_method'` '"rpkg"'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
@@ -354,8 +356,8 @@ rlJournalStart
         # before reset
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
         cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
-        rlAssertEquals "package.source_type == \"git_and_tito\"" `cat $OUTPUT | jq '.source_type'` '"git_and_tito"'
-        rlAssertEquals "package.source_json.git_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.git_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
+        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example.git"'
 
         # _do_ reset
         rlRun "copr-cli reset-package ${NAME_PREFIX}Project4 --name test_package_reset"
