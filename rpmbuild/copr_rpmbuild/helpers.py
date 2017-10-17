@@ -21,6 +21,14 @@ class SourceType:
     RUBYGEMS = 6
     SCM = 8
 
+def cmd_debug(result):
+    log.debug("")
+    log.debug("cmd: {}".format(result.cmd))
+    log.debug("cwd: {}".format(result.cwd))
+    log.debug("rc: {}".format(result.returncode))
+    log.debug("stdout: {}".format(result.stdout))
+    log.debug("stderr: {}".format(result.stderr))
+    log.debug("")
 
 def run_cmd(cmd, cwd=".", preexec_fn=None):
     """
@@ -33,7 +41,7 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
     :raises PackageImportException
     :returns munch.Munch(cmd, stdout, stderr, returncode)
     """
-    log.info('Running: {cmd} (cwd: {cwd})'.format(cmd=' '.join(cmd), cwd=cwd))
+    log.info('Running: {cmd}'.format(cmd=' '.join(cmd)))
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
     try:
@@ -48,9 +56,7 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
         returncode=process.returncode,
         cwd=cwd
     )
-
-    pp = pprint.PrettyPrinter(width=120)
-    log.debug(pp.pformat(result)+'\n')
+    cmd_debug(result)
 
     if result.returncode != 0:
         raise RuntimeError(result.stderr)

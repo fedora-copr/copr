@@ -61,7 +61,7 @@ class ScmProvider(Provider):
         template = jinja_env.get_template("rpkg.conf.j2")
         config = template.render(lookaside_url=distgit_lookaside_url,
                                  clone_url=distgit_clone_url)
-        log.debug('RPKG config:\n'+config+'\n')
+        log.debug('Generated rpkg config:\n'+config+'\n')
         config_path = os.path.join(self.workdir, "rpkg.conf")
 
         f = open(config_path, "w+")
