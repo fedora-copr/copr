@@ -38,7 +38,7 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
     :param str cwd: In which directory to execute the command
     :param func preexec_fn: a callback invoked before exec in subprocess
 
-    :raises PackageImportException
+    :raises RuntimeError
     :returns munch.Munch(cmd, stdout, stderr, returncode)
     """
     log.info('Running: {cmd}'.format(cmd=' '.join(cmd)))
@@ -72,7 +72,7 @@ def locate_spec(dirpath):
             spec_path = path_match
             break
     if not spec_path:
-        raise PackageImportException('No .spec found at {}'.format(dirpath))
+        raise RuntimeError('No .spec found at {}'.format(dirpath))
     return spec_path
 
 
@@ -84,7 +84,7 @@ def locate_srpm(dirpath):
             srpm_path = path_match
             break
     if not srpm_path:
-        raise PackageImportException('No .src.rpm found at {}'.format(dirpath))
+        raise RuntimeError('No .src.rpm found at {}'.format(dirpath))
     return srpm_path
 
 
