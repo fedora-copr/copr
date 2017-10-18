@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.81
+Version:    1.82
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -192,6 +192,10 @@ popd
 %endif
 
 %changelog
+* Wed Oct 18 2017 clime <clime@redhat.com> 1.82-1
+- add SCM api
+- add deprecation warnings for tito and mockscm methods
+
 * Fri Sep 15 2017 clime <clime@redhat.com> 1.81-1
 - Bug 1431035 - coprs should check credentials before uploading
   source rpm Remove unnecesary condition
