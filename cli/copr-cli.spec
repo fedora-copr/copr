@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.63
+Version:    1.64
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -144,6 +144,10 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Wed Oct 18 2017 clime <clime@redhat.com> 1.64-1
+- add SCM api interface
+- deprecate tito and mockscm methods
+
 * Fri Sep 15 2017 clime <clime@redhat.com> 1.63-1
 - fix unittests
 - run tests with python3
