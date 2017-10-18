@@ -62,6 +62,9 @@ class MockBuilder(object):
         os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
         os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
 
+    def get_mock_uniqueext(self):
+        return datetime.datetime.now().strftime('%s')
+
     def produce_srpm(self, spec, sources, configdir, resultdir):
         cmd = [
             "unbuffer", "/usr/bin/mock",
@@ -71,7 +74,7 @@ class MockBuilder(object):
             "--configdir", configdir,
             "--resultdir", resultdir,
             "--define", "%_disable_source_fetch 0",
-            "--uniqueext", datetime.datetime.now().strftime('%s'),
+            "--uniqueext", self.get_mock_uniqueext(),
             "-r", "child"]
 
         log.info('Running: {}'.format(' '.join(cmd)))
@@ -92,7 +95,7 @@ class MockBuilder(object):
                "--rebuild", srpm,
                "--configdir", configdir,
                "--resultdir", resultdir,
-               "--uniqueext", datetime.datetime.now().strftime('%s'),
+               "--uniqueext", self.get_mock_uniqueext(),
                "-r", "child"]
 
         log.info('Running: {}'.format(' '.join(cmd)))

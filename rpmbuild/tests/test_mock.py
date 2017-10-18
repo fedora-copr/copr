@@ -4,6 +4,10 @@ import mock
 import configparser
 from os.path import realpath, dirname
 from ..copr_rpmbuild.builders.mock import MockBuilder
+import subprocess
+import datetime
+
+from unittest.mock import MagicMock
 
 class TestMockBuilder(unittest.TestCase):
     def setUp(self):
@@ -67,18 +71,20 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(config_opts["use_bootstrap_container"], False)
         self.assertEqual(config_opts["yum.conf"], [])
 
-    @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.run_cmd")
-    def test_produce_rpm(self, run_cmd):
-        #FIXME:
-        #builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
-        #builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/configs", "/path/to/results")
-        #assert_cmd = ["/usr/bin/mock",
-        #              "--rebuild", "/path/to/pkg.src.rpm",
-        #              "--configdir", "/path/to/configs",
-        #              "--resultdir", "/path/to/results",
-        #              "-r", "child"]
-        #run_cmd.assert_called_with(assert_cmd)
-        pass
+    @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.subprocess.Popen")
+    def test_produce_rpm(self, popen_mock):
+        builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
+        builder.get_mock_uniqueext = MagicMock(return_value='2')
+        process = MagicMock(returncode=0)
+        popen_mock.return_value = process
+        builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/configs", "/path/to/results")
+        assert_cmd = ['unbuffer', '/usr/bin/mock',
+                      '--rebuild', '/path/to/pkg.src.rpm',
+                      '--configdir', '/path/to/configs',
+                      '--resultdir', '/path/to/results',
+                      '--uniqueext', '2',
+                      '-r', 'child']
+        popen_mock.assert_called_with(assert_cmd, stdin=subprocess.PIPE, preexec_fn=builder.preexec_fn_build_stream)
 
     @mock.patch('builtins.open', new_callable=mock.mock_open())
     def test_touch_success_file(self, mock_open):
