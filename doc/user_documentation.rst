@@ -40,36 +40,60 @@ COPR from a command-line (by using copr-cli tool) or through COPR web UI.
 SCM
 ^^^
 
-Currently, this is divided into two forms: SCM-1 and SCM-2. Both forms go through the same logic, they
-just offer a bit different form fields. SCM-2 offers possibility to specify name of the spec file that
-should be used for the build. SCM-1 form offers auto-tagging feature that tags Release and Source0 of the
-package with XX.commitId where XX is number of commits from the latest tagged commit for the given package.
-For SCM-1 source type, spec file is always autolocated based on .spec extension. For SCM-2 the spec file
-is auto-located only if the spec file name was not explicitly specified.
+This method allows you to build from any Git or DistGit repository (note: building from DistGit is currently
+only supported by `rpkg`). You can specify Clone repo URL and other optional params like **'Commitish'**
+or **'Subdirectory'** (which gives a certain `treeish` together by the way, see:
+`gitglossary <https://git-scm.com/docs/gitglossary#gitglossary-aiddeftree-ishatree-ishalsotreeish>`_).
+and then pick a tool that will be used to generate SRPM from the given repository content.
 
-Note that for both SCM-1 and SCM-2, COPR auto-recognizes two types of repositories: upstream and downstream:
+You can get more information about the srpm generation part in the documentation for the individual packaging tools.
+See `rpkg <https://pagure.io/rpkg-client>`_ and `tito <https://github.com/dgoodwin/tito>`_.
 
-- Downstream repo: is empty (except .spec, README, tito.props, hidden files, currently) or contains at least one source or patch mentioned in the specfile
+One tool that we offer is totally a custom one: `make srpm`.
 
-- Upstream repo: is not a downstream repo, meaning it contains something significant not mentioned in .spec as source or patch
+In your repository, you create ``.copr/Makefile`` with ``srpm`` target in which you can put whatever it takes to
+generate the srpm. You can use network and clone another repository, you can install new packages, and you can
+do pretty much everything as this is script is run inside a mock chroot of the same os version as the builder host's
+(usually the latest released Fedora version). The script is invoked like this:
 
-For upstream repository, COPR will pack the content of the repository (subrooted by the specified 'Subdirectory' if specified)
-as Source0. For downstream repo, nothing is packed and the content is expected to be obtained from the supplied Source urls
-during build process.
+::
 
-In copr-cli, SCM-1 is referred by 'buildtito' command and SCM-2 is referred by 'buildmock' command. This is original, not yet
-updated, naming. We would like to unify SCM-1 and SCM-2 into single SCM source eventually.
+    make -f <cloned_repodir>/.copr/Makefile srpm outdir="<outdir>" spec="<spec_path>"
 
-Additional note to SCM-1 option checkbox:
+The spec parameter is what you specify in the **'Spec File'** field for the SCM source specification and the script
+is run in the **'Subdirectory'** that you can optionally specify in the source section  as well. Note that for some
+use cases, you can just ignore the ``spec`` file parameter.
 
-"Build from HEAD instead of the latest package tag and mark the package with the commit ID"
+Example of what can be put into ``.copr/Makefile``:
 
-If checkbox is unchecked (default), then the latest tagged commit of the given subpackage (marked by 'Git Directory')
-is looked up and built. This is equivalent to using tito _without_ --test.
+::
 
-If checkbox is checked, then the build is done directly from HEAD commit and Release and Source0 name in .spec
-is tagged with XX.<commit_short_hash> where XX is number of commits from the latest subpackage tag. This is equivalent
-to using tito _with_ --test.
+    $ cd myrepo
+    $ cat .copr/Makefile
+    srpm:
+        dnf -y install tito
+        tito build --test --srpm --output=$(outdir)
+        touch $(outdir)/`basename $(spec)`
+
+Note that all the other tools (`tito` and `rpkg`) are run in the specified subdirectory as well. For `rpkg`, the invoked
+command is:
+
+::
+
+    rpkg -C <generated_rpkg_config> srpm --outdir <outdir> --spec <spec_path>
+
+The configuration for `rpkg` is generated based on preset data for a specified DistGit instance. It has no impact if
+we build from Github or Gitlab (but rpkg will still work even in this case).
+
+Finally, for `tito`, the generated command is:
+
+::
+
+    tito build --srpm --output <outdir>
+
+Tito does not support ``--spec`` parameter, that's why it is missing in the command as opposed to the other tools. If
+**tito_test** method has been selected, then the command above is extended with ``--test``. You can read more
+`here <https://github.com/dgoodwin/tito>`_ about what it does (search for --test).
 
 PyPI
 ^^^^
