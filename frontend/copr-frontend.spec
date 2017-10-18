@@ -36,8 +36,8 @@
 }
 
 Name:       copr-frontend
-Version:    1.122
-Release:    2%{?dist}
+Version:    1.123
+Release:    1%{?dist}
 Summary:    Frontend for Copr
 
 Group:      Applications/Productivity
@@ -368,6 +368,19 @@ service logstash condrestart
 
 
 %changelog
+* Wed Oct 18 2017 clime <clime@redhat.com> 1.123-1
+- also set srpm_url when --initial-pkgs is used when creating new
+  project
+- for tag webhook events, rebuild the package on the specified tag
+- check for pagure hostname in pagure auto-rebuilding script
+- fix for fatal error when accessing old upload builds that do not
+  contain 'url' key in source_json
+- unify SCM source types
+- deprecate tito and mock-scm methods
+- add index on package(webhook_rebuild, source_type) and
+  copr(copr_webhook_secret)
+- update docs for requests/flask interaction
+
 * Wed Sep 27 2017 clime <clime@redhat.com> 1.122-1
 - remove unneeded yum dep
 
