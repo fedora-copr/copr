@@ -31,8 +31,10 @@ class ScmProvider(Provider):
         self.spec_relpath = source_json.get('spec') or ''
         self.srpm_build_method = source_json.get('srpm_build_method') or 'rpkg'
         self.repo_dirname = os.path.splitext(os.path.basename(self.clone_url))[0]
-        self.repo_path = os.path.join(self.workdir, self.repo_dirname)
-        self.repo_subpath = os.path.join(self.repo_path, self.repo_subdir.strip('/'))
+        self.repo_path = helpers.path_join(self.workdir, self.repo_dirname)
+        self.repo_subpath = helpers.path_join(self.repo_path, self.repo_subdir)
+        self.spec_path = helpers.path_join(
+            self.repo_path, os.path.join(self.repo_subdir, self.spec_relpath))
 
     def generate_rpkg_config(self):
         clone_url_hostname = urlparse(self.clone_url).netloc
@@ -72,8 +74,7 @@ class ScmProvider(Provider):
 
     def get_rpkg_command(self):
         return ['rpkg', '-C', self.generate_rpkg_config(), 'srpm',
-                '--outdir', self.outdir] + (['--spec', self.spec_relpath]
-                                            if self.spec_relpath else [])
+                '--outdir', self.outdir, '--spec', self.spec_path]
 
     def get_tito_command(self):
         return ['tito', 'build', '--srpm', '--output', self.outdir]
@@ -84,8 +85,10 @@ class ScmProvider(Provider):
     def get_make_srpm_command(self):
         mock_workdir = '/mnt' + self.workdir
         mock_outdir = '/mnt' + self.outdir
-        mock_repodir = os.path.join(mock_workdir, self.repo_dirname)
-        mock_cwd = os.path.join(mock_repodir, self.repo_subdir.strip('/'))
+        mock_repodir = helpers.path_join(mock_workdir, self.repo_dirname)
+        mock_cwd = helpers.path_join(mock_repodir, self.repo_subdir)
+        mock_spec_path = helpers.path_join(
+            mock_repodir, os.path.join(self.repo_subdir, self.spec_relpath))
 
         mock_bind_mount_cmd_part = \
             '--plugin-option=bind_mount:dirs=(("{0}", "{1}"), ("{2}", "{3}"))'\
@@ -94,7 +97,7 @@ class ScmProvider(Provider):
         makefile_path = os.path.join(mock_repodir, '.copr', 'Makefile')
         make_srpm_cmd_part = \
             'cd {0}; make -f {1} srpm outdir="{2}" spec="{3}"'\
-            .format(mock_cwd, makefile_path, mock_outdir, self.spec_relpath or '')
+            .format(mock_cwd, makefile_path, mock_outdir, mock_spec_path)
 
         return ['mock', '-r', '/etc/copr-rpmbuild/make_srpm_mock.cfg',
                 mock_bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]

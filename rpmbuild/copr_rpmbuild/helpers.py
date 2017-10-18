@@ -14,12 +14,14 @@ log = logging.getLogger("__main__")
 
 CONF_DIRS = [os.getcwd(), "/etc/copr-rpmbuild"]
 
+
 class SourceType:
     LINK = 1
     UPLOAD = 2
     PYPI = 5
     RUBYGEMS = 6
     SCM = 8
+
 
 def cmd_debug(result):
     log.debug("")
@@ -29,6 +31,7 @@ def cmd_debug(result):
     log.debug("stdout: {}".format(result.stdout))
     log.debug("stderr: {}".format(result.stderr))
     log.debug("")
+
 
 def run_cmd(cmd, cwd=".", preexec_fn=None):
     """
@@ -146,3 +149,7 @@ def read_config(config_path=None):
         log.error("No configuration file main.ini in: {}".format(" ".join(CONF_DIRS)))
         sys.exit(1)
     return config
+
+
+def path_join(*args):
+    return os.path.normpath('/'.join(args))
