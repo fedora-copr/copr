@@ -61,7 +61,8 @@ do pretty much everything as this is script is run inside a mock chroot of the s
 
 The spec parameter is what you specify in the **'Spec File'** field for the SCM source specification and the script
 is run in the **'Subdirectory'** that you can optionally specify in the source section  as well. Note that for some
-use cases, you can just ignore the ``spec`` file parameter.
+use cases, you can just ignore the ``spec`` file parameter. The ``outdir`` parameter specifies where to put the resulting
+SRPM so that COPR can find and build it afterwards.
 
 Example of what can be put into ``.copr/Makefile``:
 
