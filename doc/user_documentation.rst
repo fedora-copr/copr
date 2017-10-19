@@ -40,13 +40,12 @@ COPR from a command-line (by using copr-cli tool) or through COPR web UI.
 SCM
 ^^^
 
-This method allows you to build from any Git or DistGit repository (note: building from DistGit is currently
-only supported by `rpkg`). You can specify Clone repo URL and other optional params like **'Commitish'**
-or **'Subdirectory'** (which gives a certain `treeish` together by the way, see:
+This method allows you to build from any Git or DistGit repository. You can specify Clone repo URL and 
+other optional params like **'Commitish'** or **'Subdirectory'** (giving a certain `treeish`, see:
 `gitglossary <https://git-scm.com/docs/gitglossary#gitglossary-aiddeftree-ishatree-ishalsotreeish>`_).
 and then pick a tool that will be used to generate SRPM from the given repository content.
 
-You can get more information about the srpm generation part in the documentation for the individual packaging tools.
+You can get more information about the srpm generation in the documentation for the individual packaging tools.
 See `rpkg <https://pagure.io/rpkg-client>`_ and `tito <https://github.com/dgoodwin/tito>`_.
 
 One tool that we offer is totally a custom one: `make srpm`.
@@ -72,18 +71,17 @@ Example of what can be put into ``.copr/Makefile``:
     $ cat .copr/Makefile
     srpm:
         dnf -y install tito
-        tito build --test --srpm --output=$(outdir)
-        touch $(outdir)/`basename $(spec)`
+        tito build --builder=SomeBuilder --test --srpm --output=$(outdir)
 
-Note that all the other tools (`tito` and `rpkg`) are run in the specified subdirectory as well. For `rpkg`, the invoked
+Note that the other tools (`tito` and `rpkg`) are run in the specified subdirectory as well. For `rpkg`, the invoked
 command is:
 
 ::
 
     rpkg -C <generated_rpkg_config> srpm --outdir <outdir> --spec <spec_path>
 
-The configuration for `rpkg` is generated based on preset data for a specified DistGit instance. It has no impact if
-we build from Github or Gitlab (but rpkg will still work even in this case).
+The configuration for `rpkg` is generated based on preset data for a specified DistGit instance. Default config
+is used if build from Github or Gitlab.
 
 Finally, for `tito`, the generated command is:
 
@@ -93,7 +91,7 @@ Finally, for `tito`, the generated command is:
 
 Tito does not support ``--spec`` parameter, that's why it is missing in the command as opposed to the other tools. If
 **tito_test** method has been selected, then the command above is extended with ``--test``. You can read more
-`here <https://github.com/dgoodwin/tito>`_ about what it does (search for --test).
+`here <https://github.com/dgoodwin/tito>`_ about what it does (search for ``--test``).
 
 PyPI
 ^^^^
