@@ -73,15 +73,13 @@ def ci_listener():
         log.info('clone_url = {}'.format(clone_url))
 
         if namespace:
-            coprname = '{namespace}-{package}-PR{prid}'.format(**{
+            coprname = '{namespace}-{package}'.format(**{
                 'namespace': namespace,
                 'package': package,
-                'prid': prid
             })
         else:
-            coprname = '{package}-PR{prid}'.format(**{
+            coprname = '{package}'.format(**{
                 'package': package,
-                'prid': prid
             })
 
         user = models.User.query.filter(models.User.username == username).first()
