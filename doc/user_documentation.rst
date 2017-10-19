@@ -82,7 +82,7 @@ command is:
     rpkg -C <generated_rpkg_config> srpm --outdir <outdir> --spec <spec_path>
 
 The configuration for `rpkg` is generated based on preset data for a specified DistGit instance. Default config
-is used if build from Github or Gitlab.
+is used if we build from Github or Gitlab.
 
 Finally, for `tito`, the generated command is:
 
