@@ -57,6 +57,7 @@ rlJournalStart
         rlRun "copr buildscm --clone-url https://github.com/clime/example.git --method make_srpm ${NAME_PREFIX}BuildScm" 0
         rlRun "copr buildscm --clone-url https://github.com/clime/example.git --method tito ${NAME_PREFIX}BuildScm" 0
         rlRun "copr buildscm --clone-url https://github.com/clime/example2.git --subdir subpkg --spec example.spec --method tito_test ${NAME_PREFIX}BuildScm" 0
+        rlRun "copr buildscm --clone-url https://src.fedoraproject.org/forks/mgahagan/rpms/passwd.git --commit 9ac07e38c9351fb1c4e724e68deaeac6b6b1ab4 ${NAME_PREFIX}BuildScm" 0
 
         rlRun "copr create ${NAME_PREFIX}PackageScm --enable-net on --chroot fedora-26-x86_64" 0
         rlRun "copr add-package-scm --name example --clone-url https://github.com/clime/example.git --method tito ${NAME_PREFIX}PackageScm" 0
