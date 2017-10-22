@@ -1,12 +1,16 @@
 ---
 - name: create instance
-  hosts: localhost
+  hosts: builder
   remote_user: root
-  gather_facts: False
+  gather_facts: True
   tasks:
   - name: generate builder name
     local_action: command echo "Copr builder {{ 999999999 | random }}"
     register: vm_name
 
-  - debug: msg="IP=127.0.0.1"
+  - name: register builder IP
+    shell: getent hosts builder | awk '{ print $1 }'
+    register: vm_ip
+
+  - debug: msg="IP={{vm_ip.stdout}}"
   - debug: msg="vm_name={{vm_name.stdout}}"

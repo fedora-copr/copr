@@ -51,10 +51,7 @@ RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
 
 # setup root user
 RUN echo 'root:passwd' | chpasswd && \
-    mkdir /root/.ssh &&  chmod 700 /root /root/.ssh && \
-    touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys && \
-    ssh-keygen -f /root/.ssh/id_rsa -N '' -q -C root@locahost && \
-    cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+    mkdir /root/.ssh && chmod 700 /root /root/.ssh
 
 # setup copr user
 RUN useradd copr && \
@@ -77,9 +74,6 @@ ARG RELEASETEST
 RUN dnf -y copr enable @copr/copr && \
     dnf -y copr enable @modularity/modulemd && \
     if [ ! $RELEASETEST ]; then dnf -y copr enable @copr/copr-dev; fi
-
-# additional builder packages from COPR repos
-RUN dnf -y install copr-rpmbuild && dnf clean all
 
 # preinstall copr-keygen and its builddeps to utilize most of Docker cache
 RUN cd `mktemp -d` && dnf -y download --source copr-keygen && \
@@ -104,6 +98,13 @@ RUN cd `mktemp -d` && \
 
 # system setup for copr-backend
 RUN usermod -a -G mock copr
+
+# # preinstall rpmbuild and its builddeps to utilize most of Docker cache
+# RUN cd `mktemp -d` && \
+#     dnf -y download --source copr-rpmbuild && \
+#     dnf -y builddep *.src.rpm --allowerasing && \
+#     dnf -y install copr-rpmbuild && \
+#     dnf clean all
 
 # copy your copr sources to the docker image
 COPY . /copr
@@ -133,9 +134,14 @@ RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing && \
     dnf -y upgrade /tmp/tito/noarch/copr-keygen*.noarch.rpm || true && \
     dnf clean all
 
+# upgrade rpkg, otherwise an outdated 0.8 version is installed
+#RUN dnf -y upgrade rpkg && \
+    #dnf clean all
+
 # copy filesystem setup and setup ownership and permissions
 COPY docker/backend/files/ /
 RUN chmod 700 /root && \
+    chmod 400 /root/.ssh/id_rsa && \
     chmod 700 /home/copr && \
     chown copr:copr /home/copr && \
     chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini && \
@@ -147,6 +153,5 @@ RUN chmod 700 /root && \
 RUN chmod 700 /root/.ssh
 
 RUN echo '127.0.0.1 keygen' >> /etc/hosts
-RUN echo 'config_opts["use_nspawn"] = False' >> /etc/mock/site-defaults.cfg
 
 CMD ["/bin/run.sh"]
