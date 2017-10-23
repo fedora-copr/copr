@@ -17,23 +17,6 @@ RUN dnf -y update && \
                    supervisor \
                    psmisc \
                    nginx \
-# builder packages
-                   packagedb-cli \
-                   fedora-cert \
-                   mock \
-                   mock-lvm \
-                   createrepo \
-                   yum-utils \
-                   pyliblzma \
-                   rsync \
-                   openssh-clients \
-                   libselinux-python \
-                   libsemanage-python \
-                   rpm \
-                   glib2 \
-                   ca-certificates \
-                   scl-utils-build \
-                   ethtool \
 # packages for copr-keygen
                    uwsgi \
                    uwsgi-plugin-python \
@@ -99,13 +82,6 @@ RUN cd `mktemp -d` && \
 # system setup for copr-backend
 RUN usermod -a -G mock copr
 
-# # preinstall rpmbuild and its builddeps to utilize most of Docker cache
-# RUN cd `mktemp -d` && \
-#     dnf -y download --source copr-rpmbuild && \
-#     dnf -y builddep *.src.rpm --allowerasing && \
-#     dnf -y install copr-rpmbuild && \
-#     dnf clean all
-
 # copy your copr sources to the docker image
 COPY . /copr
 
@@ -133,10 +109,6 @@ RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing && \
 # upgrade the already pre-installed package if possible
     dnf -y upgrade /tmp/tito/noarch/copr-keygen*.noarch.rpm || true && \
     dnf clean all
-
-# upgrade rpkg, otherwise an outdated 0.8 version is installed
-#RUN dnf -y upgrade rpkg && \
-    #dnf clean all
 
 # copy filesystem setup and setup ownership and permissions
 COPY docker/backend/files/ /
