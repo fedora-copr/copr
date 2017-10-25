@@ -8,10 +8,11 @@ from coprs import models
 from coprs import exceptions
 from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
-from coprs.logic.builds_logic import BuildsLogic
+from coprs.logic.builds_logic import BuildsLogic, BuildChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
+from coprs.constants import MAX_PRIO
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
@@ -98,6 +99,7 @@ def dist_git_upload_completed():
             for ch in build_chroots:
                 if ch.status == helpers.StatusEnum("importing"):
                     ch.status = helpers.StatusEnum("pending")
+                    ch.priority = (BuildsLogic.get_build_task_lowest_priority()+1)%MAX_PRIO
                 ch.git_hash = git_hash
 
         # Failed?
@@ -195,12 +197,26 @@ def waiting():
             "__columns_except__": ["result", "message", "ended_on"]
         })
 
-    task = BuildsLogic.select_build_task()
-    build_record = get_build_record(task)
+    build_task = BuildsLogic.select_build_task(background=False)
+    srpm_build_task = BuildsLogic.select_srpm_build_task(background=False)
+
+    if not build_task:
+        build_record = get_srpm_build_record(srpm_build_task)
+    elif srpm_build_task and srpm_build_task.priority < build_task.priority:
+        build_record = get_srpm_build_record(srpm_build_task)
+    else:
+        build_record = get_build_record(build_task)
 
     if not build_record:
-        task = BuildsLogic.select_srpm_build_task()
-        build_record = get_srpm_build_record(task)
+        build_task = BuildsLogic.select_build_task(background=True)
+        srpm_build_task = BuildsLogic.select_srpm_build_task(background=True)
+
+        if not build_task:
+            build_record = get_srpm_build_record(srpm_build_task)
+        elif srpm_build_task and srpm_build_task.priority < build_task.priority:
+            build_record = get_srpm_build_record(srpm_build_task)
+        else:
+            build_record = get_build_record(build_task)
 
     response_dict = {"action": action_record, "build": build_record}
     return flask.jsonify(response_dict)
@@ -295,23 +311,25 @@ def starting_build():
 @misc.backend_authenticated
 def defer_build():
     """
-    Defer build (keep it out of waiting jobs for some time).
+    Defer build (lower job priority so that other jobs can be
+    considered for building meanwhile).
     """
 
     result = {"was_deferred": False}
 
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build = ComplexLogic.get_build_safe(flask.request.json["build_id"])
-        chroot = flask.request.json.get("chroot")
+        build_id = flask.request.json["build_id"]
+        chroot_name = flask.request.json.get("chroot")
 
-        if build and chroot:
-            log.info("Defer build {}, chroot {}".format(build.id, chroot))
-            BuildsLogic.update_state_from_dict(build, {
-                "chroot": chroot,
-                "last_deferred": int(time.time()),
-            })
+        if build_id and chroot_name:
+            log.info("Defer build {}, chroot {}".format(build_id, chroot_name))
+            if chroot_name == "srpm-builds":
+                task = BuildsLogic.defer(build_id)
+            else:
+                task = BuildChrootsLogic.defer(build_id, chroot_name)
+
+            result["was_deferred"] = bool(task)
             db.session.commit()
-            result["was_deferred"] = True
 
     return flask.jsonify(result)
 
