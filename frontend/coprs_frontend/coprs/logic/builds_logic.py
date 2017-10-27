@@ -167,6 +167,12 @@ class BuildsLogic(object):
         return (lowest_prio_task.priority if lowest_prio_task else 0)
 
     @classmethod
+    def get_task_lowest_priority(cls, background=False):
+        prio1 = cls.get_build_task_lowest_priority(background)
+        prio2 = cls.get_srpm_build_task_lowest_priority(background)
+        return max(prio1, prio2)
+
+    @classmethod
     def get_build_task(cls, task_id):
         try:
             build_id, chroot_name = task_id.split("-", 1)
@@ -185,7 +191,7 @@ class BuildsLogic(object):
         build = cls.get(build_id).first()
         if not build:
             return None
-        build.priority = (BuildsLogic.get_srpm_build_task_lowest_priority()+1)%MAX_PRIO
+        build.priority = (BuildsLogic.get_task_lowest_priority(build.is_background)+1)%MAX_PRIO
         db.session.add(build)
         return build
 
@@ -599,7 +605,7 @@ GROUP BY
             is_background=bool(background),
             batch=batch,
             srpm_url=srpm_url,
-            priority=(cls.get_srpm_build_task_lowest_priority()+1)%MAX_PRIO
+            priority=(cls.get_task_lowest_priority(bool(background))+1)%MAX_PRIO
         )
 
         if timeout:
@@ -614,7 +620,7 @@ GROUP BY
 
         if skip_import:
             status = StatusEnum("pending")
-            priority = (cls.get_build_task_lowest_priority()+1)%MAX_PRIO
+            priority = (cls.get_task_lowest_priority(bool(background))+1)%MAX_PRIO
         else:
             status = StatusEnum("importing")
             priority = 0
@@ -864,7 +870,7 @@ class BuildChrootsLogic(object):
         chroot = cls.get_by_build_id_and_name(build_id, name).first()
         if not chroot:
             return None
-        chroot.priority = (BuildsLogic.get_build_task_lowest_priority()+1)%MAX_PRIO
+        chroot.priority = (BuildsLogic.get_task_lowest_priority(chroot.build.is_background)+1)%MAX_PRIO
         db.session.add(chroot)
         return chroot
 

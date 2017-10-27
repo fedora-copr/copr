@@ -99,7 +99,7 @@ def dist_git_upload_completed():
             for ch in build_chroots:
                 if ch.status == helpers.StatusEnum("importing"):
                     ch.status = helpers.StatusEnum("pending")
-                    ch.priority = (BuildsLogic.get_build_task_lowest_priority()+1)%MAX_PRIO
+                    ch.priority = (BuildsLogic.get_task_lowest_priority(build.is_background)+1)%MAX_PRIO
                 ch.git_hash = git_hash
 
         # Failed?
