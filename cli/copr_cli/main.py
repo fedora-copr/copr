@@ -316,7 +316,8 @@ class Commands(object):
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
             persistent=args.persistent,
-            auto_prune=ON_OFF_MAP[args.auto_prune]
+            auto_prune=ON_OFF_MAP[args.auto_prune],
+            use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
         )
         print(result.message)
 
@@ -335,6 +336,7 @@ class Commands(object):
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
             auto_prune=ON_OFF_MAP[args.auto_prune],
+            use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
             chroots=args.chroots,
         )
 
@@ -711,6 +713,8 @@ def setup_parser():
     parser_create.add_argument("--auto-prune", choices=["on", "off"], default="on",
                                help="If auto-deletion of project's obsoleted builds should be enabled (default is on).\
                                This option can only be specified by a COPR admin.")
+    parser_create.add_argument("--use-bootstrap", choices=["on", "off"], dest="use_bootstrap_container",
+                               help="If mock bootstrap container is used to initialize the buildroot.")
     parser_create.set_defaults(func="action_create")
 
     # create the parser for the "modify_project" command
@@ -734,6 +738,8 @@ def setup_parser():
     parser_modify.add_argument("--auto-prune", choices=["on", "off"],
                                help="If auto-deletion of project's obsoleted builds should be enabled.\
                                This option can only be specified by a COPR admin.")
+    parser_modify.add_argument("--use-bootstrap", choices=["on", "off"], dest="use_bootstrap_container",
+                               help="If mock bootstrap container is used to initialize the buildroot.")
     parser_modify.set_defaults(func="action_modify_project")
 
     # create the parser for the "delete" command

@@ -140,6 +140,10 @@ def api_new_copr(username):
         if "auto_prune" in flask.request.form:
             auto_prune = form.auto_prune.data
 
+        use_bootstrap_container = True
+        if "use_bootstrap_container" in flask.request.form:
+            use_bootstrap_container = form.use_bootstrap_container.data
+
         try:
             copr = CoprsLogic.add(
                 name=form.name.data.strip(),
@@ -155,6 +159,7 @@ def api_new_copr(username):
                 group=group,
                 persistent=form.persistent.data,
                 auto_prune=auto_prune,
+                use_bootstrap_container=use_bootstrap_container,
             )
             infos.append("New project was successfully created.")
 
@@ -655,6 +660,8 @@ def copr_modify(copr):
         copr.build_enable_net = form.build_enable_net.data
     if "auto_prune" in flask.request.form:
         copr.auto_prune = form.auto_prune.data
+    if "use_bootstrap_container" in flask.request.form:
+        copr.use_bootstrap_container = form.use_bootstrap_container.data
     if "chroots" in  flask.request.form:
         coprs_logic.CoprChrootsLogic.update_from_names(
             flask.g.user, copr, form.chroots.data)

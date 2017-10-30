@@ -1146,7 +1146,7 @@ class CoprClient(UnicodeMixin):
             description=None, instructions=None,
             repos=None, initial_pkgs=None, disable_createrepo=None,
             unlisted_on_hp=False, enable_net=True, persistent=False,
-            auto_prune=True
+            auto_prune=True, use_bootstrap_container=None,
     ):
         """ Creates a new copr project
             Auth required.
@@ -1161,6 +1161,7 @@ class CoprClient(UnicodeMixin):
             :param enable_net: [optional] If builder can access net for builds in this project
             :param persistent: [optional] If builds and the project are undeletable
             :param auto_prune: [optional] If backend auto-deletion script should be run for the project
+            :param use_bootstrap_container: [optional] If mock bootstrap container is used to initialize the buildroot
 
             :return: :py:class:`~.responses.CoprResponse`
                 with additional fields:
@@ -1198,6 +1199,7 @@ class CoprClient(UnicodeMixin):
             "build_enable_net": "y" if enable_net else "",
             "persistent": "y" if persistent else "",
             "auto_prune": "y" if auto_prune else "",
+            "use_bootstrap_container": "y" if use_bootstrap_container else "",
         }
         for chroot in chroots:
             request_data[chroot] = "y"
@@ -1220,7 +1222,8 @@ class CoprClient(UnicodeMixin):
     def modify_project(self, projectname, username=None,
                        description=None, instructions=None,
                        repos=None, disable_createrepo=None, unlisted_on_hp=None,
-                       enable_net=None, auto_prune=None, chroots=None):
+                       enable_net=None, auto_prune=None,
+                       use_bootstrap_container=None, chroots=None):
         """ Modifies main project configuration.
             Auth required.
 
@@ -1235,6 +1238,7 @@ class CoprClient(UnicodeMixin):
             :param unlisted_on_hp: [optional] Project will not be shown on COPR HP
             :param enable_net: [optional] If builder can access net for builds in this project
             :param auto_prune: [optional] If backend auto-deletion script should be run for the project
+            :param use_bootstrap_container: [optional] If mock bootstrap container is used to initialize the buildroot
             :param chroots: [optional] list of chroots that should be enabled in the project. When not ``None``,
                 selected chroots will be enabled while current chroots
                 will not remain enabled if they are not specified.
@@ -1267,6 +1271,8 @@ class CoprClient(UnicodeMixin):
             data["build_enable_net"] = "y" if enable_net else ""
         if auto_prune != None:
             data["auto_prune"] = "y" if auto_prune else ""
+        if use_bootstrap_container != None:
+            data["use_bootstrap_container"] = "y" if use_bootstrap_container else ""
         if chroots != None:
             data["chroots"] = " ".join(chroots)
 
