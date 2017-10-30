@@ -347,6 +347,7 @@ def api_coprs_by_owner_detail(copr):
         "persistent": copr.persistent,
         "unlisted_on_hp": copr.unlisted_on_hp,
         "auto_prune": copr.auto_prune,
+        "use_bootstrap_container": copr.use_bootstrap_container,
     }
     return flask.jsonify(output)
 
