@@ -587,6 +587,13 @@ rlJournalStart
         rlRun "find . -type f | grep 'build.log'" 0
         cd - && rm -r $MYTMPDIR
 
+        # test use_bootstrap_container setting
+        rlRun "copr-cli create ${NAME_PREFIX}BootstrapProject --use-bootstrap on --chroot $CHROOT"
+        rlAssertEquals "" `curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}BootstrapProject/detail/ |jq '.detail.use_bootstrap_container'` true
+        rlRun "copr-cli modify ${NAME_PREFIX}BootstrapProject --use-bootstrap off"
+        rlAssertEquals "" `curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}BootstrapProject/detail/ |jq '.detail.use_bootstrap_container'` false
+
+
         ### ---- DELETING PROJECTS ------- ###
         # delete - wrong project name
         rlRun "copr-cli delete ${NAME_PREFIX}wrong-name" 1
@@ -618,6 +625,7 @@ rlJournalStart
         rlRun "copr-cli delete ${NAME_PREFIX}MockConfig"
         rlRun "copr-cli delete ${NAME_PREFIX}MockConfigParent"
         rlRun "copr-cli delete ${NAME_PREFIX}TestBug1444804"
+        rlRun "copr-cli delete ${NAME_PREFIX}BootstrapProject"
         # and make sure we haven't left any mess
         rlRun "copr-cli list | grep $NAME_PREFIX" 1
         ### left after this section: hello installed
