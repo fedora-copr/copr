@@ -35,7 +35,7 @@ This is basically correct, although still rather an intuitive explanation. What 
 - what exactly is considered to be an *application source file*
 - what happens if there are no *application source files* in the repository but also no files (tarballs) referenced from the spec file by a Source directive
 
-To asnwer these question we need to be exact about what those terms mean:
+To asnwer these questions we need to be precise about what those terms mean:
 
         "packed": does not contain anything else
                   except ignored files or contains
