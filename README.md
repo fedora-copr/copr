@@ -21,7 +21,7 @@ If you use `rpm/your.spec`, then the `subpkg1/my.spec` is just a normal file and
 contains a spec file or not if you additionaly say what spec file should be used for SRPM generation.
 
 Knowing that **subpackage** is really formed by any `spec file` together with some `source directory` makes formal defintions of **flat** and **layered** more complicated. Let's just say that [blog-tutorial-flat-unpacked](https://github.com/clime/blog-tutorial-flat-unpacked) repository is called **flat** because `source directory` for its only subpackage is a root directory and this repository is **layered** because it contains at least one subpackage of which its `source directory` is not a root directory.
-Note that there can be no subpackage in a repository if that repository does not contain a spec file.
+Note that there can be no subpackages in a repository if that repository does not contain a spec file.
 
 What is probably even more curious is the true difference between **packed** and **unpacked** subpackages. Previously, we have said that:
 
