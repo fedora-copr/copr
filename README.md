@@ -15,7 +15,7 @@ Now note that so far we have assumed that subpackage is a subdirectory that cont
 will be used for SRPM generation (building SRPM precedes building RPM in COPR). **_But_** that might not always be the case.
 
 What you can actually do is to use the content of `subpkg1` together with the spec file `your.spec` placed in `rpm` subdirectory and build the SRPM out of those two. If you know `rpmbuild` tool, this basically translates to calling 
-`rpmbuild -bs rpm/your.spec --define '%_sourcedir subpkg1'`. You can do the same thing for `subpkg2` and`rpm/your.spec` by the way.
+`rpmbuild -bs rpm/your.spec --define '%_sourcedir subpkg1'`. You can do the same thing for `subpkg2` and `rpm/your.spec` by the way.
 
 If you use `rpm/your.spec`, then the `subpkg1/my.spec` is just a normal file and it is not even required for it to be present in the `subpkg1` subdirectory. That basically means you can make a subpackage out of any subdirectory in your repository whether it
 contains a spec file or not if you additionaly say what spec file should be used for SRPM generation.
@@ -60,7 +60,7 @@ and that ignored files are described by the following (case-insensitive) regular
 
 Now, these definitions (wired into https://pagure.io/rpkg-client) are really mind-boggling 
 and I would recommend to just stick to the previous intutitive ones but what they allow, in the end,
-is that you can use the rpkg-client tool to call `rpkg srpm` for a given subpackage andit will do the right thing:
+is that you can use the rpkg-client tool to call `rpkg srpm` for a given subpackage and it will do the right thing:
 
 - For a packed subpackage composed of `subpkg1.spec` spec file and `subpkg1_sourcedir`source directory, it will basically just invoke:
 
@@ -68,7 +68,7 @@ is that you can use the rpkg-client tool to call `rpkg srpm` for a given subpack
 
 which is what person familiar with rpmbuild would expect.
 
-- For an unpacked subpackage composed of `subpkg2.spec` spec file and `subpkg2_sourcedir`source directory, it will do little bit of preprocessing first, packing the content of `subpkg2_sourcedir` into a tarball named according to `Source0` definition in the provided `subpkg2.spec`  and placing it into the `subpkg2_sourcedir` before invoking the same `rpmbuild` command as in the first case for a packed subpackage. That is:
+- For an unpacked subpackage composed of `subpkg2.spec` spec file and `subpkg2_sourcedir`source directory, it will do little bit of preprocessing first, packing the content of `subpkg2_sourcedir` into a tarball named according to `Source0` definition in the provided `subpkg2.spec` and placing it into the `subpkg2_sourcedir` before invoking the same `rpmbuild` command as in the first case for a packed subpackage. That is:
 
       rpmbuild -bs subpkg2.spec --define '%_sourcedir subpkg2_sourcedir'
  
