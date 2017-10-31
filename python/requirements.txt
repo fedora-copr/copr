@@ -1,10 +1,7 @@
 # Used for when working from a virtualenv.
 # Use this file by running "$ pip install -r requirements.txt"
 
+.
 pytest
 mock
-six
 sphinx
-requests
-requests-toolbelt
-marshmallow
