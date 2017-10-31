@@ -68,7 +68,7 @@ is that you can use the rpkg-client tool to call `rpkg srpm` for a given subpack
 
 which is what person familiar with rpmbuild would expect.
 
-- For an unpacked subpackage composed of `subpkg2.spec` spec file and `subpkg2_sourcedir`source directory, it will do little bit of preprocessing first, packing the content of `subpkg2_sourcedir` into a tarball named according to `Source0` definition in the provided `subpkg2.spec` and placing it into the `subpkg2_sourcedir` before invoking the same `rpmbuild` command as in the first case for a packed subpackage. That is:
+- For an unpacked subpackage composed of `subpkg2.spec` spec file and `subpkg2_sourcedir`source directory, it will do little bit of preprocessing first, packing the content of `subpkg2_sourcedir` into a tarball named according to `Source0` definition in the provided `subpkg2.spec` and placing it into the `subpkg2_sourcedir` before invoking the same `rpmbuild` command as before for the packed subpackage. That is:
 
       rpmbuild -bs subpkg2.spec --define '%_sourcedir subpkg2_sourcedir'
  
