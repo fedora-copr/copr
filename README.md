@@ -32,8 +32,8 @@ and
 **Unpacked** means the application source files are not packed into a tarball that would be referenced by a Source directive in the spec file.
 
 This is basically correct, although still rather an intuitive explanation. What it does not really say, for example, is: 
-- what exactly is considered to be an `application source file`
-- what happens if there are no `application source files` in the repository but also no files (tarballs) referenced from the spec file by a Source directive
+- what exactly is considered to be an *application source file*
+- what happens if there are no *application source files* in the repository but also no files (tarballs) referenced from the spec file by a Source directive
 
 To asnwer these question we need to be exact about what those terms mean:
 
@@ -76,8 +76,8 @@ This is the magic that really makes the SCM method in COPR so versatile that it 
 
 Now let's finally answer the unanswered questions that we were interested in:
 
-- what exactly is considered to be an `application source file`
+- what exactly is considered to be an *application source file*
   - a non-ignored file
   
-- what happens if there are no `application source files` in the repository but also no files (tarballs) referenced from the spec file by a Source directive
+- what happens if there are no *application source files* in the repository but also no files (tarballs) referenced from the spec file by a Source directive
   - not that much but the repository contains a subpackage of **packed** type 
