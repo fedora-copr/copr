@@ -60,8 +60,7 @@ and that ignored files are described by the following (case-insensitive) regular
 
 Now, these definitions (wired into https://pagure.io/rpkg-client) are really mind-boggling 
 and I would recommend to just stick to the previous intutitive ones but what they allow, in the end,
-is that you can use the rpkg-client tool to call `rpkg srpm` for the given subpackage and it will do
-the right thing:
+is that you can use the rpkg-client tool to call `rpkg srpm` for a given subpackage andit will do the right thing:
 
 - For a packed subpackage composed of `subpkg1.spec` spec file and `subpkg1_sourcedir`source directory, it will basically just invoke:
 
