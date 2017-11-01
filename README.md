@@ -1,8 +1,5 @@
 # blog-tutorial-layered
 
-
-# This project demonstrates COPR's `make srpm` build method
-
 Hello, this is an example repository to demonstrate COPR SCM abilities. To understand
 the following description better, please see [blog-tutorial-flat-packed](https://github.com/clime/blog-tutorial-flat-packed) and [blog-tutorial-flat-unpacked](https://github.com/clime/blog-tutorial-flat-unpacked) first.
 
