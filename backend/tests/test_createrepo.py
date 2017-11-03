@@ -158,10 +158,10 @@ class TestCreaterepo(object):
     def test_createrepo_generated_commands_existing_repodata(self, mc_run_cmd_unsafe):
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
         expected_epel_5 = ('/usr/bin/createrepo_c --database '
-                           '--ignore-lock --update -s sha --checksum md5 ' + path_epel_5)
+                           '--update -s sha --checksum md5 ' + path_epel_5)
         path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
         expected_fedora = ('/usr/bin/createrepo_c --database '
-                           '--ignore-lock --update ' + path_fedora)
+                           '--update ' + path_fedora)
         for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
             os.makedirs(path)
 
@@ -200,12 +200,12 @@ class TestCreaterepo(object):
 
     def test_createrepo_devel_generated_commands_existing_repodata(self, mc_run_cmd_unsafe):
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
-        expected_epel_5 = ("/usr/bin/createrepo_c --database --ignore-lock "
+        expected_epel_5 = ("/usr/bin/createrepo_c --database "
                            "-s sha --checksum md5 "
                            "--outputdir " + os.path.join(path_epel_5, "devel") + " "
                            "--baseurl " + self.base_url + " " + path_epel_5)
         path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
-        expected_fedora = ("/usr/bin/createrepo_c --database --ignore-lock "
+        expected_fedora = ("/usr/bin/createrepo_c --database "
                            "--outputdir " + os.path.join(path_fedora, "devel") + " "
                            "--baseurl " + self.base_url + " " + path_fedora)
         for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
@@ -221,12 +221,12 @@ class TestCreaterepo(object):
 
     def test_createrepo_devel_generated_commands(self, mc_run_cmd_unsafe):
         path_epel_5 = os.path.join(self.tmp_dir_name, "epel-5")
-        expected_epel_5 = ("/usr/bin/createrepo_c --database --ignore-lock "
+        expected_epel_5 = ("/usr/bin/createrepo_c --database "
                            "-s sha --checksum md5 "
                            "--outputdir " + os.path.join(path_epel_5, "devel") + " "
                            "--baseurl " + self.base_url + " " + path_epel_5)
         path_fedora = os.path.join(self.tmp_dir_name, "fedora-21")
-        expected_fedora = ("/usr/bin/createrepo_c --database --ignore-lock "
+        expected_fedora = ("/usr/bin/createrepo_c --database "
                            "--outputdir " + os.path.join(path_fedora, "devel") + " "
                            "--baseurl " + self.base_url + " " + path_fedora)
         for path, expected in [(path_epel_5, expected_epel_5), (path_fedora, expected_fedora)]:
