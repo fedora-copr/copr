@@ -154,7 +154,7 @@ class Worker(multiprocessing.Process):
 
         :param job: :py:class:`~backend.job.BuildJob`
         """
-        status = BuildStatus.SUCCEEDED
+        failed = False
         self.update_process_title(suffix="Task: {} chroot: {} build running"
                                   .format(job.build_id, job.chroot))
 
@@ -170,12 +170,12 @@ class Worker(multiprocessing.Process):
             except (OSError, IOError):
                 self.log.exception("Could not make results dir for job: {}"
                                    .format(job.chroot_dir))
-                status = BuildStatus.FAILURE
+                failed = True
 
         if not self.reattach:
             self.clean_result_directory(job)
 
-        if status == BuildStatus.SUCCEEDED:
+        if not failed:
             # FIXME
             # need a plugin hook or some mechanism to check random
             # info about the pkgs
@@ -206,17 +206,7 @@ class Worker(multiprocessing.Process):
                         mr.build_pkg()
 
                     mr.check_build_success() # raises if build didn't succeed
-
                     mr.download_results()
-                    mr.on_success_build()
-
-                    build_details = self.get_build_details(job)
-                    job.update(build_details)
-
-                    if self.opts.do_sign:
-                        mr.add_pubkey()
-
-                    register_build_result(self.opts)
 
                 except MockRemoteError as e:
                     # record and break
@@ -224,8 +214,7 @@ class Worker(multiprocessing.Process):
                         "Error during the build, host={}, build_id={}, chroot={}"
                         .format(self.vm.vm_ip, job.build_id, job.chroot)
                     )
-                    status = BuildStatus.FAILURE
-                    register_build_result(self.opts, failed=True)
+                    failed = True
                     mr.download_results()
 
                 except SSHConnectionError as err:
@@ -242,19 +231,33 @@ class Worker(multiprocessing.Process):
 
                 except: # programmer's failures
                     self.log.exception("Unexpected error")
-                    status = BuildStatus.FAILURE
-                    register_build_result(self.opts, failed=True)
+                    failed = True
 
+                finally:
+                    self.vm_manager.release_vm(self.vm.vm_name)
+
+            if not failed:
+                try:
+                    mr.on_success_build()
+                    build_details = self.get_build_details(job)
+                    job.update(build_details)
+
+                    if self.opts.do_sign:
+                        mr.add_pubkey()
+                except:
+                    self.log.exception("Error during backend post-build processing.")
+                    failed = True
 
             self.log.info(
-                "Finished build: id={} builder={} timeout={} destdir={}"
-                " chroot={}"
+                "Finished build: id={} builder={} timeout={} destdir={} chroot={}"
                 .format(job.build_id, self.vm.vm_ip, job.timeout, job.destdir,
                         job.chroot))
 
             self.copy_mock_logs(job)
 
-        job.status = status
+        register_build_result(self.opts, failed=failed)
+        job.status = (BuildStatus.FAILURE if failed else BuildStatus.SUCCEEDED)
+
         self._announce_end(job)
         self.update_process_title(suffix="Task: {} chroot: {} done"
                                   .format(job.build_id, job.chroot))
@@ -369,5 +372,3 @@ class Worker(multiprocessing.Process):
             self.log.exception("Building error: {}".format(error))
         except Exception as e:
             self.log.exception("Unexpected error: {}".format(e))
-        finally:
-            self.vm_manager.release_vm(self.vm.vm_name)
