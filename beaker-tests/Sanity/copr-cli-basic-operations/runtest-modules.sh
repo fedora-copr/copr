@@ -178,7 +178,7 @@ rlJournalStart
 
 
         # Test that module can be enabled with dnf
-        rlRun "dnf -y upgrade dnf --enablerepo mhatina-DNF-Modules"
+        rlRun "dnf -y upgrade dnf --enablerepo mhatina-dnf-modularity-nightly"
 
         # Module repository should be allowed via DNF, but the code isn't merged yet
         # https://github.com/rpm-software-management/dnf-plugins-core/pull/214
