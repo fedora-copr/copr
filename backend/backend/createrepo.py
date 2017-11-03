@@ -51,7 +51,7 @@ def createrepo_unsafe(path, dest_dir=None, base_url=None):
     :return tuple: (return_code,  stdout, stderr)
     """
 
-    comm = ['/usr/bin/createrepo_c', '--database', '--ignore-lock']
+    comm = ['/usr/bin/createrepo_c', '--database']
     if os.path.exists(path + '/repodata/repomd.xml'):
         comm.append("--update")
     if "epel-5" in path or "rhel-5" in path:
