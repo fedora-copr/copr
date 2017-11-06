@@ -123,6 +123,8 @@ WHERE package.copr_id = :copr_id;
             matches = re.search(r'(.*)-[^-]+-[^-]+$', ref)
             if matches and package.name != matches.group(1):
                 return False
+            else:
+                return True
 
         committish = package.source_json_dict.get("committish") or ''
         if committish and not ref.endswith("/"+committish):
