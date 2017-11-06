@@ -3,10 +3,9 @@ import sys
 import logging
 import shutil
 import subprocess
-import datetime
 
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import run_cmd, locate_spec, locate_srpm, CONF_DIRS
+from ..helpers import run_cmd, locate_spec, locate_srpm, CONF_DIRS, get_mock_uniqueext
 
 log = logging.getLogger("__main__")
 
@@ -62,9 +61,6 @@ class MockBuilder(object):
         os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
         os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
 
-    def get_mock_uniqueext(self):
-        return datetime.datetime.now().strftime('%s')
-
     def produce_srpm(self, spec, sources, configdir, resultdir):
         cmd = [
             "unbuffer", "/usr/bin/mock",
@@ -95,7 +91,7 @@ class MockBuilder(object):
                "--rebuild", srpm,
                "--configdir", configdir,
                "--resultdir", resultdir,
-               "--uniqueext", self.get_mock_uniqueext(),
+               "--uniqueext", get_mock_uniqueext(),
                "-r", "child"]
 
         log.info('Running: {}'.format(' '.join(cmd)))

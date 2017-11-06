@@ -10,7 +10,7 @@ import tempfile
 from copr_rpmbuild import helpers
 
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import run_cmd, SourceType, CONF_DIRS
+from ..helpers import run_cmd, SourceType, CONF_DIRS, get_mock_uniqueext
 from .base import Provider
 
 try:
@@ -99,7 +99,8 @@ class ScmProvider(Provider):
             'cd {0}; make -f {1} srpm outdir="{2}" spec="{3}"'\
             .format(mock_cwd, makefile_path, mock_outdir, mock_spec_path)
 
-        return ['mock', '-r', '/etc/copr-rpmbuild/make_srpm_mock.cfg',
+        return ['mock', '--uniqueext', get_mock_uniqueext(),
+                '-r', '/etc/copr-rpmbuild/make_srpm_mock.cfg',
                 mock_bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]
 
     def produce_srpm(self):

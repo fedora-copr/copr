@@ -9,6 +9,7 @@ import shutil
 import fileinput
 import configparser
 import pprint
+import datetime
 
 log = logging.getLogger("__main__")
 
@@ -153,3 +154,16 @@ def read_config(config_path=None):
 
 def path_join(*args):
     return os.path.normpath('/'.join(args))
+
+
+def get_mock_uniqueext():
+    """
+    This is a hack/workaround not to reuse already setup
+    chroot from a previous run but to always setup a new
+    one. Upon key interrupt during build, mock chroot
+    becomes further unuseable and there are also problems
+    with method _fixup_build_user in mock for make_srpm
+    method together with --private-users=pick for sytemd-
+    nspawn.
+    """
+    return datetime.datetime.now().strftime('%s.%f')

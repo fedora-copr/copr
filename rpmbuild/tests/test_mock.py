@@ -71,10 +71,11 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(config_opts["use_bootstrap_container"], False)
         self.assertEqual(config_opts["yum.conf"], [])
 
+    @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.get_mock_uniqueext")
     @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.subprocess.Popen")
-    def test_produce_rpm(self, popen_mock):
+    def test_produce_rpm(self, popen_mock, get_mock_uniqueext_mock):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
-        builder.get_mock_uniqueext = MagicMock(return_value='2')
+        get_mock_uniqueext_mock.return_value = '2'
         process = MagicMock(returncode=0)
         popen_mock.return_value = process
         builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/configs", "/path/to/results")

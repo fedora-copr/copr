@@ -10,6 +10,8 @@ import logging
 import tempfile
 import shutil
 import pprint
+import tempfile
+import stat
 
 from simplejson.scanner import JSONDecodeError
 
@@ -25,7 +27,6 @@ except ImportError:
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler(sys.stdout))
-
 
 def daemonize():
     try:
@@ -58,6 +59,7 @@ def main():
                                                                       "Log into /var/lib/copr-rpmbuild/main.log")
     parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
     parser.add_argument("-r", "--chroot", help="Name of the chroot to build rpm package in (e.g. epel-7-x86_64).")
+    parser.add_argument("--drop-resultdir",  action="store_true", help="Removes resultdir and its content before continuing.")
 
     product = parser.add_mutually_exclusive_group()
     product.add_argument("--rpm", action="store_true", help="Build rpms. This is the default action.")
@@ -104,19 +106,26 @@ def main():
 
 def init(args, config):
     resultdir = config.get("main", "resultdir")
-    if os.path.exists(resultdir):
+    if os.path.exists(resultdir) and args.drop_resultdir:
         shutil.rmtree(resultdir)
-    os.makedirs(resultdir)
+        os.makedirs(resultdir)
 
 
 def build_srpm(args, config):
     task = get_task("/backend/get-srpm-build-task/", args.build_id, config)
     resultdir = config.get("main", "resultdir")
 
-    provider = providers.factory(task["source_type"])(
-        task["source_json"], resultdir, config)
+    # create tmpdir to allow --private-users=pick with make_srpm
+    # that changes permissions on the result directory to out of scope values
+    with tempfile.TemporaryDirectory(dir=resultdir) as tmpdir:
+        tmpdir_abspath = os.path.join(resultdir, tmpdir)
+        os.chmod(tmpdir, stat.S_IRWXU|stat.S_IRWXO)
+        provider = providers.factory(task["source_type"])(
+            task["source_json"], tmpdir_abspath, config)
+        provider.produce_srpm()
+        for item in os.listdir(tmpdir_abspath):
+            shutil.copy(os.path.join(tmpdir_abspath, item), resultdir)
 
-    provider.produce_srpm()
     log.info("Output: {}".format(
         os.listdir(resultdir)))
 

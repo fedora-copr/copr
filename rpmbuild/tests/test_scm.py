@@ -119,14 +119,16 @@ class TestScmProvider(unittest.TestCase):
         assert_cmd = ["tito", "build", "--test", "--srpm", "--output", self.resultdir]
         self.assertEqual(provider.get_tito_test_command(), assert_cmd)
 
-    def test_get_make_srpm_command(self):
+    @mock.patch("rpmbuild.copr_rpmbuild.providers.scm.get_mock_uniqueext")
+    def test_get_make_srpm_command(self, get_mock_uniqueext_mock):
+        get_mock_uniqueext_mock.return_value = '2'
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
         bind_mount_cmd_part = '--plugin-option=bind_mount:dirs=(("{0}", "/mnt{1}"), ("{2}", "/mnt{3}"))'\
                               .format(provider.workdir, provider.workdir, self.resultdir, self.resultdir)
         make_srpm_cmd_part = 'cd /mnt{0}/somerepo/subpkg; make -f /mnt{1}/somerepo/.copr/Makefile srpm '\
                              'outdir="/mnt{2}" spec="/mnt{3}/somerepo/subpkg/pkg.spec"'\
                              .format(provider.workdir, provider.workdir, self.resultdir, provider.workdir)
-        assert_cmd = ['mock', '-r', '/etc/copr-rpmbuild/make_srpm_mock.cfg',
+        assert_cmd = ['mock', '--uniqueext', '2', '-r', '/etc/copr-rpmbuild/make_srpm_mock.cfg',
                       bind_mount_cmd_part, '--chroot', make_srpm_cmd_part]
 
         self.assertEqual(provider.get_make_srpm_command(), assert_cmd)
