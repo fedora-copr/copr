@@ -103,7 +103,7 @@ rlJournalStart
     rlPhaseStartTest
 
         # Test yaml submit
-        DATE=$(date +%s)
+        DATE=$(date +%Y%m%d%H%M%S)
         echo "version=$DATE"
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/testmodule.yaml
