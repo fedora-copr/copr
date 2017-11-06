@@ -35,9 +35,11 @@ fi
 if [[ ! $BACKEND_URL ]]; then
     BACKEND_URL="http://copr-be-dev.cloud.fedoraproject.org"
 fi
+USER=`copr-cli whoami`
 
 echo "FRONTEND_URL = $FRONTEND_URL"
 echo "BACKEND_URL = $BACKEND_URL"
+echo "USER = $USER"
 
 SCRIPT=`realpath $0`
 HERE=`dirname $SCRIPT`
@@ -164,7 +166,7 @@ rlJournalStart
         # Test that it is possible to build module with package from copr
         yes | cp $HERE/files/coprtestmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/coprtestmodule.yaml
-        sed -i "s/\$OWNER/clime/g" /tmp/coprtestmodule.yaml
+        sed -i "s/\$OWNER/$USER/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml"
         PACKAGES=`mktemp`
@@ -182,9 +184,9 @@ rlJournalStart
 
         # Module repository should be allowed via DNF, but the code isn't merged yet
         # https://github.com/rpm-software-management/dnf-plugins-core/pull/214
-        rlRun "echo '[clime-module-testmodule-beakertest-$DATE]' >> /etc/yum.repos.d/testmodule.repo"
-        rlRun "echo 'name = Copr modules repo for clime/module-testmodule-beakertest-$DATE' >> /etc/yum.repos.d/testmodule.repo"
-        rlRun "echo 'baseurl = $BACKEND_URL/results/clime/module-testmodule-beakertest-$DATE/modules/custom-1-x86_64+testmodule-beakertest-$DATE/latest/x86_64/' >> /etc/yum.repos.d/testmodule.repo"
+        rlRun "echo '[$USER-module-testmodule-beakertest-$DATE]' > /etc/yum.repos.d/testmodule.repo"
+        rlRun "echo 'name = Copr modules repo for $USER/module-testmodule-beakertest-$DATE' >> /etc/yum.repos.d/testmodule.repo"
+        rlRun "echo 'baseurl = $BACKEND_URL/results/$USER/module-testmodule-beakertest-$DATE/modules/custom-1-x86_64+testmodule-beakertest-$DATE/latest/x86_64/' >> /etc/yum.repos.d/testmodule.repo"
         rlRun "echo 'enabled = 1' >> /etc/yum.repos.d/testmodule.repo"
 
         rlAssertEquals "Module should be visible in the system" `dnf module list |grep testmodule |grep beakertest |grep $DATE |wc -l` 1
