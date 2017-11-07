@@ -98,7 +98,8 @@ def get_updated_packages(updates_messages):
         updated_packages[project['name'].lower()] = project['version']
     return updated_packages
 
-def get_copr_package_info_rows():
+def get_copr_package_info_rows(updated_packages):
+    pkg_name_pattern = '(' + '|'.join(updated_packages.keys()) + ')'
     source_type = helpers.BuildSourceEnum(args.backend.lower())
     if db.engine.url.drivername == "sqlite":
         placeholder = '?'
@@ -112,12 +113,12 @@ def get_copr_package_info_rows():
         FROM package
         LEFT OUTER JOIN build ON build.package_id = package.id
         WHERE package.source_type = {placeholder} AND
+              package.source_json ~* '{pkg_name_pattern}' AND
               package.webhook_rebuild = {true} AND
               (build.id is NULL OR build.id = (SELECT MAX(build.id) FROM build WHERE build.package_id = package.id));
-        """.format(placeholder=placeholder, true=true), source_type
+        """.format(placeholder=placeholder, pkg_name_pattern=pkg_name_pattern, true=true), source_type
     )
     return rows
-
 
 class RubyGemsPackage(object):
     def __init__(self, source_json):
@@ -150,7 +151,7 @@ def main():
     updated_packages = get_updated_packages(get_updates_messages())
     loginfo('Updated packages according to datagrepper: {0}'.format(updated_packages))
 
-    for row in get_copr_package_info_rows():
+    for row in get_copr_package_info_rows(updated_packages):
         source_json = json.loads(row.source_json)
         package = package_from_source(args.backend.lower(), source_json)
 
