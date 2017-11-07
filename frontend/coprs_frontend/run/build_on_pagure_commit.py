@@ -30,10 +30,15 @@ logging.basicConfig(
     filename="{0}/build_on_pagure_commit.log".format(app.config.get("LOG_DIR")),
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
     level=logging.DEBUG)
+
 log = logging.getLogger(__name__)
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 PAGURE_BASE_URL = "https://pagure.io/"
 PAGURE_HOSTNAME = "pagure.io"
+
+ENDPOINT = 'tcp://hub.fedoraproject.org:9940'
+TOPIC = 'io.pagure.prod.pagure.git.receive'
 
 
 class ScmPackage(object):
@@ -54,7 +59,7 @@ class ScmPackage(object):
         db.session.commit()
 
     @classmethod
-    def get_candidates_for_rebuild(cls, clone_url_subpart):
+    def get_candidates_for_rebuild(cls, clone_url):
         if db.engine.url.drivername == "sqlite":
             placeholder = '?'
             true = '1'
@@ -69,7 +74,7 @@ class ScmPackage(object):
             WHERE package.source_type = {0} AND
                   package.webhook_rebuild = {1} AND
                   package.source_json ILIKE {placeholder}
-            """.format(SCM_SOURCE_TYPE, true, placeholder=placeholder), '%'+clone_url_subpart+'%'
+            """.format(SCM_SOURCE_TYPE, true, placeholder=placeholder), '%'+clone_url+'%'
         )
         return [ScmPackage(row) for row in rows]
 
@@ -78,8 +83,8 @@ class ScmPackage(object):
             return True
 
         for line in raw_commit_text.split('\n'):
-            match = re.search(r'^(\+\+\+|---) [ab]/(\w*)/.*$', line)
-            if match and match.group(2).lower() == self.subdirectory.strip('/').lower():
+            match = re.search(r'^(\+\+\+|---) [ab]/(\w*)/?.*$', line)
+            if match and match.group(2).lower() == self.subdirectory.strip('./').lower():
                 return True
 
         return False
@@ -88,14 +93,11 @@ class ScmPackage(object):
 def build_on_fedmsg_loop():
     log.debug("Setting up poller...")
 
-    endpoint = 'tcp://hub.fedoraproject.org:9940'
-    topic = 'io.pagure.prod.pagure.git.receive'
-
     ctx = zmq.Context()
     s = ctx.socket(zmq.SUB)
-    s.connect(endpoint)
+    s.connect(ENDPOINT)
 
-    s.setsockopt(zmq.SUBSCRIBE, topic)
+    s.setsockopt(zmq.SUBSCRIBE, TOPIC)
 
     poller = zmq.Poller()
     poller.register(s, zmq.POLLIN)
@@ -112,27 +114,23 @@ def build_on_fedmsg_loop():
         log.debug("Parsing...")
         data = json.loads(msg)
 
-        namespace = data['msg']['repo']['namespace']
-        repo_name = data['msg']['repo']['name']
+        project_url_path = data['msg']['repo']['url_path']
+        clone_url_path = data['msg']['repo']['fullname']
         branch = data['msg']['branch']
         start_commit = data['msg']['start_commit']
         end_commit = data['msg']['end_commit']
-
-        if namespace:
-            clone_url_subpart = '/' + namespace + '/' + repo_name
-        else:
-            clone_url_subpart = '/' + repo_name
+        clone_url = PAGURE_BASE_URL + clone_url_path
 
         log.info("MSG:")
-        log.info("\tclone_url_subpart = {}".format(clone_url_subpart))
+        log.info("\tclone_url_path = {}".format(clone_url_path))
         log.info("\tbranch = {}".format(branch))
 
-        candidates = ScmPackage.get_candidates_for_rebuild(clone_url_subpart)
-
+        candidates = ScmPackage.get_candidates_for_rebuild(clone_url)
         raw_commit_text = None
-        # if start_commit != end_commit, then more than one commit and no means to iterate over
-        if candidates and start_commit == end_commit:
-            raw_commit_url = PAGURE_BASE_URL + clone_url_subpart + '/raw/' + start_commit
+        if candidates:
+            # if start_commit != end_commit
+            # then more than one commit and no means to iterate over :(
+            raw_commit_url = PAGURE_BASE_URL + project_url_path + '/raw/' + end_commit
             r = requests.get(raw_commit_url)
             if r.status_code == requests.codes.ok:
                 raw_commit_text = r.text
@@ -141,8 +139,7 @@ def build_on_fedmsg_loop():
 
         for pkg in candidates:
             log.info("Considering pkg id: {}, source_json: {}".format(pkg.pkg_id, pkg.source_json_dict))
-            if PAGURE_HOSTNAME in urlparse(pkg.clone_url).netloc \
-                    and (pkg.clone_url.endswith(clone_url_subpart) or pkg.clone_url.endswith(clone_url_subpart+'.git')) \
+            if (pkg.clone_url == clone_url or pkg.clone_url == clone_url+'.git') \
                     and (not pkg.committish or branch.endswith('/'+pkg.committish)) \
                     and pkg.is_dir_in_commit(raw_commit_text):
                 log.info("\t -> rebuilding.")
@@ -155,5 +152,7 @@ if __name__ == '__main__':
     while True:
         try:
             build_on_fedmsg_loop()
+        except KeyboardInterrupt:
+            sys.exit(1)
         except:
-            log.exception("Error in fedmsg loop. Restarting it.")
+            log.exception('Error in fedmsg loop. Restarting it.')
