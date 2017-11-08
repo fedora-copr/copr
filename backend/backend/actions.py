@@ -407,7 +407,7 @@ class Action(object):
             result.result = ActionResult.FAILURE
             return
 
-        cmd = "kill -9 {}".format(pid)
+        cmd = "kill -9 -{}".format(pid)
         try:
             rc, out, err = conn.run_expensive(cmd)
         except SSHConnectionError:
