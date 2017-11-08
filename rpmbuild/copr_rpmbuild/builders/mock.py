@@ -70,7 +70,7 @@ class MockBuilder(object):
             "--configdir", configdir,
             "--resultdir", resultdir,
             "--define", "%_disable_source_fetch 0",
-            "--uniqueext", self.get_mock_uniqueext(),
+            "--uniqueext", get_mock_uniqueext(),
             "-r", "child"]
 
         log.info('Running: {}'.format(' '.join(cmd)))
