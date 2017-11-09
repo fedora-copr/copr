@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.106
+Version:    1.107
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -245,6 +245,12 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Thu Nov 09 2017 clime <clime@redhat.com> 1.107-1
+- kill all processes in copr-rpmbuild's process group
+- add --drop-resultdir switch to copr-rpmbuild call
+- release_vm immediately after VM is no longer needed
+- remove --ignore-lock from createrepo_c
+
 * Wed Oct 18 2017 clime <clime@redhat.com> 1.106-1
 - run copr-rpmbuild with --verbose option
 
