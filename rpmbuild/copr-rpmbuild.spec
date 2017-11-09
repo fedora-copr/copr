@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.11
+Version: 0.12
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -80,6 +80,16 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
 
 %changelog
+* Thu Nov 09 2017 clime <clime@redhat.com> 0.12-1
+- fix get_mock_uniqueext call
+- fortify make_srpm
+- add '--private-users=pick' to make_srpm container to improve
+  security
+- compatibility with rpkg-client-0.11
+- add config for src.stg.fedoraproject.org into default rpmbuild
+  config
+- fix download url for new rpkg-client version
+
 * Wed Oct 18 2017 clime <clime@redhat.com> 0.11-1
 - provide option to root spec file path in SCM with '/'
 - fix exception raising in scm provider
