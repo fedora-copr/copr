@@ -81,3 +81,5 @@ Now let's finally answer the unanswered questions that we were interested in:
   
 - what happens if there are no *application source files* in the repository but also no files (tarballs) referenced from the spec file by a Source directive
   - not that much but the repository contains a subpackage of **packed** type 
+
+update
