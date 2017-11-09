@@ -12,7 +12,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.64
+Version:    1.65
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -144,6 +144,9 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Thu Nov 09 2017 clime <clime@redhat.com> 1.65-1
+- allow to set use_bootstrap_container via API
+
 * Wed Oct 18 2017 clime <clime@redhat.com> 1.64-1
 - add SCM api interface
 - deprecate tito and mockscm methods
