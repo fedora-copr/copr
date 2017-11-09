@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.82
+Version:    1.83
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -192,6 +192,11 @@ popd
 %endif
 
 %changelog
+* Thu Nov 09 2017 clime <clime@redhat.com> 1.83-1
+- Remove duplicated Python packagtes, using "." in requirements.txt
+- Add classifiers to support Python3.
+- allow to set use_bootstrap_container via API
+
 * Wed Oct 18 2017 clime <clime@redhat.com> 1.82-1
 - add SCM api
 - add deprecation warnings for tito and mockscm methods
