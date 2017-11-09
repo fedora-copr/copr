@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.123
+Version:    1.124
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -368,6 +368,15 @@ service logstash condrestart
 
 
 %changelog
+* Thu Nov 09 2017 clime <clime@redhat.com> 1.124-1
+- fix build_on_pagure_commit.py
+- optimize check_for_anitya_version_updates
+- Bug 1508888 - Webhook triggered from GitHub does not start the
+  build
+- allow to set use_bootstrap_container via API
+- fix job stucking provisionally
+- add PoC scripts for fedora-ci
+
 * Wed Oct 18 2017 clime <clime@redhat.com> 1.123-1
 - also set srpm_url when --initial-pkgs is used when creating new
   project
