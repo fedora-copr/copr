@@ -90,7 +90,7 @@ class CoprClient(UnicodeMixin, HandlersProvider):
 
         """
         self.nc = net_client
-        self.root_url = root_url or u"http://copr.fedoraproject.org"
+        self.root_url = root_url or u"https://copr.fedorainfracloud.org"
 
         self.no_config = no_config
         self._post_init_done = False

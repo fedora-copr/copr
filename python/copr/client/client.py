@@ -97,7 +97,7 @@ class CoprClient(UnicodeMixin):
         self.token = token
         self.login = login
         self.username = username
-        self.copr_url = copr_url or "http://copr.fedoraproject.org/"
+        self.copr_url = copr_url or "https://copr.fedorainfracloud.org/"
 
         self.no_config = no_config
 
