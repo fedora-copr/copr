@@ -10,7 +10,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.83
+Version:    1.84
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -192,6 +192,10 @@ popd
 %endif
 
 %changelog
+* Fri Nov 10 2017 clime <clime@redhat.com> 1.84-1
+- update clients to use https://copr.fedorainfracloud.org as default
+  API endpoint
+
 * Thu Nov 09 2017 clime <clime@redhat.com> 1.83-1
 - Remove duplicated Python packagtes, using "." in requirements.txt
 - Add classifiers to support Python3.
