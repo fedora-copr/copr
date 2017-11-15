@@ -80,8 +80,8 @@ def get_package_build_time(package_path):
     """
     Get build time by reading package metadata
     """
-    createrepo_cmd = ['/usr/bin/rpm', '-qp', '--queryformat', '%{BUILDTIME}'] + [ package_path ]
-    stdout = run_cmd(createrepo_cmd, silent=True)
+    query_cmd = ['/usr/bin/rpm', '-qp', '--queryformat', '%{BUILDTIME}'] + [ package_path ]
+    stdout = run_cmd(query_cmd, silent=True)
     return int(stdout[0])
 
 
