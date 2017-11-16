@@ -127,7 +127,8 @@ def recreate_repo():
     Recreate the repository by using createrepo_c
     """
     log_info("Recreating repository...")
-    createrepo_cmd = ['/usr/bin/createrepo_c', '--database', '--update'] + [ args.path ]
+    createrepo_cmd = ['/usr/bin/createrepo_c', '--database', '--update', '--local-sqlite',
+                      '--cachedir', '/tmp/', '--workers', '8'] + [ args.path ]
     return run_cmd(createrepo_cmd)
 
 
