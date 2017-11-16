@@ -70,3 +70,15 @@
 
 - lineinfile: dest=/etc/security/limits.conf line="* soft nofile 10240" insertafter=EOF
 - lineinfile: dest=/etc/security/limits.conf line="* hard nofile 10240" insertafter=EOF
+
+- name: Disable DNF makecache timer
+  systemd:
+    name: dnf-makecache.timer
+    state: stopped
+    enabled: no
+
+- name: Disable DNF makecache service
+  systemd:
+    name: dnf-makecache.service
+    state: stopped
+    enabled: no
