@@ -4,23 +4,33 @@ Example configuration file for message bus.
 
 bus_id = 'ci_message_bus'
 
-host = 'bus.example.com'
-port = '61613'
+# we use python-stomppy, see it's documentation for more info
+hosts = [
+    ('bus1.example.com', '61613'),
+    ('bus2.example.com', '61613'),
+]
 
 auth = {
+    # optional if Client certificate is used
     'username': 'jenkins',
     'password': 'johnHolmes',
+
+    # client certificate items
+    'ssl_key': '/my/auth.key',
+    'ssl_crt': '/my/auth.crt',
 }
 
-# Put arbitrary message headers here.  E.g. you can identify your
-# staging/production copr instance.
+# CA that signed our client key (optional)
+cacert = '/etc/pki/ca-trust/source/anchors/my-company.crt'
 
+# headers which should be present in each message
 headers = {
     'CI_TYPE': 'copr-service',
     'copr_instance': 'development',
 }
 
-destination = "/topic/CI"
+# topic we want to write to on the bus (stomppy syntax)
+destination = "/topic/copr"
 
 # Define message templates.  Each message is identified by "key" (e.g.
 # 'build.start') and contains "key/value" pairs, while "values" are subject of

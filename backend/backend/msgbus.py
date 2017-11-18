@@ -20,6 +20,12 @@ except ImportError:
     # stomp is also optional
     stomp = None
 
+
+class _LogAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        return "[BUS '{0}'] {1}".format(self.extra['bus_id'], msg), kwargs
+
+
 class MsgBus(object):
     """
     An "abstract" message bus class, don't instantiate!
@@ -27,13 +33,17 @@ class MsgBus(object):
     messages = {}
 
     def __init__(self, opts, log=None):
+        self.opts = opts
+        # Fix bus_id soon enough.
+        self.opts.bus_id = getattr(self.opts, 'bus_id', type(self).__name__)
+
         if not log:
             log = logging
             logging.basicConfig(level=logging.DEBUG)
 
-        self.log = log
-        self.opts = opts
+        self.log = _LogAdapter(log, {'bus_id': self.opts.bus_id})
 
+        self.log.info("initializing bus")
         if hasattr(self.opts, 'messages'):
             self.messages.update(self.opts.messages)
 
@@ -102,29 +112,59 @@ class MsgBusStomp(MsgBus):
     def __init__(self, opts, log=None):
         super(MsgBusStomp, self).__init__(opts, log)
 
+        hosts = []
         # shortcuts
-        host = self.opts.host
-        port = int(self.opts.port)
-        username = None
-        password = None
+        if getattr(self.opts, 'hosts', None):
+            assert type(self.opts.hosts) == list
+            hosts += self.opts.hosts
 
-        self.log.info("connecting to (stomp) message bus '{0}:{1}"
-                      .format(host, port))
-        self.conn = stomp.Connection([(host, int(port))])
+        if getattr(self.opts, 'host', None):
+            # TODO: Compat to be removed.
+            self.log.warning("obsoleted 'host' parameter, use 'hosts' " \
+                             "array (failover capable)")
+            hosts.append((self.opts.host, self.opts.port))
+
+        # Ensure integer ports.
+        hosts = [(pair[0], int(pair[1])) for pair in hosts]
+
+        self.conn = stomp.Connection(hosts)
+        self.conn.set_listener('dump', stomp.listener.PrintingListener())
+
+        # allow dict.get() (with default None) method
+        auth = {}
+        if getattr(self.opts, 'auth', None):
+            auth = self.opts.auth
+
+        username = auth.get('username')
+        password = auth.get('password')
+        ssl_key  = auth.get('key_file')
+        ssl_crt  = auth.get('cert_file')
+        cacert = getattr(self.opts, 'cacert', None)
+
+        if (ssl_key, ssl_crt, cacert) != (None, None, None):
+            self.log.debug("ssl: key = {0}, crt = {1}, cacert = {2}".format(
+                ssl_key, ssl_crt, cacert))
+
+            self.conn.set_ssl(
+                    for_hosts=hosts,
+                    key_file=ssl_key,
+                    cert_file=ssl_crt,
+                    ca_certs=cacert
+            )
+
         self.conn.start()
 
-        if getattr(self.opts, 'auth', None):
-            username = self.opts.auth['username']
-            password = self.opts.auth['password']
-            self.log.info("authenticating with username '{0}'".format(username))
-
+        self.log.debug("connect")
         self.conn.connect(
             username=username,
             passcode=password,
+            wait=True,
         )
 
         if not getattr(self.opts, 'destination', None):
             setattr(self.opts, 'destination', '/default')
+
+        self.log.info("initialized")
 
 
     def _send(self, topic, body, headers):
