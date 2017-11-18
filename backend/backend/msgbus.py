@@ -102,12 +102,40 @@ class MsgBus(object):
         self.send(topic, msg)
 
 
+class StompListener(stomp.ConnectionListener):
+    def __init__(self, msgbus):
+        self.msgbus = msgbus
+
+    def on_error(self, headers, message):
+        self.msgbus.log.warning('received an error "%s"' % message)
+
+    def on_disconnected(self):
+        self.msgbus.log.warning('disconnected, trying to connect again..')
+        self.msgbus.connect()
+
+
 class MsgBusStomp(MsgBus):
     """
     Connect to STOMP bus and send messages.  Make sure you have correctly
     configured 'messages' attribute in every message bus configuration, no
     default messages here!
     """
+
+    def connect(self):
+        """
+        connect (even repeatedly) to STOMP message bus
+        """
+        self.conn.start()
+        self.log.debug("connecting")
+        self.conn.connect(
+            # username/passcode can be None if ssl_key is used
+            username=self.username,
+            passcode=self.password,
+            wait=True,
+        )
+        if not getattr(self.opts, 'destination', None):
+            setattr(self.opts, 'destination', '/default')
+
 
     def __init__(self, opts, log=None):
         super(MsgBusStomp, self).__init__(opts, log)
@@ -128,15 +156,15 @@ class MsgBusStomp(MsgBus):
         hosts = [(pair[0], int(pair[1])) for pair in hosts]
 
         self.conn = stomp.Connection(hosts)
-        self.conn.set_listener('dump', stomp.listener.PrintingListener())
+        self.conn.set_listener('', StompListener(self))
 
         # allow dict.get() (with default None) method
         auth = {}
         if getattr(self.opts, 'auth', None):
             auth = self.opts.auth
 
-        username = auth.get('username')
-        password = auth.get('password')
+        self.username = auth.get('username')
+        self.password = auth.get('password')
         ssl_key  = auth.get('key_file')
         ssl_crt  = auth.get('cert_file')
         cacert = getattr(self.opts, 'cacert', None)
@@ -152,19 +180,7 @@ class MsgBusStomp(MsgBus):
                     ca_certs=cacert
             )
 
-        self.conn.start()
-
-        self.log.debug("connect")
-        self.conn.connect(
-            username=username,
-            passcode=password,
-            wait=True,
-        )
-
-        if not getattr(self.opts, 'destination', None):
-            setattr(self.opts, 'destination', '/default')
-
-        self.log.info("initialized")
+        self.connect()
 
 
     def _send(self, topic, body, headers):
