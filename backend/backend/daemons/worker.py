@@ -69,9 +69,8 @@ class Worker(multiprocessing.Process):
         """
         self.mark_started(job)
 
-        for bus in self.msg_buses:
-            for topic in ['build.start', 'chroot.start']:
-                self._announce(topic, job)
+        for topic in ['build.start', 'chroot.start']:
+            self._announce(topic, job)
 
 
     def _announce_end(self, job):
