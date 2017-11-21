@@ -12,6 +12,26 @@
 </div>
 {% endif %}
 
+<h2>News</h2>
+<div class="row">
+  <div class="col-md-12">
+    <noscript><p>This page uses JavaScript to show most recent article from out blog</p></noscript>
+    <div class="panel panel-default">
+      <div class="list-group">
+        <div id="blog">
+          <a href="" id="blog-link" class="list-group-item">
+            <h3 class="list-group-item-heading" id="blog-title"></h3>
+            <span class="list-group-item-text">
+              <span id="blog-date"></span> | <span id="blog-author"></span>
+              <br>Read the most recent article on our blog.
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% if g.user %}
 <a href="{{url_for('coprs_ns.copr_add', username=g.user.name) }}" class="btn button-new pull-right btn-primary">
   <span class="pficon pficon-add-circle-o"></span> New Project
