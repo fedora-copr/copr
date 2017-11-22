@@ -39,7 +39,7 @@ def upgrade():
             'type': source_dict.get('scm_type') or 'git',
             'clone_url': source_dict.get('scm_url') or '',
             'committish': source_dict.get('scm_branch') or '',
-            'subdirectory': '',
+            'subdirectory': source_dict.get('scm_subdir') or '',
             'spec': source_dict.get('spec') or '',
             'srpm_build_method': 'rpkg',
         }
