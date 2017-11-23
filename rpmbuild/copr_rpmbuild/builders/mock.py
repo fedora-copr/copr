@@ -18,7 +18,6 @@ class MockBuilder(object):
         self.enable_net = task["enable_net"]
         self.repos = task["repos"]
         self.use_bootstrap_container = task["use_bootstrap_container"]
-        self.bootstrap_without_additional = "custom-1" in task["chroot"]
         self.pkg_manager_conf = "dnf" if "custom-1" in task["chroot"] else "yum"
         self.timeout = task["timeout"]
         self.sourcedir = sourcedir
@@ -50,8 +49,7 @@ class MockBuilder(object):
         template = jinja_env.get_template("mock.cfg.j2")
         return template.render(chroot=self.chroot, task_id=self.task_id, buildroot_pkgs=self.buildroot_pkgs,
                                enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
-                               bootstrap_without_additional=self.bootstrap_without_additional, repos=self.repos,
-                               pkg_manager_conf=self.pkg_manager_conf)
+                               repos=self.repos, pkg_manager_conf=self.pkg_manager_conf)
 
     def preexec_fn_build_stream(self):
         if not self.logfile:
