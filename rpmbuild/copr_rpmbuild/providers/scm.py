@@ -30,7 +30,8 @@ class ScmProvider(Provider):
         self.repo_subdir = source_json.get('subdirectory') or ''
         self.spec_relpath = source_json.get('spec') or ''
         self.srpm_build_method = source_json.get('srpm_build_method') or 'rpkg'
-        self.repo_dirname = os.path.splitext(os.path.basename(self.clone_url))[0]
+        self.repo_dirname = os.path.splitext(os.path.basename(
+            self.clone_url.rstrip('/')))[0]
         self.repo_path = helpers.path_join(self.workdir, self.repo_dirname)
         self.repo_subpath = helpers.path_join(self.repo_path, self.repo_subdir)
         self.spec_path = helpers.path_join(
