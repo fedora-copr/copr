@@ -19,8 +19,9 @@ $(document).ready(function(){
 
             $("#blog-title").text(el.find("title").text())
             $("#blog-author").text(el.find("author").text())
-            $("#blog-link").attr("href", el.find("link").text())
             $("#blog-date").text(f_published)
+            $("#blog-link").attr("href", el.find("link").text())
+            $("#blog-link").removeClass("hidden")
             return false
         });
     });

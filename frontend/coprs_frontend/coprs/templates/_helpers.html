@@ -313,6 +313,36 @@
 {% endmacro %}
 
 
+{% macro recent_blog_panel() %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">News - <a href="https://fedora-copr.github.io/">Read All</a></h3>
+    </div>
+    <div class="list-group">
+      <noscript>
+        <a href="https://fedora-copr.github.io/" class="list-group-item">
+          <p class="list-group-item-text">
+            This page uses JavaScript to show the most recent article from out blog.
+            Click here to visit the blog.
+          </p>
+        </a>
+      </noscript>
+      <a href="" id="blog-link" class="list-group-item hidden">
+        <b class="list-group-item-heading" id="blog-title"></b>
+        <p class="list-group-item-text">
+          <small>Published:</small>
+          <span id="blog-date"></span>
+        </p>
+        <p class="list-group-item-text">
+          <small>Author:</small>
+          <span id="blog-author"></span>
+        </p>
+      </a>
+    </div>
+  </div>
+{% endmacro %}
+
+
 {% macro render_crumb(href, title, active=False) %}
 <li {% if active %} class="active" {% endif %} >
   <a href="{{ href }}">
