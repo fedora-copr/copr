@@ -127,25 +127,27 @@
             {% endif %}
           </div>
         {% else %}
-        <p>To start working with modules, you first need to get modularity-enabled packages from <code>@copr/copr</code>: </p>
+        <p>
+          To start using modules, you need to have DNF with modularity support. This is available out of the box
+          on the <a href="https://getfedora.org/en/server/prerelease/">Fedora Modular Server</a>, but on regular releases you need to install such DNF from Copr.
+        </p>
         <div class="highlight autumn">
-          <pre>dnf install dnf-plugins-core       <span class="c1"># provides basic `dnf copr` command to enable COPR repos</span>
-dnf copr enable @copr/copr         <span class="c1"># contains necessary packages to work with modules</span>
-dnf upgrade dnf-plugins-core       <span class="c1"># gives `dnf copr` command with modularity support</span>
-dnf install python3-fm-dnf-plugin  <span class="c1"># provides `dnf module` command compatible with modulemd-1.0.2</span></pre>
+          <pre>dnf copr enable mhatina/dnf-modularity-stable
+dnf upgrade dnf</pre>
         </div>
-
-        <p>For <code>dnf module</code> documentation, see its <a href="https://pagure.io/fm-dnf-plugin">project page</a>.
 
         <p>Now to install the built module, please run following commands as root:</p>
         <div class="highlight autumn">
-          <pre><span class="c1"># Add module repofile to your system, that is /etc/fm.modules.d</span>
+          <pre><span class="c1"># Add module repofile to your system</span>
 dnf copr enable {{ module.copr.full_name }}
 
 <span class="c1"># Install the module</span>
-dnf module <span class="nb">enable</span> {{ module.name }}</pre>
+dnf module enable {{ module.name}}:{{ module.stream }}
+dnf module install {{ module.name }}/default</pre>
 
         </div>
+
+        <p>For <code>dnf module</code> documentation, see the "Module Command" section in <code>man dnf</code>.
         {% endif %}
       </div>
     </div>
