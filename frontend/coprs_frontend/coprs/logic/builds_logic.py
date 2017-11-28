@@ -70,7 +70,7 @@ class BuildsLogic(object):
 
         # Workaround - otherwise it could take less records than `limit`even though there are more of them.
         query = query.limit(limit if limit > 100 else 100)
-        return list(query.all()[:5])
+        return list(query.all()[:4])
 
     @classmethod
     def get_build_importing_queue(cls):
