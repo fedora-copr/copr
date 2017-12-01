@@ -27,6 +27,8 @@ Working with the code
 
 * :ref:`how_to_release_copr` -- how to release Copr
 
+* :ref:`how_to_upgrade_builders` -- how to upgrade openstack builders
+
 * `Database schema <http://miroslav.suchy.cz/copr/coprdb/>`_
 
 * `Documentation of python code <http://miroslav.suchy.cz/copr/python-doc/>`_ - most up-to-date documentation are in copr-frontend-doc and copr-backend-doc packages.
