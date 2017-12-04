@@ -15,7 +15,7 @@ sys.path.append(
 
 from coprs import db, app
 from coprs.logic.coprs_logic import CoprsLogic
-from coprs.logic.packages_logic import PackagesLogic
+from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs import helpers
 
@@ -51,11 +51,10 @@ class ScmPackage(object):
         self.committish = self.source_json_dict.get('committish') or ''
         self.subdirectory = self.source_json_dict.get('subdirectory') or ''
 
-        self.copr = CoprsLogic.get_by_id(self.copr_id).first()
         self.package = ComplexLogic.get_package_by_id_safe(self.pkg_id)
 
-    def build(self):
-        PackagesLogic.build_package(self.copr.user, self.copr, self.package)
+    def build(self, branch):
+        BuildsLogic.rebuild_package(self.package, {'committish': branch})
         db.session.commit()
 
     @classmethod
@@ -143,7 +142,7 @@ def build_on_fedmsg_loop():
                     and (not pkg.committish or branch.endswith('/'+pkg.committish)) \
                     and pkg.is_dir_in_commit(raw_commit_text):
                 log.info("\t -> rebuilding.")
-                pkg.build()
+                pkg.build(branch)
             else:
                 log.info("\t -> skipping.")
 
