@@ -19,8 +19,12 @@ from coprs import models, db
 def upgrade():
     session = sa.orm.sessionmaker(bind=op.get_bind())()
 
-    for build in session.query(models.Build).filter(models.Build.source_type == 3):
-        source_dict = build.source_json_dict
+    tito_build_rows = session.execute(
+            "SELECT * FROM build WHERE source_type=:param",
+            {"param": 3})
+
+    for build in tito_build_rows:
+        source_dict = json.loads(build['source_json'])
         new_source_dict = {
             'type': 'git',
             'clone_url': source_dict.get('git_url') or '',
@@ -29,12 +33,18 @@ def upgrade():
             'spec': '',
             'srpm_build_method': 'tito_test' if source_dict.get('tito_test') else 'tito',
         }
-        build.source_json = json.dumps(new_source_dict)
-        build.source_type = 8
-        session.add(build)
+        new_source_json = json.dumps(new_source_dict)
+        new_source_type = 8
+        session.execute(
+            "UPDATE build SET source_json=:param1, source_type=:param2 WHERE id=:param3",
+            {"param1": new_source_json, "param2": new_source_type, "param3": build['id']})
 
-    for build in session.query(models.Build).filter(models.Build.source_type == 4):
-        source_dict = build.source_json_dict
+    mock_build_rows = session.execute(
+            "SELECT * FROM build WHERE source_type=:param",
+            {"param": 4})
+
+    for build in mock_build_rows:
+        source_dict = json.loads(build['source_json'])
         new_source_dict = {
             'type': source_dict.get('scm_type') or 'git',
             'clone_url': source_dict.get('scm_url') or '',
@@ -43,12 +53,18 @@ def upgrade():
             'spec': source_dict.get('spec') or '',
             'srpm_build_method': 'rpkg',
         }
-        build.source_json = json.dumps(new_source_dict)
-        build.source_type = 8
-        session.add(build)
+        new_source_json = json.dumps(new_source_dict)
+        new_source_type = 8
+        session.execute(
+            "UPDATE build SET source_json=:param1, source_type=:param2 WHERE id=:param3",
+            {"param1": new_source_json, "param2": new_source_type, "param3": build['id']})
 
-    for build in session.query(models.Build).filter(models.Build.source_type == 7):
-        source_dict = build.source_json_dict
+    fedpkg_build_rows = session.execute(
+            "SELECT * FROM build WHERE source_type=:param",
+            {"param": 7})
+
+    for build in fedpkg_build_rows:
+        source_dict = json.loads(build['source_json'])
         new_source_dict = {
             'type': 'git',
             'clone_url': source_dict.get('clone_url') or '',
@@ -57,11 +73,11 @@ def upgrade():
             'spec': '',
             'srpm_build_method': 'rpkg',
         }
-        build.source_json = json.dumps(new_source_dict)
-        build.source_type = 8
-        session.add(build)
-
-    session.commit()
+        new_source_json = json.dumps(new_source_dict)
+        new_source_type = 8
+        session.execute(
+            "UPDATE build SET source_json=:param1, source_type=:param2 WHERE id=:param3",
+            {"param1": new_source_json, "param2": new_source_type, "param3": build['id']})
 
 
 def downgrade():

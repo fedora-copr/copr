@@ -19,8 +19,12 @@ from coprs import models
 def upgrade():
     session = sa.orm.sessionmaker(bind=op.get_bind())()
 
-    for package in session.query(models.Package).filter(models.Package.source_type == 3):
-        source_dict = package.source_json_dict
+    tito_package_rows = session.execute(
+            "SELECT * FROM package WHERE source_type=:param",
+            {"param": 3})
+
+    for package in tito_package_rows:
+        source_dict = json.loads(package['source_json']) if package['source_json'] else {}
         new_source_dict = {
             'type': 'git',
             'clone_url': source_dict.get('git_url') or '',
@@ -29,12 +33,18 @@ def upgrade():
             'spec': '',
             'srpm_build_method': 'tito_test' if source_dict.get('tito_test') else 'tito',
         }
-        package.source_json = json.dumps(new_source_dict)
-        package.source_type = 8
-        session.add(package)
+        new_source_json = json.dumps(new_source_dict)
+        new_source_type = 8
+        session.execute(
+            "UPDATE package SET source_json=:param1, source_type=:param2 WHERE id=:param3",
+            {"param1": new_source_json, "param2": new_source_type, "param3": package['id']})
 
-    for package in session.query(models.Package).filter(models.Package.source_type == 4):
-        source_dict = package.source_json_dict
+    mock_package_rows = session.execute(
+            "SELECT * FROM package WHERE source_type=:param",
+            {"param": 4})
+
+    for package in mock_package_rows:
+        source_dict = json.loads(package['source_json']) if package['source_json'] else {}
         new_source_dict = {
             'type': source_dict.get('scm_type') or 'git',
             'clone_url': source_dict.get('scm_url') or '',
@@ -43,12 +53,18 @@ def upgrade():
             'spec': source_dict.get('spec') or '',
             'srpm_build_method': 'rpkg',
         }
-        package.source_json = json.dumps(new_source_dict)
-        package.source_type = 8
-        session.add(package)
+        new_source_json = json.dumps(new_source_dict)
+        new_source_type = 8
+        session.execute(
+            "UPDATE package SET source_json=:param1, source_type=:param2 WHERE id=:param3",
+            {"param1": new_source_json, "param2": new_source_type, "param3": package['id']})
 
-    for package in session.query(models.Package).filter(models.Package.source_type == 7):
-        source_dict = package.source_json_dict
+    fedpkg_package_rows = session.execute(
+            "SELECT * FROM package WHERE source_type=:param",
+            {"param": 7})
+
+    for package in fedpkg_package_rows:
+        source_dict = json.loads(package['source_json']) if package['source_json'] else {}
         new_source_dict = {
             'type': 'git',
             'clone_url': source_dict.get('clone_url') or '',
@@ -57,11 +73,11 @@ def upgrade():
             'spec': '',
             'srpm_build_method': 'rpkg',
         }
-        package.source_json = json.dumps(new_source_dict)
-        package.source_type = 8
-        session.add(package)
-
-    session.commit()
+        new_source_json = json.dumps(new_source_dict)
+        new_source_type = 8
+        session.execute(
+            "UPDATE package SET source_json=:param1, source_type=:param2 WHERE id=:param3",
+            {"param1": new_source_json, "param2": new_source_type, "param3": package['id']})
 
 
 def downgrade():
