@@ -16,9 +16,11 @@ except ImportError:
 
 try:
     import stomp
+    from stomp import ConnectionListener as StompConnectionListener
 except ImportError:
     # stomp is also optional
     stomp = None
+    StompConnectionListener = object
 
 
 class _LogAdapter(logging.LoggerAdapter):
@@ -102,7 +104,7 @@ class MsgBus(object):
         self.send(topic, msg)
 
 
-class StompListener(stomp.ConnectionListener):
+class StompListener(StompConnectionListener):
     def __init__(self, msgbus):
         self.msgbus = msgbus
 
