@@ -24,7 +24,7 @@ def upgrade():
             {"param": 3})
 
     for build in tito_build_rows:
-        source_dict = json.loads(build['source_json'])
+        source_dict = json.loads(build['source_json']) if build['source_json'] else {}
         new_source_dict = {
             'type': 'git',
             'clone_url': source_dict.get('git_url') or '',
@@ -44,7 +44,7 @@ def upgrade():
             {"param": 4})
 
     for build in mock_build_rows:
-        source_dict = json.loads(build['source_json'])
+        source_dict = json.loads(build['source_json']) if build['source_json'] else {}
         new_source_dict = {
             'type': source_dict.get('scm_type') or 'git',
             'clone_url': source_dict.get('scm_url') or '',
@@ -64,7 +64,7 @@ def upgrade():
             {"param": 7})
 
     for build in fedpkg_build_rows:
-        source_dict = json.loads(build['source_json'])
+        source_dict = json.loads(build['source_json']) if build['source_json'] else {}
         new_source_dict = {
             'type': 'git',
             'clone_url': source_dict.get('clone_url') or '',
