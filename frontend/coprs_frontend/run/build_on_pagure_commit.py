@@ -139,7 +139,7 @@ def build_on_fedmsg_loop():
         for pkg in candidates:
             log.info("Considering pkg id: {}, source_json: {}".format(pkg.pkg_id, pkg.source_json_dict))
             if (pkg.clone_url == clone_url or pkg.clone_url == clone_url+'.git') \
-                    and (not pkg.committish or branch.endswith('/'+pkg.committish)) \
+                    and (not pkg.committish or branch.endswith(pkg.committish)) \
                     and pkg.is_dir_in_commit(raw_commit_text):
                 log.info("\t -> rebuilding.")
                 pkg.build(branch)

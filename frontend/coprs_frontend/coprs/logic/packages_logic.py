@@ -127,7 +127,7 @@ WHERE package.copr_id = :copr_id;
                 return True
 
         committish = package.source_json_dict.get("committish") or ''
-        if committish and not ref.endswith("/"+committish):
+        if committish and not ref.endswith(committish):
             return False
 
         path_match = True
