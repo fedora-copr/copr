@@ -81,6 +81,10 @@ Requires:   gawk
 Requires:   crontabs
 Requires:   prunerepo
 Requires:   python-lockfile
+
+# needed for log hitcounter
+Requires:   python-netaddr
+
 Requires:   python2-modulemd
 # Requires:   python-ipdb
 # EL7 doesn't support "Suggests"
