@@ -8,14 +8,17 @@ import requests
 import json
 import os
 import logging
+import argparse
 
 sys.path.append("/usr/share/copr/")
 
-from backend.helpers import BackendConfigReader
-from backend.vm_manage.manager import VmManager
 from dateutil.parser import parse as dt_parse
+from netaddr import IPNetwork, IPAddress
 
 from collections import defaultdict
+from backend.helpers import BackendConfigReader
+
+opts = BackendConfigReader().read()
 
 logging.basicConfig(
     filename="/var/log/copr-backend/hitcounter.log",
@@ -23,6 +26,7 @@ logging.basicConfig(
     level=logging.INFO)
 
 log = logging.getLogger(__name__)
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 spider_regex = re.compile('.*(ahrefs|bot/[0-9]|bingbot|borg|google|googlebot|yahoo|slurp|msnbot|msrbot'
                           '|openbot|archiver|netresearch|lycos|scooter|altavista|teoma|gigabot|baiduspider'
@@ -42,12 +46,10 @@ rpm_url_regex = re.compile("/results/(?P<owner>[^/]*)/(?P<project>[^/]*)/(?P<chr
 datetime_regex = re.compile(".*\[(?P<date>[^:]*):(?P<time>\S*)\s(?P<zone>[^\]]*)\].*")
 datetime_parse_template = '{date} {time} {zone}'
 
-opts = BackendConfigReader().read()
+parser = argparse.ArgumentParser(description='Read lighttpd access.log and count repo accesses.')
+parser.add_argument('--ignore-subnet',action='store', help='What IPs to ignore')
+parser.add_argument('logfile', action='store', help='Path to the logfile')
 
-vm_ips = []
-vmm = VmManager(opts, None)
-for vm in vmm.get_all_vm():
-    vm_ips.append(vm.vm_ip)
 
 def get_hit_data():
     hits = defaultdict(int)
@@ -67,7 +69,7 @@ def get_hit_data():
             if m.group('code') != str(200):
                 continue
 
-            if m.group('ip_address') in vm_ips:
+            if args.ignore_subnet and IPAddress(m.group('ip_address')) in IPNetwork(args.ignore_subnet):
                 continue
 
             if spider_regex.match(m.group('agent')):
@@ -111,6 +113,7 @@ def get_hit_data():
         'hits': hits,
     }
 
+
 def get_timestamp(logline):
     if not logline:
         return None
@@ -127,11 +130,9 @@ def get_timestamp(logline):
 
     return int(dt_parse(datetime_str).strftime('%s'))
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2 or len(sys.argv) > 2:
-        print('Usage: copr_log_hitcounter.py <logfile_name>', file=sys.stderr)
-        sys.exit(1)
 
+if __name__ == "__main__":
+    args = parser.parse_args()
     result = get_hit_data()
     result_json = json.dumps(result)
     target_uri = os.path.join(opts.frontend_base_url, 'stats_rcv' , 'from_backend')
