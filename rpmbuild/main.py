@@ -55,11 +55,12 @@ def main():
                                                  "and puts results into /var/lib/copr-rpmbuild/results/")
     parser.add_argument("--build-id", type=str, help="COPR build ID", required=True)
     parser.add_argument("-c", "--config", type=str, help="Use specific configuration .ini file")
-    parser.add_argument("-d", "--detached", action="store_true", help="Run build in background."
+    parser.add_argument("-d", "--detached", action="store_true", help="Run build in background. "
                                                                       "Log into /var/lib/copr-rpmbuild/main.log")
     parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
     parser.add_argument("-r", "--chroot", help="Name of the chroot to build rpm package in (e.g. epel-7-x86_64).")
-    parser.add_argument("--drop-resultdir",  action="store_true", help="Removes resultdir and its content before continuing.")
+    parser.add_argument("--drop-resultdir",  action="store_true", help="Drops resultdir and its content "
+                                                                        "at the beggining before continuing.")
 
     product = parser.add_mutually_exclusive_group()
     product.add_argument("--rpm", action="store_true", help="Build rpms. This is the default action.")

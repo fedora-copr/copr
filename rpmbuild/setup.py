@@ -19,6 +19,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Build Tools",
     ],
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     include_package_data=True
 )
