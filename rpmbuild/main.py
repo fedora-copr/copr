@@ -52,12 +52,12 @@ def daemonize():
 
 def main():
     parser = argparse.ArgumentParser(description="Runs COPR build of the specified build ID and chroot"
-                                                 "and puts results into /var/lib/copr-rpmbuild/results/")
+                                                 "and puts results into /var/lib/copr-rpmbuild/results/.")
     parser.add_argument("--build-id", type=str, help="COPR build ID", required=True)
-    parser.add_argument("-c", "--config", type=str, help="Use specific configuration .ini file")
+    parser.add_argument("-c", "--config", type=str, help="Use specific configuration .ini file.")
     parser.add_argument("-d", "--detached", action="store_true", help="Run build in background. "
-                                                                      "Log into /var/lib/copr-rpmbuild/main.log")
-    parser.add_argument("-v", "--verbose", action="count", help="print debugging information")
+                                                                      "Log into /var/lib/copr-rpmbuild/main.log.")
+    parser.add_argument("-v", "--verbose", action="count", help="Print debugging information.")
     parser.add_argument("-r", "--chroot", help="Name of the chroot to build rpm package in (e.g. epel-7-x86_64).")
     parser.add_argument("--drop-resultdir",  action="store_true", help="Drops resultdir and its content "
                                                                         "at the beggining before continuing.")
