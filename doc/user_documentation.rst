@@ -49,30 +49,32 @@ list for the full option description:
 
 - **Type**: SCM type of the repository being pointed to by **Clone URL** (in other words, whether we should use plain `git` or `git svn` for subsequent cloning).
 - **Clone URL**: What repository we should clone to obtain the sources.
-- **Committish**: What tag, branch, or commit we should check out from the history of the cloned repository.
+- **Committish**: What tag, branch, or commit we should check out from the history of the cloned repository. By default HEAD of master branch.
 - **Subdirectory**: Where the subsequent SRPM build command (see below) should be executed. The path is relative to the repository root.
-- **Spec File**: Path to the spec file relative to the given **Subdirectory**. Note that you can optionally anchor the path with **/** (e.g. **/rpm/example.spec**)
+- **Spec File**: Path to the spec file relative to the given **Subdirectory**. Note that you can optionally anchor the path with **/** (e.g. **/rpm/example.spec**). If not
+  specified the .spec file will be auto-located.
 
 The last optional thing to configure (except for common build configuration option) is the SRPM build method. There are four choices available:
 **rpkg**, **tito**, **tito test**, and **make srpm**:
 
 **rpkg**: The default choice and the most versatile one. Apart from building packages from any Git or SVN repository,
 it also supports building directly from any `DistGit <https://clime.github.io/2017/05/20/DistGit-1.0.html>`_ repository.
-Note that **rpkg** (as well as **tito**) is not only a tool to generate SRPMs but, in fact, a full-fledged package manager
-that you can use from your command-line to maintain your packages.  You can read more about this tool `here <https://pagure.io/rpkg-client>`_.
+Note that **rpkg** (as well as **tito**) is not only a tool to generate SRPMs but, in fact, it is also a full-fledged package manager
+that you can use from your command-line to maintain your packages. You can read more about this tool `here <https://pagure.io/rpkg-client>`_.
 
 **tito**: is a robust RPM package manager with lots of features and if your project is managed with Tito, this is the tool you want to pick for SRPM generation (which is
 one of the many package manager's features). When this option is selected, the latest package GIT tag will be used to build an SRPM. Note that this utility has currently
-no support for specifying alternative .spec files, which means the **Spec Field** is simply ignored when this option is used and .spec file will be always auto-located.
-You can get read more `here <https://github.com/dgoodwin/tito>`_ about this tool.
+no support for specifying an alternative .spec file, which means the **Spec Field** is simply ignored when this option is used and .spec file will be always auto-located.
+Note that the basic difference between this tool and **rpkg** is that the target repository needs to be initialized with ``tito init`` first before this tool can be used
+to build SRPMs from it. You can read more `here <https://github.com/dgoodwin/tito>`_.
 
 **tito test**: With this option selected, again the `tito <https://github.com/dgoodwin/tito>`_ utility will be used to build an SRPM but this time, the **Committish**
 value specified above (or HEAD of the master branch if no **Committish** is specified) will be used to build an SRPM. This corresponds to using ``--test`` switch for
 ``tito`` when it is invoked to generate the SRPM.
 
 **make srpm**: With this method, the user himself will provide the executable script to be used for SRPM generation. If you
-would like to use this method, you need to provide ``.copr/Makefile`` (relative to the repository root) with ``srpm`` target
-in your repository. In that ``srpm`` target, you can put whatever it takes to generate the SRPM. You can use network and clone another
+would like to use this method, you need to provide ``.copr/Makefile`` (path being relative to the repository root) with ``srpm`` target
+in your repository. Into that ``srpm`` target, you can put whatever it takes to generate the SRPM. You can use network and clone another
 repository, you can install new packages, and you can do pretty much everything as this is script is run with root privileges inside
 a mock chroot. Note that it is run in the mock chroot of the same OS version as the builder host's (usually the latest released Fedora
 version). The Makefile's target is invoked like this:
@@ -82,8 +84,8 @@ version). The Makefile's target is invoked like this:
     make -f <cloned_repodir>/.copr/Makefile srpm outdir="<outdir>" spec="<spec_path>"
 
 The ``spec`` parameter is what you specify in the **Spec File** field for the SCM source specification and the script
-is run in the **Subdirectory** that you can optionally specify in the source section  as well. Note that for some
-use cases, you can just ignore the ``spec`` file parameter. The ``outdir`` parameter specifies where to put the resulting
+is run in the **Subdirectory** that you can optionally specify in the source section  as well. Note that you can just ignore
+the ``spec`` file parameter in the script if there is no use for it. The ``outdir`` parameter specifies where to put the resulting
 SRPM so that COPR can find and build it afterwards.
 
 Example of what can be put into ``.copr/Makefile``:
