@@ -3,40 +3,60 @@ copr-rpmbuild(1)
 
 NAME
 ----
-copr-rpmbuild - run COPR build tasks
-
+copr-rpmbuild - run COPR builds.
 
 SYNOPSIS
 --------
-copr-rpmbuild [--detached|-d] [--verbose|-v] [--help|-h] task-id
+copr-rpmbuild [-c|--config CONFIG_PATH] [-d|--detached] [--drop-resultdir] [--rpm|--srpm] [-r|--chroot CHROOT_NAME] [-v|--verbose] [-h|--help] [--build-id COPR_BUILD_ID]
 
 DESCRIPTION
 -----------
-Runs COPR build of the specified task-id and puts
-results into /var/lib/copr-rpmbuild/results/.
-
-ARGUMENTS
----------
-task-id::
-	COPR task-id to be built (e.g. 551347-epel-7-x86_64)
+Runs COPR build of the specified build ID and puts
+results into /var/lib/copr-rpmbuild/results/. The
+script generates target RPMs by default but it can
+also generate just an SRPM by using --srpm switch.
 
 OPTIONS
 -------
+--build-id COPR_BUILD_ID::
+    Run build of the specified ID.
+
+--drop-resultdir::
+    Drops resultdir and its content at the beginning before continuing.
+
+--config CONFIG_PATH::
+    Path to an alternative config file. By default /etc/copr-rpmbuild/main.ini is used.
+
 --detached::
-    Run build in background. Log into /var/lib/copr-rpmbuild/main.log.
+    Run build in background and output the process PID. Log into /var/lib/copr-rpmbuild/main.log.
+
+--chroot CHROOT_NAME::
+    Name of the chroot to build for. This follows mock's convention for naming chroots (e.g. fedora-27-x86_64). See /etc/mock for the full list.
+
+--srpm::
+    Build SRPM instead of building RPM.
+
+--rpm::
+    Build RPM. This is the default action. Requires --chroot to be specified.
 
 --verbose::
-    print debugging information
+    Print debugging information.
 
 --help::
-    display help
+    Display help.
 
 
 EXAMPLES
 --------
-copr-rpmbuild -v 551347-epel-7-x86_64::
-    Run COPR build of id 551347 in epel-7-x86_64 mock chroot and print verbose information
+copr-rpmbuild -v --build-id 551347 --chroot epel-7-x86_64::
+    Runs COPR build of ID 551347 in epel-7-x86_64 mock chroot and print verbose information. RPM will be the result.
+
+copr-rpmbuild -v --build-id 551347 --srpm::
+    Runs the same COPR build as in the previous example and again with verbose information but this time, SRPM will be built.
 
 AUTHORS
 -------
+
 clime <clime@redhat.com>
+
+Jakub Kadlcik <jkadlcik@redhat.com>
