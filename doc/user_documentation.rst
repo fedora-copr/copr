@@ -72,6 +72,8 @@ to build SRPMs from it. You can read more `here <https://github.com/dgoodwin/tit
 value specified above (or HEAD of the master branch if no **Committish** is specified) will be used to build an SRPM. This corresponds to using ``--test`` switch for
 ``tito`` when it is invoked to generate the SRPM.
 
+.. _`make_srpm`:
+
 **make srpm**: With this method, the user himself will provide the executable script to be used for SRPM generation. If you
 would like to use this method, you need to provide ``.copr/Makefile`` (path being relative to the repository root) with ``srpm`` target
 in your repository. Into that ``srpm`` target, you can put whatever it takes to generate the SRPM. You can use network and clone another
