@@ -1,0 +1,107 @@
+#! /bin/env python
+
+import os
+import subprocess
+import argparse
+import logging
+import pipes
+
+DEFAULT_WORKDIR = '/builddir/copr-sources-custom'
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+
+description = """
+Generate spec + patches + tarballs using custom script in mock chroot.
+""".strip()
+
+parser = argparse.ArgumentParser(
+        description = description
+)
+parser.add_argument(
+        "-r", "--mock-config", "--root",
+        dest='config',
+        required=True,
+        help="mock config reference (alternative to '-r/--root' option in mock)"
+)
+parser.add_argument(
+        "--script",
+        required=True,
+        type=argparse.FileType('r'),
+        help="file to be copyied into mock chroot and executed"
+)
+parser.add_argument(
+        "--hook-payload-file",
+        type=argparse.FileType('r'),
+        help="file with 'webhook payload content', it is going to be copied "
+             "into working directory as 'hook_payload' file",
+)
+parser.add_argument(
+        "--builddeps",
+        help="space separated list of build dependencies (packages)"
+)
+parser.add_argument(
+        "--resultdir",
+        default=".",
+        help="directory were the SCRIPT generates the sources within mock chroot"
+)
+parser.add_argument(
+        "--workdir",
+        default=DEFAULT_WORKDIR,
+        help="execute the SCRIPT from with CWD=WORKDIR (within mock chroot)"
+)
+
+
+def run_cmd(command, **kwargs):
+    log.info("running command: " + ' '.join([pipes.quote(x) for x in command]))
+    return subprocess.check_call(command, **kwargs)
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+
+    user = 'mockbuild'
+
+    # Where the script is run from within mock chroot.
+    workdir = os.path.normpath(args.workdir)
+
+    # Where the script's result will be copied from, by default
+    # equal to workdir.
+    resultdir = os.path.normpath(os.path.join(workdir, args.resultdir))
+
+    log.info("Working in '{0}'".format(workdir))
+    log.info("Results should be created in '{0}'".format(resultdir))
+
+    mock = ['mock', '-r', args.config]
+
+    run_cmd(mock + ['--init'])
+
+    if args.builddeps:
+        pkgs = args.builddeps.split()
+        run_cmd(mock + ['--install'] + pkgs)
+
+    run_cmd(mock + ['--shell', 'cat - > /script'], stdin=args.script)
+
+    setup_cmd = 'set -ex; chmod a+x /script;'
+
+    prep_dir_template = ' rm -rf {d}; mkdir -p {d}; chown {user} {d};'
+    setup_cmd += prep_dir_template.format(
+        user=user,
+        d=pipes.quote(workdir),
+    )
+
+    run_cmd(mock + ['--chroot', setup_cmd])
+
+    if args.hook_payload_file:
+        payload_file_inner = "{0}/hook_payload".format(pipes.quote(workdir))
+        run_cmd(mock + ['--shell', 'cat - > ' + payload_file_inner],
+                stdin=args.hook_payload_file)
+        run_cmd(mock + ['--shell', 'chmod a+r ' + payload_file_inner])
+
+    cmd = 'set -xe ; cd {workdir} ; {env} /script'.format(
+        workdir=pipes.quote(workdir),
+        env='COPR_RESULTDIR=' + pipes.quote(resultdir),
+    )
+    cmd = pipes.quote(cmd)
+
+    run_cmd(mock + ['--chroot', 'su - {0} -c {1}'.format(user, cmd)])

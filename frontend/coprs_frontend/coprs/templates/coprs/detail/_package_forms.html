@@ -1,4 +1,5 @@
 {% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_build_method_box %}
+{% from "coprs/detail/_method_forms.html" import copr_method_form_fileds_custom %}
 
 {% macro copr_package_form_begin(form, view, copr, package) %}
   {{ render_form_errors(form) }}
@@ -85,6 +86,15 @@
   {{ render_anitya_autorebuild(form) }}
   {{ copr_package_form_end(form, package, 'rubygems') }}
 {% endmacro %}
+
+
+{% macro copr_package_form_custom(form, view, copr, package) %}
+  {{ copr_package_form_begin(form, view, copr, package) }}
+  {{ copr_method_form_fileds_custom(form) }}
+  {{ render_webhook_rebuild(form) }}
+  {{ copr_package_form_end(form, package, 'custom') }}
+{% endmacro %}
+
 
 {% macro copr_package_form_scm(form, view, copr, package) %}
   {{ copr_package_form_begin(form, view, copr, package) }}

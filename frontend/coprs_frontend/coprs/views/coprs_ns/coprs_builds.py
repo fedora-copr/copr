@@ -5,6 +5,7 @@ import os
 import shutil
 import tempfile
 
+from functools import wraps
 from werkzeug import secure_filename
 
 from coprs import app
@@ -350,6 +351,52 @@ def process_new_build_rubygems(copr, add_view, url_on_success):
         )
     form = forms.BuildFormRubyGemsFactory(copr.active_chroots)()
     return process_new_build(copr, form, factory, render_add_build_rubygems, add_view, url_on_success)
+
+############################### Custom builds ###############################
+
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_custom/", methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/new_build_custom/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_new_build_custom(copr):
+    """ Handle the build request and redirect back. """
+
+    # TODO: parametric decorator for this view && url_on_success
+    view = 'coprs_ns.copr_new_build_custom'
+    url_on_success = helpers.copr_url('coprs_ns.copr_add_build_custom', copr)
+
+    def factory(**build_options):
+        BuildsLogic.create_new_from_custom(
+            flask.g.user,
+            copr,
+            form.script.data,
+            form.chroot.data,
+            form.builddeps.data,
+            form.resultdir.data,
+            chroot_names=form.selected_chroots,
+            **build_options
+        )
+
+    form = forms.BuildFormCustomFactory(copr.active_chroots)()
+
+    return process_new_build(copr, form, factory, render_add_build_custom,
+                             view, url_on_success)
+
+
+
+@coprs_ns.route("/g/<group_name>/<coprname>/add_build_custom/")
+@coprs_ns.route("/<username>/<coprname>/add_build_custom/")
+@login_required
+@req_with_copr
+def copr_add_build_custom(copr, form=None):
+    return render_add_build_custom(copr, form,
+                                   'coprs_ns.copr_new_build_custom')
+
+def render_add_build_custom(copr, form, view, package=None):
+    if not form:
+        form = forms.BuildFormCustomFactory(copr.active_chroots)()
+    return flask.render_template("coprs/detail/add_build/custom.html",
+                                 copr=copr, form=form, view=view)
 
 
 ################################ Upload builds ################################

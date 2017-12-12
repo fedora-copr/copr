@@ -69,6 +69,7 @@ SOURCE_TYPE_MOCK_SCM = 'mock_scm'
 SOURCE_TYPE_PYPI = 'pypi'
 SOURCE_TYPE_RUBYGEMS = 'rubygems'
 SOURCE_TYPE_SCM = 'scm'
+SOURCE_TYPE_CUSTOM = 'custom'
 
 class CoprClient(UnicodeMixin):
     """ Main interface to the copr service
@@ -588,6 +589,47 @@ class CoprClient(UnicodeMixin):
         return self.process_creating_new_build(projectname, data, api_endpoint, username,
                                                chroots, background=background)
 
+
+    def create_new_build_custom(self, projectname,
+            script, script_chroot=None, script_builddeps=None,
+            script_resultdir=None,
+            username=None, timeout=None, memory=None, chroots=None,
+            background=False, progress_callback=None):
+        """ Creates new build with Custom source build method.
+
+            :param projectname: name of Copr project (without user namespace)
+            :param script: script to execute to generate sources
+            :param script_chroot: [optional] what chroot to use to generate
+                sources (defaults to fedora-latest-x86_64)
+            :param script_builddeps: [optional] list of script's dependencies
+            :param script_resultdir: [optional] where script generates results
+                (relative to cwd)
+            :param username: [optional] use alternative username
+            :param timeout: [optional] build timeout
+            :param memory: [optional] amount of required memory for build process
+            :param chroots: [optional] build only with given chroots
+            :param background: [optional] mark the build as a background job.
+            :param progress_callback: [optional] a function that received a
+            MultipartEncoderMonitor instance for each chunck of uploaded data
+
+            :return: :py:class:`~.responses.CoprResponse` with additional fields:
+
+                - **builds_list**: list of :py:class:`~.responses.BuildWrapper`
+        """
+        data = {
+            "memory_reqs": memory,
+            "timeout": timeout,
+            "script": script,
+            "chroot": script_chroot,
+            "builddeps": script_builddeps,
+            "resultdir": script_resultdir,
+        }
+
+        api_endpoint = "new_build_custom"
+        return self.process_creating_new_build(projectname, data, api_endpoint, username,
+                                               chroots, background=background)
+
+
     def create_new_build_distgit(self, projectname, clone_url, branch=None, username=None,
                               timeout=None, memory=None, chroots=None, background=False, progress_callback=None):
         """ Creates new build from a dist-git repository
@@ -816,6 +858,46 @@ class CoprClient(UnicodeMixin):
             "gem_name": gem_name,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })
+        return response
+
+    def edit_package_custom(self, package_name, projectname,
+            script, script_chroot=None, script_builddeps=None,
+            script_resultdir=None,
+            ownername=None, webhook_rebuild=None):
+
+        request_url = self.get_package_edit_url(ownername, projectname,
+                package_name, SOURCE_TYPE_CUSTOM)
+
+        data = {
+            "package_name": package_name,
+            "script": script,
+            "builddeps": script_builddeps,
+            "resultdir": script_resultdir,
+            "chroot": script_chroot,
+        }
+        if webhook_rebuild != None:
+            data['webhook_rebuild'] = 'y' if webhook_rebuild else ''
+
+        response = self.process_package_action(request_url, ownername, projectname, data)
+        return response
+
+    def add_package_custom(self, package_name, projectname,
+            script, script_chroot=None, script_builddeps=None,
+            script_resultdir=None,
+            ownername=None, webhook_rebuild=None):
+
+        request_url = self.get_package_add_url(ownername, projectname,
+                SOURCE_TYPE_CUSTOM)
+        response = self.process_package_action(request_url, ownername,
+                projectname, data={
+                    "package_name": package_name,
+                    "script": script,
+                    "builddeps": script_builddeps,
+                    "resultdir": script_resultdir,
+                    "chroot": script_chroot,
+                    "webhook_rebuild": 'y' if webhook_rebuild else '',
+                },
+        )
         return response
 
     def process_package_action(self, request_url, ownername, projectname, data, fetch_functor=None):

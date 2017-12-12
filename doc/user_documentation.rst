@@ -115,6 +115,14 @@ Similarly to PyPI source type, this allows building gems from `<https://rubygems
 here is `gem2rpm <https://github.com/fedora-ruby/gem2rpm>`_.
 
 
+Custom (script)
+^^^^^^^^^^^^^^^
+
+This source type uses a user-defined script to generate sources (which are later
+used to create SRPM).  For more info, have a look at
+:ref:`custom_source_method`.
+
+
 GitHub Webhooks
 ---------------
 

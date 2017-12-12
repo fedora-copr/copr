@@ -1,0 +1,22 @@
+{% from "_helpers.html" import render_field %}
+{% macro copr_method_form_fileds_custom(form) %}
+  {{ render_field(
+        form.script,
+        rows=5,
+        style='font-family: monospace;',
+        placeholder="""#! /bin/sh -x
+curl https://example.com/package.spec -O
+curl https://example.com/tarball.tar.gz -O
+""",
+        info="write a script that generates spec and sources... (Internet ON, non-root UID)"
+  )}}
+  {{ render_field(
+        form.chroot,
+        placeholder="fedora-latest-x86_64",
+        info="what chroot to run the <strong>script</strong> in") }}
+  {{ render_field(form.builddeps, placeholder="Optional - space-separated list of packages",
+        info="packages that the <strong>script</strong> requires for its execution" ) }}
+  {{ render_field(form.resultdir, placeholder="Optional - directory where SCRIPT generates sources",
+                  info="path relative to the <strong>script</strong>'s current
+                  working directory") }}
+{% endmacro %}

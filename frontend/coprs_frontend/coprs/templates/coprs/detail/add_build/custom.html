@@ -1,0 +1,11 @@
+{% extends "coprs/detail/add_build.html" %}
+
+{% from "coprs/detail/_builds_forms.html" import copr_build_form_custom with context %}
+
+{% set add_build_tab = "custom" %}
+
+{% block build_form %}
+
+{{ copr_build_form_custom(form, view, copr) }}
+
+{% endblock %}

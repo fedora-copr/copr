@@ -220,6 +220,7 @@ def build_source_description(state):
         "scm": "Build from an SCM repository",
         "pypi": "Build from PyPI",
         "rubygems": "Build from RubyGems",
+        "custom": "Custom build method",
     }
 
     return description_map.get(state, "")
