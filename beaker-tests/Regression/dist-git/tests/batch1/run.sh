@@ -32,12 +32,12 @@ rlJournalStart
 
             if [[ git_hash != null ]]; then
                 rlLog "-------------- TASK: ${task_id//\"} --------------"
-                rlRun "git clone http://localhost/cgit/${repo_name}.git" 0
+                rlRun "git clone http://localhost/git/${repo_name}.git" 0
                 rlRun "cd $pkg_name" 0
                 rlRun "git checkout $git_hash" 0
                 rlRun "ls *.spec sources" 0
                 rlRun "ls *.src.rpm" 2
-                rlRun "fedpkg-copr --dist $branch srpm" 0
+                rlRun "rpkg srpm" 0
                 rlRun "ls *.src.rpm" 0
             fi
             cd $TESTPATH && rm -r $MYTMPDIR

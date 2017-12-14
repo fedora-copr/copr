@@ -20,7 +20,7 @@ rlJournalStart
             (\$b | sort_by(.task_id) | map({task_id: .task_id, status: (if (.git_hash) then 1 else 0 end)}))'" 0 "Compare expected and actual import outcomes (success/fail)."
 
         mkdir $MYTMPDIR && cd $MYTMPDIR
-        rlRun "git clone http://localhost/cgit/clime/example/example.git" 0
+        rlRun "git clone http://localhost/git/clime/example/example.git" 0
         rlRun "cd example" 0
         ls *.spec
         rlAssertEquals "There is only one spec present in master." "`ls *.spec | wc -l`" "1"

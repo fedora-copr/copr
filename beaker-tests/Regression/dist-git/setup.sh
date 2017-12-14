@@ -16,23 +16,8 @@ if [[ ! $RELEASETEST ]]; then
 	dnf -y copr enable @copr/copr-dev
 fi
 
-dnf -y copr enable clime/dist-git
-
 dnf -y update
-dnf -y install fedpkg-copr
-dnf -y install git
-dnf -y install tito
-dnf -y install pyp2rpm
-dnf -y install pyrpkg
-dnf -y install jq
-dnf -y install copr-mocks
-dnf -y install cgit
-dnf -y install dist-git
-dnf -y install dist-git-selinux
-
-# The current python2-rpkg package has a bug regarding --module-name
-# It is fixed in git, so we can upgrade once rpkg > 1.49-6 is released
-dnf -y install https://kojipkgs.fedoraproject.org//packages/rpkg/1.49/2.fc25/noarch/python2-rpkg-1.49-2.fc25.noarch.rpm
+dnf -y install git python2-rpkg jq copr-mocks dist-git dist-git-selinux rpkg
 
 export LANG=en_US.UTF-8
 
@@ -92,10 +77,6 @@ Host *
 StrictHostKeyChecking no
 UserKnownHostsFile /dev/null
 " | tee /home/copr-dist-git/.ssh/config && chown copr-dist-git:copr-dist-git /home/copr-dist-git/.ssh/config && chmod 600 /home/copr-dist-git/.ssh/config
-
-# cgit settings
-sed -e s/^cache-size.*// /etc/cgitrc | tee /etc/cgitrc
-echo 'scan-path=/var/lib/dist-git/git' | tee -a /etc/cgitrc
 
 # git settings
 if ! id -u git &>/dev/null; then
