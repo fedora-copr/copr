@@ -130,7 +130,7 @@
 
     "build_id": 40,
     "buildroot_pkgs": null,
-    "chroot": "epel-7-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": false,
     "git_branch": "epel7",
     "git_hash": "36f2ccce5efd7ac0b2207a870cfef7ee98b61898",
@@ -145,7 +145,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "40-epel-7-x86_64",
+    "task_id": "40-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
@@ -155,7 +155,7 @@
 
     "build_id": 50,
     "buildroot_pkgs": null,
-    "chroot": "epel-7-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": true,
     "git_branch": "epel7",
     "git_hash": "36f2ccce5efd7ac0b2207a870cfef7ee98b61898",
@@ -170,7 +170,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "50-epel-7-x86_64",
+    "task_id": "50-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
