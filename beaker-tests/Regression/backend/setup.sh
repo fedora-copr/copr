@@ -19,16 +19,10 @@ fi
 cp -rT $SCRIPTPATH/files /
 
 # install stuff needed for the test
-dnf -y install docker
-dnf -y install vagrant
-dnf -y install vagrant-libvirt
-dnf -y install jq
-dnf -y install tito
-dnf -y install wget
+dnf -y install docker vagrant vagrant-libvirt jq tito wget rsync
 
 # enable libvirtd for Vagrant (distgit)
 systemctl enable libvirtd && systemctl start libvirtd
-systemctl start virtlogd.socket # this is currently needed in f25 for vagrant to work with libvirtd
 
 # enable docker (backend)
 ./create_loopback_devices_for_docker.sh # hack for running tests inside docker
