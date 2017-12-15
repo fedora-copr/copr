@@ -75,7 +75,6 @@ ARG RELEASETEST
 
 # enable appropriate copr repos
 RUN dnf -y copr enable @copr/copr && \
-    dnf -y copr enable @modularity/modulemd && \
     if [ ! $RELEASETEST ]; then dnf -y copr enable @copr/copr-dev; fi
 
 # additional builder packages from COPR repos
@@ -105,11 +104,17 @@ RUN cd `mktemp -d` && \
 # system setup for copr-backend
 RUN usermod -a -G mock copr
 
+# preinstall rpmbuild and its builddeps to utilize most of Docker cache
+RUN cd `mktemp -d` && \
+    dnf -y download --source copr-rpmbuild && \
+    dnf -y builddep *.src.rpm --allowerasing && \
+    dnf -y install copr-rpmbuild && \
+    dnf clean all
+
 # copy your copr sources to the docker image
 COPY . /copr
 
 # build copr-backend from sources
-# fix for python-requests package (the cmd is failing python2-requests is already installed)
 RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing && \
     cd /copr/backend && \
     export LANG=en_US.UTF-8 && \
@@ -120,8 +125,10 @@ RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing && \
     fi && \
 # upgrade the already pre-installed package if possible
     dnf -y upgrade /tmp/tito/noarch/copr-backend*.noarch.rpm || true && \
+    dnf clean all
+
 # build copr-keygen from sources
-    dnf -y builddep /copr/keygen/copr-keygen.spec --allowerasing && \
+RUN dnf -y builddep /copr/keygen/copr-keygen.spec --allowerasing && \
     cd /copr/keygen && \
     export LANG=en_US.UTF-8 && \
     if [ ! $RELEASETEST ]; then \
@@ -133,6 +140,19 @@ RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing && \
     dnf -y upgrade /tmp/tito/noarch/copr-keygen*.noarch.rpm || true && \
     dnf clean all
 
+# build copr-rpmbuild from sources
+RUN dnf -y builddep /copr/rpmbuild/copr-rpmbuild.spec --allowerasing && \
+    cd /copr/rpmbuild && \
+    export LANG=en_US.UTF-8 && \
+    if [ ! $RELEASETEST ]; then \
+        tito build --test --rpm; \
+    else \
+        tito build --rpm; \
+    fi && \
+# upgrade the already pre-installed package if possible
+    dnf -y upgrade /tmp/tito/noarch/copr-rpmbuild*.noarch.rpm || true && \
+    dnf clean all
+
 # copy filesystem setup and setup ownership and permissions
 COPY backend/docker/files/ /
 RUN chmod 700 /root && \
@@ -141,6 +161,6 @@ RUN chmod 700 /root && \
     chown copr-signer:apache /etc/uwsgi.d/copr-keygen.ini && \
 # fix permissions on /var/log/copr-keygen/main.log which is
 # owned by root after copr-keygen installation tests are run
-    chown copr-signer:copr-signer /var/log/copr-keygen/main.log
+    chown copr-signer:copr-signer /var/log/copr-keygen/main.log || true
 
 CMD ["/bin/run.sh"]
