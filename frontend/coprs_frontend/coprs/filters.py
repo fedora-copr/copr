@@ -215,7 +215,7 @@ def build_source_description(state):
         "unset": "No default source",
         "link": "External link to .spec or SRPM",
         "upload": "SRPM or .spec file upload",
-        "scm": "Build from a SCM repository",
+        "scm": "Build from an SCM repository",
         "pypi": "Build from PyPI",
         "rubygems": "Build from RubyGems",
     }
