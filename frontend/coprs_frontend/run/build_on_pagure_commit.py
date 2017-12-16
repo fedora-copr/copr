@@ -35,11 +35,10 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 PAGURE_BASE_URL = "https://pagure.io/"
-PAGURE_HOSTNAME = "pagure.io"
+SRCFPO_BASE_URL = "https://src.fedoraproject.org/"
 
 ENDPOINT = 'tcp://hub.fedoraproject.org:9940'
-TOPIC = 'io.pagure.prod.pagure.git.receive'
-
+TOPICS = ['io.pagure.prod.pagure.git.receive', 'org.fedoraproject.prod.git.receive']
 
 class ScmPackage(object):
     def __init__(self, db_row):
@@ -96,7 +95,8 @@ def build_on_fedmsg_loop():
     s = ctx.socket(zmq.SUB)
     s.connect(ENDPOINT)
 
-    s.setsockopt(zmq.SUBSCRIBE, TOPIC)
+    for topic in TOPICS:
+        s.setsockopt(zmq.SUBSCRIBE, topic)
 
     poller = zmq.Poller()
     poller.register(s, zmq.POLLIN)
@@ -113,12 +113,24 @@ def build_on_fedmsg_loop():
         log.debug("Parsing...")
         data = json.loads(msg)
 
-        project_url_path = data['msg']['repo']['url_path']
-        clone_url_path = data['msg']['repo']['fullname']
-        branch = data['msg']['branch']
-        start_commit = data['msg']['start_commit']
-        end_commit = data['msg']['end_commit']
-        clone_url = PAGURE_BASE_URL + clone_url_path
+        if data['topic'] == 'io.pagure.prod.pagure.git.receive':
+            project_url_path = data['msg']['repo']['url_path']
+            clone_url_path = data['msg']['repo']['fullname']
+            branch = data['msg']['branch']
+            start_commit = data['msg']['start_commit']
+            end_commit = data['msg']['end_commit']
+            base_url = PAGURE_BASE_URL
+            clone_url = base_url + clone_url_path
+        else:
+            # TODO: make the following work for forks
+            # when the messages are actually emitted
+            project_url_path = data['msg']['commit']['namespace'] + '/' + data['msg']['commit']['repo']
+            clone_url_path = project_url_path
+            branch = data['msg']['commit']['branch']
+            start_commit = data['msg']['commit']['rev']
+            end_commit = data['msg']['commit']['rev']
+            base_url = SRCFPO_BASE_URL
+            clone_url = base_url + clone_url_path
 
         log.info("MSG:")
         log.info("\tclone_url_path = {}".format(clone_url_path))
@@ -129,7 +141,7 @@ def build_on_fedmsg_loop():
         if candidates:
             # if start_commit != end_commit
             # then more than one commit and no means to iterate over :(
-            raw_commit_url = PAGURE_BASE_URL + project_url_path + '/raw/' + end_commit
+            raw_commit_url = base_url + project_url_path + '/raw/' + end_commit
             r = requests.get(raw_commit_url)
             if r.status_code == requests.codes.ok:
                 raw_commit_text = r.text
