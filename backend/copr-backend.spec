@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.108
+Version:    1.109
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -249,6 +249,14 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Dec 18 2017 Dominik Turecek <dturecek@redhat.com> 1.109-1
+- terminate also 'in_use' builders if health checks have failed
+- make --detached the last arg for copr-rpmbuild
+- update copr_log_hitcounter to check ip against ignored pattern
+- new msg bus options 
+- disable DNF makecache timer/service
+- fix message duplication for multi-bus scenario
+
 * Thu Nov 16 2017 Miroslav Suchý <msuchy@redhat.com> 1.108-1
 - optimize createrepo_c
 - Revert "[backend] remove --ignore-lock from createrepo_c"
