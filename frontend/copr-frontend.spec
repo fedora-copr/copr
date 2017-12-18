@@ -36,7 +36,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.124
+Version:    1.125
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -368,6 +368,19 @@ service logstash condrestart
 
 
 %changelog
+* Mon Dec 18 2017 Dominik Turecek <dturecek@redhat.com> 1.125-1
+- add support for src.fp.o in build_on_pagure_commit.py
+- fix source type description
+- fix make-srpm anchor link
+- provide default for source_json_dict in scm migration
+- fix committish filter condition for auto-rebuilds
+- fix SCM migrations not to use models that might be newer than db
+- always use ref from the push/tag event for package auto-rebuild
+- rather suggest dnf-modularity-stable repo
+- update the info how to install a module
+- fix code block spacing
+- fix scm unification migrations for mock-scm
+- show most recent post from our blog 
 * Thu Nov 09 2017 clime <clime@redhat.com> 1.124-1
 - fix build_on_pagure_commit.py
 - optimize check_for_anitya_version_updates
