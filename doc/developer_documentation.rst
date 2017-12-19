@@ -46,3 +46,12 @@ Misc
 * :ref:`rawhide_to_release`
 
 * :ref:`seeddb`
+
+SRPM URL/Upload build schema
+----------------------------
+
+Here is an example of how building process goes (for the simplest case of SRPM build) in COPR:
+
+.. image:: _static/srpm-build.jpeg
+
+Note that we need to figure out whether CoprDistGit is actually still needed in the COPR architecture. That's why the lines are dotted there. It is still present in the current architecture though.
