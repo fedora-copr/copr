@@ -9,6 +9,7 @@ import json
 import os
 import logging
 import argparse
+import netaddr
 
 sys.path.append("/usr/share/copr/")
 
@@ -69,8 +70,12 @@ def get_hit_data():
             if m.group('code') != str(200):
                 continue
 
-            if args.ignore_subnet and IPAddress(m.group('ip_address')) in IPNetwork(args.ignore_subnet):
-                continue
+            if args.ignore_subnet:
+                try:
+                    if IPAddress(m.group('ip_address')) in IPNetwork(args.ignore_subnet):
+                        continue
+                except netaddr.core.AddrFormatError:
+                    continue
 
             if spider_regex.match(m.group('agent')):
                 continue
