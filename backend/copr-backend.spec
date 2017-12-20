@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.109
+Version:    1.110
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -249,6 +249,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Wed Dec 20 2017 clime <clime@redhat.com> 1.110-1
+- exception handling for hit counting when IP address cannot be parsed
+
 * Mon Dec 18 2017 Dominik Turecek <dturecek@redhat.com> 1.109-1
 - terminate also 'in_use' builders if health checks have failed
 - make --detached the last arg for copr-rpmbuild
