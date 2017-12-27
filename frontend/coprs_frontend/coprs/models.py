@@ -553,6 +553,9 @@ class Build(db.Model, helpers.Serializer):
     batch_id = db.Column(db.Integer, db.ForeignKey("batch.id"))
     batch = db.relationship("Batch", backref=db.backref("builds"))
 
+    module_id = db.Column(db.Integer, db.ForeignKey("module.id"))
+    module = db.relationship("Module", backref=db.backref("builds"))
+
     @property
     def user_name(self):
         return self.user.name
