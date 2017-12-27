@@ -1252,13 +1252,20 @@ class Module(db.Model, helpers.Serializer):
         return Action.query.filter(Action.object_type == "module").filter(Action.object_id == self.id).first()
 
     @property
+    def status(self):
+        """
+        Return numeric representation of status of this build
+        """
+        if any(b for b in self.builds if b.status == StatusEnum("failed")):
+            return helpers.ModuleStatusEnum("failed")
+        return self.action.result if self.action else helpers.ModuleStatusEnum("pending")
+
+    @property
     def state(self):
         """
         Return text representation of status of this build
         """
-        if self.action is not None:
-            return helpers.ModuleStatusEnum(self.action.result)
-        return "-"
+        return helpers.ModuleStatusEnum(self.status)
 
     def repo_url(self, arch):
         # @TODO Use custom chroot instead of fedora-24
