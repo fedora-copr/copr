@@ -1599,14 +1599,14 @@ class CoprClient(UnicodeMixin):
         return response
 
     def build_module(self, modulemd, ownername=None, projectname=None):
-        endpoint = "module/build"
-        url = "{}/{}/".format(self.api_url, endpoint)
+        url = "{0}/coprs/{1}/{2}/module/build/".format(
+            self.api_url, ownername, projectname
+        )
 
-        data = {"copr_owner": ownername, "copr_project": projectname}
         if isinstance(modulemd, io.BufferedIOBase):
-            data.update({"modulemd": (os.path.basename(modulemd.name), modulemd, "application/x-rpm")})
+            data = {"modulemd": (os.path.basename(modulemd.name), modulemd, "application/x-rpm")}
         else:
-            data.update({"scmurl": modulemd, "branch": "master"})
+            data = {"scmurl": modulemd, "branch": "master"}
 
         def fetch(url, data, method):
             m = MultipartEncoder(data)

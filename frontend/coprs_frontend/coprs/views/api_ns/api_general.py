@@ -990,9 +990,10 @@ def copr_build_package(copr, package_name):
     })
 
 
-@api_ns.route("/module/build/", methods=["POST"])
+@api_ns.route("/coprs/<username>/<coprname>/module/build/", methods=["POST"])
 @api_login_required
-def copr_build_module():
+@api_req_with_copr
+def copr_build_module(copr):
     form = forms.ModuleBuildForm(csrf_enabled=False)
     if not form.validate_on_submit():
         raise LegacyApiError(form.errors)

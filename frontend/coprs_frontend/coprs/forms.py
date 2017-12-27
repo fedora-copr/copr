@@ -704,8 +704,6 @@ class ModuleBuildForm(FlaskForm):
     modulemd = FileField("modulemd")
     scmurl = wtforms.StringField()
     branch = wtforms.StringField()
-    copr_owner = wtforms.StringField()
-    copr_project = wtforms.StringField()
 
 
 class ChrootForm(FlaskForm):
