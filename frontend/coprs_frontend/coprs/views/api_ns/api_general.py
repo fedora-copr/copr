@@ -999,10 +999,9 @@ def copr_build_module(copr):
         raise LegacyApiError(form.errors)
 
     yaml = form.modulemd.data.read()
+    modulemd = ModulesLogic.yaml2modulemd(yaml)
     try:
         ModulesLogic.validate(yaml)
-
-        modulemd = ModulesLogic.yaml2modulemd(yaml)
         module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(modulemd))
 
         batch = models.Batch()
@@ -1027,6 +1026,10 @@ def copr_build_module(copr):
 
     except ValidationError as ex:
         raise LegacyApiError({"nsv": [ex.message]})
+
+    except sqlalchemy.exc.IntegrityError:
+        raise LegacyApiError("Module {}-{}-{} already exists".format(
+            modulemd.name, modulemd.stream, modulemd.version))
 
 
 @api_ns.route("/coprs/<username>/<coprname>/module/make/", methods=["POST"])

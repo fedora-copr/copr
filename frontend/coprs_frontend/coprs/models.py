@@ -1225,6 +1225,10 @@ class Module(db.Model, helpers.Serializer):
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
     copr = db.relationship("Copr", backref=db.backref("modules"))
 
+    __table_args__ = (
+        db.UniqueConstraint("copr_id", "name", "stream", "version", name="copr_name_stream_version_uniq"),
+    )
+
     @property
     def yaml(self):
         return base64.b64decode(self.yaml_b64)
