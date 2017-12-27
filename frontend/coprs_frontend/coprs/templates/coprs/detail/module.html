@@ -2,6 +2,7 @@
 {% from "coprs/detail/_builds_forms.html" import copr_build_cancel_form, copr_build_repeat_form, copr_build_delete_form %}
 {% from "coprs/detail/_describe_source.html" import describe_source %}
 {% from "coprs/detail/_describe_failure.html" import describe_failure %}
+{% from "coprs/detail/_package_table.html" import package_table with context %}
 {% from "_helpers.html" import chroot_to_os_logo, build_state_text, build_state, copr_name %}
 {% block title %}Module {{ module.id }} in {{ copr_name(copr) }}{% endblock %}
 
@@ -165,8 +166,9 @@ dnf module install {{ module.name }}/default</pre>
         {{ yaml | safe }}
       </div>
     </div>
-  </div>
 
+    {{package_table(module.builds)}}
+  </div>
 
 </div>
 
