@@ -998,30 +998,35 @@ def copr_build_module(copr):
     if not form.validate_on_submit():
         raise LegacyApiError(form.errors)
 
+    yaml = form.modulemd.data.read()
     try:
-        common = {"owner": flask.g.user.name,
-                  "copr_owner": form.copr_owner.data,
-                  "copr_project": form.copr_project.data}
-        if form.scmurl.data:
-            kwargs = {"json": dict({"scmurl": form.scmurl.data, "branch": form.branch.data}, **common)}
-        else:
-            kwargs = {"data": common, "files": {"yaml": (form.modulemd.data.filename, form.modulemd.data)}}
+        ModulesLogic.validate(yaml)
 
-        response = requests.post(flask.current_app.config["MBS_URL"], verify=False, **kwargs)
-        if response.status_code == 500:
-            raise LegacyApiError("Error from MBS: {} - {}".format(response.status_code, response.reason))
+        modulemd = ModulesLogic.yaml2modulemd(yaml)
+        module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(modulemd))
 
-        resp = json.loads(response.content)
-        if response.status_code != 201:
-            raise LegacyApiError("Error from MBS: {}".format(resp["message"]))
+        batch = models.Batch()
+        db.session.add(batch)
 
+        for pkgname, rpm in modulemd.components.rpms.items():
+            # @TODO move to better place
+            default_distgit = "https://src.fedoraproject.org/rpms/{pkgname}"
+            chroot_name = "fedora-rawhide-x86_64"
+            clone_url = rpm.repository if rpm.repository else default_distgit.format(pkgname=pkgname)
+
+            build = BuildsLogic.create_new_from_scm(flask.g.user, copr, scm_type="git", clone_url=clone_url,
+                                            committish=rpm.ref, chroot_names=[chroot_name])
+            build.batch_id = batch.id
+            build.module_id = module.id
+
+        db.session.commit()
         return flask.jsonify({
             "output": "ok",
-            "message": "Created module {}-{}-{}".format(resp["name"], resp["stream"], resp["version"]),
+            "message": "Created module {}".format(module.nsv),
         })
 
-    except requests.ConnectionError:
-        raise LegacyApiError("Can't connect to MBS instance")
+    except ValidationError as ex:
+        raise LegacyApiError({"nsv": [ex.message]})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/module/make/", methods=["POST"])

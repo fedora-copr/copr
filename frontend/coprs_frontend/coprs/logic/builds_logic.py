@@ -758,6 +758,13 @@ GROUP BY
 
                     db.session.add(build_chroot)
 
+                    # If the last package of a module was successfully built,
+                    # then send an action to create module repodata on backend
+                    if (build.module
+                            and upd_dict.get("status") == StatusEnum("succeeded")
+                            and all(b for b in build.module.builds if b.status == StatusEnum("succeeded"))):
+                        ActionsLogic.send_build_module(build.copr, build.module)
+
         for attr in ["results", "built_packages", "srpm_url"]:
             value = upd_dict.get(attr, None)
             if value:

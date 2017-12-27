@@ -257,14 +257,11 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
-    def send_build_module(cls, user, copr, module):
+    def send_build_module(cls, copr, module):
         """
         :type copr: models.Copr
         :type modulemd: str content of module yaml file
         """
-
-        if not user.can_build_in(copr):
-            raise exceptions.InsufficientRightsException("You don't have permissions to build in this copr.")
 
         data = {
             "chroots": [c.name for c in copr.active_chroots],
