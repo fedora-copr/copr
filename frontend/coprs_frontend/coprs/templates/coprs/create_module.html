@@ -35,6 +35,18 @@
 
       {{ render_form_errors(form) }}
 
+      <div class="jumbotron">
+        <p>This feature is not yet available due to recent modularity changes.
+        You can build your module using the command line</p>
+        <pre>
+          <code>
+            copr-cli build-module --yaml /path/to/yourmodule.yaml {{ copr.full_name }}
+          </code>
+        </pre>
+        <p><a class="btn btn-primary btn-lg" href="https://communityblog.fedoraproject.org/modularity-dead-long-live-modularity/" role="button">Learn more</a></p>
+      </div>
+
+      {#
       <div class="row">
 
 
@@ -159,6 +171,7 @@
 
       <p> Copr will generate the modulemd yaml file and create a modular RPM repository for you. </p>
       <input class="btn btn-primary" type="submit" name="build_module" value="Build Module">
+      #}
 
     </form>
   </div>
