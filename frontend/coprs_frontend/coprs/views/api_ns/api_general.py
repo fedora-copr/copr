@@ -1000,8 +1000,9 @@ def copr_build_module(copr):
 
     yaml = form.modulemd.data.read()
     modulemd = ModulesLogic.yaml2modulemd(yaml)
+    ModulesLogic.set_defaults_for_optional_params(modulemd, filename=form.modulemd.data.filename)
     try:
-        ModulesLogic.validate(yaml)
+        ModulesLogic.validate(modulemd)
         module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(modulemd))
 
         batch = models.Batch()

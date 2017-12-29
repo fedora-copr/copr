@@ -5,6 +5,7 @@ import json
 import requests
 import modulemd
 from sqlalchemy import and_
+from datetime import datetime
 from coprs import models
 from coprs import db
 from coprs import exceptions
@@ -48,8 +49,7 @@ class ModulesLogic(object):
                              description=mmd.description, yaml_b64=base64.b64encode(mmd.dumps()))
 
     @classmethod
-    def validate(cls, yaml):
-        mmd = cls.yaml2modulemd(yaml)
+    def validate(cls, mmd):
         if not all([mmd.name, mmd.stream, mmd.version]):
             raise ValidationError("Module should contain name, stream and version")
 
@@ -64,6 +64,12 @@ class ModulesLogic(object):
 
         db.session.add(module)
         return module
+
+    @classmethod
+    def set_defaults_for_optional_params(cls, mmd, filename=None):
+        mmd.name = mmd.name or str(os.path.splitext(filename)[0])
+        mmd.stream = mmd.stream or "master"
+        mmd.version = mmd.version or int(datetime.now().strftime("%Y%m%d%H%M%S"))
 
 
 class ModulemdGenerator(object):
