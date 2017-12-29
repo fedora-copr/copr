@@ -1208,7 +1208,7 @@ class Module(db.Model, helpers.Serializer):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     stream = db.Column(db.String(100), nullable=False)
-    version = db.Column(db.Integer, nullable=False)
+    version = db.Column(db.BigInteger, nullable=False)
     summary = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     created_on = db.Column(db.Integer, nullable=True)
