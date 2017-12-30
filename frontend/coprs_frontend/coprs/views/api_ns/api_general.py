@@ -22,7 +22,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.packages_logic import PackagesLogic
-from coprs.logic.modules_logic import ModulesLogic
+from coprs.logic.modules_logic import ModulesLogic, ModuleProvider
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -998,13 +998,14 @@ def copr_build_module(copr):
     if not form.validate_on_submit():
         raise LegacyApiError(form.errors)
 
-    yaml = form.modulemd.data.read()
-    modulemd = ModulesLogic.yaml2modulemd(yaml)
-    ModulesLogic.set_defaults_for_optional_params(modulemd, filename=form.modulemd.data.filename)
+    modulemd = None
     try:
+        mod_info = ModuleProvider.from_input(form.modulemd.data or form.scmurl.data)
+        modulemd = ModulesLogic.yaml2modulemd(mod_info.yaml)
+        ModulesLogic.set_defaults_for_optional_params(modulemd, filename=mod_info.filename)
         ModulesLogic.validate(modulemd)
-        module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(modulemd))
 
+        module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(modulemd))
         batch = models.Batch()
         db.session.add(batch)
 
@@ -1026,7 +1027,10 @@ def copr_build_module(copr):
         })
 
     except ValidationError as ex:
-        raise LegacyApiError({"nsv": [ex.message]})
+        raise LegacyApiError(ex.message)
+
+    except requests.RequestException as ex:
+        raise LegacyApiError(ex.message)
 
     except sqlalchemy.exc.IntegrityError:
         raise LegacyApiError("Module {}-{}-{} already exists".format(

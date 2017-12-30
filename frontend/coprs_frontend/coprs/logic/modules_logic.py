@@ -177,3 +177,29 @@ class MBSResponse(object):
         if self.response.status_code != 201:
             return "Error from MBS: {}".format(resp["message"])
         return "Created module {}-{}-{}".format(resp["name"], resp["stream"], resp["version"])
+
+
+class ModuleProvider(object):
+    def __init__(self, filename, yaml):
+        self.filename = filename
+        self.yaml = yaml
+
+    @classmethod
+    def from_input(cls, obj):
+        if type(obj) in [str, unicode]:
+            return cls.from_url(obj)
+        return cls.from_file(obj)
+
+    @classmethod
+    def from_file(cls, ref):
+        return cls(ref.filename, ref.read())
+
+    @classmethod
+    def from_url(cls, url):
+        if not url.endswith(".yaml"):
+            raise ValidationError("This URL doesn't point to a .yaml file")
+
+        request = requests.get(url)
+        if request.status_code != 200:
+            raise requests.RequestException("This URL seems to be wrong")
+        return cls(os.path.basename(url), request.text)
