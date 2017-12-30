@@ -1012,11 +1012,10 @@ def copr_build_module(copr):
         for pkgname, rpm in modulemd.components.rpms.items():
             # @TODO move to better place
             default_distgit = "https://src.fedoraproject.org/rpms/{pkgname}"
-            chroot_name = "fedora-rawhide-x86_64"
             clone_url = rpm.repository if rpm.repository else default_distgit.format(pkgname=pkgname)
 
-            build = BuildsLogic.create_new_from_scm(flask.g.user, copr, scm_type="git", clone_url=clone_url,
-                                            committish=rpm.ref, chroot_names=[chroot_name])
+            build = BuildsLogic.create_new_from_scm(flask.g.user, copr, scm_type="git",
+                                                    clone_url=clone_url, committish=rpm.ref)
             build.batch_id = batch.id
             build.module_id = module.id
 
