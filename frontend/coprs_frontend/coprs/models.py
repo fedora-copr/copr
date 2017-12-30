@@ -1266,10 +1266,3 @@ class Module(db.Model, helpers.Serializer):
         Return text representation of status of this build
         """
         return helpers.ModuleStatusEnum(self.status)
-
-    def repo_url(self, arch):
-        # @TODO Use custom chroot instead of fedora-24
-        # @TODO Get rid of OS name from module path, see how koji does it
-        # https://kojipkgs.stg.fedoraproject.org/repos/module-base-runtime-0.25-9/latest/x86_64/toplink/packages/module-build-macros/0.1/
-        module_dir = "fedora-24-{}+{}-{}-{}".format(arch, self.name, self.stream, self.version)
-        return "/".join([self.copr.repo_url, "modules", module_dir, "latest", arch])

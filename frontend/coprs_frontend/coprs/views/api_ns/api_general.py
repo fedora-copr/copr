@@ -1036,48 +1036,6 @@ def copr_build_module(copr):
             modulemd.name, modulemd.stream, modulemd.version))
 
 
-@api_ns.route("/coprs/<username>/<coprname>/module/make/", methods=["POST"])
-@api_login_required
-@api_req_with_copr
-def copr_make_module(copr):
-    form = forms.ModuleFormUploadFactory(csrf_enabled=False)
-    if not form.validate_on_submit():
-        # @TODO Prettier error
-        raise LegacyApiError(form.errors)
-
-    modulemd = form.modulemd.data.read()
-    module = ModulesLogic.from_modulemd(modulemd)
-    try:
-        ModulesLogic.validate(modulemd)
-        msg = "Nothing happened"
-        if form.create.data:
-            module = ModulesLogic.add(flask.g.user, copr, module)
-            db.session.flush()
-            msg = "Module was created"
-
-        if form.build.data:
-            if not module.id:
-                module = ModulesLogic.get_by_nsv(copr, module.name, module.stream, module.version).one()
-            ActionsLogic.send_build_module(flask.g.user, copr, module)
-            msg = "Module build was submitted"
-        db.session.commit()
-
-        return flask.jsonify({
-            "output": "ok",
-            "message": msg,
-            "modulemd": modulemd.decode("utf-8"),
-        })
-
-    except sqlalchemy.exc.IntegrityError:
-        raise LegacyApiError({"nsv": ["Module {} already exists".format(module.nsv)]})
-
-    except sqlalchemy.orm.exc.NoResultFound:
-        raise LegacyApiError({"nsv": ["Module {} doesn't exist. You need to create it first".format(module.nsv)]})
-
-    except ValidationError as ex:
-        raise LegacyApiError({"nsv": [ex.message]})
-
-
 @api_ns.route("/coprs/<username>/<coprname>/build-config/<chroot>/", methods=["GET"])
 @api_ns.route("/g/<group_name>/<coprname>/build-config/<chroot>/", methods=["GET"])
 @api_req_with_copr
@@ -1094,21 +1052,3 @@ def copr_build_config(copr, chroot):
         raise LegacyApiError('Chroot not found.')
 
     return flask.jsonify(output)
-
-
-@api_ns.route("/module/repo/", methods=["POST"])
-def copr_module_repo():
-    """
-    :return: URL to a DNF repository for the module
-    """
-    form = forms.ModuleRepo(csrf_enabled=False)
-    if not form.validate_on_submit():
-        raise LegacyApiError(form.errors)
-
-    copr = ComplexLogic.get_copr_by_owner_safe(form.owner.data, form.copr.data)
-    nvs = [form.name.data, form.stream.data, form.version.data]
-    module = ModulesLogic.get_by_nsv(copr, *nvs).first()
-    if not module:
-        raise LegacyApiError("No module {}".format("-".join(nvs)))
-
-    return flask.jsonify({"output": "ok", "repo": module.repo_url(form.arch.data)})
