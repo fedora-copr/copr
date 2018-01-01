@@ -10,6 +10,7 @@ from textwrap import dedent
 import re
 
 import flask
+import posixpath
 from flask import url_for
 from dateutil import parser as dt_parser
 from netaddr import IPAddress, IPNetwork
@@ -293,7 +294,7 @@ def generate_repo_url(mock_chroot, url):
         if mock_chroot.os_version != "rawhide":
             os_version = "$releasever"
 
-    url = urljoin(
+    url = posixpath.join(
         url, "{0}-{1}-{2}/".format(mock_chroot.os_release,
                                    os_version, "$basearch"))
 

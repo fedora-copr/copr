@@ -819,19 +819,23 @@ def render_generate_repo_file(copr, name_release):
 ###                Module repo files                  ###
 #########################################################
 
-@coprs_ns.route("/<username>/<coprname>/repo/modules/")
-@coprs_ns.route("/@<group_name>/<coprname>/repo/modules/")
-@coprs_ns.route("/g/<group_name>/<coprname>/repo/modules/")
+@coprs_ns.route("/<username>/<coprname>/module_repo/<name_release>/<module_nsv>")
+@coprs_ns.route("/g/<group_name>/<coprname>/module_repo/<name_release>/<module_nsv>")
 @req_with_copr
-def generate_module_repo_file(copr):
+def generate_module_repo_file(copr, name_release, module_nsv):
     """ Generate module repo file for a given project. """
-    return render_generate_module_repo_file(copr)
+    return render_generate_module_repo_file(copr, name_release, module_nsv)
 
-def render_generate_module_repo_file(copr):
+def render_generate_module_repo_file(copr, name_release, module_nsv):
+    module = ModulesLogic.get_by_nsv_str(copr, module_nsv).one()
+    mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
     url = os.path.join(copr.repo_url, '') # adds trailing slash
+    repo_url = generate_repo_url(mock_chroot, copr.modules_url)
+    baseurl = "{}+{}/latest/$basearch".format(repo_url.rstrip("/"), module_nsv)
     pubkey_url = urljoin(url, "pubkey.gpg")
     response = flask.make_response(
-        flask.render_template("coprs/copr-modules.cfg", copr=copr, url=url, pubkey_url=pubkey_url))
+        flask.render_template("coprs/copr-modules.cfg", copr=copr, module=module,
+                              baseurl=baseurl, pubkey_url=pubkey_url))
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
         "filename={0}.cfg".format(copr.repo_name)

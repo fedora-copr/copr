@@ -30,6 +30,11 @@ class ModulesLogic(object):
                  models.Module.copr_id == copr.id))
 
     @classmethod
+    def get_by_nsv_str(cls, copr, nsv):
+        name, stream, version = nsv.split("-")
+        return cls.get_by_nsv(copr, name, stream, version)
+
+    @classmethod
     def get_multiple(cls):
         return models.Module.query.order_by(models.Module.id.desc())
 
