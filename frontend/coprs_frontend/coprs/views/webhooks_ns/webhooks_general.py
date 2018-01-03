@@ -53,7 +53,7 @@ def webhooks_git_push(copr_id, uuid):
     packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url, commits, ref_type, ref)
 
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': ref})
+        BuildsLogic.rebuild_package(package, {'committish': os.path.basename(ref)})
 
     db.session.commit()
 
@@ -94,7 +94,7 @@ def webhooks_gitlab_push(copr_id, uuid):
     packages = PackagesLogic.get_for_webhook_rebuild(copr_id, uuid, clone_url, commits, ref_type, ref)
 
     for package in packages:
-        BuildsLogic.rebuild_package(package, {'committish': ref})
+        BuildsLogic.rebuild_package(package, {'committish': os.path.basename(ref)})
 
     db.session.commit()
 
