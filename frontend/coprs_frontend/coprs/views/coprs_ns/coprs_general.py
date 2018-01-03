@@ -1024,7 +1024,20 @@ def copr_module(copr, id):
     module = ModulesLogic.get(id).first()
     formatter = HtmlFormatter(style="autumn", linenos=False, noclasses=True)
     pretty_yaml = highlight(module.yaml, get_lexer_by_name("YAML"), formatter)
-    return flask.render_template("coprs/detail/module.html", copr=copr, module=module, yaml=pretty_yaml)
+
+    # Get the list of chroots with unique name_release attribute
+    # Once we use jinja in 2.10 version, we can simply use
+    # {{ copr.active_chroots |unique(attribute='name_release') }}
+    unique_chroots = []
+    unique_name_releases = set()
+    for chroot in copr.active_chroots_sorted:
+        if chroot.name_release in unique_name_releases:
+            continue
+        unique_chroots.append(chroot)
+        unique_name_releases.add(chroot.name_release)
+
+    return flask.render_template("coprs/detail/module.html", copr=copr, module=module,
+                                 yaml=pretty_yaml, unique_chroots=unique_chroots)
 
 
 @coprs_ns.route("/<username>/<coprname>/module/<id>/raw")

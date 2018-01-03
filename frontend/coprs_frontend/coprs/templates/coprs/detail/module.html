@@ -149,6 +149,13 @@ dnf module install {{ module.name }}/default</pre>
         </div>
 
         <p>For <code>dnf module</code> documentation, see the "Module Command" section in <code>man dnf</code>.
+
+        <hr>
+        Repofiles:
+        {% for chroot in unique_chroots  %}
+          <a href="{{ copr_url('coprs_ns.generate_module_repo_file', copr, name_release=chroot.name_release, module_nsv=module.nsv) }}" class="btn btn-default"><span class="pficon pficon-save"></span> {{ chroot.name_release }}</a>
+        {% endfor %}
+
         {% endif %}
       </div>
     </div>
