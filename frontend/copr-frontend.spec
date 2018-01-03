@@ -37,7 +37,7 @@
 
 Name:       copr-frontend
 Version:    1.125
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    Frontend for Copr
 
 Group:      Applications/Productivity
@@ -53,7 +53,7 @@ BuildArch:  noarch
 #BuildRequires: asciidoc
 #BuildRequires: libxslt
 BuildRequires: util-linux
-BuildRequires: python-setuptools
+BuildRequires: python2-setuptools
 BuildRequires: python2-requests
 BuildRequires: python2-devel
 BuildRequires: systemd
@@ -66,28 +66,28 @@ BuildRequires: epydoc
 BuildRequires: graphviz
 
 Requires:   httpd
-Requires:   mod_wsgi
+Requires:   python2-mod_wsgi
 Requires:   passwd
 Requires:   curl
-Requires:   python-alembic
-Requires:   python-flask
-Requires:   python-flask-openid
-Requires:   python-openid-teams
-Requires:   python-flask-wtf
-Requires:   python-flask-sqlalchemy
-Requires:   python-flask-script
-#Requires:   python-virtualenv
-Requires:   python-blinker
-Requires:   python-markdown
-Requires:   python-psycopg2
-Requires:   python-pylibravatar
+Requires:   python2-alembic
+Requires:   python2-flask
+Requires:   python2-flask-openid
+Requires:   python2-openid-teams
+Requires:   python2-flask-wtf
+Requires:   python2-flask-sqlalchemy
+Requires:   python2-flask-script
+#Requires:   python2-virtualenv
+Requires:   python2-blinker
+Requires:   python2-markdown
+Requires:   python2-psycopg2
+Requires:   python2-pylibravatar
 Requires:   python2-requests
-Requires:   python-whoosh >= 2.5.3
-Requires:   pytz
-Requires:   python-six
-Requires:   python-netaddr
-Requires:   python-flask-restful
-Requires:   python-marshmallow >= 2.0.0
+Requires:   python2-whoosh >= 2.5.3
+Requires:   python2-pytz
+Requires:   python2-six
+Requires:   python2-netaddr
+Requires:   python2-flask-restful
+Requires:   python2-marshmallow >= 2.0.0
 Requires:   python2-modulemd
 Requires:   python2-CommonMark
 Requires:   python2-pygments
@@ -96,13 +96,13 @@ Requires:   python2-flask-whooshee
 Requires:   %flavor_guard
 
 # for tests:
-Requires:   pytest
-Requires:   python-flexmock
-Requires:   python-mock
-Requires:   python-decorator
+Requires:   python2-pytest
+Requires:   python2-flexmock
+Requires:   python2-mock
+Requires:   python2-decorator
 Requires:   redis
-Requires:   python-redis
-Requires:   python-dateutil
+Requires:   python2-redis
+Requires:   python2-dateutil
 Requires:   crontabs
 
 Requires: python2-zmq
@@ -112,30 +112,30 @@ BuildRequires: python-argparse
 %endif
 
 %if %{with check}
-BuildRequires: python-six
-BuildRequires: python-flask
-BuildRequires: python-flask-script
-BuildRequires: python-flask-sqlalchemy
-BuildRequires: python-flask-openid
-BuildRequires: python-openid-teams
-BuildRequires: python-pylibravatar
-BuildRequires: python-flask-wtf
-BuildRequires: python-netaddr
-BuildRequires: python-redis
+BuildRequires: python2-six
+BuildRequires: python2-flask
+BuildRequires: python2-flask-script
+BuildRequires: python2-flask-sqlalchemy
+BuildRequires: python2-flask-openid
+BuildRequires: python2-openid-teams
+BuildRequires: python2-pylibravatar
+BuildRequires: python2-flask-wtf
+BuildRequires: python2-netaddr
+BuildRequires: python2-redis
 BuildRequires: redis
-BuildRequires: python-dateutil
-BuildRequires: pytest
-BuildRequires: python-mock
-BuildRequires: python-decorator
-BuildRequires: python-markdown
-BuildRequires: pytz
-BuildRequires: python-flask-restful
-BuildRequires: python-marshmallow >= 2.0.0
-BuildRequires: python-sphinx
-BuildRequires: python-sphinxcontrib-httpdomain
-BuildRequires: python-whoosh
-BuildRequires: python-blinker
-BuildRequires: python-munch
+BuildRequires: python2-dateutil
+BuildRequires: python2-pytest
+BuildRequires: python2-mock
+BuildRequires: python2-decorator
+BuildRequires: python2-markdown
+BuildRequires: python2-pytz
+BuildRequires: python2-flask-restful
+BuildRequires: python2-marshmallow >= 2.0.0
+BuildRequires: python2-sphinx
+BuildRequires: python2-sphinxcontrib-httpdomain
+BuildRequires: python2-whoosh
+BuildRequires: python2-blinker
+BuildRequires: python2-munch
 BuildRequires: python2-CommonMark
 BuildRequires: python2-pygments
 BuildRequires: python2-flask-whooshee
@@ -368,6 +368,10 @@ service logstash condrestart
 
 
 %changelog
+* Wed Jan 03 2018 Iryna Shcherbina <ishcherb@redhat.com> - 1.125-2
+- Update Python 2 dependency declarations to new packaging standards
+  (See https://fedoraproject.org/wiki/FinalizingFedoraSwitchtoPython3)
+
 * Mon Dec 18 2017 Dominik Turecek <dturecek@redhat.com> 1.125-1
 - add support for src.fp.o in build_on_pagure_commit.py
 - fix source type description
