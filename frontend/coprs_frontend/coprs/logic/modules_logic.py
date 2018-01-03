@@ -77,6 +77,51 @@ class ModulesLogic(object):
         mmd.version = mmd.version or int(datetime.now().strftime("%Y%m%d%H%M%S"))
 
 
+class ModuleBuildFacade(object):
+    def __init__(self, user, copr, yaml, filename=None):
+        self.user = user
+        self.copr = copr
+        self.yaml = yaml
+        self.filename = filename
+
+        self.modulemd = ModulesLogic.yaml2modulemd(yaml)
+        ModulesLogic.set_defaults_for_optional_params(self.modulemd, filename=filename)
+        ModulesLogic.validate(self.modulemd)
+
+    def submit_build(self):
+        module = ModulesLogic.add(self.user, self.copr, ModulesLogic.from_modulemd(self.modulemd))
+        self.add_builds(self.modulemd.components.rpms, module)
+        return module
+
+    def get_build_batches(self, rpms):
+        """
+        Determines Which component should be built in which batch. Returns an ordered list of grouped components,
+        first group of components should be built as a first batch, second as second and so on.
+        Particular components groups are represented by lists and can by built in a random order within the batch.
+        :return: list of lists
+        """
+        return [rpms]
+
+    def add_builds(self, rpms, module):
+        for group in self.get_build_batches(rpms):
+            batch = models.Batch()
+            db.session.add(batch)
+            for pkgname, rpm in group.items():
+                clone_url = self.get_clone_url(pkgname, rpm)
+                build = builds_logic.BuildsLogic.create_new_from_scm(self.user, self.copr, scm_type="git",
+                                                                     clone_url=clone_url, committish=rpm.ref)
+                build.batch_id = batch.id
+                build.module_id = module.id
+
+    def get_clone_url(self, pkgname, rpm):
+        return rpm.repository if rpm.repository else self.default_distgit.format(pkgname=pkgname)
+
+    @property
+    def default_distgit(self):
+        # @TODO move to better place
+        return "https://src.fedoraproject.org/rpms/{pkgname}"
+
+
 class ModulemdGenerator(object):
     def __init__(self, name="", stream="", version=0, summary="", config=None):
         self.config = config
@@ -136,11 +181,6 @@ class ModulemdGenerator(object):
 
     def add_buildrequires(self, module, stream):
         self.mmd.add_buildrequires(module, stream)
-
-    def add_base_runtime(self):
-        name, stream = "base-runtime", "master"
-        self.add_requires(name, stream)
-        self.add_buildrequires(name, stream)
 
     def generate(self):
         return self.mmd.dumps()

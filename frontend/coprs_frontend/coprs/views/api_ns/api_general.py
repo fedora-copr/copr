@@ -22,7 +22,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.packages_logic import PackagesLogic
-from coprs.logic.modules_logic import ModulesLogic, ModuleProvider
+from coprs.logic.modules_logic import ModulesLogic, ModuleProvider, ModuleBuildFacade
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -998,28 +998,13 @@ def copr_build_module(copr):
     if not form.validate_on_submit():
         raise LegacyApiError(form.errors)
 
-    modulemd = None
+    facade = None
     try:
         mod_info = ModuleProvider.from_input(form.modulemd.data or form.scmurl.data)
-        modulemd = ModulesLogic.yaml2modulemd(mod_info.yaml)
-        ModulesLogic.set_defaults_for_optional_params(modulemd, filename=mod_info.filename)
-        ModulesLogic.validate(modulemd)
-
-        module = ModulesLogic.add(flask.g.user, copr, ModulesLogic.from_modulemd(modulemd))
-        batch = models.Batch()
-        db.session.add(batch)
-
-        for pkgname, rpm in modulemd.components.rpms.items():
-            # @TODO move to better place
-            default_distgit = "https://src.fedoraproject.org/rpms/{pkgname}"
-            clone_url = rpm.repository if rpm.repository else default_distgit.format(pkgname=pkgname)
-
-            build = BuildsLogic.create_new_from_scm(flask.g.user, copr, scm_type="git",
-                                                    clone_url=clone_url, committish=rpm.ref)
-            build.batch_id = batch.id
-            build.module_id = module.id
-
+        facade = ModuleBuildFacade(flask.g.user, copr, mod_info.yaml, mod_info.filename)
+        module = facade.submit_build()
         db.session.commit()
+
         return flask.jsonify({
             "output": "ok",
             "message": "Created module {}".format(module.nsv),
@@ -1033,7 +1018,7 @@ def copr_build_module(copr):
 
     except sqlalchemy.exc.IntegrityError:
         raise LegacyApiError("Module {}-{}-{} already exists".format(
-            modulemd.name, modulemd.stream, modulemd.version))
+            facade.modulemd.name, facade.modulemd.stream, facade.modulemd.version))
 
 
 @api_ns.route("/coprs/<username>/<coprname>/build-config/<chroot>/", methods=["GET"])
