@@ -881,9 +881,6 @@ class ActivateFasGroupForm(FlaskForm):
 
 
 class CreateModuleForm(FlaskForm):
-    name = wtforms.StringField("Name")
-    stream = wtforms.StringField("Stream")
-    version = wtforms.IntegerField("Version")
     builds = wtforms.FieldList(wtforms.StringField("Builds ID list"))
     packages = wtforms.FieldList(wtforms.StringField("Packages list"))
     filter = wtforms.FieldList(wtforms.StringField("Package Filter"))
@@ -897,12 +894,6 @@ class CreateModuleForm(FlaskForm):
 
     def validate(self):
         if not FlaskForm.validate(self):
-            return False
-
-        module = ModulesLogic.get_by_nsv(self.copr, self.name.data, self.stream.data, self.version.data).first()
-        if module:
-            self.errors["nsv"] = [Markup("Module <a href='{}'>{}</a> already exists".format(
-                helpers.copr_url("coprs_ns.copr_module", module.copr, id=module.id), module.full_name))]
             return False
 
         # Profile names should be unique

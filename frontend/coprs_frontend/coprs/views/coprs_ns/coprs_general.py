@@ -996,8 +996,7 @@ def build_module(copr, form):
         return render_create_module(copr, form, profiles=len(form.profile_names))
 
     summary = "Module from Copr repository: {}".format(copr.full_name)
-    generator = ModulemdGenerator(str(copr.name), str(form.stream.data),
-                                  form.version.data, summary, app.config)
+    generator = ModulemdGenerator(str(copr.name), summary=summary, config=app.config)
     generator.add_filter(form.filter.data)
     generator.add_api(form.api.data)
     generator.add_profiles(enumerate(zip(form.profile_names.data, form.profile_pkgs.data)))
@@ -1021,6 +1020,7 @@ def build_module(copr, form):
     except sqlalchemy.exc.IntegrityError:
         flask.flash("Module {}-{}-{} already exists".format(
             facade.modulemd.name, facade.modulemd.stream, facade.modulemd.version), "error")
+        db.session.rollback()
         return render_create_module(copr, form, len(form.profile_names))
 
 
