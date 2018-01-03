@@ -762,7 +762,7 @@ GROUP BY
                     # then send an action to create module repodata on backend
                     if (build.module
                             and upd_dict.get("status") == StatusEnum("succeeded")
-                            and all(b for b in build.module.builds if b.status == StatusEnum("succeeded"))):
+                            and all(b.status == StatusEnum("succeeded") for b in build.module.builds)):
                         ActionsLogic.send_build_module(build.copr, build.module)
 
         for attr in ["results", "built_packages", "srpm_url"]:
