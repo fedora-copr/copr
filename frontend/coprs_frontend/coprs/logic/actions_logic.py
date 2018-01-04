@@ -265,6 +265,7 @@ class ActionsLogic(object):
 
         data = {
             "chroots": [c.name for c in copr.active_chroots],
+            "builds": [b.id for b in module.builds],
         }
 
         action = models.Action(

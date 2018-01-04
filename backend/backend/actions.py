@@ -442,8 +442,16 @@ class Action(object):
                 if os.path.exists(destdir):
                     self.log.warning("Module {0} already exists. Omitting.".format(destdir))
                 else:
-                    self.log.info("Copy directory: {} as {}".format(srcdir, destdir))
-                    shutil.copytree(srcdir, destdir)
+                    # We want to copy just the particular module builds
+                    # into the module destdir, not the whole chroot
+                    os.makedirs(destdir)
+                    prefixes = ["{:08d}-".format(x) for x in data["builds"]]
+                    dirs = [d for d in os.listdir(srcdir) if d.startswith(tuple(prefixes))]
+                    for folder in dirs:
+                        shutil.copytree(os.path.join(srcdir, folder), os.path.join(destdir, folder))
+                        self.log.info("Copy directory: {} as {}".format(
+                            os.path.join(srcdir, folder), os.path.join(destdir, folder)))
+
                     modulemd.dump_all(os.path.join(destdir, "modules.yaml"), [mmd])
                     createrepo(path=destdir, front_url=self.front_url,
                                username=ownername, projectname=projectname,
