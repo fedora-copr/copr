@@ -1,4 +1,4 @@
-# blog-tutorial-layered2
+# blog-tutorial-layered3
 
 Hello, this is an example repository to demonstrate COPR SCM abilities. To understand
 the following description better, please see [blog-tutorial-flat-packed](https://github.com/clime/blog-tutorial-flat-packed) and [blog-tutorial-flat-unpacked](https://github.com/clime/blog-tutorial-flat-unpacked) first.
