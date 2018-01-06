@@ -12,6 +12,8 @@ import shutil
 import pprint
 import tempfile
 import stat
+import pipes
+import pkg_resources
 
 from simplejson.scanner import JSONDecodeError
 
@@ -62,6 +64,9 @@ def main():
     parser.add_argument("--drop-resultdir",  action="store_true", help="Drops resultdir and its content "
                                                                         "at the beggining before continuing.")
 
+    version = pkg_resources.require('copr-rpmbuild')[0].version
+    parser.add_argument("--version", action="version", version="%(prog)s version " + version)
+
     product = parser.add_mutually_exclusive_group()
     product.add_argument("--rpm", action="store_true", help="Build rpms. This is the default action.")
     product.add_argument("--srpm", action="store_true", help="Build srpm.")
@@ -86,6 +91,9 @@ def main():
     # Log also to a file
     open(config.get("main", "logfile"), 'w').close() # truncate log
     log.addHandler(logging.FileHandler(config.get("main", "logfile")))
+
+    log.info('running: {0}'.format(" ".join(map(pipes.quote, sys.argv))))
+    log.info('version: {0}'.format(version))
 
     # Allow only one instance
     lockfd = os.open(config.get("main", "lockfile"), os.O_RDWR | os.O_CREAT)
