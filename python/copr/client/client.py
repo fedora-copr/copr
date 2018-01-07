@@ -1599,6 +1599,9 @@ class CoprClient(UnicodeMixin):
         return response
 
     def build_module(self, modulemd, ownername=None, projectname=None):
+        if not ownername:
+            ownername = self.username
+
         url = "{0}/coprs/{1}/{2}/module/build/".format(
             self.api_url, ownername, projectname
         )
