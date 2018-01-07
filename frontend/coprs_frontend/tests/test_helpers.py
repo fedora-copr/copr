@@ -38,8 +38,9 @@ class TestHelpers(CoprsTestCase):
 
     def test_generate_repo_url(self):
         test_sets = []
-        http_url = "http://example.com/repo"
-        https_url = "https://example.com/repo"
+
+        http_url = "http://example.com/path"
+        https_url = "https://example.com/path"
 
         mock_chroot = mock.MagicMock()
         mock_chroot.os_release = "fedora"
@@ -47,18 +48,18 @@ class TestHelpers(CoprsTestCase):
 
         test_sets.extend([
             dict(args=(mock_chroot, http_url),
-                 expected="http://example.com/fedora-$releasever-$basearch/"),
+                 expected="http://example.com/path/fedora-$releasever-$basearch/"),
             dict(args=(mock_chroot, https_url),
-                 expected="https://example.com/fedora-$releasever-$basearch/")])
+                 expected="https://example.com/path/fedora-$releasever-$basearch/")])
 
         m2 = deepcopy(mock_chroot)
         m2.os_version = "rawhide"
 
         test_sets.extend([
             dict(args=(m2, http_url),
-                 expected="http://example.com/fedora-rawhide-$basearch/"),
+                 expected="http://example.com/path/fedora-rawhide-$basearch/"),
             dict(args=(m2, https_url),
-                 expected="https://example.com/fedora-rawhide-$basearch/")])
+                 expected="https://example.com/path/fedora-rawhide-$basearch/")])
 
         m3 = deepcopy(mock_chroot)
         m3.os_release = "rhel7"
@@ -66,9 +67,9 @@ class TestHelpers(CoprsTestCase):
 
         test_sets.extend([
             dict(args=(m3, http_url),
-                 expected="http://example.com/rhel7-7.1-$basearch/"),
+                 expected="http://example.com/path/rhel7-7.1-$basearch/"),
             dict(args=(m3, https_url),
-                 expected="https://example.com/rhel7-7.1-$basearch/")])
+                 expected="https://example.com/path/rhel7-7.1-$basearch/")])
 
         app.config["USE_HTTPS_FOR_RESULTS"] = True
         for test_set in test_sets:
