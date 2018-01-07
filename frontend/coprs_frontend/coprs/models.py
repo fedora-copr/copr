@@ -553,7 +553,7 @@ class Build(db.Model, helpers.Serializer):
     batch_id = db.Column(db.Integer, db.ForeignKey("batch.id"))
     batch = db.relationship("Batch", backref=db.backref("builds"))
 
-    module_id = db.Column(db.Integer, db.ForeignKey("module.id"))
+    module_id = db.Column(db.Integer, db.ForeignKey("module.id"), index=True)
     module = db.relationship("Module", backref=db.backref("builds"))
 
     @property
