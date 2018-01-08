@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-from itertools import chain
 import json
 import time
 import weakref
@@ -50,7 +49,7 @@ else
     local server_restart_time = tonumber(redis.call("HGET", KEYS[2], "server_start_timestamp"))
     if last_health_check and server_restart_time and last_health_check > server_restart_time  then
         redis.call("HMSET", KEYS[1], "state", "in_use", "bound_to_user", ARGV[1],
-                   "used_by_pid", ARGV[2], "in_use_since", ARGV[3],
+                   "used_by_worker", ARGV[2], "in_use_since", ARGV[3],
                    "task_id",  ARGV[4], "build_id", ARGV[5], "chroot", ARGV[6])
         return "OK"
     else
@@ -67,7 +66,7 @@ if old_state ~= "in_use" then
     return nil
 else
     redis.call("HMSET", KEYS[1], "state", "ready", "last_release", ARGV[1])
-    redis.call("HDEL", KEYS[1], "in_use_since", "used_by_pid", "task_id", "build_id", "chroot")
+    redis.call("HDEL", KEYS[1], "in_use_since", "used_by_worker", "task_id", "build_id", "chroot")
     redis.call("HINCRBY", KEYS[1], "builds_count", 1)
 
     local check_fails = tonumber(redis.call("HGET", KEYS[1], "check_fails"))
@@ -84,10 +83,6 @@ end
 # ARGS [2]: timestamp for `terminating_since`
 terminate_vm_lua = """
 local old_state = redis.call("HGET", KEYS[1], "state")
-
-if old_state == "in_use" and ARGV[1] ~= "in_use" then
-    return "Termination of VM in in_use state are forbidden"
-end
 
 if ARGV[1] and ARGV[1] ~= "None" and old_state ~= ARGV[1] then
     return "Old state != `allowed_pre_state`"
@@ -203,12 +198,7 @@ class VmManager(object):
             vmd.bound_to_user == username and vmd.state == VmStates.IN_USE
         ])
 
-        if group == None:
-            limit = 0
-            for gid in range(len(self.opts.build_groups)):
-                limit += self.opts.build_groups[gid]["max_vm_per_user"]
-        else:
-            limit = self.opts.build_groups[group]["max_vm_per_user"]
+        limit = self.opts.build_groups[group]["max_vm_per_user"]
 
         self.log.debug("# vm by user: {}, limit:{} ".format(
             vm_count_used_by_user, limit
@@ -223,40 +213,51 @@ class VmManager(object):
         else:
             return True
 
-    def acquire_vm(self, group, username, pid, task_id=None, build_id=None, chroot=None):
+    def get_ready_vms(self, group):
+        vmd_list = self.get_all_vm_in_group(group)
+        return [vmd for vmd in vmd_list if vmd.state == VmStates.READY]
+
+    def get_dirty_vms(self, group):
+        vmd_list = self.get_all_vm_in_group(group)
+        return [vmd for vmd in vmd_list if vmd.bound_to_user is not None]
+
+    def acquire_vm(self, groups, username, pid, task_id=None, build_id=None, chroot=None):
         """
         Try to acquire VM from pool
 
-        :param group: builder group id, as defined in config
-        :type group: int
+        :param list groups: builder group ids where the build can build launched, as defined in config
         :param username: build owner username, VMM prefer to reuse an existing VM which was used by the same user
         :param pid: builder pid to release VM after build process unhandled death
 
         :rtype: VmDescriptor
         :raises: NoVmAvailable  when manager couldn't find suitable VM for the given group and user
         """
-        vmd_list = self.get_all_vm_in_group(group)
-        if not self.can_user_acquire_more_vm(username, group):
-            raise NoVmAvailable("No VM are available, user `{}` already acquired too much VMs"
-                                .format(username))
+        for group in groups:
+            ready_vmd_list = self.get_ready_vms(group)
+            # trying to find VM used by this user
+            dirtied_by_user = [vmd for vmd in ready_vmd_list if vmd.bound_to_user == username]
 
-        ready_vmd_list = [vmd for vmd in vmd_list if vmd.state == VmStates.READY]
-        # trying to find VM used by this user
-        dirtied_by_user = [vmd for vmd in ready_vmd_list if vmd.bound_to_user == username]
-        clean_list = [vmd for vmd in ready_vmd_list if vmd.bound_to_user is None]
-        all_vms = list(chain(dirtied_by_user, clean_list))
+            user_can_acquire_more_vm = self.can_user_acquire_more_vm(username, group)
+            if not dirtied_by_user and not user_can_acquire_more_vm:
+                raise NoVmAvailable("No VM are available, user `{}` already acquired too much VMs"
+                                    .format(username))
 
-        for vmd in all_vms:
-            if vmd.get_field(self.rc, "check_fails") != "0":
-                self.log.debug("VM {} has check fails, skip acquire".format(vmd.vm_name))
-            vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
-            if self.lua_scripts["acquire_vm"](keys=[vm_key, KEY_SERVER_INFO],
-                                              args=[username, pid, time.time(),
-                                                    task_id, build_id, chroot]) == "OK":
-                self.log.info("Acquired VM :{} {} for pid: {}".format(vmd.vm_name, vmd.vm_ip, pid))
-                return vmd
-        else:
-            raise NoVmAvailable("No VM are available, please wait in queue. Group: {}".format(group))
+            available_vms = dirtied_by_user
+            if user_can_acquire_more_vm:
+                clean_list = [vmd for vmd in ready_vmd_list if vmd.bound_to_user is None]
+                available_vms += clean_list
+
+            for vmd in available_vms:
+                if vmd.get_field(self.rc, "check_fails") != "0":
+                    self.log.debug("VM {} has check fails, skip acquire".format(vmd.vm_name))
+                vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
+                if self.lua_scripts["acquire_vm"](keys=[vm_key, KEY_SERVER_INFO],
+                                                  args=[username, pid, time.time(),
+                                                        task_id, build_id, chroot]) == "OK":
+                    self.log.info("Acquired VM :{} {} for pid: {}".format(vmd.vm_name, vmd.vm_ip, pid))
+                    return vmd
+            else:
+                raise NoVmAvailable("No VM are available, please wait in queue. Group: {}".format(group))
 
     def release_vm(self, vm_name):
         """
@@ -268,7 +269,7 @@ class VmManager(object):
         self.log.info("Releasing VM {}".format(vm_name))
         vm_key = KEY_VM_INSTANCE.format(vm_name=vm_name)
         lua_result = self.lua_scripts["release_vm"](keys=[vm_key], args=[time.time()])
-        self.log.debug("release vm result `{}`".format(lua_result))
+        self.log.info("Release vm result `{}`".format(lua_result))
         return lua_result == "OK"
 
     def start_vm_termination(self, vm_name, allowed_pre_state=None):
@@ -289,11 +290,8 @@ class VmManager(object):
             }
             self.rc.publish(PUBSUB_MB, json.dumps(msg))
             self.log.info("VM {} queued for termination".format(vmd.vm_name))
-
-            # TODO: remove when refactored build management
-            # self.rc.publish(PUBSUB_INTERRUPT_BUILDER.format(vmd.vm_ip), "vm died")
         else:
-            self.log.debug("VM  termination `{}` skipped due to: {} ".format(vm_name, lua_result))
+            self.log.info("VM termination `{}` skipped due to: {} ".format(vm_name, lua_result))
 
     def remove_vm_from_pool(self, vm_name):
         """
@@ -323,8 +321,6 @@ class VmManager(object):
         """
         :rtype: list of VmDescriptor
         """
-        if group == None:
-            return self.get_all_vm()
         vm_name_list = self.rc.smembers(KEY_VM_POOL.format(group=group))
         return self._load_multi_safe(vm_name_list)
 

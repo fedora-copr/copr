@@ -229,7 +229,7 @@ class TestVmMaster(object):
         self.rc.hdel(self.vmd_b3.vm_key, "chroot")
 
         for idx, vmd in enumerate([self.vmd_a1, self.vmd_a2, self.vmd_b2, self.vmd_b3]):
-            vmd.store_field(self.rc, "used_by_pid", idx + 1)
+            vmd.store_field(self.rc, "used_by_worker", idx + 1)
 
         for vmd in [self.vmd_a3, self.vmd_a3]:
             vmd.store_field(self.rc, "state", VmStates.READY)

@@ -12,15 +12,9 @@ class VmDescriptor(object):
         self.state = state
         self.group = int(group)
 
-        self.check_fails = 0
-
-        # self.last_health_check = None
-        # self.last_release = None
-        # self.in_use_since = None
-        # self.terminating_since = None
-        #
         self.bound_to_user = None
-        # self.used_by_pid = None
+        self.used_by_worker = None
+        self.task_id = None
 
     @property
     def vm_key(self):

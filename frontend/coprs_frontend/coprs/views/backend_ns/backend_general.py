@@ -12,16 +12,16 @@ from coprs.logic.builds_logic import BuildsLogic, BuildChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
-from coprs.constants import MAX_PRIO
 
 from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 from sqlalchemy.sql import false, true
 
 import json
+import urllib
 import logging
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 @backend_ns.route("/importing/")
 # FIXME I'm commented
@@ -42,7 +42,7 @@ def dist_git_importing_queue():
             branches.add(b_ch.mock_chroot.distgit_branch_name)
 
         task_dict = {
-            "task_id": task.import_task_id,
+            "task_id": task.task_id,
             "owner": copr.owner_name,
             "project": copr.name,
             "branches": list(branches),
@@ -99,7 +99,6 @@ def dist_git_upload_completed():
             for ch in build_chroots:
                 if ch.status == helpers.StatusEnum("importing"):
                     ch.status = helpers.StatusEnum("pending")
-                    ch.priority = (BuildsLogic.get_task_lowest_priority(build.is_background)+1)%MAX_PRIO
                 ch.git_hash = git_hash
 
         # Failed?
@@ -182,44 +181,53 @@ def get_srpm_build_record(task):
     return build_record
 
 
-@backend_ns.route("/waiting/")
+@backend_ns.route("/select-action/")
 #@misc.backend_authenticated
-def waiting():
+def select_action():
     """
-    Return a single action and a single build.
+    Return a single action.
     """
     action_record = None
-    build_record = None
-
     action = actions_logic.ActionsLogic.get_waiting().first()
     if action:
         action_record = action.to_dict(options={
             "__columns_except__": ["result", "message", "ended_on"]
         })
+    return flask.jsonify(action_record)
 
-    build_task = BuildsLogic.select_build_task(background=False)
-    srpm_build_task = BuildsLogic.select_srpm_build_task(background=False)
 
-    if not build_task:
-        build_record = get_srpm_build_record(srpm_build_task)
-    elif srpm_build_task and srpm_build_task.priority < build_task.priority:
-        build_record = get_srpm_build_record(srpm_build_task)
-    else:
-        build_record = get_build_record(build_task)
+@backend_ns.route("/select-build-task/")
+#@misc.backend_authenticated
+def select_build_task():
+    """
+    Return a single job.
+    """
+    provide_task_ids = flask.request.args.getlist('provide_task_ids')
+    exclude_archs = flask.request.args.getlist('exclude_archs')
+    exclude_owners = flask.request.args.getlist('exclude_owners')
+    exclude_owner_arch_pairs = flask.request.args.getlist('exclude_owner_arch_pairs')
+
+    exclude_owner_arch_pairs_decoded = []
+    for pair in exclude_owner_arch_pairs:
+        owner, arch = pair.split(',')
+        exclude_owner_arch_pairs_decoded.append((owner, arch))
+    exclude_owner_arch_pairs = exclude_owner_arch_pairs_decoded
+
+    build_task = BuildsLogic.select_build_task(
+        provide_task_ids=provide_task_ids,
+        exclude_owners=exclude_owners,
+        exclude_archs=exclude_archs,
+        exclude_owner_arch_pairs=exclude_owner_arch_pairs)
+    build_record = get_build_record(build_task)
 
     if not build_record:
-        build_task = BuildsLogic.select_build_task(background=True)
-        srpm_build_task = BuildsLogic.select_srpm_build_task(background=True)
+        srpm_build_task = BuildsLogic.select_srpm_build_task(
+            provide_task_ids=provide_task_ids,
+            exclude_owners=exclude_owners)
+        build_record = get_srpm_build_record(srpm_build_task)
 
-        if not build_task:
-            build_record = get_srpm_build_record(srpm_build_task)
-        elif srpm_build_task and srpm_build_task.priority < build_task.priority:
-            build_record = get_srpm_build_record(srpm_build_task)
-        else:
-            build_record = get_build_record(build_task)
-
-    response_dict = {"action": action_record, "build": build_record}
-    return flask.jsonify(response_dict)
+    log.info('Selected: {}'.format(build_record))
+    return flask.jsonify(build_record)
 
 
 @backend_ns.route("/get-build-task/<task_id>")
@@ -311,25 +319,22 @@ def starting_build():
 @misc.backend_authenticated
 def defer_build():
     """
-    Defer build (lower job priority so that other jobs can be
-    considered for building meanwhile).
+    Defer build (keep it out of waiting jobs for some time).
     """
-
     result = {"was_deferred": False}
 
     if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build_id = flask.request.json["build_id"]
-        chroot_name = flask.request.json.get("chroot")
+        build = ComplexLogic.get_build_safe(flask.request.json["build_id"])
+        chroot = flask.request.json.get("chroot")
 
-        if build_id and chroot_name:
-            log.info("Defer build {}, chroot {}".format(build_id, chroot_name))
-            if chroot_name == "srpm-builds":
-                task = BuildsLogic.defer(build_id)
-            else:
-                task = BuildChrootsLogic.defer(build_id, chroot_name)
-
-            result["was_deferred"] = bool(task)
+        if build and chroot:
+            log.info("Defer build {}, chroot {}".format(build.id, chroot))
+            BuildsLogic.update_state_from_dict(build, {
+                "chroot": chroot,
+                "last_deferred": int(time.time()),
+            })
             db.session.commit()
+            result["was_deferred"] = True
 
     return flask.jsonify(result)
 

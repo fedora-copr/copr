@@ -537,7 +537,7 @@ class Build(db.Model, helpers.Serializer):
     # background builds has lesser priority than regular builds.
     is_background = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
-    priority = db.Column(db.BigInteger, default=0, server_default="0", nullable=False)
+    last_deferred = db.Column(db.Integer)
     srpm_url = db.Column(db.Text)
 
     # relations
@@ -586,7 +586,7 @@ class Build(db.Model, helpers.Serializer):
             return self.repos.split()
 
     @property
-    def import_task_id(self):
+    def task_id(self):
         return str(self.id)
 
     @property
@@ -606,7 +606,7 @@ class Build(db.Model, helpers.Serializer):
     def import_log_url_distgit(self):
         if app.config["COPR_DIST_GIT_LOGS_URL"]:
             return "{}/{}.log".format(app.config["COPR_DIST_GIT_LOGS_URL"],
-                                      self.import_task_id.replace('/', '_'))
+                                      self.task_id.replace('/', '_'))
         return None
 
     @property
@@ -989,8 +989,7 @@ class BuildChroot(db.Model, helpers.Serializer):
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer, index=True)
 
-    priority = db.Column(db.BigInteger, default=0, server_default="0", nullable=False)
-
+    last_deferred = db.Column(db.Integer)
     build_requires = db.Column(db.Text)
 
     @property
@@ -998,7 +997,6 @@ class BuildChroot(db.Model, helpers.Serializer):
         """
         Textual representation of name of this chroot
         """
-
         return self.mock_chroot.name
 
     @property
@@ -1006,7 +1004,6 @@ class BuildChroot(db.Model, helpers.Serializer):
         """
         Return text representation of status of this build chroot
         """
-
         if self.status is not None:
             return StatusEnum(self.status)
 

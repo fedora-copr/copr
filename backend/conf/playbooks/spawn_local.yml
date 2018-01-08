@@ -8,5 +8,5 @@
     local_action: command echo "Copr builder {{ 999999999 | random }}"
     register: vm_name
 
-  - debug: msg="IP=127.0.0.1"
+  - debug: msg="IP=127.0.0.{{7 | random}}"
   - debug: msg="vm_name={{vm_name.stdout}}"

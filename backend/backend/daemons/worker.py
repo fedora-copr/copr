@@ -218,17 +218,15 @@ class Worker(multiprocessing.Process):
 
                 except SSHConnectionError as err:
                     self.log.exception(
-                        "SSH connection staled: {0}".format(str(err)))
+                        "SSH connection stalled: {0}".format(str(err)))
                     # The VM is unusable, don't wait for relatively slow
                     # garbage collector.
-                    self.vm_manager.start_vm_termination(
-                            self.vm.vm_name,
-                            allowed_pre_state=VmStates.IN_USE)
+                    self.vm_manager.start_vm_termination(self.vm.vm_name)
                     self.frontend_client.reschedule_build(
                             job.build_id, job.chroot)
                     raise VmError("SSH connection issue, build rescheduled")
 
-                except: # programmer's failures
+                except: # programmer's failure
                     self.log.exception("Unexpected error")
                     failed = True
 
@@ -272,8 +270,7 @@ class Worker(multiprocessing.Process):
             "done".format(pipes.quote(job.results_dir))
         )
         result = run_cmd(cmd, shell=True)
-        built_packages = result.stdout.split('\n')[0].strip()
-
+        built_packages = result.stdout.strip()
         self.log.info("Built packages:\n{}".format(built_packages))
         return built_packages
 

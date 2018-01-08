@@ -54,69 +54,6 @@ class VmMaster(Process):
                               .format(vmd.vm_name, not_re_acquired_in))
                 self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.READY)
 
-
-    def check_one_vm_for_dead_builder(self, vmd):
-        # TODO: builder should renew lease periodically
-        # and we should use that time instead of in_use_since and pid checks
-        in_use_since = vmd.get_field(self.vmm.rc, "in_use_since")
-        pid = vmd.get_field(self.vmm.rc, "used_by_pid")
-
-        if not in_use_since or not pid:
-            return
-        in_use_time_elapsed = time.time() - float(in_use_since)
-
-        # give a minute for worker to set correct title
-        if in_use_time_elapsed < 60 and str(pid) == "None":
-            return
-
-        pid = int(pid)
-        # try:
-        #     # here we can catch race condition: worker acquired VM but haven't set process title yet
-        #     if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
-        #         return
-        #
-        #     self.log.info("Process `{}` not exists anymore, doing second try. VM data: {}"
-        #                   .format(pid, vmd))
-        #     # dirty hack: sleep and check again
-        #     time.sleep(5)
-        #     if psutil.pid_exists(pid) and vmd.vm_name in psutil.Process(pid).cmdline[0]:
-        #         return
-        # except Exception:
-        #     self.log.exception("Failed do determine if process `{}` still alive for VM: {}, assuming alive"
-        #                        .format(pid, vmd))
-        #     return
-
-        # psutil changed Process().cmdline from property to function between f20 and f22
-        # disabling more precise check for now
-        try:
-            # here we can catch race condition: worker acquired VM but haven't set process title yet
-            if psutil.pid_exists(pid):
-                return
-
-            self.log.info("Process `{}` not exists anymore, doing second try. VM data: {}"
-                          .format(pid, vmd))
-            # dirty hack: sleep and check again
-            time.sleep(5)
-            if psutil.pid_exists(pid):
-                return
-
-        except Exception:
-            self.log.exception("Failed do determine if process `{}` still alive for VM: {}, assuming alive"
-                               .format(pid, vmd))
-            return
-
-        self.log.info("Process `{}` not exists anymore, terminating VM: {} ".format(pid, vmd.vm_name))
-        self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.IN_USE)
-        # TODO: build rescheduling ?
-
-    def remove_vm_with_dead_builder(self):
-        # TODO: rewrite build manage at backend and move functionality there
-        # VMM shouldn't do this
-
-        # check that process who acquired VMD still exists, otherwise release VM
-        for vmd in self.vmm.get_vm_by_group_and_state_list(None, [VmStates.IN_USE]):
-            self.check_one_vm_for_dead_builder(vmd)
-
     def check_vms_health(self):
         # for machines in state ready and time.time() - vm.last_health_check > threshold_health_check_period
         states_to_check = [VmStates.CHECK_HEALTH_FAILED, VmStates.READY,
@@ -229,9 +166,6 @@ class VmMaster(Process):
         self.remove_old_dirty_vms()
         self.check_vms_health()
         self.start_spawn_if_required()
-
-        # disable this now for detached builds
-        # self.remove_vm_with_dead_builder()
 
         self.finalize_long_health_checks()
         self.terminate_again()

@@ -260,7 +260,7 @@ class BackendConfigReader(object):
         opts.fedmsg_enabled = _get_conf(
             cp, "backend", "fedmsg_enabled", False, mode="bool")
         opts.sleeptime = _get_conf(
-            cp, "backend", "sleeptime", 10, mode="int")
+            cp, "backend", "sleeptime", 5, mode="int")
         opts.timeout = _get_conf(
             cp, "builder", "timeout", DEF_BUILD_TIMEOUT, mode="int")
         opts.consecutive_failure_threshold = _get_conf(

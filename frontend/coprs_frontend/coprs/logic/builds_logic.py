@@ -21,7 +21,7 @@ from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs import helpers
-from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT, MAX_PRIO
+from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
 from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException
 from coprs.helpers import StatusEnum
 
@@ -117,32 +117,37 @@ class BuildsLogic(object):
         query = query.order_by(models.BuildChroot.build_id.asc())
         return query
 
-
     @classmethod
-    def get_select_srpm_build_tasks_query(cls, background=False):
+    def select_srpm_build_tasks_base_query(cls):
         return (models.Build.query.join(models.BuildChroot)
                 .filter(models.Build.srpm_url.is_(None))
                 .filter(models.Build.canceled == false())
                 .filter(models.BuildChroot.status == helpers.StatusEnum("importing"))
-                .filter(models.Build.is_background == (true() if background else false())))
+                .filter(or_(
+                    models.Build.last_deferred.is_(None),
+                    models.Build.last_deferred < int(time.time() - app.config["DEFER_BUILD_SECONDS"])
+                )))
 
     @classmethod
-    def select_srpm_build_task(cls, background=False):
-        return (cls.get_select_srpm_build_tasks_query(background)
-                .order_by(models.Build.priority.asc(),
-                          models.Build.id.asc())
-                .first())
+    def select_srpm_build_task(cls, provide_task_ids=[], exclude_owners=[]):
+        selected_srpm_build_tasks = (cls.select_srpm_build_tasks_base_query()
+                                     .order_by(models.Build.is_background.asc(), models.Build.id.asc())).all()
+
+        for task in selected_srpm_build_tasks:
+            if task.task_id in provide_task_ids:
+                return task
+
+            owner_name = task.copr.owner_name
+            if owner_name in exclude_owners:
+                continue
+
+            return task
+
+        return None
 
     @classmethod
-    def get_srpm_build_task_lowest_priority(cls, background=False):
-        lowest_prio_task = (cls.get_select_srpm_build_tasks_query(background)
-                            .order_by(models.Build.priority.desc()).first())
-        return (lowest_prio_task.priority if lowest_prio_task else 0)
-
-    @classmethod
-    def get_select_build_tasks_query(cls, background=False):
+    def select_build_tasks_base_query(cls):
         return (models.BuildChroot.query.join(models.Build)
-                .filter(models.Build.is_background == (true() if background else false()))
                 .filter(models.Build.canceled == false())
                 .filter(or_(
                     models.BuildChroot.status == helpers.StatusEnum("pending"),
@@ -151,26 +156,30 @@ class BuildsLogic(object):
                         models.BuildChroot.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
                         models.BuildChroot.ended_on.is_(None)
                     )
+                ))
+                .filter(or_(
+                    models.BuildChroot.last_deferred.is_(None),
+                    models.BuildChroot.last_deferred < int(time.time() - app.config["DEFER_BUILD_SECONDS"])
                 )))
 
     @classmethod
-    def select_build_task(cls, background=False):
-        return (cls.get_select_build_tasks_query(background)
-                .order_by(models.BuildChroot.priority.asc(),
-                          models.BuildChroot.build_id.asc())
-                .first())
+    def select_build_task(cls, provide_task_ids=[], exclude_owners=[], exclude_archs=[], exclude_owner_arch_pairs=[]):
+        selected_build_tasks = (cls.select_build_tasks_base_query()
+                                .order_by(models.Build.is_background.asc(), models.BuildChroot.build_id.asc())).all()
 
-    @classmethod
-    def get_build_task_lowest_priority(cls, background=False):
-        lowest_prio_task = (cls.get_select_build_tasks_query(background)
-                            .order_by(models.BuildChroot.priority.desc()).first())
-        return (lowest_prio_task.priority if lowest_prio_task else 0)
+        for task in selected_build_tasks:
+            if task.task_id in provide_task_ids:
+                return task
 
-    @classmethod
-    def get_task_lowest_priority(cls, background=False):
-        prio1 = cls.get_build_task_lowest_priority(background)
-        prio2 = cls.get_srpm_build_task_lowest_priority(background)
-        return max(prio1, prio2)
+            owner_name = task.build.copr.owner_name
+            arch = task.mock_chroot.arch
+            if owner_name in exclude_owners or arch in exclude_archs \
+                    or (owner_name, arch) in exclude_owner_arch_pairs:
+                continue
+
+            return task
+
+        return None
 
     @classmethod
     def get_build_task(cls, task_id):
@@ -185,15 +194,6 @@ class BuildsLogic(object):
     @classmethod
     def get_srpm_build_task(cls, build_id):
         return BuildsLogic.get_by_id(build_id).first()
-
-    @classmethod
-    def defer(cls, build_id):
-        build = cls.get(build_id).first()
-        if not build:
-            return None
-        build.priority = (BuildsLogic.get_task_lowest_priority(build.is_background)+1)%MAX_PRIO
-        db.session.add(build)
-        return build
 
     @classmethod
     def get_multiple(cls):
@@ -605,7 +605,6 @@ GROUP BY
             is_background=bool(background),
             batch=batch,
             srpm_url=srpm_url,
-            priority=(cls.get_task_lowest_priority(bool(background))+1)%MAX_PRIO
         )
 
         if timeout:
@@ -620,10 +619,8 @@ GROUP BY
 
         if skip_import:
             status = StatusEnum("pending")
-            priority = (cls.get_task_lowest_priority(bool(background))+1)%MAX_PRIO
         else:
             status = StatusEnum("importing")
-            priority = 0
 
         for chroot in chroots:
             git_hash = None
@@ -634,7 +631,6 @@ GROUP BY
                 status=status,
                 mock_chroot=chroot,
                 git_hash=git_hash,
-                priority=priority
             )
             db.session.add(buildchroot)
 
@@ -737,6 +733,10 @@ GROUP BY
         log.info("Updating build: {} by: {}".format(build.id, upd_dict))
         if "chroot" in upd_dict:
             if upd_dict["chroot"] == "srpm-builds":
+
+                if "last_deferred" in upd_dict:
+                    build.last_deferred = upd_dict["last_deferred"]
+
                 if upd_dict.get("status") == StatusEnum("failed") and not build.canceled:
                     build.fail_type = helpers.FailTypeEnum("srpm_build_error")
                     for ch in build.build_chroots:
@@ -756,6 +756,9 @@ GROUP BY
 
                     if upd_dict.get("status") == StatusEnum("starting"):
                         build_chroot.started_on = upd_dict.get("started_on") or time.time()
+
+                    if "last_deferred" in upd_dict:
+                        build.last_deferred = upd_dict["last_deferred"]
 
                     db.session.add(build_chroot)
 
@@ -872,15 +875,6 @@ class BuildChrootsLogic(object):
             .filter(BuildChroot.build_id == build_id)
             .filter(BuildChroot.mock_chroot_id == mc.id)
         )
-
-    @classmethod
-    def defer(cls, build_id, name):
-        chroot = cls.get_by_build_id_and_name(build_id, name).first()
-        if not chroot:
-            return None
-        chroot.priority = (BuildsLogic.get_task_lowest_priority(chroot.build.is_background)+1)%MAX_PRIO
-        db.session.add(chroot)
-        return chroot
 
     @classmethod
     def get_multiply(cls):
