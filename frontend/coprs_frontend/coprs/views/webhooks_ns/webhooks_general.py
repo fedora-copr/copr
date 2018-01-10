@@ -1,4 +1,5 @@
 import flask
+from functools import wraps
 
 from coprs import db, app
 from coprs import helpers
@@ -15,8 +16,63 @@ from coprs.views.misc import page_not_found, access_restricted
 
 import logging
 import os
+import tempfile
+import shutil
 
 log = logging.getLogger(__name__)
+
+
+def skip_invalid_calls(route):
+    """
+    A best effort attempt to drop hook callswhich should not obviously end up
+    with new build request (thus allocated build-id).
+    """
+    @wraps(route)
+    def decorated_function(*args, **kwargs):
+        if 'X-GitHub-Event' in flask.request.headers:
+            event = flask.request.headers["X-GitHub-Event"]
+            if event == "ping":
+                return "SKIPPED\n", 200
+        return route(*args, **kwargs)
+
+    return decorated_function
+
+
+def copr_id_and_uuid_required(route):
+    @wraps(route)
+    def decorated_function(**kwargs):
+        if not 'copr_id' in kwargs or not 'uuid' in kwargs:
+            return 'COPR_ID_OR_UUID_TOKEN_MISSING\n', 400
+
+        copr_id = kwargs.pop('copr_id')
+        try:
+            copr = ComplexLogic.get_copr_by_id_safe(copr_id)
+        except ObjectNotFound:
+            return "PROJECT_NOT_FOUND\n", 404
+
+        if copr.webhook_secret != kwargs.pop('uuid'):
+            return "BAD_UUID\n", 403
+
+        return route(copr, **kwargs)
+
+    return decorated_function
+
+
+def package_name_required(route):
+    @wraps(route)
+    def decorated_function(copr, **kwargs):
+        if not 'package_name' in kwargs:
+            return 'PACKAGE_NAME_REQUIRED\n', 400
+
+        package_name = kwargs.pop('package_name')
+        try:
+            package = ComplexLogic.get_package_safe(copr, package_name)
+        except ObjectNotFound:
+            return "PACKAGE_NOT_FOUND\n", 404
+
+        return route(copr, package, **kwargs)
+
+    return decorated_function
 
 
 @webhooks_ns.route("/github/<copr_id>/<uuid>/", methods=["POST"])
@@ -99,3 +155,54 @@ def webhooks_gitlab_push(copr_id, uuid):
     db.session.commit()
 
     return "OK", 200
+
+
+class HookContentStorage(object):
+    tmp = None
+
+    def __init__(self):
+        if not flask.request.json:
+            return
+        self.tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
+        log.debug("storing hook content under %s", self.tmp)
+        try:
+            with open(os.path.join(self.tmp, 'hook_payload'), "w") as f:
+                # Do we need to dump http headers, too?
+                f.write(flask.request.data.decode('ascii'))
+
+        except Exception:
+            log.exception('can not store hook payload')
+            self.delete()
+
+    def rebuild_dict(self):
+        if self.tmp:
+            return {'tmp': os.path.basename(self.tmp), 'hook_data': True }
+        return {}
+
+    def delete(self):
+        if self.tmp:
+            shutil.rmtree(self.tmp)
+
+
+@webhooks_ns.route("/custom/<uuid>/<copr_id>/", methods=["POST"])
+@webhooks_ns.route("/custom/<uuid>/<copr_id>/<package_name>/", methods=["POST"])
+@copr_id_and_uuid_required
+@package_name_required
+@skip_invalid_calls
+def webhooks_package_custom(copr, package, flavor=None):
+    # Each source provider (github, gitlab, pagure, ...) provides different
+    # "payload" format for different events.  Parsing it here is burden we can
+    # do one day, but now just dump the hook contents somewhere so users can
+    # parse manually.
+    storage = HookContentStorage()
+    try:
+        build = BuildsLogic.rebuild_package(package, storage.rebuild_dict())
+        db.session.commit()
+    except Exception:
+        log.exception('can not submit build from webhook')
+        storage.delete()
+        return "BUILD_REQUEST_ERROR\n", 500
+
+    # Return the build ID, so (e.g.) the CI process (e.g. Travis job) knows
+    # what build results to wait for.
+    return str(build.id) + "\n", 200

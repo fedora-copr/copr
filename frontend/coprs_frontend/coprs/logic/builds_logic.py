@@ -697,11 +697,12 @@ GROUP BY
     @classmethod
     def delete_local_source(cls, build):
         """
-        Deletes the source (rpm or .spec) locally stored for upload (if exists)
+        Deletes the locally stored data for build purposes.  This is typically
+        uploaded srpm file, uploaded spec file or webhook POST content.
         """
         # is it hosted on the copr frontend?
-        if build.source_type == helpers.BuildSourceEnum("upload"):
-            data = json.loads(build.source_json)
+        data = json.loads(build.source_json)
+        if 'tmp' in data:
             tmp = data["tmp"]
             storage_path = app.config["SRPM_STORAGE_DIR"]
             try:
