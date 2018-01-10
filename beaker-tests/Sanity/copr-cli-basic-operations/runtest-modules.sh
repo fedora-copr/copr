@@ -101,18 +101,20 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
+        DATE=$(date +%Y%m%d%H%M%S)
+        echo "timestamp=$DATE"
 
         # Test yaml submit
-        DATE=$(date +%Y%m%d%H%M%S)
-        echo "version=$DATE"
+        PROJECT=module-testmodule-beakertest-$DATE
+        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/testmodule.yaml
-        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml"
+        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
 
         # Test module duplicity
         # @FIXME the request sometimes hangs for some obscure reason
         OUTPUT=`mktemp`
-        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml &> $OUTPUT" 1
+        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT &> $OUTPUT" 1
         rlAssertEquals "Module should already exist" `cat $OUTPUT | grep "already exists" |wc -l` 1
 
         # @TODO Test scmurl submit
@@ -136,9 +138,11 @@ rlJournalStart
         # make a reliable way to fetch its state from web UI
 
         # Test that user-defined macros are in the buildroot
+        PROJECT=module-test-macros-module-beakertest-$DATE
+        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/test-macros-module.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/test-macros-module.yaml
-        copr-cli build-module --yaml /tmp/test-macros-module.yaml
+        copr-cli build-module --yaml /tmp/test-macros-module.yaml $PROJECT
         PACKAGES=`mktemp`
         wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 2 600 $PACKAGES
 
@@ -157,18 +161,22 @@ rlJournalStart
         # Test that it is possible to specify group and project name for the module
         PACKAGES=`mktemp`
         SUFFIX=2
+        PROJECT=@copr/TestModule$DATE$SUFFIX
+        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE$SUFFIX/g" /tmp/testmodule.yaml
-        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml @copr/TestModule$DATE$SUFFIX"
+        rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
         wait_for_finished_module "@copr/TestModule$DATE$SUFFIX" 3 600 $PACKAGES
         test_successful_packages "module-build-macros ed mksh" $PACKAGES
 
         # Test that it is possible to build module with package from copr
+        PROJECT=module-coprtestmodule-beakertest-$DATE
+        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
         yes | cp $HERE/files/coprtestmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$OWNER/$USER/g" /tmp/coprtestmodule.yaml
         sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
-        rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml"
+        rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
         wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 2 600 $PACKAGES
         test_successful_packages "module-build-macros ed" $PACKAGES
