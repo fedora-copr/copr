@@ -130,8 +130,8 @@ rlJournalStart
 
         # Test that module builds succeeded
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-testmodule-beakertest-$DATE" 3 600 $PACKAGES
-        test_successful_packages "module-build-macros ed mksh" $PACKAGES
+        wait_for_finished_module "module-testmodule-beakertest-$DATE" 2 600 $PACKAGES
+        test_successful_packages "ed mksh" $PACKAGES
 
         # @TODO Test that module succeeded
         # We need to implement API for retrieving modules or at least
@@ -144,7 +144,7 @@ rlJournalStart
         sed -i "s/\$VERSION/$DATE/g" /tmp/test-macros-module.yaml
         copr-cli build-module --yaml /tmp/test-macros-module.yaml $PROJECT
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 2 600 $PACKAGES
+        wait_for_finished_module "module-test-macros-module-beakertest-$DATE" 1 600 $PACKAGES
 
         SRPM=`rpmbuild -bs files/test-macros.spec |grep Wrote: |cut -d ' ' -f2`
         copr-cli build "module-test-macros-module-beakertest-$DATE" $SRPM
@@ -166,8 +166,8 @@ rlJournalStart
         yes | cp $HERE/files/testmodule.yaml /tmp
         sed -i "s/\$VERSION/$DATE$SUFFIX/g" /tmp/testmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT"
-        wait_for_finished_module "@copr/TestModule$DATE$SUFFIX" 3 600 $PACKAGES
-        test_successful_packages "module-build-macros ed mksh" $PACKAGES
+        wait_for_finished_module "@copr/TestModule$DATE$SUFFIX" 2 600 $PACKAGES
+        test_successful_packages "ed mksh" $PACKAGES
 
         # Test that it is possible to build module with package from copr
         PROJECT=module-coprtestmodule-beakertest-$DATE
@@ -178,8 +178,8 @@ rlJournalStart
         sed -i "s/\$PROJECT/module-testmodule-beakertest-$DATE/g" /tmp/coprtestmodule.yaml
         rlRun "copr-cli build-module --yaml /tmp/coprtestmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 2 600 $PACKAGES
-        test_successful_packages "module-build-macros ed" $PACKAGES
+        wait_for_finished_module "module-coprtestmodule-beakertest-$DATE" 1 600 $PACKAGES
+        test_successful_packages "ed" $PACKAGES
 
         # @TODO Test that it is possible to build module
         # with few hundreds of packages
