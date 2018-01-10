@@ -494,7 +494,7 @@ GROUP BY
         :param f_uploader(file_path): function which stores data at the given `file_path`
         :return:
         """
-        tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
+        tmp = tempfile.mkdtemp(dir=app.config["STORAGE_DIR"])
         tmp_name = os.path.basename(tmp)
         filename = secure_filename(orig_filename)
         file_path = os.path.join(tmp, filename)
@@ -704,7 +704,7 @@ GROUP BY
         data = json.loads(build.source_json)
         if 'tmp' in data:
             tmp = data["tmp"]
-            storage_path = app.config["SRPM_STORAGE_DIR"]
+            storage_path = app.config["STORAGE_DIR"]
             try:
                 shutil.rmtree(os.path.join(storage_path, tmp))
             except:

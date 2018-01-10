@@ -163,7 +163,7 @@ class HookContentStorage(object):
     def __init__(self):
         if not flask.request.json:
             return
-        self.tmp = tempfile.mkdtemp(dir=app.config["SRPM_STORAGE_DIR"])
+        self.tmp = tempfile.mkdtemp(dir=app.config["STORAGE_DIR"])
         log.debug("storing hook content under %s", self.tmp)
         try:
             with open(os.path.join(self.tmp, 'hook_payload'), "w") as f:

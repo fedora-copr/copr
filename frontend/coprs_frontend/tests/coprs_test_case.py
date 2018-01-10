@@ -35,7 +35,7 @@ class CoprsTestCase(object):
         config = coprs.app.config
         for key in [
                 "LOCAL_TMP_DIR",
-                "SRPM_STORAGE_DIR",
+                "STORAGE_DIR",
             ]:
             if key in config:
                 path = os.path.abspath(config[key])
