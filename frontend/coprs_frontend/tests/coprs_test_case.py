@@ -6,6 +6,7 @@ import time
 import glob
 from functools import wraps
 import datetime
+import uuid
 
 import pytest
 import decorator
@@ -275,6 +276,19 @@ class CoprsTestCase(object):
                 self.db.session.add(buildchroot)
 
         self.db.session.add_all([self.b1, self.b2, self.b3, self.b4])
+
+    @pytest.fixture
+    def f_hook_package(self):
+        self.f_users()
+        self.f_coprs()
+        self.f_mock_chroots()
+        self.f_builds()
+
+        self.c1.webhook_secret = str(uuid.uuid4())
+        self.db.session.add(self.c1)
+        self.pHook = models.Package(
+            copr=self.c1, name="hook-package",
+            source_type=helpers.BuildSourceEnum('scm'))
 
     @pytest.fixture
     def f_build_few_chroots(self):

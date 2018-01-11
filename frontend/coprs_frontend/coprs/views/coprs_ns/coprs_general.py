@@ -396,7 +396,7 @@ def copr_permissions(copr):
 
 def render_copr_webhooks(copr):
     if not copr.webhook_secret:
-        copr.webhook_secret = uuid.uuid4()
+        copr.webhook_secret = str(uuid.uuid4())
         db.session.add(copr)
         db.session.commit()
 
