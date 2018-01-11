@@ -11,7 +11,7 @@ from sqlalchemy import or_
 from sqlalchemy import and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.sql import false, true, exists
+from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc,asc, bindparam, Integer
 from collections import defaultdict
@@ -762,7 +762,7 @@ GROUP BY
                     # then send an action to create module repodata on backend
                     if (build.module
                             and upd_dict.get("status") == StatusEnum("succeeded")
-                            and not exists(b.status != StatusEnum("succeeded") for b in build.module.builds)):
+                            and all(b.status == StatusEnum("succeeded") for b in build.module.builds)):
                         ActionsLogic.send_build_module(build.copr, build.module)
 
         for attr in ["results", "built_packages", "srpm_url"]:
