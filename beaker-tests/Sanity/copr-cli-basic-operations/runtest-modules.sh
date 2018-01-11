@@ -152,7 +152,7 @@ rlJournalStart
         TMP=`mktemp -d`
         MACROS=`mktemp`
         copr-cli download-build --dest $TMP $ID
-        rpm -qp --queryformat '%{DESCRIPTION}' $TMP/custom-1-x86_64/test-macros-1.0-*src.rpm |grep MACRO > $MACROS
+        rpm -qp --queryformat '%{DESCRIPTION}' $TMP/fedora-rawhide-x86_64/test-macros-1.0-*src.rpm |grep MACRO > $MACROS
         rlAssertEquals "Both macros should be present" `cat $MACROS |wc -l` 2
         rlAssertEquals "Macro should correctly expand" `cat $MACROS |grep "This is my module macro" |wc -l` 1
         rlAssertEquals "Macro using nested macro shoud correctly expand" \
@@ -194,7 +194,7 @@ rlJournalStart
         # https://github.com/rpm-software-management/dnf-plugins-core/pull/214
         rlRun "echo '[$USER-module-testmodule-beakertest-$DATE]' > /etc/yum.repos.d/testmodule.repo"
         rlRun "echo 'name = Copr modules repo for $USER/module-testmodule-beakertest-$DATE' >> /etc/yum.repos.d/testmodule.repo"
-        rlRun "echo 'baseurl = $BACKEND_URL/results/$USER/module-testmodule-beakertest-$DATE/modules/custom-1-x86_64+testmodule-beakertest-$DATE/latest/x86_64/' >> /etc/yum.repos.d/testmodule.repo"
+        rlRun "echo 'baseurl = $BACKEND_URL/results/$USER/module-testmodule-beakertest-$DATE/modules/fedora-rawhide-x86_64+testmodule-beakertest-$DATE/latest/x86_64/' >> /etc/yum.repos.d/testmodule.repo"
         rlRun "echo 'enabled = 1' >> /etc/yum.repos.d/testmodule.repo"
 
         rlAssertEquals "Module should be visible in the system" `dnf module list |grep testmodule |grep beakertest |grep $DATE |grep -v "Copr modules repo" |wc -l` 1
