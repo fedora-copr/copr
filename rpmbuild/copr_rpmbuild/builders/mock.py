@@ -3,6 +3,7 @@ import sys
 import logging
 import shutil
 import subprocess
+import glob
 
 from jinja2 import Environment, FileSystemLoader
 from ..helpers import run_cmd, locate_spec, locate_srpm, CONF_DIRS, get_mock_uniqueext
@@ -61,7 +62,19 @@ class MockBuilder(object):
         os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
         os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
 
+    def copy_pm_logs(self, chroot_name, path_suffix):
+        log_dirpath = os.path.join(self.resultdir, path_suffix)
+        log_pattern_dnf = "/var/lib/mock/"+chroot_name+"/root/var/log/dnf*.log"
+        log_pattern_yum = "/var/lib/mock/"+chroot_name+"/root/var/log/yum*.log"
+        logfiles = glob.glob(log_pattern_dnf) + glob.glob(log_pattern_yum)
+
+        os.makedirs(log_dirpath)
+        for logfile in logfiles:
+            shutil.copy(logfile, log_dirpath)
+
     def produce_srpm(self, spec, sources, configdir, resultdir):
+        uniqueext = get_mock_uniqueext()
+
         cmd = [
             "unbuffer", "/usr/bin/mock",
             "--buildsrpm",
@@ -70,11 +83,11 @@ class MockBuilder(object):
             "--configdir", configdir,
             "--resultdir", resultdir,
             "--define", "%_disable_source_fetch 0",
-            "--uniqueext", get_mock_uniqueext(),
+            "--uniqueext", uniqueext,
+            "--no-cleanup-after",
             "-r", "child"]
 
         log.info('Running: {}'.format(' '.join(cmd)))
-
         process = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, preexec_fn=self.preexec_fn_build_stream)
 
@@ -83,19 +96,23 @@ class MockBuilder(object):
         except OSError as e:
             raise RuntimeError(str(e))
 
+        self.copy_pm_logs("{}-{}".format(self.task_id, uniqueext), "pm-logs/0")
+
         if process.returncode != 0:
             raise RuntimeError("Build failed")
 
     def produce_rpm(self, srpm, configdir, resultdir):
+        uniqueext = get_mock_uniqueext()
+
         cmd = ["unbuffer", "/usr/bin/mock",
                "--rebuild", srpm,
                "--configdir", configdir,
                "--resultdir", resultdir,
-               "--uniqueext", get_mock_uniqueext(),
+               "--uniqueext", uniqueext,
+               "--no-cleanup-after",
                "-r", "child"]
 
         log.info('Running: {}'.format(' '.join(cmd)))
-
         process = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, preexec_fn=self.preexec_fn_build_stream)
 
@@ -103,6 +120,8 @@ class MockBuilder(object):
             process.communicate(timeout=self.timeout)
         except OSError as e:
             raise RuntimeError(str(e))
+
+        self.copy_pm_logs("{}-{}".format(self.task_id, uniqueext), "pm-logs/1")
 
         if process.returncode != 0:
             raise RuntimeError("Build failed")
