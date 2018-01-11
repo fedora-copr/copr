@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.13
+Version: 0.14
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -80,6 +80,10 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
 
 %changelog
+* Thu Jan 11 2018 clime <clime@redhat.com> 0.14-1
+- copy out dnf and yum logs when using mock
+- introspection and --version argument
+
 * Mon Dec 11 2017 clime <clime@redhat.com> 0.13-1
 - update man pages
 - update help
