@@ -1,13 +1,7 @@
 %bcond_without check
 
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-%global _pkgdocdir %{_docdir}/%{name}-%{version}
-%global __python2 %{__python}
-%endif
-
 # https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
-
 
 %global flavor_guard      %name-flavor = %version
 %global flavor_files_list %_datadir/copr/copr-flavor-filelist
@@ -47,124 +41,81 @@ URL:        https://pagure.io/copr/copr
 # git clone https://pagure.io/copr/copr.git
 # cd copr/frontend
 # tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+Source0:    %{name}-%{version}.tar.gz
 
 BuildArch:  noarch
-#BuildRequires: asciidoc
-#BuildRequires: libxslt
+
 BuildRequires: util-linux
-BuildRequires: python2-setuptools
-BuildRequires: python2-requests
-BuildRequires: python2-devel
 BuildRequires: systemd
-BuildRequires: python2-modulemd
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-BuildRequires: python-argparse
-%endif
+
 #for doc package
 BuildRequires: epydoc
 BuildRequires: graphviz
 
-Requires:   httpd
-Requires:   python2-mod_wsgi
-Requires:   passwd
-Requires:   curl
-Requires:   python2-alembic
-Requires:   python2-flask
-Requires:   python2-flask-openid
-Requires:   python2-openid-teams
-Requires:   python2-flask-wtf
-Requires:   python2-flask-sqlalchemy
-Requires:   python2-flask-script
-#Requires:   python2-virtualenv
-Requires:   python2-blinker
-Requires:   python2-markdown
-Requires:   python2-psycopg2
-Requires:   python2-pylibravatar
-Requires:   python2-requests
-Requires:   python2-whoosh >= 2.5.3
-Requires:   python2-pytz
-Requires:   python2-six
-Requires:   python2-netaddr
-Requires:   python2-flask-restful
-Requires:   python2-marshmallow >= 2.0.0
-Requires:   python2-modulemd
-Requires:   python2-CommonMark
-Requires:   python2-pygments
-Requires:   python2-flask-whooshee
+Requires: httpd
+Requires: passwd
+Requires: curl
+Requires: redis
+Requires: crontabs
 
-Requires:   %flavor_guard
-
-# for tests:
-Requires:   python2-pytest
-Requires:   python2-flexmock
-Requires:   python2-mock
-Requires:   python2-decorator
-Requires:   redis
-Requires:   python2-redis
-Requires:   python2-dateutil
-Requires:   crontabs
-
-Requires: python2-zmq
-
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-BuildRequires: python-argparse
-%endif
+Requires: %flavor_guard
 
 %if %{with check}
-BuildRequires: python2-six
-BuildRequires: python2-flask
-BuildRequires: python2-flask-script
-BuildRequires: python2-flask-sqlalchemy
-BuildRequires: python2-flask-openid
-BuildRequires: python2-openid-teams
-BuildRequires: python2-pylibravatar
-BuildRequires: python2-flask-wtf
-BuildRequires: python2-netaddr
-BuildRequires: python2-redis
+BuildRequires: python3-six
+BuildRequires: python3-flask
+BuildRequires: python3-flask-script
+BuildRequires: python3-flask-sqlalchemy
+BuildRequires: python3-flask-openid
+BuildRequires: python3-wtforms
+BuildRequires: python3-openid-teams
+BuildRequires: python3-pylibravatar
+BuildRequires: python3-flask-wtf
+BuildRequires: python3-netaddr
+BuildRequires: python3-redis
+BuildRequires: python3-dateutil
+BuildRequires: python3-pytest
+BuildRequires: python3-mock
+BuildRequires: python3-decorator
+BuildRequires: python3-markdown
+BuildRequires: python3-pytz
+BuildRequires: python3-flask-restful
+BuildRequires: python3-marshmallow >= 2.0.0
+BuildRequires: python3-sphinx
+BuildRequires: python3-sphinxcontrib-httpdomain
+BuildRequires: python3-whoosh
+BuildRequires: python3-blinker
+BuildRequires: python3-munch
+BuildRequires: python3-CommonMark
+BuildRequires: python3-pygments
+BuildRequires: python3-flask-whooshee
+BuildRequires: python3-modulemd
 BuildRequires: redis
-BuildRequires: python2-dateutil
-BuildRequires: python2-pytest
-BuildRequires: python2-mock
-BuildRequires: python2-decorator
-BuildRequires: python2-markdown
-BuildRequires: python2-pytz
-BuildRequires: python2-flask-restful
-BuildRequires: python2-marshmallow >= 2.0.0
-BuildRequires: python2-sphinx
-BuildRequires: python2-sphinxcontrib-httpdomain
-BuildRequires: python2-whoosh
-BuildRequires: python2-blinker
-BuildRequires: python2-munch
-BuildRequires: python2-CommonMark
-BuildRequires: python2-pygments
-BuildRequires: python2-flask-whooshee
 %endif
 
-%if 0%{?with_python3}
-Requires:   dnf
-Requires:   python3-flask
-Requires:   python3-flask-wtf
-Requires:   python3-flask-sqlalchemy
-Requires:   python3-flask-script
-Requires:   python3-flask-whooshee
-Requires:   python3-pytz
-Requires:   python3-markdown
-Requires:   python3-netaddr
-Requires:   python3-redis
-Requires:   python3-pylibravatar
-Requires:   python3-wtforms
-Requires:   python3-flask-wtf
-Requires:   python3-flask-restful
-Requires:   python3-marshmallow
-Requires:   python3-blinker
-Requires:   python3-flask-openid
-Requires:   python3-openid-teams
-Requires:   python3-modulemd
-Requires:   python3-pygments
-Requires:   python3-CommonMark
-
-%endif # with_python3
+Requires: python3-mod_wsgi
+Requires: python3-dateutil
+Requires: python3-flask
+Requires: python3-flask-wtf
+Requires: python3-flask-sqlalchemy
+Requires: python3-flask-script
+Requires: python3-flask-whooshee
+Requires: python3-pytz
+Requires: python3-markdown
+Requires: python3-netaddr
+Requires: python3-redis
+Requires: python3-pylibravatar
+Requires: python3-wtforms
+Requires: python3-flask-wtf
+Requires: python3-flask-restful
+Requires: python3-marshmallow
+Requires: python3-blinker
+Requires: python3-flask-openid
+Requires: python3-openid-teams
+Requires: python3-modulemd
+Requires: python3-pygments
+Requires: python3-CommonMark
+Requires: python3-psycopg2
+Requires: python3-zmq
 
 Provides: bundled(bootstrap) = 3.3.4
 Provides: bundled(bootstrap-combobox) = 1.1.6
@@ -368,10 +319,6 @@ service logstash condrestart
 
 
 %changelog
-* Wed Jan 03 2018 Iryna Shcherbina <ishcherb@redhat.com> - 1.125-2
-- Update Python 2 dependency declarations to new packaging standards
-  (See https://fedoraproject.org/wiki/FinalizingFedoraSwitchtoPython3)
-
 * Mon Dec 18 2017 Dominik Turecek <dturecek@redhat.com> 1.125-1
 - add support for src.fp.o in build_on_pagure_commit.py
 - fix source type description

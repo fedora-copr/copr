@@ -44,7 +44,7 @@ class TestWaitingBuilds(CoprsTestCase):
         self.db.session.commit()
 
         r = self.tc.get("/backend/waiting/")
-        data = json.loads(r.data)
+        data = json.loads(r.data.decode("utf-8"))
         assert data["build"]["build_id"] == 3
 
 
@@ -266,7 +266,7 @@ class TestImportingBuilds(CoprsTestCase):
         BuildsLogic.create_new_from_url(self.u1, self.c1, "bar")
 
         r = self.tc.get("/backend/importing/")
-        data = json.loads(r.data)
+        data = json.loads(r.data.decode("utf-8"))
         assert data["builds"][0]["srpm_url"] == "bar"
 
     def test_importing_queue_multiple_bg(self, f_users, f_coprs, f_mock_chroots, f_db):
@@ -274,5 +274,5 @@ class TestImportingBuilds(CoprsTestCase):
         BuildsLogic.create_new_from_url(self.u1, self.c1, "bar", background=True)
 
         r = self.tc.get("/backend/importing/")
-        data = json.loads(r.data)
+        data = json.loads(r.data.decode("utf-8"))
         assert data["builds"][0]["srpm_url"] == "foo"

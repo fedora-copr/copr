@@ -134,7 +134,7 @@ class TestBuildModule(CoprsTestCase):
         self.tc.post("/api/new/")
 
         fd, filename = tempfile.mkstemp()
-        os.write(fd, """
+        os.write(fd, b"""
         data:
           api:
             rpms: [example-debuginfo]
@@ -157,7 +157,7 @@ class TestBuildModule(CoprsTestCase):
         os.close(fd)
 
         f = open(filename, "rb")
-        data = {"modulemd": (filename, f, "application/yaml")}
+        data = {"modulemd": (filename, f.read().decode("utf-8"), "application/yaml")}
         api_endpoint = '/api/coprs/{}/{}/module/make/'.format(self.u1.name, self.c1.name)
         r = self.post_api_with_auth(api_endpoint, content=data, user=self.u1)
         assert r.status_code == 200

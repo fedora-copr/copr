@@ -91,7 +91,7 @@ def validate_post_keys(form):
     # TODO: don't use WTFform for parsing and validation here
     # are there any arguments in POST which our form doesn't know?
     proxyuser_keys = ["username"]  # When user is proxyuser, he can specify username of delegated author
-    allowed = form.__dict__.keys() + proxyuser_keys
+    allowed = list(form.__dict__.keys()) + proxyuser_keys
     for post_key in flask.request.form.keys():
         if post_key not in allowed:
             infos.append("Unknown key '{key}' received.".format(key=post_key))
@@ -1052,7 +1052,7 @@ def copr_make_module(copr):
         return flask.jsonify({
             "output": "ok",
             "message": msg,
-            "modulemd": modulemd,
+            "modulemd": modulemd.decode("utf-8"),
         })
 
     except sqlalchemy.exc.IntegrityError:

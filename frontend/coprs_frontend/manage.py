@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import argparse
 import os
@@ -30,7 +30,7 @@ class TestCommand(Command):
         if not (("COPR_CONFIG" in os.environ) and os.environ["COPR_CONFIG"]):
             os.environ["COPR_CONFIG"] = "/etc/copr/copr_unit_test.conf"
         os.environ["PYTHONPATH"] = "."
-        return subprocess.call(["/usr/bin/python", "-m", "pytest"] + (test_args or []))
+        return subprocess.call(["/usr/bin/python3", "-m", "pytest"] + (test_args or []))
 
     option_list = (
         Option("-a",
@@ -152,7 +152,7 @@ class RawhideToReleaseCommand(Command):
         mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(dest_chroot).first()
         if not mock_chroot:
             print("Given chroot does not exist. Please run:")
-            print("    sudo python manage.py create_chroot {}".format(dest_chroot))
+            print("    sudo python3 manage.py create_chroot {}".format(dest_chroot))
             return
 
         mock_rawhide_chroot = coprs_logic.MockChrootsLogic.get_from_name(rawhide_chroot).first()
