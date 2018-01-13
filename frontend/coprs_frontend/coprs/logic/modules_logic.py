@@ -50,8 +50,9 @@ class ModulesLogic(object):
 
     @classmethod
     def from_modulemd(cls, mmd):
+        yaml_b64 = base64.b64encode(mmd.dumps().encode("utf-8")).decode("utf-8")
         return models.Module(name=mmd.name, stream=mmd.stream, version=mmd.version, summary=mmd.summary,
-                             description=mmd.description, yaml_b64=base64.b64encode(mmd.dumps()))
+                             description=mmd.description, yaml_b64=yaml_b64)
 
     @classmethod
     def validate(cls, mmd):
