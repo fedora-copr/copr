@@ -10,9 +10,9 @@ data:
         module: [ MIT ]
     dependencies:
         buildrequires:
-            base-runtime: master
+            platform: master
         requires:
-            base-runtime: master
+            platform: master
     references:
         community: https://fedoraproject.org/wiki/Modularity
         documentation: https://fedoraproject.org/wiki/Fedora_Packaging_Guidelines_for_Modules
@@ -28,5 +28,5 @@ data:
         rpms:
           ed:
             rationale: An example of Copr package
-            ref: custom1
+            ref: master
             repository: 'http://copr-dist-git-dev.fedorainfracloud.org/git/$OWNER/$PROJECT/ed.git'
