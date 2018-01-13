@@ -231,9 +231,9 @@ class ModuleProvider(object):
 
     @classmethod
     def from_input(cls, obj):
-        if type(obj) in [str, unicode]:
-            return cls.from_url(obj)
-        return cls.from_file(obj)
+        if hasattr(obj, "read"):
+            return cls.from_file(obj)
+        return cls.from_url(obj)
 
     @classmethod
     def from_file(cls, ref):
