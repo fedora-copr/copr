@@ -12,6 +12,7 @@ Content
 
    user_documentation
    developer_documentation
+   maintenance_documentation
    downloads
    brainstorming
    features
