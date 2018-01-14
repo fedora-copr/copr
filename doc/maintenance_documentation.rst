@@ -8,3 +8,5 @@ This section contains information about maintenance topics. You may also be inte
 * :ref:`how_to_release_copr` -- how to release Copr
 
 * :ref:`how_to_upgrade_builders` -- how to upgrade openstack builders
+
+* :ref:`how_to_manage_chroots` -- how to manage active chroots
