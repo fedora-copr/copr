@@ -43,3 +43,9 @@ After a Fedora version is marked as EOL, you probably want to do something like 
 ::
 
     copr-frontend alter_chroot --action deactivate fedora-25-x86_64 fedora-25-i386 fedora-25-ppc64le
+
+
+Mailing lists
+-------------
+
+After adding or disabling chroots on the production instance, an information email about the action should be sent to copr-devel@lists.fedorahosted.org .
