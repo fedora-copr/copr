@@ -70,7 +70,7 @@ else
     redis.call("HINCRBY", KEYS[1], "builds_count", 1)
 
     local check_fails = tonumber(redis.call("HGET", KEYS[1], "check_fails"))
-    if check_fails > 0 then
+    if check_fails and check_fails > 0 then
         redis.call("HSET", KEYS[1], "state", "check_health_failed")
     end
 
@@ -157,17 +157,16 @@ class VmManager(object):
         :type group: int
         :rtype: VmDescriptor
         """
-        # print("\n ADD VM TO POOL")
         if self.rc.sismember(KEY_VM_POOL.format(group=group), vm_name):
             raise VmError("Can't add VM `{}` to the pool, such name already used".format(vm_name))
 
         vmd = VmDescriptor(vm_ip, vm_name, group, VmStates.GOT_IP)
-        # print("VMD: {}".format(vmd))
         pipe = self.rc.pipeline()
         pipe.sadd(KEY_VM_POOL.format(group=group), vm_name)
         pipe.hmset(KEY_VM_INSTANCE.format(vm_name=vm_name), vmd.to_dict())
         pipe.execute()
         self.log.info("registered new VM: {} {}".format(vmd.vm_name, vmd.vm_ip))
+
         return vmd
 
     def lookup_vms_by_ip(self, vm_ip):
@@ -194,19 +193,15 @@ class VmManager(object):
         """
         vmd_list = self.get_all_vm_in_group(group)
         vm_count_used_by_user = len([
-            vmd for vmd in vmd_list if
-            vmd.bound_to_user == username and vmd.state == VmStates.IN_USE
+            vmd for vmd in vmd_list if vmd.bound_to_user == username
         ])
 
-        limit = self.opts.build_groups[group]["max_vm_per_user"]
-
+        limit = self.opts.build_groups[group].get("max_vm_per_user")
         self.log.debug("# vm by user: {}, limit:{} ".format(
             vm_count_used_by_user, limit
         ))
-        if vm_count_used_by_user >= limit:
-            # TODO: this check isn't reliable, if two (or more) processes check VM list
-            # at the +- same time, they could acquire more VMs
-            #  proper solution: do this check inside lua script
+
+        if limit and vm_count_used_by_user >= limit:
             self.log.debug("No VM are available, user `{}` already acquired #{} VMs"
                            .format(username, vm_count_used_by_user))
             return False

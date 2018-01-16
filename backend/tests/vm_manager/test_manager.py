@@ -38,11 +38,8 @@ def mc_time():
     with mock.patch("{}.time".format(MODULE_REF)) as handle:
         yield handle
 
-
-class TestCallback(object):
-    def log(self, msg):
-        print(msg)
-
+GID1 = 0
+GID2 = 1
 
 class TestManager(object):
 
@@ -53,12 +50,16 @@ class TestManager(object):
             ssh=Munch(
                 transport="ssh"
             ),
-            build_groups_count=1,
+            build_groups_count=2,
             build_groups={
-                0: {
+                GID1: {
                     "name": "base",
                     "archs": ["i386", "x86_64"],
                     "max_vm_per_user": 3,
+                },
+                GID2: {
+                    "name": "arm",
+                    "archs": ["armV7",]
                 }
             },
 
@@ -69,22 +70,20 @@ class TestManager(object):
             # destdir=self.tmp_dir_path,
             results_baseurl="/tmp",
         )
-        self.queue = Queue()
 
         self.vm_ip = "127.0.0.1"
         self.vm_name = "localhost"
-        self.group = 0
-        self.username = "bob"
+
+        self.vm2_ip = "127.0.0.2"
+        self.vm2_name = "localhost2"
+
+        self.ownername = "bob"
 
         self.rc = get_redis_connection(self.opts)
         self.ps = None
         self.log_msg_list = []
 
-        self.callback = TestCallback()
-
-        self.queue = Queue()
         self.vmm = VmManager(self.opts)
-
         self.vmm.log = MagicMock()
         self.pid = 12345
 
@@ -93,31 +92,30 @@ class TestManager(object):
         if keys:
             self.vmm.rc.delete(*keys)
 
-    @pytest.fixture
-    def f_second_group(self):
-        self.opts.build_groups_count = 2
-        self.opts.build_groups[1] = {
-            "name": "arm",
-            "archs": ["armV7",]
-        }
+    def test_manager_setup(self):
+        vmm = VmManager(self.opts)
+        assert GID1 in vmm.vm_groups
+        assert GID2 in vmm.vm_groups
+        assert len(vmm.vm_groups) == 2
 
     def test_add_vm_to_pool(self):
-        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
-
-        vm_list = self.vmm.get_all_vm_in_group(self.group)
-
-        vm = self.vmm.get_vm_by_name(self.vm_name)
-        assert len(vm_list) == 1
-        assert vm_list[0].__dict__ == vm.__dict__
-        assert self.group in self.vmm.vm_groups
-        assert len(self.vmm.vm_groups) == 1
+        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
 
         with pytest.raises(VmError):
-            self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+            self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
+
+        vm_list = self.vmm.get_all_vm_in_group(GID1)
+        vm = self.vmm.get_vm_by_name(self.vm_name)
+
+        assert len(vm_list) == 1
+        assert vm_list[0].__dict__ == vm.__dict__
+        assert vm.vm_ip == self.vm_ip
+        assert vm.vm_name == self.vm_name
+        assert vm.group == GID1
 
     def test_mark_vm_check_failed(self, mc_time):
         self.vmm.start_vm_termination = types.MethodType(MagicMock(), self.vmm)
-        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
         vmd = self.vmm.get_vm_by_name(self.vm_name)
         vmd.store_field(self.rc, "state", VmStates.CHECK_HEALTH)
         vmd.store_field(self.rc, "last_health_check", 12345)
@@ -132,39 +130,39 @@ class TestManager(object):
             assert vmd.get_field(self.rc, "state") == state
 
     def test_acquire_vm_no_vm_after_server_restart(self, mc_time):
-        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
         vmd.store_field(self.rc, "state", VmStates.READY)
 
         # undefined both last_health_check and server_start_timestamp
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm(0, self.username, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42)
 
         # only server start timestamp is defined
         mc_time.time.return_value = 1
         self.vmm.mark_server_start()
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm(0, self.username, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42)
 
         # only last_health_check defined
         self.rc.delete(KEY_SERVER_INFO)
         vmd.store_field(self.rc, "last_health_check", 0)
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm(0, self.username, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42)
 
         # both defined but last_health_check < server_start_time
         self.vmm.mark_server_start()
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm(0, self.username, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42)
 
         # and finally last_health_check > server_start_time
         vmd.store_field(self.rc, "last_health_check", 2)
-        vmd_res = self.vmm.acquire_vm(0, self.username, 42)
+        vmd_res = self.vmm.acquire_vm([GID1], self.ownername, 42)
         assert vmd.vm_name == vmd_res.vm_name
 
     def test_acquire_vm_extra_kwargs(self, mc_time):
         mc_time.time.return_value = 0
         self.vmm.mark_server_start()
-        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
         vmd.store_field(self.rc, "state", VmStates.READY)
         vmd.store_field(self.rc, "last_health_check", 2)
 
@@ -173,7 +171,7 @@ class TestManager(object):
             "build_id": "20",
             "chroot": "fedora-20-x86_64"
         }
-        vmd_got = self.vmm.acquire_vm(self.group, self.username, self.pid, **kwargs)
+        vmd_got = self.vmm.acquire_vm([GID1], self.ownername, self.pid, **kwargs)
         for k, v in kwargs.items():
             assert vmd_got.get_field(self.rc, k) == v
 
@@ -181,83 +179,87 @@ class TestManager(object):
         mc_time.time.return_value = 0
         self.vmm.mark_server_start()
 
-        vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
-        vmd_alt = self.vmm.add_vm_to_pool(self.vm_ip, "alternative", self.group)
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
+        vmd_alt = self.vmm.add_vm_to_pool(self.vm_ip, "vm_alt", GID1)
+        vmd2 = self.vmm.add_vm_to_pool(self.vm2_ip, self.vm2_name, GID2)
 
-        vmd_main.store_field(self.rc, "state", VmStates.READY)
+        vmd.store_field(self.rc, "state", VmStates.READY)
         vmd_alt.store_field(self.rc, "state", VmStates.READY)
-        vmd_alt.store_field(self.vmm.rc, "bound_to_user", self.username)
-        vmd_main.store_field(self.rc, "last_health_check", 2)
-        vmd_alt.store_field(self.rc, "last_health_check", 2)
+        vmd2.store_field(self.rc, "state", VmStates.READY)
 
-        vmd_got_first = self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
-        assert vmd_got_first.vm_name == "alternative"
-        vmd_got_second = self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
+        vmd.store_field(self.rc, "last_health_check", 2)
+        vmd_alt.store_field(self.rc, "last_health_check", 2)
+        vmd2.store_field(self.rc, "last_health_check", 2)
+
+        vmd_alt.store_field(self.vmm.rc, "bound_to_user", self.ownername)
+
+        vmd_got_first = self.vmm.acquire_vm([GID1, GID2], ownername=self.ownername, pid=self.pid)
+        assert vmd_got_first.vm_name == "vm_alt"
+        vmd_got_second = self.vmm.acquire_vm([GID1, GID2], ownername=self.ownername, pid=self.pid)
         assert vmd_got_second.vm_name == self.vm_name
 
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
+            self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+
+        vmd_got_third = self.vmm.acquire_vm(groups=[GID1, GID2], ownername=self.ownername, pid=self.pid)
+        assert vmd_got_third.vm_name == self.vm2_name
 
     def test_acquire_vm_per_user_limit(self, mc_time):
         mc_time.time.return_value = 0
         self.vmm.mark_server_start()
+        max_vm_per_user = self.opts.build_groups[GID1]["max_vm_per_user"]
 
-        max_vm_per_user = self.opts.build_groups[0]["max_vm_per_user"]
-        acquired_vmd_list = []
+        vmd_list = []
         for idx in range(max_vm_per_user + 1):
-            vmd = self.vmm.add_vm_to_pool("127.0.{}.1".format(idx), "vm_{}".format(idx), self.group)
+            vmd = self.vmm.add_vm_to_pool("127.0.{}.1".format(idx), "vm_{}".format(idx), GID1)
             vmd.store_field(self.rc, "state", VmStates.READY)
             vmd.store_field(self.rc, "last_health_check", 2)
-            acquired_vmd_list.append(vmd)
+            vmd_list.append(vmd)
 
         for idx in range(max_vm_per_user):
-            vmd = self.vmm.acquire_vm(0, self.username, idx)
+            self.vmm.acquire_vm([GID1], self.ownername, idx)
 
         with pytest.raises(NoVmAvailable):
-            self.vmm.acquire_vm(0, self.username, 42)
-
-        acquired_vmd_list[-1].store_field(self.rc, "state", VmStates.READY)
-        self.vmm.acquire_vm(0, self.username, 42)
+            self.vmm.acquire_vm([GID1], self.ownername, 42)
 
     def test_acquire_only_ready_state(self, mc_time):
         mc_time.time.return_value = 0
         self.vmm.mark_server_start()
 
-        vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
         vmd_main.store_field(self.rc, "last_health_check", 2)
 
         for state in [VmStates.IN_USE, VmStates.GOT_IP, VmStates.CHECK_HEALTH,
                       VmStates.TERMINATING, VmStates.CHECK_HEALTH_FAILED]:
             vmd_main.store_field(self.rc, "state", state)
             with pytest.raises(NoVmAvailable):
-                self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
+                self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
 
     def test_acquire_and_release_vm(self, mc_time):
         mc_time.time.return_value = 0
         self.vmm.mark_server_start()
 
-
-        vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
-        vmd_alt = self.vmm.add_vm_to_pool(self.vm_ip, "alternative", self.group)
+        vmd_main = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
+        vmd_alt = self.vmm.add_vm_to_pool(self.vm_ip, "vm_alt", GID1)
 
         vmd_main.store_field(self.rc, "state", VmStates.READY)
         vmd_alt.store_field(self.rc, "state", VmStates.READY)
-        vmd_alt.store_field(self.vmm.rc, "bound_to_user", self.username)
+        vmd_alt.store_field(self.vmm.rc, "bound_to_user", self.ownername)
         vmd_main.store_field(self.rc, "last_health_check", 2)
         vmd_alt.store_field(self.rc, "last_health_check", 2)
 
-        vmd_got_first = self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
-        assert vmd_got_first.vm_name == "alternative"
+        vmd_got_first = self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+        assert vmd_got_first.vm_name == "vm_alt"
 
-        self.vmm.release_vm("alternative")
-        vmd_got_again = self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
-        assert vmd_got_again.vm_name == "alternative"
+        self.vmm.release_vm("vm_alt")
+        vmd_got_again = self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+        assert vmd_got_again.vm_name == "vm_alt"
 
-        vmd_got_another = self.vmm.acquire_vm(group=self.group, username=self.username, pid=self.pid)
+        vmd_got_another = self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
         assert vmd_got_another.vm_name == self.vm_name
 
     def test_release_only_in_use(self):
-        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
 
         for state in [VmStates.READY, VmStates.GOT_IP, VmStates.CHECK_HEALTH,
                       VmStates.TERMINATING, VmStates.CHECK_HEALTH_FAILED]:
@@ -278,7 +280,7 @@ class TestManager(object):
     def test_start_vm_termination(self):
         self.ps = self.vmm.rc.pubsub(ignore_subscribe_messages=True)
         self.ps.subscribe(PUBSUB_MB)
-        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
 
         self.vmm.start_vm_termination(self.vm_name)
         rcv_msg_list = self.rcv_from_ps_message_bus()
@@ -294,7 +296,7 @@ class TestManager(object):
         self.ps = self.vmm.rc.pubsub(ignore_subscribe_messages=True)
         self.ps.subscribe(PUBSUB_MB)
 
-        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
         vmd.store_field(self.rc, "state", VmStates.TERMINATING)
         self.vmm.start_vm_termination(self.vm_name, allowed_pre_state=VmStates.TERMINATING)
         rcv_msg_list = self.rcv_from_ps_message_bus()
@@ -309,7 +311,7 @@ class TestManager(object):
     def test_start_vm_termination_fail(self):
         self.ps = self.vmm.rc.pubsub(ignore_subscribe_messages=True)
         self.ps.subscribe(PUBSUB_MB)
-        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
         vmd.store_field(self.rc, "state", VmStates.TERMINATING)
 
         self.vmm.start_vm_termination(self.vm_name)
@@ -329,7 +331,7 @@ class TestManager(object):
         assert vmd.get_field(self.rc, "state") == VmStates.TERMINATING
 
     def test_remove_vm_from_pool_only_terminated(self):
-        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, self.group)
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
         for state in [VmStates.IN_USE, VmStates.GOT_IP, VmStates.CHECK_HEALTH,
                       VmStates.READY, VmStates.CHECK_HEALTH_FAILED]:
 
@@ -339,11 +341,11 @@ class TestManager(object):
 
         vmd.store_field(self.vmm.rc, "state", VmStates.TERMINATING)
         self.vmm.remove_vm_from_pool(self.vm_name)
-        assert self.vmm.rc.scard(KEY_VM_POOL.format(group=self.group)) == 0
+        assert self.vmm.rc.scard(KEY_VM_POOL.format(group=GID1)) == 0
 
-    def test_get_vms(self, f_second_group, capsys):
-        vmd_1 = self.vmm.add_vm_to_pool(self.vm_ip, "a1", self.group)
-        vmd_2 = self.vmm.add_vm_to_pool(self.vm_ip, "a2", self.group)
+    def test_get_vms(self, capsys):
+        vmd_1 = self.vmm.add_vm_to_pool(self.vm_ip, "a1", GID1)
+        vmd_2 = self.vmm.add_vm_to_pool(self.vm_ip, "a2", GID1)
         vmd_3 = self.vmm.add_vm_to_pool(self.vm_ip, "b1", 1)
         vmd_4 = self.vmm.add_vm_to_pool(self.vm_ip, "b2", 1)
         vmd_5 = self.vmm.add_vm_to_pool(self.vm_ip, "b3", 1)
@@ -366,13 +368,13 @@ class TestManager(object):
 
         self.vmm.info()
 
-    def test_look_up_vms_by_ip(self, f_second_group, capsys):
-        self.vmm.add_vm_to_pool(self.vm_ip, "a1", self.group)
+    def test_look_up_vms_by_ip(self, capsys):
+        self.vmm.add_vm_to_pool(self.vm_ip, "a1", GID1)
         r1 = self.vmm.lookup_vms_by_ip(self.vm_ip)
         assert len(r1) == 1
         assert r1[0].vm_name == "a1"
 
-        self.vmm.add_vm_to_pool(self.vm_ip, "a2", self.group)
+        self.vmm.add_vm_to_pool(self.vm_ip, "a2", GID1)
         r2 = self.vmm.lookup_vms_by_ip(self.vm_ip)
         assert len(r2) == 2
         r2 = sorted(r2, key=lambda vmd: vmd.vm_name)
