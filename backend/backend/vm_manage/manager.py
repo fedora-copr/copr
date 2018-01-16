@@ -221,26 +221,27 @@ class VmManager(object):
         vmd_list = self.get_all_vm_in_group(group)
         return [vmd for vmd in vmd_list if vmd.bound_to_user is not None]
 
-    def acquire_vm(self, groups, username, pid, task_id=None, build_id=None, chroot=None):
+    def acquire_vm(self, groups, ownername, pid, task_id=None, build_id=None, chroot=None):
         """
-        Try to acquire VM from pool
+        Try to acquire VM from pool.
 
-        :param list groups: builder group ids where the build can build launched, as defined in config
-        :param username: build owner username, VMM prefer to reuse an existing VM which was used by the same user
-        :param pid: builder pid to release VM after build process unhandled death
+        :param list groups: builder group ids where the build can be launched as defined in config
+        :param ownername: job owner, prefer to reuse an existing VM which was used by that same user before
+        :param pid: worker process id
 
         :rtype: VmDescriptor
-        :raises: NoVmAvailable  when manager couldn't find suitable VM for the given group and user
+        :raises: NoVmAvailable when manager couldn't find suitable VM for the given groups and owner
         """
         for group in groups:
             ready_vmd_list = self.get_ready_vms(group)
             # trying to find VM used by this user
-            dirtied_by_user = [vmd for vmd in ready_vmd_list if vmd.bound_to_user == username]
+            dirtied_by_user = [vmd for vmd in ready_vmd_list if vmd.bound_to_user == ownername]
 
-            user_can_acquire_more_vm = self.can_user_acquire_more_vm(username, group)
+            user_can_acquire_more_vm = self.can_user_acquire_more_vm(ownername, group)
             if not dirtied_by_user and not user_can_acquire_more_vm:
-                raise NoVmAvailable("No VM are available, user `{}` already acquired too much VMs"
-                                    .format(username))
+                self.log.debug("User {} already acquired too much VMs in group {}"
+                               .format(ownername, group))
+                continue
 
             available_vms = dirtied_by_user
             if user_can_acquire_more_vm:
@@ -252,12 +253,13 @@ class VmManager(object):
                     self.log.debug("VM {} has check fails, skip acquire".format(vmd.vm_name))
                 vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
                 if self.lua_scripts["acquire_vm"](keys=[vm_key, KEY_SERVER_INFO],
-                                                  args=[username, pid, time.time(),
+                                                  args=[ownername, pid, time.time(),
                                                         task_id, build_id, chroot]) == "OK":
                     self.log.info("Acquired VM :{} {} for pid: {}".format(vmd.vm_name, vmd.vm_ip, pid))
                     return vmd
-            else:
-                raise NoVmAvailable("No VM are available, please wait in queue. Group: {}".format(group))
+
+        raise NoVmAvailable("No VMs are currently available for task {} of user {}"
+                            .format(task_id, ownername))
 
     def release_vm(self, vm_name):
         """
