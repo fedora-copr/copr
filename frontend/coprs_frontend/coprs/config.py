@@ -54,7 +54,6 @@ class Config(object):
     DEBUG = True
 
     REPO_GPGCHECK = 1
-    DEFER_BUILD_SECONDS = 30
 
     STORAGE_DIR = "/var/lib/copr/data/srpm_storage/"
 

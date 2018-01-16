@@ -70,23 +70,6 @@ class FrontendClient(object):
             raise RequestException("Bad respond from the frontend")
         return response.json()["can_start"]
 
-    def defer_build(self, build_id, chroot_name):
-        """
-        Tell the frontend that the build task should be deferred
-        (put aside for some time until there are resources for it).
-        """
-        was_deferred = False
-        data = {"build_id": build_id, "chroot": chroot_name}
-        try:
-            response = self._post_to_frontend_repeatedly(data, "defer_build")
-            was_deferred = response.json()["was_deferred"]
-        except (RequestException, ValueError, KeyError) as e:
-            self.log.exception("Failed to defer build task (build_id {} and chroot {}) with error {}"
-                               .format(build_id, chroot_name, e))
-        if not was_deferred:
-            self.log.exception("Frontend refused to defer build task: build_id {} and chroot {}"
-                               .format(build_id, chroot_name))
-
     def reschedule_build(self, build_id, chroot_name):
         """
         Announce to the frontend that a build should be rescheduled (set pending state).

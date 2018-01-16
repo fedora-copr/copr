@@ -537,7 +537,6 @@ class Build(db.Model, helpers.Serializer):
     # background builds has lesser priority than regular builds.
     is_background = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
-    last_deferred = db.Column(db.Integer)
     srpm_url = db.Column(db.Text)
 
     # relations
@@ -989,7 +988,6 @@ class BuildChroot(db.Model, helpers.Serializer):
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer, index=True)
 
-    last_deferred = db.Column(db.Integer)
     build_requires = db.Column(db.Text)
 
     @property

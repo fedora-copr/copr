@@ -49,7 +49,7 @@ class ActionDispatcher(multiprocessing.Process):
             self.update_process_title("Waiting for an action task from frontend for {}s"
                                       .format(int(time.time() - get_action_init_time)))
             try:
-                r = get("{0}/backend/select-action/".format(self.opts.frontend_base_url),
+                r = get("{0}/backend/waiting-action/".format(self.opts.frontend_base_url),
                         auth=("user", self.opts.frontend_auth))
                 action_task = r.json()
             except (RequestException, ValueError) as error:

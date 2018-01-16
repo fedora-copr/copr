@@ -70,9 +70,6 @@ class BuildJob(object):
         else:
             self.chroot = 'srpm-builds'
 
-        if not self.task_id:
-            self.task_id = self.build_id
-
         self.destdir = os.path.normpath(os.path.join(
             worker_opts.destdir,
             task_data["project_owner"],

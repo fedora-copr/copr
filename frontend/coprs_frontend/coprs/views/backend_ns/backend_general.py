@@ -169,6 +169,7 @@ def get_srpm_build_record(task):
     try:
         build_record = {
             "build_id": task.id,
+            "task_id": task.id,
             "project_owner": task.copr.owner_name,
             "project_name": task.copr.name,
             "source_type": task.source_type,
@@ -181,9 +182,9 @@ def get_srpm_build_record(task):
     return build_record
 
 
-@backend_ns.route("/select-action/")
+@backend_ns.route("/waiting-action/")
 #@misc.backend_authenticated
-def select_action():
+def waiting_action():
     """
     Return a single action.
     """
@@ -196,38 +197,16 @@ def select_action():
     return flask.jsonify(action_record)
 
 
-@backend_ns.route("/select-build-task/")
+@backend_ns.route("/waiting-jobs/")
 #@misc.backend_authenticated
-def select_build_task():
+def waiting_jobs():
     """
-    Return a single job.
+    Return the job queue.
     """
-    provide_task_ids = flask.request.args.getlist('provide_task_ids')
-    exclude_archs = flask.request.args.getlist('exclude_archs')
-    exclude_owners = flask.request.args.getlist('exclude_owners')
-    exclude_owner_arch_pairs = flask.request.args.getlist('exclude_owner_arch_pairs')
-
-    exclude_owner_arch_pairs_decoded = []
-    for pair in exclude_owner_arch_pairs:
-        owner, arch = pair.split(',')
-        exclude_owner_arch_pairs_decoded.append((owner, arch))
-    exclude_owner_arch_pairs = exclude_owner_arch_pairs_decoded
-
-    build_task = BuildsLogic.select_build_task(
-        provide_task_ids=provide_task_ids,
-        exclude_owners=exclude_owners,
-        exclude_archs=exclude_archs,
-        exclude_owner_arch_pairs=exclude_owner_arch_pairs)
-    build_record = get_build_record(build_task)
-
-    if not build_record:
-        srpm_build_task = BuildsLogic.select_srpm_build_task(
-            provide_task_ids=provide_task_ids,
-            exclude_owners=exclude_owners)
-        build_record = get_srpm_build_record(srpm_build_task)
-
-    log.info('Selected: {}'.format(build_record))
-    return flask.jsonify(build_record)
+    build_records = ([get_build_record(task) for task in BuildsLogic.get_waiting_build_tasks()] +
+                     [get_srpm_build_record(task) for task in BuildsLogic.get_waiting_srpm_build_tasks()])
+    log.info('Selected build records: {}'.format(build_records))
+    return flask.jsonify(build_records)
 
 
 @backend_ns.route("/get-build-task/<task_id>")
@@ -311,30 +290,6 @@ def starting_build():
             })
             db.session.commit()
             result["can_start"] = True
-
-    return flask.jsonify(result)
-
-
-@backend_ns.route("/defer_build/", methods=["POST", "PUT"])
-@misc.backend_authenticated
-def defer_build():
-    """
-    Defer build (keep it out of waiting jobs for some time).
-    """
-    result = {"was_deferred": False}
-
-    if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build = ComplexLogic.get_build_safe(flask.request.json["build_id"])
-        chroot = flask.request.json.get("chroot")
-
-        if build and chroot:
-            log.info("Defer build {}, chroot {}".format(build.id, chroot))
-            BuildsLogic.update_state_from_dict(build, {
-                "chroot": chroot,
-                "last_deferred": int(time.time()),
-            })
-            db.session.commit()
-            result["was_deferred"] = True
 
     return flask.jsonify(result)
 

@@ -118,35 +118,16 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def select_srpm_build_tasks_base_query(cls):
+    def get_waiting_srpm_build_tasks(cls):
         return (models.Build.query.join(models.BuildChroot)
                 .filter(models.Build.srpm_url.is_(None))
                 .filter(models.Build.canceled == false())
                 .filter(models.BuildChroot.status == helpers.StatusEnum("importing"))
-                .filter(or_(
-                    models.Build.last_deferred.is_(None),
-                    models.Build.last_deferred < int(time.time() - app.config["DEFER_BUILD_SECONDS"])
-                )))
+                .order_by(models.Build.is_background.asc(), models.Build.id.asc())
+                .all())
 
     @classmethod
-    def select_srpm_build_task(cls, provide_task_ids=[], exclude_owners=[]):
-        selected_srpm_build_tasks = (cls.select_srpm_build_tasks_base_query()
-                                     .order_by(models.Build.is_background.asc(), models.Build.id.asc())).all()
-
-        for task in selected_srpm_build_tasks:
-            if task.task_id in provide_task_ids:
-                return task
-
-            owner_name = task.copr.owner_name
-            if owner_name in exclude_owners:
-                continue
-
-            return task
-
-        return None
-
-    @classmethod
-    def select_build_tasks_base_query(cls):
+    def get_waiting_build_tasks(cls):
         return (models.BuildChroot.query.join(models.Build)
                 .filter(models.Build.canceled == false())
                 .filter(or_(
@@ -157,29 +138,8 @@ class BuildsLogic(object):
                         models.BuildChroot.ended_on.is_(None)
                     )
                 ))
-                .filter(or_(
-                    models.BuildChroot.last_deferred.is_(None),
-                    models.BuildChroot.last_deferred < int(time.time() - app.config["DEFER_BUILD_SECONDS"])
-                )))
-
-    @classmethod
-    def select_build_task(cls, provide_task_ids=[], exclude_owners=[], exclude_archs=[], exclude_owner_arch_pairs=[]):
-        selected_build_tasks = (cls.select_build_tasks_base_query()
-                                .order_by(models.Build.is_background.asc(), models.BuildChroot.build_id.asc())).all()
-
-        for task in selected_build_tasks:
-            if task.task_id in provide_task_ids:
-                return task
-
-            owner_name = task.build.copr.owner_name
-            arch = task.mock_chroot.arch
-            if owner_name in exclude_owners or arch in exclude_archs \
-                    or (owner_name, arch) in exclude_owner_arch_pairs:
-                continue
-
-            return task
-
-        return None
+                .order_by(models.Build.is_background.asc(), models.BuildChroot.build_id.asc())
+                .all())
 
     @classmethod
     def get_build_task(cls, task_id):
@@ -734,9 +694,6 @@ GROUP BY
         if "chroot" in upd_dict:
             if upd_dict["chroot"] == "srpm-builds":
 
-                if "last_deferred" in upd_dict:
-                    build.last_deferred = upd_dict["last_deferred"]
-
                 if upd_dict.get("status") == StatusEnum("failed") and not build.canceled:
                     build.fail_type = helpers.FailTypeEnum("srpm_build_error")
                     for ch in build.build_chroots:
@@ -756,9 +713,6 @@ GROUP BY
 
                     if upd_dict.get("status") == StatusEnum("starting"):
                         build_chroot.started_on = upd_dict.get("started_on") or time.time()
-
-                    if "last_deferred" in upd_dict:
-                        build.last_deferred = upd_dict["last_deferred"]
 
                     db.session.add(build_chroot)
 
