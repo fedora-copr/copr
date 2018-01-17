@@ -227,6 +227,7 @@ def chroot_to_branch(chroot):
     return "{}{}".format(os, version)
 
 
+# TODO: is there something like python-rpm-utils or python-dnf-utils for this?
 def splitFilename(filename):
     """
     Pass in a standard style rpm fullname

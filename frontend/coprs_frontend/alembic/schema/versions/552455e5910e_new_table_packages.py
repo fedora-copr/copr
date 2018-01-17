@@ -13,7 +13,7 @@ down_revision = '450fe5f7942d'
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import and_
-from rpmUtils.miscutils import splitFilename
+from coprs.helpers import splitFilename
 import os
 import json
 

@@ -1,14 +1,14 @@
 """remove_priority_columns
 
 Revision ID: 4edb1ca2a13f
-Revises: 7bb0c7762df0
+Revises: e183e12563ee
 Create Date: 2018-01-01 16:34:13.196247
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '4edb1ca2a13f'
-down_revision = '7bb0c7762df0'
+down_revision = 'e183e12563ee'
 
 from alembic import op
 import sqlalchemy as sa
