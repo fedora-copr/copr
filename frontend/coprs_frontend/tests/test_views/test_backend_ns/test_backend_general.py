@@ -8,8 +8,8 @@ from coprs import helpers
 class TestWaitingBuilds(CoprsTestCase):
 
     def test_no_waiting_builds(self):
-        assert b'"build": null' in self.tc.get(
-            "/backend/waiting/", headers=self.auth_header).data
+        assert b'[]' in self.tc.get(
+            "/backend/waiting-jobs/", headers=self.auth_header).data
 
     def test_waiting_build_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
@@ -23,8 +23,8 @@ class TestWaitingBuilds(CoprsTestCase):
 
         self.db.session.commit()
 
-        r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        assert json.loads(r.data.decode("utf-8"))["build"] == None
+        r = self.tc.get("/backend/waiting-jobs/", headers=self.auth_header)
+        assert json.loads(r.data.decode("utf-8")) == []
 
         for build_chroot in self.b2_bc:
             build_chroot.status = 4 # pending
@@ -32,8 +32,8 @@ class TestWaitingBuilds(CoprsTestCase):
 
         self.db.session.commit()
 
-        r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        assert json.loads(r.data.decode("utf-8"))["build"] != None
+        r = self.tc.get("/backend/waiting-jobs/", headers=self.auth_header)
+        assert json.loads(r.data.decode("utf-8")) != []
 
 
     def test_waiting_bg_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
@@ -43,9 +43,9 @@ class TestWaitingBuilds(CoprsTestCase):
                 build_chroot.status = 4  # pending
         self.db.session.commit()
 
-        r = self.tc.get("/backend/waiting/")
+        r = self.tc.get("/backend/waiting-jobs/")
         data = json.loads(r.data.decode("utf-8"))
-        assert data["build"]["build_id"] == 3
+        assert data[0]["build_id"] == 3
 
 
 # status = 0 # failure
@@ -164,8 +164,8 @@ class TestUpdateBuilds(CoprsTestCase):
 class TestWaitingActions(CoprsTestCase):
 
     def test_no_waiting_actions(self):
-        assert b'"action": null' in self.tc.get(
-            "/backend/waiting/", headers=self.auth_header).data
+        assert b'null' in self.tc.get(
+            "/backend/waiting-action/", headers=self.auth_header).data
 
     def test_waiting_actions_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_actions, f_db):
@@ -175,16 +175,16 @@ class TestWaitingActions(CoprsTestCase):
 
         self.db.session.commit()
 
-        r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        assert json.loads(r.data.decode("utf-8"))["action"] == None
+        r = self.tc.get("/backend/waiting-action/", headers=self.auth_header)
+        assert json.loads(r.data.decode("utf-8")) == None
 
         for a in [self.a1, self.a2, self.a3]:
             a.result = helpers.BackendResultEnum("waiting")
             self.db.session.add(a)
 
         self.db.session.commit()
-        r = self.tc.get("/backend/waiting/", headers=self.auth_header)
-        assert json.loads(r.data.decode("utf-8"))["action"] != None
+        r = self.tc.get("/backend/waiting-action/", headers=self.auth_header)
+        assert json.loads(r.data.decode("utf-8")) != None
 
 
 class TestUpdateActions(CoprsTestCase):
