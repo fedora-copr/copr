@@ -48,17 +48,9 @@ BuildArch:  noarch
 BuildRequires: util-linux
 BuildRequires: systemd
 
-#for doc package
+# for doc package
 BuildRequires: epydoc
 BuildRequires: graphviz
-
-Requires: httpd
-Requires: passwd
-Requires: curl
-Requires: redis
-Requires: crontabs
-
-Requires: %flavor_guard
 
 %if %{with check}
 BuildRequires: python3-six
@@ -91,6 +83,14 @@ BuildRequires: python3-flask-whooshee
 BuildRequires: python3-modulemd
 BuildRequires: redis
 %endif
+
+Requires: httpd
+Requires: passwd
+Requires: curl
+Requires: redis
+Requires: crontabs
+
+Requires: %flavor_guard
 
 Requires: python3-mod_wsgi
 Requires: python3-dateutil
@@ -332,6 +332,7 @@ service logstash condrestart
 - fix code block spacing
 - fix scm unification migrations for mock-scm
 - show most recent post from our blog 
+
 * Thu Nov 09 2017 clime <clime@redhat.com> 1.124-1
 - fix build_on_pagure_commit.py
 - optimize check_for_anitya_version_updates
