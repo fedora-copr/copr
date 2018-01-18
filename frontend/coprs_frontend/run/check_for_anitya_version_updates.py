@@ -24,6 +24,7 @@ logging.basicConfig(
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
     level=logging.DEBUG)
 log = logging.getLogger(__name__)
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 parser = argparse.ArgumentParser(description='Fetch package version updates by using datagrepper log of anitya emitted messages and issue rebuilds of the respective COPR packages for each such update. Requires httpie package.')
 
@@ -37,31 +38,15 @@ parser.add_argument('-v', '--version', action='version', version='1.0',
 args = parser.parse_args()
 
 
-def logdebug(msg):
-    print(msg)
-    log.debug(msg)
-
-def loginfo(msg):
-    print(msg)
-    log.info(msg)
-
-def logerror(msg):
-    print(msg, file=sys.stderr)
-    log.error(msg)
-
-def logexception(msg):
-    print(msg, file=sys.stderr)
-    log.exception(msg)
-
 def run_cmd(cmd):
     """
     Run given command in a subprocess
     """
-    loginfo('Executing: '+' '.join(cmd))
+    log.info('Executing: '+' '.join(cmd))
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = process.communicate()
     if process.returncode != 0:
-        logerror(stderr)
+        log.error(stderr)
         sys.exit(1)
     return stdout
 
@@ -70,8 +55,8 @@ def to_json(data_bytes):
         data = data_bytes.decode("utf-8")
         data_json = json.loads(data)
     except Exception as e:
-        loginfo(data)
-        logexception(str(e))
+        log.info(data)
+        log.exception(str(e))
     return data_json
 
 def get_updates_messages():
@@ -121,6 +106,7 @@ def get_copr_package_info_rows(updated_packages):
     )
     return rows
 
+
 class RubyGemsPackage(object):
     def __init__(self, source_json):
         self.name = source_json['gem_name'].lower()
@@ -150,34 +136,34 @@ def package_from_source(backend, source_json):
 
 def main():
     updated_packages = get_updated_packages(get_updates_messages())
-    loginfo('Updated packages according to datagrepper: {0}'.format(updated_packages))
+    log.info('Updated packages according to datagrepper: {0}'.format(updated_packages))
 
     for row in get_copr_package_info_rows(updated_packages):
         source_json = json.loads(row.source_json)
         package = package_from_source(args.backend.lower(), source_json)
 
         latest_build_version = row.pkg_version
-        loginfo('candidate package for rebuild: {0}, package_id: {1}, copr_id: {2}'.format(package.name, row.package_id, row.copr_id))
+        log.info('candidate package for rebuild: {0}, package_id: {1}, copr_id: {2}'.format(package.name, row.package_id, row.copr_id))
         if package.name in updated_packages:
             new_updated_version = updated_packages[package.name]
-            logdebug('name: {0}, latest_build_version: {1}, new_updated_version {2}'.format(package.name, latest_build_version, new_updated_version))
+            log.debug('name: {0}, latest_build_version: {1}, new_updated_version {2}'.format(package.name, latest_build_version, new_updated_version))
 
             # if the last build's package version is "different" from new remote package version, rebuild
             if not latest_build_version or not re.match(new_updated_version, latest_build_version):
                 try:
                     copr = CoprsLogic.get_by_id(row.copr_id)[0]
                 except Exception as e:
-                    logexception(e)
+                    log.exception(e)
                     continue
 
-                loginfo('Launching {} build for package of source name: {}, package_id: {}, copr_id: {}, user_id: {}'
+                log.info('Launching {} build for package of source name: {}, package_id: {}, copr_id: {}, user_id: {}'
                         .format(args.backend.lower(), package.name, row.package_id, copr.id, copr.user.id))
                 build = package.build(copr, new_updated_version)
                 db.session.commit()
-                loginfo('Launched build id {0}'.format(build.id))
+                log.info('Launched build id {0}'.format(build.id))
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        logexception(str(e))
+        log.exception(str(e))
