@@ -96,7 +96,7 @@ def build_on_fedmsg_loop():
     s.connect(ENDPOINT)
 
     for topic in TOPICS:
-        s.setsockopt(zmq.SUBSCRIBE, topic)
+        s.setsockopt_string(zmq.SUBSCRIBE, topic)
 
     poller = zmq.Poller()
     poller.register(s, zmq.POLLIN)
@@ -108,7 +108,8 @@ def build_on_fedmsg_loop():
             continue
 
         log.debug("Receiving...")
-        topic, msg = s.recv_multipart()
+        _, msg_bytes = s.recv_multipart()
+        msg = msg_bytes.decode("utf-8")
 
         log.debug("Parsing...")
         data = json.loads(msg)

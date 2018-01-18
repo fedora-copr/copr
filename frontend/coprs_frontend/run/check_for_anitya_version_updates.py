@@ -38,19 +38,19 @@ args = parser.parse_args()
 
 
 def logdebug(msg):
-    print msg
+    print(msg)
     log.debug(msg)
 
 def loginfo(msg):
-    print msg
+    print(msg)
     log.info(msg)
 
 def logerror(msg):
-    print >> sys.stderr, msg
+    print(msg, file=sys.stderr)
     log.error(msg)
 
 def logexception(msg):
-    print >> sys.stderr, msg
+    print(msg, file=sys.stderr)
     log.exception(msg)
 
 def run_cmd(cmd):
@@ -65,8 +65,9 @@ def run_cmd(cmd):
         sys.exit(1)
     return stdout
 
-def to_json(data):
+def to_json(data_bytes):
     try:
+        data = data_bytes.decode("utf-8")
         data_json = json.loads(data)
     except Exception as e:
         loginfo(data)

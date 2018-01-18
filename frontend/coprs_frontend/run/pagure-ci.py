@@ -36,7 +36,7 @@ def ci_listener():
     s = ctx.socket(zmq.SUB)
     s.connect(ENDPOINT)
 
-    s.setsockopt(zmq.SUBSCRIBE, TOPIC)
+    s.setsockopt_string(zmq.SUBSCRIBE, TOPIC)
 
     poller = zmq.Poller()
     poller.register(s, zmq.POLLIN)
@@ -48,7 +48,8 @@ def ci_listener():
             continue
 
         log.debug('Receiving...')
-        topic, msg = s.recv_multipart()
+        _, msg_bytes = s.recv_multipart()
+        msg = msg_bytes.decode("utf-8")
 
         log.debug('Parsing...')
         msg = json.loads(msg)
