@@ -186,13 +186,7 @@ cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysc
 %endif
 
 %check
-
-redis-server --port 7777 &> /dev/null &
-
-#PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest \
-#  -s -v --cov-report term-missing --cov ./backend --cov ./run ./tests/
-
-kill %1
+./run_tests.sh
 
 %pre
 getent group copr >/dev/null || groupadd -r copr
