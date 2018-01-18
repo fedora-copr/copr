@@ -3,11 +3,10 @@ Description=copr aux service to import srpm into dist-git
 Requires=dist-git.socket
 After=dist-git.socket
 
-
 [Service]
 User=copr-dist-git
 Group=packager
-AmbientCapabilities=CAP_SETGID CAP_SYS_CHROOT
+AmbientCapabilities=CAP_SETGID
 Environment="PYTHONPATH=/usr/share/copr/"
 ExecStart=/usr/bin/python2.7 /usr/bin/importer_runner.py
 
