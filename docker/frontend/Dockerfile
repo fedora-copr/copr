@@ -13,6 +13,8 @@ RUN dnf -y update && \
                    yum \
                    supervisor \
                    copr-selinux \
+                   python-alembic \  # https://bugzilla.redhat.com/show_bug.cgi?id=1536058
+                   python3-alembic \
                    postgresql-server \
                    redis
 
@@ -34,6 +36,9 @@ RUN cd /copr/frontend/ && tito build --test --rpm --rpmbuild-options='--nocheck'
 
 # Install the Copr Frontend build
 RUN dnf -y install /tmp/tito/noarch/copr-frontend*.noarch.rpm
+
+# Configure public hostname
+RUN sed -i.bak -e "s/^PUBLIC_COPR_HOSTNAME.*/PUBLIC_COPR_HOSTNAME = '127.0.0.1:5000'/g" /etc/copr/copr.conf
 
 # Configure dist git url
 RUN sed -i.bak -e "s/^DIST_GIT_URL.*/DIST_GIT_URL = 'http:\\/\\/distgit\\/cgit\\/'/g" /etc/copr/copr.conf
