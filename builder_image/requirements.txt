@@ -1,6 +1,0 @@
-ipdb
-ansible
-python-novaclient
-python-glanceclient
-python-keystoneclient
-# neutronclient
