@@ -117,13 +117,6 @@ rlJournalStart
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT &> $OUTPUT" 1
         rlAssertEquals "Module should already exist" `cat $OUTPUT | grep "already exists" |wc -l` 1
 
-        # @TODO Test scmurl submit
-        # We can't exactly say whether such NSV was built yet so we don't
-        # know whether to anticipate a success or an duplicity eror.
-        # The whole idea of modules duplicity should be resolved after
-        # some time of using the MBS. See a related RFE
-        # https://pagure.io/fm-orchestrator/issue/308
-
         # Test that MBS api is not accessible
         rlAssertEquals "MBS API should be directly accessible from copr-frontend only"\
                        `curl -I -s -L $FRONTEND_URL/module/1/module-builds |grep 'HTTP/1.1' |cut -f2 -d ' '` 403
@@ -132,6 +125,14 @@ rlJournalStart
         PACKAGES=`mktemp`
         wait_for_finished_module "module-testmodule-beakertest-$DATE" 2 600 $PACKAGES
         test_successful_packages "ed mksh" $PACKAGES
+
+        # Test URL submit
+        PROJECT=module-testmoduleurl-beakertest-$DATE
+        copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
+        rlRun "copr-cli build-module --url http://pkgs.fedoraproject.org/modules/testmodule/raw/master/f/testmodule.yaml $PROJECT"
+        PACKAGES=`mktemp`
+        wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 1 600 $PACKAGES
+        test_successful_packages "ed" $PACKAGES
 
         # @TODO Test that module succeeded
         # We need to implement API for retrieving modules or at least
