@@ -452,6 +452,12 @@ class Action(object):
                         self.log.info("Copy directory: {} as {}".format(
                             os.path.join(srcdir, folder), os.path.join(destdir, folder)))
 
+                        for f in os.listdir(os.path.join(destdir, folder)):
+                            if not f.endswith(".rpm") or f.endswith(".src.rpm"):
+                                continue
+                            mmd.artifacts.rpms.add(str(f.rstrip(".rpm")))
+
+                    self.log.info("Module artifacts: {}".format(mmd.artifacts.rpms))
                     modulemd.dump_all(os.path.join(destdir, "modules.yaml"), [mmd])
                     createrepo(path=destdir, front_url=self.front_url,
                                username=ownername, projectname=projectname,
