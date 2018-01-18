@@ -3,6 +3,7 @@ MAINTAINER jkadlcik@redhat.com
 
 
 # base packages
+# ad. python-alembic: https://bugzilla.redhat.com/show_bug.cgi?id=1536058
 RUN dnf -y update && \
     dnf -y install dnf-plugins-core \
                    htop \
@@ -13,7 +14,7 @@ RUN dnf -y update && \
                    yum \
                    supervisor \
                    copr-selinux \
-                   python-alembic \  # https://bugzilla.redhat.com/show_bug.cgi?id=1536058
+                   python-alembic \
                    python3-alembic \
                    postgresql-server \
                    redis
