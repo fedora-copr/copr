@@ -1,7 +1,7 @@
 import os
 import shutil
 import tempfile
-import bunch
+import munch
 import time
 import json
 
@@ -15,7 +15,7 @@ class Base(object):
         self.lookaside_location = os.path.join(self.tmp_dir_name, "lookaside")
         self.per_task_location = os.path.join(self.tmp_dir_name, "per-task-logs")
         os.mkdir(self.per_task_location)
-        self.opts = bunch.Bunch({
+        self.opts = munch.Munch({
             "frontend_base_url": "http://front",
             "frontend_auth": "secure_password",
 

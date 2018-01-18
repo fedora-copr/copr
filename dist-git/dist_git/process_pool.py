@@ -1,10 +1,12 @@
 from multiprocessing import Process
+
 import datetime
 import logging
 
-from exceptions import TimeoutException
+from .exceptions import TimeoutException
 
 log = logging.getLogger(__name__)
+
 
 class Worker(Process):
     def __init__(self, id=None, timeout=None, *args, **kwargs):

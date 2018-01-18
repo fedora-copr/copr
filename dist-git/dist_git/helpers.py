@@ -1,19 +1,16 @@
-
 import os
 import logging
-import ConfigParser
 import subprocess
 import munch
 
-from exceptions import FileDownloadException, RunCommandException, SrpmQueryException
+from .exceptions import FileDownloadException, RunCommandException, SrpmQueryException
 
-# todo: replace with munch, check availability in epel
-from bunch import Bunch
+from configparser import ConfigParser
+from munch import Munch
 from requests import get
 from functools import wraps
 
 log = logging.getLogger(__name__)
-
 
 
 def single_run(lock):
@@ -104,10 +101,10 @@ class ConfigReader(object):
                     self.config_file, e))
 
     def _read_unsafe(self):
-        cp = ConfigParser.ConfigParser()
+        cp = ConfigParser()
         cp.read(self.config_file)
 
-        opts = Bunch()
+        opts = Munch()
 
         opts.frontend_base_url = _get_conf(
             cp, "dist-git", "frontend_base_url", "http://copr-fe")
@@ -201,7 +198,8 @@ def run_cmd(cmd, cwd='.', raise_on_error=True):
     :raises RunCommandException
     :returns munch.Munch(cmd, stdout, stderr, returncode)
     """
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               cwd=cwd, encoding='utf-8')
     try:
         (stdout, stderr) = process.communicate()
     except OSError as e:
@@ -231,7 +229,8 @@ def pkg_name_evr(srpm_path):
 
     try:
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            encoding='utf-8')
         output, error = proc.communicate()
     except OSError as e:
         raise SrpmQueryException(str(e))

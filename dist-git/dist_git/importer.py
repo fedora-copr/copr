@@ -2,16 +2,17 @@ import os
 import json
 import time
 import logging
-import helpers
 import tempfile
 import shutil
 
 from requests import get, post
 
-from package_import import import_package
-from process_pool import Worker, Pool
-from exceptions import PackageImportException
-from import_task import ImportTask
+from .package_import import import_package
+from .process_pool import Worker, Pool
+from .exceptions import PackageImportException
+from .import_task import ImportTask
+
+from . import helpers
 
 log = logging.getLogger(__name__)
 

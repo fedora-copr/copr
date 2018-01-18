@@ -11,15 +11,8 @@ from base import Base
 
 from dist_git.package_import import my_upload_fabric, import_package, setup_git_repo
 
-import six
-
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import MagicMock
-else:
-    import mock
-    from mock import MagicMock
-
+from unittest import mock
+from unittest.mock import MagicMock
 
 MODULE_REF = 'dist_git.package_import'
 

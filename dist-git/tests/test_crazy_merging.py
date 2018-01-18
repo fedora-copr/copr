@@ -4,11 +4,12 @@ import tempfile
 import pytest
 import shutil
 import time
-from bunch import Bunch
 import os
-from subprocess import call, check_output
 import mock
 import logging
+
+from munch import Munch
+from subprocess import check_output
 
 from dist_git.package_import import import_package
 
@@ -140,7 +141,7 @@ def get_srpm(version):
                              'quick-package-{0}-0.src.rpm'.format(version))
     result = (
         srpm_path,
-        Bunch({
+        Munch({
             'package_name': 'quick-package',
             'user': 'bob',
             'project':'blah',
@@ -153,7 +154,7 @@ def get_srpm(version):
 
 def branch_hash(directory, branch):
     cmd = 'set -e && cd {0} && git rev-parse {1}'.format(directory, branch)
-    return check_output(cmd, shell=True)
+    return check_output(cmd, shell=True, encoding='utf-8')
 
 
 def compare_branches(branches, remote, local=None, result_hash=None):

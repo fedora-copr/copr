@@ -6,20 +6,13 @@ import os
 import copy
 import pytest
 
-from bunch import Bunch
 from mock import call
 from munch import Munch
 
 from base import Base
 
-import six
-
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import MagicMock
-else:
-    import mock
-    from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 
 
 MODULE_REF = 'dist_git.importer'
@@ -126,12 +119,12 @@ class TestImporter(Base):
         assert mc_import_package.call_args[0][2] == self.url_task.branches
         assert mc_import_package.call_args[0][3] == 'somepath.src.rpm'
 
-        print self.importer.post_back_safe.has_calls([
+        print(self.importer.post_back_safe.has_calls([
             call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH,
                   'pkg_version': '1.2', 'git_hash': '123', 'repo_name': 'foo'}),
             call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH2,
                   'pkg_version': '1.2', 'git_hash': '124', 'repo_name': 'foo'})
-        ])
+        ]))
 
     def test_run(self, mc_time, mc_worker):
         self.importer.try_to_obtain_new_tasks = MagicMock()

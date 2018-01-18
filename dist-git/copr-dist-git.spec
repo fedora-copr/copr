@@ -15,36 +15,19 @@ Source0:    {{{ git_dir_pack }}}
 BuildArch:  noarch
 
 BuildRequires: systemd
-
-%if (0%{?fedora} && 0%{?fedora} < 28) || (0%{?rhel} && 0%{?rhel} < 8)
-BuildRequires: python-bunch
-BuildRequires: python-munch
-%else
-BuildRequires: python2-bunch
-BuildRequires: python2-munch
-%endif
-BuildRequires: python2-requests
-BuildRequires: python2-rpkg
-BuildRequires: python2-six
-BuildRequires: python2-pytest
-BuildRequires: python2-pytest-cov
-BuildRequires: python2-mock
-BuildRequires: python2-jinja2
-
-Requires: python2-jinja2
-Requires: python2-requests
-Requires: python2-rpkg
-%if (0%{?fedora} && 0%{?fedora} < 28) || (0%{?rhel} && 0%{?rhel} < 8)
-Requires: python-bunch
-Requires: python-munch
-%else
-Requires: python2-bunch
-Requires: python2-munch
-%endif
+BuildRequires: python3-munch
+BuildRequires: python3-requests
+BuildRequires: python3-rpkg
+BuildRequires: python3-mock
+BuildRequires: python3-pytest
+BuildRequires: python3-pytest-cov
 
 Requires: systemd
-Requires: dist-git
 Requires: httpd
+Requires: dist-git
+Requires: python3-requests
+Requires: python3-rpkg
+Requires: python3-munch
 
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
@@ -96,7 +79,7 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 %check
 
-PYTHONPATH=.:$PYTHONPATH python -B -m pytest \
+PYTHONPATH=.:$PYTHONPATH python3 -B -m pytest \
   -v --cov-report term-missing --cov ./dist_git ./tests/
 
 %post

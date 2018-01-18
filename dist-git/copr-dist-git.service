@@ -8,7 +8,7 @@ User=copr-dist-git
 Group=packager
 AmbientCapabilities=CAP_SETGID
 Environment="PYTHONPATH=/usr/share/copr/"
-ExecStart=/usr/bin/python2.7 /usr/bin/importer_runner.py
+ExecStart=/usr/bin/python3 /usr/bin/importer_runner.py
 
 [Install]
 WantedBy=multi-user.target

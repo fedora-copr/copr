@@ -2,7 +2,7 @@
 
 import json
 
-from exceptions import PackageImportException
+from .exceptions import PackageImportException
 
 class ImportTask(object):
     def __init__(self):

@@ -20,9 +20,9 @@ os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 from pyrpkg import Commands
 from pyrpkg.errors import rpkgError
 
-from exceptions import PackageImportException
+from .exceptions import PackageImportException
 
-import helpers
+from . import helpers
 
 log = logging.getLogger(__name__)
 
@@ -71,22 +71,22 @@ def sync_branch(new_branch, branch_commits, message):
     for branch in branch_commits:
         # Try to fast-forward merge against any other already pushed branch.
         # Note that if the branch is already there then merge request is no-op.
-        if not subprocess.call(['git', 'merge', branch, '--ff-only']):
+        if not subprocess.call(['git', 'merge', branch, '--ff-only'], encoding='utf-8'):
             log.debug("merged '{0}' fast forward into '{1}' or noop".format(branch, new_branch))
             return
 
     # No --fast-forward merge possible -> reset to the first available one.
     branch = next(iter(branch_commits))
     log.debug("resetting branch '{0}' to contents of '{1}'".format(new_branch, branch))
-    subprocess.check_call(['git', 'read-tree', '-m', '-u', branch])
+    subprocess.check_call(['git', 'read-tree', '-m', '-u', branch], encoding='utf-8')
 
     # Get the AuthorDate from the original commit, to have consistent feeling.
-    date = subprocess.check_output(['git', 'show', branch, '-q', '--format=%ai'])
+    date = subprocess.check_output(['git', 'show', branch, '-q', '--format=%ai'], encoding='utf-8')
 
-    if subprocess.call(['git', 'diff', '--cached', '--exit-code']):
+    if subprocess.call(['git', 'diff', '--cached', '--exit-code'], encoding='utf-8'):
         # There's something to commit.
         subprocess.check_call(['git', 'commit', '--no-verify', '-m', message,
-            '--date', date])
+            '--date', date], encoding='utf-8')
     else:
         log.debug("nothing to commit into branch '{0}'".format(new_branch))
 
@@ -97,7 +97,7 @@ def refresh_cgit_listing(opts):
     """
     try:
         cmd = ["/usr/share/copr/dist_git/bin/cgit_pkg_list", opts.cgit_pkg_list_location]
-        subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT, encoding='utf-8')
     except OSError as e:
         log.error(str(e))
     except subprocess.CalledProcessError as e:
@@ -114,7 +114,7 @@ def setup_git_repo(reponame, branches):
     log.info("make sure repos exist: {}".format(reponame))
     try:
         cmd = ["/usr/share/dist-git/setup_git_package", reponame]
-        subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT, encoding='utf-8')
     except subprocess.CalledProcessError as e:
         log.error("cmd: {}, rc: {}, msg: {}"
                   .format(cmd, e.returncode, e.output.strip()))
@@ -126,7 +126,7 @@ def setup_git_repo(reponame, branches):
     for branch in branches:
         try:
             cmd = ["/usr/share/dist-git/mkbranch", branch, reponame]
-            subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, encoding='utf-8')
         except subprocess.CalledProcessError as e:
             log.error("cmd: {}, rc: {}, msg: {}"
                       .format(cmd, e.returncode, e.output.strip()))
@@ -157,7 +157,7 @@ def import_package(opts, namespace, branches, srpm_path):
     """
     Import package into a DistGit repo for the given branches.
 
-    :param Bunch opts: service configuration
+    :param Munch opts: service configuration
     :param str namespace: repo name prefix
     :param list(str) branches: list of branch names to import into
     :param str srpm_path: path to the srpm file
