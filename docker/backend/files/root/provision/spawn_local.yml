@@ -9,7 +9,7 @@
     register: vm_name
 
   - name: register builder IP
-    shell: getent hosts builder | awk '{ print $1 }'
+    shell: getent ahostsv4 builder |head -n1 |awk '{ print $1 }'
     register: vm_ip
 
   - debug: msg="IP={{vm_ip.stdout}}"
