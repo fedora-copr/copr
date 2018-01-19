@@ -311,12 +311,12 @@ class Worker(multiprocessing.Process):
                           .format(job.results_dir))
             return
 
-        log_names = [(job.chroot_log_name, "backend.log.gz"),
-                     (job.rsync_log_name, "rsync.log.gz")]
+        logs_to_copy = [
+            (os.path.join(job.chroot_log_path),
+             os.path.join(job.results_dir, "backend.log.gz"))
+        ]
 
-        for src_name, dst_name in log_names:
-            src = os.path.join(job.chroot_dir, src_name)
-            dst = os.path.join(job.results_dir, dst_name)
+        for src, dst in logs_to_copy:
             try:
                 with open(src, "rb") as f_src, gzip.open(dst, "wb") as f_dst:
                     f_dst.writelines(f_src)
