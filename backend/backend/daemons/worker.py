@@ -190,6 +190,7 @@ class Worker(multiprocessing.Process):
                 "{}.builder.mr".format(self.name),
                 job.chroot_log_path,
                 fmt=build_log_format) as build_logger:
+
                 try:
                     mr = MockRemote(
                         builder_host=self.vm.vm_ip,
@@ -233,24 +234,23 @@ class Worker(multiprocessing.Process):
                 finally:
                     self.vm_manager.release_vm(self.vm.vm_name)
 
-            if not failed:
-                try:
-                    mr.on_success_build()
-                    build_details = self.get_build_details(job)
-                    job.update(build_details)
+                if not failed:
+                    try:
+                        mr.on_success_build()
+                        build_details = self.get_build_details(job)
+                        job.update(build_details)
 
-                    if self.opts.do_sign:
-                        mr.add_pubkey()
-                except:
-                    self.log.exception("Error during backend post-build processing.")
-                    failed = True
+                        if self.opts.do_sign:
+                            mr.add_pubkey()
+                    except:
+                        self.log.exception("Error during backend post-build processing.")
+                        failed = True
 
             self.log.info(
                 "Finished build: id={} builder={} timeout={} destdir={} chroot={}"
                 .format(job.build_id, self.vm.vm_ip, job.timeout, job.destdir,
                         job.chroot))
-
-            self.copy_mock_logs(job)
+            self.copy_logs(job)
 
         register_build_result(self.opts, failed=failed)
         job.status = (BuildStatus.FAILURE if failed else BuildStatus.SUCCEEDED)
@@ -305,13 +305,13 @@ class Worker(multiprocessing.Process):
 
         return build_details
 
-    def copy_mock_logs(self, job):
+    def copy_logs(self, job):
         if not os.path.isdir(job.results_dir):
             self.log.info("Job results dir doesn't exists, couldn't copy main log; path: {}"
                           .format(job.results_dir))
             return
 
-        log_names = [(job.chroot_log_name, "mockchain.log.gz"),
+        log_names = [(job.chroot_log_name, "backend.log.gz"),
                      (job.rsync_log_name, "rsync.log.gz")]
 
         for src_name, dst_name in log_names:
