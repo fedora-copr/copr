@@ -6,7 +6,7 @@ from exceptions import PackageImportException
 
 class ImportTask(object):
     def __init__(self):
-        self.task_id = None
+        self.build_id = None
         self.owner = None
         self.project = None
         self.branches = []
@@ -17,7 +17,7 @@ class ImportTask(object):
         task = ImportTask()
 
         try:
-            task.task_id = task_dict["task_id"]
+            task.build_id = task_dict["build_id"]
             task.owner = task_dict["owner"]
             task.project = task_dict["project"]
             task.branches = task_dict["branches"]

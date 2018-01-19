@@ -18,16 +18,18 @@ from ..helpers import get_redis_logger
 from ..exceptions import DispatchBuildError, NoVmAvailable
 from ..job import BuildJob
 from ..vm_manage.manager import VmManager
+from ..constants import BuildStatus
 from .worker import Worker
 
 from collections import defaultdict
 
 class BuildDispatcher(multiprocessing.Process):
     """
-    1) Fetch build task from frontend
-    2) Get an available VM for it
-    3) Create a worker for the job
-    4) Start worker asynchronously and go to 1)
+    1) Fetch build tasks from frontend
+    2) Loop through them and try to allocate VM for each
+       - If VM can be allocated, spawn a worker and run it asynchronously
+       - otherwise, check the next build task
+    3) Go to 1
     """
 
     def __init__(self, opts):
@@ -49,7 +51,6 @@ class BuildDispatcher(multiprocessing.Process):
     def get_vm_group_ids(self, arch):
         if not arch:
             return [group["id"] for group in self.opts.build_groups]
-
         try:
             return self.arch_to_groups[arch]
         except KeyError:
@@ -84,7 +85,7 @@ class BuildDispatcher(multiprocessing.Process):
             self.update_process_title("Waiting for jobs from frontend for {} s"
                                       .format(int(time.time() - get_task_init_time)))
             try:
-                tasks = get("{0}/backend/waiting-jobs/".format(self.opts.frontend_base_url),
+                tasks = get("{0}/backend/pending-jobs/".format(self.opts.frontend_base_url),
                            auth=("user", self.opts.frontend_auth)).json()
 
             except (RequestException, ValueError) as error:
@@ -99,8 +100,8 @@ class BuildDispatcher(multiprocessing.Process):
 
     def can_build_start(self, job):
         """
-        Announce to the frontend that the build is going to start so that
-        it can confirm that and draw out another job for building.
+        Announce to the frontend that the build is starting. Frontend
+        may reject build to start.
 
         Returns
         -------
@@ -108,7 +109,8 @@ class BuildDispatcher(multiprocessing.Process):
         False if the build can not start (build is cancelled)
         """
         try:
-            can_build_start = self.frontend_client.starting_build(job.build_id, job.chroot)
+            job.status = BuildStatus.STARTING
+            can_build_start = self.frontend_client.starting_build(job.to_dict())
         except (RequestException, ValueError) as error:
             self.log.exception("Communication with Frontend to confirm build start failed with error: {}".format(error))
             return False
@@ -125,9 +127,6 @@ class BuildDispatcher(multiprocessing.Process):
                 self.workers.remove(worker)
                 self.log.info("Removed finished worker {} for job {}"
                               .format(worker.worker_id, worker.job.task_id))
-
-    def get_worker_ids(self):
-        return [worker.worker_id for worker in self.workers]
 
     def start_worker(self, vm, job, reattach=False):
         worker = Worker(
@@ -154,7 +153,14 @@ class BuildDispatcher(multiprocessing.Process):
             self.clean_finished_workers()
 
             for job in self.load_jobs():
-                # search db builder records for the job and
+                # first check if we do not have
+                # worker already running for the job
+                if any([job.task_id == w.job.task_id for w in self.workers]):
+                    self.log.warning("Skipping already running task '{}'"
+                                     .format(job.task_id))
+                    continue
+
+                # now search db builder records for the job and
                 # if we found it, spawn a worker to reattach
                 vm = self.vm_manager.get_vm_by_task_id(job.task_id)
                 if vm and vm.state == 'in_use':

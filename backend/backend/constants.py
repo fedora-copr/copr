@@ -23,6 +23,7 @@ class BuildStatus(object):
     RUNNING = 3
     PENDING = 4
     SKIPPED = 5
+    STARTING = 6
 
     @classmethod
     def string(cls, number):

@@ -276,7 +276,6 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         Return list of active mock_chroots of this copr
         """
-
         return filter(lambda x: x.is_active, self.mock_chroots)
 
     @property
@@ -537,6 +536,7 @@ class Build(db.Model, helpers.Serializer):
     # background builds has lesser priority than regular builds.
     is_background = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
+    source_status = db.Column(db.Integer, default=StatusEnum("waiting"))
     srpm_url = db.Column(db.Text)
 
     # relations
@@ -701,78 +701,56 @@ class Build(db.Model, helpers.Serializer):
         return {b.name: b for b in self.build_chroots}
 
     @property
-    def has_pending_chroot(self):
-        # FIXME bad name
-        # used when checking if the repo is initialized and results can be set
-        # i think this is the only purpose - check
-        return StatusEnum("pending") in self.chroot_states or \
-            StatusEnum("starting") in self.chroot_states
-
-    @property
-    def has_unfinished_chroot(self):
-        return StatusEnum("pending") in self.chroot_states or \
-            StatusEnum("starting") in self.chroot_states or \
-            StatusEnum("running") in self.chroot_states
-
-    @property
-    def has_importing_chroot(self):
-        return StatusEnum("importing") in self.chroot_states
-
-    @property
     def status(self):
         """
-        Return build status according to build status of its chroots
+        Return build status.
         """
         if self.canceled:
             return StatusEnum("canceled")
 
-        for state in ["running", "starting", "importing", "pending", "failed", "succeeded", "skipped", "forked"]:
+        for state in ["running", "starting", "pending", "failed", "succeeded", "skipped", "forked", "waiting"]:
             if StatusEnum(state) in self.chroot_states:
-                return StatusEnum(state)
+                if state == "waiting":
+                    return self.source_status
+                else:
+                    return StatusEnum(state)
+
+        return None
 
     @property
     def state(self):
         """
-        Return text representation of status of this build
+        Return text representation of status of this build.
         """
-
-        if self.status is not None:
+        if self.status != None:
             return StatusEnum(self.status)
-
         return "unknown"
 
     @property
     def cancelable(self):
         """
         Find out if this build is cancelable.
-
-        Build is cancelabel only when it's pending (not started)
         """
-
-        return self.status == StatusEnum("pending") or \
-            self.status == StatusEnum("importing") or \
-            self.status == StatusEnum("running")
+        return not self.finished and self.status != StatusEnum("starting")
 
     @property
     def repeatable(self):
         """
         Find out if this build is repeatable.
 
-        Build is repeatable only if it's not pending, starting or running
+        Build is repeatable only if sources has been imported.
         """
-        return self.status not in [StatusEnum("pending"),
-                                   StatusEnum("starting"),
-                                   StatusEnum("running"),
-                                   StatusEnum("forked")]
+        return self.source_status == StatusEnum("imported")
 
     @property
     def finished(self):
         """
         Find out if this build is in finished state.
 
-        Build is finished only if all its build_chroots are in finished state.
+        Build is finished only if all its build_chroots are in finished state or
+        the build was canceled.
         """
-        return all([(chroot.state in ["succeeded", "forked", "canceled", "skipped", "failed"]) for chroot in self.build_chroots])
+        return self.canceled or all([chroot.finished for chroot in self.build_chroots])
 
     @property
     def persistent(self):
@@ -786,7 +764,7 @@ class Build(db.Model, helpers.Serializer):
     @property
     def src_pkg_name(self):
         """
-        Extract source package name from source name or url
+        Extract source package name from source name or url.
         todo: obsolete
         """
         try:
@@ -983,7 +961,7 @@ class BuildChroot(db.Model, helpers.Serializer):
                          primary_key=True)
     build = db.relationship("Build", backref=db.backref("build_chroots"))
     git_hash = db.Column(db.String(40))
-    status = db.Column(db.Integer, default=StatusEnum("importing"))
+    status = db.Column(db.Integer, default=StatusEnum("waiting"))
 
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer, index=True)
@@ -1004,8 +982,11 @@ class BuildChroot(db.Model, helpers.Serializer):
         """
         if self.status is not None:
             return StatusEnum(self.status)
-
         return "unknown"
+
+    @property
+    def finished(self):
+        return (self.state in ["succeeded", "forked", "canceled", "skipped", "failed"])
 
     @property
     def task_id(self):

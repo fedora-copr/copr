@@ -174,14 +174,12 @@
 {% endmacro %}
 
 {% macro copr_build_repeat_form(build, page, class="") %}
-  {% if build.repeatable %}
     <form class="{{class}}" action="{{ copr_url('coprs_ns.copr_repeat_build', build.copr, build_id=build.id) }}" method="post">
       <input type="hidden" value="page" value="{{ page }}">
       <button class="btn btn-default" type="submit">
         <span class="pficon pficon-restart"></span> Resubmit
       </button>
     </form>
-  {% endif %}
 {% endmacro %}
 
 {% macro copr_build_delete_form(build, page, class="") %}

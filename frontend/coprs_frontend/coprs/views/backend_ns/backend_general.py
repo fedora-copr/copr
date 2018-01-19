@@ -23,105 +23,82 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 @backend_ns.route("/importing/")
-# FIXME I'm commented
-#@misc.backend_authenticated
 def dist_git_importing_queue():
     """
-    Return list of builds that are waiting for dist git to import the sources.
+    Return list of builds that are waiting for dist-git to import the sources.
     """
-    builds_list = []
-    builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == false()).limit(200).all()
-    if not builds_for_import:
-        builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(30)
+    tasks = []
 
-    for task in builds_for_import:
-        copr = task.copr
+    builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == false()).limit(100).all()
+    if not builds_for_import:
+        builds_for_import = BuildsLogic.get_build_importing_queue().filter(models.Build.is_background == true()).limit(30).all()
+
+    for build in builds_for_import:
         branches = set()
-        for b_ch in task.build_chroots:
+        for b_ch in build.build_chroots:
             branches.add(b_ch.mock_chroot.distgit_branch_name)
 
-        task_dict = {
-            "task_id": task.task_id,
-            "owner": copr.owner_name,
-            "project": copr.name,
+        tasks.append({
+            "build_id": build.id,
+            "owner": build.copr.owner_name,
+            "project": build.copr.name,
             "branches": list(branches),
-            "srpm_url": task.srpm_url,
-        }
-        if task_dict not in builds_list:
-            builds_list.append(task_dict)
+            "srpm_url": build.srpm_url,
+        })
 
-    response_dict = {"builds": builds_list}
-
-    return flask.jsonify(response_dict)
+    return flask.jsonify(tasks)
 
 
 @backend_ns.route("/import-completed/", methods=["POST", "PUT"])
 @misc.backend_authenticated
 def dist_git_upload_completed():
-    """
-    Mark BuildChroot in a Build as uploaded, which means:
-        - set it to pending state
-        - set BuildChroot.git_hash
-        - if it's the last BuildChroot in a Build:
-            - delete local source
-    BuildChroot is identified with task_id which is build id + git branch name
-        - For example: 56-f22 -> build 55, chroots fedora-22-*
-    """
-    result = {"updated": False}
+    app.logger.debug(flask.request.json)
+    build_id = flask.request.json.get("build_id")
+    pkg_name = flask.request.json.get("pkg_name")
+    pkg_version = flask.request.json.get("pkg_evr")
 
-    if "task_id" in flask.request.json and 'branch' in flask.request.json:
-        app.logger.debug(flask.request.data)
-        task_id = flask.request.json["task_id"]
-        branch = flask.request.json["branch"]
-        build_chroots = BuildsLogic.get_buildchroots_by_build_id_and_branch(task_id, branch)
-        build = build_chroots[0].build
+    try:
+        build = ComplexLogic.get_build_safe(build_id)
+    except ObjectNotFound:
+        return flask.jsonify({"updated": False})
 
-        # Is it OK?
-        if "git_hash" in flask.request.json and "repo_name" in flask.request.json:
-            git_hash = flask.request.json["git_hash"]
-            pkg_name = flask.request.json["pkg_name"]
-            pkg_version = flask.request.json["pkg_version"]
+    collected_branch_chroots = []
+    for branch, git_hash in flask.request.json.get("branch_commits", {}).items():
+        branch_chroots = BuildsLogic.get_buildchroots_by_build_id_and_branch(build_id, branch)
 
-            # Now I need to assign a package to this build
-            if not PackagesLogic.get(build.copr.id, pkg_name).first():
-                try:
-                    package = PackagesLogic.add(build.copr.user, build.copr, pkg_name, build.source_type, build.source_json)
-                    db.session.add(package)
-                    db.session.commit()
-                except (sqlalchemy.exc.IntegrityError, exceptions.DuplicateException) as e:
-                    db.session.rollback()
-
-            package = PackagesLogic.get(build.copr.id, pkg_name).first()
-            build.package_id = package.id
-            build.pkg_version = pkg_version
-
-            for ch in build_chroots:
-                if ch.status == helpers.StatusEnum("importing"):
-                    ch.status = helpers.StatusEnum("pending")
-                ch.git_hash = git_hash
-
-        # Failed?
-        elif "error" in flask.request.json:
-            error_type = flask.request.json["error"]
-
+        if not PackagesLogic.get(build.copr.id, pkg_name).first():
             try:
-                build.fail_type = helpers.FailTypeEnum(error_type)
-            except KeyError:
-                build.fail_type = helpers.FailTypeEnum("unknown_error")
+                package = PackagesLogic.add(build.copr.user, build.copr, pkg_name, build.source_type, build.source_json)
+                db.session.add(package)
+                db.session.commit()
+            except (sqlalchemy.exc.IntegrityError, exceptions.DuplicateException) as e:
+                db.session.rollback()
 
-            for ch in build_chroots:
-                ch.status = helpers.StatusEnum("failed")
+        package = PackagesLogic.get(build.copr.id, pkg_name).first()
+        build.package_id = package.id
+        build.pkg_version = pkg_version
 
-        # is it the last chroot?
-        if not build.has_importing_chroot:
-            BuildsLogic.delete_local_source(build)
+        for ch in branch_chroots:
+            ch.status = StatusEnum("pending")
+            ch.git_hash = git_hash
+            db.session.add(ch)
+            collected_branch_chroots.append((ch.task_id))
 
-        db.session.commit()
+    final_source_status = StatusEnum("imported")
+    for ch in build.build_chroots:
+        if ch.task_id not in collected_branch_chroots:
+            final_source_status = StatusEnum("failed")
+            ch.status = StatusEnum("failed")
+            db.session.add(ch)
 
-        result.update({"updated": True})
+    build.source_status = final_source_status
+    db.session.add(build)
+    db.session.commit()
 
-    return flask.jsonify(result)
+    BuildsLogic.delete_local_source(build)
+    return flask.jsonify({"updated": True})
 
 
 def get_build_record(task):
@@ -168,8 +145,8 @@ def get_srpm_build_record(task):
 
     try:
         build_record = {
+            "task_id": task.task_id,
             "build_id": task.id,
-            "task_id": task.id,
             "project_owner": task.copr.owner_name,
             "project_name": task.copr.name,
             "source_type": task.source_type,
@@ -182,9 +159,8 @@ def get_srpm_build_record(task):
     return build_record
 
 
-@backend_ns.route("/waiting-action/")
-#@misc.backend_authenticated
-def waiting_action():
+@backend_ns.route("/pending-action/")
+def pending_action():
     """
     Return a single action.
     """
@@ -197,14 +173,13 @@ def waiting_action():
     return flask.jsonify(action_record)
 
 
-@backend_ns.route("/waiting-jobs/")
-#@misc.backend_authenticated
-def waiting_jobs():
+@backend_ns.route("/pending-jobs/")
+def pending_jobs():
     """
     Return the job queue.
     """
-    build_records = ([get_build_record(task) for task in BuildsLogic.get_waiting_build_tasks()] +
-                     [get_srpm_build_record(task) for task in BuildsLogic.get_waiting_srpm_build_tasks()])
+    build_records = ([get_build_record(task) for task in BuildsLogic.get_pending_build_tasks()] +
+                     [get_srpm_build_record(task) for task in BuildsLogic.get_pending_srpm_build_tasks()])
     log.info('Selected build records: {}'.format(build_records))
     return flask.jsonify(build_records)
 
@@ -273,33 +248,25 @@ def update():
 @misc.backend_authenticated
 def starting_build():
     """
-    Check if the build is not cancelled and set it to running state
+    Check if the build is not cancelled and set it to starting state
     """
+    data = flask.request.json
 
-    result = {"can_start": False}
+    try:
+        build = ComplexLogic.get_build_safe(data.get('build_id'))
+    except ObjectNotFound:
+        return flask.jsonify({"can_start": False})
 
-    if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build = ComplexLogic.get_build_safe(flask.request.json["build_id"])
-        chroot = flask.request.json.get("chroot")
+    if build.canceled:
+        return flask.jsonify({"can_start": False})
 
-        if build and chroot and not build.canceled:
-            log.info("mark build {} chroot {} as starting".format(build.id, chroot))
-            BuildsLogic.update_state_from_dict(build, {
-                "chroot": chroot,
-                "status": StatusEnum("starting")
-            })
-            db.session.commit()
-            result["can_start"] = True
-
-    return flask.jsonify(result)
+    BuildsLogic.update_state_from_dict(build, data)
+    return flask.jsonify({"can_start": True})
 
 
 @backend_ns.route("/reschedule_all_running/", methods=["POST"])
 @misc.backend_authenticated
 def reschedule_all_running():
-    """
-    Add-hoc handle. Remove after implementation of persistent task handling in copr-backend
-    """
     to_reschedule = \
         BuildsLogic.get_build_tasks(StatusEnum("starting")).all() + \
         BuildsLogic.get_build_tasks(StatusEnum("running")).all()

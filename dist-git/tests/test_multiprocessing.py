@@ -69,5 +69,5 @@ class TestPool(object):
         pool.terminate_timeouted(callback=send_to_fe)
         w.join()
 
-        send_to_fe.assert_called_with({"task_id": "foo", "error": "import_timeout_exceeded"})
+        send_to_fe.assert_called_with({"build_id": "foo", "error": "import_timeout_exceeded"})
         assert not pool[0].is_alive()

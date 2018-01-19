@@ -9,7 +9,7 @@ class TestWaitingBuilds(CoprsTestCase):
 
     def test_no_waiting_builds(self):
         assert b'[]' in self.tc.get(
-            "/backend/waiting-jobs/", headers=self.auth_header).data
+            "/backend/pending-jobs/", headers=self.auth_header).data
 
     def test_waiting_build_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
@@ -23,7 +23,7 @@ class TestWaitingBuilds(CoprsTestCase):
 
         self.db.session.commit()
 
-        r = self.tc.get("/backend/waiting-jobs/", headers=self.auth_header)
+        r = self.tc.get("/backend/pending-jobs/", headers=self.auth_header)
         assert json.loads(r.data.decode("utf-8")) == []
 
         for build_chroot in self.b2_bc:
@@ -32,7 +32,7 @@ class TestWaitingBuilds(CoprsTestCase):
 
         self.db.session.commit()
 
-        r = self.tc.get("/backend/waiting-jobs/", headers=self.auth_header)
+        r = self.tc.get("/backend/pending-jobs/", headers=self.auth_header)
         assert json.loads(r.data.decode("utf-8")) != []
 
 
@@ -43,7 +43,7 @@ class TestWaitingBuilds(CoprsTestCase):
                 build_chroot.status = 4  # pending
         self.db.session.commit()
 
-        r = self.tc.get("/backend/waiting-jobs/")
+        r = self.tc.get("/backend/pending-jobs/")
         data = json.loads(r.data.decode("utf-8"))
         assert data[0]["build_id"] == 3
 
@@ -165,7 +165,7 @@ class TestWaitingActions(CoprsTestCase):
 
     def test_no_waiting_actions(self):
         assert b'null' in self.tc.get(
-            "/backend/waiting-action/", headers=self.auth_header).data
+            "/backend/pending-action/", headers=self.auth_header).data
 
     def test_waiting_actions_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_actions, f_db):
@@ -175,7 +175,7 @@ class TestWaitingActions(CoprsTestCase):
 
         self.db.session.commit()
 
-        r = self.tc.get("/backend/waiting-action/", headers=self.auth_header)
+        r = self.tc.get("/backend/pending-action/", headers=self.auth_header)
         assert json.loads(r.data.decode("utf-8")) == None
 
         for a in [self.a1, self.a2, self.a3]:
@@ -183,7 +183,7 @@ class TestWaitingActions(CoprsTestCase):
             self.db.session.add(a)
 
         self.db.session.commit()
-        r = self.tc.get("/backend/waiting-action/", headers=self.auth_header)
+        r = self.tc.get("/backend/pending-action/", headers=self.auth_header)
         assert json.loads(r.data.decode("utf-8")) != None
 
 
@@ -267,7 +267,7 @@ class TestImportingBuilds(CoprsTestCase):
 
         r = self.tc.get("/backend/importing/")
         data = json.loads(r.data.decode("utf-8"))
-        assert data["builds"][0]["srpm_url"] == "bar"
+        assert data[0]["srpm_url"] == "bar"
 
     def test_importing_queue_multiple_bg(self, f_users, f_coprs, f_mock_chroots, f_db):
         BuildsLogic.create_new_from_url(self.u1, self.c1, "foo", background=True)
@@ -275,4 +275,4 @@ class TestImportingBuilds(CoprsTestCase):
 
         r = self.tc.get("/backend/importing/")
         data = json.loads(r.data.decode("utf-8"))
-        assert data["builds"][0]["srpm_url"] == "foo"
+        assert data[0]["srpm_url"] == "foo"

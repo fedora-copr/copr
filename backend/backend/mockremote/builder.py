@@ -225,6 +225,7 @@ class Builder(object):
                 raise BuilderError("Build host `{}` missing mock config for chroot `{}`"
                                    .format(self.hostname, self.job.chroot))
 
+
 class SrpmBuilder(Builder):
     def _copr_builder_cmd(self):
         return 'copr-rpmbuild --verbose --drop-resultdir '\
