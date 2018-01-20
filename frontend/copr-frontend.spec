@@ -52,6 +52,10 @@ BuildRequires: systemd
 BuildRequires: epydoc
 BuildRequires: graphviz
 
+# byecompile files in %%{_datadir} with python3, not /usr/bin/python
+%global __python %{__python3}
+BuildRequires: python3-devel
+
 %if %{with check}
 BuildRequires: python3-six
 BuildRequires: python3-flask
