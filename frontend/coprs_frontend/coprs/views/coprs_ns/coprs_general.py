@@ -820,8 +820,8 @@ def render_generate_repo_file(copr, name_release):
 ###                Module repo files                  ###
 #########################################################
 
-@coprs_ns.route("/<username>/<coprname>/module_repo/<name_release>/<module_nsv>")
-@coprs_ns.route("/g/<group_name>/<coprname>/module_repo/<name_release>/<module_nsv>")
+@coprs_ns.route("/<username>/<coprname>/module_repo/<name_release>/<module_nsv>.repo")
+@coprs_ns.route("/g/<group_name>/<coprname>/module_repo/<name_release>/<module_nsv>.repo")
 @req_with_copr
 def generate_module_repo_file(copr, name_release, module_nsv):
     """ Generate module repo file for a given project. """
