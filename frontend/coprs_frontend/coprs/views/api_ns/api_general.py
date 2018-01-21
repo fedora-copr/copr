@@ -7,6 +7,7 @@ import flask
 import sqlalchemy
 import json
 import requests
+from requests.exceptions import RequestException, InvalidSchema
 from wtforms import ValidationError
 
 from werkzeug import secure_filename
@@ -1010,11 +1011,8 @@ def copr_build_module(copr):
             "message": "Created module {}".format(module.nsv),
         })
 
-    except ValidationError as ex:
-        raise LegacyApiError(ex.message)
-
-    except requests.RequestException as ex:
-        raise LegacyApiError(ex.message)
+    except (ValidationError, RequestException, InvalidSchema) as ex:
+        raise LegacyApiError(str(ex))
 
     except sqlalchemy.exc.IntegrityError:
         raise LegacyApiError("Module {}-{}-{} already exists".format(
