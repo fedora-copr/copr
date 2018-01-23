@@ -98,10 +98,15 @@ class ModuleBuildFacade(object):
         """
         Determines Which component should be built in which batch. Returns an ordered list of grouped components,
         first group of components should be built as a first batch, second as second and so on.
-        Particular components groups are represented by lists and can by built in a random order within the batch.
+        Particular components groups are represented by dicts and can by built in a random order within the batch.
         :return: list of lists
         """
-        return [rpms]
+        batches = {}
+        for pkgname, rpm in rpms.items():
+            if not rpm.buildorder in batches:
+                batches[rpm.buildorder] = {}
+            batches[rpm.buildorder][pkgname] = rpm
+        return [batches[number] for number in sorted(batches.keys())]
 
     def add_builds(self, rpms, module):
         for group in self.get_build_batches(rpms):
