@@ -116,8 +116,10 @@ class ModuleBuildFacade(object):
                 clone_url = self.get_clone_url(pkgname, rpm)
                 build = builds_logic.BuildsLogic.create_new_from_scm(self.user, self.copr, scm_type="git",
                                                                      clone_url=clone_url, committish=rpm.ref)
+                build.batch = batch
                 build.batch_id = batch.id
                 build.module_id = module.id
+                db.session.add(build)
 
     def get_clone_url(self, pkgname, rpm):
         return rpm.repository if rpm.repository else self.default_distgit.format(pkgname=pkgname)
