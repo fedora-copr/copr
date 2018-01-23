@@ -19,6 +19,7 @@ BuildRequires: asciidoc
 BuildRequires: findutils
 BuildRequires: dnf
 BuildRequires: dnf-plugins-core
+BuildRequires: coreutils
 Requires: createrepo_c
 Requires: dnf-plugins-core
 Requires: rpm-python3

@@ -48,7 +48,6 @@ echo "============================ test --days ============================";
 
 setup
 
-echo $testrepo
 oldestbuilddate=`rpm -qp --queryformat '%{BUILDTIME:date}' $testrepo/0-oldestbuild/example-1.0.1-1.fc23.x86_64.rpm 2> /dev/null`
 oldestbuilddayback=$(( (`date +'%s'` - `date -d "$oldestbuilddate" +'%s'`)/60/60/24 ))
 
@@ -70,7 +69,54 @@ run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
 runcmd --nocreaterepo .
 
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' && die
-run '[[ $repomdlastmodtime1 == `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
+run 'sleep 1 && [[ $repomdlastmodtime1 == `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
+
+echo success.
+
+echo "============================ test repo is not recreatered if there was not a change ============================";
+
+setup
+
+repomdlastmodtime1=`stat -c '%Y' $testrepo/repodata/repomd.xml`
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
+
+runcmd --days 999999999 .
+
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
+run 'sleep 1 && [[ $repomdlastmodtime1 == `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
+
+echo success.
+
+echo "============================ test --alwayscreaterepo ============================";
+
+setup
+
+repomdlastmodtime1=`stat -c '%Y' $testrepo/repodata/repomd.xml`
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
+
+runcmd --alwayscreaterepo --days 999999999 .
+
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
+run 'sleep 1 && [[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
+
+echo success.
+
+echo "============================ test --nocreaterepo takes precedence over --alwayscreaterepo ============================";
+
+setup
+
+repomdlastmodtime1=`stat -c '%Y' $testrepo/repodata/repomd.xml`
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
+
+runcmd --alwayscreaterepo --nocreaterepo --days 999999999 .
+
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
+run 'sleep 1 && [[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' && die
+
+runcmd --alwayscreaterepo --nocreaterepo .
+
+run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' && die
+run 'sleep 1 && [[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' && die
 
 echo success.
 

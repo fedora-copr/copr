@@ -18,8 +18,10 @@ parser.add_argument('--days', type=int, action='store', default=0,
                    the last modification time is considered')
 parser.add_argument('--cleancopr', action='store_true',
                    help='additionaly remove whole copr build dirs and logs if the associated package gets deleted')
+parser.add_argument('--alwayscreaterepo', action='store_true',
+                   help='Recreate repository even when there was no change in data.')
 parser.add_argument('--nocreaterepo', action='store_true',
-                   help='repository is not automatically recreated after deletion')
+                   help='repository is not automatically recreated (not even after data deletion). Supresses --alwayscreaterepo.')
 parser.add_argument('--verbose', action='store_true',
                    help='print all deleted items to stdout')
 parser.add_argument('--quiet', action='store_true',
@@ -113,6 +115,7 @@ def prune_packages():
     Remove obsoleted packages
     """
     log_info('Removing obsoleted packages...')
+    was_deletion = False
     latest_rpms = get_rpms(get_latest_packages_cmd)
     all_rpms = get_rpms(get_all_packages_cmd)
     to_remove_rpms = set(all_rpms) - set(latest_rpms)
@@ -120,6 +123,8 @@ def prune_packages():
         if time.time() - get_package_build_time(rpm) > args.days * 24 * 3600:
             rm_srpm(rpm)
             rm_file(rpm)
+            was_deletion = True
+    return was_deletion
 
 
 def recreate_repo():
@@ -161,8 +166,10 @@ def clean_copr():
 
 
 if __name__ == '__main__':
-    prune_packages()
-    if not args.nocreaterepo:
+    was_deletion = prune_packages()
+    if (was_deletion or args.alwayscreaterepo) \
+            and not args.nocreaterepo:
         recreate_repo()
+
     if args.cleancopr:
         clean_copr()
