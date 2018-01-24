@@ -502,7 +502,9 @@ class Build(db.Model, helpers.Serializer):
     """
     Representation of one build in one copr
     """
-    __table_args__ = (db.Index('build_canceled', "canceled"), )
+    __table_args__ = (db.Index('build_canceled', "canceled"),
+                      db.Index('build_order', "is_background", "id"),
+                      db.Index('build_filter', "source_type", "canceled"))
 
     id = db.Column(db.Integer, primary_key=True)
     # single url to the source rpm, should not contain " ", "\n", "\t"
