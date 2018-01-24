@@ -213,7 +213,7 @@ class BuildsLogic(object):
     @classmethod
     def get_copr_builds_list(cls, copr):
         query_select = """
-SELECT build.id, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
+SELECT build.id, build.source_status, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
     MIN(statuses.started_on) AS started_on, MAX(statuses.ended_on) AS ended_on, order_to_status(MIN(statuses.st)) AS status,
     build.canceled, MIN("group".name) AS group_name, MIN(copr.name) as copr_name, MIN("user".username) as user_name
 FROM build
@@ -248,8 +248,12 @@ GROUP BY
                     return 6
                 elif x == 5:
                     return 7
-                elif x == 8:
+                elif x == 2:
                     return 8
+                elif x == 8:
+                    return 9
+                elif x == 9:
+                    return 10
                 return 1000
 
             def sqlite_order_to_status(x):
@@ -268,7 +272,11 @@ GROUP BY
                 elif x == 7:
                     return 5
                 elif x == 8:
+                    return 2
+                elif x == 9:
                     return 8
+                elif x == 10:
+                    return 9
                 return 1000
 
             conn = db.engine.connect()

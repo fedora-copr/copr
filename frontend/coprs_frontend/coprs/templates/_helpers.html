@@ -134,7 +134,11 @@
   {% if build.canceled %}
     {{ build_state_text("canceled") }}
   {% else %}
-    {{ build_state_text(build.status | state_from_num) }}
+    {% if build.status|state_from_num == "waiting" %}
+      {{ build_state_text(build.source_status|state_from_num) }}
+    {% else %}
+      {{ build_state_text(build.status|state_from_num) }}
+    {% endif %}
   {% endif %}
 {% endmacro %}
 
