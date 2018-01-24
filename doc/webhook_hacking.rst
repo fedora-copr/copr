@@ -3,10 +3,7 @@
 COPR auto-rebuilds with custom Git repositories
 ===============================================
 
-Even if your Git repository is not hosted on Gitlab, Github, or Pagure, you
-can still have continuous integration with COPR. That is, you can launch
-auto-rebuilds on push events. It just requires a bit more work and access
-to the server where the repository is hosted.
+Even if your Git repository is not hosted on Gitlab, Github, Bitbucket or Pagure, you can still have continuous integration with COPR. That is, you can launch auto-rebuilds on push events. It just requires a bit more work and access to the server where the repository is hosted.
 
 In your bare Git repository on the server, place the following
 code into yourrepo.git/hooks/post-receive (the file should be executable)::

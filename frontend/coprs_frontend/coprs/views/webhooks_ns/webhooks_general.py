@@ -17,6 +17,7 @@ from coprs.views.misc import page_not_found, access_restricted
 import logging
 import os
 import tempfile
+import re
 import shutil
 
 log = logging.getLogger(__name__)
@@ -73,6 +74,48 @@ def package_name_required(route):
         return route(copr, package, **kwargs)
 
     return decorated_function
+
+
+@webhooks_ns.route("/bitbucket/<copr_id>/<uuid>/", methods=["POST"])
+def webhooks_bitbucket_push(copr_id, uuid):
+    # For the documentation of the data we receive see:
+    # https://confluence.atlassian.com/bitbucket/event-payloads-740262817.html
+    try:
+        copr = ComplexLogic.get_copr_by_id_safe(copr_id)
+    except ObjectNotFound:
+        return page_not_found("Project does not exist")
+
+    if copr.webhook_secret != uuid:
+        return access_restricted("This webhook is not valid")
+
+    try:
+        payload = flask.request.json
+        api_url = payload['repository']['links']['self']['href']
+        clone_url = payload['repository']['links']['html']['href'] + '.git'
+        commits = []
+        ref_type = payload['push']['changes'][0]['new']['type']
+        ref = re.sub(
+            '^' + re.escape(api_url) + '/',
+            '',
+            payload['push']['changes'][0]['new']['links']['self']['href'],
+        )
+        if ref_type == 'tag':
+            committish = ref
+        else:
+            committish = payload['push']['changes'][0]['new']['target']['hash']
+    except KeyError:
+        return "Bad Request", 400
+
+    packages = PackagesLogic.get_for_webhook_rebuild(
+        copr_id, uuid, clone_url, commits, ref_type, ref
+    )
+
+    for package in packages:
+        BuildsLogic.rebuild_package(package, {'committish': committish})
+
+    db.session.commit()
+
+    return "OK", 200
 
 
 @webhooks_ns.route("/github/<copr_id>/<uuid>/", methods=["POST"])
