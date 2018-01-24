@@ -1,6 +1,6 @@
 Summary: Remove old packages from rpm-md repository
 Name: prunerepo
-Version: 1.10
+Version: 1.11
 Release: 1%{?dist}
 
 # Source is created by:
@@ -64,6 +64,16 @@ install -p -m 644 man/prunerepo.1 %{buildroot}/%{_mandir}/man1/
 %{_mandir}/man1/prunerepo.1*
 
 %changelog
+* Wed Jan 24 2018 clime <clime@redhat.com> 1.11-1
+- do not recreate repo if there was no change in data unless
+  --alwayscreaterepo is specified
+- add builddep on createrepo_c as well
+- add Builddep on dnf that is no longer present in Builddep chain
+- optimize createrepo_c
+- run tests during build
+- use just --repo instead of --disablerepo= --enablerepo=
+- Spelling fixes
+
 * Wed Apr 19 2017 clime <clime@redhat.com> 1.10-1
 - replace fedorahosted links
 
