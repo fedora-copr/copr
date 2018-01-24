@@ -1,7 +1,6 @@
 import base64
 import datetime
 from functools import wraps
-import json
 import os
 import flask
 import sqlalchemy
@@ -38,6 +37,7 @@ from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,
                               DuplicateException,
                               LegacyApiError,
+                              NoPackageSourceException,
                               UnknownSourceTypeException)
 
 
