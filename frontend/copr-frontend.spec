@@ -96,6 +96,7 @@ Requires: crontabs
 
 Requires: %flavor_guard
 
+Requires: python3-alembic
 Requires: python3-mod_wsgi
 Requires: python3-dateutil
 Requires: python3-flask
