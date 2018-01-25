@@ -1,4 +1,5 @@
 %bcond_without check
+%bcond_without doc
 
 # https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
@@ -48,9 +49,10 @@ BuildArch:  noarch
 BuildRequires: util-linux
 BuildRequires: systemd
 
-# for doc package
+%if %{with doc}
 BuildRequires: epydoc
 BuildRequires: graphviz
+%endif
 
 # byecompile files in %%{_datadir} with python3, not /usr/bin/python
 %global __python %{__python3}
@@ -144,6 +146,8 @@ and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains frontend.
 
+
+%if %{with doc}
 %package doc
 Summary:    Code documentation for COPR
 Obsoletes:  copr-doc < 1.38
@@ -154,6 +158,7 @@ and submit new builds and COPR will create yum repository from latests builds.
 
 This package include documentation for COPR code. Mostly useful for developers
 only.
+%endif
 
 
 %package fedora
@@ -182,9 +187,11 @@ custom %{name}-flavor package.
 
 %build
 # build documentation
+%if %{with doc}
 pushd documentation
 COPR_CONFIG=../../documentation/copr-documentation.conf make %{?_smp_mflags} python
 popd
+%endif
 
 
 %install
@@ -318,9 +325,12 @@ service logstash condrestart
 %macrosdir/*
 
 
+
+%if %{with doc}
 %files doc
 %license LICENSE
 %doc documentation/python-doc
+%endif
 
 
 %changelog

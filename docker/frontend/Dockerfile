@@ -33,7 +33,7 @@ RUN dnf -y builddep /copr/frontend/copr-frontend.spec
 RUN rm -rf /tmp/tito
 
 # Build Copr Frontend
-RUN cd /copr/frontend/ && tito build --test --rpm --rpmbuild-options='--nocheck'
+RUN cd /copr/frontend/ && tito build --test --rpm --rpmbuild-options='--nocheck --without doc'
 
 # Install the Copr Frontend build
 RUN dnf -y install /tmp/tito/noarch/copr-frontend*.noarch.rpm
