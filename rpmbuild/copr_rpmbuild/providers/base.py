@@ -1,6 +1,7 @@
 import os
 import logging
 import tempfile
+from ..helpers import string2list
 
 log = logging.getLogger("__main__")
 
@@ -19,7 +20,10 @@ class Provider(object):
     def create_rpmmacros(self):
         path = os.path.join(self.workdir, ".rpmmacros")
         with open(path, "w") as rpmmacros:
-            rpmmacros.write("%_disable_source_fetch 0")
+            rpmmacros.write("%_disable_source_fetch 0\n")
+            enabled_protocols = string2list(self.config.get("main", "enabled_source_protocols"))
+            rpmmacros.write("%__urlhelper_localopts --proto -all,{}\n"
+                            .format(','.join(["+"+protocol for protocol in enabled_protocols])))
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.cleanup()
