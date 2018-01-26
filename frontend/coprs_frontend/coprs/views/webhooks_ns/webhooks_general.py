@@ -94,11 +94,7 @@ def webhooks_bitbucket_push(copr_id, uuid):
         clone_url = payload['repository']['links']['html']['href']
         commits = []
         ref_type = payload['push']['changes'][0]['new']['type']
-        ref = re.sub(
-            '^' + re.escape(api_url) + '/',
-            '',
-            payload['push']['changes'][0]['new']['links']['self']['href'],
-        )
+        ref = payload['push']['changes'][0]['new']['name']
         if ref_type == 'tag':
             committish = ref
         else:
