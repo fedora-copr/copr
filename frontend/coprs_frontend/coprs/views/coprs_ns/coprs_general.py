@@ -400,6 +400,11 @@ def render_copr_webhooks(copr):
         db.session.add(copr)
         db.session.commit()
 
+    bitbucket_url = "https://{}/webhooks/bitbucket/{}/{}/".format(
+                  app.config["PUBLIC_COPR_HOSTNAME"],
+                  copr.id,
+                  copr.webhook_secret)
+
     github_url = "https://{}/webhooks/github/{}/{}/".format(
                   app.config["PUBLIC_COPR_HOSTNAME"],
                   copr.id,
@@ -412,7 +417,8 @@ def render_copr_webhooks(copr):
 
     return flask.render_template(
         "coprs/detail/settings/webhooks.html",
-        copr=copr, github_url=github_url, gitlab_url=gitlab_url)
+        copr=copr, bitbucket_url=bitbucket_url, github_url=github_url,
+        gitlab_url=gitlab_url)
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/webhooks/")

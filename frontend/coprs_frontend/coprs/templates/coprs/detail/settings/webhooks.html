@@ -52,6 +52,19 @@
           <li> Select <code>Push events</code> and <code>Tag push events</code> as event triggers. </li>
           <li> Click the <code>Add webhook</code> button. </li>
         </ol>
+
+        <h3> Bitbucket </h3>
+        <div class="well well-sm">
+            {{ bitbucket_url }}
+        </div>
+        <h4> How to use it: </h4>
+        <ol>
+          <li> In your Bitbucket project, go to <code>Settings</code> / <code>Workflow</code> / <code>Webhooks</code> / <code>Add webhook</code>. </li>
+          <li> Name the hook, e.g., “Copr”.
+          <li> Fill in the <code>URL</code> field with the url above. </li>
+          <li> Select to trigger on <code>Repository Push</code>. </li>
+          <li> Click the <code>Save</code> button. </li>
+        </ol>
     </div>
 </div>
 
