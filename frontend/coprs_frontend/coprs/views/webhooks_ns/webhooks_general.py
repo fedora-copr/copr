@@ -91,7 +91,7 @@ def webhooks_bitbucket_push(copr_id, uuid):
     try:
         payload = flask.request.json
         api_url = payload['repository']['links']['self']['href']
-        clone_url = payload['repository']['links']['html']['href'] + '.git'
+        clone_url = payload['repository']['links']['html']['href']
         commits = []
         ref_type = payload['push']['changes'][0]['new']['type']
         ref = re.sub(
