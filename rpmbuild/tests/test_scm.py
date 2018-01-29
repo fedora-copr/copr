@@ -5,29 +5,9 @@ import os
 import configparser
 from ..copr_rpmbuild.providers.scm import ScmProvider
 from ..copr_rpmbuild.helpers import read_config
+from . import TestProvider
 
 from mock import patch, MagicMock
-
-CONFIG = """
-[main]
-frontend_url = https://copr.fedoraproject.org
-resultdir = /var/lib/copr-rpmbuild/results
-
-[distgit0]
-distgit_hostname_pattern = src.fedoraproject.org
-distgit_lookaside_url = https://src.fedoraproject.org/repo/pkgs
-distgit_clone_url = https://src.fedoraproject.org
-
-[distgit1]
-distgit_hostname_pattern = copr-dist-git.fedorainfracloud.org
-distgit_lookaside_url = http://copr-dist-git.fedorainfracloud.org/repo/pkgs
-distgit_clone_url = http://copr-dist-git.fedorainfracloud.org/git
-
-[distgit2]
-distgit_hostname_pattern = pkgs.fedoraproject.org
-distgit_lookaside_url = https://src.fedoraproject.org/repo/pkgs
-distgit_clone_url = git://pkgs.fedoraproject.org
-"""
 
 RPKG_CONF_JINJA = """
 [rpkg]
@@ -35,8 +15,9 @@ lookaside = {{ lookaside_url }}
 anongiturl = {{ clone_url }}/%(module)s
 """
 
-class TestScmProvider(unittest.TestCase):
+class TestScmProvider(TestProvider):
     def setUp(self):
+        super(TestScmProvider, self).setUp()
         self.source_json = {
             "type": "git",
             "clone_url": "https://example.org/somerepo.git",
@@ -46,11 +27,6 @@ class TestScmProvider(unittest.TestCase):
             "srpm_build_method": "rpkg",
         }
         self.resultdir = "/path/to/resultdir"
-        fd, config_path = tempfile.mkstemp()
-        f = open(fd, 'w')
-        f.write(CONFIG)
-        f.close()
-        self.config = read_config(config_path)
 
     def test_init(self):
         source_json = self.source_json.copy()
