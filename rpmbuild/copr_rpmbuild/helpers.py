@@ -137,12 +137,17 @@ def get_package_name(spec_path):
     return package_name
 
 
+def string2list(string):
+    return [elem.strip() for elem in re.split(r"\s*,\s*|\s+", string) if elem]
+
+
 def read_config(config_path=None):
     config = configparser.RawConfigParser(defaults={
         "resultdir": "/var/lib/copr-rpmbuild/results",
         "lockfile": "/var/lib/copr-rpmbuild/lockfile",
         "logfile": "/var/lib/copr-rpmbuild/main.log",
         "pidfile": "/var/lib/copr-rpmbuild/pid",
+        "enabled_source_protocols": "https ftps",
     })
     config_paths = [os.path.join(path, "main.ini") for path in CONF_DIRS]
     config.read(config_path or reversed(config_paths))
