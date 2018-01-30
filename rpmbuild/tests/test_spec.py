@@ -2,10 +2,10 @@ import mock
 import unittest
 import configparser
 from ..copr_rpmbuild.providers.spec import SpecUrlProvider
-from . import TestProvider
+from . import TestCase
 
 
-class TestSpecUrlProvider(TestProvider):
+class TestSpecUrlProvider(TestCase):
     def setUp(self):
         super(TestSpecUrlProvider, self).setUp()
         self.source_json = {"url": u"http://foo.ex/somepackage.spec"}
@@ -24,12 +24,6 @@ class TestSpecUrlProvider(TestProvider):
         run_cmd.assert_called_with(["rpkg", "srpm", "--outdir", self.resultdir,
                                     "--spec", '{}/somepackage.spec'.format(provider.workdir)],
                                    cwd=provider.workdir)
-
-    @mock.patch('builtins.open', new_callable=mock.mock_open())
-    def test_create_rpmmacros(self, mock_open):
-        provider = SpecUrlProvider(self.source_json, self.resultdir, self.config)
-        provider.create_rpmmacros()
-        mock_open.assert_called_with("{}/.rpmmacros".format(provider.workdir), "w")
 
     @mock.patch('requests.get')
     @mock.patch('builtins.open', new_callable=mock.mock_open())

@@ -1,10 +1,10 @@
 import mock
 import unittest
 from ..copr_rpmbuild.providers.pypi import PyPIProvider
-from . import TestProvider
+from . import TestCase
 
 
-class TestPyPIProvider(TestProvider):
+class TestPyPIProvider(TestCase):
     def setUp(self):
         super(TestPyPIProvider, self).setUp()
         self.source_json = {"pypi_package_version": "1.52",

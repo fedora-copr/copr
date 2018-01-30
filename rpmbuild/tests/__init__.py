@@ -26,7 +26,7 @@ distgit_lookaside_url = https://src.fedoraproject.org/repo/pkgs
 distgit_clone_url = git://pkgs.fedoraproject.org
 """
 
-class TestProvider(unittest.TestCase):
+class TestCase(unittest.TestCase):
     def setUp(self):
         self.config_path, self.config = self.read_config_data(CONFIG)
 

@@ -2,10 +2,10 @@ import mock
 import unittest
 from munch import Munch
 from ..copr_rpmbuild.providers.rubygems import RubyGemsProvider
-from . import TestProvider
+from . import TestCase
 
 
-class TestRubyGemsProvider(TestProvider):
+class TestRubyGemsProvider(TestCase):
     def setUp(self):
         super(TestRubyGemsProvider, self).setUp()
         self.source_json = {"gem_name": "A_123"}

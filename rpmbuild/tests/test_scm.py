@@ -5,7 +5,7 @@ import os
 import configparser
 from ..copr_rpmbuild.providers.scm import ScmProvider
 from ..copr_rpmbuild.helpers import read_config
-from . import TestProvider
+from . import TestCase
 
 from mock import patch, MagicMock
 
@@ -15,7 +15,7 @@ lookaside = {{ lookaside_url }}
 anongiturl = {{ clone_url }}/%(module)s
 """
 
-class TestScmProvider(TestProvider):
+class TestScmProvider(TestCase):
     def setUp(self):
         super(TestScmProvider, self).setUp()
         self.source_json = {
