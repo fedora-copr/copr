@@ -12,6 +12,8 @@ services:
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
+    ports:
+      - "5002:5002"
     volumes:
       - .:/opt/copr:z
 
