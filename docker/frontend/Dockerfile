@@ -39,17 +39,17 @@ RUN cd /copr/frontend/ && tito build --test --rpm --rpmbuild-options='--nocheck 
 RUN dnf -y install /tmp/tito/noarch/copr-frontend*.noarch.rpm
 
 # Configure public hostname
-RUN sed -i.bak -e "s/^PUBLIC_COPR_HOSTNAME.*/PUBLIC_COPR_HOSTNAME = '127.0.0.1:5000'/g" /etc/copr/copr.conf
+RUN sed -i.bak -e "s/^PUBLIC_COPR_HOSTNAME.*/PUBLIC_COPR_HOSTNAME = 'localhost:5000'/g" /etc/copr/copr.conf
 
 # Configure dist git url
-RUN sed -i.bak -e "s/^DIST_GIT_URL.*/DIST_GIT_URL = 'http:\\/\\/127.0.0.1:5001\\/cgit'/g" /etc/copr/copr.conf
+RUN sed -i.bak -e "s/^DIST_GIT_URL.*/DIST_GIT_URL = 'http:\\/\\/localhost:5001\\/cgit'/g" /etc/copr/copr.conf
 RUN sed -i.bak -e "s/^DIST_GIT_CLONE_URL.*/DIST_GIT_CLONE_URL = 'http:\\/\\/distgit\\/git\\/'/g" /etc/copr/copr.conf
 
 # Configure import logs url
-RUN sed -i.bak -e "s/^COPR_DIST_GIT_LOGS_URL.*/COPR_DIST_GIT_LOGS_URL = 'http:\\/\\/127.0.1:5001\\/per-task-logs'/g" /etc/copr/copr.conf
+RUN sed -i.bak -e "s/^COPR_DIST_GIT_LOGS_URL.*/COPR_DIST_GIT_LOGS_URL = 'http:\\/\\/localhost:5001\\/per-task-logs'/g" /etc/copr/copr.conf
 
 # Configure backend base url
-RUN sed -i.bak -e "s/^BACKEND_BASE_URL.*/BACKEND_BASE_URL = 'http:\\/\\/127.0.0.1:5002'/g" /etc/copr/copr.conf
+RUN sed -i.bak -e "s/^BACKEND_BASE_URL.*/BACKEND_BASE_URL = 'http:\\/\\/localhost:5002'/g" /etc/copr/copr.conf
 
 # Configure backend password
 RUN sed -i.bak -e "s/^#BACKEND_PASSWORD.*/BACKEND_PASSWORD = \\'1234\\'/g" /etc/copr/copr.conf
