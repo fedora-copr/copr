@@ -8,7 +8,7 @@ else:
 
 from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \
-    fix_protocol_for_frontend, fix_protocol_for_backend
+    fix_protocol_for_frontend, fix_protocol_for_backend, parse_repo_params
 
 from tests.coprs_test_case import CoprsTestCase
 
@@ -121,3 +121,20 @@ class TestHelpers(CoprsTestCase):
             app.config["ENFORCE_PROTOCOL_FOR_FRONTEND_URL"] = orig
             raise e
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
+
+    def test_parse_repo_params(self):
+        test_cases = [
+            ("copr://foo/bar", ("copr://foo/bar", {})),
+            ("copr://foo/bar?priority=10", ("copr://foo/bar", {"priority": 10})),
+            ("copr://foo/bar?priority=10&unexp1=baz&unexp2=qux",
+             ("copr://foo/bar?unexp1=baz&unexp2=qux", {"priority": 10})),
+            ("http://example1.com/foo?priority=10", ("http://example1.com/foo?priority=10", {})),
+        ]
+        for repo, exp in test_cases:
+            assert parse_repo_params(repo) == exp
+
+    def test_parse_repo_params_pass_keys(self):
+        url = "copr://foo/bar?param1=foo&param2=bar&param3=baz&param4=qux"
+        supported = ["param1", "param2", "param4"]
+        expected = ("copr://foo/bar?param3=baz", {"param1": "foo", "param2": "bar", "param4": "qux"})
+        assert parse_repo_params(url, supported_keys=supported) == expected

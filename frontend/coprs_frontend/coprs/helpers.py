@@ -5,7 +5,7 @@ import random
 import string
 
 from six import with_metaclass
-from six.moves.urllib.parse import urljoin, urlparse
+from six.moves.urllib.parse import urljoin, urlparse, parse_qs, urlunparse
 from textwrap import dedent
 import re
 
@@ -571,6 +571,32 @@ def pre_process_repo_url(chroot, repo_url):
     return repo_url
 
 
+def parse_repo_params(repo, supported_keys=None):
+    """
+    :param repo: str repo from Copr/CoprChroot/Build/...
+    :param supported_keys list of supported optional parameters
+    :return: tuple containing the str repo as the first value and dict of
+             optional parameters parsed from the original URL as the second value
+    """
+    supported_keys = supported_keys or ["priority"]
+    if not repo.startswith("copr://"):
+        return repo, {}
+
+    parse = list(urlparse(repo))
+    qs = parse_qs(parse[4])
+
+    supported = {}
+    unsupported = {}
+    for k, v in qs.items():
+        # parse_qs returns values as lists, but we allow setting the param only once,
+        # so we can take just first value from it
+        value = int(v[0]) if v[0].isnumeric() else v[0]
+        (supported if k in supported_keys else unsupported)[k] = value
+
+    parse[4] = "&".join(["{}={}".format(k, v) for k, v in unsupported.items()])
+    return urlunparse(parse), supported
+
+
 def generate_build_config(copr, chroot_id):
     """ Return dict with proper build config contents """
     chroot = None
@@ -596,18 +622,23 @@ def generate_build_config(copr, chroot_id):
         })
 
     for repo in copr.repos_list:
+        url, params = parse_repo_params(repo)
         repo_view = {
-            "id": generate_repo_name(repo),
-            "url": pre_process_repo_url(chroot_id, repo),
-            "name": "Additional repo " + generate_repo_name(repo),
+            "id": generate_repo_name(url),
+            "url": pre_process_repo_url(chroot_id, url),
+            "name": "Additional repo " + generate_repo_name(url),
         }
+        repo_view.update(params)
         repos.append(repo_view)
+
     for repo in chroot.repos_list:
+        url, params = parse_repo_params(repo)
         repo_view = {
-            "id": generate_repo_name(repo),
-            "url": pre_process_repo_url(chroot_id, repo),
-            "name": "Additional repo " + generate_repo_name(repo),
+            "id": generate_repo_name(url),
+            "url": pre_process_repo_url(chroot_id, url),
+            "name": "Additional repo " + generate_repo_name(url),
         }
+        repo_view.update(params)
         repos.append(repo_view)
 
     return {
