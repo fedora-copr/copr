@@ -922,10 +922,10 @@ def copr_fork_post(copr):
         fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup)
         if created:
             msg = ("Forking project {} for you into {}. Please be aware that it may take a few minutes "
-                   "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+                   "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
         elif not created and form.confirm.data == True:
             msg = ("Updating packages in {} from {}. Please be aware that it may take a few minutes "
-                   "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+                   "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
         else:
             return render_copr_fork(copr, form, confirm=True)
 

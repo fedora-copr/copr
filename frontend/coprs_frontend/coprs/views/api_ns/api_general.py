@@ -241,10 +241,10 @@ def api_copr_fork(copr):
             fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup)
             if created:
                 msg = ("Forking project {} for you into {}.\nPlease be aware that it may take a few minutes "
-                       "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+                       "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
             elif not created and form.confirm.data == True:
                 msg = ("Updating packages in {} from {}.\nPlease be aware that it may take a few minutes "
-                       "to duplicate a backend data.".format(copr.full_name, fcopr.full_name))
+                       "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
             else:
                 raise LegacyApiError("You are about to fork into existing project: {}\n"
                                      "Please use --confirm if you really want to do this".format(fcopr.full_name))

@@ -479,7 +479,7 @@ rlJournalStart
         rlRun "copr-cli build ${NAME_PREFIX}Project10 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm"
         rlRun "copr-cli fork ${NAME_PREFIX}Project10 ${NAME_PREFIX}Project10Fork > $OUTPUT"
         rlAssertEquals "Forking project" `grep -r 'Forking project' $OUTPUT |wc -l` 1
-        rlAssertEquals "Info about backend data" `grep -r 'Please be aware that it may take a few minutes to duplicate a backend data.' $OUTPUT |wc -l` 1
+        rlAssertEquals "Info about backend data" `grep -r 'Please be aware that it may take a few minutes to duplicate backend data.' $OUTPUT |wc -l` 1
 
         # attempt to fork into existing project
         OUTPUT=`mktemp`
