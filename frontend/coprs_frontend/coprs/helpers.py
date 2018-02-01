@@ -621,25 +621,21 @@ def generate_build_config(copr, chroot_id):
             "name": "Copr buildroot",
         })
 
-    for repo in copr.repos_list:
-        url, params = parse_repo_params(repo)
-        repo_view = {
-            "id": generate_repo_name(url),
-            "url": pre_process_repo_url(chroot_id, url),
-            "name": "Additional repo " + generate_repo_name(url),
-        }
-        repo_view.update(params)
-        repos.append(repo_view)
+    def get_additional_repo_views(repos_list):
+        repos = []
+        for repo in repos_list:
+            url, params = parse_repo_params(repo)
+            repo_view = {
+                "id": generate_repo_name(url),
+                "url": pre_process_repo_url(chroot_id, url),
+                "name": "Additional repo " + generate_repo_name(url),
+            }
+            repo_view.update(params)
+            repos.append(repo_view)
+        return repos
 
-    for repo in chroot.repos_list:
-        url, params = parse_repo_params(repo)
-        repo_view = {
-            "id": generate_repo_name(url),
-            "url": pre_process_repo_url(chroot_id, url),
-            "name": "Additional repo " + generate_repo_name(url),
-        }
-        repo_view.update(params)
-        repos.append(repo_view)
+    repos.extend(get_additional_repo_views(copr.repos_list))
+    repos.extend(get_additional_repo_views(chroot.repos_list))
 
     return {
         'project_id': copr.repo_id,
