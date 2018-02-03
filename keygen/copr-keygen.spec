@@ -4,8 +4,6 @@
 %global __python2 %{__python}
 %endif
 
-# this package doesn't support rhel7- since it doesn't have python3* packages
-
 Name:       copr-keygen
 Version:    1.68
 Release:    1%{?dist}
@@ -33,10 +31,6 @@ BuildRequires: python3-flask
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
 BuildRequires: python3-mock
-
-#for doc package # move to python3 when available in fedora
-BuildRequires: sphinx
-BuildRequires: python-sphinxcontrib-httpdomain
 
 Requires:   haveged
 Requires:   gnupg
@@ -68,14 +62,14 @@ This package contains aux service that generate keys for package signing.
 Summary:    Code documentation for copr-keygen component of Copr buildsystem
 Obsoletes:  copr-doc < 1.38
 
-BuildRequires: python-devel
-BuildRequires: python-setuptools
-BuildRequires: python-mock
-BuildRequires: python-requests
-BuildRequires: python-six
-BuildRequires: python-flask
-
-BuildRequires: python-sphinx
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
+BuildRequires: python3-mock
+BuildRequires: python3-requests
+BuildRequires: python3-six
+BuildRequires: python3-flask
+BuildRequires: python3-sphinx
+BuildRequires: python3-sphinxcontrib-httpdomain
 
 
 %description doc
