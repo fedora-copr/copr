@@ -111,14 +111,14 @@ class TestFrontendClient(object):
         for val in [True, False]:
             ptfr.return_value.json.return_value = {"can_start": val}
 
-            assert self.fc.starting_build(self.build_id, self.chroot_name) == val
+            assert self.fc.starting_build(self.data) == val
 
     def test_starting_build_err(self):
         ptfr = MagicMock()
         self.fc._post_to_frontend_repeatedly = ptfr
 
         with pytest.raises(RequestException):
-            self.fc.starting_build(self.build_id, self.chroot_name)
+            self.fc.starting_build(self.data)
 
     def test_starting_build_err_2(self):
         ptfr = MagicMock()
@@ -126,7 +126,7 @@ class TestFrontendClient(object):
         ptfr.return_value.json.return_value = {}
 
         with pytest.raises(RequestException):
-            self.fc.starting_build(self.build_id, self.chroot_name)
+            self.fc.starting_build(self.data)
 
     def test_reschedule_build(self):
         ptfr = MagicMock()

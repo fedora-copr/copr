@@ -21,7 +21,8 @@ from coprs.views.misc import login_required, page_not_found, req_with_copr, req_
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.exceptions import (ActionInProgressException,
-                              InsufficientRightsException,)
+                              InsufficientRightsException,
+                              UnrepeatableBuildException)
 
 
 @coprs_ns.route("/build/<int:build_id>/")
@@ -158,7 +159,7 @@ def process_new_build(copr, form, create_new_build_factory, add_function, add_vi
         try:
             create_new_build_factory(**build_options)
             db.session.commit()
-        except (ActionInProgressException, InsufficientRightsException) as e:
+        except (ActionInProgressException, InsufficientRightsException, UnrepeatableBuildException) as e:
             db.session.rollback()
             flask.flash(str(e), "error")
         else:

@@ -63,7 +63,7 @@ def mc_post():
 
 class TestImporter(Base):
     def test_try_to_obtain_new_task_empty(self, mc_get):
-        mc_get.return_value.json.return_value = {"builds": []}
+        mc_get.return_value.json.return_value = []
         assert len(self.importer.try_to_obtain_new_tasks()) is 0
 
     def test_try_to_obtain_handle_error(self, mc_get):
@@ -72,17 +72,17 @@ class TestImporter(Base):
             assert len(self.importer.try_to_obtain_new_tasks()) is 0
 
     def test_try_to_obtain_ok(self, mc_get):
-        mc_get.return_value.json.return_value = {"builds": [self.url_task_data, self.upload_task_data]}
+        mc_get.return_value.json.return_value = [self.url_task_data, self.upload_task_data]
         task = self.importer.try_to_obtain_new_tasks()[0]
-        assert task.task_id == self.url_task_data["task_id"]
+        assert task.build_id == self.url_task_data["build_id"]
         assert task.owner == self.USER_NAME
         assert self.BRANCH in task.branches
         assert task.srpm_url == "http://example.com/pkg.src.rpm"
 
     def test_try_to_obtain_ok_2(self, mc_get):
-        mc_get.return_value.json.return_value = {"builds": [self.upload_task_data, self.url_task_data]}
+        mc_get.return_value.json.return_value = [self.upload_task_data, self.url_task_data]
         task = self.importer.try_to_obtain_new_tasks()[0]
-        assert task.task_id == self.upload_task_data["task_id"]
+        assert task.build_id == self.upload_task_data["build_id"]
         assert task.owner == self.USER_NAME
         assert self.BRANCH in task.branches
         assert task.srpm_url == "http://front/tmp/tmp_2/pkg_2.src.rpm"
@@ -90,9 +90,9 @@ class TestImporter(Base):
     def test_try_to_obtain_new_task_unknown_source_type_ok_3(self, mc_get):
         task_data = copy.deepcopy(self.url_task_data)
         task_data["source_type"] = 999999
-        mc_get.return_value.json.return_value = {"builds": [task_data]}
+        mc_get.return_value.json.return_value = [task_data]
         task = self.importer.try_to_obtain_new_tasks()[0]
-        assert task.task_id == task_data["task_id"]
+        assert task.build_id == task_data["build_id"]
 
     def test_post_back(self, mc_post):
         dd = {"foo": "bar"}
@@ -127,9 +127,9 @@ class TestImporter(Base):
         assert mc_import_package.call_args[0][3] == 'somepath.src.rpm'
 
         print self.importer.post_back_safe.has_calls([
-            call({'task_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH,
+            call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH,
                   'pkg_version': '1.2', 'git_hash': '123', 'repo_name': 'foo'}),
-            call({'task_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH2,
+            call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH2,
                   'pkg_version': '1.2', 'git_hash': '124', 'repo_name': 'foo'})
         ])
 
@@ -150,4 +150,4 @@ class TestImporter(Base):
         self.importer.do_import.side_effect = stop_run
         self.importer.run()
         mc_worker.assert_called_with(target=self.importer.do_import, args=[self.url_task],
-                                     id=self.url_task.task_id, timeout=mock.ANY)
+                                     id=self.url_task.build_id, timeout=mock.ANY)

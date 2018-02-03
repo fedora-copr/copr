@@ -35,7 +35,7 @@ class Importer(object):
             # get the data
             r = get(self.get_url)
             # take the first task
-            builds = filter(lambda x: x["task_id"] not in exclude, r.json()["builds"])
+            builds = filter(lambda x: x["build_id"] not in exclude, r.json())
             if not builds:
                 log.debug("No new tasks to process.")
 
@@ -62,23 +62,6 @@ class Importer(object):
             log.error("Failed to post back to frontend : {}".format(data_dict))
             log.exception(str(e))
 
-    def get_result_dict_for_frontend(self, task_id, branch, result):
-        if not result or not branch in result.branch_commits:
-            return {
-                "task_id": task_id,
-                "error": "Could not import this branch.",
-                "branch": branch,
-            }
-
-        return {
-            "task_id": task_id,
-            "pkg_name": result.pkg_name,
-            "pkg_version": result.pkg_evr,
-            "repo_name": result.reponame,
-            "git_hash": result.branch_commits[branch],
-            "branch": branch,
-        }
-
     def do_import(self, task):
         """
         :type task: ImportTask
@@ -86,39 +69,31 @@ class Importer(object):
         per_task_log_handler = self.setup_per_task_logging(task)
         workdir = tempfile.mkdtemp()
 
-        result = None
+        result = { "build_id": task.build_id }
         try:
             srpm_path = helpers.download_file(
                 task.srpm_url,
                 workdir
             )
-            result = import_package(
+            result.update(import_package(
                 self.opts,
                 task.repo_namespace,
                 task.branches,
                 srpm_path
-            )
+            ))
         except PackageImportException as e:
             log.exception("Exception raised during package import.")
         finally:
             shutil.rmtree(workdir)
 
-        log.info("sending a responses for branches {0}".format(', '.join(task.branches)))
-        for branch in task.branches:
-            self.post_back_safe(
-                self.get_result_dict_for_frontend(task.task_id, branch, result)
-            )
-
+        log.info("sending a response for task {}".format(result))
+        self.post_back_safe(result)
         self.teardown_per_task_logging(per_task_log_handler)
 
     def setup_per_task_logging(self, task):
-        # Avoid putting logs into subdirectories
-        # when dist git branch name contains slashes.
-        task_id = str(task.task_id).replace('/', '_')
-
         handler = logging.FileHandler(
             os.path.join(self.opts.per_task_log_dir,
-                         "{0}.log".format(task_id))
+                         "{0}.log".format(task.build_id))
         )
         handler.setLevel(logging.DEBUG)
         logging.getLogger('').addHandler(handler)
@@ -149,8 +124,8 @@ class Importer(object):
                 continue
 
             for mb_task in mb_tasks:
-                p = worker_cls(target=self.do_import, args=[mb_task], id=mb_task.task_id, timeout=3600)
+                p = worker_cls(target=self.do_import, args=[mb_task], id=mb_task.build_id, timeout=3600)
                 pool.append(p)
                 log.info("Starting worker '{}' with task '{}' (timeout={})"
-                         .format(p.name, mb_task.task_id, p.timeout))
+                         .format(p.name, mb_task.build_id, p.timeout))
                 p.start()

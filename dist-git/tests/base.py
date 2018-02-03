@@ -43,7 +43,7 @@ class Base(object):
         self.FILE_HASH = "1234abc"
 
         self.url_task_data = {
-            "task_id": 123,
+            "build_id": 123,
             "owner": self.USER_NAME,
             "project": self.PROJECT_NAME,
 
@@ -51,7 +51,7 @@ class Base(object):
             "srpm_url": "http://example.com/pkg.src.rpm",
         }
         self.upload_task_data = {
-            "task_id": 124,
+            "build_id": 124,
             "owner": self.USER_NAME,
             "project": self.PROJECT_NAME,
 

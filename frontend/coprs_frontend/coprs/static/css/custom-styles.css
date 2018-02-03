@@ -25,3 +25,7 @@ div.anitya-rebuild label {
 code {
     white-space: pre-wrap;
 }
+
+span.build-waiting {
+    color: #666666;
+}

@@ -22,7 +22,7 @@ from coprs import exceptions
 from coprs import models
 from coprs import helpers
 from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
-from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException
+from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException, UnrepeatableBuildException
 from coprs.helpers import StatusEnum
 
 from coprs.logic import coprs_logic
@@ -77,12 +77,10 @@ class BuildsLogic(object):
         """
         Returns Builds which are waiting to be uploaded to dist git
         """
-        query = (models.Build.query.join(models.BuildChroot)
+        query = (models.Build.query
                  .filter(models.Build.canceled == false())
-                 .filter(models.BuildChroot.status == helpers.StatusEnum("importing"))
-                 .filter(models.Build.srpm_url.isnot(None))
-                )
-        query = query.order_by(models.BuildChroot.build_id.asc())
+                 .filter(models.Build.source_status == helpers.StatusEnum("importing")))
+        query = query.order_by(models.Build.id.asc())
         return query
 
     @classmethod
@@ -118,16 +116,15 @@ class BuildsLogic(object):
         return query
 
     @classmethod
-    def get_waiting_srpm_build_tasks(cls):
-        return (models.Build.query.join(models.BuildChroot)
-                .filter(models.Build.srpm_url.is_(None))
+    def get_pending_srpm_build_tasks(cls):
+        return (models.Build.query
                 .filter(models.Build.canceled == false())
-                .filter(models.BuildChroot.status == helpers.StatusEnum("importing"))
+                .filter(models.Build.source_status == helpers.StatusEnum("pending"))
                 .order_by(models.Build.is_background.asc(), models.Build.id.asc())
                 .all())
 
     @classmethod
-    def get_waiting_build_tasks(cls):
+    def get_pending_build_tasks(cls):
         return (models.BuildChroot.query.join(models.Build)
                 .filter(models.Build.canceled == false())
                 .filter(or_(
@@ -138,7 +135,7 @@ class BuildsLogic(object):
                         models.BuildChroot.ended_on.is_(None)
                     )
                 ))
-                .order_by(models.Build.is_background.asc(), models.BuildChroot.build_id.asc())
+                .order_by(models.Build.is_background.asc(), models.Build.id.asc())
                 .all())
 
     @classmethod
@@ -216,7 +213,7 @@ class BuildsLogic(object):
     @classmethod
     def get_copr_builds_list(cls, copr):
         query_select = """
-SELECT build.id, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
+SELECT build.id, build.source_status, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
     MIN(statuses.started_on) AS started_on, MAX(statuses.ended_on) AS ended_on, order_to_status(MIN(statuses.st)) AS status,
     build.canceled, MIN("group".name) AS group_name, MIN(copr.name) as copr_name, MIN("user".username) as user_name
 FROM build
@@ -251,8 +248,12 @@ GROUP BY
                     return 6
                 elif x == 5:
                     return 7
-                elif x == 8:
+                elif x == 2:
                     return 8
+                elif x == 8:
+                    return 9
+                elif x == 9:
+                    return 10
                 return 1000
 
             def sqlite_order_to_status(x):
@@ -271,7 +272,11 @@ GROUP BY
                 elif x == 7:
                     return 5
                 elif x == 8:
+                    return 2
+                elif x == 9:
                     return 8
+                elif x == 10:
+                    return 9
                 return 1000
 
             conn = db.engine.connect()
@@ -352,19 +357,12 @@ GROUP BY
         git_hashes = {}
 
         if source_build.source_type == helpers.BuildSourceEnum('upload'):
-            # I don't have the source
-            # so I don't want to import anything, just rebuild what's in dist git
-            skip_import = True
-
-            for chroot in source_build.build_chroots:
-                if not chroot.git_hash:
-                    # I got an old build from time we didn't use dist git
-                    # So I'll submit it as a new build using it's link
-                    skip_import = False
-                    git_hashes = None
-                    flask.flash("This build is not in Dist Git. Trying to import the package again.")
-                    break
-                git_hashes[chroot.name] = chroot.git_hash
+            if source_build.repeatable:
+                skip_import = True
+                for chroot in source_build.build_chroots:
+                    git_hashes[chroot.name] = chroot.git_hash
+            else:
+                raise UnrepeatableBuildException("Build sources were not fully imported into CoprDistGit.")
 
         build = cls.create_new(user, copr, source_build.source_type, source_build.source_json, chroot_names,
                                     pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import,
@@ -531,6 +529,7 @@ GROUP BY
             repos=None, chroots=None, timeout=None, enable_net=True,
             git_hashes=None, skip_import=False, background=False, batch=None,
             srpm_url=None):
+
         if chroots is None:
             chroots = []
 
@@ -553,6 +552,16 @@ GROUP BY
             source_type = helpers.BuildSourceEnum("link")
             source_json = json.dumps({"url":pkgs})
 
+        if skip_import and srpm_url:
+            chroot_status = StatusEnum("pending")
+            source_status = StatusEnum("succeeded")
+        elif srpm_url:
+            chroot_status = StatusEnum("waiting")
+            source_status = StatusEnum("importing")
+        else:
+            chroot_status = StatusEnum("waiting")
+            source_status = StatusEnum("pending")
+
         build = models.Build(
             user=user,
             pkgs=pkgs,
@@ -560,6 +569,7 @@ GROUP BY
             repos=repos,
             source_type=source_type,
             source_json=source_json,
+            source_status=source_status,
             submitted_on=int(time.time()),
             enable_net=bool(enable_net),
             is_background=bool(background),
@@ -577,18 +587,13 @@ GROUP BY
         if not chroots:
             chroots = copr.active_chroots
 
-        if skip_import:
-            status = StatusEnum("pending")
-        else:
-            status = StatusEnum("importing")
-
         for chroot in chroots:
             git_hash = None
             if git_hashes:
                 git_hash = git_hashes.get(chroot.name)
             buildchroot = models.BuildChroot(
                 build=build,
-                status=status,
+                status=chroot_status,
                 mock_chroot=chroot,
                 git_hash=git_hash,
             )
@@ -690,21 +695,40 @@ GROUP BY
                }]
             }
         """
-        log.info("Updating build: {} by: {}".format(build.id, upd_dict))
+        log.info("Updating build {} by: {}".format(build.id, upd_dict))
+
+        # update build
+        for attr in ["results", "built_packages", "srpm_url"]:
+            value = upd_dict.get(attr, None)
+            if value:
+                setattr(build, attr, value)
+
+        # update source build status
+        if upd_dict.get("task_id") == build.task_id:
+            if upd_dict.get("status") == StatusEnum("succeeded"):
+                new_status = StatusEnum("importing")
+            else:
+                new_status = upd_dict.get("status")
+
+            build.source_status = new_status
+
+            if new_status == StatusEnum("failed") or \
+                   new_status == StatusEnum("skipped"):
+                for ch in build.build_chroots:
+                    ch.status = new_status
+                    ch.ended_on = upd_dict.get("ended_on") or time.time()
+                    db.session.add(ch)
+
+            if new_status == StatusEnum("failed"):
+                build.fail_type = helpers.FailTypeEnum("srpm_build_error")
+
+            db.session.add(build)
+            return
+
         if "chroot" in upd_dict:
-            if upd_dict["chroot"] == "srpm-builds":
-
-                if upd_dict.get("status") == StatusEnum("failed") and not build.canceled:
-                    build.fail_type = helpers.FailTypeEnum("srpm_build_error")
-                    for ch in build.build_chroots:
-                        ch.status = helpers.StatusEnum("failed")
-                        ch.ended_on = upd_dict.get("ended_on") or time.time()
-                        db.session.add(ch)
-
             # update respective chroot status
             for build_chroot in build.build_chroots:
                 if build_chroot.name == upd_dict["chroot"]:
-
                     if "status" in upd_dict and build_chroot.status not in BuildsLogic.terminal_states:
                         build_chroot.status = upd_dict["status"]
 
@@ -723,11 +747,6 @@ GROUP BY
                             and all(b.status == StatusEnum("succeeded") for b in build.module.builds)):
                         ActionsLogic.send_build_module(build.copr, build.module)
 
-        for attr in ["results", "built_packages", "srpm_url"]:
-            value = upd_dict.get(attr, None)
-            if value:
-                setattr(build, attr, value)
-
         db.session.add(build)
 
     @classmethod
@@ -737,6 +756,7 @@ GROUP BY
                 "You are not allowed to cancel this build.")
         if not build.cancelable:
             if build.status == StatusEnum("starting"):
+                # this is not intuitive, that's why we provide more specific message
                 err_msg = "Cannot cancel build {} in state 'starting'".format(build.id)
             else:
                 err_msg = "Cannot cancel build {}".format(build.id)

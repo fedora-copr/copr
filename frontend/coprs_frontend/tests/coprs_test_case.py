@@ -238,13 +238,13 @@ class CoprsTestCase(object):
             copr=self.c2, name="goodbye-world", source_type=0)
 
         self.b1 = models.Build(
-            copr=self.c1, package=self.p1, user=self.u1, submitted_on=50, srpm_url="http://somesrpm")
+            copr=self.c1, package=self.p1, user=self.u1, submitted_on=50, srpm_url="http://somesrpm", source_status=StatusEnum("importing"))
         self.b2 = models.Build(
-            copr=self.c1, package=self.p1, user=self.u2, submitted_on=10, srpm_url="http://somesrpm")
+            copr=self.c1, package=self.p1, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"))
         self.b3 = models.Build(
-            copr=self.c2, package=self.p2, user=self.u2, submitted_on=10, srpm_url="http://somesrpm")
+            copr=self.c2, package=self.p2, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"))
         self.b4 = models.Build(
-            copr=self.c2, package=self.p2, user=self.u2, submitted_on=100, srpm_url="http://somesrpm")
+            copr=self.c2, package=self.p2, user=self.u2, submitted_on=100, srpm_url="http://somesrpm", source_status=StatusEnum("succeeded"))
 
         self.basic_builds = [self.b1, self.b2, self.b3, self.b4]
         self.b1_bc = []

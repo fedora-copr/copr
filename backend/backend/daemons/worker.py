@@ -129,7 +129,6 @@ class Worker(multiprocessing.Process):
         return False
 
     def init_buses(self):
-
         self.log.info(self.opts.msg_buses)
         for bus_config in self.opts.msg_buses:
             self.msg_buses.append(MsgBusStomp(bus_config, self.log))
@@ -231,9 +230,6 @@ class Worker(multiprocessing.Process):
                     self.log.exception("Unexpected error")
                     failed = True
 
-                finally:
-                    self.vm_manager.release_vm(self.vm.vm_name)
-
                 if not failed:
                     try:
                         mr.on_success_build()
@@ -275,9 +271,7 @@ class Worker(multiprocessing.Process):
         return built_packages
 
     def get_srpm_url(self, job):
-        self.log.info("Retrieving srpm URL for {}"
-                      .format(job.results_dir))
-
+        self.log.info("Retrieving srpm URL for {}".format(job.results_dir))
         try:
             pattern = os.path.join(job.results_dir, '*.src.rpm')
             srpm_name = os.path.basename(glob.glob(pattern)[0])
@@ -368,3 +362,5 @@ class Worker(multiprocessing.Process):
             self.log.exception("Building error: {}".format(error))
         except Exception as e:
             self.log.exception("Unexpected error: {}".format(e))
+        finally:
+            self.vm_manager.release_vm(self.vm.vm_name)

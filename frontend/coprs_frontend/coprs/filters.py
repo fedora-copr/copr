@@ -203,7 +203,9 @@ def build_state_decoration(state):
         "pending": "Your build is waiting for a builder.",
         "skipped": "This package has already been built previously.",
         "starting": "Trying to acquire and configure builder for task.",
-        "importing": "Package content is being imported into Dist Git."
+        "importing": "Package content is being imported into DistGit.",
+        "waiting": "Task is waiting for something else to finish.",
+        "imported": "Package was successfully imported into DistGit.",
     }
 
     return description_map.get(state, "")
