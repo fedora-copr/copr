@@ -742,7 +742,7 @@ class Build(db.Model, helpers.Serializer):
 
         Build is repeatable only if sources has been imported.
         """
-        return self.source_status == StatusEnum("imported")
+        return self.source_status == StatusEnum("succeeded")
 
     @property
     def finished(self):

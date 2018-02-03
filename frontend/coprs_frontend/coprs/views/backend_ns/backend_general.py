@@ -86,7 +86,7 @@ def dist_git_upload_completed():
             db.session.add(ch)
             collected_branch_chroots.append((ch.task_id))
 
-    final_source_status = StatusEnum("imported")
+    final_source_status = StatusEnum("succeeded")
     for ch in build.build_chroots:
         if ch.task_id not in collected_branch_chroots:
             final_source_status = StatusEnum("failed")

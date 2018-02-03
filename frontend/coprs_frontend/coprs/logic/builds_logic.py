@@ -554,7 +554,7 @@ GROUP BY
 
         if skip_import and srpm_url:
             chroot_status = StatusEnum("pending")
-            source_status = StatusEnum("imported")
+            source_status = StatusEnum("succeeded")
         elif srpm_url:
             chroot_status = StatusEnum("waiting")
             source_status = StatusEnum("importing")

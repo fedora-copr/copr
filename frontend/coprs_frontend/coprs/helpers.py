@@ -99,7 +99,6 @@ class StatusEnum(with_metaclass(EnumType, object)):
         "importing": 7,  # SRPM is being imported into dist-git
         "forked": 8,     # build(-chroot) was forked
         "waiting": 9,    # build(-chroot) is waiting for something else to finish
-        "imported": 10,  # SRPM has been imported into dist-git
         "unknown": 1000, # undefined
     }
 
