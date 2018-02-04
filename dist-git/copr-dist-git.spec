@@ -15,47 +15,26 @@ Source0: %{name}-%{version}.tar.gz
 BuildArch:  noarch
 
 BuildRequires: systemd
-BuildRequires: dist-git
-BuildRequires: python-bunch
-BuildRequires: python-requests
-BuildRequires: python-munch
-BuildRequires: pyrpkg >= 1.47
-# check
-BuildRequires: python-six
-BuildRequires: python-netaddr
-BuildRequires: python-dateutil
-BuildRequires: pytest
-BuildRequires: python-pytest-cov
-BuildRequires: python-mock
-%if 0%{?el7}
-BuildRequires: python-psutil
-%else
-BuildRequires: python2-psutil
-%endif
-BuildRequires: pytz
 
-%if 0%{?fedora} > 23
-# BuildRequires also because of build-time tests
+BuildRequires: python-bunch
+BuildRequires: python-munch
+BuildRequires: python2-requests
+BuildRequires: python2-rpkg
+BuildRequires: python2-six
+BuildRequires: python2-pytest
+BuildRequires: python2-pytest-cov
+BuildRequires: python2-mock
 BuildRequires: python2-jinja2
+
 Requires: python2-jinja2
-%else
-BuildRequires: python-jinja2
-Requires: python-jinja2
-%endif
+Requires: python2-requests
+Requires: python2-rpkg
+Requires: python-bunch
+Requires: python-munch
 
 Requires: systemd
 Requires: dist-git
-Requires: python-bunch
-Requires: python-requests
-%if 0%{?el7}
-Requires: python-psutil
-%else
-Requires: python2-psutil
-%endif
-Requires: python-jinja2
-Requires: pyrpkg >= 1.47
 Requires: httpd
-Requires: python-munch
 
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
