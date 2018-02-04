@@ -261,6 +261,7 @@ def starting_build():
         return flask.jsonify({"can_start": False})
 
     BuildsLogic.update_state_from_dict(build, data)
+    db.session.commit()
     return flask.jsonify({"can_start": True})
 
 

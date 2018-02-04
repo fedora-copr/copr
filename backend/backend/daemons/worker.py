@@ -86,8 +86,6 @@ class Worker(multiprocessing.Process):
         """
         Send data about started build to the frontend
         """
-        job.started_on = time.time()
-
         job.status = BuildStatus.RUNNING
         build = job.to_dict()
         self.log.info("starting build: {}".format(build))

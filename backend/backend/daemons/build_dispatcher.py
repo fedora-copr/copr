@@ -109,6 +109,7 @@ class BuildDispatcher(multiprocessing.Process):
         False if the build can not start (build is cancelled)
         """
         try:
+            job.started_on = time.time()
             job.status = BuildStatus.STARTING
             can_build_start = self.frontend_client.starting_build(job.to_dict())
         except (RequestException, ValueError) as error:
