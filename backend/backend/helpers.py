@@ -1,26 +1,23 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
 import json
 import logging
 import logging.handlers
-from operator import methodcaller
 import optparse
-import ConfigParser
 import os
 import sys
 import errno
 import time
-from contextlib import contextmanager
 import types
 import glob
+import configparser
+
+from contextlib import contextmanager
+from operator import methodcaller
+from configparser import ConfigParser
 
 import traceback
 
 from datetime import datetime
 import pytz
-# from dateutil.parser import parse as dt_parse
 
 from munch import Munch
 from redis import StrictRedis
@@ -73,7 +70,7 @@ def run_cmd(cmd, shell=False):
     munch.Munch(stdout, stderr, returncode)
         executed cmd, standard output, error output, and the return code
     """
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, encoding="utf-8")
     (stdout, stderr) = process.communicate()
 
     return munch.Munch(
@@ -153,13 +150,13 @@ class BackendConfigReader(object):
 
             return opts
 
-        except ConfigParser.Error as e:
+        except configparser.Error as e:
             raise CoprBackendError(
                 "Error parsing config file: {0}: {1}".format(
                     self.config_file, e))
 
     def _read_unsafe(self):
-        cp = ConfigParser.ConfigParser()
+        cp = ConfigParser()
         cp.read(self.config_file)
 
         opts = Munch()
@@ -379,7 +376,7 @@ def get_redis_connection(opts):
     if hasattr(opts, "redis_port"):
         kwargs["port"] = opts.redis_port
 
-    return StrictRedis(**kwargs)
+    return StrictRedis(**kwargs, charset="utf-8", decode_responses=True)
 
 
 def format_tb(ex, ex_traceback):

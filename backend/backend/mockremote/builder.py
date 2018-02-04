@@ -3,7 +3,7 @@ import pipes
 import socket
 from subprocess import Popen
 import time
-from urlparse import urlparse
+from urllib.parse import urlparse
 import glob
 
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER

@@ -1,10 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # | -ttu
-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
 
 import optparse
 import os
@@ -54,6 +49,7 @@ def parse_args(args):
 def main(args):
     opts = parse_args(args)
     run_backend(opts)
+
 
 if __name__ == "__main__":
     try:

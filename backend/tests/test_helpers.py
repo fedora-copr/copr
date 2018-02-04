@@ -1,7 +1,6 @@
 # coding: utf-8
 
 
-from Queue import Empty
 import json
 import shutil
 from subprocess import CalledProcessError
@@ -12,7 +11,6 @@ import types
 
 from munch import Munch
 from redis import ConnectionError
-import six
 from backend.exceptions import CoprSpawnFailError
 
 from backend.exceptions import BuilderError
@@ -20,12 +18,8 @@ from backend.helpers import get_redis_connection, get_redis_logger, BackendConfi
 from backend.vm_manage import EventTopics, PUBSUB_MB
 from backend.vm_manage.check import HealthChecker, check_health
 
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
-    from mock import MagicMock
-
+import mock
+from mock import MagicMock
 import pytest
 
 

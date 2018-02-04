@@ -8,15 +8,8 @@ import tempfile
 import shutil
 import os
 
-import six
-
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import patch, MagickMock
-else:
-    import mock
-    from mock import patch, MagicMock
-
+import mock
+from mock import patch, MagicMock
 import pytest
 
 import backend.daemons.log as log_module

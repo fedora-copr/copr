@@ -20,79 +20,59 @@ BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
-BuildRequires: python-setuptools
-BuildRequires: python-requests
-BuildRequires: python2-devel
-BuildRequires: python-copr >= 1.60
 BuildRequires: systemd
 BuildRequires: redis
 
-BuildRequires: pytest
-BuildRequires: python-pytest-cov
-BuildRequires: python-mock
-BuildRequires: python-six
-BuildRequires: python-munch
-BuildRequires: python-lockfile
-# missing python3
-BuildRequires: python-daemon
-BuildRequires: python-requests
-BuildRequires: python-setproctitle
-# missing python3
-BuildRequires: python-retask
-BuildRequires: python-copr >= 1.60
-BuildRequires: python-IPy
-BuildRequires: python-psutil
-BuildRequires: python-futures
-BuildRequires: python-dateutil
-BuildRequires: pytz
-# BuildRequires: python-plumbum
-# BuildRequires: wget -- ???
+%global __python %{__python3}
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
+BuildRequires: python3-requests
 
-BuildRequires: ansible
+BuildRequires: python3-pytest
+BuildRequires: python3-pytest-cov
+BuildRequires: python3-mock
+BuildRequires: python3-munch
+BuildRequires: python3-lockfile
+BuildRequires: python3-daemon
+BuildRequires: python3-requests
+BuildRequires: python3-setproctitle
+BuildRequires: python3-retask
+BuildRequires: python3-configparser
+BuildRequires: python3-copr
+BuildRequires: python3-IPy
+BuildRequires: python3-dateutil
+BuildRequires: python3-pytz
+BuildRequires: python3-sphinx
+BuildRequires: python3-fedmsg
+
 Requires:   ansible
-
-#for doc package
-BuildRequires: python-sphinx
-
 Requires:   obs-signd
 Requires:   lighttpd
 Requires:   euca2ools
 Requires:   rsync
 Requires:   openssh-clients
 Requires:   mock
-Requires:   createrepo_c >= 0.2.1-3
-Requires:   python-munch
-Requires:   python-daemon
-Requires:   python-lockfile
-Requires:   python-requests
-Requires:   python-setproctitle
-Requires:   python-retask
-Requires:   python-copr
-Requires:   python-six
-Requires:   python-IPy
-Requires:   python-psutil
-Requires:   python-futures
-Requires:   python-dateutil
-Requires:   pytz
+Requires:   createrepo_c
+Requires:   python3-munch
+Requires:   python3-daemon
+Requires:   python3-lockfile
+Requires:   python3-requests
+Requires:   python3-setproctitle
+Requires:   python3-retask
+Requires:   python3-copr
+Requires:   python3-IPy
+Requires:   python3-dateutil
+Requires:   python3-pytz
+Requires:   python3-netaddr
+Requires:   python3-modulemd
+Requires:   python3-configparser
+Requires:   python3-fedmsg
 Requires:   redis
 Requires:   logrotate
-Requires:   fedmsg
 Requires:   gawk
 Requires:   crontabs
 Requires:   prunerepo
-Requires:   python-lockfile
-
-# needed for log hitcounter
-Requires:   python-netaddr
-
-Requires:   python2-modulemd
-# Requires:   python-ipdb
-# EL7 doesn't support "Suggests"
-%if 0%{?fedora}
-Suggests:   logstash
-%endif
-Requires:   libappstream-glib-builder >= 0.4.0
-# Requires:   python-plumbum
+Requires:   libappstream-glib-builder
 Requires:   rpm-sign
 
 Requires(post): systemd

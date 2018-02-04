@@ -3,13 +3,11 @@ PyYAML
 setproctitle
 redis
 # retask
-six
 mock
 requests
 python-daemon
 bunch
 IPy
-psutil
 lockfile
 
 

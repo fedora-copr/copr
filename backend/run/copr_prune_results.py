@@ -1,9 +1,4 @@
-#!/usr/bin/python2
-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
+#!/usr/bin/python3
 
 import os
 import shutil
@@ -49,7 +44,7 @@ def runcmd(cmd):
     Run given command in a subprocess
     """
     loginfo('Executing: '+' '.join(cmd))
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8")
     (stdout, stderr) = process.communicate()
     if process.returncode != 0:
         logerror(stderr)

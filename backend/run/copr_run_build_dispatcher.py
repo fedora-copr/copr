@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # coding: utf-8
 
 from backend.daemons.build_dispatcher import BuildDispatcher

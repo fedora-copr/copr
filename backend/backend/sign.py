@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # coding: utf-8
 
 """
@@ -41,7 +41,7 @@ def get_pubkey(username, projectname, outfile=None):
     cmd = ["sudo", SIGN_BINARY, "-u", usermail, "-p"]
 
     try:
-        handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
         stdout, stderr = handle.communicate()
     except Exception as e:
         raise CoprSignError("Failed to get user pubkey"
@@ -70,7 +70,7 @@ def _sign_one(path, email):
     cmd = ["sudo", SIGN_BINARY, "-u", email, "-r", path]
 
     try:
-        handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
         stdout, stderr = handle.communicate()
     except Exception as e:
         err = CoprSignError(
@@ -170,7 +170,7 @@ def create_user_keys(username, projectname, opts):
 def _unsign_one(path):
     # Requires rpm-sign package
     cmd = ["sudo", "/usr/bin/rpm", "--delsign", path]
-    handle = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    handle = Popen(cmd, stdout=PIPE, stderr=PIPE, encoding="utf-8")
     stdout, stderr = handle.communicate()
 
     if handle.returncode != 0:

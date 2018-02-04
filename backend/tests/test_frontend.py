@@ -4,20 +4,12 @@ import multiprocessing
 
 from munch import Munch
 from requests import RequestException
-import six
 
 from backend.frontend import FrontendClient
 
-
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import patch, MagicMock
-else:
-    import mock
-    from mock import MagicMock
-
+import mock
+from mock import MagicMock
 import pytest
-
 
 @pytest.yield_fixture
 def post_req():

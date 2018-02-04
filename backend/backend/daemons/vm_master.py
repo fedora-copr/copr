@@ -1,16 +1,11 @@
 # coding: utf-8
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
 import json
 
 from multiprocessing import Process
 import time
 from setproctitle import setproctitle
 import traceback
-import psutil
 
 from ..vm_manage import VmStates
 from ..exceptions import VmSpawnLimitReached

@@ -7,16 +7,9 @@ import tarfile
 from munch import Munch
 
 import pytest
-import six
 
-
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import MagicMock
-else:
-    import mock
-    from mock import MagicMock
-
+import mock
+from mock import MagicMock
 
 from backend.actions import Action, ActionType, ActionResult
 from backend.exceptions import CreateRepoError, CoprKeygenRequestError

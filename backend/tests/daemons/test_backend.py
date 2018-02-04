@@ -8,19 +8,13 @@ from munch import Munch
 import pytest
 import retask
 from retask import ConnectionError
-import six
 import sys
 
 from backend.daemons.backend import CoprBackend, run_backend
 from backend.exceptions import CoprBackendError
 
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import MagicMock
-else:
-    import mock
-    from mock import MagicMock
-
+import mock
+from mock import MagicMock
 
 STDOUT = "stdout"
 STDERR = "stderr"

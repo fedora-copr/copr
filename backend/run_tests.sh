@@ -31,7 +31,6 @@ if [[ -n $@ ]]; then
 	TESTS=$@
 fi
 
-
-PYTHONPATH=backend:run:$PYTHONPATH python -B -m pytest -s $COVPARAMS $TESTS
+PYTHONPATH=backend:run:$PYTHONPATH python3 -B -m pytest -s $COVPARAMS $TESTS
 
 kill %1

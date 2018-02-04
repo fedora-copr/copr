@@ -7,7 +7,6 @@ import time
 from multiprocessing import Queue
 
 from munch import Munch
-import six
 
 from backend import exceptions
 from backend.exceptions import VmError, NoVmAvailable
@@ -16,13 +15,8 @@ from backend.vm_manage.manager import VmManager
 from backend.daemons.vm_master import VmMaster
 from backend.helpers import get_redis_connection
 
-
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
-    from mock import MagicMock
-
+import mock
+from mock import MagicMock
 import pytest
 
 

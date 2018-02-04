@@ -4,18 +4,12 @@ from multiprocessing import Queue
 import types
 
 from munch import Munch
-import six
 import time
 
 from backend.helpers import get_redis_connection
 from backend.vm_manage.executor import Executor
 
-
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
-
+import mock
 import pytest
 
 

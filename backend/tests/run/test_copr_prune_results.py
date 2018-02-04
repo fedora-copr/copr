@@ -7,13 +7,8 @@ import tempfile
 from munch import Munch
 
 import pytest
-
-import six
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
-    from mock import MagicMock
+import mock
+from mock import MagicMock
 
 from copr_prune_results import Pruner
 from copr_prune_results import main as prune_main

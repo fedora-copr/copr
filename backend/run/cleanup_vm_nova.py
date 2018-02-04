@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding: utf-8
 
 import os
@@ -10,7 +10,6 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dateutil.parser import parse as dt_parse
 
-import psutil
 import yaml
 from novaclient.client import Client
 

@@ -22,7 +22,7 @@ def run_cmd_unsafe(comm_str, lock_path):
         # TODO change this to logger
         setproctitle("[locked] in createrepo")
         with LockFile(lock_path):
-            cmd = Popen(comm, stdout=PIPE, stderr=PIPE)
+            cmd = Popen(comm, stdout=PIPE, stderr=PIPE, encoding="utf-8")
             out, err = cmd.communicate()
     except Exception as err:
         raise CreateRepoError(msg="Failed to execute: {}".format(err), cmd=comm_str)

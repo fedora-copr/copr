@@ -10,5 +10,4 @@ IPy
 sphinx
 sphinx-argparse
 netaddr
-psutil
 munch

@@ -9,15 +9,8 @@ import tempfile
 import shutil
 import os
 
-import six
-
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import patch, MagicMock
-else:
-    import mock
-    from mock import patch, MagicMock
-
+import mock
+from mock import patch, MagicMock
 import pytest
 
 from backend.mockremote import MockRemote

@@ -1,5 +1,4 @@
 # coding: utf-8
-from Queue import Empty
 import json
 import shutil
 import tempfile
@@ -9,7 +8,6 @@ import types
 
 from munch import Munch
 from redis.client import Script
-import six
 
 from backend.exceptions import VmDescriptorNotFound
 from backend.helpers import get_redis_connection
@@ -17,13 +15,8 @@ from backend.vm_manage import VmStates
 from backend.vm_manage.event_handle import EventHandler, Recycle
 from backend.vm_manage.models import VmDescriptor
 
-
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
-    from mock import MagicMock
-
+import mock
+from mock import MagicMock
 import pytest
 
 

@@ -58,7 +58,7 @@ class SSHConnection(object):
 
     def _run(self, user_command, stdout, stderr):
         real_command = self._ssh_base() + [user_command]
-        proc = subprocess.Popen(real_command, stdout=stdout, stderr=stderr)
+        proc = subprocess.Popen(real_command, stdout=stdout, stderr=stderr, encoding="utf-8")
         retval = proc.wait()
         if retval == 255:
             # Because we don't manage the control path (that's done in ssh
@@ -72,7 +72,7 @@ class SSHConnection(object):
         """
         Run user_command (blocking) and redirect stdout and/or stderr into
         pre-opened python file descriptor.  When stdout/stderr is not set, the
-        output from particular output is ignored.
+        output from particular command is ignored.
 
         :param user_command:
             Command (string) to be executed (note: use pipes.quote).
@@ -113,7 +113,7 @@ class SSHConnection(object):
         """
         real_command = self._ssh_base() + [user_command]
         proc = subprocess.Popen(real_command, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+                                stderr=subprocess.PIPE, encoding="utf-8")
         stdout, stderr = proc.communicate()
         if proc.returncode == 255:
             # Value 255 means either that 255 was returned by remote command or

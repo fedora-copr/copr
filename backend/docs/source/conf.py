@@ -27,7 +27,7 @@ if on_rtd:
     for pkg in TO_INSTALL:
         print(call(["pip", "install", "--upgrade", pkg]))
 
-    print(call("python ../../../python/setup.py install".split()))
+    print(call("python3 ../../../python/setup.py install".split()))
 
 # else:
 #     # html_theme = 'nature'

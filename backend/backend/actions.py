@@ -5,7 +5,6 @@ import shutil
 import time
 import glob
 import traceback
-from urllib import urlretrieve
 import base64
 import modulemd
 import tempfile
@@ -14,6 +13,7 @@ from munch import Munch
 from distutils.dir_util import copy_tree
 from copr.exceptions import CoprRequestException
 from requests import RequestException
+from urllib.request import urlretrieve
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
@@ -23,7 +23,7 @@ from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 from .vm_manage.manager import VmManager
 
-from sshcmd import SSHConnectionError, SSHConnection
+from .sshcmd import SSHConnectionError, SSHConnection
 
 class Action(object):
     """ Object to send data back to fronted

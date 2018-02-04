@@ -5,16 +5,11 @@ import time
 
 from munch import Munch
 import pytest
-import six
 
 from backend.exceptions import CoprSignError, CoprSignNoKeyError, CoprKeygenRequestError
 
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import MagicMock
-else:
-    import mock
-    from mock import MagicMock
+import mock
+from mock import MagicMock
 
 from backend.sign import get_pubkey, _sign_one, sign_rpms_in_dir, create_user_keys
 

@@ -1,5 +1,4 @@
 # coding: utf-8
-from Queue import Empty
 import shutil
 import tempfile
 import time
@@ -8,18 +7,13 @@ import types
 
 from munch import Munch
 from redis import ConnectionError
-import six
 from backend.exceptions import CoprSpawnFailError
 
 from backend.helpers import get_redis_connection
 from backend.vm_manage.spawn import Spawner, spawn_instance, do_spawn_and_publish
 
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
-    from mock import MagicMock
-
+import mock
+from mock import MagicMock
 import pytest
 
 

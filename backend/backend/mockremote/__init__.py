@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 # by skvidal
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,23 +14,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA.
 # copyright 2012 Red Hat, Inc.
-
-
-# Original approach was:
-# take list of pkgs
-# take single hostname
-# send 1 pkg at a time to host
-# build in remote w/mockchain
-# rsync results back
-# repeat
-# take args from mockchain (more or less)
-
-# now we build only one package per MockRemote instance
-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
 
 import fcntl
 import logging

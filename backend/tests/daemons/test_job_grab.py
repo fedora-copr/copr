@@ -1,10 +1,5 @@
 # coding: utf-8
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-
 import copy
 import json
 
@@ -21,15 +16,8 @@ import tempfile
 import shutil
 import os
 
-import six
-
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import patch, MagickMock, call
-else:
-    import mock
-    from mock import patch, MagicMock, call
-
+import mock
+from mock import patch, MagicMock, call
 import pytest
 
 from backend.daemons.job_grab import CoprJobGrab

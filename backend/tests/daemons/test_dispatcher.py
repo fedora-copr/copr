@@ -11,20 +11,13 @@ import tempfile
 import shutil
 import time
 
-import six
-
 from backend.constants import BuildStatus, JOB_GRAB_TASK_END_PUBSUB
 from backend.exceptions import CoprWorkerError, CoprSpawnFailError, MockRemoteError, NoVmAvailable, VmError
 from backend.job import BuildJob
 from backend.vm_manage.models import VmDescriptor
 
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import MagicMock
-else:
-    import mock
-    from mock import MagicMock
-
+import mock
+from mock import MagicMock
 
 from backend.daemons.dispatcher import Worker
 
