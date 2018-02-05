@@ -5,7 +5,7 @@ import os
 import re
 import time
 
-from IPy import IP
+from netaddr import IPAddress
 
 from ..ans_utils import run_ansible_playbook_cli
 from backend.helpers import get_redis_connection
@@ -60,9 +60,9 @@ def spawn_instance(spawn_playbook, log):
     vm_name = get_vm_name_from_log(result)
 
     try:
-        IP(ipaddr)
-    except ValueError:
-        # if we get here we"re in trouble
+        IPAddress(ipaddr)
+    except:
+        # if we get here we are in trouble
         msg = "Invalid IP: `{}` back from spawn_instance - dumping cache output\n".format(ipaddr)
         msg += str(result)
         raise CoprSpawnFailError(msg)

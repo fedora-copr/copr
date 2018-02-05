@@ -7,7 +7,6 @@ mock
 requests
 python-daemon
 bunch
-IPy
 lockfile
 
 
