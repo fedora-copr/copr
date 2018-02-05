@@ -15,27 +15,27 @@ class TestModuleBuildFacade(CoprsTestCase):
         pkg5 = ModuleComponentRPM("pkg5", "rationale", buildorder=50)
 
         # Test trivial usage
-        assert ModuleBuildFacade.get_build_batches(None, {}) == []
+        assert ModuleBuildFacade.get_build_batches({}) == []
 
         # Test multiple components with same buildorder
         rpms = {"pkg1": pkg1, "pkg2": pkg2}
         expected_batches = [{"pkg1": pkg1, "pkg2": pkg2}]
-        assert ModuleBuildFacade.get_build_batches(None, rpms) == expected_batches
+        assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
 
         # Test component with buildorder
         rpms = {"pkg3": pkg3, "pkg1": pkg1, "pkg2": pkg2}
         expected_batches = [{"pkg1": pkg1, "pkg2": pkg2}, {"pkg3": pkg3}]
-        assert ModuleBuildFacade.get_build_batches(None, rpms) == expected_batches
+        assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
 
         # Test negative buildorder
         rpms = {"pkg1": pkg1, "pkg2": pkg2, "pkg4": pkg4}
         expected_batches = [{"pkg4": pkg4}, {"pkg1": pkg1, "pkg2": pkg2}]
-        assert ModuleBuildFacade.get_build_batches(None, rpms) == expected_batches
+        assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
 
         # Test various buildorders at once
         rpms = {"pkg5": pkg5, "pkg3": pkg3, "pkg2": pkg2, "pkg4": pkg4, "pkg1":pkg1}
         expected_batches = [{"pkg4": pkg4}, {"pkg1": pkg1, "pkg2": pkg2}, {"pkg3": pkg3}, {"pkg5": pkg5}]
-        assert ModuleBuildFacade.get_build_batches(None, rpms) == expected_batches
+        assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
 
 
 class TestModulemdGenerator(CoprsTestCase):

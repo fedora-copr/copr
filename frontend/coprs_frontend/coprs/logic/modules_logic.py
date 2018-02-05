@@ -94,7 +94,8 @@ class ModuleBuildFacade(object):
         self.add_builds(self.modulemd.components.rpms, module)
         return module
 
-    def get_build_batches(self, rpms):
+    @classmethod
+    def get_build_batches(cls, rpms):
         """
         Determines Which component should be built in which batch. Returns an ordered list of grouped components,
         first group of components should be built as a first batch, second as second and so on.
