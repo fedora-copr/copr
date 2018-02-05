@@ -189,3 +189,5 @@ class BuildDispatcher(multiprocessing.Process):
                 worker = self.start_worker(vm, job)
                 self.log.info("Started new worker {} for job {}"
                               .format(worker.worker_id, worker.job.task_id))
+
+            time.sleep(self.opts.sleeptime)
