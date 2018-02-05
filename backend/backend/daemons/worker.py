@@ -221,7 +221,7 @@ class Worker(multiprocessing.Process):
                     # garbage collector.
                     self.vm_manager.start_vm_termination(self.vm.vm_name)
                     self.frontend_client.reschedule_build(
-                            job.build_id, job.chroot)
+                            job.build_id, job.task_id, job.chroot)
                     raise VmError("SSH connection issue, build rescheduled")
 
                 except: # programmer's failure

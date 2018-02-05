@@ -265,19 +265,26 @@ def starting_build():
     return flask.jsonify({"can_start": True})
 
 
-@backend_ns.route("/reschedule_all_running/", methods=["POST"])
+@backend_ns.route("/reschedule_all_running/", methods=["POST", "PUT"])
 @misc.backend_authenticated
 def reschedule_all_running():
     to_reschedule = \
         BuildsLogic.get_build_tasks(StatusEnum("starting")).all() + \
         BuildsLogic.get_build_tasks(StatusEnum("running")).all()
 
-    if to_reschedule:
-        for build_chroot in to_reschedule:
-            build_chroot.status = StatusEnum("pending")
-            db.session.add(build_chroot)
+    for build_chroot in to_reschedule:
+        build_chroot.status = StatusEnum("pending")
+        db.session.add(build_chroot)
 
-        db.session.commit()
+    to_reschedule = \
+        BuildsLogic.get_srpm_build_tasks(StatusEnum("starting")).all() + \
+        BuildsLogic.get_srpm_build_tasks(StatusEnum("running")).all()
+
+    for build in to_reschedule:
+        build.source_status = StatusEnum("pending")
+        db.session.add(build)
+
+    db.session.commit()
 
     return "OK", 200
 
@@ -286,35 +293,49 @@ def reschedule_all_running():
 @misc.backend_authenticated
 def reschedule_build_chroot():
     response = {}
-    if "build_id" in flask.request.json and "chroot" in flask.request.json:
-        build = ComplexLogic.get_build_safe(flask.request.json["build_id"])
-    else:
-        response["result"] = "bad request"
-        response["msg"] = "Request missing  `build_id` and/or `chroot`"
+    build_id = flask.request.json.get("build_id")
+    task_id = flask.request.json.get("task_id")
+    chroot = flask.request.json.get("chroot")
+
+    try:
+        build = ComplexLogic.get_build_safe(build_id)
+    except ObjectNotFound:
+        response["result"] = "noop"
+        response["msg"] = "Build {} wasn't found".format(build_id)
         return flask.jsonify(response)
 
-    if build:
-        if build.canceled:
-            response["result"] = "noop"
-            response["msg"] = "build was cancelled, ignoring"
-        else:
-            chroot = flask.request.json["chroot"]
-            build_chroot = build.chroots_dict_by_name.get(chroot)
-            run_statuses = set([StatusEnum("starting"), StatusEnum("running")])
-            if build_chroot and build_chroot.status in run_statuses:
-                log.info("rescheduling build {} chroot: {}".format(build.id, build_chroot.name))
-                BuildsLogic.update_state_from_dict(build, {
-                    "chroot": chroot,
-                    "status": StatusEnum("pending")
-                })
-                db.session.commit()
-                response["result"] = "done"
-            else:
-                response["result"] = "noop"
-                response["msg"] = "build is not in running states, ignoring"
-
-    else:
+    if build.canceled:
         response["result"] = "noop"
-        response["msg"] = "Build {} wasn't found".format(flask.request.json["build_id"])
+        response["msg"] = "build was cancelled, ignoring"
+        return flask.jsonify(response)
+
+    run_statuses = set([StatusEnum("starting"), StatusEnum("running")])
+
+    if task_id == build.task_id:
+        if build.source_status in run_statuses:
+            log.info("rescheduling srpm build {}".format(build.id))
+            BuildsLogic.update_state_from_dict(build, {
+                "task_id": task_id,
+                "status": StatusEnum("pending")
+            })
+            db.session.commit()
+            response["result"] = "done"
+        else:
+            response["result"] = "noop"
+            response["msg"] = "build is not in running states, ignoring"
+    else:
+        build_chroot = build.chroots_dict_by_name.get(chroot)
+        if build_chroot and build_chroot.status in run_statuses:
+            log.info("rescheduling build {} chroot: {}".format(build.id, build_chroot.name))
+            BuildsLogic.update_state_from_dict(build, {
+                "task_id": task_id,
+                "chroot": chroot,
+                "status": StatusEnum("pending")
+            })
+            db.session.commit()
+            response["result"] = "done"
+        else:
+            response["result"] = "noop"
+            response["msg"] = "build chroot is not in running states, ignoring"
 
     return flask.jsonify(response)

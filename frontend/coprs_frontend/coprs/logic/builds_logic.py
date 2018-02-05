@@ -53,6 +53,18 @@ class BuildsLogic(object):
         return result
 
     @classmethod
+    def get_srpm_build_tasks(cls, status, background=None):
+        """ Returns srpm build tasks with given status. If background is
+            specified then returns normal jobs (false) or background jobs (true)
+        """
+        result = models.Build.query\
+            .filter(models.Build.source_status == status)\
+            .order_by(models.Build.id.asc())
+        if background is not None:
+            result = result.filter(models.Build.is_background == (true() if background else false()))
+        return result
+
+    @classmethod
     def get_recent_tasks(cls, user=None, limit=None):
         if not limit:
             limit = 100

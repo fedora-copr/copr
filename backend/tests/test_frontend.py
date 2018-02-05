@@ -39,6 +39,7 @@ class TestFrontendClient(object):
         self.url_path = "sub_path"
 
         self.build_id = 12345
+        self.task_id = "12345-fedora-20-x86_64"
         self.chroot_name = "fedora-20-x86_64"
 
     @pytest.fixture
@@ -123,7 +124,7 @@ class TestFrontendClient(object):
     def test_reschedule_build(self):
         ptfr = MagicMock()
         self.fc._post_to_frontend_repeatedly = ptfr
-        self.fc.reschedule_build(self.build_id, self.chroot_name)
-        expected = mock.call({'build_id': self.build_id, 'chroot': self.chroot_name},
+        self.fc.reschedule_build(self.build_id, self.task_id, self.chroot_name)
+        expected = mock.call({'build_id': self.build_id, 'task_id': self.task_id, 'chroot': self.chroot_name},
                              'reschedule_build_chroot')
         assert ptfr.call_args == expected
