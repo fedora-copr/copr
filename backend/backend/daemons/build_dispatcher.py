@@ -162,7 +162,7 @@ class BuildDispatcher(multiprocessing.Process):
                 if vm and vm.state == 'in_use':
                     self.log.info("Reattaching to VM: "+str(vm))
                     worker = self.start_worker(vm, job, reattach=True)
-                    worker.mark_started(job)
+                    worker.mark_running(job)
                     vm.store_field(self.vm_manager.rc, "used_by_worker", worker.worker_id)
                     self.log.info("Reattached new worker {} for job {}"
                                   .format(worker.worker_id, worker.job.task_id))

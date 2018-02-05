@@ -67,7 +67,7 @@ class Worker(multiprocessing.Process):
         """
         Announce everywhere that a build process started now.
         """
-        self.mark_started(job)
+        self.mark_running(job)
 
         for topic in ['build.start', 'chroot.start']:
             self._announce(topic, job)
@@ -82,7 +82,7 @@ class Worker(multiprocessing.Process):
         self.log.info("worker finished build: {0}".format(self.vm.vm_ip))
         self._announce('build.end', job)
 
-    def mark_started(self, job):
+    def mark_running(self, job):
         """
         Send data about started build to the frontend
         """
@@ -100,8 +100,11 @@ class Worker(multiprocessing.Process):
         """
         Send the build results to the frontend
         """
-        self.log.info("Build {} finished with status {}. Took {} seconds"
-                      .format(job.build_id, job.status, job.ended_on - job.started_on))
+        self.log.info("Build {} finished with status {}"
+                      .format(job.build_id, job.status))
+
+        if job.started_on: # unset for reattached builds
+            self.log.info("Took {} seconds.".format(job.ended_on - job.started_on))
 
         data = {"builds": [job.to_dict()]}
 
@@ -157,7 +160,7 @@ class Worker(multiprocessing.Process):
         if not self.reattach:
             self._announce_start(job)
         else:
-            self.mark_started(job)
+            self.mark_running(job)
 
         # setup our target dir locally
         if not os.path.exists(job.chroot_dir):
