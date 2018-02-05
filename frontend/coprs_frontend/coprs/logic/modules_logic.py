@@ -4,6 +4,7 @@ import base64
 import json
 import requests
 import modulemd
+from collections import defaultdict
 from sqlalchemy import and_
 from datetime import datetime
 from coprs import models
@@ -102,10 +103,8 @@ class ModuleBuildFacade(object):
         Particular components groups are represented by dicts and can by built in a random order within the batch.
         :return: list of lists
         """
-        batches = {}
+        batches = defaultdict(dict)
         for pkgname, rpm in rpms.items():
-            if not rpm.buildorder in batches:
-                batches[rpm.buildorder] = {}
             batches[rpm.buildorder][pkgname] = rpm
         return [batches[number] for number in sorted(batches.keys())]
 
