@@ -40,12 +40,12 @@
   </div>
   <div class="col-md-3 col-sm-4">
     <br>
-    
+
     {% if g.user %}
       {{ user_projects_panel(g.user) }}
     {% endif %}
 
-    {{ task_queue_panel(tasks_info) }}
+    {{ task_queue_panel(tasks_info, graph) }}
     {{ recent_builds_panel(users_builds) }}
 
   </div>

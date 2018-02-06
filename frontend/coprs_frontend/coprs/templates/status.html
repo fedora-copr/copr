@@ -25,6 +25,9 @@
   <li class="{% block running_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.running') }}">Running</a>
   </li>
+  <li class="{% block stats_selected %}{% endblock %}">
+      <a href="{{ url_for('status_ns.stats') }}">Statistics</a>
+  </li>
 </ul>
 {% block status_body %}{% endblock %}
 {% endblock %}

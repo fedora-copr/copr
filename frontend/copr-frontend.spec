@@ -88,6 +88,7 @@ BuildRequires: python3-pygments
 BuildRequires: python3-flask-whooshee
 BuildRequires: python3-modulemd
 BuildRequires: redis
+BuildRequires: xstatic-patternfly-common
 %endif
 
 Requires: httpd
@@ -123,6 +124,7 @@ Requires: python3-pygments
 Requires: python3-CommonMark
 Requires: python3-psycopg2
 Requires: python3-zmq
+Requires: xstatic-patternfly-common
 
 Provides: bundled(bootstrap) = 3.3.4
 Provides: bundled(bootstrap-combobox) = 1.1.6
@@ -244,6 +246,8 @@ cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
 %%copr_frontend_chroot_logodir    %%copr_frontend_staticdir/chroot_logodir
 EOF
 
+cp -a %{_datadir}/javascript/patternfly %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/static/components/
+
 %check
 %if %{with check} && "%{_arch}" == "x86_64"
     pushd coprs_frontend
@@ -346,7 +350,7 @@ service logstash condrestart
 - update the info how to install a module
 - fix code block spacing
 - fix scm unification migrations for mock-scm
-- show most recent post from our blog 
+- show most recent post from our blog
 
 * Thu Nov 09 2017 clime <clime@redhat.com> 1.124-1
 - fix build_on_pagure_commit.py

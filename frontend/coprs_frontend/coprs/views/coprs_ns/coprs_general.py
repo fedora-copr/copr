@@ -77,11 +77,14 @@ def coprs_show(page=1):
     # users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
     users_builds = builds_logic.BuildsLogic.get_recent_tasks(None, 4)
 
+    data = builds_logic.BuildsLogic.get_tasks_from_last_day()
+
     return flask.render_template("coprs/show/all.html",
                                  coprs=coprs,
                                  paginator=paginator,
                                  tasks_info=ComplexLogic.get_queues_size(),
-                                 users_builds=users_builds)
+                                 users_builds=users_builds,
+                                 graph=data)
 
 
 @coprs_ns.route("/<username>/", defaults={"page": 1})
@@ -103,12 +106,15 @@ def coprs_by_user(username=None, page=1):
     # flask.g.user is none when no user is logged - showing builds from everyone
     users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 4)
 
+    data = builds_logic.BuildsLogic.get_tasks_from_last_day()
+
     return flask.render_template("coprs/show/user.html",
                                  user=user,
                                  coprs=coprs,
                                  paginator=paginator,
                                  tasks_info=ComplexLogic.get_queues_size(),
-                                 users_builds=users_builds)
+                                 users_builds=users_builds,
+                                 graph=data)
 
 
 @coprs_ns.route("/fulltext/", defaults={"page": 1})
