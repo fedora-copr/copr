@@ -575,26 +575,21 @@ def parse_repo_params(repo, supported_keys=None):
     """
     :param repo: str repo from Copr/CoprChroot/Build/...
     :param supported_keys list of supported optional parameters
-    :return: tuple containing the str repo as the first value and dict of
-             optional parameters parsed from the original URL as the second value
+    :return: dict of optional parameters parsed from the repo URL
     """
     supported_keys = supported_keys or ["priority"]
     if not repo.startswith("copr://"):
-        return repo, {}
+        return {}
 
-    parse = list(urlparse(repo))
-    qs = parse_qs(parse[4])
-
-    supported = {}
-    unsupported = {}
+    params = {}
+    qs = parse_qs(urlparse(repo).query)
     for k, v in qs.items():
-        # parse_qs returns values as lists, but we allow setting the param only once,
-        # so we can take just first value from it
-        value = int(v[0]) if v[0].isnumeric() else v[0]
-        (supported if k in supported_keys else unsupported)[k] = value
-
-    parse[4] = "&".join(["{}={}".format(k, v) for k, v in unsupported.items()])
-    return urlunparse(parse), supported
+        if k in supported_keys:
+            # parse_qs returns values as lists, but we allow setting the param only once,
+            # so we can take just first value from it
+            value = int(v[0]) if v[0].isnumeric() else v[0]
+            params[k] = value
+    return params
 
 
 def generate_build_config(copr, chroot_id):
@@ -624,11 +619,11 @@ def generate_build_config(copr, chroot_id):
     def get_additional_repo_views(repos_list):
         repos = []
         for repo in repos_list:
-            url, params = parse_repo_params(repo)
+            params = parse_repo_params(repo)
             repo_view = {
-                "id": generate_repo_name(url),
-                "url": pre_process_repo_url(chroot_id, url),
-                "name": "Additional repo " + generate_repo_name(url),
+                "id": generate_repo_name(repo),
+                "url": pre_process_repo_url(chroot_id, repo),
+                "name": "Additional repo " + generate_repo_name(repo),
             }
             repo_view.update(params)
             repos.append(repo_view)

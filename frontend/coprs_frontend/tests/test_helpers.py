@@ -1,4 +1,5 @@
 from copy import deepcopy
+from flask import Flask, current_app
 import six
 
 if six.PY3:
@@ -8,7 +9,7 @@ else:
 
 from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \
-    fix_protocol_for_frontend, fix_protocol_for_backend, parse_repo_params
+    fix_protocol_for_frontend, fix_protocol_for_backend, pre_process_repo_url, parse_repo_params
 
 from tests.coprs_test_case import CoprsTestCase
 
@@ -122,13 +123,26 @@ class TestHelpers(CoprsTestCase):
             raise e
         app.config["ENFORCE_PROTOCOL_FOR_BACKEND_URL"] = orig
 
+    def test_pre_process_repo_url(self):
+        app = Flask(__name__)
+        app.config["BACKEND_BASE_URL"] = "http://backend"
+
+        test_cases = [
+            ("http://example1.com/foo/$chroot/", "http://example1.com/foo/fedora-rawhide-x86_64/"),
+            ("copr://someuser/someproject", "http://backend/results/someuser/someproject/fedora-rawhide-x86_64/"),
+            ("copr://someuser/someproject?foo=bar&baz=10",
+             "http://backend/results/someuser/someproject/fedora-rawhide-x86_64/"),
+        ]
+        with app.app_context():
+            for url, exp in test_cases:
+                assert pre_process_repo_url("fedora-rawhide-x86_64", url) == exp
+
     def test_parse_repo_params(self):
         test_cases = [
-            ("copr://foo/bar", ("copr://foo/bar", {})),
-            ("copr://foo/bar?priority=10", ("copr://foo/bar", {"priority": 10})),
-            ("copr://foo/bar?priority=10&unexp1=baz&unexp2=qux",
-             ("copr://foo/bar?unexp1=baz&unexp2=qux", {"priority": 10})),
-            ("http://example1.com/foo?priority=10", ("http://example1.com/foo?priority=10", {})),
+            ("copr://foo/bar", {}),
+            ("copr://foo/bar?priority=10", {"priority": 10}),
+            ("copr://foo/bar?priority=10&unexp1=baz&unexp2=qux", {"priority": 10}),
+            ("http://example1.com/foo?priority=10", {}),
         ]
         for repo, exp in test_cases:
             assert parse_repo_params(repo) == exp
@@ -136,5 +150,5 @@ class TestHelpers(CoprsTestCase):
     def test_parse_repo_params_pass_keys(self):
         url = "copr://foo/bar?param1=foo&param2=bar&param3=baz&param4=qux"
         supported = ["param1", "param2", "param4"]
-        expected = ("copr://foo/bar?param3=baz", {"param1": "foo", "param2": "bar", "param4": "qux"})
+        expected = {"param1": "foo", "param2": "bar", "param4": "qux"}
         assert parse_repo_params(url, supported_keys=supported) == expected
