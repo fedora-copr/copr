@@ -5,7 +5,7 @@ import random
 import string
 
 from six import with_metaclass
-from six.moves.urllib.parse import urljoin, urlparse, parse_qs, urlunparse
+from six.moves.urllib.parse import urljoin, urlparse, parse_qs
 from textwrap import dedent
 import re
 
