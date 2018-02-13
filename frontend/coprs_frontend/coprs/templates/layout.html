@@ -21,11 +21,13 @@
   <script src="{{ url_for('static', filename='components/jquery/dist/jquery.min.js') }}"></script>
   <script src="{{ url_for('static', filename='components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
   <script src="{{ url_for('static', filename='components/datatables/media/js/jquery.dataTables.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/patternfly.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='components/patternfly/js/patternfly.min.js') }}"></script>
 
   <script src="{{ url_for('static', filename='copr.js') }}"></script>
   <link rel=stylesheet type=text/css href="{{ url_for('static', filename='copr.css') }}">
   <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/style-overwrite.css') }}">
+  {% block head %}
+  {% endblock %}
 </head>
 
 <body>
@@ -170,5 +172,6 @@
   <!-- Last post from our blog -->
   <script src="{{ url_for('static', filename='js/blog.js') }}"></script>
 
+  {% block footer %}{% endblock %}
 </body>
 </html>

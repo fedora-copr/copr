@@ -85,6 +85,33 @@ class BuildsLogic(object):
         return list(query.all()[:4])
 
     @classmethod
+    def get_tasks_by_time(cls, start, end):
+        result = models.BuildChroot.query\
+            .filter(models.BuildChroot.ended_on > start)\
+            .filter(models.BuildChroot.started_on < end)\
+            .order_by(models.BuildChroot.started_on.asc())
+
+        return result
+
+    @classmethod
+    def get_tasks_from_last_day(cls):
+        end = int(time.time())
+        start = end - 86399
+        step = 3600
+        tasks = cls.get_tasks_by_time(start, end)
+        steps = int(round((end - start) / step + 0.5))
+        current_step = 0
+
+        data = [[0] * (steps + 1)]
+        data[0][0] = ''
+        for t in tasks:
+            task = t.to_dict()
+            while task['started_on'] > start + step * (current_step + 1):
+                current_step += 1
+            data[0][current_step + 1] += 1
+        return data
+
+    @classmethod
     def get_build_importing_queue(cls):
         """
         Returns Builds which are waiting to be uploaded to dist git

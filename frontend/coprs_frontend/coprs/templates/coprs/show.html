@@ -4,6 +4,9 @@
 {% from "_helpers.html" import render_pagination, copr_details_href, copr_name, user_projects_panel %}
 {% from "_helpers.html" import recent_builds_panel, task_queue_panel, recent_blog_panel %}
 {%block main_menu_projects %}active{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='components/patternfly/css/patternfly-additions.min.css') }}">
+{% endblock %}
 {% block body %}
 <div class="row">
   <div class="col-md-9 col-sm-8">
@@ -47,9 +50,15 @@
     {% endif %}
 
     {{ recent_blog_panel() }}
-    {{ task_queue_panel(tasks_info) }}
+    {{ task_queue_panel(tasks_info, graph) }}
     {{ recent_builds_panel(users_builds) }}
 
   </div>
 </div>
+{% endblock %}
+{% block footer %}
+<script src="{{ url_for('static', filename='components/c3/c3.min.js') }}"></script>
+<script src="{{ url_for('static', filename='components/d3/d3.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/graphs.js') }}"></script>
+<script>smallGraph({{ graph|tojson }}, "#small-graph");</script>
 {% endblock %}

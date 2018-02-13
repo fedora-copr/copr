@@ -5,6 +5,7 @@ from flask import render_template, url_for
 from coprs.exceptions import InsufficientRightsException
 from coprs.forms import ActivateFasGroupForm
 from coprs.helpers import Paginator
+from coprs.logic import builds_logic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
@@ -65,13 +66,16 @@ def list_projects_by_group(group_name, page=1):
 
     coprs = paginator.sliced_query
 
+    data = builds_logic.BuildsLogic.get_tasks_from_last_day()
+
     return render_template(
         "coprs/show/group.html",
         user=flask.g.user,
         coprs=coprs,
         paginator=paginator,
         tasks_info=ComplexLogic.get_queues_size(),
-        group=group
+        group=group,
+        graph=data
     )
 
 
