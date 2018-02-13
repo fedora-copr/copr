@@ -4,6 +4,7 @@ import base64
 import json
 import requests
 import modulemd
+from collections import defaultdict
 from sqlalchemy import and_
 from datetime import datetime
 from coprs import models
@@ -94,14 +95,18 @@ class ModuleBuildFacade(object):
         self.add_builds(self.modulemd.components.rpms, module)
         return module
 
-    def get_build_batches(self, rpms):
+    @classmethod
+    def get_build_batches(cls, rpms):
         """
         Determines Which component should be built in which batch. Returns an ordered list of grouped components,
         first group of components should be built as a first batch, second as second and so on.
-        Particular components groups are represented by lists and can by built in a random order within the batch.
+        Particular components groups are represented by dicts and can by built in a random order within the batch.
         :return: list of lists
         """
-        return [rpms]
+        batches = defaultdict(dict)
+        for pkgname, rpm in rpms.items():
+            batches[rpm.buildorder][pkgname] = rpm
+        return [batches[number] for number in sorted(batches.keys())]
 
     def add_builds(self, rpms, module):
         for group in self.get_build_batches(rpms):
@@ -111,8 +116,10 @@ class ModuleBuildFacade(object):
                 clone_url = self.get_clone_url(pkgname, rpm)
                 build = builds_logic.BuildsLogic.create_new_from_scm(self.user, self.copr, scm_type="git",
                                                                      clone_url=clone_url, committish=rpm.ref)
+                build.batch = batch
                 build.batch_id = batch.id
                 build.module_id = module.id
+                db.session.add(build)
 
     def get_clone_url(self, pkgname, rpm):
         return rpm.repository if rpm.repository else self.default_distgit.format(pkgname=pkgname)

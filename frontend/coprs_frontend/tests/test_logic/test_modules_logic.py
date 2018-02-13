@@ -2,7 +2,40 @@ import yaml
 from munch import Munch
 from mock import patch, ANY
 from tests.coprs_test_case import CoprsTestCase
-from coprs.logic.modules_logic import ModulemdGenerator, MBSResponse, MBSProxy
+from coprs.logic.modules_logic import ModuleBuildFacade, ModulemdGenerator, MBSResponse, MBSProxy
+from modulemd.components.rpm import ModuleComponentRPM
+
+
+class TestModuleBuildFacade(CoprsTestCase):
+    def test_get_build_batches(self):
+        pkg1 = ModuleComponentRPM("pkg1", "rationale")
+        pkg2 = ModuleComponentRPM("pkg2", "rationale")
+        pkg3 = ModuleComponentRPM("pkg3", "rationale", buildorder=1)
+        pkg4 = ModuleComponentRPM("pkg4", "rationale", buildorder=-20)
+        pkg5 = ModuleComponentRPM("pkg5", "rationale", buildorder=50)
+
+        # Test trivial usage
+        assert ModuleBuildFacade.get_build_batches({}) == []
+
+        # Test multiple components with same buildorder
+        rpms = {"pkg1": pkg1, "pkg2": pkg2}
+        expected_batches = [{"pkg1": pkg1, "pkg2": pkg2}]
+        assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
+
+        # Test component with buildorder
+        rpms = {"pkg3": pkg3, "pkg1": pkg1, "pkg2": pkg2}
+        expected_batches = [{"pkg1": pkg1, "pkg2": pkg2}, {"pkg3": pkg3}]
+        assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
+
+        # Test negative buildorder
+        rpms = {"pkg1": pkg1, "pkg2": pkg2, "pkg4": pkg4}
+        expected_batches = [{"pkg4": pkg4}, {"pkg1": pkg1, "pkg2": pkg2}]
+        assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
+
+        # Test various buildorders at once
+        rpms = {"pkg5": pkg5, "pkg3": pkg3, "pkg2": pkg2, "pkg4": pkg4, "pkg1":pkg1}
+        expected_batches = [{"pkg4": pkg4}, {"pkg1": pkg1, "pkg2": pkg2}, {"pkg3": pkg3}, {"pkg5": pkg5}]
+        assert ModuleBuildFacade.get_build_batches(rpms) == expected_batches
 
 
 class TestModulemdGenerator(CoprsTestCase):
