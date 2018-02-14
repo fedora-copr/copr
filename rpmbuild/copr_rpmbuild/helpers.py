@@ -10,6 +10,7 @@ import fileinput
 import configparser
 import pprint
 import datetime
+import pipes
 
 log = logging.getLogger("__main__")
 
@@ -172,3 +173,19 @@ def get_mock_uniqueext():
     nspawn.
     """
     return datetime.datetime.now().strftime('%s.%f')
+
+
+def extract_srpm(srpm_path, destination):
+    """
+    Extracts srpm content to the target directory.
+
+    raises: CheckOutputError
+    """
+    cwd = os.getcwd()
+    os.chdir(destination)
+    log.debug('Extracting srpm {} to {}'.format(srpm_path, destination))
+    try:
+        cmd = "rpm2cpio {path} | cpio -idmv".format(path=pipes.quote(srpm_path))
+        subprocess.check_output(cmd, shell=True)
+    finally:
+        os.chdir(cwd)

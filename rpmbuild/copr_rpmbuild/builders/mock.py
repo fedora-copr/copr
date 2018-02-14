@@ -12,14 +12,14 @@ log = logging.getLogger("__main__")
 
 class MockBuilder(object):
     def __init__(self, task, sourcedir, resultdir, config):
-        self.task_id = task["task_id"]
-        self.chroot = task["chroot"]
-        self.buildroot_pkgs = task["buildroot_pkgs"]
-        self.enable_net = task["enable_net"]
-        self.repos = task["repos"]
-        self.use_bootstrap_container = task["use_bootstrap_container"]
-        self.pkg_manager_conf = "dnf" if "custom-1" in task["chroot"] else "yum"
-        self.timeout = task["timeout"]
+        self.task_id = task.get("task_id")
+        self.chroot = task.get("chroot")
+        self.buildroot_pkgs = task.get("buildroot_pkgs")
+        self.enable_net = task.get("enable_net")
+        self.repos = task.get("repos")
+        self.use_bootstrap_container = task.get("use_bootstrap_container")
+        self.pkg_manager_conf = "dnf" if "custom-1" in task.get("chroot") else "yum"
+        self.timeout = task.get("timeout")
         self.sourcedir = sourcedir
         self.resultdir = resultdir
         self.config = config
