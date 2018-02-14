@@ -62,7 +62,7 @@ def main():
     parser.add_argument("-v", "--verbose", action="count", help="Print debugging information.")
     parser.add_argument("-r", "--chroot", help="Name of the chroot to build rpm package in (e.g. epel-7-x86_64).")
     parser.add_argument("--drop-resultdir",  action="store_true", help="Drops resultdir and its content "
-                                                                        "at the beggining before continuing.")
+                                                                       "at the beggining before continuing.")
 
     version = pkg_resources.require('copr-rpmbuild')[0].version
     parser.add_argument("--version", action="version", version="%(prog)s version " + version)
@@ -70,8 +70,7 @@ def main():
     product = parser.add_mutually_exclusive_group()
     product.add_argument("--rpm", action="store_true", help="Build rpms. This is the default action.")
     product.add_argument("--srpm", action="store_true", help="Build srpm.")
-    #product.add_argument("--tgz", action="store_true", help="Make tar.gz with build sources, spec and patches."
-    #                                                        "After unpacking, you can use this as an input for rpmbuild.")
+    #product.add_argument("--tgz", action="store_true", help="Make tar.gz with build sources, spec and patches.")
 
     args = parser.parse_args()
 
