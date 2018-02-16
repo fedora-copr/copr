@@ -3,6 +3,7 @@ import unittest
 import tempfile
 import os
 import configparser
+import shutil
 from ..copr_rpmbuild.providers.scm import ScmProvider
 from ..copr_rpmbuild.helpers import read_config
 from . import TestCase
@@ -77,6 +78,8 @@ class TestScmProvider(TestCase):
             provider = ScmProvider(source_json, self.resultdir, self.config)
             rpkg_config_path = provider.generate_rpkg_config()
             self.assertEqual(rpkg_config_path, "/etc/rpkg.conf")
+
+        shutil.rmtree(rpkg_tmpdir)
 
     def test_get_rpkg_command(self):
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
