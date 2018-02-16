@@ -151,22 +151,14 @@ def task_merge_args(task, args):
 
     if args.submode == 'scm':
         task["source_type"] = SourceType.SCM
-
-        update_dict = {}
-        if args.clone_url:
-            update_dict['clone_url'] = args.clone_url
-        if args.committish:
-            update_dict['committish'] = args.committish
-        if args.subdirectory:
-            update_dict['subdirectory'] = args.subdirectory
-        if args.spec:
-            update_dict['spec'] = args.spec
-        if args.type:
-            update_dict['type'] = args.type
-        if args.srpm_build_method:
-            update_dict['srpm_build_method'] = args.srpm_build_method
-
-    task["source_json"].update(update_dict)
+        task["source_json"].update({
+            'clone_url': args.clone_url,
+            'committish': args.committish,
+            'subdirectory': args.subdirectory,
+            'spec': args.spec,
+            'type': args.type,
+            'srpm_build_method': args.srpm_build_method,
+        })
 
 
 def produce_srpm(task, config, resultdir):
