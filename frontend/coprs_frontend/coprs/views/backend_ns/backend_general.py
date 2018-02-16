@@ -125,7 +125,7 @@ def get_build_record(task):
             "source_type": helpers.BuildSourceEnum("scm"),
             "source_json": json.dumps(
                 {'clone_url': task.build.package.dist_git_clone_url, 'committish': task.git_hash}),
-
+            "fetch_sources_only": True,
             "package_name": task.build.package.name,
             "package_version": task.build.pkg_version,
             "repos": build_config.get("repos"),
