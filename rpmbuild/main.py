@@ -216,10 +216,12 @@ def build_rpm(args, config):
 
     sourcedir = tempfile.mkdtemp()
     scm_provider = providers.ScmProvider(task["source_json"], sourcedir, config)
-    scm_provider.produce_srpm()
 
-    built_srpm = locate_srpm(sourcedir)
-    if built_srpm:
+    if task.get("fetch_sources_only"):
+        scm_provider.produce_sources()
+    else:
+        scm_provider.produce_srpm()
+        built_srpm = locate_srpm(sourcedir)
         extract_srpm(built_srpm, sourcedir)
 
     resultdir = config.get("main", "resultdir")
