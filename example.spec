@@ -28,5 +28,7 @@ cp -a main %{buildroot}%{_sbindir}/main
 %files
 %doc
 %{_sbindir}/main
+%(find-debuginfo.sh)
 
 %changelog
+
