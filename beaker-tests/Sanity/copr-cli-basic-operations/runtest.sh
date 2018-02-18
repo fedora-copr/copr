@@ -404,10 +404,8 @@ rlJournalStart
         # run the build and wait
         rlRun "copr-cli buildtito --git-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > succeeded_example_build_id"
 
-        # cancel the next build so that it is failed
-        rlRun "copr-cli buildtito --git-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 --nowait | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > failed_example_build_id"
-        # the build needs to be already imported, otherwise there it hasn't been assigned to the example package yet
-        while true; do if [[ `cat failed_example_build_id | xargs copr-cli status` == "pending" ]]; then cat failed_example_build_id | xargs copr-cli cancel; break; fi; done;
+        # this build should fail
+        rlRun "copr-cli buildtito --git-url http://github.com/clime/example.git --git-branch noluck --test on ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > failed_example_build_id"
 
         # run the tests after build
         rlRun "copr-cli get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
@@ -582,7 +580,7 @@ rlJournalStart
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}TestBug1444804/$CHROOT/
         rlRun "find . -type f | grep 'configs/$CHROOT.cfg'" 0
-        rlRun "find . -type f | grep 'mockchain.log'" 0
+        rlRun "find . -type f | grep 'backend.log'" 0
         rlRun "find . -type f | grep 'root.log'" 0
         rlRun "find . -type f | grep 'build.log'" 0
         cd - && rm -r $MYTMPDIR
