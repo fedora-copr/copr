@@ -16,8 +16,13 @@ BuildArch:  noarch
 
 BuildRequires: systemd
 
+%if 0%{?fedora} < 28
 BuildRequires: python-bunch
 BuildRequires: python-munch
+%else
+BuildRequires: python2-bunch
+BuildRequires: python2-munch
+%endif
 BuildRequires: python2-requests
 BuildRequires: python2-rpkg
 BuildRequires: python2-six
@@ -29,8 +34,13 @@ BuildRequires: python2-jinja2
 Requires: python2-jinja2
 Requires: python2-requests
 Requires: python2-rpkg
+%if 0%{?fedora} < 28
 Requires: python-bunch
 Requires: python-munch
+%else
+Requires: python2-bunch
+Requires: python2-munch
+%endif
 
 Requires: systemd
 Requires: dist-git
