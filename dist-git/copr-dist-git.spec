@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.37
+Version:    0.38
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -132,6 +132,12 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Sun Feb 18 2018 clime <clime@redhat.com> 0.38-1
+- remove old conditional in spec
+- fix python requires, also trim deps down
+- add source_status field for Builds
+- remove no longer needed CAP_SYS_CHROOT cap
+
 * Thu Sep 07 2017 clime <clime@redhat.com> 0.37-1
 - most of the logic moved to copr-rpmbuild
 
