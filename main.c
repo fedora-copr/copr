@@ -1,4 +1,4 @@
-int main()
+intx main()
 {
 	return 0;
 }
