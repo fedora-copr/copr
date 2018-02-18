@@ -8,10 +8,6 @@ License:	GPLv2+
 URL:		http://github.com/example
 Source0:	%{name}-%{version}.tar.gz
 
-# simulated dependencies
-#BuildRequires:  desktop-file-utils
-#BuildRequires:  gtk2-devel gettext
-
 %description
 Simple example to demonstrate copr's abilites.
 
@@ -31,7 +27,6 @@ cp -a main %{buildroot}%{_sbindir}/main
 
 %files
 %doc
-
 %{_sbindir}/main
 
 %changelog

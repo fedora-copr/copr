@@ -1,5 +1,5 @@
 CC=gcc
-ARGS=-Wall
+ARGS=-Wall -g
 
 all: main.o
 	${CC} ${ARGS} -o main main.o
