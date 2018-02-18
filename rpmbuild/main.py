@@ -231,7 +231,7 @@ def build_rpm(args, config):
     shutil.rmtree(sourcedir)
 
 
-def get_task(endpoint, id, config, args):
+def get_task(endpoint, id, config):
     try:
         url = urljoin(urljoin(config.get("main", "frontend_url"), endpoint), id)
         response = requests.get(url)
