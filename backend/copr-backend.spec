@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.110
+Version:    1.111
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -221,6 +221,23 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Sun Feb 18 2018 clime <clime@redhat.com> 1.111-1
+- use netaddr instead of IPy module
+- sleep after each load_jobs iteration
+- python3 conversion
+- UMB: adding content type
+- add source_status field for Builds
+- generate module artifacts rpms
+- the rsync log is actually renderred directly into result dir now
+- mockchain.log renamed to backend.log
+- pg#192 missing records in mockchain.log
+- enable running tests in spec file
+- enable and update vmmamanger tests, fix three minor bugs in the
+  manager
+- frontend now presents the whole job queue state to
+  backend
+- copy only module builds into the repo directory
+
 * Wed Dec 20 2017 clime <clime@redhat.com> 1.110-1
 - exception handling for hit counting when IP address cannot be parsed
 
