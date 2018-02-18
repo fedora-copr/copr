@@ -1,3 +1,4 @@
+%global debug_package %{nil}
 Name:       example
 Version:	1.0.9
 Release:	1%{?dist}
@@ -28,7 +29,6 @@ cp -a main %{buildroot}%{_sbindir}/main
 %files
 %doc
 %{_sbindir}/main
-%(find-debuginfo.sh)
 
 %changelog
 
