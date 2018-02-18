@@ -46,7 +46,7 @@ echo "BACKEND_URL = $BACKEND_URL"
 # Some tests might want to install built packages
 # Therefore, these packages need to be built for the same fedora version
 # as this script is going to be run from
-CHROOT="fedora-26-x86_64"
+CHROOT="fedora-27-x86_64"
 
 SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -64,9 +64,9 @@ rlJournalStart
         yum -y install dnf dnf-plugins-core
         # use the dev instance
         sed -i "s+http://copr.fedoraproject.org+$FRONTEND_URL+g" \
-        /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
+        /usr/lib/python3.6/site-packages/dnf-plugins/copr.py
         sed -i "s+https://copr.fedoraproject.org+$FRONTEND_URL+g" \
-        /usr/lib/python3.4/site-packages/dnf-plugins/copr.py
+        /usr/lib/python3.6/site-packages/dnf-plugins/copr.py
         dnf -y install jq
     rlPhaseEnd
 
