@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.14
+Version: 0.15
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -80,6 +80,14 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
 
 %changelog
+* Sun Feb 18 2018 clime <clime@redhat.com> 0.15-1
+- add support for fetch_sources_only in task defition
+- allow building rpms from srpms fetched by providers, 
+- extend cmdline with scm submode
+- optionally set a priority for a repo
+- add test for create_rpmmacros + refactoring
+- allow only https and ftps protocols for source fetch
+
 * Thu Jan 11 2018 clime <clime@redhat.com> 0.14-1
 - copy out dnf and yum logs when using mock
 - introspection and --version argument
