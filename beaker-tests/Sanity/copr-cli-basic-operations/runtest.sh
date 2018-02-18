@@ -217,9 +217,9 @@ rlJournalStart
         OUTPUT=`mktemp`
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --nowait > $OUTPUT"
-        rlAssertEquals "Background job should not be listed" `curl $FRONTEND_URL/backend/importing/ |jq '.builds |length'` 1
+        rlAssertEquals "Background job should not be listed" `curl $FRONTEND_URL/backend/importing/ |jq 'length'` 1
         rlAssertEquals "Non-background job should be imported first" \
-                       `curl $FRONTEND_URL/backend/importing/ |jq '.builds[0].task_id' |awk -v FS="(\"|-)" '{print $2}'` \
+                       `curl $FRONTEND_URL/backend/importing/ |jq '.[0].build_id'` \
                        `tail -n1 $OUTPUT |cut -d' ' -f3`
 
         sleep 60
@@ -227,9 +227,9 @@ rlJournalStart
         OUTPUT=`mktemp`
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait > $OUTPUT"
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
-        rlAssertEquals "Both background builds should be listed" `curl $FRONTEND_URL/backend/importing/ |jq '.builds |length'` 2
+        rlAssertEquals "Both background builds should be listed" `curl $FRONTEND_URL/backend/importing/ |jq 'length'` 2
         rlAssertEquals "Build with lesser ID should be imported first" \
-                       `curl $FRONTEND_URL/backend/importing/ |jq '.builds[0].task_id' |awk -v FS="(\"|-)" '{print $2}'` \
+                       `curl $FRONTEND_URL/backend/importing/ |jq '.[0].build_id'` \
                        `tail -n1 $OUTPUT |cut -d' ' -f3`
 
         sleep 60
@@ -239,8 +239,8 @@ rlJournalStart
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --nowait > $OUTPUT"
         # wait until the builds are imported
-        while :; do curl --silent $FRONTEND_URL/backend/waiting/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 4 ]; then break; fi; done
-        rlAssertEquals "Non-background build should be waiting on start of the queue" `cat $WAITING |jq '.build.build_id'` `tail -n1 $OUTPUT |cut -d' ' -f3`
+        while :; do curl --silent $FRONTEND_URL/backend/pending-jobs > $WAITING; if [ `cat $WAITING |wc -l` -gt 1 ]; then break; fi; done
+        rlAssertEquals "Non-background build should be waiting on start of the queue" `cat $WAITING |jq '.[0].build_id'` `tail -n1 $OUTPUT |cut -d' ' -f3`
 
 
         ## test package creation and editing
@@ -558,7 +558,7 @@ rlJournalStart
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
         wget -r -np $BACKEND_URL/results/${NAME_PREFIX}DownloadMockCfgs/$CHROOT/
         rlRun "find . -type f | grep 'configs/$CHROOT.cfg'" 0
-        rlRun "find . -type f | grep 'mockchain.log'" 0
+        rlRun "find . -type f | grep 'backend.log'" 0
         rlRun "find . -type f | grep 'root.log'" 0
         cd - && rm -r $MYTMPDIR
 
