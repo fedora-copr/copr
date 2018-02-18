@@ -1,4 +1,4 @@
-# update
+%global debug_package %{nil}
 Name:       example
 Version:	1.0.8
 Release:	1%{?dist}
