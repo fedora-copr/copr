@@ -31,7 +31,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.125
+Version:    1.126
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -338,6 +338,55 @@ service logstash condrestart
 
 
 %changelog
+* Sun Feb 18 2018 clime <clime@redhat.com> 1.126-1
+- add fetch_sources_only: True into build task defintion
+- add graphs of utilization
+- option to give COPR repository bigger priority (see #97)
+- grammar: s/duplicate a backend data/duplicate backend data/
+- Trailing ".git" is ignored when matching clone URL, so is unnecessary.
+- fix frontend by disabling doc generation
+- Accept webhooks from bitbucket.org.
+- Expand docs on how to find the correct Pagure hook setting.
+- fix typos
+- fixed status_to_order, order_to_status functions, added waiting
+  icon
+- add indeces for faster build selection
+- add source_status field for Builds
+- implement the module buildorder logic
+- krb5: last iteritems()->items()
+- have .repo on the end of module repofile URL
+- set the gpg properties for module repo
+- Byecompile files in %%{_datadir} with python3
+- pg#191 When auto-rebuilding from push event, use a head commit
+  hash
+- move run3_tests.sh into run_tests.sh, polish .spec a bit
+- fix run scripts under python3
+- frontend now presents the whole job queue state to
+  backend
+- opt rename SRPM_STORAGE_DIR to STORAGE_DIR
+- new generic web-hook
+- when passing URL with path, expect it in result; see ad9c3b4cc
+- remove outdated tests, see 3f62873
+- add index to build module_id
+- copy only module builds into the repo directory
+- generate the module NSV rather than asking for it
+- fix condition that all module packages were successfully built
+- remove outdated modularity code
+- fix baseurl for module repofile
+- build modules in all enabled chroots
+- implement submitting modules via URL
+- set default values for optional modulemd params
+- change module version to bigint
+- always have a known state of a module
+- have unique module nsv per project
+- build a module without using MBS
+- require to specify project when building module
+- add build to module relation
+- limit spec to python3 deps and switch application and scripts to
+  python3
+- pg#188 COPR webhook doesn't work with branches
+- python3 conversion
+
 * Mon Dec 18 2017 Dominik Turecek <dturecek@redhat.com> 1.125-1
 - add support for src.fp.o in build_on_pagure_commit.py
 - fix source type description
