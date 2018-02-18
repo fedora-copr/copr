@@ -319,7 +319,7 @@ restorecon -rv /var/lib/copr-dist-git
 - [dist-git][rhbz: #1253335] Running rpkg in the dedicated process.
 
 * Wed Aug 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.5-1
-- don't run tests during %check on epel
+- don't run tests during %%check on epel
 
 * Wed Aug 05 2015 Valentin Gologuzov <vgologuz@redhat.com> 0.4-1
 - additional BuildRequires to run tests

@@ -642,7 +642,7 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 - add vm_ip to worker process title (rhbz: 1182637)
 
 * Wed Jan 14 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.56-1
-- [backend] [.spec] fix %files section
+- [backend] [.spec] fix %%files section
 
 * Wed Jan 14 2015 Valentin Gologuzov <vgologuz@redhat.com> 1.55-1
 - [backend] [bugfix] set pythonpath in systemd unit to run /usr/bin/copr_be.py
