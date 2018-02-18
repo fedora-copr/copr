@@ -5,7 +5,7 @@
 %endif
 
 Name:       copr-keygen
-Version:    1.68
+Version:    1.69
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
@@ -181,6 +181,9 @@ service httpd condrestart
 
 
 %changelog
+* Sun Feb 18 2018 clime <clime@redhat.com> 1.69-1
+- update doc generation to python3
+
 * Fri Sep 15 2017 clime <clime@redhat.com> 1.68-1
 - Spelling fixes
 
