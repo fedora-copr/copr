@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.84
+Version:    1.85
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -227,6 +227,15 @@ pushd %{py3dir}
 %endif
 
 %changelog
+* Mon Feb 19 2018 clime <clime@redhat.com> 1.85-1
+- build python2-copr package conditionally
+- Remove unnecessary shebang sed in copr-cli.spec and python-copr.spec
+- fix deps in spec
+- new custom source method
+- use username from config if nothing is explicitly specified
+- remove outdated modularity code
+- require to specify project when building module
+
 * Fri Nov 10 2017 clime <clime@redhat.com> 1.84-1
 - update clients to use https://copr.fedorainfracloud.org as default
   API endpoint
