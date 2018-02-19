@@ -35,7 +35,6 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-copr
 BuildRequires: python3-pylint
-BuildRequires: python3-pytest-cov
 BuildRequires: python3-simplejson
 BuildRequires: python3-jinja2
 Requires:   python3-setuptools
@@ -47,6 +46,7 @@ Recommends: python3-progress
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
 BuildRequires: python-copr
+BuildRequires: pytest
 Requires:   python-setuptools
 Requires:   python-copr >= 1.63
 Requires:   python-simplejson
@@ -122,7 +122,9 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 %check
 %if 0%{?use_python3}
 python3-pylint ./copr_cli/*.py || :
-./run_tests3.sh
+%{__python3} -m pytest tests
+%else
+%{__python2} -m pytest tests
 %endif
 
 %files
