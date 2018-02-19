@@ -1,5 +1,5 @@
 Name:       copr-dist-git
-Version:    0.38
+Version:    0.39
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -132,6 +132,11 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+* Mon Feb 19 2018 clime <clime@redhat.com> 0.39-1
+- Shebangs cleanup
+- fix spec for rhel8
+- escapes in changelogs
+
 * Sun Feb 18 2018 clime <clime@redhat.com> 0.38-1
 - remove old conditional in spec
 - fix python requires, also trim deps down
