@@ -99,9 +99,6 @@ only.
 %if 0%{?use_python3}
 %{__python3} setup.py build
 %else
-for file in copr_cli/main.py copr_cli/__init__.py setup.py; do
-  sed -i 1"s|#!/usr/bin/python3 |#!/usr/bin/python |" $file
-done
 %{__python2} setup.py build
 %endif
 
