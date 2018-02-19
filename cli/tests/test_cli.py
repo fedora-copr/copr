@@ -343,6 +343,7 @@ def test_download_build(mock_cc, mock_sp, capsys):
             data={"chroots": {
                 u'epel-6-x86_64': u'succeeded', u'epel-6-i386': u'succeeded'
             }},
+            results="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20",
             results_by_chroot={
                 u'epel-6-x86_64': u'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20',
                 u'epel-6-i386': u'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20',
@@ -380,6 +381,7 @@ def test_download_build_select_chroot(mock_cc, mock_sp, capsys):
             data={"chroots": {
                 u'epel-6-x86_64': u'succeeded', u'epel-6-i386': u'succeeded'
             }},
+            results="http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20",
             results_by_chroot={
                 u'epel-6-x86_64': u'http://example.com/results/epel-6-x86_64/python-copr-1.50-1.fc20',
                 u'epel-6-i386': u'http://example.com/results/epel-6-i386/python-copr-1.50-1.fc20',
@@ -425,7 +427,8 @@ def test_create_project(mock_cc, capsys):
         username=None, persistent=False, projectname="foo", description="desc string",
         instructions="instruction string", chroots=["f20", "f21"],
         repos=["repo1", "repo2"], initial_pkgs=["pkg1"],
-        unlisted_on_hp=None, disable_createrepo=None, enable_net=False)
+        unlisted_on_hp=None, disable_createrepo=None, enable_net=False,
+        use_bootstrap_container=None)
 
     assert "{0}\n".format(response_message) in stdout
 
