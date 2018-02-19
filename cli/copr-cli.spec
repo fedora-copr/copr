@@ -13,7 +13,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.65
+Version:    1.66
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -154,6 +154,14 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Mon Feb 19 2018 clime <clime@redhat.com> 1.66-1
+- Shebangs cleanup
+- fix deps in spec
+- allow running tests only for epel7
+- tests also for python2 during builds
+- new custom source method
+- require to specify project when building module
+
 * Thu Nov 09 2017 clime <clime@redhat.com> 1.65-1
 - allow to set use_bootstrap_container via API
 
