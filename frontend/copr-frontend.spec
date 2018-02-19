@@ -31,7 +31,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.126
+Version:    1.127
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -338,6 +338,11 @@ service logstash condrestart
 
 
 %changelog
+* Mon Feb 19 2018 clime <clime@redhat.com> 1.127-1
+- Shebangs cleanup
+- new custom source method
+- fix search page error due to missing graph data
+
 * Sun Feb 18 2018 clime <clime@redhat.com> 1.126-1
 - add fetch_sources_only: True into build task defintion
 - add graphs of utilization
