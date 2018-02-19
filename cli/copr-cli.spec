@@ -117,7 +117,7 @@ install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
 %check
-%if 0%{?with_python3}
+%if 0%{?use_python3}
 python3-pylint ./copr_cli/*.py || :
 ./run_tests3.sh
 %endif
