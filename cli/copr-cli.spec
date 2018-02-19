@@ -7,8 +7,9 @@
 %endif
 %endif
 
-%if 0%{?fedora} >= 24
+%if 0%{?fedora} >= 26 || 0%{?rhel} >= 8
 %global use_python3 1
+%global __python %{__python3}
 %endif
 
 Name:       copr-cli
@@ -46,23 +47,23 @@ BuildRequires: python-copr
 Requires:   python-setuptools
 Requires:   python-copr >= 1.63
 Requires:   python-simplejson
-%if 0%{?fedora} > 23
-Requires:   python2-jinja2
-%else
 Requires:   python-jinja2
+
+%if 0%{?rhel} > 6
+Requires:   python-progress
 %endif
-%if 0%{?fedora}
-Recommends: python-progress
+
 %endif
-%endif
+
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 BuildRequires: python-argparse
 %endif
 
-Requires:   wget
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 Requires:   python-argparse
 %endif
+
+Requires:   wget
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
