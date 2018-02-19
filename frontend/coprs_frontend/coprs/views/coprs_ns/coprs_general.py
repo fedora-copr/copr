@@ -131,14 +131,15 @@ def coprs_fulltext_search(page=1):
     paginator = helpers.Paginator(query, query.count(), page,
                                   additional_params={"fulltext": fulltext})
 
+    data = builds_logic.BuildsLogic.get_tasks_from_last_day()
+
     coprs = paginator.sliced_query
-    return render_template(
-        "coprs/show/fulltext.html",
-        coprs=coprs,
-        paginator=paginator,
-        fulltext=fulltext,
-        tasks_info=ComplexLogic.get_queues_size(),
-    )
+    return render_template("coprs/show/fulltext.html",
+                            coprs=coprs,
+                            paginator=paginator,
+                            fulltext=fulltext,
+                            tasks_info=ComplexLogic.get_queues_size(),
+                            graph=data)
 
 
 @coprs_ns.route("/<username>/add/")
