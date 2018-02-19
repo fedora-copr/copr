@@ -16,7 +16,7 @@ BuildArch:  noarch
 
 BuildRequires: systemd
 
-%if 0%{?fedora} < 28
+%if (0%{?fedora} && 0%{?fedora} < 28) || (0%{?rhel} && 0%{?rhel} < 8)
 BuildRequires: python-bunch
 BuildRequires: python-munch
 %else
@@ -34,7 +34,7 @@ BuildRequires: python2-jinja2
 Requires: python2-jinja2
 Requires: python2-requests
 Requires: python2-rpkg
-%if 0%{?fedora} < 28
+%if (0%{?fedora} && 0%{?fedora} < 28) || (0%{?rhel} && 0%{?rhel} < 8)
 Requires: python-bunch
 Requires: python-munch
 %else
