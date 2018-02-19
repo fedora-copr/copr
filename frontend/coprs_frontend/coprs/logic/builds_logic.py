@@ -483,6 +483,31 @@ GROUP BY
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
+    def create_new_from_custom(cls, user, copr,
+            script, script_chroot=None, script_builddeps=None,
+            script_resultdir=None, chroot_names=None, **kwargs):
+        """
+        :type user: models.User
+        :type copr: models.Copr
+        :type script: str
+        :type script_chroot: str
+        :type script_builddeps: str
+        :type script_resultdir: str
+        :type chroot_names: List[str]
+        :rtype: models.Build
+        """
+        source_type = helpers.BuildSourceEnum("custom")
+        source_dict = {
+            'script': script,
+            'chroot': script_chroot,
+            'builddeps': script_builddeps,
+            'resultdir': script_resultdir,
+        }
+
+        return cls.create_new(user, copr, source_type, json.dumps(source_dict),
+                chroot_names, **kwargs)
+
+    @classmethod
     def create_new_from_upload(cls, user, copr, f_uploader, orig_filename,
                                chroot_names=None, **build_options):
         """

@@ -422,10 +422,15 @@ def render_copr_webhooks(copr):
                   copr.id,
                   copr.webhook_secret)
 
+    custom_url = "https://{}/webhooks/custom/{}/{}/".format(
+                  app.config["PUBLIC_COPR_HOSTNAME"],
+                  copr.id,
+                  copr.webhook_secret) + "<PACKAGE_NAME>/"
+
     return flask.render_template(
         "coprs/detail/settings/webhooks.html",
         copr=copr, bitbucket_url=bitbucket_url, github_url=github_url,
-        gitlab_url=gitlab_url)
+        gitlab_url=gitlab_url, custom_url=custom_url)
 
 
 @coprs_ns.route("/g/<group_name>/<coprname>/webhooks/")

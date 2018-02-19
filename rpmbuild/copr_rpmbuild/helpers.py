@@ -23,6 +23,7 @@ class SourceType:
     PYPI = 5
     RUBYGEMS = 6
     SCM = 8
+    CUSTOM = 9
 
 
 def cmd_debug(result):
@@ -189,3 +190,26 @@ def extract_srpm(srpm_path, destination):
         subprocess.check_output(cmd, shell=True)
     finally:
         os.chdir(cwd)
+
+
+def build_srpm(srcdir, destdir):
+    cmd = [
+        'rpmbuild', '-bs',
+        '--define', '_sourcedir ' + srcdir,
+        '--define', '_rpmdir '    + srcdir,
+        '--define', '_builddir '  + srcdir,
+        '--define', '_specdir '   + srcdir,
+        '--define', '_srcrpmdir ' + destdir,
+    ]
+
+    specfiles = glob.glob(os.path.join(srcdir, '*.spec'))
+    if len(specfiles) == 0:
+        raise RuntimeError("no spec file available")
+
+    if len(specfiles) > 1:
+        raise RuntimeError("too many specfiles: {0}".format(
+            ', '.join(specfiles)
+        ))
+
+    cmd += [specfiles[0]]
+    run_cmd(cmd)

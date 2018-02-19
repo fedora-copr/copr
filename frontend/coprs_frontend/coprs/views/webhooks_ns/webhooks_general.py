@@ -226,8 +226,8 @@ class HookContentStorage(object):
             shutil.rmtree(self.tmp)
 
 
-@webhooks_ns.route("/custom/<uuid>/<copr_id>/", methods=["POST"])
-@webhooks_ns.route("/custom/<uuid>/<copr_id>/<package_name>/", methods=["POST"])
+@webhooks_ns.route("/custom/<copr_id>/<uuid>/", methods=["POST"])
+@webhooks_ns.route("/custom/<copr_id>/<uuid>/<package_name>/", methods=["POST"])
 @copr_id_and_uuid_required
 @package_name_required
 @skip_invalid_calls

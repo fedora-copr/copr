@@ -65,6 +65,20 @@
           <li> Select to trigger on <code>Repository Push</code>. </li>
           <li> Click the <code>Save</code> button. </li>
         </ol>
+
+        <h3> Custom webhook </h3>
+        <div class="well well-sm">
+            {{ custom_url }}
+        </div>
+        <h4> How to use it: </h4>
+        <p> Use the GitLab/GitHub steps above (when needed), or simply </p>
+        <p>
+          <div class="well well-sm">
+            $ curl -X POST {{ custom_url }}
+          </div>
+          Note that the package of name 'PACKAGE_NAME' must exist within this
+          project, and that the 'POST' http method must be specified.
+        </p>
     </div>
 </div>
 

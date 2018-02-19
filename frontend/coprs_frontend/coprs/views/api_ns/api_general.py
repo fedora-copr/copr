@@ -483,6 +483,25 @@ def copr_new_build_rubygems(copr):
     return process_creating_new_build(copr, form, create_new_build)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/new_build_custom/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def copr_new_build_custom(copr):
+    form = forms.BuildFormCustomFactory(copr.active_chroots)(csrf_enabled=False)
+    def create_new_build():
+        return BuildsLogic.create_new_from_custom(
+            flask.g.user,
+            copr,
+            form.script.data,
+            form.chroot.data,
+            form.builddeps.data,
+            form.resultdir.data,
+            chroot_names=form.selected_chroots,
+            background=form.background.data,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
 @api_ns.route("/coprs/<username>/<coprname>/new_build_scm/", methods=["POST"])
 @api_login_required
 @api_req_with_copr

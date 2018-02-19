@@ -41,6 +41,8 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         return PackageFormTito # deprecated
     elif source_type_text == 'mock_scm':
         return PackageFormMock # deprecated
+    elif source_type_text == "custom":
+        return PackageFormCustom
     else:
         raise exceptions.UnknownSourceTypeException("Invalid source type")
 
@@ -574,6 +576,60 @@ class PackageFormDistGit(BasePackageForm):
         })
 
 
+class PackageFormCustom(BasePackageForm):
+    script = wtforms.TextAreaField(
+        "Script",
+        validators=[
+            wtforms.validators.DataRequired(),
+            wtforms.validators.Length(
+                max=4096,
+                message="Maximum script size is 4kB"),
+        ],
+    )
+
+    builddeps = wtforms.StringField(
+        "Build dependencies",
+        validators=[wtforms.validators.Optional()])
+
+    chroot = wtforms.SelectField(
+        'Mock chroot',
+        choices=[],
+        default='fedora-latest-x86_64',
+    )
+
+    resultdir = wtforms.StringField(
+        "Result directory",
+        validators=[wtforms.validators.Optional()])
+
+    def __init__(self, *args, **kwargs):
+        super(PackageFormCustom, self).__init__(*args, **kwargs)
+        chroot_objects = models.MockChroot.query.filter(models.MockChroot.is_active).all()
+
+        chroots = [c.name for c in chroot_objects]
+        chroots.sort()
+        chroots = [(name, name) for name in chroots]
+
+        arches = set()
+        for ch in chroot_objects:
+            if ch.os_release == 'fedora':
+                arches.add(ch.arch)
+
+        self.chroot.choices = []
+        if arches:
+            self.chroot.choices += [('fedora-latest-' + l, 'fedora-latest-' + l) for l in arches]
+
+        self.chroot.choices += chroots
+
+    @property
+    def source_json(self):
+        return json.dumps({
+            "script": self.script.data,
+            "chroot": self.chroot.data,
+            "builddeps": self.builddeps.data,
+            "resultdir": self.resultdir.data,
+        })
+
+
 class RebuildAllPackagesFormFactory(object):
     def __new__(cls, active_chroots, package_names):
         form_cls = BaseBuildFormFactory(active_chroots, FlaskForm)
@@ -675,6 +731,11 @@ class BuildFormUploadFactory(object):
             FileRequired(),
             SrpmValidator()])
         return form
+
+
+class BuildFormCustomFactory(object):
+    def __new__(cls, active_chroots):
+        return BaseBuildFormFactory(active_chroots, PackageFormCustom)
 
 
 class BuildFormUrlFactory(object):

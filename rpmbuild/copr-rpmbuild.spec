@@ -59,6 +59,7 @@ install -m 644 make_srpm_mock.cfg %{buildroot}%{_sysconfdir}/copr-rpmbuild/make_
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
+install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 
 %py3_install
 
@@ -68,6 +69,7 @@ install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 %{python3_sitelib}/*
 
 %{_bindir}/copr-rpmbuild
+%{_bindir}/copr-sources-custom
 %{_mandir}/man1/copr-rpmbuild.1*
 
 %dir %attr(0775, root, mock) %{_sharedstatedir}/copr-rpmbuild

@@ -8,7 +8,7 @@ from coprs import forms
 from coprs import helpers
 from coprs.models import Package, Build
 from coprs.views.coprs_ns import coprs_ns
-from coprs.views.coprs_ns.coprs_builds import render_add_build_scm, render_add_build_pypi
+from coprs.views.coprs_ns.coprs_builds import render_add_build_scm, render_add_build_pypi, render_add_build_custom
 from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
@@ -107,6 +107,10 @@ def copr_rebuild_package(copr, package_name):
         form = forms.BuildFormPyPIFactory
         f = render_add_build_pypi
         view_suffix = "_pypi"
+    elif package.source_type_text == "custom":
+        form = forms.BuildFormCustomFactory
+        f = render_add_build_custom
+        view_suffix = "_custom"
     else:
         flask.flash("Package {} has not the default source which is required for rebuild. Please configure some source"
                     .format(package_name, copr.full_name))
@@ -127,6 +131,7 @@ def copr_add_package(copr, source_type_text="scm", **kwargs):
         "scm": forms.PackageFormScm(),
         "pypi": forms.PackageFormPyPI(),
         "rubygems": forms.PackageFormRubyGems(),
+        "custom": forms.PackageFormCustom(),
     }
 
     if "form" in kwargs:
@@ -135,7 +140,8 @@ def copr_add_package(copr, source_type_text="scm", **kwargs):
     return flask.render_template("coprs/detail/add_package.html", copr=copr, package=None,
                                  source_type_text=source_type_text, view="coprs_ns.copr_new_package",
                                  form_scm=form["scm"], form_pypi=form["pypi"],
-                                 form_rubygems=form["rubygems"])
+                                 form_rubygems=form["rubygems"],
+                                 form_custom=form['custom'])
 
 
 @coprs_ns.route("/<username>/<coprname>/package/new/<source_type_text>", methods=["POST"])
@@ -167,6 +173,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
         "scm": forms.PackageFormScm,
         "pypi": forms.PackageFormPyPI,
         "rubygems": forms.PackageFormRubyGems,
+        "custom": forms.PackageFormCustom,
     }
     form = {k: v(formdata=None) for k, v in form_classes.items()}
 
@@ -178,7 +185,8 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     return flask.render_template("coprs/detail/edit_package.html", package=package, copr=copr,
                                  source_type_text=source_type_text, view="coprs_ns.copr_edit_package",
                                  form_scm=form["scm"], form_pypi=form["pypi"],
-                                 form_rubygems=form["rubygems"])
+                                 form_rubygems=form["rubygems"],
+                                 form_custom=form['custom'])
 
 
 @coprs_ns.route("/<username>/<coprname>/package/<package_name>/edit/<source_type_text>", methods=["POST"])

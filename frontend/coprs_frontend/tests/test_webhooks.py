@@ -6,7 +6,7 @@ from tests.coprs_test_case import CoprsTestCase
 
 class TestCustomWebhook(CoprsTestCase):
     def custom_post(self, data, token, copr_id, package_name=None):
-        url = "/webhooks/custom/{uuid}/{copr_id}/"
+        url = "/webhooks/custom/{copr_id}/{uuid}/"
         url = url.format(uuid=token, copr_id=copr_id)
         if package_name:
             url = "{0}{1}/".format(url, package_name)

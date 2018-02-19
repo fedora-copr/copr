@@ -505,6 +505,17 @@ class Build(db.Model, helpers.Serializer):
                       db.Index('build_order', "is_background", "id"),
                       db.Index('build_filter', "source_type", "canceled"))
 
+    def __init__(self, *args, **kwargs):
+        if kwargs.get('source_type') == helpers.BuildSourceEnum("custom"):
+            source_dict = json.loads(kwargs['source_json'])
+            if 'fedora-latest' in source_dict['chroot']:
+                arch = source_dict['chroot'].split('-')[2]
+                source_dict['chroot'] = \
+                    MockChroot.latest_fedora_branched_chroot(arch=arch).name
+            kwargs['source_json'] = json.dumps(source_dict)
+
+        super(Build, self).__init__(*args, **kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     # single url to the source rpm, should not contain " ", "\n", "\t"
     pkgs = db.Column(db.Text)
@@ -833,6 +844,16 @@ class MockChroot(db.Model, helpers.Serializer):
 
     distgit_branch = db.relationship("DistGitBranch",
             backref=db.backref("chroots"))
+
+    @classmethod
+    def latest_fedora_branched_chroot(cls, arch='x86_64'):
+        return (cls.query
+                .filter(cls.is_active == True)
+                .filter(cls.os_release == 'fedora')
+                .filter(cls.os_version != 'rawhide')
+                .filter(cls.arch == arch)
+                .order_by(cls.os_version.desc())
+                .first())
 
     @property
     def name(self):
