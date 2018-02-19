@@ -35,6 +35,7 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-copr
 BuildRequires: python3-pylint
+BuildRequires: python3-pytest
 BuildRequires: python3-simplejson
 BuildRequires: python3-jinja2
 Requires:   python3-setuptools
@@ -46,13 +47,17 @@ Recommends: python3-progress
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
 BuildRequires: python-copr
-BuildRequires: pytest
 Requires:   python-setuptools
 Requires:   python-copr >= 1.63
 Requires:   python-simplejson
 Requires:   python-jinja2
 
 %if 0%{?rhel} > 6
+BuildRequires: pytest
+BuildRequires: python-simplejson
+BuildRequires: python-jinja2
+BuildRequires: python-mock
+
 Requires:   python-progress
 %endif
 
@@ -124,7 +129,10 @@ install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 python3-pylint ./copr_cli/*.py || :
 %{__python3} -m pytest tests
 %else
+%if 0%{?rhel} > 6
+# elif because we need: from _pytest.capture import capsys
 %{__python2} -m pytest tests
+%endif
 %endif
 
 %files
