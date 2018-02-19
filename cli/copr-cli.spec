@@ -35,6 +35,7 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-copr
 BuildRequires: python3-pylint
+BuildRequires: python3-pytest-cov
 Requires:   python3-setuptools
 Requires:   python3-copr >= 1.63
 Requires:   python3-simplejson
