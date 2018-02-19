@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.15
+Version: 0.16
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -82,6 +82,9 @@ install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
 
 %changelog
+* Mon Feb 19 2018 clime <clime@redhat.com> 0.16-1
+- new custom source method
+
 * Sun Feb 18 2018 clime <clime@redhat.com> 0.15-1
 - add support for fetch_sources_only in task defition
 - allow building rpms from srpms fetched by providers, 
