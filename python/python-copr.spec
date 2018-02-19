@@ -9,6 +9,12 @@
 %global with_python3 0
 %endif
 
+%if 0%{?fedora} >= 28 || 0%{?rhel} >= 8
+%global with_python2 0
+%else
+%global with_python2 1
+%endif
+
 Name:       python-copr
 Version:    1.84
 Release:    1%{?dist}
@@ -27,6 +33,8 @@ BuildArch:  noarch
 
 BuildRequires: libxslt
 BuildRequires: util-linux
+
+%if 0%{?with_python2}
 %if 0%{?rhel} < 8 && 0%{?rhel} > 0
 BuildRequires: python-setuptools
 BuildRequires: python-requests
@@ -52,6 +60,7 @@ BuildRequires: python2-devel
 BuildRequires: python2-sphinx
 BuildRequires: python2-docutils
 %endif
+%endif
 
 %global _description\
 COPR is lightweight build system. It allows you to create new project in WebUI,\
@@ -63,6 +72,7 @@ for developers only.\
 
 %description %_description
 
+%if 0%{?with_python2}
 %package -n python2-copr
 Summary: %summary
 
@@ -83,6 +93,7 @@ Requires: python2-marshmallow
 %{?python_provide:%python_provide python2-copr}
 
 %description -n python2-copr %_description
+%endif # with_python2
 
 %if 0%{?with_python3}
 %package -n python3-copr
@@ -98,6 +109,8 @@ BuildRequires: python3-requests-toolbelt
 BuildRequires: python3-marshmallow
 BuildRequires: python3-six
 BuildRequires: python3-pylint
+BuildRequires: python3-sphinx
+BuildRequires: python3-docutils
 
 Requires: python3-setuptools
 Requires: python3-six
@@ -105,13 +118,14 @@ Requires: python3-requests
 Requires: python3-requests-toolbelt
 Requires: python3-marshmallow
 
+%{?python_provide:%python_provide python3-copr}
+
 %description -n python3-copr
 COPR is lightweight build system. It allows you to create new project in WebUI,
 and submit new builds and COPR will create yum repository from latest builds.
 
 This package contains python interface to access Copr service. Mostly useful
 for developers only.
-
 
 %endif # with_python3
 
@@ -137,17 +151,16 @@ rm -rf %{py3dir}
 cp -a . %{py3dir}
 %endif # with_python3
 
-
 %build
-CFLAGS="%{optflags}" %{__python2} setup.py build
-
 %if 0%{?with_python3}
 pushd %{py3dir}
-
 CFLAGS="%{optflags}" %{__python3} setup.py build
-
 popd
 %endif # with_python3
+
+%if 0%{?with_python2}
+CFLAGS="%{optflags}" %{__python2} setup.py build
+%endif # with_python2
 
 mv copr/README.rst ./
 
@@ -167,8 +180,10 @@ find %{buildroot}%{python3_sitelib} -name '*.exe' | xargs rm -f
 popd
 %endif # with_python3
 
+%if 0%{?with_python2}
 %{__python2} setup.py install --skip-build --root %{buildroot}
 find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
+%endif # with_python2
 
 #doc
 install -d %{buildroot}%{_pkgdocdir}/
@@ -180,23 +195,16 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 %check
 %if 0%{?with_python3}
 python3-pylint copr/*py copr/client/ copr/client_v2/ || :
-%endif
-
-%{__python2} -m pytest copr/test
-
-%if 0%{?with_python3}
 pushd %{py3dir}
 %{__python3} -m pytest copr/test
-popd
 %endif # with_python3
+
+%if 0%{?with_python2}
+%{__python2} -m pytest copr/test
+%endif # with_python2
 
 # compatibility for RHEL <= 6
 %{!?_licensedir:%global license %%doc}
-
-%files -n python2-copr
-%license LICENSE
-%doc README.rst
-%{python_sitelib}/*
 
 %if 0%{?with_python3}
 %files -n python3-copr
@@ -204,6 +212,13 @@ popd
 %doc README.rst
 %{python3_sitelib}/*
 %endif # with_python3
+
+%if 0%{?with_python2}
+%files -n python2-copr
+%license LICENSE
+%doc README.rst
+%{python_sitelib}/*
+%endif # with_python2
 
 %if 0%{?fedora}
 %files -n python-copr-doc
