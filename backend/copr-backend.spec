@@ -7,7 +7,6 @@ Version:    1.112
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
-Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by

@@ -14,7 +14,6 @@ Version:    1.47
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
-Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by

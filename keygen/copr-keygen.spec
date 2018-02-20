@@ -9,7 +9,6 @@ Version:    1.70
 Release:    1%{?dist}
 Summary:    Part of Copr build system. Aux service that generate keys for signd
 
-Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by

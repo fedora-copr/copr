@@ -3,7 +3,6 @@ Version:    0.39
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
-Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by

@@ -20,7 +20,6 @@ Version:    1.85
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
-Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by
@@ -98,7 +97,6 @@ Requires: python2-marshmallow
 %if 0%{?with_python3}
 %package -n python3-copr
 Summary:        Python interface for Copr
-Group:          Applications/Productivity
 
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools

@@ -17,7 +17,6 @@ Version:    1.66
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
-Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by

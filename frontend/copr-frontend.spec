@@ -35,7 +35,6 @@ Version:    1.127
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
-Group:      Applications/Productivity
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by

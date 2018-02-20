@@ -3,7 +3,6 @@ Version:        %{pkg_version}
 Release:        %{pkg_release}
 Summary:        COPR %{user}/%{copr} Repository Configuration
 
-Group:          System Environment/Base
 License:        GPLv2+
 URL:            https://copr.fedoraproject.org/coprs/%{user}/%{copr}/
 Source0:        https://copr.fedoraproject.org/coprs/frostyx/tracer/repo/%{chroot}/%{user}-%{copr}-%{chroot}.repo
