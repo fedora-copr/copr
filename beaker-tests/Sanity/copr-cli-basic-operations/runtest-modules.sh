@@ -129,10 +129,10 @@ rlJournalStart
         # Test URL submit
         PROJECT=module-testmoduleurl-beakertest-$DATE
         copr-cli create $PROJECT --chroot fedora-rawhide-x86_64 --chroot fedora-rawhide-i386
-        rlRun "copr-cli build-module --url http://pkgs.fedoraproject.org/modules/testmodule/raw/master/f/testmodule.yaml $PROJECT"
+        rlRun "copr-cli build-module --url https://src.fedoraproject.org/modules/testmodule/raw/master/f/testmodule.yaml $PROJECT"
         PACKAGES=`mktemp`
-        wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 1 600 $PACKAGES
-        test_successful_packages "ed" $PACKAGES
+        wait_for_finished_module "module-testmoduleurl-beakertest-$DATE" 3 600 $PACKAGES
+        test_successful_packages "perl-List-Compare perl-Tangerine tangerine" $PACKAGES
 
         # @TODO Test that module succeeded
         # We need to implement API for retrieving modules or at least
