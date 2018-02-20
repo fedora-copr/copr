@@ -52,6 +52,9 @@ class CustomProvider(Provider):
             f.write("include('/etc/mock/{0}.cfg')\n".format(self.chroot))
             f.write("config_opts['rpmbuild_networking'] = True\n")
             f.write("config_opts['use_host_resolv'] = True\n")
+            # Important e.g. to keep '/script' file available across several
+            # /bin/mock calls (when tmpfs_enable is on).
+            f.write("config_opts['plugin_conf']['tmpfs_opts']['keep_mounted'] = True\n")
 
         cmd = [
             'unbuffer',
@@ -90,5 +93,6 @@ class CustomProvider(Provider):
 
         srpm_srcdir = os.path.join(self.workdir, 'srcdir')
         helpers.run_cmd(mock + ['--copyout', inner_resultdir, srpm_srcdir])
+        helpers.run_cmd(mock + ['--scrub', 'all'])
         helpers.build_srpm(srpm_srcdir, self.outdir)
         shutil.rmtree(srpm_srcdir)
