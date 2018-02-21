@@ -44,7 +44,7 @@ Now we are going to operate in the container.
     # Set your API token and Copr URL
     [root@test-env ~] vim ~/.config/copr
 
-Find the token here `<http://127.0.0.1:5000/api/>`_. Simply remove the existing content of ``~/.config/copr`` and put your token there. The only thing that needs to be changed is ``copr_url`` - it can't be set to ``http://localhost:5000``. That URL is for communicating with frontend from your host system. The ``127.0.0.1`` in the test container refers to localhost of that particular container on which obviously nothing listens. It should be set this way.
+Find the token here `<http://127.0.0.1:5000/api/>`_. Simply remove the existing content of ``~/.config/copr`` and put your token there. The only thing that needs to be changed is ``copr_url``. It should be set this way.
 
 ::
 
