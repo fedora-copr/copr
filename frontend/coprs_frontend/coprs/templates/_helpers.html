@@ -220,47 +220,22 @@
   {%- if not copr.is_a_group_project %}
     {{- url_for(view, username=copr.user.name, coprname=copr.name, **kwargs) }}
   {%- else %}
-    {#- Only the listed views have merged functions for regular and group projects. Once all views have it, @TODO remove the workaround #}
-    {%- if view in ["coprs_ns.copr_add_package",
-                    "coprs_ns.copr_new_package",
-                    "coprs_ns.copr_rebuild_package",
-                    "coprs_ns.copr_packages",
-                    "coprs_ns.copr_package",
-                    "coprs_ns.copr_edit_package",
-                    "coprs_ns.copr_fork",
-                    "coprs_ns.copr_delete_package",
-                    "coprs_ns.copr_create_module",
-                    "coprs_ns.copr_module_raw",
-                    "coprs_ns.generate_module_repo_file",
-                    "coprs_ns.copr_modules",
-                    "coprs_ns.copr_module",
-                    "coprs_ns.copr_add_build_custom",
-                    "coprs_ns.copr_new_build_custom",
-                    "coprs_ns.copr_package_icon",
-                    "coprs_ns.copr_build",
-                    "coprs_ns.copr_builds",
-                    "coprs_ns.copr_add_build",
-                    "coprs_ns.copr_add_build_scm",
-                    "coprs_ns.copr_add_build_pypi",
-                    "coprs_ns.copr_add_build_rubygems",
-                    "coprs_ns.copr_add_build_upload",
-                    "coprs_ns.copr_add_build_rebuild",
-                    "coprs_ns.copr_new_build",
-                    "coprs_ns.copr_new_build_scm",
-                    "coprs_ns.copr_new_build_pypi",
-                    "coprs_ns.copr_new_build_rubygems",
-                    "coprs_ns.copr_new_build_upload",
-                    "coprs_ns.copr_new_build_rebuild",
-                    "coprs_ns.copr_cancel_build",
-                    "coprs_ns.copr_repeat_build",
-                    "coprs_ns.chroot_edit",
-                    "coprs_ns.chroot_update",
-                    "coprs_ns.chroot_view_comps",
-                    "coprs_ns.chroot_view_module_md",
-                    "coprs_ns.copr_rebuild_all_packages"] %}
-      {%- set group_view = view %}
-    {%- else %}
+    {#- Listed views don't have merged views for regular and group projects. Once all views have it merged, @TODO remove the workaround #}
+    {%- if view in ["coprs_ns.copr_add",
+                    "coprs_ns.copr_new",
+                    "coprs_ns.copr_report_abuse",
+                    "coprs_ns.copr_detail",
+                    "coprs_ns.copr_webhooks",
+                    "coprs_ns.copr_edit",
+                    "coprs_ns.copr_update",
+                    "coprs_ns.copr_delete",
+                    "coprs_ns.copr_legal_flag",
+                    "coprs_ns.copr_build_monitor",
+                    "coprs_ns.generate_repo_file",
+                    "coprs_ns.coprs_migration_report"] %}
       {%- set group_view = view.split(".")[0] + ".group_" + view.split(".")[-1] %}
+    {%- else %}
+      {%- set group_view = view %}
     {%- endif %}
     {{- url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs) }}
   {%- endif %}
