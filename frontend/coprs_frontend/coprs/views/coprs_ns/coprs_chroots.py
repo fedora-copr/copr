@@ -18,16 +18,10 @@ from coprs.views.coprs_ns import coprs_ns
 
 
 @coprs_ns.route("/<username>/<coprname>/edit_chroot/<chrootname>/")
-@login_required
-@req_with_copr
-def chroot_edit(copr, chrootname):
-    return render_chroot_edit(copr, chrootname)
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/edit_chroot/<chrootname>/")
 @login_required
 @req_with_copr
-def group_chroot_edit(copr, chrootname):
+def chroot_edit(copr, chrootname):
     return render_chroot_edit(copr, chrootname)
 
 
@@ -48,19 +42,11 @@ def render_chroot_edit(copr, chroot_name):
             .format(copr.name))
 
 
-@coprs_ns.route("/<username>/<coprname>/update_chroot/<chrootname>/",
-                methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/update_chroot/<chrootname>/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/update_chroot/<chrootname>/", methods=["POST"])
 @login_required
 @req_with_copr
 def chroot_update(copr, chrootname):
-    return process_chroot_update(copr, chrootname)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/update_chroot/<chrootname>/",
-                methods=["POST"])
-@login_required
-@req_with_copr
-def group_chroot_update(copr, chrootname):
     return process_chroot_update(copr, chrootname)
 
 
@@ -116,14 +102,9 @@ def process_chroot_update(copr, chroot_name):
 
 
 @coprs_ns.route("/<username>/<coprname>/chroot/<chrootname>/comps/")
-@req_with_copr
-def chroot_view_comps(copr, chrootname):
-    return render_chroot_view_comps(copr, chrootname)
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/chroot/<chrootname>/comps/")
 @req_with_copr
-def group_chroot_view_comps(copr, chrootname):
+def chroot_view_comps(copr, chrootname):
     return render_chroot_view_comps(copr, chrootname)
 
 
@@ -133,14 +114,9 @@ def render_chroot_view_comps(copr, chroot_name):
 
 
 @coprs_ns.route("/<username>/<coprname>/chroot/<chrootname>/module_md/")
-@req_with_copr
-def chroot_view_module_md(copr, chrootname):
-    return render_chroot_view_module_md(copr, chrootname)
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/chroot/<chrootname>/module_md/")
 @req_with_copr
-def group_chroot_view_module_md(copr, chrootname):
+def chroot_view_module_md(copr, chrootname):
     return render_chroot_view_module_md(copr, chrootname)
 
 

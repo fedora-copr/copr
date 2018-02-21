@@ -237,6 +237,26 @@
                     "coprs_ns.copr_add_build_custom",
                     "coprs_ns.copr_new_build_custom",
                     "coprs_ns.copr_package_icon",
+                    "coprs_ns.copr_build",
+                    "coprs_ns.copr_builds",
+                    "coprs_ns.copr_add_build",
+                    "coprs_ns.copr_add_build_scm",
+                    "coprs_ns.copr_add_build_pypi",
+                    "coprs_ns.copr_add_build_rubygems",
+                    "coprs_ns.copr_add_build_upload",
+                    "coprs_ns.copr_add_build_rebuild",
+                    "coprs_ns.copr_new_build",
+                    "coprs_ns.copr_new_build_scm",
+                    "coprs_ns.copr_new_build_pypi",
+                    "coprs_ns.copr_new_build_rubygems",
+                    "coprs_ns.copr_new_build_upload",
+                    "coprs_ns.copr_new_build_rebuild",
+                    "coprs_ns.copr_cancel_build",
+                    "coprs_ns.copr_repeat_build",
+                    "coprs_ns.chroot_edit",
+                    "coprs_ns.chroot_update",
+                    "coprs_ns.chroot_view_comps",
+                    "coprs_ns.chroot_view_module_md",
                     "coprs_ns.copr_rebuild_all_packages"] %}
       {%- set group_view = view %}
     {%- else %}
@@ -306,11 +326,8 @@
     </div>
     <div class="list-group">
       {% for build in builds %}
-        {% if build.copr.is_a_group_project %}
-        <a href="{{url_for("coprs_ns.group_copr_build", group_name = build.copr.group.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
-        {% else %}
-        <a href="{{url_for("coprs_ns.copr_build", username = build.copr.user.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
-        {% endif %}
+        <a href="{{copr_url('coprs_ns.copr_build', build.copr, build_id=build.id)}}" class="list-group-item">
+
           <h4 class="list-group-item-heading">{{build.package.name}}</h4>
           <p class="list-group-item-text">
             <small>Project:</small>
@@ -396,7 +413,7 @@
 
 {% macro build_href_from_sql(build) %}
   {% if build.group_name %}
-    {{- url_for('coprs_ns.group_copr_build', group_name=(build.copr.group.name if build.copr is defined else build.group_name), coprname=build.copr_name, build_id=build.id) -}}
+    {{- url_for('coprs_ns.copr_build', group_name=(build.copr.group.name if build.copr is defined else build.group_name), coprname=build.copr_name, build_id=build.id) -}}
   {% else %}
     {{- url_for("coprs_ns.copr_build", username=(build.copr.user.name if build.copr is defined else build.user_name), coprname = build.copr_name, build_id = build.id) -}}
   {% endif %}
