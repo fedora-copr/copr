@@ -165,6 +165,8 @@ class RawhideToReleaseCommand(Command):
             if not self.has_rawhide(copr) or not copr.follow_fedora_branching:
                 continue
 
+            self.turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
+
             data = {"copr": copr.name,
                     "user": copr.user.name,
                     "rawhide_chroot": rawhide_chroot,
@@ -189,7 +191,6 @@ class RawhideToReleaseCommand(Command):
 
             if len(data["builds"]):
                 actions_logic.ActionsLogic.send_rawhide_to_release(data)
-                self.turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
 
         db.session.commit()
 
