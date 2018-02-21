@@ -59,6 +59,7 @@ Running the tests
 ::
 
     [root@test-env ~] cd ~/copr/beaker-tests/Sanity/copr-cli-basic-operations/
+    [root@test-env copr-cli-basic-operations] ./build-spec.sh
     [root@test-env copr-cli-basic-operations] ./runtest.sh
     [root@test-env copr-cli-basic-operations] ./runtest-modules.sh
 
