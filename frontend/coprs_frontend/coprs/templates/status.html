@@ -8,7 +8,7 @@
     <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
   </li>
   <li>
-    <a href="{{ url_for('status_ns.waiting') }}">Status</a>
+    <a href="{{ url_for('status_ns.pending') }}">Status</a>
   </li>
   {%block status_breadcrumb %}{%endblock%}
 </ol>
@@ -19,8 +19,8 @@
   <li class="{% block importing_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.importing') }}">Importing</a>
   </li>
-  <li class="{% block waiting_selected %}{% endblock %}">
-      <a href="{{ url_for('status_ns.waiting') }}">Waiting</a>
+  <li class="{% block pending_selected %}{% endblock %}">
+      <a href="{{ url_for('status_ns.pending') }}">Pending</a>
   </li>
   <li class="{% block running_selected %}{% endblock %}">
       <a href="{{ url_for('status_ns.running') }}">Running</a>

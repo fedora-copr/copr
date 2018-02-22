@@ -7,11 +7,11 @@ from coprs import helpers
 
 class TestWaitingBuilds(CoprsTestCase):
 
-    def test_no_waiting_builds(self):
+    def test_no_pending_builds(self):
         assert b'[]' in self.tc.get(
             "/backend/pending-jobs/", headers=self.auth_header).data
 
-    def test_waiting_build_only_lists_not_started_or_ended(
+    def test_pending_build_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
         for build_chroots in [self.b2_bc, self.b3_bc, self.b4_bc]:
@@ -36,7 +36,7 @@ class TestWaitingBuilds(CoprsTestCase):
         assert json.loads(r.data.decode("utf-8")) != []
 
 
-    def test_waiting_bg_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
+    def test_pending_bg_build(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
         self.b2.is_background = True
         for build_chroots in [self.b2_bc, self.b3_bc, self.b4_bc]:
             for build_chroot in build_chroots:

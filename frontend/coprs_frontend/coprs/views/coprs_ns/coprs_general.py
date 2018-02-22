@@ -82,7 +82,7 @@ def coprs_show(page=1):
     return flask.render_template("coprs/show/all.html",
                                  coprs=coprs,
                                  paginator=paginator,
-                                 tasks_info=ComplexLogic.get_queues_size(),
+                                 tasks_info=ComplexLogic.get_queue_sizes(),
                                  users_builds=users_builds,
                                  graph=data)
 
@@ -112,7 +112,7 @@ def coprs_by_user(username=None, page=1):
                                  user=user,
                                  coprs=coprs,
                                  paginator=paginator,
-                                 tasks_info=ComplexLogic.get_queues_size(),
+                                 tasks_info=ComplexLogic.get_queue_sizes(),
                                  users_builds=users_builds,
                                  graph=data)
 
@@ -138,7 +138,7 @@ def coprs_fulltext_search(page=1):
                             coprs=coprs,
                             paginator=paginator,
                             fulltext=fulltext,
-                            tasks_info=ComplexLogic.get_queues_size(),
+                            tasks_info=ComplexLogic.get_queue_sizes(),
                             graph=data)
 
 

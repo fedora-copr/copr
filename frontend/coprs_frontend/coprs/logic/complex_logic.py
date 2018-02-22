@@ -152,12 +152,6 @@ class ComplexLogic(object):
                 message="Chroot name {} does not exist.".format(chroot_name))
 
         return chroot
-    #
-    # @staticmethod
-    # def get_coprs_in_a_group(group_name):
-    #     group = ComplexLogic.get_group_by_name_safe(group_name)
-    #
-    #
 
     @staticmethod
     def get_active_groups_by_user(user_name):
@@ -169,21 +163,21 @@ class ComplexLogic(object):
             return []
 
     @staticmethod
-    def get_queues_size():
-        # todo: check if count works slowly
-
-        waiting = BuildsLogic.get_build_task_queue(is_background=False).count()
-        waiting_bg = BuildsLogic.get_build_task_queue(is_background=True).count()
+    def get_queue_sizes():
+        pending = BuildsLogic.get_pending_build_tasks(background=False).count()
+        pending_bg = BuildsLogic.get_pending_build_tasks(background=True).count()
         running = BuildsLogic.get_build_tasks(StatusEnum("running")).count()
-        importing = BuildsLogic.get_build_tasks(helpers.StatusEnum("importing"), background=False).count()
-        importing_bg = BuildsLogic.get_build_tasks(helpers.StatusEnum("importing"), background=True).count()
+        importing = BuildsLogic.get_build_importing_queue(background=False).count()
+        importing_bg = BuildsLogic.get_build_importing_queue(background=True).count()
+
         return dict(
-            waiting=waiting,
+            pending=pending,
+            pending_bg=pending_bg,
             running=running,
             importing=importing,
-            waiting_bg=waiting_bg,
             importing_bg=importing_bg
         )
+
 
 
 class ProjectForking(object):

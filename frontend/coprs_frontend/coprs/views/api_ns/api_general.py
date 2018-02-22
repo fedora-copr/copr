@@ -106,7 +106,7 @@ def api_status():
     """
     output = {
         "importing": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("importing")).count(),
-        "waiting": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("pending")).count(),
+        "waiting": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("pending")).count(), # change to "pending""
         "running": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("running")).count(),
     }
     return flask.jsonify(output)

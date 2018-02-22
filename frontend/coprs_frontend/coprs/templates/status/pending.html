@@ -1,9 +1,9 @@
 {% extends "status.html" %}
 {% from "_helpers.html" import build_href, copr_name, copr_details_href %}
-{% block waiting_selected %}active{% endblock %}
+{% block pending_selected %}active{% endblock %}
 {%block status_breadcrumb %}
 <li class="active">
-  Waiting
+  Pending
 </li>
 {%endblock%}
 {% block status_body %}
@@ -11,19 +11,19 @@
         No tasks
     {%elif number == 1:%}
         {{number}} task
-    {%elif number == 200:%}
+    {%elif number == 300:%}
         {{number}}+ tasks
     {%else%}
         {{number}} tasks
     {%endif%}
-    are waiting
+    are waiting to be built
 	(+{{ bg_tasks_cnt }} others with lower priority)
 </h2>
 
 <table class="table table-striped table-bordered">
   <thead>
     <tr>
-      <th>Waiting</th>
+      <th>Pending</th>
       <th>Project</th>
       <th>Build</th>
       <th>Package Name</th>

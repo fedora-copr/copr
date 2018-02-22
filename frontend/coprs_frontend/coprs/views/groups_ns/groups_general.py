@@ -73,7 +73,7 @@ def list_projects_by_group(group_name, page=1):
         user=flask.g.user,
         coprs=coprs,
         paginator=paginator,
-        tasks_info=ComplexLogic.get_queues_size(),
+        tasks_info=ComplexLogic.get_queue_sizes(),
         group=group,
         graph=data
     )

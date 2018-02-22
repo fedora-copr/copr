@@ -282,9 +282,9 @@
         <span class="badge">{{ tasks_info.importing}}</span>
         Importing
       </a>
-      <a href="{{url_for('status_ns.waiting')}}" class="list-group-item">
-        <span class="badge">{{ tasks_info.waiting }}</span>
-        Waiting
+      <a href="{{url_for('status_ns.pending')}}" class="list-group-item">
+        <span class="badge">{{ tasks_info.pending }}</span>
+        Pending
       </a>
       <a href="{{url_for('status_ns.running')}}" class="list-group-item">
         <span class="badge">{{ tasks_info.running }}</span>

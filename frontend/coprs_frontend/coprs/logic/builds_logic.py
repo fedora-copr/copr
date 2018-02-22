@@ -39,7 +39,6 @@ class BuildsLogic(object):
     def get(cls, build_id):
         return models.Build.query.filter(models.Build.id == build_id)
 
-    # todo: move methods operating with BuildChroot to BuildChrootLogic
     @classmethod
     def get_build_tasks(cls, status, background=None):
         """ Returns tasks with given status. If background is specified then
@@ -47,7 +46,7 @@ class BuildsLogic(object):
         """
         result = models.BuildChroot.query.join(models.Build)\
             .filter(models.BuildChroot.status == status)\
-            .order_by(models.BuildChroot.build_id.asc())
+            .order_by(models.Build.id.asc())
         if background is not None:
             result = result.filter(models.Build.is_background == (true() if background else false()))
         return result
@@ -112,59 +111,31 @@ class BuildsLogic(object):
         return data
 
     @classmethod
-    def get_build_importing_queue(cls):
+    def get_build_importing_queue(cls, background=None):
         """
         Returns Builds which are waiting to be uploaded to dist git
         """
         query = (models.Build.query
                  .filter(models.Build.canceled == false())
-                 .filter(models.Build.source_status == helpers.StatusEnum("importing")))
-        query = query.order_by(models.Build.id.asc())
+                 .filter(models.Build.source_status == helpers.StatusEnum("importing"))
+                 .order_by(models.Build.id.asc()))
+        if background is not None:
+            query = query.filter(models.Build.is_background == (true() if background else false()))
         return query
 
     @classmethod
-    def get_build_task_queue(cls, is_background=False): # deprecated
-        """
-        Returns BuildChroots which are - waiting to be built or
-                                       - older than 2 hours and unfinished
-        """
-        # todo: filter out build without package
-        query = (models.BuildChroot.query.join(models.Build)
-                 .filter(models.Build.canceled == false())
-                 .filter(models.Build.is_background == (true() if is_background else false()))
-                 .filter(or_(
-                     models.BuildChroot.status == helpers.StatusEnum("pending"),
-                     models.BuildChroot.status == helpers.StatusEnum("starting"),
-                     and_(
-                         # We are moving ended_on to the BuildChroot, now it should be reliable,
-                         # so we don't want to reschedule failed chroots
-                         # models.BuildChroot.status.in_([
-                         # # Bug 1206562 - Cannot delete Copr because it incorrectly thinks
-                         # # there are unfinished builds. Solution: `failed` but unfinished
-                         # # (ended_on is null) builds should be rescheduled.
-                         # # todo: we need to be sure that correct `failed` set is set together with `ended_on`
-                         # helpers.StatusEnum("running"),
-                         # helpers.StatusEnum("failed")
-                         #]),
-                         models.BuildChroot.status == helpers.StatusEnum("running"),
-                         models.BuildChroot.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
-                         models.BuildChroot.ended_on.is_(None)
-                     ))
-        ))
-        query = query.order_by(models.BuildChroot.build_id.asc())
-        return query
-
-    @classmethod
-    def get_pending_srpm_build_tasks(cls):
-        return (models.Build.query
+    def get_pending_srpm_build_tasks(cls, background=None):
+        query = (models.Build.query
                 .filter(models.Build.canceled == false())
                 .filter(models.Build.source_status == helpers.StatusEnum("pending"))
-                .order_by(models.Build.is_background.asc(), models.Build.id.asc())
-                .all())
+                .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
+        if background is not None:
+            query = query.filter(models.Build.is_background == (true() if background else false()))
+        return query
 
     @classmethod
-    def get_pending_build_tasks(cls):
-        return (models.BuildChroot.query.join(models.Build)
+    def get_pending_build_tasks(cls, background=None):
+        query = (models.BuildChroot.query.join(models.Build)
                 .filter(models.Build.canceled == false())
                 .filter(or_(
                     models.BuildChroot.status == helpers.StatusEnum("pending"),
@@ -174,8 +145,10 @@ class BuildsLogic(object):
                         models.BuildChroot.ended_on.is_(None)
                     )
                 ))
-                .order_by(models.Build.is_background.asc(), models.Build.id.asc())
-                .all())
+                .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
+        if background is not None:
+            query = query.filter(models.Build.is_background == (true() if background else false()))
+        return query
 
     @classmethod
     def get_build_task(cls, task_id):
@@ -343,43 +316,6 @@ GROUP BY
                 .join(models.Copr.user)
                 .filter(models.Copr.name == coprname)
                 .filter(models.User.username == username))
-
-    @classmethod
-    def get_importing(cls):
-        """
-        Return builds that are waiting for dist git to import the sources.
-        """
-        query = (models.Build.query.join(models.Build.copr)
-                 .join(models.User)
-                 .join(models.BuildChroot)
-                 .options(db.contains_eager(models.Build.copr))
-                 .options(db.contains_eager("copr.user"))
-                 .filter((models.BuildChroot.started_on == None)
-                         | (models.BuildChroot.started_on < int(time.time() - 7200)))
-                 .filter(models.BuildChroot.ended_on == None)
-                 .filter(models.Build.canceled == False)
-                 .order_by(models.Build.submitted_on.asc()))
-        return query
-
-    @classmethod
-    def get_waiting(cls):
-        """
-        Return builds that aren't both started and finished
-        (if build start submission fails, we still want to mark
-        the build as non-waiting, if it ended)
-        this has very different goal then get_multiple, so implement it alone
-        """
-
-        query = (models.Build.query.join(models.Build.copr)
-                 .join(models.User).join(models.BuildChroot)
-                 .options(db.contains_eager(models.Build.copr))
-                 .options(db.contains_eager("copr.user"))
-                 .filter((models.BuildChroot.started_on.is_(None))
-                         | (models.BuildChroot.started_on < int(time.time() - 7200)))
-                 .filter(models.BuildChroot.ended_on.is_(None))
-                 .filter(models.Build.canceled == false())
-                 .order_by(models.Build.submitted_on.asc()))
-        return query
 
     @classmethod
     def get_by_ids(cls, ids):

@@ -46,33 +46,27 @@ def get_graph_data(start, end, step):
 
 
 @status_ns.route("/")
-@status_ns.route("/waiting/")
-def waiting():
-    tasks = builds_logic.BuildsLogic.get_build_task_queue(is_background=False).limit(200)
-    bg_tasks_cnt = builds_logic.BuildsLogic.get_build_task_queue(is_background=True).count()
-    return flask.render_template("status/waiting.html",
-                                 number=len(list(tasks)),
+@status_ns.route("/pending/")
+def pending():
+    tasks = builds_logic.BuildsLogic.get_pending_build_tasks(background=False).limit(300).all()
+    bg_tasks_cnt = builds_logic.BuildsLogic.get_pending_build_tasks(background=True).count()
+    return flask.render_template("status/pending.html",
+                                 number=len(tasks),
                                  tasks=tasks, bg_tasks_cnt=bg_tasks_cnt)
 
 
 @status_ns.route("/running/")
 def running():
-    tasks = builds_logic.BuildsLogic.get_build_tasks(
-        helpers.StatusEnum("running")).limit(200)
+    tasks = builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("running")).limit(300).all()
     return flask.render_template("status/running.html",
-                                 number=len(list(tasks)),
+                                 number=len(tasks),
                                  tasks=tasks)
 
 
 @status_ns.route("/importing/")
 def importing():
-    tasks = builds_logic.BuildsLogic.get_build_tasks(
-        helpers.StatusEnum("importing"),
-        background=False).limit(200)
-    bg_tasks_cnt = builds_logic.BuildsLogic.get_build_tasks(
-        helpers.StatusEnum("importing"),
-        background=True).count()
-
+    tasks = builds_logic.BuildsLogic.get_build_importing_queue(background=False).limit(300).all()
+    bg_tasks_cnt = builds_logic.BuildsLogic.get_build_importing_queue(background=True).count()
     return flask.render_template("status/importing.html",
                                  number=len(list(tasks)),
                                  bg_tasks_cnt=bg_tasks_cnt,
