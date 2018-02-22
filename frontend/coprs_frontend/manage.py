@@ -18,7 +18,6 @@ from coprs import models
 from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
-from run import generate_repo_packages
 from sqlalchemy import or_
 from coprs.helpers import chroot_to_branch,StatusEnum
 
@@ -239,6 +238,7 @@ class BackendRawhideToReleaseCommand(RawhideToReleaseCommand):
 
         db.session.commit()
 
+
 class AlterChrootCommand(ChrootCommand):
 
     "Activates or deactivates a chroot"
@@ -445,16 +445,6 @@ class UpdateIndexesQuickCommand(Command):
         writer.commit()
 
 
-class GenerateRepoPackagesCommand(Command):
-    """
-    go through all coprs and create configuration rpm packages
-    for them, if they don't already have it
-    """
-
-    def run(self):
-        generate_repo_packages.main()
-
-
 manager = Manager(app)
 manager.add_command("test", TestCommand())
 manager.add_command("create_sqlite_file", CreateSqliteFileCommand())
@@ -469,7 +459,6 @@ manager.add_command("add_user", AddUserCommand())
 manager.add_command("fail_build", FailBuildCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
 manager.add_command("update_indexes_quick", UpdateIndexesQuickCommand())
-manager.add_command("generate_repo_packages", GenerateRepoPackagesCommand())
 manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
 manager.add_command("backend_rawhide_to_release", BackendRawhideToReleaseCommand())
 
