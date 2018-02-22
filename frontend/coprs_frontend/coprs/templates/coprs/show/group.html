@@ -24,7 +24,7 @@
 </div>
 
 {% if g.user and g.user.can_build_in_group(group) %}
-<a href="{{url_for('coprs_ns.group_copr_add', group_name=group.name) }}" class="btn button-new pull-right btn-primary">
+<a href="{{url_for('coprs_ns.copr_add', group_name=group.name) }}" class="btn button-new pull-right btn-primary">
   <span class="pficon pficon-add-circle-o"></span>
     New Group Project
 </a>
