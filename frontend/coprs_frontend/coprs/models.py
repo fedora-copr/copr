@@ -916,10 +916,18 @@ class CoprChroot(db.Model, helpers.Serializer):
     module_md_name = db.Column(db.String(127), nullable=True)
 
     def update_comps(self, comps_xml):
-        self.comps_zlib = zlib.compress(comps_xml.decode("utf-8"))
+        if isinstance(comps_xml, str):
+            data = comps_xml.encode("utf-8")
+        else:
+            data = comps_xml
+        self.comps_zlib = zlib.compress(data)
 
     def update_module_md(self, module_md_yaml):
-        self.module_md_zlib = zlib.compress(module_md_yaml.decode("utf-8"))
+        if isinstance(module_md_yaml, str):
+            data = module_md_yaml.encode("utf-8")
+        else:
+            data = module_md_yaml
+        self.module_md_zlib = zlib.compress(data)
 
     @property
     def buildroot_pkgs_list(self):
