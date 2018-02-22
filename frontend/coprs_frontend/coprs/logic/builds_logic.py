@@ -677,6 +677,7 @@ GROUP BY
             package_id=package.id,
             copr=package.copr,
             repos=package.copr.repos,
+            source_status=helpers.StatusEnum("pending"),
             source_type=package.source_type,
             source_json=source_json,
             submitted_on=int(time.time()),
@@ -688,7 +689,7 @@ GROUP BY
 
         chroots = package.copr.active_chroots
 
-        status = helpers.StatusEnum("importing")
+        status = helpers.StatusEnum("waiting")
 
         for chroot in chroots:
             buildchroot = models.BuildChroot(
