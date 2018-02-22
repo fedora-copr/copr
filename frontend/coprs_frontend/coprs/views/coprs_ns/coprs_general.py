@@ -58,7 +58,7 @@ def url_for_copr_details(copr):
 def url_for_copr_edit(copr):
     return url_for_copr_view(
         "coprs_ns.copr_edit",
-        "coprs_ns.group_copr_edit",
+        "coprs_ns.copr_edit",
         copr)
 
 
@@ -731,12 +731,7 @@ def render_generate_repo_file(copr, name_release):
     if name_release in [c.name for c in copr.mock_chroots]:
         chroot = [c for c in copr.mock_chroots if c.name == name_release][0]
         kwargs = dict(coprname=copr.name, name_release=chroot.name_release)
-        if copr.is_a_group_project:
-            fixed_url = url_for("coprs_ns.group_generate_repo_file",
-                                group_name=copr.group.name, **kwargs)
-        else:
-            fixed_url = url_for("coprs_ns.generate_repo_file",
-                                username=copr.user.username, **kwargs)
+        fixed_url = helpers.copr_url("coprs_ns.generate_repo_file", copr, **kwargs)
         return flask.redirect(fixed_url)
 
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()

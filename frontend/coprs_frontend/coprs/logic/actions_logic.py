@@ -149,17 +149,7 @@ class ActionsLogic(object):
         :type copr_chroot: models.CoprChroot
         """
 
-        if chroot.copr.is_a_group_project:
-            url_path = url_for('coprs_ns.group_chroot_view_comps',
-                          group_name=chroot.copr.group.name,
-                          coprname=chroot.copr.name,
-                          chrootname=chroot.name)
-        else:
-            url_path = url_for('coprs_ns.chroot_view_comps',
-                          username=chroot.copr.user.username,
-                          coprname=chroot.copr.name,
-                          chrootname=chroot.name)
-
+        url_path = helpers.copr_url("coprs_ns.chroot_view_comps", chroot.copr, chrootname=chroot.name)
         data_dict = {
             "ownername": chroot.copr.owner_name,
             "projectname": chroot.copr.name,
@@ -182,17 +172,7 @@ class ActionsLogic(object):
 
         :type copr_chroot: models.CoprChroot
         """
-        if chroot.copr.is_a_group_project:
-            url_path = url_for('coprs_ns.group_chroot_view_module_md',
-                          group_name=chroot.copr.group.name,
-                          coprname=chroot.copr.name,
-                          chrootname=chroot.name)
-        else:
-            url_path = url_for('coprs_ns.chroot_view_module_md',
-                          username=chroot.copr.user.username,
-                          coprname=chroot.copr.name,
-                          chrootname=chroot.name)
-
+        url_path = helpers.copr_url("coprs_ns.chroot_view_module_md", chroot.copr, chrootname=chroot.name)
         data_dict = {
             "ownername": chroot.copr.owner_name,
             "projectname": chroot.copr.name,
