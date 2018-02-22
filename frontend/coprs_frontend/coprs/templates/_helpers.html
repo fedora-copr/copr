@@ -217,7 +217,7 @@
     {{- url_for(view, username=copr.user.name, coprname=copr.name, **kwargs) }}
   {%- else %}
     {#- Listed views don't have merged views for regular and group projects. Once all views have it merged, @TODO remove the workaround #}
-    {%- if view in ["coprs_ns.generate_repo_file"] %}
+    {%- if view in [] %}
       {%- set group_view = view.split(".")[0] + ".group_" + view.split(".")[-1] %}
     {%- else %}
       {%- set group_view = view %}
