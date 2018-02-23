@@ -31,7 +31,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.127
+Version:    1.128
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -337,6 +337,21 @@ service logstash condrestart
 
 
 %changelog
+* Fri Feb 23 2018 clime <clime@redhat.com> 1.128-1
+- fix counting stat logic
+- use end_commit when building by copr-fedmsg-listener
+- update service file for copr-fedmsg-listener to use python3
+- add forked description
+- fix init_db
+- fix unittests (zlib.compress expects bytes, not str)
+- task queue info cleanup
+- fix initial build.source_status and chroot statuses for auto-
+  rebuilds
+- remove some old python scripts
+- enable chroot for every project that follows branching
+- fix copr_url() template macro for custom method
+- remove Group tag
+
 * Mon Feb 19 2018 clime <clime@redhat.com> 1.127-1
 - Shebangs cleanup
 - new custom source method
