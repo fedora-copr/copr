@@ -211,6 +211,7 @@ rlJournalStart
     rlRun 'copr watch-build $BUILD_ID'
     rlRun 'copr download-build $BUILD_ID --dest $RESULTDIR'
     rlRun 'FILES="success" check_resultdir quick-package-0-0'
-
     rlPhaseEnd
+
+rlJournalPrintText
 rlJournalEnd
