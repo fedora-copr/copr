@@ -103,9 +103,7 @@ def handle_be_stat_message(rc, stat_data):
     app.logger.debug('ts_from_stored: {}'.format(ts_from_stored))
     app.logger.debug('ts_to_stored: {}'.format(ts_to_stored))
 
-    if (ts_from >= ts_from_stored and ts_from < ts_to_stored) or\
-            (ts_to > ts_from_stored and ts_to <= ts_to_stored) or\
-            (ts_from <= ts_from_stored and ts_to >= ts_to_stored):
+    if (ts_from < ts_to_stored and ts_to > ts_from_stored):
         app.logger.debug('Time overlap with already stored data. Skipping.')
         return
 
@@ -129,7 +127,7 @@ def handle_be_stat_message(rc, stat_data):
         else:
             raise Exception('Unknown key {}'.format(key[0]))
 
-        hits_formatted[redis_key] += 1
+        hits_formatted[redis_key] += count
 
     for redis_key, count in hits_formatted.items():
         TimedStatEvents.add_event(rc, redis_key, count=count, timestamp=ts_to)
