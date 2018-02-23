@@ -206,6 +206,7 @@ def build_state_decoration(state):
         "importing": "Package content is being imported into DistGit.",
         "waiting": "Task is waiting for something else to finish.",
         "imported": "Package was successfully imported into DistGit.",
+        "forked": "Build has been forked from another build.",
     }
 
     return description_map.get(state, "")
