@@ -239,7 +239,8 @@ rlJournalStart
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --nowait > $OUTPUT"
         # wait until the builds are imported
-        while :; do curl --silent $FRONTEND_URL/backend/pending-jobs > $WAITING; if [ `cat $WAITING |wc -l` -gt 1 ]; then break; fi; done
+        while :; do curl --silent $FRONTEND_URL/backend/pending-jobs/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 1 ]; then break; fi; done
+        cat $WAITING
         rlAssertEquals "Non-background build should be waiting on start of the queue" `cat $WAITING |jq '.[0].build_id'` `tail -n1 $OUTPUT |cut -d' ' -f3`
 
 
@@ -519,9 +520,9 @@ rlJournalStart
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
         WAITING=`mktemp`
         rlRun "copr-cli create ${NAME_PREFIX}Project12 --chroot $CHROOT" 0
-        while :; do curl --silent $FRONTEND_URL/backend/pending-jobs > $WAITING; if [ `cat $WAITING |wc -l` -gt 1 ]; then break; fi; done
+        while :; do curl --silent $FRONTEND_URL/backend/pending-action/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 1 ]; then break; fi; done
         cat $WAITING # debug
-        rlRun "cat $WAITING | grep -E '.[0].*data.*username.*' | grep $OWNER" 0
+        rlRun "cat $WAITING | grep -E '.*data.*username.*' | grep $OWNER" 0
 
         # Bug 1368181 - delete-project action run just after delete-build action will bring action_dispatcher down
         # FIXME: this test is not a reliable reproducer. Depends on timing as few others.
