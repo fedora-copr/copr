@@ -163,7 +163,7 @@ def build_on_fedmsg_loop():
                     and (not pkg.committish or branch.endswith(pkg.committish)) \
                     and pkg.is_dir_in_commit(raw_commit_text):
                 log.info("\t -> rebuilding.")
-                pkg.build(branch)
+                pkg.build(end_commit)
             else:
                 log.info("\t -> skipping.")
 
