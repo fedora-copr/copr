@@ -51,7 +51,7 @@ def serve_uploaded_file(path):
 
 @app.route('/backend/importing/')
 def distgit_importing_queue():
-    response = {'builds': list(import_task_dict.values())}
+    response = list(import_task_dict.values())
     debug_output(response, 'SENDING:')
     return flask.jsonify(response)
 
@@ -60,7 +60,7 @@ def distgit_importing_queue():
 def distgit_upload_completed():
     debug_output(flask.request.json, 'RECEIVED:')
     import_results.append(flask.request.json)
-    import_task_dict.pop(flask.request.json['task_id'])
+    import_task_dict.pop(flask.request.json['build_id'])
     test_for_server_end()
     return flask.jsonify({'updated': True})
 
@@ -200,7 +200,7 @@ def debug_output(data, label='RECEIVED:', delim=True):
 ########################### main ###########################
 
 if __name__ == '__main__':
-    import_task_dict = load_data_dict('import-tasks.json', 'task_id')
+    import_task_dict = load_data_dict('import-tasks.json', 'build_id')
     build_task_dict = load_data_dict('build-tasks.json', 'task_id')
     action_task_dict = load_data_dict('action-tasks.json', 'id')
 
