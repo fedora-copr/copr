@@ -5,7 +5,7 @@
 
     "build_id": 10,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": true,
     "git_branch": "f23",
     "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
@@ -20,7 +20,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "10-fedora-24-x86_64",
+    "task_id": "10-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
@@ -30,7 +30,7 @@
 
     "build_id": 11,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": false,
     "git_branch": "f24",
     "git_hash": "94a28c0412757a39697821e31ba38e5449441499",
@@ -45,7 +45,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "11-fedora-24-x86_64",
+    "task_id": "11-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
@@ -55,7 +55,7 @@
 
     "build_id": 20,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": false,
     "git_branch": "f23",
     "git_hash": "de4a8245ce347d51815c8efecfbab18ab38123d7",
@@ -70,7 +70,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "20-fedora-24-x86_64",
+    "task_id": "20-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
@@ -80,7 +80,7 @@
 
     "build_id": 21,
     "buildroot_pkgs": ["http://localhost:5000/static/rare_example-1.0.3-2.fc23.x86_64.rpm"],
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": false,
     "git_branch": "f23",
     "git_hash": "de4a8245ce347d51815c8efecfbab18ab38123d7",
@@ -95,7 +95,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "21-fedora-24-x86_64",
+    "task_id": "21-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
@@ -180,7 +180,7 @@
 
     "build_id": 60,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": true,
     "git_branch": "f23",
     "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
@@ -195,7 +195,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "60-fedora-24-x86_64",
+    "task_id": "60-fedora-27-x86_64",
     "timeout": 1,
     "use_bootstrap_container": false
 },
@@ -205,7 +205,7 @@
 
     "build_id": 70,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": true,
     "git_branch": "f23",
     "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
@@ -220,7 +220,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "70-fedora-24-x86_64",
+    "task_id": "70-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
@@ -230,7 +230,7 @@
 
     "build_id": 80,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": false,
     "git_branch": "f23",
     "git_hash": "de4a8245ce347d51815c8efecfbab18ab38123d7",
@@ -245,7 +245,7 @@
     "project_owner": "@copr",
     "repos": "",
     "submitter": "clime",
-    "task_id": "80-fedora-24-x86_64",
+    "task_id": "80-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
@@ -255,7 +255,7 @@
 
     "build_id": 90,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": false,
     "git_branch": "f23",
     "git_hash": "de4a8245ce347d51815c8efecfbab18ab38123d7",
@@ -270,7 +270,7 @@
     "project_owner": "@copr",
     "repos": [{"id": "foo", "name": "foo", "url": "http://localhost:5002/results/@builds/rare_example_repo/fedora-23-x86_64"}],
     "submitter": "clime",
-    "task_id": "90-fedora-24-x86_64",
+    "task_id": "90-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },

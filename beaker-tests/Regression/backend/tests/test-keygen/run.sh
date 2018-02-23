@@ -20,7 +20,7 @@ rlJournalStart
 
         tmpdir=`mktemp -d`
         cd $tmpdir
-        dnf download --disablerepo=* --repofrompath=examplerepo,http://localhost:5002/results/@copr/copr-dev/fedora-24-x86_64 --enablerepo=examplerepo --refresh example # downloads rpm as well as srpm
+        dnf download --disablerepo=* --repofrompath=examplerepo,http://localhost:5002/results/@copr/copr-dev/fedora-27-x86_64 --enablerepo=examplerepo --refresh example # downloads rpm as well as srpm
         for rpmfile in *; do
             rlRun "rpm -qp --qf '%{RSAHEADER:armor}' $rpmfile 2> /dev/null > $rpmfile.pubkey.gpg" 0 "Test that rpms are signed"
         done

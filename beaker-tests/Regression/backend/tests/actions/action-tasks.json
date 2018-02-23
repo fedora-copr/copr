@@ -51,7 +51,7 @@
   "action_type": 4,
   "created_on": 1462513764,
   "id": 5,
-  "data": "{\"projectname\": \"test-delete-comps\", \"chroot\": \"fedora-24-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"\", \"comps_present\": false}"
+  "data": "{\"projectname\": \"test-delete-comps\", \"chroot\": \"fedora-27-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"\", \"comps_present\": false}"
 },
 {
   "_description": "Test delete module_md.yaml",
@@ -60,7 +60,7 @@
   "action_type": 8,
   "created_on": 1462513764,
   "id": 6,
-  "data": "{\"projectname\": \"test-delete-module_md\", \"chroot\": \"fedora-24-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"\", \"module_md_present\": false}"
+  "data": "{\"projectname\": \"test-delete-module_md\", \"chroot\": \"fedora-27-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"\", \"module_md_present\": false}"
 },
 {
   "_description": "Test save comps.xml",
@@ -69,7 +69,7 @@
   "action_type": 4,
   "created_on": 1462513764,
   "id": 7,
-  "data": "{\"projectname\": \"test-save-comps\", \"chroot\": \"fedora-24-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/comps.xml\", \"comps_present\": true}"
+  "data": "{\"projectname\": \"test-save-comps\", \"chroot\": \"fedora-27-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/comps.xml\", \"comps_present\": true}"
 },
 {
   "_description": "Test save module_md.yaml",
@@ -78,7 +78,7 @@
   "action_type": 8,
   "created_on": 1462513764,
   "id": 8,
-  "data": "{\"projectname\": \"test-save-module_md\", \"chroot\": \"fedora-24-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/module_md.yaml\", \"module_md_present\": true}"
+  "data": "{\"projectname\": \"test-save-module_md\", \"chroot\": \"fedora-27-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/module_md.yaml\", \"module_md_present\": true}"
 },
 {
   "_description": "Test save comps.xml when the required directory structure is not created.",
@@ -87,7 +87,7 @@
   "action_type": 4,
   "created_on": 1462513764,
   "id": 9,
-  "data": "{\"projectname\": \"test-save-comps-no-chroot\", \"chroot\": \"fedora-24-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/comps.xml\", \"comps_present\": true}"
+  "data": "{\"projectname\": \"test-save-comps-no-chroot\", \"chroot\": \"fedora-27-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/comps.xml\", \"comps_present\": true}"
 },
 {
   "_description": "Test save module_md.yaml when the required directory structure is not created.",
@@ -96,7 +96,7 @@
   "action_type": 8,
   "created_on": 1462513764,
   "id": 10,
-  "data": "{\"projectname\": \"test-save-module_md-no-chroot\", \"chroot\": \"fedora-24-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/module_md.yaml\", \"module_md_present\": true}"
+  "data": "{\"projectname\": \"test-save-module_md-no-chroot\", \"chroot\": \"fedora-27-x86_64\", \"ownername\": \"@actions\", \"url_path\": \"/static/module_md.yaml\", \"module_md_present\": true}"
 },
 {
   "_description": "Test fork action handles exceptions",

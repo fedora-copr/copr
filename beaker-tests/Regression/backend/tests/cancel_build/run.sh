@@ -25,7 +25,7 @@ rlJournalStart
         sleep 20 # downloading srpm to builder is taking place, mockchain is not running yet
 
         # test that the build is running
-        rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E '42-fedora-24-x86_64'"
+        rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E '42-fedora-27-x86_64'"
 
         # action input crunching
         rlRun "/usr/share/copr/mocks/frontend/app.py $TESTPATH $TESTPATH/static" 0
@@ -39,6 +39,6 @@ rlJournalStart
             (\$b | sort_by(.id) | map({id: .id, status: .result}))'" 0 "Compare expected and actual action outcomes (success/fail)."
 
         # test that the task has been killed and vm released for another job
-        rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E 'task_id: 42-fedora-24-x86_64'" 1
+        rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E 'task_id: 42-fedora-27-x86_64'" 1
     rlPhaseEnd
 rlJournalEnd &> /dev/null

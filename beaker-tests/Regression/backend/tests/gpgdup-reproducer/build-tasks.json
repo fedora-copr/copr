@@ -5,7 +5,7 @@
 
     "build_id": 10,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": true,
     "git_branch": "f23",
     "git_hash": "ab16523e02d730d63279f41ee6f31433fa6d593e",
@@ -20,7 +20,7 @@
     "project_owner": "clime",
     "repos": "",
     "submitter": "clime",
-    "task_id": "10-fedora-24-x86_64",
+    "task_id": "10-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 },
@@ -31,7 +31,7 @@
 
     "build_id": 11,
     "buildroot_pkgs": null,
-    "chroot": "fedora-24-x86_64",
+    "chroot": "fedora-27-x86_64",
     "enable_net": false,
     "git_branch": "f24",
     "git_hash": "94a28c0412757a39697821e31ba38e5449441499",
@@ -46,7 +46,7 @@
     "project_owner": "lime",
     "repos": "",
     "submitter": "lime",
-    "task_id": "11-fedora-24-x86_64",
+    "task_id": "11-fedora-27-x86_64",
     "timeout": 21600,
     "use_bootstrap_container": false
 }
