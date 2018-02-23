@@ -169,6 +169,18 @@ class TestManager(object):
         for k, v in kwargs.items():
             assert vmd_got.get_field(self.rc, k) == v
 
+    def test_another_owner_cannot_acquire_vm(self, mc_time):
+        mc_time.time.return_value = 0
+        self.vmm.mark_server_start()
+        vmd = self.vmm.add_vm_to_pool(self.vm_ip, self.vm_name, GID1)
+        vmd.store_field(self.rc, "state", VmStates.READY)
+        vmd.store_field(self.rc, "last_health_check", 2)
+        vmd.store_field(self.vmm.rc, "bound_to_user", "foo")
+        with pytest.raises(NoVmAvailable):
+            self.vmm.acquire_vm(groups=[GID1], ownername=self.ownername, pid=self.pid)
+        vm = self.vmm.acquire_vm(groups=[GID1], ownername="foo", pid=self.pid)
+        assert vm.vm_name == self.vm_name
+
     def test_acquire_vm(self, mc_time):
         mc_time.time.return_value = 0
         self.vmm.mark_server_start()
