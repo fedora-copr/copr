@@ -1,6 +1,6 @@
 Name: copr-rpmbuild
 Summary: Run COPR build tasks
-Version: 0.16
+Version: 0.17
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 
@@ -79,6 +79,11 @@ install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
 
 %changelog
+* Fri Feb 23 2018 clime <clime@redhat.com> 0.17-1
+- remove unused requires and rename rpm-python3 to python3-rpm
+- switch copr-sources-custom to python3 shebang
+- keep tmpfs data mounted acros mock invocations for custom method
+
 * Mon Feb 19 2018 clime <clime@redhat.com> 0.16-1
 - new custom source method
 
