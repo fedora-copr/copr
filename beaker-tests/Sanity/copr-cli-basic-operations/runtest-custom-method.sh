@@ -68,6 +68,9 @@ quick_package_script ()
 
 
 rlJournalStart
+    rlPhaseStartSetup
+    rlPhaseEnd
+
     rlPhaseStartTest Test
     rlRun "export WORKDIR=\`mktemp -d\`"
     rlRun "test -n \"\$WORKDIR\""
@@ -211,6 +214,9 @@ rlJournalStart
     rlRun 'copr watch-build $BUILD_ID'
     rlRun 'copr download-build $BUILD_ID --dest $RESULTDIR'
     rlRun 'FILES="success" check_resultdir quick-package-0-0'
+    rlPhaseEnd
+
+    rlPhaseStartCleanup
     rlPhaseEnd
 
 rlJournalPrintText
