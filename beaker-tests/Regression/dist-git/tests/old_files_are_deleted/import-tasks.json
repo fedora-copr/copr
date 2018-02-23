@@ -6,7 +6,7 @@
     "branches": ["master"],
     "project": "example",
     "srpm_url": "http://localhost:5000/static/example.src.rpm",
-    "task_id": "1",
+    "build_id": "1",
     "owner": "clime"
 },
 {
@@ -16,7 +16,7 @@
     "branches": ["master"],
     "project": "example",
     "srpm_url": "http://localhost:5000/static/foo.src.rpm",
-    "task_id": "2",
+    "build_id": "2",
     "owner": "clime"
 }
 ]

@@ -16,19 +16,18 @@ rlJournalStart
 
         # basic outcomes comparison
         rlRun "jq -e -n --argfile a $IN --argfile b $OUT\
-            '(\$a | sort_by(.task_id) | map({task_id: .task_id, status: (if (._expected_outcome == \"success\") then 1 else 0 end)})) ==\
-            (\$b | sort_by(.task_id) | map({task_id: .task_id, status: (if (.git_hash) then 1 else 0 end)}))'" 0 "Compare expected and actual import outcomes (success/fail)."
+            '(\$a | sort_by(.build_id) | map({build_id: .build_id, status: (if (._expected_outcome == \"success\") then 1 else 0 end)})) ==\
+            (\$b | sort_by(.build_id) | map({build_id: .build_id, status: (if (.branch_commits) then 1 else 0 end)}))'" 0 "Compare expected and actual import outcomes (success/fail)."
 
         # further tests
         outsize=`jq '. | length' $OUT`
         for (( i = 0; i < $outsize; i++ )); do
             mkdir $MYTMPDIR && cd $MYTMPDIR
 
-            branch=`jq ".[$i] | .branch" $OUT`
-            repo_name=`jq ".[$i] | .repo_name" $OUT`
-            git_hash=`jq ".[$i] | .git_hash" $OUT`
+            git_hash=`jq ".[$i].branch_commits[0] | .git_hash" $OUT`
+            repo_name=`jq ".[$i] | .reponame" $OUT`
             pkg_name=`jq ".[$i] | .pkg_name" $OUT`
-            task_id=`jq ".[$i] | .task_id" $OUT`
+            task_id=`jq ".[$i] | .build_id" $OUT`
 
             if [[ git_hash != null ]]; then
                 rlLog "-------------- TASK: ${task_id//\"} --------------"

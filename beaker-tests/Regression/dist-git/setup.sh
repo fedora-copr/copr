@@ -24,21 +24,25 @@ export LANG=en_US.UTF-8
 # install copr-mocks from sources
 cd $COPRROOTDIR/mocks
 dnf -y builddep copr-mocks.spec
+rm -rf /tmp/tito/noarch/
 if [[ ! $RELEASETEST ]]; then
-	tito build -i --test --rpm
+	tito build --test --rpm
 else
-	tito build -i --offline --rpm
+	tito build --offline --rpm
 fi
+dnf install -y /tmp/tito/noarch/copr-mocks*noarch.rpm --best
 cd -
 
 # install copr-dist-git from sources
 cd $COPRROOTDIR/dist-git
 dnf -y builddep copr-dist-git.spec --allowerasing
+rm -rf /tmp/tito/noarch/
 if [[ ! $RELEASETEST ]]; then
-	tito build -i --test --rpm
+	tito build --test --rpm
 else
-	tito build -i --offline --rpm
+	tito build --offline --rpm
 fi
+dnf install -y /tmp/tito/noarch/copr-dist-git*noarch.rpm --best
 cd -
 
 # root user settings
@@ -104,7 +108,8 @@ fi
 
 rm -f /run/nologin # fix for docker environment
 
-echo "%_disable_source_fetch 0" > ~/.rpmmacros
+# we don't ssl here
+rm -f /etc/httpd/conf.d/ssl.conf
 
 # enable & start services
 systemctl daemon-reload

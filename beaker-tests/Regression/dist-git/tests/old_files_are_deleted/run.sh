@@ -16,8 +16,8 @@ rlJournalStart
 
         # basic outcomes comparison
         rlRun "jq -e -n --argfile a $IN --argfile b $OUT\
-            '(\$a | sort_by(.task_id) | map({task_id: .task_id, status: (if (._expected_outcome == \"success\") then 1 else 0 end)})) ==\
-            (\$b | sort_by(.task_id) | map({task_id: .task_id, status: (if (.git_hash) then 1 else 0 end)}))'" 0 "Compare expected and actual import outcomes (success/fail)."
+            '(\$a | sort_by(.build_id) | map({build_id: .build_id, status: (if (._expected_outcome == \"success\") then 1 else 0 end)})) ==\
+            (\$b | sort_by(.build_id) | map({build_id: .build_id, status: (if (.branch_commits) then 1 else 0 end)}))'" 0 "Compare expected and actual import outcomes (success/fail)."
 
         mkdir $MYTMPDIR && cd $MYTMPDIR
         rlRun "git clone http://localhost/git/clime/example/example.git" 0
