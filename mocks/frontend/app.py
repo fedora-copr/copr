@@ -73,17 +73,18 @@ def backend_auto_createrepo_status(path):
     })
 
 
-@app.route('/backend/waiting/', methods=['GET'])
-def backend_waiting_queue():
+@app.route('/backend/pending-action/', methods=['GET'])
+def backend_pending_action():
     sorted_action_tasks = sorted(action_task_dict.values(), key=lambda x: x['id'])
-    sorted_build_tasks = sorted(build_task_dict.values(), key=lambda x: x['task_id'])
-    response = {
-        'action': sorted_action_tasks[0] if sorted_action_tasks else None,
-        'build': sorted_build_tasks[0] if sorted_build_tasks else None
-    }
-    debug_output(response, 'SENDING:')
-    return flask.jsonify(response)
+    action = sorted_action_tasks[0] if sorted_action_tasks else None
+    debug_output(action, 'SENDING:')
+    return flask.jsonify(action)
 
+@app.route('/backend/pending-jobs/', methods=['GET'])
+def backend_pending_jobs():
+    sorted_build_tasks = sorted(build_task_dict.values(), key=lambda x: x['task_id'])
+    debug_output(sorted_build_tasks, 'SENDING:')
+    return flask.jsonify(sorted_build_tasks)
 
 @app.route('/backend/starting_build/', methods=['POST', 'PUT'])
 def backend_starting_build():
