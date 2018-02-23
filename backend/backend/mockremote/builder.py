@@ -29,12 +29,12 @@ class Builder(object):
 
         # BACKEND/BUILDER API
 
-        if self.opts.builder_perl:
-            self.builddir = "/var/lib/copr-rpmbuild"
-            self.livelog_name = os.path.join(self.builddir, 'main.log')
-        else:
+        if self.opts.builder_deprecated:
             self.builddir = "/var/lib/copr-builder"
             self.livelog_name = os.path.join(self.builddir, 'live-log')
+        else:
+            self.builddir = "/var/lib/copr-rpmbuild"
+            self.livelog_name = os.path.join(self.builddir, 'main.log')
 
         self.resultdir = os.path.join(self.builddir, 'results')
         self.pidfile = os.path.join(self.builddir, 'pid')
@@ -114,7 +114,7 @@ class Builder(object):
         return self._build_pid
 
     def _copr_builder_cmd(self):
-        if self.opts.builder_perl:
+        if not self.opts.builder_deprecated:
             return 'copr-rpmbuild --verbose --drop-resultdir '\
                    '--build-id {build_id} --chroot {chroot} --detached'.format(
                 build_id=self.job.build_id, chroot=self.job.chroot)
@@ -208,13 +208,10 @@ class Builder(object):
 
     def check(self):
         try:
-            self._run_ssh_cmd("/bin/rpm -q copr-builder")
+            self._run_ssh_cmd("/bin/rpm -q copr-rpmbuild")
         except RemoteCmdError:
-            try:
-                self._run_ssh_cmd("/bin/rpm -q copr-rpmbuild")
-            except RemoteCmdError:
-                raise BuilderError("Build host `{0}` does not have a builder installed"
-                                   .format(self.hostname))
+            raise BuilderError("Build host `{0}` does not have copr-rpmbuild installed"
+                               .format(self.hostname))
 
         # test for path existence for chroot config
         if self.job.chroot != "srpm-builds":

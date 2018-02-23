@@ -263,12 +263,12 @@ class BackendConfigReader(object):
         opts.consecutive_failure_threshold = _get_conf(
             cp, "builder", "consecutive_failure_threshold",
             DEF_CONSECUTIVE_FAILURE_THRESHOLD, mode="int")
-        opts.standalone_builder = _get_conf(
+        opts.standalone_builder = _get_conf( # deprecated
             cp, "builder", "standalone", False, mode="bool")
-        opts.standalone_builder_config = _get_conf(
+        opts.standalone_builder_config = _get_conf( # deprecated
             cp, "builder", "config", "/etc/copr-builder/fedora-copr.conf")
-        opts.builder_perl = _get_conf(
-            cp, "builder", "builder_perl", False, mode="bool")
+        opts.builder_deprecated = _get_conf(
+            cp, "builder", "builder_deprecated", False, mode="bool")
 
 
         opts.log_dir = _get_conf(
