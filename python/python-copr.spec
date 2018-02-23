@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.85
+Version:    1.86
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -225,6 +225,9 @@ pushd %{py3dir}
 %endif
 
 %changelog
+* Fri Feb 23 2018 clime <clime@redhat.com> 1.86-1
+- remove Group tag
+
 * Mon Feb 19 2018 clime <clime@redhat.com> 1.85-1
 - build python2-copr package conditionally
 - Remove unnecessary shebang sed in copr-cli.spec and python-copr.spec
