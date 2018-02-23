@@ -11,12 +11,12 @@ export OUT=$TESTPATH/action-results.out.json
 export BUILDTASKSPATH=$TESTPATH/build-tasks
 
 rlJournalStart
-    rlPhaseStartTest Actions
+    rlPhaseStartTest CancelBuild
         # builds input crunching
         rlRun "/usr/share/copr/mocks/frontend/app.py $BUILDTASKSPATH $TESTPATH/static &" 0
 
         # wait until build has been retrieved by backend
-        while ! curl --silent http://localhost:5000/backend/waiting/ | grep '"build": null' ; do
+        while ! curl --silent http://localhost:5000/backend/pending-jobs/ | grep -E '^\[\]$' ; do
             sleep 1
         done
 
@@ -25,7 +25,7 @@ rlJournalStart
         sleep 20 # downloading srpm to builder is taking place, mockchain is not running yet
 
         # test that the build is running
-        rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E 'task_id: 42-fedora-24-x86_64'"
+        rlRun "docker exec copr-backend copr_get_vm_info.py | grep -E '42-fedora-24-x86_64'"
 
         # action input crunching
         rlRun "/usr/share/copr/mocks/frontend/app.py $TESTPATH $TESTPATH/static" 0
