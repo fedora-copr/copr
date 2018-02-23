@@ -164,18 +164,14 @@ class ComplexLogic(object):
 
     @staticmethod
     def get_queue_sizes():
-        pending = BuildsLogic.get_pending_build_tasks(background=False).count()
-        pending_bg = BuildsLogic.get_pending_build_tasks(background=True).count()
-        running = BuildsLogic.get_build_tasks(StatusEnum("running")).count()
         importing = BuildsLogic.get_build_importing_queue(background=False).count()
-        importing_bg = BuildsLogic.get_build_importing_queue(background=True).count()
+        pending = BuildsLogic.get_pending_build_tasks(background=False).count()
+        running = BuildsLogic.get_build_tasks(StatusEnum("running")).count()
 
         return dict(
-            pending=pending,
-            pending_bg=pending_bg,
-            running=running,
             importing=importing,
-            importing_bg=importing_bg
+            pending=pending,
+            running=running,
         )
 
 
