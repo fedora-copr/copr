@@ -13,7 +13,7 @@
 %endif
 
 Name:       copr-cli
-Version:    1.66
+Version:    1.67
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
@@ -153,6 +153,9 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+* Fri Feb 23 2018 clime <clime@redhat.com> 1.67-1
+- remove Group tag
+
 * Mon Feb 19 2018 clime <clime@redhat.com> 1.66-1
 - Shebangs cleanup
 - fix deps in spec
