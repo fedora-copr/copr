@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.112
+Version:    1.113
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -220,6 +220,10 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Fri Feb 23 2018 clime <clime@redhat.com> 1.113-1
+- original builder deprecation
+- remove Group tag
+
 * Mon Feb 19 2018 clime <clime@redhat.com> 1.112-1
 - Shebangs cleanup
 - escapes in changelogs
