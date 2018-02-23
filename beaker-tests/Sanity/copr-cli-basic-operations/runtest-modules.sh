@@ -117,9 +117,8 @@ rlJournalStart
         rlRun "copr-cli build-module --yaml /tmp/testmodule.yaml $PROJECT &> $OUTPUT" 1
         rlAssertEquals "Module should already exist" `cat $OUTPUT | grep "already exists" |wc -l` 1
 
-        # Test that MBS api is not accessible
-        rlAssertEquals "MBS API should be directly accessible from copr-frontend only"\
-                       `curl -I -s -L $FRONTEND_URL/module/1/module-builds |grep 'HTTP/1.1' |cut -f2 -d ' '` 403
+        rlAssertEquals "MBS API is now longer available"\
+                       `curl -I -s -L $FRONTEND_URL/module/1/module-builds |grep 'HTTP/1.1' |cut -f2 -d ' '` 404
 
         # Test that module builds succeeded
         PACKAGES=`mktemp`
