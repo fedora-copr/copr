@@ -10,7 +10,7 @@
 %global file_context_file_pre %{_localstatedir}/lib/rpm-state/file_contexts.pre
 
 Name:       copr-selinux
-Version:    1.47
+Version:    1.48
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
@@ -124,6 +124,9 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+* Fri Feb 23 2018 clime <clime@redhat.com> 1.48-1
+- remove Group tag
+
 * Mon Dec 18 2017 Dominik Turecek <dturecek@redhat.com> 1.47-1
 - wrap map permission in an optional block
 
