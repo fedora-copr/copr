@@ -67,7 +67,7 @@ class MonitorWrapper(object):
 
     def to_dict(self):
         return {
-            "chroots": map(lambda x: x.name, self.copr.active_chroots_sorted),
+            "chroots": list(map(lambda x: x.name, self.copr.active_chroots_sorted)),
             "builds":  [BuildWrapper(build).to_dict() for build in self.copr.builds],
             "packages": self.render_packages()
         }
