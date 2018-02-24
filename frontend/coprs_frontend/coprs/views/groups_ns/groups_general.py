@@ -91,7 +91,8 @@ def list_user_groups():
         UsersLogic.get_groups_by_fas_names_list(teams).all()
     }
 
-    teams = UsersLogic.filter_blacklisted_teams(teams)
+    teams = list(UsersLogic.filter_blacklisted_teams(teams))
+
     copr_groups = {
         fas_name: active_map.get(fas_name)
         for fas_name in teams
