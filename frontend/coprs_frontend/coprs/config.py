@@ -67,6 +67,10 @@ class Config(object):
         'user_desc': 'fas'
     }
 
+    # Optional, news box shows only when both variables are configured
+    NEWS_URL = "https://fedora-copr.github.io/"
+    NEWS_FEED_URL = "https://fedora-copr.github.io/feed.xml"
+
 
 class ProductionConfig(Config):
     DEBUG = False

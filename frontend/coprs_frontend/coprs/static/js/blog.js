@@ -1,7 +1,8 @@
 // https://stackoverflow.com/a/10943610/3285282
 
-$(document).ready(function(){
-    $.get("https://fedora-copr.github.io/feed.xml", function (data) {
+function show_last_article(feed_url){
+
+    $.get(feed_url, function (data) {
 
         // https://stackoverflow.com/a/10996297/3285282
         Date.prototype.getMonthName = function() {
@@ -25,4 +26,4 @@ $(document).ready(function(){
             return false
         });
     });
-});
+};
