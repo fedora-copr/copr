@@ -3,7 +3,7 @@
 %endif
 
 Name:       copr-backend
-Version:    1.113
+Version:    1.114
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
@@ -220,6 +220,9 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+* Mon Feb 26 2018 clime <clime@redhat.com> 1.114-1
+- add possibility for copr_log_hitcounter to ignore multiple subnets
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.113-1
 - original builder deprecation
 - remove Group tag
