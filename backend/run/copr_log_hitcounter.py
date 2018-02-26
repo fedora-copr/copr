@@ -47,7 +47,7 @@ datetime_parse_template = '{date} {time} {zone}'
 
 parser = argparse.ArgumentParser(description='Read lighttpd access.log and count repo accesses.')
 parser.add_argument('--ignore-subnets', action='store', help='What IPs to ignore', nargs='+', default=[], metavar="SUBNET")
-parser.add_argument('logfile', action='store', help='Path to the logfile')
+parser.add_argument('logfile', action='store', help='Path to the input logfile')
 
 
 def get_hit_data():
