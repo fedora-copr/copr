@@ -336,9 +336,10 @@
 
 
 {% macro recent_blog_panel() %}
+  {% if config.NEWS_URL and config.NEWS_FEED_URL %}
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">News - <a href="https://fedora-copr.github.io/">Read All</a></h3>
+      <h3 class="panel-title">News - <a href="{{ config.NEWS_URL }}">Read All</a></h3>
     </div>
     <div class="list-group">
       <noscript>
@@ -362,6 +363,7 @@
       </a>
     </div>
   </div>
+  {% endif %}
 {% endmacro %}
 
 
