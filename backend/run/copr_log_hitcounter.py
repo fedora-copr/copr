@@ -46,7 +46,7 @@ datetime_regex = re.compile(".*\[(?P<date>[^:]*):(?P<time>\S*)\s(?P<zone>[^\]]*)
 datetime_parse_template = '{date} {time} {zone}'
 
 parser = argparse.ArgumentParser(description='Read lighttpd access.log and count repo accesses.')
-parser.add_argument('--ignore-subnet',action='store', help='What IPs to ignore')
+parser.add_argument('--ignore-subnets', action='store', help='What IPs to ignore', nargs='+', default=[], metavar="SUBNET")
 parser.add_argument('logfile', action='store', help='Path to the logfile')
 
 
@@ -68,12 +68,17 @@ def get_hit_data():
             if m.group('code') != str(200):
                 continue
 
-            if args.ignore_subnet:
+            ignore = False
+            for ignore_subnet in args.ignore_subnets:
                 try:
-                    if IPAddress(m.group('ip_address')) in IPNetwork(args.ignore_subnet):
-                        continue
+                    if IPAddress(m.group('ip_address')) in IPNetwork(ignore_subnet):
+                        ignore = True
+                        break
                 except netaddr.core.AddrFormatError:
-                    continue
+                    ignore = True
+                    break
+            if ignore:
+                continue
 
             if spider_regex.match(m.group('agent')):
                 continue
