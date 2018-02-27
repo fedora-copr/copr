@@ -958,7 +958,7 @@ class CreateModuleForm(FlaskForm):
             return False
 
         # Profile names should be unique
-        names = filter(None, self.profile_names.data)
+        names = [x for x in self.profile_names.data if x]
         if len(set(names)) < len(names):
             self.errors["profiles"] = ["Profile names must be unique"]
             return False
