@@ -274,10 +274,23 @@ def copr_new_build_custom(copr):
     url_on_success = helpers.copr_url('coprs_ns.copr_add_build_custom', copr)
 
     def factory(**build_options):
+        def cleanup_script(string):
+            # Keep this function in @copr_ns only, to not touch the contents of
+            # script specified through api or copr-cli.  But from web-ui form,
+            # the script usually has unintentional '\r\n' EOLs, so drop them to
+            # not have broken shebang.
+            string = string.replace('\r\n', '\n')
+
+            # And append newline to have a valid unix file.
+            if not string.endswith('\n'):
+                string += '\n'
+
+            return string
+
         BuildsLogic.create_new_from_custom(
             flask.g.user,
             copr,
-            form.script.data,
+            cleanup_script(form.script.data),
             form.chroot.data,
             form.builddeps.data,
             form.resultdir.data,
