@@ -180,11 +180,7 @@
 {% endmacro %}
 
 {%- macro copr_details_href(copr) %}
-  {%- if copr.is_a_group_project %}
-      {{- url_for('coprs_ns.group_copr_detail', group_name=copr.group.name, coprname=copr.name) }}
-  {%- else %}
-      {{- url_for('coprs_ns.copr_detail', username=copr.user.name, coprname=copr.name) }}
-  {%- endif %}
+  {{- copr_url('coprs_ns.copr_detail', copr) }}
 {%- endmacro %}
 
 {% macro copr_title(copr) %}
@@ -220,29 +216,7 @@
   {%- if not copr.is_a_group_project %}
     {{- url_for(view, username=copr.user.name, coprname=copr.name, **kwargs) }}
   {%- else %}
-    {#- Only the listed views have merged functions for regular and group projects. Once all views have it, @TODO remove the workaround #}
-    {%- if view in ["coprs_ns.copr_add_package",
-                    "coprs_ns.copr_new_package",
-                    "coprs_ns.copr_rebuild_package",
-                    "coprs_ns.copr_packages",
-                    "coprs_ns.copr_package",
-                    "coprs_ns.copr_edit_package",
-                    "coprs_ns.copr_fork",
-                    "coprs_ns.copr_delete_package",
-                    "coprs_ns.copr_create_module",
-                    "coprs_ns.copr_module_raw",
-                    "coprs_ns.generate_module_repo_file",
-                    "coprs_ns.copr_modules",
-                    "coprs_ns.copr_module",
-                    "coprs_ns.copr_add_build_custom",
-                    "coprs_ns.copr_new_build_custom",
-                    "coprs_ns.copr_package_icon",
-                    "coprs_ns.copr_rebuild_all_packages"] %}
-      {%- set group_view = view %}
-    {%- else %}
-      {%- set group_view = view.split(".")[0] + ".group_" + view.split(".")[-1] %}
-    {%- endif %}
-    {{- url_for(group_view, group_name=copr.group.name, coprname=copr.name, **kwargs) }}
+    {{- url_for(view, group_name=copr.group.name, coprname=copr.name, **kwargs) }}
   {%- endif %}
 {%- endmacro %}
 
@@ -306,11 +280,8 @@
     </div>
     <div class="list-group">
       {% for build in builds %}
-        {% if build.copr.is_a_group_project %}
-        <a href="{{url_for("coprs_ns.group_copr_build", group_name = build.copr.group.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
-        {% else %}
-        <a href="{{url_for("coprs_ns.copr_build", username = build.copr.user.name, coprname = build.copr.name, build_id = build.id)}}" class="list-group-item">
-        {% endif %}
+        <a href="{{copr_url('coprs_ns.copr_build', build.copr, build_id=build.id)}}" class="list-group-item">
+
           <h4 class="list-group-item-heading">{{build.package.name}}</h4>
           <p class="list-group-item-text">
             <small>Project:</small>
@@ -398,7 +369,7 @@
 
 {% macro build_href_from_sql(build) %}
   {% if build.group_name %}
-    {{- url_for('coprs_ns.group_copr_build', group_name=(build.copr.group.name if build.copr is defined else build.group_name), coprname=build.copr_name, build_id=build.id) -}}
+    {{- url_for('coprs_ns.copr_build', group_name=(build.copr.group.name if build.copr is defined else build.group_name), coprname=build.copr_name, build_id=build.id) -}}
   {% else %}
     {{- url_for("coprs_ns.copr_build", username=(build.copr.user.name if build.copr is defined else build.user_name), coprname = build.copr_name, build_id = build.id) -}}
   {% endif %}

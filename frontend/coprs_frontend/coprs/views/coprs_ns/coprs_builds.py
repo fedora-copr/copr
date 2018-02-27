@@ -30,31 +30,15 @@ from coprs.exceptions import (ActionInProgressException,
 def copr_build_redirect(build_id):
     build = ComplexLogic.get_build_safe(build_id)
     copr = build.copr
-    if copr.is_a_group_project:
-        return flask.redirect(url_for(
-            "coprs_ns.group_copr_build",
-            group_name=build.copr.group.name,
-            coprname=build.copr.name,
-            build_id=build_id))
-    else:
-        return flask.redirect(url_for(
-            "coprs_ns.copr_build",
-            username=build.copr.user.name,
-            coprname=build.copr.name,
-            build_id=build_id))
+    return flask.redirect(helpers.copr_url("coprs_ns.copr_build", copr, build_id=build_id))
 
 
 ################################ Build detail ################################
 
 @coprs_ns.route("/<username>/<coprname>/build/<int:build_id>/")
-@req_with_copr
-def copr_build(copr, build_id):
-    return render_copr_build(build_id, copr)
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/build/<int:build_id>/")
 @req_with_copr
-def group_copr_build(copr, build_id):
+def copr_build(copr, build_id):
     return render_copr_build(build_id, copr)
 
 
@@ -66,14 +50,9 @@ def render_copr_build(build_id, copr):
 ################################ Build table ################################
 
 @coprs_ns.route("/<username>/<coprname>/builds/")
-@req_with_copr
-def copr_builds(copr):
-    return render_copr_builds(copr)
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/builds/")
 @req_with_copr
-def group_copr_builds(copr):
+def copr_builds(copr):
     return render_copr_builds(copr)
 
 
@@ -87,17 +66,10 @@ def render_copr_builds(copr):
 ################################ Url builds ################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build/")
-@login_required
-@req_with_copr
-def copr_add_build(copr, form=None):
-    return render_add_build(
-        copr, form, view='coprs_ns.copr_new_build')
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build/")
 @login_required
 @req_with_copr
-def group_copr_add_build(copr, form=None):
+def copr_add_build(copr, form=None):
     return render_add_build(
         copr, form, view='coprs_ns.copr_new_build')
 
@@ -110,27 +82,14 @@ def render_add_build(copr, form, view):
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_new_build(copr):
     return process_new_build_url(
         copr,
         "coprs_ns.copr_new_build",
-        url_on_success=url_for("coprs_ns.copr_builds",
-                               username=copr.user.username, coprname=copr.name)
-    )
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build(copr):
-    return process_new_build_url(
-        copr,
-        "coprs_ns.copr_new_build",
-        url_on_success=url_for("coprs_ns.group_copr_builds",
-                               group_name=copr.group.name, coprname=copr.name)
-    )
+        url_on_success=helpers.copr_url("coprs_ns.copr_builds", copr))
 
 
 def process_new_build_url(copr, add_view, url_on_success):
@@ -175,17 +134,10 @@ def process_new_build(copr, form, create_new_build_factory, add_function, add_vi
 ################################ SCM builds #########################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_scm/")
-@login_required
-@req_with_copr
-def copr_add_build_scm(copr, form=None):
-    return render_add_build_scm(
-        copr, form, view='coprs_ns.copr_new_build_scm')
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build_scm/")
 @login_required
 @req_with_copr
-def group_copr_add_build_scm(copr, form=None):
+def copr_add_build_scm(copr, form=None):
     return render_add_build_scm(
         copr, form, view='coprs_ns.copr_new_build_scm')
 
@@ -198,22 +150,12 @@ def render_add_build_scm(copr, form, view, package=None):
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build_scm/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_scm/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_new_build_scm(copr):
     view = 'coprs_ns.copr_new_build_scm'
-    url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.user.username, coprname=copr.name)
-    return process_new_build_scm(copr, view, url_on_success)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_scm/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build_scm(copr):
-    view = 'coprs_ns.copr_new_build_scm'
-    url_on_success = url_for("coprs_ns.group_copr_builds",
-                             group_name=copr.group.name, coprname=copr.name)
+    url_on_success = helpers.copr_url("coprs_ns.copr_builds", copr)
     return process_new_build_scm(copr, view, url_on_success)
 
 
@@ -238,17 +180,10 @@ def process_new_build_scm(copr, add_view, url_on_success):
 ################################ PyPI builds ################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_pypi/")
-@login_required
-@req_with_copr
-def copr_add_build_pypi(copr, form=None):
-    return render_add_build_pypi(
-        copr, form, view='coprs_ns.copr_new_build_pypi')
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build_pypi/")
 @login_required
 @req_with_copr
-def group_copr_add_build_pypi(copr, form=None):
+def copr_add_build_pypi(copr, form=None):
     return render_add_build_pypi(
         copr, form, view='coprs_ns.copr_new_build_pypi')
 
@@ -261,22 +196,12 @@ def render_add_build_pypi(copr, form, view, package=None):
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build_pypi/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_pypi/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_new_build_pypi(copr):
     view = 'coprs_ns.copr_new_build_pypi'
-    url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.user.username, coprname=copr.name)
-    return process_new_build_pypi(copr, view, url_on_success)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_pypi/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build_pypi(copr):
-    view = 'coprs_ns.copr_new_build_pypi'
-    url_on_success = url_for("coprs_ns.group_copr_builds",
-                             group_name=copr.group.name, coprname=copr.name)
+    url_on_success = helpers.copr_url("coprs_ns.copr_builds", copr)
     return process_new_build_pypi(copr, view, url_on_success)
 
 
@@ -298,17 +223,10 @@ def process_new_build_pypi(copr, add_view, url_on_success):
 ############################### RubyGems builds ###############################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_rubygems/")
-@login_required
-@req_with_copr
-def copr_add_build_rubygems(copr, form=None):
-    return render_add_build_rubygems(
-        copr, form, view='coprs_ns.copr_new_build_rubygems')
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build_rubygems/")
 @login_required
 @req_with_copr
-def group_copr_add_build_rubygems(copr, form=None):
+def copr_add_build_rubygems(copr, form=None):
     return render_add_build_rubygems(
         copr, form, view='coprs_ns.copr_new_build_rubygems')
 
@@ -321,22 +239,12 @@ def render_add_build_rubygems(copr, form, view, package=None):
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build_rubygems/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_rubygems/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_new_build_rubygems(copr):
     view = 'coprs_ns.copr_new_build_rubygems'
-    url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.user.username, coprname=copr.name)
-    return process_new_build_rubygems(copr, view, url_on_success)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_rubygems/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build_rubygems(copr):
-    view = 'coprs_ns.copr_new_build_rubygems'
-    url_on_success = url_for("coprs_ns.group_copr_builds",
-                             group_name=copr.group.name, coprname=copr.name)
+    url_on_success = helpers.copr_url("coprs_ns.copr_builds", copr)
     return process_new_build_rubygems(copr, view, url_on_success)
 
 
@@ -402,17 +310,10 @@ def render_add_build_custom(copr, form, view, package=None):
 ################################ Upload builds ################################
 
 @coprs_ns.route("/<username>/<coprname>/add_build_upload/")
-@login_required
-@req_with_copr
-def copr_add_build_upload(copr, form=None):
-    return render_add_build_upload(
-        copr, form, view='coprs_ns.copr_new_build_upload')
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/add_build_upload/")
 @login_required
 @req_with_copr
-def group_copr_add_build_upload(copr, form=None):
+def copr_add_build_upload(copr, form=None):
     return render_add_build_upload(
         copr, form, view='coprs_ns.copr_new_build_upload')
 
@@ -425,22 +326,12 @@ def render_add_build_upload(copr, form, view):
 
 
 @coprs_ns.route("/<username>/<coprname>/new_build_upload/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_upload/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_new_build_upload(copr):
     view = 'coprs_ns.copr_new_build_upload'
-    url_on_success = url_for("coprs_ns.copr_builds",
-                             username=copr.user.username, coprname=copr.name)
-    return process_new_build_upload(copr, view, url_on_success)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_upload/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build_upload(copr):
-    view = 'coprs_ns.copr_new_build_upload'
-    url_on_success = url_for("coprs_ns.group_copr_builds",
-                             group_name=copr.group.name, coprname=copr.name)
+    url_on_success = helpers.copr_url("coprs_ns.copr_builds", copr)
     return process_new_build_upload(copr, view, url_on_success)
 
 
@@ -460,26 +351,12 @@ def process_new_build_upload(copr, add_view, url_on_success):
 ################################ Builds rebuilds ################################
 
 @coprs_ns.route("/<username>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_new_build_rebuild(copr, build_id):
     view='coprs_ns.copr_new_build'
-    url_on_success = url_for(
-        "coprs_ns.copr_builds",
-        username=copr.user.username, coprname=copr.name)
-
-    return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/new_build_rebuild/<int:build_id>/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_new_build_rebuild(copr, build_id):
-    view='coprs_ns.copr_new_build'
-    url_on_success = url_for(
-        "coprs_ns.group_copr_builds",
-        group_name=copr.group.name, coprname=copr.name)
-
+    url_on_success = helpers.copr_url("coprs_ns.copr_build", copr, build_id=build_id)
     return process_rebuild(copr, build_id, view=view, url_on_success=url_on_success)
 
 
@@ -497,19 +374,11 @@ def process_rebuild(copr, build_id, view, url_on_success):
 
 ################################ Repeat ################################
 
-@coprs_ns.route("/<username>/<coprname>/repeat_build/<int:build_id>/",
-                methods=["GET", "POST"])
+@coprs_ns.route("/<username>/<coprname>/repeat_build/<int:build_id>/", methods=["GET", "POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/repeat_build/<int:build_id>/", methods=["GET", "POST"])
 @login_required
 @req_with_copr
 def copr_repeat_build(copr, build_id):
-    return process_copr_repeat_build(build_id, copr)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/repeat_build/<int:build_id>/",
-                methods=["GET", "POST"])
-@login_required
-@req_with_copr
-def group_copr_repeat_build(copr, build_id):
     return process_copr_repeat_build(build_id, copr)
 
 
@@ -568,19 +437,12 @@ def process_cancel_build(build):
     return flask.redirect(helpers.url_for_copr_builds(build.copr))
 
 
-@coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/",
-                methods=["POST"])
+@coprs_ns.route("/<username>/<coprname>/cancel_build/<int:build_id>/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/cancel_build/<int:build_id>/", methods=["POST"])
 @login_required
-def copr_cancel_build(username, coprname, build_id):
+@req_with_copr
+def copr_cancel_build(copr, build_id):
     # only the user who ran the build can cancel it
-    build = ComplexLogic.get_build_safe(build_id)
-    return process_cancel_build(build)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/cancel_build/<int:build_id>/",
-                methods=["POST"])
-@login_required
-def group_copr_cancel_build(group_name, coprname, build_id):
     build = ComplexLogic.get_build_safe(build_id)
     return process_cancel_build(build)
 

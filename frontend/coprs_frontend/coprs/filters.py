@@ -247,7 +247,7 @@ def repo_url(url):
         owner = parsed.netloc
         prj = parsed.path.split("/")[1]
         if owner[0] == '@':
-            url = url_for("coprs_ns.group_copr_detail", group_name=owner[1:], coprname=prj)
+            url = url_for("coprs_ns.copr_detail", group_name=owner[1:], coprname=prj)
         else:
             url = url_for("coprs_ns.copr_detail", username=owner, coprname=prj)
 

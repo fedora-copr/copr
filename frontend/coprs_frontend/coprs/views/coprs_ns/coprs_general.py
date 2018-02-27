@@ -51,14 +51,14 @@ from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_
 def url_for_copr_details(copr):
     return url_for_copr_view(
         "coprs_ns.copr_detail",
-        "coprs_ns.group_copr_detail",
+        "coprs_ns.copr_detail",
         copr)
 
 
 def url_for_copr_edit(copr):
     return url_for_copr_view(
         "coprs_ns.copr_edit",
-        "coprs_ns.group_copr_edit",
+        "coprs_ns.copr_edit",
         copr)
 
 
@@ -143,26 +143,26 @@ def coprs_fulltext_search(page=1):
 
 
 @coprs_ns.route("/<username>/add/")
+@coprs_ns.route("/g/<group_name>/add/")
 @login_required
-def copr_add(username):
+def copr_add(username=None, group_name=None):
     form = forms.CoprFormFactory.create_form_cls()()
-
+    if group_name:
+        group = ComplexLogic.get_group_by_name_safe(group_name)
+        return flask.render_template("coprs/group_add.html", form=form, group=group)
     return flask.render_template("coprs/add.html", form=form)
 
 
-@coprs_ns.route("/g/<group_name>/add/")
-@login_required
-def group_copr_add(group_name):
-    group = ComplexLogic.get_group_by_name_safe(group_name)
-    form = forms.CoprFormFactory.create_form_cls()()
-
-    return flask.render_template(
-        "coprs/group_add.html", form=form, group=group)
-
-
+@coprs_ns.route("/<username>/new/", methods=["POST"])
 @coprs_ns.route("/g/<group_name>/new/", methods=["POST"])
 @login_required
-def group_copr_new(group_name):
+def copr_new(username=None, group_name=None):
+    if group_name:
+        return process_group_copr_new(group_name)
+    return process_copr_new(username)
+
+
+def process_group_copr_new(group_name):
     group = ComplexLogic.get_group_by_name_safe(group_name)
     form = forms.CoprFormFactory.create_form_cls(group=group)()
 
@@ -199,9 +199,7 @@ def group_copr_new(group_name):
         return flask.render_template("coprs/group_add.html", form=form, group=group)
 
 
-@coprs_ns.route("/<username>/new/", methods=["POST"])
-@login_required
-def copr_new(username):
+def process_copr_new(username):
     """
     Receive information from the user on how to create its new copr
     and create it accordingly.
@@ -273,16 +271,10 @@ def after_the_project_creation(copr, form):
 
 
 @coprs_ns.route("/<username>/<coprname>/report-abuse")
-@req_with_copr
-@login_required
-def copr_report_abuse(copr):
-    return render_copr_report_abuse(copr)
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/report-abuse")
 @req_with_copr
 @login_required
-def group_copr_report_abuse(copr):
+def copr_report_abuse(copr):
     return render_copr_report_abuse(copr)
 
 
@@ -291,17 +283,10 @@ def render_copr_report_abuse(copr):
     return render_template("coprs/report_abuse.html", copr=copr, form=form)
 
 
+@coprs_ns.route("/<username>/<coprname>/")
 @coprs_ns.route("/g/<group_name>/<coprname>/")
 @req_with_copr
-def group_copr_detail(copr):
-    return render_copr_detail(copr)
-
-
-@coprs_ns.route("/<username>/<coprname>/")
-@req_with_copr
 def copr_detail(copr):
-    if copr.is_a_group_project:
-        return flask.redirect(url_for_copr_details(copr))
     return render_copr_detail(copr)
 
 
@@ -433,14 +418,8 @@ def render_copr_webhooks(copr):
         gitlab_url=gitlab_url, custom_url=custom_url)
 
 
-@coprs_ns.route("/g/<group_name>/<coprname>/webhooks/")
-@login_required
-@req_with_copr
-def group_copr_webhooks(copr):
-    return render_copr_webhooks(copr)
-
-
 @coprs_ns.route("/<username>/<coprname>/webhooks/")
+@coprs_ns.route("/g/<group_name>/<coprname>/webhooks/")
 @login_required
 @req_with_copr
 def copr_webhooks(copr):
@@ -456,14 +435,8 @@ def render_copr_edit(copr, form, view):
         copr=copr, form=form, view=view)
 
 
-@coprs_ns.route("/g/<group_name>/<coprname>/edit/")
-@login_required
-@req_with_copr
-def group_copr_edit(copr, form=None):
-    return render_copr_edit(copr, form, 'coprs_ns.copr_update')
-
-
 @coprs_ns.route("/<username>/<coprname>/edit/")
+@coprs_ns.route("/g/<group_name>/<coprname>/edit/")
 @login_required
 @req_with_copr
 def copr_edit(copr, form=None):
@@ -508,24 +481,8 @@ def process_copr_update(copr, form):
     _check_rpmfusion(copr.repos)
 
 
-@coprs_ns.route("/g/<group_name>/<coprname>/update/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_update(copr):
-    form = forms.CoprFormFactory.create_form_cls(group=copr.group)()
-
-    if form.validate_on_submit():
-        process_copr_update(copr, form)
-        return flask.redirect(url_for(
-            "coprs_ns.group_copr_detail",
-            group_name=copr.group.name, coprname=copr.name
-        ))
-
-    else:
-        return group_copr_edit(group_name=copr.group.name, coprname=copr.name, form=form)
-
-
 @coprs_ns.route("/<username>/<coprname>/update/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/update/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_update(copr):
@@ -691,44 +648,24 @@ def process_delete(copr, url_on_error, url_on_success):
 
 
 @coprs_ns.route("/<username>/<coprname>/delete/", methods=["GET", "POST"])
-@login_required
-@req_with_copr
-def copr_delete(copr):
-    return process_delete(
-        copr,
-        url_on_error=url_for("coprs_ns.copr_detail",
-                             username=copr.user.name, coprname=copr.name),
-        url_on_success=url_for("coprs_ns.coprs_by_user", username=copr.user.username)
-    )
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/delete/", methods=["GET", "POST"])
 @login_required
 @req_with_copr
-def group_copr_delete(copr):
-
-    return process_delete(
-        copr,
-        url_on_error=url_for('coprs_ns.group_copr_detail',
-                             group_name=copr.group.name, coprname=copr.name),
-        url_on_success=url_for('groups_ns.list_projects_by_group',
-                               group_name=copr.group.name)
-    )
+def copr_delete(copr):
+    if copr.group:
+        url_on_success = url_for("groups_ns.list_projects_by_group", group_name=copr.group.name)
+    else:
+        url_on_success = url_for("coprs_ns.coprs_by_user", username=copr.user.username)
+    url_on_error = helpers.copr_url("coprs_ns.copr_detail", copr)
+    return process_delete(copr, url_on_error, url_on_success)
 
 
 @coprs_ns.route("/<username>/<coprname>/legal_flag/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/legal_flag/", methods=["POST"])
 @login_required
 @req_with_copr
 def copr_legal_flag(copr):
     contact_info = "{} <>".format(copr.user.username, copr.user.mail)
-    return process_legal_flag(contact_info, copr)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/legal_flag/", methods=["POST"])
-@login_required
-@req_with_copr
-def group_copr_legal_flag(copr):
-    contact_info = "group managed project, fas name: {}".format(copr.group.name)
     return process_legal_flag(contact_info, copr)
 
 
@@ -766,7 +703,9 @@ def process_legal_flag(contact_info, copr):
 
 @coprs_ns.route("/<username>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
 @coprs_ns.route("/<username>/<coprname>/repo/<name_release>/<repofile>")
-def generate_repo_file(username, coprname, name_release, repofile):
+@coprs_ns.route("/g/<group_name>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
+@coprs_ns.route("/g/<group_name>/<coprname>/repo/<name_release>/<repofile>")
+def generate_repo_file(coprname, name_release, repofile, username=None, group_name=None):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
     # This solution is used because flask splits off the last part after a
@@ -775,23 +714,13 @@ def generate_repo_file(username, coprname, name_release, repofile):
 
     # support access to the group projects using @-notation
     # todo: remove when yum/dnf plugin is updated to use new url schema
-    if username.startswith("@"):
-        return group_generate_repo_file(group_name=username[1:], coprname=coprname,
-                                        name_release=name_release, repofile=repofile)
+    if username and username.startswith("@"):
+        group_name=username[1:]
 
-    copr = ComplexLogic.get_copr_safe(username, coprname)
-    return render_generate_repo_file(copr, name_release)
-
-
-@coprs_ns.route("/g/<group_name>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
-@coprs_ns.route("/g/<group_name>/<coprname>/repo/<name_release>/<repofile>")
-@req_with_copr
-def group_generate_repo_file(copr, name_release, repofile):
-    """ Generate repo file for a given repo name.
-        Reponame = username-coprname """
-    # This solution is used because flask splits off the last part after a
-    # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
-    # FAS usernames may not contain dashes, so this construction is safe.
+    if group_name:
+        copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+    else:
+        copr = ComplexLogic.get_copr_safe(username, coprname)
 
     return render_generate_repo_file(copr, name_release)
 
@@ -802,12 +731,7 @@ def render_generate_repo_file(copr, name_release):
     if name_release in [c.name for c in copr.mock_chroots]:
         chroot = [c for c in copr.mock_chroots if c.name == name_release][0]
         kwargs = dict(coprname=copr.name, name_release=chroot.name_release)
-        if copr.is_a_group_project:
-            fixed_url = url_for("coprs_ns.group_generate_repo_file",
-                                group_name=copr.group.name, **kwargs)
-        else:
-            fixed_url = url_for("coprs_ns.generate_repo_file",
-                                username=copr.user.username, **kwargs)
+        fixed_url = helpers.copr_url("coprs_ns.generate_repo_file", copr, **kwargs)
         return flask.redirect(fixed_url)
 
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
@@ -895,15 +819,10 @@ def render_monitor(copr, detailed=False):
 
 @coprs_ns.route("/<username>/<coprname>/monitor/")
 @coprs_ns.route("/<username>/<coprname>/monitor/<detailed>")
-@req_with_copr
-def copr_build_monitor(copr, detailed=False):
-    return render_monitor(copr, detailed == "detailed")
-
-
 @coprs_ns.route("/g/<group_name>/<coprname>/monitor/")
 @coprs_ns.route("/g/<group_name>/<coprname>/monitor/<detailed>")
 @req_with_copr
-def group_copr_build_monitor(copr, detailed=False):
+def copr_build_monitor(copr, detailed=False):
     return render_monitor(copr, detailed == "detailed")
 
 
