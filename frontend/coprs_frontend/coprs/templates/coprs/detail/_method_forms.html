@@ -4,10 +4,7 @@
         form.script,
         rows=5,
         style='font-family: monospace;',
-        placeholder="""#! /bin/sh -x
-curl https://example.com/package.spec -O
-curl https://example.com/tarball.tar.gz -O
-""",
+        placeholder="#! /bin/sh -x",
         info="write a script that generates spec and sources... (Internet ON, non-root UID)"
   )}}
   {{ render_field(
