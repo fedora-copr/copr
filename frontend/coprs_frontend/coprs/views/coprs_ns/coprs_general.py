@@ -486,7 +486,7 @@ def process_copr_update(copr, form):
 @login_required
 @req_with_copr
 def copr_update(copr):
-    form = forms.CoprFormFactory.create_form_cls(user=copr.user)()
+    form = forms.CoprFormFactory.create_form_cls(user=copr.user, group=copr.group)()
 
     if form.validate_on_submit():
         process_copr_update(copr, form)
