@@ -31,6 +31,8 @@ class BuildStateValues(object):
     SKIPPED = "skipped"
     STARTING = "starting"
     IMPORTING = "importing"
+    FORKED = "forked"
+    WAITING = "waiting"
     UNKNOWN = "unknown"
 
 ALLOWED_BUILD_STATES = set([
@@ -42,5 +44,7 @@ ALLOWED_BUILD_STATES = set([
     BuildStateValues.SKIPPED,
     BuildStateValues.STARTING,
     BuildStateValues.IMPORTING,
+    BuildStateValues.FORKED,
+    BuildStateValues.WAITING,
     BuildStateValues.UNKNOWN,
 ])
