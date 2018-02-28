@@ -31,7 +31,7 @@
 }
 
 Name:       copr-frontend
-Version:    1.128
+Version:    1.129
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
@@ -337,6 +337,17 @@ service logstash condrestart
 
 
 %changelog
+* Wed Feb 28 2018 clime <clime@redhat.com> 1.129-1
+- several tweaks for graphs of utilization
+- fix copr_update after user and group routes merge
+- custom build: single-line textarea placeholder
+- vanish '\r\n' in custom script
+- fix filter has no len() error
+- make the news box optional
+- fix group listing
+- remove workaround from copr_url macro
+- merge regular and group views
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.128-1
 - fix counting stat logic
 - use end_commit when building by copr-fedmsg-listener
