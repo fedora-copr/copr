@@ -10,7 +10,7 @@ def get_graph_data(start, end, step):
     chroots_dict = {}
     chroots = []
     chroot_names = {}
-    tasks = builds_logic.BuildsLogic.get_tasks_by_time(start, end)
+    tasks = builds_logic.BuildsLogic.get_running_tasks_by_time(start, end)
     steps = int(round((end - start) / step + 0.5))
     current_step = 0
 
@@ -75,9 +75,9 @@ def importing():
 
 @status_ns.route("/stats/")
 def stats():
-    current_time = int(time.time())
-    data1, chroots1 = get_graph_data(current_time - 86400 + 1, current_time, 600) # last 24 hours
-    data2, chroots2 = get_graph_data(current_time - 86400 * 90 + 1, current_time, 86400) # last 90 days
+    current_time = int(time.time()) - int(time.time()) % 600
+    data1, chroots1 = get_graph_data(current_time - 86400, current_time - 1, 600) # last 24 hours
+    data2, chroots2 = get_graph_data(current_time - 86400 * 90, current_time - 1, 86400) # last 90 days
     return flask.render_template("status/stats.html",
                                  data1=data1,
                                  data2=data2,

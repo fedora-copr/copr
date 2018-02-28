@@ -84,7 +84,7 @@ class BuildsLogic(object):
         return list(query.all()[:4])
 
     @classmethod
-    def get_tasks_by_time(cls, start, end):
+    def get_running_tasks_by_time(cls, start, end):
         result = models.BuildChroot.query\
             .filter(models.BuildChroot.ended_on > start)\
             .filter(models.BuildChroot.started_on < end)\
@@ -93,11 +93,11 @@ class BuildsLogic(object):
         return result
 
     @classmethod
-    def get_tasks_from_last_day(cls):
+    def get_running_tasks_from_last_day(cls):
         end = int(time.time())
         start = end - 86399
         step = 3600
-        tasks = cls.get_tasks_by_time(start, end)
+        tasks = cls.get_running_tasks_by_time(start, end)
         steps = int(round((end - start) / step + 0.5))
         current_step = 0
 

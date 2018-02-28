@@ -5,8 +5,8 @@ $(document).ready(function(){
 });
 
 function graphConfig() {
-    var colorPattern = ['#0088ce', '#cc0000', '#3f9c35', '#003d44', '#ec7a08', '#703fec',
-    '#470000', '#35caed', '#92d400', '#f5c12e'];
+    var colorPattern = ['#0088ce', '#cc0000', '#3f9c35', '#f5c12e', '#703fec',
+                        '#003d44', '#35caed', '#ec7a08', '#470000', '#92d400'];
     var chart = {
         axis: {
             x: {
@@ -55,6 +55,7 @@ function lineGraph(data, ticks, bind, format) {
         format: format
     };
     chart.bindto = bind;
+    chart.color.pattern = ['#cc8844', '#0088ce'];
     chart.data.columns = data;
     var chartDay = c3.generate(chart);
 };
@@ -85,6 +86,7 @@ function smallGraph(data, bind) {
     var c3ChartDefaults = $().c3ChartDefaults();
     var sparklineChartConfig = c3ChartDefaults.getDefaultSparklineConfig();
     sparklineChartConfig.bindto = bind;
+    sparklineChartConfig.color = {pattern: ['#cc8844']}
     sparklineChartConfig.data = {
         columns: data,
         type: 'area'
