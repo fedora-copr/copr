@@ -16,7 +16,7 @@
 %endif
 
 Name:       python-copr
-Version:    1.86
+Version:    1.87
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
@@ -225,6 +225,9 @@ pushd %{py3dir}
 %endif
 
 %changelog
+* Wed Feb 28 2018 clime <clime@redhat.com> 1.87-1
+- add missing frontend states to clientv2
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.86-1
 - remove Group tag
 
