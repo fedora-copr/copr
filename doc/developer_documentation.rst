@@ -39,8 +39,6 @@ Misc
 
 * :ref:`brainstorming`
 
-* :ref:`rawhide_to_release`
-
 * :ref:`seeddb`
 
 SRPM URL/Upload build schema
