@@ -1,5 +1,10 @@
 #!/usr/bin/python3
 
+# This is script is supposed to be run daily from lighttpd logrotate, e.g.
+#    prerotate
+#        /usr/bin/copr_log_hitcounter.py /var/log/lighttpd/access.log --ignore-subnets 172.25.80.0/20 209.132.184.33/24 || :
+#    endscript
+
 import re
 import sys
 import requests
