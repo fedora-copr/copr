@@ -8,6 +8,7 @@ import os
 import logging
 import argparse
 import netaddr
+import time
 
 sys.path.append("/usr/share/copr/")
 
@@ -144,9 +145,19 @@ if __name__ == "__main__":
     result = get_hit_data()
     result_json = json.dumps(result)
     target_uri = os.path.join(opts.frontend_base_url, 'stats_rcv' , 'from_backend')
+
     log.info('Sending: {} results from {} to {}'.format(
         len(result['hits']),
         result['ts_from'],
         result['ts_to']))
-    r = requests.post(target_uri, json=result_json)
-    log.info('Received: {} {}'.format(r.status_code, r.text))
+
+    for i in range(10):
+        try:
+            log.info('Trying to post data to frontend {}. time'.format(i+1))
+            r = requests.post(target_uri, json=result_json, timeout=20)
+        except Exception as e:
+            log.error(str(e))
+            time.sleep(10)
+        else:
+            log.info('Received: {} {}'.format(r.status_code, r.text))
+            break
