@@ -87,7 +87,6 @@ BuildRequires: python3-pygments
 BuildRequires: python3-flask-whooshee
 BuildRequires: python3-modulemd
 BuildRequires: redis
-BuildRequires: xstatic-patternfly-common
 %endif
 
 Requires: httpd
@@ -244,8 +243,6 @@ cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
 %%copr_frontend_templatedir       %templatedir
 %%copr_frontend_chroot_logodir    %%copr_frontend_staticdir/chroot_logodir
 EOF
-
-cp -a %{_datadir}/javascript/patternfly %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/static/components/
 
 %check
 %if %{with check} && "%{_arch}" == "x86_64"

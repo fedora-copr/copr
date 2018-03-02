@@ -97,3 +97,9 @@ app.register_blueprint(rest_api_bp, url_prefix=URL_PREFIX)
 
 from flask_sqlalchemy import models_committed
 models_committed.connect(coprs.whoosheers.CoprWhoosheer.on_commit, sender=app)
+
+# Patternfly static data
+@app.route('/patternfly_static/<path:filename>')
+def patternfly_static(filename):
+    return flask.send_from_directory('/usr/share/javascript/patternfly/', 
+                               filename)
