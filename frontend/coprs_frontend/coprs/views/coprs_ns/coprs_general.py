@@ -708,12 +708,7 @@ def process_legal_flag(contact_info, copr):
 def generate_repo_file(coprname, name_release, repofile, username=None, group_name=None):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
-    # This solution is used because flask splits off the last part after a
-    # dash, therefore user-re-po resolves to user-re/po instead of user/re-po
-    # FAS usernames may not contain dashes, so this construction is safe.
 
-    # support access to the group projects using @-notation
-    # todo: remove when yum/dnf plugin is updated to use new url schema
     if username and username.startswith("@"):
         group_name=username[1:]
 
@@ -726,15 +721,8 @@ def generate_repo_file(coprname, name_release, repofile, username=None, group_na
 
 
 def render_generate_repo_file(copr, name_release):
-
-    # we need to check if we really got name release or it's a full chroot (caused by old dnf plugin)
-    if name_release in [c.name for c in copr.mock_chroots]:
-        chroot = [c for c in copr.mock_chroots if c.name == name_release][0]
-        kwargs = dict(coprname=copr.name, name_release=chroot.name_release)
-        fixed_url = helpers.copr_url("coprs_ns.generate_repo_file", copr, **kwargs)
-        return flask.redirect(fixed_url)
-
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
+
     if not mock_chroot:
         raise ObjectNotFound("Chroot {} does not exist".format(name_release))
 
