@@ -5,7 +5,7 @@
 {% from "_helpers.html" import recent_builds_panel, task_queue_panel, recent_blog_panel %}
 {%block main_menu_projects %}active{% endblock %}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='components/patternfly/css/patternfly-additions.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('patternfly_static', filename='css/patternfly-additions.min.css') }}">
 {% endblock %}
 {% block body %}
 <div class="row">
