@@ -6,6 +6,21 @@ User Documentation
 This section contains information for users of Copr Build System. You can find a running Copr instance at http://copr.fedorainfracloud.org/.
 You may also be interested in :ref:`developer_documentation` and :ref:`downloads`.
 
+Quick start
+-----------
+
+If you are completely new to COPR build system, those steps will get you setup quickly:
+
+1) setup a FAS account here: https://admin.fedoraproject.org/accounts/user/new
+2) log in into COPR (link at the top right corner of COPR HP: https://copr.fedorainfracloud.org/)
+3) go to https://copr.fedorainfracloud.org/api/
+4) copy the generated auth token into ``~/.config/copr``
+5) install copr-cli tool: ``sudo dnf install copr-cli`` (if you are on Fedora)
+6) run ``copr-cli create first-project --chroot fedora-rawhide-x86_64`` to create your first project
+7) run ``copr-cli build first-project <path to your srpm>``
+
+If you don't have an srpm yet, see https://pagure.io/rpkg-util on how to build one.
+
 Tutorial
 --------
 
