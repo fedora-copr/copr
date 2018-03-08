@@ -576,6 +576,24 @@ class PackageFormDistGit(BasePackageForm):
         })
 
 
+def cleanup_script(string):
+    if not string:
+        return string
+
+    if string.split('\n')[0].endswith('\r'):
+        # This script is most probably coming from the web-UI, where
+        # web-browsers mistakenly put '\r\n' as EOL;  and that would just
+        # mean that the script is not executable (any line can mean
+        # syntax error, but namely shebang would cause 100% fail)
+        string = string.replace('\r\n', '\n')
+
+    # And append newline to have a valid unix file.
+    if not string.endswith('\n'):
+        string += '\n'
+
+    return string
+
+
 class PackageFormCustom(BasePackageForm):
     script = wtforms.TextAreaField(
         "Script",
@@ -585,6 +603,7 @@ class PackageFormCustom(BasePackageForm):
                 max=4096,
                 message="Maximum script size is 4kB"),
         ],
+        filters=[cleanup_script],
     )
 
     builddeps = wtforms.StringField(
