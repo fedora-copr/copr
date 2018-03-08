@@ -6,10 +6,9 @@ from flask import send_file
 from coprs import db
 from coprs import forms
 from coprs import helpers
-from coprs.models import Package, Build
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.coprs_ns.coprs_builds import render_add_build_scm, render_add_build_pypi, render_add_build_custom
-from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
+from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr, send_build_icon
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.users_logic import UsersLogic
@@ -42,19 +41,7 @@ def copr_package_icon(copr, package_name):
     except ObjectNotFound:
         return send_file("static/status_images/bad_url.png", mimetype='image/png')
 
-    last_build = package.last_build()
-    if last_build:
-        if last_build.state in ["importing", "pending", "starting", "running"]:
-            return send_file("static/status_images/in_progress.png", mimetype='image/png')
-
-        if last_build.state in ["succeeded", "skipped"]:
-            return send_file("static/status_images/succeeded.png", mimetype='image/png')
-
-        if last_build.state == "failed":
-            return send_file("static/status_images/failed.png", mimetype='image/png')
-
-        else:
-            return send_file("static/status_images/unknown.png", mimetype='image/png')
+    return send_build_icon(package.last_build())
 
 
 @coprs_ns.route("/<username>/<coprname>/packages/rebuild-all/", methods=["GET", "POST"])

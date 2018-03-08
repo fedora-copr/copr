@@ -7,6 +7,7 @@ from functools import wraps, partial
 from netaddr import IPAddress, IPNetwork
 import re
 import flask
+from flask import send_file
 
 from openid_teams.teams import TeamsRequest
 
@@ -392,3 +393,28 @@ def render_migration_report(coprs, user=None, group=None):
                                  user=user,
                                  group=group,
                                  coprs=coprs)
+
+
+def send_build_icon(build):
+    if not build:
+        return send_file("static/status_images/unknown.png",
+                         mimetype='image/png')
+
+    if build.state in ["importing", "pending", "starting", "running"]:
+        # The icon is about to change very soon, disable caches:
+        # https://help.github.com/articles/about-anonymized-image-urls/
+        response = send_file("static/status_images/in_progress.png",
+                             mimetype='image/png')
+        response.headers['Cache-Control'] = 'no-cache'
+        return response
+
+    if build.state in ["succeeded", "skipped"]:
+        return send_file("static/status_images/succeeded.png",
+                         mimetype='image/png')
+
+    if build.state == "failed":
+        return send_file("static/status_images/failed.png",
+                         mimetype='image/png')
+
+    return send_file("static/status_images/unknown.png",
+                     mimetype='image/png')

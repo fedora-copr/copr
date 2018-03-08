@@ -18,7 +18,8 @@ from coprs.logic import coprs_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 
-from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
+from coprs.views.misc import (login_required, page_not_found, req_with_copr,
+        req_with_copr, send_build_icon)
 from coprs.views.coprs_ns import coprs_ns
 
 from coprs.exceptions import (ActionInProgressException,
@@ -31,6 +32,11 @@ def copr_build_redirect(build_id):
     build = ComplexLogic.get_build_safe(build_id)
     copr = build.copr
     return flask.redirect(helpers.copr_url("coprs_ns.copr_build", copr, build_id=build_id))
+
+
+@coprs_ns.route("/build/<int:build_id>/status_image.png")
+def copr_build_icon(build_id):
+    return send_build_icon(BuildsLogic.get_by_id(int(build_id)).first())
 
 
 ################################ Build detail ################################
