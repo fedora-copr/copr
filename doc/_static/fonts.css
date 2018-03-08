@@ -1,17 +1,38 @@
 div.body h1,h2,h3,h4,h5,p.rubric {
-	font-family: Cantarell !important;
+    font-family: Cantarell !important;
     border-width: 0px !important;
 }
 
 div.body h1 {
     font-size: 2.5em;
+    font-weight: bold;
+}
+
+div.body.section h1 {
+    margin-bottom: -0.6em;
+}
+
+div.body h2 {
+    font-weight: bold;
+    padding: 0 0 0 0;
+    margin-bottom: -0.6em;
 }
 
 div.body h3 {
     font-size: 1.45em;
+    margin-bottom: -0.6em;
+}
+
+div.body p {
+    margin: 1em 1em 0 0;
 }
 
 div.body p.rubric {
     font-size: 1.5em;
     color: #111;
+    text-shadow: 1px 1px #F0F0F0;
+}
+
+div.highlight {
+    margin: 0 0 0 0;
 }
