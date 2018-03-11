@@ -10,3 +10,15 @@ Then copy the media/* content to yourapp/wsgi/static/media/ and it should
 just work.
 
 Note: The ^application/ part of the URI match is required.
+
+
+## Components
+
+There is an effort to gradually replace bundled components with
+static files from system packages.
+
+---
+
+Install bower to manage the components directory
+
+sudo npm install -g bower
