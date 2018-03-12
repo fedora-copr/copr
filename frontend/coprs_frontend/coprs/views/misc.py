@@ -165,7 +165,7 @@ def krb5_login(name):
     if krb_login:
         flask.g.user = krb_login.user
         flask.session['krb5_login'] = krb_login.user.name
-        flask.flash(u"Welcome, {0}".format(flask.g.user.name))
+        flask.flash(u"Welcome, {0}".format(flask.g.user.name), "success")
         return flask.redirect(oid.get_next_url())
 
     # We need to create row in 'krb5_login' table
@@ -180,7 +180,7 @@ def krb5_login(name):
     db.session.add(krb_login)
     db.session.commit()
 
-    flask.flash(u"Welcome, {0}".format(user.name))
+    flask.flash(u"Welcome, {0}".format(user.name), "success")
     flask.g.user = user
     flask.session['krb5_login'] = user.name
     return flask.redirect(oid.get_next_url())
@@ -232,7 +232,7 @@ def create_or_login(resp):
 
         db.session.add(user)
         db.session.commit()
-        flask.flash(u"Welcome, {0}".format(user.name))
+        flask.flash(u"Welcome, {0}".format(user.name), "success")
         flask.g.user = user
 
         if flask.request.url_root == oid.get_next_url():
