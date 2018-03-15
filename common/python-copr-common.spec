@@ -1,3 +1,6 @@
+%global srcname copr-common
+%global sum Python code used by Copr
+
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %global __python2 %{__python}
@@ -15,10 +18,10 @@
 %global with_python2 1
 %endif
 
-Name:       python-copr-common
-Version:    0.1
+Name:       python-%{srcname}
+Version:    0.0
 Release:    1%{?dist}
-Summary:    Python code used by Copr
+Summary:    %{sum}
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
@@ -28,7 +31,9 @@ URL:        https://pagure.io/copr/copr
 # tito build --tgz
 Source0: %{name}-%{version}.tar.gz
 
-BuildArch:  noarch
+BuildArch: noarch
+BuildRequires: python2-devel
+BuildRequires: python3-devel
 
 %global _description\
 COPR is lightweight build system. It allows you to create new project in WebUI,\
@@ -41,20 +46,22 @@ useful for developers only.\
 %description %_description
 
 %if 0%{?with_python2}
-%package -n python2-copr-common
-Summary: Python code used by Copr
-%{?python_provide:%python_provide python2-copr-common}
-%description -n python2-copr-common %_description
+%package -n python2-%{srcname}
+Summary: %{sum}
+%{?python_provide:%python_provide python2-%{srcname}}
+%description -n python2-%{srcname} %_description
 %endif # with_python2
 
 %if 0%{?with_python3}
-%package -n python3-copr-common
-Summary: Python code used by Copr
-%{?python_provide:%python_provide python3-copr-common}
-%description -n python3-copr-common %_description
+%package -n python3-%{srcname}
+Summary: %{sum}
+%{?python_provide:%python_provide python3-%{srcname}}
+%description -n python3-%{srcname} %_description
 %endif # with_python3
 
 %prep
+rm -rf *.pyc *.pyo
+
 %setup -q
 %if 0%{?with_python3}
 rm -rf %{py3dir}
@@ -63,42 +70,34 @@ cp -a . %{py3dir}
 
 %build
 %if 0%{?with_python3}
-pushd %{py3dir}
-CFLAGS="%{optflags}" %{__python3} setup.py build
-popd
+%py3_build
 %endif # with_python3
 
 %if 0%{?with_python2}
-CFLAGS="%{optflags}" %{__python2} setup.py build
+%py2_build
 %endif # with_python2
 
 %install
-
-%if 0%{?with_python3}
-pushd %{py3dir}
-%{__python3} setup.py install --skip-build --root %{buildroot}
-find %{buildroot}%{python3_sitelib} -name '*.exe' | xargs rm -f
-popd
-%endif # with_python3
-
 %if 0%{?with_python2}
-%{__python2} setup.py install --skip-build --root %{buildroot}
-find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
+%py2_install
 %endif # with_python2
 
-%check
 %if 0%{?with_python3}
-%files -n python3-copr-common
+%py3_install
+%endif # with_python3
+
+%check
+
+%if 0%{?with_python3}
+%files -n python3-%{srcname}
 %license LICENSE
 %{python3_sitelib}/*
 %endif # with_python3
 
 %if 0%{?with_python2}
-%files -n python2-copr-common
+%files -n python2-%{srcname}
 %license LICENSE
 %{python_sitelib}/*
 %endif # with_python2
 
 %changelog
-* Tue Mar 13 2018 Dominik Turecek <dturecek@redhat.com>
-- created python-copr-common

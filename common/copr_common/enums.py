@@ -4,17 +4,6 @@ import string
 from six import with_metaclass
 
 
-def generate_api_token(size=30):
-    """ Generate a random string used as token to access the API
-    remotely.
-
-    :kwarg: size, the size of the token to generate, defaults to 30
-        chars.
-    :return: a string, the API token for the user.
-    """
-    return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
-
-
 class EnumType(type):
     def __call__(self, attr):
         if isinstance(attr, int):

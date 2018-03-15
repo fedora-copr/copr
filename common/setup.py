@@ -42,7 +42,7 @@ setup(
     author_email=__author_email__,
     url=__url__,
     license='GPLv2+',
-    packages=['copr_common', 'copr_common.frontend'],
+    packages=['copr_common'],
     include_package_data=True,
     zip_safe=False
     )
