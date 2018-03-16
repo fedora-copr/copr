@@ -1,27 +1,9 @@
 # coding: utf-8
 
-
-import json
-import shutil
-from subprocess import CalledProcessError
-import tempfile
-import time
-from multiprocessing import Queue
-import types
-
 from munch import Munch
-from redis import ConnectionError
-from backend.exceptions import CoprSpawnFailError
 
 from backend.exceptions import BuilderError
-from backend.helpers import get_redis_connection, get_redis_logger, BackendConfigReader
-from backend.vm_manage import EventTopics, PUBSUB_MB
-from backend.vm_manage.check import HealthChecker, check_health
-
-import mock
-from mock import MagicMock
-import pytest
-
+from backend.helpers import get_redis_logger, get_chroot_arch
 
 """
 SOME TESTS REQUIRES RUNNING REDIS
@@ -47,3 +29,8 @@ class TestHelpers(object):
             raise BuilderError("foobar", return_code=1, stdout="STDOUT", stderr="STDERR")
         except Exception as err:
             log.exception("error occurred: {}".format(err))
+
+    def test_get_chroot_arch(self):
+        assert get_chroot_arch("fedora-26-x86_64") == "x86_64"
+        assert get_chroot_arch("epel-7-ppc64le") == "ppc64le"
+        assert get_chroot_arch("epel-7-ppc64") == "ppc64"
