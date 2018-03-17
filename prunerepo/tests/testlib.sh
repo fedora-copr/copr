@@ -1,4 +1,4 @@
-export libdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export libdir="$(builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 die() {
 	echo "fail."; exit 1; 
