@@ -1,5 +1,4 @@
 %global srcname copr-common
-%global sum Python code used by Copr
 
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
@@ -21,7 +20,7 @@
 Name:       python-%{srcname}
 Version:    0.0
 Release:    1%{?dist}
-Summary:    %{sum}
+Summary:    Python code used by Copr
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
@@ -47,14 +46,14 @@ useful for developers only.\
 
 %if 0%{?with_python2}
 %package -n python2-%{srcname}
-Summary: %{sum}
+Summary: %{summary}
 %{?python_provide:%python_provide python2-%{srcname}}
 %description -n python2-%{srcname} %_description
 %endif # with_python2
 
 %if 0%{?with_python3}
 %package -n python3-%{srcname}
-Summary: %{sum}
+Summary: %{summary}
 %{?python_provide:%python_provide python3-%{srcname}}
 %description -n python3-%{srcname} %_description
 %endif # with_python3
@@ -63,11 +62,6 @@ Summary: %{sum}
 rm -rf *.pyc *.pyo
 
 %setup -q
-%if 0%{?with_python3}
-rm -rf %{py3dir}
-cp -a . %{py3dir}
-%endif # with_python3
-
 %build
 %if 0%{?with_python3}
 %py3_build
