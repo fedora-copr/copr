@@ -123,6 +123,7 @@ Requires: python3-CommonMark
 Requires: python3-psycopg2
 Requires: python3-zmq
 Requires: xstatic-patternfly-common
+Requires: js-jquery1
 
 Provides: bundled(bootstrap) = 3.3.4
 Provides: bundled(bootstrap-combobox) = 1.1.6
