@@ -98,8 +98,16 @@ app.register_blueprint(rest_api_bp, url_prefix=URL_PREFIX)
 from flask_sqlalchemy import models_committed
 models_committed.connect(coprs.whoosheers.CoprWhoosheer.on_commit, sender=app)
 
-# Patternfly static data
-@app.route('/patternfly_static/<path:filename>')
-def patternfly_static(filename):
-    return flask.send_from_directory('/usr/share/javascript/patternfly/', 
-                               filename)
+
+# Serve static files from system-wide RPM files
+@app.route('/system_static/<component>/<path:filename>')
+def system_static(component, filename):
+    """
+    :param component: name of the javascript component provided by a RPM package
+                      do not confuse with a name of the RPM package itself
+                      (e.g. 'jquery' component is provided by 'js-jquery1' package)
+    :param filename: path to a file relative to the component root directory
+    :return: content of a static file
+    """
+    path = os.path.join("/usr/share/javascript", component)
+    return flask.send_from_directory(path, filename)
