@@ -583,7 +583,6 @@ def process_creating_new_build(copr, form, create_new_build):
 
 
 @api_ns.route("/coprs/build_status/<int:build_id>/", methods=["GET"])
-@api_login_required
 def build_status(build_id):
     build = ComplexLogic.get_build_safe(build_id)
     output = {"output": "ok",
