@@ -18,7 +18,7 @@
 %endif
 
 Name:       python-%{srcname}
-Version:    0.1
+Version:    0.2
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -99,5 +99,8 @@ rm -rf *.pyc *.pyo
 %endif # with_python2
 
 %changelog
+* Thu Mar 22 2018 Dominik Turecek <dturecek@redhat.com> 0.2-1
+- [common] fix spec file
+
 * Mon Mar 19 2018 Dominik Turecek <dturecek@redhat.com> 0.1-1
 - create python-copr-common package
