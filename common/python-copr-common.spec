@@ -31,8 +31,14 @@ URL:        https://pagure.io/copr/copr
 Source0: %{name}-%{version}.tar.gz
 
 BuildArch: noarch
+
+%if 0%{?with_python2}
 BuildRequires: python2-devel
+%endif # with_python2
+
+%if 0%{?with_python3}
 BuildRequires: python3-devel
+%endif # with_python3
 
 %global _description\
 COPR is lightweight build system. It allows you to create new project in WebUI,\
@@ -80,8 +86,6 @@ rm -rf *.pyc *.pyo
 %py3_install
 %endif # with_python3
 
-%check
-
 %if 0%{?with_python3}
 %files -n python3-%{srcname}
 %license LICENSE
@@ -97,4 +101,3 @@ rm -rf *.pyc *.pyo
 %changelog
 * Mon Mar 19 2018 Dominik Turecek <dturecek@redhat.com> 0.1-1
 - create python-copr-common package
-
