@@ -1,7 +1,7 @@
 .. _custom_source_method:
 
-Coustom source method
-=====================
+Custom source method
+====================
 
 Build sources (for SRPM) by user-defined script.
 
