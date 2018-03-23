@@ -107,7 +107,7 @@
     {% if latest_build %}
       <div class="list-group">
         <a href="{{ build_href(latest_build) }}" class="list-group-item">
-          <h4 class="list-group-item-heading">{{latest_build.pkgs | pkg_name}}</h4>
+          <h4 class="list-group-item-heading">{{latest_build.package.name}}</h4>
           <p class="list-group-item-text">
             <small> Build: </small>
             {{ latest_build.id }}
