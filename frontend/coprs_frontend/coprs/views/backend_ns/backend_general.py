@@ -143,6 +143,11 @@ def get_srpm_build_record(task):
     if not task:
         return None
 
+    if task.source_type_text == "custom":
+        chroot = task.source_json_dict['chroot']
+    else:
+        chroot = None
+
     try:
         build_record = {
             "task_id": task.task_id,
@@ -151,6 +156,7 @@ def get_srpm_build_record(task):
             "project_name": task.copr.name,
             "source_type": task.source_type,
             "source_json": task.source_json,
+            "chroot": chroot,
         }
 
     except Exception as err:

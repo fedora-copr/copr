@@ -67,7 +67,8 @@ class BuildJob(object):
 
         if self.chroot:
             self.arch = self.chroot.split("-")[2]
-        else:
+
+        if str(self.task_id) == str(self.build_id):
             self.chroot = 'srpm-builds'
 
         self.destdir = os.path.normpath(os.path.join(
