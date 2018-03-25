@@ -3,6 +3,7 @@
 import time
 import flask
 import sqlalchemy
+import os
 
 from .. import db
 from .builds_logic import BuildsLogic
@@ -60,7 +61,7 @@ class ComplexLogic(object):
                 continue
 
             fbuild = forking.fork_build(build, fcopr, fpackage)
-            builds_map[fbuild.id] = build.result_dir_name
+            builds_map[fbuild.id] = build.result_dir
 
         db.session.commit()
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)

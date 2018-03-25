@@ -293,13 +293,12 @@ def api_coprs_by_owner(username=None):
     output = {"output": "ok", "repos": []}
     for repo in repos:
         yum_repos = {}
-        for build in repo.builds:
-            if build.results:
-                for chroot in repo.active_chroots:
-                    release = release_tmpl.format(chroot=chroot)
-                    yum_repos[release] = fix_protocol_for_backend(
-                        os.path.join(build.results, release + '/'))
-                break
+        for build in repo.builds: # FIXME in new api!
+            for chroot in repo.active_chroots:
+                release = release_tmpl.format(chroot=chroot)
+                yum_repos[release] = fix_protocol_for_backend(
+                    os.path.join(build.copr.repo_url, release + '/'))
+            break
 
         output["repos"].append({"name": repo.name,
                                 "additional_repos": repo.repos,
@@ -328,14 +327,13 @@ def api_coprs_by_owner_detail(copr):
     output = {"output": "ok", "detail": {}}
     yum_repos = {}
 
-    build = models.Build.query.filter(
-        models.Build.copr_id == copr.id, models.Build.results != None).first()
+    build = models.Build.query.filter(models.Build.copr_id == copr.id).first()
 
     if build:
         for chroot in copr.active_chroots:
             release = release_tmpl.format(chroot=chroot)
             yum_repos[release] = fix_protocol_for_backend(
-                os.path.join(build.results, release + '/'))
+                os.path.join(build.copr.repo_url, release + '/'))
 
     output["detail"] = {
         "name": copr.name,
@@ -610,7 +608,7 @@ def build_detail(build_id):
         "status": build.state,
         "project": build.copr.name,
         "owner": build.copr.owner_name,
-        "results": build.results,
+        "results": build.copr.repo_url, # TODO: in new api return build results url
         "built_pkgs": built_packages,
         "src_version": build.pkg_version,
         "chroots": chroots,

@@ -1,6 +1,8 @@
 import json
 import time
 import base64
+import os
+
 from coprs import db
 from coprs import models
 from coprs import helpers
@@ -88,29 +90,20 @@ class ActionsLogic(object):
 
     @classmethod
     def send_delete_build(cls, build):
-        """ Schedules build delete action
+        """
+        Schedules build delete action
         :type build: models.Build
         """
-        # don't delete skipped chroots
-        chroots_to_delete = [
-            chroot.name for chroot in build.build_chroots
-            if chroot.state not in ["skipped"]
-        ]
-        if len(chroots_to_delete) == 0:
-            return
+        chroot_builddirs = {'srpm-builds': build.result_dir}
+
+        for build_chroot in build.build_chroots:
+            chroot_builddirs[build_chroot.name] = build_chroot.result_dir
 
         data_dict = {
-            "username": build.copr.owner_name,
+            "ownername": build.copr.owner_name,
             "projectname": build.copr.name,
-            "chroots": chroots_to_delete
+            "chroot_builddirs": chroot_builddirs,
         }
-
-        if build.is_older_results_naming_used:
-            if build.src_pkg_name is None or build.src_pkg_name == "":
-                return
-            data_dict["src_pkg_name"] = build.src_pkg_name
-        else:
-            data_dict["result_dir_name"] = build.result_dir_name
 
         action = models.Action(
             action_type=helpers.ActionTypeEnum("delete"),

@@ -57,7 +57,7 @@ class TestUpdateBuilds(CoprsTestCase):
    {
      "id": 1,
      "copr_id": 2,
-     "results": "http://server/results/foo/bar/",
+     "result_dir": "bar",
      "started_on": 139086644000
    }
   ]
@@ -71,6 +71,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "copr_id": 2,
      "status": 1,
      "chroot": "fedora-18-x86_64",
+     "result_dir": "bar",
      "ended_on": 149086644000
    }
   ]
@@ -84,6 +85,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "copr_id": 2,
      "chroot": "fedora-18-x86_64",
      "status": 6,
+     "result_dir": "bar",
      "started_on": 139086644000
    },
    {
@@ -91,7 +93,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "copr_id": 1,
      "status": 0,
      "chroot": "fedora-18-x86_64",
-     "results": "http://server/results/foo/bar/",
+     "result_dir": "bar",
      "ended_on": 139086644000
    },
    {
@@ -99,13 +101,14 @@ class TestUpdateBuilds(CoprsTestCase):
      "copr_id": 1,
      "status": 0,
      "chroot": "fedora-18-x86_64",
+     "result_dir": "bar",
      "ended_on": 139086644000
    },
    {
      "id": 1234321,
      "copr_id": 2,
      "chroot": "fedora-18-x86_64",
-     "results": "http://server/results/foo/bar/",
+     "result_dir": "bar",
      "started_on": 139086644000
    }
   ]
@@ -157,7 +160,7 @@ class TestUpdateBuilds(CoprsTestCase):
         ended = self.models.Build.query.filter(
             self.models.Build.id == 2).first()
         assert ended.status == 0
-        assert ended.results == "http://server/results/foo/bar/"
+        assert ended.result_dir == "bar"
         assert ended.chroots_ended_on == {'fedora-18-x86_64': 139086644000}
 
 

@@ -244,80 +244,46 @@ class Action(object):
                 result.result = ActionResult.FAILURE
 
     def handle_delete_build(self):
-        self.log.debug("Action delete build")
-        project = self.data["old_value"]
+        self.log.info("Action delete build.")
 
         ext_data = json.loads(self.data["data"])
-        username = ext_data["username"]
+        ownername = ext_data["ownername"]
         projectname = ext_data["projectname"]
-        chroots_requested = set(ext_data["chroots"])
+        chroot_builddirs = ext_data["chroot_builddirs"]
 
-        if "src_pkg_name" not in ext_data and "result_dir_name" not in ext_data:
-            self.log.error("Delete build action missing `src_pkg_name` or `result_dir_name` field,"
-                           " check frontend version. Raw ext_data: {}"
-                           .format(ext_data))
-            return
+        self.log.info("Going to delete: {}".format(chroot_builddirs))
 
-        target_dir = ext_data.get("result_dir_name") or ext_data.get("src_pkg_name")
-        if target_dir is None or target_dir == "":
-            self.log.error("Bad delete request, ignored. Raw ext_data: {}"
-                           .format(ext_data))
-            return
-        path = os.path.join(self.destdir, project)
+        for chroot, builddir in chroot_builddirs.items():
+            if not builddir:
+                continue
 
-        self.log.info("Deleting package {0}".format(target_dir))
-        self.log.info("Copr path {0}".format(path))
+            if not chroot:
+                chroot = 'srpm-builds'
 
-        try:
-            chroot_list = set(os.listdir(path))
-        except OSError:
-            # already deleted
-            chroot_list = set()
+            chroot_path = os.path.join(self.destdir, ownername, projectname, chroot)
+            builddir_path = os.path.join(chroot_path, builddir)
 
-        chroots_to_do = chroot_list.intersection(chroots_requested)
-        if not chroots_to_do:
-            self.log.info("Nothing to delete for delete action: package {}, {}"
-                          .format(target_dir, ext_data))
-            return
+            if not os.path.isdir(builddir_path):
+                self.log.error("{0} not found".format(builddir_path))
+                continue
 
-        for chroot in chroots_to_do:
-            self.log.debug("In chroot {0}".format(chroot))
-            altered = False
+            self.log.debug("builddir to be deleted {0}".format(builddir_path))
+            shutil.rmtree(builddir_path)
 
-            pkg_path = os.path.join(path, chroot, target_dir)
-            if os.path.isdir(pkg_path):
-                self.log.info("Removing build {0}".format(pkg_path))
-                shutil.rmtree(pkg_path)
-                altered = True
-            else:
-                self.log.debug("Package {0} dir not found in chroot {1}".format(target_dir, chroot))
+            self.log.debug("Running createrepo on {0}".format(chroot_path))
+            result_base_url = "/".join(
+                [self.results_root_url, ownername, projectname, chroot])
 
-            if altered:
-                self.log.debug("Running createrepo")
-
-                result_base_url = "/".join(
-                    [self.results_root_url, username, projectname, chroot])
-                createrepo_target = os.path.join(path, chroot)
-                try:
-                    createrepo(
-                        path=createrepo_target,
-                        front_url=self.front_url, base_url=result_base_url,
-                        username=username, projectname=projectname
-                    )
-                except CoprRequestException:
-                    # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
-                    self.log.exception("Project {0}/{1} has been deleted on frontend".format(username, projectname))
-                except CreateRepoError:
-                    self.log.exception("Error making local repo: {}".format(createrepo_target))
-
-            logs_to_remove = [
-                os.path.join(path, chroot, template.format(self.data['object_id']))
-                for template in ['build-{}.log', 'build-{}.rsync.log']
-            ]
-            for log_path in logs_to_remove:
-                if os.path.isfile(log_path):
-                    self.log.info("Removing log {0}".format(log_path))
-                    os.remove(log_path)
+            try:
+                createrepo(
+                    path=chroot_path,
+                    front_url=self.front_url, base_url=result_base_url,
+                    username=ownername, projectname=projectname)
+            except CoprRequestException:
+                # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
+                self.log.exception("Project {0}/{1} has been deleted on frontend".format(ownername, projectname))
+            except CreateRepoError:
+                self.log.exception("Error making local repo: {}".format(full_path))
 
     def handle_generate_gpg_key(self, result):
         ext_data = json.loads(self.data["data"])

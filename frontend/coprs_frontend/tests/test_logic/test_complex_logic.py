@@ -1,5 +1,6 @@
 import json
 import mock
+import os
 
 from coprs.helpers import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
@@ -22,7 +23,7 @@ class TestComplexLogic(CoprsTestCase):
         assert data["copr"] == "dstname"
 
         last_build, forked_build = self.c1.packages[0].last_build(successful=True), fc1.builds[0]
-        assert data["builds_map"] == {str(forked_build.id): str(last_build.result_dir_name)}
+        assert data["builds_map"] == {str(forked_build.id): str(os.path.basename(last_build.result_dir))}
 
 
 class TestProjectForking(CoprsTestCase):

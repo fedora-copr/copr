@@ -696,7 +696,7 @@ GROUP BY
                  "copr_id": 1,
                  "status": 0,
                  "chroot": "fedora-18-x86_64",
-                 "results": "http://server/results/foo/bar/",
+                 "result_dir": "baz",
                  "ended_on": 139086644000
                }]
             }
@@ -704,20 +704,21 @@ GROUP BY
         log.info("Updating build {} by: {}".format(build.id, upd_dict))
 
         # update build
-        for attr in ["results", "built_packages", "srpm_url"]:
+        for attr in ["built_packages", "srpm_url"]:
             value = upd_dict.get(attr, None)
             if value:
                 setattr(build, attr, value)
 
         # update source build status
         if upd_dict.get("task_id") == build.task_id:
+            build.result_dir = upd_dict.get("result_dir", "")
+
             if upd_dict.get("status") == StatusEnum("succeeded"):
                 new_status = StatusEnum("importing")
             else:
                 new_status = upd_dict.get("status")
 
             build.source_status = new_status
-
             if new_status == StatusEnum("failed") or \
                    new_status == StatusEnum("skipped"):
                 for ch in build.build_chroots:
@@ -735,6 +736,8 @@ GROUP BY
             # update respective chroot status
             for build_chroot in build.build_chroots:
                 if build_chroot.name == upd_dict["chroot"]:
+                    build_chroot.result_dir = upd_dict.get("result_dir", "")
+
                     if "status" in upd_dict and build_chroot.status not in BuildsLogic.terminal_states:
                         build_chroot.status = upd_dict["status"]
 
@@ -788,7 +791,6 @@ GROUP BY
                 "You are not allowed to delete build `{}`.".format(build.id))
 
         if not build.finished:
-            # from celery.contrib import rdb; rdb.set_trace()
             raise exceptions.ActionInProgressException(
                 "You can not delete build `{}` which is not finished.".format(build.id),
                 "Unfinished build")
@@ -798,6 +800,7 @@ GROUP BY
 
         for build_chroot in build.build_chroots:
             db.session.delete(build_chroot)
+
         db.session.delete(build)
 
     @classmethod

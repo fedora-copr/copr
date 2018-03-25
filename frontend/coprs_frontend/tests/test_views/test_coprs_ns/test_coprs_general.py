@@ -623,12 +623,12 @@ class TestCoprRepoGeneration(CoprsTestCase):
         """ Custom builds are used in order not to break the default ones """
         self.b5 = self.models.Build(
             copr=self.c1, user=self.u1, submitted_on=9,
-            results="https://bar.baz")
+            result_dir="bar")
         self.b6 = self.models.Build(
             copr=self.c1, user=self.u1, submitted_on=11)
         self.b7 = self.models.Build(
             copr=self.c1, user=self.u1, submitted_on=10,
-            results="https://bar.baz")
+            result_dir="bar")
 
         # assign with chroots
         for build in [self.b5, self.b6, self.b7]:

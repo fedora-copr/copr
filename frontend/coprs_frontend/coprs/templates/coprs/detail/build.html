@@ -169,8 +169,7 @@
           {% for chroot in build.build_chroots|sort(attribute='name') %}
             <tr>
               <td>
-                {% if chroot.started_on %}
-
+                {% if chroot.result_dir %}
                 <a href="{{ chroot.result_dir_url }}">
                   <span class="pficon pficon-folder-open"></span> {{ chroot.name }}
                 </a>

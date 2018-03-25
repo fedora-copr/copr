@@ -3,6 +3,8 @@ import json
 
 import pytest
 import time
+import os
+
 from sqlalchemy.orm.exc import NoResultFound
 from coprs import helpers, models
 from coprs.constants import MAX_BUILD_TIMEOUT
@@ -150,7 +152,7 @@ class TestBuildsLogic(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
         self.b4.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
-        expected_dir = self.b4.result_dir_name
+        expected_dir = self.b4.result_dir
         for bc in self.b4_bc:
             bc.status = StatusEnum("succeeded")
             bc.ended_on = time.time()
@@ -172,10 +174,6 @@ class TestBuildsLogic(CoprsTestCase):
 
         assert len(ActionsLogic.get_many().all()) == 1
         action = ActionsLogic.get_many().one()
-        delete_data = json.loads(action.data)
-        assert "chroots" in delete_data
-        assert delete_data["result_dir_name"] == expected_dir
-        assert expected_chroots_to_delete == set(delete_data["chroots"])
 
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b4.id).one()
@@ -184,7 +182,7 @@ class TestBuildsLogic(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
         self.b1.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
-        expected_dir = self.b1.result_dir_name
+        expected_dir = self.b1.result_dir
         self.db.session.add(self.b1)
         self.db.session.commit()
 
@@ -199,69 +197,7 @@ class TestBuildsLogic(CoprsTestCase):
         assert len(ActionsLogic.get_many().all()) == 1
         action = ActionsLogic.get_many().one()
         delete_data = json.loads(action.data)
-        assert "chroots" in delete_data
-        assert delete_data["result_dir_name"] == expected_dir
-        assert expected_chroots_to_delete == set(delete_data["chroots"])
-
-        with pytest.raises(NoResultFound):
-            BuildsLogic.get(self.b1.id).one()
-
-    def test_delete_build_bad_src_pkg(
-            self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-
-        # has meaning only for the builds with old result dir naming schema
-
-        self.b1.pkgs = "http://example.com/"
-        self.db.session.add(self.b1)
-        self.db.session.commit()
-
-        expected_chroots_to_delete = set()
-        for bchroot in self.b1_bc:
-            bchroot.git_hash = None
-            expected_chroots_to_delete.add(bchroot.name)
-
-        assert len(ActionsLogic.get_many().all()) == 0
-        BuildsLogic.delete_build(self.u1, self.b1)
-        self.db.session.commit()
-
-        assert len(ActionsLogic.get_many().all()) == 0
-
-        with pytest.raises(NoResultFound):
-            BuildsLogic.get(self.b1.id).one()
-
-    def test_delete_build_no_chroots_to_clean(
-            self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-
-        for bchroot in self.b1_bc:
-            bchroot.status = helpers.StatusEnum("skipped")
-
-        self.db.session.commit()
-        assert len(ActionsLogic.get_many().all()) == 0
-        BuildsLogic.delete_build(self.u1, self.b1)
-        self.db.session.commit()
-        assert len(ActionsLogic.get_many().all()) == 0
-
-    def test_delete_build_some_chroots(
-            self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
-
-        expected_chroots_to_delete = set([self.b1_bc[0].name,
-                                          self.b1_bc[-1].name])
-        for bchroot in self.b1_bc[1:-1]:
-            bchroot.status = helpers.StatusEnum("skipped")
-
-        self.b1.pkgs = "http://example.com/copr-keygen-1.58-1.fc20.src.rpm"
-        self.db.session.add(self.b1)
-        self.db.session.commit()
-
-        assert len(ActionsLogic.get_many().all()) == 0
-        BuildsLogic.delete_build(self.u1, self.b1)
-        self.db.session.commit()
-
-        assert len(ActionsLogic.get_many().all()) == 1
-        action = ActionsLogic.get_many().one()
-        delete_data = json.loads(action.data)
-        assert "chroots" in delete_data
-        assert expected_chroots_to_delete == set(delete_data["chroots"])
+        assert delete_data['chroot_builddirs'] == {'srpm-builds': 'bar', 'fedora-18-x86_64': 'bar'}
 
         with pytest.raises(NoResultFound):
             BuildsLogic.get(self.b1.id).one()

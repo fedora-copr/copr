@@ -1,4 +1,6 @@
 import json
+import os
+
 from coprs import models
 from coprs.helpers import StatusEnum
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
@@ -123,32 +125,30 @@ class TestCoprCancelBuild(CoprsTestCase):
 class TestCoprDeleteBuild(CoprsTestCase):
 
     @TransactionDecorator("u1")
-    def test_copr_build_submitter_can_delete_build_old(self, f_users,
-                                                   f_coprs, f_mock_chroots,
-                                                   f_builds):
-
-        pkgs = "http://example.com/one.src.rpm"
-        self.b1.pkgs = pkgs
-        for bc in self.b1_bc:
-            bc.git_hash = None
-        self.db.session.add_all(self.b1_bc)
-        self.db.session.add_all([self.u1, self.c1, self.b1])
+    def test_copr_build_submitter_can_delete_build_old(self, f_users, f_coprs, f_build_few_chroots):
+        self.db.session.add_all([self.u1, self.c1, self.b_few_chroots])
         self.db.session.commit()
 
+        expected_dir = self.b_few_chroots.result_dir
         r = self.test_client.post(
             "/coprs/{0}/{1}/delete_build/{2}/"
-            .format(self.u1.name, self.c1.name, self.b1.id),
-            data={},
-            follow_redirects=True)
+            .format(self.u1.name, self.c1.name, self.b_few_chroots.id),
+            data={}, follow_redirects=True)
+
         assert b"Build has been deleted" in r.data
         b = (self.models.Build.query.filter(
-            self.models.Build.id == self.b1.id)
-            .first())
+            self.models.Build.id == self.b_few_chroots.id).first())
         assert b is None
+
         act = self.models.Action.query.first()
         assert act.object_type == "build"
         assert act.old_value == "user1/foocopr"
-        assert json.loads(act.data)["src_pkg_name"] == self.b1.src_pkg_name
+
+        expected_chroot_builddirs = {'srpm-builds': self.b_few_chroots.result_dir}
+        for chroot in self.b_few_chroots.build_chroots:
+            expected_chroot_builddirs[chroot.name] = chroot.result_dir
+
+        assert json.loads(act.data)["chroot_builddirs"] == expected_chroot_builddirs
 
     @TransactionDecorator("u1")
     def test_copr_build_submitter_can_delete_build(self, f_users,
@@ -156,7 +156,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
                                                    f_builds):
         self.db.session.add_all([self.u1, self.c1, self.b1])
         self.db.session.commit()
-        expected_dir = self.b1.result_dir_name
+
         b_id = self.b1.id
         url = "/coprs/{0}/{1}/delete_build/{2}/".format(self.u1.name, self.c1.name, b_id)
 
@@ -173,7 +173,6 @@ class TestCoprDeleteBuild(CoprsTestCase):
         act = self.models.Action.query.first()
         assert act.object_type == "build"
         assert act.old_value == "user1/foocopr"
-        assert json.loads(act.data)["result_dir_name"] == expected_dir
 
     @TransactionDecorator("u2")
     def test_copr_build_non_submitter_cannot_delete_build(self, f_users,

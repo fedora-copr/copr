@@ -530,8 +530,8 @@ class Build(db.Model, helpers.Serializer):
     # the three below represent time of important events for this build
     # as returned by int(time.time())
     submitted_on = db.Column(db.Integer, nullable=False)
-    # url of the build results
-    results = db.Column(db.Text)
+    # directory name on backend with the srpm build results
+    result_dir = db.Column(db.Text, default='', server_default='', nullable=False)
     # memory requirements for backend builder
     memory_reqs = db.Column(db.Integer, default=constants.DEFAULT_BUILD_MEMORY)
     # maximum allowed time of build, build will fail if exceeded
@@ -584,12 +584,6 @@ class Build(db.Model, helpers.Serializer):
         return helpers.FailTypeEnum(self.fail_type)
 
     @property
-    def is_older_results_naming_used(self):
-        # we have changed result directory naming together with transition to dist-git
-        # that's why we use so strange criterion
-        return self.build_chroots[0].git_hash is None
-
-    @property
     def repos_list(self):
         if self.repos is None:
             return list()
@@ -626,14 +620,6 @@ class Build(db.Model, helpers.Serializer):
                  "srpm-builds", self.id_fixed_width, "builder-live.log"]
         path = os.path.normpath(os.path.join(*parts))
         return urljoin(app.config["BACKEND_BASE_URL"], path)
-
-    @property
-    def result_dir_name(self):
-        # We can remove this ugly condition after migrating Copr to new machines
-        # It is throw-back from era before dist-git
-        if self.is_older_results_naming_used:
-            return self.src_pkg_name
-        return "-".join([self.id_fixed_width, self.package.name])
 
     @property
     def source_json_dict(self):
@@ -772,21 +758,6 @@ class Build(db.Model, helpers.Serializer):
         This property is inherited from the project.
         """
         return self.copr.persistent
-
-    @property
-    def src_pkg_name(self):
-        """
-        Extract source package name from source name or url.
-        todo: obsolete
-        """
-        try:
-            src_rpm_name = self.pkgs.split("/")[-1]
-        except:
-            return None
-        if src_rpm_name.endswith(".src.rpm"):
-            return src_rpm_name[:-8]
-        else:
-            return src_rpm_name
 
     @property
     def package_name(self):
@@ -996,6 +967,9 @@ class BuildChroot(db.Model, helpers.Serializer):
     started_on = db.Column(db.Integer)
     ended_on = db.Column(db.Integer, index=True)
 
+    # directory name on backend with build results
+    result_dir = db.Column(db.Text, default='', server_default='', nullable=False)
+
     build_requires = db.Column(db.Text)
 
     @property
@@ -1037,34 +1011,8 @@ class BuildChroot(db.Model, helpers.Serializer):
 
     @property
     def result_dir_url(self):
-        return urljoin(app.config["BACKEND_BASE_URL"],
-                       os.path.join("results", self.result_dir, "")
-                      )
-
-    @property
-    def result_dir(self):
-        # hide changes occurred after migration to dist-git
-        # if build has defined dist-git, it means that new schema should be used
-        # otherwise use older structure
-
-        # old: results/valtri/ruby/fedora-rawhide-x86_64/rubygem-aws-sdk-resources-2.1.11-1.fc24/
-        # new: results/asamalik/rh-perl520/epel-7-x86_64/00000187-rh-perl520/
-
-        parts = [self.build.copr.owner_name]
-
-        parts.extend([
-            self.build.copr.name,
-            self.name,
-        ])
-        if self.git_hash is not None and self.build.package:
-            parts.append(self.build.result_dir_name)
-        else:
-            parts.append(self.build.src_pkg_name)
-
-        return os.path.join(*parts)
-
-    def __str__(self):
-        return "<BuildChroot: {}>".format(self.to_dict())
+        return urljoin(app.config["BACKEND_BASE_URL"], os.path.join(
+            "results", self.build.copr.full_name, self.name, self.result_dir, ""))
 
 
 class LegalFlag(db.Model, helpers.Serializer):

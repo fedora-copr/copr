@@ -77,12 +77,13 @@ class BuildJob(object):
             task_data["project_name"]
         ))
 
-        self.results = u"/".join([
+        self.results_repo_url = os.path.join(
             worker_opts.results_baseurl,
             task_data["project_owner"],
-            task_data["project_name"]
-        ])
-        self.results_repo_url = self.results
+            task_data["project_name"],
+        )
+
+        self.result_dir = self.target_dir_name
 
         self.built_packages = ""
 

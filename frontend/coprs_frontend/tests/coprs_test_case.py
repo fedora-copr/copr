@@ -238,13 +238,13 @@ class CoprsTestCase(object):
             copr=self.c2, name="goodbye-world", source_type=0)
 
         self.b1 = models.Build(
-            copr=self.c1, package=self.p1, user=self.u1, submitted_on=50, srpm_url="http://somesrpm", source_status=StatusEnum("importing"))
+            copr=self.c1, package=self.p1, user=self.u1, submitted_on=50, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
         self.b2 = models.Build(
-            copr=self.c1, package=self.p1, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"))
+            copr=self.c1, package=self.p1, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
         self.b3 = models.Build(
-            copr=self.c2, package=self.p2, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"))
+            copr=self.c2, package=self.p2, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
         self.b4 = models.Build(
-            copr=self.c2, package=self.p2, user=self.u2, submitted_on=100, srpm_url="http://somesrpm", source_status=StatusEnum("succeeded"))
+            copr=self.c2, package=self.p2, user=self.u2, submitted_on=100, srpm_url="http://somesrpm", source_status=StatusEnum("succeeded"), result_dir='bar')
 
         self.basic_builds = [self.b1, self.b2, self.b3, self.b4]
         self.b1_bc = []
@@ -265,6 +265,7 @@ class CoprsTestCase(object):
                     mock_chroot=chroot,
                     status=status,
                     git_hash="12345",
+                    result_dir='bar',
                 )
 
                 if build is self.b1 or build is self.b2:
@@ -319,6 +320,7 @@ class CoprsTestCase(object):
                     mock_chroot=chroot,
                     status=self.status_by_chroot[chroot.name],
                     git_hash="12345",
+                    result_dir='bar',
                 )
                 self.db.session.add(buildchroot)
 
@@ -363,6 +365,7 @@ class CoprsTestCase(object):
                 mock_chroot=chroot,
                 status=self.status_by_chroot[chroot.name],
                 git_hash="12345",
+                result_dir='bar',
             )
             self.db.session.add(buildchroot)
 
