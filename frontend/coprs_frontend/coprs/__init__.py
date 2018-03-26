@@ -48,6 +48,8 @@ from coprs.views import admin_ns
 from coprs.views.admin_ns import admin_general
 from coprs.views import api_ns
 from coprs.views.api_ns import api_general
+from coprs.views import apiv3_ns
+from coprs.views.apiv3_ns import apiv3_general, apiv3_builds, apiv3_packages
 from coprs.views import coprs_ns
 from coprs.views.coprs_ns import coprs_builds
 from coprs.views.coprs_ns import coprs_general
@@ -76,6 +78,7 @@ from .context_processors import include_banner, inject_fedmenu
 setup_log()
 
 app.register_blueprint(api_ns.api_ns)
+app.register_blueprint(apiv3_ns.apiv3_ns)
 app.register_blueprint(admin_ns.admin_ns)
 app.register_blueprint(coprs_ns.coprs_ns)
 app.register_blueprint(misc.misc)
