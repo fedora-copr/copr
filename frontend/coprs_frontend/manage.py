@@ -180,7 +180,7 @@ class RawhideToReleaseCommand(Command):
                     if not rbc or rbc.status != StatusEnum("succeeded"):
                         continue
 
-                    data["builds"].append(os.path.basename(build.result_dir))
+                    data["builds"].append(build.result_dir)
 
                     if rbc and not dbc:
                         dest_build_chroot = models.BuildChroot(**rbc.to_dict())
@@ -230,7 +230,7 @@ class BackendRawhideToReleaseCommand(RawhideToReleaseCommand):
             for package in packages_logic.PackagesLogic.get_all(copr.id):
                 last_build = package.last_build(successful=True)
                 if last_build:
-                    data["builds"].append(os.path.basename(last_build.result_dir))
+                    data["builds"].append(last_build.result_dir)
 
             if len(data["builds"]):
                 actions_logic.ActionsLogic.send_rawhide_to_release(data)
