@@ -10,7 +10,7 @@ class Pagination(object):
 
 
 def next_page(objects):
-    objects.__response__.request.data["offset"] += objects.meta.limit
+    objects.__response__.request.data["offset"] = objects.meta.offset + objects.meta.limit
     response = objects.__response__.request.send()
     return response.munchify()
 
