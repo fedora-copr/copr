@@ -1,0 +1,2 @@
+class CoprRequestException(Exception):
+    pass

@@ -4,6 +4,7 @@ import os
 import requests
 from munch import Munch
 from .helpers import List
+from .exceptions import CoprRequestException
 
 
 GET = "GET"
@@ -51,7 +52,3 @@ class Response(object):
 def handle_errors(response_json):
     if "error" in response_json:
         raise CoprRequestException(response_json["message"])
-
-
-class CoprRequestException(Exception):
-    pass
