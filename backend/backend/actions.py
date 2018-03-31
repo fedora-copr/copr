@@ -257,9 +257,6 @@ class Action(object):
             if not builddir:
                 continue
 
-            if not chroot:
-                chroot = 'srpm-builds'
-
             chroot_path = os.path.join(self.destdir, ownername, projectname, chroot)
             builddir_path = os.path.join(chroot_path, builddir)
 
