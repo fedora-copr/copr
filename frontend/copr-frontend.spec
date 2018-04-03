@@ -127,6 +127,8 @@ Requires: js-jquery1
 Requires: xstatic-jquery-ui-common
 Requires: xstatic-bootstrap-scss-common
 Requires: xstatic-datatables-common
+Requires: js-html5shiv
+Requires: js-respond
 
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4
@@ -137,8 +139,6 @@ Provides: bundled(datatables-colreorder) = 1.1.3
 Provides: bundled(datatables-colvis) = 1.1.2
 Provides: bundled(font-awesome) = 1.0.1
 Provides: bundled(google-code-prettify) = 4.3.0
-Provides: bundled(html5shiv) = 3.7.2
-Provides: bundled(Respond.js) = 1.4.2
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
