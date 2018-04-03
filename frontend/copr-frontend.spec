@@ -124,6 +124,7 @@ Requires: python3-psycopg2
 Requires: python3-zmq
 Requires: xstatic-patternfly-common
 Requires: js-jquery1
+Requires: xstatic-jquery-ui-common
 
 Provides: bundled(bootstrap) = 3.3.4
 Provides: bundled(bootstrap-combobox) = 1.1.6
@@ -137,8 +138,6 @@ Provides: bundled(datatables-colvis) = 1.1.2
 Provides: bundled(font-awesome) = 1.0.1
 Provides: bundled(google-code-prettify) = 4.3.0
 Provides: bundled(html5shiv) = 3.7.2
-Provides: bundled(jquery) = 1.11.3
-Provides: bundled(jquery-ui) = 1.11.4
 Provides: bundled(Respond.js) = 1.4.2
 
 %description
