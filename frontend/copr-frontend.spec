@@ -125,8 +125,8 @@ Requires: python3-zmq
 Requires: xstatic-patternfly-common
 Requires: js-jquery1
 Requires: xstatic-jquery-ui-common
+Requires: xstatic-bootstrap-scss-common
 
-Provides: bundled(bootstrap) = 3.3.4
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4
 Provides: bundled(bootstrap-treeview) = 1.0.1
