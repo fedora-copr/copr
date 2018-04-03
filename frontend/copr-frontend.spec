@@ -126,13 +126,13 @@ Requires: xstatic-patternfly-common
 Requires: js-jquery1
 Requires: xstatic-jquery-ui-common
 Requires: xstatic-bootstrap-scss-common
+Requires: xstatic-datatables-common
 
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4
 Provides: bundled(bootstrap-treeview) = 1.0.1
 Provides: bundled(c3) = 0.4.10
 Provides: bundled(d3) = 3.5.0
-Provides: bundled(datatables) = 1.10.7
 Provides: bundled(datatables-colreorder) = 1.1.3
 Provides: bundled(datatables-colvis) = 1.1.2
 Provides: bundled(font-awesome) = 1.0.1
