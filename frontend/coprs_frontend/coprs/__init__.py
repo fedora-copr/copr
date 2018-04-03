@@ -101,7 +101,8 @@ models_committed.connect(coprs.whoosheers.CoprWhoosheer.on_commit, sender=app)
 
 # Serve static files from system-wide RPM files
 @app.route('/system_static/<component>/<path:filename>')
-def system_static(component, filename):
+@app.route('/system_static/<path:filename>')
+def system_static(filename, component=""):
     """
     :param component: name of the javascript component provided by a RPM package
                       do not confuse with a name of the RPM package itself
