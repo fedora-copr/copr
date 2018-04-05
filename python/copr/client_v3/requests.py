@@ -15,18 +15,23 @@ class Request(object):
     # This should be a replacement of the _fetch method from APIv1
     # We can have Request, FileRequest, AuthRequest/UnAuthRequest, ...
 
-    def __init__(self, endpoint, api_base_url=None, method=None, data=None, auth=None):
+    def __init__(self, endpoint, api_base_url=None, method=None, data=None, params=None, auth=None):
         """
         :param endpoint:
         :param api_base_url:
         :param method:
-        :param data:
+        :param data: dict
+        :param params: dict for constructing query params in URL (e.g. ?key1=val1)
         :param auth: tuple (login, token)
+
+        @TODO maybe don't have both params and data, but rather only one variable
+        @TODO and send it as data on POST and as params on GET
         """
         self.endpoint = endpoint
         self.api_base_url = api_base_url
         self._method = method or GET
         self.data = data
+        self.params = params
         self.auth = auth
 
     @property
@@ -38,7 +43,8 @@ class Request(object):
         return self._method.upper()
 
     def send(self):
-        response = requests.request(method=self.method, url=self.endpoint_url, params=self.data, auth=self.auth)
+        response = requests.request(method=self.method, url=self.endpoint_url, data=self.data,
+                                    params=self.params, auth=self.auth)
         handle_errors(response.json())
         return Response(headers=response.headers, data=response.json(), request=self)
 
