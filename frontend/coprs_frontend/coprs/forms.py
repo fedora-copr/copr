@@ -385,6 +385,12 @@ class BasePackageForm(FlaskForm):
     webhook_rebuild = wtforms.BooleanField(default=False)
 
 
+class PackageTypeSelectorForm(BasePackageForm):
+    source_type_text = wtforms.SelectField("Source Type Text",
+                                           validators=[wtforms.validators.DataRequired()],
+                                           choices=[(t, t) for t in helpers.BuildSourceEnum.vals])
+
+
 class PackageFormScm(BasePackageForm):
     scm_type = wtforms.SelectField(
         "Type",

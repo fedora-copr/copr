@@ -1,9 +1,15 @@
 import flask
 import wtforms
 from . import optional_params, get_copr, Paginator, BaseListForm
-from coprs import models
+from coprs.exceptions import ApiError
+from coprs.views.misc import api_login_required
+from coprs import models, forms
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.packages_logic import PackagesLogic
+
+
+# @TODO Don't import things from APIv1
+from coprs.views.api_ns.api_general import process_package_add_or_edit
 
 
 class PackageListForm(BaseListForm):
@@ -19,3 +25,18 @@ def get_package_list(**kwargs):
     packages = paginator.to_dict()
     # @FIXME we have a source_json field which is a string. We should rather transform it into source dict
     return flask.jsonify(items=packages, meta=paginator.meta)
+
+
+@apiv3_ns.route("/package/edit", methods=["POST"])
+@api_login_required
+def package_edit():
+    copr = get_copr()
+    form = forms.PackageTypeSelectorForm()
+    try:
+        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+    except IndexError:
+        raise ApiError("Package {name} does not exists in copr {copr}."
+                             .format(name=form.package_name.data, copr=copr.full_name))
+
+    process_package_add_or_edit(copr, form.source_type_text.data, package=package)
+    return flask.jsonify(package.to_dict())
