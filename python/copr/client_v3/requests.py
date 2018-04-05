@@ -51,4 +51,4 @@ class Response(object):
 
 def handle_errors(response_json):
     if "error" in response_json:
-        raise CoprRequestException(response_json["message"])
+        raise CoprRequestException(response_json["error"])

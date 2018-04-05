@@ -10,7 +10,9 @@ apiv3_ns = flask.Blueprint("apiv3_ns", __name__, url_prefix="/api_3")
 
 @apiv3_ns.errorhandler(CoprHttpException)
 def handle_api_errors(error):
-    return flask.jsonify(error=error.code, message=error.message)
+    response = flask.jsonify(error=error.message)
+    response.status_code = error.code
+    return response
 
 
 def optional_params(form_class):
