@@ -1,6 +1,10 @@
 import flask
+from coprs import db
+from coprs.exceptions import ApiError, InsufficientRightsException
+from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
+from coprs.logic.builds_logic import BuildsLogic
 
 
 @apiv3_ns.route("/build/<int:build_id>/", methods=["GET"])
@@ -17,10 +21,11 @@ def get_build(build_id):
     if build.built_packages:
         built_packages = build.built_packages.split("\n")
 
-    # @TODO review the fields (missing ID, ...)
+    # @TODO review the fields
     # @TODO we dont't really want to define a dict here - maybe use build.to_dict() or something
     output = {
         "output": "ok",
+        "id": build.id,
         "status": build.state,
         "project": build.copr.name,
         "owner": build.copr.owner_name,
@@ -36,3 +41,16 @@ def get_build(build_id):
         "results_by_chroot": results_by_chroot
     }
     return flask.jsonify(output)
+
+
+@apiv3_ns.route("/build/cancel/<int:build_id>", methods=["POST"])
+@api_login_required
+def cancel_build(build_id):
+    build = ComplexLogic.get_build_safe(build_id)
+    try:
+        BuildsLogic.cancel_build(flask.g.user, build)
+        db.session.commit()
+    except InsufficientRightsException as e:
+        raise ApiError("Invalid request: {}".format(e))
+    # @TODO eliminate the second request to database
+    return get_build(build_id)

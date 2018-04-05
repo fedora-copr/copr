@@ -33,6 +33,12 @@ class BadRequest(CoprHttpException):
     _code = 400
 
 
+class ApiError(CoprHttpException):
+
+    _default = "API error"
+    _code = 500
+
+
 class LegacyApiError(CoprHttpException):
 
     _default = "API error"
