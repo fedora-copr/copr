@@ -24,7 +24,7 @@ def get_build(build_id):
         "status": build.state,
         "project": build.copr.name,
         "owner": build.copr.owner_name,
-        "results": build.results,
+        "results": build.copr.repo_url, # TODO: in new api return build results url
         "built_pkgs": built_packages,
         "src_version": build.pkg_version,
         "chroots": chroots,
