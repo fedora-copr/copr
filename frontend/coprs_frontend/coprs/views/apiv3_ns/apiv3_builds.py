@@ -35,10 +35,14 @@ def to_dict(build):
     }
 
 
+def render_build(build):
+    return flask.jsonify(to_dict(build))
+
+
 @apiv3_ns.route("/build/<int:build_id>/", methods=["GET"])
 def get_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
-    return flask.jsonify(to_dict(build))
+    return render_build(build)
 
 
 @apiv3_ns.route("/build/cancel/<int:build_id>", methods=["POST"])
@@ -50,5 +54,4 @@ def cancel_build(build_id):
         db.session.commit()
     except InsufficientRightsException as e:
         raise ApiError("Invalid request: {}".format(e))
-    # @TODO eliminate the second request to database
-    return get_build(build_id)
+    return render_build(build)
