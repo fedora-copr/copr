@@ -12,6 +12,18 @@ from coprs.logic.packages_logic import PackagesLogic
 from coprs.views.api_ns.api_general import process_package_add_or_edit
 
 
+def to_dict(package):
+    # @TODO review the fields
+    api_keys = ["id", "name", "enable_net", "old_status", "source_type", "webhook_rebuild"]
+    package_dict = {k: v for k, v in package.to_dict().items() if k in api_keys}
+    package_dict.update({
+        "copr": package.copr.name,
+        "owner": package.copr.owner_name,
+        "source": package.source_json_dict,
+    })
+    return package_dict
+
+
 class PackageListForm(BaseListForm):
     ownername = wtforms.StringField("Ownername")
     projectname = wtforms.StringField("Projectname")
@@ -22,8 +34,7 @@ class PackageListForm(BaseListForm):
 def get_package_list(**kwargs):
     copr = get_copr()
     paginator = Paginator(PackagesLogic.get_all(copr.id), models.Package, **kwargs)
-    packages = paginator.to_dict()
-    # @FIXME we have a source_json field which is a string. We should rather transform it into source dict
+    packages = paginator.map(to_dict)
     return flask.jsonify(items=packages, meta=paginator.meta)
 
 
@@ -39,4 +50,4 @@ def package_edit():
                              .format(name=form.package_name.data, copr=copr.full_name))
 
     process_package_add_or_edit(copr, form.source_type_text.data, package=package)
-    return flask.jsonify(package.to_dict())
+    return flask.jsonify(to_dict(package))
