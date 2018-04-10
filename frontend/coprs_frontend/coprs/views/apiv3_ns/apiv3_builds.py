@@ -1,10 +1,14 @@
 import flask
-from coprs import db
-from coprs.exceptions import ApiError, InsufficientRightsException
+from . import get_copr
+from coprs import db, forms
+from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.builds_logic import BuildsLogic
+
+# @TODO Don't import things from APIv1
+from coprs.views.api_ns.api_general import validate_post_keys
 
 
 def to_dict(build):
@@ -55,3 +59,76 @@ def cancel_build(build_id):
     except InsufficientRightsException as e:
         raise ApiError("Invalid request: {}".format(e))
     return render_build(build)
+
+
+@apiv3_ns.route("/build/create/url", methods=["POST"])
+@api_login_required
+def create_from_url():
+    copr = get_copr()
+    form = forms.BuildFormUrlFactory(copr.active_chroots)(csrf_enabled=False)
+
+    def create_new_build():
+        # create separate build for each package
+        pkgs = form.pkgs.data.split("\n")
+        return [BuildsLogic.create_new_from_url(
+            flask.g.user, copr,
+            url=pkg,
+            chroot_names=form.selected_chroots,
+            background=form.background.data,
+        ) for pkg in pkgs]
+    return process_creating_new_build(copr, form, create_new_build)
+
+
+@apiv3_ns.route("/build/create/scm", methods=["POST"])
+@api_login_required
+def create_from_scm():
+    copr = get_copr()
+    form = forms.BuildFormScmFactory(copr.active_chroots)(csrf_enabled=False)
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_scm(
+            flask.g.user,
+            copr,
+            scm_type=form.scm_type.data,
+            clone_url=form.clone_url.data,
+            committish=form.committish.data,
+            subdirectory=form.subdirectory.data,
+            spec=form.spec.data,
+            srpm_build_method=form.srpm_build_method.data,
+            chroot_names=form.selected_chroots,
+            background=form.background.data,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
+def process_creating_new_build(copr, form, create_new_build):
+    infos = []
+
+    # are there any arguments in POST which our form doesn't know?
+    infos.extend(validate_post_keys(form))
+
+    if not form.validate_on_submit():
+        raise ApiError("Invalid request: bad request parameters: {0}".format(form.errors))
+
+    if not flask.g.user.can_build_in(copr):
+        raise ApiError("Invalid request: user {} is not allowed to build in the copr: {}"
+                       .format(flask.g.user.username, copr.full_name))
+
+    # create a new build
+    try:
+        # From URLs it can be created multiple builds at once
+        # so it can return a list
+        build = create_new_build()
+        db.session.commit()
+        ids = [build.id] if type(build) != list else [b.id for b in build]
+        builds = [build] if type(build) != list else build
+        infos.append("Build was added to {0}:".format(copr.name))
+        for build_id in ids:
+            infos.append("  " + flask.url_for("coprs_ns.copr_build_redirect",
+                                              build_id=build_id,
+                                              _external=True))
+
+    except (ActionInProgressException, InsufficientRightsException) as e:
+        raise ApiError("Invalid request: {}".format(e))
+
+    return flask.jsonify(items=[to_dict(b) for b in builds], meta={})
