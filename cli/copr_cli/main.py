@@ -105,8 +105,8 @@ class Commands(object):
 
     def _watch_builds(self, build_ids):
         """
-         :param build_ids: list of build IDs
-         """
+        :param build_ids: list of build IDs
+        """
         print("Watching build(s): (this may be safely interrupted)")
 
         prevstatus = defaultdict(lambda: None)
@@ -297,10 +297,13 @@ class Commands(object):
     def process_build(self, args, build_function, data, bar=None):
         username, copr = parse_name(args.copr)
 
-        result = build_function(username=username, projectname=copr, chroots=args.chroots, memory=args.memory,
-                                timeout=args.timeout, background=args.background, **data)
-        if bar:
-            bar.finish()
+        try:
+            result = build_function(username=username, projectname=copr, chroots=args.chroots, memory=args.memory,
+                                    timeout=args.timeout, background=args.background, **data)
+        except:
+            if bar:
+                bar.finish()
+            raise
 
         if result.output != "ok":
             sys.stderr.write(result.error + "\n")
