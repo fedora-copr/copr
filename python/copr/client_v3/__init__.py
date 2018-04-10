@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from .requests import Request, Response, GET, POST, CoprRequestException
+from .helpers import refresh
 from .client import Client
 from .proxies.build import BuildProxy
 from .proxies.package import PackageProxy
@@ -13,4 +14,5 @@ __all__ = [
     BuildProxy,
     PackageProxy,
     CoprRequestException,
+    refresh,
 ]
