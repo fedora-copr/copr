@@ -1,6 +1,8 @@
 from __future__ import absolute_import
+
+import os
 from . import BaseProxy
-from ..requests import Request, POST
+from ..requests import Request, FileRequest, POST
 
 
 class BuildProxy(BaseProxy):
@@ -26,6 +28,18 @@ class BuildProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
         return response.munchify()
+
+    def create_from_file(self, ownername, projectname, path):
+        endpoint = "/build/create/upload"
+        f = open(path, "rb")
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "pkgs": (os.path.basename(f.name), f, "application/x-rpm"),
+        }
+        request = FileRequest(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
+        response = request.send()
+        return response.munchify()[0]
 
     def create_from_scm(self, ownername, projectname, clone_url, committish="", subdirectory="", spec="",
                         scm_type="git", srpm_build_method="rpkg"):

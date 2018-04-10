@@ -1,5 +1,6 @@
 import flask
 from . import get_copr
+from werkzeug import secure_filename
 from coprs import db, forms
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
 from coprs.views.misc import api_login_required
@@ -76,6 +77,23 @@ def create_from_url():
             chroot_names=form.selected_chroots,
             background=form.background.data,
         ) for pkg in pkgs]
+    return process_creating_new_build(copr, form, create_new_build)
+
+
+@apiv3_ns.route("/build/create/upload", methods=["POST"])
+@api_login_required
+def create_from_upload():
+    copr = get_copr()
+    form = forms.BuildFormUploadFactory(copr.active_chroots)(csrf_enabled=False)
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_upload(
+            flask.g.user, copr,
+            f_uploader=lambda path: form.pkgs.data.save(path),
+            orig_filename=secure_filename(form.pkgs.data.filename),
+            chroot_names=form.selected_chroots,
+            background=form.background.data,
+        )
     return process_creating_new_build(copr, form, create_new_build)
 
 

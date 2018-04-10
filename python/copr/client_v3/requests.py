@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 import requests
 from munch import Munch
+from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 from .helpers import List
 from .exceptions import CoprRequestException
 
@@ -33,6 +34,7 @@ class Request(object):
         self.data = data
         self.params = params
         self.auth = auth
+        self.headers = None
 
     @property
     def endpoint_url(self):
@@ -44,9 +46,18 @@ class Request(object):
 
     def send(self):
         response = requests.request(method=self.method, url=self.endpoint_url, data=self.data,
-                                    params=self.params, auth=self.auth)
+                                    params=self.params, auth=self.auth, headers=self.headers)
         handle_errors(response.json())
         return Response(headers=response.headers, data=response.json(), request=self)
+
+
+class FileRequest(Request):
+    def __init__(self, *args, **kwargs):
+        super(FileRequest, self).__init__(*args, **kwargs)
+        callback = lambda x: x  # @TODO progress_callback or (lambda x: x)
+        m = MultipartEncoder(self.data)
+        self.data = MultipartEncoderMonitor(m, callback)
+        self.headers = {'Content-Type': self.data.content_type}
 
 
 class Response(object):
