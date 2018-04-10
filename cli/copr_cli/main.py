@@ -134,6 +134,7 @@ class Commands(object):
                         print("  {0} Build {2}: {1}".format(
                             now.strftime("%H:%M:%S"),
                             build_details.status, build_id))
+                        sys.stdout.flush()
 
                     if build_details.status in ["failed"]:
                         failed_ids.append(build_id)
@@ -1144,6 +1145,7 @@ def parse_name(name):
     else:
         owner = None
     return owner, name
+
 
 def parse_chroot_path(path):
     m = re.match(r"(([^/]+)/)?([^/]+)/(.*)", path)
