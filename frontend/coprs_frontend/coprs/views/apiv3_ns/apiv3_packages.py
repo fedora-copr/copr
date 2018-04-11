@@ -1,6 +1,6 @@
 import flask
 import wtforms
-from . import optional_params, get_copr, Paginator, BaseListForm
+from . import optional_params, query_params, get_copr, Paginator, BaseListForm
 from coprs.exceptions import ApiError
 from coprs.views.misc import api_login_required
 from coprs import models, forms
@@ -27,6 +27,17 @@ def to_dict(package):
 class PackageListForm(BaseListForm):
     ownername = wtforms.StringField("Ownername")
     projectname = wtforms.StringField("Projectname")
+
+
+@apiv3_ns.route("/package", methods=["GET"])
+@query_params()
+def get_package(ownername, projectname, packagename):
+    copr = get_copr()
+    try:
+        package = PackagesLogic.get(copr.id, packagename)[0]
+    except IndexError:
+        raise ApiError("No package with name {name} in copr {copr}".format(name=packagename, copr=copr.name))
+    return flask.jsonify(to_dict(package))
 
 
 @apiv3_ns.route("/package/list/", methods=["GET"])

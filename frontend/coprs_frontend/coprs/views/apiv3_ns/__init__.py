@@ -1,6 +1,7 @@
 import flask
 import wtforms
 import sqlalchemy
+import inspect
 from coprs.exceptions import CoprHttpException
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -15,6 +16,7 @@ def handle_api_errors(error):
     return response
 
 
+# @TODO use query_params decorator instead
 def optional_params(form_class):
     def optional_params_decorator(f):
         def wrapper(*args, **kwargs):
@@ -31,6 +33,20 @@ def optional_params(form_class):
             return f(*args, **kwargs)
         return wrapper
     return optional_params_decorator
+
+
+def query_params():
+    def query_params_decorator(f):
+        def query_params_wrapper(*args, **kwargs):
+            for arg in [x for x in inspect.signature(f).parameters]:
+                if arg not in flask.request.args:
+                    raise CoprHttpException("Missing argument {}".format(arg))
+                kwargs[arg] = flask.request.args.get(arg)
+            return f(*args, **kwargs)
+        return query_params_wrapper
+    return query_params_decorator
+
+
 
 
 class BaseListForm(wtforms.Form):
