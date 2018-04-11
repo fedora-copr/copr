@@ -160,11 +160,6 @@ def create_from_rubygems():
 
 
 def process_creating_new_build(copr, form, create_new_build):
-    infos = []
-
-    # are there any arguments in POST which our form doesn't know?
-    infos.extend(validate_post_keys(form))
-
     if not form.validate_on_submit():
         raise ApiError("Invalid request: bad request parameters: {0}".format(form.errors))
 
@@ -178,15 +173,10 @@ def process_creating_new_build(copr, form, create_new_build):
         # so it can return a list
         build = create_new_build()
         db.session.commit()
-        ids = [build.id] if type(build) != list else [b.id for b in build]
-        builds = [build] if type(build) != list else build
-        infos.append("Build was added to {0}:".format(copr.name))
-        for build_id in ids:
-            infos.append("  " + flask.url_for("coprs_ns.copr_build_redirect",
-                                              build_id=build_id,
-                                              _external=True))
-
     except (ActionInProgressException, InsufficientRightsException) as e:
         raise ApiError("Invalid request: {}".format(e))
 
-    return flask.jsonify(items=[to_dict(b) for b in builds], meta={})
+    if type(build) == list:
+        builds = [build] if type(build) != list else build
+        return flask.jsonify(items=[to_dict(b) for b in builds], meta={})
+    return flask.jsonify(to_dict(build))
