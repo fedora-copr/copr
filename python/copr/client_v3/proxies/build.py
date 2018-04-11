@@ -64,3 +64,28 @@ class BuildProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
         return response.munchify()[0]
+
+    def create_from_pypi(self, ownername, projectname, pypi_package_name,
+                         pypi_package_version=None, python_versions=None):
+        endpoint = "/build/create/pypi"
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "pypi_package_name": pypi_package_name,
+            "pypi_package_version": pypi_package_version,
+            "python_versions": python_versions or [3, 2],
+        }
+        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
+        response = request.send()
+        return response.munchify()[0]
+
+    def create_from_rubygems(self, ownername, projectname, gem_name):
+        endpoint = "/build/create/rubygems"
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "gem_name": gem_name,
+        }
+        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
+        response = request.send()
+        return response.munchify()[0]

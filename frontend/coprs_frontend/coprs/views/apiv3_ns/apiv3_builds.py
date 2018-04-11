@@ -119,6 +119,46 @@ def create_from_scm():
     return process_creating_new_build(copr, form, create_new_build)
 
 
+@apiv3_ns.route("/build/create/pypi", methods=["POST"])
+@api_login_required
+def create_from_pypi():
+    copr = get_copr()
+    form = forms.BuildFormPyPIFactory(copr.active_chroots)(csrf_enabled=False)
+
+    # TODO: automatically prepopulate all form fields with their defaults
+    if not form.python_versions.data:
+        form.python_versions.data = form.python_versions.default
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_pypi(
+            flask.g.user,
+            copr,
+            form.pypi_package_name.data,
+            form.pypi_package_version.data,
+            form.python_versions.data,
+            form.selected_chroots,
+            background=form.background.data,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
+@apiv3_ns.route("/build/create/rubygems", methods=["POST"])
+@api_login_required
+def create_from_rubygems():
+    copr = get_copr()
+    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(csrf_enabled=False)
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_rubygems(
+            flask.g.user,
+            copr,
+            form.gem_name.data,
+            form.selected_chroots,
+            background=form.background.data,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
 def process_creating_new_build(copr, form, create_new_build):
     infos = []
 
