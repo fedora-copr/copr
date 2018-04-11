@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 from . import BaseProxy
 from ..requests import Request, FileRequest, POST
+from ..exceptions import CoprValidationException
 
 
 class BuildProxy(BaseProxy):
@@ -28,6 +29,12 @@ class BuildProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
         return response.munchify()
+
+    def create_from_url(self, ownername, projectname, url):
+        if len(url.split()) > 1:
+            raise CoprValidationException("This method doesn't allow submitting multiple URLs at once. "
+                                          "Use `create_from_urls` instead.")
+        return self.create_from_urls(ownername, projectname, [url])[0]
 
     def create_from_file(self, ownername, projectname, path):
         endpoint = "/build/create/upload"
