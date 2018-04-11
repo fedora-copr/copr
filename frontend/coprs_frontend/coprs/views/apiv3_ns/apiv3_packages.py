@@ -2,12 +2,14 @@ import flask
 import wtforms
 from . import optional_params, query_params, get_copr, Paginator, BaseListForm
 from coprs.exceptions import ApiError
-from coprs.exceptions import ApiError, InsufficientRightsException
+from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException, NoPackageSourceException
 from coprs.views.misc import api_login_required
 from coprs import db, models, forms
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.packages_logic import PackagesLogic
 
+# @TODO if we need to do this on several places, we should figure a better way to do it
+from coprs.views.apiv3_ns.apiv3_builds import to_dict as build_to_dict
 
 # @TODO Don't import things from APIv1
 from coprs.views.api_ns.api_general import process_package_add_or_edit
@@ -82,3 +84,24 @@ def package_reset():
         raise ApiError(str(e))
 
     return flask.jsonify(to_dict(package))
+
+
+@apiv3_ns.route("/package/build", methods=["POST"])
+@api_login_required
+def package_build():
+    copr = get_copr()
+    form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(csrf_enabled=False)
+    try:
+        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+    except IndexError:
+        raise ApiError("No package with name {name} in copr {copr}"
+                             .format(name=form.package_name.data, copr=copr.name))
+    if form.validate_on_submit():
+        try:
+            build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots, **form.data)
+            db.session.commit()
+        except (InsufficientRightsException, ActionInProgressException, NoPackageSourceException) as e:
+            raise ApiError(str(e))
+    else:
+        raise ApiError(form.errors)
+    return flask.jsonify(build_to_dict(build))

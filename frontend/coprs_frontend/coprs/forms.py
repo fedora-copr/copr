@@ -378,6 +378,16 @@ class BuildFormRebuildFactory(object):
         return F
 
 
+class RebuildPackageFactory(object):
+    @staticmethod
+    def create_form_cls(active_chroots):
+        form = BuildFormRebuildFactory.create_form_cls(active_chroots)
+        form.package_name = wtforms.StringField(
+            "Package name",
+            validators=[wtforms.validators.DataRequired()])
+        return form
+
+
 class BasePackageForm(FlaskForm):
     package_name = wtforms.StringField(
         "Package name",
