@@ -40,3 +40,14 @@ class PackageProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
         return response.munchify()
+
+    def reset(self, ownername, projectname, packagename):
+        endpoint = "/package/reset"
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "package_name": packagename,
+        }
+        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
+        response = request.send()
+        return response.munchify()

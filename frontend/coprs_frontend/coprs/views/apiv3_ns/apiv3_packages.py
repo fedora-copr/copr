@@ -2,8 +2,9 @@ import flask
 import wtforms
 from . import optional_params, query_params, get_copr, Paginator, BaseListForm
 from coprs.exceptions import ApiError
+from coprs.exceptions import ApiError, InsufficientRightsException
 from coprs.views.misc import api_login_required
-from coprs import models, forms
+from coprs import db, models, forms
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.packages_logic import PackagesLogic
 
@@ -61,4 +62,23 @@ def package_edit():
                              .format(name=form.package_name.data, copr=copr.full_name))
 
     process_package_add_or_edit(copr, form.source_type_text.data, package=package)
+    return flask.jsonify(to_dict(package))
+
+
+@apiv3_ns.route("/package/reset", methods=["POST"])
+@api_login_required
+def package_reset():
+    copr = get_copr()
+    form = forms.BasePackageForm()
+    try:
+        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+    except IndexError:
+        raise ApiError("No package with name {name} in copr {copr}"
+                       .format(name=form.package_name.data, copr=copr.name))
+    try:
+        PackagesLogic.reset_package(flask.g.user, package)
+        db.session.commit()
+    except InsufficientRightsException as e:
+        raise ApiError(str(e))
+
     return flask.jsonify(to_dict(package))
