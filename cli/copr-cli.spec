@@ -12,18 +12,19 @@
 %global __python %{__python3}
 %endif
 
-Name:       copr-cli
-Version:    1.67
+Name:       {{{ git_dir_name }}}
+Version:    {{{ git_dir_version lead=1 }}}
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by
+# Source is created by:
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/cli
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# rpkg spec --sources
+Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -153,6 +154,8 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+{{{ git_dir_changelog since_tag=copr-cli-1.68-1 }}}
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.67-1
 - remove Group tag
 

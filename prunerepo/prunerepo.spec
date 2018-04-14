@@ -1,13 +1,14 @@
+Name:    {{{ git_name name=prunerepo }}}
+Version: {{{ git_version lead=1 }}}
 Summary: Remove old packages from rpm-md repository
-Name: prunerepo
-Version: 1.11
 Release: 1%{?dist}
 
 # Source is created by:
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/prunerepo
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# rpkg spec --sources
+Source0: {{{ git_pack }}}
 
 License: GPLv2+
 BuildArch: noarch
@@ -64,6 +65,8 @@ install -p -m 644 man/prunerepo.1 %{buildroot}/%{_mandir}/man1/
 %{_mandir}/man1/prunerepo.1*
 
 %changelog
+{{{ git_changelog since_tag=prunerepo-1.12-1 }}}
+
 * Wed Jan 24 2018 clime <clime@redhat.com> 1.11-1
 - do not recreate repo if there was no change in data unless
   --alwayscreaterepo is specified

@@ -3,8 +3,7 @@
 export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export LANG=en_US.utf8
 
-# primarily install git for the setup below
-dnf -y install git
+dnf -y install git dnf-plugins-core
 
 if [[ `pwd` =~ ^/mnt/tests.*$ ]]; then
     echo "Setting up native beaker environment."
@@ -19,7 +18,8 @@ fi
 cp -rT $SCRIPTPATH/files /
 
 # install stuff needed for the test
-dnf -y install docker vagrant vagrant-libvirt jq tito wget rsync
+dnf copr enable -y @copr/copr
+dnf -y install docker vagrant vagrant-libvirt jq wget rsync rpkg
 
 # enable libvirtd for Vagrant (distgit)
 systemctl enable libvirtd && systemctl start libvirtd
@@ -69,9 +69,6 @@ cd $COPRROOTDIR/mocks
 dnf -y install python3-flask
 dnf -y install python3-flask-script
 dnf -y builddep copr-mocks.spec
-if [[ ! $RELEASETEST ]]; then
-	tito build -i --test --rpm
-else
-	tito build -i --offline --rpm
-fi
+rpkg local --outdir /tmp/rpkg
+dnf install -C -y /tmp/rpkg/noarch/copr-mocks*noarch.rpm --best
 cd $SCRIPTPATH

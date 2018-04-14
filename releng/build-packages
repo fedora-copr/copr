@@ -1,22 +1,23 @@
 #!/bin/bash
 
-pushd `dirname $0`/.. >/dev/null
+export SCRIPTDIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source $SCRIPTDIR/lib.sh
 
 PROJECT=$1
 if [ -z "$PROJECT" ]; then
-	echo "usage: build-missing-builds.sh project"
+	echo "usage: build-all.sh project"
     echo "       where TARGET is either @copr/copr or @copr/copr-dev"
     exit 1
 fi
 
-packages="$(find -maxdepth 2 -path '*spec' -exec dirname {} \;)"
-for package in $packages; do
+for package in $(get_all_packages); do
     echo "##############################"
     echo "Building $(basename $package):"
     echo "##############################"
-	pushd $package > /dev/null
+    pushd $package >/dev/null
     rpkg build $PROJECT
-    popd > /dev/null
+    popd >/dev/null
+    echo
 done
 
 popd >/dev/null

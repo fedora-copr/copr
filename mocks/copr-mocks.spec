@@ -1,13 +1,14 @@
+Name:    {{{ git_dir_name }}}
+Version: {{{ git_dir_version lead=1 }}}
 Summary: COPR system components mocks
-Name: copr-mocks
-Version: 1.10
 Release: 1%{?dist}
 
 # Source is created by:
 # git clone https://pagure.io/copr/copr.git
-# cd copr/mocks/frontend
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# git checkout {{{ cached_git_name_version }}}
+# cd copr/mocks
+# rpkg spec --sources
+Source0: {{{ git_dir_pack }}}
 
 License: GPLv2+
 BuildArch: noarch
@@ -49,6 +50,8 @@ useradd -r -g copr-mocks -G copr-mocks -d %{_datadir}/copr/mocks -s /bin/bash -c
 %{_unitdir}/copr-mocks-frontend.service
 
 %changelog
+{{{ git_changelog since_tag=copr-mocks-1.11-1 }}}
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.10-1
 - change in interface between copr-frontend and copr-backend
 - fix for new copr-dist-git interface

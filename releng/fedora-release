@@ -1,3 +1,97 @@
-#!/bin/bash
+#!/bin/python3
+
+import re
+import os
+import configparser
+import sys
+import argparse
+import tempfile
+import subprocess
+import glob
+
+from subprocess import check_call, call, check_output
 
 
+parser = argparse.ArgumentParser(description='Release package into Fedora.')
+
+parser.add_argument('releaser', action='store',
+                    help='Release configuration from releasers.ini.')
+parser.add_argument('srpm_path', action='store',
+                    help='Path to the srpm package to be released into Fedora.')
+
+args = parser.parse_args()
+
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), 'releasers.ini'))
+
+
+def update_branch(branch, commit, message):
+    """
+    Set the branch to the particular commit.
+    """
+    check_call(['git', 'checkout', branch])
+
+    if call(['git', 'merge', commit, '--ff-only']) == 0:
+        print('Merged {0} fast forward into {1} or noop.'.format(commit, branch))
+        return
+
+    print('Resetting branch {0} to contents of {1}.'.format(branch, commit))
+    check_call(['git', 'read-tree', '-m', '-u', commit])
+
+    if call(['git', 'diff', '--cached', '--exit-code']) != 0:
+        date = check_output(['git', 'show', commit, '-q', '--format=%ai']).strip()
+        check_call(['git', 'commit', '--no-verify', '-m', message, '--date', date])
+    else:
+        print('Nothing to commit into branch {0}.'.format(branch))
+
+
+def string2list(string):
+    return [elem.strip() for elem in re.split(r'\s*,\s*|\s+', string) if elem]
+
+
+if __name__ == '__main__':
+    branches = string2list(config[args.releaser]['branches'])
+    first_branch = branches[0]
+
+    full_package_name = re.sub(r'(.*).src.rpm', r'\1', os.path.basename(args.srpm_path))
+    full_package_name_split = full_package_name.rsplit('-', 2)
+
+    package_name = full_package_name_split[0]
+    package_verrel = full_package_name_split[1] + '-' + full_package_name_split[2]
+
+    commit_message = 'Update {} to {}'.format(package_name, package_verrel)
+
+    repo_tempdir = tempfile.mkdtemp()
+    fedora_repodir = os.path.join(repo_tempdir, package_name)
+    check_call(['fedpkg', 'clone', package_name, fedora_repodir])
+
+    print('>>> Working in {}:'.format(fedora_repodir))
+    os.chdir(fedora_repodir)
+
+    print('>>> Updating local branch {}:'.format(first_branch))
+    check_call(['fedpkg', 'switch-branch', first_branch])
+    check_call(['fedpkg', 'import', args.srpm_path])
+
+    if call(['git', 'diff', '--cached', '--exit-code']) != 0:
+        check_call(['fedpkg', 'commit', '-m', commit_message])
+    else:
+        print('Nothing to commit into branch {0}.'.format(first_branch))
+
+    commit = check_output(['git', 'rev-parse', 'HEAD']).strip()
+    for branch in branches[1:]:
+        check_call(['fedpkg', 'switch-branch', branch])
+        print('>>> Updating local branch {}:'.format(branch))
+        update_branch(branch, commit, commit_message)
+
+    for branch in branches:
+        check_call(['fedpkg', 'switch-branch', branch])
+        print('>>> Pushing branch {}:'.format(branch))
+        check_call(['fedpkg', 'push'])
+
+    for branch in branches:
+        check_call(['fedpkg', 'switch-branch', branch])
+        print('>>> Building branch {}:'.format(branch))
+        check_call(['fedpkg', 'build', '--nowait'])
+
+    shutil.rmtree(srpm_tempdir)
+    shutil.rmtree(repo_tempdir)

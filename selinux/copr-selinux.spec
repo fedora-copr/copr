@@ -9,20 +9,19 @@
 %global file_context_file %{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
 %global file_context_file_pre %{_localstatedir}/lib/rpm-state/file_contexts.pre
 
-Name:       copr-selinux
-Version:    1.48
+Name:       {{{ git_dir_name }}}
+Version:    {{{ git_dir_version lead=1 }}}
 Release:    1%{?dist}
 Summary:    SELinux module for COPR
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by
+# Source is created by:
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/selinux
-# tito build --tgz
-# content is same as https://pagure.io/copr/copr.git/snapshot/%{name}-%{version}-1.tar.gz
-# but checksum does not match due different metadata
-Source0: %{name}-%{version}.tar.gz
+# rpkg spec --sources
+Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -124,6 +123,8 @@ fi
 %dir %{_datadir}/selinux/mls
 
 %changelog
+{{{ git_dir_changelog since_tag=copr-selinux-1.49-1 }}}
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.48-1
 - remove Group tag
 

@@ -1,15 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
-import rpm
 from setuptools import setup, find_packages
-
-spec_file = rpm.ts().parseSpec('copr-rpmbuild.spec')
-
 setup(
-    name=spec_file.sourceHeader.name.decode("utf-8"),
-    version=spec_file.sourceHeader.version.decode("utf-8"),
-    description=spec_file.sourceHeader.summary.decode("utf-8"),
-    long_description=spec_file.sourceHeader.description.decode("utf-8"),
+    name="copr-rpmbuild",
+    version='0.18',
+    description="Run COPR build tasks",
+    long_description="Run COPR build tasks",
     author='clime',
     author_email='clime@redhat.com',
     download_url='https://pagure.io/rpkg-client.git',

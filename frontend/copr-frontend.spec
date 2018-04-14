@@ -30,18 +30,19 @@
    end
 }
 
-Name:       copr-frontend
-Version:    1.129
+Name:       {{{ git_dir_name }}}
+Version:    {{{ git_dir_version lead=1 }}}
 Release:    1%{?dist}
 Summary:    Frontend for Copr
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by
+# Source is created by:
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/frontend
-# tito build --tgz
-Source0:    %{name}-%{version}.tar.gz
+# rpkg spec --sources 
+Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 
@@ -334,6 +335,8 @@ service logstash condrestart
 
 
 %changelog
+{{{ git_dir_changelog since_tag=copr-frontend-1.130-1 }}}
+
 * Wed Feb 28 2018 clime <clime@redhat.com> 1.129-1
 - several tweaks for graphs of utilization
 - fix copr_update after user and group routes merge

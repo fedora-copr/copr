@@ -1,32 +1,28 @@
 FROM fedora:26
 MAINTAINER jkadlcik@redhat.com
 
+RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
 # base packages
 RUN dnf -y update && \
-    dnf -y install dnf-plugins-core \
-                   htop \
+    dnf -y install htop \
                    which \
-                   tito \
                    wget \
                    vim \
                    supervisor \
                    copr-selinux \
                    cgit \
-                   pyrpkg
-
-RUN dnf -y copr enable @copr/copr
-RUN dnf -y copr enable clime/dist-git
+                   python2-rpkg \
+                   rpkg
 
 COPY . /copr
 COPY docker/distgit/files/ /
 
-
-RUN dnf builddep -y /copr/dist-git/copr-dist-git.spec
-
-RUN rm -rf /tmp/tito/*
-RUN cd /copr/dist-git/ && tito build --test --rpm --rpmbuild-options='--nocheck'
-RUN dnf -y install /tmp/tito/noarch/copr-dist-git*.noarch.rpm || dnf -y upgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm || dnf -y downgrade /tmp/tito/noarch/copr-dist-git*.noarch.rpm
+RUN rm -rf /tmp/rpkg/* && \
+    rpkg --path /copr/dist-git spec --outdir /tmp/rpkg && \
+    dnf builddep -y /tmp/rpkg/copr-dist-git.spec && \
+    rpkg --path /copr/dist-git local --outdir /tmp/rpkg && \
+    dnf -y install /tmp/rpkg/noarch/copr-dist-git*.noarch.rpm
 
 RUN mkdir /tmp/copr-dist-git
 RUN chown copr-dist-git:packager /tmp/copr-dist-git

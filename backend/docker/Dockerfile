@@ -1,11 +1,11 @@
 FROM fedora:26
 MAINTAINER clime@redhat.com
 
+RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
+
 # base packages
 RUN dnf -y update && \
-    dnf -y install dnf-plugins-core \
-                   htop \
-                   tito \
+    dnf -y install htop \
                    wget \
                    net-tools \
                    iputils \
@@ -40,8 +40,8 @@ RUN dnf -y update && \
 # to get more entropy for generation of gpg keys
                    rng-tools \
 # for unbuffer package
-                   expect && \
-    dnf clean all
+                   expect \
+                   rpkg
 
 # needed to be able to ping
 RUN setcap cap_net_raw,cap_net_admin+p /usr/bin/ping
@@ -69,16 +69,6 @@ RUN useradd copr && \
 
 # setup user for web access
 RUN useradd -r apache
-
-# decides if we should install released or latest (git) versions of COPR packages
-ARG RELEASETEST
-
-# enable appropriate copr repos
-RUN dnf -y copr enable @copr/copr && \
-    if [ ! $RELEASETEST ]; then dnf -y copr enable @copr/copr-dev; fi
-
-# additional builder packages from COPR repos
-RUN dnf -y install copr-rpmbuild && dnf clean all
 
 # preinstall copr-keygen and its builddeps to utilize most of Docker cache
 RUN cd `mktemp -d` && dnf -y download --source copr-keygen && \
@@ -115,43 +105,28 @@ RUN cd `mktemp -d` && \
 COPY . /copr
 
 # build copr-backend from sources
-RUN dnf -y builddep /copr/backend/copr-backend.spec --allowerasing && \
-    cd /copr/backend && \
+RUN rpkg --path /copr/backend spec --outdir /tmp/rpkg && \
+    dnf -y builddep /tmp/rpkg/copr-backend.spec --allowerasing && \
     export LANG=en_US.UTF-8 && \
-    if [ ! $RELEASETEST ]; then \
-        tito build --test --rpm; \
-    else \
-        tito build --rpm; \
-    fi && \
+    rpkg --path /copr/backend local --outdir /tmp/rpkg && \
 # upgrade the already pre-installed package if possible
-    dnf -y upgrade /tmp/tito/noarch/copr-backend*.noarch.rpm || true && \
-    dnf clean all
+    dnf -y upgrade /tmp/rpkg/noarch/copr-backend*.noarch.rpm || true
 
 # build copr-keygen from sources
-RUN dnf -y builddep /copr/keygen/copr-keygen.spec --allowerasing && \
-    cd /copr/keygen && \
+RUN rpkg --path /copr/keygen spec --outdir /tmp/rpkg && \
+    dnf -y builddep /tmp/rpkg/copr-keygen.spec --allowerasing && \
     export LANG=en_US.UTF-8 && \
-    if [ ! $RELEASETEST ]; then \
-        tito build --test --rpm; \
-    else \
-        tito build --rpm; \
-    fi && \
+    rpkg --path /copr/keygen local --outdir /tmp/rpkg && \
 # upgrade the already pre-installed package if possible
-    dnf -y upgrade /tmp/tito/noarch/copr-keygen*.noarch.rpm || true && \
-    dnf clean all
+    dnf -y upgrade /tmp/rpkg/noarch/copr-keygen*.noarch.rpm || true
 
 # build copr-rpmbuild from sources
-RUN dnf -y builddep /copr/rpmbuild/copr-rpmbuild.spec --allowerasing && \
-    cd /copr/rpmbuild && \
+RUN rpkg --path /copr/rpmbuild spec --outdir /tmp/rpkg && \
+    dnf -y builddep /tmp/rpkg/copr-rpmbuild.spec --allowerasing && \
     export LANG=en_US.UTF-8 && \
-    if [ ! $RELEASETEST ]; then \
-        tito build --test --rpm; \
-    else \
-        tito build --rpm; \
-    fi && \
+    rpkg --path /copr/rpmbuild local --outdir /tmp/rpkg && \
 # upgrade the already pre-installed package if possible
-    dnf -y upgrade /tmp/tito/noarch/copr-rpmbuild*.noarch.rpm || true && \
-    dnf clean all
+    dnf -y upgrade /tmp/rpkg/noarch/copr-rpmbuild*.noarch.rpm || true
 
 # copy filesystem setup and setup ownership and permissions
 COPY backend/docker/files/ /
