@@ -7,6 +7,7 @@ from .client import Client
 from .proxies.project import ProjectProxy
 from .proxies.build import BuildProxy
 from .proxies.package import PackageProxy
+from .proxies.project_chroot import ProjectChrootProxy
 
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
     Client,
     BuildProxy,
     PackageProxy,
+    ProjectChrootProxy,
     CoprRequestException,
     CoprValidationException,
     refresh,
