@@ -49,7 +49,7 @@ from coprs.views.admin_ns import admin_general
 from coprs.views import api_ns
 from coprs.views.api_ns import api_general
 from coprs.views import apiv3_ns
-from coprs.views.apiv3_ns import apiv3_general, apiv3_builds, apiv3_packages
+from coprs.views.apiv3_ns import apiv3_general, apiv3_builds, apiv3_packages, apiv3_projects
 from coprs.views import coprs_ns
 from coprs.views.coprs_ns import coprs_builds
 from coprs.views.coprs_ns import coprs_general

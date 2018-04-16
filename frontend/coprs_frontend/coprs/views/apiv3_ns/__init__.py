@@ -2,6 +2,7 @@ import flask
 import wtforms
 import sqlalchemy
 import inspect
+from functools import wraps
 from coprs.exceptions import CoprHttpException
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -37,6 +38,7 @@ def optional_params(form_class):
 
 def query_params():
     def query_params_decorator(f):
+        @wraps(f)
         def query_params_wrapper(*args, **kwargs):
             for arg in [x for x in inspect.signature(f).parameters]:
                 if arg not in flask.request.args:
