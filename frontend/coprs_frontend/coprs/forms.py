@@ -19,6 +19,10 @@ from coprs.logic.modules_logic import ModulesLogic
 from coprs.models import Package
 from coprs import exceptions
 
+
+FALSE_VALUES = {False, "false", ""}
+
+
 def get_package_form_cls_by_source_type_text(source_type_text):
     """
     Params
@@ -269,13 +273,13 @@ class CoprFormFactory(object):
                     UrlSrpmListValidator()],
                 filters=[StringListFilter()])
 
-            disable_createrepo = wtforms.BooleanField(default=False)
-            build_enable_net = wtforms.BooleanField(default=False)
-            unlisted_on_hp = wtforms.BooleanField("Do not display this project on home page", default=False)
-            persistent = wtforms.BooleanField(default=False)
-            auto_prune = wtforms.BooleanField("If backend auto-prunning script should be run for this project", default=True)
-            use_bootstrap_container = wtforms.BooleanField("Enable use_bootstrap_container mock's feature (experimental)", default=False)
-            follow_fedora_branching = wtforms.BooleanField("If newly branched chroots should be automatically enabled and populated.", default=False)
+            disable_createrepo = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+            build_enable_net = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+            unlisted_on_hp = wtforms.BooleanField("Do not display this project on home page", default=False, false_values=FALSE_VALUES)
+            persistent = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+            auto_prune = wtforms.BooleanField("If backend auto-prunning script should be run for this project", default=True, false_values=FALSE_VALUES)
+            use_bootstrap_container = wtforms.BooleanField("Enable use_bootstrap_container mock's feature (experimental)", default=False, false_values=FALSE_VALUES)
+            follow_fedora_branching = wtforms.BooleanField("If newly branched chroots should be automatically enabled and populated.", default=False, false_values=FALSE_VALUES)
 
             @property
             def selected_chroots(self):
@@ -314,7 +318,7 @@ class CoprFormFactory(object):
                                           mock_chroots):
                 checkbox_default = True
 
-            setattr(F, ch, wtforms.BooleanField(ch, default=checkbox_default))
+            setattr(F, ch, wtforms.BooleanField(ch, default=checkbox_default, false_values=FALSE_VALUES))
             if ch[0] in F.chroots_sets:
                 F.chroots_sets[ch[0]].append(ch)
             else:
@@ -363,13 +367,13 @@ class BuildFormRebuildFactory(object):
                         max=constants.MAX_BUILD_TIMEOUT)],
                 default=constants.DEFAULT_BUILD_TIMEOUT)
 
-            enable_net = wtforms.BooleanField()
+            enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
 
         F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
         F.chroots_sets = {}
         for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True))
+            setattr(F, ch, wtforms.BooleanField(ch, default=True, false_values=FALSE_VALUES))
             if ch[0] in F.chroots_sets:
                 F.chroots_sets[ch[0]].append(ch)
             else:
@@ -392,7 +396,7 @@ class BasePackageForm(FlaskForm):
     package_name = wtforms.StringField(
         "Package name",
         validators=[wtforms.validators.DataRequired()])
-    webhook_rebuild = wtforms.BooleanField(default=False)
+    webhook_rebuild = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
 
 
 class PackageTypeSelectorForm(BasePackageForm):
@@ -510,7 +514,7 @@ class PackageFormTito(BasePackageForm):
         validators=[
             wtforms.validators.Optional()])
 
-    tito_test = wtforms.BooleanField(default=False)
+    tito_test = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
 
     @property
     def source_json(self):
@@ -705,8 +709,8 @@ class BaseBuildFormFactory(object):
                     max=constants.MAX_BUILD_TIMEOUT)],
             default=constants.DEFAULT_BUILD_TIMEOUT)
 
-        F.enable_net = wtforms.BooleanField()
-        F.background = wtforms.BooleanField(default=False)
+        F.enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
+        F.background = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
 
         # overrides BasePackageForm.package_name and is unused for building
         F.package_name = wtforms.StringField()
@@ -715,7 +719,7 @@ class BaseBuildFormFactory(object):
         F.chroots_list.sort()
         F.chroots_sets = {}
         for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True))
+            setattr(F, ch, wtforms.BooleanField(ch, default=True, false_values=FALSE_VALUES))
             if ch[0] in F.chroots_sets:
                 F.chroots_sets[ch[0]].append(ch)
             else:
@@ -792,8 +796,8 @@ class ModuleFormUploadFactory(FlaskForm):
         # @TODO Validate modulemd.yaml file
     ])
 
-    create = wtforms.BooleanField("create", default=True)
-    build = wtforms.BooleanField("build", default=True)
+    create = wtforms.BooleanField("create", default=True, false_values=FALSE_VALUES)
+    build = wtforms.BooleanField("build", default=True, false_values=FALSE_VALUES)
 
 
 class ModuleBuildForm(FlaskForm):
@@ -846,11 +850,13 @@ class PermissionsApplierFormFactory(object):
         setattr(F, "copr_builder",
                 wtforms.BooleanField(
                     default=builder_default,
+                    false_values=FALSE_VALUES,
                     filters=[ValueToPermissionNumberFilter()]))
 
         setattr(F, "copr_admin",
                 wtforms.BooleanField(
                     default=admin_default,
+                    false_values=FALSE_VALUES,
                     filters=[ValueToPermissionNumberFilter()]))
 
         return F
@@ -901,12 +907,12 @@ class CoprModifyForm(FlaskForm):
                                               wtforms.validators.Optional()],
                                   filters=[StringListFilter()])
 
-    disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
-    unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
-    build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
-    auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
-    use_bootstrap_container = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
-    follow_fedora_branching = wtforms.BooleanField(validators=[wtforms.validators.Optional()])
+    disable_createrepo = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    unlisted_on_hp = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    build_enable_net = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    auto_prune = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    use_bootstrap_container = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
+    follow_fedora_branching = wtforms.BooleanField(validators=[wtforms.validators.Optional()], false_values=FALSE_VALUES)
 
 
 class CoprForkFormFactory(object):
@@ -930,6 +936,7 @@ class CoprForkFormFactory(object):
 
             confirm = wtforms.BooleanField(
                 "Confirm",
+                false_values=FALSE_VALUES,
                 default=False)
         return F
 
@@ -941,11 +948,11 @@ class ModifyChrootForm(FlaskForm):
                                               wtforms.validators.Optional()],
                                   filters=[StringListFilter()])
     upload_comps = FileField("Upload comps.xml")
-    delete_comps = wtforms.BooleanField("Delete comps.xml")
+    delete_comps = wtforms.BooleanField("Delete comps.xml", false_values=FALSE_VALUES)
 
 
 class AdminPlaygroundForm(FlaskForm):
-    playground = wtforms.BooleanField("Playground")
+    playground = wtforms.BooleanField("Playground", false_values=FALSE_VALUES)
 
 
 class AdminPlaygroundSearchForm(FlaskForm):
