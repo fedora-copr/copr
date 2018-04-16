@@ -79,11 +79,19 @@
     <div class="container">
 
       <!-- Flash messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for type, message in messages %}
+      {% if flashes %}
+        {% for type, message in flashes %}
           {{ alert(message, type) }}
         {% endfor %}
-      {% endwith %}
+      {% else %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for type, message in messages %}
+            {{ alert(message, type) }}
+          {% endfor %}
+        {% endwith %}
+      {% endif %}
+
+
 
       <!-- the actual content -->
       {% block body %}{% endblock %}

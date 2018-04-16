@@ -63,11 +63,17 @@ def copr_builds(copr):
 
 
 def render_copr_builds(copr):
+    flashes = flask.session.pop('_flashes', [])
     builds_query = builds_logic.BuildsLogic.get_copr_builds_list(copr=copr)
-    return flask.Response(stream_with_context(helpers.stream_template("coprs/detail/builds.html",
+    response = flask.Response(stream_with_context(helpers.stream_template("coprs/detail/builds.html",
                                  copr=copr,
-                                 builds=list(builds_query))))
+                                 builds=list(builds_query),
+                                 flashes=flashes,
+                                 )))
 
+    flask.session.pop('_flashes', [])
+    app.save_session(flask.session, response)
+    return response
 
 ################################ Url builds ################################
 
