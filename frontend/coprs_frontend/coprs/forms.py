@@ -165,6 +165,10 @@ class NameCharactersValidator(object):
 
 class ChrootsValidator(object):
     def __call__(self, form, field):
+        # Allow it to be truly optional and has None value
+        if not field.data:
+            return
+
         selected = set(field.data.split())
         enabled = set(self.chroots_list())
 
