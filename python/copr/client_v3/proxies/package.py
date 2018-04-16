@@ -28,6 +28,19 @@ class PackageProxy(BaseProxy):
         response = request.send()
         return response.munchify()
 
+    def add(self, ownername, projectname, packagename, source_type_text, source_dict):
+        endpoint = "/package/add"
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "package_name": packagename,
+            "source_type_text": source_type_text,
+        }
+        data.update(source_dict)
+        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
+        response = request.send()
+        return response.munchify()
+
     def edit(self, ownername, projectname, packagename, source_type_text, source_dict):
         endpoint = "/package/edit"
         data = {

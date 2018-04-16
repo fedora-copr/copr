@@ -52,6 +52,16 @@ def get_package_list(**kwargs):
     return flask.jsonify(items=packages, meta=paginator.meta)
 
 
+@apiv3_ns.route("/package/add", methods=["POST"])
+@api_login_required
+def package_add():
+    copr = get_copr()
+    form = forms.PackageTypeSelectorForm()
+    process_package_add_or_edit(copr, form.source_type_text.data)
+    package = PackagesLogic.get(copr.id, form.package_name.data).first()
+    return flask.jsonify(to_dict(package))
+
+
 @apiv3_ns.route("/package/edit", methods=["POST"])
 @api_login_required
 def package_edit():
