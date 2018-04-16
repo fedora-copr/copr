@@ -254,6 +254,6 @@ def copr_delete_package(copr, package_id):
         flask.flash(str(e), "error")
     else:
         db.session.commit()
-        flask.flash("Package has been deleted successfully.", "success")
+        flask.flash("Package has been deleted successfully.")
 
     return flask.redirect(helpers.copr_url("coprs_ns.copr_packages", copr))

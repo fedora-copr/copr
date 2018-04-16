@@ -439,7 +439,7 @@ def process_cancel_build(build):
         flask.flash(str(e), "error")
     else:
         db.session.commit()
-        flask.flash("Build {} has been canceled successfully.".format(build.id), "success")
+        flask.flash("Build {} has been canceled successfully.".format(build.id))
     return flask.redirect(helpers.url_for_copr_builds(build.copr))
 
 
@@ -467,6 +467,6 @@ def copr_delete_build(username, coprname, build_id):
         flask.flash(str(e), "error")
     else:
         db.session.commit()
-        flask.flash("Build has been deleted successfully.", "success")
+        flask.flash("Build has been deleted successfully.")
 
     return flask.redirect(helpers.url_for_copr_builds(build.copr))
