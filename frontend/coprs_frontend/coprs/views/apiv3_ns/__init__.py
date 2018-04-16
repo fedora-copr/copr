@@ -60,8 +60,9 @@ class BaseListForm(wtforms.Form):
 
 
 def get_copr():
-    ownername = flask.request.args.get("ownername") or flask.request.form["ownername"]
-    projectname = flask.request.args.get("projectname") or flask.request.form["projectname"]
+    request = flask.request
+    ownername = request.args.get("ownername") or request.form.get("ownername") or request.json["ownername"]
+    projectname = request.args.get("projectname") or request.form.get("projectname") or request.json["projectname"]
     return ComplexLogic.get_copr_by_owner_safe(ownername, projectname)
 
 

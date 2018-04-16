@@ -45,19 +45,32 @@ class Request(object):
         return self._method.upper()
 
     def send(self):
-        response = requests.request(method=self.method, url=self.endpoint_url, data=self.data,
-                                    params=self.params, auth=self.auth, headers=self.headers)
+        response = requests.request(**self._request_params)
         handle_errors(response.json())
         return Response(headers=response.headers, data=response.json(), request=self)
 
+    @property
+    def _request_params(self):
+        return {
+            "url": self.endpoint_url,
+            "auth": self.auth,
+            "json": self.data,
+            "method": self.method,
+            "params": self.params,
+            "headers": self.headers,
+        }
+
 
 class FileRequest(Request):
-    def __init__(self, *args, **kwargs):
-        super(FileRequest, self).__init__(*args, **kwargs)
+    @property
+    def _request_params(self):
+        params = super(FileRequest, self)._request_params
         callback = lambda x: x  # @TODO progress_callback or (lambda x: x)
         m = MultipartEncoder(self.data)
-        self.data = MultipartEncoderMonitor(m, callback)
-        self.headers = {'Content-Type': self.data.content_type}
+        params["json"] = None
+        params["data"] = MultipartEncoderMonitor(m, callback)
+        params["headers"] = {'Content-Type': params["data"].content_type}
+        return params
 
 
 class Response(object):
