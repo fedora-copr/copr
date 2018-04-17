@@ -7,24 +7,24 @@ class PackageProxy(BaseProxy):
 
     def get(self, ownername, projectname, packagename):
         endpoint = "/package"
-        data = {
+        params = {
             "ownername": ownername,
             "projectname": projectname,
             "packagename": packagename,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=data)
+        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
         return response.munchify()
 
     def get_list(self, ownername, projectname, pagination=None):
         endpoint = "/package/list"
-        data = {
+        params = {
             "ownername": ownername,
             "projectname": projectname,
         }
-        data.update(pagination.to_dict() if pagination else {})
+        params.update(pagination.to_dict() if pagination else {})
 
-        request = Request(endpoint, api_base_url=self.api_base_url, params=data)
+        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
         return response.munchify()
 

@@ -10,12 +10,11 @@ class ProjectProxy(BaseProxy):
 
     def get(self, ownername, projectname):
         endpoint = "/project"
-        # @TODO rename to params (for all methods using it this way)
-        data = {
+        params = {
             "ownername": ownername,
             "projectname": projectname,
         }
-        request = Request(endpoint, api_base_url=self.api_base_url, params=data)
+        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
         return response.munchify()
 
