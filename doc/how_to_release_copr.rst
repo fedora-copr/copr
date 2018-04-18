@@ -21,7 +21,7 @@ Build packages
 
 Build all packages::
 
-    releng/build-packages @copr-dev
+    releng/build-packages @copr/copr-dev
 
 Upgrade -dev machines
 ---------------------
@@ -62,7 +62,7 @@ Build packages for production
 
 Build all packages for @copr projects::
 
-    releng/build-packages @copr
+    releng/build-packages @copr/copr
 
 Release python-copr to PyPi
 ---------------------------
