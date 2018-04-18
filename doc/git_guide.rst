@@ -488,9 +488,10 @@ Building Test RPMs
 
 Here is an example workflow where we are working on a spec file and testing with::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
 
-For readability we will name different SHA1 number as SHA1-A, SHA1-B, ... You can find tito in the rel-eng/bin directory of your git checkout, and it can be called relatively or added to your path.
+For readability we will name different SHA1 number as SHA1-A, SHA1-B, ...
 
 When we begin, the tree has SHA1-A::
 
@@ -506,7 +507,8 @@ Review the changes, then do some testing. You find error,for example, rpmlint co
 
 The tree now has SHA1-C::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
 
 We still find errors, re-edit the spec file::
 
@@ -514,7 +516,8 @@ We still find errors, re-edit the spec file::
 
 The tree now has SHA1-D::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
 
 Again, still more errors, edit the spec file::
 
@@ -522,7 +525,8 @@ Again, still more errors, edit the spec file::
 
 The tree now has SHA1-E::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
 
 Finally, ``rpmlint`` is silent. We will reject all our previous commits,
 
@@ -547,7 +551,9 @@ Now we have one commit including all of the changes::
 
 Confirm this is what we wanted and we are ready to merge and push::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
+    rpkg push
 
 Other Resources
 ---------------
@@ -571,4 +577,4 @@ Other Resources
 Credits
 -------
 
-* Stolen from Git guide in spacewalk project
+* Originally stolen from Git guide in spacewalk project

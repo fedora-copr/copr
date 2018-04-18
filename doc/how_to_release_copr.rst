@@ -5,23 +5,23 @@ How to release Copr
 
 Go through this page well before you will do the release. Maybe you will want to do some steps in different order, and in any case, it's good to know what's ahead.
 
-Keep amending this page if you find something not matching reality or expectations. 
+Keep amending this page if you find something not matching reality or expectations.
 
 Tag untagged packages that have changes in them
 -----------------------------------------------
 
 Run::
 
-    tito report --untagged-commits
+    releng/show-untagged-commits
 
-and walk the directories of packages listed and tito tag them and push them. 
+and walk the directories of packages listed and `rpkg tag` them and `rpkg push` them.
 
 Build packages
 --------------
 
-Build all outstanding packages::
+Build all packages::
 
-    ./.tito/build-missing-builds.sh @copr-dev
+    releng/build-packages @copr-dev
 
 Upgrade -dev machines
 ---------------------
@@ -60,9 +60,9 @@ Run :ref:`beaker_tests` and check the results.
 Build packages for production
 -----------------------------
 
-Build all outstanding packages for @copr projects::
+Build all packages for @copr projects::
 
-    ./.tito/build-missing-builds.sh @copr
+    releng/build-packages @copr
 
 Release python-copr to PyPi
 ---------------------------
@@ -76,57 +76,40 @@ Or tell somebody with access to run that (msuchy has access).
 Release package to Fedora
 -------------------------
 
-Make sure that `./.tito/releasers.conf` has up to date list of branches.
+Make sure that `releng/releasers.conf` has up to date list of branches.
 
 Make sure you are co-maintainer of those packages in Fedora.
 
 Run::
 
-    cd python
+    rm -r /tmp/rpkg
 
-    tito release fedora-git-all
+    rpkg --path python srpm --outdir /tmp/rpkg
+    releng/fedora-release git-all /tmp/rpkg/python-copr*.src.rpm
 
-    cd ..
+    rpkg --path cli srpm --outdir /tmp/rpkg
+    releng/fedora-release git-all /tmp/rpkg/copr-cli*.src.rpm
 
-    cd cli
+    rpkg --path frontend srpm --outdir /tmp/rpkg
+    releng/fedora-release git /tmp/rpkg/copr-frontend*.src.rpm
 
-    tito release fedora-git-all
+    rpkg --path backend srpm --outdir /tmp/rpkg
+    releng/fedora-release git /tmp/rpkg/copr-backend*.src.rpm
 
-    cd ..
+    rpkg --path dist-git srpm --outdir /tmp/rpkg
+    releng/fedora-release git /tmp/rpkg/copr-dist-git*.src.rpm
 
-    cd frontend
+    rpkg --path dist-git srpm --outdir /tmp/rpkg
+    releng/fedora-release git /tmp/rpkg/copr-keygen*.src.rpm
 
-    tito release fedora-git
+    rpkg --path selinux srpm --outdir /tmp/rpkg
+    releng/fedora-release git /tmp/rpkg/copr-selinux*.src.rpm
 
-    cd ..
+    rpkg --path prunerepo srpm --outdir /tmp/rpkg
+    releng/fedora-release git /tmp/rpkg/prunerepo*.src.rpm
 
-    cd backend
-
-    tito release fedora-git
-
-    cd ..
-
-    cd dist-git
-
-    tito release fedora-git
-
-    cd..
-
-    cd keygen
-
-    tito release fedora-git-keygen
-
-    cd selinux
-
-    tito release fedora-git-selinux
-
-    cd ..
-
-    cd prunerepo
-
-    tito release fedora-git
-
-    cd ..
+    rpkg --path common srpm --outdir /tmp/rpkg
+    releng/fedora-release git /tmp/rpkg/python-copr-common*.src.rpm
 
 And create erratas in Bodhi.
 
