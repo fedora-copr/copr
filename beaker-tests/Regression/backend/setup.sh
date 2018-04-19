@@ -68,7 +68,8 @@ docker exec copr-backend /bin/sh -c 'rm -r /var/lib/copr-keygen/phrases/*'
 cd $COPRROOTDIR/mocks
 dnf -y install python3-flask
 dnf -y install python3-flask-script
-dnf -y builddep copr-mocks.spec
+rpkg spec --outdir /tmp/rpkg
+dnf -y builddep /tmp/rpkg/copr-mocks.spec
 rpkg local --outdir /tmp/rpkg
 dnf install -C -y /tmp/rpkg/noarch/copr-mocks*noarch.rpm --best
 cd $SCRIPTPATH

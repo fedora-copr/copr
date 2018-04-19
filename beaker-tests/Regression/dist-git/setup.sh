@@ -17,20 +17,21 @@ fi
 dnf -y copr enable @copr/copr
 dnf -y install jq copr-mocks dist-git dist-git-selinux rpkg
 
-export LANG=en_US.UTF-8
+# cleanup
+rm -r /tmp/rpkg/
 
 # install copr-mocks from sources
 cd $COPRROOTDIR/mocks
-dnf -y builddep copr-mocks.spec
-rm -rf /tmp/rpkg/noarch/
+rpkg spec --outdir /tmp/rpkg
+dnf -y builddep /tmp/rpkg/copr-mocks.spec
 rpkg local --outdir /tmp/rpkg
 dnf install -y /tmp/rpkg/noarch/copr-mocks*noarch.rpm --best
 cd -
 
 # install copr-dist-git from sources
 cd $COPRROOTDIR/dist-git
-dnf -y builddep copr-dist-git.spec --allowerasing
-rm -rf /tmp/rpkg/noarch/
+rpkg spec --outdir /tmp/rpkg
+dnf -y builddep /tmp/rpkg/copr-dist-git.spec --allowerasing
 rpkg local --outdir /tmp/rpkg
 dnf install -y /tmp/rpkg/noarch/copr-dist-git*noarch.rpm --best
 cd -
