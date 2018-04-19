@@ -67,7 +67,7 @@ def get_copr():
 
 
 class Paginator(object):
-    LIMIT = 100
+    LIMIT = None
     OFFSET = 0
     ORDER = "id"
     ORDER_TYPE = "ASC"
