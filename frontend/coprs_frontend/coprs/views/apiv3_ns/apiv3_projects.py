@@ -1,6 +1,6 @@
 import os
 import flask
-from . import query_params, get_copr
+from . import query_params, get_copr, pagination, Paginator
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
@@ -56,6 +56,23 @@ def get_copr_form_factory():
 def get_project(ownername, projectname):
     copr = get_copr()
     return flask.jsonify(to_dict(copr))
+
+
+@apiv3_ns.route("/project/list", methods=["GET"])
+@pagination()
+@query_params()
+def get_project_list(ownername, **kwargs):
+    if ownername.startswith("@"):
+        group_name = ownername[1:]
+        query = CoprsLogic.get_multiple()
+        query = CoprsLogic.filter_by_group_name(query, group_name)
+    else:
+        query = CoprsLogic.get_multiple_owned_by_username(ownername)
+
+    # @TODO ordering doesn't work correctly - try order by models.Copr.name DESC
+    paginator = Paginator(query, models.Copr, **kwargs)
+    projects = paginator.map(to_dict)
+    return flask.jsonify(items=projects, meta=paginator.meta)
 
 
 @apiv3_ns.route("/project/add", methods=["POST"])
