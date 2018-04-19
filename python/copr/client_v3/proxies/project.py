@@ -101,3 +101,21 @@ class ProjectProxy(BaseProxy):
                           params=params, data=data, auth=self.auth)
         response = request.send()
         return response.munchify()
+
+    def fork(self, ownername, projectname, dstownername, dstprojectname, confirm=False):
+        endpoint = "/project/fork"
+        # @FIXME we send duplicit information here
+        params = {
+            "ownername": ownername,
+            "projectname": projectname,
+        }
+        data = {
+            "source": "/".join([ownername, projectname]),
+            "name": dstprojectname,
+            "ownername": dstownername,
+            "confirm": confirm,
+        }
+        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
+                          params=params, data=data, auth=self.auth)
+        response = request.send()
+        return response.munchify()

@@ -167,6 +167,42 @@ def edit_project(ownername, projectname):
     return flask.jsonify(to_dict(copr))
 
 
+@apiv3_ns.route("/project/fork", methods=["POST"])
+@api_login_required
+@query_params()
+def fork_project(ownername, projectname):
+    copr = get_copr()
+    form = forms.CoprForkFormFactory \
+        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(csrf_enabled=False)
+
+    if form.validate_on_submit() and copr:
+        try:
+            dstgroup = ([g for g in flask.g.user.user_groups if g.at_name == form.owner.data] or [None])[0]
+            if flask.g.user.name != form.owner.data and not dstgroup:
+                return ApiError("There is no such group: {}".format(form.owner.data))
+
+            fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup)
+            if created:
+                # @TODO Do we want to have messages like this as a part of returned json?
+                msg = ("Forking project {} for you into {}.\nPlease be aware that it may take a few minutes "
+                       "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
+            elif not created and form.confirm.data == True:
+                msg = ("Updating packages in {} from {}.\nPlease be aware that it may take a few minutes "
+                       "to duplicate backend data.".format(copr.full_name, fcopr.full_name))
+            else:
+                raise ApiError("You are about to fork into existing project: {}\n"
+                               "Please use --confirm if you really want to do this".format(fcopr.full_name))
+            db.session.commit()
+
+        except (ActionInProgressException, InsufficientRightsException) as err:
+            db.session.rollback()
+            raise ApiError(str(err))
+    else:
+        raise ApiError("Invalid request: {0}".format(form.errors))
+
+    return flask.jsonify(to_dict(fcopr))
+
+
 @apiv3_ns.route("/project/delete", methods=["POST"])
 @api_login_required
 @query_params()
