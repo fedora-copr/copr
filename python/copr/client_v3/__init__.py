@@ -9,6 +9,7 @@ from .proxies.project import ProjectProxy
 from .proxies.build import BuildProxy
 from .proxies.package import PackageProxy
 from .proxies.project_chroot import ProjectChrootProxy
+from .proxies.module import ModuleProxy
 
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     BuildProxy,
     PackageProxy,
     ProjectChrootProxy,
+    ModuleProxy,
     CoprRequestException,
     CoprValidationException,
     refresh,
