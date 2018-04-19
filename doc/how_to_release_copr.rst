@@ -14,7 +14,7 @@ Run::
 
     releng/show-untagged-commits
 
-and walk the directories of packages listed and `rpkg tag` them and `rpkg push` them.
+and walk the directories of packages listed and ``rpkg tag`` them and ``rpkg push`` them.
 
 Build packages
 --------------
@@ -76,7 +76,7 @@ Or tell somebody with access to run that (msuchy has access).
 Release package to Fedora
 -------------------------
 
-Make sure that `releng/releasers.conf` has up to date list of branches.
+Make sure that ``releng/releasers.conf`` has up to date list of branches.
 
 Make sure you are co-maintainer of those packages in Fedora.
 
@@ -99,7 +99,7 @@ Run::
     rpkg --path dist-git srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-dist-git*.src.rpm
 
-    rpkg --path dist-git srpm --outdir /tmp/rpkg
+    rpkg --path keygen srpm --outdir /tmp/rpkg
     releng/fedora-release git /tmp/rpkg/copr-keygen*.src.rpm
 
     rpkg --path selinux srpm --outdir /tmp/rpkg
