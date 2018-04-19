@@ -1,6 +1,6 @@
 import flask
 import wtforms
-from . import optional_params, query_params, get_copr, Paginator, BaseListForm
+from . import query_params, pagination, get_copr, Paginator
 from coprs.exceptions import ApiError
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException, NoPackageSourceException
 from coprs.views.misc import api_login_required
@@ -27,11 +27,6 @@ def to_dict(package):
     return package_dict
 
 
-class PackageListForm(BaseListForm):
-    ownername = wtforms.StringField("Ownername")
-    projectname = wtforms.StringField("Projectname")
-
-
 @apiv3_ns.route("/package", methods=["GET"])
 @query_params()
 def get_package(ownername, projectname, packagename):
@@ -44,8 +39,9 @@ def get_package(ownername, projectname, packagename):
 
 
 @apiv3_ns.route("/package/list/", methods=["GET"])
-@optional_params(PackageListForm)
-def get_package_list(**kwargs):
+@pagination()
+@query_params()
+def get_package_list(ownername, projectname, **kwargs):
     copr = get_copr()
     paginator = Paginator(PackagesLogic.get_all(copr.id), models.Package, **kwargs)
     packages = paginator.map(to_dict)

@@ -17,30 +17,13 @@ def handle_api_errors(error):
     return response
 
 
-# @TODO use query_params decorator instead
-def optional_params(form_class):
-    def optional_params_decorator(f):
-        def wrapper(*args, **kwargs):
-            form = form_class(flask.request.args)
-            if not form.validate():
-                raise CoprHttpException(form.errors)
-
-            unexpected = set(flask.request.args) - form.data.keys()
-            if unexpected:
-                raise CoprHttpException("Unexpected arguments: {}".format(", ".join(unexpected)))
-
-            kwargs.update(form.data)
-
-            return f(*args, **kwargs)
-        return wrapper
-    return optional_params_decorator
-
-
 def query_params():
     def query_params_decorator(f):
         @wraps(f)
         def query_params_wrapper(*args, **kwargs):
-            for arg in [x for x in inspect.signature(f).parameters]:
+            params = [x for x in inspect.signature(f).parameters]
+            params = list(set(params) - {"args", "kwargs"})
+            for arg in params:
                 if arg not in flask.request.args:
                     raise CoprHttpException("Missing argument {}".format(arg))
                 kwargs[arg] = flask.request.args.get(arg)
@@ -49,9 +32,20 @@ def query_params():
     return query_params_decorator
 
 
+def pagination():
+    def pagination_decorator(f):
+        @wraps(f)
+        def pagination_wrapper(*args, **kwargs):
+            form = PaginationForm(flask.request.args)
+            if not form.validate():
+                raise CoprHttpException(form.errors)
+            kwargs.update(form.data)
+            return f(*args, **kwargs)
+        return pagination_wrapper
+    return pagination_decorator
 
 
-class BaseListForm(wtforms.Form):
+class PaginationForm(wtforms.Form):
     limit = wtforms.IntegerField("Limit", validators=[wtforms.validators.Optional()])
     offset = wtforms.IntegerField("Offset", validators=[wtforms.validators.Optional()])
     order = wtforms.StringField("Order by", validators=[wtforms.validators.Optional()])
