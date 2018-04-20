@@ -300,10 +300,9 @@ class Commands(object):
         try:
             result = build_function(username=username, projectname=copr, chroots=args.chroots, memory=args.memory,
                                     timeout=args.timeout, background=args.background, **data)
-        except:
+        finally:
             if bar:
                 bar.finish()
-            raise
 
         if result.output != "ok":
             sys.stderr.write(result.error + "\n")
