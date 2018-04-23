@@ -28,6 +28,16 @@ class ProjectProxy(BaseProxy):
         response = request.send()
         return response.munchify()
 
+    def search(self, query, pagination=None):
+        endpoint = "/project/search"
+        params = {
+            "query": query,
+        }
+        params.update(pagination.to_dict() if pagination else {})
+        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
+        response = request.send()
+        return response.munchify()
+
     def add(self, ownername, projectname, chroots, description=None, instructions=None, repos=None,
             disable_createrepo=False, unlisted_on_hp=False, enable_net=True, persistent=False,
             auto_prune=True, use_bootstrap_container=False):

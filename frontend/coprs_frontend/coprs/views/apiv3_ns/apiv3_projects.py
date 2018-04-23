@@ -75,6 +75,20 @@ def get_project_list(ownername, **kwargs):
     return flask.jsonify(items=projects, meta=paginator.meta)
 
 
+@apiv3_ns.route("/project/search", methods=["GET"])
+@pagination()
+@query_params()
+# @TODO should the param be query or projectname?
+def search_projects(query, **kwargs):
+    try:
+        search_query = CoprsLogic.get_multiple_fulltext(query)
+        paginator = Paginator(search_query, models.Copr, **kwargs)
+        projects = paginator.map(to_dict)
+    except ValueError as ex:
+        raise ApiError("Server error: {}".format(ex))
+    return flask.jsonify(items=projects, meta=paginator.meta)
+
+
 @apiv3_ns.route("/project/add", methods=["POST"])
 @api_login_required
 @query_params()
