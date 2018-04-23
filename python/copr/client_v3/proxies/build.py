@@ -89,3 +89,9 @@ class BuildProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
         return response.munchify()
+
+    def delete(self, build_id):
+        endpoint = "/build/delete/{}".format(build_id)
+        request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
+        response = request.send()
+        return response.munchify()

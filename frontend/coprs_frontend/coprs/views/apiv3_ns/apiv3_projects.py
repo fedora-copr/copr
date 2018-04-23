@@ -165,3 +165,27 @@ def edit_project(ownername, projectname):
         raise ApiError("Invalid request: {}".format(e))
 
     return flask.jsonify(to_dict(copr))
+
+
+@apiv3_ns.route("/project/delete", methods=["POST"])
+@api_login_required
+@query_params()
+def delete_project(ownername, projectname):
+    copr = get_copr()
+    form = forms.CoprDeleteForm(csrf_enabled=False)
+
+    # @FIXME We want to send True from client, but validator expects it to be a string
+    form.verify.data = "yes" if form.verify.data else ""
+
+    if form.validate_on_submit() and copr:
+        try:
+            ComplexLogic.delete_copr(copr)
+        except (ActionInProgressException,
+                InsufficientRightsException) as err:
+            db.session.rollback()
+            raise ApiError(str(err))
+        else:
+            db.session.commit()
+    else:
+        raise ApiError("Invalid request: {0}".format(form.errors))
+    return flask.jsonify(to_dict(copr))

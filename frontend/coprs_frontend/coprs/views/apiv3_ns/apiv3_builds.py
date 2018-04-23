@@ -180,3 +180,15 @@ def process_creating_new_build(copr, form, create_new_build):
         builds = [build] if type(build) != list else build
         return flask.jsonify(items=[to_dict(b) for b in builds], meta={})
     return flask.jsonify(to_dict(build))
+
+
+@apiv3_ns.route("/build/delete/<int:build_id>", methods=["POST"])
+@api_login_required
+def delete_build(build_id):
+    build = ComplexLogic.get_build_safe(build_id)
+    try:
+        BuildsLogic.delete_build(flask.g.user, build)
+        db.session.commit()
+    except (InsufficientRightsException, ActionInProgressException) as ex:
+        raise ApiError("Invalid request: {}".format(ex))
+    return flask.jsonify(to_dict(build))

@@ -75,3 +75,14 @@ class PackageProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
         return response.munchify()
+
+    def delete(self, ownername, projectname, packagename):
+        endpoint = "/package/delete"
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "package_name": packagename,
+        }
+        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
+        response = request.send()
+        return response.munchify()

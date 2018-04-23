@@ -111,3 +111,23 @@ def package_build():
     else:
         raise ApiError(form.errors)
     return flask.jsonify(build_to_dict(build))
+
+
+@apiv3_ns.route("/package/delete", methods=["POST"])
+@api_login_required
+def package_delete():
+    copr = get_copr()
+    form = forms.BasePackageForm()
+    try:
+        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+    except IndexError:
+        raise ApiError("No package with name {name} in copr {copr}"
+                             .format(name=form.package_name.data, copr=copr.name))
+
+    try:
+        PackagesLogic.delete_package(flask.g.user, package)
+        db.session.commit()
+    except (InsufficientRightsException, ActionInProgressException) as e:
+        raise ApiError(str(e))
+
+    return flask.jsonify(to_dict(package))

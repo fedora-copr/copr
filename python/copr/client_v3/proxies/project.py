@@ -87,3 +87,17 @@ class ProjectProxy(BaseProxy):
                           params=params, data=data, auth=self.auth)
         response = request.send()
         return response.munchify()
+
+    def delete(self, ownername, projectname):
+        endpoint = "/project/delete"
+        params = {
+            "ownername": ownername,
+            "projectname": projectname,
+        }
+        data = {
+            "verify": True,
+        }
+        request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
+                          params=params, data=data, auth=self.auth)
+        response = request.send()
+        return response.munchify()
