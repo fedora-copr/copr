@@ -1,8 +1,10 @@
+import json
 import flask
 import wtforms
 import sqlalchemy
 import inspect
 from functools import wraps
+from werkzeug.datastructures import MultiDict
 from coprs.exceptions import CoprHttpException
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -43,6 +45,18 @@ def pagination():
             return f(*args, **kwargs)
         return pagination_wrapper
     return pagination_decorator
+
+
+def file_upload():
+    def file_upload_decorator(f):
+        @wraps(f)
+        def file_upload_wrapper(*args, **kwargs):
+            if "json" in flask.request.files:
+                data = json.loads(flask.request.files["json"].read())
+                flask.request.form = MultiDict(data)
+            return f(*args, **kwargs)
+        return file_upload_wrapper
+    return file_upload_decorator
 
 
 class PaginationForm(wtforms.Form):

@@ -2,7 +2,7 @@ import flask
 import sqlalchemy
 from requests.exceptions import RequestException, InvalidSchema
 from wtforms import ValidationError
-from . import query_params, get_copr
+from . import query_params, get_copr, file_upload
 from coprs import db, models, forms
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.views.misc import api_login_required
@@ -18,6 +18,7 @@ def to_dict(module):
 
 @apiv3_ns.route("/module/build", methods=["POST"])
 @api_login_required
+@file_upload()
 @query_params()
 def build_module(ownername, projectname):
     copr = get_copr()

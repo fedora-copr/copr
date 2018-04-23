@@ -29,10 +29,10 @@ class ModuleProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        data = {
+        files = {
             "modulemd": (os.path.basename(f.name), f, "application/x-rpm")
         }
         request = FileRequest(endpoint, api_base_url=self.api_base_url, method=POST,
-                              params=params, data=data, auth=self.auth)
+                              params=params, files=files, auth=self.auth)
         response = request.send()
         return response.munchify()

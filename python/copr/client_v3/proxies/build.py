@@ -39,12 +39,16 @@ class BuildProxy(BaseProxy):
     def create_from_file(self, ownername, projectname, path):
         endpoint = "/build/create/upload"
         f = open(path, "rb")
+
         data = {
             "ownername": ownername,
             "projectname": projectname,
+        }
+        files = {
             "pkgs": (os.path.basename(f.name), f, "application/x-rpm"),
         }
-        request = FileRequest(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
+        request = FileRequest(endpoint, api_base_url=self.api_base_url, method=POST,
+                              data=data, files=files, auth=self.auth)
         response = request.send()
         return response.munchify()
 

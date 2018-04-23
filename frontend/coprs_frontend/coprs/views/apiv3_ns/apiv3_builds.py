@@ -1,5 +1,5 @@
 import flask
-from . import get_copr
+from . import get_copr, file_upload
 from werkzeug import secure_filename
 from coprs import db, forms
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
@@ -82,6 +82,7 @@ def create_from_url():
 
 @apiv3_ns.route("/build/create/upload", methods=["POST"])
 @api_login_required
+@file_upload()
 def create_from_upload():
     copr = get_copr()
     form = forms.BuildFormUploadFactory(copr.active_chroots)(csrf_enabled=False)

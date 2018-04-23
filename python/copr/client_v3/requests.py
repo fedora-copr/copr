@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import os
+import json
 import requests
 from munch import Munch
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
@@ -62,11 +63,19 @@ class Request(object):
 
 
 class FileRequest(Request):
+    def __init__(self, endpoint, files=None, **kwargs):
+        super(FileRequest, self).__init__(endpoint, **kwargs)
+        self.files = files
+
     @property
     def _request_params(self):
         params = super(FileRequest, self)._request_params
+
+        data = self.files or {}
+        data["json"] = ("json", json.dumps(self.data), "application/json")
+
         callback = lambda x: x  # @TODO progress_callback or (lambda x: x)
-        m = MultipartEncoder(self.data)
+        m = MultipartEncoder(data)
         params["json"] = None
         params["data"] = MultipartEncoderMonitor(m, callback)
         params["headers"] = {'Content-Type': params["data"].content_type}
