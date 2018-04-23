@@ -53,10 +53,10 @@ class PaginationForm(wtforms.Form):
                                      choices=[("ASC", "ASC"), ("DESC", "DESC")], default="ASC")
 
 
-def get_copr():
+def get_copr(ownername=None, projectname=None):
     request = flask.request
-    ownername = request.args.get("ownername") or request.form.get("ownername") or request.json["ownername"]
-    projectname = request.args.get("projectname") or request.form.get("projectname") or request.json["projectname"]
+    ownername = ownername or request.args.get("ownername") or request.form.get("ownername") or request.json["ownername"]
+    projectname = projectname or request.args.get("projectname") or request.form.get("projectname") or request.json["projectname"]
     return ComplexLogic.get_copr_by_owner_safe(ownername, projectname)
 
 
