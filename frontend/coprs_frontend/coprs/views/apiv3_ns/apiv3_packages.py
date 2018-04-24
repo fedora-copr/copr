@@ -30,7 +30,7 @@ def to_dict(package):
 @apiv3_ns.route("/package", methods=["GET"])
 @query_params()
 def get_package(ownername, projectname, packagename):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     try:
         package = PackagesLogic.get(copr.id, packagename)[0]
     except IndexError:
@@ -42,7 +42,7 @@ def get_package(ownername, projectname, packagename):
 @pagination()
 @query_params()
 def get_package_list(ownername, projectname, **kwargs):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     paginator = Paginator(PackagesLogic.get_all(copr.id), models.Package, **kwargs)
     packages = paginator.map(to_dict)
     return flask.jsonify(items=packages, meta=paginator.meta)

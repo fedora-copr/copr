@@ -43,7 +43,7 @@ def get_copr_form_factory():
 @apiv3_ns.route("/project", methods=["GET"])
 @query_params()
 def get_project(ownername, projectname):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     return flask.jsonify(to_dict(copr))
 
 
@@ -125,7 +125,7 @@ def add_project(ownername):
 @api_login_required
 @query_params()
 def edit_project(ownername, projectname):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     form = forms.CoprModifyForm(csrf_enabled=False)
 
     if not form.validate_on_submit():
@@ -159,7 +159,7 @@ def edit_project(ownername, projectname):
 @api_login_required
 @query_params()
 def fork_project(ownername, projectname):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     form = forms.CoprForkFormFactory \
         .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(csrf_enabled=False)
 
@@ -195,7 +195,7 @@ def fork_project(ownername, projectname):
 @api_login_required
 @query_params()
 def delete_project(ownername, projectname):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     form = forms.CoprDeleteForm(csrf_enabled=False)
 
     # @FIXME We want to send True from client, but validator expects it to be a string

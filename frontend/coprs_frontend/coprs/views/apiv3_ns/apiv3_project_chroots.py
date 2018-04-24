@@ -16,7 +16,7 @@ def to_dict(copr_chroot):
 @apiv3_ns.route("/project-chroot", methods=["GET"])
 @query_params()
 def get_project_chroot(ownername, projectname, chrootname):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
     return flask.jsonify(to_dict(chroot))
 
@@ -24,7 +24,7 @@ def get_project_chroot(ownername, projectname, chrootname):
 @apiv3_ns.route("/project-chroot/build-config", methods=["GET"])
 @query_params()
 def get_build_config(ownername, projectname, chrootname):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     config = generate_build_config(copr, chrootname)
     if not config:
         raise ApiError('Chroot not found.')
@@ -36,7 +36,7 @@ def get_build_config(ownername, projectname, chrootname):
 @query_params()
 @api_login_required
 def edit_project_chroot(ownername, projectname, chrootname):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     form = forms.ModifyChrootForm(csrf_enabled=False)
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 

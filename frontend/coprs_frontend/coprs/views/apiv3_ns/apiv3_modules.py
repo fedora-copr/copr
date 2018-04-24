@@ -21,7 +21,7 @@ def to_dict(module):
 @file_upload()
 @query_params()
 def build_module(ownername, projectname):
-    copr = get_copr()
+    copr = get_copr(ownername, projectname)
     form = forms.ModuleBuildForm(csrf_enabled=False)
     if not form.validate_on_submit():
         raise ApiError(form.errors)

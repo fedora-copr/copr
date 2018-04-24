@@ -69,8 +69,8 @@ class PaginationForm(wtforms.Form):
 
 def get_copr(ownername=None, projectname=None):
     request = flask.request
-    ownername = ownername or request.args.get("ownername") or request.form.get("ownername") or request.json["ownername"]
-    projectname = projectname or request.args.get("projectname") or request.form.get("projectname") or request.json["projectname"]
+    ownername = ownername or request.form.get("ownername") or request.json["ownername"]
+    projectname = projectname or request.form.get("projectname") or request.json["projectname"]
     return ComplexLogic.get_copr_by_owner_safe(ownername, projectname)
 
 
