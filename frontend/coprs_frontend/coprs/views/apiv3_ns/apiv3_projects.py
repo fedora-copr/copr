@@ -129,7 +129,7 @@ def edit_project(ownername, projectname):
     form = forms.CoprModifyForm(csrf_enabled=False)
 
     if not form.validate_on_submit():
-        raise ApiError("Invalid request: {0}".format(form.errors))
+        raise ApiError(form.errors)
 
     for field in form:
         if field.data is None or field.name in ["csrf_token", "chroots"]:
@@ -150,7 +150,7 @@ def edit_project(ownername, projectname):
             InsufficientRightsException,
             NonAdminCannotDisableAutoPrunning) as e:
         db.session.rollback()
-        raise ApiError("Invalid request: {}".format(e))
+        raise ApiError(e)
 
     return flask.jsonify(to_dict(copr))
 
@@ -186,7 +186,7 @@ def fork_project(ownername, projectname):
             db.session.rollback()
             raise ApiError(str(err))
     else:
-        raise ApiError("Invalid request: {0}".format(form.errors))
+        raise ApiError(form.errors)
 
     return flask.jsonify(to_dict(fcopr))
 
@@ -211,5 +211,5 @@ def delete_project(ownername, projectname):
         else:
             db.session.commit()
     else:
-        raise ApiError("Invalid request: {0}".format(form.errors))
+        raise ApiError(form.errors)
     return flask.jsonify(to_dict(copr))

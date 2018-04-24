@@ -58,7 +58,7 @@ def cancel_build(build_id):
         BuildsLogic.cancel_build(flask.g.user, build)
         db.session.commit()
     except InsufficientRightsException as e:
-        raise ApiError("Invalid request: {}".format(e))
+        raise ApiError(e)
     return render_build(build)
 
 
@@ -162,10 +162,10 @@ def create_from_rubygems():
 
 def process_creating_new_build(copr, form, create_new_build):
     if not form.validate_on_submit():
-        raise ApiError("Invalid request: bad request parameters: {0}".format(form.errors))
+        raise ApiError("Bad request parameters: {0}".format(form.errors))
 
     if not flask.g.user.can_build_in(copr):
-        raise ApiError("Invalid request: user {} is not allowed to build in the copr: {}"
+        raise ApiError("User {} is not allowed to build in the copr: {}"
                        .format(flask.g.user.username, copr.full_name))
 
     # create a new build
@@ -175,7 +175,7 @@ def process_creating_new_build(copr, form, create_new_build):
         build = create_new_build()
         db.session.commit()
     except (ActionInProgressException, InsufficientRightsException) as e:
-        raise ApiError("Invalid request: {}".format(e))
+        raise ApiError(e)
 
     if type(build) == list:
         builds = [build] if type(build) != list else build
@@ -191,5 +191,5 @@ def delete_build(build_id):
         BuildsLogic.delete_build(flask.g.user, build)
         db.session.commit()
     except (InsufficientRightsException, ActionInProgressException) as ex:
-        raise ApiError("Invalid request: {}".format(ex))
+        raise ApiError(ex)
     return flask.jsonify(to_dict(build))

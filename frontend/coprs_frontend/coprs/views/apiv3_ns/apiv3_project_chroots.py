@@ -41,7 +41,7 @@ def edit_project_chroot(ownername, projectname, chrootname):
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
     if not form.validate_on_submit():
-        raise ApiError("Invalid request: {0}".format(form.errors))
+        raise ApiError(form.errors)
 
     buildroot_pkgs = repos = comps_xml = comps_name = None
     if "buildroot_pkgs" in flask.request.form:
