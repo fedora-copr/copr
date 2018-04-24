@@ -91,7 +91,6 @@ def add_project(ownername):
     if not form.validate_on_submit():
         raise ApiError(form.errors)
 
-    # @TODO move this logic somewhere else
     group = None
     if ownername[0] == "@":
         group = ComplexLogic.get_group_by_name_safe(ownername[1:])
