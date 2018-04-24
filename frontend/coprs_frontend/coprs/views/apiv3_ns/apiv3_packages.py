@@ -1,6 +1,7 @@
 import flask
 import wtforms
 from . import query_params, pagination, get_copr, Paginator
+from .json2form import get_build_form_factory
 from coprs.exceptions import ApiError
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException, NoPackageSourceException
 from coprs.views.misc import api_login_required
@@ -96,7 +97,7 @@ def package_reset():
 @api_login_required
 def package_build():
     copr = get_copr()
-    form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(csrf_enabled=False)
+    form = get_build_form_factory(forms.RebuildPackageFactory.create_form_cls, copr.active_chroots)
     try:
         package = PackagesLogic.get(copr.id, form.package_name.data)[0]
     except IndexError:

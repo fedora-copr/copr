@@ -1,6 +1,7 @@
 import os
 import flask
 from . import query_params, get_copr, pagination, Paginator
+from .json2form import get_copr_form_factory
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
@@ -30,14 +31,6 @@ def to_dict(copr):
         "use_bootstrap_container": copr.use_bootstrap_container,
     }
     return copr_dict
-
-
-def get_copr_form_factory():
-    form = forms.CoprFormFactory.create_form_cls()(csrf_enabled=False)
-    for chroot in form.chroots_list:
-        if chroot in flask.request.json["chroots"]:
-            getattr(form, chroot).data = True
-    return form
 
 
 @apiv3_ns.route("/project", methods=["GET"])

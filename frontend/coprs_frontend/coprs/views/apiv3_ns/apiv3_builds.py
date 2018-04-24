@@ -1,5 +1,6 @@
 import flask
 from . import get_copr, file_upload
+from .json2form import get_build_form_factory
 from werkzeug import secure_filename
 from coprs import db, forms
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
@@ -66,7 +67,7 @@ def cancel_build(build_id):
 @api_login_required
 def create_from_url():
     copr = get_copr()
-    form = forms.BuildFormUrlFactory(copr.active_chroots)(csrf_enabled=False)
+    form = get_build_form_factory(forms.BuildFormUrlFactory, copr.active_chroots)
 
     def create_new_build():
         # create separate build for each package
@@ -85,7 +86,7 @@ def create_from_url():
 @file_upload()
 def create_from_upload():
     copr = get_copr()
-    form = forms.BuildFormUploadFactory(copr.active_chroots)(csrf_enabled=False)
+    form = get_build_form_factory(forms.BuildFormUploadFactory, copr.active_chroots)
 
     def create_new_build():
         return BuildsLogic.create_new_from_upload(
@@ -102,7 +103,7 @@ def create_from_upload():
 @api_login_required
 def create_from_scm():
     copr = get_copr()
-    form = forms.BuildFormScmFactory(copr.active_chroots)(csrf_enabled=False)
+    form = get_build_form_factory(forms.BuildFormScmFactory, copr.active_chroots)
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(
@@ -124,7 +125,7 @@ def create_from_scm():
 @api_login_required
 def create_from_pypi():
     copr = get_copr()
-    form = forms.BuildFormPyPIFactory(copr.active_chroots)(csrf_enabled=False)
+    form = get_build_form_factory(forms.BuildFormPyPIFactory, copr.active_chroots)
 
     # TODO: automatically prepopulate all form fields with their defaults
     if not form.python_versions.data:
@@ -147,7 +148,7 @@ def create_from_pypi():
 @api_login_required
 def create_from_rubygems():
     copr = get_copr()
-    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(csrf_enabled=False)
+    form = get_build_form_factory(forms.BuildFormRubyGemsFactory, copr.active_chroots)
 
     def create_new_build():
         return BuildsLogic.create_new_from_rubygems(

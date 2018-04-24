@@ -65,13 +65,14 @@ class PackageProxy(BaseProxy):
         response = request.send()
         return response.munchify()
 
-    def build(self, ownername, projectname, packagename):
+    def build(self, ownername, projectname, packagename, buildopts=None):
         endpoint = "/package/build"
         data = {
             "ownername": ownername,
             "projectname": projectname,
             "package_name": packagename,
         }
+        data.update(buildopts or {})
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
         return response.munchify()
