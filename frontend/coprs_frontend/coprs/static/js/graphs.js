@@ -19,10 +19,11 @@ function graphConfig() {
         },
         color: {pattern: colorPattern},
         data: {
-            hide: ['average'],
+            hide: ['avg running'],
             types: {
-                'average': 'line',
-                'tasks': 'area'
+                'avg-running': 'line',
+                'running': 'area',
+                'pending': 'area',
             },
             x: 'time',
             xFormat: '%Y-%m-%d %H:%M:%S'
@@ -38,7 +39,7 @@ function graphConfig() {
                     return a;
                 },
                 value: function(value, ratio, id) {
-                    if (id === 'average') return value.toFixed(2);
+                    if (id === 'avg running') return value.toFixed(2);
                     else return value;
                 }
             }
@@ -55,7 +56,7 @@ function lineGraph(data, ticks, bind, format) {
         format: format
     };
     chart.bindto = bind;
-    chart.color.pattern = ['#cc8844', '#0088ce'];
+    chart.color.pattern = ['#0088ce', '#cc8844', '#cc0000'];
     chart.data.columns = data;
     var chartDay = c3.generate(chart);
 };
