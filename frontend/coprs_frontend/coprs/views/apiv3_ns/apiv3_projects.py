@@ -7,7 +7,6 @@ from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.helpers import fix_protocol_for_backend
 from coprs.exceptions import (ApiError, DuplicateException, NonAdminCannotCreatePersistentProject,
                               NonAdminCannotDisableAutoPrunning, ActionInProgressException,
                               InsufficientRightsException)
@@ -20,7 +19,7 @@ def to_dict(copr):
         "owner": copr.owner_name,
         "full_name": copr.full_name,
         "additional_repos": copr.repos,
-        "yum_repos": {},
+        "yum_repos": CoprsLogic.get_yum_repos(copr),
         "description": copr.description,
         "instructions": copr.instructions,
         "last_modified": BuildsLogic.last_modified(copr),
@@ -30,16 +29,6 @@ def to_dict(copr):
         "auto_prune": copr.auto_prune,
         "use_bootstrap_container": copr.use_bootstrap_container,
     }
-
-    # @TODO find a better place for yum_repos logic
-    release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
-    build = models.Build.query.filter(models.Build.copr_id == copr.id).first()
-    if build:
-        for chroot in copr.active_chroots:
-            release = release_tmpl.format(chroot=chroot)
-            copr_dict["yum_repos"][release] = fix_protocol_for_backend(
-                os.path.join(build.copr.repo_url, release + '/'))
-
     return copr_dict
 
 

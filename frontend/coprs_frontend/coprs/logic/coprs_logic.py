@@ -1,3 +1,4 @@
+import os
 import time
 
 from sqlalchemy import and_
@@ -15,6 +16,7 @@ from coprs import models
 from coprs.exceptions import MalformedArgumentException
 from coprs.logic import users_logic
 from coprs.whoosheers import CoprWhoosheer
+from coprs.helpers import fix_protocol_for_backend
 
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.users_logic import UsersLogic
@@ -328,6 +330,18 @@ class CoprsLogic(object):
                    .filter(models.Action.action_type.in_(blocking_actions)))
 
         return actions
+
+    @classmethod
+    def get_yum_repos(cls, copr):
+        repos = {}
+        release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
+        build = models.Build.query.filter(models.Build.copr_id == copr.id).first()
+        if build:
+            for chroot in copr.active_chroots:
+                release = release_tmpl.format(chroot=chroot)
+                repos[release] = fix_protocol_for_backend(
+                    os.path.join(build.copr.repo_url, release + '/'))
+        return repos
 
     @classmethod
     def raise_if_unfinished_blocking_action(cls, copr, message):
