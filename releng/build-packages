@@ -5,7 +5,7 @@ source $SCRIPTDIR/lib.sh
 
 PROJECT=$1
 if [ -z "$PROJECT" ]; then
-	echo "usage: build-all.sh project"
+	echo "usage: build-packages project"
     echo "       where TARGET is either @copr/copr or @copr/copr-dev"
     exit 1
 fi

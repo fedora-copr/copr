@@ -10,14 +10,23 @@ Get rpm either from upstream copr: https://copr.fedorainfracloud.org/coprs/g/cop
 
 or checkout git repo and build with rpkg::
 
+    dnf install rpkg
+
     git clone https://pagure.io/copr/copr.git
-    dnf install -y rpkg
-    dnf builddep backend/copr-backend.spec
-    dnf builddep selinux/copr-selinux.spec
-    dnf builddep python/python-copr.spec
+    cd copr
+
+    rpkg --path backend spec --outdir /tmp/rpkg
+    rpkg --path selinux spec --outdir /tmp/rpkg
+    rpkg --path python spec --outdir /tmp/rpkg
+
+    dnf builddep /tmp/rpkg/copr-backend.spec
+    dnf builddep /tmp/rpkg/copr-selinux.spec
+    dnf builddep /tmp/rpkg/python-copr.spec
+
     cd backend && rpkg local && cd ..
     cd selinux && rpkg local && cd ..
     cd python && rpkg local && cd ..
+
     dnf install -C <path to the built rpms>
 
 
