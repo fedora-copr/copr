@@ -7,27 +7,13 @@ from coprs import helpers
 
 
 def get_graph_data(start, end, step):
-    current_time = int(time.time())
     chroots_dict = {}
     chroots = []
     chroot_names = {}
-    tasks = builds_logic.BuildsLogic.get_builds_by_time(start, current_time)
+    tasks = builds_logic.BuildsLogic.get_submitted_and_running_tasks_by_time(start, end)
     steps = int(round((end - start) / step + 0.5))
     current_step = 0
 
-    build_data = {}
-    min = None
-    for t in tasks:
-        task = t.to_dict()
-        build_id = task['id']
-        if not min:
-            min = build_id
-        elif min > build_id:
-            min = build_id
-        build_data[build_id] = task['submitted_on']
-
-    if min:
-        tasks = builds_logic.BuildsLogic.get_build_chroots_by_build_id(min)
     data = [[0] * (steps + 1), [0] * (steps + 1), [1.0 * tasks.count() / steps] * (steps + 1), [0] * (steps + 1)]
     data[0][0] = 'pending'
     data[1][0] = 'running'
@@ -36,14 +22,12 @@ def get_graph_data(start, end, step):
 
     for t in tasks:
         task = t.to_dict()
-        started = task['started_on'] if task['started_on'] else current_time
-        ended = task['ended_on'] if task['ended_on'] else current_time
-        build_id = task['build_id']
-        submitted = build_data[build_id]
+        started = task['started_on'] if task['started_on'] else end
+        ended = task['ended_on'] if task['ended_on'] else end
 
         start_cell = int(round((started - start) / step + 0.5))
         end_cell  = int(round((ended - start) / step + 0.5))
-        submitted_cell = int(round((submitted - start) / step + 0.5))
+        submitted_cell = int(round((t.build.submitted_on - start) / step + 0.5))
 
         # pending tasks
         for i in range(max(1, submitted_cell), max(1, start_cell) + 1):

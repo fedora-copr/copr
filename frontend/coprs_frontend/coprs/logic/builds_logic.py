@@ -84,18 +84,11 @@ class BuildsLogic(object):
         return list(query.all()[:4])
 
     @classmethod
-    def get_builds_by_time(cls, start, end):
-        result = models.Build.query\
-            .filter(models.Build.submitted_on >= start)\
+    def get_submitted_and_running_tasks_by_time(cls, start, end):
+        result = models.BuildChroot.query.join(models.Build)\
+            .filter(models.BuildChroot.ended_on >= start)\
             .filter(models.Build.submitted_on <= end)\
             .order_by(models.Build.id.asc())
-        return result
-
-    @classmethod
-    def get_build_chroots_by_build_id(cls, id):
-        result = models.BuildChroot.query\
-            .filter(models.BuildChroot.build_id >= id)\
-            .order_by(models.BuildChroot.build_id.asc())
         return result
 
     @classmethod
