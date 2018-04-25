@@ -4,7 +4,7 @@ Building package
 ================
 
 First - go to root directory of your copr.git checkout. Then checkout
-a particular build from which you would like to build the packages.
+a particular commit from which you would like to build the packages.
 
 Install `rpkg <https://pagure.io/rpkg-util>`_, render spec files and
 install Copr build dependencies::
