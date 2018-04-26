@@ -68,9 +68,9 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "copr-cli create ${NAME_PREFIX}TestBug1457888 --chroot fedora-24-x86_64" 0
-        rlRun "copr-cli buildmock ${NAME_PREFIX}TestBug1457888 --scm-url https://pagure.io/modularity-testing-framework.git --spec modularity-testing-framework.spec" 0
-        #rlRun "copr-cli delete ${NAME_PREFIX}TestBug1457888"
+        rlRun "copr-cli create ${NAME_PREFIX}TestBug1457888 --chroot fedora-27-x86_64" 0
+        rlRun "copr-cli buildmock ${NAME_PREFIX}TestBug1457888 --scm-url https://pagure.io/module-macros.git --spec module-macros.spec" 0
+        rlRun "copr-cli delete ${NAME_PREFIX}TestBug1457888"
     rlPhaseEnd
 
     rlPhaseStartCleanup
