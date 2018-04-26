@@ -19,23 +19,7 @@ requires = [
     'jinja2'
 ]
 
-
-def read(*parts):
-    return codecs.open(os.path.join(os.path.dirname(__file__), *parts),
-                       encoding='utf8').read()
-
-
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^Version: (.*)$",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
-
-
 __name__ = 'copr-cli'
-__version__ = find_version('copr-cli.spec')
 __description__ = "CLI tool to run copr"
 __author__ = "Pierre-Yves Chibon"
 __author_email__ = "pingou@pingoured.fr"
@@ -44,7 +28,7 @@ __url__ = "https://pagure.io/copr/copr"
 
 setup(
     name=__name__,
-    version=__version__,
+    version=os.getenv('version'),
     description=__description__,
     long_description=long_description,
     author=__author__,

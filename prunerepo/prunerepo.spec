@@ -8,7 +8,7 @@ Release: 1%{?dist}
 # git checkout {{{ cached_git_name_version }}}
 # cd copr/prunerepo
 # rpkg spec --sources
-Source0: {{{ git_pack }}}
+Source0: {{{ git_dir_pack }}}
 
 License: GPLv2+
 BuildArch: noarch
@@ -48,11 +48,11 @@ to recreate the repository metadata.
 tests/run.sh
 
 %build
-%py3_build
+name="%{name}" version="%{version}" summary="%{summary}" %py3_build
 a2x -d manpage -f manpage man/prunerepo.1.asciidoc
 
 %install
-%py3_install
+name="%{name}" version="%{version}" summary="%{summary}" %py3_install
 
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/prunerepo.1 %{buildroot}/%{_mandir}/man1/

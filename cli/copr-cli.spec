@@ -97,9 +97,9 @@ only.
 
 %build
 %if 0%{?use_python3}
-%{__python3} setup.py build
+version="%{version}" %{__python3} setup.py build
 %else
-%{__python2} setup.py build
+version="%{version}" %{__python2} setup.py build
 %endif
 
 mv copr_cli/README.rst ./
@@ -110,9 +110,9 @@ a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 %install
 install -d %{buildroot}%{_pkgdocdir}/
 %if 0%{?use_python3}
-%{__python3} setup.py install --root %{buildroot}
+version="%{version}" %{__python3} setup.py install --root %{buildroot}
 %else
-%{__python2} setup.py install --root %{buildroot}
+version="%{version}" %{__python2} setup.py install --root %{buildroot}
 %endif
 
 ln -sf %{_bindir}/copr-cli %{buildroot}%{_bindir}/copr

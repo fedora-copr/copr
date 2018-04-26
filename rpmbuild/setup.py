@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
+import os
+
 from setuptools import setup, find_packages
+
 setup(
-    name="copr-rpmbuild",
-    version='0.18',
-    description="Run COPR build tasks",
-    long_description="Run COPR build tasks",
+    name=os.getenv('name'),
+    version=os.getenv('version'),
+    description=os.getenv('summary'),
     author='clime',
     author_email='clime@redhat.com',
     download_url='https://pagure.io/rpkg-client.git',

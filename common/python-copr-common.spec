@@ -72,20 +72,20 @@ rm -rf *.pyc *.pyo
 %setup -q
 %build
 %if 0%{?with_python3}
-%py3_build
+version="%{version}" %py3_build
 %endif # with_python3
 
 %if 0%{?with_python2}
-%py2_build
+version="%{version}" %py2_build
 %endif # with_python2
 
 %install
 %if 0%{?with_python2}
-%py2_install
+version="%{version}" %py2_install
 %endif # with_python2
 
 %if 0%{?with_python3}
-%py3_install
+version="%{version}" %py3_install
 %endif # with_python3
 
 %if 0%{?with_python3}

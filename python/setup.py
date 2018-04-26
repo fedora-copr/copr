@@ -13,21 +13,6 @@ is used to allow packagers to create third party repositories.
 
 This part is a python client to the copr service."""
 
-
-def read(*parts):
-    return codecs.open(os.path.join(os.path.dirname(__file__), *parts),
-                       encoding='utf8').read()
-
-
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^Version: (.*)$",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1).strip()
-    raise RuntimeError("Unable to find version string.")
-
-
 requires = [
     'marshmallow',
     'requests',
@@ -35,8 +20,6 @@ requires = [
     'six'
 ]
 
-
-__version__ = find_version('python-copr.spec')
 __description__ = "Python client for copr service."
 __author__ = "Valentin Gologuzov"
 __author_email__ = "vgologuz@redhat.com"
@@ -45,7 +28,7 @@ __url__ = "https://pagure.io/copr/copr"
 
 setup(
     name='copr',
-    version=__version__,
+    version=os.getenv('version'),
     description=__description__,
     long_description=long_description,
     author=__author__,

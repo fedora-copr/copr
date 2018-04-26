@@ -153,12 +153,12 @@ cp -a . %{py3dir}
 %build
 %if 0%{?with_python3}
 pushd %{py3dir}
-CFLAGS="%{optflags}" %{__python3} setup.py build
+CFLAGS="%{optflags}" version="%{version}" %{__python3} setup.py build
 popd
 %endif # with_python3
 
 %if 0%{?with_python2}
-CFLAGS="%{optflags}" %{__python2} setup.py build
+CFLAGS="%{optflags}" version="%{version}" %{__python2} setup.py build
 %endif # with_python2
 
 mv copr/README.rst ./
@@ -174,13 +174,13 @@ popd
 
 %if 0%{?with_python3}
 pushd %{py3dir}
-%{__python3} setup.py install --skip-build --root %{buildroot}
+version="%{version}" %{__python3} setup.py install --skip-build --root %{buildroot}
 find %{buildroot}%{python3_sitelib} -name '*.exe' | xargs rm -f
 popd
 %endif # with_python3
 
 %if 0%{?with_python2}
-%{__python2} setup.py install --skip-build --root %{buildroot}
+version="%{version}" %{__python2} setup.py install --skip-build --root %{buildroot}
 find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
 %endif # with_python2
 
