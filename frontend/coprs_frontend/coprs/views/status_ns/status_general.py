@@ -10,20 +10,35 @@ def get_graph_data(start, end, step):
     chroots_dict = {}
     chroots = []
     chroot_names = {}
-    tasks = builds_logic.BuildsLogic.get_running_tasks_by_time(start, end)
+    tasks = builds_logic.BuildsLogic.get_tasks_by_time(start, end)
+    running_tasks = builds_logic.BuildsLogic.get_running_tasks_by_time(start, end)
     steps = int(round((end - start) / step + 0.5))
     current_step = 0
 
-    data = [[0] * (steps + 1), [1.0 * tasks.count() / steps] * (steps + 1), [0] * (steps + 1)]
-    data[0][0] = 'tasks'
-    data[1][0] = 'average'
-    data[2][0] = 'time'
+    data = [[0] * (steps + 1), [0] * (steps + 1), [1.0 * running_tasks.count() / steps] * (steps + 1), [0] * (steps + 1)]
+    data[0][0] = 'pending'
+    data[1][0] = 'running'
+    data[2][0] = 'avg running'
+    data[3][0] = 'time'
 
     for t in tasks:
         task = t.to_dict()
-        while task['started_on'] > start + step * (current_step + 1):
-            current_step += 1
-        data[0][current_step + 1] += 1
+        started = task['started_on'] if task['started_on'] else end
+        ended = task['ended_on'] if task['ended_on'] else end
+
+        start_cell = int(round((started - start) / step + 0.5))
+        end_cell  = int(round((ended - start) / step + 0.5))
+        submitted_cell = int(round((t.build.submitted_on - start) / step + 0.5))
+
+        # pending tasks
+        for i in range(max(1, submitted_cell), max(1, start_cell) + 1):
+            if i <= steps:
+                data[0][i] += 1
+
+        # running tasks
+        for i in range(max(1, start_cell), end_cell + 1):
+            if i <= steps:
+                data[1][i] += 1
 
         if task['mock_chroot_id'] not in chroots_dict:
             chroots_dict[task['mock_chroot_id']] = 1
@@ -31,7 +46,7 @@ def get_graph_data(start, end, step):
             chroots_dict[task['mock_chroot_id']] += 1
 
     for i in range(0, steps):
-        data[2][i + 1] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(start + (i * step)))
+        data[3][i + 1] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(start + (i * step)))
 
     for key in chroots_dict:
         chroots.append([key, chroots_dict[key]])
