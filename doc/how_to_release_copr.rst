@@ -14,10 +14,7 @@ Run::
 
     releng/show-untagged-commits
 
-and walk the directories of packages listed. If there is a setup.py file in the directory,
-you will need to open it and manually bump the version field.
-
-In each directory, call::
+and walk the directories of packages listed. In each directory, call::
 
     rpkg tag
     rpkg push
