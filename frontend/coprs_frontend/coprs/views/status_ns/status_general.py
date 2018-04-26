@@ -10,11 +10,12 @@ def get_graph_data(start, end, step):
     chroots_dict = {}
     chroots = []
     chroot_names = {}
-    tasks = builds_logic.BuildsLogic.get_submitted_and_running_tasks_by_time(start, end)
+    tasks = builds_logic.BuildsLogic.get_tasks_by_time(start, end)
+    running_tasks = builds_logic.BuildsLogic.get_running_tasks_by_time(start, end)
     steps = int(round((end - start) / step + 0.5))
     current_step = 0
 
-    data = [[0] * (steps + 1), [0] * (steps + 1), [1.0 * tasks.count() / steps] * (steps + 1), [0] * (steps + 1)]
+    data = [[0] * (steps + 1), [0] * (steps + 1), [1.0 * running_tasks.count() / steps] * (steps + 1), [0] * (steps + 1)]
     data[0][0] = 'pending'
     data[1][0] = 'running'
     data[2][0] = 'avg running'
