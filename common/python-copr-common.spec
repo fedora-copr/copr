@@ -1,4 +1,5 @@
-%global srcname copr-common
+{{{ export srcname=copr-common }}}
+%global srcname {{{ printf "$srcname" }}}
 
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
@@ -17,8 +18,8 @@
 %global with_python2 1
 %endif
 
-Name:       python-%{srcname}
-Version:    0.2
+Name:       {{{ git_name name="python-$srcname" }}}
+Version:    {{{ git_version }}}
 Release:    1%{?dist}
 Summary:    Python code used by Copr
 
@@ -26,9 +27,10 @@ License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/common
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# rpkg spec --sources
+Source0:    {{{ git_dir_pack }}}
 
 BuildArch: noarch
 
@@ -70,20 +72,20 @@ rm -rf *.pyc *.pyo
 %setup -q
 %build
 %if 0%{?with_python3}
-%py3_build
+version="%{version}" %py3_build
 %endif # with_python3
 
 %if 0%{?with_python2}
-%py2_build
+version="%{version}" %py2_build
 %endif # with_python2
 
 %install
 %if 0%{?with_python2}
-%py2_install
+version="%{version}" %py2_install
 %endif # with_python2
 
 %if 0%{?with_python3}
-%py3_install
+version="%{version}" %py3_install
 %endif # with_python3
 
 %if 0%{?with_python3}
@@ -99,6 +101,8 @@ rm -rf *.pyc *.pyo
 %endif # with_python2
 
 %changelog
+{{{ git_changelog since_tag="python-$srcname-0.3-1" }}}
+
 * Thu Mar 22 2018 Dominik Turecek <dturecek@redhat.com> 0.2-1
 - [common] fix spec file
 

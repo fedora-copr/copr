@@ -17,7 +17,7 @@ If you are completely new to COPR build system, those steps will get you setup q
 4) copy the generated auth token into ``~/.config/copr``
 5) install copr-cli tool: ``sudo dnf install copr-cli`` (if you are on Fedora)
 6) run ``copr-cli create first-project --chroot fedora-rawhide-x86_64`` to create your first project
-7) run ``copr-cli build first-project <path to your srpm>``
+7) run ``copr-cli build first-project <path to your srpm>`` to run your first build
 
 If you don't have an srpm yet, see https://pagure.io/rpkg-util on how to build one.
 
@@ -75,7 +75,7 @@ The last optional thing to configure (except for common build configuration opti
 **rpkg**: The default choice and the most versatile one. Apart from building packages from any Git or SVN repository,
 it also supports building directly from any `DistGit <https://clime.github.io/2017/05/20/DistGit-1.0.html>`_ repository.
 Note that **rpkg** (as well as **tito**) is not only a tool to generate SRPMs but, in fact, it is also a full-fledged package manager
-that you can use from your command-line to maintain your packages. You can read more about this tool `here <https://pagure.io/rpkg-client>`_.
+that you can use from your command-line to maintain your packages. You can read more about this tool `here <https://pagure.io/rpkg-util>`_.
 
 **tito**: is a robust RPM package manager with lots of features and if your project is managed with Tito, this is the tool you want to pick for SRPM generation (which is
 one of the many package manager's features). When this option is selected, the latest package GIT tag will be used to build an SRPM. Note that this utility has currently
@@ -89,7 +89,7 @@ value specified above (or HEAD of the master branch if no **Committish** is spec
 
 .. _`make_srpm`:
 
-**make srpm**: With this method, the user himself will provide the executable script to be used for SRPM generation. If you
+**make srpm**: With this method, the user himself/herself will provide the executable script to be used for SRPM generation. If you
 would like to use this method, you need to provide ``.copr/Makefile`` (path being relative to the repository root) with ``srpm`` target
 in your repository. Into that ``srpm`` target, you can put whatever it takes to generate the SRPM. You can use network and clone another
 repository, you can install new packages, and you can do pretty much everything as this is script is run with root privileges inside

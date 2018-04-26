@@ -15,18 +15,19 @@
 %global with_python2 1
 %endif
 
-Name:       python-copr
-Version:    1.87
+Name:       {{{ git_name name=python-copr }}}
+Version:    {{{ git_version lead=1 }}}
 Release:    1%{?dist}
 Summary:    Python interface for Copr
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by
+# Source is created by:
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/python
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# rpkg spec --sources
+Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 
@@ -152,12 +153,12 @@ cp -a . %{py3dir}
 %build
 %if 0%{?with_python3}
 pushd %{py3dir}
-CFLAGS="%{optflags}" %{__python3} setup.py build
+CFLAGS="%{optflags}" version="%{version}" %{__python3} setup.py build
 popd
 %endif # with_python3
 
 %if 0%{?with_python2}
-CFLAGS="%{optflags}" %{__python2} setup.py build
+CFLAGS="%{optflags}" version="%{version}" %{__python2} setup.py build
 %endif # with_python2
 
 mv copr/README.rst ./
@@ -173,13 +174,13 @@ popd
 
 %if 0%{?with_python3}
 pushd %{py3dir}
-%{__python3} setup.py install --skip-build --root %{buildroot}
+version="%{version}" %{__python3} setup.py install --skip-build --root %{buildroot}
 find %{buildroot}%{python3_sitelib} -name '*.exe' | xargs rm -f
 popd
 %endif # with_python3
 
 %if 0%{?with_python2}
-%{__python2} setup.py install --skip-build --root %{buildroot}
+version="%{version}" %{__python2} setup.py install --skip-build --root %{buildroot}
 find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
 %endif # with_python2
 
@@ -225,6 +226,8 @@ pushd %{py3dir}
 %endif
 
 %changelog
+{{{ git_changelog since_tag=python-copr-1.88-1 }}}
+
 * Wed Feb 28 2018 clime <clime@redhat.com> 1.87-1
 - add missing frontend states to clientv2
 

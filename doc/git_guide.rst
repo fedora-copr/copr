@@ -488,11 +488,16 @@ Building Test RPMs
 
 Here is an example workflow where we are working on a spec file and testing with::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
 
-For readability we will name different SHA1 number as SHA1-A, SHA1-B, ... You can find tito in the rel-eng/bin directory of your git checkout, and it can be called relatively or added to your path.
+You need to have `rpkg` installed or install it with::
 
-When we begin, the tree has SHA1-A::
+    dnf install rpkg
+
+on Fedora.
+
+For readability we will name different SHA1 number as SHA1-A, SHA1-B. When we begin, the tree has SHA1-A::
 
     git commit -a -m # edit spec to comply with fedora guidelines
 
@@ -506,7 +511,8 @@ Review the changes, then do some testing. You find error,for example, rpmlint co
 
 The tree now has SHA1-C::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
 
 We still find errors, re-edit the spec file::
 
@@ -514,7 +520,8 @@ We still find errors, re-edit the spec file::
 
 The tree now has SHA1-D::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
 
 Again, still more errors, edit the spec file::
 
@@ -522,7 +529,8 @@ Again, still more errors, edit the spec file::
 
 The tree now has SHA1-E::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
 
 Finally, ``rpmlint`` is silent. We will reject all our previous commits,
 
@@ -547,7 +555,9 @@ Now we have one commit including all of the changes::
 
 Confirm this is what we wanted and we are ready to merge and push::
 
-    tito build --test --srpm
+    rpkg srpm
+    rpkg lint
+    rpkg push
 
 Other Resources
 ---------------
@@ -556,19 +566,11 @@ Other Resources
 
 * `The Git User's Manual <http://www.kernel.org/pub/software/scm/git/docs/user-manual.html>`_
 
-* `Another awesome Git Guide <http://wiki.sourcemage.org/Git_Guide>`_
-
-* `Git tutorials as screen casts <http://www.gitcasts.com/>`_
-
 * `Tutorial Introduction to Git <http://www.kernel.org/pub/software/scm/git/docs/gittutorial.html>`_
-
-* `Jbowes' Instructional Blog Post on git-bisect <http://jbowes.dangerouslyinc.com/2007/02/18/git-bisect-a-practical-example-with-yum/>`_
-
-* `Jbowes' Instructional Blog Post on git-rebase <http://jbowes.dangerouslyinc.com/2007/01/26/git-rebase-keeping-your-branches-current/>`_
 
 * `- Dealing with remote branches ..  <http://www.zorched.net/2008/04/14/start-a-new-branch-on-your-remote-git-repository/>`_
 
 Credits
 -------
 
-* Stolen from Git guide in spacewalk project
+* Originally stolen from Git guide in Spacewalk project

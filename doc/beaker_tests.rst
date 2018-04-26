@@ -106,7 +106,8 @@ Start the following three jobs in Beaker::
     </job>
 
 
-If something is failing and you want to debug, you can speed up the process by running the tests locally. 
+You can also run the tests locally.
+
 You can do so in a docker environment that is ready to use for running the tests in isolation from your host::
 
 	$ cd DockerTestEnv
@@ -120,4 +121,4 @@ of tests with '-r' might be useful) and you can read README file (in the same di
 that these options are not (yet) present for tests in 'Sanity' subdirectory, only for ones in 'Regression'
 subdir.
 
-At the end whole test-suite (as specified at beginning) has to pass.
+At the end whole test-suite should pass.

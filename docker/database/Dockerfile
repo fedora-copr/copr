@@ -1,13 +1,12 @@
 FROM fedora:26
 MAINTAINER jkadlcik@redhat.com
 
+RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
 
 # base packages
 RUN dnf -y update && \
-    dnf -y install dnf-plugins-core \
-                   htop \
+    dnf -y install htop \
                    which \
-                   tito \
                    wget \
                    vim \
                    supervisor \

@@ -36,7 +36,7 @@ rlJournalStart
                 rlRun "git checkout $git_hash" 0
                 rlRun "ls *.spec sources" 0
                 rlRun "ls *.src.rpm" 2
-                rlRun "rpkg srpm" 0
+                rlRun "rpkg srpm --outdir ." 0
                 rlRun "ls *.src.rpm" 0
             fi
             cd $TESTPATH && rm -r $MYTMPDIR

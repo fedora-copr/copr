@@ -14,7 +14,8 @@ rm -f /lib/systemd/system/basic.target.wants/*;\
 rm -f /lib/systemd/system/anaconda.target.wants/*;
 VOLUME ["/sys/fs/cgroup"]
 
-RUN dnf -y install htop tito wget net-tools iputils vim mlocate git sudo openssh-server dnf-plugins-core psmisc python-jedi procps-ng
+RUN dnf -y install dnf-plugins-core && dnf -y copr enable @copr/copr
+RUN dnf -y install htop wget net-tools iputils vim mlocate git sudo openssh-server psmisc python-jedi procps-ng
 
 # Sanity tests
 RUN wget https://beaker-project.org/yum/beaker-client-Fedora.repo -P /etc/yum.repos.d
@@ -27,7 +28,5 @@ RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -q
 
 RUN echo 'root:passwd' | chpasswd
 RUN echo 'export LANG=en_US.UTF-8' >> /root/.bashrc
-
-RUN dnf -y copr enable @copr/copr-dev
 
 CMD ["/usr/sbin/init"]

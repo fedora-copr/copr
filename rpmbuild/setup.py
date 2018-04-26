@@ -1,15 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
-import rpm
+import os
+
 from setuptools import setup, find_packages
 
-spec_file = rpm.ts().parseSpec('copr-rpmbuild.spec')
-
 setup(
-    name=spec_file.sourceHeader.name.decode("utf-8"),
-    version=spec_file.sourceHeader.version.decode("utf-8"),
-    description=spec_file.sourceHeader.summary.decode("utf-8"),
-    long_description=spec_file.sourceHeader.description.decode("utf-8"),
+    name=os.getenv('name'),
+    version=os.getenv('version'),
+    description=os.getenv('summary'),
     author='clime',
     author_email='clime@redhat.com',
     download_url='https://pagure.io/rpkg-client.git',

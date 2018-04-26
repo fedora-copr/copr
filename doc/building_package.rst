@@ -3,50 +3,56 @@
 Building package
 ================
 
-First - go to root directory of your copr.git checkout.
+First - go to root directory of your copr.git checkout. Then checkout
+a particular commit from which you would like to build the packages.
 
-Install `Tito <https://github.com/dgoodwin/tito>`_ and Copr build dependencies::
+Install `rpkg <https://pagure.io/rpkg-util>`_, render spec files and
+install Copr build dependencies::
 
-    dnf builddep frontend/copr-frontend.spec
+    sudo dnf install rpkg
 
-    dnf builddep backend/copr-backend.spec
+    rpkg --path frontend spec --outdir /tmp/rpkg
+    sudo dnf builddep /tmp/rpkg/copr-frontend.spec
 
-    dnf builddep cli/copr-cli.spec
+    rpkg --path backend spec --outdir /tmp/rpkg
+    sudo dnf builddep /tmp/rpkg/copr-backend.spec
 
-    dnf builddep selinux/copr-selinux.spec
+    rpkg --path cli spec --outdir /tmp/rpkg
+    sudo dnf builddep /tmp/rpkg/copr-cli.spec
 
+    rpkg --path selinux spec --outdir /tmp/rpkg
+    sudo dnf builddep /tmp/rpkg/copr-selinux.spec
 
-Now you can build the package itself::
+Now you can build the packages themselves::
 
-    cd frontend && tito build --rpm && cd ..
+    cd frontend && rpkg local && cd ..
 
-    cd backend && tito build --rpm && cd ..
+    cd backend && rpkg local && cd ..
 
-    cd cli && tito build --rpm && cd ..
+    cd cli && rpkg local && cd ..
 
-    cd selinux && tito build --rpm && cd ..
-
+    cd selinux && local && cd ..
 
 If you want just src.rpm, run::
 
-    cd frontend && tito build --srpm && cd ..
+    cd frontend && rpkg srpm && cd ..
 
-    cd backend && tito build --srpm && cd ..
+    cd backend && rpkg srpm && cd ..
 
-    cd cli && tito build --srpm && cd ..
+    cd cli && rpkg srpm && cd ..
 
-    cd selinux && tito build --srpm && cd ..
+    cd selinux && rpkg srpm && cd ..
 
-If you are developer and want to test your changes, commit them and run (don't forget to `cd` to particular package)::
+If you are developer and want to test your changes, run (don't forget to `cd` to particular package)::
 
-    tito build --test --rpm
+    rpkg local
 
     # or
 
-    tito build --test --srpm
+    rpkg srpm
 
-For more information see ``man tito``.
+For more information see ``man rpkg``.
 
-If you have write access to copr.git, you may create new release by::
+If you have write access to copr.git, you may create a new release by::
 
-    tito tag
+    rpkg tag

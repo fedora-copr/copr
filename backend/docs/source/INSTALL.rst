@@ -3,24 +3,31 @@ INSTALL
 
 1. Obtain rpms:
 
-Get rpm either from upstream copr: https://copr.fedoraproject.org/coprs/msuchy/copr/ ::
+Get rpm either from upstream copr: https://copr.fedorainfracloud.org/coprs/g/copr/copr/ ::
 
-    dnf copr enable msuchy/copr
+    dnf copr enable @copr/copr
     dnf install -y copr-backend copr-selinux
 
+or checkout git repo and build with rpkg::
 
-
-or checkout git repo and build latest release with tito::
+    dnf install rpkg
 
     git clone https://pagure.io/copr/copr.git
-    yum install -y tito yum-utils
-    yum-builddep backend/copr-backend.spec
-    yum-builddep selinux/copr-selinux.spec
-    yum-builddep python/python-copr.spec
-    cd backend && tito build --rpm && cd ..
-    cd selinux && tito build --rpm && cd ..
-    cd python && tito build --rpm && cd ..
-    yum localinstall <path to the built rpms>
+    cd copr
+
+    rpkg --path backend spec --outdir /tmp/rpkg
+    rpkg --path selinux spec --outdir /tmp/rpkg
+    rpkg --path python spec --outdir /tmp/rpkg
+
+    dnf builddep /tmp/rpkg/copr-backend.spec
+    dnf builddep /tmp/rpkg/copr-selinux.spec
+    dnf builddep /tmp/rpkg/python-copr.spec
+
+    cd backend && rpkg local && cd ..
+    cd selinux && rpkg local && cd ..
+    cd python && rpkg local && cd ..
+
+    dnf install -C <path to the built rpms>
 
 
 2. Prepare ansible playbooks to spawn and terminate VM builders using your VM provider.

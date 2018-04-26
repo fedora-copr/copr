@@ -1,6 +1,9 @@
 #!/bin/bash
 
 export SCRIPTPATH="$( builtin cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export LANG=en_US.utf8
+
+dnf -y install git dnf-plugins-core
 
 if [[ `pwd` =~ ^/mnt/tests.*$ ]]; then
     echo "Setting up native beaker environment."
@@ -12,37 +15,25 @@ else
 fi
 
 dnf -y copr enable @copr/copr
-if [[ ! $RELEASETEST ]]; then
-	dnf -y copr enable @copr/copr-dev
-fi
+dnf -y install jq copr-mocks dist-git dist-git-selinux rpkg
 
-dnf -y update
-dnf -y install git python2-rpkg jq copr-mocks dist-git dist-git-selinux rpkg
-
-export LANG=en_US.UTF-8
+# cleanup
+rm -r /tmp/rpkg/
 
 # install copr-mocks from sources
 cd $COPRROOTDIR/mocks
-dnf -y builddep copr-mocks.spec
-rm -rf /tmp/tito/noarch/
-if [[ ! $RELEASETEST ]]; then
-	tito build --test --rpm
-else
-	tito build --offline --rpm
-fi
-dnf install -y /tmp/tito/noarch/copr-mocks*noarch.rpm --best
+rpkg spec --outdir /tmp/rpkg
+dnf -y builddep /tmp/rpkg/copr-mocks.spec
+rpkg local --outdir /tmp/rpkg
+dnf install -y /tmp/rpkg/noarch/copr-mocks*noarch.rpm --best
 cd -
 
 # install copr-dist-git from sources
 cd $COPRROOTDIR/dist-git
-dnf -y builddep copr-dist-git.spec --allowerasing
-rm -rf /tmp/tito/noarch/
-if [[ ! $RELEASETEST ]]; then
-	tito build --test --rpm
-else
-	tito build --offline --rpm
-fi
-dnf install -y /tmp/tito/noarch/copr-dist-git*noarch.rpm --best
+rpkg spec --outdir /tmp/rpkg
+dnf -y builddep /tmp/rpkg/copr-dist-git.spec --allowerasing
+rpkg local --outdir /tmp/rpkg
+dnf install -y /tmp/rpkg/noarch/copr-dist-git*noarch.rpm --best
 cd -
 
 # root user settings
@@ -93,7 +84,7 @@ chmod 600 /home/git/.ssh/authorized_keys
 cat /root/.ssh/id_rsa.pub >> /home/git/.ssh/authorized_keys
 cat /home/copr-dist-git/.ssh/id_rsa.pub >> /home/git/.ssh/authorized_keys
 
-# copy test suite file
+# copy test suite files
 cp -rT files/ /
 
 # setting correct permissions

@@ -2,18 +2,19 @@
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
 %endif
 
-Name:       copr-backend
-Version:    1.114
+Name:       {{{ git_dir_name }}}
+Version:    {{{ git_dir_version lead=1 }}}
 Release:    1%{?dist}
 Summary:    Backend for Copr
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by
+# Source is created by:
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/backend
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# rpkg spec --sources
+Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -94,7 +95,6 @@ only.
 
 %prep
 %setup -q
-
 
 %build
 
@@ -220,6 +220,8 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %exclude %{_pkgdocdir}/playbooks
 
 %changelog
+{{{ git_dir_changelog since_tag=copr-backend-1.115-1 }}}
+
 * Mon Feb 26 2018 clime <clime@redhat.com> 1.114-1
 - add possibility for copr_log_hitcounter to ignore multiple subnets
 

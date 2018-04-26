@@ -1,5 +1,5 @@
-Name:       copr-dist-git
-Version:    0.40
+Name:       {{{ git_dir_name }}}
+Version:    {{{ git_dir_version }}}
 Release:    1%{?dist}
 Summary:    Copr services for Dist Git server
 
@@ -7,9 +7,10 @@ License:    GPLv2+
 URL:        https://pagure.io/copr/copr
 # Source is created by
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/dist-git
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# rpkg sources --spec
+Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 
@@ -131,6 +132,8 @@ restorecon -rv /var/lib/copr-dist-git
 %ghost %{_var}/log/copr-dist-git/*.log
 
 %changelog
+{{{ git_changelog since_tag=copr-dist-git-0.41-1 }}}
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 0.40-1
 - remove Group tag
 

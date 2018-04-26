@@ -12,18 +12,19 @@
 %global __python %{__python3}
 %endif
 
-Name:       copr-cli
-Version:    1.67
+Name:       {{{ git_dir_name }}}
+Version:    {{{ git_dir_version lead=1 }}}
 Release:    1%{?dist}
 Summary:    Command line interface for COPR
 
 License:    GPLv2+
 URL:        https://pagure.io/copr/copr
-# Source is created by
+# Source is created by:
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/cli
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# rpkg spec --sources
+Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 BuildRequires: asciidoc
@@ -96,9 +97,9 @@ only.
 
 %build
 %if 0%{?use_python3}
-%{__python3} setup.py build
+version="%{version}" %{__python3} setup.py build
 %else
-%{__python2} setup.py build
+version="%{version}" %{__python2} setup.py build
 %endif
 
 mv copr_cli/README.rst ./
@@ -109,9 +110,9 @@ a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 %install
 install -d %{buildroot}%{_pkgdocdir}/
 %if 0%{?use_python3}
-%{__python3} setup.py install --root %{buildroot}
+version="%{version}" %{__python3} setup.py install --root %{buildroot}
 %else
-%{__python2} setup.py install --root %{buildroot}
+version="%{version}" %{__python2} setup.py install --root %{buildroot}
 %endif
 
 ln -sf %{_bindir}/copr-cli %{buildroot}%{_bindir}/copr
@@ -153,6 +154,8 @@ python3-pylint ./copr_cli/*.py || :
 %endif
 
 %changelog
+{{{ git_dir_changelog since_tag=copr-cli-1.68-1 }}}
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 1.67-1
 - remove Group tag
 

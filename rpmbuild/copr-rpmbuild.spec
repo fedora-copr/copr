@@ -1,16 +1,17 @@
-Name: copr-rpmbuild
+Name:    {{{ git_dir_name }}}
+Version: {{{ git_dir_version }}}
 Summary: Run COPR build tasks
-Version: 0.17
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
+License: GPLv2+
 
 # Source is created by:
 # git clone https://pagure.io/copr/copr.git
+# git checkout {{{ cached_git_name_version }}}
 # cd copr/rpmbuild
-# tito build --tgz
-Source0: %{name}-%{version}.tar.gz
+# rpkg spec --sources
+Source0: {{{ git_dir_pack }}}
 
-License: GPLv2+
 BuildArch: noarch
 BuildRequires: python3-devel
 BuildRequires: python3-rpm
@@ -39,7 +40,7 @@ build build-id 12345 for chroot epel-7-x86_64.
 %setup -q
 
 %build
-%py3_build
+name="%{name}" version="%{version}" summary="%{summary}" %py3_build
 a2x -d manpage -f manpage man/copr-rpmbuild.1.asciidoc
 
 %install
@@ -58,7 +59,7 @@ install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 
-%py3_install
+name="%{name}" version="%{version}" summary="%{summary}" %py3_install
 
 %files
 %license LICENSE
@@ -79,6 +80,8 @@ install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
 
 %changelog
+{{{ git_dir_changelog since_tag=copr-rpmbuild-0.18-1 }}}
+
 * Fri Feb 23 2018 clime <clime@redhat.com> 0.17-1
 - remove unused requires and rename rpm-python3 to python3-rpm
 - switch copr-sources-custom to python3 shebang
