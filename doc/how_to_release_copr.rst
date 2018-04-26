@@ -72,9 +72,11 @@ Release python-copr to PyPi
 
 Make sure you have `~/.pypirc` correctly set up and run::
 
-    /usr/bin/python setup.py sdist --format=gztar upload
+    version=<current_pkg_version> /usr/bin/python setup.py sdist --format=gztar upload
 
-Or tell somebody with access to run that (msuchy has access).
+Substitute `<current_pkg_version>` with the current package version.
+
+If you cannot run that, tell somebody with access to run that (msuchy has access).
 
 Release package to Fedora
 -------------------------
