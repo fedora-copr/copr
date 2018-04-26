@@ -7,14 +7,22 @@ from ..requests import Request, FileRequest, POST
 
 class ModuleProxy(BaseProxy):
 
-    def build_from_url(self, ownername, projectname, scmurl, branch="master"):
+    def build_from_url(self, ownername, projectname, url, branch="master"):
+        """
+        Build a module from a URL pointing to a modulemd YAML file
+        :param str ownername:
+        :param str projectname:
+        :param str url: URL pointing to a raw .yaml file
+        :param str branch:
+        :return: Munch
+        """
         endpoint = "/module/build"
         params = {
             "ownername": ownername,
             "projectname": projectname,
         }
         data = {
-            "scmurl": scmurl,
+            "scmurl": url,
             "branch": branch,
         }
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
@@ -23,6 +31,13 @@ class ModuleProxy(BaseProxy):
         return response.munchify()
 
     def build_from_file(self, ownername, projectname, path):
+        """
+        Build a module from a local modulemd YAML file
+        :param str ownername:
+        :param str projectname:
+        :param str path:
+        :return: Munch
+        """
         endpoint = "/module/build"
         f = open(path, "rb")
         params = {

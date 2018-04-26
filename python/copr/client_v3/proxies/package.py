@@ -6,6 +6,13 @@ from ..requests import Request, POST
 class PackageProxy(BaseProxy):
 
     def get(self, ownername, projectname, packagename):
+        """
+        Return a package
+        :param str ownername:
+        :param str projectname:
+        :param str packagename:
+        :return: Munch
+        """
         endpoint = "/package"
         params = {
             "ownername": ownername,
@@ -17,6 +24,13 @@ class PackageProxy(BaseProxy):
         return response.munchify()
 
     def get_list(self, ownername, projectname, pagination=None):
+        """
+        Return a list of packages
+        :param str ownername:
+        :param str projectname:
+        :param pagination:
+        :return: Munch
+        """
         endpoint = "/package/list"
         params = {
             "ownername": ownername,
@@ -29,6 +43,15 @@ class PackageProxy(BaseProxy):
         return response.munchify()
 
     def add(self, ownername, projectname, packagename, source_type_text, source_dict):
+        """
+        Add a package to a project
+        :param str ownername:
+        :param str projectname:
+        :param str packagename:
+        :param str source_type_text:
+        :param source_dict:
+        :return: Munch
+        """
         endpoint = "/package/add"
         data = {
             "ownername": ownername,
@@ -42,6 +65,15 @@ class PackageProxy(BaseProxy):
         return response.munchify()
 
     def edit(self, ownername, projectname, packagename, source_type_text, source_dict):
+        """
+        Edit a package in a project
+        :param str ownername:
+        :param str projectname:
+        :param str packagename:
+        :param source_type_text:
+        :param source_dict:
+        :return: Munch
+        """
         endpoint = "/package/edit"
         data = {
             "ownername": ownername,
@@ -55,6 +87,13 @@ class PackageProxy(BaseProxy):
         return response.munchify()
 
     def reset(self, ownername, projectname, packagename):
+        """
+        Reset a package configuration
+        :param str ownername:
+        :param str projectname:
+        :param str packagename:
+        :return: Munch
+        """
         endpoint = "/package/reset"
         data = {
             "ownername": ownername,
@@ -66,6 +105,14 @@ class PackageProxy(BaseProxy):
         return response.munchify()
 
     def build(self, ownername, projectname, packagename, buildopts=None):
+        """
+        Create a build from a package configuration
+        :param str ownername:
+        :param str projectname:
+        :param str packagename:
+        :param buildopts:
+        :return: Munch
+        """
         endpoint = "/package/build"
         data = {
             "ownername": ownername,
@@ -78,6 +125,13 @@ class PackageProxy(BaseProxy):
         return response.munchify()
 
     def delete(self, ownername, projectname, packagename):
+        """
+        Delete a package from a project
+        :param str ownername:
+        :param str projectname:
+        :param str packagename:
+        :return: Munch
+        """
         endpoint = "/package/delete"
         data = {
             "ownername": ownername,

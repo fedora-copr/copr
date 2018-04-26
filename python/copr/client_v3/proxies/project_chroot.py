@@ -8,6 +8,13 @@ from ..requests import Request, FileRequest, POST
 class ProjectChrootProxy(BaseProxy):
 
     def get(self, ownername, projectname, chrootname):
+        """
+        Return a configuration of a chroot in a project
+        :param str ownername:
+        :param str projectname:
+        :param str chrootname:
+        :return: Munch
+        """
         endpoint = "/project-chroot"
         params = {
             "ownername": ownername,
@@ -19,6 +26,13 @@ class ProjectChrootProxy(BaseProxy):
         return response.munchify()
 
     def get_build_config(self, ownername, projectname, chrootname):
+        """
+        Return a build configuration of a chroot in a project
+        :param str ownername:
+        :param str projectname:
+        :param str chrootname:
+        :return: Munch
+        """
         endpoint = "/project-chroot/build-config"
         params = {
             "ownername": ownername,
@@ -30,6 +44,17 @@ class ProjectChrootProxy(BaseProxy):
         return response.munchify()
 
     def edit(self, ownername, projectname, chrootname, packages=None, repos=None, comps=None, delete_comps=False):
+        """
+        Edit a chroot configuration in a project
+        :param str ownername:
+        :param str projectname:
+        :param str chrootname:
+        :param list packages: buildroot packages for the chroot
+        :param list repos: buildroot additional repos
+        :param str comps: file path to the comps.xml file
+        :param bool delete_comps: if True, current comps.xml will be removed
+        :return: Munch
+        """
         endpoint = "/project-chroot/edit"
         params = {
             "ownername": ownername,

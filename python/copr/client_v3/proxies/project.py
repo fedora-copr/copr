@@ -9,6 +9,12 @@ from ..exceptions import CoprValidationException
 class ProjectProxy(BaseProxy):
 
     def get(self, ownername, projectname):
+        """
+        Return a project
+        :param str ownername:
+        :param str projectname:
+        :return: Munch
+        """
         endpoint = "/project"
         params = {
             "ownername": ownername,
@@ -19,6 +25,12 @@ class ProjectProxy(BaseProxy):
         return response.munchify()
 
     def get_list(self, ownername, pagination=None):
+        """
+        Return a list of projects
+        :param str ownername:
+        :param pagination:
+        :return: Munch
+        """
         endpoint = "/project/list"
         params = {
             "ownername": ownername,
@@ -29,6 +41,12 @@ class ProjectProxy(BaseProxy):
         return response.munchify()
 
     def search(self, query, pagination=None):
+        """
+        Return a list of projects based on fulltext search
+        :param str query:
+        :param pagination:
+        :return: Munch
+        """
         endpoint = "/project/search"
         params = {
             "query": query,
@@ -41,6 +59,22 @@ class ProjectProxy(BaseProxy):
     def add(self, ownername, projectname, chroots, description=None, instructions=None, repos=None,
             disable_createrepo=False, unlisted_on_hp=False, enable_net=True, persistent=False,
             auto_prune=True, use_bootstrap_container=False):
+        """
+        Create a project
+        :param str ownername:
+        :param str projectname:
+        :param list chroots:
+        :param str description:
+        :param str instructions:
+        :param list repos:
+        :param bool disable_createrepo: disable automatic repo meta-data regeneration
+        :param bool unlisted_on_hp: project will not be shown on Copr homepage
+        :param bool enable_net: if builder can access net for builds in this project
+        :param bool persistent: if builds and the project are undeletable
+        :param bool auto_prune: if backend auto-deletion script should be run for the project
+        :param bool use_bootstrap_container: if mock bootstrap container is used to initialize the buildroot
+        :return: Munch
+        """
         endpoint = "/project/add"
         params = {
             "ownername": ownername,
@@ -66,6 +100,22 @@ class ProjectProxy(BaseProxy):
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, repos=None,
             disable_createrepo=False, unlisted_on_hp=False, enable_net=True, persistent=False,
             auto_prune=True, use_bootstrap_container=False):
+        """
+        Edit a project
+        :param str ownername:
+        :param str projectname:
+        :param list chroots:
+        :param str description:
+        :param str instructions:
+        :param list repos:
+        :param bool disable_createrepo: disable automatic repo meta-data regeneration
+        :param bool unlisted_on_hp: project will not be shown on Copr homepage
+        :param bool enable_net: if builder can access net for builds in this project
+        :param bool persistent: if builds and the project are undeletable
+        :param bool auto_prune: if backend auto-deletion script should be run for the project
+        :param bool use_bootstrap_container: if mock bootstrap container is used to initialize the buildroot
+        :return: Munch
+        """
         endpoint = "/project/edit"
         params = {
             "ownername": ownername,
@@ -89,6 +139,12 @@ class ProjectProxy(BaseProxy):
         return response.munchify()
 
     def delete(self, ownername, projectname):
+        """
+        Delete a project
+        :param str ownername:
+        :param str projectname:
+        :return: Munch
+        """
         endpoint = "/project/delete"
         params = {
             "ownername": ownername,
@@ -103,6 +159,16 @@ class ProjectProxy(BaseProxy):
         return response.munchify()
 
     def fork(self, ownername, projectname, dstownername, dstprojectname, confirm=False):
+        """
+        Fork a project
+        :param str ownername: owner of a source project
+        :param str projectname: name of a source project
+        :param str dstownername: owner of a destination project
+        :param str dstprojectname: name of a destination project
+        :param bool confirm: if forking into a existing project, this needs to be set to True,
+                             to confirm that user is aware of that
+        :return: Munch
+        """
         endpoint = "/project/fork"
         # @FIXME we send duplicit information here
         params = {
