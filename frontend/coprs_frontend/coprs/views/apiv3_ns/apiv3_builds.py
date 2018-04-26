@@ -1,6 +1,6 @@
 import flask
 from . import get_copr, file_upload
-from .json2form import get_build_form_factory
+from .json2form import get_form_compatible_data
 from werkzeug import secure_filename
 from coprs import db, forms
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
@@ -67,7 +67,8 @@ def cancel_build(build_id):
 @api_login_required
 def create_from_url():
     copr = get_copr()
-    form = get_build_form_factory(forms.BuildFormUrlFactory, copr.active_chroots)
+    data = get_form_compatible_data()
+    form = forms.BuildFormUrlFactory(copr.active_chroots)(data, csrf_enabled=False)
 
     def create_new_build():
         # create separate build for each package
@@ -86,7 +87,8 @@ def create_from_url():
 @file_upload()
 def create_from_upload():
     copr = get_copr()
-    form = get_build_form_factory(forms.BuildFormUploadFactory, copr.active_chroots)
+    data = get_form_compatible_data()
+    form = forms.BuildFormUploadFactory(copr.active_chroots)(data, csrf_enabled=False)
 
     def create_new_build():
         return BuildsLogic.create_new_from_upload(
@@ -103,7 +105,8 @@ def create_from_upload():
 @api_login_required
 def create_from_scm():
     copr = get_copr()
-    form = get_build_form_factory(forms.BuildFormScmFactory, copr.active_chroots)
+    data = get_form_compatible_data()
+    form = forms.BuildFormScmFactory(copr.active_chroots)(data, csrf_enabled=False)
 
     def create_new_build():
         return BuildsLogic.create_new_from_scm(
@@ -125,7 +128,8 @@ def create_from_scm():
 @api_login_required
 def create_from_pypi():
     copr = get_copr()
-    form = get_build_form_factory(forms.BuildFormPyPIFactory, copr.active_chroots)
+    data = get_form_compatible_data()
+    form = forms.BuildFormPyPIFactory(copr.active_chroots)(data, csrf_enabled=False)
 
     # TODO: automatically prepopulate all form fields with their defaults
     if not form.python_versions.data:
@@ -148,7 +152,8 @@ def create_from_pypi():
 @api_login_required
 def create_from_rubygems():
     copr = get_copr()
-    form = get_build_form_factory(forms.BuildFormRubyGemsFactory, copr.active_chroots)
+    data = get_form_compatible_data()
+    form = forms.BuildFormRubyGemsFactory(copr.active_chroots)(data, csrf_enabled=False)
 
     def create_new_build():
         return BuildsLogic.create_new_from_rubygems(

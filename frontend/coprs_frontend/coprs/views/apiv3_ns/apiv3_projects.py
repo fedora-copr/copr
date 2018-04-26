@@ -1,7 +1,7 @@
 import os
 import flask
 from . import query_params, get_copr, pagination, Paginator
-from .json2form import get_copr_form_factory
+from .json2form import get_form_compatible_data
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
@@ -75,7 +75,8 @@ def search_projects(query, **kwargs):
 @api_login_required
 @query_params()
 def add_project(ownername):
-    form = get_copr_form_factory()
+    data = get_form_compatible_data()
+    form = forms.CoprFormFactory.create_form_cls()(data, csrf_enabled=False)
 
     # @TODO rather raise exeptions in the validate_post_keys
     # are there any arguments in POST which our form doesn't know?
@@ -91,7 +92,7 @@ def add_project(ownername):
     try:
         copr = CoprsLogic.add(
             name=form.name.data.strip(),
-            repos=" ".join(form.repos.data.split()),  # @TODO we should send the repos as list, not string
+            repos=" ".join(form.repos.data.split()),
             user=flask.g.user,
             selected_chroots=form.selected_chroots,
             description=form.description.data,
@@ -119,7 +120,8 @@ def add_project(ownername):
 @query_params()
 def edit_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
-    form = forms.CoprModifyForm(csrf_enabled=False)
+    data = get_form_compatible_data()
+    form = forms.CoprModifyForm(data, csrf_enabled=False)
 
     if not form.validate_on_submit():
         raise ApiError(form.errors)
@@ -129,7 +131,6 @@ def edit_project(ownername, projectname):
             continue
         setattr(copr, field.name, field.data)
 
-    # @TODO we should send chroots as a list not string
     if form.chroots.data:
         CoprChrootsLogic.update_from_names(
             flask.g.user, copr, form.chroots.data)

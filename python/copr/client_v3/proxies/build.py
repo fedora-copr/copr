@@ -24,7 +24,7 @@ class BuildProxy(BaseProxy):
         data = {
             "ownername": ownername,
             "projectname": projectname,
-            "pkgs": " ".join(urls),
+            "pkgs": urls,
         }
         data.update(buildopts or {})
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)

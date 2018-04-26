@@ -1,18 +1,20 @@
 import flask
-from coprs import forms
+from werkzeug.datastructures import MultiDict
 
 
-def get_copr_form_factory():
-    form = forms.CoprFormFactory.create_form_cls()(csrf_enabled=False)
-    for chroot in form.chroots_list:
-        if chroot in flask.request.json["chroots"]:
-            getattr(form, chroot).data = True
-    return form
+def get_form_compatible_data():
+    input = flask.request.json or flask.request.form
+    output = {}
 
+    # Transform lists to strings separated with spaces
+    for k, v in input.items():
+        if type(v) == list:
+            v = " ".join(map(str, v))
+        output[k] = v
 
-def get_build_form_factory(factory, copr_chroots):
-    form = factory(copr_chroots)(csrf_enabled=False)
-    data = flask.request.json or flask.request.form
-    for chroot in data.get("chroots", []):
-        getattr(form, chroot).data = True
-    return form
+    # Our WTForms expect chroots to be this way
+    for chroot in input.get("chroots") or []:
+        output[chroot] = True
+
+    output.update(flask.request.files or {})
+    return MultiDict(output)
