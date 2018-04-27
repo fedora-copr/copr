@@ -3,6 +3,7 @@
 import re
 import os
 import configparser
+import shutil
 import sys
 import argparse
 import tempfile
