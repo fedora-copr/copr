@@ -84,6 +84,12 @@ After running the ``builderpb_nova.yml`` playbook, you will get an IP address of
     [copr@copr-be-dev ~][STG]$ ssh fedora@172.XX.XXX.XXX
     [fedora@172.XX.XXX.XXX ~]$ sudo dnf install python
 
+Also install ``libselinux-python`` package, which is needed as well.
+
+::
+
+    [fedora@172.XX.XXX.XXX ~]$ sudo dnf install libselinux-python
+
 Open the https://fedorainfracloud.org again and go to the ``Instances``. Make sure that your "Current Project" is the project that you expect (``coprdev``). There are many instances so how can you be a hundred percent sure which one you modified? Use the IP address as an identifier. Click on ``Create Snapshot`` for that instance.
 
 Set snapshot name to something like ``copr-builder-x86_64-f27``. It can be a little tricky though. When you are not creating a first snapshot for the particular release, there might be an older snapshot with the same name, because the names don't have to be unique. You need to delete the older one.
