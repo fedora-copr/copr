@@ -1,21 +1,21 @@
-# COPR
+# Copr
 
 [**Project Page**](https://pagure.io/copr/copr) |
 [**Documentation**](https://docs.pagure.org/copr.copr/) |
 [**Report a Bug**](https://bugzilla.redhat.com/enter_bug.cgi?product=Copr) |
 [**Already reported bugs**](https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=POST&bug_status=MODIFIED&bug_status=ON_DEV&bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&classification=Community&list_id=4678560&product=Copr&query_format=advanced) |
-[**Fedora COPR**](https://copr.fedoraproject.org)
+[**Fedora Copr**](https://copr.fedoraproject.org)
 
-COPR is a community projects build service that builds your open-source project and creates your own RPM repository. See it in action [here](https://copr.fedoraproject.org).
+Copr is a Community projects build service that builds your open-source project and creates your own RPM repository. See it in action [here](https://copr.fedoraproject.org).
 
-![See COPR workflow](/copr/copr/raw/master/f/doc/img/copr-workflow.png)
+![See Copr workflow](/copr/copr/raw/master/f/doc/img/copr-workflow.png)
 
-## Using COPR
-Learn [how to use COPR](https://developer.fedoraproject.org/deployment/copr/about.html) and [how to create RPM packages](https://developer.fedoraproject.org/deployment/rpm/about.html) on the [Fedora Developer Portal](https://developer.fedoraproject.org).
+## Using Copr
+Learn [how to use Copr](https://developer.fedoraproject.org/deployment/copr/about.html) and [how to create RPM packages](https://developer.fedoraproject.org/deployment/rpm/about.html) on the [Fedora Developer Portal](https://developer.fedoraproject.org).
 
 ## Status
 
-Fedora COPR builds of:
+Fedora Copr builds of:
 
 * copr-backend [![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-backend/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-backend/)
 * copr-keygen [![build status](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-keygen/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/copr/copr/package/copr-keygen)
