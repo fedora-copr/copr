@@ -16,6 +16,10 @@ h1.copr-logo {
     margin-bottom: 12px;
 }
 
+.copr-logo a:focus {
+    outline:none;
+}
+
 div.body hr {
     margin: 0px 1px 16px 0px;
     background: none;
