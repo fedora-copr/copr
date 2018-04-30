@@ -215,7 +215,7 @@ def chroot_to_branch(chroot):
     """
     Get a git branch name from chroot. Follow the fedora naming standard.
     """
-    os, version, arch = chroot.split("-")
+    os, version, arch = chroot.rsplit("-", 2)
     if os == "fedora":
         if version == "rawhide":
             return "master"
