@@ -1162,7 +1162,7 @@ def enable_debug():
         format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
         datefmt='%H:%M:%S'
     )
-    log.debug("#  Debug log enabled  #")
+    sys.stderr.write("#  Debug log enabled  #\n")
 
 
 def main(argv=sys.argv[1:]):
