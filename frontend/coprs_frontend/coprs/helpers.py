@@ -563,7 +563,7 @@ def pre_process_repo_url(chroot, repo_url):
         ]) + "/"
 
     repo_url = repo_url.replace("$chroot", chroot)
-    repo_url = repo_url.replace("$distname", chroot.split("-")[0])
+    repo_url = repo_url.replace("$distname", chroot.rsplit("-", 2)[0])
     return repo_url
 
 

@@ -509,7 +509,7 @@ class Build(db.Model, helpers.Serializer):
         if kwargs.get('source_type') == helpers.BuildSourceEnum("custom"):
             source_dict = json.loads(kwargs['source_json'])
             if 'fedora-latest' in source_dict['chroot']:
-                arch = source_dict['chroot'].split('-')[2]
+                arch = source_dict['chroot'].rsplit('-', 2)[2]
                 source_dict['chroot'] = \
                     MockChroot.latest_fedora_branched_chroot(arch=arch).name
             kwargs['source_json'] = json.dumps(source_dict)

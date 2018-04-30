@@ -479,7 +479,7 @@ def ensure_dir_exists(path, log):
 
 
 def get_chroot_arch(chroot):
-    return chroot.split("-")[2]
+    return chroot.rsplit("-", 2)[2]
 
 
 @contextmanager

@@ -66,7 +66,7 @@ class BuildJob(object):
             setattr(self, key, val)
 
         if self.chroot:
-            self.arch = self.chroot.split("-")[2]
+            self.arch = self.chroot.rsplit("-", 2)[2]
 
         if str(self.task_id) == str(self.build_id):
             self.chroot = 'srpm-builds'
