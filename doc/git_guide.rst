@@ -570,6 +570,8 @@ Other Resources
 
 * `- Dealing with remote branches ..  <http://www.zorched.net/2008/04/14/start-a-new-branch-on-your-remote-git-repository/>`_
 
+* `Git Glossary <https://git-scm.com/docs/gitglossary>`_
+
 Credits
 -------
 
