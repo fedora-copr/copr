@@ -39,9 +39,7 @@ SRCFPO_BASE_URL = "https://src.fedoraproject.org/"
 
 ENDPOINT = 'tcp://hub.fedoraproject.org:9940'
 
-TOPICS = ['io.pagure.prod.pagure.git.receive',
-          'org.fedoraproject.prod.pagure.git.receive',
-          'org.fedoraproject.prod.git.receive']
+TOPICS = ['io.pagure.prod.pagure.git.receive', 'org.fedoraproject.prod.pagure.git.receive']
 
 class ScmPackage(object):
     def __init__(self, db_row):
@@ -119,27 +117,16 @@ def build_on_fedmsg_loop():
 
         log.info("Got topic: {}".format(data['topic']))
 
-        if data['topic'] == 'org.fedoraproject.prod.git.receive':
-            project_url_path = data['msg']['commit']['namespace'] + '/' + data['msg']['commit']['repo']
-            clone_url_path = project_url_path
-            branch = data['msg']['commit']['branch']
-            start_commit = data['msg']['commit']['rev']
-            end_commit = data['msg']['commit']['rev']
-        else:
-            project_url_path = data['msg']['repo']['url_path']
-            clone_url_path = data['msg']['repo']['fullname']
-            branch = data['msg']['branch']
-            start_commit = data['msg']['start_commit']
-            end_commit = data['msg']['end_commit']
+        project_url_path = data['msg']['repo']['url_path']
+        clone_url_path = data['msg']['repo']['fullname']
+        branch = data['msg']['branch']
+        start_commit = data['msg']['start_commit']
+        end_commit = data['msg']['end_commit']
 
-        if data['topic'] == 'org.fedoraproject.prod.git.receive' or \
-                data['topic'] == 'org.fedoraproject.prod.pagure.git.receive':
+        if data['topic'] == 'org.fedoraproject.prod.pagure.git.receive':
             base_url = SRCFPO_BASE_URL
-        elif data['topic'] == 'io.pagure.prod.pagure.git.receive':
-            base_url = PAGURE_BASE_URL
         else:
-            log.error("Unknown topic {} received.".format(data['topic']))
-            continue
+            base_url = PAGURE_BASE_URL
 
         clone_url = base_url + clone_url_path
         log.info("\tclone_url = {}".format(clone_url))
