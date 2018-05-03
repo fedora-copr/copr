@@ -116,17 +116,26 @@ WHERE package.copr_id = :copr_id;
 
     @classmethod
     def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref):
+        clone_url_stripped = re.sub(r'(.git)?/*$', '', clone_url)
+
         packages = (models.Package.query.join(models.Copr)
                     .filter(models.Copr.webhook_secret == webhook_secret)
                     .filter(models.Package.source_type == helpers.BuildSourceEnum("scm"))
                     .filter(models.Package.copr_id == copr_id)
                     .filter(models.Package.webhook_rebuild == true())
-                    .filter(models.Package.source_json.contains(clone_url.strip(".git"))))
+                    .filter(models.Package.source_json.contains(clone_url_stripped)))
 
         result = []
         for package in packages:
+            package_clone_url = package.source_json_dict.get('clone_url', '')
+            package_clone_url_stripped = re.sub(r'(.git)?/*$', '', package_clone_url)
+
+            if package_clone_url_stripped != clone_url_stripped:
+                continue
+
             if cls.commits_belong_to_package(package, commits, ref_type, ref):
                 result += [package]
+
         return result
 
     @classmethod
