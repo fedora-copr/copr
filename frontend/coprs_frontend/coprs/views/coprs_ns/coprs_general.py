@@ -301,7 +301,7 @@ def render_copr_detail(copr):
         #     copr_chroot=chroot.name,
         # )
         chroot_rpms_dl_stat_key = CHROOT_RPMS_DL_STAT_FMT.format(
-            copr_user=copr.user.name,
+            copr_user=copr.owner_name,
             copr_project_name=copr.name,
             copr_chroot=chroot.name,
         )
