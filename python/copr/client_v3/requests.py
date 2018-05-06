@@ -63,9 +63,10 @@ class Request(object):
 
 
 class FileRequest(Request):
-    def __init__(self, endpoint, files=None, **kwargs):
+    def __init__(self, endpoint, files=None, progress_callback=None, **kwargs):
         super(FileRequest, self).__init__(endpoint, **kwargs)
         self.files = files
+        self.progress_callback = progress_callback
 
     @property
     def _request_params(self):
@@ -74,7 +75,7 @@ class FileRequest(Request):
         data = self.files or {}
         data["json"] = ("json", json.dumps(self.data), "application/json")
 
-        callback = lambda x: x  # @TODO progress_callback or (lambda x: x)
+        callback = self.progress_callback or (lambda x: x)
         m = MultipartEncoder(data)
         params["json"] = None
         params["data"] = MultipartEncoderMonitor(m, callback)

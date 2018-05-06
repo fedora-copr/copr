@@ -149,7 +149,6 @@ class BuildProxy(BaseProxy):
 
     def _create(self, endpoint, data, files=None, buildopts=None):
         data = data.copy()
-        data.update(buildopts or {})
 
         request_class = Request
         kwargs = {"endpoint": endpoint, "api_base_url": self.api_base_url,
@@ -158,6 +157,11 @@ class BuildProxy(BaseProxy):
             request_class = FileRequest
             kwargs["files"] = files
 
+        if buildopts and "progress_callback" in buildopts:
+            kwargs["progress_callback"] = buildopts["progress_callback"]
+            del buildopts["progress_callback"]
+
+        data.update(buildopts or {})
         request = request_class(**kwargs)
         response = request.send()
         return response.munchify()
