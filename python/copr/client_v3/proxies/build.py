@@ -147,6 +147,31 @@ class BuildProxy(BaseProxy):
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
+    def create_from_custom(self, ownername, projectname, script, script_chroot=None,
+                           script_builddeps=None, script_resultdir=None, buildopts=None):
+        """
+        Create a build from custom script.
+        :param str ownername:
+        :param str projectname:
+        :param script: script to execute to generate sources
+        :param script_chroot: [optional] what chroot to use to generate
+            sources (defaults to fedora-latest-x86_64)
+        :param script_builddeps: [optional] list of script's dependencies
+        :param script_resultdir: [optional] where script generates results
+            (relative to cwd)
+        :return: Munch
+        """
+        endpoint = "/build/create/custom"
+        data = {
+            "ownername": ownername,
+            "projectname": projectname,
+            "script": script,
+            "chroot": script_chroot,
+            "builddeps": script_builddeps,
+            "resultdir": script_resultdir,
+        }
+        return self._create(endpoint, data, buildopts=buildopts)
+
     def _create(self, endpoint, data, files=None, buildopts=None):
         data = data.copy()
 

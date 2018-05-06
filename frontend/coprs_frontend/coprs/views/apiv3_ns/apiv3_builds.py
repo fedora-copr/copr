@@ -166,6 +166,27 @@ def create_from_rubygems():
     return process_creating_new_build(copr, form, create_new_build)
 
 
+@apiv3_ns.route("/build/create/custom", methods=["POST"])
+@api_login_required
+def create_from_custom():
+    copr = get_copr()
+    data = get_form_compatible_data()
+    form = forms.BuildFormCustomFactory(copr.active_chroots)(data, csrf_enabled=False)
+
+    def create_new_build():
+        return BuildsLogic.create_new_from_custom(
+            flask.g.user,
+            copr,
+            form.script.data,
+            form.chroot.data,
+            form.builddeps.data,
+            form.resultdir.data,
+            chroot_names=form.selected_chroots,
+            background=form.background.data,
+        )
+    return process_creating_new_build(copr, form, create_new_build)
+
+
 def process_creating_new_build(copr, form, create_new_build):
     if not form.validate_on_submit():
         raise ApiError("Bad request parameters: {0}".format(form.errors))
