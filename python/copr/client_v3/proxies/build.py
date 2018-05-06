@@ -44,10 +44,7 @@ class BuildProxy(BaseProxy):
             "projectname": projectname,
             "pkgs": urls,
         }
-        data.update(buildopts or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
-        response = request.send()
-        return response.munchify()
+        return self._create(endpoint, data, buildopts=buildopts)
 
     def create_from_url(self, ownername, projectname, url):
         """
@@ -78,14 +75,10 @@ class BuildProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        data.update(buildopts or {})
         files = {
             "pkgs": (os.path.basename(f.name), f, "application/x-rpm"),
         }
-        request = FileRequest(endpoint, api_base_url=self.api_base_url, method=POST,
-                              data=data, files=files, auth=self.auth)
-        response = request.send()
-        return response.munchify()
+        return self._create(endpoint, data, files=files, buildopts=buildopts)
 
     def create_from_scm(self, ownername, projectname, clone_url, committish="", subdirectory="", spec="",
                         scm_type="git", srpm_build_method="rpkg", buildopts=None):
@@ -113,10 +106,7 @@ class BuildProxy(BaseProxy):
             "scm_type": scm_type,
             "srpm_build_method": srpm_build_method,
         }
-        data.update(buildopts or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
-        response = request.send()
-        return response.munchify()
+        return self._create(endpoint, data, buildopts=buildopts)
 
     def create_from_pypi(self, ownername, projectname, pypi_package_name,
                          pypi_package_version=None, python_versions=None, buildopts=None):
@@ -138,10 +128,7 @@ class BuildProxy(BaseProxy):
             "pypi_package_version": pypi_package_version,
             "python_versions": python_versions or [3, 2],
         }
-        data.update(buildopts or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
-        response = request.send()
-        return response.munchify()
+        return self._create(endpoint, data, buildopts=buildopts)
 
     def create_from_rubygems(self, ownername, projectname, gem_name, buildopts=None):
         """
@@ -158,8 +145,20 @@ class BuildProxy(BaseProxy):
             "projectname": projectname,
             "gem_name": gem_name,
         }
+        return self._create(endpoint, data, buildopts=buildopts)
+
+    def _create(self, endpoint, data, files=None, buildopts=None):
+        data = data.copy()
         data.update(buildopts or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
+
+        request_class = Request
+        kwargs = {"endpoint": endpoint, "api_base_url": self.api_base_url,
+                  "data": data,"method": POST, "auth": self.auth}
+        if files:
+            request_class = FileRequest
+            kwargs["files"] = files
+
+        request = request_class(**kwargs)
         response = request.send()
         return response.munchify()
 

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from . import BaseProxy
+from .build import BuildProxy
 from ..requests import Request, POST
 
 
@@ -119,10 +120,8 @@ class PackageProxy(BaseProxy):
             "projectname": projectname,
             "package_name": packagename,
         }
-        data.update(buildopts or {})
-        request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
-        response = request.send()
-        return response.munchify()
+        build_proxy = BuildProxy(self.config)
+        return build_proxy._create(endpoint, data, buildopts=buildopts)
 
     def delete(self, ownername, projectname, packagename):
         """
