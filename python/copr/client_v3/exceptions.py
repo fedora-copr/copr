@@ -1,6 +1,10 @@
-class CoprRequestException(Exception):
+class CoprException(Exception):
     pass
 
 
-class CoprValidationException(Exception):
+class CoprRequestException(CoprException):
+    pass
+
+
+class CoprValidationException(CoprException):
     pass
