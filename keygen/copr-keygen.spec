@@ -33,7 +33,7 @@ BuildRequires: python3-pytest-cov
 BuildRequires: python3-mock
 
 Requires:   haveged
-Requires:   gnupg
+Requires:   gnupg2
 Requires:   python3-mod_wsgi
 Requires:   httpd
 Requires:   obs-signd
