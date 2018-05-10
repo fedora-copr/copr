@@ -9,6 +9,7 @@ class PackageProxy(BaseProxy):
     def get(self, ownername, projectname, packagename):
         """
         Return a package
+
         :param str ownername:
         :param str projectname:
         :param str packagename:
@@ -27,6 +28,7 @@ class PackageProxy(BaseProxy):
     def get_list(self, ownername, projectname, pagination=None):
         """
         Return a list of packages
+
         :param str ownername:
         :param str projectname:
         :param pagination:
@@ -46,6 +48,7 @@ class PackageProxy(BaseProxy):
     def add(self, ownername, projectname, packagename, source_type_text, source_dict):
         """
         Add a package to a project
+
         :param str ownername:
         :param str projectname:
         :param str packagename:
@@ -68,6 +71,7 @@ class PackageProxy(BaseProxy):
     def edit(self, ownername, projectname, packagename, source_type_text, source_dict):
         """
         Edit a package in a project
+
         :param str ownername:
         :param str projectname:
         :param str packagename:
@@ -90,6 +94,7 @@ class PackageProxy(BaseProxy):
     def reset(self, ownername, projectname, packagename):
         """
         Reset a package configuration
+
         :param str ownername:
         :param str projectname:
         :param str packagename:
@@ -108,6 +113,7 @@ class PackageProxy(BaseProxy):
     def build(self, ownername, projectname, packagename, buildopts=None):
         """
         Create a build from a package configuration
+
         :param str ownername:
         :param str projectname:
         :param str packagename:
@@ -126,6 +132,7 @@ class PackageProxy(BaseProxy):
     def delete(self, ownername, projectname, packagename):
         """
         Delete a package from a project
+
         :param str ownername:
         :param str projectname:
         :param str packagename:

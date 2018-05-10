@@ -10,6 +10,7 @@ class ModuleProxy(BaseProxy):
     def build_from_url(self, ownername, projectname, url, branch="master"):
         """
         Build a module from a URL pointing to a modulemd YAML file
+
         :param str ownername:
         :param str projectname:
         :param str url: URL pointing to a raw .yaml file
@@ -33,6 +34,7 @@ class ModuleProxy(BaseProxy):
     def build_from_file(self, ownername, projectname, path):
         """
         Build a module from a local modulemd YAML file
+
         :param str ownername:
         :param str projectname:
         :param str path:

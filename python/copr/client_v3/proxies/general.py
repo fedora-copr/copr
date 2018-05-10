@@ -9,6 +9,7 @@ class GeneralProxy(BaseProxy):
     def home(self):
         """
         Call the Copr APIv3 base URL
+
         :return: Munch
         """
         endpoint = ""
@@ -19,6 +20,7 @@ class GeneralProxy(BaseProxy):
     def auth_check(self):
         """
         Call an endpoint protected by login to check whether the user auth key is valid
+
         :return: Munch
         """
         endpoint = "/auth-check"

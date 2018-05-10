@@ -11,6 +11,7 @@ class ProjectProxy(BaseProxy):
     def get(self, ownername, projectname):
         """
         Return a project
+
         :param str ownername:
         :param str projectname:
         :return: Munch
@@ -27,6 +28,7 @@ class ProjectProxy(BaseProxy):
     def get_list(self, ownername, pagination=None):
         """
         Return a list of projects
+
         :param str ownername:
         :param pagination:
         :return: Munch
@@ -43,6 +45,7 @@ class ProjectProxy(BaseProxy):
     def search(self, query, pagination=None):
         """
         Return a list of projects based on fulltext search
+
         :param str query:
         :param pagination:
         :return: Munch
@@ -61,6 +64,7 @@ class ProjectProxy(BaseProxy):
             auto_prune=True, use_bootstrap_container=False):
         """
         Create a project
+
         :param str ownername:
         :param str projectname:
         :param list chroots:
@@ -102,6 +106,7 @@ class ProjectProxy(BaseProxy):
             auto_prune=True, use_bootstrap_container=False):
         """
         Edit a project
+
         :param str ownername:
         :param str projectname:
         :param list chroots:
@@ -141,6 +146,7 @@ class ProjectProxy(BaseProxy):
     def delete(self, ownername, projectname):
         """
         Delete a project
+
         :param str ownername:
         :param str projectname:
         :return: Munch
@@ -161,6 +167,7 @@ class ProjectProxy(BaseProxy):
     def fork(self, ownername, projectname, dstownername, dstprojectname, confirm=False):
         """
         Fork a project
+
         :param str ownername: owner of a source project
         :param str projectname: name of a source project
         :param str dstownername: owner of a destination project

@@ -10,6 +10,7 @@ class ProjectChrootProxy(BaseProxy):
     def get(self, ownername, projectname, chrootname):
         """
         Return a configuration of a chroot in a project
+
         :param str ownername:
         :param str projectname:
         :param str chrootname:
@@ -28,6 +29,7 @@ class ProjectChrootProxy(BaseProxy):
     def get_build_config(self, ownername, projectname, chrootname):
         """
         Return a build configuration of a chroot in a project
+
         :param str ownername:
         :param str projectname:
         :param str chrootname:
@@ -46,6 +48,7 @@ class ProjectChrootProxy(BaseProxy):
     def edit(self, ownername, projectname, chrootname, packages=None, repos=None, comps=None, delete_comps=False):
         """
         Edit a chroot configuration in a project
+
         :param str ownername:
         :param str projectname:
         :param str chrootname:

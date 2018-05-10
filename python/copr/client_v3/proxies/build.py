@@ -10,6 +10,7 @@ class BuildProxy(BaseProxy):
     def get(self, build_id):
         """
         Return a build
+
         :param int build_id:
         :return: Munch
         """
@@ -21,6 +22,7 @@ class BuildProxy(BaseProxy):
     def cancel(self, build_id):
         """
         Cancel a build
+
         :param int build_id:
         :return: Munch
         """
@@ -32,6 +34,7 @@ class BuildProxy(BaseProxy):
     def create_from_urls(self, ownername, projectname, urls, buildopts=None):
         """
         Create builds from a list of URLs
+
         :param str ownername:
         :param str projectname:
         :param list urls:
@@ -49,6 +52,7 @@ class BuildProxy(BaseProxy):
     def create_from_url(self, ownername, projectname, url):
         """
         Create a build from URL
+
         :param str ownername:
         :param str projectname:
         :param str url:
@@ -62,6 +66,7 @@ class BuildProxy(BaseProxy):
     def create_from_file(self, ownername, projectname, path, buildopts=None):
         """
         Create a build from local SRPM file
+
         :param str ownername:
         :param str projectname:
         :param str path:
@@ -84,6 +89,7 @@ class BuildProxy(BaseProxy):
                         scm_type="git", srpm_build_method="rpkg", buildopts=None):
         """
         Create a build from SCM repository
+
         :param str ownername:
         :param str projectname:
         :param str clone_url: url to a project versioned by Git or SVN
@@ -112,6 +118,7 @@ class BuildProxy(BaseProxy):
                          pypi_package_version=None, python_versions=None, buildopts=None):
         """
         Create a build from PyPI - https://pypi.org/
+
         :param str ownername:
         :param str projectname:
         :param str pypi_package_name:
@@ -133,6 +140,7 @@ class BuildProxy(BaseProxy):
     def create_from_rubygems(self, ownername, projectname, gem_name, buildopts=None):
         """
         Create a build from RubyGems - https://rubygems.org/
+
         :param str ownername:
         :param str projectname:
         :param str gem_name:
@@ -151,6 +159,7 @@ class BuildProxy(BaseProxy):
                            script_builddeps=None, script_resultdir=None, buildopts=None):
         """
         Create a build from custom script.
+
         :param str ownername:
         :param str projectname:
         :param script: script to execute to generate sources
@@ -194,6 +203,7 @@ class BuildProxy(BaseProxy):
     def delete(self, build_id):
         """
         Delete a build
+
         :param int build_id:
         :return: Munch
         """
