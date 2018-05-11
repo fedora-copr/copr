@@ -433,6 +433,8 @@ class Action(object):
 
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
+        self.log.info("Executing: {}".format(self))
+
         result = Munch()
         result.id = self.data["id"]
 
