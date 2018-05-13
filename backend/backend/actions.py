@@ -11,6 +11,7 @@ import tempfile
 
 from munch import Munch
 from distutils.dir_util import copy_tree
+from distutils.errors import DistutilsFileError
 from copr.exceptions import CoprRequestException
 from requests import RequestException
 from urllib.request import urlretrieve
@@ -124,7 +125,7 @@ class Action(object):
         builds_map = json.loads(self.data["data"])["builds_map"]
 
         if not os.path.exists(old_path):
-            self.log.info("Source copr directory doesnt exist: {}".format(old_path))
+            self.log.info("Source copr directory doesn't exist: {}".format(old_path))
             result.result = ActionResult.FAILURE
             return
 
@@ -139,31 +140,37 @@ class Action(object):
                 # Put the new public key into forked build directory.
                 get_pubkey(data["user"], data["copr"], pubkey_path)
 
-            chroots = set()
-            for new_id, old_dir_name in builds_map.items():
-                for build_folder in glob.glob(os.path.join(old_path, "*", old_dir_name)):
-                    new_chroot_folder = os.path.dirname(build_folder.replace(old_path, new_path))
-                    chroots.add(new_chroot_folder)
+            chroot_paths = set()
+            for chroot, src_dst_dir in builds_map.items():
+                src_dir, dst_dir = src_dst_dir[0], src_dst_dir[1]
+                if not chroot or not src_dir or not dst_dir:
+                    continue
 
-                    # We can remove this ugly condition after migrating Copr to new machines
-                    # It is throw-back from era before dist-git
-                    new_basename = old_dir_name if not os.path.basename(build_folder)[:8].isdigit() \
-                        else str(new_id).zfill(8) + os.path.basename(build_folder)[8:]
-                    new_build_folder = os.path.join(new_chroot_folder, new_basename)
+                old_chroot_path = os.path.join(old_path, chroot)
+                new_chroot_path = os.path.join(new_path, chroot)
+                chroot_paths.add(new_chroot_path)
 
-                    if not os.path.exists(new_build_folder):
-                        os.makedirs(new_build_folder)
+                src_path = os.path.join(old_chroot_path, src_dir)
+                dst_path = os.path.join(new_chroot_path, dst_dir)
 
-                    copy_tree(build_folder, new_build_folder)
-                    # Drop old signatures coming from original repo and re-sign.
-                    unsign_rpms_in_dir(new_build_folder, opts=self.opts, log=self.log)
-                    if sign:
-                        sign_rpms_in_dir(data["user"], data["copr"], new_build_folder, opts=self.opts, log=self.log)
+                if not os.path.exists(dst_path):
+                    os.makedirs(dst_path)
 
-                    self.log.info("Forking build {} as {}".format(build_folder, new_build_folder))
+                try:
+                    copy_tree(src_path, dst_path)
+                except DistutilsFileError as e:
+                    self.log.error(str(e))
+                    continue
 
-            for chroot in chroots:
-                createrepo(path=chroot, front_url=self.front_url,
+                # Drop old signatures coming from original repo and re-sign.
+                unsign_rpms_in_dir(dst_path, opts=self.opts, log=self.log)
+                if sign:
+                    sign_rpms_in_dir(data["user"], data["copr"], dst_path, opts=self.opts, log=self.log)
+
+                self.log.info("Forked build {} as {}".format(src_path, dst_path))
+
+            for chroot_path in chroot_paths:
+                createrepo(path=chroot_path, front_url=self.front_url,
                            username=data["user"], projectname=data["copr"],
                            override_acr_flag=True)
 

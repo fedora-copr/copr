@@ -61,7 +61,13 @@ class ComplexLogic(object):
                 continue
 
             fbuild = forking.fork_build(build, fcopr, fpackage)
-            builds_map[fbuild.id] = build.result_dir
+
+            if build.result_dir:
+                builds_map['srpm-builds'] = (build.result_dir, fbuild.result_dir)
+
+            for chroot, fchroot in zip(build.build_chroots, fbuild.build_chroots):
+                if chroot.result_dir:
+                    builds_map[chroot.name] = (chroot.result_dir, fchroot.result_dir)
 
         db.session.commit()
         ActionsLogic.send_fork_copr(copr, fcopr, builds_map)
@@ -219,14 +225,18 @@ class ProjectForking(object):
         return fpackage
 
     def fork_build(self, build, fcopr, fpackage):
-        fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "package_id"])
+        fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "package_id", "result_dir"])
         fbuild.copr = fcopr
         fbuild.package = fpackage
-        fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id", "build_id"]) for c in build.build_chroots]
-        for chroot in fbuild.build_chroots:
-            chroot.status = StatusEnum("forked")
         db.session.add(fbuild)
         db.session.flush()
+
+        fbuild.result_dir = '{:08}'.format(fbuild.id)
+        fbuild.build_chroots = [self.create_object(models.BuildChroot, c, exclude=["id", "build_id", "result_dir"]) for c in build.build_chroots]
+        for chroot in fbuild.build_chroots:
+            chroot.result_dir = '{:08}-{}'.format(fbuild.id, fpackage.name)
+            chroot.status = StatusEnum("forked")
+        db.session.add(fbuild)
         return fbuild
 
     def create_object(self, clazz, from_object, exclude=list()):

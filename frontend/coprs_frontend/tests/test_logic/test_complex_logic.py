@@ -20,9 +20,8 @@ class TestComplexLogic(CoprsTestCase):
         data = json.loads(actions[0].data)
         assert data["user"] == self.u2.name
         assert data["copr"] == "dstname"
+        assert data["builds_map"] == {'fedora-18-x86_64': ['bar', '00000005-hello-world'], 'srpm-builds': ['bar', '00000005']}
 
-        last_build, forked_build = self.c1.packages[0].last_build(successful=True), fc1.builds[0]
-        assert data["builds_map"] == {str(forked_build.id): last_build.result_dir}
 
 
 class TestProjectForking(CoprsTestCase):
