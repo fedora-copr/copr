@@ -144,22 +144,23 @@
   {{ build_state_text(module.status | module_state_from_num) }}
 {% endmacro %}
 
-{% macro chroot_to_os_logo(chroot) %}
-  {% if chroot.logo %}
-    <img style="height:1.8em" src="{{ url_for('static', filename="chroot_logodir/"+chroot.logo) }}" />
-  {% endif %}
-  {% if chroot.os_release == 'epel' %}
-    Epel for CentOS {{ chroot.os_version }}
-  {% elif chroot.os_release == 'opensuse-leap' %}
-    openSUSE Leap {{ chroot.os_version }}
-  {% elif chroot.os_release == 'opensuse' and chroot.os_version == 'tumbleweed' %}
-    openSUSE Tumbleweed
-  {% else %}
-    {{ chroot.os_release | capitalize }} {{ chroot.os_version }}
-  {% endif %}
+{% macro os_logo(logo_name) %}
+    {% if logo_name %}
+      <img style="height:1.8em" src="{{ url_for('static', filename="chroot_logodir/"+logo_name) }}" />
+    {% endif %}
 {% endmacro %}
 
-
+{% macro friendly_os_name(os_release, os_version=None) %}
+  {% if os_release == 'epel' %}
+    Epel for CentOS {{ os_version }}
+  {% elif os_release == 'opensuse-leap' %}
+    openSUSE Leap {{ os_version }}
+  {% elif os_release == 'opensuse' and os_version == 'tumbleweed' %}
+    openSUSE Tumbleweed
+  {% else %}
+    {{ os_release | capitalize }} {{ os_version }}
+  {% endif %}
+{% endmacro %}
 
 {% macro alert(message, type=None) %}
   {% set alert_class_map = {

@@ -2,7 +2,7 @@
 {% block title %}Project List{% endblock %}
 {% block header %}Project List{% endblock %}
 {% from "_helpers.html" import render_pagination, copr_details_href, copr_name, user_projects_panel %}
-{% from "_helpers.html" import recent_builds_panel, task_queue_panel %}
+{% from "_helpers.html" import recent_builds_panel, task_queue_panel, friendly_os_name %}
 {%block main_menu_projects %}active{% endblock %}
 {% block body %}
 <div class="row">
@@ -21,7 +21,7 @@
           <ul class="list-inline text-muted">
           {% for os in copr.active_chroots_grouped %}
             <li>
-              <strong>{{os[0]|capitalize}}:</strong>
+              <strong>{{ friendly_os_name(os[0].split()[0], os[0].split()[1]) }}:</strong>
               <small>
               {% for arch in os[1] %}
                 {{arch}}{% if not loop.last %}, {% endif %}

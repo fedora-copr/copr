@@ -841,13 +841,6 @@ class MockChroot(db.Model, helpers.Serializer):
         return "{}-{}".format(self.os_release, self.os_version)
 
     @property
-    def name_release_human(self):
-        """
-        Textual representation of name of this or release
-        """
-        return "{} {}".format(self.os_release, self.os_version)
-
-    @property
     def os(self):
         """
         Textual representation of the operating system name
