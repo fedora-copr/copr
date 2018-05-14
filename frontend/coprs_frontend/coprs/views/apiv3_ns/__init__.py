@@ -5,6 +5,7 @@ import sqlalchemy
 import inspect
 from functools import wraps
 from werkzeug.datastructures import MultiDict
+from coprs import app
 from coprs.exceptions import CoprHttpException
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -12,10 +13,26 @@ from coprs.logic.complex_logic import ComplexLogic
 apiv3_ns = flask.Blueprint("apiv3_ns", __name__, url_prefix="/api_3")
 
 
-@apiv3_ns.errorhandler(CoprHttpException)
-def handle_api_errors(error):
-    response = flask.jsonify(error=error.message)
-    response.status_code = error.code
+@app.errorhandler(CoprHttpException)
+def handle_copr_exception(error):
+    return handle_api_error(error.message, error.code)
+
+
+@app.errorhandler(500)
+def handle_internal_error(error):
+    message = "Request wasn't successful, there is probably a bug in the API code."
+    return handle_api_error(message, 500)
+
+
+@app.errorhandler(404)
+def handle_internal_error(error):
+    message = "Such API endpoint doesn't exist"
+    return handle_api_error(message, 404)
+
+
+def handle_api_error(message, code):
+    response = flask.jsonify(error=message)
+    response.status_code = code
     return response
 
 
