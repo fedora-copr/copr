@@ -138,8 +138,7 @@ def create_from_scm():
 @api_login_required
 def create_from_pypi():
     copr = get_copr()
-    data = get_form_compatible_data()
-    form = forms.BuildFormPyPIFactory(copr.active_chroots)(data, csrf_enabled=False)
+    form = forms.BuildFormPyPIFactory(copr.active_chroots)(csrf_enabled=False)
 
     # TODO: automatically prepopulate all form fields with their defaults
     if not form.python_versions.data:
