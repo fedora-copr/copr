@@ -1,8 +1,8 @@
 import flask
-from . import get_copr, file_upload
+from . import get_copr, file_upload, query_params, pagination, Paginator
 from .json2form import get_form_compatible_data
 from werkzeug import secure_filename
-from coprs import db, forms
+from coprs import db, forms, models
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
@@ -49,6 +49,16 @@ def render_build(build):
 def get_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
     return render_build(build)
+
+
+@apiv3_ns.route("/build/list/", methods=["GET"])
+@pagination()
+@query_params()
+def get_build_list(ownername, projectname, **kwargs):
+    copr = get_copr(ownername, projectname)
+    paginator = Paginator(BuildsLogic.get_multiple_by_copr(copr), models.Build, **kwargs)
+    builds = paginator.map(to_dict)
+    return flask.jsonify(items=builds, meta=paginator.meta)
 
 
 @apiv3_ns.route("/build/cancel/<int:build_id>", methods=["POST"])

@@ -19,6 +19,26 @@ class BuildProxy(BaseProxy):
         response = request.send()
         return response.munchify()
 
+    def get_list(self, ownername, projectname, pagination=None):
+        """
+        Return a list of packages
+
+        :param str ownername:
+        :param str projectname:
+        :param pagination:
+        :return: Munch
+        """
+        endpoint = "/build/list"
+        params = {
+            "ownername": ownername,
+            "projectname": projectname,
+        }
+        params.update(pagination or {})
+
+        request = Request(endpoint, api_base_url=self.api_base_url, params=params)
+        response = request.send()
+        return response.munchify()
+
     def cancel(self, build_id):
         """
         Cancel a build
