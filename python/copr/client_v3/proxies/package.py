@@ -39,7 +39,7 @@ class PackageProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
         }
-        params.update(pagination.to_dict() if pagination else {})
+        params.update(pagination or {})
 
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()

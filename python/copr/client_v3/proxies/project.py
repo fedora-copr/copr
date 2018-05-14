@@ -37,7 +37,7 @@ class ProjectProxy(BaseProxy):
         params = {
             "ownername": ownername,
         }
-        params.update(pagination.to_dict() if pagination else {})
+        params.update(pagination or {})
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
         return response.munchify()
@@ -54,7 +54,7 @@ class ProjectProxy(BaseProxy):
         params = {
             "query": query,
         }
-        params.update(pagination.to_dict() if pagination else {})
+        params.update(pagination or {})
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
         return response.munchify()
