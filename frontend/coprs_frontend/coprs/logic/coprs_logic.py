@@ -686,7 +686,8 @@ class MockChrootsLogic(object):
 
         returns ("os", "version", "arch") or ("os", "version", None)
         """
-        split_name = name.rsplit("-", 2)
+        split_name = name.rsplit("-", 1) if noarch else name.rsplit("-", 2)
+
         valid = False
         if noarch and len(split_name) in [2, 3]:
             valid = True
