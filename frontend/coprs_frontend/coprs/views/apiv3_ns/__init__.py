@@ -40,11 +40,14 @@ def query_params():
     def query_params_decorator(f):
         @wraps(f)
         def query_params_wrapper(*args, **kwargs):
-            params = [x for x in inspect.signature(f).parameters]
+            sig = inspect.signature(f)
+            params = [x for x in sig.parameters]
             params = list(set(params) - {"args", "kwargs"})
             for arg in params:
                 if arg not in flask.request.args:
-                    raise CoprHttpException("Missing argument {}".format(arg))
+                    # If parameter has a default value, it is not required
+                    if sig.parameters[arg].default == sig.parameters[arg].empty:
+                        raise CoprHttpException("Missing argument {}".format(arg))
                 kwargs[arg] = flask.request.args.get(arg)
             return f(*args, **kwargs)
         return query_params_wrapper
