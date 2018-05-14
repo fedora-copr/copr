@@ -29,24 +29,29 @@ class PackagesLogic(object):
         return models.Package.query.filter(models.Package.id == package_id)
 
     @classmethod
-    def get_all(cls, copr_id):
+    def get_all(cls, copr_dir_id):
+        return (models.Package.query
+                .filter(models.Package.copr_dir_id == copr_dir_id))
+
+    @classmethod
+    def get_all_in_copr(cls, copr_id):
         return (models.Package.query
                 .filter(models.Package.copr_id == copr_id))
 
     @classmethod
-    def get_copr_packages_list(cls, copr):
+    def get_copr_packages_list(cls, copr_dir):
         query_select = """
 SELECT package.name, build.pkg_version, build.submitted_on, package.webhook_rebuild, order_to_status(subquery2.min_order_for_a_build) AS status, build.source_status
 FROM package
 LEFT OUTER JOIN (select MAX(build.id) as max_build_id_for_a_package, package_id
   FROM build
-  WHERE build.copr_id = :copr_id
+  WHERE build.copr_dir_id = :copr_dir_id
   GROUP BY package_id) as subquery1 ON subquery1.package_id = package.id
 LEFT OUTER JOIN build ON build.id = subquery1.max_build_id_for_a_package
 LEFT OUTER JOIN (select build_id, min(status_to_order(status)) as min_order_for_a_build
   FROM build_chroot
   GROUP BY build_id) as subquery2 ON subquery2.build_id = subquery1.max_build_id_for_a_package
-WHERE package.copr_id = :copr_id;
+WHERE package.copr_dir_id = :copr_dir_id;
         """
 
         if db.engine.url.drivername == "sqlite":
@@ -100,19 +105,46 @@ WHERE package.copr_id = :copr_id;
             conn.connection.create_function("status_to_order", 1, sqlite_status_to_order)
             conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
             statement = text(query_select)
-            statement.bindparams(bindparam("copr_id", Integer))
-            result = conn.execute(statement, {"copr_id": copr.id})
+            statement.bindparams(bindparam("copr_dir_id", Integer))
+            result = conn.execute(statement, {"copr_dir_id": copr_dir.id})
         else:
             statement = text(query_select)
-            statement.bindparams(bindparam("copr_id", Integer))
-            result = db.engine.execute(statement, {"copr_id": copr.id})
+            statement.bindparams(bindparam("copr_dir_id", Integer))
+            result = db.engine.execute(statement, {"copr_dir_id": copr_dir.id})
 
         return result
 
     @classmethod
-    def get(cls, copr_id, package_name):
+    def get_list_by_copr(cls, copr_id, package_name):
         return models.Package.query.filter(models.Package.copr_id == copr_id,
                                            models.Package.name == package_name)
+
+    @classmethod
+    def get(cls, copr_dir_id, package_name):
+        return models.Package.query.filter(models.Package.copr_dir_id == copr_dir_id,
+                                           models.Package.name == package_name)
+
+    @classmethod
+    def get_by_dir_name(cls, copr_dir_name, package_name):
+        return models.Package.query.join(models.CoprDir).filter(
+            models.CoprDir.name == copr_dir_name, models.Package.name == package_name)
+
+    @classmethod
+    def get_or_create(cls, copr_dir, package_name, src_pkg):
+        package = cls.get_by_dir_name(copr_dir.name, package_name).first()
+
+        if package:
+            return package
+
+        package = models.Package(
+            name=src_pkg.name,
+            copr=src_pkg.copr,
+            source_type=src_pkg.source_type,
+            source_json=src_pkg.source_json,
+            copr_dir=copr_dir)
+
+        db.session.add(package)
+        return package
 
     @classmethod
     def get_for_webhook_rebuild(cls, copr_id, webhook_secret, clone_url, commits, ref_type, ref):
@@ -171,31 +203,31 @@ WHERE package.copr_id = :copr_id;
         return norm_file_path.startswith(package_subdir.strip('./'))
 
     @classmethod
-    def add(cls, user, copr, package_name, source_type=helpers.BuildSourceEnum("unset"), source_json=json.dumps({})):
+    def add(cls, user, copr_dir, package_name, source_type=helpers.BuildSourceEnum("unset"), source_json=json.dumps({})):
         users_logic.UsersLogic.raise_if_cant_build_in_copr(
-            user, copr,
+            user, copr_dir.copr,
             "You don't have permissions to build in this copr.")
 
-        if cls.exists(copr.id, package_name).all():
+        if cls.exists(copr_dir.id, package_name).all():
             raise exceptions.DuplicateException(
-                "Project {}/{} already has a package '{}'"
-                .format(copr.owner_name, copr.name, package_name))
+                "Project dir {} already has a package '{}'"
+                .format(copr_dir.full_name, package_name))
 
         package = models.Package(
             name=package_name,
-            copr_id=copr.id,
+            copr=copr_dir.copr,
+            copr_dir=copr_dir,
             source_type=source_type,
-            source_json=source_json
+            source_json=source_json,
         )
 
         db.session.add(package)
-
         return package
 
     @classmethod
-    def exists(cls, copr_id, package_name):
+    def exists(cls, copr_dir_id, package_name):
         return (models.Package.query
-                .filter(models.Package.copr_id == copr_id)
+                .filter(models.Package.copr_dir_id == copr_dir_id)
                 .filter(models.Package.name == package_name))
 
 

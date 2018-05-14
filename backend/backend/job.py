@@ -13,6 +13,7 @@ class BuildJob(object):
                 - timeout: maximum allowed time of build, build will fail if exceeded # unused
                 - project_owner:
                 - project_name:
+                - project_dirname:
                 - submitter:
 
             :param dict worker_opts: worker options, fields::
@@ -29,6 +30,7 @@ class BuildJob(object):
 
         self.project_owner = None
         self.project_name = None
+        self.project_dirname = None
         self.submitter = None
 
         self.ended_on = None
@@ -74,13 +76,13 @@ class BuildJob(object):
         self.destdir = os.path.normpath(os.path.join(
             worker_opts.destdir,
             task_data["project_owner"],
-            task_data["project_name"]
+            task_data["project_dirname"]
         ))
 
         self.results_repo_url = os.path.join(
             worker_opts.results_baseurl,
             task_data["project_owner"],
-            task_data["project_name"],
+            task_data["project_dirname"],
         )
 
         self.result_dir = self.target_dir_name
@@ -165,5 +167,5 @@ class BuildJob(object):
         return str(self.__unicode__())
 
     def __unicode__(self):
-        return u"BuildJob<id: {build_id}, owner: {project_owner}, project: {project_name}, " \
+        return u"BuildJob<id: {build_id}, owner: {project_owner}, project: {project_name}, project_dir: {project_dirname}" \
                u"git branch: {git_branch}, git hash: {git_hash}, status: {status} >".format(**self.__dict__)

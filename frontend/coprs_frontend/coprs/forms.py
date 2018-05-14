@@ -7,7 +7,7 @@ import ujson as json
 
 from flask_wtf.file import FileAllowed, FileRequired, FileField
 
-from flask_wtf import Form as FlaskForm
+from flask_wtf import FlaskForm
 from jinja2 import Markup
 
 from coprs import constants
@@ -808,6 +808,18 @@ class ModuleBuildForm(FlaskForm):
     modulemd = FileField("modulemd")
     scmurl = wtforms.StringField()
     branch = wtforms.StringField()
+
+
+class PagureIntegrationForm(FlaskForm):
+    repo_url = wtforms.StringField("repo_url", default='')
+    api_key = wtforms.StringField("api_key", default='')
+
+    def __init__(self, api_key=None, repo_url=None, *args, **kwargs):
+        super(PagureIntegrationForm, self).__init__(*args, **kwargs)
+        if api_key != None:
+            self.api_key.data = api_key
+        if repo_url != None:
+            self.repo_url.data = repo_url
 
 
 class ChrootForm(FlaskForm):

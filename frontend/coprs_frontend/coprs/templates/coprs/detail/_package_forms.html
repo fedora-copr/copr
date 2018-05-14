@@ -40,12 +40,12 @@
 {% macro render_webhook_rebuild(form) %}
   <div class="form-group">
     <label class="col-sm-2 control-label" for="textInput-markup">
-      Webhook rebuild
+      Auto-rebuild
     </label>
     <div class="col-sm-10">
       <input type="checkbox" name="webhook_rebuild" {% if form.webhook_rebuild.data == True %}checked="checked"{% endif %}/>
-      Use webhook to rebuild package? (i.e. every commit or tag in git repository)
-      | See <a href="{{ copr_url('coprs_ns.copr_webhooks', copr) }}">Webhooks Settings</a>
+      Auto-rebuild the package? (i.e. every commit or new tag)
+      | See <a href="{{ copr_url('coprs_ns.copr_integrations', copr) }}">Integrations</a>
     </div>
   </div>
 {% endmacro %}

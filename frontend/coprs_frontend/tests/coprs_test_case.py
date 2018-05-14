@@ -137,9 +137,14 @@ class CoprsTestCase(object):
         self.c1 = models.Copr(name=u"foocopr", user=self.u1, repos="")
         self.c2 = models.Copr(name=u"foocopr", user=self.u2, repos="")
         self.c3 = models.Copr(name=u"barcopr", user=self.u2, repos="")
-
         self.basic_coprs_list = [self.c1, self.c2, self.c3]
         self.db.session.add_all(self.basic_coprs_list)
+
+        self.c1_dir = models.CoprDir(name=u"foocopr", copr=self.c1, main=True)
+        self.c2_dir = models.CoprDir(name=u"foocopr", copr=self.c2, main=True)
+        self.c3_dir = models.CoprDir(name=u"barcopr", copr=self.c3, main=True)
+        self.basic_copr_dir_list = [self.c1_dir, self.c2_dir, self.c3_dir]
+        self.db.session.add_all(self.basic_copr_dir_list)
 
     @pytest.fixture
     def f_mock_chroots(self):
@@ -226,20 +231,20 @@ class CoprsTestCase(object):
     @pytest.fixture
     def f_builds(self):
         self.p1 = models.Package(
-            copr=self.c1, name="hello-world", source_type=0)
+            copr=self.c1, copr_dir=self.c1_dir, name="hello-world", source_type=0)
         self.p2 = models.Package(
-            copr=self.c2, name="whatsupthere-world", source_type=0)
+            copr=self.c2, copr_dir=self.c2_dir, name="whatsupthere-world", source_type=0)
         self.p3 = models.Package(
-            copr=self.c2, name="goodbye-world", source_type=0)
+            copr=self.c2, copr_dir=self.c3_dir, name="goodbye-world", source_type=0)
 
         self.b1 = models.Build(
-            copr=self.c1, package=self.p1, user=self.u1, submitted_on=50, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
+            copr=self.c1, copr_dir=self.c1_dir, package=self.p1, user=self.u1, submitted_on=50, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
         self.b2 = models.Build(
-            copr=self.c1, package=self.p1, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
+            copr=self.c1, copr_dir=self.c1_dir, package=self.p1, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
         self.b3 = models.Build(
-            copr=self.c2, package=self.p2, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p2, user=self.u2, submitted_on=10, srpm_url="http://somesrpm", source_status=StatusEnum("importing"), result_dir='bar')
         self.b4 = models.Build(
-            copr=self.c2, package=self.p2, user=self.u2, submitted_on=100, srpm_url="http://somesrpm", source_status=StatusEnum("succeeded"), result_dir='bar')
+            copr=self.c2, copr_dir=self.c2_dir, package=self.p2, user=self.u2, submitted_on=100, srpm_url="http://somesrpm", source_status=StatusEnum("succeeded"), result_dir='bar')
 
         self.basic_builds = [self.b1, self.b2, self.b3, self.b4]
         self.b1_bc = []
@@ -283,7 +288,9 @@ class CoprsTestCase(object):
         self.c1.webhook_secret = str(uuid.uuid4())
         self.db.session.add(self.c1)
         self.pHook = models.Package(
-            copr=self.c1, name="hook-package",
+            copr=self.c1,
+            copr_dir=self.c1_dir,
+            name="hook-package",
             source_type=helpers.BuildSourceEnum('scm'))
 
     @pytest.fixture
@@ -293,7 +300,9 @@ class CoprsTestCase(object):
         """
         self.b_few_chroots = models.Build(
             id=2345,
-            copr=self.c1, user=self.u1,
+            copr=self.c1,
+            copr_dir=self.c1_dir,
+            user=self.u1,
             submitted_on=50,
             pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
             pkg_version="1.58"
@@ -328,7 +337,9 @@ class CoprsTestCase(object):
         """
         self.b_many_chroots = models.Build(
             id=12347,
-            copr=self.c1, user=self.u1,
+            copr=self.c1,
+            copr_dir=self.c1_dir,
+            user=self.u1,
             submitted_on=50,
             pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
             pkg_version="1.58"
@@ -390,33 +401,19 @@ class CoprsTestCase(object):
 
     @pytest.fixture
     def f_actions(self):
-        # if using actions, we need to flush coprs into db, so that we can get
-        # their ids
         self.f_db()
-        self.a1 = models.Action(action_type=helpers.ActionTypeEnum("rename"),
-                                object_type="copr",
-                                object_id=self.c1.id,
-                                old_value="{0}/{1}".format(
-                                    self.c1.user.name, self.c1.name),
-                                new_value="{0}/new_name".format(
-                                    self.c1.user.name),
-                                created_on=int(time.time()))
-        self.a2 = models.Action(action_type=helpers.ActionTypeEnum("rename"),
-                                object_type="copr",
-                                object_id=self.c2.id,
-                                old_value="{0}/{1}".format(
-                                    self.c2.user.name, self.c2.name),
-                                new_value="{0}/new_name2".format(
-                                    self.c2.user.name),
-                                created_on=int(time.time()))
-        self.a3 = models.Action(action_type=helpers.ActionTypeEnum("delete"),
-                                object_type="copr",
-                                object_id=100,
-                                old_value="asd/qwe",
-                                new_value=None,
-                                result=helpers.BackendResultEnum("success"),
-                                created_on=int(time.time()))
-        self.db.session.add_all([self.a1, self.a2, self.a3])
+        self.delete_action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
+                                           object_type="copr",
+                                           object_id=self.c1.id,
+                                           old_value="asd/qwe",
+                                           new_value=None,
+                                           result=helpers.BackendResultEnum("waiting"),
+                                           created_on=int(time.time()))
+        self.cancel_build_action = models.Action(action_type=helpers.ActionTypeEnum("cancel_build"),
+                                                 data=json.dumps({'task_id': 123}),
+                                                 result=helpers.BackendResultEnum("waiting"),
+                                                 created_on=int(time.time()))
+        self.db.session.add_all([self.delete_action, self.cancel_build_action])
 
     @pytest.fixture
     def f_modules(self):

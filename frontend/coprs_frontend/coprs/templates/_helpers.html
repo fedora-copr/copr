@@ -392,6 +392,7 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 {% macro repo_file_href(copr, repo) %}
   {{- copr_url('coprs_ns.generate_repo_file',
       copr,
+      copr_dirname=copr.main_dir.name,
       name_release=repo.name_release,
       repofile=repo.repo_file,
       _external=True

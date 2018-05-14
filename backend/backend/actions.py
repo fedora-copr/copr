@@ -25,6 +25,7 @@ from .vm_manage.manager import VmManager
 
 from .sshcmd import SSHConnectionError, SSHConnection
 
+
 class Action(object):
     """ Object to send data back to fronted
 
@@ -57,63 +58,45 @@ class Action(object):
     def __str__(self):
         return "<Action: {}>".format(self.data)
 
+    def get_chroot_result_dir(self, chroot, project_dirname, ownername):
+        return os.path.join(self.destdir, ownername, project_dirname, chroot)
+
     def handle_legal_flag(self):
         self.log.debug("Action legal-flag: ignoring")
 
     def handle_createrepo(self, result):
-        self.log.debug("Action create repo")
+        self.log.info("Action createrepo")
         data = json.loads(self.data["data"])
-        username = data["username"]
+        ownername = data["ownername"]
         projectname = data["projectname"]
+        project_dirnames = data["project_dirnames"]
         chroots = data["chroots"]
 
         done_count = 0
-        for chroot in chroots:
-            self.log.info("Creating repo for: %s/%s/%s",
-                          username, projectname, chroot)
+        for project_dirname in project_dirnames:
+            for chroot in chroots:
+                self.log.info("Creating repo for: {}/{}/{}"
+                              .format(ownername, project_dirname, chroot))
 
-            path = self.get_chroot_result_dir(chroot, projectname, username)
+                path = self.get_chroot_result_dir(chroot, project_dirname, ownername)
+                try:
+                    createrepo(path=path, front_url=self.front_url,
+                               username=ownername, projectname=projectname,
+                               override_acr_flag=True)
+                    done_count += 1
+                except CoprRequestException as err:
+                    # fixme: dirty hack to catch case when createrepo invoked upon deleted project
+                    if "does not exists" in str(err):
+                        result.result = ActionResult.FAILURE
+                        return
+                except CreateRepoError:
+                    self.log.exception("Error making local repo for: {}/{}/{}"
+                                       .format(ownername, project_dirname, chroot))
 
-            try:
-                createrepo(path=path, front_url=self.front_url,
-                           username=username, projectname=projectname,
-                           override_acr_flag=True)
-                done_count += 1
-            except CoprRequestException as err:
-                # fixme: dirty hack to catch case when createrepo invoked upon deleted project
-                if "does not exists" in str(err):
-                    result.result = ActionResult.FAILURE
-                    return
-
-            except CreateRepoError:
-                self.log.exception("Error making local repo for: %s/%s/%s",
-                                   username, projectname, chroot)
-
-        if done_count == len(chroots):
+        if done_count == len(project_dirnames)*len(chroots):
             result.result = ActionResult.SUCCESS
         else:
             result.result = ActionResult.FAILURE
-
-    def get_chroot_result_dir(self, chroot, projectname, username):
-        return os.path.join(self.destdir, username, projectname, chroot)
-
-    def handle_rename(self, result):
-        self.log.debug("Action rename")
-        old_path = os.path.normpath(os.path.join(
-            self.destdir, self.data["old_value"]))
-        new_path = os.path.normpath(os.path.join(
-            self.destdir, self.data["new_value"]))
-
-        if os.path.exists(old_path):
-            if not os.path.exists(new_path):
-                shutil.move(old_path, new_path)
-                result.result = ActionResult.SUCCESS
-            else:
-                result.message = "Destination directory already exist."
-                result.result = ActionResult.FAILURE
-        else:  # nothing to do, that is success too
-            result.result = ActionResult.SUCCESS
-        result.job_ended_on = time.time()
 
     def handle_fork(self, result):
         sign = self.opts.do_sign
@@ -255,6 +238,7 @@ class Action(object):
         ext_data = json.loads(self.data["data"])
         ownername = ext_data["ownername"]
         projectname = ext_data["projectname"]
+        project_dirname = ext_data["project_dirname"]
         chroot_builddirs = ext_data["chroot_builddirs"]
 
         self.log.info("Going to delete: %s", chroot_builddirs)
@@ -263,7 +247,7 @@ class Action(object):
             if not builddir:
                 continue
 
-            chroot_path = os.path.join(self.destdir, ownername, projectname, chroot)
+            chroot_path = os.path.join(self.destdir, ownername, project_dirname, chroot)
             builddir_path = os.path.join(chroot_path, builddir)
 
             if not os.path.isdir(builddir_path):
@@ -275,7 +259,7 @@ class Action(object):
 
             self.log.debug("Running createrepo on %s", chroot_path)
             result_base_url = "/".join(
-                [self.results_root_url, ownername, projectname, chroot])
+                [self.results_root_url, ownername, project_dirname, chroot])
 
             try:
                 createrepo(
@@ -292,18 +276,18 @@ class Action(object):
         ext_data = json.loads(self.data["data"])
         self.log.info("Action generate gpg key: %s", ext_data)
 
-        username = ext_data["username"]
+        ownername = ext_data["ownername"]
         projectname = ext_data["projectname"]
 
-        success = self.generate_gpg_key(username, projectname)
+        success = self.generate_gpg_key(ownername, projectname)
         result.result = ActionResult.SUCCESS if success else ActionResult.FAILURE
 
-    def generate_gpg_key(self, owner, projectname):
+    def generate_gpg_key(self, ownername, projectname):
         if self.opts.do_sign is False:
             # skip key creation, most probably sign component is unused
             return True
         try:
-            create_user_keys(owner, projectname, self.opts)
+            create_user_keys(ownername, projectname, self.opts)
             return True
         except CoprKeygenRequestError as e:
             self.log.exception(e)
@@ -312,7 +296,7 @@ class Action(object):
     def handle_rawhide_to_release(self, result):
         data = json.loads(self.data["data"])
         try:
-            chrootdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["dest_chroot"])
+            chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["project_dirname"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
                 self.log.debug("Create directory: %s", chrootdir)
                 os.makedirs(chrootdir)

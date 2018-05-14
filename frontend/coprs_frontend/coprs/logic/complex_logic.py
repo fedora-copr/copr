@@ -4,6 +4,7 @@ import time
 import flask
 import sqlalchemy
 import os
+import re
 
 from .. import db
 from .builds_logic import BuildsLogic
@@ -16,7 +17,7 @@ from coprs.logic.actions_logic import ActionsLogic
 
 from coprs.logic.users_logic import UsersLogic
 from coprs.models import User, Copr
-from .coprs_logic import CoprsLogic, CoprChrootsLogic
+from .coprs_logic import CoprsLogic, CoprDirsLogic, CoprChrootsLogic
 from .. import helpers
 
 
@@ -54,7 +55,7 @@ class ComplexLogic(object):
             raise exceptions.DuplicateException("Source project should not be same as destination")
 
         builds_map = {}
-        for package in copr.packages:
+        for package in copr.main_dir.packages:
             fpackage = forking.fork_package(package, fcopr)
             build = package.last_build(successful=True)
             if not build:
@@ -74,9 +75,34 @@ class ComplexLogic(object):
         return fcopr, created
 
     @staticmethod
+    def get_group_copr_dir_safe(group_name, copr_dirname, **kwargs):
+        """ Get group project_dir by group_name and copr_dirname."""
+        try:
+            return CoprDirsLogic.get_by_groupname(
+                group_name, copr_dirname, **kwargs).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            raise ObjectNotFound(
+                message="Project directory @{}/{} does not exist."
+                        .format(group_name, copr_dirname))
+
+    @staticmethod
+    def get_copr_dir_safe(user_name, copr_dirname, **kwargs):
+        """ Get project_dir by user_name and copr_dirname.
+
+        This always returns a personal directory.
+        For group project directories, see get_group_copr_dir_safe().
+        """
+        try:
+            return CoprDirsLogic.get_by_username(
+                user_name, copr_dirname, **kwargs).filter(Copr.group_id.is_(None)).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            raise ObjectNotFound(
+                message="Project directory {}/{} does not exist."
+                        .format(user_name, copr_dirname))
+
+    @staticmethod
     def get_group_copr_safe(group_name, copr_name, **kwargs):
         group = ComplexLogic.get_group_by_name_safe(group_name)
-
         try:
             return CoprsLogic.get_by_group_id(
                 group.id, copr_name, **kwargs).one()
@@ -87,7 +113,7 @@ class ComplexLogic(object):
 
     @staticmethod
     def get_copr_safe(user_name, copr_name, **kwargs):
-        """ Get one project
+        """ Get one project.
 
         This always return personal project. For group projects see get_group_copr_safe().
         """
@@ -103,6 +129,12 @@ class ComplexLogic(object):
         if owner_name[0] == "@":
             return ComplexLogic.get_group_copr_safe(owner_name[1:], copr_name, **kwargs)
         return ComplexLogic.get_copr_safe(owner_name, copr_name, **kwargs)
+
+    @staticmethod
+    def get_copr_dir_by_owner_safe(owner_name, copr_dirname, **kwargs):
+        if owner_name[0] == "@":
+            return ComplexLogic.get_group_copr_dir_safe(owner_name[1:], copr_dirname, **kwargs)
+        return ComplexLogic.get_copr_dir_safe(owner_name, copr_dirname, **kwargs)
 
     @staticmethod
     def get_copr_by_id_safe(copr_id):
@@ -130,13 +162,13 @@ class ComplexLogic(object):
                 message="Package {} does not exist.".format(package_id))
 
     @staticmethod
-    def get_package_safe(copr, package_name):
+    def get_package_safe(copr_dir, package_name):
         try:
-            return PackagesLogic.get(copr.id, package_name).one()
+            return PackagesLogic.get(copr_dir.id, package_name).one()
         except sqlalchemy.orm.exc.NoResultFound:
             raise ObjectNotFound(
-                message="Package {} in the copr {} does not exist."
-                .format(package_name, copr))
+                message="Package {} in the copr_dir {} does not exist."
+                .format(package_name, copr_dir))
 
     @staticmethod
     def get_group_by_name_safe(group_name):
@@ -199,7 +231,8 @@ class ProjectForking(object):
     def fork_copr(self, copr, name):
         fcopr = self.get(copr, name)
         if not fcopr:
-            fcopr = self.create_object(models.Copr, copr, exclude=["id", "group_id", "created_on"])
+            fcopr = self.create_object(models.Copr, copr,
+                                       exclude=["id", "group_id", "created_on", "scm_repo_url", "scm_api_type", "scm_api_auth_json"])
             fcopr.forked_from_id = copr.id
             fcopr.user = self.user
             fcopr.user_id = self.user.id
@@ -210,25 +243,31 @@ class ProjectForking(object):
                 fcopr.group = self.group
                 fcopr.group_id = self.group.id
 
+            fcopr_dir = models.CoprDir(name=fcopr.name, copr=fcopr, main=True)
+
             for chroot in list(copr.copr_chroots):
                 CoprChrootsLogic.create_chroot(self.user, fcopr, chroot.mock_chroot, chroot.buildroot_pkgs,
                                                chroot.repos, comps=chroot.comps, comps_name=chroot.comps_name,
                                                with_opts=chroot.with_opts, without_opts=chroot.without_opts)
             db.session.add(fcopr)
+            db.session.add(fcopr_dir)
+
         return fcopr
 
     def fork_package(self, package, fcopr):
-        fpackage = PackagesLogic.get(fcopr.id, package.name).first()
+        fpackage = PackagesLogic.get(fcopr.main_dir.id, package.name).first()
         if not fpackage:
-            fpackage = self.create_object(models.Package, package, exclude=["id", "copr_id"])
+            fpackage = self.create_object(models.Package, package, exclude=["id", "copr_id", "copr_dir_id"])
             fpackage.copr = fcopr
+            fpackage.copr_dir = fcopr.main_dir
             db.session.add(fpackage)
         return fpackage
 
     def fork_build(self, build, fcopr, fpackage):
-        fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "package_id", "result_dir"])
+        fbuild = self.create_object(models.Build, build, exclude=["id", "copr_id", "copr_dir_id", "package_id", "result_dir"])
         fbuild.copr = fcopr
         fbuild.package = fpackage
+        fbuild.copr_dir = fcopr.main_dir
         db.session.add(fbuild)
         db.session.flush()
 

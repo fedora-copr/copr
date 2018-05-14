@@ -64,7 +64,6 @@ class PermissionEnum(with_metaclass(EnumType, object)):
 class ActionTypeEnum(with_metaclass(EnumType, object)):
     vals = {
         "delete": 0,
-        "rename": 1,
         "legal-flag": 2,
         "createrepo": 3,
         "update_comps": 4,
@@ -654,3 +653,14 @@ def generate_additional_repos(copr_chroot):
     if not copr_chroot.copr.auto_createrepo:
         repos.append("copr://{}/devel".format(copr_chroot.copr.full_name))
     return repos
+
+
+def trim_git_url(url):
+    if not url:
+        return False
+    return re.sub(r'(\.git)?/*$', '', url)
+
+
+def get_parsed_git_url(url):
+    url = trim_git_url(url)
+    return urlparse(url)

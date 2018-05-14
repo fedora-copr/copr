@@ -43,7 +43,7 @@ def dist_git_importing_queue():
         tasks.append({
             "build_id": build.id,
             "owner": build.copr.owner_name,
-            "project": build.copr.name,
+            "project": build.copr_dirname,
             "branches": list(branches),
             "srpm_url": build.srpm_url,
         })
@@ -68,15 +68,18 @@ def dist_git_upload_completed():
     for branch, git_hash in flask.request.json.get("branch_commits", {}).items():
         branch_chroots = BuildsLogic.get_buildchroots_by_build_id_and_branch(build_id, branch)
 
-        if not PackagesLogic.get(build.copr.id, pkg_name).first():
+        if not PackagesLogic.get(build.copr_dir.id, pkg_name).first():
             try:
-                package = PackagesLogic.add(build.copr.user, build.copr, pkg_name, build.source_type, build.source_json)
+                package = PackagesLogic.add(
+                    build.copr.user, build.copr_dir,
+                    pkg_name, build.source_type, build.source_json)
                 db.session.add(package)
                 db.session.commit()
             except (sqlalchemy.exc.IntegrityError, exceptions.DuplicateException) as e:
+                app.logger.exception(e)
                 db.session.rollback()
 
-        package = PackagesLogic.get(build.copr.id, pkg_name).first()
+        package = PackagesLogic.get(build.copr_dir.id, pkg_name).first()
         build.package_id = package.id
         build.pkg_version = pkg_version
 
@@ -112,10 +115,10 @@ def get_build_record(task):
             "task_id": task.task_id,
             "build_id": task.build.id,
             "project_owner": task.build.copr.owner_name,
-            "project_name": task.build.copr.name,
+            "project_name": task.build.copr_name,
+            "project_dirname": task.build.copr_dirname,
             "submitter": task.build.user.name if task.build.user else None, # there is no user for webhook builds
             "chroot": task.mock_chroot.name,
-
             "repos": task.build.repos,
             "memory_reqs": task.build.memory_reqs,
             "timeout": task.build.timeout,
@@ -155,7 +158,8 @@ def get_srpm_build_record(task):
             "task_id": task.task_id,
             "build_id": task.id,
             "project_owner": task.copr.owner_name,
-            "project_name": task.copr.name,
+            "project_name": task.copr_name,
+            "project_dirname": task.copr_dirname,
             "source_type": task.source_type,
             "source_json": task.source_json,
             "chroot": chroot,

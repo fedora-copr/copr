@@ -80,7 +80,7 @@ class TestCoprsLogic(CoprsTestCase):
         actions = ActionsLogic.get_many(ActionTypeEnum("gen_gpg_key")).all()
         assert len(actions) == 1
         data = json.loads(actions[0].data)
-        assert data["username"] == self.u1.name
+        assert data["ownername"] == self.u1.name
         assert data["projectname"] == name
 
 

@@ -372,7 +372,6 @@ class TestCoprUpdate(CoprsTestCase):
         self.db.session.add_all(
             [self.u1, self.c1, self.mc1, self.mc2, self.mc3])
 
-
         username = self.u1.name
         coprname = self.c1.name
         copr_id = self.c1.id
@@ -416,7 +415,7 @@ class TestCoprUpdate(CoprsTestCase):
         action = ActionsLogic.get_many(action_type=ActionTypeEnum("createrepo")).one()
 
         data_dict = json.loads(action.data)
-        assert data_dict["username"] == username
+        assert data_dict["ownername"] == username
         assert data_dict["projectname"] == coprname
 
 
@@ -621,12 +620,15 @@ class TestCoprRepoGeneration(CoprsTestCase):
     def f_custom_builds(self):
         """ Custom builds are used in order not to break the default ones """
         self.b5 = self.models.Build(
-            copr=self.c1, user=self.u1, submitted_on=9,
+            copr=self.c1, copr_dir=self.c1_dir,
+            user=self.u1, submitted_on=9,
             result_dir="bar")
         self.b6 = self.models.Build(
-            copr=self.c1, user=self.u1, submitted_on=11)
+            copr=self.c1, copr_dir=self.c1_dir,
+            user=self.u1, submitted_on=11)
         self.b7 = self.models.Build(
-            copr=self.c1, user=self.u1, submitted_on=10,
+            copr=self.c1, copr_dir=self.c1_dir,
+            user=self.u1, submitted_on=10,
             result_dir="bar")
 
         # assign with chroots

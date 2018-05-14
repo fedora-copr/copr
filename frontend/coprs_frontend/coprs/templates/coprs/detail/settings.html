@@ -41,7 +41,7 @@
   {% endif %}
 
   {% if g.user.can_edit(copr) %}
-    {{ tab("webhooks", "Webhooks", copr_url('coprs_ns.copr_webhooks', copr)) }}
+    {{ tab("integrations", "Integrations", copr_url('coprs_ns.copr_integrations', copr)) }}
   {% endif %}
 
   {% if g.user.can_edit(copr) %}

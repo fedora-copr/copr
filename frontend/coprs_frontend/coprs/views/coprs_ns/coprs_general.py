@@ -5,6 +5,8 @@ import time
 import fnmatch
 import uuid
 import subprocess
+import json
+
 from six.moves.urllib.parse import urljoin
 
 import flask
@@ -384,7 +386,7 @@ def copr_permissions(copr):
         current_user_permissions=user_perm)
 
 
-def render_copr_webhooks(copr):
+def render_copr_integrations(copr, pagure_form):
     if not copr.webhook_secret:
         copr.webhook_secret = str(uuid.uuid4())
         db.session.add(copr)
@@ -411,17 +413,43 @@ def render_copr_webhooks(copr):
                   copr.webhook_secret) + "<PACKAGE_NAME>/"
 
     return flask.render_template(
-        "coprs/detail/settings/webhooks.html",
+        "coprs/detail/settings/integrations.html",
         copr=copr, bitbucket_url=bitbucket_url, github_url=github_url,
-        gitlab_url=gitlab_url, custom_url=custom_url)
+        gitlab_url=gitlab_url, custom_url=custom_url, pagure_form=pagure_form)
 
 
-@coprs_ns.route("/<username>/<coprname>/webhooks/")
-@coprs_ns.route("/g/<group_name>/<coprname>/webhooks/")
+@coprs_ns.route("/<username>/<coprname>/integrations/")
+@coprs_ns.route("/g/<group_name>/<coprname>/integrations/")
 @login_required
 @req_with_copr
-def copr_webhooks(copr):
-    return render_copr_webhooks(copr)
+def copr_integrations(copr):
+    if copr.scm_api_type == 'pagure':
+        pagure_api_key = copr.scm_api_auth.get('api_key', '')
+    else:
+        pagure_api_key = ''
+
+    pagure_form = forms.PagureIntegrationForm(
+        api_key=pagure_api_key, repo_url=copr.scm_repo_url)
+    return render_copr_integrations(copr, pagure_form)
+
+
+@coprs_ns.route("/<username>/<coprname>/integrations/update", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/integrations/update", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_integrations_update(copr):
+    pagure_form = forms.PagureIntegrationForm()
+
+    if pagure_form.validate_on_submit():
+        copr.scm_repo_url = pagure_form.repo_url.data
+        copr.scm_api_type = 'pagure'
+        copr.scm_api_auth_json = json.dumps({'api_key': pagure_form.api_key.data})
+        db.session.add(copr)
+        db.session.commit()
+        flask.flash("Integrations have been updated.", 'success')
+        return flask.redirect(helpers.copr_url("coprs_ns.copr_integrations", copr))
+    else:
+        return render_copr_integrations(copr, pagure_form)
 
 
 def render_copr_edit(copr, form, view):
@@ -615,13 +643,10 @@ def copr_createrepo(copr_id):
             "You are not allowed to recreate repository metadata of copr with id {}.".format(copr_id), "error")
         return flask.redirect(url_for_copr_details(copr))
 
-    chroots = [c.name for c in copr.active_chroots]
-    actions_logic.ActionsLogic.send_createrepo(
-        username=copr.owner_name, coprname=copr.name,
-        chroots=chroots)
-
+    actions_logic.ActionsLogic.send_createrepo(copr)
     db.session.commit()
-    flask.flash("Repository metadata will be regenerated in a few minutes ...")
+
+    flask.flash("Repository metadata in all directories will be regenerated...", "success")
     return flask.redirect(url_for_copr_details(copr))
 
 
@@ -699,11 +724,11 @@ def process_legal_flag(contact_info, copr):
     return flask.redirect(url_for_copr_details(copr))
 
 
-@coprs_ns.route("/<username>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
-@coprs_ns.route("/<username>/<coprname>/repo/<name_release>/<repofile>")
-@coprs_ns.route("/g/<group_name>/<coprname>/repo/<name_release>/", defaults={"repofile": None})
-@coprs_ns.route("/g/<group_name>/<coprname>/repo/<name_release>/<repofile>")
-def generate_repo_file(coprname, name_release, repofile, username=None, group_name=None):
+@coprs_ns.route("/<username>/<copr_dirname>/repo/<name_release>/", defaults={"repofile": None})
+@coprs_ns.route("/<username>/<copr_dirname>/repo/<name_release>/<repofile>")
+@coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/", defaults={"repofile": None})
+@coprs_ns.route("/g/<group_name>/<copr_dirname>/repo/<name_release>/<repofile>")
+def generate_repo_file(copr_dirname, name_release, repofile, username=None, group_name=None):
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
 
@@ -711,31 +736,31 @@ def generate_repo_file(coprname, name_release, repofile, username=None, group_na
         group_name=username[1:]
 
     if group_name:
-        copr = ComplexLogic.get_group_copr_safe(group_name, coprname)
+        copr_dir = ComplexLogic.get_group_copr_dir_safe(group_name, copr_dirname)
     else:
-        copr = ComplexLogic.get_copr_safe(username, coprname)
+        copr_dir = ComplexLogic.get_copr_dir_safe(username, copr_dirname)
 
-    return render_generate_repo_file(copr, name_release)
+    return render_generate_repo_file(copr_dir, name_release)
 
 
-def render_generate_repo_file(copr, name_release):
+def render_generate_repo_file(copr_dir, name_release):
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
 
     if not mock_chroot:
         raise ObjectNotFound("Chroot {} does not exist".format(name_release))
 
-    url = os.path.join(copr.repo_url, '') # adds trailing slash
+    url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, url)
     pubkey_url = urljoin(url, "pubkey.gpg")
     response = flask.make_response(
-        flask.render_template("coprs/copr.repo", copr=copr, url=repo_url, pubkey_url=pubkey_url))
+        flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir, url=repo_url, pubkey_url=pubkey_url))
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
-        "filename={0}.repo".format(copr.repo_name)
+        "filename={0}.repo".format(copr_dir.repo_name)
 
     name = REPO_DL_STAT_FMT.format(**{
-        'copr_user': copr.user.name,
-        'copr_project_name': copr.name,
+        'copr_user': copr_dir.copr.user.name,
+        'copr_project_name': copr_dir.copr.name,
         'copr_name_release': name_release,
     })
     CounterStatLogic.incr(name=name, counter_type=CounterStatType.REPO_DL)
@@ -758,7 +783,7 @@ def generate_module_repo_file(copr, name_release, module_nsv):
 def render_generate_module_repo_file(copr, name_release, module_nsv):
     module = ModulesLogic.get_by_nsv_str(copr, module_nsv).one()
     mock_chroot = coprs_logic.MockChrootsLogic.get_from_name(name_release, noarch=True).first()
-    url = os.path.join(copr.repo_url, '') # adds trailing slash
+    url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, copr.modules_url)
     baseurl = "{}+{}/latest/$basearch".format(repo_url.rstrip("/"), module_nsv)
     pubkey_url = urljoin(url, "pubkey.gpg")

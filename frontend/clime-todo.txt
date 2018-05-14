@@ -1,4 +1,0 @@
-================================================================= TODO =================================================================
-SElinux problem for data folder (it needs httpd_sys_content_rw_t to store nonces). The current default location (/usr/share/copr/data) does not have it.
-
-================================================================= DONE =================================================================

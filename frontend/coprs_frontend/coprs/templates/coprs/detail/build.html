@@ -84,6 +84,28 @@
           <dd>
               {{ build.enable_net }}
           </dd>
+          {% if build.scm_object_type == 'commit' %}
+          <dt> Commit: </dt>
+          <dd>
+            <a href="{{ build.scm_object_url }}">
+              {{ build.scm_object_id | truncate(7, True, "") }}
+            </a>
+          </dd>
+          {% endif %}
+          {% if build.scm_object_type == 'pull-request' %}
+          <dt> Pull Request: </dt>
+          <dd>
+            <a href="{{ build.scm_object_url }}">
+              #{{ build.scm_object_id }}
+            </a>
+          </dd>
+          {% endif %}
+          <dt> Directory: </dt>
+          <dd>
+            <a href="{{ build.copr_dir.repo_url }}">
+              {{ build.copr_dir.name }}
+            </a>
+          </dd>
           <dt> Built by: </dt>
           <dd>
             <a href="{{ url_for('coprs_ns.coprs_by_user', username=build.user.name) }}">
@@ -206,7 +228,6 @@
   </div>
 
 </div>
-
 
 {% endif %}
 {% endblock %}

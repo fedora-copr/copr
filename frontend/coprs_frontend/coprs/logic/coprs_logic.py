@@ -60,13 +60,12 @@ class CoprsLogic(object):
         return query
 
     @classmethod
-    def get(cls, username, coprname, **kwargs):
+    def get_multiple_by_username(cls, username, **kwargs):
         with_builds = kwargs.get("with_builds", False)
         with_mock_chroots = kwargs.get("with_mock_chroots", False)
 
         query = (
             cls.get_all()
-            .filter(models.Copr.name == coprname)
             .filter(models.User.username == username)
         )
 
@@ -97,10 +96,15 @@ class CoprsLogic(object):
         return query
 
     @classmethod
+    def get(cls, username, coprname, **kwargs):
+        query = cls.get_multiple_by_username(username, **kwargs)
+        query = query.filter(models.Copr.name == coprname)
+        return query
+
+    @classmethod
     def get_by_group_id(cls, group_id, coprname, **kwargs):
         query = cls.get_multiple_by_group_id(group_id, **kwargs)
         query = query.filter(models.Copr.name == coprname)
-
         return query
 
     @classmethod
@@ -225,13 +229,22 @@ class CoprsLogic(object):
                            follow_fedora_branching=follow_fedora_branching,
                            **kwargs)
 
+
         if group is not None:
             UsersLogic.raise_if_not_in_group(user, group)
             copr.group = group
 
         # form validation checks for duplicates
         cls.new(user, copr, check_for_duplicates=check_for_duplicates)
-        CoprChrootsLogic.new_from_names(copr, selected_chroots)
+
+        copr_dir = models.CoprDir(
+            main=True,
+            name=name,
+            copr=copr)
+        db.session.add(copr_dir)
+
+        CoprChrootsLogic.new_from_names(
+            copr, selected_chroots)
 
         db.session.flush()
         ActionsLogic.send_create_gpg_key(copr)
@@ -319,8 +332,7 @@ class CoprsLogic(object):
 
     @classmethod
     def unfinished_blocking_actions_for(cls, copr):
-        blocking_actions = [helpers.ActionTypeEnum("rename"),
-                            helpers.ActionTypeEnum("delete")]
+        blocking_actions = [helpers.ActionTypeEnum("delete")]
 
         actions = (models.Action.query
                    .filter(models.Action.object_type == "copr")
@@ -428,6 +440,56 @@ class CoprPermissionsLogic(object):
         db.session.delete(copr_permission)
 
 
+class CoprDirsLogic(object):
+    @classmethod
+    def get_copr(cls, username, dirname, **kwargs):
+        query = CoprsLogic.get_multiple_by_username(username, **kwargs)
+        query = query.join(models.CoprDir).filter(
+            models.CoprDir.name == dirname)
+        return query
+
+    @classmethod
+    def get_copr_by_group_id(cls, group_id, dirname, **kwargs):
+        query = CoprsLogic.get_multiple_by_group_id(group_id, **kwargs)
+        query = query.join(models.CoprDir).filter(
+            models.CoprDir.name == dirname)
+        return query
+
+    @classmethod
+    def get_or_create(cls, copr, dirname, main=False):
+        copr_dir = cls.get_by_copr(copr, dirname).first()
+
+        if copr_dir:
+            return copr_dir
+
+        copr_dir = models.CoprDir(
+            name=dirname, copr=copr, main=main)
+
+        db.session.add(copr_dir)
+        return copr_dir
+
+    @classmethod
+    def get_by_copr(cls, copr, dirname):
+        return (db.session.query(models.CoprDir).join(models.Copr)
+                .filter(models.Copr.id==copr.id).filter(models.CoprDir.name==dirname))
+
+    @classmethod
+    def get_by_ownername(cls, ownername, dirname):
+        if ownername.startswith('@'):
+            return cls.get_by_groupname(ownername[1:], dirname)
+        return cls.get_by_username(ownername, dirname)
+
+    @classmethod
+    def get_by_username(cls, username, dirname):
+        return (db.session.query(models.CoprDir).join(models.Copr).join(models.User)
+                .filter(models.CoprDir.name==dirname).filter(models.User.username==username))
+
+    @classmethod
+    def get_by_groupname(cls, groupname, dirname):
+        return (db.session.query(models.CoprDir).join(models.Copr).join(models.Group)
+                .filter(models.CoprDir.name==dirname).filter(models.Group.name==groupname))
+
+
 def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
     """ Emit createrepo action when auto_createrepo re-enabled"""
     if old_value_acr == NEVER_SET:
@@ -435,11 +497,7 @@ def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):
         return
     if not old_value_acr and value_acr:
         #  re-enabled
-        ActionsLogic.send_createrepo(
-            target_copr.owner_name,
-            target_copr.name,
-            chroots=[chroot.name for chroot in target_copr.active_chroots]
-        )
+        ActionsLogic.send_createrepo(target_copr)
 
 
 listen(models.Copr.auto_createrepo, 'set', on_auto_createrepo_change,

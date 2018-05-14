@@ -13,15 +13,6 @@
 
 <h2 class="page-title">New Package</h2>
 
-
-{#
-<p>In this view, you can create package entities for this Copr repository. Such a package can have predefined default
-source and can be automatically build from it via webhook. If you just want to build a package from SRPM, please
-create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>.
-</p>
-<p>You can choose and configure <b>exactly one</b> default source for the {{ package.name }} package.</p>
-#}
-
 <div class="panel panel-default">
   <div class="panel-heading">
     <h3 class="panel-title">1. Select the source type - <a href="https://docs.pagure.org/copr.copr/user_documentation.html#build-source-types">Learn More</a></h3>
@@ -33,10 +24,5 @@ create a <a href="{{ copr_url('coprs_ns.copr_add_build', copr) }}">New Build</a>
   </div>
 </div>
 
-
-    {{ show_package_form(source_type_text, package) }}
-
-
-
-
+{{ show_package_form(source_type_text, package) }}
 {% endblock %}

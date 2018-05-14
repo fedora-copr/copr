@@ -27,12 +27,10 @@ class CoprSearchRelatedData(object):
 
 
 class User(db.Model, helpers.Serializer):
-
     """
     Represents user of the copr frontend
     """
 
-    # PK;  TODO: the 'username' could be also PK
     id = db.Column(db.Integer, primary_key=True)
 
     # unique username
@@ -177,7 +175,6 @@ class User(db.Model, helpers.Serializer):
 
 
 class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
-
     """
     Represents a single copr (private repo with builds, mock chroots, etc.).
     """
@@ -238,9 +235,27 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # if chroots for the new branch should be auto-enabled and populated from rawhide ones
     follow_fedora_branching = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
 
+    # scm integration properties
+    scm_repo_url = db.Column(db.Text)
+    scm_api_type = db.Column(db.Text)
+    scm_api_auth_json = db.Column(db.Text)
+
     __mapper_args__ = {
         "order_by": created_on.desc()
     }
+
+    @property
+    def main_dir(self):
+        """
+        Return main copr dir for a Copr
+        """
+        return CoprDir.query.filter(CoprDir.copr_id==self.id).filter(CoprDir.main==True).one()
+
+    @property
+    def scm_api_auth(self):
+        if not self.scm_api_auth_json:
+            return {}
+        return json.loads(self.scm_api_auth_json)
 
     @property
     def is_a_group_project(self):
@@ -289,7 +304,6 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         Return list of active mock_chroots of this copr
         """
-
         return sorted(self.active_chroots, key=lambda ch: ch.name)
 
     @property
@@ -297,7 +311,6 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         Return list of active mock_chroots of this copr
         """
-
         chroots = [("{} {}".format(c.os_release, c.os_version), c.arch) for c in self.active_chroots_sorted]
         output = []
         for os, chs in itertools.groupby(chroots, operator.itemgetter(0)):
@@ -310,17 +323,14 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         Return number of builds in this copr
         """
-
         return len(self.builds)
 
     @property
     def disable_createrepo(self):
-
         return not self.auto_createrepo
 
     @disable_createrepo.setter
     def disable_createrepo(self, value):
-
         self.auto_createrepo = not bool(value)
 
     @property
@@ -352,20 +362,20 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def repo_name(self):
-        return "{}-{}".format(self.owner_name, self.name)
+        return "{}-{}".format(self.owner_name, self.main_dir.name)
 
     @property
     def repo_url(self):
         return "/".join([app.config["BACKEND_BASE_URL"],
                          u"results",
-                         self.full_name])
+                         self.main_dir.full_name])
 
     @property
     def repo_id(self):
         if self.is_a_group_project:
-            return "group_{}-{}".format(self.group.name, self.name)
+            return "group_{}-{}".format(self.group.name, self.main_dir.name)
         else:
-            return "{}-{}".format(self.user.name, self.name)
+            return "{}-{}".format(self.user.name, self.main_dir.name)
 
     @property
     def modules_url(self):
@@ -397,7 +407,6 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
 
 class CoprPermission(db.Model, helpers.Serializer):
-
     """
     Association class for Copr<->Permission relation
     """
@@ -415,14 +424,60 @@ class CoprPermission(db.Model, helpers.Serializer):
     copr = db.relationship("Copr", backref=db.backref("copr_permissions"))
 
 
+class CoprDir(db.Model):
+    """
+    Represents one of data directories for a copr.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.Text, index=True)
+    main = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
+
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True, nullable=False)
+    copr = db.relationship("Copr", backref=db.backref("dirs"))
+
+    __table_args__ = (
+        db.Index('only_one_main_copr_dir', copr_id, main,
+                 unique=True, postgresql_where=(main==True)),
+        db.UniqueConstraint('copr_id', 'name',
+                            name='copr_dir_copr_id_name_uniq'),
+    )
+
+    @property
+    def full_name(self):
+        return "{}/{}".format(self.copr.owner_name, self.name)
+
+    @property
+    def repo_name(self):
+        return "{}-{}".format(self.copr.owner_name, self.name)
+
+    @property
+    def repo_url(self):
+        return "/".join([app.config["BACKEND_BASE_URL"],
+                         u"results", self.full_name])
+
+    @property
+    def repo_id(self):
+        if self.copr.is_a_group_project:
+            return "group_{}-{}".format(self.copr.group.name, self.name)
+        else:
+            return "{}-{}".format(self.copr.user.name, self.name)
+
+
 class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     """
-    Represents a single package in a project.
+    Represents a single package in a project_dir.
     """
+
     __table_args__ = (
-        db.UniqueConstraint('copr_id', 'name', name='packages_copr_pkgname'),
+        db.UniqueConstraint('copr_dir_id', 'name', name='packages_copr_dir_pkgname'),
         db.Index('package_webhook_sourcetype', 'webhook_rebuild', 'source_type'),
     )
+
+    def __init__(self, *args, **kwargs):
+        if kwargs.get('copr') and not kwargs.get('copr_dir'):
+            kwargs['copr_dir'] = kwargs.get('copr').main_dir
+        super(Package, self).__init__(*args, **kwargs)
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -431,10 +486,9 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # Source of the build: description in json, example: git link, srpm url, etc.
     source_json = db.Column(db.Text)
     # True if the package is built automatically via webhooks
-    webhook_rebuild = db.Column(db.Boolean, default=False)
+    webhook_rebuild = db.Column(db.Boolean, default=True)
     # enable networking during a build process
-    enable_net = db.Column(db.Boolean, default=False,
-                           server_default="0", nullable=False)
+    enable_net = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
     # @TODO Remove me few weeks after Copr migration
     # Contain status of the Package before migration
@@ -450,9 +504,12 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
     copr = db.relationship("Copr", backref=db.backref("packages"))
 
+    copr_dir_id = db.Column(db.Integer, db.ForeignKey("copr_dir.id"), index=True)
+    copr_dir = db.relationship("CoprDir", backref=db.backref("packages"))
+
     @property
     def dist_git_repo(self):
-        return "{}/{}".format(self.copr.full_name, self.name)
+        return "{}/{}".format(self.copr_dir.full_name, self.name)
 
     @property
     def source_json_dict(self):
@@ -514,6 +571,10 @@ class Build(db.Model, helpers.Serializer):
     """
     Representation of one build in one copr
     """
+
+    SCM_COMMIT = 'commit'
+    SCM_PULL_REQUEST = 'pull-request'
+
     __table_args__ = (db.Index('build_canceled', "canceled"),
                       db.Index('build_order', "is_background", "id"),
                       db.Index('build_filter', "source_type", "canceled"))
@@ -526,6 +587,9 @@ class Build(db.Model, helpers.Serializer):
                 source_dict['chroot'] = \
                     MockChroot.latest_fedora_branched_chroot(arch=arch).name
             kwargs['source_json'] = json.dumps(source_dict)
+
+        if kwargs.get('copr') and not kwargs.get('copr_dir'):
+            kwargs['copr_dir'] = kwargs.get('copr').main_dir
 
         super(Build, self).__init__(*args, **kwargs)
 
@@ -580,6 +644,17 @@ class Build(db.Model, helpers.Serializer):
     module_id = db.Column(db.Integer, db.ForeignKey("module.id"), index=True)
     module = db.relationship("Module", backref=db.backref("builds"))
 
+    copr_dir_id = db.Column(db.Integer, db.ForeignKey("copr_dir.id"), index=True)
+    copr_dir = db.relationship("CoprDir", backref=db.backref("builds"))
+
+    # scm integration properties
+    scm_object_id = db.Column(db.Text)
+    scm_object_type = db.Column(db.Text)
+    scm_object_url = db.Column(db.Text)
+
+    # method to call on build state change
+    update_callback = db.Column(db.Text)
+
     @property
     def user_name(self):
         return self.user.name
@@ -591,6 +666,14 @@ class Build(db.Model, helpers.Serializer):
     @property
     def copr_name(self):
         return self.copr.name
+
+    @property
+    def copr_dirname(self):
+        return self.copr_dir.name
+
+    @property
+    def copr_full_dirname(self):
+        return self.copr_dir.full_name
 
     @property
     def fail_type_text(self):
@@ -629,7 +712,7 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def import_log_url_backend(self):
-        parts = ["results", self.copr.owner_name, self.copr.name,
+        parts = ["results", self.copr.owner_name, self.copr_dirname,
                  "srpm-builds", self.id_fixed_width, "builder-live.log"]
         path = os.path.normpath(os.path.join(*parts))
         return urljoin(app.config["BACKEND_BASE_URL"], path)
@@ -804,10 +887,10 @@ class DistGitBranch(db.Model, helpers.Serializer):
 
 
 class MockChroot(db.Model, helpers.Serializer):
-
     """
     Representation of mock chroot
     """
+
     __table_args__ = (
         db.UniqueConstraint('os_release', 'os_version', 'arch', name='mock_chroot_uniq'),
     )
@@ -868,7 +951,6 @@ class MockChroot(db.Model, helpers.Serializer):
 
 
 class CoprChroot(db.Model, helpers.Serializer):
-
     """
     Representation of Copr<->MockChroot relation
     """
@@ -959,7 +1041,6 @@ class CoprChroot(db.Model, helpers.Serializer):
 
 
 class BuildChroot(db.Model, helpers.Serializer):
-
     """
     Representation of Build<->MockChroot relation
     """
@@ -1009,11 +1090,11 @@ class BuildChroot(db.Model, helpers.Serializer):
     def dist_git_url(self):
         if app.config["DIST_GIT_URL"]:
             if self.state == "forked":
-                coprname = self.build.copr.forked_from.full_name
+                copr_dirname = self.build.copr.main_dir.full_name
             else:
-                coprname = self.build.copr.full_name
+                copr_dirname = self.build.copr_dir.full_name
             return "{}/{}/{}.git/commit/?id={}".format(app.config["DIST_GIT_URL"],
-                                                coprname,
+                                                copr_dirname,
                                                 self.build.package.name,
                                                 self.git_hash)
         return None
@@ -1021,7 +1102,7 @@ class BuildChroot(db.Model, helpers.Serializer):
     @property
     def result_dir_url(self):
         return urljoin(app.config["BACKEND_BASE_URL"], os.path.join(
-            "results", self.build.copr.full_name, self.name, self.result_dir, ""))
+            "results", self.build.copr_dir.full_name, self.name, self.result_dir, ""))
 
 
 class LegalFlag(db.Model, helpers.Serializer):
@@ -1054,14 +1135,13 @@ class LegalFlag(db.Model, helpers.Serializer):
 
 
 class Action(db.Model, helpers.Serializer):
-
     """
     Representation of a custom action that needs
     backends cooperation/admin attention/...
     """
 
     id = db.Column(db.Integer, primary_key=True)
-    # delete, rename, ...; see ActionTypeEnum
+    # see ActionTypeEnum
     action_type = db.Column(db.Integer, nullable=False)
     # copr, ...; downcase name of class of modified object
     object_type = db.Column(db.String(20))
@@ -1088,10 +1168,6 @@ class Action(db.Model, helpers.Serializer):
     def __unicode__(self):
         if self.action_type == ActionTypeEnum("delete"):
             return "Deleting {0} {1}".format(self.object_type, self.old_value)
-        elif self.action_type == ActionTypeEnum("rename"):
-            return "Renaming {0} from {1} to {2}.".format(self.object_type,
-                                                          self.old_value,
-                                                          self.new_value)
         elif self.action_type == ActionTypeEnum("legal-flag"):
             return "Legal flag on copr {0}.".format(self.old_value)
 
@@ -1143,9 +1219,11 @@ class CounterStat(db.Model, helpers.Serializer):
 
 
 class Group(db.Model, helpers.Serializer):
+
     """
     Represents FAS groups and their aliases in Copr
     """
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(127))
 

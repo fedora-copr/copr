@@ -606,7 +606,8 @@ def build_detail(build_id):
     output = {
         "output": "ok",
         "status": build.state,
-        "project": build.copr.name,
+        "project": build.copr_name,
+        "project_dirname": build.copr_dirname,
         "owner": build.copr.owner_name,
         "results": build.copr.repo_url, # TODO: in new api return build results url
         "built_pkgs": built_packages,
@@ -838,9 +839,10 @@ def copr_add_package(copr, source_type_text):
 @api_req_with_copr
 def copr_edit_package(copr, package_name, source_type_text):
     try:
-        package = PackagesLogic.get(copr.id, package_name)[0]
+        package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
     except IndexError:
-        raise LegacyApiError("Package {name} does not exists in copr {copr}.".format(name=package_name, copr=copr.full_name))
+        raise LegacyApiError("Package {name} does not exists in copr_dir {copr_dir}."
+                             .format(name=package_name, copr_dir=copr_dir.name))
     return process_package_add_or_edit(copr, source_type_text, package=package)
 
 
@@ -853,7 +855,7 @@ def process_package_add_or_edit(copr, source_type_text, package=None, data=None)
     if form.validate_on_submit():
         if not package:
             try:
-                package = PackagesLogic.add(flask.app.g.user, copr, form.package_name.data)
+                package = PackagesLogic.add(flask.app.g.user, copr.main_dir, form.package_name.data)
             except InsufficientRightsException:
                 raise LegacyApiError("Insufficient permissions.")
             except DuplicateException:
@@ -918,7 +920,7 @@ def generate_package_list(query, params):
 @api_ns.route("/coprs/<username>/<coprname>/package/list/", methods=["GET"])
 @api_req_with_copr
 def copr_list_packages(copr):
-    packages = PackagesLogic.get_all(copr.id)
+    packages = PackagesLogic.get_all(copr.main_dir.id)
     params = get_package_record_params()
     return flask.Response(generate_package_list(packages, params), content_type='application/json')
     #return helpers.jsonify({"packages": [package.to_dict(**params) for package in packages]})
@@ -928,9 +930,10 @@ def copr_list_packages(copr):
 @api_req_with_copr
 def copr_get_package(copr, package_name):
     try:
-        package = PackagesLogic.get(copr.id, package_name)[0]
+        package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
     except IndexError:
-        raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
+        raise LegacyApiError("No package with name {name} in copr_dir {copr_dir}"
+                             .format(name=package_name, copr_dir=copr.main_dir.name))
 
     params = get_package_record_params()
     return helpers.jsonify({'package': package.to_dict(**params)})
@@ -941,7 +944,7 @@ def copr_get_package(copr, package_name):
 @api_req_with_copr
 def copr_delete_package(copr, package_name):
     try:
-        package = PackagesLogic.get(copr.id, package_name)[0]
+        package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
     except IndexError:
         raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
 
@@ -963,7 +966,7 @@ def copr_delete_package(copr, package_name):
 @api_req_with_copr
 def copr_reset_package(copr, package_name):
     try:
-        package = PackagesLogic.get(copr.id, package_name)[0]
+        package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
     except IndexError:
         raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
 
@@ -987,7 +990,7 @@ def copr_build_package(copr, package_name):
     form = forms.BuildFormRebuildFactory.create_form_cls(copr.active_chroots)(csrf_enabled=False)
 
     try:
-        package = PackagesLogic.get(copr.id, package_name)[0]
+        package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
     except IndexError:
         raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
 

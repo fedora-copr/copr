@@ -1,5 +1,5 @@
-[{{ copr.repo_id }}]
-name=Copr repo for {{ copr.name }} owned by {{ copr.owner_name }}
+[{{ copr_dir.repo_id }}]
+name=Copr repo for {{ copr_dir.name }} owned by {{ copr_dir.copr.owner_name }}
 baseurl={{ url | fix_url_https_backend }}
 type=rpm-md
 skip_if_unavailable=True

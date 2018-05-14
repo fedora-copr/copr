@@ -141,8 +141,10 @@ class TestCoprDeleteBuild(CoprsTestCase):
         assert b is None
 
         act = self.models.Action.query.first()
+        data = json.loads(act.data)
         assert act.object_type == "build"
-        assert act.old_value == "user1/foocopr"
+        assert data.get('ownername') == "user1"
+        assert data.get('projectname') == "foocopr"
 
         expected_chroot_builddirs = {'srpm-builds': self.b_few_chroots.result_dir}
         for chroot in self.b_few_chroots.build_chroots:
@@ -154,7 +156,7 @@ class TestCoprDeleteBuild(CoprsTestCase):
     def test_copr_build_submitter_can_delete_build(self, f_users,
                                                    f_coprs, f_mock_chroots,
                                                    f_builds):
-        self.db.session.add_all([self.u1, self.c1, self.b1])
+        self.db.session.add(self.b1)
         self.db.session.commit()
 
         b_id = self.b1.id
@@ -171,8 +173,10 @@ class TestCoprDeleteBuild(CoprsTestCase):
         )
         assert b is None
         act = self.models.Action.query.first()
+        data = json.loads(act.data)
         assert act.object_type == "build"
-        assert act.old_value == "user1/foocopr"
+        assert data.get('ownername') == "user1"
+        assert data.get('projectname') == "foocopr"
 
     @TransactionDecorator("u2")
     def test_copr_build_non_submitter_cannot_delete_build(self, f_users,
@@ -200,7 +204,9 @@ class TestCoprRepeatBuild(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots_many, f_db):
         self.b_few_chroots = models.Build(
             id=2345,
-            copr=self.c1, user=self.u1,
+            copr=self.c1,
+            copr_dir=self.c1_dir,
+            user=self.u1,
             submitted_on=50,
             pkgs="http://example.com/copr-keygen-1.58-1.fc20.src.rpm",
             pkg_version="1.58"

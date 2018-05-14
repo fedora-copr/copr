@@ -1,0 +1,11 @@
+[Unit]
+Description=Run copr builds on pagure events
+
+[Service]
+User=copr-fe
+Group=copr-fe
+Environment="PYTHONPATH=/usr/share/copr/"
+ExecStart=/usr/bin/python3 /usr/share/copr/coprs_frontend/run/pagure-events.py
+
+[Install]
+WantedBy=multi-user.target

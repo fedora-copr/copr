@@ -141,7 +141,7 @@ class TestUpdateBuilds(CoprsTestCase):
     def test_update_more_existent_and_non_existent_builds(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
 
-        self.db.session.add(self.b1)
+        self.db.session.add_all([self.b1, self.b2])
         self.db.session.commit()
 
         r = self.tc.post("/backend/update/",
@@ -173,7 +173,7 @@ class TestWaitingActions(CoprsTestCase):
     def test_waiting_actions_only_lists_not_started_or_ended(
             self, f_users, f_coprs, f_actions, f_db):
 
-        for a in [self.a1, self.a2, self.a3]:
+        for a in [self.delete_action, self.cancel_build_action]:
             a.result = helpers.BackendResultEnum("success")
 
         self.db.session.commit()
@@ -181,7 +181,7 @@ class TestWaitingActions(CoprsTestCase):
         r = self.tc.get("/backend/pending-action/", headers=self.auth_header)
         assert json.loads(r.data.decode("utf-8")) == None
 
-        for a in [self.a1, self.a2, self.a3]:
+        for a in [self.delete_action]:
             a.result = helpers.BackendResultEnum("waiting")
             self.db.session.add(a)
 
@@ -240,7 +240,7 @@ class TestUpdateActions(CoprsTestCase):
         assert updated.message == "no problem"
         assert updated.ended_on == 1390866440
 
-    def test_update_more_existent_and_non_existent_builds(self, f_users,
+    def test_update_more_existent_and_non_existent_actions(self, f_users,
                                                           f_coprs, f_actions,
                                                           f_db):
         r = self.tc.post("/backend/update/",

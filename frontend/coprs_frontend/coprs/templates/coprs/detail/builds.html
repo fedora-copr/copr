@@ -20,6 +20,24 @@
 
 <h2 class="page-title">Project Builds</h2>
   {% if builds %}
+
+    {% if copr.dirs|length > 1 %}
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <div class="btn-group" role="group">
+          <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}" class="btn btn-default btn-sm {% if not current_dirname %}active{% endif %}">
+            all builds
+          </a>
+          {% for copr_dir in copr.dirs %}
+              <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}?dirname={{ copr_dir.name }}" class="btn btn-default btn-sm {% if current_dirname == copr_dir.name %}active{% endif %}">
+              {{ copr_dir.name }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     {{ builds_table(builds) }}
     {{ build_states() }}
   {% else %}

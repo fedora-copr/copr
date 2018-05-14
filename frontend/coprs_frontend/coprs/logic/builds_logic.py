@@ -6,6 +6,9 @@ import pprint
 import time
 import flask
 import sqlite3
+import requests
+
+from flask import request
 from sqlalchemy.sql import text
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -14,7 +17,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
-from sqlalchemy import desc,asc, bindparam, Integer
+from sqlalchemy import desc, asc, bindparam, Integer, String
 from collections import defaultdict
 
 from coprs import app
@@ -80,7 +83,7 @@ class BuildsLogic(object):
                 .subquery()
         ).order_by(models.Build.id.desc())
 
-        # Workaround - otherwise it could take less records than `limit`even though there are more of them.
+        # Workaround - otherwise it could take less records than `limit` even though there are more of them.
         query = query.limit(limit if limit > 100 else 100)
         return list(query.all()[:4])
 
@@ -326,11 +329,11 @@ class BuildsLogic(object):
         db.engine.execute(order_to_status)
 
     @classmethod
-    def get_copr_builds_list(cls, copr):
+    def get_copr_builds_list(cls, copr, dirname):
         query_select = """
 SELECT build.id, build.source_status, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
     MIN(statuses.started_on) AS started_on, MAX(statuses.ended_on) AS ended_on, order_to_status(MIN(statuses.st)) AS status,
-    build.canceled, MIN("group".name) AS group_name, MIN(copr.name) as copr_name, MIN("user".username) as user_name
+    build.canceled, MIN("group".name) AS group_name, MIN(copr.name) as copr_name, MIN("user".username) as user_name, build.copr_id
 FROM build
 LEFT OUTER JOIN package
     ON build.package_id = package.id
@@ -338,11 +341,14 @@ LEFT OUTER JOIN (SELECT build_chroot.build_id, started_on, ended_on, status_to_o
     ON statuses.build_id=build.id
 LEFT OUTER JOIN copr
     ON copr.id = build.copr_id
+LEFT OUTER JOIN copr_dir
+    ON build.copr_dir_id = copr_dir.id
 LEFT OUTER JOIN "user"
     ON copr.user_id = "user".id
 LEFT OUTER JOIN "group"
     ON copr.group_id = "group".id
 WHERE build.copr_id = :copr_id
+    AND (:dirname = '' OR :dirname = copr_dir.name)
 GROUP BY
     build.id;
 """
@@ -399,11 +405,13 @@ GROUP BY
             conn.connection.create_function("order_to_status", 1, sqlite_order_to_status)
             statement = text(query_select)
             statement.bindparams(bindparam("copr_id", Integer))
-            result = conn.execute(statement, {"copr_id": copr.id})
+            statement.bindparams(bindparam("dirname", String))
+            result = conn.execute(statement, {"copr_id": copr.id, "dirname": dirname})
         else:
             statement = text(query_select)
             statement.bindparams(bindparam("copr_id", Integer))
-            result = db.engine.execute(statement, {"copr_id": copr.id})
+            statement.bindparams(bindparam("dirname", String))
+            result = db.engine.execute(statement, {"copr_id": copr.id, "dirname": dirname})
 
         return result
 
@@ -443,8 +451,8 @@ GROUP BY
                 raise UnrepeatableBuildException("Build sources were not fully imported into CoprDistGit.")
 
         build = cls.create_new(user, copr, source_build.source_type, source_build.source_json, chroot_names,
-                                    pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import,
-                                    srpm_url=source_build.srpm_url, **build_options)
+                               pkgs=source_build.pkgs, git_hashes=git_hashes, skip_import=skip_import,
+                               srpm_url=source_build.srpm_url, **build_options)
         build.package_id = source_build.package_id
         build.pkg_version = source_build.pkg_version
         return build
@@ -705,15 +713,20 @@ GROUP BY
         return build
 
     @classmethod
-    def rebuild_package(cls, package, source_dict_update={}):
+    def rebuild_package(cls, package, source_dict_update={}, copr_dir=None, update_callback=None,
+                        scm_object_type=None, scm_object_id=None, scm_object_url=None):
+
         source_dict = package.source_json_dict
         source_dict.update(source_dict_update)
         source_json = json.dumps(source_dict)
 
+        if not copr_dir:
+            copr_dir = package.copr.main_dir
+
         build = models.Build(
             user=None,
             pkgs=None,
-            package_id=package.id,
+            package=package,
             copr=package.copr,
             repos=package.copr.repos,
             source_status=helpers.StatusEnum("pending"),
@@ -721,15 +734,17 @@ GROUP BY
             source_json=source_json,
             submitted_on=int(time.time()),
             enable_net=package.copr.build_enable_net,
-            timeout=DEFAULT_BUILD_TIMEOUT
+            timeout=DEFAULT_BUILD_TIMEOUT,
+            copr_dir=copr_dir,
+            update_callback=update_callback,
+            scm_object_type=scm_object_type,
+            scm_object_id=scm_object_id,
+            scm_object_url=scm_object_url,
         )
-
         db.session.add(build)
 
         chroots = package.copr.active_chroots
-
         status = helpers.StatusEnum("waiting")
-
         for chroot in chroots:
             buildchroot = models.BuildChroot(
                 build=build,
@@ -737,9 +752,9 @@ GROUP BY
                 mock_chroot=chroot,
                 git_hash=None
             )
-
             db.session.add(buildchroot)
 
+        cls.process_update_callback(build)
         return build
 
 
@@ -854,7 +869,67 @@ GROUP BY
                             and all(b.status == StatusEnum("succeeded") for b in build.module.builds)):
                         ActionsLogic.send_build_module(build.copr, build.module)
 
+        cls.process_update_callback(build)
         db.session.add(build)
+
+    @classmethod
+    def process_update_callback(cls, build):
+        parsed_git_url = helpers.get_parsed_git_url(build.copr.scm_repo_url)
+        if not parsed_git_url:
+            return
+
+        if build.update_callback == 'pagure_flag_pull_request':
+            api_url = 'https://{0}/api/0/{1}/pull-request/{2}/flag'.format(
+                parsed_git_url.netloc, parsed_git_url.path, build.scm_object_id)
+            return cls.pagure_flag(build, api_url)
+
+        elif build.update_callback == 'pagure_flag_commit':
+            api_url = 'https://{0}/api/0/{1}/c/{2}/flag'.format(
+                parsed_git_url.netloc, parsed_git_url.path, build.scm_object_id)
+            return cls.pagure_flag(build, api_url)
+
+    @classmethod
+    def pagure_flag(cls, build, api_url):
+        headers = {
+            'Authorization': 'token {}'.format(build.copr.scm_api_auth.get('api_key'))
+        }
+
+        if build.srpm_url:
+            progress = 50
+        else:
+            progress = 10
+
+        state_table = {
+            'failed': ('failure', 0),
+            'succeeded': ('success', 100),
+            'canceled': ('canceled', 0),
+            'running': ('pending', progress),
+            'pending': ('pending', progress),
+            'skipped': ('error', 0),
+            'starting': ('pending', progress),
+            'importing': ('pending', progress),
+            'forked': ('error', 0),
+            'waiting': ('pending', progress),
+            'unknown': ('error', 0),
+        }
+
+        build_url = os.path.join(
+            app.config['PUBLIC_COPR_BASE_URL'],
+            'coprs', build.copr.full_name.replace('@', 'g/'),
+            'build', str(build.id)
+        )
+
+        data = {
+            'username': 'Copr build',
+            'comment': '#{}'.format(build.id),
+            'url': build_url,
+            'status': state_table[build.state][0],
+            'percent': state_table[build.state][1],
+            'uid': str(build.id),
+        }
+
+        response = requests.post(api_url, data=data, headers=headers)
+        log.info('Pagure API response: '+response.text)
 
     @classmethod
     def cancel_build(cls, user, build):

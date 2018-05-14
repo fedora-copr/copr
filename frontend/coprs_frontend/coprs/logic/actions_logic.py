@@ -72,17 +72,17 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
-    def send_createrepo(cls, username, coprname, chroots):
+    def send_createrepo(cls, copr):
         data_dict = {
-            "username": username,
-            "projectname": coprname,
-            "chroots": chroots
+            "ownername": copr.owner_name,
+            "projectname": copr.name,
+            "project_dirnames": [copr_dir.name for copr_dir in copr.dirs],
+            "chroots": [chroot.name for chroot in copr.active_chroots],
         }
         action = models.Action(
             action_type=helpers.ActionTypeEnum("createrepo"),
-            object_type="None",
+            object_type="repository",
             object_id=0,
-            old_value="",
             data=json.dumps(data_dict),
             created_on=int(time.time()),
         )
@@ -101,7 +101,8 @@ class ActionsLogic(object):
 
         data_dict = {
             "ownername": build.copr.owner_name,
-            "projectname": build.copr.name,
+            "projectname": build.copr_name,
+            "project_dirname": build.copr_dirname,
             "chroot_builddirs": chroot_builddirs,
         }
 
@@ -109,7 +110,6 @@ class ActionsLogic(object):
             action_type=helpers.ActionTypeEnum("delete"),
             object_type="build",
             object_id=build.id,
-            old_value=build.copr.full_name,
             data=json.dumps(data_dict),
             created_on=int(time.time())
         )
@@ -189,7 +189,7 @@ class ActionsLogic(object):
         """
 
         data_dict = {
-            "username": copr.owner_name,
+            "ownername": copr.owner_name,
             "projectname": copr.name,
         }
 

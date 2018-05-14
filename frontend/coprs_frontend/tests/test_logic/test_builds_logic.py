@@ -142,8 +142,10 @@ class TestBuildsLogic(CoprsTestCase):
             BuildsLogic.delete_build(self.u1, self.b1)
 
         self.copr_persistent = models.Copr(name=u"persistent_copr", user=self.u2, persistent=True)
+        self.copr_dir = models.CoprDir(name="persistent_copr", main=True, copr=self.copr_persistent)
         self.build_persistent = models.Build(
-            copr=self.copr_persistent, package=self.p2, user=self.u2, submitted_on=100)
+            copr=self.copr_persistent, copr_dir=self.copr_dir,
+            package=self.p2, user=self.u2, submitted_on=100)
         with pytest.raises(InsufficientRightsException):
             BuildsLogic.delete_build(self.u2, self.build_persistent)
 

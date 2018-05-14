@@ -105,7 +105,6 @@ app.register_blueprint(rest_api_bp, url_prefix=URL_PREFIX)
 from flask_sqlalchemy import models_committed
 models_committed.connect(coprs.whoosheers.CoprWhoosheer.on_commit, sender=app)
 
-
 # Serve static files from system-wide RPM files
 @app.route('/system_static/<component>/<path:filename>')
 @app.route('/system_static/<path:filename>')
