@@ -1,7 +1,8 @@
 Build Options
 =============
 
-When submitting a new build, it is possible to specify some options in `buildopts` parameter, that are common for all methods.
+When submitting a new build, it is possible to specify some options in `buildopts` parameter.
+Those are common for all build methods.
 
 ==================  ==================== ===============
 Field               Type                 Description

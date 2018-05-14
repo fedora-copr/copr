@@ -2,7 +2,7 @@ Package Source Type
 ===================
 
 Read more about source types in the
-`user documentation <https://docs.pagure.org/copr.copr/user_documentation.html#build-source-types>`_.
+`User Documentation <https://docs.pagure.org/copr.copr/user_documentation.html#build-source-types>`_.
 
 
 SCM

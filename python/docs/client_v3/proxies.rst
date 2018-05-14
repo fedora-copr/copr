@@ -2,7 +2,7 @@ Proxies
 =======
 
 User interface is separated among multiple proxy classes such as ``ProjectProxy``, ``BuildProxy``, etc,
-which provides API operations on given resource.
+which provide API operations on given resource.
 
 
 General
