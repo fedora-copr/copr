@@ -315,7 +315,7 @@ def render_copr_detail(copr):
         for logo in os.listdir(logodir):
             # glob.glob() uses listdir() and fnmatch anyways
             if fnmatch.fnmatch(logo, "*.png"):
-                logoset.add(logo.strip(".png"))
+                logoset.add(logo[:-4])
 
         if chroot.name_release not in repos_info:
             logo = None
