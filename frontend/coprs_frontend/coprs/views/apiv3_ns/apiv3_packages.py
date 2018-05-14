@@ -50,27 +50,28 @@ def get_package_list(ownername, projectname, **kwargs):
 
 
 @apiv3_ns.route("/package/add", methods=["POST"])
+@query_params()
 @api_login_required
-def package_add():
-    copr = get_copr()
-    form = forms.PackageTypeSelectorForm()
-    process_package_add_or_edit(copr, form.source_type_text.data)
-    package = PackagesLogic.get(copr.id, form.package_name.data).first()
+def package_add(ownername, projectname, package_name, source_type_text):
+    copr = get_copr(ownername, projectname)
+    process_package_add_or_edit(copr, source_type_text)
+    package = PackagesLogic.get(copr.id, package_name).first()
     return flask.jsonify(to_dict(package))
 
 
 @apiv3_ns.route("/package/edit", methods=["POST"])
+@query_params()
 @api_login_required
-def package_edit():
-    copr = get_copr()
-    form = forms.PackageTypeSelectorForm()
+def package_edit(ownername, projectname, package_name, source_type_text=None):
+    copr = get_copr(ownername, projectname)
     try:
-        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+        package = PackagesLogic.get(copr.id, package_name)[0]
+        source_type_text = source_type_text or package.source_type_text
     except IndexError:
         raise ApiError("Package {name} does not exists in copr {copr}."
-                             .format(name=form.package_name.data, copr=copr.full_name))
+                       .format(name=package_name, copr=copr.full_name))
 
-    process_package_add_or_edit(copr, form.source_type_text.data, package=package)
+    process_package_add_or_edit(copr, source_type_text, package=package)
     return flask.jsonify(to_dict(package))
 
 
