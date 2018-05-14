@@ -39,6 +39,7 @@ New API is provided by mostly independent `client_v2` package.
 
     ClientV1.rst
     ClientV2.rst
+    ClientV3.rst
 
 
 Indices and tables
