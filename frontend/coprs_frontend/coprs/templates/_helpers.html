@@ -150,6 +150,10 @@
   {% endif %}
   {% if chroot.os_release == 'epel' %}
     Epel for CentOS {{ chroot.os_version }}
+  {% elif chroot.os_release == 'opensuse-leap' %}
+    openSUSE Leap {{ chroot.os_version }}
+  {% elif chroot.os_release == 'opensuse' and chroot.os_version == 'tumbleweed' %}
+    openSUSE Tumbleweed
   {% else %}
     {{ chroot.os_release | capitalize }} {{ chroot.os_version }}
   {% endif %}
