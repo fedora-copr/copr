@@ -296,6 +296,13 @@ def generate_repo_url(mock_chroot, url):
         if mock_chroot.os_version != "rawhide":
             os_version = "$releasever"
 
+    if mock_chroot.os_release == "opensuse-leap":
+        os_version = "$releasever"
+
+    if mock_chroot.os_release == "mageia":
+        if mock_chroot.os_version != "cauldron":
+            os_version = "$releasever"
+
     url = posixpath.join(
         url, "{0}-{1}-{2}/".format(mock_chroot.os_release,
                                    os_version, "$basearch"))
