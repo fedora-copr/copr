@@ -1,5 +1,6 @@
 import flask
 from . import query_params, get_copr, file_upload
+from .json2form import get_form_compatible_data
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
@@ -10,7 +11,10 @@ from coprs.logic.coprs_logic import CoprChrootsLogic
 
 
 def to_dict(copr_chroot):
-    return copr_chroot.to_dict()
+    chroot_dict = copr_chroot.to_dict()
+    chroot_dict["repos"] = chroot_dict["repos"].split()
+    chroot_dict["buildroot_pkgs"] = chroot_dict["buildroot_pkgs"].split()
+    return chroot_dict
 
 
 @apiv3_ns.route("/project-chroot", methods=["GET"])
@@ -37,7 +41,8 @@ def get_build_config(ownername, projectname, chrootname):
 @api_login_required
 def edit_project_chroot(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
-    form = forms.ModifyChrootForm(csrf_enabled=False)
+    data = get_form_compatible_data()
+    form = forms.ModifyChrootForm(data, csrf_enabled=False)
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
     if not form.validate_on_submit():

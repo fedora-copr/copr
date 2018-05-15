@@ -4,7 +4,7 @@ import wtforms
 import sqlalchemy
 import inspect
 from functools import wraps
-from werkzeug.datastructures import MultiDict
+from werkzeug.datastructures import ImmutableMultiDict
 from coprs import app
 from coprs.exceptions import CoprHttpException
 from coprs.logic.complex_logic import ComplexLogic
@@ -73,7 +73,8 @@ def file_upload():
         def file_upload_wrapper(*args, **kwargs):
             if "json" in flask.request.files:
                 data = json.loads(flask.request.files["json"].read())
-                flask.request.form = MultiDict(data)
+                tuples = [(k, v) for k, v in data.items()]
+                flask.request.form = ImmutableMultiDict(tuples)
             return f(*args, **kwargs)
         return file_upload_wrapper
     return file_upload_decorator
