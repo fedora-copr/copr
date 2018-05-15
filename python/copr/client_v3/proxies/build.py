@@ -69,19 +69,20 @@ class BuildProxy(BaseProxy):
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
-    def create_from_url(self, ownername, projectname, url):
+    def create_from_url(self, ownername, projectname, url, buildopts=None):
         """
         Create a build from URL
 
         :param str ownername:
         :param str projectname:
         :param str url:
+        :param buildopts:
         :return: Munch
         """
         if len(url.split()) > 1:
             raise CoprValidationException("This method doesn't allow submitting multiple URLs at once. "
                                           "Use `create_from_urls` instead.")
-        return self.create_from_urls(ownername, projectname, [url])[0]
+        return self.create_from_urls(ownername, projectname, [url], buildopts=buildopts)[0]
 
     def create_from_file(self, ownername, projectname, path, buildopts=None):
         """
