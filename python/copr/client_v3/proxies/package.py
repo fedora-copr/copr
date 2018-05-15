@@ -45,15 +45,15 @@ class PackageProxy(BaseProxy):
         response = request.send()
         return response.munchify()
 
-    def add(self, ownername, projectname, packagename, source_type_text, source_dict):
+    def add(self, ownername, projectname, packagename, source_type, source):
         """
         Add a package to a project
 
         :param str ownername:
         :param str projectname:
         :param str packagename:
-        :param str source_type_text:
-        :param source_dict:
+        :param str source_type:
+        :param dict source:
         :return: Munch
         """
         endpoint = "/package/add"
@@ -61,26 +61,26 @@ class PackageProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
             "package_name": packagename,
-            "source_type_text": source_type_text,
+            "source_type_text": source_type,
         }
         data = {
             "package_name": packagename,
         }
-        data.update(source_dict)
+        data.update(source)
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
         return response.munchify()
 
-    def edit(self, ownername, projectname, packagename, source_type_text=None, source_dict=None):
+    def edit(self, ownername, projectname, packagename, source_type=None, source=None):
         """
         Edit a package in a project
 
         :param str ownername:
         :param str projectname:
         :param str packagename:
-        :param source_type_text:
-        :param source_dict:
+        :param source_type:
+        :param dict source:
         :return: Munch
         """
         endpoint = "/package/edit"
@@ -88,12 +88,12 @@ class PackageProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
             "package_name": packagename,
-            "source_type_text": source_type_text,
+            "source_type_text": source_type,
         }
         data = {
             "package_name": packagename,
         }
-        data.update(source_dict or {})
+        data.update(source or {})
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()

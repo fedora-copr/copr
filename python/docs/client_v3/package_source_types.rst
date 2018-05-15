@@ -8,7 +8,7 @@ Read more about source types in the
 SCM
 ---
 
-Parameters when ``source_type_text=scm`` is used.
+Parameters when ``source_type=scm`` is used.
 See `User Documentation <https://docs.pagure.org/copr.copr/user_documentation.html#scm>`_ for more information.
 
 =====================  ==================== ===============
@@ -26,7 +26,7 @@ srpm_build_method      str                  See `User documentation <https://doc
 Rubygems
 --------
 
-Parameters when ``source_type_text=rubygems`` is used.
+Parameters when ``source_type=rubygems`` is used.
 See `User Documentation <https://docs.pagure.org/copr.copr/user_documentation.html#rubygems>`_ for more information.
 
 ==================  ==================== ===============
@@ -39,7 +39,7 @@ gem_name            str
 PyPI
 ----
 
-Parameters when ``source_type_text=pypi`` is used.
+Parameters when ``source_type=pypi`` is used.
 See `User Documentation <https://docs.pagure.org/copr.copr/user_documentation.html#pypi>`_ for more information.
 
 =====================  ==================== ===============
@@ -54,7 +54,7 @@ python_versions        list of int
 Custom
 ------
 
-Parameters when ``source_type_text=custom`` is used.
+Parameters when ``source_type=custom`` is used.
 See `User Documentation <https://docs.pagure.org/copr.copr/custom_source_method.html#custom-source-method>`_ for more information.
 
 =====================  ==================== ===============
@@ -73,5 +73,5 @@ Example Usage
 .. code-block:: python
 
     client.package_proxy.add("@copr", "foo", "mypackage",
-                             source_type_text="rubygems",
-                             source_dict={"gem_name": "mygem"})
+                             source_type="rubygems",
+                             source={"gem_name": "mygem"})
