@@ -49,9 +49,9 @@ def edit_project_chroot(ownername, projectname, chrootname):
         raise ApiError(form.errors)
 
     buildroot_pkgs = repos = comps_xml = comps_name = None
-    if "buildroot_pkgs" in flask.request.form:
+    if "buildroot_pkgs" in data:
         buildroot_pkgs = form.buildroot_pkgs.data
-    if "repos" in flask.request.form:
+    if "repos" in data:
         repos = form.repos.data
     if form.upload_comps.has_file():
         comps_xml = form.upload_comps.data.stream.read()

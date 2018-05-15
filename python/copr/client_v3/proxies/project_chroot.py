@@ -65,8 +65,8 @@ class ProjectChrootProxy(BaseProxy):
             "chrootname": chrootname,
         }
         data = {
-            "repos": repos or [],
-            "buildroot_pkgs": packages or [],
+            "repos": repos,
+            "buildroot_pkgs": packages,
             "delete_comps": delete_comps,
         }
         files = {}
