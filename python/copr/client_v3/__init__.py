@@ -13,8 +13,6 @@ from .proxies.module import ModuleProxy
 
 
 __all__ = [
-    GET,
-    POST,
     Client,
     GeneralProxy,
     BuildProxy,
