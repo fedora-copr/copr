@@ -793,8 +793,7 @@ class ChrootForm(FlaskForm):
     (adding packages to minimal chroot)
     """
 
-    buildroot_pkgs = wtforms.TextField(
-        "Packages")
+    buildroot_pkgs = wtforms.TextField("Packages")
 
     repos = wtforms.TextAreaField('Repos',
                                   validators=[UrlRepoListValidator(),
@@ -805,6 +804,8 @@ class ChrootForm(FlaskForm):
 
     comps = FileField("comps_xml")
 
+    with_opts = wtforms.TextField("With options")
+    without_opts = wtforms.TextField("Without options")
 
 class CoprLegalFlagForm(FlaskForm):
     comment = wtforms.TextAreaField("Comment")

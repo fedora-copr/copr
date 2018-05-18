@@ -130,7 +130,9 @@ def get_build_record(task):
             "package_version": task.build.pkg_version,
             "repos": build_config.get("repos"),
             "buildroot_pkgs": build_config.get("additional_packages"),
-            "use_bootstrap_container": build_config.get("use_bootstrap_container")
+            "use_bootstrap_container": build_config.get("use_bootstrap_container"),
+            "with_opts": build_config.get("with_opts"),
+            "without_opts": build_config.get("without_opts"),
         }
 
     except Exception as err:

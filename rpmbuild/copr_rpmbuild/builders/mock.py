@@ -20,6 +20,8 @@ class MockBuilder(object):
         self.use_bootstrap_container = task.get("use_bootstrap_container")
         self.pkg_manager_conf = "dnf" if "custom-1" in task.get("chroot") else "yum"
         self.timeout = task.get("timeout")
+        self.with_opts = task.get("with_opts")
+        self.without_opts = task.get("without_opts")
         self.sourcedir = sourcedir
         self.resultdir = resultdir
         self.config = config
@@ -73,6 +75,12 @@ class MockBuilder(object):
             "--uniqueext", get_mock_uniqueext(),
             "-r", "child"]
 
+        for with_opt in self.with_opts:
+            cmd.append("--with='{}'".format(with_opt))
+
+        for without_opt in self.without_opts:
+            cmd.append("--without='{}'".format(without_opt))
+
         log.info('Running: {}'.format(' '.join(cmd)))
 
         process = subprocess.Popen(
@@ -93,6 +101,12 @@ class MockBuilder(object):
                "--resultdir", resultdir,
                "--uniqueext", get_mock_uniqueext(),
                "-r", "child"]
+
+        for with_opt in self.with_opts:
+            cmd.append("--with='{}'".format(with_opt))
+
+        for without_opt in self.without_opts:
+            cmd.append("--without='{}'".format(without_opt))
 
         log.info('Running: {}'.format(' '.join(cmd)))
 

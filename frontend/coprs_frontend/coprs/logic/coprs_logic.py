@@ -489,7 +489,7 @@ class CoprChrootsLogic(object):
 
     @classmethod
     def create_chroot(cls, user, copr, mock_chroot,
-                      buildroot_pkgs=None, repos=None, comps=None, comps_name=None, module_md=None, module_md_name=None):
+                      buildroot_pkgs=None, repos=None, comps=None, comps_name=None, module_md=None, module_md_name=None, with_opts="", without_opts=""):
         """
         :type user: models.User
         :type mock_chroot: models.MockChroot
@@ -503,12 +503,12 @@ class CoprChrootsLogic(object):
             "Only owners and admins may update their projects.")
 
         chroot = models.CoprChroot(copr=copr, mock_chroot=mock_chroot)
-        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, chroot)
+        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, chroot, with_opts, without_opts)
         return chroot
 
     @classmethod
     def update_chroot(cls, user, copr_chroot,
-                      buildroot_pkgs=None, repos=None, comps=None, comps_name=None, module_md=None, module_md_name=None):
+                      buildroot_pkgs=None, repos=None, comps=None, comps_name=None, module_md=None, module_md_name=None, with_opts="", without_opts=""):
         """
         :type user: models.User
         :type copr_chroot: models.CoprChroot
@@ -517,16 +517,22 @@ class CoprChrootsLogic(object):
             user, copr_chroot.copr,
             "Only owners and admins may update their projects.")
 
-        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, copr_chroot)
+        cls._update_chroot(buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, copr_chroot, with_opts, without_opts)
         return copr_chroot
 
     @classmethod
-    def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, copr_chroot):
+    def _update_chroot(cls, buildroot_pkgs, repos, comps, comps_name, module_md, module_md_name, copr_chroot, with_opts, without_opts):
         if buildroot_pkgs is not None:
             copr_chroot.buildroot_pkgs = buildroot_pkgs
 
         if repos is not None:
             copr_chroot.repos = repos.replace("\n", " ")
+
+        if with_opts is not None:
+            copr_chroot.with_opts = with_opts
+
+        if without_opts is not None:
+            copr_chroot.without_opts = without_opts
 
         if comps_name is not None:
             copr_chroot.update_comps(comps)

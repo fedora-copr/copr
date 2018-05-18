@@ -31,7 +31,8 @@ def render_chroot_edit(copr, chroot_name):
     # todo: get COPR_chroot, not mock chroot, WTF?!
     # form = forms.ChrootForm(buildroot_pkgs=copr.buildroot_pkgs(chroot))
 
-    form = forms.ChrootForm(buildroot_pkgs=chroot.buildroot_pkgs, repos=chroot.repos)
+    form = forms.ChrootForm(buildroot_pkgs=chroot.buildroot_pkgs, repos=chroot.repos,
+                            with_opts=chroot.with_opts, without_opts=chroot.without_opts)
     # FIXME - test if chroot belongs to copr
     if flask.g.user.can_build_in(copr):
         return render_template("coprs/detail/edit_chroot.html",
@@ -80,7 +81,8 @@ def process_chroot_update(copr, chroot_name):
                     form.buildroot_pkgs.data,
                     form.repos.data,
                     comps=comps_xml, comps_name=comps_name,
-                    module_md=module_md, module_md_name=module_md_name
+                    module_md=module_md, module_md_name=module_md_name,
+                    with_opts=form.with_opts.data, without_opts=form.without_opts.data
                 )
 
             elif action == "delete_comps":
@@ -91,7 +93,7 @@ def process_chroot_update(copr, chroot_name):
 
             flask.flash(
                 "Buildroot {0} in project {1} has been updated successfully.".format(
-                    chroot_name, copr.name))
+                    chroot_name, copr.name), 'success')
 
             db.session.commit()
         return flask.redirect(url_for_copr_edit(copr))

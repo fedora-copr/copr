@@ -330,7 +330,8 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         modified_chroots = []
         for chroot in self.copr_chroots:
-            if ((chroot.buildroot_pkgs or chroot.repos)
+            if ((chroot.buildroot_pkgs or chroot.repos
+                 or chroot.with_opts or chroot.without_opts)
                     and chroot.is_active):
                 modified_chroots.append(chroot)
         return modified_chroots
@@ -879,6 +880,9 @@ class CoprChroot(db.Model, helpers.Serializer):
     module_md_zlib = db.Column(db.LargeBinary(), nullable=True)
     module_md_name = db.Column(db.String(127), nullable=True)
 
+    with_opts = db.Column(db.Text, default="", server_default="", nullable=False)
+    without_opts = db.Column(db.Text, default="", server_default="", nullable=False)
+
     def update_comps(self, comps_xml):
         if isinstance(comps_xml, str):
             data = comps_xml.encode("utf-8")
@@ -935,7 +939,7 @@ class CoprChroot(db.Model, helpers.Serializer):
 
     def to_dict(self):
         options = {"__columns_only__": [
-            "buildroot_pkgs", "repos", "comps_name", "copr_id"
+            "buildroot_pkgs", "repos", "comps_name", "copr_id", "with_opts", "without_opts"
         ]}
         d = super(CoprChroot, self).to_dict(options=options)
         d["mock_chroot"] = self.mock_chroot.name

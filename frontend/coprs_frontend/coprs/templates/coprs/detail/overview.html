@@ -198,6 +198,12 @@
         {% for repo in chroot.repos_list: %}
         <li>{{ repo }}</li>
         {% endfor %}
+        {% for opt in chroot.with_opts.split(" "): %}
+        <li>{{ opt }}</li>
+        {% endfor %}
+        {% for opt in chroot.without_opts.split(" "): %}
+        <li>{{ opt }}</li>
+        {% endfor %}
     </ul>
 </div>
 <script>
