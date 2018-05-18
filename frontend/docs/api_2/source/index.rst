@@ -26,12 +26,12 @@ Resources
    Resources/mock_chroot
 
 
-HETEOAS
+HATEOAS
 -------
 
 
-This API implements HETEOAS_ in the very simple form: each entity is accompanied with a set of relative links
-to other related entities. HETEOAS makes API self discoverable, so you don't need to learn how to access sub-resources.
+This API implements HATEOAS_ in the very simple form: each entity is accompanied with a set of relative links
+to other related entities. HATEOAS makes API self discoverable, so you don't need to learn how to access sub-resources.
 Here is a short example with the content of API root:
 
 **GET /api_2**
@@ -60,7 +60,7 @@ Here is a short example with the content of API root:
 Response structure
 ------------------
 
-Each entity is enveloped into a json dict and accompanied with set of HETEOAS references.
+Each entity is enveloped into a json dict and accompanied with set of HATEOAS references.
 GET requests would return the following structures:
 
 **Collection structure**:
@@ -138,4 +138,4 @@ additional information would be present at key ``data``.
 
 .. _BasicAuth: https://en.wikipedia.org/wiki/Basic_access_authentication
 .. _CoprAPI: https://copr.fedoraproject.org/api
-.. _HETEOAS: https://en.wikipedia.org/wiki/HATEOAS
+.. _HATEOAS: https://en.wikipedia.org/wiki/HATEOAS
