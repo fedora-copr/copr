@@ -387,6 +387,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
+        print("This command is deprecated and will be removed in a future release.", file=sys.stderr)
         username = self.client.username
         project = args.project.split("/")
         if len(project) != 2:
@@ -708,7 +709,7 @@ def setup_parser():
 
     parser_mock_config = subparsers.add_parser(
         "mock-config",
-        help="Get the mock profile (similar to koji mock-config)"
+        help="Deprecated. Get the mock profile (similar to koji mock-config)"
     )
     parser_mock_config.add_argument(
         "project",
