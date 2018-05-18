@@ -76,10 +76,10 @@ class MockBuilder(object):
             "-r", "child"]
 
         for with_opt in self.with_opts:
-            cmd.append("--with='{}'".format(with_opt))
+            cmd += ["--with", with_opt]
 
         for without_opt in self.without_opts:
-            cmd.append("--without='{}'".format(without_opt))
+            cmd += ["--without", without_opt]
 
         log.info('Running: {}'.format(' '.join(cmd)))
 
@@ -103,10 +103,10 @@ class MockBuilder(object):
                "-r", "child"]
 
         for with_opt in self.with_opts:
-            cmd.append("--with='{}'".format(with_opt))
+            cmd += ["--with", with_opt]
 
         for without_opt in self.without_opts:
-            cmd.append("--without='{}'".format(without_opt))
+            cmd += ["--without", without_opt]
 
         log.info('Running: {}'.format(' '.join(cmd)))
 
