@@ -69,7 +69,7 @@ rlJournalStart
 
     rlPhaseStartTest
         # Test for https://pagure.io/copr/copr/issue/67
-        rlRun "copr-cli create ${NAME_PREFIX}TestBugPagure67 --chroot fedora-24-x86_64" 0
+        rlRun "copr-cli create ${NAME_PREFIX}TestBugPagure67 --chroot fedora-28-x86_64" 0
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestBugPagure67 --name test_package_tito --git-url http://github.com/clime/example.git --test on --webhook-rebuild on --git-branch foo --git-dir bar"
         OUTPUT=`mktemp`
         rlRun "copr-cli get-package ${NAME_PREFIX}TestBugPagure67 --name test_package_tito > $OUTPUT"
