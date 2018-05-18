@@ -387,7 +387,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        print("This command is deprecated and will be removed in a future release.", file=sys.stderr)
+        sys.stderr.write("# This command is deprecated and will be removed in a future release.\n")
         username = self.client.username
         project = args.project.split("/")
         if len(project) != 2:
