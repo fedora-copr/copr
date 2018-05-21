@@ -11,12 +11,6 @@ class List(list):
         self.__response__ = response
 
 
-def refresh(item):
-    response = item.__response__.request.send()
-    updated = response.munchify()
-    item.update(updated)
-
-
 def config_from_file(path=None):
     raw_config = configparser.ConfigParser()
     path = path or os.path.join(os.path.expanduser("~"), ".config", "copr")

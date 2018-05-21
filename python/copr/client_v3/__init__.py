@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from .requests import Request, Response, GET, POST
 from .exceptions import CoprRequestException, CoprValidationException
-from .helpers import refresh, config_from_file
+from .helpers import config_from_file
 from .client import Client
 from .proxies.general import GeneralProxy
 from .proxies.project import ProjectProxy
@@ -22,5 +22,4 @@ __all__ = [
     ModuleProxy,
     CoprRequestException,
     CoprValidationException,
-    refresh,
 ]
