@@ -19,7 +19,7 @@ class CoprValidationException(CoprException):
     pass
 
 
-class CoprNoConfException(CoprException):
+class CoprNoConfigException(CoprException):
     """
     Exception thrown when no config file is found
     """

@@ -12,7 +12,7 @@ from .proxies.module import ModuleProxy
 from .exceptions import (CoprException,
                          CoprRequestException,
                          CoprValidationException,
-                         CoprNoConfException,
+                         CoprNoConfigException,
                          CoprConfigException)
 
 
@@ -29,6 +29,6 @@ __all__ = [
     CoprException,
     CoprRequestException,
     CoprValidationException,
-    CoprNoConfException,
+    CoprNoConfigException,
     CoprConfigException,
 ]
