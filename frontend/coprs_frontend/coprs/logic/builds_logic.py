@@ -945,6 +945,10 @@ GROUP BY
     def filter_by_group_name(cls, query, group_name):
         return query.filter(models.Group.name == group_name)
 
+    @classmethod
+    def filter_by_package_name(cls, query, package_name):
+        return query.join(models.Package).filter(models.Package.name == package_name)
+
 
 class BuildChrootsLogic(object):
     @classmethod

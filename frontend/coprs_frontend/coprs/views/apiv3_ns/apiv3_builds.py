@@ -54,9 +54,12 @@ def get_build(build_id):
 @apiv3_ns.route("/build/list/", methods=["GET"])
 @pagination()
 @query_params()
-def get_build_list(ownername, projectname, **kwargs):
+def get_build_list(ownername, projectname, packagename=None, **kwargs):
     copr = get_copr(ownername, projectname)
-    paginator = Paginator(BuildsLogic.get_multiple_by_copr(copr), models.Build, **kwargs)
+    query = BuildsLogic.get_multiple_by_copr(copr)
+    if packagename:
+        query = BuildsLogic.filter_by_package_name(query, packagename)
+    paginator = Paginator(query, models.Build, **kwargs)
     builds = paginator.map(to_dict)
     return flask.jsonify(items=builds, meta=paginator.meta)
 
