@@ -406,7 +406,8 @@ class BasePackageForm(FlaskForm):
 class PackageFormScm(BasePackageForm):
     scm_type = wtforms.SelectField(
         "Type",
-        choices=[("git", "Git"), ("svn", "SVN")])
+        choices=[("git", "Git"), ("svn", "SVN")],
+        default="git")
 
     clone_url = wtforms.StringField(
         "Clone url",
@@ -432,13 +433,10 @@ class PackageFormScm(BasePackageForm):
                 r"^.+\.spec$",
                 message="RPM spec file must end with .spec")])
 
-    srpm_build_method = wtforms.StringField(
+    srpm_build_method = wtforms.SelectField(
         "SRPM build method",
-        validators=[
-            wtforms.validators.DataRequired(),
-            wtforms.validators.AnyOf(["rpkg", "tito", "tito_test", "make_srpm"])
-        ],
-        default='rpkg')
+        choices=[(x, x) for x in ["rpkg", "tito", "tito_test", "make_srpm"]],
+        default="rpkg")
 
     @property
     def source_json(self):
