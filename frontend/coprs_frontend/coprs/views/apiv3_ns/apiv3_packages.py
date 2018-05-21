@@ -23,7 +23,7 @@ def to_dict(package):
     package_dict.update({
         "copr": package.copr.name,
         "owner": package.copr.owner_name,
-        "source": package.source_json_dict,
+        "source_dict": package.source_json_dict,
     })
     return package_dict
 

@@ -45,7 +45,7 @@ class PackageProxy(BaseProxy):
         response = request.send()
         return response.munchify()
 
-    def add(self, ownername, projectname, packagename, source_type, source):
+    def add(self, ownername, projectname, packagename, source_type, source_dict):
         """
         Add a package to a project
 
@@ -53,7 +53,7 @@ class PackageProxy(BaseProxy):
         :param str projectname:
         :param str packagename:
         :param str source_type:
-        :param dict source:
+        :param dict source_dict:
         :return: Munch
         """
         endpoint = "/package/add"
@@ -66,13 +66,13 @@ class PackageProxy(BaseProxy):
         data = {
             "package_name": packagename,
         }
-        data.update(source)
+        data.update(source_dict)
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
         return response.munchify()
 
-    def edit(self, ownername, projectname, packagename, source_type=None, source=None):
+    def edit(self, ownername, projectname, packagename, source_type=None, source_dict=None):
         """
         Edit a package in a project
 
@@ -80,7 +80,7 @@ class PackageProxy(BaseProxy):
         :param str projectname:
         :param str packagename:
         :param source_type:
-        :param dict source:
+        :param dict source_dict:
         :return: Munch
         """
         endpoint = "/package/edit"
@@ -93,7 +93,7 @@ class PackageProxy(BaseProxy):
         data = {
             "package_name": packagename,
         }
-        data.update(source or {})
+        data.update(source_dict or {})
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
