@@ -8,40 +8,40 @@ which provide API operations on given resource.
 General
 -------
 
-.. autoclass:: copr.client_v3.proxies.general.GeneralProxy
+.. autoclass:: copr.v3.proxies.general.GeneralProxy
    :members:
 
 
 Project
 -------
 
-.. autoclass:: copr.client_v3.proxies.project.ProjectProxy
+.. autoclass:: copr.v3.proxies.project.ProjectProxy
    :members:
 
 
 Build
 -----
 
-.. autoclass:: copr.client_v3.proxies.build.BuildProxy
+.. autoclass:: copr.v3.proxies.build.BuildProxy
    :members:
 
 
 Package
 -------
 
-.. autoclass:: copr.client_v3.proxies.package.PackageProxy
+.. autoclass:: copr.v3.proxies.package.PackageProxy
    :members:
 
 
 Module
 ------
 
-.. autoclass:: copr.client_v3.proxies.module.ModuleProxy
+.. autoclass:: copr.v3.proxies.module.ModuleProxy
    :members:
 
 
 Project Chroot
 --------------
 
-.. autoclass:: copr.client_v3.proxies.project_chroot.ProjectChrootProxy
+.. autoclass:: copr.v3.proxies.project_chroot.ProjectChrootProxy
    :members:

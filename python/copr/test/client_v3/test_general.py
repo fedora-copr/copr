@@ -1,4 +1,4 @@
-from copr.client_v3.proxies import BaseProxy
+from copr.v3.proxies import BaseProxy
 
 
 class TestBaseProxy(object):

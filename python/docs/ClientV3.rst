@@ -13,7 +13,7 @@ Example usage
 
 .. code-block:: python
 
-    from copr.client_v3 import Client
+    from copr.v3 import Client
 
     # Create an API client from config file
     client = Client.create_from_config_file()

@@ -9,7 +9,7 @@ This example code tries to cancel a build. Such thing is possible only when the 
 
 .. code-block:: python
 
-    from copr.client_v3 import Client
+    from copr.v3 import Client
     client = Client.create_from_config_file()
 
     try:
@@ -36,6 +36,6 @@ Otherwise, an exception is raised and handled.
 Exception hierarchy
 -------------------
 
-.. automodule:: copr.client_v3.exceptions
+.. automodule:: copr.v3.exceptions
     :members:
     :show-inheritance:

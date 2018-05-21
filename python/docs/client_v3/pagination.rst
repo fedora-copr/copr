@@ -8,7 +8,7 @@ all packages from given project are returned, regardless their number.
 
 .. code-block:: python
 
-    from copr.client_v3 import Client
+    from copr.v3 import Client
     client = Client(config)
 
     packages = client.package_proxy.get_list("@copr", "foo")
@@ -30,7 +30,7 @@ And finally, in some cases, it may be useful to iterate through all objects, but
 
 .. code-block:: python
 
-    from copr.client_v3 import next_page
+    from copr.v3 import next_page
 
     packages = packagep.get_list("@copr", "foo", pagination={"limit": 3})
     while packages:

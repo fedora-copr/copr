@@ -1,8 +1,8 @@
 import pytest
 import mock
-from copr.client_v3 import Response
-from copr.client_v3 import Request
-from copr.client_v3.requests import handle_errors, CoprRequestException
+from copr.v3 import Response
+from copr.v3 import Request
+from copr.v3.requests import handle_errors, CoprRequestException
 
 class TestResponse(object):
     def test_bar(self):

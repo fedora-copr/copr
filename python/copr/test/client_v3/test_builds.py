@@ -1,7 +1,7 @@
 import mock
-from copr.client_v3 import BuildProxy
-from copr.client_v3 import Response
-from copr.client_v3 import Request
+from copr.v3 import BuildProxy
+from copr.v3 import Response
+from copr.v3 import Request
 
 
 @mock.patch.object(Request, "send")
