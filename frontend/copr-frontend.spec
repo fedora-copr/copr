@@ -91,7 +91,6 @@ BuildRequires: redis
 %endif
 
 Requires: httpd
-Requires: passwd
 Requires: curl
 Requires: redis
 Requires: crontabs
@@ -260,7 +259,7 @@ EOF
 getent group copr-fe >/dev/null || groupadd -r copr-fe
 getent passwd copr-fe >/dev/null || \
 useradd -r -g copr-fe -G copr-fe -d %{_datadir}/copr/coprs_frontend -s /bin/bash -c "COPR frontend user" copr-fe
-/usr/bin/passwd -l copr-fe >/dev/null
+usermod -L copr-fe
 
 
 %post
