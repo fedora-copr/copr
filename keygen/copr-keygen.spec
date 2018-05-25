@@ -49,6 +49,10 @@ Requires:   python3-pytest
 Requires:   python3-pytest-cov
 Requires:   python3-mock
 
+# scriptlets
+Requires(post): initscripts
+Requires(postun): initscripts
+
 
 %description -n copr-keygen
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -150,10 +154,12 @@ restorecon -rv /var/log/copr-keygen/
 semanage fcontext -a -t httpd_var_lib_t '/var/lib/copr-keygen(/.*)?'
 restorecon -rv /var/lib/copr-keygen/
 
-service httpd condrestart
+service httpd condrestart &>/dev/null || :
+
 
 %postun
-service httpd condrestart
+service httpd condrestart &>/dev/null || :
+
 
 %files
 %license LICENSE

@@ -132,6 +132,9 @@ Requires: xstatic-datatables-common
 Requires: js-html5shiv
 Requires: js-respond
 
+Requires(post): initscripts
+Requires(postun): initscripts
+
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4
 Provides: bundled(bootstrap-treeview) = 1.0.1
@@ -265,8 +268,8 @@ usermod -L copr-fe
 
 
 %post
-service httpd condrestart
-service logstash condrestart
+service httpd    condrestart >/dev/null || :
+service logstash condrestart >/dev/null || :
 %systemd_post copr-fedmsg-listener.service
 
 
@@ -275,6 +278,8 @@ service logstash condrestart
 
 
 %postun
+service httpd    condrestart >/dev/null || :
+service logstash condrestart >/dev/null || :
 %systemd_postun_with_restart copr-fedmsg-listener.service
 
 
