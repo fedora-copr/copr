@@ -190,7 +190,7 @@ class MsgBusStomp(MsgBus):
         send_headers['topic'] = topic
         self.conn.send(body=json.dumps(body), headers=send_headers,
                        destination=self.opts.destination,
-                       content_type='text/json')
+                       content_type='application/json')
 
 
 class MsgBusFedmsg(MsgBus):
