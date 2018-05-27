@@ -214,7 +214,7 @@ class BuildProxy(BaseProxy):
             request_class = FileRequest
             kwargs["files"] = files
 
-        if buildopts and "progress_callback" in buildopts:
+        if files and buildopts and "progress_callback" in buildopts:
             kwargs["progress_callback"] = buildopts["progress_callback"]
             del buildopts["progress_callback"]
 
