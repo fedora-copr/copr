@@ -226,9 +226,10 @@ def process_creating_new_build(copr, form, create_new_build):
 @api_login_required
 def delete_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
+    build_dict = to_dict(build)
     try:
         BuildsLogic.delete_build(flask.g.user, build)
         db.session.commit()
     except (InsufficientRightsException, ActionInProgressException) as ex:
         raise ApiError(ex)
-    return flask.jsonify(to_dict(build))
+    return flask.jsonify(build_dict)
