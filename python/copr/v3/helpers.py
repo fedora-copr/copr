@@ -1,7 +1,7 @@
 import os
 import six
 import configparser
-from .exceptions import CoprNoConfException, CoprConfigException
+from .exceptions import CoprNoConfigException, CoprConfigException
 
 
 class List(list):
