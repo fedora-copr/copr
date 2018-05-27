@@ -72,7 +72,7 @@ def file_upload():
         @wraps(f)
         def file_upload_wrapper(*args, **kwargs):
             if "json" in flask.request.files:
-                data = json.loads(flask.request.files["json"].read())
+                data = json.loads(flask.request.files["json"].read()) or {}
                 tuples = [(k, v) for k, v in data.items()]
                 flask.request.form = ImmutableMultiDict(tuples)
             return f(*args, **kwargs)
