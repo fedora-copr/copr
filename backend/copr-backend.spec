@@ -71,6 +71,7 @@ Requires:   crontabs
 Requires:   prunerepo
 Requires:   libappstream-glib-builder
 Requires:   rpm-sign
+Requires:   (copr-selinux if selinux-policy-targeted)
 
 Requires(post): systemd
 Requires(preun): systemd
