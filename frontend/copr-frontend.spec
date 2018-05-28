@@ -4,7 +4,15 @@
 # https://fedoraproject.org/wiki/Packaging:Guidelines#Packaging_of_Additional_RPM_Macros
 %global macrosdir       %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
 
-%global flavor_guard      %name-flavor = %version
+# Please bump the %%flavor_guard version every-time some incompatible change
+# happens (since the last release) in %%flavor_files set of files.  Those files
+# are basically replaced by third-party flavor providers, and any file removal,
+# addition, movement or change will make the third-party flavor non-working.  By
+# changing the version we make the package explicitly incompatible and
+# third-party flavor providers are notified they have to update their packages,
+# too.
+%global flavor_guard      %name-flavor = 2
+%global flavor_provides   Provides: %flavor_guard
 %global flavor_files_list %_datadir/copr/copr-flavor-filelist
 %global flavor_generator  %_datadir/copr/coprs_frontend/generate_colorscheme
 %global staticdir         %_datadir/copr/coprs_frontend/coprs/static
@@ -169,7 +177,7 @@ only.
 %package fedora
 Summary: Template files for %{name}
 Requires: %{name} = %{version}
-Provides: %flavor_guard
+%flavor_provides
 
 %description fedora
 Template files for %{name} (basically colors, logo, etc.).  This package is
@@ -241,7 +249,9 @@ EOF
 
 mkdir -p %buildroot%macrosdir
 cat <<EOF >%buildroot%macrosdir/macros.coprfrontend
-%%copr_frontend_flavor_guard      %flavor_guard
+%%copr_frontend_flavor_pkg \\
+%flavor_provides \\
+Requires: copr-frontend
 %%copr_frontend_flavor_filelist   %flavor_files_list
 %%copr_frontend_flavor_generator  %flavor_generator
 %%copr_frontend_staticdir         %staticdir
