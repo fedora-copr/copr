@@ -54,13 +54,28 @@ def get_build(build_id):
 @apiv3_ns.route("/build/list/", methods=["GET"])
 @pagination()
 @query_params()
-def get_build_list(ownername, projectname, packagename=None, **kwargs):
+def get_build_list(ownername, projectname, packagename=None, status=None, **kwargs):
     copr = get_copr(ownername, projectname)
     query = BuildsLogic.get_multiple_by_copr(copr)
     if packagename:
         query = BuildsLogic.filter_by_package_name(query, packagename)
-    paginator = Paginator(query, models.Build, **kwargs)
+
+    # WORKAROUND
+    # We can't filter builds by status directly in the database, because we
+    # use a logic in Build.status property to determine a build status.
+    # Therefore if we want to filter by `status`, we need to query all builds
+    # and filter them in the application and then return the desired number.
+    limit = kwargs["limit"]
+    paginator_limit = None if status else kwargs["limit"]
+    del kwargs["limit"]
+
+    paginator = Paginator(query, models.Build, limit=paginator_limit, **kwargs)
     builds = paginator.map(to_dict)
+
+    if status:
+        builds = [b for b in builds if b["status"] == status][:limit]
+        paginator.limit = limit
+
     return flask.jsonify(items=builds, meta=paginator.meta)
 
 

@@ -19,13 +19,14 @@ class BuildProxy(BaseProxy):
         response = request.send()
         return response.munchify()
 
-    def get_list(self, ownername, projectname, packagename=None, pagination=None):
+    def get_list(self, ownername, projectname, packagename=None, status=None, pagination=None):
         """
         Return a list of packages
 
         :param str ownername:
         :param str projectname:
         :param str packagename:
+        :param str status:
         :param pagination:
         :return: Munch
         """
@@ -34,6 +35,7 @@ class BuildProxy(BaseProxy):
             "ownername": ownername,
             "projectname": projectname,
             "packagename": packagename,
+            "status": status,
         }
         params.update(pagination or {})
 
