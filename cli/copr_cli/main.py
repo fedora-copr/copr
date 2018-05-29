@@ -314,7 +314,8 @@ class Commands(object):
                 self._watch_builds(build_ids)
 
         except CoprException as ex:
-            print(ex)
+            sys.stderr.write(str(ex) + "\n")
+            sys.exit(1)
         finally:
             if bar:
                 bar.finish()
