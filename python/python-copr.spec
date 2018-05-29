@@ -42,6 +42,7 @@ BuildRequires: python-requests-toolbelt
 BuildRequires: python-marshmallow
 BuildRequires: python-six >= 1.9.0
 BuildRequires: python-mock
+BuildRequires: python-munch
 BuildRequires: pytest
 BuildRequires: python2-devel
 # for doc package
@@ -56,6 +57,7 @@ BuildRequires: python2-six >= 1.9.0
 BuildRequires: python2-mock
 BuildRequires: python2-pytest
 BuildRequires: python2-devel
+BuildRequires: python-munch
 # for doc package
 BuildRequires: python2-sphinx
 BuildRequires: python2-docutils
@@ -82,12 +84,14 @@ Requires: python-six >= 1.9.0
 Requires: python-requests
 Requires: python-requests-toolbelt
 Requires: python-marshmallow
+Requires: python-munch
 %else
 Requires: python2-setuptools
 Requires: python2-six >= 1.9.0
 Requires: python2-requests
 Requires: python2-requests-toolbelt
 Requires: python2-marshmallow
+Requires: python-munch
 %endif
 
 %{?python_provide:%python_provide python2-copr}
@@ -109,12 +113,14 @@ BuildRequires: python3-six
 BuildRequires: python3-pylint
 BuildRequires: python3-sphinx
 BuildRequires: python3-docutils
+BuildRequires: python3-munch
 
 Requires: python3-setuptools
 Requires: python3-six
 Requires: python3-requests
 Requires: python3-requests-toolbelt
 Requires: python3-marshmallow
+Requires: python3-munch
 
 %{?python_provide:%python_provide python3-copr}
 
