@@ -98,7 +98,7 @@ class Commands(object):
                     "Pass username to command or create `~/.config/copr`\n")
                 sys.exit(6)
 
-            if args.username is None and self.client.username is None:
+            if args.username is None and self.config["username"] is None:
                 sys.stderr.write(
                     "Error: Operation requires username\n"
                     "Pass username to command or add it to `~/.config/copr`\n")
