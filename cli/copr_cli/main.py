@@ -110,6 +110,15 @@ class Commands(object):
         wrapper.__name__ = func.__name__
         return wrapper
 
+    def parse_name(self, name):
+        m = re.match(r"([^/]+)/(.*)", name)
+        if m:
+            owner = m.group(1)
+            name = m.group(2)
+        else:
+            owner = self.config["username"]
+        return owner, name
+
     def _watch_builds(self, build_ids):
         """
         :param build_ids: list of build IDs
@@ -284,7 +293,7 @@ class Commands(object):
         return self.process_build(args, self.client.build_proxy.create_from_scm, data)
 
     def process_build(self, args, build_function, data, bar=None, progress_callback=None):
-        username, copr = parse_name(args.copr)
+        username, copr = self.parse_name(args.copr)
 
         try:
             buildopts = {"memory": args.memory, "timeout": args.timeout,
@@ -319,7 +328,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        username, copr = parse_name(args.name)
+        username, copr = self.parse_name(args.name)
         project = self.client.project_proxy.add(
             ownername=username, projectname=copr, description=args.description,
             instructions=args.instructions, chroots=args.chroots,
@@ -340,7 +349,7 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        username, copr = parse_name(args.name)
+        username, copr = self.parse_name(args.name)
         project = self.client.project_proxy.edit(
             username=username, projectname=copr,
             description=args.description, instructions=args.instructions,
@@ -359,7 +368,7 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        username, copr = parse_name(args.copr)
+        username, copr = self.parse_name(args.copr)
         project = self.client.project_proxy.delete(ownername=username, projectname=copr)
         print("Project {} has been deleted.".format(project.name))
 
@@ -370,8 +379,8 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        srcownername, srcprojectname = parse_name(args.src)
-        dstownername, dstprojectname = parse_name(args.dst)
+        srcownername, srcprojectname = self.parse_name(args.src)
+        dstownername, dstprojectname = self.parse_name(args.dst)
 
         try:
             dst = self.client.project_proxy.get(ownername=dstownername, projectname=dstprojectname)
@@ -395,7 +404,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        ownername, projectname = parse_name(args.project)
+        ownername, projectname = self.parse_name(args.project)
         try:
             build_config = self.client.project_chroot_proxy.get_build_config(ownername, projectname, args.chroot)
             print(MockProfile(build_config))
@@ -503,7 +512,7 @@ class Commands(object):
 
     @requires_api_auth
     def action_add_or_edit_package_pypi(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         data = {
             "package_name": args.name,
             "pypi_package_name": args.packagename,
@@ -520,7 +529,7 @@ class Commands(object):
 
     @requires_api_auth
     def action_add_or_edit_package_scm(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         data = {
             "package_name": args.name,
             "clone_url": args.clone_url,
@@ -539,7 +548,7 @@ class Commands(object):
 
     @requires_api_auth
     def action_add_or_edit_package_rubygems(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         data = {
             "package_name": args.name,
             "gem_name": args.gem_name,
@@ -553,7 +562,7 @@ class Commands(object):
 
     @requires_api_auth
     def action_add_or_edit_package_custom(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         data = {
             "package_name": args.name,
             "script": ''.join(args.script.readlines()),
@@ -569,25 +578,25 @@ class Commands(object):
         print("Create or edit operation was successful.")
 
     def action_list_packages(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname)
         packages_with_builds = [self._package_with_builds(p, args) for p in packages]
         print(json_dumps(packages_with_builds))
 
     def action_list_package_names(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname)
         for package in packages:
             print(package.name)
 
     def action_get_package(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         package = self.client.package_proxy.get(ownername=ownername, projectname=projectname, packagename=args.name)
         package = self._package_with_builds(package, args)
         print(json_dumps(package))
 
     def _package_with_builds(self, package, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         kwargs = {"ownername": ownername, "projectname": projectname, "packagename": package.name}
         pagination = {"limit": 1, "order": "id", "order_type": "DESC"}
 
@@ -606,17 +615,17 @@ class Commands(object):
         return package
 
     def action_delete_package(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         package = self.client.package_proxy.delete(ownername=ownername, projectname=projectname, packagename=args.name)
         print("Package was successfully deleted.")
 
     def action_reset_package(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         package = self.client.package_proxy.reset(ownername=ownername, projectname=projectname, packagename=args.name)
         print("Package's default source was successfully reseted.")
 
     def action_build_package(self, args):
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
         buildopts = {
             "chroots": args.chroots,
             #"memory": args.memory,
@@ -637,7 +646,7 @@ class Commands(object):
         """
         Build module via Copr MBS
         """
-        ownername, projectname = parse_name(args.copr)
+        ownername, projectname = self.parse_name(args.copr)
 
         try:
             if args.yaml:
@@ -1083,16 +1092,6 @@ def setup_parser():
     parser_build_module.set_defaults(func="action_build_module")
 
     return parser
-
-
-def parse_name(name):
-    m = re.match(r"([^/]+)/(.*)", name)
-    if m:
-        owner = m.group(1)
-        name = m.group(2)
-    else:
-        owner = None
-    return owner, name
 
 
 def parse_chroot_path(path):
