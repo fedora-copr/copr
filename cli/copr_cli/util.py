@@ -1,5 +1,8 @@
 # coding: utf-8
 
+import simplejson
+
+
 try:
     from progress.bar import Bar
 except ImportError:
@@ -50,3 +53,15 @@ if progress:
         suffix = "%(downloaded)s %(download_speed)s eta %(eta_td)s"
 else:
     ProgressBar = DummyBar
+
+
+def serializable(result):
+    if isinstance(result, dict):
+        new_result = result.copy()
+        new_result.pop("__response__", None)
+        return new_result
+    return result
+
+
+def json_dumps(result):
+    print(simplejson.dumps(serializable(result), indent=4, sort_keys=True, for_json=True))

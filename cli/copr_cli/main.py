@@ -13,9 +13,9 @@ from collections import defaultdict
 
 import logging
 if six.PY2:
-    from urlparse import urlparse
+    from urlparse import urlparse, urljoin
 else:
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -31,7 +31,10 @@ from copr import CoprClient
 from copr.client.responses import CoprResponse
 import copr.exceptions as copr_exceptions
 
-from .util import ProgressBar
+from copr.v3 import (Client, config_from_file, CoprException, CoprRequestException, CoprNoConfigException,
+                     CoprConfigException, CoprNoResultException)
+
+from .util import ProgressBar, json_dumps
 from .build_config import MockProfile
 
 import pkg_resources
@@ -57,24 +60,24 @@ except NameError:
     pass
 
 class Commands(object):
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, config_path):
         try:
-            self.client = CoprClient.create_from_file_config(config)
-        except (copr_exceptions.CoprNoConfException,
-                copr_exceptions.CoprConfigException):
-            sys.stderr.write(no_config_warning.format(config or "~/.config/copr"))
-            self.client = CoprClient(
-                copr_url=u"http://copr.fedoraproject.org",
-                no_config=True
-            )
+            self.config_path = config_path
+            self.config = config_from_file(config_path)
+
+        except (CoprNoConfigException,
+                CoprConfigException):
+            sys.stderr.write(no_config_warning.format(config_path or "~/.config/copr"))
+            self.config = {"copr_url": "http://copr.fedoraproject.org", "no_config": True}
+
+        self.client = Client(self.config)
 
     def requires_api_auth(func):
         """ Decorator that checks config presence
         """
 
         def wrapper(self, args):
-            if self.client.no_config:
+            if "no_config" in self.config:
                 sys.stderr.write("Error: Operation requires api authentication\n")
                 sys.exit(6)
 
@@ -89,7 +92,7 @@ class Commands(object):
         """
 
         def wrapper(self, args):
-            if self.client.no_config and args.username is None:
+            if "no_config" in self.config and args.username is None:
                 sys.stderr.write(
                     "Error: Operation requires username\n"
                     "Pass username to command or create `~/.config/copr`\n")
@@ -125,13 +128,7 @@ class Commands(object):
                     if build_id in done:
                         continue
 
-                    build_details = self.client.get_build_details(build_id)
-
-                    if build_details.output != "ok":
-                        errmsg = "  Build {1}: Unable to get build status: {0}". \
-                            format(build_details.error, build_id)
-                        raise copr_exceptions.CoprRequestException(errmsg)
-
+                    build_details = self.client.build_proxy.get(build_id)
                     now = datetime.datetime.now()
                     if prevstatus[build_id] != build_details.status:
                         prevstatus[build_id] = build_details.status
@@ -166,7 +163,7 @@ class Commands(object):
         """
         Simply print out the current user as defined in copr config.
         """
-        print(self.client.username)
+        print(self.config["username"])
 
     def action_new_webhook_secret(self, args):
         """
@@ -194,28 +191,28 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        self.client.authentication_check()
+        self.client.general_proxy.auth_check()
 
         bar = None
         progress_callback = None
+        build_function = self.client.build_proxy.create_from_url
         builds = []
 
         for pkg in args.pkgs:
             if os.path.exists(pkg):
                 bar = ProgressBar(max=os.path.getsize(pkg))
+                build_function = self.client.build_proxy.create_from_file
+                data = {"path": pkg}
 
                 # pylint: disable=function-redefined
                 def progress_callback(monitor):
                     bar.next(n=8192)
 
                 print('Uploading package {0}'.format(pkg))
+            else:
+                data = {"url": pkg}
 
-            data = {
-                "pkgs": [pkg],
-                "progress_callback": progress_callback,
-            }
-
-            builds.append(self.process_build(args, self.client.create_new_build, data, bar=bar))
+            builds.append(self.process_build(args, build_function, data, bar=bar, progress_callback=progress_callback))
 
         return builds
 
@@ -226,15 +223,13 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        username, copr = parse_name(args.copr)
-
         data = {
             "pypi_package_name": args.packagename,
             "pypi_package_version": args.packageversion,
             "spec_template": args.spec_template,
             "python_versions": args.pythonversions,
         }
-        return self.process_build(args, self.client.create_new_build_pypi, data)
+        return self.process_build(args, self.client.build_proxy.create_from_pypi, data)
 
     @requires_api_auth
     def action_build_tito(self, args):
@@ -281,7 +276,7 @@ class Commands(object):
             "scm_type": args.scm_type,
             "srpm_build_method": args.srpm_build_method,
         }
-        return self.process_build(args, self.client.create_new_build_scm, data)
+        return self.process_build(args, self.client.build_proxy.create_from_scm, data)
 
     @requires_api_auth
     def action_build_rubygems(self, args):
@@ -291,7 +286,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
         """
         data = {"gem_name": args.gem_name}
-        return self.process_build(args, self.client.create_new_build_rubygems, data)
+        return self.process_build(args, self.client.build_proxy.create_from_rubygems, data)
 
     @requires_api_auth
     def action_build_custom(self, args):
@@ -306,7 +301,7 @@ class Commands(object):
         for arg in ['script_chroot', 'script_builddeps',
                     'script_resultdir']:
             data[arg] = getattr(args, arg)
-        return self.process_build(args, self.client.create_new_build_custom, data)
+        return self.process_build(args, self.client.build_proxy.create_from_custom, data)
 
     @requires_api_auth
     def action_build_distgit(self, args):
@@ -315,29 +310,35 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        data = {"clone_url": args.clone_url, "branch": args.branch}
-        return self.process_build(args, self.client.create_new_build_distgit, data)
+        data = {"clone_url": args.clone_url, "committish": args.branch}
+        return self.process_build(args, self.client.build_proxy.create_from_scm, data)
 
-    def process_build(self, args, build_function, data, bar=None):
+    def process_build(self, args, build_function, data, bar=None, progress_callback=None):
         username, copr = parse_name(args.copr)
 
         try:
-            result = build_function(username=username, projectname=copr, chroots=args.chroots, memory=args.memory,
-                                    timeout=args.timeout, background=args.background, **data)
+            buildopts = {"memory": args.memory, "timeout": args.timeout,
+                         "background": args.background, "progress_callback": progress_callback}
+            result = build_function(ownername=username, projectname=copr, buildopts=buildopts, **data)
+
+            builds = result if type(result) == list else [result]
+            print("Build was added to {0}:".format(builds[0].project))
+
+            for build in builds:
+                url = urljoin(self.config["copr_url"], "/coprs/build/{}".format(build.id))
+                print("  {}".format(url))
+
+            build_ids = [build.id for build in builds]
+            print("Created builds: {0}".format(" ".join(map(str, build_ids))))
+
+            if not args.nowait:
+                self._watch_builds(build_ids)
+
+        except CoprException as ex:
+            print(ex)
         finally:
             if bar:
                 bar.finish()
-
-        if result.output != "ok":
-            sys.stderr.write(result.error + "\n")
-            return
-        print(result.message)
-
-        build_ids = [bw.build_id for bw in result.builds_list]
-        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
-
-        if not args.nowait:
-            self._watch_builds(build_ids)
 
 
     @requires_api_auth
@@ -349,10 +350,10 @@ class Commands(object):
 
         """
         username, copr = parse_name(args.name)
-        result = self.client.create_project(
-            username=username, projectname=copr, description=args.description,
+        project = self.client.project_proxy.add(
+            ownername=username, projectname=copr, description=args.description,
             instructions=args.instructions, chroots=args.chroots,
-            repos=args.repos, initial_pkgs=args.initial_pkgs,
+            repos=args.repos, # packages=args.initial_pkgs, @TODO remove packages
             disable_createrepo=args.disable_createrepo,
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
@@ -360,7 +361,7 @@ class Commands(object):
             auto_prune=ON_OFF_MAP[args.auto_prune],
             use_bootstrap_container=ON_OFF_MAP[args.use_bootstrap_container],
         )
-        print(result.message)
+        print("New project was successfully created.")
 
     @requires_api_auth
     def action_modify_project(self, args):
@@ -370,7 +371,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
         """
         username, copr = parse_name(args.name)
-        result = self.client.modify_project(
+        project = self.client.project_proxy.edit(
             username=username, projectname=copr,
             description=args.description, instructions=args.instructions,
             repos=args.repos, disable_createrepo=args.disable_createrepo,
@@ -389,8 +390,8 @@ class Commands(object):
         :param args: argparse arguments provided by the user
         """
         username, copr = parse_name(args.copr)
-        result = self.client.delete_project(username=username, projectname=copr)
-        print(result.message)
+        project = self.client.project_proxy.delete(ownername=username, projectname=copr)
+        print("Project {} has been deleted.".format(project.name))
 
     @requires_api_auth
     def action_fork(self, args):
@@ -399,29 +400,39 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        username, copr = parse_name(args.dst)
-        result = self.client.fork_project(source=args.src, username=username, projectname=copr, confirm=args.confirm)
-        print(result.message)
+        srcownername, srcprojectname = parse_name(args.src)
+        dstownername, dstprojectname = parse_name(args.dst)
 
+        try:
+            dst = self.client.project_proxy.get(ownername=dstownername, projectname=dstprojectname)
+        except CoprNoResultException:
+            dst = None
+
+        project = self.client.project_proxy.fork(ownername=srcownername, projectname=srcprojectname,
+                                                 dstownername=dstownername, dstprojectname=dstprojectname,
+                                                 confirm=args.confirm)
+        if not dst:
+            print("Forking project {}/{} for you into {}.\nPlease be aware that it may take a few minutes "
+                  "to duplicate backend data.".format(srcownername, srcprojectname, project.full_name))
+        else:
+            print("Updating packages in {}/{} from {}.\nPlease be aware that it may take a few minutes "
+                  "to duplicate backend data.".format(srcownername, srcprojectname, project.full_name))
 
     def action_mock_config(self, args):
-        """ Method called when the 'list' action has been selected by the
+        """ Method called when the 'mock-config' action has been selected by the
         user.
 
         :param args: argparse arguments provided by the user
 
         """
-        username = self.client.username
-        project = args.project.split("/")
-        if len(project) != 2:
-            args.project = username + "/" + args.project
+        ownername, projectname = parse_name(args.project)
+        try:
+            build_config = self.client.project_chroot_proxy.get_build_config(ownername, projectname, args.chroot)
+            print(MockProfile(build_config))
 
-        result = self.client.get_build_config(args.project, args.chroot)
-        if result.output != "ok":
-            sys.stderr.write(result.error + "\n")
+        except CoprException as ex:
+            sys.stderr.write(str(ex) + "\n")
             sys.stderr.write("Un-expected data returned, please report this issue\n")
-
-        print(MockProfile(result.build_config))
 
 
     @check_username_presence
@@ -432,28 +443,34 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        username = args.username or self.client.username
-        result = self.client.get_projects_list(username)
-        # import ipdb; ipdb.set_trace()
-        if result.output != "ok":
-            sys.stderr.write(result.error + "\n")
-            sys.stderr.write("Un-expected data returned, please report this issue\n")
-        elif not result.projects_list:
-            sys.stderr.write("No copr retrieved for user: '{0}'\n".format(username))
-            return
+        username = args.username or self.config["username"]
+        try:
+            projects = self.client.project_proxy.get_list(username)
+            if not projects:
+                sys.stderr.write("No copr retrieved for user: '{0}'\n".format(username))
+                return
 
-        for prj in result.projects_list:
-            print(prj)
+            for project in projects:
+                print("Name: {}".format(project.name))
+                print("  Description: {}".format(project.description))
+                if project.yum_repos:
+                    print("  Yum repo(s):")
+                    for name, url in project.yum_repos.items():
+                        print("    {}: {}".format(name, url))
+
+        except CoprRequestException as ex:
+            sys.stderr.write(str(ex) + "\n")
+            sys.stderr.write("Un-expected data returned, please report this issue\n")
 
     def action_status(self, args):
-        result = self.client.get_build_details(args.build_id)
-        print(result.status)
+        build = self.client.build_proxy.get(args.build_id)
+        print(build.status)
 
     def action_download_build(self, args):
-        result = self.client.get_build_details(args.build_id)
-        base_len = len(os.path.split(result.results))
+        build = self.client.build_proxy.get(args.build_id)
+        base_len = len(os.path.split(build.results))
 
-        for chroot, url in result.results_by_chroot.items():
+        for chroot, url in build.results_by_chroot.items():
             if args.chroots and chroot not in args.chroots:
                 continue
 
@@ -469,15 +486,15 @@ class Commands(object):
         user.
         :param args: argparse arguments provided by the user
         """
-        result = self.client.cancel_build(args.build_id)
-        print(result.status)
+        build = self.client.build_proxy.cancel(args.build_id)
+        print(build.status)
 
     def action_watch_build(self, args):
         self._watch_builds(args.build_id)
 
     def action_delete_build(self, args):
-        result = self.client.delete_build(args.build_id)
-        print(result.status)
+        build = self.client.build_proxy.delete(args.build_id)
+        print("Build deleted")
 
     #########################################################
     ###                   Chroot actions                  ###
@@ -491,12 +508,12 @@ class Commands(object):
         :param args: argparse arguments provided by the user
         """
         owner, copr, chroot = parse_chroot_path(args.coprchroot)
-        result = self.client.edit_chroot(
+        project_chroot = self.client.project_chroot_proxy.edit(
             ownername=owner, projectname=copr, chrootname=chroot,
-            upload_comps=args.upload_comps, delete_comps=args.delete_comps,
+            comps=args.upload_comps, delete_comps=args.delete_comps,
             packages=args.packages, repos=args.repos
         )
-        print(result.message)
+        print("Edit chroot operation was successful.")
 
     def action_get_chroot(self, args):
         """ Method called when the 'get-chroot' action has been selected by the
@@ -505,10 +522,10 @@ class Commands(object):
         :param args: argparse arguments provided by the user
         """
         owner, copr, chroot = parse_chroot_path(args.coprchroot)
-        result = self.client.get_chroot(
+        project_chroot = self.client.project_chroot_proxy.get(
             ownername=owner, projectname=copr, chrootname=chroot
         )
-        print(simplejson.dumps(result.chroot, indent=4, sort_keys=True, for_json=True))
+        print(json_dumps(project_chroot))
 
     #########################################################
     ###                   Package actions                 ###
@@ -543,10 +560,10 @@ class Commands(object):
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
-            result = self.client.add_package_pypi(ownername=ownername, projectname=projectname, **data)
+            package = self.client.package_proxy.add(ownername, projectname, args.name, "pypi", data)
         else:
-            result = self.client.edit_package_pypi(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
+            package = self.client.package_proxy.edit(ownername, projectname, args.name, "pypi", data)
+        print("Create or edit operation was successful.")
 
     @requires_api_auth
     def action_add_or_edit_package_mockscm(self, args):
@@ -579,10 +596,10 @@ class Commands(object):
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
-            result = self.client.add_package_scm(ownername=ownername, projectname=projectname, **data)
+            package = self.client.package_proxy.add(ownername, projectname, args.name, "scm", data)
         else:
-            result = self.client.edit_package_scm(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
+            package = self.client.package_proxy.edit(ownername, projectname, args.name, "scm", data)
+        print("Create or edit operation was successful.")
 
     @requires_api_auth
     def action_add_or_edit_package_rubygems(self, args):
@@ -593,10 +610,10 @@ class Commands(object):
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
-            result = self.client.add_package_rubygems(ownername=ownername, projectname=projectname, **data)
+            package = self.client.package_proxy.add(ownername, projectname, args.name, "rubygems", data)
         else:
-            result = self.client.edit_package_rubygems(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
+            package = self.client.package_proxy.edit(ownername, projectname, args.name, "rubygems", data)
+        print("Create or edit operation was successful.")
 
     @requires_api_auth
     def action_add_or_edit_package_custom(self, args):
@@ -610,80 +627,91 @@ class Commands(object):
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
-            result = self.client.add_package_custom(ownername=ownername, projectname=projectname, **data)
+            package = self.client.package_proxy.add(ownername, projectname, args.name, "custom", data)
         else:
-            result = self.client.edit_package_custom(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
+            package = self.client.package_proxy.edit(ownername, projectname, args.name, "custom", data)
+        print("Create or edit operation was successful.")
 
     def action_list_packages(self, args):
         ownername, projectname = parse_name(args.copr)
-        data = {
-            "with_latest_build": args.with_latest_build,
-            "with_latest_succeeded_build": args.with_latest_succeeded_build,
-            "with_all_builds": args.with_all_builds,
-        }
-        result = self.client.get_packages_list(ownername=ownername, projectname=projectname, **data)
-        print(simplejson.dumps(result.packages_list, indent=4, sort_keys=True, for_json=True))
+        packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname)
+        packages_with_builds = [self._package_with_builds(p, args) for p in packages]
+        print(json_dumps(packages_with_builds))
 
     def action_list_package_names(self, args):
         ownername, projectname = parse_name(args.copr)
-        result = self.client.get_packages_list(ownername=ownername, projectname=projectname)
-        for package in result.packages_list:
+        packages = self.client.package_proxy.get_list(ownername=ownername, projectname=projectname)
+        for package in packages:
             print(package.name)
 
     def action_get_package(self, args):
         ownername, projectname = parse_name(args.copr)
-        data = {
-            "pkg_name": args.name,
-            "with_latest_build": args.with_latest_build,
-            "with_latest_succeeded_build": args.with_latest_succeeded_build,
-            "with_all_builds": args.with_all_builds,
-        }
-        result = self.client.get_package(ownername=ownername, projectname=projectname, **data)
-        print(simplejson.dumps(result.package, indent=4, sort_keys=True, for_json=True))
+        package = self.client.package_proxy.get(ownername=ownername, projectname=projectname, packagename=args.name)
+        package = self._package_with_builds(package, args)
+        print(json_dumps(package))
+
+    def _package_with_builds(self, package, args):
+        ownername, projectname = parse_name(args.copr)
+        kwargs = {"ownername": ownername, "projectname": projectname, "packagename": package.name}
+        pagination = {"limit": 1, "order": "id", "order_type": "DESC"}
+
+        if args.with_latest_build:
+            builds = self.client.build_proxy.get_list(pagination=pagination, **kwargs)
+            package["latest_build"] = builds[0] if builds else None
+
+        if args.with_latest_succeeded_build:
+            builds = self.client.build_proxy.get_list(status="succeeded", pagination=pagination, **kwargs)
+            package["latest_succeeded_build"] = builds[0] if builds else None
+
+        if args.with_all_builds:
+            builds = self.client.build_proxy.get_list(**kwargs)
+            package["builds"] = builds
+
+        return package
 
     def action_delete_package(self, args):
         ownername, projectname = parse_name(args.copr)
-        data = { "pkg_name": args.name }
-        result = self.client.delete_package(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
+        package = self.client.package_proxy.delete(ownername=ownername, projectname=projectname, packagename=args.name)
+        print("Package was successfully deleted.")
 
     def action_reset_package(self, args):
         ownername, projectname = parse_name(args.copr)
-        data = { "pkg_name": args.name }
-        result = self.client.reset_package(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
+        package = self.client.package_proxy.reset(ownername=ownername, projectname=projectname, packagename=args.name)
+        print("Package's default source was successfully reseted.")
 
     def action_build_package(self, args):
         ownername, projectname = parse_name(args.copr)
-        data = {
-            "pkg_name": args.name,
+        buildopts = {
             "chroots": args.chroots,
             #"memory": args.memory,
             "timeout": args.timeout
         }
+        try:
+            build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
+                                                     packagename=args.name, buildopts=buildopts)
+            print("Build was added to {0}.".format(build.project))
+            print("Created builds: {0}".format(build.id))
 
-        result = self.client.build_package(ownername=ownername, projectname=projectname, **data)
-
-        if result.output != "ok":
-            sys.stderr.write(result.error + "\n")
-            return
-        print(result.message)
-
-        build_ids = [bw.build_id for bw in result.builds_list]
-        print("Created builds: {0}".format(" ".join(map(str, build_ids))))
-
-        if not args.nowait:
-            self._watch_builds(build_ids)
+            if not args.nowait:
+                self._watch_builds([build.id])
+        except CoprRequestException as ex:
+            sys.stderr.write(str(ex) + "\n")
 
     def action_build_module(self, args):
         """
         Build module via Copr MBS
         """
         ownername, projectname = parse_name(args.copr)
-        modulemd = open(args.yaml, "rb") if args.yaml else args.url
-        response = self.client.build_module(modulemd, ownername, projectname)
-        print(response.message if response.output == "ok" else response.error)
+
+        try:
+            if args.yaml:
+                module = self.client.module_proxy.build_from_file(ownername, projectname, args.yaml)
+            else:
+                module = self.client.module_proxy.build_from_url(ownername, projectname, args.url)
+            print("Created module {}".format(module.nsv))
+
+        except CoprRequestException as ex:
+            print(ex)
 
 
 def setup_parser():
@@ -1222,14 +1250,14 @@ def main(argv=sys.argv[1:]):
     except copr_exceptions.CoprUnknownResponseException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(5)
-    except copr_exceptions.CoprRequestException as e:
+    except CoprRequestException as e:
         sys.stderr.write("\nSomething went wrong:")
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(1)
     except argparse.ArgumentTypeError as e:
         sys.stderr.write("\nError: {0}".format(e))
         sys.exit(2)
-    except copr_exceptions.CoprException as e:
+    except CoprException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(3)
 
