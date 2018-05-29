@@ -351,7 +351,7 @@ class Commands(object):
         """
         username, copr = self.parse_name(args.name)
         project = self.client.project_proxy.edit(
-            username=username, projectname=copr,
+            ownername=username, projectname=copr,
             description=args.description, instructions=args.instructions,
             repos=args.repos, disable_createrepo=args.disable_createrepo,
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
