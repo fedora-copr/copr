@@ -232,36 +232,6 @@ class Commands(object):
         return self.process_build(args, self.client.build_proxy.create_from_pypi, data)
 
     @requires_api_auth
-    def action_build_tito(self, args):
-        """
-        Method called when the 'buildtito' action has been selected by the user.
-
-        :param args: argparse arguments provided by the user
-        """
-        data = {
-            "git_url": args.git_url,
-            "git_dir": args.git_dir,
-            "git_branch": args.git_branch,
-            "tito_test": args.tito_test,
-        }
-        return self.process_build(args, self.client.create_new_build_tito, data)
-
-    @requires_api_auth
-    def action_build_mock(self, args):
-        """
-        Method called when the 'build-mock' action has been selected by the user.
-
-        :param args: argparse arguments provided by the user
-        """
-        data = {
-            "scm_type": args.scm_type,
-            "scm_url": args.scm_url,
-            "scm_branch": args.scm_branch,
-            "spec": args.spec,
-        }
-        return self.process_build(args, self.client.create_new_build_mock, data)
-
-    @requires_api_auth
     def action_build_scm(self, args):
         """
         Method called when the 'buildscm' action has been selected by the user.
@@ -532,23 +502,6 @@ class Commands(object):
     #########################################################
 
     @requires_api_auth
-    def action_add_or_edit_package_tito(self, args):
-        ownername, projectname = parse_name(args.copr)
-        data = {
-            "package_name": args.name,
-            "git_url": args.git_url,
-            "git_dir": args.git_dir,
-            "git_branch": args.git_branch,
-            "tito_test": ON_OFF_MAP[args.tito_test],
-            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
-        }
-        if args.create:
-            result = self.client.add_package_tito(ownername=ownername, projectname=projectname, **data)
-        else:
-            result = self.client.edit_package_tito(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
-
-    @requires_api_auth
     def action_add_or_edit_package_pypi(self, args):
         ownername, projectname = parse_name(args.copr)
         data = {
@@ -564,23 +517,6 @@ class Commands(object):
         else:
             package = self.client.package_proxy.edit(ownername, projectname, args.name, "pypi", data)
         print("Create or edit operation was successful.")
-
-    @requires_api_auth
-    def action_add_or_edit_package_mockscm(self, args):
-        ownername, projectname = parse_name(args.copr)
-        data = {
-            "package_name": args.name,
-            "scm_type": args.scm_type,
-            "scm_url": args.scm_url,
-            "scm_branch": args.scm_branch,
-            "spec": args.spec,
-            "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
-        }
-        if args.create:
-            result = self.client.add_package_mockscm(ownername=ownername, projectname=projectname, **data)
-        else:
-            result = self.client.edit_package_mockscm(ownername=ownername, projectname=projectname, **data)
-        print(result.message)
 
     @requires_api_auth
     def action_add_or_edit_package_scm(self, args):
@@ -850,16 +786,6 @@ def setup_parser():
     ###             Source-type related options           ###
     #########################################################
 
-    parser_tito_args_parent = argparse.ArgumentParser(add_help=False)
-    parser_tito_args_parent.add_argument("--git-url", metavar="URL", dest="git_url", required=True,
-                                         help="URL to a project managed by Tito")
-    parser_tito_args_parent.add_argument("--git-dir", metavar="DIRECTORY", dest="git_dir",
-                                         help="Relative path from Git root to directory containing .spec file")
-    parser_tito_args_parent.add_argument("--git-branch", metavar="BRANCH", dest="git_branch",
-                                         help="Git branch that you want to build from")
-    parser_tito_args_parent.add_argument("--test", dest="tito_test", choices=["on", "off"],
-                                         help="Build the last commit instead of the last release tag")
-
     parser_pypi_args_parent = argparse.ArgumentParser(add_help=False)
     parser_pypi_args_parent.add_argument("--pythonversions", nargs="*", type=int, metavar="VERSION", default=[3, 2],
                                          help="For what Python versions to build (by default: 3 2)")
@@ -869,15 +795,6 @@ def setup_parser():
                                          help="Name of the PyPI package to be built, required.")
     parser_pypi_args_parent.add_argument("--template", "-t", dest="spec_template",
                                          help="Spec template to be used to build srpm with pyp2rpm")
-
-    parser_mockscm_args_parent = argparse.ArgumentParser(add_help=False)
-    parser_mockscm_args_parent.add_argument("--scm-type", metavar="TYPE", dest="scm_type", choices=["git", "svn"], default="git",
-                                            help="specify versioning tool, default is 'git'")
-    parser_mockscm_args_parent.add_argument("--scm-url", metavar="URL", dest="scm_url",
-                                            help="url to a project versioned by Git or SVN, required")
-    parser_mockscm_args_parent.add_argument("--scm-branch", metavar="BRANCH", dest="scm_branch", help="")
-    parser_mockscm_args_parent.add_argument("--spec", dest="spec", metavar="FILE",
-                                            help="relative path from SCM root to .spec file, required")
 
     parser_scm_args_parent = argparse.ArgumentParser(add_help=False)
     parser_scm_args_parent.add_argument("--clone-url", required=True,
@@ -968,16 +885,6 @@ def setup_parser():
                                                   help="DEPRECATED. Use SCM source type instead.")
     parser_build_distgit.set_defaults(func="action_build_distgit")
 
-    # create the parser for the "buildtito" command
-    parser_build_tito = subparsers.add_parser("buildtito", parents=[parser_tito_args_parent, parser_build_parent],
-                                              help="DEPRECATED. Use SCM source type instead.")
-    parser_build_tito.set_defaults(func="action_build_tito")
-
-    # create the parser for the "buildmock" command
-    parser_build_mock = subparsers.add_parser("buildmock", parents=[parser_mockscm_args_parent, parser_build_parent],
-                                              help="DEPRECATED. Use SCM source type instead.")
-    parser_build_mock.set_defaults(func="action_build_mock")
-
     # create the parser for the "buildscm" command
     parser_build_scm = subparsers.add_parser("buildscm", parents=[parser_scm_args_parent, parser_build_parent],
                                               help="Builds package from Git/DistGit/SVN repository.")
@@ -1053,17 +960,6 @@ def setup_parser():
     parser_add_or_edit_package_parent.add_argument("--webhook-rebuild",
                                                    choices=["on", "off"], help="Enable auto-rebuilding.")
 
-    # Tito edit/create
-    parser_add_package_tito = subparsers.add_parser("add-package-tito",
-                                                    help="DEPRECATED. Use SCM source type instead.",
-                                                    parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
-    parser_add_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=True)
-
-    parser_edit_package_tito = subparsers.add_parser("edit-package-tito",
-                                                     help="DEPRECATED. Use SCM source type instead.",
-                                                     parents=[parser_tito_args_parent, parser_add_or_edit_package_parent])
-    parser_edit_package_tito.set_defaults(func="action_add_or_edit_package_tito", create=False)
-
     # PyPI edit/create
     parser_add_package_pypi = subparsers.add_parser("add-package-pypi",
                                                     help="Creates a new PyPI package",
@@ -1075,16 +971,6 @@ def setup_parser():
                                                      parents=[parser_pypi_args_parent, parser_add_or_edit_package_parent])
     parser_edit_package_pypi.set_defaults(func="action_add_or_edit_package_pypi", create=False)
 
-    # MockSCM edit/create
-    parser_add_package_mockscm = subparsers.add_parser("add-package-mockscm",
-                                                       help="DEPRECATED. Use SCM source type instead.",
-                                                       parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
-    parser_add_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=True)
-
-    parser_edit_package_mockscm = subparsers.add_parser("edit-package-mockscm",
-                                                        help="DEPRECATED. Use SCM source type instead.",
-                                                        parents=[parser_mockscm_args_parent, parser_add_or_edit_package_parent])
-    parser_edit_package_mockscm.set_defaults(func="action_add_or_edit_package_mockscm", create=False)
 
     # SCM edit/create
     parser_add_package_scm = subparsers.add_parser("add-package-scm",
