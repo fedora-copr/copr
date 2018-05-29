@@ -1,6 +1,7 @@
 import flask
-from . import get_copr, file_upload, query_params, pagination, Paginator
-from .json2form import get_form_compatible_data
+from werkzeug.datastructures import MultiDict
+from . import get_copr, file_upload, query_params, pagination, Paginator, json2form
+from .json2form import get_form_compatible_data, without_empty_fields
 from werkzeug import secure_filename
 from coprs import db, forms, models
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
@@ -156,7 +157,8 @@ def create_from_scm():
 @api_login_required
 def create_from_pypi():
     copr = get_copr()
-    form = forms.BuildFormPyPIFactory(copr.active_chroots)(csrf_enabled=False)
+    data = MultiDict(json2form.without_empty_fields(json2form.get_input()))
+    form = forms.BuildFormPyPIFactory(copr.active_chroots)(data, csrf_enabled=False)
 
     # TODO: automatically prepopulate all form fields with their defaults
     if not form.python_versions.data:

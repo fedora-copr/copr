@@ -3,17 +3,13 @@ from werkzeug.datastructures import MultiDict
 
 
 def get_form_compatible_data():
-    input = flask.request.json or flask.request.form
+    input = without_empty_fields(get_input())
     output = {}
 
     for k, v in input.items():
         # Transform lists to strings separated with spaces
         if type(v) == list:
             v = " ".join(map(str, v))
-
-        # Field with None value is like if it wasn't send with forms
-        if v is None:
-            continue
 
         output[k] = v
 
@@ -23,3 +19,16 @@ def get_form_compatible_data():
 
     output.update(flask.request.files or {})
     return MultiDict(output)
+
+
+def get_input():
+    return flask.request.json or flask.request.form
+
+
+def without_empty_fields(input):
+    output = input.copy()
+    for k, v in input.items():
+        # Field with None value is like if it wasn't send with forms
+        if v is None:
+            del output[k]
+    return output
