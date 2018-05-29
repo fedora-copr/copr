@@ -296,7 +296,7 @@ class Commands(object):
         username, copr = self.parse_name(args.copr)
 
         try:
-            buildopts = {"memory": args.memory, "timeout": args.timeout,
+            buildopts = {"memory": args.memory, "timeout": args.timeout, "chroots": args.chroots,
                          "background": args.background, "progress_callback": progress_callback}
             result = build_function(ownername=username, projectname=copr, buildopts=buildopts, **data)
 
