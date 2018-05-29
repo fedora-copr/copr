@@ -740,7 +740,7 @@ def setup_parser():
                                help="Description of the copr")
     parser_create.add_argument("--instructions",
                                help="Instructions for the copr")
-    parser_create.add_argument("--disable_createrepo",
+    parser_create.add_argument("--disable_createrepo", type=str2bool,
                                help="Disable metadata auto generation")
     parser_create.add_argument("--enable-net", choices=["on", "off"], default="off",
                                help="If net should be enabled for builds in this project (default is off)")
@@ -767,7 +767,7 @@ def setup_parser():
                                help="Instructions for the copr")
     parser_modify.add_argument("--repo", dest="repos", action="append",
                                help="Repository to add to this copr")
-    parser_modify.add_argument("--disable_createrepo",
+    parser_modify.add_argument("--disable_createrepo", type=str2bool,
                                help="Disable metadata auto generation")
     parser_modify.add_argument("--enable-net", choices=["on", "off"],
                                help="If net should be enabled for builds in this project (default is \"don't change\")")
@@ -1109,6 +1109,15 @@ def enable_debug():
         datefmt='%H:%M:%S'
     )
     sys.stderr.write("#  Debug log enabled  #\n")
+
+
+def str2bool(v):
+    if v.lower() in ("yes", "true", "on", "t", "y", "1"):
+        return True
+    elif v.lower() in ("no", "false", "off", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
 def main(argv=sys.argv[1:]):
