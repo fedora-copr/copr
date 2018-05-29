@@ -6,7 +6,7 @@ import requests
 from munch import Munch
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 from .helpers import List
-from .exceptions import CoprRequestException
+from .exceptions import CoprRequestException, CoprNoResultException
 
 
 GET = "GET"
@@ -47,7 +47,7 @@ class Request(object):
 
     def send(self):
         response = requests.request(**self._request_params)
-        handle_errors(response.json())
+        handle_errors(response)
         return Response(headers=response.headers, data=response.json(), request=self)
 
     @property
@@ -97,6 +97,9 @@ class Response(object):
         return Munch(self.data, __response__=self)
 
 
-def handle_errors(response_json):
+def handle_errors(response):
+    response_json = response.json()
+    if "error" in response_json and response.status_code == 404:
+        raise CoprNoResultException(response_json["error"])
     if "error" in response_json:
         raise CoprRequestException(response_json["error"])

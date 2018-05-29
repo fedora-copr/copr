@@ -44,11 +44,3 @@ class TestRequest(object):
         assert kwargs["url"] == "http://copr/api_3/foo"
 
         assert isinstance(resp1, Response)
-
-
-def test_handle_errors():
-    assert handle_errors({"id": 1, "foo": "bar"}) is None
-
-    with pytest.raises(CoprRequestException) as ex:
-        handle_errors({"error": "Something wasn't found"})
-    assert ex.value.message == "Something wasn't found"

@@ -11,6 +11,7 @@ from .proxies.project_chroot import ProjectChrootProxy
 from .proxies.module import ModuleProxy
 from .exceptions import (CoprException,
                          CoprRequestException,
+                         CoprNoResultException,
                          CoprValidationException,
                          CoprNoConfigException,
                          CoprConfigException)
@@ -28,6 +29,7 @@ __all__ = [
 
     CoprException,
     CoprRequestException,
+    CoprNoResultException,
     CoprValidationException,
     CoprNoConfigException,
     CoprConfigException,

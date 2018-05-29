@@ -12,6 +12,13 @@ class CoprRequestException(CoprException):
     pass
 
 
+class CoprNoResultException(CoprException):
+    """
+    Raised when no result data is returned
+    """
+    pass
+
+
 class CoprValidationException(CoprException):
     """
     Raised when the data sent from client to API are not valid
