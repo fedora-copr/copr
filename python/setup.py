@@ -45,7 +45,7 @@ setup(
         "Development Status :: 3 - Alpha",
     ],
     install_requires=requires,
-    packages=['copr', 'copr.client', 'copr.client_v2', 'copr.test'],
+    packages=['copr', 'copr.client', 'copr.client_v2', 'copr.v3', 'copr.v3.proxies', 'copr.test'],
     include_package_data=True,
     zip_safe=False,
 )
