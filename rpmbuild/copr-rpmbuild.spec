@@ -1,3 +1,17 @@
+%if 0%{?fedora} || 0%{?rhel} > 7
+%global python          python3
+%global python_pfx      python3
+%global python_build    %py3_build
+%global python_install  %py3_install
+%global rpm_python      python3-rpm
+%else
+%global python          python2
+%global python_pfx      python
+%global python_build    %py2_build
+%global python_install  %py2_install
+%global rpm_python      rpm-python
+%endif
+
 Name:    {{{ git_dir_name }}}
 Version: {{{ git_dir_version }}}
 Summary: Run COPR build tasks
@@ -13,14 +27,15 @@ License: GPLv2+
 Source0: {{{ git_dir_pack }}}
 
 BuildArch: noarch
-BuildRequires: python3-devel
-BuildRequires: python3-rpm
+BuildRequires: %python-devel
+BuildRequires: %rpm_python
 BuildRequires: asciidoc
-Requires: python3
-Requires: python3-jinja2
-Requires: python3-munch
-Requires: python3-configparser
-Requires: python3-simplejson
+BuildRequires: %python-setuptools
+Requires: %python
+Requires: %python_pfx-jinja2
+Requires: %python_pfx-munch
+Requires: %python-configparser
+Requires: %python-simplejson
 
 Requires: mock
 Requires: git
@@ -40,7 +55,7 @@ build build-id 12345 for chroot epel-7-x86_64.
 %setup -q
 
 %build
-name="%{name}" version="%{version}" summary="%{summary}" %py3_build
+name="%{name}" version="%{version}" summary="%{summary}" %python_build
 a2x -d manpage -f manpage man/copr-rpmbuild.1.asciidoc
 
 %install
@@ -59,12 +74,12 @@ install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 
-name="%{name}" version="%{version}" summary="%{summary}" %py3_install
+name="%{name}" version="%{version}" summary="%{summary}" %python_install
 
 %files
 %license LICENSE
 
-%{python3_sitelib}/*
+%{expand:%%%{python}_sitelib}/*
 
 %{_bindir}/copr-rpmbuild
 %{_bindir}/copr-sources-custom
