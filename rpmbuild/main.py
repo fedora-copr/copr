@@ -2,6 +2,7 @@
 
 import re
 import os
+import fcntl
 import sys
 import argparse
 import requests
@@ -123,7 +124,7 @@ def main():
     # Allow only one instance
     lockfd = os.open(config.get("main", "lockfile"), os.O_RDWR | os.O_CREAT)
     try:
-        os.lockf(lockfd, os.F_TLOCK, 1)
+        fcntl.lockf(lockfd, fcntl.LOCK_EX, 1)
         init(args, config)
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
@@ -134,7 +135,7 @@ def main():
         log.exception("")
         sys.exit(1)
     finally:
-        os.lockf(lockfd, os.F_ULOCK, 1)
+        fcntl.lockf(lockfd, fcntl.LOCK_UN, 1)
         os.close(lockfd)
 
 
