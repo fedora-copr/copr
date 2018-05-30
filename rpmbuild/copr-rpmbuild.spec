@@ -65,6 +65,7 @@ install -d %{buildroot}%{_sharedstatedir}/copr-rpmbuild/results
 
 install -d %{buildroot}%{_bindir}
 install -m 755 main.py %{buildroot}%{_bindir}/copr-rpmbuild
+sed -i '1 s|#.*|#! /usr/bin/%python|' %{buildroot}%{_bindir}/copr-rpmbuild
 install -m 644 main.ini %{buildroot}%{_sysconfdir}/copr-rpmbuild/main.ini
 install -m 644 mock.cfg.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 install -m 644 rpkg.conf.j2 %{buildroot}%{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
