@@ -94,13 +94,19 @@ def get_parser():
     scm_parser.add_argument("--method", dest="srpm_build_method", default="rpkg",
                             choices=["rpkg", "tito", "tito_test", "make_srpm"],
                             help="Srpm build method. Default is 'rpkg'.")
+
+    subparsers.add_parser("default") # python 2.7 hack
+
     return base_parser
 
 
 def main():
+    # hack for 2.7;  optional sub-parsers are supported since python 3.4?
+    if 'scm' not in sys.argv:
+        sys.argv.append('default')
+
     parser = get_parser()
     args = parser.parse_args()
-
     config = read_config(args.config)
 
     if args.verbose:
