@@ -29,6 +29,11 @@
         {% endif %}
       </a>
 
+      {% if g.user %}
+      | <a href="{{ url_for('coprs_ns.user_info', username=user.name) }}">User Info</a>
+      {% endif %}
+
+
       {% include "user_meta.html" %}
   </p>
 </div>

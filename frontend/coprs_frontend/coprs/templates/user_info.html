@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}User Info{% endblock %}
+{% block header %}User Info{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>
+        <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+    </li>
+    <li>
+        <a href="{{ url_for('coprs_ns.coprs_by_user', username=user.name) }}">{{ user.name }}</a>
+    </li>
+    <li class="active">
+        User Info
+    </li>
+</ol>
+{% endblock %}
+
+{% block body %}
+<h1>User Info</h1>
+<p>@TODO GDPR information, info and delete buttons here</p>
+{% endblock %}

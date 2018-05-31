@@ -117,6 +117,12 @@ def coprs_by_user(username=None, page=1):
                                  graph=data)
 
 
+@coprs_ns.route("/<username>/info")
+def user_info(username):
+    user = users_logic.UsersLogic.get(username).first()
+    return flask.render_template("user_info.html", user=user)
+
+
 @coprs_ns.route("/fulltext/", defaults={"page": 1})
 @coprs_ns.route("/fulltext/<int:page>/")
 def coprs_fulltext_search(page=1):
