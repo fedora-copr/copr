@@ -134,7 +134,7 @@ def main():
         init(args, config)
         action = build_srpm if args.srpm else build_rpm
         action(args, config)
-    except (BlockingIOError, RuntimeError, IOError):
+    except (RuntimeError, OSError):
         log.exception("")
         sys.exit(1)
     except: # Programmer's mistake
