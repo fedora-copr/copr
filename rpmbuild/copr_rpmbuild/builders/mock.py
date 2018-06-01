@@ -3,11 +3,36 @@ import sys
 import logging
 import shutil
 import subprocess
+from threading import Timer
 
 from jinja2 import Environment, FileSystemLoader
 from ..helpers import run_cmd, locate_spec, locate_srpm, CONF_DIRS, get_mock_uniqueext
 
 log = logging.getLogger("__main__")
+
+
+class GentlyTimeoutedPopen(subprocess.Popen):
+    timers = []
+
+    def __init__(self, cmd, timeout=None, **kwargs):
+        super(GentlyTimeoutedPopen, self).__init__(cmd, **kwargs)
+        if not timeout:
+            return
+
+        def timeout_cb(me, string, signal):
+            log.error(" !! Copr timeout => sending {0}".format(string))
+            me.send_signal(signal)
+
+        delay = timeout
+        for string, signal in [('INT', 2), ('TERM', 15), ('KILL', 9)]:
+            timer = Timer(delay, timeout_cb, [self, string, signal])
+            timer.start()
+            self.timers.append(timer)
+            delay = delay + 10
+
+    def done(self):
+        for timer in self.timers:
+            timer.cancel()
 
 
 class MockBuilder(object):
@@ -19,7 +44,7 @@ class MockBuilder(object):
         self.repos = task.get("repos")
         self.use_bootstrap_container = task.get("use_bootstrap_container")
         self.pkg_manager_conf = "dnf" if "custom-1" in task.get("chroot") else "yum"
-        self.timeout = task.get("timeout")
+        self.timeout = task.get("timeout", 3600)
         self.with_opts = task.get("with_opts")
         self.without_opts = task.get("without_opts")
         self.sourcedir = sourcedir
@@ -83,13 +108,15 @@ class MockBuilder(object):
 
         log.info('Running: {}'.format(' '.join(cmd)))
 
-        process = subprocess.Popen(
-            cmd, stdin=subprocess.PIPE, preexec_fn=self.preexec_fn_build_stream)
+        process = GentlyTimeoutedPopen(cmd, stdin=subprocess.PIPE,
+                preexec_fn=self.preexec_fn_build_stream, timeout=self.timeout)
 
         try:
             process.communicate()
         except OSError as e:
             raise RuntimeError(str(e))
+        finally:
+            process.done()
 
         if process.returncode != 0:
             raise RuntimeError("Build failed")
@@ -110,13 +137,15 @@ class MockBuilder(object):
 
         log.info('Running: {}'.format(' '.join(cmd)))
 
-        process = subprocess.Popen(
-            cmd, stdin=subprocess.PIPE, preexec_fn=self.preexec_fn_build_stream)
+        process = GentlyTimeoutedPopen(cmd, stdin=subprocess.PIPE,
+                preexec_fn=self.preexec_fn_build_stream, timeout=self.timeout)
 
         try:
-            process.communicate(timeout=self.timeout)
+            process.communicate()
         except OSError as e:
             raise RuntimeError(str(e))
+        finally:
+            process.done()
 
         if process.returncode != 0:
             raise RuntimeError("Build failed")
