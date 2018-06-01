@@ -120,7 +120,11 @@ def coprs_by_user(username=None, page=1):
 @coprs_ns.route("/<username>/info")
 def user_info(username):
     user = users_logic.UsersLogic.get(username).first()
-    return flask.render_template("user_info.html", user=user)
+    graph = builds_logic.BuildsLogic.get_running_tasks_from_last_day()
+    return flask.render_template("user_info.html",
+                                 user=user,
+                                 tasks_info=ComplexLogic.get_queue_sizes(),
+                                 graph=graph)
 
 
 @coprs_ns.route("/fulltext/", defaults={"page": 1})

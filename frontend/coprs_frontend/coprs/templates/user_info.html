@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "coprs/show.html" %}
 {% block title %}User Info{% endblock %}
 {% block header %}User Info{% endblock %}
 {% block breadcrumbs %}
@@ -15,7 +15,23 @@
 </ol>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <h1>User Info</h1>
-<p>@TODO GDPR information, info and delete buttons here</p>
+
+<p>
+    According to the GDPR (General Data Protection Regulation 2016/679 of the European Union), users have right to see
+    all the data, that service stores about them, and also right to delete them.
+</p>
+
+
+<h2>Obtaining data</h2>
+<p>@TODO Information how obtaining works</p>
+<button type="button" class="btn btn-primary">Download my data</button>
+
+
+<h2>Delete data</h2>
+<p>@TODO Information how deleting works</p>
+<button type="button" class="btn btn-danger">Delete my data</button>
+
+
 {% endblock %}

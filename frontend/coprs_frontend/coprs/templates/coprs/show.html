@@ -7,6 +7,7 @@
 {% block body %}
 <div class="row">
   <div class="col-md-9 col-sm-8">
+  {% block content %}
     {% block show_top %}
     {% endblock %}
     <div class="panel panel-default">
@@ -39,6 +40,7 @@
       </div>
     </div>
     {{ render_pagination(request, paginator) }}
+  {% endblock %}
   </div>
   <div class="col-md-3 col-sm-4">
     <br>
