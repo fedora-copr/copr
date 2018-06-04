@@ -119,6 +119,9 @@ def coprs_by_user(username=None, page=1):
 
 @coprs_ns.route("/<username>/info")
 def user_info(username):
+    if not flask.g.user or flask.g.user.name != username:
+        raise ValidationError("You are not allowed to see personal information of another user.")
+
     user = users_logic.UsersLogic.get(username).first()
     graph = builds_logic.BuildsLogic.get_running_tasks_from_last_day()
     return flask.render_template("user_info.html",
