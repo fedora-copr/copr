@@ -33,7 +33,7 @@ from coprs.exceptions import ObjectNotFound
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
-from coprs.logic.users_logic import UsersLogic
+from coprs.logic.users_logic import UsersLogic, UserDataDumper
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
 from coprs.rmodels import TimedStatEvents
 
@@ -128,6 +128,19 @@ def user_info(username):
                                  user=user,
                                  tasks_info=ComplexLogic.get_queue_sizes(),
                                  graph=graph)
+
+
+@coprs_ns.route("/<username>/info/download")
+def user_info_download(username):
+    if not flask.g.user or flask.g.user.name != username:
+        raise ValidationError("You are not allowed to see personal information of another user.")
+
+    user = users_logic.UsersLogic.get(username).first()
+    dumper = UserDataDumper(user)
+    response = flask.make_response(dumper.dumps(pretty=True))
+    response.mimetype = "application/json"
+    response.headers["Content-Disposition"] = "attachment; filename={0}.json".format(user.name)
+    return response
 
 
 @coprs_ns.route("/fulltext/", defaults={"page": 1})

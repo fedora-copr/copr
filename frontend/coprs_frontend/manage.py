@@ -15,7 +15,7 @@ from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
-from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic
+from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic, users_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
 from sqlalchemy import or_
@@ -332,6 +332,21 @@ class AddUserCommand(Command):
     )
 
 
+class DumpUserCommand(Command):
+
+    def run(self, username):
+        user = models.User.query.filter(models.User.username == username).first()
+        if not user:
+            print("There is no user named {0}.".format(username))
+            return 1
+        dumper = users_logic.UserDataDumper(user)
+        print(dumper.dumps(pretty=True))
+
+    option_list = (
+        Option("username"),
+    )
+
+
 class AlterUserCommand(Command):
 
     def run(self, name, **kwargs):
@@ -457,6 +472,7 @@ manager.add_command("display_chroots", DisplayChrootsCommand())
 manager.add_command("drop_chroot", DropChrootCommand())
 manager.add_command("alter_user", AlterUserCommand())
 manager.add_command("add_user", AddUserCommand())
+manager.add_command("dump_user", DumpUserCommand())
 manager.add_command("fail_build", FailBuildCommand())
 manager.add_command("update_indexes", UpdateIndexesCommand())
 manager.add_command("update_indexes_quick", UpdateIndexesQuickCommand())

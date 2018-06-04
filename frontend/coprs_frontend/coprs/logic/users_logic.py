@@ -1,3 +1,5 @@
+import json
+import simplejson
 from coprs import exceptions
 
 from coprs import app, db
@@ -102,3 +104,45 @@ class UsersLogic(object):
             return fas_group in app.config["BLACKLISTED_GROUPS"]
         else:
             return False
+
+
+class UserDataDumper(object):
+    def __init__(self, user):
+        self.user = user
+
+    def dumps(self, pretty=False):
+        if pretty:
+            return simplejson.dumps(self.data, indent=2)
+        return json.dumps(self.data)
+
+    @property
+    def data(self):
+        data = self.user_information
+        data["groups"] = self.groups
+        data["projects"] = self.projects
+        data["builds"] = self.builds
+        return data
+
+    @property
+    def user_information(self):
+        return {
+            "username": self.user.name,
+            "email": self.user.mail,
+            "timezone": self.user.timezone,
+            "api_login": self.user.api_login,
+            "api_token": self.user.api_token,
+            "api_token_expiration": self.user.api_token_expiration.strftime("%b %d %Y %H:%M:%S"),
+            "gravatar": self.user.gravatar_url,
+        }
+
+    @property
+    def groups(self):
+        return [{"name": g.name for g in self.user.user_groups}]
+
+    @property
+    def projects(self):
+        return [{"full_name": p.full_name} for p in self.user.coprs]
+
+    @property
+    def builds(self):
+        return [{"id": b.id, "project": b.copr.full_name} for b in self.user.builds]

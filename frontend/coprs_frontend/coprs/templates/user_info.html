@@ -30,7 +30,9 @@
     It is possible to download a JSON file with a dump of all the information, that Copr knows about you (e.g. list of
     your projects, your builds, contact information, API tokens, etc).
 </p>
-<button type="button" class="btn btn-primary">Download my data</button>
+<a href="{{ url_for('coprs_ns.user_info_download', username=user.name) }}">
+    <button type="button" class="btn btn-primary">Download my data</button>
+</a>
 
 
 <h2>Delete data</h2>
