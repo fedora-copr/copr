@@ -51,9 +51,9 @@ Open a ssh connection to copr-be-dev.cloud.fedoraproject.org and edit the ``/hom
 
     vars:
       # pass this options if you need to create new base image from snapshot
-      # prepare_base_image: True
+      prepare_base_image: False
 
-Uncomment the ``prepare_base_image`` variable, so it is set to True. In the same file, there is also a section that looks like this
+Set the ``prepare_base_image`` variable to ``True``. In the same file, there is also a section that looks like this
 
 .. _image_name:
 
@@ -106,7 +106,9 @@ Iterate this process until it ends successfully.
 Finishing up
 ------------
 
-Once you successfully provisioned a builder, you are almost done. First, create a snapshot of that builder. We learned how to do that in the previous section. Then comment out the :ref:`prepare_base_image <prepare_base_image>` as it was before.
+Once you successfully provisioned a builder, you are almost done. First, create a snapshot of that builder.
+We learned how to do that in the previous section. Then set the :ref:`prepare_base_image <prepare_base_image>`
+back to ``False``.
 
 Throw away the builders that the backend is currently using and let it load new ones from the new image.
 
