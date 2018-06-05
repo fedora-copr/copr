@@ -30,7 +30,7 @@
       </a>
 
       {% if g.user %}
-      | <a href="{{ url_for('coprs_ns.user_info', username=user.name) }}">User Info</a>
+      | <a href="{{ url_for('user_ns.user_info', username=user.name) }}">User Info</a>
       {% endif %}
 
 
