@@ -30,3 +30,19 @@ def user_info_download(username):
     response.mimetype = "application/json"
     response.headers["Content-Disposition"] = "attachment; filename={0}.json".format(user.name)
     return response
+
+
+@user_ns.route("/<username>/delete")
+def delete_data(username):
+    if not flask.g.user or flask.g.user.name != username:
+        raise ValidationError("You are not allowed to delete information of another user.")
+
+    UsersLogic.delete_user_data(username)
+    flask.flash("Your data were successfully deleted.")
+
+    user = UsersLogic.get(username).first()
+    graph = BuildsLogic.get_running_tasks_from_last_day()
+    return flask.render_template("user_info.html",
+                                 user=user,
+                                 tasks_info=ComplexLogic.get_queue_sizes(),
+                                 graph=graph)

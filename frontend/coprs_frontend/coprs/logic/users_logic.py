@@ -105,6 +105,18 @@ class UsersLogic(object):
         else:
             return False
 
+    @classmethod
+    def delete_user_data(cls, fas_name):
+        query = """
+            UPDATE "user"
+            SET timezone=null, proven=false, admin=false, proxy=false, api_login='',
+                api_token='', api_token_expiration=CAST('1970-01-01' AS DATE),
+                openid_groups=null
+            WHERE username='{user}'
+        """.format(user=fas_name)
+        db_connection = db.engine.connect()
+        db_connection.execute(query)
+
 
 class UserDataDumper(object):
     def __init__(self, user):

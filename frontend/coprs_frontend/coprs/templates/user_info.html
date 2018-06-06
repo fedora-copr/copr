@@ -36,8 +36,15 @@
 
 
 <h2>Delete data</h2>
-<p>@TODO Information how deleting works</p>
-<button type="button" class="btn btn-danger">Delete my data</button>
-
-
+<p>
+    This will delete the information Copr has about you, such as timezone and API tokens. However, your username and
+    email cannot be deleted as they are tied to the FAS account. Moreover, if you wish to delete your builds/projects,
+    you have to do so manually (possibly using the data acquired above).
+</p>
+<p>
+    You can still log in at any later time. However, you will have to create new API token.
+</p>
+<a href="{{ url_for('user_ns.delete_data', username=user.name) }}">
+    <button type="button" class="btn btn-danger" action="">Delete my data</button>
+</a>
 {% endblock %}
