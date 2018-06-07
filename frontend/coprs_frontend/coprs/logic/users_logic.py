@@ -1,9 +1,11 @@
 import json
 import simplejson
 from coprs import exceptions
+from flask import url_for
 
 from coprs import app, db
 from coprs.models import User, Group
+from coprs.helpers import copr_url
 
 
 class UsersLogic(object):
@@ -149,12 +151,19 @@ class UserDataDumper(object):
 
     @property
     def groups(self):
-        return [{"name": g.name for g in self.user.user_groups}]
+        return [{"name": g.name,
+                 "url": url_for("groups_ns.list_projects_by_group", group_name=g.name, _external=True)}
+                for g in self.user.user_groups]
 
     @property
     def projects(self):
-        return [{"full_name": p.full_name} for p in self.user.coprs]
+        return [{"full_name": p.full_name,
+                 "url": copr_url("coprs_ns.copr_detail", p, _external=True)}
+                for p in self.user.coprs]
 
     @property
     def builds(self):
-        return [{"id": b.id, "project": b.copr.full_name} for b in self.user.builds]
+        return [{"id": b.id,
+                 "project": b.copr.full_name,
+                 "url": copr_url("coprs_ns.copr_build", b.copr, build_id=b.id, _external=True)}
+                for b in self.user.builds]
