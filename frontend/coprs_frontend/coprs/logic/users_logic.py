@@ -157,9 +157,11 @@ class UserDataDumper(object):
 
     @property
     def projects(self):
+        # @FIXME We get into circular import when this import is on module-level
+        from coprs.logic.coprs_logic import CoprsLogic
         return [{"full_name": p.full_name,
                  "url": copr_url("coprs_ns.copr_detail", p, _external=True)}
-                for p in self.user.coprs]
+                for p in CoprsLogic.filter_by_user_name(CoprsLogic.get_multiple(), self.user.name)]
 
     @property
     def builds(self):
