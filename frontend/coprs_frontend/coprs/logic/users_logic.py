@@ -6,6 +6,7 @@ from flask import url_for
 from coprs import app, db
 from coprs.models import User, Group
 from coprs.helpers import copr_url
+from sqlalchemy import update
 
 
 class UsersLogic(object):
@@ -109,15 +110,18 @@ class UsersLogic(object):
 
     @classmethod
     def delete_user_data(cls, fas_name):
-        query = """
-            UPDATE "user"
-            SET timezone=null, proven=false, admin=false, proxy=false, api_login='',
-                api_token='', api_token_expiration=CAST('1970-01-01' AS DATE),
-                openid_groups=null
-            WHERE username='{user}'
-        """.format(user=fas_name)
-        db_connection = db.engine.connect()
-        db_connection.execute(query)
+        query = update(User).where(User.username==fas_name).\
+            values(
+                timezone=None,
+                proven=False,
+                admin=False,
+                proxy=False,
+                api_login='',
+                api_token='',
+                api_token_expiration='1970-01-01',
+                openid_groups=None
+            )
+        db.engine.connect().execute(query)
 
 
 class UserDataDumper(object):
