@@ -30,7 +30,7 @@
     It is possible to download a JSON file with a dump of all the information, that Copr knows about you (e.g. list of
     your projects, your builds, contact information, API tokens, etc).
 </p>
-<a href="{{ url_for('user_ns.user_info_download', username=user.name) }}">
+<a href="{{ url_for('user_ns.user_info_download') }}">
     <button type="button" class="btn btn-primary">Download my data</button>
 </a>
 
@@ -44,7 +44,7 @@
 <p>
     You can still log in at any later time. However, you will have to create new API token.
 </p>
-<a href="{{ url_for('user_ns.delete_data', username=user.name) }}">
+<a href="{{ url_for('user_ns.delete_data') }}">
     <button type="button" class="btn btn-danger" action="">Delete my data</button>
 </a>
 {% endblock %}
