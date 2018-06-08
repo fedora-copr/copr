@@ -6,17 +6,20 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 
 
-@user_ns.route("/<username>/info")
-def user_info(username):
-    if not flask.g.user or flask.g.user.name != username:
-        raise ValidationError("You are not allowed to see personal information of another user.")
-
+def render_user_info(username):
     user = UsersLogic.get(username).first()
     graph = BuildsLogic.get_running_tasks_from_last_day()
     return flask.render_template("user_info.html",
                                  user=user,
                                  tasks_info=ComplexLogic.get_queue_sizes(),
                                  graph=graph)
+
+
+@user_ns.route("/<username>/info")
+def user_info(username):
+    if not flask.g.user or flask.g.user.name != username:
+        raise ValidationError("You are not allowed to see personal information of another user.")
+    return render_user_info(username)
 
 
 @user_ns.route("/<username>/info/download")
@@ -39,10 +42,4 @@ def delete_data(username):
 
     UsersLogic.delete_user_data(username)
     flask.flash("Your data were successfully deleted.")
-
-    user = UsersLogic.get(username).first()
-    graph = BuildsLogic.get_running_tasks_from_last_day()
-    return flask.render_template("user_info.html",
-                                 user=user,
-                                 tasks_info=ComplexLogic.get_queue_sizes(),
-                                 graph=graph)
+    return render_user_info(username)
