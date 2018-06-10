@@ -27,7 +27,7 @@
 
 <h2>Obtaining data</h2>
 <p>
-    It is possible to download a JSON file with a dump of all the information, that Copr knows about you (e.g. list of
+    It is possible to download a JSON file with a dump of all the information that Copr knows about you (e.g. list of
     your projects, your builds, contact information, API tokens, etc).
 </p>
 <a href="{{ url_for('user_ns.user_info_download') }}">
@@ -37,12 +37,12 @@
 
 <h2>Delete data</h2>
 <p>
-    This will delete the information Copr has about you, such as timezone and API tokens. However, your username and
+    This will delete the information Copr knows about you, such as timezone and API tokens. However, your username and
     email cannot be deleted as they are tied to the FAS account. Moreover, if you wish to delete your builds/projects,
     you have to do so manually (possibly using the data acquired above).
 </p>
 <p>
-    You can still log in at any later time. However, you will have to create new API token.
+    You can still log in at any later time. However, you will have to create a new API token.
 </p>
 <a href="{{ url_for('user_ns.delete_data') }}">
     <button type="button" class="btn btn-danger" action="">Delete my data</button>
