@@ -44,7 +44,7 @@
 <p>
     You can still log in at any later time. However, you will have to create a new API token.
 </p>
-<a href="{{ url_for('user_ns.delete_data') }}">
+<a href="{{ url_for('user_ns.delete_data') }}" onclick="return confirm('Are you sure you want to delete your data?');">
     <button type="button" class="btn btn-danger" action="">Delete my data</button>
 </a>
 {% endblock %}
