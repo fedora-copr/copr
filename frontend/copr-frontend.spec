@@ -16,7 +16,7 @@
 %staticdir/copr_logo.png                        \
 %staticdir/css/style-overwrite.css              \
 %templatedir/project_info.html                  \
-%templatedir/user_info.html                     \
+%templatedir/user_meta.html                     \
 %templatedir/welcome.html
 
 %global devel_files \
@@ -87,6 +87,7 @@ BuildRequires: python3-CommonMark
 BuildRequires: python3-pygments
 BuildRequires: python3-flask-whooshee
 BuildRequires: python3-modulemd
+BuildRequires: python3-simplejson
 BuildRequires: redis
 %endif
 
@@ -122,6 +123,7 @@ Requires: python3-pygments
 Requires: python3-CommonMark
 Requires: python3-psycopg2
 Requires: python3-zmq
+Requires: python3-simplejson
 Requires: xstatic-patternfly-common
 Requires: js-jquery1
 Requires: xstatic-jquery-ui-common

@@ -33,7 +33,6 @@ from coprs.exceptions import ObjectNotFound
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
-from coprs.logic.users_logic import UsersLogic
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
 from coprs.rmodels import TimedStatEvents
 

@@ -29,7 +29,12 @@
         {% endif %}
       </a>
 
-      {% include "user_info.html" %}
+      {% if g.user %}
+      | <a href="{{ url_for('user_ns.user_info') }}">User Info</a>
+      {% endif %}
+
+
+      {% include "user_meta.html" %}
   </p>
 </div>
 

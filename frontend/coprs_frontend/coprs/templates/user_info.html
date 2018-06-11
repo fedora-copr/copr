@@ -1,4 +1,50 @@
-|
-<a href="https://badges.fedoraproject.org/user/{{ user.name }}" title="{{ user.name }}'s badges" target="_blank">
-    Fedora badges
+{% extends "coprs/show.html" %}
+{% block title %}User Info{% endblock %}
+{% block header %}User Info{% endblock %}
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li>
+        <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a>
+    </li>
+    <li>
+        <a href="{{ url_for('coprs_ns.coprs_by_user', username=user.name) }}">{{ user.name }}</a>
+    </li>
+    <li class="active">
+        User Info
+    </li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<h1>User Info</h1>
+
+<p>
+    According to the GDPR (General Data Protection Regulation 2016/679 of the European Union), users have right to see
+    all the data, that service stores about them, and also right to delete them. Read more about your
+    <a href="https://fedoraproject.org/wiki/Legal:PrivacyPolicy#Your_Rights_and_Choices_in_the_EEA">rights and privacy in the Fedora Project</a>.
+</p>
+
+
+<h2>Obtaining data</h2>
+<p>
+    It is possible to download a JSON file with a dump of all the information that Copr knows about you (e.g. list of
+    your projects, your builds, contact information, API tokens, etc).
+</p>
+<a href="{{ url_for('user_ns.user_info_download') }}">
+    <button type="button" class="btn btn-primary">Download my data</button>
 </a>
+
+
+<h2>Delete data</h2>
+<p>
+    This will delete the information Copr knows about you, such as timezone and API tokens. However, your username and
+    email cannot be deleted as they are tied to the FAS account. Moreover, if you wish to delete your builds/projects,
+    you have to do so manually (possibly using the data acquired above).
+</p>
+<p>
+    You can still log in at any later time. However, you will have to create a new API token.
+</p>
+<a href="{{ url_for('user_ns.delete_data') }}" onclick="return confirm('Are you sure you want to delete your data?');">
+    <button type="button" class="btn btn-danger" action="">Delete my data</button>
+</a>
+{% endblock %}
