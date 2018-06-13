@@ -85,7 +85,7 @@ build-package::
 Build package from its source definition
 
 mock-config::
-DEPRECATED. Get the mock profile (similar to koji mock-config)
+Get the mock profile (similar to koji mock-config)
 
 build-module::
 Build module via Copr MB
