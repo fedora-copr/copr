@@ -128,3 +128,6 @@ Examples
             --script-chroot fedora-rawhide-x86_64
 
     $ copr build-package --name resalloc PROJECT # trigger the build
+
+- slightly more complicated examples are documented in `this blog post about
+  CI/CD with Copr <https://pavel.raiskup.cz/blog/copr-ci-and-custom-source-method.html>`_.
