@@ -64,4 +64,4 @@ def serializable(result):
 
 
 def json_dumps(result):
-    print(simplejson.dumps(serializable(result), indent=4, sort_keys=True, for_json=True))
+    return simplejson.dumps(serializable(result), indent=4, sort_keys=True, for_json=True)
