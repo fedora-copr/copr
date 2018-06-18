@@ -51,9 +51,9 @@ Open a ssh connection to copr-be-dev.cloud.fedoraproject.org and edit the ``/hom
 
     vars:
       # pass this options if you need to create new base image from snapshot
-      # prepare_base_image: True
+      prepare_base_image: False
 
-Uncomment the ``prepare_base_image`` variable, so it is set to True. In the same file, there is also a section that looks like this
+Set the ``prepare_base_image`` variable to ``True``. In the same file, there is also a section that looks like this
 
 .. _image_name:
 
@@ -94,6 +94,8 @@ Open the https://fedorainfracloud.org again and go to the ``Instances``. Make su
 
 Set snapshot name to something like ``copr-builder-x86_64-f27``. It can be a little tricky though. When you are not creating a first snapshot for the particular release, there might be an older snapshot with the same name, because the names don't have to be unique. You need to delete the older one.
 
+In addition, make sure to make the snapshot Public, so we can use it also for production servers and Protected, so other people can't delete it.
+
 Edit the ``builderpb_nova.yml`` playbook as you did in the :ref:`previous section <image_name>` and set the new image name. Now run the playbook again
 
 ::
@@ -106,7 +108,9 @@ Iterate this process until it ends successfully.
 Finishing up
 ------------
 
-Once you successfully provisioned a builder, you are almost done. First, create a snapshot of that builder. We learned how to do that in the previous section. Then comment out the :ref:`prepare_base_image <prepare_base_image>` as it was before.
+Once you successfully provisioned a builder, you are almost done. First, create a snapshot of that builder.
+We learned how to do that in the previous section. Then set the :ref:`prepare_base_image <prepare_base_image>`
+back to ``False``.
 
 Throw away the builders that the backend is currently using and let it load new ones from the new image.
 
@@ -118,3 +122,22 @@ Throw away the builders that the backend is currently using and let it load new 
     [copr@copr-be-dev ~][STG]$ copr-backend-service start
 
 Try to build some packages and you are done.
+
+
+Production
+----------
+
+There is a substantially less work for production instance. You just need to edit this playbook
+
+https://infrastructure.fedoraproject.org/cgit/ansible.git/tree/roles/copr/backend/files/provision/builderpb_nova.yml
+
+and update the `image_name` variable to the name of our new snapshot (e.g. copr-builder-x86_64-f27).
+Then you need to commit the change and push it to the repository. If you don't have a write permission for it, then
+ask someone who does.
+
+Once the change is pushed, you need to re-provision the backend instance or ask someone to do it.
+
+
+::
+
+    rbac-playbook groups/copr-backend.yml -t provision_config
