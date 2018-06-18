@@ -406,13 +406,8 @@ class Commands(object):
 
         """
         ownername, projectname = self.parse_name(args.project)
-        try:
-            build_config = self.client.project_chroot_proxy.get_build_config(ownername, projectname, args.chroot)
-            print(MockProfile(build_config))
-
-        except CoprException as ex:
-            sys.stderr.write(str(ex) + "\n")
-            sys.stderr.write("Un-expected data returned, please report this issue\n")
+        build_config = self.client.project_chroot_proxy.get_build_config(ownername, projectname, args.chroot)
+        print(MockProfile(build_config))
 
 
     @check_username_presence
@@ -1145,7 +1140,7 @@ def main(argv=sys.argv[1:]):
     except copr_exceptions.CoprUnknownResponseException as e:
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(5)
-    except CoprRequestException as e:
+    except (CoprRequestException, CoprNoResultException) as e:
         sys.stderr.write("\nSomething went wrong:")
         sys.stderr.write("\nError: {0}\n".format(e))
         sys.exit(1)
