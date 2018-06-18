@@ -248,7 +248,7 @@ rlJournalStart
 
         ## test package creation and editing
         OUTPUT=`mktemp`
-        SOURCE_JSON=`mktemp`
+        SOURCE_DICT=`mktemp`
 
         # create special repo for our test
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project4"
@@ -259,26 +259,26 @@ rlJournalStart
         # Tito package creation
         rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url http://github.com/clime/example.git --test on --webhook-rebuild on --git-branch foo --git-dir bar"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_tito > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_tito\"" `cat $OUTPUT | jq '.name'` '"test_package_tito"'
         rlAssertEquals "package.webhook_rebuild == \"true\"" `cat $OUTPUT | jq '.webhook_rebuild'` 'true'
         rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_json.srpm_build_method == \"tito_test"\" `cat $SOURCE_JSON | jq '.srpm_build_method'` '"tito_test"'
-        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example.git"'
-        rlAssertEquals "package.source_json.committish == \"foo\"" `cat $SOURCE_JSON | jq '.committish'` '"foo"'
-        rlAssertEquals "package.source_json.subdirectory == \"bar\"" `cat $SOURCE_JSON | jq '.subdirectory'` '"bar"'
+        rlAssertEquals "package.source_dict.srpm_build_method == \"tito_test"\" `cat $SOURCE_DICT | jq '.srpm_build_method'` '"tito_test"'
+        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_dict.committish == \"foo\"" `cat $SOURCE_DICT | jq '.committish'` '"foo"'
+        rlAssertEquals "package.source_dict.subdirectory == \"bar\"" `cat $SOURCE_DICT | jq '.subdirectory'` '"bar"'
 
         # Tito package editing
         rlRun "copr-cli edit-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url http://github.com/clime/example2.git --test off --webhook-rebuild off --git-branch bar --git-dir foo"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_tito > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_tito\"" `cat $OUTPUT | jq '.name'` '"test_package_tito"'
         rlAssertEquals "package.webhook_rebuild == \"false\"" `cat $OUTPUT | jq '.webhook_rebuild'` 'false'
         rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_json.srpm_build_method == \"tito\"" `cat $SOURCE_JSON | jq '.srpm_build_method'` '"tito"'
-        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example2.git"'
-        rlAssertEquals "package.source_json.committish == \"bar\"" `cat $SOURCE_JSON | jq '.committish'` '"bar"'
-        rlAssertEquals "package.source_json.subdirectory == \"foo\"" `cat $SOURCE_JSON | jq '.subdirectory'` '"foo"'
+        rlAssertEquals "package.source_dict.srpm_build_method == \"tito\"" `cat $SOURCE_DICT | jq '.srpm_build_method'` '"tito"'
+        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example2.git"'
+        rlAssertEquals "package.source_dict.committish == \"bar\"" `cat $SOURCE_DICT | jq '.committish'` '"bar"'
+        rlAssertEquals "package.source_dict.subdirectory == \"foo\"" `cat $SOURCE_DICT | jq '.subdirectory'` '"foo"'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 1" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 1
@@ -286,29 +286,29 @@ rlJournalStart
         # PyPI package creation
         rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename pyp2rpm --packageversion 1.5 --pythonversions 3 2"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_pypi\"" `cat $OUTPUT | jq '.name'` '"test_package_pypi"'
         rlAssertEquals "package.source_type == \"pypi\"" `cat $OUTPUT | jq '.source_type'` '"pypi"'
-        rlRun `cat $SOURCE_JSON | jq '.python_versions == ["3", "2"]'` 0 "package.source_json.python_versions == [\"3\", \"2\"]"
-        rlAssertEquals "package.source_json.pypi_package_name == \"pyp2rpm\"" `cat $SOURCE_JSON | jq '.pypi_package_name'` '"pyp2rpm"'
-        rlAssertEquals "package.source_json.pypi_package_version == \"bar\"" `cat $SOURCE_JSON | jq '.pypi_package_version'` '"1.5"'
+        rlRun `cat $SOURCE_DICT | jq '.python_versions == ["3", "2"]'` 0 "package.source_dict.python_versions == [\"3\", \"2\"]"
+        rlAssertEquals "package.source_dict.pypi_package_name == \"pyp2rpm\"" `cat $SOURCE_DICT | jq '.pypi_package_name'` '"pyp2rpm"'
+        rlAssertEquals "package.source_dict.pypi_package_version == \"bar\"" `cat $SOURCE_DICT | jq '.pypi_package_version'` '"1.5"'
 
         # PyPI package editing
         rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename motionpaint --packageversion 1.4 --pythonversions 2 3"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_pypi\"" `cat $OUTPUT | jq '.name'` '"test_package_pypi"'
         rlAssertEquals "package.source_type == \"pypi\"" `cat $OUTPUT | jq '.source_type'` '"pypi"'
-        rlRun `cat $SOURCE_JSON | jq '.python_versions == ["2", "3"]'` 0 "package.source_json.python_versions == [\"2\", \"3\"]"
-        rlAssertEquals "package.source_json.pypi_package_name == \"motionpaint\"" `cat $SOURCE_JSON | jq '.pypi_package_name'` '"motionpaint"'
-        rlAssertEquals "package.source_json.pypi_package_version == \"bar\"" `cat $SOURCE_JSON | jq '.pypi_package_version'` '"1.4"'
-        rlAssertEquals "package.source_json.spec_template == \"\"" `cat $SOURCE_JSON | jq '.spec_template'` '""'
+        rlRun `cat $SOURCE_DICT | jq '.python_versions == ["2", "3"]'` 0 "package.source_dict.python_versions == [\"2\", \"3\"]"
+        rlAssertEquals "package.source_dict.pypi_package_name == \"motionpaint\"" `cat $SOURCE_DICT | jq '.pypi_package_name'` '"motionpaint"'
+        rlAssertEquals "package.source_dict.pypi_package_version == \"bar\"" `cat $SOURCE_DICT | jq '.pypi_package_version'` '"1.4"'
+        rlAssertEquals "package.source_dict.spec_template == \"\"" `cat $SOURCE_DICT | jq '.spec_template'` '""'
 
         # PyPI package templates
         rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --template fedora"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
-        rlAssertEquals "package.source_json.spec_template == \"fedora\"" `cat $SOURCE_JSON | jq '.spec_template'` '"fedora"'
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
+        rlAssertEquals "package.source_dict.spec_template == \"fedora\"" `cat $SOURCE_DICT | jq '.spec_template'` '"fedora"'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
@@ -316,26 +316,26 @@ rlJournalStart
         # MockSCM package creation
         rlRun "copr-cli add-package-mockscm ${NAME_PREFIX}Project4 --name test_package_mockscm --scm-type git --scm-url http://github.com/clime/example.git --scm-branch foo --spec example.spec"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
         rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_json.type == \"git\"" `cat $SOURCE_JSON | jq '.type'` '"git"'
-        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example.git"'
-        rlAssertEquals "package.source_json.committish == \"foo\"" `cat $SOURCE_JSON | jq '.committish'` '"foo"'
-        rlAssertEquals "package.source_json.spec == \"example.spec\"" `cat $SOURCE_JSON | jq '.spec'` '"example.spec"'
-        rlAssertEquals "package.source_json.srpm_build_method == \"rpkg\"" `cat $SOURCE_JSON | jq '.srpm_build_method'` '"rpkg"'
+        rlAssertEquals "package.source_dict.type == \"git\"" `cat $SOURCE_DICT | jq '.type'` '"git"'
+        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_dict.committish == \"foo\"" `cat $SOURCE_DICT | jq '.committish'` '"foo"'
+        rlAssertEquals "package.source_dict.spec == \"example.spec\"" `cat $SOURCE_DICT | jq '.spec'` '"example.spec"'
+        rlAssertEquals "package.source_dict.srpm_build_method == \"rpkg\"" `cat $SOURCE_DICT | jq '.srpm_build_method'` '"rpkg"'
 
         # MockSCM package editing
         rlRun "copr-cli edit-package-mockscm ${NAME_PREFIX}Project4 --name test_package_mockscm --scm-type svn --scm-url http://github.com/clime/example2.git --scm-branch bar --spec example2.spec"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
         rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_json.type == \"svn\"" `cat $SOURCE_JSON | jq '.type'` '"svn"'
-        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example2.git"'
-        rlAssertEquals "package.source_json.committish == \"bar\"" `cat $SOURCE_JSON | jq '.committish'` '"bar"'
-        rlAssertEquals "package.source_json.spec == \"example2.spec\"" `cat $SOURCE_JSON | jq '.spec'` '"example2.spec"'
-        rlAssertEquals "package.source_json.srpm_build_method == \"rpkg\"" `cat $SOURCE_JSON | jq '.srpm_build_method'` '"rpkg"'
+        rlAssertEquals "package.source_dict.type == \"svn\"" `cat $SOURCE_DICT | jq '.type'` '"svn"'
+        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example2.git"'
+        rlAssertEquals "package.source_dict.committish == \"bar\"" `cat $SOURCE_DICT | jq '.committish'` '"bar"'
+        rlAssertEquals "package.source_dict.spec == \"example2.spec\"" `cat $SOURCE_DICT | jq '.spec'` '"example2.spec"'
+        rlAssertEquals "package.source_dict.srpm_build_method == \"rpkg\"" `cat $SOURCE_DICT | jq '.srpm_build_method'` '"rpkg"'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
@@ -343,18 +343,18 @@ rlJournalStart
         # RubyGems package creation
         rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name xxx --gem yyy"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name xxx > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.name == \"xxx\"" `cat $OUTPUT | jq '.name'` '"xxx"'
         rlAssertEquals "package.source_type == \"rubygems\"" `cat $OUTPUT | jq '.source_type'` '"rubygems"'
-        rlAssertEquals "package.source_json.gem_name == \"yyy\"" `cat $SOURCE_JSON | jq '.gem_name'` '"yyy"'
+        rlAssertEquals "package.source_dict.gem_name == \"yyy\"" `cat $SOURCE_DICT | jq '.gem_name'` '"yyy"'
 
         # RubyGems package editing
         rlRun "copr-cli edit-package-rubygems ${NAME_PREFIX}Project4 --name xxx --gem zzz"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name xxx > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.name == \"xxx\"" `cat $OUTPUT | jq '.name'` '"xxx"'
         rlAssertEquals "package.source_type == \"rubygems\"" `cat $OUTPUT | jq '.source_type'` '"rubygems"'
-        rlAssertEquals "package.source_json.gem_name == \"zzz\"" `cat $SOURCE_JSON | jq '.gem_name'` '"zzz"'
+        rlAssertEquals "package.source_dict.gem_name == \"zzz\"" `cat $SOURCE_DICT | jq '.gem_name'` '"zzz"'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 4" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 4
@@ -364,18 +364,18 @@ rlJournalStart
 
         # before reset
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_json.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_JSON | jq '.clone_url'` '"http://github.com/clime/example.git"'
+        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example.git"'
 
         # _do_ reset
         rlRun "copr-cli reset-package ${NAME_PREFIX}Project4 --name test_package_reset"
 
         # after reset
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
-        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
         rlAssertEquals "package.source_type == \"unset\"" `cat $OUTPUT | jq '.source_type'` '"unset"'
-        rlAssertEquals "package.source_json == \"{}\"" `cat $OUTPUT | jq '.source_json'` '"{}"'
+        rlAssertEquals "package.source_dict == \"{}\"" `cat $OUTPUT | jq '.source_dict'` '"{}"'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
