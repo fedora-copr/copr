@@ -126,10 +126,10 @@ def edit_project(ownername, projectname):
     if not form.validate_on_submit():
         raise ApiError(form.errors)
 
-    for field in form:
-        if field.data is None or field.name in ["csrf_token", "chroots"]:
+    for key, value in data.items():
+        if key in ["csrf_token", "chroots"]:
             continue
-        setattr(copr, field.name, field.data)
+        setattr(copr, key, value)
 
     if form.chroots.data:
         CoprChrootsLogic.update_from_names(
