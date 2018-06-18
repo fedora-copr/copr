@@ -253,36 +253,6 @@ rlJournalStart
         # create special repo for our test
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project4"
 
-        # invalid package data
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url invalid_url" 1
-
-        # Tito package creation
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url http://github.com/clime/example.git --test on --webhook-rebuild on --git-branch foo --git-dir bar"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_tito > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
-        rlAssertEquals "package.name == \"test_package_tito\"" `cat $OUTPUT | jq '.name'` '"test_package_tito"'
-        rlAssertEquals "package.webhook_rebuild == \"true\"" `cat $OUTPUT | jq '.webhook_rebuild'` 'true'
-        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_dict.srpm_build_method == \"tito_test"\" `cat $SOURCE_DICT | jq '.srpm_build_method'` '"tito_test"'
-        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example.git"'
-        rlAssertEquals "package.source_dict.committish == \"foo\"" `cat $SOURCE_DICT | jq '.committish'` '"foo"'
-        rlAssertEquals "package.source_dict.subdirectory == \"bar\"" `cat $SOURCE_DICT | jq '.subdirectory'` '"bar"'
-
-        # Tito package editing
-        rlRun "copr-cli edit-package-tito ${NAME_PREFIX}Project4 --name test_package_tito --git-url http://github.com/clime/example2.git --test off --webhook-rebuild off --git-branch bar --git-dir foo"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_tito > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
-        rlAssertEquals "package.name == \"test_package_tito\"" `cat $OUTPUT | jq '.name'` '"test_package_tito"'
-        rlAssertEquals "package.webhook_rebuild == \"false\"" `cat $OUTPUT | jq '.webhook_rebuild'` 'false'
-        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_dict.srpm_build_method == \"tito\"" `cat $SOURCE_DICT | jq '.srpm_build_method'` '"tito"'
-        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example2.git"'
-        rlAssertEquals "package.source_dict.committish == \"bar\"" `cat $SOURCE_DICT | jq '.committish'` '"bar"'
-        rlAssertEquals "package.source_dict.subdirectory == \"foo\"" `cat $SOURCE_DICT | jq '.subdirectory'` '"foo"'
-
-        ## Package listing
-        rlAssertEquals "len(package_list) == 1" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 1
-
         # PyPI package creation
         rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename pyp2rpm --packageversion 1.5 --pythonversions 3 2"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
@@ -311,34 +281,7 @@ rlJournalStart
         rlAssertEquals "package.source_dict.spec_template == \"fedora\"" `cat $SOURCE_DICT | jq '.spec_template'` '"fedora"'
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
-
-        # MockSCM package creation
-        rlRun "copr-cli add-package-mockscm ${NAME_PREFIX}Project4 --name test_package_mockscm --scm-type git --scm-url http://github.com/clime/example.git --scm-branch foo --spec example.spec"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
-        rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
-        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_dict.type == \"git\"" `cat $SOURCE_DICT | jq '.type'` '"git"'
-        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example.git"'
-        rlAssertEquals "package.source_dict.committish == \"foo\"" `cat $SOURCE_DICT | jq '.committish'` '"foo"'
-        rlAssertEquals "package.source_dict.spec == \"example.spec\"" `cat $SOURCE_DICT | jq '.spec'` '"example.spec"'
-        rlAssertEquals "package.source_dict.srpm_build_method == \"rpkg\"" `cat $SOURCE_DICT | jq '.srpm_build_method'` '"rpkg"'
-
-        # MockSCM package editing
-        rlRun "copr-cli edit-package-mockscm ${NAME_PREFIX}Project4 --name test_package_mockscm --scm-type svn --scm-url http://github.com/clime/example2.git --scm-branch bar --spec example2.spec"
-        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_mockscm > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
-        rlAssertEquals "package.name == \"test_package_mockscm\"" `cat $OUTPUT | jq '.name'` '"test_package_mockscm"'
-        rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
-        rlAssertEquals "package.source_dict.type == \"svn\"" `cat $SOURCE_DICT | jq '.type'` '"svn"'
-        rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example2.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example2.git"'
-        rlAssertEquals "package.source_dict.committish == \"bar\"" `cat $SOURCE_DICT | jq '.committish'` '"bar"'
-        rlAssertEquals "package.source_dict.spec == \"example2.spec\"" `cat $SOURCE_DICT | jq '.spec'` '"example2.spec"'
-        rlAssertEquals "package.source_dict.srpm_build_method == \"rpkg\"" `cat $SOURCE_DICT | jq '.srpm_build_method'` '"rpkg"'
-
-        ## Package listing
-        rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
+        rlAssertEquals "len(package_list) == 1" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 1
 
         # RubyGems package creation
         rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name xxx --gem yyy"
@@ -357,10 +300,10 @@ rlJournalStart
         rlAssertEquals "package.source_dict.gem_name == \"zzz\"" `cat $SOURCE_DICT | jq '.gem_name'` '"zzz"'
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 4" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 4
+        rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
 
         ## Package reseting
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_reset --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_reset --clone-url http://github.com/clime/example.git"
 
         # before reset
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
@@ -378,24 +321,24 @@ rlJournalStart
         rlAssertEquals "package.source_dict == \"{}\"" `cat $OUTPUT | jq '.source_dict'` '"{}"'
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
+        rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
 
         ## Package deletion
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project4 --name test_package_delete --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project4 --name test_package_delete --clone-url http://github.com/clime/example.git"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_delete > /dev/null"
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 6" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 6
+        rlAssertEquals "len(package_list) == 4" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 4
 
         rlRun "copr-cli delete-package ${NAME_PREFIX}Project4 --name test_package_delete"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_delete" 1 # package cannot be fetched now (cause it is deleted)
 
         ## Package listing
-        rlAssertEquals "len(package_list) == 5" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 5
+        rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
 
         ## Test package listing attributes
         rlRun "copr-cli create --chroot $CHROOT ${NAME_PREFIX}Project5"
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project5 --name example --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project5 --name example --clone-url http://github.com/clime/example.git"
 
         BUILDS=`mktemp`
         LATEST_BUILD=`mktemp`
@@ -412,10 +355,10 @@ rlJournalStart
         rlAssertEquals "And there is no latest succeeded build." `cat $LATEST_SUCCEEDED_BUILD` 'null'
 
         # run the build and wait
-        rlRun "copr-cli buildtito --git-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > succeeded_example_build_id"
+        rlRun "copr-cli buildscm --clone-url http://github.com/clime/example.git ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > succeeded_example_build_id"
 
         # this build should fail
-        rlRun "copr-cli buildtito --git-url http://github.com/clime/example.git --git-branch noluck --test on ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > failed_example_build_id"
+        rlRun "copr-cli buildscm --clone-url http://github.com/clime/example.git --commit noluck ${NAME_PREFIX}Project5 | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > failed_example_build_id"
 
         # run the tests after build
         rlRun "copr-cli get-package ${NAME_PREFIX}Project5 --name example --with-all-builds --with-latest-build --with-latest-succeeded-build > $OUTPUT"
@@ -441,11 +384,11 @@ rlJournalStart
         # create special repo for our test
         rlRun "copr-cli create --chroot $CHROOT --chroot fedora-27-x86_64 ${NAME_PREFIX}Project6"
 
-        # create tito package
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project6 --name test_package_tito --git-url http://github.com/clime/example.git --test on"
+        # create a package
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project6 --name test_package_scm --clone-url http://github.com/clime/example.git"
 
         # build the package
-        rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
+        rlRun "copr-cli build-package --name test_package_scm ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
 
         # create pyp2rpm package
         rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project6 --name test_package_pypi --template fedora --packagename motionpaint --pythonversions 3 2"
@@ -478,7 +421,7 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT --chroot fedora-27-x86_64 ${NAME_PREFIX}Project9" && sleep 65
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/"
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 1 # search results _not_ returned
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}Project9 --name test_package_tito --git-url http://github.com/clime/example.git --test on" # insert package to the copr
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}Project9 --name test_package_scm --clone-url http://github.com/clime/example.git" # insert package to the copr
         rlRun "curl -X POST $FRONTEND_URL/coprs/update_search_index/" # update the index again
         rlRun "curl $FRONTEND_URL/coprs/fulltext/?fulltext=${NAME_VAR}Project9 --silent | grep -E \"href=.*${NAME_VAR}Project9.*\"" 0 # search results are returned now
 
@@ -543,7 +486,7 @@ rlJournalStart
         # FIXME: this test is not a reliable reproducer. Depends on timing as few others.
         # TODO: Remove this.
         rlRun "copr-cli create ${NAME_PREFIX}TestConsequentDeleteActions --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestConsequentDeleteActions --name example --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestConsequentDeleteActions --name example --clone-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestConsequentDeleteActions"
         rlAssertEquals "Test that the project was successfully created on backend" `curl -w '%{response_code}' -silent -o /dev/null $BACKEND_URL/results/${NAME_PREFIX}TestConsequentDeleteActions/` 200
         rlRun "python <<< \"from copr.client import CoprClient; client = CoprClient.create_from_file_config('/root/.config/copr'); client.delete_package('${NAME_VAR}TestConsequentDeleteActions', 'example', '$OWNER'); client.delete_project('${NAME_VAR}TestConsequentDeleteActions', '$OWNER')\""
@@ -552,7 +495,7 @@ rlJournalStart
 
         # Bug 1368259 - Deleting a build from a group project doesn't delete backend files
         rlRun "copr-cli create ${NAME_PREFIX}TestDeleteGroupBuild --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestDeleteGroupBuild --name example --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestDeleteGroupBuild --name example --clone-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestDeleteGroupBuild | grep 'Created builds:' | sed 's/Created builds: \([0-9][0-9]*\)/\1/g' > TestDeleteGroupBuild_example_build_id.txt"
         BUILD_ID=`cat TestDeleteGroupBuild_example_build_id.txt`
         MYTMPDIR=`mktemp -d -p .` && cd $MYTMPDIR
@@ -578,15 +521,15 @@ rlJournalStart
 
         # Bug 1370704 - Internal Server Error (too many values to unpack)
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1370704 --chroot $CHROOT" 0
-        rlRun "copr-cli add-package-tito ${NAME_PREFIX}TestBug1370704 --name example --git-url http://github.com/clime/example.git"
+        rlRun "copr-cli add-package-scm ${NAME_PREFIX}TestBug1370704 --name example --clone-url http://github.com/clime/example.git"
         rlRun "copr-cli build-package --name example ${NAME_PREFIX}TestBug1370704"
         rlAssertEquals "Test OK return code from the monitor API" `curl -w '%{response_code}' -silent -o /dev/null ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1370704/monitor/` 200
 
         # Bug 1393361 - get_project_details returns incorrect yum_repos
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-1 --chroot fedora-27-x86_64" 0
         rlRun "copr-cli create ${NAME_PREFIX}TestBug1393361-2 --chroot fedora-27-x86_64" 0
-        rlRun "copr-cli buildtito ${NAME_PREFIX}TestBug1393361-2 --git-url https://github.com/clime/example.git" 0
-        rlRun "copr-cli buildtito ${NAME_PREFIX}TestBug1393361-1 --git-url https://github.com/clime/example.git" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-2 --clone-url https://github.com/clime/example.git" 0
+        rlRun "copr-cli buildscm ${NAME_PREFIX}TestBug1393361-1 --clone-url https://github.com/clime/example.git" 0
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-1/detail/ | grep TestBug1393361-1/fedora-27-x86_64" 0
         rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}TestBug1393361-2/detail/ | grep TestBug1393361-2/fedora-27-x86_64" 0
 
