@@ -395,8 +395,8 @@ class Commands(object):
             print("Forking project {}/{} for you into {}.\nPlease be aware that it may take a few minutes "
                   "to duplicate backend data.".format(srcownername, srcprojectname, project.full_name))
         else:
-            print("Updating packages in {}/{} from {}.\nPlease be aware that it may take a few minutes "
-                  "to duplicate backend data.".format(srcownername, srcprojectname, project.full_name))
+            print("Updating packages in {} from {}/{}.\nPlease be aware that it may take a few minutes "
+                  "to duplicate backend data.".format(project.full_name, srcownername, srcprojectname))
 
     def action_mock_config(self, args):
         """ Method called when the 'mock-config' action has been selected by the
