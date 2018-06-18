@@ -318,7 +318,7 @@ rlJournalStart
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
         cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.source_type == \"unset\"" `cat $OUTPUT | jq '.source_type'` '"unset"'
-        rlAssertEquals "package.source_dict == \"{}\"" `cat $OUTPUT | jq '.source_dict'` '"{}"'
+        rlAssertEquals "package.source_dict == \"{}\"" `cat $OUTPUT | jq '.source_dict'` '{}'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 3" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 3
