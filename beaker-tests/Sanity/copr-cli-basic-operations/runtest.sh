@@ -204,11 +204,11 @@ rlJournalStart
         rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 --delete-comps"
         rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | grep '\"comps_name\": null'"
         rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 --repos 'http://foo/repo http://bar/repo' --packages 'gcc'"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | grep '\"repos\": \"http://foo/repo http://bar/repo\"'"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | grep '\"buildroot_pkgs\": \"gcc\"'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | jq '.repos == [\"http://foo/repo\", \"http://bar/repo\"]'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | jq '.buildroot_pkgs == [\"gcc\"]'"
         rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 --repos '' --packages ''"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | grep '\"repos\": \"\"'"
-        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | grep '\"buildroot_pkgs\": \"\"'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | jq '.repos == []'"
+        rlRun "copr-cli get-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_64 | jq '.buildroot_pkgs == []'"
         rlRun "copr-cli edit-chroot ${NAME_PREFIX}EditChrootProject/fedora-27-x86_65" 1
         rm $TMPCOMPS
 
