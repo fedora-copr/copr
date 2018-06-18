@@ -142,9 +142,9 @@ def edit_project(ownername, projectname):
         db.session.commit()
     except (ActionInProgressException,
             InsufficientRightsException,
-            NonAdminCannotDisableAutoPrunning) as e:
+            NonAdminCannotDisableAutoPrunning) as ex:
         db.session.rollback()
-        raise ApiError(e)
+        raise ApiError(str(ex))
 
     return flask.jsonify(to_dict(copr))
 
