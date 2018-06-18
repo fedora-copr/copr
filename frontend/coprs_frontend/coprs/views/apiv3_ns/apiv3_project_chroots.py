@@ -12,8 +12,8 @@ from coprs.logic.coprs_logic import CoprChrootsLogic
 
 def to_dict(copr_chroot):
     chroot_dict = copr_chroot.to_dict()
-    chroot_dict["repos"] = chroot_dict["repos"].split()
-    chroot_dict["buildroot_pkgs"] = chroot_dict["buildroot_pkgs"].split()
+    chroot_dict["repos"] = (chroot_dict["repos"] or "").split()
+    chroot_dict["buildroot_pkgs"] = (chroot_dict["buildroot_pkgs"] or "").split()
     return chroot_dict
 
 
