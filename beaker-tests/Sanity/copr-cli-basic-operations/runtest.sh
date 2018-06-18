@@ -256,7 +256,7 @@ rlJournalStart
         # PyPI package creation
         rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename pyp2rpm --packageversion 1.5 --pythonversions 3 2"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
+        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_pypi\"" `cat $OUTPUT | jq '.name'` '"test_package_pypi"'
         rlAssertEquals "package.source_type == \"pypi\"" `cat $OUTPUT | jq '.source_type'` '"pypi"'
         rlRun `cat $SOURCE_DICT | jq '.python_versions == ["3", "2"]'` 0 "package.source_dict.python_versions == [\"3\", \"2\"]"
@@ -266,7 +266,7 @@ rlJournalStart
         # PyPI package editing
         rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --packagename motionpaint --packageversion 1.4 --pythonversions 2 3"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
+        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.name == \"test_package_pypi\"" `cat $OUTPUT | jq '.name'` '"test_package_pypi"'
         rlAssertEquals "package.source_type == \"pypi\"" `cat $OUTPUT | jq '.source_type'` '"pypi"'
         rlRun `cat $SOURCE_DICT | jq '.python_versions == ["2", "3"]'` 0 "package.source_dict.python_versions == [\"2\", \"3\"]"
@@ -286,7 +286,7 @@ rlJournalStart
         # RubyGems package creation
         rlRun "copr-cli add-package-rubygems ${NAME_PREFIX}Project4 --name xxx --gem yyy"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name xxx > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
+        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.name == \"xxx\"" `cat $OUTPUT | jq '.name'` '"xxx"'
         rlAssertEquals "package.source_type == \"rubygems\"" `cat $OUTPUT | jq '.source_type'` '"rubygems"'
         rlAssertEquals "package.source_dict.gem_name == \"yyy\"" `cat $SOURCE_DICT | jq '.gem_name'` '"yyy"'
@@ -294,7 +294,7 @@ rlJournalStart
         # RubyGems package editing
         rlRun "copr-cli edit-package-rubygems ${NAME_PREFIX}Project4 --name xxx --gem zzz"
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name xxx > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
+        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.name == \"xxx\"" `cat $OUTPUT | jq '.name'` '"xxx"'
         rlAssertEquals "package.source_type == \"rubygems\"" `cat $OUTPUT | jq '.source_type'` '"rubygems"'
         rlAssertEquals "package.source_dict.gem_name == \"zzz\"" `cat $SOURCE_DICT | jq '.gem_name'` '"zzz"'
@@ -307,7 +307,7 @@ rlJournalStart
 
         # before reset
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
+        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.source_type == \"scm\"" `cat $OUTPUT | jq '.source_type'` '"scm"'
         rlAssertEquals "package.source_dict.clone_url == \"http://github.com/clime/example.git\"" `cat $SOURCE_DICT | jq '.clone_url'` '"http://github.com/clime/example.git"'
 
@@ -316,7 +316,7 @@ rlJournalStart
 
         # after reset
         rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_reset > $OUTPUT"
-        cat $OUTPUT | jq '.source_dict' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_DICT
+        cat $OUTPUT | jq '.source_dict' > $SOURCE_DICT
         rlAssertEquals "package.source_type == \"unset\"" `cat $OUTPUT | jq '.source_type'` '"unset"'
         rlAssertEquals "package.source_dict == \"{}\"" `cat $OUTPUT | jq '.source_dict'` '"{}"'
 
