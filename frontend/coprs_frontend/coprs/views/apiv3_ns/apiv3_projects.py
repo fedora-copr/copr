@@ -154,8 +154,13 @@ def edit_project(ownername, projectname):
 @query_params()
 def fork_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
+
+    # @FIXME we want "ownername" from the outside, but our internal Form expects "owner" instead
+    data = get_form_compatible_data()
+    data["owner"] = data.get("ownername")
+
     form = forms.CoprForkFormFactory \
-        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(csrf_enabled=False)
+        .create_form_cls(copr=copr, user=flask.g.user, groups=flask.g.user.user_groups)(data, csrf_enabled=False)
 
     if form.validate_on_submit() and copr:
         try:
