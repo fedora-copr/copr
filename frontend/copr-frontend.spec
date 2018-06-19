@@ -235,9 +235,7 @@ touch %{buildroot}%{_sharedstatedir}/copr/data/copr.db
 
 install -d %{buildroot}%{_var}/log/copr-frontend
 install -d %{buildroot}%{_sysconfdir}/logrotate.d
-install -d %{buildroot}%{_sysconfdir}/logstash.d
 cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
-cp -a conf/logstash.conf %{buildroot}%{_sysconfdir}/logstash.d/copr_frontend.conf
 touch %{buildroot}%{_var}/log/copr-frontend/frontend.log
 
 ln -fs /usr/share/copr/coprs_frontend/manage.py %{buildroot}/%{_bindir}/copr-frontend
@@ -279,7 +277,6 @@ usermod -L copr-fe
 
 %post
 service httpd    condrestart >/dev/null || :
-service logstash condrestart >/dev/null || :
 %systemd_post copr-fedmsg-listener.service
 
 
@@ -289,7 +286,6 @@ service logstash condrestart >/dev/null || :
 
 %postun
 service httpd    condrestart >/dev/null || :
-service logstash condrestart >/dev/null || :
 %systemd_postun_with_restart copr-fedmsg-listener.service
 
 
@@ -303,7 +299,6 @@ service logstash condrestart >/dev/null || :
 %{_bindir}/copr-frontend
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
-%config(noreplace) %{_sysconfdir}/logstash.d/copr_frontend.conf
 
 %{_unitdir}/copr-fedmsg-listener.service
 
