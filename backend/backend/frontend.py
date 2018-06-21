@@ -1,6 +1,6 @@
 import json
-from requests import post, RequestException
 import time
+from requests import post, RequestException
 
 
 class FrontendClient(object):
