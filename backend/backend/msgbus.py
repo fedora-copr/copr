@@ -176,10 +176,10 @@ class MsgBusStomp(MsgBus):
                 ssl_key, ssl_crt, cacert))
 
             self.conn.set_ssl(
-                    for_hosts=hosts,
-                    key_file=ssl_key,
-                    cert_file=ssl_crt,
-                    ca_certs=cacert
+                for_hosts=hosts,
+                key_file=ssl_key,
+                cert_file=ssl_crt,
+                ca_certs=cacert
             )
 
         self.connect()

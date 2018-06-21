@@ -81,7 +81,7 @@ class BuildDispatcher(multiprocessing.Process):
                                       .format(int(time.time() - get_task_init_time)))
             try:
                 tasks = get("{0}/backend/pending-jobs/".format(self.opts.frontend_base_url),
-                           auth=("user", self.opts.frontend_auth)).json()
+                            auth=("user", self.opts.frontend_auth)).json()
 
             except (RequestException, ValueError) as error:
                 self.log.exception("Retrieving build jobs from {} failed with error: {}"

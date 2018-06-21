@@ -204,9 +204,9 @@ class MockRemote(object):
         base_url = "/".join([self.opts.results_baseurl, self.job.project_owner,
                              self.job.project_name, self.job.chroot])
         self.log.info("Createrepo:: owner:  {}; project: {}; "
-                       "front url: {}; path: {}; base_url: {}"
-                       .format(self.job.project_owner, self.job.project_name,
-                               self.opts.frontend_base_url, self.chroot_dir, base_url))
+                      "front url: {}; path: {}; base_url: {}"
+                      .format(self.job.project_owner, self.job.project_name,
+                              self.opts.frontend_base_url, self.chroot_dir, base_url))
 
         try:
             createrepo(

@@ -117,7 +117,7 @@ class Builder(object):
         if not self.opts.builder_deprecated:
             return 'copr-rpmbuild --verbose --drop-resultdir '\
                    '--build-id {build_id} --chroot {chroot} --detached'.format(
-                build_id=self.job.build_id, chroot=self.job.chroot)
+                       build_id=self.job.build_id, chroot=self.job.chroot)
 
         template = 'copr-builder --config {config} --copr {copr} ' \
                  + '--package {package} --revision {revision} ' \
@@ -126,7 +126,7 @@ class Builder(object):
 
         if self.module_dist_tag:
             template += '--define {0} '.format(
-                    pipes.quote('dist ' + self.module_dist_tag))
+                pipes.quote('dist ' + self.module_dist_tag))
 
         # Repo name like <user/group>/<copr>/<package>
         git_repo_path = self.job.git_repo.split('/')
