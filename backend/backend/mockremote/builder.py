@@ -194,7 +194,8 @@ class Builder(object):
             cmd.wait()
             self.log.info("rsyncing finished.")
         except Exception as error:
-            err_msg = "Failed to download data from builder due to rsync error, see the rsync log file for details. Original error: {}".format(error)
+            err_msg = ("Failed to download data from builder due to rsync error, "
+                       "see the rsync log file for details. Original error: {}".format(error))
             self.log.error(err_msg)
             raise BuilderError(err_msg)
 
