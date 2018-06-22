@@ -200,8 +200,7 @@ class VmManager(object):
             self.log.debug("No VM are available, user `{}` already acquired #{} VMs"
                            .format(username, vm_count_used_by_user))
             return False
-        else:
-            return True
+        return True
 
     def get_ready_vms(self, group):
         vmd_list = self.get_all_vm_in_group(group)

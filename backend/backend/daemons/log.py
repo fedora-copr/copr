@@ -30,10 +30,7 @@ class LogRouterFilter(logging.Filter):
         self.who = who
 
     def filter(self, record):
-        if record.event.get("who") == self.who:
-            return True
-        else:
-            return False
+        return record.event.get("who") == self.who
 
 
 class CustomFilter(logging.Filter):

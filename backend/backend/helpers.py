@@ -302,8 +302,7 @@ def get_auto_createrepo_status(front_url, username, projectname):
 
     if "auto_createrepo" in result.data["detail"]:
         return bool(result.data["detail"]["auto_createrepo"])
-    else:
-        return True
+    return True
 
 
 def get_persistent_status(front_url, username, projectname):
@@ -312,8 +311,7 @@ def get_persistent_status(front_url, username, projectname):
 
     if "persistent" in result.data["detail"]:
         return bool(result.data["detail"]["persistent"])
-    else:
-        return True
+    return True
 
 
 def get_auto_prune_status(front_url, username, projectname):
@@ -322,8 +320,7 @@ def get_auto_prune_status(front_url, username, projectname):
 
     if "auto_prune" in result.data["detail"]:
         return bool(result.data["detail"]["auto_prune"])
-    else:
-        return True
+    return True
 
 
 # def log(lf, msg, quiet=None):

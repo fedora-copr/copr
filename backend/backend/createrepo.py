@@ -174,5 +174,4 @@ def createrepo(path, front_url, username, projectname,
         out_ad = add_appdata(path, username, projectname)
         out_md = add_modules(path)
         return "\n".join([out_cr, out_ad, out_md])
-    else:
-        return createrepo_unsafe(path, base_url=base_url, dest_dir="devel")
+    return createrepo_unsafe(path, base_url=base_url, dest_dir="devel")
