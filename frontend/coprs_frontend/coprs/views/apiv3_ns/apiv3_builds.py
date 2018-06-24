@@ -4,6 +4,7 @@ from . import get_copr, file_upload, query_params, pagination, Paginator, json2f
 from .json2form import get_form_compatible_data, without_empty_fields
 from werkzeug import secure_filename
 from coprs import db, forms, models
+from coprs.helpers import StatusEnum
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
@@ -12,30 +13,38 @@ from coprs.logic.builds_logic import BuildsLogic
 
 
 def to_dict(build):
-    chroots = {}
-    results_by_chroot = {}
-    for chroot in build.build_chroots:
-        chroots[chroot.name] = chroot.state
-        results_by_chroot[chroot.name] = chroot.result_dir_url
-
     built_packages = build.built_packages.split("\n") if build.built_packages else None
+    chroots = []
+    for chroot in build.build_chroots:
+        chroots.append({
+            "name": chroot.name,
+            "started_on": chroot.started_on,
+            "ended_on": chroot.ended_on,
+            "result_url": chroot.result_dir_url,
+        })
 
-    # @TODO review the fields
     return {
         "id": build.id,
-        "status": build.state,  # @TODO should this field be "status" or "state"?
-        "project": build.copr.name,
-        "owner": build.copr.owner_name,
-        "results": build.copr.repo_url, # TODO: in new api return build results url
-        "built_pkgs": built_packages,  # @TODO name of this property in model is "built_packages"
-        "src_version": build.pkg_version,  # @TODO use "src_version" or "pkg_version"?
+        "state": build.state,
+        "projectname": build.copr.name,
+        "ownername": build.copr.owner_name,
+        "repo_url": build.copr.repo_url,
+        "source_type": build.source_type_text,
+        "source_dict": build.source_json_dict,
+        "source_package": {"name": build.package_name, "version": build.pkg_version, "url": build.srpm_url},
+        "source_status": {
+            "state": StatusEnum(build.source_status),
+            # @TODO Do we have such information stored?
+            #"result_url": None,
+            #"started_on": None,
+            #"ended_on": None
+        },
+        "built_packages": built_packages,
         "submitted_on": build.submitted_on,
         "started_on": build.min_started_on,
         "ended_on": build.max_ended_on,
-        "src_pkg": build.pkgs,
-        "submitted_by": build.user.name if build.user else None,  # there is no user for webhook builds
+        "submitter": build.user.name if build.user else None,
         "chroots": chroots,
-        "results_by_chroot": results_by_chroot,
     }
 
 

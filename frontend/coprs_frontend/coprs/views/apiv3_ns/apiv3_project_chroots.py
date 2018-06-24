@@ -10,11 +10,17 @@ from coprs import db, models, forms
 from coprs.logic.coprs_logic import CoprChrootsLogic
 
 
-def to_dict(copr_chroot):
-    chroot_dict = copr_chroot.to_dict()
-    chroot_dict["repos"] = (chroot_dict["repos"] or "").split()
-    chroot_dict["buildroot_pkgs"] = (chroot_dict["buildroot_pkgs"] or "").split()
-    return chroot_dict
+def to_dict(project_chroot):
+    return {
+        "mock_chroot": project_chroot.mock_chroot.name,
+        "projectname": project_chroot.copr.name,
+        "ownername": project_chroot.copr.owner_name,
+        "comps_name": project_chroot.comps_name,
+        "additional_repos": project_chroot.additional_repos,
+        "additional_packages": project_chroot.additional_packages,
+        "with_opts": project_chroot.with_opts,
+        "without_opts": project_chroot.without_opts,
+    }
 
 
 @apiv3_ns.route("/project-chroot", methods=["GET"])

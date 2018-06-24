@@ -14,23 +14,25 @@ from coprs.exceptions import (ApiError, DuplicateException, NonAdminCannotCreate
 
 
 def to_dict(copr):
-    # @TODO review the fields
-    copr_dict = {
+    return {
+        "id": copr.id,
         "name": copr.name,
-        "owner": copr.owner_name,
+        "ownername": copr.owner_name,
         "full_name": copr.full_name,
-        "additional_repos": copr.repos,
-        "yum_repos": CoprsLogic.get_yum_repos(copr),
+        "homepage": copr.homepage,
+        "contact": copr.contact,
         "description": copr.description,
         "instructions": copr.instructions,
-        "last_modified": BuildsLogic.last_modified(copr),
-        "auto_createrepo": copr.auto_createrepo,
+        "disable_createrepo": copr.disable_createrepo,
+        "devel_mode": copr.devel_mode,
         "persistent": copr.persistent,
         "unlisted_on_hp": copr.unlisted_on_hp,
         "auto_prune": copr.auto_prune,
+        "chroot_repos": CoprsLogic.get_yum_repos(copr),
+        "additional_repos": copr.additional_repos,
+        "enable_net": copr.build_enable_net,
         "use_bootstrap_container": copr.use_bootstrap_container,
     }
-    return copr_dict
 
 
 @apiv3_ns.route("/project", methods=["GET"])

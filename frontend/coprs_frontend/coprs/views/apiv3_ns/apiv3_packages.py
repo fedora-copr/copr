@@ -17,15 +17,15 @@ from coprs.views.api_ns.api_general import process_package_add_or_edit
 
 
 def to_dict(package):
-    # @TODO review the fields
-    api_keys = ["id", "name", "enable_net", "old_status", "source_type", "webhook_rebuild"]
-    package_dict = {k: v for k, v in package.to_dict().items() if k in api_keys}
-    package_dict.update({
-        "copr": package.copr.name,
-        "owner": package.copr.owner_name,
-        "source_dict": package.source_json_dict,
-    })
-    return package_dict
+    return {
+        "id": package.id,
+        "name": package.name,
+        "projectname": package.copr.name,
+        "ownername": package.copr.owner_name,
+        "source_type": package.source_type,
+        "source_dict": package.source_dict,
+        "auto_rebuild": package.webhook_rebuild,
+    }
 
 
 @apiv3_ns.route("/package", methods=["GET"])
