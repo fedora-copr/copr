@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from .requests import Request, Response, GET, POST
 from .helpers import config_from_file
 from .client import Client
-from .proxies.general import GeneralProxy
+from .proxies import BaseProxy
 from .proxies.project import ProjectProxy
 from .proxies.build import BuildProxy
 from .proxies.package import PackageProxy
@@ -21,7 +21,7 @@ __all__ = [
     config_from_file,
     Client,
 
-    GeneralProxy,
+    BaseProxy,
     BuildProxy,
     PackageProxy,
     ProjectChrootProxy,

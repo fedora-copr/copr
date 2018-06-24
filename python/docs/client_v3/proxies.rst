@@ -8,7 +8,7 @@ which provide API operations on given resource.
 General
 -------
 
-.. autoclass:: copr.v3.proxies.general.GeneralProxy
+.. autoclass:: copr.v3.proxies.BaseProxy
    :members:
 
 
