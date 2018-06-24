@@ -184,10 +184,7 @@ def fork_project(ownername, projectname):
 @query_params()
 def delete_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
-    form = forms.CoprDeleteForm(csrf_enabled=False)
-
-    # @FIXME We want to send True from client, but validator expects it to be a string
-    form.verify.data = "yes" if form.verify.data else ""
+    form = forms.APICoprDeleteForm(csrf_enabled=False)
 
     if form.validate_on_submit() and copr:
         try:

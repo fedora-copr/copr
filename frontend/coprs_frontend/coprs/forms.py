@@ -342,6 +342,10 @@ class CoprDeleteForm(FlaskForm):
         ])
 
 
+class APICoprDeleteForm(CoprDeleteForm):
+    verify = wtforms.BooleanField("Confirm deleting", false_values=FALSE_VALUES)
+
+
 # @TODO jkadlcik - rewrite via BaseBuildFormFactory after fe-dev-cloud is back online
 class BuildFormRebuildFactory(object):
     @staticmethod
