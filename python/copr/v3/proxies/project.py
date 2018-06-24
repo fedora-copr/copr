@@ -177,13 +177,11 @@ class ProjectProxy(BaseProxy):
         :return: Munch
         """
         endpoint = "/project/fork"
-        # @FIXME we send duplicit information here
         params = {
             "ownername": ownername,
             "projectname": projectname,
         }
         data = {
-            "source": "/".join([ownername, projectname]),
             "name": dstprojectname,
             "ownername": dstownername,
             "confirm": confirm,
