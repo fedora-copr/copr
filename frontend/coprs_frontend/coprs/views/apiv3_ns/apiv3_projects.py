@@ -78,10 +78,6 @@ def add_project(ownername):
     data = get_form_compatible_data()
     form = forms.CoprFormFactory.create_form_cls()(data, csrf_enabled=False)
 
-    # @TODO rather raise exeptions in the validate_post_keys
-    # are there any arguments in POST which our form doesn't know?
-    # infos.extend(validate_post_keys(form))
-
     if not form.validate_on_submit():
         raise ApiError(form.errors)
 

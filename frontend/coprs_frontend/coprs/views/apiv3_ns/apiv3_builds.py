@@ -10,9 +10,6 @@ from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.builds_logic import BuildsLogic
 
-# @TODO Don't import things from APIv1
-from coprs.views.api_ns.api_general import validate_post_keys
-
 
 def to_dict(build):
     chroots = {}
