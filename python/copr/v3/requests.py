@@ -33,13 +33,14 @@ class Request(object):
         self.api_base_url = api_base_url
         self._method = method or GET
         self.data = data
-        self.params = params
+        self.params = params or {}
         self.auth = auth
         self.headers = None
 
     @property
     def endpoint_url(self):
-        return os.path.join(self.api_base_url, self.endpoint.strip("/"))
+        endpoint = self.endpoint.strip("/").format(**self.params)
+        return os.path.join(self.api_base_url, endpoint)
 
     @property
     def method(self):

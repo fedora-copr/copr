@@ -17,7 +17,7 @@ class ModuleProxy(BaseProxy):
         :param str branch:
         :return: Munch
         """
-        endpoint = "/module/build"
+        endpoint = "/module/build/{ownername}/{projectname}"
         params = {
             "ownername": ownername,
             "projectname": projectname,
@@ -40,7 +40,7 @@ class ModuleProxy(BaseProxy):
         :param str path:
         :return: Munch
         """
-        endpoint = "/module/build"
+        endpoint = "/module/build/{ownername}/{projectname}"
         f = open(path, "rb")
         params = {
             "ownername": ownername,

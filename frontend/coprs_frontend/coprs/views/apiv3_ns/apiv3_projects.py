@@ -71,9 +71,8 @@ def search_projects(query, **kwargs):
     return flask.jsonify(items=projects, meta=paginator.meta)
 
 
-@apiv3_ns.route("/project/add", methods=["POST"])
+@apiv3_ns.route("/project/add/<ownername>", methods=["POST"])
 @api_login_required
-@query_params()
 def add_project(ownername):
     data = get_form_compatible_data()
     form = forms.CoprFormFactory.create_form_cls()(data, csrf_enabled=False)
@@ -111,9 +110,8 @@ def add_project(ownername):
     return flask.jsonify(to_dict(copr))
 
 
-@apiv3_ns.route("/project/edit", methods=["POST"])
+@apiv3_ns.route("/project/edit/<ownername>/<projectname>", methods=["POST"])
 @api_login_required
-@query_params()
 def edit_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
     data = get_form_compatible_data()
@@ -145,9 +143,8 @@ def edit_project(ownername, projectname):
     return flask.jsonify(to_dict(copr))
 
 
-@apiv3_ns.route("/project/fork", methods=["POST"])
+@apiv3_ns.route("/project/fork/<ownername>/<projectname>", methods=["POST"])
 @api_login_required
-@query_params()
 def fork_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
 
@@ -179,9 +176,8 @@ def fork_project(ownername, projectname):
     return flask.jsonify(to_dict(fcopr))
 
 
-@apiv3_ns.route("/project/delete", methods=["POST"])
+@apiv3_ns.route("/project/delete/<ownername>/<projectname>", methods=["POST"])
 @api_login_required
-@query_params()
 def delete_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
     form = forms.APICoprDeleteForm(csrf_enabled=False)

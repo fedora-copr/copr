@@ -56,7 +56,7 @@ class PackageProxy(BaseProxy):
         :param dict source_dict:
         :return: Munch
         """
-        endpoint = "/package/add"
+        endpoint = "/package/add/{ownername}/{projectname}/{package_name}/{source_type_text}"
         params = {
             "ownername": ownername,
             "projectname": projectname,
@@ -83,7 +83,7 @@ class PackageProxy(BaseProxy):
         :param dict source_dict:
         :return: Munch
         """
-        endpoint = "/package/edit"
+        endpoint = "/package/edit/{ownername}/{projectname}/{package_name}/{source_type_text}"
         params = {
             "ownername": ownername,
             "projectname": projectname,

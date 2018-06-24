@@ -79,7 +79,7 @@ class ProjectProxy(BaseProxy):
         :param bool use_bootstrap_container: if mock bootstrap container is used to initialize the buildroot
         :return: Munch
         """
-        endpoint = "/project/add"
+        endpoint = "/project/add/{ownername}"
         params = {
             "ownername": ownername,
         }
@@ -121,7 +121,7 @@ class ProjectProxy(BaseProxy):
         :param bool use_bootstrap_container: if mock bootstrap container is used to initialize the buildroot
         :return: Munch
         """
-        endpoint = "/project/edit"
+        endpoint = "/project/edit/{ownername}/{projectname}"
         params = {
             "ownername": ownername,
             "projectname": projectname,
@@ -151,7 +151,7 @@ class ProjectProxy(BaseProxy):
         :param str projectname:
         :return: Munch
         """
-        endpoint = "/project/delete"
+        endpoint = "/project/delete/{ownername}/{projectname}"
         params = {
             "ownername": ownername,
             "projectname": projectname,
@@ -176,7 +176,7 @@ class ProjectProxy(BaseProxy):
                              to confirm that user is aware of that
         :return: Munch
         """
-        endpoint = "/project/fork"
+        endpoint = "/project/fork/{ownername}/{projectname}"
         params = {
             "ownername": ownername,
             "projectname": projectname,

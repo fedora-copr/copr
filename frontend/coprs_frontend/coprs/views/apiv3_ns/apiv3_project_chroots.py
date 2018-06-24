@@ -35,9 +35,8 @@ def get_build_config(ownername, projectname, chrootname):
     return flask.jsonify(config)
 
 
-@apiv3_ns.route("/project-chroot/edit", methods=["POST"])
+@apiv3_ns.route("/project-chroot/edit/<ownername>/<projectname>/<chrootname>", methods=["POST"])
 @file_upload()
-@query_params()
 @api_login_required
 def edit_project_chroot(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)

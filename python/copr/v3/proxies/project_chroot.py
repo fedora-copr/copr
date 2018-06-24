@@ -58,7 +58,7 @@ class ProjectChrootProxy(BaseProxy):
         :param bool delete_comps: if True, current comps.xml will be removed
         :return: Munch
         """
-        endpoint = "/project-chroot/edit"
+        endpoint = "/project-chroot/edit/{ownername}/{projectname}/{chrootname}"
         params = {
             "ownername": ownername,
             "projectname": projectname,

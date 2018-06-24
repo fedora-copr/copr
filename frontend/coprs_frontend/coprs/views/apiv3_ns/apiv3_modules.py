@@ -16,10 +16,9 @@ def to_dict(module):
     }
 
 
-@apiv3_ns.route("/module/build", methods=["POST"])
+@apiv3_ns.route("/module/build/<ownername>/<projectname>", methods=["POST"])
 @api_login_required
 @file_upload()
-@query_params()
 def build_module(ownername, projectname):
     copr = get_copr(ownername, projectname)
     form = forms.ModuleBuildForm(csrf_enabled=False)

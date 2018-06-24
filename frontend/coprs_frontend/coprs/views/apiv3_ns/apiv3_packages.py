@@ -49,8 +49,7 @@ def get_package_list(ownername, projectname, **kwargs):
     return flask.jsonify(items=packages, meta=paginator.meta)
 
 
-@apiv3_ns.route("/package/add", methods=["POST"])
-@query_params()
+@apiv3_ns.route("/package/add/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=["POST"])
 @api_login_required
 def package_add(ownername, projectname, package_name, source_type_text):
     copr = get_copr(ownername, projectname)
@@ -59,8 +58,7 @@ def package_add(ownername, projectname, package_name, source_type_text):
     return flask.jsonify(to_dict(package))
 
 
-@apiv3_ns.route("/package/edit", methods=["POST"])
-@query_params()
+@apiv3_ns.route("/package/edit/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=["POST"])
 @api_login_required
 def package_edit(ownername, projectname, package_name, source_type_text=None):
     copr = get_copr(ownername, projectname)
