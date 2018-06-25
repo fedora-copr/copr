@@ -903,11 +903,11 @@ class CoprChroot(db.Model, helpers.Serializer):
 
     @property
     def buildroot_pkgs_list(self):
-        return self.buildroot_pkgs.split()
+        return (self.buildroot_pkgs or "").split()
 
     @property
     def repos_list(self):
-        return self.repos.split()
+        return (self.repos or "").split()
 
     @property
     def comps(self):
