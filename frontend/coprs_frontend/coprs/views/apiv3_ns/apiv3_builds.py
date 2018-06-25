@@ -36,6 +36,7 @@ def to_dict(build):
         "ended_on": build.max_ended_on,
         "submitter": build.user.name if build.user else None,
         "chroots": [chroot.name for chroot in build.build_chroots],
+        "is_background": build.is_background,
     }
 
 
