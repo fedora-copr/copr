@@ -7,14 +7,14 @@ from urllib.parse import urlparse
 import glob
 
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
+
+import modulemd
+
 from ..helpers import get_redis_connection, ensure_dir_exists
-
 from ..exceptions import BuilderError, RemoteCmdError, VmError
-
 from ..constants import rsync
 from ..sshcmd import SSHConnectionError, SSHConnection
 
-import modulemd
 
 
 class Builder(object):

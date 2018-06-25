@@ -8,29 +8,35 @@ import errno
 import time
 import types
 import glob
+
 import configparser
+from configparser import ConfigParser
 
 from contextlib import contextmanager
 from operator import methodcaller
-from configparser import ConfigParser
 
 import traceback
 
 from datetime import datetime
+
+import subprocess
+
 import pytz
 
+import munch
 from munch import Munch
+
 from redis import StrictRedis
-from . import constants
 
 from copr.client import CoprClient
 from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
 from backend.exceptions import CoprBackendError
 
-import subprocess
 import logging
-import munch
+
+from . import constants
+
 
 def pyconffile(filename):
     """

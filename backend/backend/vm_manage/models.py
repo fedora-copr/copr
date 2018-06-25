@@ -1,8 +1,8 @@
 # coding: utf-8
 
 from pprint import pformat
-from . import KEY_VM_INSTANCE
 from backend.exceptions import VmDescriptorNotFound
+from . import KEY_VM_INSTANCE
 
 
 class VmDescriptor(object):

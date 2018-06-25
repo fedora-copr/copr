@@ -7,10 +7,10 @@ import time
 
 from netaddr import IPAddress
 
-from ..ans_utils import run_ansible_playbook_cli
 from backend.helpers import get_redis_connection
 from backend.vm_manage import PUBSUB_MB, EventTopics
 from backend.vm_manage.executor import Executor
+from ..ans_utils import run_ansible_playbook_cli
 from ..exceptions import CoprSpawnFailError
 from ..helpers import get_redis_logger
 from ..vm_manage import terminate

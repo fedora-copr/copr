@@ -1,8 +1,8 @@
 import os
 from subprocess import Popen, PIPE
 
-from setproctitle import getproctitle, setproctitle
 from shlex import split
+from setproctitle import getproctitle, setproctitle
 from lockfile import LockFile
 
 # todo: add logging here
