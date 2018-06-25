@@ -139,19 +139,19 @@ class Commands(object):
 
                     build_details = self.client.build_proxy.get(build_id)
                     now = datetime.datetime.now()
-                    if prevstatus[build_id] != build_details.status:
-                        prevstatus[build_id] = build_details.status
+                    if prevstatus[build_id] != build_details.state:
+                        prevstatus[build_id] = build_details.state
                         print("  {0} Build {2}: {1}".format(
                             now.strftime("%H:%M:%S"),
-                            build_details.status, build_id))
+                            build_details.state, build_id))
                         sys.stdout.flush()
 
-                    if build_details.status in ["failed"]:
+                    if build_details.state in ["failed"]:
                         failed_ids.append(build_id)
-                    if build_details.status in ["succeeded", "skipped",
-                                                "failed", "canceled"]:
+                    if build_details.state in ["succeeded", "skipped",
+                                               "failed", "canceled"]:
                         done.add(build_id)
-                    if build_details.status == "unknown":
+                    if build_details.state == "unknown":
                         raise copr_exceptions.CoprBuildException(
                             "Unknown status.")
 
@@ -200,7 +200,7 @@ class Commands(object):
 
         :param args: argparse arguments provided by the user
         """
-        self.client.general_proxy.auth_check()
+        self.client.build_proxy.auth_check()
 
         bar = None
         progress_callback = None
@@ -253,7 +253,7 @@ class Commands(object):
             "subdirectory": args.subdirectory,
             "spec": args.spec,
             "scm_type": args.scm_type,
-            "srpm_build_method": args.srpm_build_method,
+            "source_build_method": args.srpm_build_method,
         }
         return self.process_build(args, self.client.build_proxy.create_from_scm, data)
 
@@ -301,7 +301,7 @@ class Commands(object):
             result = build_function(ownername=username, projectname=copr, buildopts=buildopts, **data)
 
             builds = result if type(result) == list else [result]
-            print("Build was added to {0}:".format(builds[0].project))
+            print("Build was added to {0}:".format(builds[0].projectname))
 
             for build in builds:
                 url = urljoin(self.config["copr_url"], "/coprs/build/{}".format(build.id))
@@ -333,8 +333,8 @@ class Commands(object):
         project = self.client.project_proxy.add(
             ownername=username, projectname=copr, description=args.description,
             instructions=args.instructions, chroots=args.chroots,
-            repos=args.repos, # packages=args.initial_pkgs, @TODO remove packages
-            disable_createrepo=args.disable_createrepo,
+            additional_repos=args.repos, # packages=args.initial_pkgs, @TODO remove packages
+            devel_mode=args.disable_createrepo,
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
             persistent=args.persistent,
@@ -354,7 +354,7 @@ class Commands(object):
         project = self.client.project_proxy.edit(
             ownername=username, projectname=copr,
             description=args.description, instructions=args.instructions,
-            repos=args.repos, disable_createrepo=args.disable_createrepo,
+            additional_repos=args.repos, devel_mode=args.disable_createrepo,
             unlisted_on_hp=ON_OFF_MAP[args.unlisted_on_hp],
             enable_net=ON_OFF_MAP[args.enable_net],
             auto_prune=ON_OFF_MAP[args.auto_prune],
@@ -428,9 +428,9 @@ class Commands(object):
             for project in projects:
                 print("Name: {}".format(project.name))
                 print("  Description: {}".format(project.description))
-                if project.yum_repos:
+                if project.chroot_repos:
                     print("  Yum repo(s):")
-                    for name, url in project.yum_repos.items():
+                    for name, url in project.chroot_repos.items():
                         print("    {}: {}".format(name, url))
 
         except CoprRequestException as ex:
@@ -439,7 +439,7 @@ class Commands(object):
 
     def action_status(self, args):
         build = self.client.build_proxy.get(args.build_id)
-        print(build.status)
+        print(build.state)
 
     def action_download_build(self, args):
         build = self.client.build_proxy.get(args.build_id)
@@ -462,7 +462,7 @@ class Commands(object):
         :param args: argparse arguments provided by the user
         """
         build = self.client.build_proxy.cancel(args.build_id)
-        print(build.status)
+        print(build.state)
 
     def action_watch_build(self, args):
         self._watch_builds(args.build_id)
@@ -486,7 +486,7 @@ class Commands(object):
         project_chroot = self.client.project_chroot_proxy.edit(
             ownername=owner, projectname=copr, chrootname=chroot,
             comps=args.upload_comps, delete_comps=args.delete_comps,
-            packages=args.packages, repos=args.repos
+            additional_packages=args.packages, additional_repos=args.repos
         )
         print("Edit chroot operation was successful.")
 
@@ -533,7 +533,7 @@ class Commands(object):
             "subdirectory": args.subdirectory,
             "spec": args.spec,
             "scm_type": args.scm_type,
-            "srpm_build_method": args.srpm_build_method,
+            "source_build_method": args.srpm_build_method,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
         if args.create:
@@ -630,7 +630,7 @@ class Commands(object):
         try:
             build = self.client.package_proxy.build(ownername=ownername, projectname=projectname,
                                                      packagename=args.name, buildopts=buildopts)
-            print("Build was added to {0}.".format(build.project))
+            print("Build was added to {0}.".format(build.projectname))
             print("Created builds: {0}".format(build.id))
 
             if not args.nowait:
