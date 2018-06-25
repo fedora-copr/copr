@@ -1,5 +1,5 @@
 import flask
-from . import query_params, get_copr, file_upload
+from . import query_params, get_copr, file_upload, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
@@ -23,7 +23,7 @@ def to_dict(project_chroot):
     }
 
 
-@apiv3_ns.route("/project-chroot", methods=["GET"])
+@apiv3_ns.route("/project-chroot", methods=GET)
 @query_params()
 def get_project_chroot(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
@@ -31,7 +31,7 @@ def get_project_chroot(ownername, projectname, chrootname):
     return flask.jsonify(to_dict(chroot))
 
 
-@apiv3_ns.route("/project-chroot/build-config", methods=["GET"])
+@apiv3_ns.route("/project-chroot/build-config", methods=GET)
 @query_params()
 def get_build_config(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
@@ -41,7 +41,7 @@ def get_build_config(ownername, projectname, chrootname):
     return flask.jsonify(config)
 
 
-@apiv3_ns.route("/project-chroot/edit/<ownername>/<projectname>/<chrootname>", methods=["POST"])
+@apiv3_ns.route("/project-chroot/edit/<ownername>/<projectname>/<chrootname>", methods=PUT)
 @file_upload()
 @api_login_required
 def edit_project_chroot(ownername, projectname, chrootname):

@@ -1,6 +1,6 @@
 import flask
 import wtforms
-from . import query_params, pagination, get_copr, Paginator
+from . import query_params, pagination, get_copr, Paginator, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data
 from coprs.exceptions import ApiError
 from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException, NoPackageSourceException
@@ -28,7 +28,7 @@ def to_dict(package):
     }
 
 
-@apiv3_ns.route("/package", methods=["GET"])
+@apiv3_ns.route("/package", methods=GET)
 @query_params()
 def get_package(ownername, projectname, packagename):
     copr = get_copr(ownername, projectname)
@@ -39,7 +39,7 @@ def get_package(ownername, projectname, packagename):
     return flask.jsonify(to_dict(package))
 
 
-@apiv3_ns.route("/package/list/", methods=["GET"])
+@apiv3_ns.route("/package/list/", methods=GET)
 @pagination()
 @query_params()
 def get_package_list(ownername, projectname, **kwargs):
@@ -49,7 +49,7 @@ def get_package_list(ownername, projectname, **kwargs):
     return flask.jsonify(items=packages, meta=paginator.meta)
 
 
-@apiv3_ns.route("/package/add/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=["POST"])
+@apiv3_ns.route("/package/add/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=POST)
 @api_login_required
 def package_add(ownername, projectname, package_name, source_type_text):
     copr = get_copr(ownername, projectname)
@@ -58,7 +58,7 @@ def package_add(ownername, projectname, package_name, source_type_text):
     return flask.jsonify(to_dict(package))
 
 
-@apiv3_ns.route("/package/edit/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=["POST"])
+@apiv3_ns.route("/package/edit/<ownername>/<projectname>/<package_name>/<source_type_text>", methods=PUT)
 @api_login_required
 def package_edit(ownername, projectname, package_name, source_type_text=None):
     copr = get_copr(ownername, projectname)
@@ -73,7 +73,7 @@ def package_edit(ownername, projectname, package_name, source_type_text=None):
     return flask.jsonify(to_dict(package))
 
 
-@apiv3_ns.route("/package/reset", methods=["POST"])
+@apiv3_ns.route("/package/reset", methods=PUT)
 @api_login_required
 def package_reset():
     copr = get_copr()
@@ -92,7 +92,7 @@ def package_reset():
     return flask.jsonify(to_dict(package))
 
 
-@apiv3_ns.route("/package/build", methods=["POST"])
+@apiv3_ns.route("/package/build", methods=POST)
 @api_login_required
 def package_build():
     copr = get_copr()
@@ -114,7 +114,7 @@ def package_build():
     return flask.jsonify(build_to_dict(build))
 
 
-@apiv3_ns.route("/package/delete", methods=["POST"])
+@apiv3_ns.route("/package/delete", methods=DELETE)
 @api_login_required
 def package_delete():
     copr = get_copr()

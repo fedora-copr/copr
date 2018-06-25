@@ -13,6 +13,13 @@ from coprs.logic.complex_logic import ComplexLogic
 apiv3_ns = flask.Blueprint("apiv3_ns", __name__, url_prefix="/api_3")
 
 
+# HTTP methods
+GET = ["GET"]
+POST = ["POST"]
+PUT = ["POST", "PUT"]
+DELETE = ["POST", "DELETE"]
+
+
 @app.errorhandler(CoprHttpException)
 def handle_copr_exception(error):
     return handle_api_error(error.message, error.code)

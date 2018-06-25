@@ -1,6 +1,6 @@
 import os
 import flask
-from . import query_params, get_copr, pagination, Paginator
+from . import query_params, get_copr, pagination, Paginator, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
@@ -35,14 +35,14 @@ def to_dict(copr):
     }
 
 
-@apiv3_ns.route("/project", methods=["GET"])
+@apiv3_ns.route("/project", methods=GET)
 @query_params()
 def get_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
     return flask.jsonify(to_dict(copr))
 
 
-@apiv3_ns.route("/project/list", methods=["GET"])
+@apiv3_ns.route("/project/list", methods=GET)
 @pagination()
 @query_params()
 def get_project_list(ownername, **kwargs):
@@ -59,7 +59,7 @@ def get_project_list(ownername, **kwargs):
     return flask.jsonify(items=projects, meta=paginator.meta)
 
 
-@apiv3_ns.route("/project/search", methods=["GET"])
+@apiv3_ns.route("/project/search", methods=GET)
 @pagination()
 @query_params()
 # @TODO should the param be query or projectname?
@@ -73,7 +73,7 @@ def search_projects(query, **kwargs):
     return flask.jsonify(items=projects, meta=paginator.meta)
 
 
-@apiv3_ns.route("/project/add/<ownername>", methods=["POST"])
+@apiv3_ns.route("/project/add/<ownername>", methods=POST)
 @api_login_required
 def add_project(ownername):
     data = get_form_compatible_data()
@@ -112,7 +112,7 @@ def add_project(ownername):
     return flask.jsonify(to_dict(copr))
 
 
-@apiv3_ns.route("/project/edit/<ownername>/<projectname>", methods=["POST"])
+@apiv3_ns.route("/project/edit/<ownername>/<projectname>", methods=PUT)
 @api_login_required
 def edit_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
@@ -145,7 +145,7 @@ def edit_project(ownername, projectname):
     return flask.jsonify(to_dict(copr))
 
 
-@apiv3_ns.route("/project/fork/<ownername>/<projectname>", methods=["POST"])
+@apiv3_ns.route("/project/fork/<ownername>/<projectname>", methods=PUT)
 @api_login_required
 def fork_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
@@ -178,7 +178,7 @@ def fork_project(ownername, projectname):
     return flask.jsonify(to_dict(fcopr))
 
 
-@apiv3_ns.route("/project/delete/<ownername>/<projectname>", methods=["POST"])
+@apiv3_ns.route("/project/delete/<ownername>/<projectname>", methods=DELETE)
 @api_login_required
 def delete_project(ownername, projectname):
     copr = get_copr(ownername, projectname)

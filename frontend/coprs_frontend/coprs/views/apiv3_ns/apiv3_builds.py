@@ -1,6 +1,6 @@
 import flask
 from werkzeug.datastructures import MultiDict
-from . import get_copr, file_upload, query_params, pagination, Paginator, json2form
+from . import get_copr, file_upload, query_params, pagination, Paginator, json2form, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data, without_empty_fields
 from werkzeug import secure_filename
 from coprs import db, forms, models
@@ -52,13 +52,13 @@ def render_build(build):
     return flask.jsonify(to_dict(build))
 
 
-@apiv3_ns.route("/build/<int:build_id>/", methods=["GET"])
+@apiv3_ns.route("/build/<int:build_id>/", methods=GET)
 def get_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
     return render_build(build)
 
 
-@apiv3_ns.route("/build/list/", methods=["GET"])
+@apiv3_ns.route("/build/list/", methods=GET)
 @pagination()
 @query_params()
 def get_build_list(ownername, projectname, packagename=None, status=None, **kwargs):
@@ -86,7 +86,7 @@ def get_build_list(ownername, projectname, packagename=None, status=None, **kwar
     return flask.jsonify(items=builds, meta=paginator.meta)
 
 
-@apiv3_ns.route("/build/cancel/<int:build_id>", methods=["POST"])
+@apiv3_ns.route("/build/cancel/<int:build_id>", methods=PUT)
 @api_login_required
 def cancel_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
@@ -98,7 +98,7 @@ def cancel_build(build_id):
     return render_build(build)
 
 
-@apiv3_ns.route("/build/create/url", methods=["POST"])
+@apiv3_ns.route("/build/create/url", methods=POST)
 @api_login_required
 def create_from_url():
     copr = get_copr()
@@ -117,7 +117,7 @@ def create_from_url():
     return process_creating_new_build(copr, form, create_new_build)
 
 
-@apiv3_ns.route("/build/create/upload", methods=["POST"])
+@apiv3_ns.route("/build/create/upload", methods=POST)
 @api_login_required
 @file_upload()
 def create_from_upload():
@@ -136,7 +136,7 @@ def create_from_upload():
     return process_creating_new_build(copr, form, create_new_build)
 
 
-@apiv3_ns.route("/build/create/scm", methods=["POST"])
+@apiv3_ns.route("/build/create/scm", methods=POST)
 @api_login_required
 def create_from_scm():
     copr = get_copr()
@@ -159,7 +159,7 @@ def create_from_scm():
     return process_creating_new_build(copr, form, create_new_build)
 
 
-@apiv3_ns.route("/build/create/pypi", methods=["POST"])
+@apiv3_ns.route("/build/create/pypi", methods=POST)
 @api_login_required
 def create_from_pypi():
     copr = get_copr()
@@ -183,7 +183,7 @@ def create_from_pypi():
     return process_creating_new_build(copr, form, create_new_build)
 
 
-@apiv3_ns.route("/build/create/rubygems", methods=["POST"])
+@apiv3_ns.route("/build/create/rubygems", methods=POST)
 @api_login_required
 def create_from_rubygems():
     copr = get_copr()
@@ -201,7 +201,7 @@ def create_from_rubygems():
     return process_creating_new_build(copr, form, create_new_build)
 
 
-@apiv3_ns.route("/build/create/custom", methods=["POST"])
+@apiv3_ns.route("/build/create/custom", methods=POST)
 @api_login_required
 def create_from_custom():
     copr = get_copr()
@@ -245,7 +245,7 @@ def process_creating_new_build(copr, form, create_new_build):
     return flask.jsonify(to_dict(build))
 
 
-@apiv3_ns.route("/build/delete/<int:build_id>", methods=["POST"])
+@apiv3_ns.route("/build/delete/<int:build_id>", methods=DELETE)
 @api_login_required
 def delete_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
