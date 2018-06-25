@@ -119,7 +119,7 @@ class Paginator(object):
     def get(self):
         if not hasattr(self.model, self.order):
             raise CoprHttpException("Can order by: {}".format(self.order))
-        order_col = getattr(self.model, self.order)
+        order_col = self.order
         order_fun = sqlalchemy.desc if self.order_type == "DESC" else sqlalchemy.asc
         return self.query.order_by(None).limit(None).offset(None)\
             .order_by(order_fun(order_col)).limit(self.limit).offset(self.offset)
