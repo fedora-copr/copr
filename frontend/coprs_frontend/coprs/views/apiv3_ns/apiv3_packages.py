@@ -22,8 +22,8 @@ def to_dict(package):
         "name": package.name,
         "projectname": package.copr.name,
         "ownername": package.copr.owner_name,
-        "source_type": package.source_type,
-        "source_dict": package.source_dict,
+        "source_type": package.source_type_text,
+        "source_dict": package.source_json_dict,
         "auto_rebuild": package.webhook_rebuild,
     }
 

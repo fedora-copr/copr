@@ -29,7 +29,7 @@ def to_dict(copr):
         "unlisted_on_hp": copr.unlisted_on_hp,
         "auto_prune": copr.auto_prune,
         "chroot_repos": CoprsLogic.get_yum_repos(copr),
-        "additional_repos": copr.additional_repos,
+        "additional_repos": copr.repos_list,
         "enable_net": copr.build_enable_net,
         "use_bootstrap_container": copr.use_bootstrap_container,
     }

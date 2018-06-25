@@ -16,8 +16,8 @@ def to_dict(project_chroot):
         "projectname": project_chroot.copr.name,
         "ownername": project_chroot.copr.owner_name,
         "comps_name": project_chroot.comps_name,
-        "additional_repos": project_chroot.additional_repos,
-        "additional_packages": project_chroot.additional_packages,
+        "additional_repos": project_chroot.repos_list,
+        "additional_packages": project_chroot.buildroot_pkgs_list,
         "with_opts": project_chroot.with_opts,
         "without_opts": project_chroot.without_opts,
     }

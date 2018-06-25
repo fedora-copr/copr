@@ -80,7 +80,7 @@ def get_build_list(ownername, projectname, packagename=None, status=None, **kwar
     builds = paginator.map(to_dict)
 
     if status:
-        builds = [b for b in builds if b["status"] == status][:limit]
+        builds = [b for b in builds if b["state"] == status][:limit]
         paginator.limit = limit
 
     return flask.jsonify(items=builds, meta=paginator.meta)

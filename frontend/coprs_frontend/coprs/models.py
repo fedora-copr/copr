@@ -324,6 +324,10 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         self.auto_createrepo = not bool(value)
 
     @property
+    def devel_mode(self):
+        return self.disable_createrepo
+
+    @property
     def modified_chroots(self):
         """
         Return list of chroots which has been modified
