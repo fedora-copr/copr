@@ -8,6 +8,7 @@ from .proxies.project import ProjectProxy
 from .proxies.build import BuildProxy
 from .proxies.package import PackageProxy
 from .proxies.project_chroot import ProjectChrootProxy
+from .proxies.build_chroot import BuildChrootProxy
 from .proxies.module import ModuleProxy
 from .exceptions import (CoprException,
                          CoprRequestException,
@@ -25,6 +26,7 @@ __all__ = [
     BuildProxy,
     PackageProxy,
     ProjectChrootProxy,
+    BuildChrootProxy,
     ModuleProxy,
 
     CoprException,

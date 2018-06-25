@@ -45,3 +45,10 @@ Project Chroot
 
 .. autoclass:: copr.v3.proxies.project_chroot.ProjectChrootProxy
    :members:
+
+
+Build Chroot
+------------
+
+.. autoclass:: copr.v3.proxies.build_chroot.BuildChrootProxy
+   :members:

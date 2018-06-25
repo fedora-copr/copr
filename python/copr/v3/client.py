@@ -4,6 +4,7 @@ from .proxies.build import BuildProxy
 from .proxies.package import PackageProxy
 from .proxies.module import ModuleProxy
 from .proxies.project_chroot import ProjectChrootProxy
+from .proxies.build_chroot import BuildChrootProxy
 
 
 class Client(object):
@@ -15,3 +16,4 @@ class Client(object):
         self.package_proxy = PackageProxy(config)
         self.module_proxy = ModuleProxy(config)
         self.project_chroot_proxy = ProjectChrootProxy(config)
+        self.build_chroot_proxy = BuildChrootProxy(config)

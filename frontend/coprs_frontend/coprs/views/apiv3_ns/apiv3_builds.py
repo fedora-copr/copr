@@ -14,15 +14,6 @@ from coprs.logic.builds_logic import BuildsLogic
 
 def to_dict(build):
     built_packages = build.built_packages.split("\n") if build.built_packages else None
-    chroots = []
-    for chroot in build.build_chroots:
-        chroots.append({
-            "name": chroot.name,
-            "started_on": chroot.started_on,
-            "ended_on": chroot.ended_on,
-            "result_url": chroot.result_dir_url,
-        })
-
     return {
         "id": build.id,
         "state": build.state,
@@ -44,7 +35,7 @@ def to_dict(build):
         "started_on": build.min_started_on,
         "ended_on": build.max_ended_on,
         "submitter": build.user.name if build.user else None,
-        "chroots": chroots,
+        "chroots": [chroot.name for chroot in build.build_chroots],
     }
 
 
