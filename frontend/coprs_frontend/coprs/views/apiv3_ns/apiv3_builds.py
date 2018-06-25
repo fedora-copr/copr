@@ -20,11 +20,11 @@ def to_dict(build):
         "projectname": build.copr.name,
         "ownername": build.copr.owner_name,
         "repo_url": build.copr.repo_url,
-        "source_type": build.source_type_text,
-        "source_dict": build.source_json_dict,
         "source_package": {"name": build.package_name, "version": build.pkg_version, "url": build.srpm_url},
-        "source_status": {
+        "source_chroot": {
             "state": StatusEnum(build.source_status),
+            "source_type": build.source_type_text,
+            "source_dict": build.source_json_dict,
             # @TODO Do we have such information stored?
             #"result_url": None,
             #"started_on": None,
