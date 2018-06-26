@@ -30,9 +30,16 @@
     It is possible to download a JSON file with a dump of all the information that Copr knows about you (e.g. list of
     your projects, your builds, contact information, API tokens, etc).
 </p>
-<a href="{{ url_for('user_ns.user_info_download') }}">
-    <button type="button" class="btn btn-primary">Download my data</button>
-</a>
+<p>
+    <a href="{{ url_for('user_ns.user_info_download') }}">
+        <button type="button" class="btn btn-primary">Download my data</button>
+    </a>
+</p>
+<p>
+    If you have any difficulties with generating a JSON file, please
+    <a href="https://docs.pagure.org/copr.copr/index.html#communication">contact us</a>,
+    and it will be sent to your FAS email.
+</p>
 
 
 <h2>Delete data</h2>
