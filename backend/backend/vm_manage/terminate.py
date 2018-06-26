@@ -32,7 +32,7 @@ def terminate_vm(opts, terminate_playbook, group, vm_name, vm_ip):
     }
     start_time = time.time()
     try:
-        log.info("starting terminate vm with args: {}".format(term_args))
+        log.info("starting terminate vm with args: %s", term_args)
         run_ansible_playbook_cli(args, "terminate instance", log)
         result["result"] = "OK"
     except Exception as error:
@@ -42,11 +42,11 @@ def terminate_vm(opts, terminate_playbook, group, vm_name, vm_ip):
         log.exception(msg)
 
     try:
-        log.info("VM terminated {}, time elapsed: {} ".format(term_args, time.time() - start_time))
+        log.info("VM terminated %s, time elapsed: %s ", term_args, time.time() - start_time)
         rc = get_redis_connection(opts)
         rc.publish(PUBSUB_MB, json.dumps(result))
     except Exception as error:
-        log.exception("Failed to publish msg about new VM: {} with error: {}".format(result, error))
+        log.exception("Failed to publish msg about new VM: %s with error: %s", result, error)
 
 
 class Terminator(Executor):
@@ -71,6 +71,6 @@ class Terminator(Executor):
             msg = "Termination playbook {} is missing".format(terminate_playbook)
             raise CoprSpawnFailError(msg)
 
-        self.log.info("received VM ip: {}, name: {} for termination".format(vm_ip, vm_name))
+        self.log.info("received VM ip: %s, name: %s for termination", vm_ip, vm_name)
 
         self.run_detached(terminate_vm, args=(self.opts, terminate_playbook, group, vm_name, vm_ip))

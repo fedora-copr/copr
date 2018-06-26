@@ -70,8 +70,8 @@ class Action(object):
 
         done_count = 0
         for chroot in chroots:
-            self.log.info("Creating repo for: {}/{}/{}"
-                          .format(username, projectname, chroot))
+            self.log.info("Creating repo for: %s/%s/%s",
+                          username, projectname, chroot)
 
             path = self.get_chroot_result_dir(chroot, projectname, username)
 
@@ -87,8 +87,8 @@ class Action(object):
                     return
 
             except CreateRepoError:
-                self.log.exception("Error making local repo for: {}/{}/{}"
-                                   .format(username, projectname, chroot))
+                self.log.exception("Error making local repo for: %s/%s/%s",
+                                   username, projectname, chroot)
 
         if done_count == len(chroots):
             result.result = ActionResult.SUCCESS
@@ -118,14 +118,14 @@ class Action(object):
 
     def handle_fork(self, result):
         sign = self.opts.do_sign
-        self.log.info("Action fork {}".format(self.data["object_type"]))
+        self.log.info("Action fork %s", self.data["object_type"])
         data = json.loads(self.data["data"])
         old_path = os.path.join(self.destdir, self.data["old_value"])
         new_path = os.path.join(self.destdir, self.data["new_value"])
         builds_map = json.loads(self.data["data"])["builds_map"]
 
         if not os.path.exists(old_path):
-            self.log.info("Source copr directory doesn't exist: {}".format(old_path))
+            self.log.info("Source copr directory doesn't exist: %s", old_path)
             result.result = ActionResult.FAILURE
             return
 
@@ -167,7 +167,7 @@ class Action(object):
                 if sign:
                     sign_rpms_in_dir(data["user"], data["copr"], dst_path, opts=self.opts, log=self.log)
 
-                self.log.info("Forked build {} as {}".format(src_path, dst_path))
+                self.log.info("Forked build %s as %s", src_path, dst_path)
 
             for chroot_path in chroot_paths:
                 createrepo(path=chroot_path, front_url=self.front_url,
@@ -188,7 +188,7 @@ class Action(object):
         project = self.data["old_value"]
         path = os.path.normpath(self.destdir + '/' + project)
         if os.path.exists(path):
-            self.log.info("Removing copr {0}".format(path))
+            self.log.info("Removing copr %s", path)
             shutil.rmtree(path)
 
     def handle_comps_update(self, result):
@@ -209,16 +209,16 @@ class Action(object):
         result.result = ActionResult.SUCCESS
         if not ext_data.get("comps_present", True):
             silent_remove(local_comps_path)
-            self.log.info("deleted comps.xml for {}/{}/{} from {} "
-                          .format(ownername, projectname, chroot, remote_comps_url))
+            self.log.info("deleted comps.xml for %s/%s/%s from %s ",
+                          ownername, projectname, chroot, remote_comps_url)
         else:
             try:
                 urlretrieve(remote_comps_url, local_comps_path)
-                self.log.info("saved comps.xml for {}/{}/{} from {} "
-                              .format(ownername, projectname, chroot, remote_comps_url))
+                self.log.info("saved comps.xml for %s/%s/%s from %s ",
+                              ownername, projectname, chroot, remote_comps_url)
             except Exception:
-                self.log.exception("Failed to update comps from {} at location {}"
-                                   .format(remote_comps_url, local_comps_path))
+                self.log.exception("Failed to update comps from %s at location %s",
+                                   remote_comps_url, local_comps_path)
                 result.result = ActionResult.FAILURE
 
     def handle_module_md_update(self, result):
@@ -238,16 +238,16 @@ class Action(object):
         result.result = ActionResult.SUCCESS
         if not ext_data.get("module_md_present", True):
             silent_remove(local_module_md_path)
-            self.log.info("deleted module_md.yaml for {}/{}/{} from {} "
-                          .format(ownername, projectname, chroot, remote_module_md_url))
+            self.log.info("deleted module_md.yaml for %s/%s/%s from %s ",
+                          ownername, projectname, chroot, remote_module_md_url)
         else:
             try:
                 urlretrieve(remote_module_md_url, local_module_md_path)
-                self.log.info("saved module_md.yaml for {}/{}/{} from {} "
-                              .format(ownername, projectname, chroot, remote_module_md_url))
+                self.log.info("saved module_md.yaml for %s/%s/%s from %s ",
+                              ownername, projectname, chroot, remote_module_md_url)
             except Exception:
-                self.log.exception("Failed to update module_md from {} at location {}"
-                                   .format(remote_module_md_url, local_module_md_path))
+                self.log.exception("Failed to update module_md from %s at location %s",
+                                   remote_module_md_url, local_module_md_path)
                 result.result = ActionResult.FAILURE
 
     def handle_delete_build(self):
@@ -258,7 +258,7 @@ class Action(object):
         projectname = ext_data["projectname"]
         chroot_builddirs = ext_data["chroot_builddirs"]
 
-        self.log.info("Going to delete: {}".format(chroot_builddirs))
+        self.log.info("Going to delete: %s", chroot_builddirs)
 
         for chroot, builddir in chroot_builddirs.items():
             if not builddir:
@@ -268,13 +268,13 @@ class Action(object):
             builddir_path = os.path.join(chroot_path, builddir)
 
             if not os.path.isdir(builddir_path):
-                self.log.error("{0} not found".format(builddir_path))
+                self.log.error("%s not found", builddir_path)
                 continue
 
-            self.log.debug("builddir to be deleted {0}".format(builddir_path))
+            self.log.debug("builddir to be deleted %s", builddir_path)
             shutil.rmtree(builddir_path)
 
-            self.log.debug("Running createrepo on {0}".format(chroot_path))
+            self.log.debug("Running createrepo on %s", chroot_path)
             result_base_url = "/".join(
                 [self.results_root_url, ownername, projectname, chroot])
 
@@ -285,13 +285,13 @@ class Action(object):
                     username=ownername, projectname=projectname)
             except CoprRequestException:
                 # FIXME: dirty hack to catch the case when createrepo invoked upon a deleted project
-                self.log.exception("Project {0}/{1} has been deleted on frontend".format(ownername, projectname))
+                self.log.exception("Project %s/%s has been deleted on frontend", ownername, projectname)
             except CreateRepoError:
-                self.log.exception("Error making local repo: {}".format(full_path))
+                self.log.exception("Error making local repo: %s", full_path)
 
     def handle_generate_gpg_key(self, result):
         ext_data = json.loads(self.data["data"])
-        self.log.info("Action generate gpg key: {}".format(ext_data))
+        self.log.info("Action generate gpg key: %s", ext_data)
 
         username = ext_data["username"]
         projectname = ext_data["projectname"]
@@ -315,14 +315,14 @@ class Action(object):
         try:
             chrootdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
-                self.log.debug("Create directory: {}".format(chrootdir))
+                self.log.debug("Create directory: %s", chrootdir)
                 os.makedirs(chrootdir)
 
             for build in data["builds"]:
                 srcdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["rawhide_chroot"], build)
                 if os.path.exists(srcdir):
                     destdir = os.path.join(chrootdir, build)
-                    self.log.debug("Copy directory: {} as {}".format(srcdir, destdir))
+                    self.log.debug("Copy directory: %s as %s", srcdir, destdir)
                     shutil.copytree(srcdir, destdir)
 
                     with open(os.path.join(destdir, "build.info"), "a") as f:
@@ -344,9 +344,9 @@ class Action(object):
         vmm = VmManager(self.opts)
         vmd = vmm.get_vm_by_task_id(task_id)
         if vmd:
-            self.log.info("Found VM {0} for task {1}".format(vmd.vm_ip, task_id))
+            self.log.info("Found VM %s for task %s", vmd.vm_ip, task_id)
         else:
-            self.log.error("No VM found for task {0}".format(task_id))
+            self.log.error("No VM found for task %s", task_id)
             result.result = ActionResult.FAILURE
             return
 
@@ -360,7 +360,7 @@ class Action(object):
         try:
             rc, out, err = conn.run_expensive(cmd)
         except SSHConnectionError:
-            self.log.exception("Error running cmd: {}".format(cmd))
+            self.log.exception("Error running cmd: %s", cmd)
             result.result = ActionResult.FAILURE
             return
 
@@ -373,7 +373,7 @@ class Action(object):
         try:
             pid = int(out.strip())
         except ValueError:
-            self.log.exception("Invalid pid {} received".format(out))
+            self.log.exception("Invalid pid %s received", out)
             result.result = ActionResult.FAILURE
             return
 
@@ -381,7 +381,7 @@ class Action(object):
         try:
             rc, out, err = conn.run_expensive(cmd)
         except SSHConnectionError:
-            self.log.exception("Error running cmd: {}".format(cmd))
+            self.log.exception("Error running cmd: %s", cmd)
             result.result = ActionResult.FAILURE
             return
 
@@ -410,7 +410,7 @@ class Action(object):
                 destdir = os.path.join(project_path, "modules", module_relpath)
 
                 if os.path.exists(destdir):
-                    self.log.warning("Module {0} already exists. Omitting.".format(destdir))
+                    self.log.warning("Module %s already exists. Omitting.", destdir)
                 else:
                     # We want to copy just the particular module builds
                     # into the module destdir, not the whole chroot
@@ -419,15 +419,15 @@ class Action(object):
                     dirs = [d for d in os.listdir(srcdir) if d.startswith(tuple(prefixes))]
                     for folder in dirs:
                         shutil.copytree(os.path.join(srcdir, folder), os.path.join(destdir, folder))
-                        self.log.info("Copy directory: {} as {}".format(
-                            os.path.join(srcdir, folder), os.path.join(destdir, folder)))
+                        self.log.info("Copy directory: %s as %s",
+                                      os.path.join(srcdir, folder), os.path.join(destdir, folder))
 
                         for f in os.listdir(os.path.join(destdir, folder)):
                             if not f.endswith(".rpm") or f.endswith(".src.rpm"):
                                 continue
                             mmd.artifacts.rpms.add(str(f.rstrip(".rpm")))
 
-                    self.log.info("Module artifacts: {}".format(mmd.artifacts.rpms))
+                    self.log.info("Module artifacts: %s", mmd.artifacts.rpms)
                     modulemd.dump_all(os.path.join(destdir, "modules.yaml"), [mmd])
                     createrepo(path=destdir, front_url=self.front_url,
                                username=ownername, projectname=projectname,
@@ -440,7 +440,7 @@ class Action(object):
 
     def run(self):
         """ Handle action (other then builds) - like rename or delete of project """
-        self.log.info("Executing: {}".format(self))
+        self.log.info("Executing: %s", self)
 
         result = Munch()
         result.id = self.data["id"]
@@ -485,7 +485,7 @@ class Action(object):
         elif action_type == ActionType.CANCEL_BUILD:
             self.handle_cancel_build(result)
 
-        self.log.info("Action result: {}".format(result))
+        self.log.info("Action result: %s", result)
 
         if "result" in result:
             if result.result == ActionResult.SUCCESS and \

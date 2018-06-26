@@ -63,9 +63,9 @@ class BuildDispatcher(multiprocessing.Process):
 
             for arch in group["archs"]:
                 self.arch_to_groups[arch].append(group_id)
-                self.log.debug("mapping {0} to {1} group".format(arch, group_id))
+                self.log.debug("mapping %s to %s group", arch, group_id)
 
-            self.log.debug("user might use only {0}VMs for {1} group".format(group["max_vm_per_user"], group_id))
+            self.log.debug("user might use only %sVMs for %s group", group["max_vm_per_user"], group_id)
             self.group_to_usermax[group_id] = group["max_vm_per_user"]
 
     def load_jobs(self):
@@ -84,13 +84,13 @@ class BuildDispatcher(multiprocessing.Process):
                             auth=("user", self.opts.frontend_auth)).json()
 
             except (RequestException, ValueError) as error:
-                self.log.exception("Retrieving build jobs from {} failed with error: {}"
-                                   .format(self.opts.frontend_base_url, error))
+                self.log.exception("Retrieving build jobs from %s failed with error: %s",
+                                   self.opts.frontend_base_url, error)
             finally:
                 if not tasks:
                     time.sleep(self.opts.sleeptime)
 
-        self.log.info("Got new build jobs: {}".format([task.get("task_id") for task in tasks]))
+        self.log.info("Got new build jobs: %s", [task.get("task_id") for task in tasks])
         return [BuildJob(task, self.opts) for task in tasks]
 
     def can_build_start(self, job):
@@ -108,11 +108,11 @@ class BuildDispatcher(multiprocessing.Process):
             job.status = BuildStatus.STARTING
             can_build_start = self.frontend_client.starting_build(job.to_dict())
         except (RequestException, ValueError) as error:
-            self.log.exception("Communication with Frontend to confirm build start failed with error: {}".format(error))
+            self.log.exception("Communication with Frontend to confirm build start failed with error: %s", error)
             return False
 
         if not can_build_start:
-            self.log.exception("Frontend forbade to start the job {}".format(job.task_id))
+            self.log.exception("Frontend forbade to start the job %s", job.task_id)
 
         return can_build_start
 
@@ -121,8 +121,8 @@ class BuildDispatcher(multiprocessing.Process):
             if not worker.is_alive():
                 worker.join(5)
                 self.workers.remove(worker)
-                self.log.info("Removed finished worker {} for job {}"
-                              .format(worker.worker_id, worker.job.task_id))
+                self.log.info("Removed finished worker %s for job %s",
+                              worker.worker_id, worker.job.task_id)
 
     def start_worker(self, vm, job, reattach=False):
         worker = Worker(
@@ -152,8 +152,8 @@ class BuildDispatcher(multiprocessing.Process):
                 # first check if we do not have
                 # worker already running for the job
                 if any([job.task_id == w.job.task_id for w in self.workers]):
-                    self.log.warning("Skipping already running task '{}'"
-                                     .format(job.task_id))
+                    self.log.warning("Skipping already running task '%s'",
+                                     job.task_id)
                     continue
 
                 # now search db builder records for the job and
@@ -164,30 +164,30 @@ class BuildDispatcher(multiprocessing.Process):
                     worker = self.start_worker(vm, job, reattach=True)
                     worker.mark_running(job)
                     vm.store_field(self.vm_manager.rc, "used_by_worker", worker.worker_id)
-                    self.log.info("Reattached new worker {} for job {}"
-                                  .format(worker.worker_id, worker.job.task_id))
+                    self.log.info("Reattached new worker %s for job %s",
+                                  worker.worker_id, worker.job.task_id)
                     continue
 
                 # ... and if the task is new to us,
                 # allocate new vm and run full build
                 try:
                     vm_group_ids = self.get_vm_group_ids(job.arch)
-                    self.log.info("Picking VM from groups {} for job {}".format(vm_group_ids, job))
+                    self.log.info("Picking VM from groups %s for job %s", vm_group_ids, job)
                     vm = self.vm_manager.acquire_vm(vm_group_ids, job.project_owner, self.next_worker_id,
                                                     job.task_id, job.build_id, job.chroot)
                 except NoVmAvailable as error:
-                    self.log.info("No available resources for task {} (Reason: {}). Deferring job."
-                                  .format(job.task_id, error))
+                    self.log.info("No available resources for task %s (Reason: %s). Deferring job.",
+                                  job.task_id, error)
                     continue
                 else:
-                    self.log.info("VM {} for job {} successfully acquired".format(vm.vm_name, job.task_id))
+                    self.log.info("VM %s for job %s successfully acquired", vm.vm_name, job.task_id)
 
                 if not self.can_build_start(job):
                     self.vm_manager.release_vm(vm.vm_name)
                     continue
 
                 worker = self.start_worker(vm, job)
-                self.log.info("Started new worker {} for job {}"
-                              .format(worker.worker_id, worker.job.task_id))
+                self.log.info("Started new worker %s for job %s",
+                              worker.worker_id, worker.job.task_id)
 
             time.sleep(self.opts.sleeptime)

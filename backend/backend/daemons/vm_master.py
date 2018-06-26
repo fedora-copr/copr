@@ -45,8 +45,8 @@ class VmMaster(Process):
                 continue
             not_re_acquired_in = time.time() - float(last_release)
             if not_re_acquired_in > self.opts.build_groups[vmd.group]["vm_dirty_terminating_timeout"]:
-                self.log.info("dirty VM `{}` not re-acquired in {}, terminating it"
-                              .format(vmd.vm_name, not_re_acquired_in))
+                self.log.info("dirty VM `%s` not re-acquired in %s, terminating it",
+                              vmd.vm_name, not_re_acquired_in)
                 self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.READY)
 
     def check_vms_health(self):
@@ -73,7 +73,7 @@ class VmMaster(Process):
             try:
                 self.checker.run_check_health(vmd.vm_name, vmd.vm_ip)
             except Exception as err:
-                self.log.exception("Failed to start health check: {}".format(err))
+                self.log.exception("Failed to start health check: %s", err)
                 if orig_state != VmStates.IN_USE:
                     vmd.store_field(self.vmm.rc, "state", orig_state)
 
@@ -142,12 +142,12 @@ class VmMaster(Process):
             self.log.debug(err.msg)
             return
 
-        self.log.info("Start spawning new VM for group: {}".format(self.opts.build_groups[group]["name"]))
+        self.log.info("Start spawning new VM for group: %s", self.opts.build_groups[group]["name"])
         self.vmm.write_vm_pool_info(group, "last_vm_spawn_start", time.time())
         try:
             self.spawner.start_spawn(group)
         except Exception as error:
-            self.log.exception("Error during spawn attempt: {}".format(error))
+            self.log.exception("Error during spawn attempt: %s", error)
 
     def start_spawn_if_required(self):
         for group in self.vmm.vm_groups:
@@ -184,7 +184,7 @@ class VmMaster(Process):
             try:
                 self.do_cycle()
             except Exception as err:
-                self.log.error("Unhandled error: {}, {}".format(err, traceback.format_exc()))
+                self.log.error("Unhandled error: %s, %s", err, traceback.format_exc())
 
     def terminate(self):
         self.kill_received = True
@@ -203,8 +203,8 @@ class VmMaster(Process):
             time_elapsed = time.time() - float(vmd.get_field(self.vmm.rc, "last_health_check") or 0)
             if time_elapsed > self.opts.build_groups[vmd.group]["vm_health_check_max_time"]:
                 self.log.info("VM marked with check fail state, "
-                              "VM stayed too long in health check state, elapsed: {} VM: {}"
-                              .format(time_elapsed, str(vmd)))
+                              "VM stayed too long in health check state, elapsed: %s VM: %s",
+                              time_elapsed, str(vmd))
                 self.vmm.mark_vm_check_failed(vmd.vm_name)
 
     def terminate_again(self):
@@ -221,9 +221,9 @@ class VmMaster(Process):
             if time_elapsed > self.opts.build_groups[vmd.group]["vm_terminating_timeout"]:
                 if len(self.vmm.lookup_vms_by_ip(vmd.vm_ip)) > 1:
                     self.log.info(
-                        "Removing VM record: {}. There are more VM with the same ip, "
-                        "it's safe to remove current one from VM pool".format(vmd.vm_name))
+                        "Removing VM record: %s. There are more VM with the same ip, "
+                        "it's safe to remove current one from VM pool", vmd.vm_name)
                     self.vmm.remove_vm_from_pool(vmd.vm_name)
                 else:
-                    self.log.info("Sent VM {} for termination again".format(vmd.vm_name))
+                    self.log.info("Sent VM %s for termination again", vmd.vm_name)
                     self.vmm.start_vm_termination(vmd.vm_name, allowed_pre_state=VmStates.TERMINATING)

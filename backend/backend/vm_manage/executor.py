@@ -58,7 +58,7 @@ class Executor(object):
             else:
                 proc.join()
                 # self.log.debug("Child process finished: {}".format(proc.pid))
-                self.log.debug("Child process finished: {}".format(proc))
+                self.log.debug("Child process finished: %s", proc)
                 self.after_proc_finished(proc)
 
         self.child_processes = still_alive

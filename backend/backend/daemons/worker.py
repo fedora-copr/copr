@@ -49,7 +49,7 @@ class Worker(multiprocessing.Process):
             return self.opts.build_groups[self.vm.group]["name"]
         except Exception as error:
             self.log.exception("Failed to get builder group name from config, using group_id as name."
-                               "Original error: {}".format(error))
+                               "Original error: %s", error)
             return str(self.vm.group)
 
 
@@ -79,7 +79,7 @@ class Worker(multiprocessing.Process):
         """
         job.ended_on = time.time()
         self.return_results(job)
-        self.log.info("worker finished build: {0}".format(self.vm.vm_ip))
+        self.log.info("worker finished build: %s", self.vm.vm_ip)
         self._announce('build.end', job)
 
     def mark_running(self, job):
@@ -88,7 +88,7 @@ class Worker(multiprocessing.Process):
         """
         job.status = BuildStatus.RUNNING
         build = job.to_dict()
-        self.log.info("starting build: {}".format(build))
+        self.log.info("starting build: %s", build)
 
         data = {"builds": [build]}
         try:
@@ -100,11 +100,11 @@ class Worker(multiprocessing.Process):
         """
         Send the build results to the frontend
         """
-        self.log.info("Build {} finished with status {}"
-                      .format(job.build_id, job.status))
+        self.log.info("Build %s finished with status %s",
+                      job.build_id, job.status)
 
         if job.started_on: # unset for reattached builds
-            self.log.info("Took {} seconds.".format(job.ended_on - job.started_on))
+            self.log.info("Took %s seconds.", job.ended_on - job.started_on)
 
         data = {"builds": [job.to_dict()]}
 
@@ -167,8 +167,8 @@ class Worker(multiprocessing.Process):
             try:
                 os.makedirs(job.chroot_dir)
             except (OSError, IOError):
-                self.log.exception("Could not make results dir for job: {}"
-                                   .format(job.chroot_dir))
+                self.log.exception("Could not make results dir for job: %s",
+                                   job.chroot_dir)
                 failed = True
 
         if not self.reattach:
@@ -183,8 +183,8 @@ class Worker(multiprocessing.Process):
             # and run a series of checks on the package before we
             # start the build - most importantly license checks.
 
-            self.log.info("Starting build: id={} builder={} job: {}"
-                          .format(job.build_id, self.vm.vm_ip, job))
+            self.log.info("Starting build: id=%s builder=%s job: %s",
+                          job.build_id, self.vm.vm_ip, job)
 
             with local_file_logger(
                 "{}.builder.mr".format(self.name),
@@ -211,15 +211,14 @@ class Worker(multiprocessing.Process):
                 except MockRemoteError as e:
                     # record and break
                     self.log.exception(
-                        "Error during the build, host={}, build_id={}, chroot={}"
-                        .format(self.vm.vm_ip, job.build_id, job.chroot)
-                    )
+                        "Error during the build, host=%s, build_id=%s, chroot=%s",
+                        self.vm.vm_ip, job.build_id, job.chroot)
                     failed = True
                     mr.download_results()
 
                 except SSHConnectionError as err:
                     self.log.exception(
-                        "SSH connection stalled: {0}".format(str(err)))
+                        "SSH connection stalled: %s", str(err))
                     # The VM is unusable, don't wait for relatively slow
                     # garbage collector.
                     self.vm_manager.start_vm_termination(self.vm.vm_name)
@@ -244,9 +243,8 @@ class Worker(multiprocessing.Process):
                         failed = True
 
             self.log.info(
-                "Finished build: id={} builder={} timeout={} destdir={} chroot={}"
-                .format(job.build_id, self.vm.vm_ip, job.timeout, job.destdir,
-                        job.chroot))
+                "Finished build: id=%s builder=%s timeout=%s destdir=%s chroot=%s",
+                job.build_id, self.vm.vm_ip, job.timeout, job.destdir, job.chroot)
             self.copy_logs(job)
 
         register_build_result(self.opts, failed=failed)
@@ -257,8 +255,8 @@ class Worker(multiprocessing.Process):
                                   .format(job.build_id, job.chroot))
 
     def collect_built_packages(self, job):
-        self.log.info("Listing built binary packages in {}"
-                      .format(job.results_dir))
+        self.log.info("Listing built binary packages in %s",
+                      job.results_dir)
 
         cmd = (
             "builtin cd {0} && "
@@ -268,11 +266,11 @@ class Worker(multiprocessing.Process):
         )
         result = run_cmd(cmd, shell=True)
         built_packages = result.stdout.strip()
-        self.log.info("Built packages:\n{}".format(built_packages))
+        self.log.info("Built packages:\n%s", built_packages)
         return built_packages
 
     def get_srpm_url(self, job):
-        self.log.info("Retrieving srpm URL for {}".format(job.results_dir))
+        self.log.info("Retrieving srpm URL for %s", job.results_dir)
         try:
             pattern = os.path.join(job.results_dir, '*.src.rpm')
             srpm_name = os.path.basename(glob.glob(pattern)[0])
@@ -280,7 +278,7 @@ class Worker(multiprocessing.Process):
         except IndexError:
             srpm_url = ""
 
-        self.log.info("SRPM URL: {}".format(srpm_url))
+        self.log.info("SRPM URL: %s", srpm_url)
         return srpm_url
 
     def get_build_details(self, job):
@@ -293,7 +291,7 @@ class Worker(multiprocessing.Process):
                 build_details = { "srpm_url": self.get_srpm_url(job) }
             else:
                 build_details = { "built_packages": self.collect_built_packages(job) }
-            self.log.info("build details: {}".format(build_details))
+            self.log.info("build details: %s", build_details)
         except Exception as e:
             self.log.exception(str(e))
             raise CoprWorkerError("Error while collecting built packages for {}.".format(job))
@@ -302,8 +300,8 @@ class Worker(multiprocessing.Process):
 
     def copy_logs(self, job):
         if not os.path.isdir(job.results_dir):
-            self.log.info("Job results dir doesn't exists, couldn't copy main log; path: {}"
-                          .format(job.results_dir))
+            self.log.info("Job results dir doesn't exists, couldn't copy main log; path: %s",
+                          job.results_dir)
             return
 
         logs_to_copy = [
@@ -316,7 +314,7 @@ class Worker(multiprocessing.Process):
                 with open(src, "rb") as f_src, gzip.open(dst, "wb") as f_dst:
                     f_dst.writelines(f_src)
             except IOError:
-                self.log.info("File {} not found".format(src))
+                self.log.info("File %s not found", src)
 
     def clean_result_directory(self, job):
         """
@@ -327,8 +325,8 @@ class Worker(multiprocessing.Process):
 
         backup_dir_name = "prev_build_backup"
         backup_dir = os.path.join(job.results_dir, backup_dir_name)
-        self.log.info("Cleaning target directory, results from previous build storing in {}"
-                      .format(backup_dir))
+        self.log.info("Cleaning target directory, results from previous build storing in %s",
+                      backup_dir)
 
         if not os.path.exists(backup_dir):
             os.makedirs(backup_dir)
@@ -360,8 +358,8 @@ class Worker(multiprocessing.Process):
         try:
             self.do_job(self.job)
         except VmError as error:
-            self.log.exception("Building error: {}".format(error))
+            self.log.exception("Building error: %s", error)
         except Exception as e:
-            self.log.exception("Unexpected error: {}".format(e))
+            self.log.exception("Unexpected error: %s", e)
         finally:
             self.vm_manager.release_vm(self.vm.vm_name)

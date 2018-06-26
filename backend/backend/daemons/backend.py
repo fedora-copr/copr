@@ -52,7 +52,7 @@ class CoprBackend(object):
         Starts backend process. Control sub process start/stop.
         """
         self.update_conf()
-        self.log.info("Initial config: {}".format(self.opts))
+        self.log.info("Initial config: %s", self.opts)
 
         try:
             self.log.info("Rescheduling old unfinished builds")

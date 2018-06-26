@@ -46,8 +46,8 @@ def check_health(opts, vm_name, vm_ip):
         rc = get_redis_connection(opts)
         rc.publish(PUBSUB_MB, json.dumps(result))
     except Exception as err:
-        log.exception("Failed to publish msg health check result: {} with error: {}"
-                      .format(result, err))
+        log.exception("Failed to publish msg health check result: %s with error: %s",
+                      result, err)
 
 
 class HealthChecker(Executor):

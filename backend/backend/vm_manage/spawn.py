@@ -81,21 +81,21 @@ def do_spawn_and_publish(opts, spawn_playbook, group):
         spawn_result = spawn_instance(spawn_playbook, log)
         log.debug("Spawn finished")
     except CoprSpawnFailError as err:
-        log.info("Spawning a builder with pb: {}".format(err.msg))
+        log.info("Spawning a builder with pb: %s", err.msg)
         vm_ip = get_ip_from_log(err.msg)
         vm_name = get_vm_name_from_log(err.msg)
         if vm_ip and vm_name:
             # VM started but failed later during ansible run.
             try:
-                log.exception("Trying to terminate: {}({}).".format(vm_name, vm_ip))
+                log.exception("Trying to terminate: %s(%s).", vm_name, vm_ip)
                 terminate.terminate_vm(opts, opts.build_groups[int(group)]["terminate_playbook"], group, vm_name, vm_ip)
             except Exception:
                 # ignore all errors
                 raise
-        log.exception("Error during ansible invocation: {}".format(err.msg))
+        log.exception("Error during ansible invocation: %s", err.msg)
         return
     except Exception as err:
-        log.exception("[Unexpected] Failed to spawn builder: {}".format(err))
+        log.exception("[Unexpected] Failed to spawn builder: %s", err)
         return
 
     spawn_result["group"] = group
@@ -104,8 +104,8 @@ def do_spawn_and_publish(opts, spawn_playbook, group):
         rc = get_redis_connection(opts)
         rc.publish(PUBSUB_MB, json.dumps(spawn_result))
     except Exception as err:
-        log.exception("Failed to publish msg about new VM: {} with error: {}"
-                      .format(spawn_result, err))
+        log.exception("Failed to publish msg about new VM: %s with error: %s",
+                      spawn_result, err)
 
 
 class Spawner(Executor):
