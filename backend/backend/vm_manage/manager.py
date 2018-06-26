@@ -322,7 +322,7 @@ class VmManager(object):
         """
         vmd_list = []
         for group in self.vm_groups:
-            if group == None:
+            if group is None:
                 continue
             vmd_list.extend(self.get_all_vm_in_group(group))
         return vmd_list
