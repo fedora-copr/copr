@@ -160,7 +160,7 @@ class VmManager(object):
         pipe.sadd(KEY_VM_POOL.format(group=group), vm_name)
         pipe.hmset(KEY_VM_INSTANCE.format(vm_name=vm_name), vmd.to_dict())
         pipe.execute()
-        self.log.info("registered new VM: {} {}".format(vmd.vm_name, vmd.vm_ip))
+        self.log.info("registered new VM: %s %s", vmd.vm_name, vmd.vm_ip)
 
         return vmd
 
@@ -192,13 +192,12 @@ class VmManager(object):
         ])
 
         limit = self.opts.build_groups[group].get("max_vm_per_user")
-        self.log.debug("# vm by user: {}, limit:{} ".format(
-            vm_count_used_by_user, limit
-        ))
+        self.log.debug("# vm by user: %s, limit:%s ",
+                       vm_count_used_by_user, limit)
 
         if limit and vm_count_used_by_user >= limit:
-            self.log.debug("No VM are available, user `{}` already acquired #{} VMs"
-                           .format(username, vm_count_used_by_user))
+            self.log.debug("No VM are available, user `%s` already acquired #%s VMs",
+                           username, vm_count_used_by_user)
             return False
         return True
 
@@ -228,8 +227,8 @@ class VmManager(object):
 
             user_can_acquire_more_vm = self.can_user_acquire_more_vm(ownername, group)
             if not dirtied_by_user and not user_can_acquire_more_vm:
-                self.log.debug("User {} already acquired too much VMs in group {}"
-                               .format(ownername, group))
+                self.log.debug("User %s already acquired too much VMs in group %s",
+                               ownername, group)
                 continue
 
             available_vms = dirtied_by_user
@@ -239,12 +238,12 @@ class VmManager(object):
 
             for vmd in available_vms:
                 if vmd.get_field(self.rc, "check_fails") != "0":
-                    self.log.debug("VM {} has check fails, skip acquire".format(vmd.vm_name))
+                    self.log.debug("VM %s has check fails, skip acquire", vmd.vm_name)
                 vm_key = KEY_VM_INSTANCE.format(vm_name=vmd.vm_name)
                 if self.lua_scripts["acquire_vm"](keys=[vm_key, KEY_SERVER_INFO],
                                                   args=[ownername, pid, time.time(),
                                                         task_id, build_id, chroot]) == "OK":
-                    self.log.info("Acquired VM :{} {} for pid: {}".format(vmd.vm_name, vmd.vm_ip, pid))
+                    self.log.info("Acquired VM :%s %s for pid: %s", vmd.vm_name, vmd.vm_ip, pid)
                     return vmd
 
         raise NoVmAvailable("No VMs are currently available for task {} of user {}"
@@ -257,10 +256,10 @@ class VmManager(object):
         :rtype: bool
         """
         # in_use -> ready
-        self.log.info("Releasing VM {}".format(vm_name))
+        self.log.info("Releasing VM %s", vm_name)
         vm_key = KEY_VM_INSTANCE.format(vm_name=vm_name)
         lua_result = self.lua_scripts["release_vm"](keys=[vm_key], args=[time.time()])
-        self.log.info("Release vm result `{}`".format(lua_result))
+        self.log.info("Release vm result `%s`", lua_result)
         return lua_result == "OK"
 
     def start_vm_termination(self, vm_name, allowed_pre_state=None):
@@ -280,9 +279,9 @@ class VmManager(object):
                 "topic": EventTopics.VM_TERMINATION_REQUEST
             }
             self.rc.publish(PUBSUB_MB, json.dumps(msg))
-            self.log.info("VM {} queued for termination".format(vmd.vm_name))
+            self.log.info("VM %s queued for termination", vmd.vm_name)
         else:
-            self.log.info("VM termination `{}` skipped due to: {} ".format(vm_name, lua_result))
+            self.log.info("VM termination `%s` skipped due to: %s ", vm_name, lua_result)
 
     def remove_vm_from_pool(self, vm_name):
         """
@@ -297,7 +296,7 @@ class VmManager(object):
         pipe.srem(KEY_VM_POOL.format(group=vmd.group), vm_name)
         pipe.delete(KEY_VM_INSTANCE.format(vm_name=vm_name))
         pipe.execute()
-        self.log.info("removed vm `{}` from pool".format(vm_name))
+        self.log.info("removed vm `%s` from pool", vm_name)
 
     def _load_multi_safe(self, vm_name_list):
         result = []
@@ -305,7 +304,7 @@ class VmManager(object):
             try:
                 result.append(VmDescriptor.load(self.rc, vm_name))
             except VmDescriptorNotFound:
-                self.log.debug("Failed to load VMD: {}".format(vm_name))
+                self.log.debug("Failed to load VMD: %s", vm_name)
         return result
 
     def get_all_vm_in_group(self, group):
@@ -321,7 +320,7 @@ class VmManager(object):
         """
         vmd_list = []
         for group in self.vm_groups:
-            if group == None:
+            if group is None:
                 continue
             vmd_list.extend(self.get_all_vm_in_group(group))
         return vmd_list

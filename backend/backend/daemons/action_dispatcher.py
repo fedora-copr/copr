@@ -48,13 +48,13 @@ class ActionDispatcher(multiprocessing.Process):
                         auth=("user", self.opts.frontend_auth))
                 action_task = r.json()
             except (RequestException, ValueError) as error:
-                self.log.exception("Retrieving an action task from {} failed with error: {}"
-                                   .format(self.opts.frontend_base_url, error))
+                self.log.exception("Retrieving an action task from %s failed with error: %s",
+                                   self.opts.frontend_base_url, error)
             finally:
                 if not action_task:
                     time.sleep(self.opts.sleeptime)
 
-        self.log.info("Got new action_task {} of type {}".format(action_task['id'], action_task['action_type']))
+        self.log.info("Got new action_task %s of type %s", action_task['id'], action_task['action_type'])
         return Action(self.opts, action_task, frontend_client=self.frontend_client)
 
     def run(self):
