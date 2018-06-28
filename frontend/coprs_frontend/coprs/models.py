@@ -961,7 +961,7 @@ class BuildChroot(db.Model, helpers.Serializer):
     git_hash = db.Column(db.String(40))
     status = db.Column(db.Integer, default=StatusEnum("waiting"))
 
-    started_on = db.Column(db.Integer)
+    started_on = db.Column(db.Integer, index=True)
     ended_on = db.Column(db.Integer, index=True)
 
     # directory name on backend with build results
@@ -1217,3 +1217,10 @@ class Module(db.Model, helpers.Serializer):
         Return text representation of status of this build
         """
         return helpers.ModuleStatusEnum(self.status)
+
+
+class BuildsStatistics(db.Model):
+    time = db.Column(db.Integer, primary_key=True)
+    stat_type = db.Column(db.Text, primary_key=True)
+    running = db.Column(db.Integer)
+    pending = db.Column(db.Integer)
