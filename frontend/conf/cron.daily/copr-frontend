@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+
+runuser -c '/usr/share/copr/coprs_frontend/run/update_graphs_data.py --remove' - copr-fe

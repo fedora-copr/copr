@@ -49,7 +49,7 @@ URL:        https://pagure.io/copr/copr
 # git clone https://pagure.io/copr/copr.git
 # git checkout {{{ cached_git_name_version }}}
 # cd copr/frontend
-# rpkg spec --sources 
+# rpkg spec --sources
 Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
@@ -218,10 +218,12 @@ install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee
 install -d %{buildroot}%{_sharedstatedir}/copr/data/whooshee/copr_user_whoosheer
 install -d %{buildroot}%{_sharedstatedir}/copr/data/srpm_storage
 install -d %{buildroot}%{_sysconfdir}/cron.hourly
+install -d %{buildroot}%{_sysconfdir}/cron.daily
 install -d %{buildroot}/%{_bindir}
 install -d %{buildroot}%{_unitdir}
 
 install -p -m 755 conf/cron.hourly/copr-frontend %{buildroot}%{_sysconfdir}/cron.hourly/copr-frontend
+install -p -m 755 conf/cron.daily/copr-frontend %{buildroot}%{_sysconfdir}/cron.daily/copr-frontend
 
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 sed -i "s/__RPM_BUILD_VERSION/%{version}-%{release}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
@@ -321,6 +323,7 @@ service httpd    condrestart >/dev/null || :
 %config(noreplace)  %{_sysconfdir}/copr/copr_unit_test.conf
 
 %config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.hourly/copr-frontend
+%config(noreplace) %attr(0755, root, root) %{_sysconfdir}/cron.daily/copr-frontend
 %exclude_files flavor
 %exclude_files devel
 
