@@ -2,21 +2,15 @@
 
 import grp
 import pwd
-import signal
 import sys
-import time
-from collections import defaultdict
 
 import lockfile
 from daemon import DaemonContext
 from requests import RequestException
-from retask import ConnectionError
 from backend.frontend import FrontendClient
 
 from ..exceptions import CoprBackendError
 from ..helpers import BackendConfigReader, get_redis_logger
-from .build_dispatcher import BuildDispatcher
-from .action_dispatcher import ActionDispatcher
 
 
 class CoprBackend(object):

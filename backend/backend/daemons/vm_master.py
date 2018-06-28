@@ -1,7 +1,5 @@
 # coding: utf-8
 
-import json
-
 from multiprocessing import Process
 import time
 import traceback

@@ -1,5 +1,3 @@
-from datetime import datetime
-import json
 import os
 import time
 import gzip
@@ -9,13 +7,12 @@ import pipes
 import glob
 from setproctitle import setproctitle
 
-from ..exceptions import MockRemoteError, CoprWorkerError, VmError, NoVmAvailable
-from ..job import BuildJob
+from ..exceptions import MockRemoteError, CoprWorkerError, VmError
+from ..job import BuildJob #line 151 (will be implemented?) #pylint: disable=unused-import
 from ..mockremote import MockRemote
 from ..constants import BuildStatus, build_log_format
-from ..helpers import register_build_result, get_redis_connection, get_redis_logger, \
+from ..helpers import register_build_result, get_redis_logger, \
     local_file_logger, run_cmd
-from ..vm_manage import VmStates
 
 from ..msgbus import MsgBusStomp, MsgBusFedmsg
 from ..sshcmd import SSHConnectionError
