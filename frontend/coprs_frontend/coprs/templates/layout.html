@@ -113,7 +113,8 @@
                   <dd>
                     <ul>
                       <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li>
-                      <li> <a href="{{url_for('status_ns.importing')}}">Task Queue</a> </li>
+
+{% include 'test.html' %}                      <li> <a href="{{url_for('status_ns.importing')}}">Task Queue</a> </li>
                       <li> <a href="{{ url_for('api_ns.api_home') }}">API</a> </li>
                       <li><a href="{{ url_for('user_ns.user_info') }}">GDPR</a></li>
                     </ul>
@@ -159,7 +160,7 @@
     });
   </script>
   {% endif %}
-
+ssssss
   <!-- Last post from our blog -->
   {% if config.NEWS_URL and config.NEWS_FEED_URL %}
   <script src="{{ url_for('static', filename='js/blog.js') }}"></script>
