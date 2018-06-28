@@ -84,14 +84,6 @@ class BuildsLogic(object):
         return list(query.all()[:4])
 
     @classmethod
-    def get_tasks_by_time(cls, start, end):
-        result = models.BuildChroot.query.join(models.Build)\
-            .filter(models.BuildChroot.ended_on >= start)\
-            .filter(models.Build.submitted_on <= end)\
-            .order_by(models.Build.id.asc())
-        return result
-
-    @classmethod
     def get_running_tasks_by_time(cls, start, end):
         result = models.BuildChroot.query\
             .filter(models.BuildChroot.ended_on > start)\
@@ -116,6 +108,117 @@ class BuildsLogic(object):
             while task['started_on'] > start + step * (current_step + 1):
                 current_step += 1
             data[0][current_step + 1] += 1
+        return data
+
+    @classmethod
+    def get_chroot_histogram(cls, start, end):
+        chroots = []
+        query = """
+            SELECT
+            mock_chroot_id as chroot,
+            COUNT(*)
+            FROM build_chroot where started_on < {end}
+                AND ended_on > {start}
+            GROUP BY mock_chroot_id
+            ORDER BY mock_chroot_id
+        """.format(start=start, end=end)
+        db.engine.connect()
+        res_chroots = db.engine.execute(query)
+
+        for chroot in res_chroots:
+            chroots.append([chroot[0], chroot[1]])
+
+        mock_chroots = coprs_logic.MockChrootsLogic.get_multiple()
+        for mock_chroot in mock_chroots:
+            for l in chroots:
+                if l[0] == mock_chroot.id:
+                    l[0] = mock_chroot.name
+
+        return chroots
+
+    @classmethod
+    def get_tasks_histogram(cls, type, start, end, step):
+        start = start - start % step
+        end = end - end % step
+        steps = int((end - start) / step + 0.5)
+        data = [['pending'], ['running'], ['avg running'], ['time']]
+
+        query = """
+            SELECT * FROM builds_statistics WHERE stat_type = '{type}' AND time BETWEEN {start} AND {end}
+            ORDER BY time
+        """.format(type=type, start=start, end=end)
+
+        db.engine.connect()
+        result = db.engine.execute(query)
+        rows = result.fetchall()
+
+        for row in rows:
+            data[0].append(row['pending'])
+            data[1].append(row['running'])
+
+        for i in range(len(rows), steps):
+            s = start + i * step
+            e = s + step
+
+            query_pending = """
+                SELECT COUNT(*) as pending
+                FROM build_chroot C JOIN build b on B.id = C.build_id
+                WHERE
+                    (
+                        C.started_on > {start}
+                        OR C.started_on is NULL
+                    )
+                    AND B.submitted_on < {end}
+                    AND (
+                        C.ended_on > {start}
+                        OR C.ended_on IS NULL
+                    )
+                    AND NOT ((B.submitted_on NOT BETWEEN {start} and {end})
+                        AND (C.started_on NOT BETWEEN {start} AND {end})
+                        AND (B.submitted_on >= {start} OR C.started_on <= {end})
+                    )
+            """.format(start=s, end=e)
+
+            query_running = """
+                SELECT COUNT(*) as running
+                FROM build_chroot
+                WHERE
+                    started_on < {end}
+                    AND (ended_on > {start} OR ended_on IS NULL)
+                    AND (
+                        (started_on BETWEEN {start} AND {end})
+                        OR (ended_on BETWEEN {start} AND {end})
+                        OR (started_on < {start}
+                            AND (ended_on > {end} OR (ended_on IS NULL AND status = 3)))
+                    )
+            """.format(start=s, end=e)
+
+            res_pending = db.engine.execute(query_pending)
+            res_running = db.engine.execute(query_running)
+
+            pending = res_pending.first().pending
+            running = res_running.first().running
+            data[0].append(pending)
+            data[1].append(running)
+
+            statistic = models.BuildsStatistics(
+                time = s,
+                stat_type = type,
+                running = running,
+                pending = pending
+            )
+            db.session.merge(statistic)
+            db.session.commit()
+
+        running_total = 0
+        for i in range(1, steps + 1):
+            running_total += data[1][i]
+
+        data[2].extend([running_total * 1.0 / steps] * (len(data[0]) - 1))
+
+        for i in range(start, end, step):
+            data[3].append(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(i)))
+
         return data
 
     @classmethod

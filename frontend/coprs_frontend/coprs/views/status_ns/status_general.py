@@ -1,63 +1,9 @@
 import flask
-import time
+from time import time
 
 from coprs.views.status_ns import status_ns
-from coprs.logic import builds_logic, coprs_logic
+from coprs.logic import builds_logic
 from coprs import helpers
-
-
-def get_graph_data(start, end, step):
-    chroots_dict = {}
-    chroots = []
-    chroot_names = {}
-    tasks = builds_logic.BuildsLogic.get_tasks_by_time(start, end)
-    running_tasks = builds_logic.BuildsLogic.get_running_tasks_by_time(start, end)
-    steps = int(round((end - start) / step + 0.5))
-    current_step = 0
-
-    data = [[0] * (steps + 1), [0] * (steps + 1), [1.0 * running_tasks.count() / steps] * (steps + 1), [0] * (steps + 1)]
-    data[0][0] = 'pending'
-    data[1][0] = 'running'
-    data[2][0] = 'avg running'
-    data[3][0] = 'time'
-
-    for t in tasks:
-        task = t.to_dict()
-        started = task['started_on'] if task['started_on'] else end
-        ended = task['ended_on'] if task['ended_on'] else end
-
-        start_cell = int(round((started - start) / step + 0.5))
-        end_cell  = int(round((ended - start) / step + 0.5))
-        submitted_cell = int(round((t.build.submitted_on - start) / step + 0.5))
-
-        # pending tasks
-        for i in range(max(1, submitted_cell), max(1, start_cell) + 1):
-            if i <= steps:
-                data[0][i] += 1
-
-        # running tasks
-        for i in range(max(1, start_cell), end_cell + 1):
-            if i <= steps:
-                data[1][i] += 1
-
-        if task['mock_chroot_id'] not in chroots_dict:
-            chroots_dict[task['mock_chroot_id']] = 1
-        else:
-            chroots_dict[task['mock_chroot_id']] += 1
-
-    for i in range(0, steps):
-        data[3][i + 1] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(start + (i * step)))
-
-    for key in chroots_dict:
-        chroots.append([key, chroots_dict[key]])
-
-    mock_chroots = coprs_logic.MockChrootsLogic.get_multiple()
-    for mock_chroot in mock_chroots:
-        for l in chroots:
-            if l[0] == mock_chroot.id:
-                l[0] = mock_chroot.name
-
-    return data, chroots
 
 
 @status_ns.route("/")
@@ -90,11 +36,14 @@ def importing():
 
 @status_ns.route("/stats/")
 def stats():
-    current_time = int(time.time()) - int(time.time()) % 600
-    data1, chroots1 = get_graph_data(current_time - 86400, current_time - 1, 600) # last 24 hours
-    data2, chroots2 = get_graph_data(current_time - 86400 * 90, current_time - 1, 86400) # last 90 days
+    curr_time = int(time())
+    chroots_24h = builds_logic.BuildsLogic.get_chroot_histogram(curr_time - 86400, curr_time)
+    chroots_90d = builds_logic.BuildsLogic.get_chroot_histogram(curr_time - 90*86400, curr_time)
+    data_24h = builds_logic.BuildsLogic.get_tasks_histogram('10min', curr_time - 86400, curr_time, 600)
+    data_90d = builds_logic.BuildsLogic.get_tasks_histogram('24h', curr_time - 90*86400, curr_time, 86400)
+
     return flask.render_template("status/stats.html",
-                                 data1=data1,
-                                 data2=data2,
-                                 chroots1=chroots1,
-                                 chroots2=chroots2)
+                                 data1=data_24h,
+                                 data2=data_90d,
+                                 chroots1=chroots_24h,
+                                 chroots2=chroots_90d)
