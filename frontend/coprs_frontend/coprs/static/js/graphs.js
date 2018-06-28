@@ -34,10 +34,6 @@ function graphConfig() {
         point: {r: 2.5},
         tooltip: {
             format: {
-                title: function(d) {
-                    var a = d.toString().substring(0, 25) + 'UTC';
-                    return a;
-                },
                 value: function(value, ratio, id) {
                     if (id === 'avg running') return value.toFixed(2);
                     else return value;
@@ -58,6 +54,16 @@ function lineGraph(data, ticks, bind, format) {
     chart.bindto = bind;
     chart.color.pattern = ['#0088ce', '#cc8844', '#cc0000'];
     chart.data.columns = data;
+    if (format === '%Y-%m-%d')
+	chart.tooltip.format.title = function(d) {
+	    var a = d.toString().substring(0, 15);
+	    return a;
+	}
+    if (format === '%H:%M')
+	chart.tooltip.format.title = function(d) {
+	    var a = d.toString().substring(16, 25) + '(UTC)';
+	    return a;
+	}
     var chartDay = c3.generate(chart);
 };
 
