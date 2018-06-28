@@ -33,8 +33,6 @@ from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
 from backend.exceptions import CoprBackendError
 
-import logging
-
 from . import constants
 
 
