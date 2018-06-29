@@ -18,7 +18,7 @@ from coprs import models
 from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic, users_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
-from sqlalchemy import or_
+from sqlalchemy import and_, or_
 from coprs.helpers import chroot_to_branch,StatusEnum
 
 
@@ -461,6 +461,33 @@ class UpdateIndexesQuickCommand(Command):
         writer.commit()
 
 
+class UpdateGraphsDataCommand(Command):
+    """
+    Generates newest graph data.
+    """
+
+    def run(self):
+        curr_time = int(time.time())
+        builds_logic.BuildsLogic.get_tasks_histogram('10min', curr_time - 86599, curr_time, 600)
+        builds_logic.BuildsLogic.get_tasks_histogram('24h', curr_time - 90*86400, curr_time, 86400)
+
+
+class RemoveGraphsDataCommand(Command):
+    """
+    Removes old cached graph data that is no longer used.
+    """
+
+    def run(self):
+        curr_time = int(time.time())
+        models.BuildsStatistics.query.filter(or_(
+            and_(models.BuildsStatistics.time < curr_time - 91 * 86400,
+                 models.BuildsStatistics.stat_type == '24h'),
+            and_(models.BuildsStatistics.time < curr_time - 87000,
+                 models.BuildsStatistics.stat_type == '10min')
+        )).delete()
+        db.session.commit()
+
+
 manager = Manager(app)
 manager.add_command("test", TestCommand())
 manager.add_command("create_sqlite_file", CreateSqliteFileCommand())
@@ -478,6 +505,8 @@ manager.add_command("update_indexes", UpdateIndexesCommand())
 manager.add_command("update_indexes_quick", UpdateIndexesQuickCommand())
 manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
 manager.add_command("backend_rawhide_to_release", BackendRawhideToReleaseCommand())
+manager.add_command("update_graphs", UpdateGraphsDataCommand())
+manager.add_command("remove_graphs", RemoveGraphsDataCommand())
 
 if __name__ == "__main__":
     manager.run()
