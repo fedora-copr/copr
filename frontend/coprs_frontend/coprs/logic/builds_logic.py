@@ -9,6 +9,7 @@ import sqlite3
 from sqlalchemy.sql import text
 from sqlalchemy import or_
 from sqlalchemy import and_
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false,true
@@ -113,19 +114,15 @@ class BuildsLogic(object):
     @classmethod
     def get_chroot_histogram(cls, start, end):
         chroots = []
-        query = """
-            SELECT
-            mock_chroot_id as chroot,
-            COUNT(*)
-            FROM build_chroot where started_on < {end}
-                AND ended_on > {start}
-            GROUP BY mock_chroot_id
-            ORDER BY mock_chroot_id
-        """.format(start=start, end=end)
-        db.engine.connect()
-        res_chroots = db.engine.execute(query)
+        chroot_query = BuildChroot.query\
+            .filter(models.BuildChroot.started_on < end)\
+            .filter(models.BuildChroot.ended_on > start)\
+            .with_entities(BuildChroot.mock_chroot_id,
+                           func.count(BuildChroot.mock_chroot_id))\
+            .group_by(BuildChroot.mock_chroot_id)\
+            .order_by(BuildChroot.mock_chroot_id)
 
-        for chroot in res_chroots:
+        for chroot in chroot_query:
             chroots.append([chroot[0], chroot[1]])
 
         mock_chroots = coprs_logic.MockChrootsLogic.get_multiple()
@@ -143,21 +140,17 @@ class BuildsLogic(object):
         steps = int((end - start) / step + 0.5)
         data = [['pending'], ['running'], ['avg running'], ['time']]
 
-        query = """
-            SELECT time, running, pending FROM builds_statistics
-            WHERE stat_type = '{type}' AND time BETWEEN {start} AND {end}
-            ORDER BY time
-        """.format(type=type, start=start, end=end)
+        result = models.BuildsStatistics.query\
+            .filter(models.BuildsStatistics.stat_type == type)\
+            .filter(models.BuildsStatistics.time >= start)\
+            .filter(models.BuildsStatistics.time <= end)\
+            .order_by(models.BuildsStatistics.time)
 
-        db.engine.connect()
-        result = db.engine.execute(query)
-        rows = result.fetchall()
+        for row in result:
+            data[0].append(row.pending)
+            data[1].append(row.running)
 
-        for row in rows:
-            data[0].append(row['pending'])
-            data[1].append(row['running'])
-
-        for i in range(len(rows), steps):
+        for i in range(len(data[0]) - 1, steps):
             step_start = start + i * step
             step_end = step_start + step
 

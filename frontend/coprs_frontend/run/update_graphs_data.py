@@ -18,6 +18,8 @@ parser = argparse.ArgumentParser(description='Update cached data for graphs of u
 parser.add_argument('--update', action='store_true', help='Process data not yet cached.')
 parser.add_argument('--remove', action='store_true', help='Remove old data.')
 
+db.engine.connect()
+
 
 def update_data():
     curr_time = int(time())
