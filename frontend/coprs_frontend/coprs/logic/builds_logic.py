@@ -138,13 +138,14 @@ class BuildsLogic(object):
 
     @classmethod
     def get_tasks_histogram(cls, type, start, end, step):
-        start = start - start % step
-        end = end - end % step
+        start = start - (start % step) # align graph interval to a multiple of step
+        end = end - (end % step)
         steps = int((end - start) / step + 0.5)
         data = [['pending'], ['running'], ['avg running'], ['time']]
 
         query = """
-            SELECT * FROM builds_statistics WHERE stat_type = '{type}' AND time BETWEEN {start} AND {end}
+            SELECT time, running, pending FROM builds_statistics
+            WHERE stat_type = '{type}' AND time BETWEEN {start} AND {end}
             ORDER BY time
         """.format(type=type, start=start, end=end)
 
@@ -157,27 +158,27 @@ class BuildsLogic(object):
             data[1].append(row['running'])
 
         for i in range(len(rows), steps):
-            s = start + i * step
-            e = s + step
+            step_start = start + i * step
+            step_end = step_start + step
 
             query_pending = """
                 SELECT COUNT(*) as pending
-                FROM build_chroot C JOIN build b on B.id = C.build_id
+                FROM build_chroot JOIN build on build.id = build_chroot.build_id
                 WHERE
                     (
-                        C.started_on > {start}
-                        OR C.started_on is NULL
+                        build_chroot.started_on > {start}
+                        OR build_chroot.started_on is NULL
                     )
-                    AND B.submitted_on < {end}
+                    AND build.submitted_on < {end}
                     AND (
-                        C.ended_on > {start}
-                        OR C.ended_on IS NULL
+                        build_chroot.ended_on > {start}
+                        OR build_chroot.ended_on IS NULL
                     )
-                    AND NOT ((B.submitted_on NOT BETWEEN {start} and {end})
-                        AND (C.started_on NOT BETWEEN {start} AND {end})
-                        AND (B.submitted_on >= {start} OR C.started_on <= {end})
+                    AND NOT ((build.submitted_on NOT BETWEEN {start} and {end})
+                        AND (build_chroot.started_on NOT BETWEEN {start} AND {end})
+                        AND (build.submitted_on >= {start} OR build_chroot.started_on <= {end})
                     )
-            """.format(start=s, end=e)
+            """.format(start=step_start, end=step_end)
 
             query_running = """
                 SELECT COUNT(*) as running
@@ -189,9 +190,9 @@ class BuildsLogic(object):
                         (started_on BETWEEN {start} AND {end})
                         OR (ended_on BETWEEN {start} AND {end})
                         OR (started_on < {start}
-                            AND (ended_on > {end} OR (ended_on IS NULL AND status = 3)))
+                            AND (ended_on > {end} OR (ended_on IS NULL AND status = {status})))
                     )
-            """.format(start=s, end=e)
+            """.format(start=step_start, end=step_end, status=helpers.StatusEnum('running'))
 
             res_pending = db.engine.execute(query_pending)
             res_running = db.engine.execute(query_running)
@@ -202,7 +203,7 @@ class BuildsLogic(object):
             data[1].append(running)
 
             statistic = models.BuildsStatistics(
-                time = s,
+                time = step_start,
                 stat_type = type,
                 running = running,
                 pending = pending
