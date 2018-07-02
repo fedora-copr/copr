@@ -18,9 +18,13 @@ def to_dict(project_chroot):
         "comps_name": project_chroot.comps_name,
         "additional_repos": project_chroot.repos_list,
         "additional_packages": project_chroot.buildroot_pkgs_list,
-        "with_opts": project_chroot.with_opts,
-        "without_opts": project_chroot.without_opts,
+        "with_opts": str_to_list(project_chroot.with_opts),
+        "without_opts": str_to_list(project_chroot.without_opts),
     }
+
+
+def str_to_list(value):
+    return (value or "").split()
 
 
 @apiv3_ns.route("/project-chroot", methods=GET)
