@@ -95,9 +95,13 @@ def munchify(response):
 def handle_errors(response):
     try:
         response_json = response.json()
-        if "error" in response_json and response.status_code == 404:
-            raise CoprNoResultException(response_json["error"])
-        if "error" in response_json:
-            raise CoprRequestException(response_json["error"])
+        if "error" not in response_json:
+            return
+
+        if response.status_code == 404:
+            raise CoprNoResultException(response_json["error"], response=response)
+        raise CoprRequestException(response_json["error"], response=response)
+
     except ValueError:
-        raise CoprRequestException("Request is not in JSON format, there is probably a bug in the API code.")
+        raise CoprRequestException("Request is not in JSON format, there is probably a bug in the API code.",
+                                   response=response)

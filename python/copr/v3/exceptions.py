@@ -1,8 +1,13 @@
+from munch import Munch
+
+
 class CoprException(Exception):
     """
     Base Copr exception
     """
-    pass
+    def __init__(self, msg=None, response=None):
+        super(CoprException, self).__init__(msg)
+        self.result = Munch(error=msg, __response__=response)
 
 
 class CoprRequestException(CoprException):
