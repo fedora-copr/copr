@@ -6,7 +6,7 @@ from . import query_params, get_copr, file_upload, POST
 from coprs import db, models, forms
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.views.misc import api_login_required
-from coprs.exceptions import ApiError
+from coprs.exceptions import ApiError, DuplicateException, BadRequest
 from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade
 
 
@@ -23,7 +23,7 @@ def build_module(ownername, projectname):
     copr = get_copr(ownername, projectname)
     form = forms.ModuleBuildForm(csrf_enabled=False)
     if not form.validate_on_submit():
-        raise ApiError(form.errors)
+        raise BadRequest(form.errors)
 
     facade = None
     try:
@@ -34,8 +34,8 @@ def build_module(ownername, projectname):
         return flask.jsonify(to_dict(module))
 
     except (ValidationError, RequestException, InvalidSchema) as ex:
-        raise ApiError(str(ex))
+        raise BadRequest(str(ex))
 
     except sqlalchemy.exc.IntegrityError:
-        raise ApiError("Module {}-{}-{} already exists".format(
-            facade.modulemd.name, facade.modulemd.stream, facade.modulemd.version))
+        raise DuplicateException("Module {}-{}-{} already exists".format(
+                                 facade.modulemd.name, facade.modulemd.stream, facade.modulemd.version))

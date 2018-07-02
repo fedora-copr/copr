@@ -5,7 +5,7 @@ from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.helpers import generate_build_config
-from coprs.exceptions import ApiError
+from coprs.exceptions import ApiError, ObjectNotFound, BadRequest
 from coprs import db, models, forms
 from coprs.logic.coprs_logic import CoprChrootsLogic
 
@@ -41,7 +41,7 @@ def get_build_config(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
     config = generate_build_config(copr, chrootname)
     if not config:
-        raise ApiError('Chroot not found.')
+        raise ObjectNotFound('Chroot not found.')
     return flask.jsonify(config)
 
 
@@ -55,7 +55,7 @@ def edit_project_chroot(ownername, projectname, chrootname):
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
     if not form.validate_on_submit():
-        raise ApiError(form.errors)
+        raise BadRequest(form.errors)
 
     buildroot_pkgs = repos = comps_xml = comps_name = with_opts = without_opts = None
     if "buildroot_pkgs" in data:

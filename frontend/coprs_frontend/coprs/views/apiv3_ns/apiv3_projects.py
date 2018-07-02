@@ -10,7 +10,7 @@ from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.exceptions import (ApiError, DuplicateException, NonAdminCannotCreatePersistentProject,
                               NonAdminCannotDisableAutoPrunning, ActionInProgressException,
-                              InsufficientRightsException)
+                              InsufficientRightsException, BadRequest, ObjectNotFound)
 
 
 def to_dict(copr):
@@ -68,7 +68,7 @@ def search_projects(query, **kwargs):
         paginator = Paginator(search_query, models.Copr, **kwargs)
         projects = paginator.map(to_dict)
     except ValueError as ex:
-        raise ApiError("Server error: {}".format(ex))
+        raise BadRequest(str(ex))
     return flask.jsonify(items=projects, meta=paginator.meta)
 
 
@@ -79,7 +79,7 @@ def add_project(ownername):
     form = forms.CoprFormFactory.create_form_cls()(data, csrf_enabled=False)
 
     if not form.validate_on_submit():
-        raise ApiError(form.errors)
+        raise BadRequest(form.errors)
 
     group = None
     if ownername[0] == "@":
@@ -106,7 +106,7 @@ def add_project(ownername):
             NonAdminCannotCreatePersistentProject,
             NonAdminCannotDisableAutoPrunning) as err:
         db.session.rollback()
-        raise ApiError(str(err))
+        raise err
     return flask.jsonify(to_dict(copr))
 
 
@@ -118,7 +118,7 @@ def edit_project(ownername, projectname):
     form = forms.CoprModifyForm(data, csrf_enabled=False)
 
     if not form.validate_on_submit():
-        raise ApiError(form.errors)
+        raise BadRequest(form.errors)
 
     for field in form:
         if field.data is None or field.name in ["csrf_token", "chroots"]:
@@ -140,7 +140,7 @@ def edit_project(ownername, projectname):
             InsufficientRightsException,
             NonAdminCannotDisableAutoPrunning) as ex:
         db.session.rollback()
-        raise ApiError(str(ex))
+        raise ex
 
     return flask.jsonify(to_dict(copr))
 
@@ -161,19 +161,19 @@ def fork_project(ownername, projectname):
         try:
             dstgroup = ([g for g in flask.g.user.user_groups if g.at_name == form.owner.data] or [None])[0]
             if flask.g.user.name != form.owner.data and not dstgroup:
-                return ApiError("There is no such group: {}".format(form.owner.data))
+                return ObjectNotFound("There is no such group: {}".format(form.owner.data))
 
             fcopr, created = ComplexLogic.fork_copr(copr, flask.g.user, dstname=form.name.data, dstgroup=dstgroup)
             if not created and form.confirm.data != True:
-                raise ApiError("You are about to fork into existing project: {}\n"
-                               "Please use --confirm if you really want to do this".format(fcopr.full_name))
+                raise BadRequest("You are about to fork into existing project: {}\n"
+                                 "Please use --confirm if you really want to do this".format(fcopr.full_name))
             db.session.commit()
 
         except (ActionInProgressException, InsufficientRightsException) as err:
             db.session.rollback()
-            raise ApiError(str(err))
+            raise err
     else:
-        raise ApiError(form.errors)
+        raise BadRequest(form.errors)
 
     return flask.jsonify(to_dict(fcopr))
 
@@ -190,9 +190,9 @@ def delete_project(ownername, projectname):
         except (ActionInProgressException,
                 InsufficientRightsException) as err:
             db.session.rollback()
-            raise ApiError(str(err))
+            raise err
         else:
             db.session.commit()
     else:
-        raise ApiError(form.errors)
+        raise BadRequest(form.errors)
     return flask.jsonify(to_dict(copr))

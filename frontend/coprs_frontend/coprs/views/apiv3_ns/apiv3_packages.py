@@ -3,7 +3,8 @@ import wtforms
 from . import query_params, pagination, get_copr, Paginator, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data
 from coprs.exceptions import ApiError
-from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException, NoPackageSourceException
+from coprs.exceptions import (ApiError, InsufficientRightsException, ActionInProgressException,
+                              NoPackageSourceException, ObjectNotFound, BadRequest)
 from coprs.views.misc import api_login_required
 from coprs import db, models, forms
 from coprs.views.apiv3_ns import apiv3_ns
@@ -35,7 +36,7 @@ def get_package(ownername, projectname, packagename):
     try:
         package = PackagesLogic.get(copr.id, packagename)[0]
     except IndexError:
-        raise ApiError("No package with name {name} in copr {copr}".format(name=packagename, copr=copr.name))
+        raise ObjectNotFound("No package with name {name} in copr {copr}".format(name=packagename, copr=copr.name))
     return flask.jsonify(to_dict(package))
 
 
@@ -66,8 +67,8 @@ def package_edit(ownername, projectname, package_name, source_type_text=None):
         package = PackagesLogic.get(copr.id, package_name)[0]
         source_type_text = source_type_text or package.source_type_text
     except IndexError:
-        raise ApiError("Package {name} does not exists in copr {copr}."
-                       .format(name=package_name, copr=copr.full_name))
+        raise ObjectNotFound("Package {name} does not exists in copr {copr}."
+                             .format(name=package_name, copr=copr.full_name))
 
     process_package_add_or_edit(copr, source_type_text, package=package)
     return flask.jsonify(to_dict(package))
@@ -81,14 +82,11 @@ def package_reset():
     try:
         package = PackagesLogic.get(copr.id, form.package_name.data)[0]
     except IndexError:
-        raise ApiError("No package with name {name} in copr {copr}"
-                       .format(name=form.package_name.data, copr=copr.name))
-    try:
-        PackagesLogic.reset_package(flask.g.user, package)
-        db.session.commit()
-    except InsufficientRightsException as e:
-        raise ApiError(str(e))
+        raise ObjectNotFound("No package with name {name} in copr {copr}"
+                             .format(name=form.package_name.data, copr=copr.name))
 
+    PackagesLogic.reset_package(flask.g.user, package)
+    db.session.commit()
     return flask.jsonify(to_dict(package))
 
 
@@ -101,16 +99,13 @@ def package_build():
     try:
         package = PackagesLogic.get(copr.id, form.package_name.data)[0]
     except IndexError:
-        raise ApiError("No package with name {name} in copr {copr}"
+        raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
     if form.validate_on_submit():
-        try:
-            build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots, **form.data)
-            db.session.commit()
-        except (InsufficientRightsException, ActionInProgressException, NoPackageSourceException) as e:
-            raise ApiError(str(e))
+        build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots, **form.data)
+        db.session.commit()
     else:
-        raise ApiError(form.errors)
+        raise BadRequest(form.errors)
     return flask.jsonify(build_to_dict(build))
 
 
@@ -122,13 +117,9 @@ def package_delete():
     try:
         package = PackagesLogic.get(copr.id, form.package_name.data)[0]
     except IndexError:
-        raise ApiError("No package with name {name} in copr {copr}"
+        raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
 
-    try:
-        PackagesLogic.delete_package(flask.g.user, package)
-        db.session.commit()
-    except (InsufficientRightsException, ActionInProgressException) as e:
-        raise ApiError(str(e))
-
+    PackagesLogic.delete_package(flask.g.user, package)
+    db.session.commit()
     return flask.jsonify(to_dict(package))

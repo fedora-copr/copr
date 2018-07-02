@@ -5,7 +5,8 @@ from .json2form import get_form_compatible_data, without_empty_fields
 from werkzeug import secure_filename
 from coprs import db, forms, models
 from coprs.helpers import StatusEnum
-from coprs.exceptions import ApiError, InsufficientRightsException, ActionInProgressException
+from coprs.exceptions import (ApiError, InsufficientRightsException, ActionInProgressException,
+                              BadRequest, AccessRestricted)
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
@@ -82,11 +83,8 @@ def get_build_list(ownername, projectname, packagename=None, status=None, **kwar
 @api_login_required
 def cancel_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
-    try:
-        BuildsLogic.cancel_build(flask.g.user, build)
-        db.session.commit()
-    except InsufficientRightsException as e:
-        raise ApiError(e)
+    BuildsLogic.cancel_build(flask.g.user, build)
+    db.session.commit()
     return render_build(build)
 
 
@@ -216,20 +214,16 @@ def create_from_custom():
 
 def process_creating_new_build(copr, form, create_new_build):
     if not form.validate_on_submit():
-        raise ApiError("Bad request parameters: {0}".format(form.errors))
+        raise BadRequest("Bad request parameters: {0}".format(form.errors))
 
     if not flask.g.user.can_build_in(copr):
-        raise ApiError("User {} is not allowed to build in the copr: {}"
-                       .format(flask.g.user.username, copr.full_name))
+        raise AccessRestricted("User {} is not allowed to build in the copr: {}"
+                               .format(flask.g.user.username, copr.full_name))
 
-    # create a new build
-    try:
-        # From URLs it can be created multiple builds at once
-        # so it can return a list
-        build = create_new_build()
-        db.session.commit()
-    except (ActionInProgressException, InsufficientRightsException) as e:
-        raise ApiError(e)
+    # From URLs it can be created multiple builds at once
+    # so it can return a list
+    build = create_new_build()
+    db.session.commit()
 
     if type(build) == list:
         builds = [build] if type(build) != list else build
@@ -242,9 +236,6 @@ def process_creating_new_build(copr, form, create_new_build):
 def delete_build(build_id):
     build = ComplexLogic.get_build_safe(build_id)
     build_dict = to_dict(build)
-    try:
-        BuildsLogic.delete_build(flask.g.user, build)
-        db.session.commit()
-    except (InsufficientRightsException, ActionInProgressException) as ex:
-        raise ApiError(ex)
+    BuildsLogic.delete_build(flask.g.user, build)
+    db.session.commit()
     return flask.jsonify(build_dict)

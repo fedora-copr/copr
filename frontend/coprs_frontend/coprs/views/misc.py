@@ -283,7 +283,7 @@ def api_login_required(f):
                 "error": "Login invalid/expired. Please visit {0}/api to get or renew your API token.".format(url),
             }
             jsonout = helpers.jsonify(output)
-            jsonout.status_code = 500
+            jsonout.status_code = 401
             return jsonout
         return f(*args, **kwargs)
     return decorated_function
