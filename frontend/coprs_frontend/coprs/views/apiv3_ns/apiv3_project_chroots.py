@@ -57,17 +57,22 @@ def edit_project_chroot(ownername, projectname, chrootname):
     if not form.validate_on_submit():
         raise ApiError(form.errors)
 
-    buildroot_pkgs = repos = comps_xml = comps_name = None
+    buildroot_pkgs = repos = comps_xml = comps_name = with_opts = without_opts = None
     if "buildroot_pkgs" in data:
         buildroot_pkgs = form.buildroot_pkgs.data
     if "repos" in data:
         repos = form.repos.data
+    if "with_opts" in data:
+        with_opts = form.with_opts.data
+    if "without_opts" in data:
+        without_opts = form.without_opts.data
     if form.upload_comps.has_file():
         comps_xml = form.upload_comps.data.stream.read()
         comps_name = form.upload_comps.data.filename
     if form.delete_comps.data:
         CoprChrootsLogic.remove_comps(flask.g.user, chroot)
     CoprChrootsLogic.update_chroot(
-        flask.g.user, chroot, buildroot_pkgs, repos, comps=comps_xml, comps_name=comps_name)
+        flask.g.user, chroot, buildroot_pkgs, repos, comps=comps_xml, comps_name=comps_name,
+        with_opts=with_opts, without_opts=without_opts)
     db.session.commit()
     return flask.jsonify(to_dict(chroot))

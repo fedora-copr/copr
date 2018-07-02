@@ -45,7 +45,8 @@ class ProjectChrootProxy(BaseProxy):
         response = request.send()
         return response.munchify()
 
-    def edit(self, ownername, projectname, chrootname, packages=None, repos=None, comps=None, delete_comps=False):
+    def edit(self, ownername, projectname, chrootname, packages=None, repos=None, comps=None, delete_comps=False,
+             with_opts=None, without_opts=None):
         """
         Edit a chroot configuration in a project
 
@@ -56,6 +57,8 @@ class ProjectChrootProxy(BaseProxy):
         :param list repos: buildroot additional repos
         :param str comps: file path to the comps.xml file
         :param bool delete_comps: if True, current comps.xml will be removed
+        :param list with_opts: Mock --with option
+        :param list without_opts: Mock --without option
         :return: Munch
         """
         endpoint = "/project-chroot/edit/{ownername}/{projectname}/{chrootname}"
@@ -68,6 +71,8 @@ class ProjectChrootProxy(BaseProxy):
             "repos": repos,
             "buildroot_pkgs": packages,
             "delete_comps": delete_comps,
+            "with_opts": with_opts,
+            "without_opts": without_opts,
         }
         files = {}
         if comps:

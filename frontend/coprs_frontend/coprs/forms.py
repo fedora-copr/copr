@@ -941,15 +941,15 @@ class CoprForkFormFactory(object):
         return F
 
 
-class ModifyChrootForm(FlaskForm):
+class ModifyChrootForm(ChrootForm):
     buildroot_pkgs = wtforms.TextField('Additional packages to be always present in minimal buildroot')
     repos = wtforms.TextAreaField('Additional repos to be used for builds in chroot',
                                   validators=[UrlRepoListValidator(),
                                               wtforms.validators.Optional()],
                                   filters=[StringListFilter()])
+    comps = None
     upload_comps = FileField("Upload comps.xml")
     delete_comps = wtforms.BooleanField("Delete comps.xml", false_values=FALSE_VALUES)
-
 
 class AdminPlaygroundForm(FlaskForm):
     playground = wtforms.BooleanField("Playground", false_values=FALSE_VALUES)
