@@ -99,8 +99,11 @@ class Response(object):
 
 
 def handle_errors(response):
-    response_json = response.json()
-    if "error" in response_json and response.status_code == 404:
-        raise CoprNoResultException(response_json["error"])
-    if "error" in response_json:
-        raise CoprRequestException(response_json["error"])
+    try:
+        response_json = response.json()
+        if "error" in response_json and response.status_code == 404:
+            raise CoprNoResultException(response_json["error"])
+        if "error" in response_json:
+            raise CoprRequestException(response_json["error"])
+    except ValueError:
+        raise CoprRequestException("Request is not in JSON format, there is probably a bug in the API code.")
