@@ -506,7 +506,7 @@ manager.add_command("update_indexes_quick", UpdateIndexesQuickCommand())
 manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
 manager.add_command("backend_rawhide_to_release", BackendRawhideToReleaseCommand())
 manager.add_command("update_graphs", UpdateGraphsDataCommand())
-manager.add_command("remove_graphs", RemoveGraphsDataCommand())
+manager.add_command("vacuum_graphs", RemoveGraphsDataCommand())
 
 if __name__ == "__main__":
     manager.run()
