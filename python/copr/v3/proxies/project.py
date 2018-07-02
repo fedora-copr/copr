@@ -60,7 +60,7 @@ class ProjectProxy(BaseProxy):
         return response.munchify()
 
     def add(self, ownername, projectname, chroots, description=None, instructions=None, repos=None,
-            disable_createrepo=False, unlisted_on_hp=False, enable_net=True, persistent=False,
+            unlisted_on_hp=False, enable_net=True, persistent=False,
             auto_prune=True, use_bootstrap_container=False):
         """
         Create a project
@@ -71,7 +71,6 @@ class ProjectProxy(BaseProxy):
         :param str description:
         :param str instructions:
         :param list repos:
-        :param bool disable_createrepo: disable automatic repo meta-data regeneration
         :param bool unlisted_on_hp: project will not be shown on Copr homepage
         :param bool enable_net: if builder can access net for builds in this project
         :param bool persistent: if builds and the project are undeletable
@@ -89,7 +88,6 @@ class ProjectProxy(BaseProxy):
             "description": description,
             "instructions": instructions,
             "repos": repos,
-            "disable_createrepo": disable_createrepo,
             "unlisted_on_hp": unlisted_on_hp,
             "enable_net": enable_net,
             "persistent": persistent,
@@ -102,7 +100,7 @@ class ProjectProxy(BaseProxy):
         return response.munchify()
 
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, repos=None,
-            disable_createrepo=None, unlisted_on_hp=None, enable_net=None, persistent=None,
+            unlisted_on_hp=None, enable_net=None, persistent=None,
             auto_prune=None, use_bootstrap_container=None):
         """
         Edit a project
@@ -113,7 +111,6 @@ class ProjectProxy(BaseProxy):
         :param str description:
         :param str instructions:
         :param list repos:
-        :param bool disable_createrepo: disable automatic repo meta-data regeneration
         :param bool unlisted_on_hp: project will not be shown on Copr homepage
         :param bool enable_net: if builder can access net for builds in this project
         :param bool persistent: if builds and the project are undeletable
@@ -131,7 +128,6 @@ class ProjectProxy(BaseProxy):
             "description": description,
             "instructions": instructions,
             "repos": repos,
-            "disable_createrepo": disable_createrepo,
             "unlisted_on_hp": unlisted_on_hp,
             "enable_net": enable_net,
             "persistent": persistent,
