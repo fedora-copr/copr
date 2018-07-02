@@ -22,7 +22,7 @@ def config_from_file(path=None):
         raise CoprConfigException()
 
     if not exists:
-        raise CoprNoConfException()
+        raise CoprNoConfigException()
 
     try:
         for field in ["username", "login", "token", "copr_url"]:
