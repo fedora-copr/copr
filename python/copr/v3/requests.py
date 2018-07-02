@@ -49,7 +49,7 @@ class Request(object):
     def send(self):
         response = requests.request(**self._request_params)
         handle_errors(response)
-        return Response(headers=response.headers, data=response.json(), request=self)
+        return response
 
     @property
     def _request_params(self):
@@ -84,18 +84,12 @@ class FileRequest(Request):
         return params
 
 
-class Response(object):
-    def __init__(self, headers=None, data=None, request=None):
-        self.headers = headers or {}
-        self.data = data or {}
-        self.request = request
-
-    def munchify(self):
-        if "items" in self.data:
-            # @TODO add test case for being a list
-            return List(items=[Munch(obj) for obj in self.data["items"]],
-                        meta=Munch(self.data["meta"]), response=self)
-        return Munch(self.data, __response__=self)
+def munchify(response):
+    data = response.json()
+    if "items" in data:
+        return List(items=[Munch(obj) for obj in data["items"]],
+                    meta=Munch(data["meta"]), response=response)
+    return Munch(data, __response__=response)
 
 
 def handle_errors(response):

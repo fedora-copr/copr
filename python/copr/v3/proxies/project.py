@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import Request, FileRequest, POST
+from ..requests import Request, munchify, FileRequest, POST
 from ..exceptions import CoprValidationException
 
 
@@ -23,7 +23,7 @@ class ProjectProxy(BaseProxy):
         }
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def get_list(self, ownername, pagination=None):
         """
@@ -40,7 +40,7 @@ class ProjectProxy(BaseProxy):
         params.update(pagination or {})
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def search(self, query, pagination=None):
         """
@@ -57,7 +57,7 @@ class ProjectProxy(BaseProxy):
         params.update(pagination or {})
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def add(self, ownername, projectname, chroots, description=None, instructions=None, repos=None,
             unlisted_on_hp=False, enable_net=True, persistent=False,
@@ -97,7 +97,7 @@ class ProjectProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, repos=None,
             unlisted_on_hp=None, enable_net=None, persistent=None,
@@ -137,7 +137,7 @@ class ProjectProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def delete(self, ownername, projectname):
         """
@@ -158,7 +158,7 @@ class ProjectProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def fork(self, ownername, projectname, dstownername, dstprojectname, confirm=False):
         """
@@ -185,4 +185,4 @@ class ProjectProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)

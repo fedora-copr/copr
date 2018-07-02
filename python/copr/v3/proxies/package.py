@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from . import BaseProxy
 from .build import BuildProxy
-from ..requests import Request, POST
+from ..requests import Request, munchify, POST
 
 
 class PackageProxy(BaseProxy):
@@ -23,7 +23,7 @@ class PackageProxy(BaseProxy):
         }
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def get_list(self, ownername, projectname, pagination=None):
         """
@@ -43,7 +43,7 @@ class PackageProxy(BaseProxy):
 
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def add(self, ownername, projectname, packagename, source_type, source_dict):
         """
@@ -70,7 +70,7 @@ class PackageProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def edit(self, ownername, projectname, packagename, source_type=None, source_dict=None):
         """
@@ -97,7 +97,7 @@ class PackageProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def reset(self, ownername, projectname, packagename):
         """
@@ -116,7 +116,7 @@ class PackageProxy(BaseProxy):
         }
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def build(self, ownername, projectname, packagename, buildopts=None):
         """
@@ -154,4 +154,4 @@ class PackageProxy(BaseProxy):
         }
         request = Request(endpoint, api_base_url=self.api_base_url, data=data, method=POST, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)

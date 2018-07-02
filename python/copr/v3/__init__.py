@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-from .requests import Request, Response, GET, POST
 from .helpers import config_from_file
 from .client import Client
 from .proxies import BaseProxy

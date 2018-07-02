@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from . import BaseProxy
-from ..requests import Request
+from ..requests import Request, munchify
 
 
 class BuildChrootProxy(BaseProxy):
@@ -20,7 +20,7 @@ class BuildChrootProxy(BaseProxy):
         }
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def get_list(self, build_id, pagination=None):
         """
@@ -39,7 +39,7 @@ class BuildChrootProxy(BaseProxy):
         params.update(pagination or {})
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def get_build_config(self, build_id, chrootname):
         """
@@ -56,4 +56,4 @@ class BuildChrootProxy(BaseProxy):
         }
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)

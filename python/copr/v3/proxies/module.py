@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import Request, FileRequest, POST
+from ..requests import Request, FileRequest, munchify, POST
 
 
 class ModuleProxy(BaseProxy):
@@ -29,7 +29,7 @@ class ModuleProxy(BaseProxy):
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def build_from_file(self, ownername, projectname, path):
         """
@@ -52,4 +52,4 @@ class ModuleProxy(BaseProxy):
         request = FileRequest(endpoint, api_base_url=self.api_base_url, method=POST,
                               params=params, files=files, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)

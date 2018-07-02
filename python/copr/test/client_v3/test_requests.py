@@ -1,27 +1,21 @@
 import pytest
 import mock
-from copr.v3 import Response
-from copr.v3 import Request
-from copr.v3.requests import handle_errors, CoprRequestException
+from requests import Response
+from copr.v3.requests import Request, handle_errors, CoprRequestException, munchify
+
 
 class TestResponse(object):
-    def test_bar(self):
-        r1 = Response()
-        assert r1.data == {}
-        assert r1.headers == {}
-
-        r2 = Response(headers={"Status": "200 OK"}, data={"foo": "bar"})
-        assert r2.data["foo"] == "bar"
-        assert r2.headers["Status"] == "200 OK"
-
     def test_munchify(self):
-        response = Response(headers={"Status": "200 OK"}, data={"id": 1, "foo": "bar"})
-        entity = response.munchify()
+        response = mock.Mock(spec=Response)
+        response.json.return_value = {"id": 1, "foo": "bar"}
+        response.headers = {"Status": "200 OK"}
+
+        entity = munchify(response)
         assert entity.id == 1
         assert entity.foo == "bar"
         assert entity.__response__ == response
         assert entity.__response__.headers["Status"] == "200 OK"
-        assert entity.__response__.data["foo"] == "bar"
+        assert entity.__response__.json()["foo"] == "bar"
 
 
 class TestRequest(object):
@@ -42,5 +36,3 @@ class TestRequest(object):
         args, kwargs = request.call_args
         assert kwargs["method"] == "GET"
         assert kwargs["url"] == "http://copr/api_3/foo"
-
-        assert isinstance(resp1, Response)

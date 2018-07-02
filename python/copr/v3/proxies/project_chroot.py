@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import Request, FileRequest, POST
+from ..requests import Request, FileRequest, munchify, POST
 
 
 class ProjectChrootProxy(BaseProxy):
@@ -24,7 +24,7 @@ class ProjectChrootProxy(BaseProxy):
         }
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def get_build_config(self, ownername, projectname, chrootname):
         """
@@ -43,7 +43,7 @@ class ProjectChrootProxy(BaseProxy):
         }
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def edit(self, ownername, projectname, chrootname, packages=None, repos=None, comps=None, delete_comps=False,
              with_opts=None, without_opts=None):
@@ -82,4 +82,4 @@ class ProjectChrootProxy(BaseProxy):
         request = FileRequest(endpoint, api_base_url=self.api_base_url, method=POST,
                               params=params, data=data, files=files, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)

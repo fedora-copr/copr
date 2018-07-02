@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import os
 from . import BaseProxy
-from ..requests import Request, FileRequest, POST
+from ..requests import Request, FileRequest, munchify, POST
 from ..exceptions import CoprValidationException
 
 
@@ -17,7 +17,7 @@ class BuildProxy(BaseProxy):
         endpoint = "/build/{}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def get_list(self, ownername, projectname, packagename=None, status=None, pagination=None):
         """
@@ -41,7 +41,7 @@ class BuildProxy(BaseProxy):
 
         request = Request(endpoint, api_base_url=self.api_base_url, params=params)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def cancel(self, build_id):
         """
@@ -53,7 +53,7 @@ class BuildProxy(BaseProxy):
         endpoint = "/build/cancel/{}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def create_from_urls(self, ownername, projectname, urls, buildopts=None):
         """
@@ -223,7 +223,7 @@ class BuildProxy(BaseProxy):
         data.update(buildopts or {})
         request = request_class(**kwargs)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def delete(self, build_id):
         """
@@ -235,4 +235,4 @@ class BuildProxy(BaseProxy):
         endpoint = "/build/delete/{}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
