@@ -1,10 +1,16 @@
 import os
+from ..helpers import config_from_file
 from ..requests import Request
 
 
 class BaseProxy(object):
     def __init__(self, config):
         self.config = config
+
+    @classmethod
+    def create_from_config_file(cls, path=None):
+        config = config_from_file(path)
+        return cls(config)
 
     @property
     def api_base_url(self):

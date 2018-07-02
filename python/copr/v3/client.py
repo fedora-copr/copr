@@ -1,3 +1,4 @@
+from .helpers import config_from_file
 from .proxies import BaseProxy
 from .proxies.project import ProjectProxy
 from .proxies.build import BuildProxy
@@ -17,3 +18,8 @@ class Client(object):
         self.module_proxy = ModuleProxy(config)
         self.project_chroot_proxy = ProjectChrootProxy(config)
         self.build_chroot_proxy = BuildChrootProxy(config)
+
+    @classmethod
+    def create_from_config_file(cls, path=None):
+        config = config_from_file(path)
+        return cls(config)
