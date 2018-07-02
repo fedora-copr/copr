@@ -332,15 +332,15 @@ class CoprsLogic(object):
         return actions
 
     @classmethod
-    def get_yum_repos(cls, copr):
+    def get_yum_repos(cls, copr, empty=False):
         repos = {}
         release_tmpl = "{chroot.os_release}-{chroot.os_version}-{chroot.arch}"
         build = models.Build.query.filter(models.Build.copr_id == copr.id).first()
-        if build:
+        if build or empty:
             for chroot in copr.active_chroots:
                 release = release_tmpl.format(chroot=chroot)
                 repos[release] = fix_protocol_for_backend(
-                    os.path.join(build.copr.repo_url, release + '/'))
+                    os.path.join(copr.repo_url, release + '/'))
         return repos
 
     @classmethod
