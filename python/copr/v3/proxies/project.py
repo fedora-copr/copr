@@ -102,8 +102,8 @@ class ProjectProxy(BaseProxy):
         return response.munchify()
 
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, repos=None,
-            disable_createrepo=False, unlisted_on_hp=False, enable_net=True, persistent=False,
-            auto_prune=True, use_bootstrap_container=False):
+            disable_createrepo=None, unlisted_on_hp=None, enable_net=None, persistent=None,
+            auto_prune=None, use_bootstrap_container=None):
         """
         Edit a project
 

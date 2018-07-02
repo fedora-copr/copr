@@ -125,6 +125,8 @@ def edit_project(ownername, projectname):
     for field in form:
         if field.data is None or field.name in ["csrf_token", "chroots"]:
             continue
+        if field.name not in data.keys():
+            continue
         setattr(copr, field.name, field.data)
 
     if form.chroots.data:
