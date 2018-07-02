@@ -387,6 +387,14 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     def get_search_related_copr_id(self):
         return self.id
 
+    @property
+    def enable_net(self):
+        return self.build_enable_net
+
+    @enable_net.setter
+    def enable_net(self, value):
+        self.build_enable_net = value
+
 
 class CoprPermission(db.Model, helpers.Serializer):
 

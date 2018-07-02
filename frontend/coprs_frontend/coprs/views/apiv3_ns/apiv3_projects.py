@@ -95,7 +95,7 @@ def add_project(ownername):
             instructions=form.instructions.data,
             check_for_duplicates=True,
             unlisted_on_hp=form.unlisted_on_hp.data,
-            build_enable_net=form.build_enable_net.data,
+            build_enable_net=form.enable_net.data,
             group=group,
             persistent=form.persistent.data,
             auto_prune=form.auto_prune.data,
