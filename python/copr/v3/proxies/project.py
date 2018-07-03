@@ -100,8 +100,7 @@ class ProjectProxy(BaseProxy):
         return munchify(response)
 
     def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, repos=None,
-            unlisted_on_hp=None, enable_net=None, persistent=None,
-            auto_prune=None, use_bootstrap_container=None):
+            unlisted_on_hp=None, enable_net=None, auto_prune=None, use_bootstrap_container=None):
         """
         Edit a project
 
@@ -113,7 +112,6 @@ class ProjectProxy(BaseProxy):
         :param list repos:
         :param bool unlisted_on_hp: project will not be shown on Copr homepage
         :param bool enable_net: if builder can access net for builds in this project
-        :param bool persistent: if builds and the project are undeletable
         :param bool auto_prune: if backend auto-deletion script should be run for the project
         :param bool use_bootstrap_container: if mock bootstrap container is used to initialize the buildroot
         :return: Munch
@@ -130,7 +128,6 @@ class ProjectProxy(BaseProxy):
             "repos": repos,
             "unlisted_on_hp": unlisted_on_hp,
             "enable_net": enable_net,
-            "persistent": persistent,
             "auto_prune": auto_prune,
             "use_bootstrap_container": use_bootstrap_container,
         }
