@@ -701,7 +701,7 @@ class Build(db.Model, helpers.Serializer):
     # relations
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User", backref=db.backref("builds"))
-    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"))
+    copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True)
     copr = db.relationship("Copr", backref=db.backref("builds"))
     package_id = db.Column(db.Integer, db.ForeignKey("package.id"))
     package = db.relationship("Package")
@@ -1127,6 +1127,8 @@ class BuildChroot(db.Model, helpers.Serializer):
     """
     Representation of Build<->MockChroot relation
     """
+
+    __table_args__ = (db.Index('build_chroot_status_started_on_idx', "status", "started_on"),)
 
     mock_chroot_id = db.Column(db.Integer, db.ForeignKey("mock_chroot.id"),
                                primary_key=True)
