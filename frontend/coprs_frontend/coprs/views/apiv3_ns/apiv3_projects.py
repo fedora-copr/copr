@@ -1,7 +1,7 @@
 import os
 import flask
 from . import query_params, get_copr, pagination, Paginator, GET, POST, PUT, DELETE
-from .json2form import get_form_compatible_data
+from .json2form import get_form_compatible_data, get_input
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
@@ -32,6 +32,14 @@ def to_dict(copr):
         "enable_net": copr.build_enable_net,
         "use_bootstrap_container": copr.use_bootstrap_container,
     }
+
+
+def validate_chroots(input, allowed_chroots):
+    inserted = set(input["chroots"] or [])
+    allowed = {x.name for x in allowed_chroots}
+    unexpected = inserted - allowed
+    if unexpected:
+        raise BadRequest("Unexpected chroot: {}".format(", ".join(unexpected)))
 
 
 @apiv3_ns.route("/project", methods=GET)
@@ -80,6 +88,7 @@ def add_project(ownername):
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
+    validate_chroots(get_input(), MockChrootsLogic.get_multiple())
 
     group = None
     if ownername[0] == "@":
@@ -119,6 +128,7 @@ def edit_project(ownername, projectname):
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
+    validate_chroots(get_input(), MockChrootsLogic.get_multiple())
 
     for field in form:
         if field.data is None or field.name in ["csrf_token", "chroots"]:
