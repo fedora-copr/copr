@@ -30,7 +30,6 @@ BuildRequires: python3-requests
 
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
-BuildRequires: python3-mock
 BuildRequires: python3-munch
 BuildRequires: python3-lockfile
 BuildRequires: python3-daemon

@@ -1,6 +1,4 @@
 # coding: utf-8
-import six
-
 
 class ApiError(Exception):
     def __init__(self, code, msg, data=None, **kwargs):
@@ -14,10 +12,6 @@ class ApiError(Exception):
 
     def __str__(self):
         return str(self.data)
-
-    if six.PY2:
-        def __unicode__(self):
-            return unicode(self.data)
 
 
 class AuthFailed(ApiError):

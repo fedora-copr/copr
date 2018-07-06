@@ -4,7 +4,6 @@ import os
 import pytest
 
 from pyrpkg import rpkgError
-from mock import call
 from munch import Munch
 
 from base import Base
@@ -123,13 +122,13 @@ class TestPackageImport(Base):
         branches = ['f25', 'f26']
         setup_git_repo(reponame, branches)
         assert mc_subprocess_check_output.has_calls([
-            call(['/usr/share/dist-git/setup_git_package', 'foo']),
-            call(['/usr/share/dist-git/mkbranch', 'f25', 'foo']),
-            call(['/usr/share/dist-git/mkbranch', 'f26', 'foo']),
+            mock.call(['/usr/share/dist-git/setup_git_package', 'foo']),
+            mock.call(['/usr/share/dist-git/mkbranch', 'f25', 'foo']),
+            mock.call(['/usr/share/dist-git/mkbranch', 'f26', 'foo']),
         ])
 
     def refresh_cgit_listing(self, mc_subprocess_check_output):
         refresh_cgit_listing(self.opts)
         assert mc_subprocess_check_output.has_calls([
-            call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
+            mock.call(["/usr/share/copr/dist_git/bin/cgit_pkg_list", self.opts.cgit_pkg_list_location])
         ])

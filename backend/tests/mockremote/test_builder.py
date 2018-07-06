@@ -13,8 +13,8 @@ import os
 
 from backend.job import BuildJob
 
-import mock
-from mock import patch, MagicMock
+from unittest import mock
+from unittest.mock import patch, MagicMock
 import pytest
 from types import MethodType
 

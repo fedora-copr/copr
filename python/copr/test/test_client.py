@@ -1,9 +1,14 @@
 import os
 
-import mock
 from requests.models import Response
 
 from copr import CoprClient
+
+try:
+     from unittest import mock
+except ImportError:
+     # Python 2 version depends on mock
+     import mock
 
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)

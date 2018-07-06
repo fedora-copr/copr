@@ -14,8 +14,8 @@ from backend.helpers import get_redis_connection
 from backend.vm_manage import EventTopics
 from backend.vm_manage.terminate import Terminator, terminate_vm
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 import pytest
 
 

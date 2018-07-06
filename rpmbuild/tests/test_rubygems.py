@@ -1,8 +1,14 @@
-import mock
-import unittest
 from munch import Munch
-from ..copr_rpmbuild.providers.rubygems import RubyGemsProvider
+from copr_rpmbuild.providers.rubygems import RubyGemsProvider
 from . import TestCase
+
+try:
+     from unittest import mock
+     builtins = 'builtins'
+except ImportError:
+     # Python 2 version depends on mock
+     import mock
+     builtins = '__builtin__'
 
 
 class TestRubyGemsProvider(TestCase):
@@ -15,16 +21,16 @@ class TestRubyGemsProvider(TestCase):
         provider = RubyGemsProvider(self.source_json, self.resultdir, self.config)
         self.assertEqual(provider.gem_name, "A_123")
 
-    @mock.patch("rpmbuild.copr_rpmbuild.providers.rubygems.run_cmd")
-    @mock.patch("builtins.open")
+    @mock.patch("copr_rpmbuild.providers.rubygems.run_cmd")
+    @mock.patch("{}.open".format(builtins))
     def test_produce_srpm(self, mock_open, run_cmd):
         provider = RubyGemsProvider(self.source_json, self.resultdir, self.config)
         provider.produce_srpm()
         assert_cmd = ["gem2rpm", "A_123", "--srpm", "-C", "/path/to/resultdir", "--fetch"]
         run_cmd.assert_called_with(assert_cmd)
 
-    @mock.patch("rpmbuild.copr_rpmbuild.providers.rubygems.run_cmd")
-    @mock.patch("builtins.open")
+    @mock.patch("copr_rpmbuild.providers.rubygems.run_cmd")
+    @mock.patch("{}.open".format(builtins))
     def test_empty_license(self, mock_open, run_cmd):
         stderr = ("error: line 8: Empty tag: License:"
                   "Command failed: rpmbuild -bs --nodeps --define '_sourcedir /tmp/gem2rpm-foo-20170905-3367-c2flks'"

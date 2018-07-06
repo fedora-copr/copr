@@ -45,8 +45,8 @@ class MockBuilder(object):
         self.use_bootstrap_container = task.get("use_bootstrap_container")
         self.pkg_manager_conf = "dnf" if "custom-1" in task.get("chroot") else "yum"
         self.timeout = task.get("timeout", 3600)
-        self.with_opts = task.get("with_opts")
-        self.without_opts = task.get("without_opts")
+        self.with_opts = task.get("with_opts", [])
+        self.without_opts = task.get("without_opts", [])
         self.sourcedir = sourcedir
         self.resultdir = resultdir
         self.config = config

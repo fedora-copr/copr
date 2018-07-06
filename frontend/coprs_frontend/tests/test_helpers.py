@@ -1,11 +1,6 @@
 from copy import deepcopy
+from unittest import mock
 from flask import Flask, current_app
-import six
-
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
 
 from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \

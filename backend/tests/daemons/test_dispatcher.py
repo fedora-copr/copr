@@ -16,8 +16,8 @@ from backend.exceptions import CoprWorkerError, CoprSpawnFailError, MockRemoteEr
 from backend.job import BuildJob
 from backend.vm_manage.models import VmDescriptor
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 
 from backend.daemons.dispatcher import Worker
 

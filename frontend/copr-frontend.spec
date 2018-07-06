@@ -80,7 +80,6 @@ BuildRequires: python3-netaddr
 BuildRequires: python3-redis
 BuildRequires: python3-dateutil
 BuildRequires: python3-pytest
-BuildRequires: python3-mock
 BuildRequires: python3-decorator
 BuildRequires: python3-markdown
 BuildRequires: python3-pytz

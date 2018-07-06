@@ -1,10 +1,5 @@
 from copy import deepcopy
-import six
-
-if six.PY3:
-    from unittest import mock
-else:
-    import mock
+from unittest import mock
 
 from tests.coprs_test_case import CoprsTestCase
 

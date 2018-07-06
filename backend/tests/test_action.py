@@ -8,8 +8,8 @@ from munch import Munch
 
 import pytest
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 
 from backend.actions import Action, ActionType, ActionResult
 from backend.exceptions import CreateRepoError, CoprKeygenRequestError

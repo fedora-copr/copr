@@ -7,8 +7,8 @@ import tempfile
 from munch import Munch
 
 import pytest
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 
 from copr_prune_results import Pruner
 from copr_prune_results import main as prune_main

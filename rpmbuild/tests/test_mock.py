@@ -1,13 +1,19 @@
 import re
 import unittest
-import mock
 import configparser
-from os.path import realpath, dirname
-from ..copr_rpmbuild.builders.mock import MockBuilder
 import subprocess
 import datetime
+from os.path import realpath, dirname
 
-from unittest.mock import MagicMock
+from copr_rpmbuild.builders.mock import MockBuilder
+
+try:
+     from unittest import mock
+     builtins = 'builtins'
+except ImportError:
+     # Python 2 version depends on mock
+     import mock
+     builtins = '__builtin__'
 
 class TestMockBuilder(unittest.TestCase):
     def setUp(self):
@@ -35,6 +41,8 @@ class TestMockBuilder(unittest.TestCase):
             "task_id": "10-fedora-24-x86_64",
             "timeout": 21600,
             "use_bootstrap_container": False,
+            "with_opts": [],
+            "without_opts": [],
         }
         self.sourcedir = "/path/to/sourcedir"
         self.resultdir = "/path/to/resultdir"
@@ -71,12 +79,12 @@ class TestMockBuilder(unittest.TestCase):
         self.assertEqual(config_opts["use_bootstrap_container"], False)
         self.assertEqual(config_opts["yum.conf"], [])
 
-    @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.get_mock_uniqueext")
-    @mock.patch("rpmbuild.copr_rpmbuild.builders.mock.subprocess.Popen")
+    @mock.patch("copr_rpmbuild.builders.mock.get_mock_uniqueext")
+    @mock.patch("copr_rpmbuild.builders.mock.GentlyTimeoutedPopen")
     def test_produce_rpm(self, popen_mock, get_mock_uniqueext_mock):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         get_mock_uniqueext_mock.return_value = '2'
-        process = MagicMock(returncode=0)
+        process = mock.MagicMock(returncode=0)
         popen_mock.return_value = process
         builder.produce_rpm("/path/to/pkg.src.rpm", "/path/to/configs", "/path/to/results")
         assert_cmd = ['unbuffer', '/usr/bin/mock',
@@ -85,9 +93,11 @@ class TestMockBuilder(unittest.TestCase):
                       '--resultdir', '/path/to/results',
                       '--uniqueext', '2',
                       '-r', 'child']
-        popen_mock.assert_called_with(assert_cmd, stdin=subprocess.PIPE, preexec_fn=builder.preexec_fn_build_stream)
+        popen_mock.assert_called_with(assert_cmd, stdin=subprocess.PIPE,
+                                      preexec_fn=builder.preexec_fn_build_stream,
+                                      timeout=21600)
 
-    @mock.patch('builtins.open', new_callable=mock.mock_open())
+    @mock.patch('{}.open'.format(builtins), new_callable=mock.mock_open())
     def test_touch_success_file(self, mock_open):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         builder.touch_success_file()

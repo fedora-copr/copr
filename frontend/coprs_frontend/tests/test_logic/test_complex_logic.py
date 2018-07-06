@@ -1,5 +1,5 @@
 import json
-import mock
+from unittest import mock
 
 from coprs.helpers import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic

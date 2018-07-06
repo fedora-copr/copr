@@ -13,8 +13,8 @@ import sys
 from backend.daemons.backend import CoprBackend, run_backend
 from backend.exceptions import CoprBackendError
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 
 STDOUT = "stdout"
 STDERR = "stderr"

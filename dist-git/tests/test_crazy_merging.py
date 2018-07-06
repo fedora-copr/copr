@@ -5,8 +5,9 @@ import pytest
 import shutil
 import time
 import os
-import mock
 import logging
+
+from unittest import mock
 
 from munch import Munch
 from subprocess import check_output

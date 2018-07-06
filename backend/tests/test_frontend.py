@@ -7,8 +7,8 @@ from requests import RequestException
 
 from backend.frontend import FrontendClient
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 import pytest
 
 @pytest.yield_fixture

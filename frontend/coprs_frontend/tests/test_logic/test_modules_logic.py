@@ -1,6 +1,7 @@
 import yaml
 from munch import Munch
-from mock import patch, ANY
+from unittest import mock
+
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.modules_logic import ModuleBuildFacade, ModulemdGenerator, MBSResponse, MBSProxy
 from modulemd.components.rpm import ModuleComponentRPM
@@ -84,7 +85,7 @@ class TestModulemdGenerator(CoprsTestCase):
         assert component.name == self.b1.package_name
         assert component.rationale == "A reason why package is in the module"
 
-        with patch("coprs.app.config", self.config):
+        with mock.patch("coprs.app.config", self.config):
             assert component.repository.startswith("http://distgiturl.org")
             assert component.repository.endswith(".git")
             assert chroot.dist_git_url.startswith(component.repository)
@@ -96,9 +97,9 @@ class TestModulemdGenerator(CoprsTestCase):
         builds = [self.b1.id, self.b3.id]
         generator = ModulemdGenerator(config=self.config)
 
-        with patch("coprs.logic.modules_logic.ModulemdGenerator.add_component") as add_component:
+        with mock.patch("coprs.logic.modules_logic.ModulemdGenerator.add_component") as add_component:
             generator.add_components(packages, filter_packages, builds)
-            add_component.assert_called_with(self.p2.name, self.b3, self.b3.build_chroots[-1], ANY, 1)
+            add_component.assert_called_with(self.p2.name, self.b3, self.b3.build_chroots[-1], mock.ANY, 1)
             assert add_component.call_count == 2
 
     def test_components_different_chroots(self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
@@ -146,7 +147,7 @@ class TestMBSResponse(CoprsTestCase):
 
 class TestMBSProxy(CoprsTestCase):
 
-    @patch("requests.post")
+    @mock.patch("requests.post")
     def test_post(self, post_mock):
         url = "http://some-module-build-service.org"
         proxy = MBSProxy(url)

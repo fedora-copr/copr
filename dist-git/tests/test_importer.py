@@ -6,9 +6,7 @@ import os
 import copy
 import pytest
 
-from mock import call
 from munch import Munch
-
 from base import Base
 
 from unittest import mock
@@ -120,10 +118,10 @@ class TestImporter(Base):
         assert mc_import_package.call_args[0][3] == 'somepath.src.rpm'
 
         print(self.importer.post_back_safe.has_calls([
-            call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH,
-                  'pkg_version': '1.2', 'git_hash': '123', 'repo_name': 'foo'}),
-            call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH2,
-                  'pkg_version': '1.2', 'git_hash': '124', 'repo_name': 'foo'})
+            mock.call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH,
+                       'pkg_version': '1.2', 'git_hash': '123', 'repo_name': 'foo'}),
+            mock.call({'build_id': 125, 'pkg_name': 'foo', 'branch': self.BRANCH2,
+                       'pkg_version': '1.2', 'git_hash': '124', 'repo_name': 'foo'})
         ]))
 
     def test_run(self, mc_time, mc_worker):

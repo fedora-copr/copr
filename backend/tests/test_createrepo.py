@@ -6,8 +6,8 @@ import shutil
 import time
 import pytest
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 
 from backend.createrepo import createrepo, createrepo_unsafe, add_appdata, run_cmd_unsafe
 from backend.exceptions import CreateRepoError

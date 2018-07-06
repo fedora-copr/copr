@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 
-from ..copr_rpmbuild import helpers
+from copr_rpmbuild import helpers
 
 CONFIG = """
 [main]
@@ -35,7 +35,7 @@ class TestCase(unittest.TestCase):
 
     def read_config_data(self, config_data):
         fd, config_path = tempfile.mkstemp()
-        f = open(fd, 'w')
+        f = open(config_path, 'w')
         f.write(config_data)
         f.close()
         return config_path, helpers.read_config(config_path)

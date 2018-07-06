@@ -18,6 +18,7 @@ Summary: Run COPR build tasks
 Release: 1%{?dist}
 URL: https://pagure.io/copr/copr
 License: GPLv2+
+BuildArch: noarch
 
 # Source is created by:
 # git clone https://pagure.io/copr/copr.git
@@ -26,16 +27,26 @@ License: GPLv2+
 # rpkg spec --sources
 Source0: {{{ git_dir_pack }}}
 
-BuildArch: noarch
 BuildRequires: %python-devel
 BuildRequires: %rpm_python
 BuildRequires: asciidoc
 BuildRequires: %python-setuptools
+BuildRequires: %python-pytest
+BuildRequires: %python_pfx-munch
+BuildRequires: %python-requests
+BuildRequires: %python_pfx-jinja2
+BuildRequires: %python-configparser
+
+%if %{?python} == "python2"
+BuildRequires: python2-mock
+%endif
+
 Requires: %python
 Requires: %python_pfx-jinja2
 Requires: %python_pfx-munch
 Requires: %python-configparser
 Requires: %python-simplejson
+Requires: %python-requests
 
 Requires: mock
 Requires: git
@@ -53,6 +64,9 @@ build build-id 12345 for chroot epel-7-x86_64.
 
 %prep
 %setup -q
+
+%check
+PYTHON=%{python} ./run_tests.sh
 
 %build
 name="%{name}" version="%{version}" summary="%{summary}" %python_build

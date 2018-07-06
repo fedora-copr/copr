@@ -1,14 +1,17 @@
-import mock
-import unittest
 import tempfile
 import os
 import configparser
 import shutil
-from ..copr_rpmbuild.providers.scm import ScmProvider
-from ..copr_rpmbuild.helpers import read_config
+
+from copr_rpmbuild.providers.scm import ScmProvider
+from copr_rpmbuild.helpers import read_config
 from . import TestCase
 
-from mock import patch, MagicMock
+try:
+     from unittest import mock
+except ImportError:
+     # Python 2 version depends on mock
+     import mock
 
 RPKG_CONF_JINJA = """
 [rpkg]
@@ -62,7 +65,7 @@ class TestScmProvider(TestCase):
         source_json = self.source_json.copy()
         source_json["clone_url"] = "http://copr-dist-git.fedorainfracloud.org/git/clime/project/pkg.git"
 
-        with patch("rpmbuild.copr_rpmbuild.providers.scm.CONF_DIRS", new=[rpkg_tmpdir]):
+        with mock.patch("copr_rpmbuild.providers.scm.CONF_DIRS", new=[rpkg_tmpdir]):
             provider = ScmProvider(source_json, self.resultdir, self.config)
             rpkg_config_path = provider.generate_rpkg_config()
 
@@ -74,7 +77,7 @@ class TestScmProvider(TestCase):
 
         source_json["clone_url"] = "http://unknownurl/git/clime/project/pkg.git"
 
-        with patch("rpmbuild.copr_rpmbuild.providers.scm.CONF_DIRS", new=[rpkg_tmpdir]):
+        with mock.patch("copr_rpmbuild.providers.scm.CONF_DIRS", new=[rpkg_tmpdir]):
             provider = ScmProvider(source_json, self.resultdir, self.config)
             rpkg_config_path = provider.generate_rpkg_config()
             self.assertEqual(rpkg_config_path, "/etc/rpkg.conf")
@@ -83,7 +86,7 @@ class TestScmProvider(TestCase):
 
     def test_get_rpkg_command(self):
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
-        provider.generate_rpkg_config = MagicMock(return_value="/etc/rpkg.conf")
+        provider.generate_rpkg_config = mock.MagicMock(return_value="/etc/rpkg.conf")
         assert_cmd = ["rpkg", "-C", "/etc/rpkg.conf", "srpm",
                       "--outdir", self.resultdir, "--spec", provider.spec_path]
         self.assertEqual(provider.get_rpkg_command(), assert_cmd)
@@ -98,7 +101,7 @@ class TestScmProvider(TestCase):
         assert_cmd = ["tito", "build", "--test", "--srpm", "--output", self.resultdir]
         self.assertEqual(provider.get_tito_test_command(), assert_cmd)
 
-    @mock.patch("rpmbuild.copr_rpmbuild.providers.scm.get_mock_uniqueext")
+    @mock.patch("copr_rpmbuild.providers.scm.get_mock_uniqueext")
     def test_get_make_srpm_command(self, get_mock_uniqueext_mock):
         get_mock_uniqueext_mock.return_value = '2'
         provider = ScmProvider(self.source_json, self.resultdir, self.config)

@@ -1,8 +1,15 @@
-import mock
-import unittest
 import configparser
-from ..copr_rpmbuild.providers.spec import SpecUrlProvider
+
+from copr_rpmbuild.providers.spec import SpecUrlProvider
 from . import TestCase
+
+try:
+     from unittest import mock
+     builtins = 'builtins'
+except ImportError:
+     # Python 2 version depends on mock
+     import mock
+     builtins = '__builtin__'
 
 
 class TestSpecUrlProvider(TestCase):
@@ -16,8 +23,8 @@ class TestSpecUrlProvider(TestCase):
         self.assertEqual(provider.url, "http://foo.ex/somepackage.spec")
 
     @mock.patch('requests.get')
-    @mock.patch("rpmbuild.copr_rpmbuild.providers.spec.run_cmd")
-    @mock.patch('builtins.open', new_callable=mock.mock_open())
+    @mock.patch("copr_rpmbuild.providers.spec.run_cmd")
+    @mock.patch('{}.open'.format(builtins), new_callable=mock.mock_open())
     def test_produce_srpm(self, mock_open, run_cmd, mock_get):
         provider = SpecUrlProvider(self.source_json, self.resultdir, self.config)
         provider.produce_srpm()
@@ -26,7 +33,7 @@ class TestSpecUrlProvider(TestCase):
                                    cwd=provider.workdir)
 
     @mock.patch('requests.get')
-    @mock.patch('builtins.open', new_callable=mock.mock_open())
+    @mock.patch('{}.open'.format(builtins), new_callable=mock.mock_open())
     def test_save_spec(self, mock_open, mock_get):
         provider = SpecUrlProvider(self.source_json, self.resultdir, self.config)
         provider.save_spec()

@@ -2,8 +2,7 @@ import json
 import flask
 import pytest
 
-import mock
-
+from unittest import mock
 
 from coprs import models
 from coprs.helpers import ActionTypeEnum

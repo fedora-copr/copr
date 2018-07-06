@@ -1,8 +1,9 @@
 import unittest
 import tempfile
+import shutil
 import os
 
-from ..copr_rpmbuild.helpers import string2list, locate_srpm
+from copr_rpmbuild.helpers import string2list, locate_srpm
 
 class TestHelpers(unittest.TestCase):
     def test_string2list(self):
@@ -13,7 +14,8 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(string2list(',,foo\tbar\tbaz'), ['foo', 'bar', 'baz'])
 
     def test_locate_srpm(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            srpm_path = os.path.join(tmpdir, "dummy.src.rpm")
-            open(srpm_path, "w").close()
-            self.assertEqual(srpm_path, locate_srpm(tmpdir))
+        tmpdir = tempfile.mkdtemp()
+        srpm_path = os.path.join(tmpdir, "dummy.src.rpm")
+        open(srpm_path, "w").close()
+        self.assertEqual(srpm_path, locate_srpm(tmpdir))
+        shutil.rmtree(tmpdir)

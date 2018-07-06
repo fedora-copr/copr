@@ -12,8 +12,8 @@ from backend.exceptions import CoprSpawnFailError
 from backend.helpers import get_redis_connection
 from backend.vm_manage.spawn import Spawner, spawn_instance, do_spawn_and_publish
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 import pytest
 
 

@@ -9,8 +9,8 @@ import tempfile
 import shutil
 import os
 
-import mock
-from mock import patch, MagicMock
+from unittest import mock
+from unittest.mock import patch, MagicMock
 import pytest
 
 from backend.mockremote import MockRemote

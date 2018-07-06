@@ -22,8 +22,8 @@ from backend.daemons.vm_master import VmMaster
 from backend.constants import JOB_GRAB_TASK_END_PUBSUB
 from backend.exceptions import VmError, VmSpawnLimitReached
 
-import mock
-from mock import patch, MagicMock
+from unittest import mock
+from unittest.mock import patch, MagicMock
 import pytest
 
 

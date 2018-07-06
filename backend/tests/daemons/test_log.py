@@ -7,10 +7,10 @@ import time
 import tempfile
 import shutil
 import os
-
-import mock
-from mock import patch, MagicMock
 import pytest
+
+from unittest import mock
+from unittest.mock import patch, MagicMock
 
 import backend.daemons.log as log_module
 from backend.daemons.log import RedisLogHandler

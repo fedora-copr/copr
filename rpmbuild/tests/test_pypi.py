@@ -1,7 +1,13 @@
-import mock
-import unittest
-from ..copr_rpmbuild.providers.pypi import PyPIProvider
+from copr_rpmbuild.providers.pypi import PyPIProvider
 from . import TestCase
+
+try:
+     from unittest import mock
+     builtins = 'builtins'
+except ImportError:
+     # Python 2 version depends on mock
+     import mock
+     builtins = '__builtin__'
 
 
 class TestPyPIProvider(TestCase):
@@ -18,8 +24,8 @@ class TestPyPIProvider(TestCase):
        self.assertEqual(provider.pypi_package_name, "motionpaint")
        self.assertEqual(provider.python_versions, [2, 3])
 
-    @mock.patch("rpmbuild.copr_rpmbuild.providers.pypi.run_cmd")
-    @mock.patch("builtins.open")
+    @mock.patch("copr_rpmbuild.providers.pypi.run_cmd")
+    @mock.patch("{}.open".format(builtins))
     def test_produce_srpm(self, mock_open, run_cmd):
         provider = PyPIProvider(self.source_json, "/some/tmp/directory", self.config)
         provider.produce_srpm()

@@ -16,8 +16,8 @@ import tempfile
 import shutil
 import os
 
-import mock
-from mock import patch, MagicMock, call
+from unittest import mock
+from unittest.mock import patch, MagicMock, call
 import pytest
 
 from backend.daemons.job_grab import CoprJobGrab

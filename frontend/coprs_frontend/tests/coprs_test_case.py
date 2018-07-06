@@ -18,15 +18,10 @@ from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import BranchesLogic
 
-import six
 from coprs.helpers import StatusEnum
 
-if six.PY3:
-    from unittest import mock
-    from unittest.mock import MagicMock
-else:
-    import mock
-    from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 
 
 class CoprsTestCase(object):

@@ -1,7 +1,6 @@
 %global with_test 1
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
-%global __python2 %{__python}
 %endif
 
 Name:       {{{ git_dir_name }}}
@@ -30,7 +29,6 @@ BuildRequires: python3-flask
 # for tests
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
-BuildRequires: python3-mock
 
 Requires:   haveged
 Requires:   gnupg2
@@ -47,7 +45,6 @@ Requires:   python3-flask
 # tests
 Requires:   python3-pytest
 Requires:   python3-pytest-cov
-Requires:   python3-mock
 
 # scriptlets
 Requires(post): initscripts
@@ -68,7 +65,6 @@ Obsoletes:  copr-doc < 1.38
 
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
-BuildRequires: python3-mock
 BuildRequires: python3-requests
 BuildRequires: python3-six
 BuildRequires: python3-flask

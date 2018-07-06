@@ -102,7 +102,6 @@ Summary:        Python interface for Copr
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-pytest
-BuildRequires: python3-mock
 BuildRequires: python3-requests
 BuildRequires: python3-requests-toolbelt
 BuildRequires: python3-marshmallow

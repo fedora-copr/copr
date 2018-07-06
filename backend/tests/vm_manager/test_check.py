@@ -15,8 +15,8 @@ from backend.helpers import get_redis_connection
 from backend.vm_manage import EventTopics, PUBSUB_MB
 from backend.vm_manage.check import HealthChecker, check_health
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 import pytest
 
 

@@ -15,8 +15,8 @@ from backend.vm_manage.manager import VmManager
 from backend.daemons.vm_master import VmMaster
 from backend.helpers import get_redis_connection
 
-import mock
-from mock import MagicMock
+from  unittest import mock
+from unittest.mock import MagicMock
 import pytest
 
 

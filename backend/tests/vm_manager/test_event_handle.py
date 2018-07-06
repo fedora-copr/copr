@@ -15,8 +15,8 @@ from backend.vm_manage import VmStates
 from backend.vm_manage.event_handle import EventHandler, Recycle
 from backend.vm_manage.models import VmDescriptor
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 import pytest
 
 

@@ -18,7 +18,6 @@ BuildRequires: systemd
 BuildRequires: python3-munch
 BuildRequires: python3-requests
 BuildRequires: python3-rpkg
-BuildRequires: python3-mock
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
 

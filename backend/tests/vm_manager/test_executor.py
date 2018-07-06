@@ -9,7 +9,7 @@ import time
 from backend.helpers import get_redis_connection
 from backend.vm_manage.executor import Executor
 
-import mock
+from unittest import mock
 import pytest
 
 

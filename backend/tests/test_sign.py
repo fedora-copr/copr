@@ -8,8 +8,8 @@ import pytest
 
 from backend.exceptions import CoprSignError, CoprSignNoKeyError, CoprKeygenRequestError
 
-import mock
-from mock import MagicMock
+from unittest import mock
+from unittest.mock import MagicMock
 
 from backend.sign import get_pubkey, _sign_one, sign_rpms_in_dir, create_user_keys
 

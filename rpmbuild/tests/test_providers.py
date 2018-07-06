@@ -1,8 +1,8 @@
 import unittest
-from ..copr_rpmbuild.providers import (factory, RubyGemsProvider, PyPIProvider,
-                                       SpecUrlProvider)
+from copr_rpmbuild.providers import (factory, RubyGemsProvider, PyPIProvider,
+                                     SpecUrlProvider)
 
-from ..copr_rpmbuild.helpers import SourceType
+from copr_rpmbuild.helpers import SourceType
 
 
 class TestProvidersFactory(unittest.TestCase):
