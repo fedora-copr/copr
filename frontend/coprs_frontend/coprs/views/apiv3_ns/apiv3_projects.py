@@ -5,7 +5,7 @@ from .json2form import get_form_compatible_data, get_input
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
-from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic
+from coprs.logic.coprs_logic import CoprsLogic, CoprChrootsLogic, MockChrootsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.exceptions import (ApiError, DuplicateException, NonAdminCannotCreatePersistentProject,
@@ -32,6 +32,19 @@ def to_dict(copr):
         "enable_net": copr.build_enable_net,
         "use_bootstrap_container": copr.use_bootstrap_container,
     }
+
+
+def rename_fields(input):
+    replace = {
+        "devel_mode": "disable_createrepo",
+        "additional_repos": "repos",
+    }
+    output = input.copy()
+    for from_name, to_name in replace.items():
+        if from_name not in output:
+            continue
+        output[to_name] = output.pop(from_name)
+    return output
 
 
 def validate_chroots(input, allowed_chroots):
@@ -83,7 +96,7 @@ def search_projects(query, **kwargs):
 @apiv3_ns.route("/project/add/<ownername>", methods=POST)
 @api_login_required
 def add_project(ownername):
-    data = get_form_compatible_data()
+    data = rename_fields(get_form_compatible_data())
     form = forms.CoprFormFactory.create_form_cls()(data, csrf_enabled=False)
 
     if not form.validate_on_submit():
@@ -123,7 +136,7 @@ def add_project(ownername):
 @api_login_required
 def edit_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
-    data = get_form_compatible_data()
+    data = rename_fields(get_form_compatible_data())
     form = forms.CoprModifyForm(data, csrf_enabled=False)
 
     if not form.validate_on_submit():
