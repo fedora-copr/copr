@@ -18,13 +18,15 @@ from coprs.views.api_ns.api_general import process_package_add_or_edit
 
 
 def to_dict(package):
+    source_dict = package.source_json_dict
+    source_dict["source_build_method"] = source_dict.pop("srpm_build_method", None)
     return {
         "id": package.id,
         "name": package.name,
         "projectname": package.copr.name,
         "ownername": package.copr.owner_name,
         "source_type": package.source_type_text,
-        "source_dict": package.source_json_dict,
+        "source_dict": source_dict,
         "auto_rebuild": package.webhook_rebuild,
     }
 
