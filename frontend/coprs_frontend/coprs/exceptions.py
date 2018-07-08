@@ -76,6 +76,7 @@ class RequestCannotBeExecuted(CoprHttpException):
 class ActionInProgressException(CoprHttpException):
 
     def __init__(self, msg, action):
+        super(ActionInProgressException, self).__init__(message=msg)
         self.msg = msg
         self.action = action
 
