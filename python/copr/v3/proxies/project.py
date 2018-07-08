@@ -59,9 +59,9 @@ class ProjectProxy(BaseProxy):
         response = request.send()
         return munchify(response)
 
-    def add(self, ownername, projectname, chroots, description=None, instructions=None, repos=None,
-            unlisted_on_hp=False, enable_net=True, persistent=False,
-            auto_prune=True, use_bootstrap_container=False):
+    def add(self, ownername, projectname, chroots, description=None, instructions=None, homepage=None,
+            contact=None, additional_repos=None, unlisted_on_hp=False, enable_net=True, persistent=False,
+            auto_prune=True, use_bootstrap_container=False, devel_mode=False):
         """
         Create a project
 
@@ -70,12 +70,15 @@ class ProjectProxy(BaseProxy):
         :param list chroots:
         :param str description:
         :param str instructions:
-        :param list repos:
+        :param str homepage:
+        :param str contact:
+        :param list additional_repos:
         :param bool unlisted_on_hp: project will not be shown on Copr homepage
         :param bool enable_net: if builder can access net for builds in this project
         :param bool persistent: if builds and the project are undeletable
         :param bool auto_prune: if backend auto-deletion script should be run for the project
         :param bool use_bootstrap_container: if mock bootstrap container is used to initialize the buildroot
+        :param bool devel_mode: if createrepo should run automatically
         :return: Munch
         """
         endpoint = "/project/add/{ownername}"
@@ -87,20 +90,24 @@ class ProjectProxy(BaseProxy):
             "chroots": chroots,
             "description": description,
             "instructions": instructions,
-            "repos": repos,
+            "homepage": homepage,
+            "contact": contact,
+            "additional_repos": additional_repos,
             "unlisted_on_hp": unlisted_on_hp,
             "enable_net": enable_net,
             "persistent": persistent,
             "auto_prune": auto_prune,
             "use_bootstrap_container": use_bootstrap_container,
+            "devel_mode": devel_mode,
         }
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST,
                           params=params, data=data, auth=self.auth)
         response = request.send()
         return munchify(response)
 
-    def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, repos=None,
-            unlisted_on_hp=None, enable_net=None, auto_prune=None, use_bootstrap_container=None):
+    def edit(self, ownername, projectname, chroots=None, description=None, instructions=None, homepage=None,
+             contact=None, additional_repos=None, unlisted_on_hp=None, enable_net=None,
+             auto_prune=None, use_bootstrap_container=None):
         """
         Edit a project
 
@@ -109,6 +116,8 @@ class ProjectProxy(BaseProxy):
         :param list chroots:
         :param str description:
         :param str instructions:
+        :param str homepage:
+        :param str contact:
         :param list repos:
         :param bool unlisted_on_hp: project will not be shown on Copr homepage
         :param bool enable_net: if builder can access net for builds in this project
@@ -125,7 +134,9 @@ class ProjectProxy(BaseProxy):
             "chroots": chroots,
             "description": description,
             "instructions": instructions,
-            "repos": repos,
+            "homepage": homepage,
+            "contact": contact,
+            "repos": additional_repos,
             "unlisted_on_hp": unlisted_on_hp,
             "enable_net": enable_net,
             "auto_prune": auto_prune,

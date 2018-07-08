@@ -122,6 +122,8 @@ def add_project(ownername):
             persistent=form.persistent.data,
             auto_prune=form.auto_prune.data,
             use_bootstrap_container=form.use_bootstrap_container.data,
+            homepage=form.homepage.data,
+            contact=form.contact.data,
         )
         db.session.commit()
     except (DuplicateException,
