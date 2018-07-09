@@ -19,6 +19,30 @@ class BuildProxy(BaseProxy):
         response = request.send()
         return munchify(response)
 
+    def get_source_chroot(self, build_id):
+        """
+        Return a source build
+
+        :param int build_id:
+        :return: Munch
+        """
+        endpoint = "/build/source-chroot/{}".format(build_id)
+        request = Request(endpoint, api_base_url=self.api_base_url)
+        response = request.send()
+        return munchify(response)
+
+    def get_source_build_config(self, build_id):
+        """
+        Return a config for source build
+
+        :param int build_id:
+        :return: Munch
+        """
+        endpoint = "/build/source-build-config/{}".format(build_id)
+        request = Request(endpoint, api_base_url=self.api_base_url)
+        response = request.send()
+        return munchify(response)
+
     def get_list(self, ownername, projectname, packagename=None, status=None, pagination=None):
         """
         Return a list of packages

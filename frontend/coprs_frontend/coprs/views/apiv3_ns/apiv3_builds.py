@@ -1,3 +1,4 @@
+import os
 import flask
 from werkzeug.datastructures import MultiDict
 from . import get_copr, file_upload, query_params, pagination, Paginator, json2form, GET, POST, PUT, DELETE
@@ -22,21 +23,31 @@ def to_dict(build):
         "ownername": build.copr.owner_name,
         "repo_url": build.copr.repo_url,
         "source_package": {"name": build.package_name, "version": build.pkg_version, "url": build.srpm_url},
-        "source_chroot": {
-            "state": StatusEnum(build.source_status),
-            "source_type": build.source_type_text,
-            "source_dict": build.source_json_dict,
-            # @TODO Do we have such information stored?
-            #"result_url": None,
-            #"started_on": None,
-            #"ended_on": None
-        },
         "built_packages": built_packages,
         "submitted_on": build.submitted_on,
         "started_on": build.min_started_on,
         "ended_on": build.max_ended_on,
         "submitter": build.user.name if build.user else None,
         "chroots": [chroot.name for chroot in build.build_chroots],
+    }
+
+
+def to_source_chroot(build):
+    return {
+        "state": StatusEnum(build.source_status),
+        "result_url": os.path.dirname(build.import_log_url_backend),
+        #  @TODO Do we have such information stored?
+        # "started_on": None,
+        # "ended_on": None
+    }
+
+
+def to_source_build_config(build):
+    return {
+        "source_type": build.source_type_text,
+        "source_dict": build.source_json_dict,
+        "memory_limit": build.memory_reqs,
+        "timeout": build.timeout,
         "is_background": build.is_background,
     }
 
@@ -77,6 +88,18 @@ def get_build_list(ownername, projectname, packagename=None, status=None, **kwar
         paginator.limit = limit
 
     return flask.jsonify(items=builds, meta=paginator.meta)
+
+
+@apiv3_ns.route("/build/source-chroot/<int:build_id>/", methods=GET)
+def get_source_chroot(build_id):
+    build = ComplexLogic.get_build_safe(build_id)
+    return flask.jsonify(to_source_chroot(build))
+
+
+@apiv3_ns.route("/build/source-build-config/<int:build_id>/", methods=GET)
+def get_source_build_config(build_id):
+    build = ComplexLogic.get_build_safe(build_id)
+    return flask.jsonify(to_source_build_config(build))
 
 
 @apiv3_ns.route("/build/cancel/<int:build_id>", methods=PUT)
