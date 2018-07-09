@@ -26,6 +26,7 @@ def build_config(build_chroot):
         "memory_limit": build_chroot.build.memory_reqs,
         "timeout": build_chroot.build.timeout,
         "enable_net": build_chroot.build.enable_net,
+        "is_background": build_chroot.build.is_background,
     }
 
 
