@@ -1,9 +1,10 @@
 import flask
 from . import query_params, pagination, Paginator, GET
 from coprs.views.apiv3_ns import apiv3_ns
-from coprs.helpers import generate_build_config
+from coprs.helpers import generate_build_config, generate_additional_repos
 from coprs import db, models, forms
 from coprs.logic.builds_logic import BuildChrootsLogic, BuildsLogic
+from coprs.logic.coprs_logic import CoprChrootsLogic
 
 
 def to_dict(build_chroot):
@@ -17,8 +18,9 @@ def to_dict(build_chroot):
 
 def build_config(build_chroot):
     config = generate_build_config(build_chroot.build.copr, build_chroot.name)
+    copr_chroot = CoprChrootsLogic.get_by_name_safe(build_chroot.build.copr, build_chroot.name)
     return {
-        "additional_repos": config.get("repos"),
+        "additional_repos": generate_additional_repos(copr_chroot),
         "additional_packages": config.get("additional_packages"),
         "use_bootstrap_container": config.get("use_bootstrap_container"),
         "with_opts": config.get("with_opts"),

@@ -1,6 +1,7 @@
 import flask
 from . import query_params, get_copr, file_upload, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data
+from coprs.helpers import generate_build_config, generate_additional_repos
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
@@ -23,15 +24,10 @@ def to_dict(project_chroot):
 
 
 def to_build_config_dict(project_chroot):
-    base_repo = "copr://{}".format(project_chroot.copr.full_name)
-    repos = [base_repo] + project_chroot.repos_list + project_chroot.copr.repos_list
-    if not project_chroot.copr.auto_createrepo:
-        repos.append("copr://{}/devel".format(project_chroot.copr.full_name))
-
     return {
         "chroot": project_chroot.name,
         "additional_packages": (project_chroot.buildroot_pkgs or "").split(),
-        "additional_repos": repos,
+        "additional_repos": generate_additional_repos(project_chroot),
         "use_bootstrap_container": project_chroot.copr.use_bootstrap_container,
         "enable_net": project_chroot.copr.enable_net,
         "with_opts":  str_to_list(project_chroot.with_opts),

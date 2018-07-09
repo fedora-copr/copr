@@ -646,3 +646,11 @@ def generate_build_config(copr, chroot_id):
         'with_opts': chroot.with_opts.split(),
         'without_opts': chroot.without_opts.split(),
     }
+
+
+def generate_additional_repos(copr_chroot):
+    base_repo = "copr://{}".format(copr_chroot.copr.full_name)
+    repos = [base_repo] + copr_chroot.repos_list + copr_chroot.copr.repos_list
+    if not copr_chroot.copr.auto_createrepo:
+        repos.append("copr://{}/devel".format(copr_chroot.copr.full_name))
+    return repos
