@@ -379,6 +379,7 @@ class BuildFormRebuildFactory(object):
                 default=constants.DEFAULT_BUILD_TIMEOUT)
 
             enable_net = wtforms.BooleanField(false_values=FALSE_VALUES)
+            background = wtforms.BooleanField(false_values=FALSE_VALUES)
 
         F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()

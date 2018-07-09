@@ -31,6 +31,19 @@ def to_dict(package):
     }
 
 
+def rename_fields(input):
+    replace = {
+        "is_background": "background",
+        "memory_limit": "memory_reqs",
+    }
+    output = input.copy()
+    for from_name, to_name in replace.items():
+        if from_name not in output:
+            continue
+        output[to_name] = output.pop(from_name)
+    return output
+
+
 @apiv3_ns.route("/package", methods=GET)
 @query_params()
 def get_package(ownername, projectname, packagename):
@@ -96,7 +109,7 @@ def package_reset():
 @api_login_required
 def package_build():
     copr = get_copr()
-    data = get_form_compatible_data()
+    data = rename_fields(get_form_compatible_data())
     form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, csrf_enabled=False)
     try:
         package = PackagesLogic.get(copr.id, form.package_name.data)[0]
