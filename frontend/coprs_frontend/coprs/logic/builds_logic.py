@@ -167,9 +167,11 @@ class BuildsLogic(object):
                         build_chroot.ended_on > :start
                         OR build_chroot.ended_on IS NULL
                     )
-                    AND NOT ((build.submitted_on NOT BETWEEN :start and :end)
-                        AND (build_chroot.started_on NOT BETWEEN :start AND :end)
-                        AND (build.submitted_on >= :start OR build_chroot.started_on <= :end)
+                    AND ((build.submitted_on BETWEEN :start and :end)
+                        OR (build_chroot.started_on BETWEEN :start AND :end)
+                        OR (build.submitted_on < :start
+                            AND (build_chroot.started_on > :end
+                                OR (build_chroot.status = :status AND NOT build.canceled)))
                     )
             """)
 
@@ -187,7 +189,8 @@ class BuildsLogic(object):
                     )
                 """)
 
-            res_pending = db.engine.execute(query_pending, start=step_start, end=step_end)
+            res_pending = db.engine.execute(query_pending, start=step_start, end=step_end,
+                                            status=helpers.StatusEnum('pending'))
             res_running = db.engine.execute(query_running, start=step_start, end=step_end,
                                             status=helpers.StatusEnum('running'))
 
