@@ -69,7 +69,7 @@ class ProjectChrootProxy(BaseProxy):
         }
         data = {
             "additional_repos": additional_repos,
-            "buildroot_pkgs": additional_packages,
+            "additional_packages": additional_packages,
             "delete_comps": delete_comps,
             "with_opts": with_opts,
             "without_opts": without_opts,

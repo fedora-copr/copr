@@ -39,6 +39,19 @@ def to_build_config_dict(project_chroot):
     }
 
 
+def rename_fields(input):
+    replace = {
+        "additional_repos": "repos",
+        "additional_packages": "buildroot_pkgs",
+    }
+    output = input.copy()
+    for from_name, to_name in replace.items():
+        if from_name not in output:
+            continue
+        output[to_name] = output.pop(from_name)
+    return output
+
+
 def str_to_list(value):
     return (value or "").split()
 
@@ -67,7 +80,7 @@ def get_build_config(ownername, projectname, chrootname):
 @api_login_required
 def edit_project_chroot(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
-    data = get_form_compatible_data()
+    data = rename_fields(get_form_compatible_data())
     form = forms.ModifyChrootForm(data, csrf_enabled=False)
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
 
