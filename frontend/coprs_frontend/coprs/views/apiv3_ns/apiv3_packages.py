@@ -117,7 +117,8 @@ def package_build():
         raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
     if form.validate_on_submit():
-        build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots, **form.data)
+        buildopts = {k: v for k, v in form.data.items() if k in data}
+        build = PackagesLogic.build_package(flask.g.user, copr, package, form.selected_chroots, **buildopts)
         db.session.commit()
     else:
         raise BadRequest(form.errors)
