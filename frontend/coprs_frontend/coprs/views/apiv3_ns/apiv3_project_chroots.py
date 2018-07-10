@@ -4,7 +4,6 @@ from .json2form import get_form_compatible_data
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.helpers import generate_build_config
 from coprs.exceptions import ApiError, ObjectNotFound, BadRequest
 from coprs import db, models, forms
 from coprs.logic.coprs_logic import CoprChrootsLogic
@@ -19,6 +18,23 @@ def to_dict(project_chroot):
         "additional_repos": project_chroot.repos_list,
         "additional_packages": project_chroot.buildroot_pkgs_list,
         "with_opts": str_to_list(project_chroot.with_opts),
+        "without_opts": str_to_list(project_chroot.without_opts),
+    }
+
+
+def to_build_config_dict(project_chroot):
+    base_repo = "copr://{}".format(project_chroot.copr.full_name)
+    repos = [base_repo] + project_chroot.repos_list + project_chroot.copr.repos_list
+    if not project_chroot.copr.auto_createrepo:
+        repos.append("copr://{}/devel".format(project_chroot.copr.full_name))
+
+    return {
+        "chroot": project_chroot.name,
+        "additional_packages": (project_chroot.buildroot_pkgs or "").split(),
+        "additional_repos": repos,
+        "use_bootstrap_container": project_chroot.copr.use_bootstrap_container,
+        "enable_net": project_chroot.copr.enable_net,
+        "with_opts":  str_to_list(project_chroot.with_opts),
         "without_opts": str_to_list(project_chroot.without_opts),
     }
 
@@ -39,9 +55,10 @@ def get_project_chroot(ownername, projectname, chrootname):
 @query_params()
 def get_build_config(ownername, projectname, chrootname):
     copr = get_copr(ownername, projectname)
-    config = generate_build_config(copr, chrootname)
-    if not config:
+    chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
+    if not chroot:
         raise ObjectNotFound('Chroot not found.')
+    config = to_build_config_dict(chroot)
     return flask.jsonify(config)
 
 
