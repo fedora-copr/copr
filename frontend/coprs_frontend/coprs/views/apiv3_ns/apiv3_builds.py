@@ -15,7 +15,6 @@ from coprs.logic.builds_logic import BuildsLogic
 
 
 def to_dict(build):
-    built_packages = build.built_packages.split("\n") if build.built_packages else None
     return {
         "id": build.id,
         "state": build.state,
@@ -23,7 +22,6 @@ def to_dict(build):
         "ownername": build.copr.owner_name,
         "repo_url": build.copr.repo_url,
         "source_package": {"name": build.package_name, "version": build.pkg_version, "url": build.srpm_url},
-        "built_packages": built_packages,
         "submitted_on": build.submitted_on,
         "started_on": build.min_started_on,
         "ended_on": build.max_ended_on,
