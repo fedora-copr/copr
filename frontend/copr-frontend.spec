@@ -25,7 +25,8 @@
 %staticdir/css/style-overwrite.css              \
 %templatedir/project_info.html                  \
 %templatedir/user_meta.html                     \
-%templatedir/welcome.html
+%templatedir/welcome.html   					\
+%templatedir/contact_us.html
 
 %global devel_files \
 %flavor_generator
