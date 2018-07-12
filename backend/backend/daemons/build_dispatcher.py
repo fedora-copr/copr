@@ -1,9 +1,11 @@
 # coding: utf-8
 
 import time
-import os
 import multiprocessing
-import json
+import json #line 85 # pylint: disable=unused-import
+
+from collections import defaultdict
+
 from setproctitle import setproctitle
 from requests import get, RequestException
 
@@ -16,7 +18,6 @@ from ..vm_manage.manager import VmManager
 from ..constants import BuildStatus
 from .worker import Worker
 
-from collections import defaultdict
 
 class BuildDispatcher(multiprocessing.Process):
     """

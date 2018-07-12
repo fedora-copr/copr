@@ -1,20 +1,18 @@
 import os
 import pipes
-import socket
+import socket #mentioned in TODO # pylint: disable=unused-import 
 from subprocess import Popen
-import time
 from urllib.parse import urlparse
-import glob
 
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
-from ..helpers import get_redis_connection, ensure_dir_exists
-
-from ..exceptions import BuilderError, RemoteCmdError, VmError
-
-from ..constants import rsync
-from ..sshcmd import SSHConnectionError, SSHConnection
 
 import modulemd
+
+from ..helpers import get_redis_connection, ensure_dir_exists
+from ..exceptions import BuilderError, RemoteCmdError, VmError
+from ..constants import rsync
+from ..sshcmd import SSHConnection
+
 
 
 class Builder(object):

@@ -3,18 +3,17 @@ import os
 import os.path
 import shutil
 import time
-import glob
 import traceback
 import base64
-import modulemd
-import tempfile
 
-from munch import Munch
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
+from urllib.request import urlretrieve
 from copr.exceptions import CoprRequestException
 from requests import RequestException
-from urllib.request import urlretrieve
+from munch import Munch
+
+import modulemd
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo

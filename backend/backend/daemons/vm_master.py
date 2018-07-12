@@ -1,11 +1,10 @@
 # coding: utf-8
 
-import json
-
 from multiprocessing import Process
 import time
-from setproctitle import setproctitle
 import traceback
+from setproctitle import setproctitle
+
 
 from ..vm_manage import VmStates
 from ..exceptions import VmSpawnLimitReached

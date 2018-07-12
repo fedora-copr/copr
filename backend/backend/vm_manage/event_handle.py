@@ -1,9 +1,9 @@
 # coding: utf-8
 import json
 from multiprocessing import Process
-from setproctitle import setproctitle
 from threading import Thread
 import time
+from setproctitle import setproctitle
 
 from backend.exceptions import VmDescriptorNotFound
 from backend.helpers import get_redis_logger

@@ -1,4 +1,5 @@
 import os
+from logging import Formatter
 
 mockchain = "/usr/bin/mockchain"
 # rsync path
@@ -36,7 +37,6 @@ class BuildStatus(object):
 
 LOG_PUB_SUB = "copr:backend:log:pubsub::"
 
-from logging import Formatter
 default_log_format = Formatter(
     '[%(asctime)s][%(levelname)6s][%(name)10s][%(filename)s:%(funcName)s:%(lineno)d] %(message)s')
 build_log_format = Formatter(
