@@ -102,17 +102,22 @@
         <div class="container text-muted">
           <div class="">
             <div class="row">
-              <div class="col-sm-4">
+             <div class="col-sm-3">
+                <dl>
+                  {% include 'contact_us.html' %}
+                </dl>
+              </div> 
+              <div class="col-sm-3">
                 <dl>
                   {% include 'project_info.html' %}
                 </dl>
               </div>
-              <div class="col-sm-4">
+              <div class="col-sm-3">
                 <dl>
                   <dt><h3>Site Navigation</h3></dt>
                   <dd>
                     <ul>
-                      <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li>
+                      <li> <a href="{{ url_for('coprs_ns.coprs_show') }}">Home</a> </li> 
                       <li> <a href="{{url_for('status_ns.importing')}}">Task Queue</a> </li>
                       <li> <a href="{{ url_for('api_ns.api_home') }}">API</a> </li>
                       <li><a href="{{ url_for('user_ns.user_info') }}">GDPR</a></li>
@@ -120,7 +125,7 @@
                   </dd>
                 </dl>
               </div>
-              <div class="col-sm-4">
+              <div class="col-sm-3">
                 <dl>
                   <dt><h3>Powered by</h3></dt>
                   <dd>
@@ -159,7 +164,6 @@
     });
   </script>
   {% endif %}
-
   <!-- Last post from our blog -->
   {% if config.NEWS_URL and config.NEWS_FEED_URL %}
   <script src="{{ url_for('static', filename='js/blog.js') }}"></script>
