@@ -1,6 +1,5 @@
 import os
 import pipes
-import socket #mentioned in TODO # pylint: disable=unused-import 
 from subprocess import Popen
 from urllib.parse import urlparse
 

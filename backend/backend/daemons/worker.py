@@ -8,7 +8,6 @@ import glob
 from setproctitle import setproctitle
 
 from ..exceptions import MockRemoteError, CoprWorkerError, VmError
-from ..job import BuildJob #line 151 (will be implemented?) #pylint: disable=unused-import
 from ..mockremote import MockRemote
 from ..constants import BuildStatus, build_log_format
 from ..helpers import register_build_result, get_redis_logger, \

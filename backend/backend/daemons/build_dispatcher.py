@@ -2,7 +2,6 @@
 
 import time
 import multiprocessing
-import json #line 85 # pylint: disable=unused-import
 
 from collections import defaultdict
 
