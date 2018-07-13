@@ -260,7 +260,7 @@ Requires: copr-frontend
 EOF
 
 %check
-%if %{with check} && "%{_arch}" == "x86_64"
+%if %{with check}
     pushd coprs_frontend
     REDIS_PORT=7777
     redis-server --port $REDIS_PORT & #&> _redis.log &
