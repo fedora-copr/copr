@@ -2,7 +2,7 @@ import json
 import pytest
 import subprocess
 
-from flask.ext.whooshee import Whooshee
+from flask_whooshee import Whooshee
 
 from coprs import app
 from coprs.exceptions import ActionInProgressException

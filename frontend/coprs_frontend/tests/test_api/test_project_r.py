@@ -4,7 +4,7 @@ import base64
 import copy
 import json
 from marshmallow import pprint
-from flask.ext.whooshee import Whooshee
+from flask_whooshee import Whooshee
 
 import pytest
 import sqlalchemy
