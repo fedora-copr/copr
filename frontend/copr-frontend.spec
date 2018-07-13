@@ -278,7 +278,7 @@ usermod -L copr-fe
 
 
 %post
-service httpd    condrestart >/dev/null || :
+/bin/systemctl condrestart httpd.service || :
 %systemd_post copr-fedmsg-listener.service
 
 
@@ -287,7 +287,7 @@ service httpd    condrestart >/dev/null || :
 
 
 %postun
-service httpd    condrestart >/dev/null || :
+/bin/systemctl condrestart httpd.service || :
 %systemd_postun_with_restart copr-fedmsg-listener.service
 
 
