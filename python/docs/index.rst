@@ -31,8 +31,7 @@ If you have any questions, please contact us:
 Usage
 =====
 
-Recently Copr started to offer an alternative REST-like APIv2_.
-New API is provided by mostly independent `client_v2` package.
+Copr currently supports three independent API versions.
 
 .. toctree::
     :maxdepth: 1
@@ -41,6 +40,7 @@ New API is provided by mostly independent `client_v2` package.
     ClientV2.rst
     ClientV3.rst
 
+Both Legacy client and Client version 2 are now obsoleted, please migrate to Client version 3.
 
 Indices and tables
 ==================
