@@ -28,8 +28,8 @@ Example usage
     print(build.id)
 
 
-Read further
-------------
+Quick overview
+--------------
 
 .. toctree::
     :maxdepth: 1
