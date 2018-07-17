@@ -101,7 +101,9 @@ class PackageProxy(BaseProxy):
 
     def reset(self, ownername, projectname, packagename):
         """
-        Reset a package configuration
+        Reset a package configuration, meaning that previously selected `source_type`
+        for the package and also all the source configuration previously defined by
+        `source_dict` will be nulled.
 
         :param str ownername:
         :param str projectname:
