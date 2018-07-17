@@ -158,21 +158,14 @@ class BuildsLogic(object):
                 SELECT COUNT(*) as pending
                 FROM build_chroot JOIN build on build.id = build_chroot.build_id
                 WHERE
-                    (
-                        build_chroot.started_on > :start
-                        OR build_chroot.started_on is NULL
-                    )
-                    AND build.submitted_on < :end
+                    build.submitted_on < :end
                     AND (
-                        build_chroot.ended_on > :start
-                        OR build_chroot.ended_on IS NULL
+                        build_chroot.started_on > :start
+                        OR (build_chroot.started_on is NULL AND build_chroot.status = :status)
+                        -- for currently pending builds we need to filter on status=pending because there might be
+                        -- failed builds that have started_on=NULL
                     )
-                    AND ((build.submitted_on BETWEEN :start and :end)
-                        OR (build_chroot.started_on BETWEEN :start AND :end)
-                        OR (build.submitted_on < :start
-                            AND (build_chroot.started_on > :end
-                                OR (build_chroot.status = :status AND NOT build.canceled)))
-                    )
+                    AND NOT build.canceled
             """)
 
             query_running = text("""
@@ -180,14 +173,10 @@ class BuildsLogic(object):
                 FROM build_chroot
                 WHERE
                     started_on < :end
-                    AND (ended_on > :start OR ended_on IS NULL)
-                    AND (
-                        (started_on BETWEEN :start AND :end)
-                        OR (ended_on BETWEEN :start AND :end)
-                        OR (started_on < :start
-                            AND (ended_on > :end OR (ended_on IS NULL AND status = :status)))
-                    )
-                """)
+                    AND (ended_on > :start OR (ended_on is NULL AND status = :status))
+                    -- for currently running builds we need to filter on status=running because there might be failed
+                    -- builds that have ended_on=NULL
+            """)
 
             res_pending = db.engine.execute(query_pending, start=step_start, end=step_end,
                                             status=helpers.StatusEnum('pending'))
