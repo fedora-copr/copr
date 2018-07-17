@@ -68,32 +68,35 @@ class Pruner(object):
         loginfo("--------------------------------------------")
         for username, subpath in zip(user_dir_names, user_dirs):
             loginfo("For user `{}` exploring path: {}".format(username, subpath))
-            for projectname, project_path in zip(*list_subdir(subpath)):
-                loginfo("Exploring project `{}` with path: {}".format(projectname, project_path))
-                self.prune_project(project_path, username, projectname)
+            for projectdir, project_path in zip(*list_subdir(subpath)):
+                loginfo("Exploring projectdir `{}` with path: {}".format(projectdir, project_path))
+                self.prune_project(project_path, username, projectdir)
                 loginfo("--------------------------------------------")
 
         loginfo("Pruning finished")
 
-    def prune_project(self, project_path, username, projectname):
-        loginfo("Going to prune {}/{}".format(username, projectname))
+    def prune_project(self, project_path, username, projectdir):
+        loginfo("Going to prune {}/{}".format(username, projectdir))
+
+        projectname = projectdir.split(':', 1)[0]
+        loginfo("projectname = {}".format(projectname))
 
         try:
             if not get_auto_createrepo_status(self.opts.frontend_base_url, username, projectname):
                 loginfo("Skipped {}/{} since auto createrepo option is disabled"
-                          .format(username, projectname))
+                          .format(username, projectdir))
                 return
             if get_persistent_status(self.opts.frontend_base_url, username, projectname):
                 loginfo("Skipped {}/{} since the project is persistent"
-                          .format(username, projectname))
+                          .format(username, projectdir))
                 return
             if not get_auto_prune_status(self.opts.frontend_base_url, username, projectname):
                 loginfo("Skipped {}/{} since auto-prunning is disabled for the project"
-                          .format(username, projectname))
+                          .format(username, projectdir))
                 return
         except (CoprException, CoprRequestException) as exception:
             logerror("Failed to get project details for {}/{} with error: {}".format(
-                username, projectname, exception))
+                username, projectdir, exception))
             return
 
         for sub_dir_name in os.listdir(project_path):
@@ -111,11 +114,11 @@ class Pruner(object):
                 loginfo(stdout)
             except Exception as err:
                 logexception(err)
-                logerror("Error pruning chroot {}/{}:{}".format(username, projectname, sub_dir_name))
+                logerror("Error pruning chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
 
-            loginfo("Pruning done for chroot {}/{}:{}".format(username, projectname, sub_dir_name))
+            loginfo("Pruning done for chroot {}/{}:{}".format(username, projectdir, sub_dir_name))
 
-        loginfo("Pruning finished for project {}/{}".format(username, projectname))
+        loginfo("Pruning finished for projectdir {}/{}".format(username, projectdir))
 
 
 def main():
