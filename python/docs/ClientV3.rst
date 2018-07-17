@@ -36,7 +36,7 @@ Quick overview
 
     client_v3/error_handling.rst
     client_v3/pagination.rst
-    client_v3/working_without_client.rst
+    client_v3/working_with_proxies_directly.rst
 
 
 Resources info

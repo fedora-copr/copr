@@ -1,5 +1,5 @@
-Working without Client
-======================
+Working with proxies directly
+=============================
 
 In all sample codes, it is used Client to provide proxy objects (``project_proxy``, ``build_proxy``, etc). However, that
 is not the only way how to do it. Proxy classes can be also initialized directly.
