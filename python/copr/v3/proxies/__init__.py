@@ -4,6 +4,10 @@ from ..requests import Request
 
 
 class BaseProxy(object):
+    """
+    Parent class for all other proxies
+    """
+
     def __init__(self, config):
         self.config = config
 

@@ -5,8 +5,8 @@ User interface is separated among multiple proxy classes such as ``ProjectProxy`
 which provide API operations on given resource.
 
 
-General
--------
+Base
+----
 
 .. autoclass:: copr.v3.proxies.BaseProxy
    :members:
