@@ -11,8 +11,17 @@ all packages from given project are returned, regardless their number.
     from copr.v3 import Client
     client = Client(config)
 
-    packages = client.package_proxy.get_list("@copr", "foo")
+    packages = client.package_proxy.get_list("@copr", "copr")
     print(packages)
+
+::
+
+    [Munch({'id': 1, 'ownername': '@copr', 'projectname': 'copr', 'state': 'pending', ...}),
+     Munch({'id': 2, 'ownername': '@copr', 'projectname': 'copr', 'state': 'pending', ...}),
+     Munch({'id': 3, 'ownername': '@copr', 'projectname': 'copr', 'state': 'importing', ...}),
+     Munch({'id': 4, 'ownername': '@copr', 'projectname': 'copr', 'state': 'importing', ...}),
+     Munch({'id': 5, 'ownername': '@copr', 'projectname': 'copr', 'state': 'canceled', ...})]
+
 
 
 In some cases, it may be useful to obtain just a limited number of objects.
@@ -20,9 +29,16 @@ In some cases, it may be useful to obtain just a limited number of objects.
 .. code-block:: python
 
     pagination = {"limit": 3, "order": "name"}
-    packages = client.package_proxy.get_list("@copr", "foo", pagination=pagination)
+    packages = client.package_proxy.get_list("@copr", "copr", pagination=pagination)
     print(packages)
     print(packages.meta)
+
+::
+
+    [Munch({'id': 1, 'ownername': '@copr', 'projectname': 'copr', 'state': 'pending', ...}),
+     Munch({'id': 2, 'ownername': '@copr', 'projectname': 'copr', 'state': 'pending', ...}),
+     Munch({'id': 3, 'ownername': '@copr', 'projectname': 'copr', 'state': 'importing', ...})]
+    Munch({u'offset': 0, u'limit': 3, u'order_type': u'ASC', u'order': u'id'})
 
 
 And finally, in some cases, it may be useful to iterate through all objects, but not obtaining them all at once
@@ -32,10 +48,21 @@ And finally, in some cases, it may be useful to iterate through all objects, but
 
     from copr.v3 import next_page
 
-    packages = packagep.get_list("@copr", "foo", pagination={"limit": 3})
-    while packages:
-        print(packages)
-        packages = next_page(packages)
+    package_page = package_proxy.get_list("@copr", "copr", pagination={"limit": 3})
+    while package_page:
+        for package in package_page:
+            print(package)
+        print("---")
+        package_page = next_page(package_page)
+
+::
+
+    Munch({'id': 1, 'ownername': '@copr', 'projectname': 'copr', 'state': 'pending', ...})
+    Munch({'id': 2, 'ownername': '@copr', 'projectname': 'copr', 'state': 'pending', ...})
+    Munch({'id': 3, 'ownername': '@copr', 'projectname': 'copr', 'state': 'importing', ...})
+    ---
+    Munch({'id': 4, 'ownername': '@copr', 'projectname': 'copr', 'state': 'importing', ...})
+    Munch({'id': 5, 'ownername': '@copr', 'projectname': 'copr', 'state': 'canceled', ...})
 
 
 Pagination parameters
