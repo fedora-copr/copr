@@ -1,9 +1,7 @@
 Error handling
 ==============
 
-We don't distinguish between successful and unsuccessful calls by result properties anymore. Instead, methods return
-Munch with data only when the API call succeeded. Otherwise, an exception is raised.
-
+All methods from proxy classes return Munch with data only when the API call succeeds. Otherwise, an exception is raised.
 
 This example code tries to cancel a build. Such thing is possible only when the build is not already finished.
 
@@ -14,7 +12,7 @@ This example code tries to cancel a build. Such thing is possible only when the 
 
     try:
         build = client.build_proxy.cancel(123)
-        print("Build {} is {}".format(build.id, build.status))
+        print("Build {} is {}".format(build.id, build.state))
     except CoprRequestException as ex:
         print(ex)
 
