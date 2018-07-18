@@ -33,8 +33,12 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
-#ENDPOINT = 'tcp://hub.fedoraproject.org:9940'
-ENDPOINT = 'tcp://stg.pagure.io:9940'
+if os.getenv('PAGURE_EVENTS_TESTONLY'):
+    ENDPOINT = 'tcp://stg.pagure.io:9940'
+else:
+    ENDPOINT = 'tcp://hub.fedoraproject.org:9940'
+
+log.info("ENDPOINT = {}".format(ENDPOINT))
 
 TOPICS = {
     'io.pagure.prod.pagure.git.receive': 'https://pagure.io/',
