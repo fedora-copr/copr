@@ -226,7 +226,7 @@ install -p -m 755 conf/cron.daily/copr-frontend %{buildroot}%{_sysconfdir}/cron.
 cp -a coprs_frontend/* %{buildroot}%{_datadir}/copr/coprs_frontend
 sed -i "s/__RPM_BUILD_VERSION/%{version}-%{release}/" %{buildroot}%{_datadir}/copr/coprs_frontend/coprs/templates/layout.html
 
-cp -a copr-fedmsg-listener.service %{buildroot}%{_unitdir}/
+cp -a pagure-events.service %{buildroot}%{_unitdir}/
 
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/coprs.conf.example ./
 mv %{buildroot}%{_datadir}/copr/coprs_frontend/config/* %{buildroot}%{_sysconfdir}/copr
@@ -279,16 +279,16 @@ usermod -L copr-fe
 
 %post
 /bin/systemctl condrestart httpd.service || :
-%systemd_post copr-fedmsg-listener.service
+%systemd_post pagure-events.service
 
 
 %preun
-%systemd_preun copr-fedmsg-listener.service
+%systemd_preun pagure-events.service
 
 
 %postun
 /bin/systemctl condrestart httpd.service || :
-%systemd_postun_with_restart copr-fedmsg-listener.service
+%systemd_postun_with_restart pagure-events.service
 
 
 %files
@@ -302,7 +302,7 @@ usermod -L copr-fe
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 
-%{_unitdir}/copr-fedmsg-listener.service
+%{_unitdir}/pagure-events.service
 
 %defattr(-, copr-fe, copr-fe, -)
 %dir %{_sharedstatedir}/copr/data
