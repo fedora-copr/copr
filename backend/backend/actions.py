@@ -296,7 +296,7 @@ class Action(object):
     def handle_rawhide_to_release(self, result):
         data = json.loads(self.data["data"])
         try:
-            chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["project_dirname"], data["dest_chroot"])
+            chrootdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
                 self.log.debug("Create directory: %s", chrootdir)
                 os.makedirs(chrootdir)
@@ -440,9 +440,6 @@ class Action(object):
 
         elif action_type == ActionType.LEGAL_FLAG:
             self.handle_legal_flag()
-
-        elif action_type == ActionType.RENAME:
-            self.handle_rename(result)
 
         elif action_type == ActionType.FORK:
             self.handle_fork(result)
