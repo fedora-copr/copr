@@ -486,7 +486,7 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     # Source of the build: description in json, example: git link, srpm url, etc.
     source_json = db.Column(db.Text)
     # True if the package is built automatically via webhooks
-    webhook_rebuild = db.Column(db.Boolean, default=True)
+    webhook_rebuild = db.Column(db.Boolean, default=False)
     # enable networking during a build process
     enable_net = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
