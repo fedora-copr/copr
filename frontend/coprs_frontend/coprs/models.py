@@ -1090,7 +1090,7 @@ class BuildChroot(db.Model, helpers.Serializer):
     def dist_git_url(self):
         if app.config["DIST_GIT_URL"]:
             if self.state == "forked":
-                copr_dirname = self.build.copr.main_dir.full_name
+                copr_dirname = self.build.copr.forked_from.main_dir.full_name
             else:
                 copr_dirname = self.build.copr_dir.full_name
             return "{}/{}/{}.git/commit/?id={}".format(app.config["DIST_GIT_URL"],
