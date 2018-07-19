@@ -19,29 +19,28 @@
 {% endif %}
 
 <h2 class="page-title">Project Builds</h2>
-  {% if builds %}
-
-    {% if copr.dirs|length > 1 %}
-    <div class="panel panel-default">
-      <div class="panel-body">
-        <div class="btn-group" role="group">
-          <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}" class="btn btn-default btn-sm {% if not current_dirname %}active{% endif %}">
-            all builds
+  {% if copr.dirs|length > 1 %}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div class="btn-group" role="group">
+        <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}" class="btn btn-default btn-sm {% if not current_dirname %}active{% endif %}">
+          all builds
+        </a>
+        {% for copr_dir in copr.dirs|sort(attribute='name') %}
+            <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}?dirname={{ copr_dir.name }}" class="btn btn-default btn-sm {% if current_dirname == copr_dir.name %}active{% endif %}">
+            {{ copr_dir.name }}
           </a>
-          {% for copr_dir in copr.dirs|sort(attribute='name') %}
-              <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}?dirname={{ copr_dir.name }}" class="btn btn-default btn-sm {% if current_dirname == copr_dir.name %}active{% endif %}">
-              {{ copr_dir.name }}
-            </a>
-          {% endfor %}
-        </div>
+        {% endfor %}
       </div>
     </div>
-    {% endif %}
-
+  </div>
+  {% endif %}
+  {% if builds %}
     {{ builds_table(builds) }}
     {{ build_states() }}
   {% else %}
   <div class="blank-slate-pf">
+    {% if not current_dirname %}
     <div class="blank-slate-pf-icon">
       <span class="pficon pficon pficon-add-circle-o"></span>
     </div>
@@ -58,6 +57,11 @@
     <div class="blank-slate-pf-main-action">
       <a class="btn btn-primary btn-lg" href="{{ copr_url('coprs_ns.copr_add_build', copr) }}"> Submit a New Build </a>
     </div>
+    {% endif %}
+    {% else %}
+    <h1>
+      No builds in this project directory.
+    </h1>
     {% endif %}
   </div>
   {% endif %}

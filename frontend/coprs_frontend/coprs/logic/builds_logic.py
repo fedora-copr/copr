@@ -842,6 +842,7 @@ GROUP BY
             if new_status == StatusEnum("failed"):
                 build.fail_type = helpers.FailTypeEnum("srpm_build_error")
 
+            cls.process_update_callback(build)
             db.session.add(build)
             return
 
@@ -949,6 +950,8 @@ GROUP BY
             ActionsLogic.send_cancel_build(build)
 
         build.canceled = True
+        cls.process_update_callback(build)
+
         for chroot in build.build_chroots:
             chroot.status = 2  # canceled
             if chroot.ended_on is not None:
@@ -986,6 +989,7 @@ GROUP BY
         chroots = filter(lambda x: x.status != helpers.StatusEnum("succeeded"), build.build_chroots)
         for chroot in chroots:
             chroot.status = helpers.StatusEnum("failed")
+        cls.process_update_callback(build)
         return build
 
     @classmethod
