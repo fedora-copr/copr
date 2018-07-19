@@ -165,13 +165,27 @@ class Action(object):
             self.log.error(traceback.format_exc())
             result.result = ActionResult.FAILURE
 
-    def handle_delete_copr_project(self):
+    def handle_delete_project(self, result):
         self.log.debug("Action delete copr")
-        project = self.data["old_value"]
-        path = os.path.normpath(self.destdir + '/' + project)
-        if os.path.exists(path):
-            self.log.info("Removing copr %s", path)
-            shutil.rmtree(path)
+        result.result = ActionResult.SUCCESS
+
+        ext_data = json.loads(self.data["data"])
+        ownername = ext_data["ownername"]
+        project_dirnames = ext_data["project_dirnames"]
+
+        if not ownername:
+            self.log.error("Received empty ownername!")
+            result.result = ActionResult.FAILURE
+            return
+
+        for dirname in project_dirnames:
+            if not dirname:
+                self.log.warning("Received empty dirname!")
+                continue
+            path = os.path.join(self.destdir, ownername, dirname)
+            if os.path.exists(path):
+                self.log.info("Removing copr dir {}".format(path))
+                shutil.rmtree(path)
 
     def handle_comps_update(self, result):
         self.log.debug("Action comps update")
@@ -245,6 +259,7 @@ class Action(object):
 
         for chroot, builddir in chroot_builddirs.items():
             if not builddir:
+                self.log.warning("Received empty builddir!")
                 continue
 
             chroot_path = os.path.join(self.destdir, ownername, project_dirname, chroot)
@@ -432,7 +447,7 @@ class Action(object):
 
         if action_type == ActionType.DELETE:
             if self.data["object_type"] == "copr":
-                self.handle_delete_copr_project()
+                self.handle_delete_project()
             elif self.data["object_type"] == "build":
                 self.handle_delete_build()
 

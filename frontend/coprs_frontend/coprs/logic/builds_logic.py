@@ -928,6 +928,7 @@ GROUP BY
             'uid': str(build.id),
         }
 
+        log.info('Sending data to Pagure API: '+pprint.pformat(data))
         response = requests.post(api_url, data=data, headers=headers)
         log.info('Pagure API response: '+response.text)
 

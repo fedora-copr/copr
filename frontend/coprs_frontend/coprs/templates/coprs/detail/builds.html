@@ -28,7 +28,7 @@
           <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}" class="btn btn-default btn-sm {% if not current_dirname %}active{% endif %}">
             all builds
           </a>
-          {% for copr_dir in copr.dirs %}
+          {% for copr_dir in copr.dirs|sort(attribute='name') %}
               <a href="{{ copr_url('coprs_ns.copr_builds', copr) }}?dirname={{ copr_dir.name }}" class="btn btn-default btn-sm {% if current_dirname == copr_dir.name %}active{% endif %}">
               {{ copr_dir.name }}
             </a>

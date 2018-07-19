@@ -219,7 +219,7 @@ class CoprsLogic(object):
 
         copr = models.Copr(name=name,
                            repos=repos or u"",
-                           user_id=user.id,
+                           user=user,
                            description=description or u"",
                            instructions=instructions or u"",
                            created_on=int(time.time()),
@@ -292,21 +292,11 @@ class CoprsLogic(object):
             copr, "Can't delete this project,"
                   " another operation is in progress: {action}")
 
-        cls.create_delete_action(copr)
+        ActionsLogic.send_delete_copr(copr)
+        CoprDirsLogic.delete_all_by_copr(copr)
+
         copr.deleted = True
-
         return copr
-
-    @classmethod
-    def create_delete_action(cls, copr):
-        action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
-                               object_type="copr",
-                               object_id=copr.id,
-                               old_value=copr.full_name,
-                               new_value="",
-                               created_on=int(time.time()))
-        db.session.add(action)
-        return action
 
     @classmethod
     def exists_for_user(cls, user, coprname, incl_deleted=False):
@@ -442,20 +432,6 @@ class CoprPermissionsLogic(object):
 
 class CoprDirsLogic(object):
     @classmethod
-    def get_copr(cls, username, dirname, **kwargs):
-        query = CoprsLogic.get_multiple_by_username(username, **kwargs)
-        query = query.join(models.CoprDir).filter(
-            models.CoprDir.name == dirname)
-        return query
-
-    @classmethod
-    def get_copr_by_group_id(cls, group_id, dirname, **kwargs):
-        query = CoprsLogic.get_multiple_by_group_id(group_id, **kwargs)
-        query = query.join(models.CoprDir).filter(
-            models.CoprDir.name == dirname)
-        return query
-
-    @classmethod
     def get_or_create(cls, copr, dirname, main=False):
         copr_dir = cls.get_by_copr(copr, dirname).first()
 
@@ -470,24 +446,25 @@ class CoprDirsLogic(object):
 
     @classmethod
     def get_by_copr(cls, copr, dirname):
-        return (db.session.query(models.CoprDir).join(models.Copr)
-                .filter(models.Copr.id==copr.id).filter(models.CoprDir.name==dirname))
+        return (db.session.query(models.CoprDir)
+                .join(models.Copr)
+                .filter(models.Copr.id==copr.id)
+                .filter(models.CoprDir.name==dirname))
 
     @classmethod
     def get_by_ownername(cls, ownername, dirname):
-        if ownername.startswith('@'):
-            return cls.get_by_groupname(ownername[1:], dirname)
-        return cls.get_by_username(ownername, dirname)
+        return (db.session.query(models.CoprDir)
+                .filter(models.CoprDir.name==dirname)
+                .filter(models.CoprDir.ownername==ownername))
 
     @classmethod
-    def get_by_username(cls, username, dirname):
-        return (db.session.query(models.CoprDir).join(models.Copr).join(models.User)
-                .filter(models.CoprDir.name==dirname).filter(models.User.username==username))
+    def delete(cls, copr_dir):
+        db.session.delete(copr_dir)
 
     @classmethod
-    def get_by_groupname(cls, groupname, dirname):
-        return (db.session.query(models.CoprDir).join(models.Copr).join(models.Group)
-                .filter(models.CoprDir.name==dirname).filter(models.Group.name==groupname))
+    def delete_all_by_copr(cls, copr):
+        for copr_dir in copr.dirs:
+            db.session.delete(copr_dir)
 
 
 def on_auto_createrepo_change(target_copr, value_acr, old_value_acr, initiator):

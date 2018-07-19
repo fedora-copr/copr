@@ -75,32 +75,6 @@ class ComplexLogic(object):
         return fcopr, created
 
     @staticmethod
-    def get_group_copr_dir_safe(group_name, copr_dirname, **kwargs):
-        """ Get group project_dir by group_name and copr_dirname."""
-        try:
-            return CoprDirsLogic.get_by_groupname(
-                group_name, copr_dirname, **kwargs).one()
-        except sqlalchemy.orm.exc.NoResultFound:
-            raise ObjectNotFound(
-                message="Project directory @{}/{} does not exist."
-                        .format(group_name, copr_dirname))
-
-    @staticmethod
-    def get_copr_dir_safe(user_name, copr_dirname, **kwargs):
-        """ Get project_dir by user_name and copr_dirname.
-
-        This always returns a personal directory.
-        For group project directories, see get_group_copr_dir_safe().
-        """
-        try:
-            return CoprDirsLogic.get_by_username(
-                user_name, copr_dirname, **kwargs).filter(Copr.group_id.is_(None)).one()
-        except sqlalchemy.orm.exc.NoResultFound:
-            raise ObjectNotFound(
-                message="Project directory {}/{} does not exist."
-                        .format(user_name, copr_dirname))
-
-    @staticmethod
     def get_group_copr_safe(group_name, copr_name, **kwargs):
         group = ComplexLogic.get_group_by_name_safe(group_name)
         try:
@@ -131,10 +105,12 @@ class ComplexLogic(object):
         return ComplexLogic.get_copr_safe(owner_name, copr_name, **kwargs)
 
     @staticmethod
-    def get_copr_dir_by_owner_safe(owner_name, copr_dirname, **kwargs):
-        if owner_name[0] == "@":
-            return ComplexLogic.get_group_copr_dir_safe(owner_name[1:], copr_dirname, **kwargs)
-        return ComplexLogic.get_copr_dir_safe(owner_name, copr_dirname, **kwargs)
+    def get_copr_dir_safe(ownername, copr_dirname, **kwargs):
+        try:
+            return CoprDirsLogic.get_by_ownername(ownername, copr_dirname).one()
+        except sqlalchemy.orm.exc.NoResultFound:
+            raise ObjectNotFound(message="copr dir {}/{} does not exist."
+                        .format(ownername, copr_dirname))
 
     @staticmethod
     def get_copr_by_id_safe(copr_id):

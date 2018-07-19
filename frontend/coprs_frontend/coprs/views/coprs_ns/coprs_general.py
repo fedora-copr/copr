@@ -732,14 +732,8 @@ def generate_repo_file(copr_dirname, name_release, repofile, username=None, grou
     """ Generate repo file for a given repo name.
         Reponame = username-coprname """
 
-    if username and username.startswith("@"):
-        group_name=username[1:]
-
-    if group_name:
-        copr_dir = ComplexLogic.get_group_copr_dir_safe(group_name, copr_dirname)
-    else:
-        copr_dir = ComplexLogic.get_copr_dir_safe(username, copr_dirname)
-
+    ownername = username if username else ('@'+group_name)
+    copr_dir = ComplexLogic.get_copr_dir_safe(ownername, copr_dirname)
     return render_generate_repo_file(copr_dir, name_release)
 
 

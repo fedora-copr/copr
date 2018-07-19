@@ -433,15 +433,23 @@ class CoprDir(db.Model):
     name = db.Column(db.Text, index=True)
     main = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
+    ownername = db.Column(db.Text, index=True, nullable=False)
+
     copr_id = db.Column(db.Integer, db.ForeignKey("copr.id"), index=True, nullable=False)
     copr = db.relationship("Copr", backref=db.backref("dirs"))
 
     __table_args__ = (
         db.Index('only_one_main_copr_dir', copr_id, main,
                  unique=True, postgresql_where=(main==True)),
-        db.UniqueConstraint('copr_id', 'name',
-                            name='copr_dir_copr_id_name_uniq'),
+
+        db.UniqueConstraint('ownername', 'name',
+                            name='ownername_copr_dir_uniq'),
     )
+
+    def __init__(self, *args, **kwargs):
+        if kwargs.get('copr') and not kwargs.get('ownername'):
+            kwargs['ownername'] = kwargs.get('copr').owner_name
+        super(CoprDir, self).__init__(*args, **kwargs)
 
     @property
     def full_name(self):

@@ -89,6 +89,19 @@ class ActionsLogic(object):
         db.session.add(action)
 
     @classmethod
+    def send_delete_copr(cls, copr):
+        data_dict = {
+            "ownername": copr.owner_name,
+            "project_dirnames": [copr_dir.name for copr_dir in copr.dirs],
+        }
+        action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
+                               object_type="copr",
+                               object_id=copr.id,
+                               data=json.dumps(data_dict),
+                               created_on=int(time.time()))
+        db.session.add(action)
+
+    @classmethod
     def send_delete_build(cls, build):
         """
         Schedules build delete action

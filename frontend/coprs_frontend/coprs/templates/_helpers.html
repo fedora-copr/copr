@@ -390,13 +390,23 @@ https://admin.fedoraproject.org/accounts/group/view/{{name}}
 
 
 {% macro repo_file_href(copr, repo) %}
-  {{- copr_url('coprs_ns.generate_repo_file',
-      copr,
+  {% if copr.is_a_group_project: %}
+  {{- url_for('coprs_ns.generate_repo_file',
+      group_name=copr.group.name,
       copr_dirname=copr.main_dir.name,
       name_release=repo.name_release,
       repofile=repo.repo_file,
       _external=True
     )|fix_url_https_frontend -}}
+  {% else %}
+  {{- url_for('coprs_ns.generate_repo_file',
+      username=copr.user.name,
+      copr_dirname=copr.main_dir.name,
+      name_release=repo.name_release,
+      repofile=repo.repo_file,
+      _external=True
+    )|fix_url_https_frontend -}}
+  {% endif %}
 {% endmacro %}
 
 
