@@ -26,7 +26,7 @@ from urllib.parse import urlparse
 SCM_SOURCE_TYPE = helpers.BuildSourceEnum("scm")
 
 logging.basicConfig(
-    filename='{0}/build_on_pagure_commit.log'.format(app.config.get('LOG_DIR')),
+    filename='{0}/pagure-events.log'.format(app.config.get('LOG_DIR')),
     format='[%(asctime)s][%(levelname)6s]: %(message)s',
     level=logging.DEBUG)
 
