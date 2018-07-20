@@ -447,7 +447,7 @@ class Action(object):
 
         if action_type == ActionType.DELETE:
             if self.data["object_type"] == "copr":
-                self.handle_delete_project()
+                self.handle_delete_project(result)
             elif self.data["object_type"] == "build":
                 self.handle_delete_build()
 
