@@ -262,7 +262,7 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
         """
         Return True if copr belongs to a group
         """
-        return self.group_id is not None
+        return self.group is not None
 
     @property
     def owner(self):
