@@ -58,7 +58,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "id": 1,
      "copr_id": 2,
      "result_dir": "bar",
-     "started_on": 139086644000
+     "started_on": 1390866440
    }
   ]
 }"""
@@ -72,7 +72,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "status": 1,
      "chroot": "fedora-18-x86_64",
      "result_dir": "bar",
-     "ended_on": 149086644000
+     "ended_on": 1490866440
    }
   ]
 }"""
@@ -86,7 +86,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "chroot": "fedora-18-x86_64",
      "status": 6,
      "result_dir": "bar",
-     "started_on": 139086644000
+     "started_on": 1390866440
    },
    {
      "id": 2,
@@ -94,7 +94,7 @@ class TestUpdateBuilds(CoprsTestCase):
      "status": 0,
      "chroot": "fedora-18-x86_64",
      "result_dir": "bar",
-     "ended_on": 139086644000
+     "ended_on": 1390866440
    },
    {
      "id": 123321,
@@ -102,14 +102,14 @@ class TestUpdateBuilds(CoprsTestCase):
      "status": 0,
      "chroot": "fedora-18-x86_64",
      "result_dir": "bar",
-     "ended_on": 139086644000
+     "ended_on": 1390866440
    },
    {
      "id": 1234321,
      "copr_id": 2,
      "chroot": "fedora-18-x86_64",
      "result_dir": "bar",
-     "started_on": 139086644000
+     "started_on": 1390866440
    }
   ]
 }"""
@@ -136,7 +136,7 @@ class TestUpdateBuilds(CoprsTestCase):
             self.models.Build.id == 1).one()
 
         assert updated.status == 1
-        assert updated.chroots_ended_on == {'fedora-18-x86_64': 149086644000}
+        assert updated.chroots_ended_on == {'fedora-18-x86_64': 1490866440}
 
     def test_update_more_existent_and_non_existent_builds(
             self, f_users, f_coprs, f_mock_chroots, f_builds, f_db):
@@ -155,13 +155,13 @@ class TestUpdateBuilds(CoprsTestCase):
 
         started = self.models.Build.query.filter(
             self.models.Build.id == 1).first()
-        assert started.chroots_started_on == {'fedora-18-x86_64': 139086644000}
+        assert started.chroots_started_on == {'fedora-18-x86_64': 1390866440}
 
         ended = self.models.Build.query.filter(
             self.models.Build.id == 2).first()
         assert ended.status == 0
         assert ended.result_dir == "bar"
-        assert ended.chroots_ended_on == {'fedora-18-x86_64': 139086644000}
+        assert ended.chroots_ended_on == {'fedora-18-x86_64': 1390866440}
 
 
 class TestWaitingActions(CoprsTestCase):
@@ -198,7 +198,7 @@ class TestUpdateActions(CoprsTestCase):
       "id": 1,
       "result": 1,
       "message": "no problem",
-      "ended_on": 139086644000
+      "ended_on": 1390866440
     }
   ]
 }"""
@@ -209,19 +209,19 @@ class TestUpdateActions(CoprsTestCase):
       "id": 1,
       "result": 1,
       "message": null,
-      "ended_on": 139086644000
+      "ended_on": 1390866440
     },
     {
       "id": 2,
       "result": 2,
       "message": "problem!",
-      "ended_on": 139086644000
+      "ended_on": 1390866440
     },
     {
       "id": 100,
       "result": 123,
       "message": "wheeeee!",
-      "ended_on": 139086644000
+      "ended_on": 1390866440
     }
   ]
 }"""
@@ -238,7 +238,7 @@ class TestUpdateActions(CoprsTestCase):
             self.models.Action.id == 1).first()
         assert updated.result == 1
         assert updated.message == "no problem"
-        assert updated.ended_on == 139086644000
+        assert updated.ended_on == 1390866440
 
     def test_update_more_existent_and_non_existent_builds(self, f_users,
                                                           f_coprs, f_actions,
@@ -254,13 +254,13 @@ class TestUpdateActions(CoprsTestCase):
             self.models.Action.id == 1).first()
         assert updated.result == 1
         assert updated.message is None
-        assert updated.ended_on == 139086644000
+        assert updated.ended_on == 1390866440
 
         updated2 = self.models.Action.query.filter(
             self.models.Action.id == 2).first()
         assert updated2.result == 2
         assert updated2.message == "problem!"
-        assert updated2.ended_on == 139086644000
+        assert updated2.ended_on == 1390866440
 
 
 class TestImportingBuilds(CoprsTestCase):

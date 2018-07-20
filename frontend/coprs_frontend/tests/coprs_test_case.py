@@ -264,8 +264,8 @@ class CoprsTestCase(object):
                 )
 
                 if build is self.b1 or build is self.b2:
-                    buildchroot.started_on = 139086644000
-                    buildchroot.ended_on = 149086644000
+                    buildchroot.started_on = 1390866440
+                    buildchroot.ended_on = 1490866440
 
 
                 build_chroots.append(buildchroot)

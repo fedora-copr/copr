@@ -787,7 +787,7 @@ GROUP BY
                {
                  "id": 1,
                  "copr_id": 2,
-                 "started_on": 139086644000
+                 "started_on": 1390866440
                },
                {
                  "id": 2,
@@ -795,7 +795,7 @@ GROUP BY
                  "status": 0,
                  "chroot": "fedora-18-x86_64",
                  "result_dir": "baz",
-                 "ended_on": 139086644000
+                 "ended_on": 1390866440
                }]
             }
         """
