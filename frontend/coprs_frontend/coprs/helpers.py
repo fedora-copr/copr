@@ -658,9 +658,13 @@ def generate_additional_repos(copr_chroot):
 def trim_git_url(url):
     if not url:
         return False
+
     return re.sub(r'(\.git)?/*$', '', url)
 
 
 def get_parsed_git_url(url):
+    if not url:
+        return False
+
     url = trim_git_url(url)
     return urlparse(url)

@@ -190,8 +190,8 @@ def event_info_from_push(data, base_url):
 
 
 def git_compare_urls(url1, url2):
-    url1 = re.sub(r'(\.git)?/*$', '', url1)
-    url2 = re.sub(r'(\.git)?/*$', '', url2)
+    url1 = re.sub(r'(\.git)?/*$', '', str(url1))
+    url2 = re.sub(r'(\.git)?/*$', '', str(url2))
     o1 = urlparse(url1)
     o2 = urlparse(url2)
     return (o1.netloc == o2.netloc and o1.path == o2.path)
