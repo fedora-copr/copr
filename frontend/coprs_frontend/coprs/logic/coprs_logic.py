@@ -217,6 +217,9 @@ class CoprsLogic(object):
         if not user.admin and not auto_prune:
             raise exceptions.NonAdminCannotDisableAutoPrunning()
 
+        # form validation checks for duplicates
+        cls.new(user, name, group, check_for_duplicates=check_for_duplicates)
+
         copr = models.Copr(name=name,
                            repos=repos or u"",
                            user=user,
@@ -234,14 +237,13 @@ class CoprsLogic(object):
             UsersLogic.raise_if_not_in_group(user, group)
             copr.group = group
 
-        # form validation checks for duplicates
-        cls.new(user, copr, check_for_duplicates=check_for_duplicates)
-
         copr_dir = models.CoprDir(
             main=True,
             name=name,
             copr=copr)
+
         db.session.add(copr_dir)
+        db.session.add(copr)
 
         CoprChrootsLogic.new_from_names(
             copr, selected_chroots)
@@ -252,18 +254,16 @@ class CoprsLogic(object):
         return copr
 
     @classmethod
-    def new(cls, user, copr, check_for_duplicates=True):
+    def new(cls, user, copr_name, group=None, check_for_duplicates=True):
         if check_for_duplicates:
-            if copr.group is None and cls.exists_for_user(user, copr.name).all():
+            if group is None and cls.exists_for_user(user, copr_name).all():
                 raise exceptions.DuplicateException(
-                    "Copr: '{0}/{1}' already exists".format(user.name, copr.name))
-            elif copr.group:
-                db.session.flush()  # otherwise copr.id is not set from sequence
-                if cls.exists_for_group(copr.group, copr.name).filter(models.Copr.id != copr.id).all():
+                    "Copr: '{0}/{1}' already exists".format(user.name, copr_name))
+            elif group:
+                if cls.exists_for_group(group, copr_name).all():
                     db.session.rollback()
                     raise exceptions.DuplicateException(
-                        "Copr: '@{0}/{1}' already exists".format(copr.group.name, copr.name))
-        db.session.add(copr)
+                        "Copr: '@{0}/{1}' already exists".format(group.name, copr_name))
 
     @classmethod
     def update(cls, user, copr):

@@ -7,7 +7,7 @@ from unittest import mock
 from coprs import models
 from coprs.helpers import ActionTypeEnum
 
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 from coprs.logic.actions_logic import ActionsLogic
 
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
@@ -176,8 +176,10 @@ class TestCoprNew(CoprsTestCase):
             self, f_users, f_coprs, f_mock_chroots, f_db):
 
         self.db.session.add(self.c1)
+        self.db.session.add(self.c1_dir)
         self.c1.deleted = True
         self.c1.user = self.u1
+        CoprDirsLogic.delete_all_by_copr(self.c1)
         self.db.session.commit()
 
         self.db.session.add(self.c1)

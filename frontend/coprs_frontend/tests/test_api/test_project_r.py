@@ -10,6 +10,7 @@ import pytest
 import sqlalchemy
 from coprs.logic.builds_logic import BuildsLogic
 
+from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.models import Copr
@@ -340,7 +341,7 @@ class TestProjectResource(CoprsTestCase):
             self, f_users, f_mock_chroots,
             f_coprs, f_users_api, f_db):
 
-        CoprsLogic.create_delete_action(self.c1)
+        ActionsLogic.send_delete_copr(self.c1)
         self.db.session.commit()
         href = "/api_2/projects/{}".format(self.c1.id)
         r0 = self.request_rest_api_with_auth(

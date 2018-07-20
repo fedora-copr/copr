@@ -6,6 +6,7 @@ import random
 from marshmallow import pprint
 
 from coprs.helpers import BuildSourceEnum, StatusEnum
+from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from tests.coprs_test_case import CoprsTestCase
@@ -225,7 +226,7 @@ class TestBuildResource(CoprsTestCase):
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
 
-        CoprsLogic.create_delete_action(self.c1)
+        ActionsLogic.send_delete_copr(self.c1)
         chroot_name_list = [c.name for c in self.c1.active_chroots]
         metadata = {
             "project_id": 1,
@@ -271,7 +272,7 @@ class TestBuildResource(CoprsTestCase):
             f_mock_chroots_many, f_build_many_chroots,
             f_users_api):
 
-        CoprsLogic.create_delete_action(self.c1)
+        ActionsLogic.send_delete_copr(self.c1)
         chroot_name_list = [c.name for c in self.c1.active_chroots]
         metadata = {
             "project_id": 1,
