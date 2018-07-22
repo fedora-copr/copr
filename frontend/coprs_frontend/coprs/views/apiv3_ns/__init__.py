@@ -25,9 +25,12 @@ def handle_copr_exception(error):
     message = error.message
     if error.code == 500:
         message = "Request wasn't successful, there is probably a bug in the API code."
-    elif error.code == 404:
-        message = "Such API endpoint doesn't exist"
     return handle_api_error(message, error.code)
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return handle_api_error("Such API endpoint doesn't exist", 404)
 
 
 def handle_api_error(message, code):
