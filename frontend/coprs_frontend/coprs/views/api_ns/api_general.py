@@ -844,9 +844,9 @@ def copr_edit_package(copr, package_name, source_type_text):
     return process_package_add_or_edit(copr, source_type_text, package=package)
 
 
-def process_package_add_or_edit(copr, source_type_text, package=None):
+def process_package_add_or_edit(copr, source_type_text, package=None, data=None):
     try:
-        form = forms.get_package_form_cls_by_source_type_text(source_type_text)(csrf_enabled=False)
+        form = forms.get_package_form_cls_by_source_type_text(source_type_text)(data, csrf_enabled=False)
     except UnknownSourceTypeException:
         raise LegacyApiError("Unsupported package source type {source_type_text}".format(source_type_text=source_type_text))
 

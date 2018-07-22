@@ -3,7 +3,7 @@ from werkzeug.datastructures import MultiDict
 
 
 def get_form_compatible_data():
-    input = without_empty_fields(get_input())
+    input = without_empty_fields(get_input_dict())
     output = {}
 
     for k, v in input.items():
@@ -21,8 +21,12 @@ def get_form_compatible_data():
     return MultiDict(output)
 
 
-def get_input():
+def get_input_dict():
     return flask.request.json or flask.request.form
+
+
+def get_input():
+    return MultiDict(get_input_dict())
 
 
 def without_empty_fields(input):

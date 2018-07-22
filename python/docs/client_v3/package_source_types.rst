@@ -19,7 +19,7 @@ committish             str
 subdirectory           str
 spec                   str
 scm_type               str                  "git", "svn"
-srpm_build_method      str                  See `User documentation <https://docs.pagure.org/copr.copr/user_documentation.html#scm>`_ for more info
+source_build_method    str                  See `User documentation <https://docs.pagure.org/copr.copr/user_documentation.html#scm>`_ for more info
 =====================  ==================== ===============
 
 

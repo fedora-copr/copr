@@ -1,7 +1,7 @@
 import os
 import flask
 from . import query_params, get_copr, pagination, Paginator, GET, POST, PUT, DELETE
-from .json2form import get_form_compatible_data, get_input
+from .json2form import get_form_compatible_data, get_input_dict
 from coprs import db, models, forms
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
@@ -101,7 +101,7 @@ def add_project(ownername):
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
-    validate_chroots(get_input(), MockChrootsLogic.get_multiple())
+    validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
     group = None
     if ownername[0] == "@":
@@ -143,7 +143,7 @@ def edit_project(ownername, projectname):
 
     if not form.validate_on_submit():
         raise BadRequest(form.errors)
-    validate_chroots(get_input(), MockChrootsLogic.get_multiple())
+    validate_chroots(get_input_dict(), MockChrootsLogic.get_multiple())
 
     for field in form:
         if field.data is None or field.name in ["csrf_token", "chroots"]:

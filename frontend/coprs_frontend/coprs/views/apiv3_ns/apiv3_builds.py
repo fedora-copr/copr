@@ -50,6 +50,18 @@ def to_source_build_config(build):
     }
 
 
+def rename_fields(input):
+    replace = {
+        "source_build_method": "srpm_build_method",
+    }
+    output = input.copy()
+    for from_name, to_name in replace.items():
+        if from_name not in output:
+            continue
+        output[to_name] = output.pop(from_name)
+    return output
+
+
 def render_build(build):
     return flask.jsonify(to_dict(build))
 
@@ -151,7 +163,7 @@ def create_from_upload():
 @api_login_required
 def create_from_scm():
     copr = get_copr()
-    data = get_form_compatible_data()
+    data = rename_fields(get_form_compatible_data())
     form = forms.BuildFormScmFactory(copr.active_chroots)(data, csrf_enabled=False)
 
     def create_new_build():

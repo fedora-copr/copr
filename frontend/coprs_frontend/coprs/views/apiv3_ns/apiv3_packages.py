@@ -1,7 +1,7 @@
 import flask
 import wtforms
 from . import query_params, pagination, get_copr, Paginator, GET, POST, PUT, DELETE
-from .json2form import get_form_compatible_data
+from .json2form import get_form_compatible_data, get_input
 from coprs.exceptions import ApiError
 from coprs.exceptions import (ApiError, InsufficientRightsException, ActionInProgressException,
                               NoPackageSourceException, ObjectNotFound, BadRequest)
@@ -35,6 +35,7 @@ def rename_fields(input):
     replace = {
         "is_background": "background",
         "memory_limit": "memory_reqs",
+        "source_build_method": "srpm_build_method",
     }
     output = input.copy()
     for from_name, to_name in replace.items():
@@ -69,7 +70,8 @@ def get_package_list(ownername, projectname, **kwargs):
 @api_login_required
 def package_add(ownername, projectname, package_name, source_type_text):
     copr = get_copr(ownername, projectname)
-    process_package_add_or_edit(copr, source_type_text)
+    data = rename_fields(get_input())
+    process_package_add_or_edit(copr, source_type_text, data=data)
     package = PackagesLogic.get(copr.id, package_name).first()
     return flask.jsonify(to_dict(package))
 
@@ -78,6 +80,7 @@ def package_add(ownername, projectname, package_name, source_type_text):
 @api_login_required
 def package_edit(ownername, projectname, package_name, source_type_text=None):
     copr = get_copr(ownername, projectname)
+    data = rename_fields(get_input())
     try:
         package = PackagesLogic.get(copr.id, package_name)[0]
         source_type_text = source_type_text or package.source_type_text
@@ -85,7 +88,7 @@ def package_edit(ownername, projectname, package_name, source_type_text=None):
         raise ObjectNotFound("Package {name} does not exists in copr {copr}."
                              .format(name=package_name, copr=copr.full_name))
 
-    process_package_add_or_edit(copr, source_type_text, package=package)
+    process_package_add_or_edit(copr, source_type_text, package=package, data=data)
     return flask.jsonify(to_dict(package))
 
 

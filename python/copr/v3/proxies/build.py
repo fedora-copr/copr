@@ -135,7 +135,7 @@ class BuildProxy(BaseProxy):
         return self._create(endpoint, data, files=files, buildopts=buildopts)
 
     def create_from_scm(self, ownername, projectname, clone_url, committish="", subdirectory="", spec="",
-                        scm_type="git", srpm_build_method="rpkg", buildopts=None):
+                        scm_type="git", source_build_method="rpkg", buildopts=None):
         """
         Create a build from SCM repository
 
@@ -146,7 +146,7 @@ class BuildProxy(BaseProxy):
         :param str subdirectory: path to a subdirectory with package content
         :param str spec: path to spec file, relative to 'subdirectory'
         :param str scm_type:
-        :param str srpm_build_method:
+        :param str source_build_method:
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
         """
@@ -159,7 +159,7 @@ class BuildProxy(BaseProxy):
             "subdirectory": subdirectory,
             "spec": spec,
             "scm_type": scm_type,
-            "srpm_build_method": srpm_build_method,
+            "source_build_method": source_build_method,
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
