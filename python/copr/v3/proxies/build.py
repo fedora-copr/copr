@@ -86,7 +86,7 @@ class BuildProxy(BaseProxy):
         :param str ownername:
         :param str projectname:
         :param list urls:
-        :param buildopts:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
         """
         endpoint = "/build/create/url"
@@ -104,7 +104,7 @@ class BuildProxy(BaseProxy):
         :param str ownername:
         :param str projectname:
         :param str url:
-        :param buildopts:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
         """
         if len(url.split()) > 1:
@@ -119,7 +119,7 @@ class BuildProxy(BaseProxy):
         :param str ownername:
         :param str projectname:
         :param str path:
-        :param buildopts:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
         """
         endpoint = "/build/create/upload"
@@ -147,7 +147,7 @@ class BuildProxy(BaseProxy):
         :param str spec: path to spec file, relative to 'subdirectory'
         :param str scm_type:
         :param str srpm_build_method:
-        :param buildopts:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
         """
         endpoint = "/build/create/scm"
@@ -173,7 +173,7 @@ class BuildProxy(BaseProxy):
         :param str pypi_package_name:
         :param str pypi_package_version: PyPI package version (None means "latest")
         :param list python_versions: list of python versions to build for
-        :param buildopts:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
         """
         endpoint = "/build/create/pypi"
@@ -193,7 +193,7 @@ class BuildProxy(BaseProxy):
         :param str ownername:
         :param str projectname:
         :param str gem_name:
-        :param buildopts:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
         """
         endpoint = "/build/create/rubygems"

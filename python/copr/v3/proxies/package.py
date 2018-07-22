@@ -52,8 +52,8 @@ class PackageProxy(BaseProxy):
         :param str ownername:
         :param str projectname:
         :param str packagename:
-        :param str source_type:
-        :param dict source_dict:
+        :param str source_type: http://python-copr.readthedocs.io/en/latest/client_v3/package_source_types.html
+        :param dict source_dict: http://python-copr.readthedocs.io/en/latest/client_v3/package_source_types.html
         :return: Munch
         """
         endpoint = "/package/add/{ownername}/{projectname}/{package_name}/{source_type_text}"
@@ -79,8 +79,8 @@ class PackageProxy(BaseProxy):
         :param str ownername:
         :param str projectname:
         :param str packagename:
-        :param source_type:
-        :param dict source_dict:
+        :param source_type: http://python-copr.readthedocs.io/en/latest/client_v3/package_source_types.html
+        :param dict source_dict: http://python-copr.readthedocs.io/en/latest/client_v3/package_source_types.html
         :return: Munch
         """
         endpoint = "/package/edit/{ownername}/{projectname}/{package_name}/{source_type_text}"
@@ -127,7 +127,7 @@ class PackageProxy(BaseProxy):
         :param str ownername:
         :param str projectname:
         :param str packagename:
-        :param buildopts:
+        :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
         """
         endpoint = "/package/build"
