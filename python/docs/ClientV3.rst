@@ -34,6 +34,7 @@ Quick overview
 .. toctree::
     :maxdepth: 1
 
+    client_v3/client_initialization.rst
     client_v3/data_structures.rst
     client_v3/error_handling.rst
     client_v3/pagination.rst
