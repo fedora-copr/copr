@@ -23,8 +23,10 @@ all packages from given project are returned, regardless their number.
      Munch({'id': 5, 'ownername': '@copr', 'projectname': 'copr', 'state': 'canceled', ...})]
 
 
-
-In some cases, it may be useful to obtain just a limited number of objects.
+However, in some cases, it may be useful to obtain just a limited number of objects. Querying all builds from a project
+with hundreds of thousands of them may be painfully slow or even timeout. And if all of them are not even needed, it is
+a huge waste of resources. It all depends on the specific use-case. When it is useful, you can query limited
+and/or ordered number of objects.
 
 .. code-block:: python
 
