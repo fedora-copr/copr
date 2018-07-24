@@ -56,3 +56,11 @@ Or even without configuration file.
 
     build_proxy = BuildProxy(config)
 
+And finally, it is possible to just read the configuration file.
+
+::
+
+    from copr.v3 import config_from_file
+    config = config_from_file()
+    client = Client(config)
+
