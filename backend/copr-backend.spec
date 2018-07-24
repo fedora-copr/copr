@@ -23,7 +23,9 @@ BuildRequires: util-linux
 BuildRequires: systemd
 BuildRequires: redis
 
+%global _python_bytecompile_extra 0
 %global __python %{__python3}
+
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-requests
@@ -100,7 +102,7 @@ only.
 %if 0%{?fedora}
 # build documentation
 pushd docs
-    make %{?_smp_mflags} html
+    PYTHONDONTWRITEBYTECODE=1 make %{?_smp_mflags} html
     rm build/html/.buildinfo
 popd
 %endif # ?fedora
@@ -160,6 +162,8 @@ cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysc
 %if 0%{?fedora}
     cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
 %endif
+
+%py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/backend
 
 %check
 ./run_tests.sh

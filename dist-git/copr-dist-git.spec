@@ -14,7 +14,11 @@ Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 
+# switch off byte-compilation in %%{_datadir}
+%global _python_bytecompile_extra 0
+
 BuildRequires: systemd
+BuildRequires: python3-devel
 BuildRequires: python3-munch
 BuildRequires: python3-requests
 BuildRequires: python3-rpkg
@@ -75,6 +79,8 @@ cp -a conf/logrotate %{buildroot}%{_sysconfdir}/logrotate.d/copr-dist-git
 
 # for ghost files
 touch %{buildroot}%{_var}/log/copr-dist-git/main.log
+
+%py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/dist_git
 
 %check
 

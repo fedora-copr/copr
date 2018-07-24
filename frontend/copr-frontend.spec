@@ -63,8 +63,9 @@ BuildRequires: epydoc
 BuildRequires: graphviz
 %endif
 
-# byecompile files in %%{_datadir} with python3, not /usr/bin/python
+%global _python_bytecompile_extra 0
 %global __python %{__python3}
+
 BuildRequires: python3-devel
 
 %if %{with check}
@@ -199,7 +200,7 @@ custom %{name}-flavor package.
 # build documentation
 %if %{with doc}
 pushd documentation
-COPR_CONFIG=../../documentation/copr-documentation.conf make %{?_smp_mflags} python
+PYTHONDONTWRITEBYTECODE=1 COPR_CONFIG=../../documentation/copr-documentation.conf make %{?_smp_mflags} python
 popd
 %endif
 
@@ -255,6 +256,8 @@ Requires: copr-frontend
 %%copr_frontend_templatedir       %templatedir
 %%copr_frontend_chroot_logodir    %%copr_frontend_staticdir/chroot_logodir
 EOF
+
+%py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/coprs_frontend/coprs
 
 %check
 %if %{with check}
