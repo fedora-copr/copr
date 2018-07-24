@@ -1,6 +1,6 @@
 import base64
 from collections import defaultdict
-import json
+import ujson as json
 import os
 import time
 import glob

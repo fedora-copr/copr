@@ -1,5 +1,5 @@
 # coding: utf-8
-import json
+import ujson as json
 #from setproctitle import setproctitle
 # from multiprocessing import Process
 #from threading import Thread

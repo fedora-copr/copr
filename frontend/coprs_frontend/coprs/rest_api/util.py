@@ -1,5 +1,5 @@
 # coding: utf-8
-import json
+import ujson as json
 
 from flask import Response, url_for, Blueprint
 import sqlalchemy.orm.exc

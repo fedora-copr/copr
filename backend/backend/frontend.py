@@ -1,4 +1,4 @@
-import json
+import ujson as json
 import time
 from requests import post, RequestException
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 import copy
 
-import json
+import ujson as json
 from marshmallow import pprint
 from six.moves.urllib.parse import urlparse, parse_qs
 

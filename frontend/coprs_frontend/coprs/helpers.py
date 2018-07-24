@@ -14,7 +14,7 @@ from dateutil import parser as dt_parser
 from netaddr import IPAddress, IPNetwork
 from redis import StrictRedis
 from sqlalchemy.types import TypeDecorator, VARCHAR
-import json
+import ujson as json
 
 from coprs import constants
 from coprs import app
@@ -154,8 +154,8 @@ class JSONEncodedDict(TypeDecorator):
             value = json.loads(value)
         return value
 
-class Paginator(object):
 
+class Paginator(object):
     def __init__(self, query, total_count, page=1,
                  per_page_override=None, urls_count_override=None,
                  additional_params=None):
@@ -207,6 +207,10 @@ class Paginator(object):
         args["page"] = page
         args.update(self.additional_params)
         return flask.url_for(request.endpoint, **args)
+
+
+def jsonify(data):
+    return flask.Response(json.dumps(data), content_type='application/json')
 
 
 def chroot_to_branch(chroot):

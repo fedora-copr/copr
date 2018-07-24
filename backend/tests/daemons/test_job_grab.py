@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import copy
-import json
+import ujson as json
 
 import logging
 from munch import Munch

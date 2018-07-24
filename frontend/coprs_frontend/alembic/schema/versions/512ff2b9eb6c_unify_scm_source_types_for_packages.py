@@ -12,7 +12,7 @@ down_revision = 'a8654abcec65'
 
 from alembic import op
 import sqlalchemy as sa
-import json
+import ujson as json
 
 from coprs import models
 

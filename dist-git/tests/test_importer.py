@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import json
+import ujson as json
 
 import os
 import copy

@@ -8,7 +8,7 @@
 import re
 import sys
 import requests
-import json
+import ujson as json
 import os
 import logging
 import argparse

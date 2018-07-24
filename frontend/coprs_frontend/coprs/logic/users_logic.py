@@ -1,5 +1,4 @@
-import json
-import simplejson
+import ujson as json
 from coprs import exceptions
 from flask import url_for
 
@@ -130,7 +129,7 @@ class UserDataDumper(object):
 
     def dumps(self, pretty=False):
         if pretty:
-            return simplejson.dumps(self.data, indent=2)
+            return json.dumps(self.data, indent=2)
         return json.dumps(self.data)
 
     @property

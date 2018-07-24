@@ -1,4 +1,4 @@
-import json
+import ujson as json
 
 import flask
 from flask import make_response

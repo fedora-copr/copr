@@ -1,5 +1,5 @@
 import time
-import json
+import ujson as json
 
 from collections import defaultdict
 

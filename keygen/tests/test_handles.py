@@ -1,4 +1,4 @@
-import json
+import ujson as json
 import six
 
 if six.PY3:

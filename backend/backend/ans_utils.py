@@ -1,5 +1,5 @@
 # coding: utf-8
-import json
+import ujson as json
 import subprocess
 from subprocess import CalledProcessError
 

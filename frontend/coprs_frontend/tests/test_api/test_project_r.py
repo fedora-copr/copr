@@ -2,7 +2,7 @@
 
 import base64
 import copy
-import json
+import ujson as json
 from marshmallow import pprint
 from flask_whooshee import Whooshee
 

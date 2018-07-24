@@ -3,7 +3,7 @@
 import copy
 
 from collections import defaultdict
-import json
+import ujson as json
 from random import choice
 import types
 from munch import Munch

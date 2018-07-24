@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import flask
-import json
+import ujson as json
 from coprs import rcp
 from coprs import app
 from coprs import db

@@ -1,7 +1,7 @@
 import os
 import time
 import base64
-import json
+import ujson as json
 import requests
 import modulemd
 from collections import defaultdict

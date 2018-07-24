@@ -4,7 +4,7 @@ from functools import wraps
 import os
 import flask
 import sqlalchemy
-import json
+import ujson as json
 import requests
 from requests.exceptions import RequestException, InvalidSchema
 from wtforms import ValidationError
@@ -109,7 +109,7 @@ def api_status():
         "waiting": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("pending")).count(), # change to "pending""
         "running": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("running")).count(),
     }
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/new/", methods=["POST"])
@@ -193,7 +193,7 @@ def api_new_copr(username):
         errormsg = errormsg.replace('"', "'")
         raise LegacyApiError(errormsg)
 
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/delete/", methods=["POST"])
@@ -220,7 +220,7 @@ def api_copr_delete(copr):
     else:
         raise LegacyApiError("Invalid request: {0}".format(form.errors))
 
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/fork/", methods=["POST"])
@@ -259,7 +259,7 @@ def api_copr_fork(copr):
     else:
         raise LegacyApiError("Invalid request: {0}".format(form.errors))
 
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/")
@@ -310,7 +310,7 @@ def api_coprs_by_owner(username=None):
                                 "auto_prune": repo.auto_prune,
                                })
 
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/detail/")
@@ -348,14 +348,14 @@ def api_coprs_by_owner_detail(copr):
         "auto_prune": copr.auto_prune,
         "use_bootstrap_container": copr.use_bootstrap_container,
     }
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/auth_check/", methods=["POST"])
 @api_login_required
 def api_auth_check():
     output = {"output": "ok"}
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
@@ -577,7 +577,7 @@ def process_creating_new_build(copr, form, create_new_build):
               "ids": ids,
               "message": "\n".join(infos)}
 
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/build_status/<int:build_id>/", methods=["GET"])
@@ -585,7 +585,7 @@ def build_status(build_id):
     build = ComplexLogic.get_build_safe(build_id)
     output = {"output": "ok",
               "status": build.state}
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/build_detail/<int:build_id>/", methods=["GET"])
@@ -619,7 +619,7 @@ def build_detail(build_id):
         "submitted_by": build.user.name if build.user else None, # there is no user for webhook builds
         "results_by_chroot": results_by_chroot
     }
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/cancel_build/<int:build_id>/", methods=["POST"])
@@ -634,7 +634,7 @@ def cancel_build(build_id):
         raise LegacyApiError("Invalid request: {}".format(e))
 
     output = {'output': 'ok', 'status': "Build canceled"}
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/coprs/delete_build/<int:build_id>/", methods=["POST"])
@@ -649,7 +649,7 @@ def delete_build(build_id):
         raise LegacyApiError("Invalid request: {}".format(e))
 
     output = {'output': 'ok', 'status': "Build deleted"}
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route('/coprs/<username>/<coprname>/modify/', methods=["POST"])
@@ -703,7 +703,7 @@ def copr_modify(copr):
         'chroots': [c.name for c in copr.mock_chroots],
     }
 
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route('/coprs/<username>/<coprname>/modify/<chrootname>/', methods=["POST"])
@@ -722,7 +722,7 @@ def copr_modify_chroot(copr, chrootname):
         db.session.commit()
 
     output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route('/coprs/<username>/<coprname>/chroot/edit/<chrootname>/', methods=["POST"])
@@ -754,7 +754,7 @@ def copr_edit_chroot(copr, chrootname):
         "message": "Edit chroot operation was successful.",
         "chroot": chroot.to_dict(),
     }
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route('/coprs/<username>/<coprname>/detail/<chrootname>/', methods=["GET"])
@@ -763,14 +763,14 @@ def copr_chroot_details(copr, chrootname):
     """Deprecated to copr_get_chroot"""
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
     output = {'output': 'ok', 'buildroot_pkgs': chroot.buildroot_pkgs}
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 @api_ns.route('/coprs/<username>/<coprname>/chroot/get/<chrootname>/', methods=["GET"])
 @api_req_with_copr
 def copr_get_chroot(copr, chrootname):
     chroot = ComplexLogic.get_copr_chroot_safe(copr, chrootname)
     output = {'output': 'ok', 'chroot': chroot.to_dict()}
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 @api_ns.route("/coprs/search/")
 @api_ns.route("/coprs/search/<project>/")
@@ -798,7 +798,7 @@ def api_coprs_search_by_project(project=None):
     except ValueError as e:
         raise LegacyApiError("Server error: {}".format(e))
 
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 
 @api_ns.route("/playground/list/")
@@ -812,7 +812,7 @@ def playground_list():
                                 "coprname": repo.name,
                                 "chroots": [chroot.name for chroot in repo.active_chroots]})
 
-    jsonout = flask.jsonify(output)
+    jsonout = helpers.jsonify(output)
     jsonout.status_code = 200
     return jsonout
 
@@ -822,7 +822,7 @@ def playground_list():
 def monitor(copr):
     monitor_data = builds_logic.BuildsMonitorLogic.get_monitor_data(copr)
     output = MonitorWrapper(copr, monitor_data).to_dict()
-    return flask.jsonify(output)
+    return helpers.jsonify(output)
 
 ###############################################################################
 
@@ -874,7 +874,7 @@ def process_package_add_or_edit(copr, source_type_text, package=None):
     else:
         raise LegacyApiError(form.errors)
 
-    return flask.jsonify({
+    return helpers.jsonify({
         "output": "ok",
         "message": "Create or edit operation was successful.",
         "package": package.to_dict(),
@@ -921,7 +921,7 @@ def copr_list_packages(copr):
     packages = PackagesLogic.get_all(copr.id)
     params = get_package_record_params()
     return flask.Response(generate_package_list(packages, params), content_type='application/json')
-    #return flask.jsonify({"packages": [package.to_dict(**params) for package in packages]})
+    #return helpers.jsonify({"packages": [package.to_dict(**params) for package in packages]})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/package/get/<package_name>/", methods=["GET"])
@@ -933,7 +933,7 @@ def copr_get_package(copr, package_name):
         raise LegacyApiError("No package with name {name} in copr {copr}".format(name=package_name, copr=copr.name))
 
     params = get_package_record_params()
-    return flask.jsonify({'package': package.to_dict(**params)})
+    return helpers.jsonify({'package': package.to_dict(**params)})
 
 
 @api_ns.route("/coprs/<username>/<coprname>/package/delete/<package_name>/", methods=["POST"])
@@ -951,7 +951,7 @@ def copr_delete_package(copr, package_name):
     except (InsufficientRightsException, ActionInProgressException) as e:
         raise LegacyApiError(str(e))
 
-    return flask.jsonify({
+    return helpers.jsonify({
         "output": "ok",
         "message": "Package was successfully deleted.",
         'package': package.to_dict(),
@@ -973,7 +973,7 @@ def copr_reset_package(copr, package_name):
     except InsufficientRightsException as e:
         raise LegacyApiError(str(e))
 
-    return flask.jsonify({
+    return helpers.jsonify({
         "output": "ok",
         "message": "Package's default source was successfully reseted.",
         'package': package.to_dict(),
@@ -1000,7 +1000,7 @@ def copr_build_package(copr, package_name):
     else:
         raise LegacyApiError(form.errors)
 
-    return flask.jsonify({
+    return helpers.jsonify({
         "output": "ok",
         "ids": [build.id],
         "message": "Build was added to {0}.".format(copr.name)
@@ -1022,7 +1022,7 @@ def copr_build_module(copr):
         module = facade.submit_build()
         db.session.commit()
 
-        return flask.jsonify({
+        return helpers.jsonify({
             "output": "ok",
             "message": "Created module {}".format(module.nsv),
         })
@@ -1050,4 +1050,4 @@ def copr_build_config(copr, chroot):
     if not output['build_config']:
         raise LegacyApiError('Chroot not found.')
 
-    return flask.jsonify(output)
+    return helpers.jsonify(output)

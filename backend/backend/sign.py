@@ -5,7 +5,7 @@ Wrapper for /bin/sign from obs-sign package
 """
 
 from subprocess import Popen, PIPE
-import json
+import ujson as json
 
 import os
 from requests import request

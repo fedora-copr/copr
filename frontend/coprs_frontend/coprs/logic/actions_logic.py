@@ -1,4 +1,4 @@
-import json
+import ujson as json
 import time
 import base64
 import os
