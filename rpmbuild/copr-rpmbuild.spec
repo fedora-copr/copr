@@ -45,7 +45,6 @@ Requires: %python
 Requires: %python_pfx-jinja2
 Requires: %python_pfx-munch
 Requires: %python-configparser
-Requires: %python-simplejson
 Requires: %python-requests
 
 Requires: mock
