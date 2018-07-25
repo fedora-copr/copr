@@ -31,6 +31,46 @@ Otherwise, an exception is raised and handled.
     Cannot cancel build 123
 
 
+Debugging
+---------
+
+Sometimes it is useful to dig deeper and examine the failure. Exceptions contain a ``result`` attribute
+returning a Munch with additional information.
+
+::
+
+    except CoprRequestException as ex:
+        print(ex)
+        print(ex.result)
+
+::
+
+    Cannot cancel build 123
+    Munch({'__response__': <Response [500]>, 'error': u'Cannot cancel build 123'})
+
+
+The stored response is a standard ``requests.Reponse`` so every possible detail like
+status code or headers can be examined.
+
+::
+
+    except CoprRequestException as ex:
+        print(type(ex.result.__response__))
+        print(ex.result.__response__)
+        print(ex.result.__response__.status_code)
+        print(ex.result.__response__.headers)
+
+
+::
+
+    <class 'requests.models.Response'>
+    <Response [500]>
+    500
+    {'Date': 'Wed, 25 Jul 2018 21:40:48 GMT', 'Content-Length': '42', 'Content-Type': 'application/json', 'Server': 'Werkzeug/0.12.2 Python/3.6.4'}
+
+
+
+
 Exception hierarchy
 -------------------
 
