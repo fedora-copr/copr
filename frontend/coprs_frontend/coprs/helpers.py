@@ -657,7 +657,7 @@ def generate_additional_repos(copr_chroot):
 
 def trim_git_url(url):
     if not url:
-        return False
+        return None
 
     return re.sub(r'(\.git)?/*$', '', url)
 
