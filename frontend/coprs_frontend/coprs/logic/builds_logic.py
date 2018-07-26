@@ -329,7 +329,7 @@ class BuildsLogic(object):
         db.engine.execute(order_to_status)
 
     @classmethod
-    def get_copr_builds_list(cls, copr, dirname):
+    def get_copr_builds_list(cls, copr, dirname=''):
         query_select = """
 SELECT build.id, build.source_status, MAX(package.name) AS pkg_name, build.pkg_version, build.submitted_on,
     MIN(statuses.started_on) AS started_on, MAX(statuses.ended_on) AS ended_on, order_to_status(MIN(statuses.st)) AS status,
