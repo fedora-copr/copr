@@ -50,7 +50,7 @@ def rename_fields(input):
 def get_package(ownername, projectname, packagename):
     copr = get_copr(ownername, projectname)
     try:
-        package = PackagesLogic.get(copr.id, packagename)[0]
+        package = PackagesLogic.get(copr.main_dir.id, packagename)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}".format(name=packagename, copr=copr.name))
     return flask.jsonify(to_dict(package))
@@ -61,7 +61,7 @@ def get_package(ownername, projectname, packagename):
 @query_params()
 def get_package_list(ownername, projectname, **kwargs):
     copr = get_copr(ownername, projectname)
-    paginator = Paginator(PackagesLogic.get_all(copr.id), models.Package, **kwargs)
+    paginator = Paginator(PackagesLogic.get_all(copr.main_dir.id), models.Package, **kwargs)
     packages = paginator.map(to_dict)
     return flask.jsonify(items=packages, meta=paginator.meta)
 
@@ -72,7 +72,7 @@ def package_add(ownername, projectname, package_name, source_type_text):
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_input())
     process_package_add_or_edit(copr, source_type_text, data=data)
-    package = PackagesLogic.get(copr.id, package_name).first()
+    package = PackagesLogic.get(copr.main_dir.id, package_name).first()
     return flask.jsonify(to_dict(package))
 
 
@@ -82,7 +82,7 @@ def package_edit(ownername, projectname, package_name, source_type_text=None):
     copr = get_copr(ownername, projectname)
     data = rename_fields(get_input())
     try:
-        package = PackagesLogic.get(copr.id, package_name)[0]
+        package = PackagesLogic.get(copr.main_dir.id, package_name)[0]
         source_type_text = source_type_text or package.source_type_text
     except IndexError:
         raise ObjectNotFound("Package {name} does not exists in copr {copr}."
@@ -98,7 +98,7 @@ def package_reset():
     copr = get_copr()
     form = forms.BasePackageForm()
     try:
-        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+        package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
@@ -115,7 +115,7 @@ def package_build():
     data = rename_fields(get_form_compatible_data())
     form = forms.RebuildPackageFactory.create_form_cls(copr.active_chroots)(data, csrf_enabled=False)
     try:
-        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+        package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
@@ -134,7 +134,7 @@ def package_delete():
     copr = get_copr()
     form = forms.BasePackageForm()
     try:
-        package = PackagesLogic.get(copr.id, form.package_name.data)[0]
+        package = PackagesLogic.get(copr.main_dir.id, form.package_name.data)[0]
     except IndexError:
         raise ObjectNotFound("No package with name {name} in copr {copr}"
                              .format(name=form.package_name.data, copr=copr.name))
