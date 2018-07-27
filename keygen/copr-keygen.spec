@@ -21,6 +21,7 @@ BuildArch:  noarch
 BuildRequires: util-linux
 BuildRequires: systemd
 
+%global _python_bytecompile_extra 0
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-six
@@ -133,7 +134,7 @@ cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
 
 %check
 
-PYTHONPATH=./src:$PYTHONPATH %{__python3} -m pytest  --cov-report term-missing --cov ./src tests
+PYTHONPATH=./src:$PYTHONPATH %{__python3} -B -m pytest  --cov-report term-missing --cov ./src tests
 
 
 %pre
