@@ -1,6 +1,6 @@
 import os
 from ..helpers import config_from_file
-from ..requests import Request
+from ..requests import Request, munchify
 
 
 class BaseProxy(object):
@@ -33,7 +33,7 @@ class BaseProxy(object):
         endpoint = ""
         request = Request(endpoint, api_base_url=self.api_base_url)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
 
     def auth_check(self):
         """
@@ -44,4 +44,4 @@ class BaseProxy(object):
         endpoint = "/auth-check"
         request = Request(endpoint, api_base_url=self.api_base_url, auth=self.auth)
         response = request.send()
-        return response.munchify()
+        return munchify(response)
