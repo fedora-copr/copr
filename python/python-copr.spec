@@ -227,7 +227,7 @@ pushd %{py3dir}
 %files -n python2-copr
 %license LICENSE
 %doc README.rst
-%{python_sitelib}/*
+%{python2_sitelib}/*
 %endif # with_python2
 
 %if 0%{?fedora}

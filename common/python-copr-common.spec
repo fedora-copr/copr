@@ -97,7 +97,7 @@ version="%{version}" %py3_install
 %if 0%{?with_python2}
 %files -n python2-%{srcname}
 %license LICENSE
-%{python_sitelib}/*
+%{python2_sitelib}/*
 %endif # with_python2
 
 %changelog
