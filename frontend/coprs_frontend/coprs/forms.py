@@ -7,7 +7,11 @@ import ujson as json
 
 from flask_wtf.file import FileAllowed, FileRequired, FileField
 
-from flask_wtf import FlaskForm
+try: # get rid of deprecation warning with newer flask_wtf
+    from flask_wtf import FlaskForm
+except ImportError:
+    from flask_wtf import Form as FlaskForm
+
 from jinja2 import Markup
 
 from coprs import constants
