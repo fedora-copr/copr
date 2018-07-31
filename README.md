@@ -6,7 +6,7 @@
 [**Already reported bugs**](https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=POST&bug_status=MODIFIED&bug_status=ON_DEV&bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&classification=Community&list_id=4678560&product=Copr&query_format=advanced) |
 [**Fedora Copr**](https://copr.fedoraproject.org)
 
-Copr is a Community projects build service that builds your open-source project and creates your own RPM repository. See it in action [here](https://copr.fedoraproject.org).
+Copr ("Community projects") is a public service that builds your open-source projects and creates your own RPM repositories. See it in action [here](https://copr.fedoraproject.org).
 
 ![See Copr workflow](/copr/copr/raw/master/f/doc/img/copr-workflow.png)
 
