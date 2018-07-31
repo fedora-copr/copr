@@ -140,7 +140,7 @@ python3-pylint ./copr_cli/*.py || :
 %if 0%{?use_python3}
 %{python3_sitelib}/*
 %else
-%{python_sitelib}/*
+%{python2_sitelib}/*
 %endif
 %{_mandir}/man1/copr-cli.1*
 %{_mandir}/man1/copr.1*
