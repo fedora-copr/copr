@@ -1,6 +1,10 @@
 Legacy client
 =============
 
+.. warning::
+    Legacy client is obsolete, please use Client version 3 instead. :ref:`This document <migration>` describes the migration process.
+
+
 All interaction are done through copr.CoprClient.
 It can be created directly or using config file :file:`/etc/copr.conf`
 
