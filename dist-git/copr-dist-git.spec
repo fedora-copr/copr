@@ -14,9 +14,6 @@ Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
 
-# switch off byte-compilation in %%{_datadir}
-%global _python_bytecompile_extra 0
-
 BuildRequires: systemd
 BuildRequires: python3-devel
 BuildRequires: python3-munch
@@ -56,8 +53,6 @@ getent passwd copr-dist-git >/dev/null || \
 useradd -r -m -g copr-dist-git -G packager,apache -c "copr-dist-git user" copr-dist-git
 /usr/bin/passwd -l copr-dist-git >/dev/null
 
-exit 0
-
 %install
 
 install -d %{buildroot}%{_datadir}/copr/dist_git
@@ -82,9 +77,10 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 %py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/dist_git
 
-%check
 
-PYTHONPATH=.:$PYTHONPATH python3 -B -m pytest \
+%check
+PYTHONPATH=".${PYTHONPATH+:$PYTHONPATH}" \
+python3 -m pytest \
   -v --cov-report term-missing --cov ./dist_git ./tests/
 
 %post

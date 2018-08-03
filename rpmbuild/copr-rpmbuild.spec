@@ -1,14 +1,12 @@
 %if 0%{?fedora} || 0%{?rhel} > 7
+%global __python        %__python3
 %global python          python3
 %global python_pfx      python3
-%global python_build    %py3_build
-%global python_install  %py3_install
 %global rpm_python      python3-rpm
 %else
+%global __python        %__python2
 %global python          python2
 %global python_pfx      python
-%global python_build    %py2_build
-%global python_install  %py2_install
 %global rpm_python      rpm-python
 %endif
 
@@ -68,7 +66,7 @@ build build-id 12345 for chroot epel-7-x86_64.
 PYTHON=%{python} ./run_tests.sh
 
 %build
-name="%{name}" version="%{version}" summary="%{summary}" %python_build
+name="%{name}" version="%{version}" summary="%{summary}" %py_build
 a2x -d manpage -f manpage man/copr-rpmbuild.1.asciidoc
 
 %install
@@ -88,7 +86,7 @@ install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-rpmbuild.1 %{buildroot}/%{_mandir}/man1/
 install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 
-name="%{name}" version="%{version}" summary="%{summary}" %python_install
+name="%{name}" version="%{version}" summary="%{summary}" %py_install
 
 %files
 %license LICENSE

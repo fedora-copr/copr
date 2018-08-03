@@ -1,7 +1,4 @@
 %global with_test 1
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-%global _pkgdocdir %{_docdir}/%{name}-%{version}
-%endif
 
 Name:       {{{ git_dir_name }}}
 Version:    {{{ git_dir_version lead=1 }}}
@@ -21,7 +18,6 @@ BuildArch:  noarch
 BuildRequires: util-linux
 BuildRequires: systemd
 
-%global _python_bytecompile_extra 0
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-six
@@ -87,23 +83,12 @@ This package contains document for copr-keygen service.
 
 
 %build
-
-CFLAGS="%{optflags}" %{__python3} setup.py build
-
-%if 0%{?fedora}
-# build documentation
-pushd docs
-make %{?_smp_mflags} html
-rm _build/html/.buildinfo
-popd
-%endif # ?fedora
-
+%py3_build
+make -C docs %{?_smp_mflags} html
 
 %install
-
-%{__python3} setup.py install --skip-build --root %{buildroot}
-find %{buildroot}%{python3_sitelib} -name '*.exe' | xargs rm -f
-
+%py3_install
+find %{buildroot} -name '*.exe' -delete
 
 install -d %{buildroot}%{_sysconfdir}/copr-keygen
 install -d %{buildroot}%{_sysconfdir}/sudoers.d
@@ -127,10 +112,7 @@ install -d %{buildroot}%{_sysconfdir}/logrotate.d/
 
 cp -a configs/sudoers/copr_signer %{buildroot}%{_sysconfdir}/sudoers.d/copr_signer
 
-# docs
-%if 0%{?fedora}
 cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
-%endif
 
 %check
 

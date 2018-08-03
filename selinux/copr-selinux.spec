@@ -1,6 +1,5 @@
 %if 0%{?rhel} < 7 && 0%{?rhel} > 0
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
-%global __python2 %{__python}
 %endif
 
 %global moduletype apps

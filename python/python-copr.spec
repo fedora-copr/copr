@@ -1,17 +1,14 @@
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
+%if 0%{?rhel} && 0%{?rhel} <= 6
+%{!?_licensedir:%global license %%doc}
 %global _pkgdocdir %{_docdir}/%{name}-%{version}
-%global __python2 %{__python}
+%global sphinxbuild SPHINXBUILD=%_bindir/sphinx-1.0-build
 %endif
 
-%if 0%{?fedora} || 0%{?rhel} >= 8
+%if 0%{?fedora} || 0%{?rhel} > 7
 %global with_python3 1
-%else
-%global with_python3 0
 %endif
 
-%if 0%{?fedora} >= 28 || 0%{?rhel} >= 8
-%global with_python2 0
-%else
+%if 0%{?fedora} < 28 || 0%{?rhel} && 0%{?rhel} <= 7
 %global with_python2 1
 %endif
 
@@ -34,8 +31,8 @@ BuildArch:  noarch
 BuildRequires: libxslt
 BuildRequires: util-linux
 
-%if 0%{?with_python2}
-%if 0%{?rhel} < 8 && 0%{?rhel} > 0
+%if %{with python2}
+%if 0%{?rhel} && 0%{?rhel} <= 7
 BuildRequires: python-setuptools
 BuildRequires: python-requests
 BuildRequires: python-requests-toolbelt
@@ -47,7 +44,11 @@ BuildRequires: python-configparser
 BuildRequires: pytest
 BuildRequires: python2-devel
 # for doc package
+%if 0%{?rhel} && 0%{?rhel} == 6
+BuildRequires: python-sphinx10
+%else
 BuildRequires: python-sphinx
+%endif
 BuildRequires: python-docutils
 %else
 BuildRequires: python2-setuptools
@@ -76,7 +77,7 @@ for developers only.\
 
 %description %_description
 
-%if 0%{?with_python2}
+%if %{with python2}
 %package -n python2-copr
 Summary: %summary
 
@@ -101,9 +102,9 @@ Requires: python2-configparser
 %{?python_provide:%python_provide python2-copr}
 
 %description -n python2-copr %_description
-%endif # with_python2
+%endif # with python2
 
-%if 0%{?with_python3}
+%if %{with python3}
 %package -n python3-copr
 Summary:        Python interface for Copr
 
@@ -137,10 +138,9 @@ and submit new builds and COPR will create yum repository from latest builds.
 This package contains python interface to access Copr service. Mostly useful
 for developers only.
 
-%endif # with_python3
+%endif # with python3
 
 
-%if 0%{?fedora}
 %package -n python-copr-doc
 Summary:    Code documentation for python-copr package
 
@@ -151,90 +151,71 @@ and submit new builds and COPR will create yum repository from latest builds.
 This package includes documentation for python-copr. Mostly useful for
 developers only.
 
-%endif # ?fedora
 
 %prep
 %setup -q
 
-%if 0%{?with_python3}
+%if %{with python3}
 rm -rf %{py3dir}
 cp -a . %{py3dir}
-%endif # with_python3
+%endif # with python3
 
 %build
-%if 0%{?with_python3}
-pushd %{py3dir}
-CFLAGS="%{optflags}" version="%{version}" %{__python3} setup.py build
-popd
-%endif # with_python3
+%if %{with python3}
+version=%version %py3_build
+%endif
 
-%if 0%{?with_python2}
-CFLAGS="%{optflags}" version="%{version}" %{__python2} setup.py build
-%endif # with_python2
+%if %{with python2}
+version=%version %py2_build
+%endif
 
 mv copr/README.rst ./
 
-%if 0%{?fedora}
 # build documentation
-pushd docs
-make %{?_smp_mflags} html
-popd
-%endif # ?fedora
+make -C docs %{?_smp_mflags} html %{?sphinxbuild}
+
 
 %install
-
-%if 0%{?with_python3}
-pushd %{py3dir}
-version="%{version}" %{__python3} setup.py install --skip-build --root %{buildroot}
-find %{buildroot}%{python3_sitelib} -name '*.exe' | xargs rm -f
-popd
-%endif # with_python3
-
-%if 0%{?with_python2}
-version="%{version}" %{__python2} setup.py install --skip-build --root %{buildroot}
-find %{buildroot}%{python2_sitelib} -name '*.exe' | xargs rm -f
-%endif # with_python2
-
-#doc
-install -d %{buildroot}%{_pkgdocdir}/
-
-%if 0%{?fedora}
-cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
+%if %{with python3}
+version=%version %py3_install
 %endif
 
+%if %{with python2}
+version=%version %py2_install
+%endif
+
+find %{buildroot} -name '*.exe' -delete
+
+install -d %{buildroot}%{_pkgdocdir}
+cp -a docs/_build/html %{buildroot}%{_pkgdocdir}/
+
 %check
-%if 0%{?with_python3}
-python3-pylint copr/*py copr/client/ copr/client_v2/ || :
-pushd %{py3dir}
+%if %{with python3}
 %{__python3} -m pytest copr/test
-%endif # with_python3
+%endif
 
-%if 0%{?with_python2}
+%if %{with python2}
 %{__python2} -m pytest copr/test
-%endif # with_python2
+%endif
 
-# compatibility for RHEL <= 6
-%{!?_licensedir:%global license %%doc}
 
-%if 0%{?with_python3}
+%if %{with python3}
 %files -n python3-copr
 %license LICENSE
 %doc README.rst
 %{python3_sitelib}/*
-%endif # with_python3
+%endif # with python3
 
-%if 0%{?with_python2}
+%if %{with python2}
 %files -n python2-copr
 %license LICENSE
 %doc README.rst
 %{python2_sitelib}/*
-%endif # with_python2
+%endif # with python2
 
-%if 0%{?fedora}
 %files -n python-copr-doc
 %license LICENSE
 %doc %{_pkgdocdir}
-%endif
 
 %changelog
 {{{ git_changelog since_tag=python-copr-1.88-1 }}}

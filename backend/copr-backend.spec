@@ -23,9 +23,6 @@ BuildRequires: util-linux
 BuildRequires: systemd
 BuildRequires: redis
 
-%global _python_bytecompile_extra 0
-%global __python %{__python3}
-
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-requests
@@ -94,21 +91,16 @@ and submit new builds and COPR will create yum repository from latests builds.
 This package include documentation for COPR code. Mostly useful for developers
 only.
 
+
 %prep
 %setup -q
 
-%build
 
-%if 0%{?fedora}
-# build documentation
-pushd docs
-    PYTHONDONTWRITEBYTECODE=1 make %{?_smp_mflags} html
-    rm build/html/.buildinfo
-popd
-%endif # ?fedora
+%build
+make -C docs %{?_smp_mflags} html
+
 
 %install
-
 install -d %{buildroot}%{_sharedstatedir}/copr
 install -d %{buildroot}%{_sharedstatedir}/copr/jobs
 install -d %{buildroot}%{_sharedstatedir}/copr/public_html/results
@@ -159,9 +151,7 @@ cp -a conf/playbooks %{buildroot}%{_pkgdocdir}/
 install -d %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d
 cp -a conf/logstash/copr_backend.conf %{buildroot}%{_pkgdocdir}/examples/%{_sysconfdir}/logstash.d/copr_backend.conf
 
-%if 0%{?fedora}
-    cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
-%endif
+cp -a docs/build/html %{buildroot}%{_pkgdocdir}/
 
 %py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/backend
 
@@ -217,7 +207,6 @@ useradd -r -g copr -G lighttpd -s /bin/bash -c "COPR user" copr
 %files doc
 %license LICENSE
 %doc
-# %{_pkgdocdir}/python-doc
 %{_pkgdocdir}/
 %exclude %{_pkgdocdir}/lighttpd
 %exclude %{_pkgdocdir}/playbooks

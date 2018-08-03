@@ -25,7 +25,7 @@
 %staticdir/css/style-overwrite.css              \
 %templatedir/project_info.html                  \
 %templatedir/user_meta.html                     \
-%templatedir/welcome.html   			\
+%templatedir/welcome.html                       \
 %templatedir/contact_us.html
 
 %global devel_files \
@@ -62,9 +62,6 @@ BuildRequires: systemd
 BuildRequires: epydoc
 BuildRequires: graphviz
 %endif
-
-%global _python_bytecompile_extra 0
-%global __python %{__python3}
 
 BuildRequires: python3-devel
 
@@ -196,11 +193,9 @@ custom %{name}-flavor package.
 
 
 %build
-# build documentation
 %if %{with doc}
-pushd documentation
-PYTHONDONTWRITEBYTECODE=1 COPR_CONFIG=../../documentation/copr-documentation.conf make %{?_smp_mflags} python
-popd
+COPR_CONFIG=../../documentation/copr-documentation.conf \
+  make -C documentation %{?_smp_mflags} python
 %endif
 
 

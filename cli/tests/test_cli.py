@@ -3,7 +3,6 @@ import argparse
 from collections import defaultdict
 import json
 from pprint import pprint
-from _pytest.capture import capsys
 import pytest
 
 import six
@@ -17,6 +16,13 @@ from copr.exceptions import CoprConfigException, CoprNoConfException, \
 from copr.client import CoprClient
 import copr_cli
 from copr_cli.main import no_config_warning
+
+
+def exit_wrap(value):
+    if type(value) == int:
+        return value
+    else:
+        return value.code
 
 
 if six.PY3:
@@ -55,7 +61,7 @@ def test_error_keyboard_interrupt(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["status", "123"])
 
-    assert err.value.code == 1
+    assert exit_wrap(err.value) == 1
     stdout, stderr = capsys.readouterr()
     assert "Interrupted by user" in stderr
 
@@ -71,7 +77,7 @@ def test_error_copr_request(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["status", "123"])
 
-    assert err.value.code == 1
+    assert exit_wrap(err.value) == 1
     stdout, stderr = capsys.readouterr()
     assert "Something went wrong" in stderr
     assert error_msg in stderr
@@ -91,7 +97,7 @@ def test_error_argument_error(mock_cc, mock_setup_parser, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["status", "123"])
 
-    assert err.value.code == 2
+    assert exit_wrap(err.value) == 2
     stdout, stderr = capsys.readouterr()
     assert error_msg in stderr
 
@@ -105,7 +111,7 @@ def test_error_no_args(mock_cc, capsys):
         with pytest.raises(SystemExit) as err:
             main.main(argv=[func_name])
 
-        assert err.value.code == 2
+        assert exit_wrap(err.value) == 2
 
         stdout, stderr = capsys.readouterr()
         assert "usage: copr" in stderr
@@ -123,7 +129,7 @@ def test_error_copr_common_exception(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["status", "123"])
 
-    assert err.value.code == 3
+    assert exit_wrap(err.value) == 3
     stdout, stderr = capsys.readouterr()
     assert error_msg in stderr
 
@@ -140,7 +146,7 @@ def test_error_copr_build_exception(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["build", "prj1", "src1"])
 
-    assert err.value.code == 4
+    assert exit_wrap(err.value) == 4
     stdout, stderr = capsys.readouterr()
     assert error_msg in stderr
 
@@ -157,7 +163,7 @@ def test_error_copr_unknown_response(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["status", "123"])
 
-    assert err.value.code == 5
+    assert exit_wrap(err.value) == 5
     stdout, stderr = capsys.readouterr()
     assert error_msg in stderr
 
@@ -169,7 +175,7 @@ def test_cancel_build_no_config(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["cancel", "123400"])
 
-    assert err.value.code == 6
+    assert exit_wrap(err.value) == 6
     out, err = capsys.readouterr()
 
     assert "Error: Operation requires api authentication" in err
@@ -228,7 +234,7 @@ def test_list_project_no_username(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["list"])
 
-    assert err.value.code == 6
+    assert exit_wrap(err.value) == 6
     out, err = capsys.readouterr()
     assert "Pass username to command or create `~/.config/copr`" in err
 
@@ -240,7 +246,7 @@ def test_list_project_no_username2(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["list"])
 
-    assert err.value.code == 6
+    assert exit_wrap(err.value) == 6
     out, err = capsys.readouterr()
     assert "Pass username to command or add it to `~/.config/copr`" in err
 
@@ -314,7 +320,7 @@ def test_status_response_no_args(mock_cc, capsys):
     with pytest.raises(SystemExit) as err:
         main.main(argv=["status"])
 
-    assert err.value.code == 2
+    assert exit_wrap(err.value) == 2
 
     stdout, stderr = capsys.readouterr()
     assert "usage: copr" in stderr
@@ -525,7 +531,7 @@ def test_create_build_wait_error_status(mock_cc, capsys):
             "build",
             "copr_name", "http://example.com/pkgs.srpm"
         ])
-        assert err.value.code == 1
+        assert exit_wrap(err.value) == 1
 
     stdout, stderr = capsys.readouterr()
     assert response_message in stdout
@@ -554,7 +560,7 @@ def test_create_build_wait_unknown_build_status(mock_cc, capsys):
             "build",
             "copr_name", "http://example.com/pkgs.srpm"
         ])
-        assert err.value.code == 1
+        assert exit_wrap(err.value) == 1
 
     stdout, stderr = capsys.readouterr()
     assert response_message in stdout

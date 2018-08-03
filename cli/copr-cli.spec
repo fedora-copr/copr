@@ -1,15 +1,9 @@
-%if 0%{?rhel} > 0
-%if 0%{?rhel} <= 7
-%global _pkgdocdir %{_docdir}/%{name}-%{version}
-%endif
-%if 0%{?rhel} <= 6
-%global __python2 %{__python}
-%endif
-%endif
-
-%if 0%{?fedora} >= 26 || 0%{?rhel} >= 8
-%global use_python3 1
-%global __python %{__python3}
+%if 0%{?rhel} > 7 || 0%{?fedora}
+%global __python %_bindir/python3
+%global with_python3 1
+%else
+%global __python %_bindir/python2
+%global with_python2 1
 %endif
 
 Name:       {{{ git_dir_name }}}
@@ -27,51 +21,50 @@ URL:        https://pagure.io/copr/copr
 Source0:    {{{ git_dir_pack }}}
 
 BuildArch:  noarch
+
+Requires:      wget
+
 BuildRequires: asciidoc
 BuildRequires: libxslt
 BuildRequires: util-linux
-%if 0%{?use_python3}
-BuildRequires: python3-devel
-BuildRequires: python3-setuptools
+
+%if %{with python3}
+Requires:      python3-copr >= 1.63
+Requires:      python3-jinja2
+Requires:      python3-simplejson
+
+Recommends:    python3-progress
+
 BuildRequires: python3-copr
+BuildRequires: python3-devel
+BuildRequires: python3-jinja2
 BuildRequires: python3-pylint
 BuildRequires: python3-pytest
+BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
-BuildRequires: python3-jinja2
-Requires:   python3-setuptools
-Requires:   python3-copr >= 1.63
-Requires:   python3-simplejson
-Requires:   python3-jinja2
-Recommends: python3-progress
 %else
-BuildRequires: python2-devel
-BuildRequires: python-setuptools
-BuildRequires: python-copr
-Requires:   python-setuptools
-Requires:   python-copr >= 1.63
-Requires:   python-simplejson
-Requires:   python-jinja2
+Requires:      python-copr >= 1.63
+Requires:      python-jinja2
+Requires:      python-progress
+Requires:      python-simplejson
 
-%if 0%{?rhel} > 6
 BuildRequires: pytest
-BuildRequires: python-simplejson
+BuildRequires: python-copr
+BuildRequires: python-devel
 BuildRequires: python-jinja2
 BuildRequires: python-mock
-
-Requires:   python-progress
+BuildRequires: python-setuptools
+BuildRequires: python-simplejson
 %endif
 
-%endif
+# We historically shipped empty doc package, uninstall it.
+Obsoletes:     copr-cli-doc < 1.72
 
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
+%if 0%{?rhel} == 6
+Requires:      python-argparse
+
 BuildRequires: python-argparse
 %endif
-
-%if 0%{?rhel} < 7 && 0%{?rhel} > 0
-Requires:   python-argparse
-%endif
-
-Requires:   wget
 
 %description
 COPR is lightweight build system. It allows you to create new project in WebUI,
@@ -79,79 +72,39 @@ and submit new builds and COPR will create yum repository from latests builds.
 
 This package contains command line interface.
 
-%if 0%{?fedora}
-%package doc
-Summary:    Code documentation for COPR
-
-%description doc
-COPR is lightweight build system. It allows you to create new project in WebUI,
-and submit new builds and COPR will create yum repository from latests builds.
-
-This package include documentation for COPR code. Mostly useful for developers
-only.
-%endif
-
 %prep
 %setup -q
 
 
 %build
-%if 0%{?use_python3}
-version="%{version}" %{__python3} setup.py build
-%else
-version="%{version}" %{__python2} setup.py build
-%endif
-
+version="%{version}" %py_build
 mv copr_cli/README.rst ./
-
 # convert manages
 a2x -d manpage -f manpage man/copr-cli.1.asciidoc
 
+
 %install
-install -d %{buildroot}%{_pkgdocdir}/
-%if 0%{?use_python3}
-version="%{version}" %{__python3} setup.py install --root %{buildroot}
-%else
-version="%{version}" %{__python2} setup.py install --root %{buildroot}
-%endif
-
+version="%{version}" %py_install
 ln -sf %{_bindir}/copr-cli %{buildroot}%{_bindir}/copr
-
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/copr-cli.1 %{buildroot}/%{_mandir}/man1/
 install -p man/copr.1 %{buildroot}/%{_mandir}/man1/
 
+
 %check
-%if 0%{?use_python3}
-python3-pylint ./copr_cli/*.py || :
-%{__python3} -m pytest tests
-%else
-%if 0%{?rhel} > 6
-# elif because we need: from _pytest.capture import capsys
-%{__python2} -m pytest tests
-%endif
-%endif
+%{__python} -m pytest tests
+
 
 %files
 %{!?_licensedir:%global license %doc}
 %license LICENSE
 %doc README.rst
+%{_bindir}/copr
 %{_bindir}/copr-cli
-%if 0%{?use_python3}
-%{python3_sitelib}/*
-%else
-%{python2_sitelib}/*
-%endif
 %{_mandir}/man1/copr-cli.1*
 %{_mandir}/man1/copr.1*
-%{_bindir}/copr
+%{python_sitelib}/*
 
-
-%if 0%{?fedora}
-%files doc
-%{!?_licensedir:%global license %doc}
-%license LICENSE
-%endif
 
 %changelog
 {{{ git_dir_changelog since_tag=copr-cli-1.68-1 }}}
