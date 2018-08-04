@@ -19,5 +19,3 @@ for package in $(get_all_packages); do
     popd >/dev/null
     echo
 done
-
-popd >/dev/null
