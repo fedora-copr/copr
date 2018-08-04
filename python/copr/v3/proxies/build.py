@@ -14,7 +14,7 @@ class BuildProxy(BaseProxy):
         :param int build_id:
         :return: Munch
         """
-        endpoint = "/build/{}".format(build_id)
+        endpoint = "/build/{0}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url)
         response = request.send()
         return munchify(response)
@@ -26,7 +26,7 @@ class BuildProxy(BaseProxy):
         :param int build_id:
         :return: Munch
         """
-        endpoint = "/build/source-chroot/{}".format(build_id)
+        endpoint = "/build/source-chroot/{0}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url)
         response = request.send()
         return munchify(response)
@@ -38,7 +38,7 @@ class BuildProxy(BaseProxy):
         :param int build_id:
         :return: Munch
         """
-        endpoint = "/build/source-build-config/{}".format(build_id)
+        endpoint = "/build/source-build-config/{0}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url)
         response = request.send()
         return munchify(response)
@@ -74,7 +74,7 @@ class BuildProxy(BaseProxy):
         :param int build_id:
         :return: Munch
         """
-        endpoint = "/build/cancel/{}".format(build_id)
+        endpoint = "/build/cancel/{0}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
         response = request.send()
         return munchify(response)
@@ -256,7 +256,7 @@ class BuildProxy(BaseProxy):
         :param int build_id:
         :return: Munch
         """
-        endpoint = "/build/delete/{}".format(build_id)
+        endpoint = "/build/delete/{0}".format(build_id)
         request = Request(endpoint, api_base_url=self.api_base_url, method=POST, auth=self.auth)
         response = request.send()
         return munchify(response)
