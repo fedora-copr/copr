@@ -90,8 +90,8 @@ class BuildDispatcher(multiprocessing.Process):
                 if not tasks:
                     time.sleep(self.opts.sleeptime)
 
-        self.log.info("Got new build jobs: %s", [task.get("task_id") for task in tasks])
-        return [BuildJob(task, self.opts) for task in tasks]
+        self.log.info("Got new build jobs: %s", [task.get("task_id") for task in tasks if task])
+        return [BuildJob(task, self.opts) for task in tasks if task]
 
     def can_build_start(self, job):
         """

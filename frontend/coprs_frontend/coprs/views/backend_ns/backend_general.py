@@ -140,6 +140,7 @@ def get_build_record(task):
 
     except Exception as err:
         app.logger.exception(err)
+        return None
 
     return build_record
 
@@ -167,6 +168,7 @@ def get_srpm_build_record(task):
 
     except Exception as err:
         app.logger.exception(err)
+        return None
 
     return build_record
 
