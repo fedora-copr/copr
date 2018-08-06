@@ -14,7 +14,7 @@ from dateutil import parser as dt_parser
 from netaddr import IPAddress, IPNetwork
 from redis import StrictRedis
 from sqlalchemy.types import TypeDecorator, VARCHAR
-import ujson as json
+import json
 
 from coprs import constants
 from coprs import app
@@ -206,11 +206,6 @@ class Paginator(object):
         args["page"] = page
         args.update(self.additional_params)
         return flask.url_for(request.endpoint, **args)
-
-
-def jsonify(data):
-    json_data = json.dumps(data, escape_forward_slashes=False)
-    return flask.Response(json_data, content_type='application/json')
 
 
 def chroot_to_branch(chroot):

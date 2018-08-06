@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import munch
 import time
-import ujson as json
+import json
 
 from dist_git import importer
 from dist_git import import_task

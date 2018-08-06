@@ -1,5 +1,5 @@
 import os
-import ujson as json
+import json
 import requests
 
 from tests.coprs_test_case import CoprsTestCase

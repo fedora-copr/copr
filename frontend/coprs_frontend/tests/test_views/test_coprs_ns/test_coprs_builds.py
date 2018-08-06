@@ -1,4 +1,4 @@
-import ujson as json
+import json
 import os
 
 from coprs import models

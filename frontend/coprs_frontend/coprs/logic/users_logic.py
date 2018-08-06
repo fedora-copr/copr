@@ -1,4 +1,4 @@
-import ujson as json
+import json
 from coprs import exceptions
 from flask import url_for
 

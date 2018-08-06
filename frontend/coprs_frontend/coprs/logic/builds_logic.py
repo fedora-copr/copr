@@ -1,6 +1,6 @@
 import tempfile
 import shutil
-import ujson as json
+import json
 import os
 import pprint
 import time

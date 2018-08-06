@@ -1,6 +1,6 @@
 # coding: utf-8
 from io import BytesIO
-import ujson as json
+import json
 import math
 import random
 from marshmallow import pprint

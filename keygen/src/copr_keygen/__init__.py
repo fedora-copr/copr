@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
 
-import ujson as json
+import json
 import logging
 from logging import getLogger
 from logging import FileHandler

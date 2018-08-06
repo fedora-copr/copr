@@ -96,7 +96,6 @@ BuildRequires: python3-CommonMark
 BuildRequires: python3-pygments
 BuildRequires: python3-flask-whooshee
 BuildRequires: python3-modulemd
-BuildRequires: python3-ujson
 BuildRequires: redis
 %endif
 
@@ -132,7 +131,6 @@ Requires: python3-pygments
 Requires: python3-CommonMark
 Requires: python3-psycopg2
 Requires: python3-zmq
-Requires: python3-ujson
 Requires: python3-munch
 Requires: xstatic-patternfly-common
 Requires: js-jquery1

@@ -1,4 +1,4 @@
-import ujson as json
+import json
 from unittest import mock
 
 from coprs.helpers import ActionTypeEnum

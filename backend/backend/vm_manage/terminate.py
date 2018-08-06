@@ -1,5 +1,5 @@
 # coding: utf-8
-import ujson as json
+import json
 import os
 import time
 from backend.ans_utils import ans_extra_vars_encode, run_ansible_playbook_cli

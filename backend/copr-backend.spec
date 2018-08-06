@@ -44,7 +44,6 @@ BuildRequires: python3-dateutil
 BuildRequires: python3-pytz
 BuildRequires: python3-sphinx
 BuildRequires: python3-fedmsg
-BuildRequires: python3-ujson
 
 Requires:   ansible
 Requires:   obs-signd
@@ -67,7 +66,6 @@ Requires:   python3-netaddr
 Requires:   python3-modulemd
 Requires:   python3-configparser
 Requires:   python3-fedmsg
-Requires:   python3-ujson
 Requires:   redis
 Requires:   logrotate
 Requires:   gawk

@@ -26,7 +26,6 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-six
 BuildRequires: python3-flask
-BuildRequires: python3-ujson
 
 # for tests
 BuildRequires: python3-pytest
@@ -43,7 +42,6 @@ Requires:   logrotate
 Requires:   python3-setuptools
 Requires:   python3-six
 Requires:   python3-flask
-Requires:   python3-ujson
 
 # tests
 Requires:   python3-pytest

@@ -17,7 +17,7 @@ from coprs.views import misc
 from coprs.views.backend_ns import backend_ns
 from sqlalchemy.sql import false, true
 
-import ujson as json
+import json
 import urllib
 import logging
 
@@ -48,7 +48,7 @@ def dist_git_importing_queue():
             "srpm_url": build.srpm_url,
         })
 
-    return helpers.jsonify(tasks)
+    return flask.jsonify(tasks)
 
 
 @backend_ns.route("/import-completed/", methods=["POST", "PUT"])
@@ -62,7 +62,7 @@ def dist_git_upload_completed():
     try:
         build = ComplexLogic.get_build_safe(build_id)
     except ObjectNotFound:
-        return helpers.jsonify({"updated": False})
+        return flask.jsonify({"updated": False})
 
     collected_branch_chroots = []
     for branch, git_hash in flask.request.json.get("branch_commits", {}).items():
@@ -101,7 +101,7 @@ def dist_git_upload_completed():
     db.session.commit()
 
     BuildsLogic.delete_local_source(build)
-    return helpers.jsonify({"updated": True})
+    return flask.jsonify({"updated": True})
 
 
 def get_build_record(task):
@@ -184,7 +184,7 @@ def pending_action():
         action_record = action.to_dict(options={
             "__columns_except__": ["result", "message", "ended_on"]
         })
-    return helpers.jsonify(action_record)
+    return flask.jsonify(action_record)
 
 
 @backend_ns.route("/pending-jobs/")
@@ -195,7 +195,7 @@ def pending_jobs():
     build_records = ([get_build_record(task) for task in BuildsLogic.get_pending_build_tasks()] +
                      [get_srpm_build_record(task) for task in BuildsLogic.get_pending_srpm_build_tasks()])
     log.info('Selected build records: {}'.format(build_records))
-    return helpers.jsonify(build_records)
+    return flask.jsonify(build_records)
 
 
 @backend_ns.route("/get-build-task/<task_id>")
@@ -203,15 +203,15 @@ def get_build_task(task_id):
     try:
         task = BuildsLogic.get_build_task(task_id)
     except exceptions.MalformedArgumentException:
-        jsonout = helpers.jsonify({'msg': 'Invalid task ID'})
+        jsonout = flask.jsonify({'msg': 'Invalid task ID'})
         jsonout.status_code = 500
         return jsonout
     except sqlalchemy.orm.exc.NoResultFound:
-        jsonout = helpers.jsonify({'msg': 'Specified task ID not found'})
+        jsonout = flask.jsonify({'msg': 'Specified task ID not found'})
         jsonout.status_code = 404
         return jsonout
     build_record = get_build_record(task)
-    return helpers.jsonify(build_record)
+    return flask.jsonify(build_record)
 
 
 @backend_ns.route("/get-srpm-build-task/<build_id>")
@@ -219,11 +219,11 @@ def get_srpm_build_task(build_id):
     try:
         task = BuildsLogic.get_srpm_build_task(build_id)
     except sqlalchemy.orm.exc.NoResultFound:
-        jsonout = helpers.jsonify({'msg': 'Specified task ID not found'})
+        jsonout = flask.jsonify({'msg': 'Specified task ID not found'})
         jsonout.status_code = 404
         return jsonout
     build_record = get_srpm_build_record(task)
-    return helpers.jsonify(build_record)
+    return flask.jsonify(build_record)
 
 
 @backend_ns.route("/update/", methods=["POST", "PUT"])
@@ -255,7 +255,7 @@ def update():
         result.update({"updated_{0}_ids".format(typ): list(existing.keys()),
                        "non_existing_{0}_ids".format(typ): non_existing_ids})
 
-    return helpers.jsonify(result)
+    return flask.jsonify(result)
 
 
 @backend_ns.route("/starting_build/", methods=["POST", "PUT"])
@@ -269,14 +269,14 @@ def starting_build():
     try:
         build = ComplexLogic.get_build_safe(data.get('build_id'))
     except ObjectNotFound:
-        return helpers.jsonify({"can_start": False})
+        return flask.jsonify({"can_start": False})
 
     if build.canceled:
-        return helpers.jsonify({"can_start": False})
+        return flask.jsonify({"can_start": False})
 
     BuildsLogic.update_state_from_dict(build, data)
     db.session.commit()
-    return helpers.jsonify({"can_start": True})
+    return flask.jsonify({"can_start": True})
 
 
 @backend_ns.route("/reschedule_all_running/", methods=["POST", "PUT"])
@@ -316,12 +316,12 @@ def reschedule_build_chroot():
     except ObjectNotFound:
         response["result"] = "noop"
         response["msg"] = "Build {} wasn't found".format(build_id)
-        return helpers.jsonify(response)
+        return flask.jsonify(response)
 
     if build.canceled:
         response["result"] = "noop"
         response["msg"] = "build was cancelled, ignoring"
-        return helpers.jsonify(response)
+        return flask.jsonify(response)
 
     run_statuses = set([StatusEnum("starting"), StatusEnum("running")])
 
@@ -352,4 +352,4 @@ def reschedule_build_chroot():
             response["result"] = "noop"
             response["msg"] = "build chroot is not in running states, ignoring"
 
-    return helpers.jsonify(response)
+    return flask.jsonify(response)

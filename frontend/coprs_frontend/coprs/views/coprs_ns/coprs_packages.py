@@ -1,5 +1,5 @@
 import flask
-import ujson as json
+import json
 
 from flask import Response, stream_with_context, url_for
 from flask import send_file

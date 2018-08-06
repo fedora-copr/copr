@@ -3,7 +3,7 @@ from six.moves.urllib.parse import urlparse
 
 import flask
 import wtforms
-import ujson as json
+import json
 
 from flask_wtf.file import FileAllowed, FileRequired, FileField
 

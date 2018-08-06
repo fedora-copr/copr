@@ -4,7 +4,7 @@ import subprocess
 import argparse
 import sys
 import os
-import ujson as json
+import json
 import time
 import re
 import logging

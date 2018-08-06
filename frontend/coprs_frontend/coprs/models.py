@@ -2,7 +2,7 @@ import copy
 import datetime
 import os
 import flask
-import ujson as json
+import json
 import base64
 import modulemd
 

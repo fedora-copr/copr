@@ -1,5 +1,5 @@
 import os
-import ujson as json
+import json
 import tempfile
 import shutil
 import time

@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import ujson as json
+import json
 
 from .exceptions import PackageImportException
 

@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-import ujson as json
+import json
 
 import pytest
 import time

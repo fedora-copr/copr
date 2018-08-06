@@ -1,5 +1,5 @@
 import os
-import ujson as json
+import json
 import time
 import logging
 import tempfile

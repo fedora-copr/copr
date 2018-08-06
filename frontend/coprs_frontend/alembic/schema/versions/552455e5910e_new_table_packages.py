@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from sqlalchemy import and_
 from coprs.helpers import splitFilename
 import os
-import ujson as json
+import json
 
 def parse_package_name(pkg):
     if pkg.count(".") >= 3 and pkg.count("-") >= 2:

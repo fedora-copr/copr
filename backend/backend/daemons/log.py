@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import ujson as json
+import json
 
 import logging
 import logging.handlers

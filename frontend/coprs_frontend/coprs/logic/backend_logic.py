@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import ujson as json
+import json
 from sqlalchemy import or_
 from sqlalchemy import and_
 from sqlalchemy.sql import false

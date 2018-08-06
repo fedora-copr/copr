@@ -1,4 +1,4 @@
-import ujson as json
+import json
 
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.builds_logic import BuildsLogic

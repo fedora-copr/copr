@@ -1,4 +1,4 @@
-import ujson as json
+import json
 import logging
 import logging.handlers
 import optparse

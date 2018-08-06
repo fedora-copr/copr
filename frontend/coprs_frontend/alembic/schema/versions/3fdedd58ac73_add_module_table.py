@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from coprs.models import Module, Action, Copr, User, Group
 from sqlalchemy.orm import sessionmaker
 
-import ujson as json
+import json
 import base64
 import modulemd
 import yaml

@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import ujson as json
+import json
 from marshmallow import pprint
 
 import pytest

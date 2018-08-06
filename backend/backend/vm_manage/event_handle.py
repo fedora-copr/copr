@@ -1,5 +1,5 @@
 # coding: utf-8
-import ujson as json
+import json
 from multiprocessing import Process
 from threading import Thread
 import time

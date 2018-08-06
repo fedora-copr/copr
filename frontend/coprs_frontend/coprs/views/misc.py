@@ -282,7 +282,7 @@ def api_login_required(f):
                 "output": "notok",
                 "error": "Login invalid/expired. Please visit {0}/api to get or renew your API token.".format(url),
             }
-            jsonout = helpers.jsonify(output)
+            jsonout = flask.jsonify(output)
             jsonout.status_code = 401
             return jsonout
         return f(*args, **kwargs)

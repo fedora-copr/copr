@@ -1,5 +1,5 @@
 import flask
-import ujson as json
+import json
 from coprs import app
 from coprs.logic.users_logic import UsersLogic, UserDataDumper
 from tests.coprs_test_case import CoprsTestCase

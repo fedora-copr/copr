@@ -4,7 +4,7 @@ Message buses abstraction.
 
 import logging
 import copy
-import ujson as json
+import json
 
 from .constants import BuildStatus
 
