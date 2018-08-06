@@ -209,7 +209,8 @@ class Paginator(object):
 
 
 def jsonify(data):
-    return flask.Response(json.dumps(data), content_type='application/json')
+    json_data = json.dumps(data, escape_forward_slashes=False)
+    return flask.Response(json_data, content_type='application/json')
 
 
 def chroot_to_branch(chroot):
