@@ -149,9 +149,9 @@ rlJournalStart
 
         ## test --auto-prune option
         rlRun "copr-cli create --auto-prune off --chroot fedora-27-x86_64 ${NAME_PREFIX}AutoPrune"
-        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\":false'" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": false'" 0
         rlRun "copr-cli modify --auto-prune on ${NAME_PREFIX}AutoPrune"
-        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\":true'" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": true'" 0
 
         ## test to modify list of enabled chroots in the project
         # create project
