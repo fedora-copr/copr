@@ -119,7 +119,7 @@ def event_info_from_pr_update(data, base_url):
     Topic: ``*.pagure.pull-request.comment.added``
     """
     if data['msg']['pullrequest']['status'] != 'Open':
-        data.info('Pull-request not open, discarding.')
+        log.info('Pull-request not open, discarding.')
         return False
 
     if not data['msg']['pullrequest']['comments']:
