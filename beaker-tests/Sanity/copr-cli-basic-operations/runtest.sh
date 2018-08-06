@@ -520,9 +520,9 @@ rlJournalStart
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
         WAITING=`mktemp`
         rlRun "copr-cli create ${NAME_PREFIX}Project12 --chroot $CHROOT" 0
-        while :; do curl --silent $FRONTEND_URL/backend/pending-action/ > $WAITING; if cat $WAITING | grep task_id; then break; fi; done
+        while :; do curl --silent $FRONTEND_URL/backend/pending-action/ > $WAITING; if cat $WAITING | grep action_type; then break; fi; done
         cat $WAITING # debug
-        rlRun "cat $WAITING | grep -E '.*data.*username.*' | grep $OWNER" 0
+        rlRun "cat $WAITING | grep -E '.*data.*ownername.*' | grep $OWNER" 0
 
         # Bug 1368181 - delete-project action run just after delete-build action will bring action_dispatcher down
         # FIXME: this test is not a reliable reproducer. Depends on timing as few others.
