@@ -149,9 +149,9 @@ rlJournalStart
 
         ## test --auto-prune option
         rlRun "copr-cli create --auto-prune off --chroot fedora-27-x86_64 ${NAME_PREFIX}AutoPrune"
-        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": false'" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\":false'" 0
         rlRun "copr-cli modify --auto-prune on ${NAME_PREFIX}AutoPrune"
-        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\": true'" 0
+        rlRun "curl --silent ${FRONTEND_URL}/api/coprs/${NAME_PREFIX}AutoPrune/detail/ | grep '\"auto_prune\":true'" 0
 
         ## test to modify list of enabled chroots in the project
         # create project
@@ -239,7 +239,7 @@ rlJournalStart
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --background --nowait"
         rlRun "copr-cli build ${NAME_PREFIX}Project1 http://asamalik.fedorapeople.org/hello-2.8-1.fc20.src.rpm --nowait > $OUTPUT"
         # wait until the builds are imported
-        while :; do curl --silent $FRONTEND_URL/backend/pending-jobs/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 1 ]; then break; fi; done
+        while :; do curl --silent $FRONTEND_URL/backend/pending-jobs/ > $WAITING; if cat $WAITING | grep task_id; then break; fi; done
         cat $WAITING
         rlAssertEquals "Non-background build should be waiting on start of the queue" `cat $WAITING |jq '.[0].build_id'` `tail -n1 $OUTPUT |cut -d' ' -f3`
 
@@ -520,7 +520,7 @@ rlJournalStart
         # Bug 1365882 - on create group copr, gpg key is generated for user and not for group
         WAITING=`mktemp`
         rlRun "copr-cli create ${NAME_PREFIX}Project12 --chroot $CHROOT" 0
-        while :; do curl --silent $FRONTEND_URL/backend/pending-action/ > $WAITING; if [ `cat $WAITING |wc -l` -gt 1 ]; then break; fi; done
+        while :; do curl --silent $FRONTEND_URL/backend/pending-action/ > $WAITING; if cat $WAITING | grep task_id; then break; fi; done
         cat $WAITING # debug
         rlRun "cat $WAITING | grep -E '.*data.*username.*' | grep $OWNER" 0
 
