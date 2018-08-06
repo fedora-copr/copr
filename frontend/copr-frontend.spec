@@ -133,6 +133,7 @@ Requires: python3-CommonMark
 Requires: python3-psycopg2
 Requires: python3-zmq
 Requires: python3-ujson
+Requires: python3-munch
 Requires: xstatic-patternfly-common
 Requires: js-jquery1
 Requires: xstatic-jquery-ui-common
