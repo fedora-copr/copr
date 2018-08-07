@@ -30,7 +30,7 @@ BuildRequires:  checkpolicy, selinux-policy-devel
 BuildRequires:  policycoreutils
 BuildRequires:  perl
 Requires(post): policycoreutils, libselinux-utils
-%if 0%{?rhel} <= 7
+%if 0%{?rhel} && 0%{?rhel} <= 7
 Requires(post): policycoreutils-python
 %else
 Requires(post): policycoreutils-python-utils
