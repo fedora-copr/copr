@@ -67,7 +67,7 @@ def package_name_required(route):
 
         package_name = kwargs.pop('package_name')
         try:
-            package = ComplexLogic.get_package_safe(copr, package_name)
+            package = ComplexLogic.get_package_safe(copr.main_dir, package_name)
         except ObjectNotFound:
             return "PACKAGE_NOT_FOUND\n", 404
 
