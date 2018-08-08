@@ -43,7 +43,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'python-copr'
-copyright = u'2014, Valentin Gologuzov'
+copyright = u'2018, Red Hat, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -218,7 +218,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'python-copr', u'python-copr Documentation',
-     [u'Valentin Gologuzov'], 1)
+     [u'Red Hat, Inc.'], 1)
 ]
 
 # If true, show URL addresses after external links.
