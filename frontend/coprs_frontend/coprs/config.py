@@ -90,6 +90,8 @@ class Config(object):
     # How many pinned projects a user or group can have
     PINNED_PROJECTS_LIMIT = 4
 
+    ENABLE_DISCUSSION = False
+    DISCOURSE_URL = ''
 
 class ProductionConfig(Config):
     DEBUG = False

@@ -81,6 +81,24 @@
       {% endfor %}
     </ul>
     {% endif %}
+
+    {% if config.ENABLE_DISCUSSION %}
+    {% if config.DISCOURSE_URL %}
+    <div id='discourse-comments'></div>
+
+    <script type="text/javascript">
+      DiscourseEmbed = { discourseUrl: '{{ config.DISCUSSION_URL }}',
+                         discourseEmbedUrl: '{{ copr_url('coprs_ns.copr_detail', copr, _external=True) }}' };
+
+      (function() {
+        var d = document.createElement('script'); d.type = 'text/javascript'; d.async = true;
+        d.src = DiscourseEmbed.discourseUrl + 'javascripts/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(d);
+      })();
+    </script>
+    {% endif %}
+    {% endif %}
+
   </div>
   <div class="col-sm-4 col-md-3">
     <br>
@@ -207,5 +225,6 @@
     });
 </script>
 {% endfor %}
+
 
 {% endblock %}
