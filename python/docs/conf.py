@@ -97,6 +97,18 @@ pygments_style = 'sphinx'
 #html_theme = 'alabaster'
 
 
+# Use readthedocs theme if it is installed
+# Ideally, we want to develop the documentation in the same theme
+# that will be used in the production
+try:
+    import sphinx_rtd_theme
+    html_theme = "sphinx_rtd_theme"
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+except ImportError:
+    print("Please install the readthedocs theme with:")
+    print("dnf install python*-sphinx_rtd_theme")
+
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
