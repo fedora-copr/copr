@@ -1,0 +1,5 @@
+# Used solely for building documentation on readthedocs.org
+# Use this file by running "$ pip install -r requirements.readthedocs.txt"
+# http://docs.readthedocs.io/en/latest/faq.html#can-i-document-a-python-package-that-is-not-at-the-root-of-my-repository
+
+./python

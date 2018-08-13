@@ -17,7 +17,9 @@ requires = [
     'marshmallow',
     'requests',
     'requests-toolbelt',
-    'six'
+    'six',
+    'configparser',
+    'munch',
 ]
 
 __description__ = "Python client for copr service."
