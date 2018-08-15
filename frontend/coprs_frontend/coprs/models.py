@@ -884,6 +884,13 @@ class Build(db.Model, helpers.Serializer):
 
         return result
 
+    @property
+    def rpm_result_dir(self):
+        """
+        Directory name on backend with the RPM build results
+        """
+        return "-".join([self.id_fixed_width, self.package.name])
+
 
 class DistGitBranch(db.Model, helpers.Serializer):
     """
