@@ -166,8 +166,8 @@ class RawhideToReleaseCommand(Command):
 
             self.turn_on_the_chroot_for_copr(copr, rawhide_chroot, mock_chroot)
 
-            data = {"copr": copr.name,
-                    "user": copr.user.name,
+            data = {"projectname": copr.name,
+                    "ownername": copr.owner_name,
                     "rawhide_chroot": rawhide_chroot,
                     "dest_chroot": dest_chroot,
                     "builds": []}

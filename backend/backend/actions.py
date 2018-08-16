@@ -311,13 +311,14 @@ class Action(object):
     def handle_rawhide_to_release(self, result):
         data = json.loads(self.data["data"])
         try:
-            chrootdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["dest_chroot"])
+            chrootdir = os.path.join(self.opts.destdir, data["ownername"], data["projectname"], data["dest_chroot"])
             if not os.path.exists(chrootdir):
                 self.log.debug("Create directory: %s", chrootdir)
                 os.makedirs(chrootdir)
 
             for build in data["builds"]:
-                srcdir = os.path.join(self.opts.destdir, data["user"], data["copr"], data["rawhide_chroot"], build)
+                srcdir = os.path.join(self.opts.destdir, data["ownername"],
+                                      data["projectname"], data["rawhide_chroot"], build)
                 if os.path.exists(srcdir):
                     destdir = os.path.join(chrootdir, build)
                     self.log.debug("Copy directory: %s as %s", srcdir, destdir)
