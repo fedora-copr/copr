@@ -180,7 +180,7 @@ class RawhideToReleaseCommand(Command):
                     if not rbc or rbc.status != StatusEnum("succeeded"):
                         continue
 
-                    data["builds"].append(build.rpm_result_dir)
+                    data["builds"].append(rbc.result_dir)
 
                     if rbc and not dbc:
                         dest_build_chroot = models.BuildChroot(**rbc.to_dict())
