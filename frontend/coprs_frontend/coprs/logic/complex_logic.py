@@ -233,7 +233,7 @@ class ProjectForking(object):
     def fork_package(self, package, fcopr):
         fpackage = PackagesLogic.get(fcopr.main_dir.id, package.name).first()
         if not fpackage:
-            fpackage = self.create_object(models.Package, package, exclude=["id", "copr_id", "copr_dir_id"])
+            fpackage = self.create_object(models.Package, package, exclude=["id", "copr_id", "copr_dir_id", "webhook_rebuild"])
             fpackage.copr = fcopr
             fpackage.copr_dir = fcopr.main_dir
             db.session.add(fpackage)
