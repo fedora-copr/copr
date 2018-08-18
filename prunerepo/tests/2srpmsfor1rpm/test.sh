@@ -6,7 +6,6 @@ shopt -s expand_aliases
 # 00000003-motionpaint-1.3
 # 00000005-motionpaint-1.3
 # 00000007-motionpaint-1.4 <- content should stay
-# 00000009-motionpaint-1.4
 
 export testdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export origrepo=$testdir/repo-template
@@ -23,7 +22,6 @@ run 'ls 00000003-motionpaint-1.3/*.rpm' && die
 run 'ls 00000005-motionpaint-1.3/*.rpm' && die
 run 'ls 00000007-motionpaint-1.4/*.rpm' || die
 run 'ls 00000007-motionpaint-1.4/*.src.rpm' || die
-run 'ls 00000009-motionpaint-1.4/*.rpm' && die
 
 echo success.
 
