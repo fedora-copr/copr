@@ -66,10 +66,11 @@ setup
 repomdlastmodtime1=`stat -c '%Y' $testrepo/repodata/repomd.xml`
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
 
+run 'sleep 1'
 runcmd --nocreaterepo .
 
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' && die
-run 'sleep 1 && [[ $repomdlastmodtime1 == `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
+run '[[ $repomdlastmodtime1 == `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
 
 echo success.
 
@@ -80,10 +81,11 @@ setup
 repomdlastmodtime1=`stat -c '%Y' $testrepo/repodata/repomd.xml`
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
 
+run 'sleep 1'
 runcmd --days 999999999 .
 
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
-run 'sleep 1 && [[ $repomdlastmodtime1 == `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
+run '[[ $repomdlastmodtime1 == `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
 
 echo success.
 
@@ -94,10 +96,11 @@ setup
 repomdlastmodtime1=`stat -c '%Y' $testrepo/repodata/repomd.xml`
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
 
+run 'sleep 1'
 runcmd --alwayscreaterepo --days 999999999 .
 
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
-run 'sleep 1 && [[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
+run '[[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' || die
 
 echo success.
 
@@ -108,15 +111,17 @@ setup
 repomdlastmodtime1=`stat -c '%Y' $testrepo/repodata/repomd.xml`
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
 
+run 'sleep 1'
 runcmd --alwayscreaterepo --nocreaterepo --days 999999999 .
 
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' || die
-run 'sleep 1 && [[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' && die
+run '[[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' && die
 
+run 'sleep 1'
 runcmd --alwayscreaterepo --nocreaterepo .
 
 run '[[ `listpkgsbyfs` == `listpkgsbyrepo` ]]' && die
-run 'sleep 1 && [[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' && die
+run '[[ $repomdlastmodtime1 < `stat -c '%Y' $testrepo/repodata/repomd.xml` ]]' && die
 
 echo success.
 
