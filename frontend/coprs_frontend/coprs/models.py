@@ -233,7 +233,7 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     use_bootstrap_container = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
 
     # if chroots for the new branch should be auto-enabled and populated from rawhide ones
-    follow_fedora_branching = db.Column(db.Boolean, default=False, nullable=False, server_default="0")
+    follow_fedora_branching = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
 
     # scm integration properties
     scm_repo_url = db.Column(db.Text)

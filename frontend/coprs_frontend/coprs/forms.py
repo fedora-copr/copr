@@ -286,7 +286,7 @@ class CoprFormFactory(object):
             persistent = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
             auto_prune = wtforms.BooleanField("If backend auto-prunning script should be run for this project", default=True, false_values=FALSE_VALUES)
             use_bootstrap_container = wtforms.BooleanField("Enable use_bootstrap_container mock's feature (experimental)", default=False, false_values=FALSE_VALUES)
-            follow_fedora_branching = wtforms.BooleanField("If newly branched chroots should be automatically enabled and populated.", default=False, false_values=FALSE_VALUES)
+            follow_fedora_branching = wtforms.BooleanField("If newly branched chroots should be automatically enabled and populated.", default=True, false_values=FALSE_VALUES)
 
             # Deprecated, use `enable_net` instead
             build_enable_net = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
