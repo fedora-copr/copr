@@ -19,7 +19,8 @@ from coprs.views.api_ns.api_general import process_package_add_or_edit
 
 def to_dict(package):
     source_dict = package.source_json_dict
-    source_dict["source_build_method"] = source_dict.pop("srpm_build_method", None)
+    if "srpm_build_method" in source_dict:
+        source_dict["source_build_method"] = source_dict.pop("srpm_build_method")
     return {
         "id": package.id,
         "name": package.name,
