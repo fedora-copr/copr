@@ -152,14 +152,38 @@ Fill in the Payload URL field with the url you noted previously. Set the other f
 
 And next time you push anything to your git, Copr will automatically rebuild your package.
 
-Pagure "Webhooks"
------------------
+Pagure Integration
+------------------
 
-Are not really webhooks but rather fedmsg binds. You also need to have webhook auto-rebuilding enabled for the package. 
+For any pagure instance (including `src.fedoraproject.org <http://src.fedoraproject.org/>`_), you can setup Copr auto-rebuilding and pr/commit flagging on new changes landing into a pagure repository and its open pull requests.
 
-However, the only necessary thing on the Pagure side is to set Fedmsg to active in your project settings (in 'Hooks' section almost at the bottom). 
+Auto-rebuilding
+^^^^^^^^^^^^^^^
 
-Now your marked SCM packages will be rebuilt on specific commits.
+On the Pagure side, you need to set Fedmsg to 'active' in your project settings (in 'Hooks' section almost at the bottom). For some instances
+(e.g. `src.fedoraproject.org <http://src.fedoraproject.org/>`_), this might already be active by default so you don't even need to perform this step.
+
+In Copr, you need an SCM package definition, which may be as simple as specifying a public clone URL of the remote Pagure repository, see :ref:`scm_ref`
+if you need more detailed settings. Also make sure, "Auto-rebuild" checkbox is checked.
+
+Now your SCM package will get rebuilt on new commits into the main repo as well as into open PRs.
+
+Note that built changes coming from pull requests are not actually placed into the main copr repository. Instead, they are being placed into side repositories
+of the names ``<coprname>:pr:<pr_id>``. ``<pr_id>`` is ID of the pull request opened in Pagure. On Fedora, you can enable the side repository to test the changes with:
+
+::
+
+    $ sudo dnf copr enable <ownername>/<coprname>:pr:<pr_id>
+
+PR/commit flagging
+^^^^^^^^^^^^^^^^^^
+
+If you would like to get your commits and pull requests in Pagure flagged with build results for each change, go to project settings in your Pagure project. Then:
+
+- In the section "API keys", create a new API key (check for **'Flag a ...'** options) if you don't have one created already and copy it
+- In Copr, go to **Settings->Integrations** and insert the copied API key into the second field in 'Pagure' section
+- Into the first field, insert Pagure project URL that you can just copy from browser address bar if you are on the project homepage
+- Click 'Submit' and you are done.
 
 Custom-location Webhooks
 ------------------------
