@@ -79,7 +79,7 @@ def coprs_show(page=1):
     # users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 5)
     users_builds = builds_logic.BuildsLogic.get_recent_tasks(None, 4)
 
-    data = builds_logic.BuildsLogic.get_running_tasks_from_last_day()
+    data = builds_logic.BuildsLogic.get_tasks_histogram('30min', running_only=True)
 
     return flask.render_template("coprs/show/all.html",
                                  coprs=coprs,
@@ -108,7 +108,7 @@ def coprs_by_user(username=None, page=1):
     # flask.g.user is none when no user is logged - showing builds from everyone
     users_builds = builds_logic.BuildsLogic.get_recent_tasks(flask.g.user, 4)
 
-    data = builds_logic.BuildsLogic.get_running_tasks_from_last_day()
+    data = builds_logic.BuildsLogic.get_tasks_histogram('30min', running_only=True)
 
     return flask.render_template("coprs/show/user.html",
                                  user=user,
@@ -133,7 +133,7 @@ def coprs_fulltext_search(page=1):
     paginator = helpers.Paginator(query, query.count(), page,
                                   additional_params={"fulltext": fulltext})
 
-    data = builds_logic.BuildsLogic.get_running_tasks_from_last_day()
+    data = builds_logic.BuildsLogic.get_tasks_histogram('30min', running_only=True)
 
     coprs = paginator.sliced_query
     return render_template("coprs/show/fulltext.html",

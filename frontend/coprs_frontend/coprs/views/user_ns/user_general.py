@@ -7,7 +7,7 @@ from coprs.logic.complex_logic import ComplexLogic
 
 
 def render_user_info(user):
-    graph = BuildsLogic.get_running_tasks_from_last_day()
+    graph = BuildsLogic.get_tasks_histogram('30min', running_only=True)
     return flask.render_template("user_info.html",
                                  user=user,
                                  tasks_info=ComplexLogic.get_queue_sizes(),

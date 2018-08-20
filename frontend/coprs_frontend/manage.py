@@ -485,9 +485,9 @@ class UpdateGraphsDataCommand(Command):
     """
 
     def run(self):
-        curr_time = int(time.time())
-        builds_logic.BuildsLogic.get_tasks_histogram('10min', curr_time - 86599, curr_time, 600)
-        builds_logic.BuildsLogic.get_tasks_histogram('24h', curr_time - 90*86400, curr_time, 86400)
+        builds_logic.BuildsLogic.get_tasks_histogram('10min')
+        builds_logic.BuildsLogic.get_tasks_histogram('30min')
+        builds_logic.BuildsLogic.get_tasks_histogram('24h')
 
 
 class RemoveGraphsDataCommand(Command):
@@ -500,6 +500,8 @@ class RemoveGraphsDataCommand(Command):
         models.BuildsStatistics.query.filter(or_(
             and_(models.BuildsStatistics.time < curr_time - 91 * 86400,
                  models.BuildsStatistics.stat_type == '24h'),
+            and_(models.BuildsStatistics.time < curr_time - 87000,
+                 models.BuildsStatistics.stat_type == '30min'),
             and_(models.BuildsStatistics.time < curr_time - 87000,
                  models.BuildsStatistics.stat_type == '10min')
         )).delete()

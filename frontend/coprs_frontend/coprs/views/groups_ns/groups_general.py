@@ -66,7 +66,7 @@ def list_projects_by_group(group_name, page=1):
 
     coprs = paginator.sliced_query
 
-    data = builds_logic.BuildsLogic.get_running_tasks_from_last_day()
+    data = builds_logic.BuildsLogic.get_tasks_histogram('30min', running_only=True)
 
     return render_template(
         "coprs/show/group.html",
