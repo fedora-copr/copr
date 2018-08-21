@@ -496,8 +496,8 @@ GROUP BY
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 
     @classmethod
-    def create_new_from_pypi(cls, user, copr, pypi_package_name, pypi_package_version, python_versions,
-                             chroot_names=None, **build_options):
+    def create_new_from_pypi(cls, user, copr, pypi_package_name, pypi_package_version, spec_template,
+                             python_versions, chroot_names=None, **build_options):
         """
         :type user: models.User
         :type copr: models.Copr
@@ -512,6 +512,7 @@ GROUP BY
         source_type = helpers.BuildSourceEnum("pypi")
         source_json = json.dumps({"pypi_package_name": pypi_package_name,
                                   "pypi_package_version": pypi_package_version,
+                                  "spec_template": spec_template,
                                   "python_versions": python_versions})
         return cls.create_new(user, copr, source_type, source_json, chroot_names, **build_options)
 

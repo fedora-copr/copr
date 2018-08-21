@@ -119,9 +119,12 @@ class PyPIPackage(object):
     def __init__(self, source_json):
         self.name = source_json['pypi_package_name'].lower()
         self.python_versions = source_json['python_versions']
+        self.spec_template = source_json['spec_template']
 
     def build(self, copr, new_updated_version):
-        return BuildsLogic.create_new_from_pypi(copr.user, copr, self.name, new_updated_version, self.python_versions, chroot_names=None)
+        return BuildsLogic.create_new_from_pypi(copr.user, copr, self.name, new_updated_version,
+                                                self.spec_template, self.python_versions,
+                                                chroot_names=None)
 
 
 def package_from_source(backend, source_json):

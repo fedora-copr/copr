@@ -473,6 +473,16 @@ class PackageFormPyPI(BasePackageForm):
             wtforms.validators.Optional(),
         ])
 
+    spec_template = wtforms.SelectField(
+        "Spec template",
+        choices=[
+            ("", "default"),
+            ("fedora", "fedora"),
+            ("epel7", "epel7"),
+            ("mageia", "mageia"),
+            ("pld", "pld"),
+        ], default="")
+
     python_versions = MultiCheckboxField(
         'Build for Python',
         choices=[
@@ -486,6 +496,7 @@ class PackageFormPyPI(BasePackageForm):
         return json.dumps({
             "pypi_package_name": self.pypi_package_name.data,
             "pypi_package_version": self.pypi_package_version.data,
+            "spec_template": self.spec_template.data,
             "python_versions": self.python_versions.data
         })
 

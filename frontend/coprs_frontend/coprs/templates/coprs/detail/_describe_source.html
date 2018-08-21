@@ -52,6 +52,11 @@
   <dd>{{ source_json_dict["pypi_package_version"] }}</dd>
   {% endif %}
 
+  {% if source_json_dict["spec_template"] %}
+  <dt>Spec template</dt>
+  <dd>{{ source_json_dict["spec_template"] }}</dd>
+  {% endif %}
+
   <dt>for Python</dt>
   <dd>{{ ', '.join(source_json_dict["python_versions"]).strip(', ') }}</dd>
   {% endif %}

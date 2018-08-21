@@ -140,6 +140,7 @@
 
     {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
     {{ render_field(form.pypi_package_version, placeholder="Optional - Version of the package PyPI") }}
+    {{ render_field(form.spec_template, placeholder="Distribution specific spec template") }}
     {{ render_pypi_python_versions_field(form.python_versions) }}
 
   {{ copr_build_form_end(form, view, copr) }}

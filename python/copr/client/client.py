@@ -423,13 +423,14 @@ class CoprClient(UnicodeMixin):
                                                progress_callback=progress_callback, multipart=True)
 
     def create_new_build_pypi(self, projectname, pypi_package_name, pypi_package_version=None,
-                         python_versions=[3, 2], username=None, timeout=None, memory=None,
-                         chroots=None, background=False, progress_callback=None):
+                              spec_template="", python_versions=[3, 2], username=None, timeout=None,
+                              memory=None, chroots=None, background=False, progress_callback=None):
         """ Creates new build from PyPI
 
             :param projectname: name of Copr project (without user namespace)
             :param pypi_package_name: PyPI package name
             :param pypi_package_vesion: [optional] PyPI package version (None means "latest")
+            :param spec_template: [optional] what spec template to use
             :param python_versions: [optional] list of python versions to build for
             :param username: [optional] use alternative username
             :param timeout: [optional] build timeout
@@ -448,6 +449,7 @@ class CoprClient(UnicodeMixin):
             "timeout": timeout,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
+            "spec_template": spec_template,
             "python_versions": [str(version) for version in python_versions],
         }
         api_endpoint = "new_build_pypi"
@@ -752,12 +754,14 @@ class CoprClient(UnicodeMixin):
         })
         return response
 
-    def edit_package_pypi(self, package_name, projectname, pypi_package_name, pypi_package_version, python_versions=[3, 2], ownername=None, webhook_rebuild=None):
+    def edit_package_pypi(self, package_name, projectname, pypi_package_name, pypi_package_version,
+                          spec_template="", python_versions=[3, 2], ownername=None, webhook_rebuild=None):
         request_url = self.get_package_edit_url(ownername, projectname, package_name, SOURCE_TYPE_PYPI)
         data = {
             "package_name": package_name,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
+            "spec_template": spec_template,
             "python_versions": python_versions,
         }
         if webhook_rebuild != None:
@@ -766,12 +770,14 @@ class CoprClient(UnicodeMixin):
         response = self.process_package_action(request_url, ownername, projectname, data)
         return response
 
-    def add_package_pypi(self, package_name, projectname, pypi_package_name, pypi_package_version, python_versions=[3, 2], ownername=None, webhook_rebuild=None):
+    def add_package_pypi(self, package_name, projectname, pypi_package_name, pypi_package_version,
+                         spec_template="", python_versions=[3, 2], ownername=None, webhook_rebuild=None):
         request_url = self.get_package_add_url(ownername, projectname, SOURCE_TYPE_PYPI)
         response = self.process_package_action(request_url, ownername, projectname, data={
             "package_name": package_name,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
+            "spec_template": spec_template,
             "python_versions": python_versions,
             "webhook_rebuild": 'y' if webhook_rebuild else '',
         })

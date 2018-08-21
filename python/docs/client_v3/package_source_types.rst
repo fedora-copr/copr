@@ -47,6 +47,7 @@ Field                  Type                 Description
 =====================  ==================== ===============
 pypi_package_name      str
 pypi_package_version   str
+spec_template          str
 python_versions        list of int
 =====================  ==================== ===============
 
