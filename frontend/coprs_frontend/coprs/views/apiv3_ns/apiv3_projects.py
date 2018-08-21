@@ -207,6 +207,7 @@ def fork_project(ownername, projectname):
 @api_login_required
 def delete_project(ownername, projectname):
     copr = get_copr(ownername, projectname)
+    copr_dict = to_dict(copr)
     form = forms.APICoprDeleteForm(csrf_enabled=False)
 
     if form.validate_on_submit() and copr:
@@ -220,4 +221,4 @@ def delete_project(ownername, projectname):
             db.session.commit()
     else:
         raise BadRequest(form.errors)
-    return flask.jsonify(to_dict(copr))
+    return flask.jsonify(copr_dict)
