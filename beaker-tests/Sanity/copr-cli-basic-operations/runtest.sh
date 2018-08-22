@@ -84,6 +84,8 @@ rlJournalStart
         rlRun "copr-cli create --chroot $CHROOT --repo 'copr://${NAME_PREFIX}Project1' ${NAME_PREFIX}Project3"
         ### left after this section: Project1, Project2, Project3
 
+        rlRun "yes | copr-cli new-webhook-secret ${NAME_PREFIX}Project1 | grep -E 'Generated new token: .*-.*-.*-.*-.*'"
+
         ### ---- BUILDING --------------- ###
         # build - wrong project name
         rlRun "copr-cli build ${NAME_PREFIX}wrong-name http://nowhere/nothing.src.rpm" 1

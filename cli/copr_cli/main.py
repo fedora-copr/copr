@@ -164,6 +164,25 @@ class Commands(object):
         """
         print(self.client.username)
 
+    def action_new_webhook_secret(self, args):
+        """
+        Regenerate webhook secret for a copr.
+        """
+        answer = None
+
+        while not answer:
+            a = input('Generate a new webhook secret for {0} [y/n]? '.format(args.name))
+
+            if a == 'n' or a == 'no':
+                answer = 'n'
+            if a == 'y' or a == 'yes':
+                answer = 'y'
+
+        if answer == 'y':
+            ownername, coprname = parse_name(args.name)
+            result = self.client.new_webhook_secret(coprname, ownername)
+            print(result.message)
+
     @requires_api_auth
     def action_build(self, args):
         """ Method called when the 'build' action has been selected by the
@@ -280,7 +299,7 @@ class Commands(object):
             'script': ''.join(args.script.readlines()),
         }
         for arg in ['script_chroot', 'script_builddeps',
-                'script_resultdir']:
+                    'script_resultdir']:
             data[arg] = getattr(args, arg)
         return self.process_build(args, self.client.create_new_build_custom, data)
 
@@ -690,9 +709,14 @@ def setup_parser():
 
     parser_whoami = subparsers.add_parser(
         "whoami",
-        help="Print username that the client authenticates with against copr-frontend"
-    )
+        help="Print username that the client authenticates with against copr-frontend")
     parser_whoami.set_defaults(func="action_whoami")
+
+    parser_new_webhook_secret = subparsers.add_parser(
+        "new-webhook-secret",
+        help="Regenerate webhoook secret for a copr.")
+    parser_new_webhook_secret.add_argument("name", help="copr to generate a new webhook secret for.")
+    parser_new_webhook_secret.set_defaults(func="action_new_webhook_secret")
 
     # create the parser for the "list" command
     parser_list = subparsers.add_parser(

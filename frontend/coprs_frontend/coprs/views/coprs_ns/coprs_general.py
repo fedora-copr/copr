@@ -388,14 +388,14 @@ def copr_permissions(copr):
 
 def render_copr_integrations(copr, pagure_form):
     if not copr.webhook_secret:
-        copr.webhook_secret = str(uuid.uuid4())
+        copr.new_webhook_secret()
         db.session.add(copr)
         db.session.commit()
 
     bitbucket_url = "https://{}/webhooks/bitbucket/{}/{}/".format(
-                  app.config["PUBLIC_COPR_HOSTNAME"],
-                  copr.id,
-                  copr.webhook_secret)
+                     app.config["PUBLIC_COPR_HOSTNAME"],
+                     copr.id,
+                     copr.webhook_secret)
 
     github_url = "https://{}/webhooks/github/{}/{}/".format(
                   app.config["PUBLIC_COPR_HOSTNAME"],

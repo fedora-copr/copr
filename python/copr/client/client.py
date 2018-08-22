@@ -161,6 +161,25 @@ class CoprClient(UnicodeMixin):
                         "Bad configuration file: {0}".format(err))
         return CoprClient(**config)
 
+    def new_webhook_secret(self, coprname, ownername=None):
+        if not ownername:
+            ownername = self.username
+
+        url = "{0}/coprs/{1}/{2}/{3}/".format(
+            self.api_url, ownername, coprname, 'new_webhook_secret')
+
+        data = self._fetch(url, method="post")
+
+        response = CoprResponse(
+            client=self,
+            method="new_webhook_secret",
+            data=data,
+            parsers=[
+                fabric_simple_fields_parser(["status", "output", "error", "message"]),
+            ]
+        )
+        return response
+
     def authentication_check(self):
         url = "{0}/auth_check/".format(self.api_url)
 

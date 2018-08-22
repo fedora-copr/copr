@@ -358,6 +358,17 @@ def api_auth_check():
     return flask.jsonify(output)
 
 
+@api_ns.route("/coprs/<username>/<coprname>/new_webhook_secret/", methods=["POST"])
+@api_login_required
+@api_req_with_copr
+def new_webhook_secret(copr):
+    copr.new_webhook_secret()
+    db.session.add(copr)
+    db.session.commit()
+    output = {"output": "ok", "message": "Generated new token: {}".format(copr.webhook_secret)}
+    return flask.jsonify(output)
+
+
 @api_ns.route("/coprs/<username>/<coprname>/new_build/", methods=["POST"])
 @api_login_required
 @api_req_with_copr

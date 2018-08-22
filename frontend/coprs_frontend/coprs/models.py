@@ -5,6 +5,7 @@ import flask
 import json
 import base64
 import modulemd
+import uuid
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from six.moves.urllib.parse import urljoin
@@ -404,6 +405,9 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     @enable_net.setter
     def enable_net(self, value):
         self.build_enable_net = value
+
+    def new_webhook_secret(self):
+        self.webhook_secret = str(uuid.uuid4())
 
 
 class CoprPermission(db.Model, helpers.Serializer):
