@@ -208,7 +208,10 @@ class ProjectForking(object):
         fcopr = self.get(copr, name)
         if not fcopr:
             fcopr = self.create_object(models.Copr, copr,
-                                       exclude=["id", "group_id", "created_on", "scm_repo_url", "scm_api_type", "scm_api_auth_json"])
+                                       exclude=["id", "group_id", "created_on",
+                                                "scm_repo_url", "scm_api_type", "scm_api_auth_json",
+                                                "persistent", "auto_prune", "contact", "webhook_secret"])
+
             fcopr.forked_from_id = copr.id
             fcopr.user = self.user
             fcopr.user_id = self.user.id
