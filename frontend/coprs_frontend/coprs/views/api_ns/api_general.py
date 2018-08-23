@@ -362,10 +362,17 @@ def api_auth_check():
 @api_login_required
 @api_req_with_copr
 def new_webhook_secret(copr):
+    if flask.g.user.id != copr.user_id:
+        raise LegacyApiError("You can only change webhook secret for your project.")
+
     copr.new_webhook_secret()
     db.session.add(copr)
     db.session.commit()
-    output = {"output": "ok", "message": "Generated new token: {}".format(copr.webhook_secret)}
+
+    output = {
+        "output": "ok",
+        "message": "Generated new token: {}".format(copr.webhook_secret),
+    }
     return flask.jsonify(output)
 
 
