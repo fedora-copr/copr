@@ -171,6 +171,11 @@ class Commands(object):
         answer = None
 
         while not answer:
+            try:
+                input = raw_input
+            except NameError:
+                pass
+
             a = input('Generate a new webhook secret for {0} [y/n]? '.format(args.name))
 
             if a == 'n' or a == 'no':
