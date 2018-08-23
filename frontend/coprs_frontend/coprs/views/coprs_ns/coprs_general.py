@@ -423,6 +423,10 @@ def render_copr_integrations(copr, pagure_form):
 @login_required
 @req_with_copr
 def copr_integrations(copr):
+    if not flask.g.user.can_edit(copr):
+        flask.flash("You don't have access to this page.", "error")
+        return flask.redirect(url_for_copr_details(copr))
+
     if copr.scm_api_type == 'pagure':
         pagure_api_key = copr.scm_api_auth.get('api_key', '')
     else:
@@ -438,6 +442,10 @@ def copr_integrations(copr):
 @login_required
 @req_with_copr
 def copr_integrations_update(copr):
+    if not flask.g.user.can_edit(copr):
+        flask.flash("Access denied.", "error")
+        return flask.redirect(url_for_copr_details(copr))
+
     pagure_form = forms.PagureIntegrationForm()
 
     if pagure_form.validate_on_submit():
