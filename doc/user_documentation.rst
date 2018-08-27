@@ -297,6 +297,7 @@ See :ref:`how_to_enable_repo`.
 
 There are several tutorials:
 
+- `RPM Packaging Guide <https://rpm-packaging-guide.github.io/>`_
 - `Packaging Workshop (video) <http://youtu.be/H4vxkuoimzc>`_ `(and the same workshop from different conference) <https://youtu.be/KdIsoYGSNS8>`_
 - `How to create an RPM package <https://fedoraproject.org/wiki/How_to_create_an_RPM_package>`_
 - `Creating and Building Packages <http://documentation-devel.engineering.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Packagers_Guide/chap-Red_Hat_Enterprise_Linux-Packagers_Guide-Creating_and_Building_Packages.html>`_
