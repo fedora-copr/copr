@@ -306,7 +306,7 @@ There are several tutorials:
 - `Advanced packaging workshop (video) <https://youtu.be/vdWnyIbN8uw>`_
 
 
-Can I build for different versions of Fedora?
+.. _`Can I build for different versions of Fedora?`:
 
 Yes. Just hit the "Edit" tab in your project and select several chroots, e.g. "fedora-19-x86_64" and "fedora-18-x86_64". After doing so, when you submit the src.rpm, your package will be built for both of those selected versions of Fedora. 
 
