@@ -61,8 +61,8 @@ class FrontendClient(object):
     def starting_build(self, data):
         """
         Announce to the frontend that a build is starting.
-        Return: True if the build can start
-                False if the build can not start (can be cancelled or deleted)
+
+        :return: True if the build can start or False if the build can not start (can be cancelled or deleted).
         """
         response = self._post_to_frontend_repeatedly(data, "starting_build")
         if "can_start" not in response.json():
