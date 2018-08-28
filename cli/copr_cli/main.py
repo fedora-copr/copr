@@ -432,6 +432,9 @@ class Commands(object):
                     print("  Yum repo(s):")
                     for name, url in project.chroot_repos.items():
                         print("    {}: {}".format(name, url))
+                if project.additional_repos:
+                    print("  Additional repo: {}".format(" ".join(project.additional_repos)))
+                print("")
 
         except CoprRequestException as ex:
             sys.stderr.write(str(ex) + "\n")
