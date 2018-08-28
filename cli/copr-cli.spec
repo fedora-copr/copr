@@ -29,7 +29,7 @@ BuildRequires: libxslt
 BuildRequires: util-linux
 
 %if %{with python3}
-Requires:      python3-copr >= 1.63
+Requires:      python3-copr >= 1.89
 Requires:      python3-jinja2
 Requires:      python3-simplejson
 
@@ -43,7 +43,7 @@ BuildRequires: python3-pytest
 BuildRequires: python3-setuptools
 BuildRequires: python3-simplejson
 %else
-Requires:      python-copr >= 1.63
+Requires:      python-copr >= 1.89
 Requires:      python-jinja2
 Requires:      python-simplejson
 
