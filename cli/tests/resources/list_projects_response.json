@@ -1,1 +1,28 @@
-{"output": "ok", "repos": [{"yum_repos": {"epel-6-x86_64": "http://copr-be.cloud.fedoraproject.org/results/rhscl/perl516/epel-6-x86_64/"}, "additional_repos": "http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/ http://people.redhat.com/~msuchy/rhscl-1.1-rhel-6-candidate-perl516/", "description": "A recent stable release of Perl with a number of additional utilities, scripts, and database connectors for MySQL and PostgreSQL. This version provides a large number of new features and enhancements, including new debugging options, improved Unicode support, and better performance.", "name": "perl516", "instructions": ""}, {"yum_repos": {"epel-6-x86_64": "http://copr-be.cloud.fedoraproject.org/results/rhscl/ruby193/epel-6-x86_64/"}, "additional_repos": "http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/ http://copr-be.cloud.fedoraproject.org/results/rhscl/v8314/epel-6-$basearch/", "description": "A recent stable release of Ruby with Rails 3.2.8 and a large collection of Ruby gems. This Software Collection gives developers on Red Hat Enterprise Linux 6 access to Ruby 1.9, which provides a number of new features and enhancements, including improved Unicode support, enhanced threading, and faster load times.", "name": "ruby193", "instructions": ""}]}
+[
+  {
+    "chroot_repos": {
+      "epel-6-x86_64": "http://copr-be.cloud.fedoraproject.org/results/rhscl/perl516/epel-6-x86_64/"
+    },
+    "additional_repos": [
+      "http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/",
+      "http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/",
+      "http://people.redhat.com/~msuchy/rhscl-1.1-rhel-6-candidate-perl516/"
+    ],
+    "description": "A recent stable release of Perl with a number of additional utilities, scripts, and database connectors for MySQL and PostgreSQL. This version provides a large number of new features and enhancements, including new debugging options, improved Unicode support, and better performance.",
+    "name": "perl516",
+    "instructions": ""
+  },
+  {
+    "chroot_repos": {
+      "epel-6-x86_64": "http://copr-be.cloud.fedoraproject.org/results/rhscl/ruby193/epel-6-x86_64/"
+    },
+    "additional_repos": [
+      "http://copr-be.cloud.fedoraproject.org/results/msuchy/scl-utils/epel-6-$basearch/",
+      "http://copr-be.cloud.fedoraproject.org/results/rhscl/httpd24/epel-6-$basearch/",
+      "http://copr-be.cloud.fedoraproject.org/results/rhscl/v8314/epel-6-$basearch/"
+    ],
+    "description": "A recent stable release of Ruby with Rails 3.2.8 and a large collection of Ruby gems. This Software Collection gives developers on Red Hat Enterprise Linux 6 access to Ruby 1.9, which provides a number of new features and enhancements, including improved Unicode support, enhanced threading, and faster load times.",
+    "name": "ruby193",
+    "instructions": ""
+  }
+]
