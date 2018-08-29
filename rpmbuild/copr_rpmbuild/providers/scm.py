@@ -38,34 +38,41 @@ class ScmProvider(Provider):
             self.repo_path, os.path.join(self.repo_subdir, self.spec_relpath))
 
     def generate_rpkg_config(self):
-        clone_url_hostname = urlparse(self.clone_url).netloc
-        found_config_section = None
+        parsed_clone_url = urlparse(self.clone_url)
+        distgit_config_section = None
 
         index = 0
         config_section = 'distgit{index}'.format(index=index)
         while self.config.has_section(config_section):
             distgit_hostname_pattern = self.config.get(
                 config_section, 'distgit_hostname_pattern')
-            if re.match(distgit_hostname_pattern, clone_url_hostname):
-                found_config_section = config_section
+            if re.match(distgit_hostname_pattern, parsed_clone_url.netloc):
+                distgit_config_section = config_section
                 break
             index += 1
             config_section = 'distgit{index}'.format(index=index)
 
-        if not found_config_section:
-            return '/etc/rpkg.conf'
+        if not distgit_config_section:
+            distgit_config_section = 'main'
 
         distgit_lookaside_url = self.config.get(
-            found_config_section, 'distgit_lookaside_url').strip('/')
+            distgit_config_section, 'distgit_lookaside_url', fallback='').strip('/').format(
+                scheme=parsed_clone_url.scheme, netloc=parsed_clone_url.netloc)
+
         distgit_clone_url = self.config.get(
-            found_config_section, 'distgit_clone_url').strip('/')
+            distgit_config_section, 'distgit_clone_url', fallback='').strip('/').format(
+                scheme=parsed_clone_url.scheme, netloc=parsed_clone_url.netloc)
 
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
         template = jinja_env.get_template("rpkg.conf.j2")
         config = template.render(lookaside_url=distgit_lookaside_url,
                                  clone_url=distgit_clone_url)
+
         log.debug('Generated rpkg config:\n'+config+'\n')
-        config_path = os.path.join(self.workdir, "rpkg.conf")
+        config_dir_path = os.path.join(os.getenv('HOME'), '.config')
+        os.makedirs(config_dir_path, exist_ok=True)
+        config_path = os.path.join(config_dir_path, 'rpkg.conf')
+        log.debug('Writing config into '+config_path)
 
         f = open(config_path, "w+")
         f.write(config)
@@ -74,8 +81,8 @@ class ScmProvider(Provider):
         return config_path
 
     def get_rpkg_command(self):
-        return ['rpkg', '-C', self.generate_rpkg_config(), 'srpm',
-                '--outdir', self.outdir, '--spec', self.spec_path]
+        self.generate_rpkg_config()
+        return ['rpkg', 'srpm', '--outdir', self.outdir, '--spec', self.spec_path]
 
     def get_tito_command(self):
         return ['tito', 'build', '--srpm', '--output', self.outdir]

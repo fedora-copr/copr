@@ -80,15 +80,14 @@ class TestScmProvider(TestCase):
         with mock.patch("copr_rpmbuild.providers.scm.CONF_DIRS", new=[rpkg_tmpdir]):
             provider = ScmProvider(source_json, self.resultdir, self.config)
             rpkg_config_path = provider.generate_rpkg_config()
-            self.assertEqual(rpkg_config_path, "/etc/rpkg.conf")
+            self.assertEqual(rpkg_config_path, os.path.join(os.environ['HOME'], '.config', 'rpkg.conf'))
 
         shutil.rmtree(rpkg_tmpdir)
 
     def test_get_rpkg_command(self):
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
         provider.generate_rpkg_config = mock.MagicMock(return_value="/etc/rpkg.conf")
-        assert_cmd = ["rpkg", "-C", "/etc/rpkg.conf", "srpm",
-                      "--outdir", self.resultdir, "--spec", provider.spec_path]
+        assert_cmd = ["rpkg", "srpm", "--outdir", self.resultdir, "--spec", provider.spec_path]
         self.assertEqual(provider.get_rpkg_command(), assert_cmd)
 
     def test_get_tito_command(self):
