@@ -45,7 +45,6 @@ BuildRequires: python3-simplejson
 %else
 Requires:      python-copr >= 1.63
 Requires:      python-jinja2
-Requires:      python-progress
 Requires:      python-simplejson
 
 BuildRequires: pytest
@@ -64,6 +63,10 @@ Obsoletes:     copr-cli-doc < 1.72
 Requires:      python-argparse
 
 BuildRequires: python-argparse
+%endif
+
+%if 0%{?rhel} == 7
+Requires:      python-progress
 %endif
 
 %description
