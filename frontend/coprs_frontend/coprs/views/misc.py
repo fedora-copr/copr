@@ -9,6 +9,7 @@ import re
 import flask
 from flask import send_file
 
+from urllib.parse import urlparse
 from openid_teams.teams import TeamsRequest
 
 from coprs import app
@@ -19,17 +20,6 @@ from coprs import oid
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
-
-
-def fed_openidize_name(name):
-    """
-    Create proper Fedora OpenID name from short name.
-
-    >>> fedoraoid == fed_openidize_name(user.name)
-    True
-    """
-
-    return "http://{0}.id.fedoraproject.org/".format(name)
 
 
 def create_user_wrapper(username, email, timezone=None):
@@ -49,8 +39,9 @@ def create_user_wrapper(username, email, timezone=None):
 
 
 def fed_raw_name(oidname):
-    return oidname.replace(".id.fedoraproject.org/", "") \
-                  .replace("http://", "")
+    oidname_parse = urlparse(oidname)
+    config_parse = urlparse(app.config["OPENID_PROVIDER_URL"])
+    return oidname_parse.netloc.replace(".{0}".format(config_parse.netloc), "")
 
 
 def krb_straighten_username(krb_remote_user):
@@ -201,7 +192,7 @@ def login():
     else:
         # a bit of magic
         team_req = TeamsRequest(["_FAS_ALL_GROUPS_"])
-        return oid.try_login("https://id.fedoraproject.org/",
+        return oid.try_login(app.config["OPENID_PROVIDER_URL"],
                              ask_for=["email", "timezone"],
                              extensions=[team_req])
 
@@ -209,8 +200,7 @@ def login():
 @oid.after_login
 def create_or_login(resp):
     flask.session["openid"] = resp.identity_url
-    fasusername = resp.identity_url.replace(
-        ".id.fedoraproject.org/", "").replace("http://", "")
+    fasusername = fed_raw_name(resp.identity_url)
 
     # kidding me.. or not
     if fasusername and (
