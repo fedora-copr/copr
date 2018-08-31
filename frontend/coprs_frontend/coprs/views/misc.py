@@ -9,7 +9,7 @@ import re
 import flask
 from flask import send_file
 
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 from openid_teams.teams import TeamsRequest
 
 from coprs import app
