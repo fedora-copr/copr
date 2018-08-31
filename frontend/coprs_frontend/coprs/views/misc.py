@@ -22,17 +22,6 @@ from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 
 
-def fed_openidize_name(name):
-    """
-    Create proper Fedora OpenID name from short name.
-
-    >>> fedoraoid == fed_openidize_name(user.name)
-    True
-    """
-    parse = urlparse(app.config["OPENID_PROVIDER_URL"])
-    return "{0}://{1}.{2}/".format(parse.scheme, name, parse.netloc)
-
-
 def create_user_wrapper(username, email, timezone=None):
     expiration_date_token = datetime.date.today() + \
         datetime.timedelta(
