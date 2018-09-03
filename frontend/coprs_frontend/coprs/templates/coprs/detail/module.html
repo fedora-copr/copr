@@ -64,7 +64,7 @@
       </div>
       <div class="panel-body">
         <ul>
-          {% for package in module.modulemd.filter.rpms %}
+          {% for package in module.rpm_filter %}
             <li>{{ package }}</li>
           {% else %}
             <p>{{ no_packages | format('filter')}}</p>
@@ -81,7 +81,7 @@
       </div>
       <div class="panel-body">
         <ul>
-        {% for package in module.modulemd.api.rpms %}
+        {% for package in module.rpm_api %}
           <li>{{ package }}</li>
         {% else %}
           <p>{{ no_packages | format('API')}}</p>
@@ -98,10 +98,10 @@
       </div>
       <div class="panel-body">
         <ul>
-          {% for name, profile in module.modulemd.profiles.items() %}
+          {% for name, packages in module.profiles.items() %}
             <li>{{ name }}</li>
             <ul>
-              {% for package in profile.rpms %}
+              {% for package in packages %}
                 <li>{{ package }}</li>
               {% endfor %}
             </ul>

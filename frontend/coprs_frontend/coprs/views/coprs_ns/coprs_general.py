@@ -15,7 +15,6 @@ import platform
 import smtplib
 import tempfile
 import sqlalchemy
-import modulemd
 from email.mime.text import MIMEText
 from itertools import groupby
 from wtforms import ValidationError

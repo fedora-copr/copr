@@ -4,7 +4,6 @@ import os
 import flask
 import json
 import base64
-import modulemd
 import uuid
 
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -20,6 +19,10 @@ from coprs import app
 import itertools
 import operator
 from coprs.helpers import BuildSourceEnum, StatusEnum, ActionTypeEnum, JSONEncodedDict
+
+import gi
+gi.require_version('Modulemd', '1.0')
+from gi.repository import Modulemd
 
 
 class CoprSearchRelatedData(object):
@@ -1288,8 +1291,8 @@ class Module(db.Model, helpers.Serializer):
 
     @property
     def modulemd(self):
-        mmd = modulemd.ModuleMetadata()
-        mmd.loads(self.yaml)
+        mmd = Modulemd.ModuleStream()
+        mmd.import_from_string(self.yaml.decode("utf-8"))
         return mmd
 
     @property
@@ -1319,6 +1322,18 @@ class Module(db.Model, helpers.Serializer):
         Return text representation of status of this build
         """
         return helpers.ModuleStatusEnum(self.status)
+
+    @property
+    def rpm_filter(self):
+        return self.modulemd.get_rpm_filter().get()
+
+    @property
+    def rpm_api(self):
+        return self.modulemd.get_rpm_api().get()
+
+    @property
+    def profiles(self):
+        return {k: v.get_rpms().get() for k, v in self.modulemd.get_profiles().items()}
 
 
 class BuildsStatistics(db.Model):

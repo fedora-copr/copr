@@ -3,7 +3,6 @@ import time
 import base64
 import json
 import requests
-import modulemd
 from collections import defaultdict
 from sqlalchemy import and_
 from datetime import datetime
@@ -12,6 +11,10 @@ from coprs import db
 from coprs import exceptions
 from coprs.logic import builds_logic
 from wtforms import ValidationError
+
+import gi
+gi.require_version('Modulemd', '1.0')
+from gi.repository import Modulemd
 
 
 class ModulesLogic(object):
@@ -45,19 +48,19 @@ class ModulesLogic(object):
 
     @classmethod
     def yaml2modulemd(cls, yaml):
-        mmd = modulemd.ModuleMetadata()
-        mmd.loads(yaml)
+        mmd = Modulemd.ModuleStream()
+        mmd.import_from_string(yaml)
         return mmd
 
     @classmethod
     def from_modulemd(cls, mmd):
         yaml_b64 = base64.b64encode(mmd.dumps().encode("utf-8")).decode("utf-8")
-        return models.Module(name=mmd.name, stream=mmd.stream, version=mmd.version, summary=mmd.summary,
-                             description=mmd.description, yaml_b64=yaml_b64)
+        return models.Module(name=mmd.get_name(), stream=mmd.get_stream(), version=mmd.get_version(),
+                             summary=mmd.get_summary(), description=mmd.get_description(), yaml_b64=yaml_b64)
 
     @classmethod
     def validate(cls, mmd):
-        if not all([mmd.name, mmd.stream, mmd.version]):
+        if not all([mmd.get_name(), mmd.get_stream(), mmd.get_version()]):
             raise ValidationError("Module should contain name, stream and version")
 
     @classmethod
@@ -74,9 +77,9 @@ class ModulesLogic(object):
 
     @classmethod
     def set_defaults_for_optional_params(cls, mmd, filename=None):
-        mmd.name = mmd.name or str(os.path.splitext(filename)[0])
-        mmd.stream = mmd.stream or "master"
-        mmd.version = mmd.version or int(datetime.now().strftime("%Y%m%d%H%M%S"))
+        mmd.set_name(mmd.get_name() or str(os.path.splitext(filename)[0]))
+        mmd.set_stream(mmd.get_stream() or "master")
+        mmd.set_version(mmd.get_version() or int(datetime.now().strftime("%Y%m%d%H%M%S")))
 
 
 class ModuleBuildFacade(object):
@@ -92,7 +95,7 @@ class ModuleBuildFacade(object):
 
     def submit_build(self):
         module = ModulesLogic.add(self.user, self.copr, ModulesLogic.from_modulemd(self.modulemd))
-        self.add_builds(self.modulemd.components.rpms, module)
+        self.add_builds(self.modulemd.get_rpm_components(), module)
         return module
 
     @classmethod
@@ -105,7 +108,7 @@ class ModuleBuildFacade(object):
         """
         batches = defaultdict(dict)
         for pkgname, rpm in rpms.items():
-            batches[rpm.buildorder][pkgname] = rpm
+            batches[rpm.get_buildorder()][pkgname] = rpm
         return [batches[number] for number in sorted(batches.keys())]
 
     def add_builds(self, rpms, module):
@@ -115,14 +118,16 @@ class ModuleBuildFacade(object):
             for pkgname, rpm in group.items():
                 clone_url = self.get_clone_url(pkgname, rpm)
                 build = builds_logic.BuildsLogic.create_new_from_scm(self.user, self.copr, scm_type="git",
-                                                                     clone_url=clone_url, committish=rpm.ref)
+                                                                     clone_url=clone_url, committish=rpm.get_ref())
                 build.batch = batch
                 build.batch_id = batch.id
                 build.module_id = module.id
                 db.session.add(build)
 
     def get_clone_url(self, pkgname, rpm):
-        return rpm.repository if rpm.repository else self.default_distgit.format(pkgname=pkgname)
+        if rpm.get_repository():
+            return rpm.get_repository()
+        return self.default_distgit.format(pkgname=pkgname)
 
     @property
     def default_distgit(self):
@@ -133,30 +138,34 @@ class ModuleBuildFacade(object):
 class ModulemdGenerator(object):
     def __init__(self, name="", stream="", version=0, summary="", config=None):
         self.config = config
-        self.mmd = modulemd.ModuleMetadata()
-        self.mmd.name = name
-        self.mmd.stream = stream
-        self.mmd.version = version
-        self.mmd.summary = summary
+        licenses = Modulemd.SimpleSet()
+        licenses.add("unknown")
+        self.mmd = Modulemd.ModuleStream(mdversion=1, name=name, stream=stream, version=version, summary=summary,
+                                         description="", content_licenses=licenses, module_licenses=licenses)
 
     @property
     def nsv(self):
-        return "{}-{}-{}".format(self.mmd.name, self.mmd.stream, self.mmd.version)
+        return "{}-{}-{}".format(self.mmd.get_name(), self.mmd.get_stream(), self.mmd.get_version())
 
     def add_api(self, packages):
+        mmd_set = Modulemd.SimpleSet()
         for package in packages:
-            self.mmd.api.add_rpm(str(package))
+            mmd_set.add(str(package))
+        self.mmd.set_rpm_api(mmd_set)
 
     def add_filter(self, packages):
+        mmd_set = Modulemd.SimpleSet()
         for package in packages:
-            self.mmd.filter.add_rpm(str(package))
+            mmd_set.add(str(package))
+        self.mmd.set_rpm_filter(mmd_set)
 
     def add_profiles(self, profiles):
         for i, values in profiles:
             name, packages = values
-            self.mmd.profiles[name] = modulemd.profile.ModuleProfile()
+            profile = Modulemd.Profile(name=name)
             for package in packages:
-                self.mmd.profiles[name].add_rpm(str(package))
+                profile.add_rpm(str(package))
+            self.mmd.add_profile(profile)
 
     def add_components(self, packages, filter_packages, builds):
         build_ids = sorted(list(set([int(id) for p, id in zip(packages, builds)
@@ -180,21 +189,12 @@ class ModulemdGenerator(object):
         ref = str(chroot.git_hash) if chroot else ""
         distgit_url = self.config["DIST_GIT_URL"].replace("/cgit", "/git")
         url = os.path.join(distgit_url, build.copr.full_name, "{}.git".format(build.package.name))
-        self.mmd.components.add_rpm(str(package_name), rationale,
-                                    repository=url, ref=ref,
-                                    buildorder=buildorder)
-
-    def add_requires(self, module, stream):
-        self.mmd.add_requires(module, stream)
-
-    def add_buildrequires(self, module, stream):
-        self.mmd.add_buildrequires(module, stream)
+        component = Modulemd.ComponentRpm(name=str(package_name), rationale=rationale,
+                                          repository=url, ref=ref, buildorder=1)
+        self.mmd.add_rpm_component(component)
 
     def generate(self):
         return self.mmd.dumps()
-
-    def dump(self, handle):
-        return self.mmd.dump(handle)
 
 
 class MBSProxy(object):
