@@ -60,7 +60,8 @@ Requires:   python3-copr
 Requires:   python3-dateutil
 Requires:   python3-pytz
 Requires:   python3-netaddr
-Requires:   python3-modulemd
+Requires:   python3-gobject
+Requires:   libmodulemd
 Requires:   python3-configparser
 Requires:   python3-fedmsg
 Requires:   redis

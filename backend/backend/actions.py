@@ -13,7 +13,9 @@ from copr.exceptions import CoprRequestException
 from requests import RequestException
 from munch import Munch
 
-import modulemd
+import gi
+gi.require_version('Modulemd', '1.0')
+from gi.repository import Modulemd
 
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
@@ -394,17 +396,19 @@ class Action(object):
             ownername = data["ownername"]
             projectname = data["projectname"]
             chroots = data["chroots"]
-            modulemd_data = base64.b64decode(data["modulemd_b64"])
+            modulemd_data = base64.b64decode(data["modulemd_b64"]).decode("utf-8")
             project_path = os.path.join(self.opts.destdir, ownername, projectname)
             self.log.info(modulemd_data)
 
-            mmd = modulemd.ModuleMetadata()
-            mmd.loads(modulemd_data)
+            mmd = Modulemd.ModuleStream()
+            mmd.import_from_string(modulemd_data)
+            artifacts = Modulemd.SimpleSet()
 
             for chroot in chroots:
                 arch = get_chroot_arch(chroot)
                 srcdir = os.path.join(project_path, chroot)
-                module_tag = chroot + '+' + mmd.name + '-' + (mmd.stream or '') + '-' + (str(mmd.version) or '1')
+                module_tag = "{}+{}-{}-{}".format(chroot, mmd.get_name(), (mmd.get_stream() or ''),
+                                                  (str(mmd.get_version()) or '1'))
                 module_relpath = os.path.join(module_tag, "latest", arch)
                 destdir = os.path.join(project_path, "modules", module_relpath)
 
@@ -424,10 +428,11 @@ class Action(object):
                         for f in os.listdir(os.path.join(destdir, folder)):
                             if not f.endswith(".rpm") or f.endswith(".src.rpm"):
                                 continue
-                            mmd.artifacts.rpms.add(str(f.rstrip(".rpm")))
+                            artifacts.add(str(f.rstrip(".rpm")))
 
-                    self.log.info("Module artifacts: %s", mmd.artifacts.rpms)
-                    modulemd.dump_all(os.path.join(destdir, "modules.yaml"), [mmd])
+                    mmd.set_rpm_artifacts(artifacts)
+                    self.log.info("Module artifacts: %s", mmd.get_rpm_artifacts())
+                    Modulemd.dump([mmd], os.path.join(destdir, "modules.yaml"))
                     createrepo(path=destdir, front_url=self.front_url,
                                username=ownername, projectname=projectname,
                                override_acr_flag=True)

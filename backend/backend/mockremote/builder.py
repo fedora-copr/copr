@@ -5,7 +5,9 @@ from urllib.parse import urlparse
 
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
 
-import modulemd
+import gi
+gi.require_version('Modulemd', '1.0')
+from gi.repository import Modulemd
 
 from ..helpers import get_redis_connection, ensure_dir_exists
 from ..exceptions import BuilderError, RemoteCmdError, VmError
@@ -48,9 +50,9 @@ class Builder(object):
     def _load_module_dist_tag(self):
         module_md_filepath = os.path.join(self.job.destdir, self.job.chroot, "module_md.yaml")
         try:
-            mmd = modulemd.ModuleMetadata()
-            mmd.load(module_md_filepath)
-            dist_tag = ("." + mmd.name + '+' + mmd.stream + '+' + str(mmd.version))
+            mmd = Modulemd.ModuleStream()
+            mmd.import_from_file(module_md_filepath)
+            dist_tag = ".{}+{}+{}".format(mmd.get_name(), (mmd.get_stream() or ''), (str(mmd.get_version()) or '1'))
         except IOError as e:
             return None
         except Exception as e:
