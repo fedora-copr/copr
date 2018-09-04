@@ -231,6 +231,7 @@ class Commands(object):
         data = {
             "pypi_package_name": args.packagename,
             "pypi_package_version": args.packageversion,
+            "spec_template": args.spec_template,
             "python_versions": args.pythonversions,
         }
         return self.process_build(args, self.client.create_new_build_pypi, data)
@@ -538,6 +539,7 @@ class Commands(object):
             "package_name": args.name,
             "pypi_package_name": args.packagename,
             "pypi_package_version": args.packageversion,
+            "spec_template": args.spec_template,
             "python_versions": args.pythonversions,
             "webhook_rebuild": ON_OFF_MAP[args.webhook_rebuild],
         }
@@ -838,6 +840,8 @@ def setup_parser():
                                          help="Version of the PyPI package to be built (by default latest)")
     parser_pypi_args_parent.add_argument("--packagename", required=True, metavar="PYPINAME",
                                          help="Name of the PyPI package to be built, required.")
+    parser_pypi_args_parent.add_argument("--template", "-t", dest="spec_template",
+                                         help="Spec template to be used to build srpm with pyp2rpm")
 
     parser_mockscm_args_parent = argparse.ArgumentParser(add_help=False)
     parser_mockscm_args_parent.add_argument("--scm-type", metavar="TYPE", dest="scm_type", choices=["git", "svn"], default="git",

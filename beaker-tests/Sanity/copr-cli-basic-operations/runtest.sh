@@ -302,6 +302,13 @@ rlJournalStart
         rlRun `cat $SOURCE_JSON | jq '.python_versions == ["2", "3"]'` 0 "package.source_json.python_versions == [\"2\", \"3\"]"
         rlAssertEquals "package.source_json.pypi_package_name == \"motionpaint\"" `cat $SOURCE_JSON | jq '.pypi_package_name'` '"motionpaint"'
         rlAssertEquals "package.source_json.pypi_package_version == \"bar\"" `cat $SOURCE_JSON | jq '.pypi_package_version'` '"1.4"'
+        rlAssertEquals "package.source_json.spec_template == \"\"" `cat $SOURCE_JSON | jq '.spec_template'` '""'
+
+        # PyPI package templates
+        rlRun "copr-cli edit-package-pypi ${NAME_PREFIX}Project4 --name test_package_pypi --template fedora"
+        rlRun "copr-cli get-package ${NAME_PREFIX}Project4 --name test_package_pypi > $OUTPUT"
+        cat $OUTPUT | jq '.source_json' | sed -r 's/"(.*)"/\1/g' | sed -r 's/\\(.)/\1/g' > $SOURCE_JSON
+        rlAssertEquals "package.source_json.spec_template == \"fedora\"" `cat $SOURCE_JSON | jq '.spec_template'` '"fedora"'
 
         ## Package listing
         rlAssertEquals "len(package_list) == 2" `copr-cli list-packages ${NAME_PREFIX}Project4 | jq '. | length'` 2
@@ -439,6 +446,12 @@ rlJournalStart
 
         # build the package
         rlRun "copr-cli build-package --name test_package_tito ${NAME_PREFIX}Project6 --timeout 10000 -r $CHROOT" # TODO: timeout not honored
+
+        # create pyp2rpm package
+        rlRun "copr-cli add-package-pypi ${NAME_PREFIX}Project6 --name test_package_pypi --template fedora --packagename motionpaint --pythonversions 3 2"
+
+        # build the package
+        rlRun "copr-cli build-package --name test_package_pypi ${NAME_PREFIX}Project6 -r $CHROOT"
 
         # test disable_createrepo
         rlRun "copr-cli create --chroot $CHROOT --disable_createrepo false ${NAME_PREFIX}DisableCreaterepoFalse"

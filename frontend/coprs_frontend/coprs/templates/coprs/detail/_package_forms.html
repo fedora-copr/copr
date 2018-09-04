@@ -74,6 +74,7 @@
 {% macro copr_package_form_pypi(form, view, copr, package) %}
     {{ copr_package_form_begin(form, view, copr, package) }}
     {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
+    {{ render_field(form.spec_template, placeholder="Spec template to be used for generating srpm.") }}
     {{ render_pypi_python_versions_field(form.python_versions) }}
     {{ render_anitya_autorebuild(form) }}
     {{ copr_package_form_end(form, package, 'rubygems') }}

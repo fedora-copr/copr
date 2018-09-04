@@ -163,8 +163,8 @@ class BuildProxy(BaseProxy):
         }
         return self._create(endpoint, data, buildopts=buildopts)
 
-    def create_from_pypi(self, ownername, projectname, pypi_package_name,
-                         pypi_package_version=None, python_versions=None, buildopts=None):
+    def create_from_pypi(self, ownername, projectname, pypi_package_name, pypi_package_version=None,
+                         spec_template='', python_versions=None, buildopts=None):
         """
         Create a build from PyPI - https://pypi.org/
 
@@ -172,6 +172,7 @@ class BuildProxy(BaseProxy):
         :param str projectname:
         :param str pypi_package_name:
         :param str pypi_package_version: PyPI package version (None means "latest")
+        :param str spec_template: what pyp2rpm spec template to use
         :param list python_versions: list of python versions to build for
         :param buildopts: http://python-copr.readthedocs.io/en/latest/client_v3/build_options.html
         :return: Munch
@@ -182,6 +183,7 @@ class BuildProxy(BaseProxy):
             "projectname": projectname,
             "pypi_package_name": pypi_package_name,
             "pypi_package_version": pypi_package_version,
+            "spec_template": spec_template,
             "python_versions": python_versions or [3, 2],
         }
         return self._create(endpoint, data, buildopts=buildopts)

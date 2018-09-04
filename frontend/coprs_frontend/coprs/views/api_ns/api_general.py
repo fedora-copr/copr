@@ -427,6 +427,7 @@ def copr_new_build_pypi(copr):
             copr,
             form.pypi_package_name.data,
             form.pypi_package_version.data,
+            form.spec_template.data,
             form.python_versions.data,
             form.selected_chroots,
             background=form.background.data,
