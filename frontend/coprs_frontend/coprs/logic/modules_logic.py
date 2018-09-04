@@ -197,41 +197,6 @@ class ModulemdGenerator(object):
         return self.mmd.dumps()
 
 
-class MBSProxy(object):
-    def __init__(self, mbs_url, user_name=None):
-        self.url = mbs_url
-        self.user = user_name
-
-    def post(self, json=None, data=None, files=None):
-        request = requests.post(self.url, verify=False,
-                                json=json, data=data, files=files)
-        return MBSResponse(request)
-
-    def build_module(self, owner, project, nsv, modulemd):
-        return self.post(
-            data={"owner": self.user, "copr_owner": owner, "copr_project": project},
-            files={"yaml": ("{}.yaml".format(nsv), modulemd)},
-        )
-
-
-class MBSResponse(object):
-    def __init__(self, response):
-        self.response = response
-
-    @property
-    def failed(self):
-        return self.response.status_code != 201
-
-    @property
-    def message(self):
-        if self.response.status_code in [500, 403, 404]:
-            return "Error from MBS: {} - {}".format(self.response.status_code, self.response.reason)
-        resp = json.loads(self.response.content)
-        if self.response.status_code != 201:
-            return "Error from MBS: {}".format(resp["message"])
-        return "Created module {}-{}-{}".format(resp["name"], resp["stream"], resp["version"])
-
-
 class ModuleProvider(object):
     def __init__(self, filename, yaml):
         self.filename = filename
