@@ -36,7 +36,7 @@ def upgrade():
     op.add_column(u'build', sa.Column('scm_object_url', sa.Text(), nullable=True))
     op.add_column(u'build', sa.Column('update_callback', sa.Text(), nullable=True))
     op.create_index(op.f('ix_build_copr_dir_id'), 'build', ['copr_dir_id'], unique=False)
-    op.create_foreign_key('build_copr_dir_foreign_key', 'build', 'copr_dir', ['copr_dir_id'], ['id'])
+    op.create_foreign_key('build_copr_dir_id_fkey', 'build', 'copr_dir', ['copr_dir_id'], ['id'])
 
     # scm integration properties for Copr
     op.add_column(u'copr', sa.Column('scm_api_auth_json', sa.Text(), nullable=True))
@@ -48,11 +48,11 @@ def upgrade():
     op.create_index(op.f('ix_package_copr_dir_id'), 'package', ['copr_dir_id'], unique=False)
     op.create_unique_constraint('packages_copr_dir_pkgname', 'package', ['copr_dir_id', 'name'])
     op.drop_constraint(u'packages_copr_pkgname', 'package', type_='unique')
-    op.create_foreign_key('package_copr_dir_foreign_key', 'package', 'copr_dir', ['copr_dir_id'], ['id'])
+    op.create_foreign_key('package_copr_dir_id_fkey', 'package', 'copr_dir', ['copr_dir_id'], ['id'])
 
 
 def downgrade():
-    op.drop_constraint('package_copr_dir_foreign_key', 'package', type_='foreignkey')
+    op.drop_constraint('package_copr_dir_id_fkey', 'package', type_='foreignkey')
     op.create_unique_constraint(u'packages_copr_pkgname', 'package', ['copr_id', 'name'])
     op.drop_constraint('packages_copr_dir_pkgname', 'package', type_='unique')
     op.drop_index(op.f('ix_package_copr_dir_id'), table_name='package')
@@ -60,7 +60,7 @@ def downgrade():
     op.drop_column(u'copr', 'scm_repo_url')
     op.drop_column(u'copr', 'scm_api_type')
     op.drop_column(u'copr', 'scm_api_auth_json')
-    op.drop_constraint('build_copr_dir_foreign_key', 'build', type_='foreignkey')
+    op.drop_constraint('build_copr_dir_id_fkey', 'build', type_='foreignkey')
     op.drop_index(op.f('ix_build_copr_dir_id'), table_name='build')
     op.drop_column(u'build', 'update_callback')
     op.drop_column(u'build', 'scm_object_url')
