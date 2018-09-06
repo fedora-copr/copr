@@ -14,7 +14,6 @@ from alembic import op
 import sqlalchemy as sa
 import json
 
-from coprs import models, db
 
 def upgrade():
     session = sa.orm.sessionmaker(bind=op.get_bind())()

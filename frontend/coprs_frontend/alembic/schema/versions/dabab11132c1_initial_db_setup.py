@@ -13,6 +13,8 @@ down_revision = None
 from alembic import op
 import sqlalchemy as sa
 
+import sys, os
+sys.path.append(os.getcwd())
 import coprs
 
 
