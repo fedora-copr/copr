@@ -16,3 +16,6 @@ class TestMisc(CoprsTestCase):
     def test_fed_raw_name_scheme(self):
         app.config["OPENID_PROVIDER_URL"] = "foo://id.fedoraproject.org/"
         assert fed_raw_name("bar://someuser.id.fedoraproject.org/") == "someuser"
+
+    def test_fed_raw_name_without_oid_url(self):
+        assert fed_raw_name("someuser") == "someuser"

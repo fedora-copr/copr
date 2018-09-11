@@ -40,6 +40,8 @@ def create_user_wrapper(username, email, timezone=None):
 
 def fed_raw_name(oidname):
     oidname_parse = urlparse(oidname)
+    if not oidname_parse.netloc:
+        return oidname
     config_parse = urlparse(app.config["OPENID_PROVIDER_URL"])
     return oidname_parse.netloc.replace(".{0}".format(config_parse.netloc), "")
 
