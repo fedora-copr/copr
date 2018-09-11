@@ -866,6 +866,10 @@ def copr_edit_package(copr, package_name, source_type_text):
 
 
 def process_package_add_or_edit(copr, source_type_text, package=None, data=None):
+    if not flask.g.user.can_edit(copr):
+        raise InsufficientRightsException(
+            "You are not allowed to add or edit packages in this copr.")
+
     try:
         form = forms.get_package_form_cls_by_source_type_text(source_type_text)(data or flask.request.form, csrf_enabled=False)
     except UnknownSourceTypeException:
