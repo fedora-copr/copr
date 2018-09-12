@@ -254,6 +254,8 @@ Requires: copr-frontend
 EOF
 
 %py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/coprs_frontend/coprs
+%py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/coprs_frontend/alembic
+%py_byte_compile %{__python3} %{buildroot}%{_datadir}/copr/coprs_frontend/tests
 
 %check
 %if %{with check}
