@@ -69,6 +69,20 @@ status code or headers can be examined.
     {'Date': 'Wed, 25 Jul 2018 21:40:48 GMT', 'Content-Length': '42', 'Content-Type': 'application/json', 'Server': 'Werkzeug/0.12.2 Python/3.6.4'}
 
 
+Status codes
+------------
+
+An apropriate status codes are used for specific situations.
+
+==================  ====================
+Status code         Reason
+==================  ====================
+200                 Successful request
+401                 Unauthorized request when login is required
+403                 Insufficient permissions, e.g. modifying a project of someone else
+404                 API endpoint or requested object was not found
+500                 General frontend error
+==================  ====================
 
 
 Exception hierarchy
