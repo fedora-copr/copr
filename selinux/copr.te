@@ -26,7 +26,7 @@ logging_log_file(copr_httpd_log_t);
 
 #============= httpd_t ==============
 allow httpd_t copr_data_t:dir { write getattr read remove_name open add_name create rmdir search};
-allow httpd_t copr_data_t:file { rename write getattr read create open lock unlink};
+allow httpd_t copr_data_t:file { rename write getattr read create open lock unlink ioctl };
 
 optional_policy(`
 gen_require(` class file map; ')
