@@ -28,8 +28,10 @@ class Importer(object):
 
         self.tmp_root = None
 
-    def try_to_obtain_new_tasks(self, exclude=[], limit=1):
+    def try_to_obtain_new_tasks(self, exclude=None, limit=1):
         log.debug("Get task data...")
+        if exclude is None:
+            exclude = []
         try:
             # get the data
             r = get(self.get_url)
