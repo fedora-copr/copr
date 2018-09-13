@@ -203,7 +203,7 @@ class CoprsLogic(object):
                                           models.User.id == models.Copr.user_id))
                 query = query.order_by(asc(func.length(models.User.username)+func.length(models.Copr.name)))
         else: # fulltext search
-            query = query.whooshee_search(search_string, whoosheer=CoprWhoosheer)
+            query = query.whooshee_search(search_string, whoosheer=CoprWhoosheer, order_by_relevance=100)
         return query
 
     @classmethod
