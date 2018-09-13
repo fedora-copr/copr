@@ -8,7 +8,7 @@ Release: 1%{?dist}
 # git checkout {{{ cached_git_name_version }}}
 # cd copr/prunerepo
 # rpkg spec --sources
-Source0: {{{ git_dir_pack }}}
+Source0: {{{ git_dir_archive }}}
 
 License: GPLv2+
 BuildArch: noarch

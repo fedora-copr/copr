@@ -23,7 +23,7 @@ BuildArch: noarch
 # git checkout {{{ cached_git_name_version }}}
 # cd copr/rpmbuild
 # rpkg spec --sources
-Source0: {{{ git_dir_pack }}}
+Source0: {{{ git_dir_archive }}}
 
 BuildRequires: %python-devel
 BuildRequires: %rpm_python
