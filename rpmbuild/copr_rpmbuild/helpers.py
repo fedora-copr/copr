@@ -213,3 +213,32 @@ def build_srpm(srcdir, destdir):
 
     cmd += [specfiles[0]]
     run_cmd(cmd)
+
+
+def parse_copr_name(name):
+    m = re.match(r"([^/]+)/(.*)", name)
+    ownername = m.group(1)
+    projectname = m.group(2)
+    return ownername, projectname
+
+
+def generate_repo_name(repo_url):
+    """ based on url, generate repo name """
+    repo_url = re.sub("[^a-zA-Z0-9]", '_', repo_url)
+    repo_url = re.sub("(__*)", '_', repo_url)
+    repo_url = re.sub("(_*$)|^_*", '', repo_url)
+    return repo_url
+
+
+def get_additional_repo_configs(repo_urls):
+    repo_configs = []
+
+    for repo_url in repo_urls:
+        repo_config = {
+            "id": generate_repo_name(repo_url),
+            "url": repo_url,
+            "name": "Additional repo " + generate_repo_name(repo_url),
+        }
+        repo_configs.append(repo_config)
+
+    return repo_configs
