@@ -70,6 +70,7 @@ def get_parser():
     product = shared_parser.add_mutually_exclusive_group()
     product.add_argument("--rpm", action="store_true", help="Build rpms. This is the default action.")
     product.add_argument("--srpm", action="store_true", help="Build srpm.")
+    product.add_argument("--dump-configs", action="store_true", help="Only dump configs, without actual building.")
     #product.add_argument("--tgz", action="store_true", help="Make tar.gz with build sources, spec and patches.")
 
     base_parser = argparse.ArgumentParser(description="COPR building tool.", parents=[shared_parser])
@@ -132,7 +133,14 @@ def main():
     try:
         fcntl.lockf(lockfd, fcntl.LOCK_EX, 1)
         init(args, config)
-        action = build_srpm if args.srpm else build_rpm
+
+        if args.dump_configs:
+            action = dump_configs
+        elif args.srpm:
+            action = build_srpm
+        else:
+            action = build_rpm
+
         action(args, config)
     except (RuntimeError, OSError):
         log.exception("")
@@ -152,22 +160,6 @@ def init(args, config):
         os.makedirs(resultdir)
 
 
-def task_merge_args(task, args):
-    if args.chroot:
-        task['chroot'] = args.chroot
-
-    if args.submode == 'scm':
-        task["source_type"] = SourceType.SCM
-        task["source_json"].update({
-            'clone_url': args.clone_url,
-            'committish': args.committish,
-            'subdirectory': args.subdirectory,
-            'spec': args.spec,
-            'type': args.type,
-            'srpm_build_method': args.srpm_build_method,
-        })
-
-
 def produce_srpm(task, config, resultdir):
     """
     create tmpdir to allow --private-users=pick with make_srpm
@@ -183,21 +175,42 @@ def produce_srpm(task, config, resultdir):
             shutil.copy(os.path.join(tmpdir_abspath, item), resultdir)
 
 
+def get_task(args, config, task_url_path=None):
+    task = {'source_type': None, 'source_json': {}}
+
+    if task_url_path:
+        task.update(get_vanilla_task(task_url_path, config))
+
+    if args.chroot:
+        task['chroot'] = args.chroot
+
+    if args.submode == 'scm':
+        task['source_type'] = SourceType.SCM
+        task['source_json'].update({
+            'clone_url': args.clone_url,
+            'committish': args.committish,
+            'subdirectory': args.subdirectory,
+            'spec': args.spec,
+            'type': args.type,
+            'srpm_build_method': args.srpm_build_method,
+        })
+
+    return task
+
+
+def log_task(task):
+    pp = pprint.PrettyPrinter(width=120)
+    log.info("Task:\n"+pp.pformat(task)+'\n')
+
+
 def build_srpm(args, config):
     if args.chroot:
         raise RuntimeError("--chroot option is not supported with --srpm")
 
+    task = get_task(args, config, urljoin("/backend/get-srpm-build-task/", args.build_id))
+    log_task(task)
+
     resultdir = config.get("main", "resultdir")
-
-    task = {'source_type': None, 'source_json': {}}
-    if args.build_id:
-        task.update(get_task("/backend/get-srpm-build-task/", args.build_id, config))
-
-    task_merge_args(task, args)
-
-    pp = pprint.PrettyPrinter(width=120)
-    log.info("Task:\n"+pp.pformat(task)+'\n')
-
     produce_srpm(task, config, resultdir)
 
     log.info("Output: {}".format(
@@ -211,15 +224,9 @@ def build_rpm(args, config):
     if not args.chroot:
         raise RuntimeError("Missing --chroot parameter")
 
-    task = {'source_type': None, 'source_json': {}}
-    if args.build_id:
-        task_id = "-".join([args.build_id, args.chroot])
-        task.update(get_task("/backend/get-build-task/", task_id, config))
-
-    task_merge_args(task, args)
-
-    pp = pprint.PrettyPrinter(width=120)
-    log.info("Task:\n"+pp.pformat(task)+'\n')
+    task_id = "-".join([args.build_id, args.chroot])
+    task = get_task(args, config, urljoin("/backend/get-build-task/", task_id))
+    log_task(task)
 
     sourcedir = tempfile.mkdtemp()
     scm_provider = providers.ScmProvider(task["source_json"], sourcedir, config)
@@ -238,9 +245,26 @@ def build_rpm(args, config):
     shutil.rmtree(sourcedir)
 
 
-def get_task(endpoint, id, config):
+def dump_configs(args, config):
+    if not args.chroot:
+        raise RuntimeError("Missing --chroot parameter")
+
+    task_id = "-".join([args.build_id, args.chroot])
+    task = get_task(args, config, urljoin("/backend/get-build-task/", task_id))
+    log_task(task)
+
+    resultdir = config.get("main", "resultdir")
+    builder = MockBuilder(task, None, resultdir, config)
+
+    configdir = os.path.join(resultdir, "configs")
+    config_paths = builder.prepare_configs(configdir)
+    for config_path in config_paths:
+        log.info("Wrote: "+config_path)
+
+
+def get_vanilla_task(task_url_path, config):
     try:
-        url = urljoin(urljoin(config.get("main", "frontend_url"), endpoint), id)
+        url = urljoin(config.get("main", "frontend_url"), task_url_path)
         response = requests.get(url)
         task = response.json()
         task["source_json"] = json.loads(task["source_json"])

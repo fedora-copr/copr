@@ -51,18 +51,11 @@ class MockBuilder(object):
         self.resultdir = resultdir
         self.config = config
         self.logfile = self.config.get("main", "logfile")
-        log.info(self.__dict__)
 
     def run(self):
-        configdir = os.path.join(self.resultdir, "configs")
-        os.makedirs(configdir)
-        shutil.copy2("/etc/mock/site-defaults.cfg", configdir)
-        shutil.copy2("/etc/mock/{0}.cfg".format(self.chroot), configdir)
-        cfg = self.render_config_template()
-        with open(os.path.join(configdir, "child.cfg"), "w") as child:
-            child.write(cfg)
-
         open(self.logfile, 'w').close() # truncate logfile
+        configdir = os.path.join(self.resultdir, "configs")
+        self.prepare_configs(configdir)
 
         spec = locate_spec(self.sourcedir)
         shutil.copy(spec, self.resultdir)
@@ -70,6 +63,20 @@ class MockBuilder(object):
 
         srpm = locate_srpm(self.resultdir)
         self.produce_rpm(srpm, configdir, self.resultdir)
+
+    def prepare_configs(self, configdir):
+        site_config_path = os.path.join(configdir, "site-defaults.cfg")
+        mock_config_path = os.path.join(configdir, "{0}.cfg".format(self.chroot))
+        child_config_path = os.path.join(configdir, "child.cfg")
+
+        os.makedirs(configdir, exist_ok=True)
+        shutil.copy2("/etc/mock/site-defaults.cfg", site_config_path)
+        shutil.copy2("/etc/mock/{0}.cfg".format(self.chroot), mock_config_path)
+        cfg = self.render_config_template()
+        with open(child_config_path, "w") as child:
+            child.write(cfg)
+
+        return [child_config_path, mock_config_path, site_config_path]
 
     def render_config_template(self):
         jinja_env = Environment(loader=FileSystemLoader(CONF_DIRS))
