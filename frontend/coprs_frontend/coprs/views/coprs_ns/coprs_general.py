@@ -36,6 +36,7 @@ from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
 from coprs.rmodels import TimedStatEvents
+from coprs.mail import send_mail, LegalFlagMessage, PermissionRequestMessage, PermissionChangeMessage
 
 from coprs.logic.complex_logic import ComplexLogic
 
@@ -564,22 +565,10 @@ def copr_permissions_applier_change(copr):
         # sending emails
         if flask.current_app.config.get("SEND_EMAILS", False):
             for mail in admin_mails:
-                msg = MIMEText(
-                    "{6} is asking for these permissions:\n\n"
-                    "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
-                    "Project: {4}\nOwner: {5}".format(
-                        helpers.PermissionEnum(old_builder),
-                        helpers.PermissionEnum(new_builder),
-                        helpers.PermissionEnum(old_admin),
-                        helpers.PermissionEnum(new_admin),
-                        copr.name, copr.user.name, flask.g.user.name))
-
-                msg["Subject"] = "[Copr] {0}: {1} is asking permissions".format(copr.name, flask.g.user.name)
-                msg["From"] = "root@{0}".format(platform.node())
-                msg["To"] = mail
-                s = smtplib.SMTP("localhost")
-                s.sendmail("root@{0}".format(platform.node()), mail, msg.as_string())
-                s.quit()
+                permission_dict = {"old_builder": old_builder, "old_admin": old_admin,
+                                   "new_builder": new_builder, "new_admin": new_admin}
+                msg = PermissionRequestMessage(copr, flask.g.user, permission_dict)
+                send_mail(mail, msg, )
 
     return flask.redirect(flask.url_for("coprs_ns.copr_detail",
                                         username=copr.user.name,
@@ -612,23 +601,10 @@ def copr_update_permissions(copr):
                     flask.g.user, copr, perm, new_builder, new_admin)
                 if flask.current_app.config.get("SEND_EMAILS", False) and \
                         (old_builder is not new_builder or old_admin is not new_admin):
-
-                    msg = MIMEText(
-                        "Your permissions have changed:\n\n"
-                        "Builder: {0} -> {1}\nAdmin: {2} -> {3}\n\n"
-                        "Project: {4}\nOwner: {5}".format(
-                            helpers.PermissionEnum(old_builder),
-                            helpers.PermissionEnum(new_builder),
-                            helpers.PermissionEnum(old_admin),
-                            helpers.PermissionEnum(new_admin),
-                            copr.name, copr.user.name))
-
-                    msg["Subject"] = "[Copr] {0}: Your permissions have changed".format(copr.name)
-                    msg["From"] = "root@{0}".format(platform.node())
-                    msg["To"] = perm.user.mail
-                    s = smtplib.SMTP("localhost")
-                    s.sendmail("root@{0}".format(platform.node()), perm.user.mail, msg.as_string())
-                    s.quit()
+                    permission_dict = {"old_builder": old_builder, "old_admin": old_admin,
+                                       "new_builder": new_builder, "new_admin": new_admin}
+                    msg = PermissionChangeMessage(copr, permission_dict)
+                    send_mail(perm.user.mail, msg)
         # for now, we don't check for actions here, as permissions operation
         # don't collide with any actions
         except exceptions.InsufficientRightsException as e:
@@ -695,11 +671,10 @@ def copr_delete(copr):
 @login_required
 @req_with_copr
 def copr_legal_flag(copr):
-    contact_info = "{} <>".format(copr.user.username, copr.user.mail)
-    return process_legal_flag(contact_info, copr)
+    return process_legal_flag(copr)
 
 
-def process_legal_flag(contact_info, copr):
+def process_legal_flag(copr):
     form = forms.CoprLegalFlagForm()
     legal_flag = models.LegalFlag(raise_message=form.comment.data,
                                   raised_on=int(time.time()),
@@ -707,25 +682,11 @@ def process_legal_flag(contact_info, copr):
                                   reporter=flask.g.user)
     db.session.add(legal_flag)
     db.session.commit()
+
     send_to = app.config["SEND_LEGAL_TO"] or ["root@localhost"]
-    hostname = platform.node()
-    navigate_to = "\nNavigate to http://{0}{1}".format(
-        hostname, flask.url_for("admin_ns.legal_flag"))
-    contact = "\nContact on owner is: {}".format(contact_info)
-    reported_by = "\nReported by {0} <{1}>".format(flask.g.user.name,
-                                                   flask.g.user.mail)
-    try:
-        msg = MIMEText(
-            form.comment.data + navigate_to + contact + reported_by, "plain")
-    except UnicodeEncodeError:
-        msg = MIMEText(form.comment.data.encode(
-            "utf-8") + navigate_to + contact + reported_by, "plain", "utf-8")
-    msg["Subject"] = "Legal flag raised on {0}".format(copr.name)
-    msg["From"] = "root@{0}".format(hostname)
-    msg["To"] = ", ".join(send_to)
-    s = smtplib.SMTP("localhost")
-    s.sendmail("root@{0}".format(hostname), send_to, msg.as_string())
-    s.quit()
+    msg = LegalFlagMessage(copr, flask.g.user, form.comment.data)
+    send_mail(send_to, msg)
+
     flask.flash("Admin has been noticed about your report"
                 " and will investigate the project shortly.")
     return flask.redirect(url_for_copr_details(copr))
