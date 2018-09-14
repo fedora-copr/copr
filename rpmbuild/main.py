@@ -182,8 +182,7 @@ def get_task(args, config, build_config_url_path=None):
     if build_config_url_path:
         task.update(
             get_vanilla_build_config(
-                build_config_url_path, config
-            ))
+                build_config_url_path, config))
 
     if args.chroot:
         task['chroot'] = args.chroot
@@ -249,7 +248,7 @@ def build_rpm(args, config):
             'projectname': projectname,
             'chrootname': args.chroot,
         }
-        build_config_url_path = "/api_3/project-chroot?" + urlencode(get_params)
+        build_config_url_path = "/api_3/project-chroot/build-config?" + urlencode(get_params)
     else:
         build_config_url_path = None
 
@@ -287,7 +286,7 @@ def dump_configs(args, config):
             'projectname': projectname,
             'chrootname': args.chroot,
         }
-        build_config_url_path = "/api_3/project-chroot?" + urlencode(get_params)
+        build_config_url_path = "/api_3/project-chroot/build-config?" + urlencode(get_params)
     else:
         build_config_url_path = None
 
