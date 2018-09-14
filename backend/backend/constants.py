@@ -29,7 +29,7 @@ class BuildStatus(object):
     @classmethod
     def string(cls, number):
         """ convert number to string """
-        for key, val in cls.__dict__.iteritems():
+        for key, val in cls.__dict__.items():
             if isinstance(val, int) and number == val:
                 return key
         raise AttributeError("no such status id: {0} ".format(number))
