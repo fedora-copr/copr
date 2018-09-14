@@ -205,7 +205,8 @@ def get_task(args, config, build_config_url_path=None, task_id=None):
 
     # temporary due to transition to using api3 instead of /backend/ interface
     if not task.get('repos') and task.get('additional_repos'):
-        task['repos'] = get_additional_repo_configs(task['additional_repos'])
+        task['repos'] = get_additional_repo_configs(
+            task['additional_repos'], args.chroot, config.get('main', 'backend_url'))
 
     return task
 

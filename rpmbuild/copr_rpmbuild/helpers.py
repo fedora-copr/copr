@@ -12,6 +12,11 @@ import pprint
 import datetime
 import pipes
 
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 log = logging.getLogger("__main__")
 
 CONF_DIRS = [os.getcwd(), "/etc/copr-rpmbuild"]
@@ -236,14 +241,33 @@ def generate_repo_name(repo_url):
     return repo_url
 
 
-def get_additional_repo_configs(repo_urls):
+def preprocess_repo_url(repo_url, chroot, backend_base_url):
+    """
+    Expands variables and sanitize repo url to be used for mock config
+    """
+    parsed_url = urlparse(repo_url)
+
+    if parsed_url.scheme == "copr":
+        user = parsed_url.netloc
+        prj = parsed_url.path.split("/")[1]
+        repo_url = "/".join([
+            backend_base_url,
+            "results", user, prj, chroot
+        ]) + "/"
+
+    repo_url = repo_url.replace("$chroot", chroot)
+    repo_url = repo_url.replace("$distname", chroot.rsplit("-", 2)[0])
+    return repo_url
+
+
+def get_additional_repo_configs(repo_urls, chroot, backend_base_url):
     repo_configs = []
 
     for repo_url in repo_urls:
         repo_name = generate_repo_name(repo_url)
         repo_config = {
             "id": repo_name,
-            "url": repo_url,
+            "url": preprocess_repo_url(repo_url, chroot, backend_base_url),
             "name": "Additional repo {}".format(repo_name),
         }
         repo_configs.append(repo_config)
