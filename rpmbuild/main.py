@@ -16,7 +16,7 @@ import stat
 import pipes
 import pkg_resources
 
-from json.decoder import JSONDecodeError
+from simplejson.scanner import JSONDecodeError
 
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
