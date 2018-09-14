@@ -18,7 +18,7 @@ URL:        https://pagure.io/copr/copr
 # git checkout {{{ cached_git_name_version }}}
 # cd copr/cli
 # rpkg spec --sources
-Source0:    {{{ git_dir_pack }}}
+Source0:    {{{ git_dir_archive }}}
 
 BuildArch:  noarch
 
