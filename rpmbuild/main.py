@@ -319,10 +319,16 @@ def get_vanilla_build_config(build_config_url_path, config):
         url = urljoin(config.get("main", "frontend_url"), build_config_url_path)
         response = requests.get(url)
         build_config = response.json()
+
+        if not build_config:
+            raise RuntimeError("No valid build_config at {}".format(url))
+
         if build_config.get("source_json"):
             build_config["source_json"] = json.loads(build_config["source_json"])
     except JSONDecodeError:
         raise RuntimeError("No valid build_config at {}".format(url))
+
+
     return build_config
 
 
