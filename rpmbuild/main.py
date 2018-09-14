@@ -20,7 +20,8 @@ from json.decoder import JSONDecodeError
 
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
-from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, SourceType, parse_copr_name, get_additional_repo_configs
+from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, \
+    SourceType, parse_copr_name, get_additional_repo_configs, copr_chroot_to_task_id
 
 try:
     from urllib.parse import urlparse, urljoin, urlencode
@@ -176,8 +177,12 @@ def produce_srpm(task, config, resultdir):
             shutil.copy(os.path.join(tmpdir_abspath, item), resultdir)
 
 
-def get_task(args, config, build_config_url_path=None):
-    task = {'source_type': None, 'source_json': {}}
+def get_task(args, config, build_config_url_path=None, task_id=None):
+    task = {
+        'task_id': task_id,
+        'source_type': None,
+        'source_json': {}
+    }
 
     if build_config_url_path:
         task.update(
@@ -242,17 +247,20 @@ def build_rpm(args, config):
         task_id = "-".join([args.build_id, args.chroot])
         build_config_url_path = urljoin("/backend/get-build-task/", task_id)
     elif args.copr:
+        task_id = copr_chroot_to_task_id(args.copr, args.chroot)
         ownername, projectname = parse_copr_name(args.copr)
         get_params = {
             'ownername': ownername,
             'projectname': projectname,
             'chrootname': args.chroot,
         }
-        build_config_url_path = "/api_3/project-chroot/build-config?" + urlencode(get_params)
+        build_config_url_path = ("/api_3/project-chroot/build-config?"
+                                 + urlencode(get_params))
     else:
+        task_id = None
         build_config_url_path = None
 
-    task = get_task(args, config, build_config_url_path)
+    task = get_task(args, config, build_config_url_path, task_id)
     log_task(task)
 
     sourcedir = tempfile.mkdtemp()
@@ -280,17 +288,20 @@ def dump_configs(args, config):
         task_id = "-".join([args.build_id, args.chroot])
         build_config_url_path = urljoin("/backend/get-build-task/", task_id)
     elif args.copr:
+        task_id = copr_chroot_to_task_id(args.copr, args.chroot)
         ownername, projectname = parse_copr_name(args.copr)
         get_params = {
             'ownername': ownername,
             'projectname': projectname,
             'chrootname': args.chroot,
         }
-        build_config_url_path = "/api_3/project-chroot/build-config?" + urlencode(get_params)
+        build_config_url_path = ("/api_3/project-chroot/build-config?"
+                                 + urlencode(get_params))
     else:
+        task_id = None
         build_config_url_path = None
 
-    task = get_task(args, config, build_config_url_path)
+    task = get_task(args, config, build_config_url_path, task_id)
     log_task(task)
 
     resultdir = config.get("main", "resultdir")

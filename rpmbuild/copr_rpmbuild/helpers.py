@@ -215,6 +215,12 @@ def build_srpm(srcdir, destdir):
     run_cmd(cmd)
 
 
+def copr_chroot_to_task_id(copr, chroot):
+    copr_token = re.sub('@', 'group_', copr)
+    copr_token = re.sub('/', '-', copr_token)
+    return copr_token +'-'+chroot
+
+
 def parse_copr_name(name):
     m = re.match(r"([^/]+)/(.*)", name)
     ownername = m.group(1)
@@ -234,10 +240,11 @@ def get_additional_repo_configs(repo_urls):
     repo_configs = []
 
     for repo_url in repo_urls:
+        repo_name = generate_repo_name(repo_url)
         repo_config = {
-            "id": generate_repo_name(repo_url),
+            "id": repo_name,
             "url": repo_url,
-            "name": "Additional repo " + generate_repo_name(repo_url),
+            "name": "Additional repo {}".format(repo_name),
         }
         repo_configs.append(repo_config)
 
