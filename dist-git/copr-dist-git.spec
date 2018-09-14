@@ -28,6 +28,7 @@ Requires: dist-git
 Requires: python3-requests
 Requires: python3-rpkg
 Requires: python3-munch
+Requires: findutils
 
 %{?fedora:Requires(post): policycoreutils-python-utils}
 %{?rhel:Requires(post): policycoreutils-python}
