@@ -13,8 +13,12 @@ fi
 
 newfile=`mktemp`
 
-cd /var/lib/dist-git/git/repositories
-ls > $newfile
-cp -fZ $newfile $destination
-rm $newfile
-chmod 644 $destination
+# TODO: we should read the 'SetEnv GIT_PROJECT_ROOT /var/lib/dist-git/git'
+# instead of hardcoding it here
+cd /var/lib/dist-git/git
+
+# We expect <user>/<copr>/<package>.git directories.
+find -maxdepth 3 -mindepth 3 -type d -printf '%P\n' > "$newfile"
+cp -fZ "$newfile" "$destination"
+rm "$newfile"
+chmod 644 "$destination"
