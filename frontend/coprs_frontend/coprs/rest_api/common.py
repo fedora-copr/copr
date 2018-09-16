@@ -7,14 +7,13 @@ from logging import getLogger
 from flask import url_for
 import flask
 
-from ..models import User, Copr, BuildChroot, Build
 from ..logic.users_logic import UsersLogic
 from ..logic.builds_logic import BuildsLogic
 from ..logic.coprs_logic import CoprsLogic
 from ..rest_api.schemas import BuildTaskSchema
 from ..rest_api.util import mm_serialize_one, get_one_safe
 
-from .exceptions import AuthFailed, ObjectNotFoundError
+from .exceptions import AuthFailed
 from .schemas import CoprChrootSchema, BuildSchema, ProjectSchema
 from .util import mm_serialize_one
 from coprs import app

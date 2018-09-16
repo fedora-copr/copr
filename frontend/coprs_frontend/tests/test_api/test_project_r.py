@@ -1,23 +1,18 @@
 # coding: utf-8
 
-import base64
 import copy
 import json
-from marshmallow import pprint
 from flask_whooshee import Whooshee
 
-import pytest
-import sqlalchemy
 from coprs.logic.builds_logic import BuildsLogic
 
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.models import Copr
 from coprs.whoosheers import CoprWhoosheer
 from coprs import app
 
-from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
+from tests.coprs_test_case import CoprsTestCase
 
 
 class TestProjectResource(CoprsTestCase):

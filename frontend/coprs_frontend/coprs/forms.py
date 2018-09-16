@@ -5,22 +5,18 @@ import flask
 import wtforms
 import json
 
-from flask_wtf.file import FileAllowed, FileRequired, FileField
+from flask_wtf.file import FileRequired, FileField
 
 try: # get rid of deprecation warning with newer flask_wtf
     from flask_wtf import FlaskForm
 except ImportError:
     from flask_wtf import Form as FlaskForm
 
-from jinja2 import Markup
-
 from coprs import constants
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.logic.modules_logic import ModulesLogic
-from coprs.models import Package
 from coprs import exceptions
 
 

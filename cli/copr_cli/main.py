@@ -13,9 +13,9 @@ from collections import defaultdict
 
 import logging
 if six.PY2:
-    from urlparse import urlparse, urljoin
+    from urlparse import urljoin
 else:
-    from urllib.parse import urlparse, urljoin
+    from urllib.parse import urljoin
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -28,7 +28,6 @@ log = logging.getLogger(__name__)
 log.addHandler(NullHandler())
 
 from copr import CoprClient
-from copr.client.responses import CoprResponse
 import copr.exceptions as copr_exceptions
 
 from copr.v3 import (Client, config_from_file, CoprException, CoprRequestException, CoprNoConfigException,

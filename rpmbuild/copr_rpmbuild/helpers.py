@@ -6,10 +6,7 @@ import glob
 import os
 import sys
 import re
-import shutil
-import fileinput
 import configparser
-import pprint
 import datetime
 import pipes
 from threading import Timer

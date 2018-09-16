@@ -11,7 +11,6 @@ revision = '4af9d157c4ea'
 down_revision = '3b67c52f5277'
 
 from alembic import op
-import sqlalchemy as sa
 
 def upgrade():
     op.create_unique_constraint('mock_chroot_uniq', 'mock_chroot', ['os_release', 'os_version', 'arch'])

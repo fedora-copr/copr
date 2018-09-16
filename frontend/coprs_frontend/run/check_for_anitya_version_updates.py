@@ -5,17 +5,14 @@ import argparse
 import sys
 import os
 import json
-import time
 import re
 import logging
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import text
 
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 )
 
-from coprs import db, app, helpers, models
+from coprs import db, app, helpers
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.coprs_logic import CoprsLogic
 

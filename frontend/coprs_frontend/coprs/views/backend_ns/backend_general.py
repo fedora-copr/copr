@@ -1,5 +1,4 @@
 import flask
-import time
 import sqlalchemy
 
 from copr_common.enums import StatusEnum
@@ -8,9 +7,8 @@ from coprs import helpers
 from coprs import models
 from coprs import exceptions
 from coprs.logic import actions_logic
-from coprs.logic.builds_logic import BuildsLogic, BuildChrootsLogic
+from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.logic.packages_logic import PackagesLogic
 
 from coprs.views import misc
@@ -18,7 +16,6 @@ from coprs.views.backend_ns import backend_ns
 from sqlalchemy.sql import false, true
 
 import json
-import urllib
 import logging
 
 log = logging.getLogger(__name__)

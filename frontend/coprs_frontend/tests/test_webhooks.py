@@ -1,6 +1,5 @@
 import os
 import json
-import requests
 
 from tests.coprs_test_case import CoprsTestCase
 

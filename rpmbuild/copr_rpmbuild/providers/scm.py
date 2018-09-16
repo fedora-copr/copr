@@ -1,16 +1,12 @@
 import os
 import re
 import logging
-import munch
-import shutil
-import tarfile
 import re
-import tempfile
 
 from copr_rpmbuild import helpers
 
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import run_cmd, SourceType, CONF_DIRS, get_mock_uniqueext
+from ..helpers import run_cmd, CONF_DIRS, get_mock_uniqueext
 from .base import Provider
 
 try:

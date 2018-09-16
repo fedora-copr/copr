@@ -4,35 +4,29 @@ import json
 import os
 import pprint
 import time
-import flask
-import sqlite3
 import requests
 
-from flask import request
 from sqlalchemy.sql import text
 from sqlalchemy import or_
 from sqlalchemy import and_
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
-from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import false,true
 from werkzeug.utils import secure_filename
-from sqlalchemy import desc, asc, bindparam, Integer, String
-from collections import defaultdict
+from sqlalchemy import bindparam, Integer, String
 
 from copr_common.enums import FailTypeEnum, StatusEnum
 from coprs import app
 from coprs import db
-from coprs import exceptions
 from coprs import models
 from coprs import helpers
 from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
-from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException, UnrepeatableBuildException
+from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException, \
+                             UnrepeatableBuildException, RequestCannotBeExecuted
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
 from coprs.logic.actions_logic import ActionsLogic
-from coprs.models import BuildChroot,Build,Package,MockChroot
+from coprs.models import BuildChroot
 from .coprs_logic import MockChrootsLogic
 
 log = app.logger
@@ -656,7 +650,7 @@ GROUP BY
 
         # todo: eliminate pkgs and this check
         if pkgs and (" " in pkgs or "\n" in pkgs or "\t" in pkgs or pkgs.strip() != pkgs):
-            raise exceptions.MalformedArgumentException("Trying to create a build using src_pkg "
+            raise MalformedArgumentException("Trying to create a build using src_pkg "
                                                         "with bad characters. Forgot to split?")
 
         # just temporary to keep compatibility
@@ -937,7 +931,7 @@ GROUP BY
     @classmethod
     def cancel_build(cls, user, build):
         if not user.can_build_in(build.copr):
-            raise exceptions.InsufficientRightsException(
+            raise InsufficientRightsException(
                 "You are not allowed to cancel this build.")
         if not build.cancelable:
             if build.status == StatusEnum("starting"):
@@ -945,7 +939,7 @@ GROUP BY
                 err_msg = "Cannot cancel build {} in state 'starting'".format(build.id)
             else:
                 err_msg = "Cannot cancel build {}".format(build.id)
-            raise exceptions.RequestCannotBeExecuted(err_msg)
+            raise RequestCannotBeExecuted(err_msg)
 
         if build.status == StatusEnum("running"): # otherwise the build is just in frontend
             ActionsLogic.send_cancel_build(build)
@@ -965,11 +959,11 @@ GROUP BY
         :type build: models.Build
         """
         if not user.can_edit(build.copr) or build.persistent:
-            raise exceptions.InsufficientRightsException(
+            raise InsufficientRightsException(
                 "You are not allowed to delete build `{}`.".format(build.id))
 
         if not build.finished:
-            raise exceptions.ActionInProgressException(
+            raise ActionInProgressException(
                 "You can not delete build `{}` which is not finished.".format(build.id),
                 "Unfinished build")
 

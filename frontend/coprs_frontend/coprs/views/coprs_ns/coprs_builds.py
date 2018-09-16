@@ -1,12 +1,5 @@
 import flask
-from flask import request, render_template, url_for, stream_with_context
-import re
-import os
-import shutil
-import tempfile
-
-from functools import wraps
-from werkzeug import secure_filename
+from flask import request, render_template, stream_with_context
 
 from copr_common.enums import StatusEnum
 from coprs import app
@@ -15,11 +8,10 @@ from coprs import forms
 from coprs import helpers
 
 from coprs.logic import builds_logic
-from coprs.logic import coprs_logic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 
-from coprs.views.misc import (login_required, page_not_found, req_with_copr,
+from coprs.views.misc import (login_required, req_with_copr,
         req_with_copr, send_build_icon)
 from coprs.views.coprs_ns import coprs_ns
 

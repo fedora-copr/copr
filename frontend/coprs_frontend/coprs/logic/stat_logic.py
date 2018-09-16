@@ -1,6 +1,3 @@
-import time
-import json
-
 from collections import defaultdict
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -10,8 +7,7 @@ from coprs import db
 from coprs.models import CounterStat
 from coprs import helpers
 from coprs.helpers import REPO_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
-    CHROOT_RPMS_DL_STAT_FMT, PROJECT_RPMS_DL_STAT_FMT, is_ip_from_builder_net
-from coprs.helpers import CounterStatType
+    CHROOT_RPMS_DL_STAT_FMT, PROJECT_RPMS_DL_STAT_FMT
 from coprs.rmodels import TimedStatEvents
 
 

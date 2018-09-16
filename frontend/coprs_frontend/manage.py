@@ -3,7 +3,6 @@
 import argparse
 import os
 import subprocess
-import datetime
 import sqlalchemy
 import time
 

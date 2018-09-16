@@ -1,9 +1,7 @@
 from __future__ import absolute_import
 
-import os
 from . import BaseProxy
-from ..requests import Request, munchify, FileRequest, POST
-from ..exceptions import CoprValidationException
+from ..requests import Request, munchify, POST
 
 
 class ProjectProxy(BaseProxy):

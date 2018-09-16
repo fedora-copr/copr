@@ -1,18 +1,14 @@
 import json
-import pytest
-import subprocess
 
 from flask_whooshee import Whooshee
 
 from copr_common.enums import ActionTypeEnum
 from coprs import app
-from coprs.exceptions import ActionInProgressException
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic
 
 from coprs import models
 from coprs.whoosheers import CoprWhoosheer
-from coprs.logic.users_logic import UsersLogic
 from tests.coprs_test_case import CoprsTestCase
 
 

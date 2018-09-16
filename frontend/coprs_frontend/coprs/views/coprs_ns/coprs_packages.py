@@ -1,7 +1,6 @@
 import flask
-import json
 
-from flask import Response, stream_with_context, url_for
+from flask import stream_with_context
 from flask import send_file
 from coprs import app
 from coprs import db
@@ -9,12 +8,12 @@ from coprs import forms
 from coprs import helpers
 from coprs.views.coprs_ns import coprs_ns
 from coprs.views.coprs_ns.coprs_builds import render_add_build_scm, render_add_build_pypi, render_add_build_custom
-from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr, send_build_icon
+from coprs.views.misc import login_required, req_with_copr, req_with_copr, send_build_icon
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.users_logic import UsersLogic
-from coprs.exceptions import (ActionInProgressException,ObjectNotFound, NoPackageSourceException,
-                              InsufficientRightsException,UnknownSourceTypeException,MalformedArgumentException)
+from coprs.exceptions import (ActionInProgressException, ObjectNotFound, NoPackageSourceException,
+                              InsufficientRightsException, MalformedArgumentException)
 
 
 @coprs_ns.route("/<username>/<coprname>/packages/")

@@ -2,8 +2,8 @@ import flask
 from . import query_params, pagination, Paginator, GET
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.helpers import generate_build_config, generate_additional_repos
-from coprs import db, models, forms
-from coprs.logic.builds_logic import BuildChrootsLogic, BuildsLogic
+from coprs import models
+from coprs.logic.builds_logic import BuildChrootsLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
 
 

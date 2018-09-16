@@ -1,7 +1,6 @@
 import os
 import time
 import base64
-import json
 import requests
 from collections import defaultdict
 from sqlalchemy import and_

@@ -1,6 +1,6 @@
 from copy import deepcopy
 from unittest import mock
-from flask import Flask, current_app
+from flask import Flask
 
 from coprs import app
 from coprs.helpers import parse_package_name, generate_repo_url, \

@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import time
-import pytest
 
 from redis import StrictRedis, ConnectionError
 

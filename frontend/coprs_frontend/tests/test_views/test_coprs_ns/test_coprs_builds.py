@@ -1,5 +1,4 @@
 import json
-import os
 
 from copr_common.enums import StatusEnum
 from coprs import models

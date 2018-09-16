@@ -1,7 +1,6 @@
 import os
 import pipes
 from subprocess import Popen
-from urllib.parse import urlparse
 
 from backend.vm_manage import PUBSUB_INTERRUPT_BUILDER
 

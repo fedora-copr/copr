@@ -1,6 +1,3 @@
-from copy import deepcopy
-from unittest import mock
-
 from tests.coprs_test_case import CoprsTestCase
 
 

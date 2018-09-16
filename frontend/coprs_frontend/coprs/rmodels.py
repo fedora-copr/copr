@@ -3,8 +3,7 @@
 """ Models to redis entities """
 import time
 from math import ceil
-from datetime import datetime, timedelta
-from redis import StrictRedis
+from datetime import timedelta
 
 
 class GenericRedisModel(object):

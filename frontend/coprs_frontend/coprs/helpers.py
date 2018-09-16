@@ -3,8 +3,7 @@ import random
 import string
 
 from six import with_metaclass
-from six.moves.urllib.parse import urljoin, urlparse, parse_qs
-from textwrap import dedent
+from six.moves.urllib.parse import urlparse, parse_qs
 import re
 
 import flask
