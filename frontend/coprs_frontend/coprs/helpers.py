@@ -50,10 +50,6 @@ class PermissionEnum(with_metaclass(EnumType, object)):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 
-class RoleEnum(with_metaclass(EnumType, object)):
-    vals = {"user": 0, "admin": 1}
-
-
 class StatusEnum(with_metaclass(EnumType, object)):
     vals = {
         "failed": 0,     # build failed
