@@ -11,7 +11,7 @@ from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
 
-from copr_common.enums import ActionTypeEnum, BackendResultEnum, StatusEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, ModuleStatusEnum, StatusEnum
 from coprs import constants
 from coprs import db
 from coprs import helpers
@@ -1314,15 +1314,15 @@ class Module(db.Model, helpers.Serializer):
         Return numeric representation of status of this build
         """
         if any(b for b in self.builds if b.status == StatusEnum("failed")):
-            return helpers.ModuleStatusEnum("failed")
-        return self.action.result if self.action else helpers.ModuleStatusEnum("pending")
+            return ModuleStatusEnum("failed")
+        return self.action.result if self.action else ModuleStatusEnum("pending")
 
     @property
     def state(self):
         """
         Return text representation of status of this build
         """
-        return helpers.ModuleStatusEnum(self.status)
+        return ModuleStatusEnum(self.status)
 
     @property
     def rpm_filter(self):

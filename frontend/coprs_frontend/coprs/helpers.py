@@ -50,10 +50,6 @@ class PermissionEnum(with_metaclass(EnumType, object)):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 
-class ModuleStatusEnum(with_metaclass(EnumType, object)):
-    vals = {"pending": 0, "succeeded": 1, "failed": 2}
-
-
 class BuildSourceEnum(with_metaclass(EnumType, object)):
     vals = {"unset": 0,
             "link": 1,  # url

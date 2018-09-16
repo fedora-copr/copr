@@ -15,7 +15,7 @@ import re
 
 from flask import Markup, url_for
 
-from copr_common.enums import StatusEnum
+from copr_common.enums import ModuleStatusEnum, StatusEnum
 from coprs import app
 from coprs import helpers
 
@@ -83,7 +83,7 @@ def state_from_num(num):
 def module_state_from_num(num):
     if num is None:
         return "unknown"
-    return helpers.ModuleStatusEnum(num)
+    return ModuleStatusEnum(num)
 
 
 @app.template_filter("os_name_short")
