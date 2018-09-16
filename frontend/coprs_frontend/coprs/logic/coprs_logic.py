@@ -9,6 +9,7 @@ from sqlalchemy.orm.attributes import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
 
+from copr_common.enums import ActionTypeEnum
 from coprs import db
 from coprs import exceptions
 from coprs import helpers
@@ -322,7 +323,7 @@ class CoprsLogic(object):
 
     @classmethod
     def unfinished_blocking_actions_for(cls, copr):
-        blocking_actions = [helpers.ActionTypeEnum("delete")]
+        blocking_actions = [ActionTypeEnum("delete")]
 
         actions = (models.Action.query
                    .filter(models.Action.object_type == "copr")

@@ -1,7 +1,7 @@
 import json
 from unittest import mock
 
-from coprs.helpers import ActionTypeEnum
+from copr_common.enums import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.complex_logic import ComplexLogic, ProjectForking
 from tests.coprs_test_case import CoprsTestCase

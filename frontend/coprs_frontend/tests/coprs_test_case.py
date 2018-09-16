@@ -14,6 +14,7 @@ import shutil
 
 import coprs
 
+from copr_common.enums import ActionTypeEnum
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import BranchesLogic
@@ -402,14 +403,14 @@ class CoprsTestCase(object):
     @pytest.fixture
     def f_actions(self):
         self.f_db()
-        self.delete_action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
+        self.delete_action = models.Action(action_type=ActionTypeEnum("delete"),
                                            object_type="copr",
                                            object_id=self.c1.id,
                                            old_value="asd/qwe",
                                            new_value=None,
                                            result=helpers.BackendResultEnum("waiting"),
                                            created_on=int(time.time()))
-        self.cancel_build_action = models.Action(action_type=helpers.ActionTypeEnum("cancel_build"),
+        self.cancel_build_action = models.Action(action_type=ActionTypeEnum("cancel_build"),
                                                  data=json.dumps({'task_id': 123}),
                                                  result=helpers.BackendResultEnum("waiting"),
                                                  created_on=int(time.time()))

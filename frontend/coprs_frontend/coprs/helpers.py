@@ -61,21 +61,6 @@ class PermissionEnum(with_metaclass(EnumType, object)):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 
-class ActionTypeEnum(with_metaclass(EnumType, object)):
-    vals = {
-        "delete": 0,
-        "legal-flag": 2,
-        "createrepo": 3,
-        "update_comps": 4,
-        "gen_gpg_key": 5,
-        "rawhide_to_release": 6,
-        "fork": 7,
-        "update_module_md": 8,
-        "build_module": 9,
-        "cancel_build": 10,
-    }
-
-
 class BackendResultEnum(with_metaclass(EnumType, object)):
     vals = {"waiting": 0, "success": 1, "failure": 2}
 

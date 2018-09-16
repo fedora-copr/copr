@@ -11,6 +11,7 @@ from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
 
+from copr_common.enums import ActionTypeEnum
 from coprs import constants
 from coprs import db
 from coprs import helpers
@@ -18,7 +19,7 @@ from coprs import app
 
 import itertools
 import operator
-from coprs.helpers import BuildSourceEnum, StatusEnum, ActionTypeEnum, JSONEncodedDict
+from coprs.helpers import BuildSourceEnum, StatusEnum, JSONEncodedDict
 
 import gi
 gi.require_version('Modulemd', '1.0')
@@ -395,7 +396,7 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
     @property
     def still_forking(self):
         return bool(Action.query.filter(Action.result == helpers.BackendResultEnum("waiting"))
-                    .filter(Action.action_type == helpers.ActionTypeEnum("fork"))
+                    .filter(Action.action_type == ActionTypeEnum("fork"))
                     .filter(Action.new_value == self.full_name).all())
 
     def get_search_related_copr_id(self):

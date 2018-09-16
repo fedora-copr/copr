@@ -66,6 +66,7 @@ BuildRequires: graphviz
 BuildRequires: python3-devel
 
 %if %{with check}
+BuildRequires: python3-copr-common
 BuildRequires: python3-six
 BuildRequires: python3-flask
 BuildRequires: python3-flask-script
@@ -141,6 +142,7 @@ Requires: xstatic-bootstrap-scss-common
 Requires: xstatic-datatables-common
 Requires: js-html5shiv
 Requires: js-respond
+Requires: python3-copr-common
 
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4

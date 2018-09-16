@@ -4,8 +4,8 @@ import pytest
 
 from unittest import mock
 
+from copr_common.enums import ActionTypeEnum
 from coprs import models
-from coprs.helpers import ActionTypeEnum
 
 from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
 from coprs.logic.actions_logic import ActionsLogic
