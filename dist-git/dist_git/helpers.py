@@ -33,14 +33,6 @@ def single_run(lock):
     return upper_wrapper
 
 
-class FailTypeEnum(object):
-    __metaclass__ = EnumType
-    vals = {
-        "unset": 0,
-        "srpm_import_failed": 3,
-    }
-
-
 def _get_conf(cp, section, option, default, mode=None):
     """
     To make returning items from config parser less irritating

@@ -60,22 +60,6 @@ class BuildSourceEnum(with_metaclass(EnumType, object)):
             "custom": 9, # user-provided script to build sources
            }
 
-# The same enum is also in distgit's helpers.py
-class FailTypeEnum(with_metaclass(EnumType, object)):
-    vals = {"unset": 0,
-            # General errors mixed with errors for SRPM URL/upload:
-            "unknown_error": 1,
-            "build_error": 2,
-            "srpm_import_failed": 3,
-            "srpm_download_failed": 4,
-            "srpm_query_failed": 5,
-            "import_timeout_exceeded": 6,
-            "git_clone_failed": 31,
-            "git_wrong_directory": 32,
-            "git_checkout_error": 33,
-            "srpm_build_error": 34,
-           }
-
 
 class JSONEncodedDict(TypeDecorator):
     """Represents an immutable structure as a json-encoded string.

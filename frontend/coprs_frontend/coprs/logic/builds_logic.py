@@ -20,7 +20,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import desc, asc, bindparam, Integer, String
 from collections import defaultdict
 
-from copr_common.enums import StatusEnum
+from copr_common.enums import FailTypeEnum, StatusEnum
 from coprs import app
 from coprs import db
 from coprs import exceptions
@@ -841,7 +841,7 @@ GROUP BY
                     db.session.add(ch)
 
             if new_status == StatusEnum("failed"):
-                build.fail_type = helpers.FailTypeEnum("srpm_build_error")
+                build.fail_type = FailTypeEnum("srpm_build_error")
 
             cls.process_update_callback(build)
             db.session.add(build)

@@ -11,7 +11,7 @@ from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
 
-from copr_common.enums import ActionTypeEnum, BackendResultEnum, ModuleStatusEnum, StatusEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, FailTypeEnum, ModuleStatusEnum, StatusEnum
 from coprs import constants
 from coprs import db
 from coprs import helpers
@@ -637,7 +637,7 @@ class Build(db.Model, helpers.Serializer):
     # Source of the build: description in json, example: git link, srpm url, etc.
     source_json = db.Column(db.Text)
     # Type of failure: type identifier
-    fail_type = db.Column(db.Integer, default=helpers.FailTypeEnum("unset"))
+    fail_type = db.Column(db.Integer, default=FailTypeEnum("unset"))
     # background builds has lesser priority than regular builds.
     is_background = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
@@ -693,7 +693,7 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def fail_type_text(self):
-        return helpers.FailTypeEnum(self.fail_type)
+        return FailTypeEnum(self.fail_type)
 
     @property
     def repos_list(self):
