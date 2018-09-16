@@ -1,8 +1,8 @@
 import json
 
+from copr_common.enums import BackendResultEnum
 from tests.coprs_test_case import CoprsTestCase
 from coprs.logic.builds_logic import BuildsLogic
-from coprs import helpers
 
 
 class TestWaitingBuilds(CoprsTestCase):
@@ -174,7 +174,7 @@ class TestWaitingActions(CoprsTestCase):
             self, f_users, f_coprs, f_actions, f_db):
 
         for a in [self.delete_action, self.cancel_build_action]:
-            a.result = helpers.BackendResultEnum("success")
+            a.result = BackendResultEnum("success")
 
         self.db.session.commit()
 
@@ -182,7 +182,7 @@ class TestWaitingActions(CoprsTestCase):
         assert json.loads(r.data.decode("utf-8")) == None
 
         for a in [self.delete_action]:
-            a.result = helpers.BackendResultEnum("waiting")
+            a.result = BackendResultEnum("waiting")
             self.db.session.add(a)
 
         self.db.session.commit()

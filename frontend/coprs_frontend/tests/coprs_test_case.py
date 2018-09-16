@@ -14,7 +14,7 @@ import shutil
 
 import coprs
 
-from copr_common.enums import ActionTypeEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import BranchesLogic
@@ -408,11 +408,11 @@ class CoprsTestCase(object):
                                            object_id=self.c1.id,
                                            old_value="asd/qwe",
                                            new_value=None,
-                                           result=helpers.BackendResultEnum("waiting"),
+                                           result=BackendResultEnum("waiting"),
                                            created_on=int(time.time()))
         self.cancel_build_action = models.Action(action_type=ActionTypeEnum("cancel_build"),
                                                  data=json.dumps({'task_id': 123}),
-                                                 result=helpers.BackendResultEnum("waiting"),
+                                                 result=BackendResultEnum("waiting"),
                                                  created_on=int(time.time()))
         self.db.session.add_all([self.delete_action, self.cancel_build_action])
 

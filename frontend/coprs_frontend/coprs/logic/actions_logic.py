@@ -3,7 +3,7 @@ import time
 import base64
 import os
 
-from copr_common.enums import ActionTypeEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from coprs import db
 from coprs import models
 from coprs import helpers
@@ -42,7 +42,7 @@ class ActionsLogic(object):
 
         query = (models.Action.query
                  .filter(models.Action.result ==
-                         helpers.BackendResultEnum("waiting"))
+                         BackendResultEnum("waiting"))
                  .filter(models.Action.action_type !=
                          ActionTypeEnum("legal-flag"))
                  .order_by(models.Action.created_on.asc()))

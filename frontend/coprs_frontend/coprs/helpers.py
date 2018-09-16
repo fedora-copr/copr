@@ -50,10 +50,6 @@ class PermissionEnum(with_metaclass(EnumType, object)):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 
-class BackendResultEnum(with_metaclass(EnumType, object)):
-    vals = {"waiting": 0, "success": 1, "failure": 2}
-
-
 class RoleEnum(with_metaclass(EnumType, object)):
     vals = {"user": 0, "admin": 1}
 

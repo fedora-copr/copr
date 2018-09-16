@@ -9,7 +9,7 @@ from sqlalchemy.orm.attributes import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.attributes import get_history
 
-from copr_common.enums import ActionTypeEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from coprs import db
 from coprs import exceptions
 from coprs import helpers
@@ -329,7 +329,7 @@ class CoprsLogic(object):
                    .filter(models.Action.object_type == "copr")
                    .filter(models.Action.object_id == copr.id)
                    .filter(models.Action.result ==
-                           helpers.BackendResultEnum("waiting"))
+                           BackendResultEnum("waiting"))
                    .filter(models.Action.action_type.in_(blocking_actions)))
 
         return actions

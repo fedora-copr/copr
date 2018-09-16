@@ -11,7 +11,7 @@ from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
 
-from copr_common.enums import ActionTypeEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from coprs import constants
 from coprs import db
 from coprs import helpers
@@ -395,7 +395,7 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def still_forking(self):
-        return bool(Action.query.filter(Action.result == helpers.BackendResultEnum("waiting"))
+        return bool(Action.query.filter(Action.result == BackendResultEnum("waiting"))
                     .filter(Action.action_type == ActionTypeEnum("fork"))
                     .filter(Action.new_value == self.full_name).all())
 
@@ -1168,9 +1168,9 @@ class Action(db.Model, helpers.Serializer):
     new_value = db.Column(db.String(255))
     # additional data
     data = db.Column(db.Text)
-    # result of the action, see helpers.BackendResultEnum
+    # result of the action, see BackendResultEnum
     result = db.Column(
-        db.Integer, default=helpers.BackendResultEnum("waiting"))
+        db.Integer, default=BackendResultEnum("waiting"))
     # optional message from the backend/whatever
     message = db.Column(db.Text)
     # time created as returned by int(time.time())
