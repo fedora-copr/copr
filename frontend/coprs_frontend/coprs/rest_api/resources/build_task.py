@@ -9,7 +9,7 @@ from marshmallow import pprint
 from marshmallow import Schema, fields
 from marshmallow import Schema, fields, validates_schema, ValidationError, validate
 
-from coprs.helpers import StatusEnum
+from copr_common.enums import StatusEnum
 from coprs.rest_api.common import render_build_task
 from ...exceptions import MalformedArgumentException
 from ...logic.builds_logic import BuildsLogic, BuildChrootsLogic

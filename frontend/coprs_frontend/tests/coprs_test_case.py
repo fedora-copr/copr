@@ -14,12 +14,10 @@ import shutil
 
 import coprs
 
-from copr_common.enums import ActionTypeEnum, BackendResultEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, StatusEnum
 from coprs import helpers
 from coprs import models
 from coprs.logic.coprs_logic import BranchesLogic
-
-from coprs.helpers import StatusEnum
 
 from unittest import mock
 from unittest.mock import MagicMock

@@ -50,22 +50,6 @@ class PermissionEnum(with_metaclass(EnumType, object)):
         return [(n, k) for k, n in cls.vals.items() if n != without]
 
 
-class StatusEnum(with_metaclass(EnumType, object)):
-    vals = {
-        "failed": 0,     # build failed
-        "succeeded": 1,  # build succeeded
-        "canceled": 2,   # build was canceled
-        "running": 3,    # SRPM or RPM build is running
-        "pending": 4,    # build(-chroot) is waiting to be picked
-        "skipped": 5,    # if there was this package built already
-        "starting": 6,   # build was picked by worker but no VM initialized yet
-        "importing": 7,  # SRPM is being imported into dist-git
-        "forked": 8,     # build(-chroot) was forked
-        "waiting": 9,    # build(-chroot) is waiting for something else to finish
-        "unknown": 1000, # undefined
-    }
-
-
 class ModuleStatusEnum(with_metaclass(EnumType, object)):
     vals = {"pending": 0, "succeeded": 1, "failed": 2}
 

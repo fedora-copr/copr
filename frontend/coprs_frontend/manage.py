@@ -11,6 +11,7 @@ import flask
 from flask_script import Manager, Command, Option, Group
 from flask_whooshee import Whooshee
 
+from copr_common.enums import StatusEnum
 from coprs import app
 from coprs import db
 from coprs import exceptions
@@ -19,7 +20,7 @@ from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
 from sqlalchemy import and_, or_
-from coprs.helpers import chroot_to_branch,StatusEnum
+from coprs.helpers import chroot_to_branch
 
 
 class TestCommand(Command):

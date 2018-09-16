@@ -8,10 +8,10 @@ import re
 
 from .. import db
 from .builds_logic import BuildsLogic
+from copr_common.enums import StatusEnum
 from coprs import models
 from coprs import exceptions
 from coprs.exceptions import ObjectNotFound
-from coprs.helpers import StatusEnum
 from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.actions_logic import ActionsLogic
 

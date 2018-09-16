@@ -7,8 +7,8 @@ from six.moves.urllib.parse import urlparse, parse_qs
 
 import pytest
 import sqlalchemy
-from coprs.helpers import StatusEnum
 
+from copr_common.enums import StatusEnum
 from coprs.logic.users_logic import UsersLogic
 from coprs.logic.coprs_logic import CoprsLogic
 

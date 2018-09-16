@@ -1,9 +1,9 @@
 import flask
 from time import time
 
+from copr_common.enums import StatusEnum
 from coprs.views.status_ns import status_ns
 from coprs.logic import builds_logic
-from coprs import helpers
 
 
 @status_ns.route("/")
@@ -18,7 +18,7 @@ def pending():
 
 @status_ns.route("/running/")
 def running():
-    tasks = builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("running")).limit(300).all()
+    tasks = builds_logic.BuildsLogic.get_build_tasks(StatusEnum("running")).limit(300).all()
     return flask.render_template("status/running.html",
                                  number=len(tasks),
                                  tasks=tasks)

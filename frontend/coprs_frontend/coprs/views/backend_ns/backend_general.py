@@ -2,11 +2,11 @@ import flask
 import time
 import sqlalchemy
 
+from copr_common.enums import StatusEnum
 from coprs import db, app
 from coprs import helpers
 from coprs import models
 from coprs import exceptions
-from coprs.helpers import StatusEnum
 from coprs.logic import actions_logic
 from coprs.logic.builds_logic import BuildsLogic, BuildChrootsLogic
 from coprs.logic.complex_logic import ComplexLogic

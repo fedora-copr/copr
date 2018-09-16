@@ -11,7 +11,7 @@ from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
 
-from copr_common.enums import ActionTypeEnum, BackendResultEnum
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, StatusEnum
 from coprs import constants
 from coprs import db
 from coprs import helpers
@@ -19,7 +19,7 @@ from coprs import app
 
 import itertools
 import operator
-from coprs.helpers import BuildSourceEnum, StatusEnum, JSONEncodedDict
+from coprs.helpers import BuildSourceEnum, JSONEncodedDict
 
 import gi
 gi.require_version('Modulemd', '1.0')
