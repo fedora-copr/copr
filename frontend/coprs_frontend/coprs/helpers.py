@@ -16,6 +16,7 @@ from redis import StrictRedis
 from sqlalchemy.types import TypeDecorator, VARCHAR
 import json
 
+from copr_common.enums import EnumType
 from coprs import constants
 from coprs import app
 
@@ -39,18 +40,6 @@ PROJECT_RPMS_DL_STAT_FMT = "project_rpms_dl_stat:hset::{copr_user}@{copr_project
 
 class CounterStatType(object):
     REPO_DL = "repo_dl"
-
-
-class EnumType(type):
-
-    def __call__(self, attr):
-        if isinstance(attr, int):
-            for k, v in self.vals.items():
-                if v == attr:
-                    return k
-            raise KeyError("num {0} is not mapped".format(attr))
-        else:
-            return self.vals[attr]
 
 
 class PermissionEnum(with_metaclass(EnumType, object)):

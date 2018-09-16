@@ -21,10 +21,12 @@ BuildRequires: python3-requests
 BuildRequires: python3-rpkg
 BuildRequires: python3-pytest
 BuildRequires: python3-pytest-cov
+BuildRequires: python3-copr-common
 
 Requires: systemd
 Requires: httpd
 Requires: dist-git
+Requires: python3-copr-common
 Requires: python3-requests
 Requires: python3-rpkg
 Requires: python3-munch
