@@ -738,7 +738,7 @@ def setup_parser():
 
     parser_mock_config = subparsers.add_parser(
         "mock-config",
-        help="Deprecated. Get the mock profile (similar to koji mock-config)"
+        help="Get the mock profile (similar to koji mock-config)"
     )
     parser_mock_config.add_argument(
         "project",
