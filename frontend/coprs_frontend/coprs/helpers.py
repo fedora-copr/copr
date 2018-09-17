@@ -370,20 +370,6 @@ def string_dt_to_unixtime(dt_string):
     return dt_to_unixtime(dt_parser.parse(dt_string))
 
 
-def is_ip_from_builder_net(ip):
-    """
-    Checks is ip is owned by the builders network
-    :param str ip: IPv4 address
-    :return bool: True
-    """
-    ip_addr = IPAddress(ip)
-    for subnet in app.config.get("BUILDER_IPS", ["127.0.0.1/24"]):
-        if ip_addr in IPNetwork(subnet):
-            return True
-
-    return False
-
-
 def str2bool(v):
     if v is None:
         return False
