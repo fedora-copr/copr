@@ -352,15 +352,6 @@ def get_redis_connection():
     return StrictRedis()
 
 
-def dt_to_unixtime(dt):
-    """
-    Converts datetime to unixtime
-    :param dt: DateTime instance
-    :rtype: float
-    """
-    return float(dt.strftime('%s'))
-
-
 def str2bool(v):
     if v is None:
         return False
