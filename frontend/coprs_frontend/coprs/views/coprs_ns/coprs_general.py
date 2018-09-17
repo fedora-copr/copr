@@ -5,6 +5,7 @@ import time
 import fnmatch
 import subprocess
 import json
+import datetime
 
 from six.moves.urllib.parse import urljoin
 
@@ -604,6 +605,43 @@ def copr_update_permissions(copr):
             flask.flash("Project permissions were updated successfully.", "success")
 
     return flask.redirect(url_for_copr_details(copr))
+
+
+@coprs_ns.route("/<username>/<coprname>/repositories/")
+@coprs_ns.route("/g/<group_name>/<coprname>/repositories/")
+@login_required
+@req_with_copr
+def copr_repositories(copr):
+    if not flask.g.user.can_edit(copr):
+        flask.flash("You don't have access to this page.", "error")
+        return flask.redirect(url_for_copr_details(copr))
+
+    return render_copr_repositories(copr)
+
+
+def render_copr_repositories(copr):
+    outdated_chroots = copr.outdated_chroots
+    return flask.render_template("coprs/detail/settings/repositories.html", copr=copr,
+                                 outdated_chroots=outdated_chroots)
+
+
+@coprs_ns.route("/<username>/<coprname>/repositories/", methods=["POST"])
+@coprs_ns.route("/g/<group_name>/<coprname>/repositories/", methods=["POST"])
+@login_required
+@req_with_copr
+def copr_repositories_post(copr):
+    if not flask.g.user.can_edit(copr):
+        flask.flash("You don't have access to this page.", "error")
+        return flask.redirect(url_for_copr_details(copr))
+
+    form = forms.CoprChrootExtend()
+    copr_chroot = coprs_logic.CoprChrootsLogic.get_by_name(copr, form.name.data, active_only=False).one()
+    DELETE_EOL_CHROOTS_AFTER = 181 # (days) Move this to the config
+    delete_after = datetime.datetime.now() + datetime.timedelta(days=DELETE_EOL_CHROOTS_AFTER)
+    coprs_logic.CoprChrootsLogic.update_chroot(flask.g.user, copr_chroot,
+                                               delete_after=delete_after)
+    db.session.commit()
+    return render_copr_repositories(copr)
 
 
 @coprs_ns.route("/id/<copr_id>/createrepo/", methods=["POST"])

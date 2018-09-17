@@ -1,0 +1,45 @@
+{% extends "coprs/detail/settings.html" %}
+
+{% set selected_monitor_tab = "repositories" %}
+{%block settings_breadcrumb %}Repositores{% endblock %}
+
+
+{% block tab_content %}
+
+<h2>Repositories</h2>
+
+<div class="col-sm-8 col-md-9">
+    <h3>Active repositories</h3>
+    <p>See Active Releases in project <a href="">Overview</a>.</p>
+
+    <h3>Outdated repositories</h3>
+    {% if not outdated_chroots %}
+    <p>This project has no repositories for outdated distributions.</p>
+    {% else %}
+    <p>
+        This project has following repositories for outdated distributions which are going to be removed unless you
+        extend the time for they should be preserved. Please see
+        <a href="#">Outdated repos removal policy</a>
+        in Copr Documentation.
+    </p>
+    <form action="" method="POST">
+        <table class="table table-bordered">
+            <thead><tr><th>Release</th><th>Architecture</th><th>Remaining time</th><th>Extend</th></tr></thead>
+            <tbody>
+                {% for chroot in outdated_chroots %}
+                <tr>
+                    <td>{{ chroot.mock_chroot.os.capitalize() }}</td>
+                    <td>{{ chroot.mock_chroot.arch }}</td>
+                    <td>{% if chroot.delete_after_days %}{{ chroot.delete_after_days }} days{% else %} Unknown {% endif %}</td>
+                    <td>
+                        <button name="name" class="btn btn-default" type="submit" value="{{ chroot.mock_chroot.name }}">Extend</button>
+                    </td>
+                </tr>
+            </tbody>
+            {% endfor %}
+        </table>
+    {% endif %}
+    </form>
+</div>
+
+{% endblock %}
