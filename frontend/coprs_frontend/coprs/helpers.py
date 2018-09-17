@@ -361,15 +361,6 @@ def dt_to_unixtime(dt):
     return float(dt.strftime('%s'))
 
 
-def string_dt_to_unixtime(dt_string):
-    """
-    Converts datetime to unixtime from string
-    :param dt_string: datetime string
-    :rtype: str
-    """
-    return dt_to_unixtime(dt_parser.parse(dt_string))
-
-
 def str2bool(v):
     if v is None:
         return False
