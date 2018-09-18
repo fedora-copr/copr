@@ -10,7 +10,7 @@ class PyPIProvider(Provider):
         super(PyPIProvider, self).__init__(source_json, outdir, config)
         self.pypi_package_version = source_json["pypi_package_version"]
         self.pypi_package_name = source_json["pypi_package_name"]
-        self.spec_template = source_json["spec_template"]
+        self.spec_template = source_json.get("spec_template", '')
         self.python_versions = source_json["python_versions"] or []
 
     def tool_presence_check(self):
