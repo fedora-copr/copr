@@ -22,7 +22,7 @@ class Provider(object):
         with open(path, "w") as rpmmacros:
             rpmmacros.write("%_disable_source_fetch 0\n")
             enabled_protocols = string2list(self.config.get("main", "enabled_source_protocols"))
-            rpmmacros.write("%__urlhelper_localopts --proto -all,{}\n"
+            rpmmacros.write("%__urlhelper_localopts --proto -all,{0}\n"
                             .format(','.join(["+"+protocol for protocol in enabled_protocols])))
 
     def __exit__(self, exc_type, exc_value, traceback):

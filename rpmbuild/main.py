@@ -16,7 +16,10 @@ import stat
 import pipes
 import pkg_resources
 
-from simplejson.scanner import JSONDecodeError
+try:
+    from simplejson.scanner import JSONDecodeError
+except ImportError:
+    JSONDecodeError = Exception
 
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
@@ -238,7 +241,7 @@ def build_srpm(args, config):
     resultdir = config.get("main", "resultdir")
     produce_srpm(task, config, resultdir)
 
-    log.info("Output: {}".format(
+    log.info("Output: {0}".format(
         os.listdir(resultdir)))
 
     with open(os.path.join(resultdir, 'success'), "w") as success:
@@ -326,12 +329,12 @@ def get_vanilla_build_config(build_config_url_path, config):
         build_config = response.json()
 
         if not build_config:
-            raise RuntimeError("No valid build_config at {}".format(url))
+            raise RuntimeError("No valid build_config at {0}".format(url))
 
         if build_config.get("source_json"):
             build_config["source_json"] = json.loads(build_config["source_json"])
     except JSONDecodeError:
-        raise RuntimeError("No valid build_config at {}".format(url))
+        raise RuntimeError("No valid build_config at {0}".format(url))
 
 
     return build_config

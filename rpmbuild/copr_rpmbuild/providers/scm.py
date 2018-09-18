@@ -149,8 +149,7 @@ class ScmProvider(Provider):
             helpers.run_cmd(clone_cmd)
         except RuntimeError as e:
             log.error(str(e))
-            if self.scm_type == 'git' and \
-                    'fatal: dumb http transport' in str(e):
+            if self.scm_type == 'git':
                 helpers.run_cmd(['git', 'clone', self.clone_url, self.repo_path])
             else:
                 raise e

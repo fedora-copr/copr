@@ -93,7 +93,7 @@ class MockBuilder(object):
         if not self.logfile:
             return
         filter_continuing_lines = r"sed 's/.*\x0D\([^\x0a]\)/\1/g' --unbuffered"
-        tee_output = "tee -a {}".format(self.logfile)
+        tee_output = "tee -a {0}".format(self.logfile)
         cmd = filter_continuing_lines + "|" + tee_output
         tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
         os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
@@ -117,7 +117,7 @@ class MockBuilder(object):
         for without_opt in self.without_opts:
             cmd += ["--without", without_opt]
 
-        log.info('Running: {}'.format(' '.join(cmd)))
+        log.info('Running: {0}'.format(' '.join(cmd)))
 
         process = GentlyTimeoutedPopen(cmd, stdin=subprocess.PIPE,
                 preexec_fn=self.preexec_fn_build_stream, timeout=self.timeout)
@@ -146,7 +146,7 @@ class MockBuilder(object):
         for without_opt in self.without_opts:
             cmd += ["--without", without_opt]
 
-        log.info('Running: {}'.format(' '.join(cmd)))
+        log.info('Running: {0}'.format(' '.join(cmd)))
 
         process = GentlyTimeoutedPopen(cmd, stdin=subprocess.PIPE,
                 preexec_fn=self.preexec_fn_build_stream, timeout=self.timeout)

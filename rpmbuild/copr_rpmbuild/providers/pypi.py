@@ -13,7 +13,16 @@ class PyPIProvider(Provider):
         self.spec_template = source_json["spec_template"]
         self.python_versions = source_json["python_versions"] or []
 
+    def tool_presence_check(self):
+        try:
+            run_cmd(["which", "pyp2rpm"])
+        except RuntimeError as err:
+            log.error("Please, install pyp2rpm.")
+            raise err
+
     def produce_srpm(self):
+        self.tool_presence_check()
+
         cmd = ["pyp2rpm", self.pypi_package_name, "-t", self.spec_template,
                "--srpm", "-d", self.outdir]
 

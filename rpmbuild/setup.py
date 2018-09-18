@@ -5,7 +5,7 @@ import os
 from setuptools import setup, find_packages
 
 setup(
-    name=os.getenv('name'),
+    name='copr-rpmbuild',
     version=os.getenv('version'),
     description=os.getenv('summary'),
     author='clime',

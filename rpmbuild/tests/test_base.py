@@ -15,13 +15,13 @@ class TestProvider(TestCase):
         self.source_json = {}
         self.resultdir = "/path/to/resultdir"
 
-    @mock.patch('{}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     def test_create_rpmmacros(self, mock_open):
         provider = Provider(self.source_json, self.resultdir, self.config)
         rpmmacros = mock.MagicMock()
         mock_open.return_value = rpmmacros
         provider.create_rpmmacros()
-        mock_open.assert_called_with("{}/.rpmmacros".format(provider.workdir), "w")
+        mock_open.assert_called_with("{0}/.rpmmacros".format(provider.workdir), "w")
         calls = [
             mock.call.__enter__().write('%_disable_source_fetch 0\n'),
             mock.call.__enter__().write('%__urlhelper_localopts --proto -all,+https,+ftps\n'),

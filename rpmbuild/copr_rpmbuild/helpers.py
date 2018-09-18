@@ -33,11 +33,11 @@ class SourceType:
 
 def cmd_debug(result):
     log.debug("")
-    log.debug("cmd: {}".format(result.cmd))
-    log.debug("cwd: {}".format(result.cwd))
-    log.debug("rc: {}".format(result.returncode))
-    log.debug("stdout: {}".format(result.stdout))
-    log.debug("stderr: {}".format(result.stderr))
+    log.debug("cmd: {0}".format(result.cmd))
+    log.debug("cwd: {0}".format(result.cwd))
+    log.debug("rc: {0}".format(result.returncode))
+    log.debug("stdout: {0}".format(result.stdout))
+    log.debug("stderr: {0}".format(result.stderr))
     log.debug("")
 
 
@@ -62,8 +62,8 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
 
     result = munch.Munch(
         cmd=cmd,
-        stdout=stdout.decode(encoding='utf-8').strip(),
-        stderr=stderr.decode(encoding='utf-8').strip(),
+        stdout=stdout.decode('utf-8').strip(),
+        stderr=stderr.decode('utf-8').strip(),
         returncode=process.returncode,
         cwd=cwd
     )
@@ -83,7 +83,7 @@ def locate_spec(dirpath):
             spec_path = path_match
             break
     if not spec_path:
-        raise RuntimeError('No .spec found at {}'.format(dirpath))
+        raise RuntimeError('No .spec found at {0}'.format(dirpath))
     return spec_path
 
 
@@ -95,7 +95,7 @@ def locate_srpm(dirpath):
             srpm_path = path_match
             break
     if not srpm_path:
-        raise RuntimeError('No .src.rpm found at {}'.format(dirpath))
+        raise RuntimeError('No .src.rpm found at {0}'.format(dirpath))
     return srpm_path
 
 
@@ -115,7 +115,7 @@ def get_package_name(spec_path):
     try:
         rpm_spec = ts.parseSpec(spec_path)
     except ValueError as e:
-        log.debug("Could not parse {} with error {}. Trying manual parsing."
+        log.debug("Could not parse {0} with error {1}. Trying manual parsing."
                  .format(spec_path, str(e)))
 
         with open(spec_path, 'r') as spec_file:
@@ -139,7 +139,7 @@ def get_package_name(spec_path):
 
     if not re.match(r'[a-zA-Z0-9-._+]+', package_name):
         raise PackageNameCouldNotBeObtainedException(
-            "Got invalid package package name '{}' from {}.".format(package_name, spec_path))
+            "Got invalid package package name '{0}' from {1}.".format(package_name, spec_path))
 
     return package_name
 
@@ -159,7 +159,7 @@ def read_config(config_path=None):
     config_paths = [os.path.join(path, "main.ini") for path in CONF_DIRS]
     config.read(config_path or reversed(config_paths))
     if not config.sections():
-        log.error("No configuration file main.ini in: {}".format(" ".join(CONF_DIRS)))
+        log.error("No configuration file main.ini in: {0}".format(" ".join(CONF_DIRS)))
         sys.exit(1)
     return config
 
@@ -189,10 +189,10 @@ def extract_srpm(srpm_path, destination):
     """
     cwd = os.getcwd()
     os.chdir(destination)
-    log.debug('Extracting srpm {} to {}'.format(srpm_path, destination))
+    log.debug('Extracting srpm {0} to {1}'.format(srpm_path, destination))
     try:
         cmd = "rpm2cpio {path} | cpio -idmv".format(path=pipes.quote(srpm_path))
-        subprocess.check_output(cmd, shell=True)
+        subprocess.check_call(cmd, shell=True)
     finally:
         os.chdir(cwd)
 
@@ -268,7 +268,7 @@ def get_additional_repo_configs(repo_urls, chroot, backend_base_url):
         repo_config = {
             "id": repo_name,
             "url": preprocess_repo_url(repo_url, chroot, backend_base_url),
-            "name": "Additional repo {}".format(repo_name),
+            "name": "Additional repo {0}".format(repo_name),
         }
         repo_configs.append(repo_config)
 

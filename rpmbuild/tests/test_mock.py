@@ -97,7 +97,7 @@ class TestMockBuilder(unittest.TestCase):
                                       preexec_fn=builder.preexec_fn_build_stream,
                                       timeout=21600)
 
-    @mock.patch('{}.open'.format(builtins), new_callable=mock.mock_open())
+    @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())
     def test_touch_success_file(self, mock_open):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
         builder.touch_success_file()

@@ -95,7 +95,9 @@ class TestScmProvider(TestCase):
         assert_cmd = ["tito", "build", "--srpm", "--output", self.resultdir]
         self.assertEqual(provider.get_tito_command(), assert_cmd)
 
-    def test_get_tito_test_command(self):
+
+    @mock.patch("copr_rpmbuild.helpers.run_cmd")
+    def test_get_tito_test_command(self, run_cmd_mock):
         provider = ScmProvider(self.source_json, self.resultdir, self.config)
         assert_cmd = ["tito", "build", "--test", "--srpm", "--output", self.resultdir]
         self.assertEqual(provider.get_tito_test_command(), assert_cmd)

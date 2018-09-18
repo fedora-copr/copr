@@ -35,6 +35,8 @@ BuildRequires: %python-requests
 BuildRequires: %python_pfx-jinja2
 BuildRequires: %python-configparser
 
+BuildRequires: python-rpm-macros
+
 %if %{?python} == "python2"
 BuildRequires: python2-mock
 %endif
@@ -44,16 +46,19 @@ Requires: %python_pfx-jinja2
 Requires: %python_pfx-munch
 Requires: %python-configparser
 Requires: %python-requests
-Requires: %python-simplejson
+Requires: %python_pfx-simplejson
 
 Requires: mock
 Requires: git
 Requires: git-svn
-Requires: expect
-Requires: rubygem-gem2rpm
-Requires: pyp2rpm
 Requires: rpkg
+Requires: expect
 Requires: tito
+
+%if 0%{?fedora} || 0%{?rhel} > 7
+Suggests: rubygem-gem2rpm
+Suggests: pyp2rpm
+%endif
 
 %description
 Provides command capable of running COPR build-tasks.
@@ -90,6 +95,7 @@ install -p -m 755 bin/copr-sources-custom %buildroot%_bindir
 name="%{name}" version="%{version}" summary="%{summary}" %py_install
 
 %files
+%{!?_licensedir:%global license %doc}
 %license LICENSE
 
 %{expand:%%%{python}_sitelib}/*
