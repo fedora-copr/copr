@@ -70,7 +70,12 @@ class ScmProvider(Provider):
 
         log.debug('Generated rpkg config:\n'+config+'\n')
         config_dir_path = os.path.join(os.getenv('HOME'), '.config')
-        os.makedirs(config_dir_path, exist_ok=True)
+
+        try:
+            os.makedirs(config_dir_path)
+        except OSError:
+            pass
+
         config_path = os.path.join(config_dir_path, 'rpkg.conf')
         log.debug('Writing config into '+config_path)
 

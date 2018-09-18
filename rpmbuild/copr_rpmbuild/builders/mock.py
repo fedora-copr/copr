@@ -69,7 +69,11 @@ class MockBuilder(object):
         mock_config_path = os.path.join(configdir, "{0}.cfg".format(self.chroot))
         child_config_path = os.path.join(configdir, "child.cfg")
 
-        os.makedirs(configdir, exist_ok=True)
+        try:
+            os.makedirs(configdir)
+        except OSError:
+            pass
+
         shutil.copy2("/etc/mock/site-defaults.cfg", site_config_path)
         shutil.copy2("/etc/mock/{0}.cfg".format(self.chroot), mock_config_path)
         cfg = self.render_config_template()

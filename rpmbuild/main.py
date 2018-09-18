@@ -24,9 +24,14 @@ from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, \
     SourceType, parse_copr_name, get_additional_repo_configs, copr_chroot_to_task_id
 
 try:
-    from urllib.parse import urlparse, urljoin, urlencode
+    from urllib.parse import urlparse, urljoin
 except ImportError:
-    from urlparse import urlparse, urljoin, urlencode
+    from urlparse import urlparse, urljoin
+
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -164,17 +169,17 @@ def init(args, config):
 
 def produce_srpm(task, config, resultdir):
     """
-    create tmpdir to allow --private-users=pick with make_srpm
+    create tempdir to allow --private-users=pick with make_srpm
     that changes permissions on the result directory to out of scope values
     """
-    with tempfile.TemporaryDirectory(dir=resultdir) as tmpdir:
-        tmpdir_abspath = os.path.join(resultdir, tmpdir)
-        os.chmod(tmpdir, stat.S_IRWXU|stat.S_IRWXO)
-        provider = providers.factory(task["source_type"])(
-            task["source_json"], tmpdir_abspath, config)
-        provider.produce_srpm()
-        for item in os.listdir(tmpdir_abspath):
-            shutil.copy(os.path.join(tmpdir_abspath, item), resultdir)
+    tempdir = tempfile.mkdtemp(prefix=resultdir)
+    os.chmod(tempdir, stat.S_IRWXU|stat.S_IRWXO)
+    provider = providers.factory(task["source_type"])(
+        task["source_json"], tempdir, config)
+    provider.produce_srpm()
+    for item in os.listdir(tempdir):
+        shutil.copy(os.path.join(tempdir, item), resultdir)
+    shutil.rmtree(tempdir)
 
 
 def get_task(args, config, build_config_url_path=None, task_id=None):
