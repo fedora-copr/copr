@@ -15,7 +15,7 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('copr', sa.Column('use_bootstrap_container', sa.Boolean(), nullable=False, server_default='t'))
+    op.add_column('copr', sa.Column('use_bootstrap_container', sa.Boolean(), nullable=False, server_default='f'))
 
 
 def downgrade():
