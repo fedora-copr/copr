@@ -85,7 +85,10 @@ build-package::
 Build package from its source definition
 
 mock-config::
-Get the mock profile (similar to koji mock-config)
+DEPRECATED. Get the mock profile (similar to koji mock-config).
+Please, take a look at copr-rpmbuild --dump-configs if you search
+for replacement. On EPEL, you can install it from:
+https://copr.fedorainfracloud.org/coprs/g/copr/copr-rpmbuild
 
 build-module::
 Build module via Copr MB
