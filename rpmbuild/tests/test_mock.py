@@ -48,7 +48,7 @@ class TestMockBuilder(unittest.TestCase):
         self.resultdir = "/path/to/resultdir"
         self.config = configparser.RawConfigParser()
         self.config.add_section('main')
-        self.config.set('main', 'logfile', '/path/to/logfile')
+        self.config.set('main', 'logfile', '/dev/null')
 
     def test_init(self):
         builder = MockBuilder(self.task, self.sourcedir, self.resultdir, self.config)
@@ -94,7 +94,6 @@ class TestMockBuilder(unittest.TestCase):
                       '--uniqueext', '2',
                       '-r', 'child']
         popen_mock.assert_called_with(assert_cmd, stdin=subprocess.PIPE,
-                                      preexec_fn=builder.preexec_fn_build_stream,
                                       timeout=21600)
 
     @mock.patch('{0}.open'.format(builtins), new_callable=mock.mock_open())

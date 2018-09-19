@@ -4,6 +4,7 @@ import subprocess
 import rpm
 import glob
 import os
+import sys
 import re
 import shutil
 import fileinput
@@ -11,6 +12,7 @@ import configparser
 import pprint
 import datetime
 import pipes
+from threading import Timer
 
 try:
     from urllib.parse import urlparse
@@ -41,6 +43,10 @@ def cmd_debug(result):
     log.debug("")
 
 
+def cmd_readable(cmd):
+    return ' '.join([pipes.quote(part) for part in cmd])
+
+
 def run_cmd(cmd, cwd=".", preexec_fn=None):
     """
     Runs given command in a subprocess.
@@ -52,7 +58,7 @@ def run_cmd(cmd, cwd=".", preexec_fn=None):
     :raises RuntimeError
     :returns munch.Munch(cmd, stdout, stderr, returncode)
     """
-    log.info('Running: {cmd}'.format(cmd=' '.join(cmd)))
+    log.info('Running: ' + cmd_readable(cmd))
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, preexec_fn=preexec_fn)
     try:
@@ -273,3 +279,41 @@ def get_additional_repo_configs(repo_urls, chroot, backend_base_url):
         repo_configs.append(repo_config)
 
     return repo_configs
+
+
+def dump_live_log(logfile):
+    filter_continuing_lines = r"sed 's/.*\x0D\([^\x0a]\)/\1/g' --unbuffered"
+    tee_output = "tee -a {0}".format(pipes.quote(logfile))
+    cmd = filter_continuing_lines + "|" + tee_output
+    tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
+    os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
+    os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
+
+
+class GentlyTimeoutedPopen(subprocess.Popen):
+    timers = []
+
+    def __init__(self, cmd, timeout=None, **kwargs):
+        log.info('Running (timeout={to}): {cmd}'.format(
+            to=str(timeout),
+            cmd=cmd_readable(cmd),
+        ))
+
+        super(GentlyTimeoutedPopen, self).__init__(cmd, **kwargs)
+        if not timeout:
+            return
+
+        def timeout_cb(me, string, signal):
+            log.error(" !! Copr timeout => sending {0}".format(string))
+            me.send_signal(signal)
+
+        delay = timeout
+        for string, signal in [('INT', 2), ('TERM', 15), ('KILL', 9)]:
+            timer = Timer(delay, timeout_cb, [self, string, signal])
+            timer.start()
+            self.timers.append(timer)
+            delay = delay + 10
+
+    def done(self):
+        for timer in self.timers:
+            timer.cancel()
