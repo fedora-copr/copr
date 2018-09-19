@@ -719,3 +719,17 @@ class TestSearch(CoprsTestCase):
         # self.tc.get("/coprs/fulltext/?fulltext={}".format("user1/"))
         # qargs, qkwargs = mc_render_template.call_args
         # assert qkwargs["paginator"].total_count == 5
+
+
+class TestRepo(CoprsTestCase):
+    @mock.patch.dict("coprs.app.config", {'REPO_NO_SSL': True})
+    @mock.patch.dict("coprs.app.config", {'ENFORCE_PROTOCOL_FOR_BACKEND_URL': "https"})
+    def test_repo_renders_http(self, f_users, f_coprs, f_mock_chroots, f_db):
+        url = "/coprs/{user}/{copr}/repo/{chroot}/{user}-{copr}-{chroot}.repo".format(
+            user = self.u1.username,
+            copr = self.c1.name,
+            chroot = "{}-{}".format(self.mc1.os_release, self.mc1.os_version),
+        )
+        res = self.tc.get(url)
+        assert res.status_code == 200
+        assert 'baseurl=http://' in res.data.decode('utf-8')

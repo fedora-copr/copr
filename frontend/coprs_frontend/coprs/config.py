@@ -57,6 +57,9 @@ class Config(object):
 
     REPO_GPGCHECK = 1
 
+    # should baseurls in '.repo' files always use http:// links?
+    REPO_NO_SSL = False
+
     STORAGE_DIR = "/var/lib/copr/data/srpm_storage/"
 
     LAYOUT_OVERVIEW_HIDE_QUICK_ENABLE = False
