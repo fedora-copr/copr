@@ -5,7 +5,7 @@
     to [de]serialize model instances for API views.
 """
 
-from coprs.helpers import StatusEnum
+from copr_common.enums import StatusEnum
 
 class BuildWrapper(object):
     def __init__(self, build):

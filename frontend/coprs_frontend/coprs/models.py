@@ -11,6 +11,7 @@ from six.moves.urllib.parse import urljoin
 from libravatar import libravatar_url
 import zlib
 
+from copr_common.enums import ActionTypeEnum, BackendResultEnum, FailTypeEnum, ModuleStatusEnum, StatusEnum
 from coprs import constants
 from coprs import db
 from coprs import helpers
@@ -18,7 +19,7 @@ from coprs import app
 
 import itertools
 import operator
-from coprs.helpers import BuildSourceEnum, StatusEnum, ActionTypeEnum, JSONEncodedDict
+from coprs.helpers import BuildSourceEnum, JSONEncodedDict
 
 import gi
 gi.require_version('Modulemd', '1.0')
@@ -394,8 +395,8 @@ class Copr(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def still_forking(self):
-        return bool(Action.query.filter(Action.result == helpers.BackendResultEnum("waiting"))
-                    .filter(Action.action_type == helpers.ActionTypeEnum("fork"))
+        return bool(Action.query.filter(Action.result == BackendResultEnum("waiting"))
+                    .filter(Action.action_type == ActionTypeEnum("fork"))
                     .filter(Action.new_value == self.full_name).all())
 
     def get_search_related_copr_id(self):
@@ -636,7 +637,7 @@ class Build(db.Model, helpers.Serializer):
     # Source of the build: description in json, example: git link, srpm url, etc.
     source_json = db.Column(db.Text)
     # Type of failure: type identifier
-    fail_type = db.Column(db.Integer, default=helpers.FailTypeEnum("unset"))
+    fail_type = db.Column(db.Integer, default=FailTypeEnum("unset"))
     # background builds has lesser priority than regular builds.
     is_background = db.Column(db.Boolean, default=False, server_default="0", nullable=False)
 
@@ -692,7 +693,7 @@ class Build(db.Model, helpers.Serializer):
 
     @property
     def fail_type_text(self):
-        return helpers.FailTypeEnum(self.fail_type)
+        return FailTypeEnum(self.fail_type)
 
     @property
     def repos_list(self):
@@ -1167,9 +1168,9 @@ class Action(db.Model, helpers.Serializer):
     new_value = db.Column(db.String(255))
     # additional data
     data = db.Column(db.Text)
-    # result of the action, see helpers.BackendResultEnum
+    # result of the action, see BackendResultEnum
     result = db.Column(
-        db.Integer, default=helpers.BackendResultEnum("waiting"))
+        db.Integer, default=BackendResultEnum("waiting"))
     # optional message from the backend/whatever
     message = db.Column(db.Text)
     # time created as returned by int(time.time())
@@ -1313,15 +1314,15 @@ class Module(db.Model, helpers.Serializer):
         Return numeric representation of status of this build
         """
         if any(b for b in self.builds if b.status == StatusEnum("failed")):
-            return helpers.ModuleStatusEnum("failed")
-        return self.action.result if self.action else helpers.ModuleStatusEnum("pending")
+            return ModuleStatusEnum("failed")
+        return self.action.result if self.action else ModuleStatusEnum("pending")
 
     @property
     def state(self):
         """
         Return text representation of status of this build
         """
-        return helpers.ModuleStatusEnum(self.status)
+        return ModuleStatusEnum(self.status)
 
     @property
     def rpm_filter(self):

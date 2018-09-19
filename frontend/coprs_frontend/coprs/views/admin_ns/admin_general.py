@@ -3,6 +3,7 @@ import re
 
 import flask
 
+from copr_common.enums import RoleEnum
 from coprs import db
 from coprs import helpers
 from coprs import models
@@ -17,13 +18,13 @@ from coprs.exceptions import InsufficientRightsException
 
 
 @admin_ns.route("/")
-@login_required(role=helpers.RoleEnum("admin"))
+@login_required(role=RoleEnum("admin"))
 def admin_index():
     return flask.redirect(flask.url_for("admin_ns.legal_flag"))
 
 
 @admin_ns.route("/legal-flag/")
-@login_required(role=helpers.RoleEnum("admin"))
+@login_required(role=RoleEnum("admin"))
 def legal_flag():
     legal_flags = (
         models.LegalFlag.query
@@ -38,7 +39,7 @@ def legal_flag():
 
 
 @admin_ns.route("/legal-flag/<int:flag_id>/resolve/", methods=["POST"])
-@login_required(role=helpers.RoleEnum("admin"))
+@login_required(role=RoleEnum("admin"))
 def legal_flag_resolve(flag_id):
 
     (models.LegalFlag.query
@@ -52,7 +53,7 @@ def legal_flag_resolve(flag_id):
 
 
 @admin_ns.route("/playground/", methods=["POST", "GET"])
-@login_required(role=helpers.RoleEnum("admin"))
+@login_required(role=RoleEnum("admin"))
 def playground():
     form = forms.AdminPlaygroundSearchForm()
 
@@ -78,7 +79,7 @@ def playground():
 
 
 @admin_ns.route("/playground/<username>/<coprname>/")
-@login_required(role=helpers.RoleEnum("admin"))
+@login_required(role=RoleEnum("admin"))
 def playground_project(username, coprname):
     copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     if not copr:
@@ -91,7 +92,7 @@ def playground_project(username, coprname):
 
 
 @admin_ns.route("/playground/<username>/<coprname>/set/", methods=["POST"])
-@login_required(role=helpers.RoleEnum("admin"))
+@login_required(role=RoleEnum("admin"))
 def playground_set(username, coprname):
     copr = coprs_logic.CoprsLogic.get(username, coprname).first()
     if copr:

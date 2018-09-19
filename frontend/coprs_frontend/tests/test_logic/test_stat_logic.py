@@ -2,7 +2,6 @@
 import pytest
 
 from coprs.exceptions import ActionInProgressException
-from coprs.helpers import ActionTypeEnum
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.helpers  import CounterStatType

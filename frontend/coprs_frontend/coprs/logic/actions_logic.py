@@ -3,6 +3,7 @@ import time
 import base64
 import os
 
+from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from coprs import db
 from coprs import models
 from coprs import helpers
@@ -41,9 +42,9 @@ class ActionsLogic(object):
 
         query = (models.Action.query
                  .filter(models.Action.result ==
-                         helpers.BackendResultEnum("waiting"))
+                         BackendResultEnum("waiting"))
                  .filter(models.Action.action_type !=
-                         helpers.ActionTypeEnum("legal-flag"))
+                         ActionTypeEnum("legal-flag"))
                  .order_by(models.Action.created_on.asc()))
 
         return query
@@ -80,7 +81,7 @@ class ActionsLogic(object):
             "chroots": [chroot.name for chroot in copr.active_chroots],
         }
         action = models.Action(
-            action_type=helpers.ActionTypeEnum("createrepo"),
+            action_type=ActionTypeEnum("createrepo"),
             object_type="repository",
             object_id=0,
             data=json.dumps(data_dict),
@@ -94,7 +95,7 @@ class ActionsLogic(object):
             "ownername": copr.owner_name,
             "project_dirnames": [copr_dir.name for copr_dir in copr.dirs],
         }
-        action = models.Action(action_type=helpers.ActionTypeEnum("delete"),
+        action = models.Action(action_type=ActionTypeEnum("delete"),
                                object_type="copr",
                                object_id=copr.id,
                                data=json.dumps(data_dict),
@@ -120,7 +121,7 @@ class ActionsLogic(object):
         }
 
         action = models.Action(
-            action_type=helpers.ActionTypeEnum("delete"),
+            action_type=ActionTypeEnum("delete"),
             object_type="build",
             object_id=build.id,
             data=json.dumps(data_dict),
@@ -142,7 +143,7 @@ class ActionsLogic(object):
             }
 
             action = models.Action(
-                action_type=helpers.ActionTypeEnum("cancel_build"),
+                action_type=ActionTypeEnum("cancel_build"),
                 data=json.dumps(data_dict),
                 created_on=int(time.time())
             )
@@ -165,7 +166,7 @@ class ActionsLogic(object):
         }
 
         action = models.Action(
-            action_type=helpers.ActionTypeEnum("update_comps"),
+            action_type=ActionTypeEnum("update_comps"),
             object_type="copr_chroot",
             data=json.dumps(data_dict),
             created_on=int(time.time())
@@ -188,7 +189,7 @@ class ActionsLogic(object):
         }
 
         action = models.Action(
-            action_type=helpers.ActionTypeEnum("update_module_md"),
+            action_type=ActionTypeEnum("update_module_md"),
             object_type="copr_chroot",
             data=json.dumps(data_dict),
             created_on=int(time.time())
@@ -207,7 +208,7 @@ class ActionsLogic(object):
         }
 
         action = models.Action(
-            action_type=helpers.ActionTypeEnum("gen_gpg_key"),
+            action_type=ActionTypeEnum("gen_gpg_key"),
             object_type="copr",
             data=json.dumps(data_dict),
             created_on=int(time.time()),
@@ -217,7 +218,7 @@ class ActionsLogic(object):
     @classmethod
     def send_rawhide_to_release(cls, data):
         action = models.Action(
-            action_type=helpers.ActionTypeEnum("rawhide_to_release"),
+            action_type=ActionTypeEnum("rawhide_to_release"),
             object_type="None",
             data=json.dumps(data),
             created_on=int(time.time()),
@@ -233,7 +234,7 @@ class ActionsLogic(object):
         """
 
         action = models.Action(
-            action_type=helpers.ActionTypeEnum("fork"),
+            action_type=ActionTypeEnum("fork"),
             object_type="copr",
             old_value="{0}".format(src.full_name),
             new_value="{0}".format(dst.full_name),
@@ -255,7 +256,7 @@ class ActionsLogic(object):
         }
 
         action = models.Action(
-            action_type=helpers.ActionTypeEnum("build_module"),
+            action_type=ActionTypeEnum("build_module"),
             object_type="module",
             object_id=module.id,
             old_value="",

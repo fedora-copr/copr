@@ -1,8 +1,8 @@
 import json
 import os
 
+from copr_common.enums import StatusEnum
 from coprs import models
-from coprs.helpers import StatusEnum
 from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
 
 

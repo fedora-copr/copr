@@ -5,6 +5,7 @@ import munch
 
 from .exceptions import FileDownloadException, RunCommandException, SrpmQueryException
 
+from copr_common.enums import EnumType
 from configparser import ConfigParser
 from munch import Munch
 from requests import get
@@ -30,25 +31,6 @@ def single_run(lock):
                 return f(*args, **kwargs)
         return wrapper
     return upper_wrapper
-
-
-class EnumType(type):
-    def __call__(self, attr):
-        if isinstance(attr, int):
-            for k, v in self.vals.items():
-                if v == attr:
-                    return k
-            raise KeyError("num {0} is not mapped".format(attr))
-        else:
-            return self.vals[attr]
-
-
-class FailTypeEnum(object):
-    __metaclass__ = EnumType
-    vals = {
-        "unset": 0,
-        "srpm_import_failed": 3,
-    }
 
 
 def _get_conf(cp, section, option, default, mode=None):

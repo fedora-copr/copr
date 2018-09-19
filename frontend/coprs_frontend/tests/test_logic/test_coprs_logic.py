@@ -4,9 +4,9 @@ import subprocess
 
 from flask_whooshee import Whooshee
 
+from copr_common.enums import ActionTypeEnum
 from coprs import app
 from coprs.exceptions import ActionInProgressException
-from coprs.helpers import ActionTypeEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic
 

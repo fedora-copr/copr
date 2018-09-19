@@ -23,6 +23,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
+from copr_common.enums import StatusEnum
 from coprs import app
 from coprs import db
 from coprs import rcp
@@ -787,7 +788,7 @@ def render_monitor(copr, detailed=False):
                                  monitor=monitor,
                                  oses=oses_grouped,
                                  archs=archs,
-                                 status_enum_func=helpers.StatusEnum)))
+                                 status_enum_func=StatusEnum)))
 
 
 @coprs_ns.route("/<username>/<coprname>/monitor/")

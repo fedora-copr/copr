@@ -12,6 +12,7 @@ from flask import send_file
 from urllib.parse import urlparse
 from openid_teams.teams import TeamsRequest
 
+from copr_common.enums import RoleEnum
 from coprs import app
 from coprs import db
 from coprs import helpers
@@ -292,7 +293,7 @@ def krb5_login_redirect(next=None):
     return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
 
 
-def login_required(role=helpers.RoleEnum("user")):
+def login_required(role=RoleEnum("user")):
     def view_wrapper(f):
         @functools.wraps(f)
         def decorated_function(*args, **kwargs):
@@ -300,7 +301,7 @@ def login_required(role=helpers.RoleEnum("user")):
                 return flask.redirect(flask.url_for("misc.login",
                                                     next=flask.request.url))
 
-            if role == helpers.RoleEnum("admin") and not flask.g.user.admin:
+            if role == RoleEnum("admin") and not flask.g.user.admin:
                 flask.flash("You are not allowed to access admin section.")
                 return flask.redirect(flask.url_for("coprs_ns.coprs_show"))
 

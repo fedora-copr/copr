@@ -8,6 +8,7 @@ import tempfile
 from functools import wraps
 from werkzeug import secure_filename
 
+from copr_common.enums import StatusEnum
 from coprs import app
 from coprs import db
 from coprs import forms
@@ -427,7 +428,7 @@ def process_copr_repeat_build(build_id, copr):
     else:
         build_chroot_names = set(ch.name for ch in build.chroots)
         build_failed_chroot_names = set(ch.name for ch in build.get_chroots_by_status([
-            helpers.StatusEnum('failed'), helpers.StatusEnum('canceled'),
+            StatusEnum('failed'), StatusEnum('canceled'),
         ]))
         for ch in available_chroots:
             # check checkbox on all the chroots that have not been (successfully) built before

@@ -20,6 +20,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import desc, asc, bindparam, Integer, String
 from collections import defaultdict
 
+from copr_common.enums import FailTypeEnum, StatusEnum
 from coprs import app
 from coprs import db
 from coprs import exceptions
@@ -27,7 +28,6 @@ from coprs import models
 from coprs import helpers
 from coprs.constants import DEFAULT_BUILD_TIMEOUT, MAX_BUILD_TIMEOUT
 from coprs.exceptions import MalformedArgumentException, ActionInProgressException, InsufficientRightsException, UnrepeatableBuildException
-from coprs.helpers import StatusEnum
 
 from coprs.logic import coprs_logic
 from coprs.logic import users_logic
@@ -182,9 +182,9 @@ class BuildsLogic(object):
             """)
 
             res_pending = db.engine.execute(query_pending, start=step_start, end=step_end,
-                                            status=helpers.StatusEnum('pending'))
+                                            status=StatusEnum('pending'))
             res_running = db.engine.execute(query_running, start=step_start, end=step_end,
-                                            status=helpers.StatusEnum('running'))
+                                            status=StatusEnum('running'))
 
             pending = res_pending.first().pending
             running = res_running.first().running
@@ -218,7 +218,7 @@ class BuildsLogic(object):
         """
         query = (models.Build.query
                  .filter(models.Build.canceled == false())
-                 .filter(models.Build.source_status == helpers.StatusEnum("importing"))
+                 .filter(models.Build.source_status == StatusEnum("importing"))
                  .order_by(models.Build.id.asc()))
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))
@@ -228,7 +228,7 @@ class BuildsLogic(object):
     def get_pending_srpm_build_tasks(cls, background=None):
         query = (models.Build.query
                 .filter(models.Build.canceled == false())
-                .filter(models.Build.source_status == helpers.StatusEnum("pending"))
+                .filter(models.Build.source_status == StatusEnum("pending"))
                 .order_by(models.Build.is_background.asc(), models.Build.id.asc()))
         if background is not None:
             query = query.filter(models.Build.is_background == (true() if background else false()))
@@ -239,9 +239,9 @@ class BuildsLogic(object):
         query = (models.BuildChroot.query.join(models.Build)
                 .filter(models.Build.canceled == false())
                 .filter(or_(
-                    models.BuildChroot.status == helpers.StatusEnum("pending"),
+                    models.BuildChroot.status == StatusEnum("pending"),
                     and_(
-                        models.BuildChroot.status == helpers.StatusEnum("running"),
+                        models.BuildChroot.status == StatusEnum("running"),
                         models.BuildChroot.started_on < int(time.time() - 1.1 * MAX_BUILD_TIMEOUT),
                         models.BuildChroot.ended_on.is_(None)
                     )
@@ -730,7 +730,7 @@ GROUP BY
             package=package,
             copr=package.copr,
             repos=package.copr.repos,
-            source_status=helpers.StatusEnum("pending"),
+            source_status=StatusEnum("pending"),
             source_type=package.source_type,
             source_json=source_json,
             submitted_on=int(time.time()),
@@ -745,7 +745,7 @@ GROUP BY
         db.session.add(build)
 
         chroots = package.copr.active_chroots
-        status = helpers.StatusEnum("waiting")
+        status = StatusEnum("waiting")
         for chroot in chroots:
             buildchroot = models.BuildChroot(
                 build=build,
@@ -841,7 +841,7 @@ GROUP BY
                     db.session.add(ch)
 
             if new_status == StatusEnum("failed"):
-                build.fail_type = helpers.FailTypeEnum("srpm_build_error")
+                build.fail_type = FailTypeEnum("srpm_build_error")
 
             cls.process_update_callback(build)
             db.session.add(build)
@@ -987,9 +987,9 @@ GROUP BY
         Marks build as failed on all its non-finished chroots
         """
         build = cls.get(build_id).one()
-        chroots = filter(lambda x: x.status != helpers.StatusEnum("succeeded"), build.build_chroots)
+        chroots = filter(lambda x: x.status != StatusEnum("succeeded"), build.build_chroots)
         for chroot in chroots:
-            chroot.status = helpers.StatusEnum("failed")
+            chroot.status = StatusEnum("failed")
         cls.process_update_callback(build)
         return build
 
@@ -1003,8 +1003,8 @@ GROUP BY
 
         last_build = (
             builds.join(models.BuildChroot)
-            .filter((models.BuildChroot.status == helpers.StatusEnum("succeeded"))
-                    | (models.BuildChroot.status == helpers.StatusEnum("skipped")))
+            .filter((models.BuildChroot.status == StatusEnum("succeeded"))
+                    | (models.BuildChroot.status == StatusEnum("skipped")))
             .filter(models.BuildChroot.ended_on.isnot(None))
             .order_by(models.BuildChroot.ended_on.desc())
         ).first()

@@ -9,8 +9,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from coprs import helpers, models
 from coprs.constants import MAX_BUILD_TIMEOUT
 
+from copr_common.enums import StatusEnum
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, MalformedArgumentException
-from coprs.helpers import StatusEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.builds_logic import BuildsMonitorLogic
@@ -208,6 +208,6 @@ class TestBuildsLogic(CoprsTestCase):
         BuildsLogic.mark_as_failed(self.b1.id)
         BuildsLogic.mark_as_failed(self.b3.id)
 
-        assert self.b1.status == helpers.StatusEnum("succeeded")
-        assert self.b3.status == helpers.StatusEnum("failed")
+        assert self.b1.status == StatusEnum("succeeded")
+        assert self.b3.status == StatusEnum("failed")
         assert type(BuildsLogic.mark_as_failed(self.b3.id)) == models.Build

@@ -5,7 +5,8 @@ import math
 import random
 from marshmallow import pprint
 
-from coprs.helpers import BuildSourceEnum, StatusEnum
+from copr_common.enums import StatusEnum
+from coprs.helpers import BuildSourceEnum
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.builds_logic import BuildsLogic

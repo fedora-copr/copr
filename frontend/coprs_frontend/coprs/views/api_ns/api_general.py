@@ -11,6 +11,7 @@ from wtforms import ValidationError
 
 from werkzeug import secure_filename
 
+from copr_common.enums import StatusEnum
 from coprs import db
 from coprs import exceptions
 from coprs import forms
@@ -105,9 +106,9 @@ def api_status():
     Receive information about queue
     """
     output = {
-        "importing": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("importing")).count(),
-        "waiting": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("pending")).count(), # change to "pending""
-        "running": builds_logic.BuildsLogic.get_build_tasks(helpers.StatusEnum("running")).count(),
+        "importing": builds_logic.BuildsLogic.get_build_tasks(StatusEnum("importing")).count(),
+        "waiting": builds_logic.BuildsLogic.get_build_tasks(StatusEnum("pending")).count(), # change to "pending""
+        "running": builds_logic.BuildsLogic.get_build_tasks(StatusEnum("running")).count(),
     }
     return flask.jsonify(output)
 
