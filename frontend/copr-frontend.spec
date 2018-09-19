@@ -66,6 +66,7 @@ BuildRequires: graphviz
 BuildRequires: python3-devel
 
 %if %{with check}
+BuildRequires: python3-pyyaml
 BuildRequires: python3-copr-common
 BuildRequires: python3-six
 BuildRequires: python3-flask
