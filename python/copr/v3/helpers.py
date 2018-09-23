@@ -1,8 +1,9 @@
 import os
 import six
+import time
 import configparser
 from munch import Munch
-from .exceptions import CoprNoConfigException, CoprConfigException
+from .exceptions import CoprNoConfigException, CoprConfigException, CoprException
 
 
 class List(list):
@@ -59,3 +60,40 @@ def bind_proxy(func):
         result.__proxy__ = args[0]
         return result
     return wrapper
+
+
+def wait(builds, build_proxy, interval=30, callback=None):
+    """
+    :param list builds:
+    :param int interval: How many seconds wait before requesting updated Munches from frontend
+    :param callable callback: Callable taking one argument (list of build Munches).
+                              It will be triggered before every sleep interval.
+    :return: list of build Munches
+    """
+    watched = set([build.id for build in builds])
+    munches = {build.id: build for build in builds}
+    failed = []
+
+    while True:
+        for build_id in watched.copy():
+            build = munches[build_id] = build_proxy.get(build_id)
+            if build.state in ["failed"]:
+                failed.append(build_id)
+            if build.state in ["succeeded", "skipped", "failed", "canceled"]:
+                watched.remove(build_id)
+            if build.state == "unknown":
+                raise CoprException("Unknown status.")
+
+        callback(list(munches.values()))
+        if not watched:
+            break
+        time.sleep(interval)
+    return list(munches.values())
+
+
+def succeeded(result):
+    result = result if type(result) == list else [result]
+    for build in result:
+        if build.state != "succeeded":
+            return False
+    return True
