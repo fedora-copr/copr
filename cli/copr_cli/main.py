@@ -429,7 +429,7 @@ class Commands(object):
                 print("Name: {}".format(project.name))
                 print("  Description: {}".format(project.description))
                 if project.chroot_repos:
-                    print("  Yum repo(s):")
+                    print("  Repo(s):")
                     for name, url in project.chroot_repos.items():
                         print("    {}: {}".format(name, url))
                 if project.additional_repos:
