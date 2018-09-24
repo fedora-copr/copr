@@ -31,6 +31,7 @@ class CustomProvider(Provider):
         self.chroot = source_json.get('chroot')
         self.inner_resultdir = source_json.get('resultdir')
         self.builddeps = source_json.get('builddeps')
+        self.timeout = source_json.get("timeout", 3600)
 
         if 'hook_data' in source_json:
             self.hook_payload_url = "{server}/tmp/{tmp}/hook_payload".format(
@@ -86,12 +87,22 @@ class CustomProvider(Provider):
                 self.inner_workdir, self.inner_resultdir))
 
         # prepare the sources
-        helpers.run_cmd(cmd)
+        process = helpers.GentlyTimeoutedPopen(cmd, timeout=self.timeout)
+        try:
+            process.communicate()
+        except OSError as e:
+            raise RuntimeError(str(e))
+        finally:
+            process.done()
+
+        if process.returncode != 0:
+            raise RuntimeError("Build failed")
 
         # copy the sources out into workdir
         mock = ['mock', '-r', mock_config_file]
 
         srpm_srcdir = os.path.join(self.workdir, 'srcdir')
+
         helpers.run_cmd(mock + ['--copyout', inner_resultdir, srpm_srcdir])
         helpers.run_cmd(mock + ['--scrub', 'all'])
         helpers.build_srpm(srpm_srcdir, self.outdir)

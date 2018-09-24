@@ -24,7 +24,8 @@ except ImportError:
 from copr_rpmbuild import providers
 from copr_rpmbuild.builders.mock import MockBuilder
 from copr_rpmbuild.helpers import read_config, extract_srpm, locate_srpm, \
-    SourceType, parse_copr_name, get_additional_repo_configs, copr_chroot_to_task_id
+    SourceType, parse_copr_name, get_additional_repo_configs, \
+    copr_chroot_to_task_id, dump_live_log
 
 try:
     from urllib.parse import urlparse, urljoin
@@ -132,8 +133,10 @@ def main():
     pidfile.close()
 
     # Log also to a file
-    open(config.get("main", "logfile"), 'w').close() # truncate log
-    log.addHandler(logging.FileHandler(config.get("main", "logfile")))
+    logfile = config.get("main", "logfile")
+    if logfile:
+        open(logfile, 'w').close() # truncate log
+        dump_live_log(logfile)
 
     log.info('Running: {0}'.format(" ".join(map(pipes.quote, sys.argv))))
     log.info('Version: {0}'.format(VERSION))

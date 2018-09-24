@@ -3,36 +3,12 @@ import sys
 import logging
 import shutil
 import subprocess
-from threading import Timer
 
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import run_cmd, locate_spec, locate_srpm, CONF_DIRS, get_mock_uniqueext
+from ..helpers import run_cmd, locate_spec, locate_srpm, CONF_DIRS, \
+        get_mock_uniqueext, GentlyTimeoutedPopen
 
 log = logging.getLogger("__main__")
-
-
-class GentlyTimeoutedPopen(subprocess.Popen):
-    timers = []
-
-    def __init__(self, cmd, timeout=None, **kwargs):
-        super(GentlyTimeoutedPopen, self).__init__(cmd, **kwargs)
-        if not timeout:
-            return
-
-        def timeout_cb(me, string, signal):
-            log.error(" !! Copr timeout => sending {0}".format(string))
-            me.send_signal(signal)
-
-        delay = timeout
-        for string, signal in [('INT', 2), ('TERM', 15), ('KILL', 9)]:
-            timer = Timer(delay, timeout_cb, [self, string, signal])
-            timer.start()
-            self.timers.append(timer)
-            delay = delay + 10
-
-    def done(self):
-        for timer in self.timers:
-            timer.cancel()
 
 
 class MockBuilder(object):
@@ -89,16 +65,6 @@ class MockBuilder(object):
                                enable_net=self.enable_net, use_bootstrap_container=self.use_bootstrap_container,
                                repos=self.repos, pkg_manager_conf=self.pkg_manager_conf)
 
-    def preexec_fn_build_stream(self):
-        if not self.logfile:
-            return
-        filter_continuing_lines = r"sed 's/.*\x0D\([^\x0a]\)/\1/g' --unbuffered"
-        tee_output = "tee -a {0}".format(self.logfile)
-        cmd = filter_continuing_lines + "|" + tee_output
-        tee = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
-        os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
-        os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
-
     def produce_srpm(self, spec, sources, configdir, resultdir):
         cmd = [
             "unbuffer", "/usr/bin/mock",
@@ -117,10 +83,8 @@ class MockBuilder(object):
         for without_opt in self.without_opts:
             cmd += ["--without", without_opt]
 
-        log.info('Running: {0}'.format(' '.join(cmd)))
-
         process = GentlyTimeoutedPopen(cmd, stdin=subprocess.PIPE,
-                preexec_fn=self.preexec_fn_build_stream, timeout=self.timeout)
+                timeout=self.timeout)
 
         try:
             process.communicate()
@@ -131,6 +95,7 @@ class MockBuilder(object):
 
         if process.returncode != 0:
             raise RuntimeError("Build failed")
+
 
     def produce_rpm(self, srpm, configdir, resultdir):
         cmd = ["unbuffer", "/usr/bin/mock",
@@ -146,10 +111,8 @@ class MockBuilder(object):
         for without_opt in self.without_opts:
             cmd += ["--without", without_opt]
 
-        log.info('Running: {0}'.format(' '.join(cmd)))
-
         process = GentlyTimeoutedPopen(cmd, stdin=subprocess.PIPE,
-                preexec_fn=self.preexec_fn_build_stream, timeout=self.timeout)
+                timeout=self.timeout)
 
         try:
             process.communicate()
