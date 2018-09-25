@@ -119,109 +119,144 @@ class BuildsLogic(object):
         return chroots
 
     @classmethod
-    def generate_histogram_bucket(cls, type, start, end):
-        if type is "running":
-            query = text("""
-                SELECT COUNT(*) as result
-                FROM build_chroot
-                WHERE
-                    started_on < :end
-                    AND (ended_on > :start OR (ended_on is NULL AND status = :status))
-                    -- for currently running builds we need to filter on status=running because there might be failed
-                    -- builds that have ended_on=NULL
-            """)
+    def get_pending_jobs_bucket(cls, start, end):
+        query = text("""
+            SELECT COUNT(*) as result
+            FROM build_chroot JOIN build on build.id = build_chroot.build_id
+            WHERE
+                build.submitted_on < :end
+                AND (
+                    build_chroot.started_on > :start
+                    OR (build_chroot.started_on is NULL AND build_chroot.status = :status)
+                    -- for currently pending builds we need to filter on status=pending because there might be
+                    -- failed builds that have started_on=NULL
+                )
+                AND NOT build.canceled
+        """)
 
-        elif type is "pending":
-            query = text("""
-                SELECT COUNT(*) as result
-                FROM build_chroot JOIN build on build.id = build_chroot.build_id
-                WHERE
-                    build.submitted_on < :end
-                    AND (
-                        build_chroot.started_on > :start
-                        OR (build_chroot.started_on is NULL AND build_chroot.status = :status)
-                        -- for currently pending builds we need to filter on status=pending because there might be
-                        -- failed builds that have started_on=NULL
-                    )
-                    AND NOT build.canceled
-            """)
-
-        res = db.engine.execute(query, start=start, end=end, status=helpers.StatusEnum(type))
+        res = db.engine.execute(query, start=start, end=end, status=StatusEnum("pending"))
         return res.first().result
 
     @classmethod
-    def get_tasks_histogram(cls, type, running_only=False):
-        if running_only:
-            data = [[""]]
-        else:
-            data = [["pending"], ["running"], ["avg running"], ["time"]]
-        end = int(time.time())
+    def get_running_jobs_bucket(cls, start, end):
+        query = text("""
+            SELECT COUNT(*) as result
+            FROM build_chroot
+            WHERE
+                started_on < :end
+                AND (ended_on > :start OR (ended_on is NULL AND status = :status))
+                -- for currently running builds we need to filter on status=running because there might be failed
+                -- builds that have ended_on=NULL
+        """)
 
-        # 24 hours with 10 minute intervals
-        if type is "10min":
-            step = 600
-            steps = 144
-        # 24 hours with 30 minute intervals
-        elif type is "30min":
-            step = 1800
-            steps = 48
-        # 90 days with 24 hour intervals
-        elif type is "24h":
-            step = 86400
-            steps = 90
-        else:
-            return data
+        res = db.engine.execute(query, start=start, end=end, status=StatusEnum("running"))
+        return res.first().result
 
-        end = end - (end % step) # align graph interval to a multiple of step
-        start = end - (steps * step)
-
+    @classmethod
+    def get_cached_graph_data(cls, params):
+        data = {
+            "pending": [],
+            "running": [],
+        }
         result = models.BuildsStatistics.query\
-            .filter(models.BuildsStatistics.stat_type == type)\
-            .filter(models.BuildsStatistics.time >= start)\
-            .filter(models.BuildsStatistics.time <= end)\
+            .filter(models.BuildsStatistics.stat_type == params["type"])\
+            .filter(models.BuildsStatistics.time >= params["start"])\
+            .filter(models.BuildsStatistics.time <= params["end"])\
             .order_by(models.BuildsStatistics.time)
 
         for row in result:
-            if running_only:
-                data[0].append(row.running)
-            else:
-                data[0].append(row.pending)
-                data[1].append(row.running)
-
-        for i in range(len(data[0]) - 1, steps):
-            step_start = start + i * step
-            step_end = step_start + step
-
-            running = cls.generate_histogram_bucket("running", step_start, step_end)
-
-            if running_only:
-                pending = 0
-                data[0].append(running)
-            else:
-                pending = cls.generate_histogram_bucket("pending", step_start, step_end)
-                data[0].append(pending)
-                data[1].append(running)
-
-            statistic = models.BuildsStatistics(
-                time = step_start,
-                stat_type = type,
-                running = running,
-                pending = pending
-            )
-            db.session.merge(statistic)
-            db.session.commit()
-
-        if not running_only:
-            running_total = 0
-            for i in range(1, steps + 1):
-                running_total += data[1][i]
-
-            data[2].extend([running_total * 1.0 / steps] * (len(data[0]) - 1))
-
-            for i in range(start, end, step):
-                data[3].append(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(i)))
+            data["pending"].append(row.pending)
+            data["running"].append(row.running)
 
         return data
+
+    @classmethod
+    def get_task_graph_data(cls, type):
+        data = [["pending"], ["running"], ["avg running"], ["time"]]
+        params = cls.get_graph_parameters(type)
+        cached_data = cls.get_cached_graph_data(params)
+        data[0].extend(cached_data["pending"])
+        data[1].extend(cached_data["running"])
+
+        for i in range(len(data[0]) - 1, params["steps"]):
+            step_start = params["start"] + i * params["step"]
+            step_end = step_start + params["step"]
+            pending = cls.get_pending_jobs_bucket(step_start, step_end)
+            running = cls.get_running_jobs_bucket(step_start, step_end)
+            data[0].append(pending)
+            data[1].append(running)
+            cls.cache_graph_data(type, time=step_start, pending=pending, running=running)
+
+        running_total = 0
+        for i in range(1, params["steps"] + 1):
+            running_total += data[1][i]
+
+        data[2].extend([running_total * 1.0 / params["steps"]] * (len(data[0]) - 1))
+
+        for i in range(params["start"], params["end"], params["step"]):
+            data[3].append(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(i)))
+
+        return data
+
+    @classmethod
+    def get_small_graph_data(cls, type):
+        data = [[""]]
+        params = cls.get_graph_parameters(type)
+        cached_data = cls.get_cached_graph_data(params)
+        data[0].extend(cached_data["running"])
+
+        for i in range(len(data[0]) - 1, params["steps"]):
+            step_start = params["start"] + i * params["step"]
+            step_end = step_start + params["step"]
+            running = cls.get_running_jobs_bucket(step_start, step_end)
+            data[0].append(running)
+            cls.cache_graph_data(type, time=step_start, running=running)
+
+        return data
+
+    @classmethod
+    def cache_graph_data(cls, type, time, pending=0, running=0):
+        result = models.BuildsStatistics.query\
+                .filter(models.BuildsStatistics.stat_type == type)\
+                .filter(models.BuildsStatistics.time == time).first()
+        if result:
+            return
+
+        cached_data = models.BuildsStatistics(
+            time = time,
+            stat_type = type,
+            running = running,
+            pending = pending
+        )
+        db.session.merge(cached_data)
+        db.session.commit()
+
+    @classmethod
+    def get_graph_parameters(cls, type):
+        if type is "10min":
+            # 24 hours with 10 minute intervals
+            step = 600
+            steps = 144
+        elif type is "30min":
+            # 24 hours with 30 minute intervals
+            step = 1800
+            steps = 48
+        elif type is "24h":
+            # 90 days with 24 hour intervals
+            step = 86400
+            steps = 90
+
+        end = int(time.time())
+        end = end - (end % step) # align graph interval to a multiple of step
+        start = end - (steps * step)
+
+        return {
+            "type": type,
+            "step": step,
+            "steps": steps,
+            "start": start,
+            "end": end,
+        }
 
     @classmethod
     def get_build_importing_queue(cls, background=None):

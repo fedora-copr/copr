@@ -485,9 +485,9 @@ class UpdateGraphsDataCommand(Command):
     """
 
     def run(self):
-        builds_logic.BuildsLogic.get_tasks_histogram('10min')
-        builds_logic.BuildsLogic.get_tasks_histogram('30min')
-        builds_logic.BuildsLogic.get_tasks_histogram('24h')
+        builds_logic.BuildsLogic.get_task_graph_data('10min')
+        builds_logic.BuildsLogic.get_small_graph_data('30min')
+        builds_logic.BuildsLogic.get_task_graph_data('24h')
 
 
 class RemoveGraphsDataCommand(Command):
