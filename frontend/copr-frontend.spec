@@ -66,7 +66,7 @@ BuildRequires: graphviz
 BuildRequires: python3-devel
 
 %if %{with check}
-BuildRequires: python3-pyyaml
+BuildRequires: python3-yaml
 BuildRequires: python3-copr-common
 BuildRequires: python3-six
 BuildRequires: python3-flask
@@ -127,7 +127,6 @@ Requires: python3-marshmallow
 Requires: python3-blinker
 Requires: python3-flask-openid
 Requires: python3-openid-teams
-Requires: python3-modulemd
 Requires: python3-gobject
 Requires: libmodulemd
 Requires: python3-pygments
