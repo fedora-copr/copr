@@ -61,13 +61,12 @@ except NameError:
 
 class Commands(object):
     def __init__(self, config_path):
-        try:
-            self.config_path = config_path
-            self.config = config_from_file(config_path)
+        self.config_path = config_path or '~/.config/copr'
 
-        except (CoprNoConfigException,
-                CoprConfigException):
-            sys.stderr.write(no_config_warning.format(config_path or "~/.config/copr"))
+        try:
+            self.config = config_from_file(self.config_path)
+        except (CoprNoConfigException, CoprConfigException):
+            sys.stderr.write(no_config_warning.format(self.config_path))
             self.config = {"copr_url": "http://copr.fedoraproject.org", "no_config": True}
 
         self.client = Client(self.config)
@@ -95,13 +94,13 @@ class Commands(object):
             if "no_config" in self.config and args.username is None:
                 sys.stderr.write(
                     "Error: Operation requires username\n"
-                    "Pass username to command or create `~/.config/copr`\n")
+                    "Pass username to command or create `{0}`\n".format(self.config_path))
                 sys.exit(6)
 
             if args.username is None and self.config["username"] is None:
                 sys.stderr.write(
                     "Error: Operation requires username\n"
-                    "Pass username to command or add it to `~/.config/copr`\n")
+                    "Pass username to command or add it to `{0}`\n".format(self.config_path))
                 sys.exit(6)
 
             return func(self, args)
