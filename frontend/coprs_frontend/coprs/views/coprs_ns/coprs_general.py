@@ -712,11 +712,15 @@ def render_generate_repo_file(copr_dir, name_release):
     if not mock_chroot:
         raise ObjectNotFound("Chroot {} does not exist".format(name_release))
 
+    repo_id = "copr:{0}:{1}:{2}".format(app.config["PUBLIC_COPR_HOSTNAME"],
+                                        copr_dir.copr.owner_name.replace("@", "group_"),
+                                        copr_dir.name)
     url = os.path.join(copr_dir.repo_url, '') # adds trailing slash
     repo_url = generate_repo_url(mock_chroot, url)
     pubkey_url = urljoin(url, "pubkey.gpg")
     response = flask.make_response(
-        flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir, url=repo_url, pubkey_url=pubkey_url))
+        flask.render_template("coprs/copr_dir.repo", copr_dir=copr_dir, url=repo_url, pubkey_url=pubkey_url,
+                              repo_id=repo_id))
     response.mimetype = "text/plain"
     response.headers["Content-Disposition"] = \
         "filename={0}.repo".format(copr_dir.repo_name)
