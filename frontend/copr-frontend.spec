@@ -264,13 +264,7 @@ EOF
 
 %check
 %if %{with check}
-    pushd coprs_frontend
-    REDIS_PORT=7777
-    redis-server --port $REDIS_PORT & #&> _redis.log &
-    rm -rf /tmp/copr.db /tmp/whooshee || :
-    COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" ./manage.py test
-    redis-cli -p $REDIS_PORT shutdown
-    popd
+./run_tests.sh
 %endif
 
 %pre

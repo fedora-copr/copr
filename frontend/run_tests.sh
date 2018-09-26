@@ -1,13 +1,21 @@
-#!/bin/sh
+#! /bin/bash
+
+set -x
+set -e
 
 REDIS_PORT=7777
-
 redis-server --port $REDIS_PORT &> _redis.log &
 
-path="${1:-tests}"
+cleanup ()
+{
+    redis-cli -p "$REDIS_PORT" shutdown
+    wait
+}
+trap cleanup EXIT
+
+common_path=$(readlink -f ../common)
+export PYTHONPATH="${PYTHONPATH+$PYTHONPATH:}$common_path"
+export COPR_CONFIG="$(pwd)/coprs_frontend/config/copr_unit_test.conf"
 
 cd coprs_frontend
-COPR_CONFIG="$(pwd)/config/copr_unit_test.conf" python3 -B -m pytest -s $path # \
-     #--cov-report term-missing --cov coprs $@
-
-kill %1
+./manage.py test "$@"
