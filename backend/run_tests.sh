@@ -1,8 +1,17 @@
-#!/usr/bin/bash
+#! /bin/bash
+
+set -x
+set -e
 
 REDIS_PORT=7777
-
 redis-server --port $REDIS_PORT &> _redis.log &
+
+cleanup ()
+{
+    redis-cli -p "$REDIS_PORT" shutdown
+    wait
+}
+trap cleanup EXIT
 
 COVPARAMS='--cov-report term-missing --cov ./backend --cov ./run'
 
@@ -31,6 +40,6 @@ if [[ -n $@ ]]; then
 	TESTS=$@
 fi
 
-PYTHONPATH=backend:run:$PYTHONPATH python3 -B -m pytest -s $COVPARAMS $TESTS
-
-kill %1
+common_path=$(readlink -f ../common)
+export PYTHONPATH="$common_path:backend:run${PYTHONPATH+:$PYTHONPATH}$common_path"
+python3 -m pytest -s $COVPARAMS $TESTS
