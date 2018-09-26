@@ -424,7 +424,14 @@ class LiteralDialect(DefaultDialect):
 
 
 def literal_query(statement):
-    """NOTE: This is entirely insecure. DO NOT execute the resulting strings."""
+    """NOTE: This is entirely insecure. DO NOT execute the resulting strings.
+       This can be used for debuggin - it is not and should not be used in production
+       code.
+
+       It is useful if you want to debug an sqlalchemy query, i.e. copy the
+       resulting SQL query into psql console and try to tweak it so that it
+       actually works or works faster.
+    """
     import sqlalchemy.orm
     if isinstance(statement, sqlalchemy.orm.Query):
         statement = statement.statement
