@@ -134,16 +134,7 @@
 
     {% if not config.LAYOUT_OVERVIEW_HIDE_QUICK_ENABLE %}
     <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title"> Quick Enable </h3>
-      </div>
-      <div class="panel-body">
-        <div class="well well-sm">
-          dnf copr enable {{ copr_name(copr) }}
-        </div>
-        <a href="https://docs.pagure.org/copr.copr/how_to_enable_repo.html#how-to-enable-repo" target="_blank">
-          <small><span class="pficon pficon-info"></span> More info about enabling Copr repositories</small></a>
-      </div>
+      {% include 'quick_enable.html' %}
     </div>
     {% endif %}
 
