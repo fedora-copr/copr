@@ -126,7 +126,6 @@ class Worker(multiprocessing.Process):
         return False
 
     def init_buses(self):
-        self.log.info(self.opts.msg_buses)
         for bus_config in self.opts.msg_buses:
             self.msg_buses.append(MsgBusStomp(bus_config, self.log))
 
