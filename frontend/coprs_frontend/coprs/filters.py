@@ -230,6 +230,8 @@ def build_source_description(state):
 
 @app.template_filter("fix_url_https_backend")
 def fix_url_https_backend(url):
+    if app.config.get('REPO_NO_SSL', False):
+        return url.replace('https://', 'http://')
     return helpers.fix_protocol_for_backend(url)
 
 
