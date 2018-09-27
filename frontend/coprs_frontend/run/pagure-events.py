@@ -14,8 +14,8 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 )
 
-from coprs import db, app, models
-from coprs.logic.coprs_logic import CoprsLogic, CoprDirsLogic
+from coprs import db, app
+from coprs.logic.coprs_logic import CoprDirsLogic
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.packages_logic import PackagesLogic

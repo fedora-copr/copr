@@ -1,14 +1,10 @@
 import json
 import time
-import base64
-import os
 
 from copr_common.enums import ActionTypeEnum, BackendResultEnum
 from coprs import db
 from coprs import models
 from coprs import helpers
-from coprs import exceptions
-from flask import url_for
 
 
 class ActionsLogic(object):

@@ -1,5 +1,4 @@
 import yaml
-from munch import Munch
 from unittest import mock
 
 from tests.coprs_test_case import CoprsTestCase

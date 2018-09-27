@@ -1,7 +1,5 @@
 import os
 import subprocess
-import select
-import socket
 
 class SSHConnectionError(Exception):
     pass

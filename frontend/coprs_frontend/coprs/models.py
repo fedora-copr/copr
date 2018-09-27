@@ -1,7 +1,6 @@
 import copy
 import datetime
 import os
-import flask
 import json
 import base64
 import uuid
@@ -19,7 +18,7 @@ from coprs import app
 
 import itertools
 import operator
-from coprs.helpers import BuildSourceEnum, JSONEncodedDict
+from coprs.helpers import JSONEncodedDict
 
 import gi
 gi.require_version('Modulemd', '1.0')

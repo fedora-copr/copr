@@ -3,8 +3,6 @@
 import time
 import flask
 import sqlalchemy
-import os
-import re
 
 from .. import db
 from .builds_logic import BuildsLogic
@@ -18,7 +16,6 @@ from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs.models import User, Copr
 from .coprs_logic import CoprsLogic, CoprDirsLogic, CoprChrootsLogic
-from .. import helpers
 
 
 class ComplexLogic(object):

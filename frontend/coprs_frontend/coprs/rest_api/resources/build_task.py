@@ -2,17 +2,11 @@
 
 from flask import url_for
 from flask_restful import Resource
-from flask_restful import Resource, reqparse
-from flask_restful.reqparse import Argument
-
-from marshmallow import pprint
-from marshmallow import Schema, fields
-from marshmallow import Schema, fields, validates_schema, ValidationError, validate
 
 from copr_common.enums import StatusEnum
 from coprs.rest_api.common import render_build_task
 from ...exceptions import MalformedArgumentException
-from ...logic.builds_logic import BuildsLogic, BuildChrootsLogic
+from ...logic.builds_logic import BuildChrootsLogic
 from ..exceptions import MalformedRequest
 from ..util import get_one_safe, get_request_parser
 

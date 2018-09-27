@@ -1,16 +1,13 @@
 import base64
-from collections import defaultdict
 import json
 import os
 import time
-import glob
 from functools import wraps
 import datetime
 import uuid
 
 import pytest
 import decorator
-import shutil
 
 import coprs
 
@@ -20,7 +17,6 @@ from coprs import models
 from coprs.logic.coprs_logic import BranchesLogic
 
 from unittest import mock
-from unittest.mock import MagicMock
 
 
 class CoprsTestCase(object):

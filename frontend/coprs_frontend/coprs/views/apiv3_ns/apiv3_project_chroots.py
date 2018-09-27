@@ -1,12 +1,12 @@
 import flask
-from . import query_params, get_copr, file_upload, GET, POST, PUT, DELETE
+from . import query_params, get_copr, file_upload, GET, PUT
 from .json2form import get_form_compatible_data
-from coprs.helpers import generate_build_config, generate_additional_repos
+from coprs.helpers import generate_additional_repos
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.exceptions import ApiError, ObjectNotFound, BadRequest
-from coprs import db, models, forms
+from coprs.exceptions import ObjectNotFound, BadRequest
+from coprs import db, forms
 from coprs.logic.coprs_logic import CoprChrootsLogic
 
 

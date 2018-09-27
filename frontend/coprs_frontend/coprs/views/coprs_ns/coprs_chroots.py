@@ -1,8 +1,5 @@
-from io import BytesIO
-from zlib import compress, decompress
-
 import flask
-from flask import Response, url_for, render_template
+from flask import Response, render_template
 
 from coprs import db
 from coprs import forms
@@ -13,7 +10,7 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.logic.coprs_logic import CoprChrootsLogic
 from coprs.views.coprs_ns.coprs_general import url_for_copr_edit
 
-from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr
+from coprs.views.misc import login_required, req_with_copr, req_with_copr
 from coprs.views.coprs_ns import coprs_ns
 
 

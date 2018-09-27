@@ -3,17 +3,15 @@ import json
 
 import pytest
 import time
-import os
 
 from sqlalchemy.orm.exc import NoResultFound
-from coprs import helpers, models
+from coprs import models
 from coprs.constants import MAX_BUILD_TIMEOUT
 
 from copr_common.enums import StatusEnum
 from coprs.exceptions import ActionInProgressException, InsufficientRightsException, MalformedArgumentException
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.logic.builds_logic import BuildsLogic
-from coprs.logic.builds_logic import BuildsMonitorLogic
 
 from tests.coprs_test_case import CoprsTestCase
 

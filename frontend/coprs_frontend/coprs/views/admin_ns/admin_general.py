@@ -5,7 +5,6 @@ import flask
 
 from copr_common.enums import RoleEnum
 from coprs import db
-from coprs import helpers
 from coprs import models
 from coprs import forms
 

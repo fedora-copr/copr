@@ -1,23 +1,17 @@
 import json
-import time
 import re
 
-from sqlalchemy import or_
-from sqlalchemy import and_, bindparam, Integer
-from sqlalchemy.sql import false, true, text
+from sqlalchemy import bindparam, Integer
+from sqlalchemy.sql import true, text
 
 from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
 from coprs import helpers
-from coprs import forms
 
-from coprs.logic import coprs_logic
 from coprs.logic import users_logic
 from coprs.logic import builds_logic
-
-from coprs.constants import DEFAULT_BUILD_TIMEOUT
 
 log = app.logger
 

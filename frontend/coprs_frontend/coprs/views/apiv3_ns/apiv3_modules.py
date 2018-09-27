@@ -2,11 +2,11 @@ import flask
 import sqlalchemy
 from requests.exceptions import RequestException, InvalidSchema
 from wtforms import ValidationError
-from . import query_params, get_copr, file_upload, POST
-from coprs import db, models, forms
+from . import get_copr, file_upload, POST
+from coprs import db, forms
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.views.misc import api_login_required
-from coprs.exceptions import ApiError, DuplicateException, BadRequest
+from coprs.exceptions import DuplicateException, BadRequest
 from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade
 
 

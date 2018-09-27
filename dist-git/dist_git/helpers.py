@@ -5,7 +5,6 @@ import munch
 
 from .exceptions import FileDownloadException, RunCommandException, SrpmQueryException
 
-from copr_common.enums import EnumType
 from configparser import ConfigParser
 from munch import Munch
 from requests import get

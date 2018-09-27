@@ -3,8 +3,7 @@ import random
 import string
 
 from six import with_metaclass
-from six.moves.urllib.parse import urljoin, urlparse, parse_qs
-from textwrap import dedent
+from six.moves.urllib.parse import urlparse, parse_qs
 import re
 
 import flask
@@ -353,38 +352,6 @@ def get_redis_connection():
     return StrictRedis()
 
 
-def dt_to_unixtime(dt):
-    """
-    Converts datetime to unixtime
-    :param dt: DateTime instance
-    :rtype: float
-    """
-    return float(dt.strftime('%s'))
-
-
-def string_dt_to_unixtime(dt_string):
-    """
-    Converts datetime to unixtime from string
-    :param dt_string: datetime string
-    :rtype: str
-    """
-    return dt_to_unixtime(dt_parser.parse(dt_string))
-
-
-def is_ip_from_builder_net(ip):
-    """
-    Checks is ip is owned by the builders network
-    :param str ip: IPv4 address
-    :return bool: True
-    """
-    ip_addr = IPAddress(ip)
-    for subnet in app.config.get("BUILDER_IPS", ["127.0.0.1/24"]):
-        if ip_addr in IPNetwork(subnet):
-            return True
-
-    return False
-
-
 def str2bool(v):
     if v is None:
         return False
@@ -457,7 +424,14 @@ class LiteralDialect(DefaultDialect):
 
 
 def literal_query(statement):
-    """NOTE: This is entirely insecure. DO NOT execute the resulting strings."""
+    """NOTE: This is entirely insecure. DO NOT execute the resulting strings.
+       This can be used for debuggin - it is not and should not be used in production
+       code.
+
+       It is useful if you want to debug an sqlalchemy query, i.e. copy the
+       resulting SQL query into psql console and try to tweak it so that it
+       actually works or works faster.
+    """
     import sqlalchemy.orm
     if isinstance(statement, sqlalchemy.orm.Query):
         statement = statement.statement

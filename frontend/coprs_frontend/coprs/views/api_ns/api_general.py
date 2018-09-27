@@ -5,7 +5,6 @@ import os
 import flask
 import sqlalchemy
 import json
-import requests
 from requests.exceptions import RequestException, InvalidSchema
 from wtforms import ValidationError
 
@@ -21,9 +20,8 @@ from coprs.helpers import fix_protocol_for_backend, generate_build_config
 from coprs.logic.api_logic import MonitorWrapper
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.logic.users_logic import UsersLogic
 from coprs.logic.packages_logic import PackagesLogic
-from coprs.logic.modules_logic import ModulesLogic, ModuleProvider, ModuleBuildFacade
+from coprs.logic.modules_logic import ModuleProvider, ModuleBuildFacade
 
 from coprs.views.misc import login_required, api_login_required
 
@@ -32,7 +30,6 @@ from coprs.views.api_ns import api_ns
 from coprs.logic import builds_logic
 from coprs.logic import coprs_logic
 from coprs.logic.coprs_logic import CoprsLogic
-from coprs.logic.actions_logic import ActionsLogic
 
 from coprs.exceptions import (ActionInProgressException,
                               InsufficientRightsException,

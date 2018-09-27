@@ -2,14 +2,12 @@ import flask
 from functools import wraps
 
 from coprs import db, app
-from coprs import helpers
 
 from coprs.logic.builds_logic import BuildsLogic
 from coprs.logic.complex_logic import ComplexLogic
-from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.packages_logic import PackagesLogic
 
-from coprs.exceptions import ObjectNotFound, AccessRestricted
+from coprs.exceptions import ObjectNotFound
 
 from coprs.views.webhooks_ns import webhooks_ns
 from coprs.views.misc import page_not_found, access_restricted
@@ -17,7 +15,6 @@ from coprs.views.misc import page_not_found, access_restricted
 import logging
 import os
 import tempfile
-import re
 import shutil
 
 log = logging.getLogger(__name__)

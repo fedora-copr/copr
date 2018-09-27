@@ -2,12 +2,11 @@ import os
 import flask
 from werkzeug.datastructures import MultiDict
 from . import get_copr, file_upload, query_params, pagination, Paginator, json2form, GET, POST, PUT, DELETE
-from .json2form import get_form_compatible_data, without_empty_fields
+from .json2form import get_form_compatible_data
 from werkzeug import secure_filename
 from copr_common.enums import StatusEnum
 from coprs import db, forms, models
-from coprs.exceptions import (ApiError, InsufficientRightsException, ActionInProgressException,
-                              BadRequest, AccessRestricted)
+from coprs.exceptions import (BadRequest, AccessRestricted)
 from coprs.views.misc import api_login_required
 from coprs.views.apiv3_ns import apiv3_ns
 from coprs.logic.complex_logic import ComplexLogic

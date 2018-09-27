@@ -1,11 +1,8 @@
 # coding: utf-8
 import pytest
 
-from coprs.exceptions import ActionInProgressException
-from coprs.logic.coprs_logic import CoprsLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.helpers  import CounterStatType
-from coprs import models
 from tests.coprs_test_case import CoprsTestCase
 
 

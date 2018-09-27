@@ -22,9 +22,9 @@ from requests_toolbelt.multipart.encoder import (MultipartEncoder,
 # urlparse from six is not available on el7
 # because it requires at least python-six-1.4.1
 if sys.version_info[0] == 2:
-    from urlparse import urlparse, urljoin
+    from urlparse import urlparse
 else:
-    from urllib.parse import urlparse, urljoin
+    from urllib.parse import urlparse
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -41,7 +41,7 @@ from ..exceptions import CoprConfigException, CoprNoConfException, \
     CoprUnknownResponseException
 
 from .responses import ProjectHandle, \
-    CoprResponse, BuildHandle, BaseHandle, ProjectChrootHandle, PackageHandle
+    CoprResponse, BuildHandle, BaseHandle, ProjectChrootHandle
 
 from .parsers import fabric_simple_fields_parser, ProjectListParser, \
     CommonMsgErrorOutParser, NewBuildListParser, ProjectChrootsParser, \

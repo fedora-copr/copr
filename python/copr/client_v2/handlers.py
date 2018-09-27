@@ -4,8 +4,7 @@ import json
 import os
 
 from copr.client_v2.net_client import RequestError, MultiPartTuple
-from copr.client_v2.schemas import ProjectCreateSchema
-from .entities import ProjectChrootEntity, ProjectEntity, ProjectCreateEntity
+from .entities import ProjectChrootEntity, ProjectCreateEntity
 from .resources import Project, OperationResult, ProjectList, ProjectChroot, ProjectChrootList, Build, BuildList, \
     MockChroot, MockChrootList, BuildTask, BuildTaskList
 

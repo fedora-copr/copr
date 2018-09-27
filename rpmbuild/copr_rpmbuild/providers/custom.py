@@ -1,10 +1,6 @@
 import os
-import json
 import logging
 import shutil
-import tempfile
-import subprocess
-import glob
 import requests
 
 from copr_rpmbuild import helpers

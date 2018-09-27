@@ -1,10 +1,7 @@
 import flask
-import wtforms
 from . import query_params, pagination, get_copr, Paginator, GET, POST, PUT, DELETE
 from .json2form import get_form_compatible_data, get_input
-from coprs.exceptions import ApiError
-from coprs.exceptions import (ApiError, InsufficientRightsException, ActionInProgressException,
-                              NoPackageSourceException, ObjectNotFound, BadRequest)
+from coprs.exceptions import (ObjectNotFound, BadRequest)
 from coprs.views.misc import api_login_required
 from coprs import db, models, forms
 from coprs.views.apiv3_ns import apiv3_ns

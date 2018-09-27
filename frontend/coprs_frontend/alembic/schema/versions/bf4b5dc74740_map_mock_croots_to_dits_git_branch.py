@@ -17,7 +17,7 @@ from sqlalchemy.orm import sessionmaker
 
 import sys, os
 sys.path.append(os.getcwd())
-from coprs.models import MockChroot, DistGitBranch
+from coprs.models import MockChroot
 from coprs.helpers import chroot_to_branch
 from coprs.logic.coprs_logic import BranchesLogic
 

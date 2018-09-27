@@ -3,7 +3,6 @@
 import os
 import time
 import fnmatch
-import uuid
 import subprocess
 import json
 
@@ -11,11 +10,7 @@ from six.moves.urllib.parse import urljoin
 
 import flask
 from flask import render_template, url_for, stream_with_context
-import platform
-import smtplib
-import tempfile
 import sqlalchemy
-from email.mime.text import MIMEText
 from itertools import groupby
 from wtforms import ValidationError
 
@@ -33,7 +28,6 @@ from coprs import helpers
 from coprs import models
 from coprs.exceptions import ObjectNotFound
 from coprs.logic.coprs_logic import CoprsLogic
-from coprs.logic.packages_logic import PackagesLogic
 from coprs.logic.stat_logic import CounterStatLogic
 from coprs.logic.modules_logic import ModulesLogic, ModulemdGenerator, ModuleBuildFacade
 from coprs.rmodels import TimedStatEvents
@@ -44,11 +38,10 @@ from coprs.logic.complex_logic import ComplexLogic
 from coprs.views.misc import login_required, page_not_found, req_with_copr, req_with_copr, generic_error
 
 from coprs.views.coprs_ns import coprs_ns
-from coprs.views.groups_ns import groups_ns
 
 from coprs.logic import builds_logic, coprs_logic, actions_logic, users_logic
-from coprs.helpers import parse_package_name, generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, CHROOT_REPO_MD_DL_STAT_FMT, \
-    str2bool, url_for_copr_view, REPO_DL_STAT_FMT, CounterStatType
+from coprs.helpers import generate_repo_url, CHROOT_RPMS_DL_STAT_FMT, \
+    url_for_copr_view, REPO_DL_STAT_FMT, CounterStatType
 
 def url_for_copr_details(copr):
     return url_for_copr_view(
@@ -297,11 +290,6 @@ def render_copr_detail(copr):
     form = forms.CoprLegalFlagForm()
     repos_info = {}
     for chroot in copr.active_chroots:
-        # chroot_rpms_dl_stat_key = CHROOT_REPO_MD_DL_STAT_FMT.format(
-        #     copr_user=copr.user.name,
-        #     copr_project_name=copr.name,
-        #     copr_chroot=chroot.name,
-        # )
         chroot_rpms_dl_stat_key = CHROOT_RPMS_DL_STAT_FMT.format(
             copr_user=copr.owner_name,
             copr_project_name=copr.name,

@@ -1,16 +1,8 @@
 # coding: utf-8
 
-import base64
-import copy
 import json
 
-import pytest
-import sqlalchemy
-
-from coprs.logic.users_logic import UsersLogic
-from coprs.logic.coprs_logic import CoprsLogic
-
-from tests.coprs_test_case import CoprsTestCase, TransactionDecorator
+from tests.coprs_test_case import CoprsTestCase
 
 
 class TestProjectChrootResource(CoprsTestCase):
