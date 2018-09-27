@@ -24,6 +24,7 @@
 %staticdir/copr_logo.png                        \
 %staticdir/css/copr-flavor.css                  \
 %templatedir/project_info.html                  \
+%templatedir/quick_enable.html                  \
 %templatedir/user_meta.html                     \
 %templatedir/welcome.html                       \
 %templatedir/contact_us.html
