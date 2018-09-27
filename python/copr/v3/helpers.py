@@ -13,7 +13,7 @@ class List(list):
 
 def config_from_file(path=None):
     raw_config = configparser.ConfigParser()
-    path = path or os.path.join(os.path.expanduser("~"), ".config", "copr")
+    path = os.path.expanduser(path or os.path.join("~", ".config", "copr"))
     config = {}
 
     try:
