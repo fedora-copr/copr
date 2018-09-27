@@ -82,9 +82,7 @@ touch %{buildroot}%{_var}/log/copr-dist-git/main.log
 
 
 %check
-PYTHONPATH=".${PYTHONPATH+:$PYTHONPATH}" \
-python3 -m pytest \
-  -v --cov-report term-missing --cov ./dist_git ./tests/
+./run_tests.sh
 
 %post
 # change context to be readable by cgit
