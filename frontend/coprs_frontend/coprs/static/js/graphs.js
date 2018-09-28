@@ -20,11 +20,7 @@ function graphConfig() {
         color: {pattern: colorPattern},
         data: {
             hide: ['avg running'],
-            types: {
-                'avg-running': 'line',
-                'running': 'area',
-                'pending': 'area',
-            },
+            type: 'line',
             x: 'time',
             xFormat: '%Y-%m-%d %H:%M:%S'
         },

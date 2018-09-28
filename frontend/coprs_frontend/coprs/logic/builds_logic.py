@@ -91,24 +91,6 @@ class BuildsLogic(object):
         return result
 
     @classmethod
-    def get_running_tasks_from_last_day(cls):
-        end = int(time.time())
-        start = end - 86399
-        step = 3600
-        tasks = cls.get_running_tasks_by_time(start, end)
-        steps = int(round((end - start) / step + 0.5))
-        current_step = 0
-
-        data = [[0] * (steps + 1)]
-        data[0][0] = ''
-        for t in tasks:
-            task = t.to_dict()
-            while task['started_on'] > start + step * (current_step + 1):
-                current_step += 1
-            data[0][current_step + 1] += 1
-        return data
-
-    @classmethod
     def get_chroot_histogram(cls, start, end):
         chroots = []
         chroot_query = BuildChroot.query\
@@ -131,79 +113,144 @@ class BuildsLogic(object):
         return chroots
 
     @classmethod
-    def get_tasks_histogram(cls, type, start, end, step):
-        start = start - (start % step) # align graph interval to a multiple of step
-        end = end - (end % step)
-        steps = int((end - start) / step + 0.5)
-        data = [['pending'], ['running'], ['avg running'], ['time']]
+    def get_pending_jobs_bucket(cls, start, end):
+        query = text("""
+            SELECT COUNT(*) as result
+            FROM build_chroot JOIN build on build.id = build_chroot.build_id
+            WHERE
+                build.submitted_on < :end
+                AND (
+                    build_chroot.started_on > :start
+                    OR (build_chroot.started_on is NULL AND build_chroot.status = :status)
+                    -- for currently pending builds we need to filter on status=pending because there might be
+                    -- failed builds that have started_on=NULL
+                )
+                AND NOT build.canceled
+        """)
 
+        res = db.engine.execute(query, start=start, end=end, status=StatusEnum("pending"))
+        return res.first().result
+
+    @classmethod
+    def get_running_jobs_bucket(cls, start, end):
+        query = text("""
+            SELECT COUNT(*) as result
+            FROM build_chroot
+            WHERE
+                started_on < :end
+                AND (ended_on > :start OR (ended_on is NULL AND status = :status))
+                -- for currently running builds we need to filter on status=running because there might be failed
+                -- builds that have ended_on=NULL
+        """)
+
+        res = db.engine.execute(query, start=start, end=end, status=StatusEnum("running"))
+        return res.first().result
+
+    @classmethod
+    def get_cached_graph_data(cls, params):
+        data = {
+            "pending": [],
+            "running": [],
+        }
         result = models.BuildsStatistics.query\
-            .filter(models.BuildsStatistics.stat_type == type)\
-            .filter(models.BuildsStatistics.time >= start)\
-            .filter(models.BuildsStatistics.time <= end)\
+            .filter(models.BuildsStatistics.stat_type == params["type"])\
+            .filter(models.BuildsStatistics.time >= params["start"])\
+            .filter(models.BuildsStatistics.time <= params["end"])\
             .order_by(models.BuildsStatistics.time)
 
         for row in result:
-            data[0].append(row.pending)
-            data[1].append(row.running)
+            data["pending"].append(row.pending)
+            data["running"].append(row.running)
 
-        for i in range(len(data[0]) - 1, steps):
-            step_start = start + i * step
-            step_end = step_start + step
+        return data
 
-            query_pending = text("""
-                SELECT COUNT(*) as pending
-                FROM build_chroot JOIN build on build.id = build_chroot.build_id
-                WHERE
-                    build.submitted_on < :end
-                    AND (
-                        build_chroot.started_on > :start
-                        OR (build_chroot.started_on is NULL AND build_chroot.status = :status)
-                        -- for currently pending builds we need to filter on status=pending because there might be
-                        -- failed builds that have started_on=NULL
-                    )
-                    AND NOT build.canceled
-            """)
+    @classmethod
+    def get_task_graph_data(cls, type):
+        data = [["pending"], ["running"], ["avg running"], ["time"]]
+        params = cls.get_graph_parameters(type)
+        cached_data = cls.get_cached_graph_data(params)
+        data[0].extend(cached_data["pending"])
+        data[1].extend(cached_data["running"])
 
-            query_running = text("""
-                SELECT COUNT(*) as running
-                FROM build_chroot
-                WHERE
-                    started_on < :end
-                    AND (ended_on > :start OR (ended_on is NULL AND status = :status))
-                    -- for currently running builds we need to filter on status=running because there might be failed
-                    -- builds that have ended_on=NULL
-            """)
-
-            res_pending = db.engine.execute(query_pending, start=step_start, end=step_end,
-                                            status=StatusEnum('pending'))
-            res_running = db.engine.execute(query_running, start=step_start, end=step_end,
-                                            status=StatusEnum('running'))
-
-            pending = res_pending.first().pending
-            running = res_running.first().running
+        for i in range(len(data[0]) - 1, params["steps"]):
+            step_start = params["start"] + i * params["step"]
+            step_end = step_start + params["step"]
+            pending = cls.get_pending_jobs_bucket(step_start, step_end)
+            running = cls.get_running_jobs_bucket(step_start, step_end)
             data[0].append(pending)
             data[1].append(running)
-
-            statistic = models.BuildsStatistics(
-                time = step_start,
-                stat_type = type,
-                running = running,
-                pending = pending
-            )
-            db.session.merge(statistic)
-            db.session.commit()
+            cls.cache_graph_data(type, time=step_start, pending=pending, running=running)
 
         running_total = 0
-        for i in range(1, steps + 1):
+        for i in range(1, params["steps"] + 1):
             running_total += data[1][i]
 
-        data[2].extend([running_total * 1.0 / steps] * (len(data[0]) - 1))
+        data[2].extend([running_total * 1.0 / params["steps"]] * (len(data[0]) - 1))
 
-        for i in range(start, end, step):
+        for i in range(params["start"], params["end"], params["step"]):
             data[3].append(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(i)))
 
         return data
+
+    @classmethod
+    def get_small_graph_data(cls, type):
+        data = [[""]]
+        params = cls.get_graph_parameters(type)
+        cached_data = cls.get_cached_graph_data(params)
+        data[0].extend(cached_data["running"])
+
+        for i in range(len(data[0]) - 1, params["steps"]):
+            step_start = params["start"] + i * params["step"]
+            step_end = step_start + params["step"]
+            running = cls.get_running_jobs_bucket(step_start, step_end)
+            data[0].append(running)
+            cls.cache_graph_data(type, time=step_start, running=running)
+
+        return data
+
+    @classmethod
+    def cache_graph_data(cls, type, time, pending=0, running=0):
+        result = models.BuildsStatistics.query\
+                .filter(models.BuildsStatistics.stat_type == type)\
+                .filter(models.BuildsStatistics.time == time).first()
+        if result:
+            return
+
+        cached_data = models.BuildsStatistics(
+            time = time,
+            stat_type = type,
+            running = running,
+            pending = pending
+        )
+        db.session.merge(cached_data)
+        db.session.commit()
+
+    @classmethod
+    def get_graph_parameters(cls, type):
+        if type is "10min":
+            # 24 hours with 10 minute intervals
+            step = 600
+            steps = 144
+        elif type is "30min":
+            # 24 hours with 30 minute intervals
+            step = 1800
+            steps = 48
+        elif type is "24h":
+            # 90 days with 24 hour intervals
+            step = 86400
+            steps = 90
+
+        end = int(time.time())
+        end = end - (end % step) # align graph interval to a multiple of step
+        start = end - (steps * step)
+
+        return {
+            "type": type,
+            "step": step,
+            "steps": steps,
+            "start": start,
+            "end": end,
+        }
 
     @classmethod
     def get_build_importing_queue(cls, background=None):
