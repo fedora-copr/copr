@@ -84,7 +84,6 @@ done
 for selinuxvariant in %selinuxvariants; do
   %selinux_modules_install -s $selinuxvariant %{_datadir}/selinux/${selinuxvariant}/%{modulename}.pp.bz2
   %selinux_set_booleans    -s $selinuxvariant %{selinuxbooleans}
-  %selinux_relabel_post    -s $selinuxvariant
 done
 
 
@@ -92,6 +91,12 @@ done
 for selinuxvariant in %selinuxvariants; do
   %selinux_modules_uninstall -s $selinuxvariant %{modulename}
   %selinux_unset_booleans    -s $selinuxvariant %{selinuxbooleans}
+done
+
+
+%posttrans
+for selinuxvariant in %selinuxvariants; do
+  %selinux_relabel_post -s $selinuxvariant
 done
 
 
