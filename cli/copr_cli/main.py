@@ -426,7 +426,6 @@ class Commands(object):
         :param args: argparse arguments provided by the user
 
         """
-        sys.stderr.write("# This command is deprecated and will be removed in a future release.\n")
         ownername, projectname = self.parse_name(args.project)
         build_config = self.client.project_chroot_proxy.get_build_config(ownername, projectname, args.chroot)
         build_config.rootdir = "{}-{}_{}".format(ownername.replace("@", "group_"), projectname, args.chroot)
@@ -776,7 +775,7 @@ def setup_parser():
 
     parser_mock_config = subparsers.add_parser(
         "mock-config",
-        help="Deprecated. Get the mock profile (similar to koji mock-config)"
+        help="Get the mock profile (similar to koji mock-config)"
     )
     parser_mock_config.add_argument(
         "project",
