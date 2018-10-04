@@ -13,9 +13,9 @@ from collections import defaultdict
 
 import logging
 if six.PY2:
-    from urlparse import urljoin
+    from urlparse import urljoin, urlparse
 else:
-    from urllib.parse import urljoin
+    from urllib.parse import urljoin, urlparse
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -216,6 +216,8 @@ class Commands(object):
                     bar.next(n=8192)
 
                 print('Uploading package {0}'.format(pkg))
+            elif not urlparse(pkg).scheme:
+                raise CoprException("File {0} not found".format(pkg))
             else:
                 data = {"url": pkg}
 
