@@ -43,6 +43,11 @@ class CustomFilter(logging.Filter):
         if "traceback" in event:
             record.msg = "{}\n{}".format(record.msg, event.pop("traceback"))
 
+        # '%s %s' % (a, b) requires tuple, while
+        # json.loads(json.dumps(tuple)) returns array
+        if "args" in event and isinstance(event["args"], list):
+            event["args"] = tuple(event["args"])
+
         record.lineno = int(event.pop("lineno", "-1"))
         record.funcName = event.pop("funcName", None)
         record.pathname = event.pop("pathname", None)

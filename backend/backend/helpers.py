@@ -18,6 +18,7 @@ from operator import methodcaller
 import traceback
 
 from datetime import datetime
+from threading import Thread
 
 import subprocess
 
@@ -41,7 +42,7 @@ def pyconffile(filename):
     Load python file as configuration file, inspired by python-flask
     "from_pyfile()
     """
-    d = types.ModuleType(str('config'))
+    d = types.ModuleType('bus_config({0})'.format(filename))
     d.__file__ = filename
     try:
         with open(filename) as config_file:
@@ -396,6 +397,14 @@ class RedisPublishHandler(logging.Handler):
         self.who = who
 
     def emit(self, record):
+        def default(obj):
+            if isinstance(obj, Thread):
+                return obj.name # shows Thread-<ID>
+            if isinstance(obj, types.ModuleType):
+                return "module " + obj.__name__
+            # This is better than traceback.
+            return "can't convert " + str(type(obj))
+
         try:
             msg = record.__dict__
             msg["who"] = self.who
@@ -405,7 +414,7 @@ class RedisPublishHandler(logging.Handler):
                 _, error, tb = msg.pop("exc_info")
                 msg["traceback"] = format_tb(error, tb)
 
-            self.rc.publish(constants.LOG_PUB_SUB, json.dumps(msg))
+            self.rc.publish(constants.LOG_PUB_SUB, json.dumps(msg, default=default))
         # pylint: disable=W0703
         except Exception as error:
             _, _, ex_tb = sys.exc_info()
