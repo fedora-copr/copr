@@ -62,17 +62,19 @@ def bind_proxy(func):
     return wrapper
 
 
-def wait(builds, build_proxy, interval=30, callback=None):
+def wait(builds, build_proxy, interval=30, callback=None, timeout=0):
     """
     :param list builds:
     :param int interval: How many seconds wait before requesting updated Munches from frontend
     :param callable callback: Callable taking one argument (list of build Munches).
                               It will be triggered before every sleep interval.
+    :param int timeout: Limit how many seconds should be waited before this function unsuccessfully ends
     :return: list of build Munches
     """
     watched = set([build.id for build in builds])
     munches = {build.id: build for build in builds}
     failed = []
+    terminate = time.time() + timeout
 
     while True:
         for build_id in watched.copy():
@@ -87,6 +89,8 @@ def wait(builds, build_proxy, interval=30, callback=None):
         callback(list(munches.values()))
         if not watched:
             break
+        if timeout and time.time() >= terminate:
+            raise CoprException("Timeouted")
         time.sleep(interval)
     return list(munches.values())
 
