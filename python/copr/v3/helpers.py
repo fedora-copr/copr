@@ -86,7 +86,8 @@ def wait(builds, build_proxy, interval=30, callback=None, timeout=0):
             if build.state == "unknown":
                 raise CoprException("Unknown status.")
 
-        callback(list(munches.values()))
+        if callback:
+            callback(list(munches.values()))
         if not watched:
             break
         if timeout and time.time() >= terminate:
