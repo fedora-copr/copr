@@ -13,9 +13,9 @@ from collections import defaultdict
 
 import logging
 if six.PY2:
-    from urlparse import urljoin
+    from urlparse import urljoin, urlparse
 else:
-    from urllib.parse import urljoin
+    from urllib.parse import urljoin, urlparse
 
 if sys.version_info < (2, 7):
     class NullHandler(logging.Handler):
@@ -200,11 +200,7 @@ class Commands(object):
         """
         self.client.build_proxy.auth_check()
 
-        bar = None
-        progress_callback = None
-        build_function = self.client.build_proxy.create_from_url
         builds = []
-
         for pkg in args.pkgs:
             if os.path.exists(pkg):
                 bar = ProgressBar(max=os.path.getsize(pkg))
@@ -216,7 +212,12 @@ class Commands(object):
                     bar.next(n=8192)
 
                 print('Uploading package {0}'.format(pkg))
+            elif not urlparse(pkg).scheme:
+                raise CoprException("File {0} not found".format(pkg))
             else:
+                bar = None
+                progress_callback = None
+                build_function = self.client.build_proxy.create_from_url
                 data = {"url": pkg}
 
             builds.append(self.process_build(args, build_function, data, bar=bar, progress_callback=progress_callback))
