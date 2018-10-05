@@ -17,6 +17,19 @@ from tests.coprs_test_case import CoprsTestCase
 
 
 class TestBuildsLogic(CoprsTestCase):
+    data = """
+{
+  "builds":[
+    {
+      "id": 5,
+      "task_id": 5,
+      "srpm_url": "http://foo",
+      "status": 1,
+      "pkg_name": "foo",
+      "pkg_version": 1
+    }
+  ]
+}"""
 
     def test_add_only_adds_active_chroots(self, f_users, f_coprs, f_builds,
                                           f_mock_chroots, f_db):
@@ -25,7 +38,18 @@ class TestBuildsLogic(CoprsTestCase):
         self.db.session.commit()
         b = BuildsLogic.add(self.u2, "blah", self.c2)
         self.db.session.commit()
-        assert b.chroots[0].name == self.mc3.name
+        build_id = b.id
+        expected_name = self.mc3.name
+        assert len(b.chroots) == 0
+
+        self.tc.post("/backend/update/",
+                         content_type="application/json",
+                         headers=self.auth_header,
+                         data=self.data)
+
+        b = BuildsLogic.get(build_id).first()
+        assert len(b.chroots) == 1
+        assert b.chroots[0].name == expected_name
 
     def test_add_raises_if_copr_has_unfinished_actions(self, f_users, f_coprs,
                                                        f_actions, f_db):

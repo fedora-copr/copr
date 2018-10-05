@@ -1,6 +1,13 @@
 {% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_build_method_box %}
 {% from "coprs/detail/_method_forms.html" import copr_method_form_fileds_custom %}
 
+{% macro render_generic_pkg_fields(form) %}
+{{ render_field(form.chroot_blacklist,
+                placeholder="Optional - comma-separated list of wildcard-patterns, e.g.  fedora-*, *-i386",
+                info="What chroots should be skipped for this package, by default we build for all.",
+)}}
+{% endmacro %}
+
 {% macro copr_package_form_begin(form, view, copr, package) %}
   {{ render_form_errors(form) }}
       {% if not package.name %}  {# Add package #}
@@ -76,6 +83,7 @@
     {{ render_field(form.pypi_package_name, placeholder="Package name in the Python Package Index.") }}
     {{ render_field(form.spec_template, placeholder="Spec template to be used for generating srpm.") }}
     {{ render_pypi_python_versions_field(form.python_versions) }}
+    {{ render_generic_pkg_fields(form) }}
     {{ render_anitya_autorebuild(form) }}
     {{ copr_package_form_end(form, package, 'rubygems') }}
 {% endmacro %}
@@ -84,6 +92,7 @@
 {% macro copr_package_form_rubygems(form, view, copr, package) %}
   {{ copr_package_form_begin(form, view, copr, package) }}
   {{ render_field(form.gem_name, placeholder="Gem name from RubyGems.org") }}
+  {{ render_generic_pkg_fields(form) }}
   {{ render_anitya_autorebuild(form) }}
   {{ copr_package_form_end(form, package, 'rubygems') }}
 {% endmacro %}
@@ -92,6 +101,7 @@
 {% macro copr_package_form_custom(form, view, copr, package) %}
   {{ copr_package_form_begin(form, view, copr, package) }}
   {{ copr_method_form_fileds_custom(form) }}
+  {{ render_generic_pkg_fields(form) }}
   {{ render_webhook_rebuild(form) }}
   {{ copr_package_form_end(form, package, 'custom') }}
 {% endmacro %}
@@ -106,6 +116,7 @@
   {{ render_field(form.subdirectory, placeholder="Optional - Subdirectory where source files and .spec are located.") }}
   {{ render_field(form.spec, placeholder="Optional - Path to your .spec file under the specified subdirectory.") }}
 
+  {{ render_generic_pkg_fields(form) }}
   {{ render_webhook_rebuild(form) }}
   {{ render_srpm_build_method_box(form) }}
   {{ copr_package_form_end(form, package, 'mock_scm') }}

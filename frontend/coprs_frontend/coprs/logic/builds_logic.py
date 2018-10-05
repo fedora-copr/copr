@@ -28,6 +28,7 @@ from coprs.logic import users_logic
 from coprs.logic.actions_logic import ActionsLogic
 from coprs.models import BuildChroot
 from .coprs_logic import MockChrootsLogic
+from coprs.logic.packages_logic import PackagesLogic
 
 log = app.logger
 
@@ -648,9 +649,8 @@ GROUP BY
         :type batch: models.Batch
         :rtype: models.Build
         """
-        if chroot_names is None:
-            chroots = [c for c in copr.active_chroots]
-        else:
+        chroots = None
+        if chroot_names:
             chroots = []
             for chroot in copr.active_chroots:
                 if chroot.name in chroot_names:
@@ -709,8 +709,9 @@ GROUP BY
             chroot_status = StatusEnum("pending")
             source_status = StatusEnum("succeeded")
         elif srpm_url:
+            # backend needs to download the SRPM first
             chroot_status = StatusEnum("waiting")
-            source_status = StatusEnum("importing")
+            source_status = StatusEnum("downloading")
         else:
             chroot_status = StatusEnum("waiting")
             source_status = StatusEnum("pending")
@@ -734,12 +735,15 @@ GROUP BY
             build.timeout = timeout or DEFAULT_BUILD_TIMEOUT
 
         db.session.add(build)
+        db.session.flush()
 
-        # add BuildChroot object for each active (or selected) chroot
-        # this copr is assigned to
-        if not chroots:
-            chroots = copr.active_chroots
+        if source_status == StatusEnum("downloading"):
+            ActionsLogic.send_source_download(build, srpm_url)
 
+
+        # Explicitly set chroots per build?  Otherwise we postpone
+        # BuildChroot creation till we know the package name -- till
+        # we have SRPM in hand.
         for chroot in chroots:
             git_hash = None
             if git_hashes:
@@ -785,9 +789,8 @@ GROUP BY
         )
         db.session.add(build)
 
-        chroots = package.copr.active_chroots
         status = StatusEnum("waiting")
-        for chroot in chroots:
+        for chroot in package.chroots:
             buildchroot = models.BuildChroot(
                 build=build,
                 status=status,
@@ -858,20 +861,51 @@ GROUP BY
         """
         log.info("Updating build {} by: {}".format(build.id, upd_dict))
 
-        # update build
-        for attr in ["built_packages", "srpm_url"]:
+        # create the package if it doesn't exist
+        pkg_name = upd_dict.get('pkg_name', None)
+        if pkg_name:
+            if not PackagesLogic.get(build.copr_dir.id, pkg_name).first():
+                try:
+                    package = PackagesLogic.add(
+                        build.copr.user, build.copr_dir,
+                        pkg_name, build.source_type, build.source_json)
+                    db.session.add(package)
+                    db.session.commit()
+                except (sqlalchemy.exc.IntegrityError, exceptions.DuplicateException) as e:
+                    app.logger.exception(e)
+                    db.session.rollback()
+                    return
+            build.package = PackagesLogic.get(build.copr_dir.id, pkg_name).first()
+
+        for attr in ["built_packages", "srpm_url", "pkg_version"]:
             value = upd_dict.get(attr, None)
             if value:
                 setattr(build, attr, value)
 
         # update source build status
-        if upd_dict.get("task_id") == build.task_id:
+        if str(upd_dict.get("task_id")) == str(build.task_id):
             build.result_dir = upd_dict.get("result_dir", "")
 
-            if upd_dict.get("status") == StatusEnum("succeeded"):
+            new_status = upd_dict.get("status")
+            if new_status == StatusEnum("succeeded"):
                 new_status = StatusEnum("importing")
-            else:
-                new_status = upd_dict.get("status")
+                chroot_status=StatusEnum("waiting")
+                if not build.build_chroots:
+                    # create the BuildChroots from Package setting, if not
+                    # already set explicitly for concrete build
+                    print("creating build chroot ...")
+                    for chroot in build.package.chroots:
+                        buildchroot = models.BuildChroot(
+                            build=build,
+                            status=chroot_status,
+                            mock_chroot=chroot,
+                            git_hash=None,
+                        )
+                        db.session.add(buildchroot)
+                else:
+                    for buildchroot in build.build_chroots:
+                        buildchroot.status = chroot_status
+                        db.session.add(buildchroot)
 
             build.source_status = new_status
             if new_status == StatusEnum("failed") or \
@@ -888,8 +922,8 @@ GROUP BY
             db.session.add(build)
             return
 
+
         if "chroot" in upd_dict:
-            # update respective chroot status
             for build_chroot in build.build_chroots:
                 if build_chroot.name == upd_dict["chroot"]:
                     build_chroot.result_dir = upd_dict.get("result_dir", "")

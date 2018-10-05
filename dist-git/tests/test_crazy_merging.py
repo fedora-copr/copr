@@ -188,8 +188,9 @@ def initial_commit_everywhere(request, branches, mc_group, mc_chroot, opts_basic
 class TestMerging(object):
 
     def commit_to_branches(self, to_branches, opts, version):
-        srpm_path, packge_desc = get_srpm(version)
-        import_result = import_package(opts, 'bob/blah', to_branches, srpm_path)
+        srpm_path, package_desc = get_srpm(version)
+        name = package_desc['package_name']
+        import_result = import_package(opts, 'bob/blah', to_branches, srpm_path, name)
         return import_result['branch_commits']
 
     def setup_method(self, method):

@@ -122,6 +122,8 @@
     <span class="pficon pficon-close"></span> {{ state }}
   {% elif state == "waiting" %}
     <span class="glyphicon glyphicon-hourglass"></span> {{ state }}
+  {% elif state == "downloading" %}
+    <span class="glyphicon glyphicon-hourglass"></span> {{ state }}
   {% else %}
     <span> unknown </span>
   {% endif %}

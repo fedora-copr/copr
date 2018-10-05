@@ -153,7 +153,7 @@ def cleanup_repo(repo_path):
 
 
 @helpers.single_run(import_lock)
-def import_package(opts, namespace, branches, srpm_path):
+def import_package(opts, namespace, branches, srpm_path, pkg_name):
     """
     Import package into a DistGit repo for the given branches.
 
@@ -163,11 +163,8 @@ def import_package(opts, namespace, branches, srpm_path):
     :param str srpm_path: path to the srpm file
 
     :return Munch: resulting import data:
-        (branch_commits, reponame, pkg_name, pkg_evr)
+        (branch_commits, reponame, pkg_name)
     """
-    pkg_name, pkg_evr = helpers.pkg_name_evr(srpm_path)
-    log.debug("pkg_name: " + str(pkg_name))
-    log.debug("pkg_evr: " + str(pkg_evr))
 
     reponame = "{}/{}".format(namespace, pkg_name)
     setup_git_repo(reponame, branches)
@@ -212,8 +209,6 @@ def import_package(opts, namespace, branches, srpm_path):
     helpers.run_cmd(['git', 'config', 'user.email', opts.git_user_email])
 
     message = "automatic import of {}".format(pkg_name)
-    if pkg_evr:
-        message += " {}".format(pkg_evr)
 
     branch_commits = {}
     for branch in branches:
@@ -253,6 +248,4 @@ def import_package(opts, namespace, branches, srpm_path):
     return munch.Munch(
         branch_commits=branch_commits,
         reponame=reponame,
-        pkg_name=pkg_name,
-        pkg_evr=pkg_evr,
     )

@@ -9,9 +9,13 @@ import base64
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
 from urllib.request import urlretrieve
+from urllib.parse import urlparse
 from copr.exceptions import CoprRequestException
+from backend.exceptions import CoprBackendSrpmError
 from requests import RequestException
 from munch import Munch
+
+from copr_common.enums import StatusEnum
 
 import gi
 gi.require_version('Modulemd', '1.0')
@@ -20,7 +24,7 @@ from gi.repository import Modulemd
 from .sign import create_user_keys, CoprKeygenRequestError
 from .createrepo import createrepo
 from .exceptions import CreateRepoError, CoprSignError
-from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, cmd_debug
+from .helpers import get_redis_logger, silent_remove, ensure_dir_exists, get_chroot_arch, cmd_debug, pkg_name_evr
 from .sign import sign_rpms_in_dir, unsign_rpms_in_dir, get_pubkey
 
 from .vm_manage.manager import VmManager
@@ -389,6 +393,66 @@ class Action(object):
         cmd_debug(cmd, rc, out, err, self.log)
         result.result = ActionResult.SUCCESS
 
+    def handle_download_source(self, result):
+        result.result = ActionResult.FAILURE
+        data = json.loads(self.data["data"])
+        url = data["url"]
+        copr_subdir = data['copr']
+        build_id = data["build_id"]
+
+        self.log.info("Downloading srpm {0}".format(url))
+
+        destdir = os.path.join(
+            self.opts.destdir,
+            copr_subdir,
+            'source-downloads',
+            "{:08d}".format(build_id),
+        )
+
+        destdir_url = os.path.join(
+            self.opts.results_baseurl,
+            copr_subdir,
+            'source-downloads',
+            "{:08d}".format(build_id),
+        )
+
+        try:
+            os.makedirs(destdir)
+        except OSError as err:
+            if err.errno != os.errno.EEXIST:
+                raise
+
+        basename = os.path.basename(urlparse(url).path)
+        localfile = os.path.join(destdir, basename)
+
+        try:
+            urlretrieve(url, localfile)
+        except Exception:
+            self.log.exception(e)
+            return
+
+        try:
+            pkg_name, pkg_version = pkg_name_evr(localfile)
+        except CoprBackendSrpmError as err:
+            self.log.exception(err)
+            return
+
+        try:
+            self.frontend_client.update({
+                "builds": [{
+                    "id": build_id,
+                    "task_id": build_id,
+                    "srpm_url": os.path.join(destdir_url, basename),
+                    "status": StatusEnum("succeeded"),
+                    "pkg_name": pkg_name,
+                    "pkg_version": pkg_version,
+                }]
+            })
+        except RequestException as e:
+            self.log.exception(e)
+            return
+
+        result.result = ActionResult.SUCCESS
 
     def handle_build_module(self, result):
         try:
@@ -486,6 +550,9 @@ class Action(object):
         elif action_type == ActionType.CANCEL_BUILD:
             self.handle_cancel_build(result)
 
+        elif action_type == ActionType.DOWNLOAD_SOURCE:
+            self.handle_download_source(result)
+
         self.log.info("Action result: %s", result)
 
         if "result" in result:
@@ -499,6 +566,7 @@ class Action(object):
                 self.log.exception(e)
 
 
+# TODO: sync with ActionTypeEnum from common
 class ActionType(object):
     DELETE = 0
     RENAME = 1
@@ -511,6 +579,7 @@ class ActionType(object):
     UPDATE_MODULE_MD = 8
     BUILD_MODULE = 9
     CANCEL_BUILD = 10
+    DOWNLOAD_SOURCE = 11
 
 
 class ActionResult(object):

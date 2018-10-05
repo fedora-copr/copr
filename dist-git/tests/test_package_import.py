@@ -93,26 +93,21 @@ class TestPackageImport(Base):
         mc_pyrpkg_commands.return_value = mc_cmd
         mc_cmd.commithash = '1234'
 
-        mc_helpers.pkg_name_evr = MagicMock(return_value = ('pkg_name', '1.2'))
-
         namespace = 'somenamespace'
         branches = ['f25', 'f26']
-        result = import_package(self.opts, namespace, branches, 'some_srpm_path')
+        result = import_package(self.opts, namespace, branches,
+                'some_srpm_path', 'pkg_name')
         expected_result = Munch({
             'branch_commits': {'f26': '1234', 'f25': '1234'},
             'reponame': 'somenamespace/pkg_name',
-            'pkg_name': 'pkg_name',
-            'pkg_evr': '1.2',
         })
         assert (result == expected_result)
 
         mc_cmd.push.side_effect = rpkgError
-        result = import_package(self.opts, namespace, branches, 'some_srpm_path')
+        result = import_package(self.opts, namespace, branches, 'some_srpm_path', 'pkg_name')
         expected_result = Munch({
             'branch_commits': {},
             'reponame': 'somenamespace/pkg_name',
-            'pkg_name': 'pkg_name',
-            'pkg_evr': '1.2',
         })
         assert (result == expected_result)
 

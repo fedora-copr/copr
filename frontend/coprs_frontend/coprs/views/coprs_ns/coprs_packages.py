@@ -157,6 +157,7 @@ def copr_edit_package(copr, package_name, source_type_text=None, **kwargs):
     package = ComplexLogic.get_package_safe(copr.main_dir, package_name)
     data = package.source_json_dict
     data["webhook_rebuild"] = package.webhook_rebuild
+    data["chroot_blacklist"] = package.chroot_blacklist_raw
 
     if package.has_source_type_set and not source_type_text:
         source_type_text = package.source_type_text
@@ -227,6 +228,7 @@ def process_save_package(copr, source_type_text, package_name, view, view_method
             package.source_type = helpers.BuildSourceEnum(source_type_text)
             package.webhook_rebuild = form.webhook_rebuild.data
             package.source_json = form.source_json
+            package.chroot_blacklist_raw = form.chroot_blacklist.data
 
             db.session.add(package)
             db.session.commit()

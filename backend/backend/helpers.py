@@ -32,7 +32,7 @@ from redis import StrictRedis
 from copr.client import CoprClient
 from backend.constants import DEF_BUILD_USER, DEF_BUILD_TIMEOUT, DEF_CONSECUTIVE_FAILURE_THRESHOLD, \
     CONSECUTIVE_FAILURE_REDIS_KEY, default_log_format
-from backend.exceptions import CoprBackendError
+from backend.exceptions import CoprBackendError, CoprBackendSrpmError
 
 from . import constants
 
@@ -503,3 +503,34 @@ def local_file_logger(name, path, fmt):
         # to the previous project
         for h in build_logger.handlers[:]:
             build_logger.removeHandler(h)
+
+def pkg_name_evr(srpm_path):
+    """
+    Queries a package for its name and evr (epoch:version-release)
+    """
+    cmd = ['rpm', '-qp', '--nosignature', '--qf',
+           '%{NAME} %{EPOCH} %{VERSION} %{RELEASE}', srpm_path]
+
+    try:
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            encoding='utf-8')
+        output, error = proc.communicate()
+    except OSError as e:
+        raise CoprBackendSrpmError(str(e))
+
+    if proc.returncode != 0:
+        raise CoprBackendSrpmError('Error querying srpm: %s' % error)
+
+    try:
+        name, epoch, version, release = output.split(" ")
+    except ValueError as e:
+        raise CoprBackendSrpmError(str(e))
+
+    # Epoch is an integer or '(none)' if not set
+    if epoch.isdigit():
+        evr = "{}:{}-{}".format(epoch, version, release)
+    else:
+        evr = "{}-{}".format(version, release)
+
+    return name, evr

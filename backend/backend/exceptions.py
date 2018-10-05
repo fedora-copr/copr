@@ -88,6 +88,8 @@ class CoprWorkerError(CoprBackendError):
 class CoprSpawnFailError(CoprBackendError):
     pass
 
+class CoprBackendSrpmError(CoprBackendError):
+    pass
 
 class VmError(CoprBackendError):
     """

@@ -37,6 +37,7 @@ BuildRequires: python3-setproctitle
 BuildRequires: python3-retask
 BuildRequires: python3-configparser
 BuildRequires: python3-copr
+BuildRequires: python3-copr-common
 BuildRequires: python3-dateutil
 BuildRequires: python3-pytz
 BuildRequires: python3-sphinx
@@ -57,6 +58,7 @@ Requires:   python3-requests
 Requires:   python3-setproctitle
 Requires:   python3-retask
 Requires:   python3-copr
+Requires:   python3-copr-common
 Requires:   python3-dateutil
 Requires:   python3-pytz
 Requires:   python3-netaddr

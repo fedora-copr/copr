@@ -4,6 +4,7 @@ import os
 import json
 import base64
 import uuid
+from fnmatch import fnmatch
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from six.moves.urllib.parse import urljoin
@@ -522,6 +523,10 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
     copr_dir_id = db.Column(db.Integer, db.ForeignKey("copr_dir.id"), index=True)
     copr_dir = db.relationship("CoprDir", backref=db.backref("packages"))
 
+    # comma-separated list of wildcards of chroot names that this package should
+    # not be built against, e.g. "fedora-*, epel-*-i386"
+    chroot_blacklist_raw = db.Column(db.Text)
+
     @property
     def dist_git_repo(self):
         return "{}/{}".format(self.copr_dir.full_name, self.name)
@@ -580,6 +585,55 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     def get_search_related_copr_id(self):
         return self.copr.id
+
+
+    @property
+    def chroot_blacklist(self):
+        if not self.chroot_blacklist_raw:
+            return []
+
+        blacklisted = []
+        for pattern in self.chroot_blacklist_raw.split(','):
+            pattern = pattern.strip()
+            if not pattern:
+                continue
+            blacklisted.append(pattern)
+
+        return blacklisted
+
+
+    @staticmethod
+    def matched_chroot(chroot, patterns):
+        for pattern in patterns:
+            if fnmatch(chroot.name, pattern):
+                return True
+        return False
+
+
+    @property
+    def main_pkg(self):
+        if self.copr_dir.main:
+            return self
+
+        main_pkg = Package.query.filter_by(
+                name=self.name,
+                copr_dir_id=self.copr.main_dir.id
+        ).first()
+        return main_pkg
+
+
+    @property
+    def chroots(self):
+        chroots = self.copr.active_chroots
+        if not self.chroot_blacklist_raw:
+            # no specific blacklist
+            if self.copr_dir.main:
+                return chroots
+            return self.main_pkg.chroots
+
+        filtered = [c for c in chroots if not self.matched_chroot(c, self.chroot_blacklist)]
+        # We never want to filter everything, this is a misconfiguration.
+        return filtered if filtered else chroots
 
 
 class Build(db.Model, helpers.Serializer):
@@ -816,6 +870,10 @@ class Build(db.Model, helpers.Serializer):
         """
         if self.canceled:
             return StatusEnum("canceled")
+
+        use_src_statuses = ["starting", "pending", "running", "downloading"]
+        if self.source_status in [StatusEnum(s) for s in use_src_statuses]:
+            return self.source_status
 
         for state in ["running", "starting", "pending", "failed", "succeeded", "skipped", "forked", "waiting"]:
             if StatusEnum(state) in self.chroot_states:

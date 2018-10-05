@@ -6,6 +6,7 @@ import wtforms
 import json
 
 from flask_wtf.file import FileRequired, FileField
+from fnmatch import fnmatch
 
 try: # get rid of deprecation warning with newer flask_wtf
     from flask_wtf import FlaskForm
@@ -170,7 +171,7 @@ class ChrootsValidator(object):
             return
 
         selected = set(field.data.split())
-        enabled = set(self.chroots_list())
+        enabled = get_active_chroots()
 
         if not (selected <= enabled):
             raise wtforms.ValidationError("Such chroot is not enabled: {}".format(", ".join(selected - enabled)))
@@ -404,11 +405,52 @@ class RebuildPackageFactory(object):
         return form
 
 
+def cleanup_chroot_blacklist(string):
+    if not string:
+        return string
+    fields = [x.lstrip().rstrip() for x in string.split(',')]
+    return ', '.join(fields)
+
+
+def get_active_chroots():
+    return set([c.name for c in models.MockChroot.query.filter(models.MockChroot.is_active).all()])
+
+
+def validate_chroot_blacklist(form, field):
+    if field.data:
+        string = field.data
+        fields = [x.lstrip().rstrip() for x in string.split(',')]
+        for field in fields:
+            pattern = r'^[a-z0-9-*]+$'
+            if not re.match(pattern, field):
+                raise wtforms.ValidationError('Pattern "{0}" does not match "{1}"'.format(field, pattern))
+
+            matched = set()
+            all_chroots = get_active_chroots()
+            for chroot in all_chroots:
+                if fnmatch(chroot, field):
+                    matched.add(chroot)
+
+            if not matched:
+                raise wtforms.ValidationError('no chroot matched by pattern "{0}"'.format(field))
+
+            if matched == all_chroots:
+                raise wtforms.ValidationError('patterns are black-listing all chroots')
+
+
 class BasePackageForm(FlaskForm):
     package_name = wtforms.StringField(
         "Package name",
         validators=[wtforms.validators.DataRequired()])
     webhook_rebuild = wtforms.BooleanField(default=False, false_values=FALSE_VALUES)
+    chroot_blacklist = wtforms.StringField(
+        "Chroot blacklist",
+        filters=[cleanup_chroot_blacklist],
+        validators=[
+            wtforms.validators.Optional(),
+            validate_chroot_blacklist,
+        ],
+    )
 
 
 class PackageFormScm(BasePackageForm):

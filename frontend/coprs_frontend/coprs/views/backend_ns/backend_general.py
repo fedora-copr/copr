@@ -41,7 +41,9 @@ def dist_git_importing_queue():
             "build_id": build.id,
             "owner": build.copr.owner_name,
             "project": build.copr_dirname,
+            # TODO: we mix PR with normal builds here :-(
             "branches": list(branches),
+            "pkg_name": build.package.name,
             "srpm_url": build.srpm_url,
         })
 
@@ -53,8 +55,6 @@ def dist_git_importing_queue():
 def dist_git_upload_completed():
     app.logger.debug(flask.request.json)
     build_id = flask.request.json.get("build_id")
-    pkg_name = flask.request.json.get("pkg_name")
-    pkg_version = flask.request.json.get("pkg_evr")
 
     try:
         build = ComplexLogic.get_build_safe(build_id)
@@ -64,22 +64,6 @@ def dist_git_upload_completed():
     collected_branch_chroots = []
     for branch, git_hash in flask.request.json.get("branch_commits", {}).items():
         branch_chroots = BuildsLogic.get_buildchroots_by_build_id_and_branch(build_id, branch)
-
-        if not PackagesLogic.get(build.copr_dir.id, pkg_name).first():
-            try:
-                package = PackagesLogic.add(
-                    build.copr.user, build.copr_dir,
-                    pkg_name, build.source_type, build.source_json)
-                db.session.add(package)
-                db.session.commit()
-            except (sqlalchemy.exc.IntegrityError, exceptions.DuplicateException) as e:
-                app.logger.exception(e)
-                db.session.rollback()
-
-        package = PackagesLogic.get(build.copr_dir.id, pkg_name).first()
-        build.package_id = package.id
-        build.pkg_version = pkg_version
-
         for ch in branch_chroots:
             ch.status = StatusEnum("pending")
             ch.git_hash = git_hash

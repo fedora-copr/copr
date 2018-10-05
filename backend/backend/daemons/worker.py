@@ -7,11 +7,11 @@ import pipes
 import glob
 from setproctitle import setproctitle
 
-from ..exceptions import MockRemoteError, CoprWorkerError, VmError
+from ..exceptions import MockRemoteError, CoprWorkerError, VmError, CoprBackendSrpmError
 from ..mockremote import MockRemote
 from ..constants import BuildStatus, build_log_format
 from ..helpers import register_build_result, get_redis_logger, \
-    local_file_logger, run_cmd
+    local_file_logger, run_cmd, pkg_name_evr
 
 from ..msgbus import MsgBusStomp, MsgBusFedmsg
 from ..sshcmd import SSHConnectionError
@@ -264,17 +264,17 @@ class Worker(multiprocessing.Process):
         self.log.info("Built packages:\n%s", built_packages)
         return built_packages
 
-    def get_srpm_url(self, job):
-        self.log.info("Retrieving srpm URL for %s", job.results_dir)
-        try:
-            pattern = os.path.join(job.results_dir, '*.src.rpm')
-            srpm_name = os.path.basename(glob.glob(pattern)[0])
-            srpm_url = os.path.join(job.results_dir_url, srpm_name)
-        except IndexError:
-            srpm_url = ""
-
+    def get_srpm_build_details(self, job):
+        build_details = {'srpm_url': ''}
+        self.log.info("Retrieving srpm URL from %s", job.results_dir)
+        pattern = os.path.join(job.results_dir, '*.src.rpm')
+        srpm_file = glob.glob(pattern)[0]
+        srpm_name = os.path.basename(srpm_file)
+        srpm_url = os.path.join(job.results_dir_url, srpm_name)
+        build_details['pkg_name'], build_details['pkg_version'] = pkg_name_evr(srpm_file)
+        build_details['srpm_url'] = srpm_url
         self.log.info("SRPM URL: %s", srpm_url)
-        return srpm_url
+        return build_details
 
     def get_build_details(self, job):
         """
@@ -283,7 +283,7 @@ class Worker(multiprocessing.Process):
         """
         try:
             if job.chroot == "srpm-builds":
-                build_details = { "srpm_url": self.get_srpm_url(job) }
+                build_details = self.get_srpm_build_details(job)
             else:
                 build_details = { "built_packages": self.collect_built_packages(job) }
             self.log.info("build details: %s", build_details)

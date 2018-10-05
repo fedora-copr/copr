@@ -80,7 +80,8 @@ class Importer(object):
                 self.opts,
                 task.repo_namespace,
                 task.branches,
-                srpm_path
+                srpm_path,
+                task.pkg_name,
             ))
         except PackageImportException as e:
             log.exception("Exception raised during package import.")

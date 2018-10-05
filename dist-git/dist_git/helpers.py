@@ -198,36 +198,3 @@ def run_cmd(cmd, cwd='.', raise_on_error=True):
         raise RunCommandException(result.stderr)
 
     return result
-
-
-def pkg_name_evr(srpm_path):
-    """
-    Queries a package for its name and evr (epoch:version-release)
-    """
-    log.debug("Obtaining package name and version.")
-    cmd = ['rpm', '-qp', '--nosignature', '--qf',
-           '%{NAME} %{EPOCH} %{VERSION} %{RELEASE}', srpm_path]
-
-    try:
-        proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            encoding='utf-8')
-        output, error = proc.communicate()
-    except OSError as e:
-        raise SrpmQueryException(str(e))
-
-    if proc.returncode != 0:
-        raise SrpmQueryException('Error querying srpm: %s' % error)
-
-    try:
-        name, epoch, version, release = output.split(" ")
-    except ValueError as e:
-        raise SrpmQueryException(str(e))
-
-    # Epoch is an integer or '(none)' if not set
-    if epoch.isdigit():
-        evr = "{}:{}-{}".format(epoch, version, release)
-    else:
-        evr = "{}-{}".format(version, release)
-
-    return name, evr
