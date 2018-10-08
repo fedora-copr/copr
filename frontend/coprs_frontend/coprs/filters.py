@@ -3,7 +3,12 @@ from six.moves.urllib.parse import urlparse
 import pytz
 import time
 
-import CommonMark
+try:
+    import commonmark
+except:
+    # needed for Fedora <= 29
+    import CommonMark as commonmark
+
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, guess_lexer
 from pygments.lexers.special import TextLexer
@@ -19,7 +24,7 @@ from copr_common.enums import ModuleStatusEnum, StatusEnum
 from coprs import app
 from coprs import helpers
 
-class CoprHtmlRenderer(CommonMark.HtmlRenderer):
+class CoprHtmlRenderer(commonmark.HtmlRenderer):
     def code_block(self, node, entering):
         info_words = node.info.split() if node.info else []
         attrs = self.attrs(node)
@@ -27,7 +32,7 @@ class CoprHtmlRenderer(CommonMark.HtmlRenderer):
 
         if len(info_words) > 0 and len(info_words[0]) > 0:
             attrs.append(['class', 'language-' +
-                          CommonMark.common.escape_xml(info_words[0], True)])
+                          commonmark.common.escape_xml(info_words[0], True)])
             try:
                 lexer = get_lexer_by_name(info_words[0])
             except ClassNotFound:
@@ -173,7 +178,7 @@ def markdown_filter(data):
     if not data:
         return ''
 
-    parser = CommonMark.Parser()
+    parser = commonmark.Parser()
     renderer = CoprHtmlRenderer()
 
     return Markup(renderer.render(parser.parse(data)))
