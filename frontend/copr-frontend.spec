@@ -144,6 +144,7 @@ Requires: xstatic-datatables-common
 Requires: js-html5shiv
 Requires: js-respond
 Requires: python3-copr-common
+Requires: (copr-selinux if selinux-policy-targeted)
 
 Provides: bundled(bootstrap-combobox) = 1.1.6
 Provides: bundled(bootstrap-select) = 1.5.4

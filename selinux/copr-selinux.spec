@@ -4,9 +4,10 @@
 
 %global moduletype apps
 %global modulename copr
-%{!?_selinux_policy_version: %global _selinux_policy_version %(sed -e 's,.*selinux-policy-\\([^/]*\\)/.*,\\1,' %{_datadir}/selinux/devel/policyhelp 2>/dev/null)}
-%global file_context_file %{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
-%global file_context_file_pre %{_localstatedir}/lib/rpm-state/file_contexts.pre
+%global selinuxbooleans httpd_enable_cgi=1 httpd_can_network_connect=1 httpd_can_sendmail=1 nis_enabled=1
+# We can build 'mls' too, once this is resolved:
+# https://github.com/fedora-selinux/selinux-policy-macros/pull/4
+%global selinuxvariants targeted
 
 Name:       {{{ git_dir_name }}}
 Version:    {{{ git_dir_version lead=1 }}}
@@ -25,20 +26,10 @@ Source0:    {{{ git_dir_archive }}}
 BuildArch:  noarch
 BuildRequires: asciidoc
 BuildRequires: libxslt
-BuildRequires:  checkpolicy, selinux-policy-devel
-BuildRequires:  policycoreutils
 BuildRequires:  perl
-Requires(post): policycoreutils, libselinux-utils
-%if 0%{?rhel} && 0%{?rhel} <= 7
-Requires(post): policycoreutils-python
-%else
-Requires(post): policycoreutils-python-utils
-%endif
-Requires(post): selinux-policy-targeted
-Requires(postun): policycoreutils
-%if "%{_selinux_policy_version}" != ""
-Requires:      selinux-policy >= %{_selinux_policy_version}
-%endif
+
+BuildRequires: selinux-policy-devel
+%{?selinux_requires}
 
 
 %description
@@ -57,15 +48,16 @@ a2x -d manpage -f manpage man/copr-selinux-enable.8.asciidoc
 a2x -d manpage -f manpage man/copr-selinux-relabel.8.asciidoc
 
 perl -i -pe 'BEGIN { $VER = join ".", grep /^\d+$/, split /\./, "%{version}.%{release}"; } s!\@\@VERSION\@\@!$VER!g;' %{modulename}.te
-for selinuxvariant in targeted mls; do
+for selinuxvariant in %selinuxvariants; do
     make NAME=${selinuxvariant} -f %{_datadir}/selinux/devel/Makefile
     bzip2 -9 %{modulename}.pp
     mv %{modulename}.pp.bz2 %{modulename}.pp.bz2.${selinuxvariant}
     make NAME=${selinuxvariant} -f %{_datadir}/selinux/devel/Makefile clean
 done
 
+
 %install
-for selinuxvariant in targeted mls; do
+for selinuxvariant in %selinuxvariants; do
     install -d %{buildroot}%{_datadir}/selinux/${selinuxvariant}
     install -p -m 644 %{modulename}.pp.bz2.${selinuxvariant} \
            %{buildroot}%{_datadir}/selinux/${selinuxvariant}/%{modulename}.pp.bz2
@@ -74,41 +66,39 @@ done
 install -d %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}
 install -p -m 644 %{modulename}.if \
   %{buildroot}%{_datadir}/selinux/devel/include/%{moduletype}/%{modulename}.if
-# Install copr-selinux-enable which will be called in %%posttrans
 install -d %{buildroot}%{_sbindir}
 install -p -m 755 %{name}-enable %{buildroot}%{_sbindir}/%{name}-enable
 install -p -m 755 %{name}-relabel %{buildroot}%{_sbindir}/%{name}-relabel
-
 install -d %{buildroot}%{_mandir}/man8
 install -p -m 644 man/%{name}-enable.8 %{buildroot}/%{_mandir}/man8/
 install -p -m 644 man/%{name}-relabel.8 %{buildroot}/%{_mandir}/man8/
 
+
 %pre
-if /usr/sbin/selinuxenabled ; then
-   [ -f %{file_context_file_pre} ] || cp -f %{file_context_file} %{file_context_file_pre}
-fi
+for selinuxvariant in %selinuxvariants; do
+  %selinux_relabel_pre -s $selinuxvariant
+done
+
 
 %post
-if /usr/sbin/selinuxenabled ; then
-   %{_sbindir}/%{name}-enable
-fi
+for selinuxvariant in %selinuxvariants; do
+  %selinux_modules_install -s $selinuxvariant %{_datadir}/selinux/${selinuxvariant}/%{modulename}.pp.bz2
+  %selinux_set_booleans    -s $selinuxvariant %{selinuxbooleans}
+done
 
-%posttrans
-if /usr/sbin/selinuxenabled ; then
-   if [ -f %{file_context_file_pre} ]; then
-     /usr/sbin/fixfiles -C %{file_context_file_pre} restore
-     rm -f %{file_context_file_pre}
-   fi
-fi
 
 %postun
-# Clean up after package removal
-if [ $1 -eq 0 ]; then
-  for selinuxvariant in targeted mls; do
-      /usr/sbin/semodule -s ${selinuxvariant} -l > /dev/null 2>&1 \
-        && /usr/sbin/semodule -s ${selinuxvariant} -r %{modulename} || :
-    done
-fi
+for selinuxvariant in %selinuxvariants; do
+  %selinux_modules_uninstall -s $selinuxvariant %{modulename}
+  %selinux_unset_booleans    -s $selinuxvariant %{selinuxbooleans}
+done
+
+
+%posttrans
+for selinuxvariant in %selinuxvariants; do
+  %selinux_relabel_post -s $selinuxvariant
+done
+
 
 %files
 %license LICENSE
@@ -119,7 +109,6 @@ fi
 %{_sbindir}/%{name}-relabel
 %{_mandir}/man8/%{name}-enable.8*
 %{_mandir}/man8/%{name}-relabel.8*
-%dir %{_datadir}/selinux/mls
 
 %changelog
 {{{ git_dir_changelog since_tag=copr-selinux-1.49-1 }}}
