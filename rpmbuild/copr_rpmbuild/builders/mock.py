@@ -5,7 +5,7 @@ import shutil
 import subprocess
 
 from jinja2 import Environment, FileSystemLoader
-from ..helpers import locate_spec, locate_srpm, CONF_DIRS, get_mock_uniqueext
+from ..helpers import locate_spec, locate_srpm, CONF_DIRS, get_mock_uniqueext, GentlyTimeoutedPopen
 
 log = logging.getLogger("__main__")
 
