@@ -992,6 +992,11 @@ class CoprChroot(db.Model, helpers.Serializer):
     with_opts = db.Column(db.Text, default="", server_default="", nullable=False)
     without_opts = db.Column(db.Text, default="", server_default="", nullable=False)
 
+    # Once mock_chroot gets EOL, copr_chroots are going to be deleted
+    # if their owner doesn't extend their time span
+    delete_after = db.Column(db.DateTime)
+    delete_notify = db.Column(db.DateTime)
+
     def update_comps(self, comps_xml):
         if isinstance(comps_xml, str):
             data = comps_xml.encode("utf-8")
