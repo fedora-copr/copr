@@ -508,8 +508,8 @@ class CoprChrootsLogic(object):
         return mock_chroots
 
     @classmethod
-    def get_by_name(cls, copr, chroot_name):
-        mc = MockChrootsLogic.get_from_name(chroot_name, active_only=True).one()
+    def get_by_name(cls, copr, chroot_name, active_only=True):
+        mc = MockChrootsLogic.get_from_name(chroot_name, active_only=active_only).one()
         query = (
             models.CoprChroot.query.join(models.MockChroot)
             .filter(models.CoprChroot.copr_id == copr.id)
