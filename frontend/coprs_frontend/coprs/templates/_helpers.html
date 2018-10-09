@@ -122,8 +122,6 @@
     <span class="pficon pficon-close"></span> {{ state }}
   {% elif state == "waiting" %}
     <span class="glyphicon glyphicon-hourglass"></span> {{ state }}
-  {% elif state == "downloading" %}
-    <span class="glyphicon glyphicon-hourglass"></span> {{ state }}
   {% else %}
     <span> unknown </span>
   {% endif %}
@@ -134,10 +132,16 @@
   {% if build.canceled %}
     {{ build_state_text("canceled") }}
   {% else %}
-    {% if build.status|state_from_num == "waiting" %}
+    {% if build.status is not none %}
+      {% if build.status|state_from_num == "waiting" %}
+        {{ build_state_text(build.source_status|state_from_num) }}
+      {% else %}
+        {{ build_state_text(build.status|state_from_num) }}
+      {% endif %}
+    {% elif build.source_status %}
       {{ build_state_text(build.source_status|state_from_num) }}
     {% else %}
-      {{ build_state_text(build.status|state_from_num) }}
+      {{ build_state_text(0|state_from_num) }}
     {% endif %}
   {% endif %}
 {% endmacro %}

@@ -1,20 +1,20 @@
 from ..helpers import SourceType
 from .rubygems import RubyGemsProvider
 from .pypi import PyPIProvider
-from .spec import SpecUrlProvider
+from .spec import UrlProvider
 from .scm import ScmProvider
 from .custom import CustomProvider
 
 
 __all__ = [RubyGemsProvider, PyPIProvider,
-           SpecUrlProvider, ScmProvider]
+           UrlProvider, ScmProvider]
 
 
 def factory(source_type):
     try:
         return {
-            SourceType.LINK: SpecUrlProvider,
-            SourceType.UPLOAD: SpecUrlProvider,
+            SourceType.LINK: UrlProvider,
+            SourceType.UPLOAD: UrlProvider,
             SourceType.RUBYGEMS: RubyGemsProvider,
             SourceType.PYPI: PyPIProvider,
             SourceType.SCM: ScmProvider,

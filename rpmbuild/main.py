@@ -41,8 +41,10 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
-VERSION = pkg_resources.require('copr-rpmbuild')[0].version
-
+try:
+    VERSION = pkg_resources.require('copr-rpmbuild')[0].version
+except pkg_resources.DistributionNotFound:
+    VERSION = 'git'
 
 def daemonize():
     try:

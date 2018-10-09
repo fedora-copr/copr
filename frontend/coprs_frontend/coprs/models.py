@@ -767,9 +767,6 @@ class Build(db.Model, helpers.Serializer):
     def import_log_urls(self):
         backend_log = self.import_log_url_backend
         types = [helpers.BuildSourceEnum("upload"), helpers.BuildSourceEnum("link")]
-        if self.source_type in types:
-            if json.loads(self.source_json).get("url", "").endswith(".src.rpm"):
-                backend_log = None
         return filter(None, [backend_log, self.import_log_url_distgit])
 
     @property
@@ -871,7 +868,7 @@ class Build(db.Model, helpers.Serializer):
         if self.canceled:
             return StatusEnum("canceled")
 
-        use_src_statuses = ["starting", "pending", "running", "downloading"]
+        use_src_statuses = ["starting", "pending", "running"]
         if self.source_status in [StatusEnum(s) for s in use_src_statuses]:
             return self.source_status
 

@@ -146,19 +146,6 @@ class ActionsLogic(object):
             db.session.add(action)
 
     @classmethod
-    def send_source_download(cls, build, url):
-        action = models.Action(
-            action_type=ActionTypeEnum("download_source"),
-            data=json.dumps({
-                'build_id': build.id,
-                'copr': '{0}/{1}'.format(build.copr.owner_name, build.copr.name),
-                'url': url,
-            }),
-            created_on=int(time.time())
-        )
-        db.session.add(action)
-
-    @classmethod
     def send_update_comps(cls, chroot):
         """ Schedules update comps.xml action
 

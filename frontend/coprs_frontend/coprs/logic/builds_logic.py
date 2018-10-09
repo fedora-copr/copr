@@ -708,10 +708,6 @@ GROUP BY
         if skip_import and srpm_url:
             chroot_status = StatusEnum("pending")
             source_status = StatusEnum("succeeded")
-        elif srpm_url:
-            # backend needs to download the SRPM first
-            chroot_status = StatusEnum("waiting")
-            source_status = StatusEnum("downloading")
         else:
             chroot_status = StatusEnum("waiting")
             source_status = StatusEnum("pending")
@@ -735,16 +731,9 @@ GROUP BY
             build.timeout = timeout or DEFAULT_BUILD_TIMEOUT
 
         db.session.add(build)
-        db.session.flush()
 
-        if source_status == StatusEnum("downloading"):
-            ActionsLogic.send_source_download(build, srpm_url)
-
-
-        # Explicitly set chroots per build?  Otherwise we postpone
-        # BuildChroot creation till we know the package name -- till
-        # we have SRPM in hand.
         for chroot in chroots:
+            # Chroots were explicitly set per-build.
             git_hash = None
             if git_hashes:
                 git_hash = git_hashes.get(chroot.name)
@@ -922,8 +911,8 @@ GROUP BY
             db.session.add(build)
             return
 
-
         if "chroot" in upd_dict:
+            # update respective chroot status
             for build_chroot in build.build_chroots:
                 if build_chroot.name == upd_dict["chroot"]:
                     build_chroot.result_dir = upd_dict.get("result_dir", "")

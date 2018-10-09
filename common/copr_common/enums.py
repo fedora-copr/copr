@@ -28,7 +28,6 @@ class ActionTypeEnum(with_metaclass(EnumType, object)):
         "update_module_md": 8,
         "build_module": 9,
         "cancel_build": 10,
-        "download_source": 11,
     }
 
 
@@ -52,7 +51,6 @@ class StatusEnum(with_metaclass(EnumType, object)):
         "importing": 7,  # SRPM is being imported into dist-git
         "forked": 8,     # build(-chroot) was forked
         "waiting": 9,    # build(-chroot) is waiting for something else to finish
-        "downloading": 10,  # SRPM is being downloaded on backend
         "unknown": 1000, # undefined
     }
 

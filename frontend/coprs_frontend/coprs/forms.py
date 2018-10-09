@@ -52,6 +52,10 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         raise exceptions.UnknownSourceTypeException("Invalid source type")
 
 
+def get_active_chroots():
+    return set([c.name for c in models.MockChroot.query.filter(models.MockChroot.is_active).all()])
+
+
 class MultiCheckboxField(wtforms.SelectMultipleField):
     widget = wtforms.widgets.ListWidget(prefix_label=False)
     option_widget = wtforms.widgets.CheckboxInput()
@@ -410,10 +414,6 @@ def cleanup_chroot_blacklist(string):
         return string
     fields = [x.lstrip().rstrip() for x in string.split(',')]
     return ', '.join(fields)
-
-
-def get_active_chroots():
-    return set([c.name for c in models.MockChroot.query.filter(models.MockChroot.is_active).all()])
 
 
 def validate_chroot_blacklist(form, field):
