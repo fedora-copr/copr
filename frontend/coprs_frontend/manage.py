@@ -4,6 +4,7 @@ import argparse
 import os
 import subprocess
 import sqlalchemy
+import datetime
 import time
 
 import flask
@@ -265,8 +266,18 @@ class AlterChrootCommand(ChrootCommand):
         activate = (action == "activate")
         for chroot_name in chroot_names:
             try:
-                coprs_logic.MockChrootsLogic.edit_by_name(
+                mock_chroot = coprs_logic.MockChrootsLogic.edit_by_name(
                     chroot_name, activate)
+
+                if action != "eol":
+                    continue
+
+                for copr_chroot in mock_chroot.copr_chroots:
+                    DELETE_EOL_CHROOTS_AFTER = 181 # (days) Move this to the config
+                    delete_after = datetime.datetime.now() + datetime.timedelta(days=DELETE_EOL_CHROOTS_AFTER)
+                    # Workarounding an auth here
+                    coprs_logic.CoprChrootsLogic.update_chroot(copr_chroot.copr.user, copr_chroot,
+                                                               delete_after=delete_after_timestamp)
                 db.session.commit()
             except exceptions.MalformedArgumentException:
                 self.print_invalid_format(chroot_name)
@@ -278,7 +289,7 @@ class AlterChrootCommand(ChrootCommand):
                "-a",
                dest="action",
                help="Action to take - currently activate or deactivate",
-               choices=["activate", "deactivate"],
+               choices=["activate", "deactivate", "eol"],
                required=True),
     )
 
