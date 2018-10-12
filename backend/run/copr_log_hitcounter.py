@@ -61,6 +61,7 @@ def get_hit_data():
 
     first_line = None
     last_line = None
+    ignore_networks = map(IPNetwork, args.ignore_subnets)
     with open(sys.argv[1], 'r') as logfile:
         logline = None
         for logline in logfile:
@@ -75,9 +76,9 @@ def get_hit_data():
                 continue
 
             ignore = False
-            for ignore_subnet in args.ignore_subnets:
+            for ignore_subnet in ignore_networks:
                 try:
-                    if IPAddress(m.group('ip_address')) in IPNetwork(ignore_subnet):
+                    if IPAddress(m.group('ip_address')) in ignore_subnet:
                         ignore = True
                         break
                 except netaddr.core.AddrFormatError:
