@@ -512,18 +512,15 @@ def pkg_name_evr(srpm_path):
            '%{NAME} %{EPOCH} %{VERSION} %{RELEASE}', srpm_path]
 
     try:
-        proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            encoding='utf-8')
-        output, error = proc.communicate()
+        result = run_cmd(cmd)
     except OSError as e:
         raise CoprBackendSrpmError(str(e))
 
-    if proc.returncode != 0:
+    if result.returncode != 0:
         raise CoprBackendSrpmError('Error querying srpm: %s' % error)
 
     try:
-        name, epoch, version, release = output.split(" ")
+        name, epoch, version, release = result.stdout.split(" ")
     except ValueError as e:
         raise CoprBackendSrpmError(str(e))
 
