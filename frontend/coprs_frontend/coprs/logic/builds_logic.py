@@ -882,7 +882,6 @@ GROUP BY
                 if not build.build_chroots:
                     # create the BuildChroots from Package setting, if not
                     # already set explicitly for concrete build
-                    print("creating build chroot ...")
                     for chroot in build.package.chroots:
                         buildchroot = models.BuildChroot(
                             build=build,
