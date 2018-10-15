@@ -110,7 +110,7 @@ def copr_rebuild_package(copr, package_name):
                     .format(package_name, copr.full_name))
         return flask.redirect(helpers.copr_url("coprs_ns.copr_edit_package", copr, package_name=package_name))
 
-    form = form(copr.active_chroots)(data=data)
+    form = form(copr.active_chroots, package)(data=data)
     return f(copr, form, view="coprs_ns.copr_new_build" + view_suffix, package=package)
 
 

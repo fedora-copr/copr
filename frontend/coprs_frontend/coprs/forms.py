@@ -738,7 +738,7 @@ class RebuildAllPackagesFormFactory(object):
 
 
 class BaseBuildFormFactory(object):
-    def __new__(cls, active_chroots, form):
+    def __new__(cls, active_chroots, form, package=None):
         class F(form):
             @property
             def selected_chroots(self):
@@ -775,8 +775,14 @@ class BaseBuildFormFactory(object):
         F.chroots_list = list(map(lambda x: x.name, active_chroots))
         F.chroots_list.sort()
         F.chroots_sets = {}
+
+        package_chroots = set(F.chroots_list)
+        if package:
+            package_chroots = set([ch.name for ch in package.chroots])
+
         for ch in F.chroots_list:
-            setattr(F, ch, wtforms.BooleanField(ch, default=True, false_values=FALSE_VALUES))
+            default = ch in package_chroots
+            setattr(F, ch, wtforms.BooleanField(ch, default=default, false_values=FALSE_VALUES))
             if ch[0] in F.chroots_sets:
                 F.chroots_sets[ch[0]].append(ch)
             else:
@@ -785,8 +791,8 @@ class BaseBuildFormFactory(object):
 
 
 class BuildFormScmFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormScm)
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormScm, package)
 
 
 class BuildFormTitoFactory(object):
@@ -806,13 +812,13 @@ class BuildFormMockFactory(object):
 
 
 class BuildFormPyPIFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormPyPI)
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormPyPI, package)
 
 
 class BuildFormRubyGemsFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormRubyGems)
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormRubyGems, package)
 
 
 class BuildFormDistGitFactory(object):
@@ -830,8 +836,8 @@ class BuildFormUploadFactory(object):
 
 
 class BuildFormCustomFactory(object):
-    def __new__(cls, active_chroots):
-        return BaseBuildFormFactory(active_chroots, PackageFormCustom)
+    def __new__(cls, active_chroots, package=None):
+        return BaseBuildFormFactory(active_chroots, PackageFormCustom, package)
 
 
 class BuildFormUrlFactory(object):
