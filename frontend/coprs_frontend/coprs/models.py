@@ -624,7 +624,7 @@ class Package(db.Model, helpers.Serializer, CoprSearchRelatedData):
 
     @property
     def chroots(self):
-        chroots = self.copr.active_chroots
+        chroots = list(self.copr.active_chroots)
         if not self.chroot_blacklist_raw:
             # no specific blacklist
             if self.copr_dir.main:
