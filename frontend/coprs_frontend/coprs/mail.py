@@ -73,6 +73,30 @@ class LegalFlagMessage(Message):
                         reporter.mail))
 
 
+class OutdatedChrootMessage(Message):
+    def __init__(self, copr, copr_chroots):
+        """
+        :param models.Copr copr:
+        :param list copr_chroots: list of models.CoprChroot instances
+        """
+        self.subject = "Upcoming deletion of outdated chroots in {0}".format(copr.name)
+        self.text = ("You have been notified, as a project {0} admin, that it has some builds in "
+                     "outdated chroot(s).\n\n"
+                     "According to the 'Copr outdated chroots removal policy' [1], data are going"
+                     "to be preserved 180 days after the chroot is EOL and then automatically deleted,"
+                     "unless you decide to prolong the expiration period.\n\n".format(copr.full_name))
+
+        for chroot in copr_chroots:
+            self.text += ("Project: {0}\n"
+                          "Chroot: {1}\n"
+                          "Remaining: {2} days\n\n".format(
+                              copr.full_name, chroot.name, chroot.delete_after_days))
+
+        self.text += ("Please, visit the project settings [2] if you want to extend the time.\n\n"
+                      "[1] https://docs.pagure.org/copr.copr/copr_outdated_chroots_removal_policy.html"
+                      "[2] {0}".format(helpers.copr_url('coprs_ns.copr_repositories', copr)))
+
+
 def send_mail(recipient, message, sender=None):
     """
     :param str/list recipient: One recipient email as a string or multiple emails in a list
