@@ -176,8 +176,14 @@
         {% else %}
           <dd> - </dd>
         {% endif %}
+
+        {% if not build.build_chroots %}
+        <dt>RPM builds:</dt>
+        <dd>waiting for SRPM (package name is not known for this build, yet)</dd>
+        {% endif %}
         </dl>
 
+        {% if build.build_chroots %}
         <table class="table table-striped table-bordered">
           <thead>
             <tr>
@@ -222,6 +228,7 @@
           {% endfor %}
           </tbody>
         </table>
+        {% endif %}
       </div>
     </div>
 
