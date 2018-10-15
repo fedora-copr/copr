@@ -16,7 +16,7 @@ except ImportError:
 from coprs import constants
 from coprs import helpers
 from coprs import models
-from coprs.logic.coprs_logic import CoprsLogic
+from coprs.logic.coprs_logic import CoprsLogic, MockChrootsLogic
 from coprs.logic.users_logic import UsersLogic
 from coprs import exceptions
 
@@ -50,10 +50,6 @@ def get_package_form_cls_by_source_type_text(source_type_text):
         return PackageFormCustom
     else:
         raise exceptions.UnknownSourceTypeException("Invalid source type")
-
-
-def get_active_chroots():
-    return set([c.name for c in models.MockChroot.query.filter(models.MockChroot.is_active).all()])
 
 
 class MultiCheckboxField(wtforms.SelectMultipleField):
@@ -175,13 +171,10 @@ class ChrootsValidator(object):
             return
 
         selected = set(field.data.split())
-        enabled = get_active_chroots()
+        enabled = set(MockChrootsLogic.active_names())
 
-        if not (selected <= enabled):
-            raise wtforms.ValidationError("Such chroot is not enabled: {}".format(", ".join(selected - enabled)))
-
-    def chroots_list(self):
-        return [c.name for c in models.MockChroot.query.filter(models.MockChroot.is_active).all()]
+        if selected - enabled:
+            raise wtforms.ValidationError("Such chroot is not available: {}".format(", ".join(selected - enabled)))
 
 
 class NameNotNumberValidator(object):
@@ -317,17 +310,13 @@ class CoprFormFactory(object):
                         have_any = True
                 return have_any
 
-        F.chroots_list = list(map(lambda x: x.name,
-                             models.MockChroot.query.filter(
-                                 models.MockChroot.is_active == True
-                             ).all()))
+        F.chroots_list = MockChrootsLogic.active_names()
         F.chroots_list.sort()
         # sets of chroots according to how we should print them in columns
         F.chroots_sets = {}
         for ch in F.chroots_list:
             checkbox_default = False
-            if mock_chroots and ch in map(lambda x: x.name,
-                                          mock_chroots):
+            if mock_chroots and ch in [x.name for x in mock_chroots]:
                 checkbox_default = True
 
             setattr(F, ch, wtforms.BooleanField(ch, default=checkbox_default, false_values=FALSE_VALUES))
@@ -426,7 +415,7 @@ def validate_chroot_blacklist(form, field):
                 raise wtforms.ValidationError('Pattern "{0}" does not match "{1}"'.format(field, pattern))
 
             matched = set()
-            all_chroots = get_active_chroots()
+            all_chroots = MockChrootsLogic.active_names()
             for chroot in all_chroots:
                 if fnmatch(chroot, field):
                     matched.add(chroot)
@@ -772,7 +761,8 @@ class BaseBuildFormFactory(object):
         # overrides BasePackageForm.package_name and is unused for building
         F.package_name = wtforms.StringField()
 
-        F.chroots_list = list(map(lambda x: x.name, active_chroots))
+        # fill chroots based on project settings
+        F.chroots_list = [x.name for x in active_chroots]
         F.chroots_list.sort()
         F.chroots_sets = {}
 
