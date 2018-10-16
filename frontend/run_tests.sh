@@ -18,4 +18,4 @@ export PYTHONPATH="${PYTHONPATH+$PYTHONPATH:}$common_path"
 export COPR_CONFIG="$(pwd)/coprs_frontend/config/copr_unit_test.conf"
 
 cd coprs_frontend
-./manage.py test "$@"
+./manage.py test -a "$@"

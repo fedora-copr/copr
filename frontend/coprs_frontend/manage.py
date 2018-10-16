@@ -34,7 +34,7 @@ class TestCommand(Command):
         else:
             os.environ['PYTHONPATH'] = '.'
 
-        additional_args = []
+        additional_args = test_args
 
         if coverage:
             additional_args.extend([
