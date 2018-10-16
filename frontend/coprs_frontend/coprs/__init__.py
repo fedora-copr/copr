@@ -74,7 +74,7 @@ from coprs.views.webhooks_ns import webhooks_ns
 from coprs.views.webhooks_ns import webhooks_general
 
 
-from .context_processors import include_banner, inject_fedmenu
+from .context_processors import include_banner, inject_fedmenu, counter_processor
 
 setup_log()
 

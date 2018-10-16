@@ -1,4 +1,4 @@
-{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_build_method_box %}
+{% from "_helpers.html" import render_field, render_form_errors, copr_url, render_pypi_python_versions_field, render_additional_build_options, render_srpm_build_method_box with context %}
 {% from "coprs/detail/_method_forms.html" import copr_method_form_fileds_custom %}
 
 {% macro copr_package_form_begin(form, view, copr, package) %}
@@ -7,7 +7,7 @@
         <form class="form-horizontal" action="{{ copr_url(view, copr, source_type_text=source_type_text) }}" method="post" enctype="multipart/form-data">
           <div class="panel panel-default">
             <div class="panel-heading">
-              <h3 class="panel-title">Provide the source</h3>
+              <h3 class="panel-title">{{ counter('instructions') }}. Provide the source</h3>
             </div>
             <div class="panel-body">
               {{ render_field(form.package_name) }}
@@ -16,7 +16,7 @@
               method="post" enctype="multipart/form-data">
           <div class="panel panel-default">
             <div class="panel-heading">
-              <h3 class="panel-title">Provide the source</h3>
+              <h3 class="panel-title">{{ counter('instructions') }}. Provide the source</h3>
             </div>
             <div class="panel-body">
               <input type="hidden" name="package_name" value="{{ package.name }}" />
@@ -55,7 +55,7 @@
   </div>
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">Generic package setup</h3>
+      <h3 class="panel-title">{{ counter('instructions') }}. Generic package setup</h3>
     </div>
     <div class="panel-body">
 {{ render_field(form.chroot_blacklist,
