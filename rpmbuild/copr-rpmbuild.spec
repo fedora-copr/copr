@@ -56,8 +56,8 @@ Requires: expect
 Requires: tito
 
 %if 0%{?fedora} || 0%{?rhel} > 7
-Requires: rubygem-gem2rpm
-Requires: pyp2rpm
+Suggests: rubygem-gem2rpm
+Suggests: pyp2rpm
 %endif
 
 %description
