@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import itertools
 import argparse
 import os
 import subprocess
@@ -16,11 +17,12 @@ from coprs import app
 from coprs import db
 from coprs import exceptions
 from coprs import models
+from coprs.mail import send_mail, OutdatedChrootMessage
 from coprs.logic import coprs_logic, packages_logic, actions_logic, builds_logic, users_logic
 from coprs.views.misc import create_user_wrapper
 from coprs.whoosheers import CoprWhoosheer
 from sqlalchemy import and_, or_
-from coprs.helpers import chroot_to_branch
+from coprs.helpers import chroot_to_branch, PermissionEnum
 
 
 class TestCommand(Command):
@@ -518,6 +520,60 @@ class RemoveGraphsDataCommand(Command):
         db.session.commit()
 
 
+class NotifyOutdatedChrootsCommand(Command):
+    """
+    Notify all admins of projects with builds in outdated chroots about upcoming deletion.
+    """
+    option_list = [
+        Option("--dry-run", action="store_true",
+               help="Do not actually notify the people, but rather print information on stdout"),
+        Option("-a", "--all", action="store_true",
+               help="Notify all (even the recently notified) relevant people"),
+    ]
+
+    def run(self, dry_run, all):
+        self.dry_run = dry_run
+        self.all = all
+
+        outdated = coprs_logic.CoprChrootsLogic.filter_outdated(coprs_logic.CoprChrootsLogic.get_multiple())
+        for copr, chroots in itertools.groupby(outdated, key=lambda x: x.copr):
+            chroots = self.filter_chroots([chroot for chroot in chroots])
+            self.notify(copr, chroots)
+            self.store_notify_timesamp(chroots)
+
+    def filter_chroots(self, chroots):
+        if self.all:
+            return chroots
+
+        filtered = []
+        for chroot in chroots:
+            if not chroot.delete_notify:
+                filtered.append(chroot)
+                continue
+
+            now = datetime.datetime.now()
+            if (now - chroot.delete_notify).days >= 14:
+                filtered.append(chroot)
+
+        return filtered
+
+    def notify(self, copr, chroots):
+        admins = [user.mail for user in coprs_logic.CoprPermissionsLogic.get_admins_for_copr(copr)]
+        if self.dry_run:
+            chnames = [chroot.name for chroot in chroots]
+            print("Notify {} about {} - {}".format(admins, copr.full_name, chnames))
+        else:
+            msg = OutdatedChrootMessage(copr, chroots)
+            send_mail(admins, msg)
+
+    def store_notify_timesamp(self, chroots):
+        if self.dry_run:
+            return
+        for chroot in chroots:
+            chroot.delete_after_notify = datetime.datetime.now()
+        db.session.commit()
+
+
 manager = Manager(app)
 manager.add_command("test", TestCommand())
 manager.add_command("create_sqlite_file", CreateSqliteFileCommand())
@@ -537,6 +593,7 @@ manager.add_command("rawhide_to_release", RawhideToReleaseCommand())
 manager.add_command("backend_rawhide_to_release", BackendRawhideToReleaseCommand())
 manager.add_command("update_graphs", UpdateGraphsDataCommand())
 manager.add_command("vacuum_graphs", RemoveGraphsDataCommand())
+manager.add_command("notify_outdated_chroots", NotifyOutdatedChrootsCommand())
 
 if __name__ == "__main__":
     manager.run()

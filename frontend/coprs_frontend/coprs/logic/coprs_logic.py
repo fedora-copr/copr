@@ -1,5 +1,6 @@
 import os
 import time
+import datetime
 
 from sqlalchemy import and_
 from sqlalchemy.sql import func
@@ -387,6 +388,11 @@ class CoprPermissionsLogic(object):
         return query
 
     @classmethod
+    def get_admins_for_copr(cls, copr):
+        permissions = cls.get_for_copr(copr)
+        return [copr.user] + [p.user for p in permissions if p.copr_admin == helpers.PermissionEnum("approved")]
+
+    @classmethod
     def new(cls, copr_permission):
         db.session.add(copr_permission)
 
@@ -496,6 +502,10 @@ class BranchesLogic(object):
 
 
 class CoprChrootsLogic(object):
+    @classmethod
+    def get_multiple(cls):
+        return models.CoprChroot.query
+
     @classmethod
     def mock_chroots_from_names(cls, names):
 
@@ -663,6 +673,10 @@ class CoprChrootsLogic(object):
             "Only owners and admins may update their projects.")
 
         db.session.delete(copr_chroot)
+
+    @classmethod
+    def filter_outdated(cls, query):
+        return query.filter(models.CoprChroot.delete_after >= datetime.datetime.now())
 
 
 class MockChrootsLogic(object):
