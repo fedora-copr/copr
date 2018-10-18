@@ -616,7 +616,7 @@ class Commands(object):
     def action_delete_package(self, args):
         ownername, projectname = self.parse_name(args.copr)
         package = self.client.package_proxy.delete(ownername=ownername, projectname=projectname, packagename=args.name)
-        print("Package was successfully deleted.")
+        print("Package {0} was successfully deleted.".format(args.name))
 
     def action_reset_package(self, args):
         ownername, projectname = self.parse_name(args.copr)
