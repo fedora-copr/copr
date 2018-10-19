@@ -65,6 +65,19 @@ Provides command capable of running COPR build-tasks.
 Example: copr-rpmbuild 12345-epel-7-x86_64 will locally
 build build-id 12345 for chroot epel-7-x86_64.
 
+%package all
+Summary: copr-rpmbuild with all weak dependencies
+Requires: %{name} = %{version}-%{release}
+Requires: rubygem-gem2rpm
+Requires: pyp2rpm
+
+%description all
+Provides command capable of running COPR build-tasks.
+Example: copr-rpmbuild 12345-epel-7-x86_64 will locally
+build build-id 12345 for chroot epel-7-x86_64.
+
+This package contains all optional modules for building SRPM.
+
 %prep
 %setup -q
 
@@ -112,6 +125,9 @@ name="%{name}" version="%{version}" summary="%{summary}" %py_install
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/mock.cfg.j2
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/rpkg.conf.j2
 %config(noreplace) %{_sysconfdir}/copr-rpmbuild/make_srpm_mock.cfg
+
+%files all
+%license LICENSE
 
 %changelog
 {{{ git_dir_changelog since_tag=copr-rpmbuild-0.18-1 }}}
