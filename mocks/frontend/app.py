@@ -16,7 +16,7 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     static_dir = os.path.abspath(sys.argv[2])
 
-app = flask.Flask(__name__, static_path='/static', static_folder=static_dir)
+app = flask.Flask(__name__, static_folder=static_dir)
 
 import_task_dict = {}
 build_task_dict = {}
