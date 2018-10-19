@@ -14,7 +14,7 @@ else
     export COPRROOTDIR=$SCRIPTPATH/../../../
 fi
 
-dnf -y copr enable @copr/copr
+dnf -y copr enable @copr/copr-dev
 dnf -y install jq copr-mocks dist-git dist-git-selinux rpkg
 
 # cleanup
