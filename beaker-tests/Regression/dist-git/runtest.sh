@@ -74,7 +74,7 @@ rlJournalStart
         done
     rlPhaseEnd
 
-    rlPhaseStartCleanup
-    rlPhaseEnd
+    #rlPhaseStartCleanup
+    #rlPhaseEnd
 rlJournalPrintText
 rlJournalEnd
